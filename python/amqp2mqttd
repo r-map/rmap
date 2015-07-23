@@ -1,0 +1,97 @@
+#!/usr/bin/python
+# GPL. (C) 2014 Paolo Patruno.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+from rmap import daemon
+import pika, subprocess
+import rmap.settings
+
+user=rmap.settings.amqpuser
+password=rmap.settings.amqppassword
+host="localhost"
+queue="mqtt"
+
+
+amqp2mqttd = daemon.Daemon(
+        stdin="/dev/null",
+        stdout=rmap.settings.logfileamqp2mqttd,
+        stderr=rmap.settings.errfileamqp2mqttd,
+        pidfile=rmap.settings.lockfileamqp2mqttd,
+        user=rmap.settings.useramqp2mqttd,
+        group=rmap.settings.groupamqp2mqttd
+)
+
+def callback(ch, method, properties, body):
+    print " [x] Received message"
+
+
+    try:
+        amqp2mqttd.procs = [subprocess.Popen(["bufr2mqtt","-t","report","-u",user,"-P",password], stdin=subprocess.PIPE)]
+        amqp2mqttd.procs[0].communicate(input=body)
+
+	r = amqp2mqttd.procs[0].wait()
+        if r != 0:
+            print "There were some errors executing bufr2mqtt ({})".format(r)
+            print "----\n{}\n---".format(body)
+            raise bufr2mqtt_error
+    except:
+        print "There were some errors executing bufr2mqtt import"
+        # raise TODO: enqueue in error
+
+    print " [x] Done"
+    ch.basic_ack(delivery_tag = method.delivery_tag)
+
+    # TODO how we can pass procs to daemon ?
+
+
+def main(self):
+
+    credentials=pika.PlainCredentials(user, password)
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
+        host=host,credentials=credentials))
+    channel = connection.channel()
+
+    #channel.queue_declare(queue=queue)
+
+    print ' [*] Waiting for messages. To exit press CTRL+C'
+
+
+    channel.basic_consume(callback,
+                          queue=queue,
+                          no_ack=False)
+
+    channel.start_consuming()
+
+
+if __name__ == '__main__':
+
+    import sys, os
+    amqp2mqttd.cwd=os.getcwd()
+
+    if amqp2mqttd.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+        sys.stdout.write("Daemon stdout output\n")
+        sys.stderr.write("Daemon stderr output\n")
+
+        main(amqp2mqttd)  # (this code was run as script)
+
+        for proc in amqp2mqttd.procs:
+            proc.wait()
+
+        sys.exit(0)

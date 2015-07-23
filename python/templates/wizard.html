@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    <section id="main_content">
+
+      <p><h2>Configuration Wizard: station information </h2></p>
+      <p>
+	<form action="/wizard/" method="post">
+	  {% csrf_token %}
+	  {{ form }}
+	  <input type="submit" value="Submit" />
+	</form>
+
+      </p>
+    </section>
+
+{% endblock %}
+

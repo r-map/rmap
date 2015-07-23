@@ -1,0 +1,7 @@
+include CHANGES.txt
+include CONTRIBUTORS.txt
+include LICENSE.txt
+include README.txt
+include TODO.txt
+recursive-include doc/source *.rst *.py
+recursive-include borinud/_static *

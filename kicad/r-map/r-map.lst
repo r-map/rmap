@@ -1,0 +1,71 @@
+eeschema (2012-apr-16-27)-stable  >> Creation date: Thu 28 Aug 2014 06:04:21 PM CEST
+
+#Cmp ( order = Reference )
+| C1         CP1         
+| C2         C           
+| C3         CP1         
+| C4         C           
+| C5         C           
+| C6         C           
+| C7         C           
+| CON1       AVR-JTAG-10 
+| K1         CONN_3      
+| K2         CONN_3      
+| K3         CONN_3      
+| K4         CONN_3      
+| P1         NRF24L01_BRD
+| P2         ENC28J60_BRD
+| P3         RTC_I2C_AT24C32_DS1307
+| P4         CONN_4      
+| P5         CONN_4      
+| P6         CONN_4      
+| P7         CONN_4      
+| P8         CONN_2      
+| P9         DC_DC       
+| P10        SPI         
+| P11        CONN_5      
+| P12        CONN_2      
+| P13        RELAY       
+| R1         R           
+| R2         R           
+| R-MAP-SHIELD1 ARDUINO_MEGA_SHIELD
+| SW1        SPST        
+| U1         LM1117-5    
+| U2         LM1117-3.3  
+#End Cmp
+
+#Cmp ( order = Value )
+| ARDUINO_MEGA_SHIELD R-MAP-SHIELD1
+| AVR-JTAG-10  CON1      
+| C            C2        
+| C            C4        
+| C            C5        
+| C            C6        
+| C            C7        
+| CONN_2       P8        
+| CONN_2       P12       
+| CONN_3       K1        
+| CONN_3       K2        
+| CONN_3       K3        
+| CONN_3       K4        
+| CONN_4       P4        
+| CONN_4       P5        
+| CONN_4       P6        
+| CONN_4       P7        
+| CONN_5       P11       
+| CP1          C1        
+| CP1          C3        
+| DC_DC        P9        
+| ENC28J60_BRD P2        
+| LM1117-3.3   U2        
+| LM1117-5     U1        
+| NRF24L01_BRD P1        
+| R            R1        
+| R            R2        
+| RELAY        P13       
+| RTC_I2C_AT24C32_DS1307 P3        
+| SPI          P10       
+| SPST         SW1       
+#End Cmp
+
+#End List

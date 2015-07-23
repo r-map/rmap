@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<h2>{{ object.name }}</h2>
+<table border="1">
+
+<tr><td> Active </td>   <td> {{ object.active }} </td></tr>
+<tr><td> Ident </td>    <td> {{ object.ident }} </td></tr>
+<tr><td> Lat </td>      <td> {{ object.lat }} </td></tr>
+<tr><td> Lon </td>      <td> {{ object.lon }} </td></tr>
+<tr><td> Category </td> <td> {{ object.category }} </td></tr>
+
+</table>
+
+<h2>{% trans 'Display graph' %}</h2>
+<table border="1">
+
+sito:{{ site.domain }}/
+
+<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B12101.v>{% trans 'Temperature' %}</a></td></tr>
+<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B10004.v>{% trans 'Pressure' %}</a></td></tr>
+<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B13003.v>{% trans 'Humidity' %}</a></td></tr>
+
+</table>
+
+{% endblock %}

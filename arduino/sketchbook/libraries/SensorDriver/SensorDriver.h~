@@ -1,0 +1,22 @@
+/*
+  SensorDriver.h - Library for read sensor.
+  Created by Paolo PAtruno , November 30, 2013.
+  Released into the GPL licenze.
+*/
+
+#ifndef SesorDriver_h
+#define SensorDriver_h
+
+#include "Arduino.h"
+#include <Wire.h>
+
+class Tmp_275_102
+{
+  public:
+    Tmp_275_102(int address);
+    int get();
+  private:
+    int _address;
+};
+
+#endif

@@ -1,0 +1,57 @@
+#!/usr/bin/python
+# GPL. (C) 2014 Paolo Patruno.
+
+# This program is free software; you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+
+from rmap import daemon
+import rmap.settings
+
+borinudd = daemon.Daemon(
+        stdin="/dev/null",
+        stdout=rmap.settings.logfileborinudd,
+        stderr=rmap.settings.errfileborinudd,
+        pidfile=rmap.settings.lockfileborinudd,
+        user=rmap.settings.userborinudd,
+        group=rmap.settings.groupborinudd
+)
+
+def main(self):
+
+    import subprocess,os
+
+    #my_env = os.environ
+    #my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
+
+    #self.procs=[subprocess.Popen(["python","-m","borinud.ws","--dsn=odbc://rmap","--host=base","--port=5925"],cwd=self.cwd,env=my_env)]
+    self.procs=[subprocess.Popen(["python","-m","borinud.ws","--dsn=odbc://rmap","--host=base","--port=5925"],cwd=self.cwd)]
+
+if __name__ == '__main__':
+
+    import sys, os
+    borinudd.cwd=os.getcwd()
+
+    if borinudd.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+        sys.stdout.write("Daemon stdout output\n")
+        sys.stderr.write("Daemon stderr output\n")
+
+        main(borinudd)  # (this code was run as script)
+
+        for proc in borinudd.procs:
+            proc.wait()
+
+        sys.exit(0)

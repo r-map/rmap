@@ -1,0 +1,35 @@
+* to extract messages
+django-admin makemessages --settings=rmap.settings -a
+
+* to rebuild android package
+rm rmap.sqlite3
+./rmapctrl --syncdb
+buildozer android release
+./sign.sh
+
+* to manually initialize a DB
+python manage.py migrate --no-initial-data
+python manage.py changepassword rmap
+
+* how to use the last django in android
+rm .buildozer/android/platform/python-for-android/recipes/django/recipe.sh
+comment wsgiref in
+.buildozer/android/platform/python-for-android/src/blacklist.txt
+
+* dump data by natural keys
+ python manage.py dumpdata --natural-foreign --natural-primary --format=json auth.user|json_reformat
+
+
+#obsolete notes:
+
+* bug in plyer to patch:
+https://www.bountysource.com/issues/7197528-overflowerror-python-int-too-large-to-convert-to-c-long-android-lollipop
+you have to modify it in .buildozer dir
+./android/platform/python-for-android/dist/rmap/python-install/lib/python2.7/site-packages/plyer/platforms/android/gps.py
+
+* to use pyserial comment 
+#lib-dynload/termios.so
+in
+./android/platform/python-for-android/src/blacklist.txt
+./android/platform/python-for-android/dist/rmap/blacklist.txt
+

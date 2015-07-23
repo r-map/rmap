@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    <section id="main_content">
+
+      <p><h2>Configuration Wizard second step: WiFi network</h2></p>
+
+      <p><h3>Leave the fields blank if you do not want to change network configurations</h3></p>
+
+      <p>
+	<form action="/wizard2/" method="post">
+	  {% csrf_token %}
+	  {{ form }}
+	  <input type="submit" value="Submit" />
+	</form>
+
+      </p>
+    </section>
+
+{% endblock %}
+

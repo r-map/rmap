@@ -1,0 +1,26 @@
+
+  check process borinudd with pidfile /tmp/borinudd.lock
+    start program = "/usr/bin/borinudd restart"
+    stop program  = "/usr/bin/borinudd stop"
+
+  check process mqtt2dballed with pidfile /tmp/mqtt2dballed.lock
+    start program = "/usr/bin/mqtt2dballed restart"
+    stop program  = "/usr/bin/mqtt2dballed stop"
+
+  check process dbusgpiod with pidfile /var/run/dbusgpio/dbusgpiod.lock
+    start program = "/usr/bin/dbusgpiod restart"
+    stop program  = "/usr/bin/dbusgpiod stop"
+
+  check process poweroffd with pidfile /tmp/poweroffd.lock
+    start program = "/usr/bin/poweroffd restart"
+    stop program  = "/usr/bin/poweroffd stop"
+    depends on dbusgpiod
+
+  check process stationd with pidfile /tmp/stationd.lock
+    start program = "/usr/bin/stationd restart"
+    stop program  = "/usr/bin/stationd stop"
+
+  check process rmapweb with pidfile /tmp/rmapweb.lock
+    start program = "/usr/bin/rmapweb restart"
+    stop program  = "/usr/bin/rmapweb stop"
+

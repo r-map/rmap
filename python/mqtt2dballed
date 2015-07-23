@@ -1,0 +1,61 @@
+#!/usr/bin/python
+# GPL. (C) 2014 Paolo Patruno.
+
+# This program is free software; you can redistribute it and/or modify 
+# it under the terms of the GNU General Public License as published by 
+# the Free Software Foundation; either version 2 of the License, or 
+# (at your option) any later version. 
+# 
+# This program is distributed in the hope that it will be useful, 
+# but WITHOUT ANY WARRANTY; without even the implied warranty of 
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+# GNU General Public License for more details. 
+# 
+# You should have received a copy of the GNU General Public License 
+# along with this program; if not, write to the Free Software 
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+# 
+
+from rmap import daemon
+import rmap.settings
+
+mqtt2dballed = daemon.Daemon(
+        stdin="/dev/null",
+        stdout=rmap.settings.logfilemqtt2dballed,
+        stderr=rmap.settings.errfilemqtt2dballed,
+        pidfile=rmap.settings.lockfilemqtt2dballed,
+        user=rmap.settings.usermqtt2dballed,
+        group=rmap.settings.groupmqtt2dballed
+)
+
+def main(self):
+
+    import subprocess,os
+
+    #    my_env = os.environ
+    #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
+
+    p1 = subprocess.Popen(["mqtt2bufr","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE)
+    p2 = subprocess.Popen(["dbadb","import","-f","--dsn=rmap"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
+    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    output = p2.communicate()[0]
+    #,env=my_env
+
+
+if __name__ == '__main__':
+
+    import sys, os
+    mqtt2dballed.cwd=os.getcwd()
+
+    if mqtt2dballed.service():
+
+        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+        sys.stdout.write("Daemon stdout output\n")
+        sys.stderr.write("Daemon stderr output\n")
+
+        main(mqtt2dballed)  # (this code was run as script)
+
+        for proc in mqtt2dballed.procs:
+            proc.wait()
+
+        sys.exit(0)

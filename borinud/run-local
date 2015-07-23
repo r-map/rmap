@@ -1,0 +1,4 @@
+#!/bin/bash
+srcdir="$( cd $(dirname $0) && pwd)"
+export PYTHONPATH="${PYTHONPATH}:$srcdir"
+exec "$@"

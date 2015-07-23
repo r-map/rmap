@@ -1,0 +1,28 @@
+<?php
+
+require("phpMQTT.php");
+
+if ($_GET['topic'] == "") {
+	die("please set topic");
+} else {
+$topic = "vk/wohnzimmer/" . $_GET['topic'];
+}
+
+if ($_GET['payload'] == "") {
+        die("please set payload");
+} else {
+$payload = $_GET['payload'];
+}
+
+	
+$mqtt = new phpMQTT("192.168.2.10", 1883, "PHP MQTT Client");
+
+
+if ($mqtt->connect()) {
+	$mqtt->publish($topic,$payload,0);
+	$mqtt->close();
+}
+
+echo "okay\n";
+?>
+

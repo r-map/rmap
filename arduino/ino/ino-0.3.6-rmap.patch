@@ -1,0 +1,190 @@
+diff -Nur ino-0.3.6/ino/commands/build.py ino-0.3.6-rmap/ino/commands/build.py
+--- ino-0.3.6/ino/commands/build.py	2013-09-24 11:38:34.000000000 +0200
++++ ino-0.3.6-rmap/ino/commands/build.py	2014-03-28 16:24:21.000000000 +0100
+@@ -45,11 +45,17 @@
+     default_cxx = 'avr-g++'
+     default_ar = 'avr-ar'
+     default_objcopy = 'avr-objcopy'
++    default_avrsize = 'avr-size'
+ 
+-    default_cppflags = '-ffunction-sections -fdata-sections -g -Os -w'
+-    default_cflags = ''
+-    default_cxxflags = '-fno-exceptions'
+-    default_ldflags = '-Os --gc-sections'
++#    default_cppflags = '-ffunction-sections -fdata-sections -g -Os -fstack-usage -W -fno-strict-aliasing'
++#    default_cflags = '-g -fstack-usage -Wall -Wno-deprecated -fno-strict-aliasing'
++#    default_cxxflags = '-g -fno-exceptions -fstack-usage -Wall -Wno-deprecated -fno-strict-aliasing'
++
++    default_cppflags = '-ffunction-sections -fdata-sections -g2  -Wall'
++    default_cflags = '-Os -Wall'
++    default_cxxflags = '-Os -fno-exceptions  -Wall'
++
++    default_ldflags = '--gc-sections -Map t.map'
+ 
+     def setup_arg_parser(self, parser):
+         super(Build, self).setup_arg_parser(parser)
+@@ -62,6 +68,12 @@
+                             'a full path is not given, searches in Arduino '
+                             'directories before PATH. Default: "%(default)s".')
+ 
++        parser.add_argument('--avrsize', metavar='AVRSIZE',
++                            default=self.default_avrsize,
++                            help='Specifies the avr-size tool to use. If '
++                            'a full path is not given, searches in Arduino '
++                            'directories before PATH. Default: "%(default)s".')
++
+         parser.add_argument('--cc', metavar='COMPILER',
+                             default=self.default_cc,
+                             help='Specifies the compiler used for C files. If '
+@@ -137,11 +149,12 @@
+             ('cxx', args.cxx),
+             ('ar', args.ar),
+             ('objcopy', args.objcopy),
++            ('avrsize', args.avrsize),
+         ]
+ 
+         for tool_key, tool_binary in toolset:
+             self.e.find_arduino_tool(
+-                tool_key, ['hardware', 'tools', 'avr', 'bin'], 
++                tool_key, ['hardware', 'tools', 'avr', 'bin','avrsize'], 
+                 items=[tool_binary], human_name=tool_binary)
+ 
+     def setup_flags(self, args):
+@@ -215,6 +228,13 @@
+         if ret != 0:
+             raise Abort("Make failed with code %s" % ret)
+ 
++    def avrsize(self, args):
++        board = self.e.board_model(args.board_model)
++        #print [self.e.avrsize, '-C','--mcu', board['build']['mcu'],self.e['hex_path'][:-3]+"elf"]
++        ret = subprocess.call([self.e.avrsize, '-C','--mcu', board['build']['mcu'],self.e['hex_path'][:-3]+"elf"])
++        if ret != 0:
++            raise Abort("Avrsize failed with code %s" % ret)
++
+     def recursive_inc_lib_flags(self, libdirs):
+         flags = SpaceList()
+         for d in libdirs:
+@@ -284,3 +304,4 @@
+         self.make('Makefile.sketch')
+         self.scan_dependencies()
+         self.make('Makefile')
++        self.avrsize(args)
+diff -Nur ino-0.3.6/ino/commands/preproc.py ino-0.3.6-rmap/ino/commands/preproc.py
+--- ino-0.3.6/ino/commands/preproc.py	2013-09-23 17:52:26.000000000 +0200
++++ ino-0.3.6-rmap/ino/commands/preproc.py	2013-12-30 13:14:08.000000000 +0100
+@@ -34,18 +34,18 @@
+             out = open(args.output, 'wt')
+ 
+         sketch = open(args.sketch, 'rt').read()
+-        prototypes = self.prototypes(sketch)
++#        prototypes = self.prototypes(sketch)
+         lines = sketch.split('\n')
+-        includes, lines = self.extract_includes(lines)
++#        includes, lines = self.extract_includes(lines)
+ 
+         header = 'Arduino.h' if self.e.arduino_lib_version.major else 'WProgram.h'
+         out.write('#include <%s>\n' % header)
+ 
+-        out.write('\n'.join(includes))
+-        out.write('\n')
++#        out.write('\n'.join(includes))
++#        out.write('\n')
+ 
+-        out.write('\n'.join(prototypes))
+-        out.write('\n')
++#        out.write('\n'.join(prototypes))
++#        out.write('\n')
+ 
+         out.write('#line 1 "%s"\n' % args.sketch)
+         out.write('\n'.join(lines))
+diff -Nur ino-0.3.6/ino/commands/upload.py ino-0.3.6-rmap/ino/commands/upload.py
+--- ino-0.3.6/ino/commands/upload.py	2013-09-23 19:27:44.000000000 +0200
++++ ino-0.3.6-rmap/ino/commands/upload.py	2014-03-18 15:41:02.000000000 +0100
+@@ -122,6 +122,9 @@
+             port = caterina_port
+ 
+         # call avrdude to upload .hex
++
++        print self.e['avrdude']+" "+'-C'+" "+self.e['avrdude.conf']+" "+'-p'+" "+board['build']['mcu']+" "+'-P', port+" "+'-c', protocol+" "+'-b', board['upload']['speed']+" "+'-D'+" "+'-U'+" "+ 'flash:w:%s:i' % self.e['hex_path']
++
+         subprocess.call([
+             self.e['avrdude'],
+             '-C', self.e['avrdude.conf'],
+diff -Nur ino-0.3.6/ino/make/Makefile.deps.jinja ino-0.3.6-rmap/ino/make/Makefile.deps.jinja
+--- ino-0.3.6/ino/make/Makefile.deps.jinja	2013-09-24 11:38:34.000000000 +0200
++++ ino-0.3.6-rmap/ino/make/Makefile.deps.jinja	2014-02-25 00:40:13.000000000 +0100
+@@ -4,13 +4,13 @@
+ {% set src_build_dir = e.build_dir|pjoin(src_dir|basename) %}
+ 
+ {#
+- #   *.c *.cpp -> *.d
++ #   *.c *.cpp  *.S -> *.d
+  #}
+ 
+ {% if src_dir == e.src_dir %}
+-	{% set cpp = (src_dir|glob('*.c', '*.cpp') + src_build_dir|glob('*.cpp'))|filemap(src_build_dir, e.names.deps) %}
++	{% set cpp = (src_dir|glob('*.c', '*.cpp', '*.S') + src_build_dir|glob('*.cpp'))|filemap(src_build_dir, e.names.deps) %}
+ {% else %}
+-	{% set cpp = src_dir|glob('*.c', '*.cpp')|filemap(src_build_dir, e.names.deps) %}
++	{% set cpp = src_dir|glob('*.c', '*.cpp', '*.S')|filemap(src_build_dir, e.names.deps) %}
+ {% endif %}
+ 
+ {% for source, target in cpp.items() %}
+diff -Nur ino-0.3.6/ino/make/Makefile.jinja ino-0.3.6-rmap/ino/make/Makefile.jinja
+--- ino-0.3.6/ino/make/Makefile.jinja	2013-09-24 11:38:34.000000000 +0200
++++ ino-0.3.6-rmap/ino/make/Makefile.jinja	2014-02-27 23:50:05.000000000 +0100
+@@ -2,7 +2,7 @@
+ {% from "Makefile.common.jinja" import iquote, src_build_dir with context %}
+ 
+ {#
+- #   Macros to transform *.c and *.cpp -> *.o
++ #   Macros to transform *.c and *.cpp and *.S -> *.o
+  #}
+ {% macro compile(filemap, compiler) %}
+ {% for source, target in filemap.items() %}
+@@ -22,6 +22,15 @@
+ {{ compile(filemap, e.cxx ~ ' ' ~ e.cppflags ~ ' ' ~ e.cxxflags) }}
+ {% endmacro %}
+ 
++{% macro compile_S(filemap) %}
++{% for source, target in filemap.items() %}
++{{ target.path }} : {{ source.path }}
++	@echo {{ (source.dirname|basename|pjoin(source.filename))|colorize('yellow') }}
++	@mkdir -p {{ target.path|dirname }}
++	{{v}}{{ e.cc ~ ' ' ~ e.cppflags ~ ' ' ~ e.cflags }} {{ iquote(source) }} -o $@ -c {{ source.path }}
++{% endfor %}
++{% endmacro %}
++
+ {#
+  #   library sources -> *.a
+  #}
+@@ -29,9 +38,11 @@
+ {% for source_dir, target in libs.items() %}
+ {% set c = source_dir|glob('*.c')|filemap(target.dirname, e.names.obj) %}
+ {% set cpp = (source_dir|glob('*.cpp'))|filemap(target.dirname, e.names.obj) %}
+-{% set libobjs = c.target_paths() + cpp.target_paths() %}
++{% set S = (source_dir|glob('*.S'))|filemap(target.dirname, e.names.obj) %}
++{% set libobjs = c.target_paths() + cpp.target_paths() + S.target_paths() %}
+ {{ compile_c(c) }}
+ {{ compile_cpp(cpp) }}
++{{ compile_S(S) }}
+ {{ target.path }} : {{ libobjs }}
+ 	@echo {{ ('Linking ' ~ target.filename|basename)|colorize('green') }}
+ 	{{v}}{{ e.ar }} rcs $@ $^
+@@ -50,9 +61,15 @@
+ {{ compile_cpp(cpp) }}
+ 
+ {#
++ #   *.S -> *.o
++ #}
++{% set S = (e.src_dir|glob('*.S') + src_build_dir|glob('*.S'))|filemap(src_build_dir, e.names.obj) %}
++{{ compile_S(S) }}
++
++{#
+  #   *.o -> elf
+  #}
+-{% set objs = c.target_paths() + cpp.target_paths() + libs.target_paths() %}
++{% set objs = c.target_paths() + cpp.target_paths() + libs.target_paths() + S.target_paths() %}
+ {% set elf = e.build_dir|pjoin('firmware.elf') %}
+ {{ elf }} : {{ objs }}
+ 	@echo {{ 'Linking firmware.elf'|colorize('green') }}

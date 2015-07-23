@@ -1,0 +1,20 @@
+// use ajson library for json response
+#define USEAJSON
+
+// use RF24Network library for radio transport
+#define RADIORF24
+
+// activate debug on serial port
+#define DEBUGONSERIAL
+
+// include TMP driver
+#define TMPDRIVER
+
+// include ADT driver
+//#define ADTDRIVER
+
+// include HIH driver
+//#define HIHDRIVER
+
+// include BMP driver
+//#define BMPDRIVER

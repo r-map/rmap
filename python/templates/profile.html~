@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    <section id="main_content">
+
+      <p><h3>Rete di Monitoraggio Ambientale Partecipativo</h3></p>
+
+      <p>Obiettivi R-map</p>
+<ul>
+<li>Raccogliere e distribuire dati ambientali rilevati dai cittadini</li>
+
+<li>Rendere disponibili questi dati ai servizi
+meteorologici, alle agenzie di prevenzione ambientale, alla
+protezione civile e istituti di ricerca</li>
+
+<li>Fornire feedback ai fornitori di dati in modo che essi abbiano
+servizi per testare e migliorare la qualità dei dati</li>
+
+<li>Divulgazione scientifica e sensibilizzazione ai temi ambientali</li>
+
+<li>Coinvolgimento di scuole e università a scopi formativi</li>
+
+<li>Creare un circolo virtuoso tra Enti Formativi, Pubbliche
+Amministazioni, Aziende private e cittadini.</li>
+</ul>
+      </section>
+
+{% endblock %}
+

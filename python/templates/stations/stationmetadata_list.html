@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+ 
+    <h2>{% trans 'Stations' %}</h2>
+    <ul>
+
+      <table border="1">
+	<tr>
+	  <th>Short name</th>
+	  <th>Active</th>
+	  <th>Ident</th>
+	</tr>
+        {% for station in object_list %}
+	  {% if station.active  %}
+	    <tr>
+              <td> <a href={{ station.slug}}>{{ station.name }}</a> </td>
+	      <td> {{ station.active}}</td>
+	      <td> {{ station.ident}}</td>
+	    </tr>
+	  {% endif %}
+	{% empty %}
+	    <li>{% trans 'No station yet.' %}</li>
+        {% endfor %}
+      </table>
+    </ul>
+{% endblock %}

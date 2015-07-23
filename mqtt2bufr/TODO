@@ -1,0 +1,8 @@
+* Write tests
+
+* Datetime format: optional seconds and minutes
+  - YYYY-mm-ddTHH:MM:SS
+  - YYYY-mm-ddTHH:MM
+  - YYYY-mm-ddTHH
+
+* Remove dballe::Record from Parser

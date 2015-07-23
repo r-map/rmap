@@ -1,0 +1,133 @@
+{% load i18n %}
+<!DOCTYPE html>
+{% load staticfiles %}
+<html lang="en">
+
+<head>
+    <!--link rel="stylesheet" href="{% static "style.css" %}" /-->
+    <title>{% block title %}User test{% endblock %}</title>
+    <link rel="stylesheet" type="text/css" href="{% static "registration/main.css" %}">
+    <link rel="stylesheet" type="text/css" href="{% static "registration/skin.css" %}">
+    <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/superfish/1.7.4/superfish.min.css" %}">
+    <script src="{% static "rmap/libs/superfish/1.7.4/superfish.min.js" %}" type="text/javascript"></script>
+    <script src="{% static "rmap/libs/overintent/1.8.0/jquery.hoverIntent.minified.js" %}" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="{% static "registration/navigation.css" %}">
+    <meta name="viewport" content="width=device-width">
+</head>
+
+<body>
+    <div id="header" class="mainstyle">
+
+    {% block header %}
+
+     <a href="/" title="{% trans "Home" %}" class="title" ><h1>R m a p</h1></a>
+    <nav id="main_nav">
+      <ul class="sf-menu">
+	<li>
+	  <a href="http://rmap.cc">Server RMAP</a>
+<!--
+	  <ul>
+	    <li>
+	      <a href="http://rmapv.rmap.cc">Server RMAP Veneto</a>
+-->
+	      <ul>
+		<li><a href="http://rmapv.rmap.cc:5925">punti stazione su mappa e grafici</a></li>
+		<li><a href="http://graphite.rmapv.rmap.cc/dashboard/#rmap default">Dashboard di esempio</a></li>
+		<li><a href="http://graphite.rmapv.rmap.cc">Grafici graphite</a></li>
+		<li><a href="http://rmapv.rmap.cc/arkiweb">Estrazione dati storici</a></li>
+
+		<li>
+		  <a href="http://rmapv.rmap.cc">Amministrazione</a>
+		  <ul>
+		    <li><a href="http://rmapv.rmap.cc/http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
+		    <li><a href="http://rmapv.rmap.cc:443">Monitoraggio processi (da portare alla porta 2812</a></li>
+		    <li><a href="http://rmapv.rmap.cc:15672">Amministrazione rabbitmq</a></li>
+ 		  </ul>
+		</li>
+	      </ul>
+	    </li>
+<!--
+	    <li>
+	      <a href="http://rmapemr.rmap.cc">Server RMAP Emilia Romagna (lavori in corso)</a>
+	      <ul>
+		<li><a href="http://rmapemr.rmap.cc:5925">punti stazione su mappa e grafici</a></li>
+		<li><a href="http://graphite.rmapemr.rmap.cc/dashboard/#report">Dashboard temperatura graphite</a></li>
+		<li><a href="http://graphite.rmapemr.rmap.cc">Grafici graphite</a></li>
+		<li><a href="http://rmapemr.rmap.cc/arkiweb">Estrazione dati storici</a></li>
+	      </ul>
+	    </li>
+	    </ul>
+	  </li>
+-->
+	<li>
+	  <a>Documentation</a>
+	  <ul>
+	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">RaspiBO</a></li>
+	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/RFC-rmap">Rmap RFC</a></li>
+	  </ul>
+	</li>
+
+	<li>
+	  <a>Community</a>
+	  <ul>
+	    <li><a href="http://rmap.cc/registrazione/login/">Manage/Register a new station</a></li>
+	    <li><a href="http://raspibo.ofpcina.net/groups/profile/2963/stazione-per-il-rilevamento-di-parametri-meteo-ambientali">Social Network</a></li>
+	    <li><a href="http://liste.raspibo.org/wws/info/meteo">Mailing List</a></li>
+	  </ul>
+	</li>
+	<li>
+	  <a>Devel</a>
+	  <ul>
+	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">Overview</a></li>
+	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/HowTo">HowTo</a></li>
+	    <li><a href="http://r-map.sf.net">RMAP at sourceforge</a></li>
+	    <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/RPMS/arm/repoview/">Repository software</a></li>
+	    <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/SRPMS/repoview/">Repository software sorgenti</a></li>
+	  </ul>
+	</li>
+	<li>
+	  <a href="/stations">Stazioni</a>
+	  <ul>
+	    <li><a href="http:/stations">Visualizza stazioni</a></li>
+	  </ul>
+	</li>
+
+      </ul>
+    </nav>
+
+    <hr />
+
+    {% endblock %}
+
+    </div>
+
+    <div id="content" class="mainstyle">
+    {% block content %}{% endblock %}
+    </div>
+
+    <div id="footer" class="mainstyle">
+    {% block footer %}
+
+    {% if user.is_authenticated %}
+    {% trans "Logged in" %}: {{ user.username }} 
+    (<a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a> | 
+    <a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a>)
+    {% else %}
+    <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
+    {% endif %}
+    
+    {% endblock %}
+    </div>
+
+<script>
+
+	jQuery(document).ready(function() {
+		jQuery('ul.sf-menu').superfish();
+	});
+
+</script>
+
+</body>
+
+</html>

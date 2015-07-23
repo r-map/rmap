@@ -1,0 +1,16 @@
+Item,Reference(s),Value,Quantity,Package,Esempio
+1,C1,1uF,1,1206 smd,http://it.farnell.com/multicomp/mc1206f105z500ct/condensatore-mlcc-y5v-1uf-50v/dp/1759455
+2,C2,0.01uF,1,1206 smd,http://it.farnell.com/panasonic-electronic-components/echu1h103jx5/condensatore-film-pps-10nf-50v/dp/9695389
+3,C3,2.2uF,1,1206 smd,http://it.farnell.com/vishay-sprague/tr3a225k016c4000/condensatore-tant-2-2uf-16v-case/dp/1754082
+4,D1,LED_SMD,1,http://it.farnell.com/multicomp/ovs-0806/led-0805-super-brt-yellow/dp/1716767
+5,CON1,USB-MICRO-B,1,,http://it.farnell.com/global-connector-technology/usb3100-30-a/micro-usb-2-0-tipo-b-presa-smt/dp/2443125
+6,P1,CONN_01X02,1, connettore strip maschio 2 contatti , http://it.farnell.com/harwin/m20-9990246/header-diritta-2-54mm-1row-bifase/dp/1022247
+7,P2,CONN_RELE_BOARD,1, connettore strip maschio 6 contatti, http://it.farnell.com/harwin/m20-9990646/connettore-header-tht-2-54mm-6/dp/1022255
+8,P3,CONN_01X05,1, connettore strip maschio 5 contatti, http://it.farnell.com/molex/22-28-4050/connector-header-5pos-1row-2-54mm/dp/2381173?MER=BN-IT-PDP-2381173
+9,P4,CONFIG,1, connettore strip maschio 2 contatti + jumper, http://it.farnell.com/harwin/m20-9990246/header-diritta-2-54mm-1row-bifase/dp/1022247
+10,R1,1K0,1,1206 smd,http://it.farnell.com/multicomp/mcwr08x1001ftl/resist-film-spesso-1kohm-1-0-125w/dp/2447587
+11,R2,150,1,1206,http://it.farnell.com/multicomp/mc0125w12061150r/resistore-150r-0-125w-1-1206/dp/9335943
+12,U1,Microduino,1,connettori strip pin torniti femmina 3 x 9 contatti,es http://it.farnell.com/harwin/d01-9973242/socket-sil-32-vie-circuito-pc/dp/1023035
+13,U2,ESDA6V1-5SC6,1,SOT23-6,http://it.farnell.com/stmicroelectronics/esda6v1-5sc6/transil-array-uni-prot-esd-sot23/dp/1749270
+14,U3,LP2985LV,1,SOT23-5,http://it.farnell.com/texas-instruments/lp2985a-33dbvte4/v-reg-ldo-0-15a-1-2985-sot-23/dp/1053660
+15,U4,TMP275,1,SOIC8,http://it.farnell.com/texas-instruments/tmp275aid/temp-sensor-dgtl-out-8msop/dp/2075440?ost=TMP275

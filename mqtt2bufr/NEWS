@@ -1,0 +1,13 @@
+0.6 (2014-12-10)
+
+- Debug
+- Wait for ACK while publishing
+
+0.4 (2014-09-24)
+
+- Missing or null datetime in mqtt message means 'now'
+
+0.2 (2014-09-11)
+
+- Changed command line synopsis: "-h" means now "--host"
+- Man pages

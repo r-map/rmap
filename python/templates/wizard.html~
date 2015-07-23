@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    <section id="main_content">
+
+      <p><h2>Configuration Wizard</h2></p>
+      <p>TODO !</p>
+
+    </section>
+
+{% endblock %}
+

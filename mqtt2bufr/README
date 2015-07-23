@@ -1,0 +1,27 @@
+mqtt2bufr
+=========
+
+Tools to publish BUFR messages to MQTT and to convert MQTT messages to BUFR.
+
+
+Publish BUFR messages to MQTT
+-----------------------------
+
+`bufr2mqtt` publish BUFR messages to MQTT. The resulting topics and messages can
+be published giving an optional list of topic prefix.
+
+E.g. the topic
+    /-/1212345,439876/rmap/254,0,0/103,2000,-,-/B12012
+can be appended to prefix
+    /mytopic
+and the payload will be published with the topic
+    /mytopic/-/1212345,439876/rmap/254,0,0/103,2000,-,-/B12012
+
+The station info (name, height, etc.) are retained.
+
+
+Subscribe to MQTT topics for BUFR messages
+------------------------------------------
+
+`mqtt2bufr` print to stdout the BUFR messages converted from the subscribed
+topics.

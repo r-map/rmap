@@ -1,0 +1,235 @@
+#!/usr/bin/python
+
+# Copyright (c) 2013 Paolo Patruno <p.patruno@iperbole.bologna.it>
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# 1. Redistributions of source code must retain the above copyright notice,
+#   this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+# 3. Neither the name of mosquitto nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+# LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+# CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+# SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+# INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+# CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+# ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+from django.conf import settings
+
+#disable unwanted initialization and error management of kivy
+os.environ['KIVY_DOC_INCLUDE'] = "1"
+
+import time
+from rmap import rabbitshovel
+from django.core.exceptions import ObjectDoesNotExist
+from rmap.utils import nint
+from rmap import jsonrpc
+
+from rmap import __version__
+import rmap.settings
+from rmap.stations.models import StationMetadata
+import argparse
+
+import django
+django.setup()
+
+parser = argparse.ArgumentParser(description='Configure rmap boards.')
+parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
+
+parser.add_argument('--list_boards',action="store_true", help="list all board on station and transports")
+parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
+parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
+parser.add_argument('--device',  default=None, help="use this device for serial transport")
+parser.add_argument('--baudrate',  default=None, help="use this baudrate for serial transport")
+parser.add_argument('--transport',  default="serial",choices=["serial","tcpip","amqp"],help="work on this transport")
+parser.add_argument('--host',  default="master",choices=['master', 'master2', 'master3', 'master4'],help="work on this named board only")
+
+args = parser.parse_args()
+
+mystation=StationMetadata.objects.get(slug=args.station_slug)
+
+print "STATION:"
+print mystation
+
+if not mystation.active:
+    print "disactivated station: do nothing!"
+    raise SystemExit(0)
+
+
+if args.list_boards:
+    for board in mystation.board_set.all():
+        print ">board: ", board.name," slug="+board.slug," active=",board.active
+        try:
+            if ( board.transportserial.active):
+                print "\tSerial Transport device=",board.transportserial.device," baudrate=",board.transportserial.baudrate
+                
+        except ObjectDoesNotExist:
+            print "\ttransport serial not present for this board"
+
+
+        try:
+            if ( board.transporttcpip.active):
+                print "\tTCP/IP Transport", " hostname=",board.transporttcpip.name
+
+        except ObjectDoesNotExist:
+
+            print "\ttransport TCPIP not present for this board"
+
+        try:
+            if ( board.transportamqp.active):
+                print "\tAMQP Transport", " amqpserver=",board.transportamqp.amqpserver," exchange=",board.transportamqp.exchange, "queue=",board.transportamqp.queue
+
+        except ObjectDoesNotExist:
+
+            print "\ttransport AMQP not present for this board"
+
+
+    raise SystemExit(0)
+
+for board in mystation.board_set.all():
+
+    if args.board_slug is not None and board.slug != args.board_slug:
+        continue
+
+    print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name," slug="+board.slug
+
+    if not board.active: continue
+    print "start configuration"
+
+    rpcproxy = None
+    logfunc=jsonrpc.log_file("rpc.log")
+
+    if args.transport == "serial":
+        try:
+            if ( board.transportserial.active):
+                print "Serial Transport", board.transportserial
+
+                device =board.transportserial.device
+                if args.device is not None :
+                    device=args.device
+                baudrate=board.transportserial.baudrate
+                if args.baudrate is not None :
+                    baudrate=args.baudrate
+
+                transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=device,baudrate=baudrate,timeout=5)
+                rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+
+        except ObjectDoesNotExist:
+            print "transport serial not present for this board"
+            raise SystemExit(0)
+
+
+    if args.transport == "tcpip":
+        try:
+            if ( board.transporttcpip.active):
+                print "TCP/IP Transport", board.transporttcpip
+
+                host =board.transporttcpip.name
+                if args.host is not None :
+                    host=args.host
+
+                transport=jsonrpc.TransportTcpIp(logfunc=logfunc,addr=(host,1000),timeout=5)
+                rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+
+        except ObjectDoesNotExist:
+            print "transport TCPIP not present for this board"
+            raise SystemExit(0)
+
+
+    if (not rpcproxy is None):
+      print ">>>>>>> reset config"
+      print "reset",rpcproxy.configure(reset=True )
+
+      try:
+        if ( board.transportmqtt.active):
+            print "TCP/IP Transport",board.transportmqtt
+
+            print "mqttserver:",rpcproxy.configure(mqttsampletime=board.transportmqtt.mqttsampletime,mqttserver=board.transportmqtt.mqttserver)
+            print "mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,mqttpassword=board.transportmqtt.mqttpassword)
+
+      except ObjectDoesNotExist:
+        print "transport mqtt not present"
+
+
+      try:
+        if ( board.transporttcpip.active):
+            print "TCP/IP Transport",board.transporttcpip
+
+            # TCP/IP
+            #rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
+            #           jsonrpc.TransportTcpIp(addr=(board.transporttcpip.name,1000),timeout=5))
+
+            mac=board.transporttcpip.mac[board.transporttcpip.name]
+            print "ntpserver:",rpcproxy.configure(mac=mac,ntpserver=board.transporttcpip.ntpserver)
+
+      except ObjectDoesNotExist:
+        print "transport tcpip not present"
+
+      try:
+        if ( board.transportrf24network.active):
+            print "RF24Network Transport",board.transportrf24network
+
+            #rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
+            #           jsonrpc.TransportRF24Network(node=board.transportrf24network.name,channel=board.transportrf24network.channel),timeout=5))
+
+            print "thisnode:",rpcproxy.configure(thisnode=board.transportrf24network.node,channel=board.transportrf24network.channel)
+            print "key:",rpcproxy.configure(key=map(int, board.transportrf24network.key.split(',')))
+            print "iv:",rpcproxy.configure(iv=map(int, board.transportrf24network.iv.split(',')))
+
+      except ObjectDoesNotExist:
+        print "transport rf24network not present"
+
+    if (not rpcproxy is None):
+        print ">>>> sensors:"
+        for sensor in board.sensor_set.all():
+            if not sensor.active: continue
+            print sensor
+
+            print "add driver:",rpcproxy.configure(driver=sensor.driver,type=sensor.type,node=sensor.node,address=sensor.address,mqttpath=sensor.timerange+"/"+sensor.level+"/")
+            #TODO  check id of status (good only > 0)
+
+        #status = rpcproxy.configure(mqttrootpath="meteo/-/1012345,4412345/rmap/")
+        print "mqttrootpath:",rpcproxy.configure(mqttrootpath=mystation.mqttrootpath+"/"+str(mystation.ident)+"/"+\
+                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+"/"+mystation.network+"/")
+
+        print ">>>>>>> save config"
+        print "save",rpcproxy.configure(save=True )
+
+
+    if args.transport == "amqp":
+        try:
+            if ( board.transportamqp.active):
+                print "AMQP Transport", board.transportamqp
+
+                amqpserver =board.transportamqp.amqpserver
+                amqpuser=board.transportamqp.amqpuser
+                amqppassword=board.transportamqp.amqppassword
+                queue=board.transportamqp.queue
+                exchange=board.transportamqp.exchange
+
+                sh=rabbitshovel.shovel(srcqueue=queue,destexchange=exchange,destserver=amqpserver)
+                sh.delete()
+                sh.create(destuser=amqpuser,destpassword=amqppassword)
+
+        except ObjectDoesNotExist:
+            print "transport AMQP not present for this board"
+            raise SystemExit(0)
+
+
+    print "----------------------------- board configured ---------------------------------------"
+    rpcproxy = None

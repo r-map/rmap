@@ -1,0 +1,107 @@
+
+---->
+
+collegare il proprio pc al raspberry con cavo ethernet
+
+ssh rmap@base
+
+linkare temporaneamente il file map in home:
+cd
+ln -sf svn/r-map-code/trunk/python/map .
+
+cd svn/r-map-code/trunk/python
+
+se avevate già inizializzato il DB ripulirlo:
+rm rmap.sqlite3
+
+inizializzare il database:
+./rmapctrl --syncdb
+rispondere y per creare l'amministratore
+e inserire rmap rmap come username e password e una mail qualsiasi
+
+attivare il webserver di sviluppo di django:
+./rmapweb run
+navigare con proprio browser a http://base:8888/
+andare in amministrazione e quindi a
+http://base:8888/admin/stations/
+inserendo rmap/rmap come autenticazione di cui sopra
+
+modificate i metadati della stazione impostando lat e lon etc. ma
+mantenendo come slug "home"
+
+correggete l'altezza della stazione e il suo nome
+
+correggete anche il numero di sensori e board che avete nella vostra
+configurazione hardware
+
+ctrl-C al webserver che non vi serve più
+
+Qui faciamo l'ipotesi che abbiate le board master e satellite con
+l'ultimo firmware rmap ...
+
+Collegate il pin 8 delle board a massa per forzare l'attesa di
+configurazione.
+Collegate le vostre board master e satellite alla base
+contemporaneamente e eseguire 
+
+rmap-configure.py
+
+se (e se) tutto funziona le board ne usciranno configurate.
+Attenzione che se i sensori non sono collegati bene o a un indirizzo
+differente lo script evidenzierà a schermo degli id assegnati ai sensori
+-1 invece di 0,1,...
+
+possimao far partire i nostri daemon:
+./stationd run
+se non abbiamo errori:
+ctrl-C
+e lo detacchiamo:
+./stationd start
+
+lo stesso con mqtt2graphite
+./mqtt2graphited run
+se non abbiamo errori:
+ctrl-C
+e lo detacchiamo:
+./mqtt2graphited start
+
+i log li trovate in /tmp
+
+
+-----
+
+#mqtts to mqtt gateway
+#nohup em-mqtts-gateway -D > em-mqtts.log 2>&1 &
+
+# fill DB with some data
+dbadb import --wipe-first --dsn=sqlite:/dev/shm/tmp.sqlite /home/rmap/dati.bufr
+
+#mqtt to dballe gateway
+nohup mqtt2bufr -t rmap/\# | dbadb import  -f --dsn=sqlite:/dev/shm/tmp.sqlite  > /tmp/mqtt2bufr.log 2>&1&
+
+#dballe to web service
+PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages nohup python -m borinud.ws --dsn=sqlite:/dev/shm/tmp.sqlite --host base --port 5925 > /tmp/borinud.log 2>&1&
+
+# open a slip connection with arduino
+#nohup slattach -L -s 115200 -p slip /dev/ttyACM0 &
+#ifconfig sl0 192.168.5.1 dstaddr 192.168.5.2
+#ping 192.168.5.2
+
+#v7d_transform --input-format=dba --output-format=dba --comp-start="2013-10-26 00:00"  --comp-stop="2013-10-11 00:00" --comp-step="0 01" --comp-stat-proc=254:0 --set-network=rmap "null/null@sqlite:/dev/shm/dballe.sqlite"  "null/null@sqlite:/dev/shm/dballe.sqlite"
+
+v7d_transform --input-format=dba --output-format=dba --comp-start="2014-08-01 00:00"  --comp-step="0000000000 00:01:00.000" --comp-stat-proc=254:0 --set-network=generic "null/null@sqlite:/dev/shm/tmp.sqlite"  "null/null@sqlite:/dev/shm/tmp.sqlite"
+
+
+-- inviare i dati al server --
+
+v7d_transform --input-format=dba --output-format=BUFR --comp-start="2014-08-01 00:00"  --comp-step="0000000000 00:01:00.000" --comp-stat-proc=254:0 --set-network=generic "null/null@sqlite:/dev/shm/tmp.sqlite"  infile
+
+
+python /home/rmap/svn/r-map-code/trunk/python/amqp_producer.py
+
+
+--- sul server ---
+
+python /home/rmap/svn/r-map-code/trunk/python/amqp_consumer.py
+dbadb import --dsn=sqlite:/dballe/tmp.sqlite outfile
+

@@ -1,0 +1,14 @@
+2014-12-10 Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
+	* bufr2mqtt.cc: debug option and publish wait.
+	* mqtt2bufr.cc: debug option.
+2014-10-28 Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
+	* parser.cc (bufr2mqtt::Parser::parse): fixed ident varcode.
+2014-09-24 Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
+	* parser.cc (mqtt2bufr::Parser::parse_payload): datetime missing or null
+	means "now"
+2014-09-11 Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
+	* bufr2mqtt.cc (Publisher::operator, main): moved loop() in callback.
+	(Publisher::operator, main, print_help): prefix topic.
+	(Publisher::operator): retained messages about station context.
+	(main): "-h" option for "--host"
+	* mqtt2bufr.cc (main): "-h" option for "--host"

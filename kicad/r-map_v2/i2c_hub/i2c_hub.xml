@@ -1,0 +1,873 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>/home/daniele/r-map-code/trunk/kicad/r-map_v2/i2c_hub/i2c_hub.sch</source>
+    <date>Tue 31 Mar 2015 22:41:02 UTC</date>
+    <tool>Eeschema (2015-03-23 BZR 5533)-product</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>i2c_hub.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="P4">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AED2D</tstamp>
+    </comp>
+    <comp ref="P10">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AEDD1</tstamp>
+    </comp>
+    <comp ref="P14">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AEE6F</tstamp>
+    </comp>
+    <comp ref="P18">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AEEC6</tstamp>
+    </comp>
+    <comp ref="P23">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AEEFB</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>RJ45</value>
+      <footprint>Connect:RJ45_8</footprint>
+      <libsource lib="conn" part="RJ45"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AEF69</tstamp>
+    </comp>
+    <comp ref="P45">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF866</tstamp>
+    </comp>
+    <comp ref="P49">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF86C</tstamp>
+    </comp>
+    <comp ref="P53">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF872</tstamp>
+    </comp>
+    <comp ref="P59">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF878</tstamp>
+    </comp>
+    <comp ref="P63">
+      <value>CONN_01X04</value>
+      <footprint>Pin_Headers:Pin_Header_Straight_1x04</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF87E</tstamp>
+    </comp>
+    <comp ref="J2">
+      <value>RJ45</value>
+      <footprint>Connect:RJ45_8</footprint>
+      <libsource lib="conn" part="RJ45"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AFE7D</tstamp>
+    </comp>
+    <comp ref="J3">
+      <value>RJ45</value>
+      <footprint>Connect:RJ45_8</footprint>
+      <libsource lib="conn" part="RJ45"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AFF3B</tstamp>
+    </comp>
+    <comp ref="J4">
+      <value>RJ45</value>
+      <footprint>Connect:RJ45_8</footprint>
+      <libsource lib="conn" part="RJ45"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AFF4D</tstamp>
+    </comp>
+    <comp ref="J5">
+      <value>RJ45</value>
+      <footprint>Connect:RJ45_8</footprint>
+      <libsource lib="conn" part="RJ45"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AFFA9</tstamp>
+    </comp>
+    <comp ref="P60">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B1CEF</tstamp>
+    </comp>
+    <comp ref="P61">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B1DE8</tstamp>
+    </comp>
+    <comp ref="P62">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B1E7D</tstamp>
+    </comp>
+    <comp ref="P55">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF601</tstamp>
+    </comp>
+    <comp ref="P56">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF607</tstamp>
+    </comp>
+    <comp ref="P57">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF60D</tstamp>
+    </comp>
+    <comp ref="P50">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7BE</tstamp>
+    </comp>
+    <comp ref="P51">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7C4</tstamp>
+    </comp>
+    <comp ref="P52">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7CA</tstamp>
+    </comp>
+    <comp ref="P46">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7D1</tstamp>
+    </comp>
+    <comp ref="P47">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7D7</tstamp>
+    </comp>
+    <comp ref="P48">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF7DD</tstamp>
+    </comp>
+    <comp ref="P42">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF8AA</tstamp>
+    </comp>
+    <comp ref="P43">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF8B0</tstamp>
+    </comp>
+    <comp ref="P44">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548AF8B6</tstamp>
+    </comp>
+    <comp ref="P19">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06BE</tstamp>
+    </comp>
+    <comp ref="P20">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06C4</tstamp>
+    </comp>
+    <comp ref="P21">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06CA</tstamp>
+    </comp>
+    <comp ref="P15">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06D1</tstamp>
+    </comp>
+    <comp ref="P16">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06D7</tstamp>
+    </comp>
+    <comp ref="P17">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06DD</tstamp>
+    </comp>
+    <comp ref="P11">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06E4</tstamp>
+    </comp>
+    <comp ref="P12">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06EA</tstamp>
+    </comp>
+    <comp ref="P13">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06F0</tstamp>
+    </comp>
+    <comp ref="P6">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06F7</tstamp>
+    </comp>
+    <comp ref="P7">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B06FD</tstamp>
+    </comp>
+    <comp ref="P8">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0703</tstamp>
+    </comp>
+    <comp ref="P1">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B070A</tstamp>
+    </comp>
+    <comp ref="P2">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0710</tstamp>
+    </comp>
+    <comp ref="P3">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0716</tstamp>
+    </comp>
+    <comp ref="P24">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0D38</tstamp>
+    </comp>
+    <comp ref="P25">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0D3E</tstamp>
+    </comp>
+    <comp ref="P27">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B0D44</tstamp>
+    </comp>
+    <comp ref="U1">
+      <value>LM1117-3.3</value>
+      <footprint>SMD_Packages:SOT-223</footprint>
+      <libsource lib="regul" part="LM117E"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B2C47</tstamp>
+    </comp>
+    <comp ref="C1">
+      <value>10uF</value>
+      <footprint>Capacitors_SMD:C_1206_HandSoldering</footprint>
+      <libsource lib="i2c_hub-cache" part="CAPAPOL"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B2F93</tstamp>
+    </comp>
+    <comp ref="C2">
+      <value>10uF</value>
+      <footprint>Capacitors_SMD:C_1206_HandSoldering</footprint>
+      <libsource lib="i2c_hub-cache" part="CAPAPOL"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B300E</tstamp>
+    </comp>
+    <comp ref="U2">
+      <value>LM1117-3.3</value>
+      <footprint>SMD_Packages:SOT-223</footprint>
+      <libsource lib="regul" part="LM117E"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B54CB</tstamp>
+    </comp>
+    <comp ref="C4">
+      <value>10uF</value>
+      <footprint>Capacitors_SMD:C_1206_HandSoldering</footprint>
+      <libsource lib="i2c_hub-cache" part="CAPAPOL"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B54D1</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>10uF</value>
+      <footprint>Capacitors_SMD:C_1206_HandSoldering</footprint>
+      <libsource lib="i2c_hub-cache" part="CAPAPOL"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B54D7</tstamp>
+    </comp>
+    <comp ref="P28">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B63B8</tstamp>
+    </comp>
+    <comp ref="P29">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B63BE</tstamp>
+    </comp>
+    <comp ref="P30">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B63C4</tstamp>
+    </comp>
+    <comp ref="P31">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65AD</tstamp>
+    </comp>
+    <comp ref="P32">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65B3</tstamp>
+    </comp>
+    <comp ref="P33">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65B9</tstamp>
+    </comp>
+    <comp ref="P34">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65C0</tstamp>
+    </comp>
+    <comp ref="P35">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65C6</tstamp>
+    </comp>
+    <comp ref="P36">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B65CC</tstamp>
+    </comp>
+    <comp ref="P37">
+      <value>5V</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B6713</tstamp>
+    </comp>
+    <comp ref="P38">
+      <value>SEL</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B6719</tstamp>
+    </comp>
+    <comp ref="P39">
+      <value>3V3</value>
+      <footprint>Measurement_Points:Measurement_Point_Round-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548B671F</tstamp>
+    </comp>
+    <comp ref="U3">
+      <value>ESDA6V1-5SC6</value>
+      <footprint>SMD_Packages:SOT-23-6</footprint>
+      <libsource lib="esda6v1-5sc6" part="ESDA6V1-5SC6"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548D1C15</tstamp>
+    </comp>
+    <comp ref="U4">
+      <value>ESDA6V1-5SC6</value>
+      <footprint>SMD_Packages:SOT-23-6</footprint>
+      <libsource lib="esda6v1-5sc6" part="ESDA6V1-5SC6"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548D263C</tstamp>
+    </comp>
+    <comp ref="U5">
+      <value>ESDA6V1-5SC6</value>
+      <footprint>SMD_Packages:SOT-23-6</footprint>
+      <libsource lib="esda6v1-5sc6" part="ESDA6V1-5SC6"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548D2D02</tstamp>
+    </comp>
+    <comp ref="U6">
+      <value>ESDA6V1-5SC6</value>
+      <footprint>SMD_Packages:SOT-23-6</footprint>
+      <libsource lib="esda6v1-5sc6" part="ESDA6V1-5SC6"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>548D3878</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="conn" part="CONN_01X01">
+      <footprints>
+        <fp>Pin_Header_Straight_1X01</fp>
+        <fp>Pin_Header_Angled_1X01</fp>
+        <fp>Socket_Strip_Straight_1X01</fp>
+        <fp>Socket_Strip_Angled_1X01</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">P</field>
+        <field name="Value">CONN_01X01</field>
+      </fields>
+      <pins>
+        <pin num="1" name="P1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="conn" part="CONN_01X04">
+      <footprints>
+        <fp>Pin_Header_Straight_1X04</fp>
+        <fp>Pin_Header_Angled_1X04</fp>
+        <fp>Socket_Strip_Straight_1X04</fp>
+        <fp>Socket_Strip_Angled_1X04</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">P</field>
+        <field name="Value">CONN_01X04</field>
+      </fields>
+      <pins>
+        <pin num="1" name="P1" type="passive"/>
+        <pin num="2" name="P2" type="passive"/>
+        <pin num="3" name="P3" type="passive"/>
+        <pin num="4" name="P4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="conn" part="RJ45">
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">RJ45</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+        <pin num="3" name="~" type="passive"/>
+        <pin num="4" name="~" type="passive"/>
+        <pin num="5" name="~" type="passive"/>
+        <pin num="6" name="~" type="passive"/>
+        <pin num="7" name="~" type="passive"/>
+        <pin num="8" name="~" type="passive"/>
+        <pin num="9" name="SHIELD" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="regul" part="LM117E">
+      <description>LM117E, 0.5A 35V Adjustable Linear Regulator, LCC-20</description>
+      <docs>http://www.national.com/ds/LM/LM117.pdf</docs>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">LM117E</field>
+        <field name="Footprint">LLC-20</field>
+      </fields>
+      <pins>
+        <pin num="1" name="OUT" type="power_out"/>
+        <pin num="6" name="ADJ" type="input"/>
+        <pin num="11" name="IN" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="esda6v1-5sc6" part="ESDA6V1-5SC6">
+      <footprints>
+        <fp>SOT23-6</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">ESDA6V1-5SC6</field>
+      </fields>
+      <pins>
+        <pin num="1" name="IO1" type="input"/>
+        <pin num="2" name="GND" type="input"/>
+        <pin num="3" name="IO2" type="input"/>
+        <pin num="4" name="IO3" type="input"/>
+        <pin num="5" name="IO4" type="input"/>
+        <pin num="6" name="IO5" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="i2c_hub-cache" part="CP">
+      <aliases>
+        <alias>CAPAPOL</alias>
+      </aliases>
+      <footprints>
+        <fp>CP*</fp>
+        <fp>SM*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">CP</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="conn">
+      <uri>/usr/local/share/kicad/library/conn.lib</uri>
+    </library>
+    <library logical="regul">
+      <uri>/usr/local/share/kicad/library/regul.lib</uri>
+    </library>
+    <library logical="esda6v1-5sc6">
+      <uri>/home/daniele/r-map-code/trunk/kicad/r-map_v2/lib/esda6v1-5sc6.lib</uri>
+    </library>
+    <library logical="i2c_hub-cache">
+      <uri>/home/daniele/r-map-code/trunk/kicad/r-map_v2/i2c_hub/i2c_hub-cache.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="Net-(P2-Pad1)">
+      <node ref="P2" pin="1"/>
+      <node ref="P4" pin="1"/>
+    </net>
+    <net code="2" name="Net-(P10-Pad1)">
+      <node ref="P10" pin="1"/>
+      <node ref="P7" pin="1"/>
+    </net>
+    <net code="3" name="Net-(P12-Pad1)">
+      <node ref="P14" pin="1"/>
+      <node ref="P12" pin="1"/>
+    </net>
+    <net code="4" name="Net-(P16-Pad1)">
+      <node ref="P16" pin="1"/>
+      <node ref="P18" pin="1"/>
+    </net>
+    <net code="5" name="Net-(P20-Pad1)">
+      <node ref="P23" pin="1"/>
+      <node ref="P20" pin="1"/>
+    </net>
+    <net code="6" name="Net-(P43-Pad1)">
+      <node ref="P43" pin="1"/>
+      <node ref="P45" pin="1"/>
+    </net>
+    <net code="7" name="Net-(P47-Pad1)">
+      <node ref="P49" pin="1"/>
+      <node ref="P47" pin="1"/>
+    </net>
+    <net code="8" name="Net-(P51-Pad1)">
+      <node ref="P53" pin="1"/>
+      <node ref="P51" pin="1"/>
+    </net>
+    <net code="9" name="Net-(P56-Pad1)">
+      <node ref="P56" pin="1"/>
+      <node ref="P59" pin="1"/>
+    </net>
+    <net code="10" name="Net-(P61-Pad1)">
+      <node ref="P61" pin="1"/>
+      <node ref="P63" pin="1"/>
+    </net>
+    <net code="11" name="Net-(U6-Pad6)">
+      <node ref="U6" pin="6"/>
+    </net>
+    <net code="12" name="Net-(U6-Pad1)">
+      <node ref="U6" pin="1"/>
+    </net>
+    <net code="13" name="Net-(U6-Pad3)">
+      <node ref="U6" pin="3"/>
+    </net>
+    <net code="14" name="Net-(C2-Pad1)">
+      <node ref="C2" pin="1"/>
+      <node ref="P44" pin="1"/>
+      <node ref="P21" pin="1"/>
+      <node ref="P17" pin="1"/>
+      <node ref="P62" pin="1"/>
+      <node ref="U1" pin="1"/>
+      <node ref="P8" pin="1"/>
+      <node ref="P27" pin="1"/>
+      <node ref="P3" pin="1"/>
+      <node ref="P52" pin="1"/>
+      <node ref="P13" pin="1"/>
+      <node ref="P48" pin="1"/>
+      <node ref="C3" pin="1"/>
+      <node ref="P30" pin="1"/>
+      <node ref="P33" pin="1"/>
+      <node ref="P39" pin="1"/>
+      <node ref="P36" pin="1"/>
+      <node ref="U2" pin="1"/>
+      <node ref="P57" pin="1"/>
+    </net>
+    <net code="15" name="Net-(C1-Pad1)">
+      <node ref="C1" pin="1"/>
+      <node ref="P24" pin="1"/>
+      <node ref="U1" pin="11"/>
+      <node ref="P50" pin="1"/>
+      <node ref="P60" pin="1"/>
+      <node ref="P55" pin="1"/>
+      <node ref="P31" pin="1"/>
+      <node ref="P37" pin="1"/>
+      <node ref="P34" pin="1"/>
+      <node ref="P28" pin="1"/>
+      <node ref="C4" pin="1"/>
+      <node ref="U2" pin="11"/>
+      <node ref="P46" pin="1"/>
+      <node ref="P42" pin="1"/>
+      <node ref="P19" pin="1"/>
+      <node ref="P15" pin="1"/>
+      <node ref="P11" pin="1"/>
+      <node ref="P6" pin="1"/>
+      <node ref="P1" pin="1"/>
+    </net>
+    <net code="16" name="Net-(J5-Pad1)">
+      <node ref="P38" pin="1"/>
+      <node ref="J5" pin="1"/>
+      <node ref="J5" pin="2"/>
+    </net>
+    <net code="17" name="Net-(J5-Pad9)">
+      <node ref="J5" pin="9"/>
+    </net>
+    <net code="18" name="Net-(J5-Pad5)">
+      <node ref="J5" pin="5"/>
+      <node ref="J5" pin="6"/>
+    </net>
+    <net code="19" name="Net-(J4-Pad9)">
+      <node ref="J4" pin="9"/>
+    </net>
+    <net code="20" name="Net-(J1-Pad3)">
+      <node ref="U3" pin="5"/>
+      <node ref="U6" pin="5"/>
+      <node ref="U5" pin="5"/>
+      <node ref="U4" pin="5"/>
+      <node ref="P14" pin="2"/>
+      <node ref="J5" pin="4"/>
+      <node ref="J5" pin="3"/>
+      <node ref="J4" pin="4"/>
+      <node ref="J4" pin="3"/>
+      <node ref="P45" pin="2"/>
+      <node ref="J1" pin="4"/>
+      <node ref="J1" pin="3"/>
+      <node ref="P23" pin="2"/>
+      <node ref="P18" pin="2"/>
+      <node ref="P10" pin="2"/>
+      <node ref="P4" pin="2"/>
+      <node ref="P63" pin="2"/>
+      <node ref="J3" pin="4"/>
+      <node ref="J3" pin="3"/>
+      <node ref="J2" pin="4"/>
+      <node ref="J2" pin="3"/>
+      <node ref="P59" pin="2"/>
+      <node ref="P53" pin="2"/>
+      <node ref="P49" pin="2"/>
+    </net>
+    <net code="21" name="Net-(J4-Pad1)">
+      <node ref="P35" pin="1"/>
+      <node ref="J4" pin="2"/>
+      <node ref="J4" pin="1"/>
+    </net>
+    <net code="22" name="Net-(J3-Pad9)">
+      <node ref="J3" pin="9"/>
+    </net>
+    <net code="23" name="GND">
+      <node ref="P49" pin="4"/>
+      <node ref="P10" pin="4"/>
+      <node ref="P45" pin="4"/>
+      <node ref="P4" pin="4"/>
+      <node ref="P53" pin="4"/>
+      <node ref="P59" pin="4"/>
+      <node ref="C2" pin="2"/>
+      <node ref="P63" pin="4"/>
+      <node ref="U4" pin="2"/>
+      <node ref="J2" pin="8"/>
+      <node ref="J2" pin="7"/>
+      <node ref="U5" pin="2"/>
+      <node ref="U3" pin="2"/>
+      <node ref="C3" pin="2"/>
+      <node ref="C4" pin="2"/>
+      <node ref="U2" pin="6"/>
+      <node ref="U6" pin="2"/>
+      <node ref="J5" pin="8"/>
+      <node ref="U1" pin="6"/>
+      <node ref="C1" pin="2"/>
+      <node ref="J3" pin="7"/>
+      <node ref="J4" pin="7"/>
+      <node ref="J4" pin="8"/>
+      <node ref="J5" pin="7"/>
+      <node ref="J3" pin="8"/>
+      <node ref="P14" pin="4"/>
+      <node ref="P23" pin="4"/>
+      <node ref="J1" pin="7"/>
+      <node ref="J1" pin="8"/>
+      <node ref="P18" pin="4"/>
+    </net>
+    <net code="24" name="Net-(J1-Pad5)">
+      <node ref="P23" pin="3"/>
+      <node ref="P4" pin="3"/>
+      <node ref="P14" pin="3"/>
+      <node ref="P45" pin="3"/>
+      <node ref="P49" pin="3"/>
+      <node ref="J3" pin="5"/>
+      <node ref="U5" pin="4"/>
+      <node ref="P53" pin="3"/>
+      <node ref="P10" pin="3"/>
+      <node ref="P18" pin="3"/>
+      <node ref="P63" pin="3"/>
+      <node ref="J3" pin="6"/>
+      <node ref="P59" pin="3"/>
+      <node ref="U3" pin="4"/>
+      <node ref="U6" pin="4"/>
+      <node ref="J2" pin="6"/>
+      <node ref="J2" pin="5"/>
+      <node ref="J1" pin="5"/>
+      <node ref="J4" pin="6"/>
+      <node ref="J1" pin="6"/>
+      <node ref="U4" pin="4"/>
+      <node ref="J4" pin="5"/>
+    </net>
+    <net code="25" name="Net-(J1-Pad9)">
+      <node ref="J1" pin="9"/>
+    </net>
+    <net code="26" name="Net-(J1-Pad1)">
+      <node ref="P25" pin="1"/>
+      <node ref="J1" pin="2"/>
+      <node ref="J1" pin="1"/>
+    </net>
+    <net code="27" name="Net-(J3-Pad1)">
+      <node ref="P32" pin="1"/>
+      <node ref="J3" pin="2"/>
+      <node ref="J3" pin="1"/>
+    </net>
+    <net code="28" name="Net-(J2-Pad9)">
+      <node ref="J2" pin="9"/>
+    </net>
+    <net code="29" name="Net-(J2-Pad1)">
+      <node ref="J2" pin="2"/>
+      <node ref="J2" pin="1"/>
+      <node ref="P29" pin="1"/>
+    </net>
+    <net code="30" name="Net-(U3-Pad1)">
+      <node ref="U3" pin="1"/>
+    </net>
+    <net code="31" name="Net-(U4-Pad1)">
+      <node ref="U4" pin="1"/>
+    </net>
+    <net code="32" name="Net-(U5-Pad3)">
+      <node ref="U5" pin="3"/>
+    </net>
+    <net code="33" name="Net-(U5-Pad1)">
+      <node ref="U5" pin="1"/>
+    </net>
+    <net code="34" name="Net-(U5-Pad6)">
+      <node ref="U5" pin="6"/>
+    </net>
+    <net code="35" name="Net-(U4-Pad3)">
+      <node ref="U4" pin="3"/>
+    </net>
+    <net code="36" name="Net-(U4-Pad6)">
+      <node ref="U4" pin="6"/>
+    </net>
+    <net code="37" name="Net-(U3-Pad6)">
+      <node ref="U3" pin="6"/>
+    </net>
+    <net code="38" name="Net-(U3-Pad3)">
+      <node ref="U3" pin="3"/>
+    </net>
+  </nets>
+</export>

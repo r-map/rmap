@@ -1,0 +1,95 @@
+
+(rules PCB r-map
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 3856)
+    (layer_rule Front
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 5.0)
+      (against_preferred_direction_trace_costs 3.1)
+    )
+    (layer_rule Back
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 1.5)
+    )
+  )
+  (rule
+    (width 16.0)
+    (clear 19.8)
+    (clear 8.0 (type smd_to_turn_gap))
+    (clear 5.0 (type smd_smd))
+  )
+  (padstack "Via[0-1]_35:25_mil"
+    (shape
+      (circle Front 35.0 0.0 0.0)
+    )
+    (shape
+      (circle Back 35.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (padstack "Via[0-1]_35:0_mil"
+    (shape
+      (circle Front 35.0 0.0 0.0)
+    )
+    (shape
+      (circle Back 35.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_35:25_mil" "Via[0-1]_35:25_mil" default
+  )
+  (via 
+    "Via[0-1]_35:0_mil" "Via[0-1]_35:0_mil" default
+  )
+  (via 
+    "Via[0-1]_35:25_mil-kicad_default" "Via[0-1]_35:25_mil" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_35:0_mil-kicad_default" "Via[0-1]_35:0_mil" "kicad_default"
+  )
+  (via_rule
+    default "Via[0-1]_35:25_mil"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_35:25_mil-kicad_default"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 16.0)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+  (class "kicad_default"
+    GND "N-000006" "N-000009" "N-000010" "N-000021" "N-000024" "N-000028" "N-000032"
+    "N-000045" "N-000046" "N-000047" "N-000049" "N-000050" "N-000053" "N-000057" "N-000061"
+    "N-000062" "N-000071" "N-000074" "N-000075" "N-000076" "N-000077" "N-000079" "N-000080"
+    "N-000081" "N-000082" "N-000083" "N-000084" "N-000085" "N-000086" "N-000089" "N-000090"
+    "N-000091" "N-000093" "N-000094" "N-000096" "N-000097" "N-000098" VCC
+    (clearance_class "kicad_default")
+    (via_rule kicad_default)
+    (rule
+      (width 16.0)
+    )
+    (circuit 
+      (use_layer Front Back)
+    )
+  )
+)

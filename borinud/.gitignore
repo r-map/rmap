@@ -1,0 +1,6 @@
+*.pyc
+/borinud.egg-info
+/.ropeproject
+/doc/build
+/build
+/dist

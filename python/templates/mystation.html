@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    
+    <section id="main_content">
+
+      <p><h3>Rete di Monitoraggio Ambientale Partecipativo</h3></p>
+
+      <p><h2><a href="http:/">My station</a></h2></p>
+
+      <div id="navcontainer">
+      <ul>
+
+      <li>
+        <label><a href="wizard">Configuration wizard</a></label>
+      </li>
+
+      <li>
+        <label>Visualizzazione</label>
+          <ul>
+            <li><a href="http://{{site.domain}}:5925">punti stazione su mappa e grafici</a></li>
+            <li><a href="http://graphite/dashboard/#rmap">Dashboard temperatura con graphite</a></li>
+            <li><a href="http://graphite">Grafici graphite</a></li>
+          </ul>
+      </li>
+      <li>
+        <label>Gestione</label>
+          <ul>
+            <li><a href="http://{{site.domain}}:2812">Monitoraggio processi</a></li>
+            <li><a href="http://{{site.domain}}:8888/admin">Configurazione</a></li>
+            <li><a href="http://{{site.domain}}/http2mqtt/">Pubblicazione dati http2mqtt</a></li>
+            <li><a href="http://{{site.domain}}:15672">Gestione rabbitmq</a></li>
+          </ul>
+      </li>
+      </ul>
+      </div> 
+
+    </section>
+
+{% endblock %}
+
