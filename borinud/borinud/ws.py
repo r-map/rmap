@@ -138,8 +138,17 @@ def get_summaries(ident=None, network=None, lon=None, lat=None,
 @app.get(("/<ident>/<lon:int>,<lat:int>/<network>/<pind:int>,<p1:int>,<p2:int>/"
           "<lt1:int>,<l1>,<lt2>,<l2>/<bcode>/"
           "timeseries/<year:int>/<month:int>/<day:int>"))
+@app.get(("/<ident>/*/<network>/"
+          "<pind:int>,<p1:int>,<p2:int>/<lt1:int>,<l1>,<lt2>,<l2>/"
+          "<bcode>/timeseries/<year:int>"))
+@app.get(("/<ident>/*/<network>/"
+          "<pind:int>,<p1:int>,<p2:int>/<lt1:int>,<l1>,<lt2>,<l2>/"
+          "<bcode>/timeseries/<year:int>/<month:int>"))
+@app.get(("/<ident>/*/<network>/<pind:int>,<p1:int>,<p2:int>/"
+          "<lt1:int>,<l1>,<lt2>,<l2>/<bcode>/"
+          "timeseries/<year:int>/<month:int>/<day:int>"))
 def get_resource_timeseries(ident,
-                            lon, lat, network,
+                            lon=None, lat=None, network,
                             pind, p1, p2,
                             lt1, l1, lt2, l2,
                             bcode,
