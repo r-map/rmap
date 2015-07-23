@@ -235,7 +235,7 @@ int main(int argc, char** argv)
         importer->from_rawmsg(raw, msgs);
         publisher.publish_msgs(msgs);
     }
-    for (int i = 0; i < 10 && not publisher.all_sent(); ++i) {
+    while (not publisher.all_sent()) {
       usleep(1000000);
       publisher.loop();
     }
