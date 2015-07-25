@@ -256,6 +256,7 @@ ScreenManager:
             Toolbar:
 
                 ToggleButton:
+                    id: gps
                     text: app.str_Start_GPS if self.state == 'normal' else app.str_Stop_GPS
                     on_state: app.startgps() if self.state == 'down' else app.stopgps()
 
@@ -1606,6 +1607,8 @@ class Rmap(App):
             self.popup(_("the station in\nuse is not of\ntype mobile"))
             self.root.ids["trip"].state="normal"
             return
+
+        self.root.ids["gps"].state="down"
 
         self.trip=True
         self.mystation.trip=True
