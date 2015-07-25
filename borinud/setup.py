@@ -16,9 +16,9 @@ setup(
     author_email="edigiacomo@arpa.emr.it",
     description="weather data web api",
     long_description="\n".join((
-        read("README.txt"),
-        read("CHANGES.txt"),
-        read("CONTRIBUTORS.txt"),
+        read("README.rst"),
+        read("CHANGES.rst"),
+        read("CONTRIBUTORS.rst"),
     )),
     license="GPLv2+",
     keywords="ARPA SIMC weather station sensor GIS",
