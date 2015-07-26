@@ -37,11 +37,11 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
+Title "R-map project - I2C Hub board"
+Date "2015-07-17"
 Rev ""
-Comp ""
-Comment1 ""
+Comp "rmap.cc"
+Comment1 "Author: Daniele Castellari dcast78@gmail.com"
 Comment2 ""
 Comment3 ""
 Comment4 ""
@@ -1179,11 +1179,7 @@ Wire Wire Line
 	9300 3950 10350 3950
 Wire Wire Line
 	9450 3950 9450 4300
-Wire Wire Line
-	10350 3950 10350 3450
 Connection ~ 9450 3950
-Wire Wire Line
-	8200 3400 8200 3950
 Connection ~ 8400 3950
 Connection ~ 9450 5100
 Connection ~ 8400 5100
@@ -1208,7 +1204,6 @@ Wire Wire Line
 	800  3400 800  3150
 Wire Wire Line
 	600  3100 600  3450
-Connection ~ 10350 3450
 Wire Wire Line
 	10600 3450 10600 3100
 Wire Wire Line
@@ -1235,7 +1230,6 @@ Connection ~ 8600 3400
 Wire Wire Line
 	8400 3100 8400 3450
 Connection ~ 8400 3450
-Connection ~ 8200 3400
 Wire Wire Line
 	7600 3150 7600 3400
 Connection ~ 7600 3400
@@ -1390,4 +1384,23 @@ F 3 "" H 8900 4100 60  0000 C CNN
 $EndComp
 Wire Wire Line
 	8900 4450 8900 5200
+Text Label 6250 2400 0    60   ~ 0
+GND
+Text Label 6050 2500 0    60   ~ 0
+SDA
+Text Label 5950 2600 0    60   ~ 0
+SCL
+Text Label 5100 3450 2    60   ~ 0
++5V
+Text Label 5100 3400 0    60   ~ 0
++3.3V
+Wire Wire Line
+	7900 2300 7900 2500
+Connection ~ 7900 2500
+Wire Wire Line
+	8200 3450 8200 3950
+Connection ~ 8200 3450
+Wire Wire Line
+	10350 3950 10350 3400
+Connection ~ 10350 3400
 $EndSCHEMATC

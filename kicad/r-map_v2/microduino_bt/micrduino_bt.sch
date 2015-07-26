@@ -98,17 +98,6 @@ F 3 "" H 3250 3600 30  0000 C CNN
 	1    3250 3600
 	1    0    0    -1  
 $EndComp
-$Comp
-L R R4
-U 1 1 55008D30
-P 5000 2900
-F 0 "R4" V 5080 2900 40  0000 C CNN
-F 1 "10K" V 5007 2901 40  0000 C CNN
-F 2 "w_smd_resistors:r_0805" V 4930 2900 30  0001 C CNN
-F 3 "" H 5000 2900 30  0000 C CNN
-	1    5000 2900
-	1    0    0    -1  
-$EndComp
 NoConn ~ 3500 2000
 NoConn ~ 3500 2150
 NoConn ~ 3500 2250
@@ -161,101 +150,24 @@ F 7 "" H 5600 2900 60  0000 C CNN "Specifiche"
 	0    -1   -1   0   
 $EndComp
 $Comp
-L CONN_01X01 P1
-U 1 1 5502DA26
-P 4900 2050
-F 0 "P1" H 4950 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 4900 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 4900 2050 60  0001 C CNN
-F 3 "" H 4900 2050 60  0001 C CNN
-F 4 "P" H 4900 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5000 2050 50  0000 C CNN "Valore "
-F 6 "" H 4900 2050 60  0000 C CNN "Impronta"
-F 7 "" H 4900 2050 60  0000 C CNN "Specifiche"
-	1    4900 2050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L CONN_01X01 P2
-U 1 1 5502DA52
-P 5000 2050
-F 0 "P2" H 5050 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 5000 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5000 2050 60  0001 C CNN
-F 3 "" H 5000 2050 60  0001 C CNN
-F 4 "P" H 5000 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5100 2050 50  0000 C CNN "Valore "
-F 6 "" H 5000 2050 60  0000 C CNN "Impronta"
-F 7 "" H 5000 2050 60  0000 C CNN "Specifiche"
-	1    5000 2050
-	0    -1   -1   0   
-$EndComp
-$Comp
 L CONN_01X01 P3
 U 1 1 5502DA6A
-P 5100 2050
-F 0 "P3" H 5150 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 5100 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5100 2050 60  0001 C CNN
-F 3 "" H 5100 2050 60  0001 C CNN
-F 4 "P" H 5100 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5200 2050 50  0000 C CNN "Valore "
-F 6 "" H 5100 2050 60  0000 C CNN "Impronta"
-F 7 "" H 5100 2050 60  0000 C CNN "Specifiche"
-	1    5100 2050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L CONN_01X01 P4
-U 1 1 5502DA85
-P 5500 2050
-F 0 "P4" H 5550 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 5500 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5500 2050 60  0001 C CNN
-F 3 "" H 5500 2050 60  0001 C CNN
-F 4 "P" H 5500 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5600 2050 50  0000 C CNN "Valore "
-F 6 "" H 5500 2050 60  0000 C CNN "Impronta"
-F 7 "" H 5500 2050 60  0000 C CNN "Specifiche"
-	1    5500 2050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L CONN_01X01 P5
-U 1 1 5502DAB1
-P 5600 2050
-F 0 "P5" H 5650 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 5600 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5600 2050 60  0001 C CNN
-F 3 "" H 5600 2050 60  0001 C CNN
-F 4 "P" H 5600 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5700 2050 50  0000 C CNN "Valore "
-F 6 "" H 5600 2050 60  0000 C CNN "Impronta"
-F 7 "" H 5600 2050 60  0000 C CNN "Specifiche"
-	1    5600 2050
-	0    -1   -1   0   
-$EndComp
-$Comp
-L CONN_01X01 P6
-U 1 1 5502DAC9
-P 5700 2050
-F 0 "P6" H 5750 2100 60  0001 C CNN
-F 1 "CONN_01X01" H 5700 2050 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5700 2050 60  0001 C CNN
-F 3 "" H 5700 2050 60  0001 C CNN
-F 4 "P" H 5700 2150 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5800 2050 50  0000 C CNN "Valore "
-F 6 "" H 5700 2050 60  0000 C CNN "Impronta"
-F 7 "" H 5700 2050 60  0000 C CNN "Specifiche"
-	1    5700 2050
-	0    -1   -1   0   
+P 5050 3500
+F 0 "P3" H 5100 3550 60  0001 C CNN
+F 1 "CONN_01X01" H 5050 3500 60  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5050 3500 60  0001 C CNN
+F 3 "" H 5050 3500 60  0001 C CNN
+F 4 "P" H 5050 3600 50  0000 C CNN "Riferimento"
+F 5 "CONN_01X01" V 5150 3500 50  0000 C CNN "Valore "
+F 6 "" H 5050 3500 60  0000 C CNN "Impronta"
+F 7 "" H 5050 3500 60  0000 C CNN "Specifiche"
+	1    5050 3500
+	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	4000 3900 4000 3750
 Wire Wire Line
-	4100 3750 4100 3900
-Wire Wire Line
-	4100 3900 4100 4000
+	4100 3750 4100 4000
 Wire Wire Line
 	4200 3900 4200 3750
 Connection ~ 4100 3900
@@ -276,8 +188,6 @@ Wire Wire Line
 	1400 3200 1400 2250
 Connection ~ 4200 3900
 Wire Wire Line
-	5100 3500 4700 3500
-Wire Wire Line
 	3250 3750 3250 3900
 Connection ~ 3250 3900
 Wire Wire Line
@@ -287,47 +197,16 @@ Wire Wire Line
 Wire Wire Line
 	1250 3300 3250 3300
 Wire Wire Line
-	3250 2350 3250 3300
-Wire Wire Line
-	3250 3300 3250 3450
+	3250 2350 3250 3450
 Connection ~ 3250 3300
 Wire Wire Line
-	5000 2250 5000 2750
-Wire Wire Line
-	1150 3900 3250 3900
-Wire Wire Line
-	3250 3900 4000 3900
-Wire Wire Line
-	4000 3900 4100 3900
-Wire Wire Line
-	4100 3900 4200 3900
-Wire Wire Line
-	4200 3900 5000 3900
-Wire Wire Line
-	5000 3900 5600 3900
-Wire Wire Line
-	5700 3200 4700 3200
-Wire Wire Line
-	5600 2250 5600 2700
+	1150 3900 5600 3900
 Wire Wire Line
 	5600 3100 5600 3450
 Wire Wire Line
 	5600 3900 5600 3750
-Connection ~ 5000 3900
 Wire Wire Line
-	4700 2700 4900 2700
-Wire Wire Line
-	4900 2700 4900 2250
-Wire Wire Line
-	5100 2250 5100 3500
-Wire Wire Line
-	5500 2250 5500 2500
-Wire Wire Line
-	5500 2500 4700 2500
-Wire Wire Line
-	5000 3050 5000 3900
-Wire Wire Line
-	5700 2250 5700 3200
+	4700 2500 5600 2500
 Wire Wire Line
 	2850 1750 4100 1750
 Wire Wire Line
@@ -359,4 +238,57 @@ Wire Wire Line
 	1400 2250 1450 2250
 NoConn ~ 1450 2350
 NoConn ~ 1450 2450
+Wire Wire Line
+	5600 2500 5600 2700
+Wire Wire Line
+	4700 3200 5300 3200
+Wire Wire Line
+	5300 3200 5300 2500
+Connection ~ 5300 2500
+NoConn ~ 4700 2700
+Wire Wire Line
+	4850 3500 4700 3500
+Text Label 4750 3500 0    60   ~ 0
+SET
+Text Label 4900 3200 0    60   ~ 0
+LED
+Text Label 1950 2850 3    60   ~ 0
+SCL
+Text Label 2050 2850 3    60   ~ 0
+SDA
+Text Label 2850 2450 0    60   ~ 0
+SCK
+Text Label 2850 2350 0    60   ~ 0
+MISO
+Text Label 2850 2250 0    60   ~ 0
+MOSI
+Text Label 2850 2150 0    60   ~ 0
+CS_NRF24
+Text Label 2850 2050 0    60   ~ 0
+CE_NRF24
+Text Label 2850 1950 0    60   ~ 0
+CS_ENC28J60
+Text Label 1450 2250 2    60   ~ 0
+RX1
+Text Label 1400 2150 2    60   ~ 0
+TX1
+Text Label 1250 2150 2    60   ~ 0
+INT_28J60
+Text Label 2850 1950 2    60   ~ 0
+CONFIG
+$Comp
+L CONN_01X01 P?
+U 1 1 55A299C8
+P 5050 3700
+F 0 "P?" H 5100 3750 60  0001 C CNN
+F 1 "CONN_01X01" H 5050 3700 60  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5050 3700 60  0001 C CNN
+F 3 "" H 5050 3700 60  0001 C CNN
+F 4 "P" H 5050 3800 50  0000 C CNN "Riferimento"
+F 5 "CONN_01X01" V 5150 3700 50  0000 C CNN "Valore "
+F 6 "" H 5050 3700 60  0000 C CNN "Impronta"
+F 7 "" H 5050 3700 60  0000 C CNN "Specifiche"
+	1    5050 3700
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

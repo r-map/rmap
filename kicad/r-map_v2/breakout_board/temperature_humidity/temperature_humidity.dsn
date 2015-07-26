@@ -1,0 +1,244 @@
+(pcb "/home/raspibo/Documenti/r-map-code/trunk/kicad/r-map_v2/breakout_board/temperature_humidity/temperature_humidity.dsn"
+  (parser
+    (string_quote ")
+    (space_in_quoted_tokens on)
+    (host_cad "KiCad's Pcbnew")
+    (host_version "0.201507032246+5880~23~ubuntu14.04.1-product")
+  )
+  (resolution um 10)
+  (unit um)
+  (structure
+    (layer F.Cu
+      (type signal)
+      (property
+        (index 0)
+      )
+    )
+    (layer B.Cu
+      (type signal)
+      (property
+        (index 1)
+      )
+    )
+    (boundary
+      (path pcb 0  157480 -99060  144780 -99060  144780 -91440  144780 -68580
+            157480 -68580  157480 -91440  157480 -99060  157480 -99060)
+    )
+    (keepout "" (polygon B.Cu 0  152400 -74930  149860 -74930  149860 -72390  152400 -72390))
+    (via "Via[0-1]_600:400_um")
+    (rule
+      (width 250)
+      (clearance 200.1)
+      (clearance 200.1 (type default_smd))
+      (clearance 50 (type smd_smd))
+    )
+  )
+  (placement
+    (component "SMD_Packages:SOIC-8-N"
+      (place U2 151130 -81280 front 0 (PN "HIH6100-SOIC8"))
+    )
+    (component w_smd_cap:c_0805
+      (place C1 153670 -85090 back 270 (PN C))
+      (place C2 148590 -85090 back 90 (PN C))
+      (place C3 155956 -85090 back 90 (PN C))
+    )
+    (component w_pin_strip:pin_strip_4
+      (place P3 151130 -88900 front 0 (PN CONN_01X04))
+    )
+    (component sip4_angled:SIP4_ANGLED
+      (place U1 151130 -71120 front 0 (PN HIH6100))
+    )
+    (component "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small"
+      (place GND1 153670 -78740 back 180 (PN GND))
+      (place 3.3V1 148590 -78740 back 180 (PN 3.3V))
+      (place P4 151130 -81280 back 180 (PN A0))
+      (place A1 151130 -78740 back 180 (PN A1))
+    )
+    (component "LFCSP_WQ_CP16-17:LFCSP_WQ_CP16-17"
+      (place IC1 151130 -73660 back 180 (PN ADT7420))
+    )
+    (component "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small::1"
+      (place 3.3V2 148590 -81280 front 0 (PN 3.3V))
+      (place GND3 153670 -81280 front 0 (PN GND))
+    )
+    (component w_details:hole_3mm
+      (place hole_3mm 151384 -94488 front 0 (PN VAL**))
+    )
+  )
+  (library
+    (image "SMD_Packages:SOIC-8-N"
+      (outline (path signal 150  -2540 2286  2540 2286))
+      (outline (path signal 150  2540 2286  2540 -2286))
+      (outline (path signal 150  2540 -2286  -2540 -2286))
+      (outline (path signal 150  -2540 -2286  -2540 2286))
+      (outline (path signal 150  -2540 762  -2032 762))
+      (outline (path signal 150  -2032 762  -2032 -508))
+      (outline (path signal 150  -2032 -508  -2540 -508))
+      (pin Rect[T]Pad_508x1143_um 8 -1905 3175)
+      (pin Rect[T]Pad_508x1143_um 7 -635 3175)
+      (pin Rect[T]Pad_508x1143_um 6 635 3175)
+      (pin Rect[T]Pad_508x1143_um 5 1905 3175)
+      (pin Rect[T]Pad_508x1143_um 4 1905 -3175)
+      (pin Rect[T]Pad_508x1143_um 3 635 -3175)
+      (pin Rect[T]Pad_508x1143_um 2 -635 -3175)
+      (pin Rect[T]Pad_508x1143_um 1 -1905 -3175)
+    )
+    (image w_smd_cap:c_0805
+      (outline (path signal 127  635 635  635 -635))
+      (outline (path signal 127  -635 635  -635 -609.6))
+      (outline (path signal 127  -1016 635  1016 635))
+      (outline (path signal 127  1016 635  1016 -635))
+      (outline (path signal 127  1016 -635  -1016 -635))
+      (outline (path signal 127  -1016 -635  -1016 635))
+      (pin Rect[T]Pad_1300.48x1498.6_um 1 952.5 0)
+      (pin Rect[T]Pad_1300.48x1498.6_um 2 -952.5 0)
+    )
+    (image w_pin_strip:pin_strip_4
+      (outline (path signal 304.8  -2540 1270  -2540 -1270))
+      (outline (path signal 304.8  5080 -1270  -5080 -1270))
+      (outline (path signal 304.8  -5080 1270  5080 1270))
+      (outline (path signal 304.8  -5080 -1270  -5080 1270))
+      (outline (path signal 304.8  5080 1270  5080 -1270))
+      (pin Rect[A]Pad_1524x2199.64_um 1 -3810 0)
+      (pin Oval[A]Pad_1524x2199.64_um 2 -1270 0)
+      (pin Oval[A]Pad_1524x2199.64_um 3 1270 0)
+      (pin Oval[A]Pad_1524x2199.64_um 4 3810 0)
+    )
+    (image sip4_angled:SIP4_ANGLED
+      (pin Rect[T]Pad_800x3524_um 4 1905 -1270)
+      (pin Rect[T]Pad_800x3524_um 3 635 -1270)
+      (pin Rect[T]Pad_800x3524_um 2 -635 -1270)
+      (pin Rect[T]Pad_800x3524_um 1 -1905 -1270)
+    )
+    (image "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small"
+      (pin Rect[T]Pad_1501.14x1501.14_um 1 0 0)
+    )
+    (image "LFCSP_WQ_CP16-17:LFCSP_WQ_CP16-17"
+      (outline (path signal 150  -1408.58 1550  -1415.5 1506.3  -1435.59 1466.88  -1466.88 1435.59
+            -1506.3 1415.5  -1550 1408.58  -1593.7 1415.5  -1633.12 1435.59
+            -1664.41 1466.88  -1684.5 1506.3  -1691.42 1550  -1684.5 1593.7
+            -1664.41 1633.12  -1633.12 1664.41  -1593.7 1684.5  -1550 1691.42
+            -1506.3 1684.5  -1466.88 1664.41  -1435.59 1633.12  -1415.5 1593.7))
+      (outline (path signal 150  -2000 2000  2000 2000))
+      (outline (path signal 150  2000 2000  2000 -2000))
+      (outline (path signal 150  2000 -2000  -2000 -2000))
+      (outline (path signal 150  -2000 -2000  -2000 2000))
+      (pin Rect[T]Pad_650x250_um 1 -1950 975)
+      (pin Rect[T]Pad_650x250_um 2 -1950 325)
+      (pin Rect[T]Pad_650x250_um 3 -1950 -325)
+      (pin Rect[T]Pad_650x250_um 4 -1950 -975)
+      (pin Rect[T]Pad_650x250_um (rotate 90) 5 -975 -1950)
+      (pin Rect[T]Pad_650x250_um (rotate 90) 6 -325 -1950)
+      (pin Rect[T]Pad_650x250_um (rotate 90) 7 325 -1950)
+      (pin Rect[T]Pad_650x250_um (rotate 90) 8 975 -1950)
+      (pin Rect[T]Pad_250x650_um (rotate 270) 9 1950 -975)
+      (pin Rect[T]Pad_250x650_um (rotate 270) 10 1950 -325)
+      (pin Rect[T]Pad_250x650_um (rotate 270) 11 1950 325)
+      (pin Rect[T]Pad_250x650_um (rotate 270) 12 1950 975)
+      (pin Rect[T]Pad_250x650_um 13 975 1950)
+      (pin Rect[T]Pad_250x650_um 14 325 1950)
+      (pin Rect[T]Pad_250x650_um 15 -325 1950)
+      (pin Rect[T]Pad_250x650_um 16 -975 1950)
+      (pin Rect[T]Pad_2600x2600_um 17 0 0)
+    )
+    (image "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small::1"
+      (pin Rect[B]Pad_1501.14x1501.14_um 1 0 0)
+    )
+    (image w_details:hole_3mm
+      (outline (path signal 254  0 2159  0 -2159))
+      (outline (path signal 254  -2159 0  2159 0))
+      (outline (path signal 254  1778 0  1690.98 -549.432  1438.43 -1045.08  1045.08 -1438.43
+            549.432 -1690.98  0 -1778  -549.432 -1690.98  -1045.08 -1438.43
+            -1438.43 -1045.08  -1690.98 -549.432  -1778 0  -1690.98 549.432
+            -1438.43 1045.08  -1045.08 1438.43  -549.432 1690.98  0 1778
+            549.432 1690.98  1045.08 1438.43  1438.43 1045.08  1690.98 549.432))
+      (keepout "" (circle F.Cu 2999.74))
+      (keepout "" (circle B.Cu 2999.74))
+    )
+    (padstack Oval[A]Pad_1524x2199.64_um
+      (shape (path F.Cu 1524  0 -337.82  0 337.82))
+      (shape (path B.Cu 1524  0 -337.82  0 337.82))
+      (attach off)
+    )
+    (padstack Rect[B]Pad_1501.14x1501.14_um
+      (shape (rect B.Cu -750.57 -750.57 750.57 750.57))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_250x650_um
+      (shape (rect F.Cu -125 -325 125 325))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_2600x2600_um
+      (shape (rect F.Cu -1300 -1300 1300 1300))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_508x1143_um
+      (shape (rect F.Cu -254 -571.5 254 571.5))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_650x250_um
+      (shape (rect F.Cu -325 -125 325 125))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_800x3524_um
+      (shape (rect F.Cu -400 -1762 400 1762))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1300.48x1498.6_um
+      (shape (rect F.Cu -650.24 -749.3 650.24 749.3))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1501.14x1501.14_um
+      (shape (rect F.Cu -750.57 -750.57 750.57 750.57))
+      (attach off)
+    )
+    (padstack Rect[A]Pad_1524x2199.64_um
+      (shape (rect F.Cu -762 -1099.82 762 1099.82))
+      (shape (rect B.Cu -762 -1099.82 762 1099.82))
+      (attach off)
+    )
+    (padstack "Via[0-1]_600:400_um"
+      (shape (circle F.Cu 600))
+      (shape (circle B.Cu 600))
+      (attach off)
+    )
+  )
+  (network
+    (net +3.3V
+      (pins U2-8 C1-1 C3-1 P3-4 U1-1 3.3V1-1 IC1-12 3.3V2-1)
+    )
+    (net GND
+      (pins U2-2 C1-2 C2-2 C3-2 P3-3 U1-2 GND1-1 IC1-11 GND3-1)
+    )
+    (net "Net-(C2-Pad1)"
+      (pins U2-1 C2-1)
+    )
+    (net SCL
+      (pins U2-3 P3-1 U1-3 IC1-1)
+    )
+    (net SDA
+      (pins U2-4 P3-2 U1-4 IC1-2)
+    )
+    (net /A0
+      (pins P4-1 IC1-3)
+    )
+    (net /A1
+      (pins A1-1 IC1-4)
+    )
+    (class kicad_default "" +3.3V /A0 /A1 GND "Net-(C2-Pad1)" "Net-(IC1-Pad10)"
+      "Net-(IC1-Pad13)" "Net-(IC1-Pad14)" "Net-(IC1-Pad15)" "Net-(IC1-Pad16)"
+      "Net-(IC1-Pad5)" "Net-(IC1-Pad6)" "Net-(IC1-Pad7)" "Net-(IC1-Pad8)"
+      "Net-(IC1-Pad9)" "Net-(U2-Pad5)" "Net-(U2-Pad6)" "Net-(U2-Pad7)" SCL
+      SDA
+      (circuit
+        (use_via Via[0-1]_600:400_um)
+      )
+      (rule
+        (width 250)
+        (clearance 200.1)
+      )
+    )
+  )
+  (wiring
+  )
+)

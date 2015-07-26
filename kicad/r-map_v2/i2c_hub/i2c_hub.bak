@@ -37,11 +37,11 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
+Title "R-map project - I2C Hub board"
 Date ""
 Rev ""
-Comp ""
-Comment1 ""
+Comp "rmap.cc"
+Comment1 "Author: Daniele Castellari dcast78@gmail.com"
 Comment2 ""
 Comment3 ""
 Comment4 ""
@@ -107,7 +107,7 @@ U 1 1 548AEF69
 P 3800 1750
 F 0 "J1" H 4000 2250 60  0000 C CNN
 F 1 "RJ45" H 3650 2250 60  0000 C CNN
-F 2 "w_conn_pc:rj45-noshield" H 3800 1750 60  0001 C CNN
+F 2 "Connect:RJ45_8" H 3800 1750 60  0001 C CNN
 F 3 "" H 3800 1750 60  0000 C CNN
 	1    3800 1750
 	1    0    0    -1  
@@ -173,7 +173,7 @@ U 1 1 548AFE7D
 P 4800 1750
 F 0 "J2" H 5000 2250 60  0000 C CNN
 F 1 "RJ45" H 4650 2250 60  0000 C CNN
-F 2 "w_conn_pc:rj45-noshield" H 4800 1750 60  0001 C CNN
+F 2 "Connect:RJ45_8" H 4800 1750 60  0001 C CNN
 F 3 "" H 4800 1750 60  0000 C CNN
 	1    4800 1750
 	1    0    0    -1  
@@ -184,7 +184,7 @@ U 1 1 548AFF3B
 P 5800 1750
 F 0 "J3" H 6000 2250 60  0000 C CNN
 F 1 "RJ45" H 5650 2250 60  0000 C CNN
-F 2 "w_conn_pc:rj45-noshield" H 5800 1750 60  0001 C CNN
+F 2 "Connect:RJ45_8" H 5800 1750 60  0001 C CNN
 F 3 "" H 5800 1750 60  0000 C CNN
 	1    5800 1750
 	1    0    0    -1  
@@ -195,7 +195,7 @@ U 1 1 548AFF4D
 P 6800 1750
 F 0 "J4" H 7000 2250 60  0000 C CNN
 F 1 "RJ45" H 6650 2250 60  0000 C CNN
-F 2 "w_conn_pc:rj45-noshield" H 6800 1750 60  0001 C CNN
+F 2 "Connect:RJ45_8" H 6800 1750 60  0001 C CNN
 F 3 "" H 6800 1750 60  0000 C CNN
 	1    6800 1750
 	1    0    0    -1  
@@ -206,7 +206,7 @@ U 1 1 548AFFA9
 P 7800 1750
 F 0 "J5" H 8000 2250 60  0000 C CNN
 F 1 "RJ45" H 7650 2250 60  0000 C CNN
-F 2 "w_conn_pc:rj45-noshield" H 7800 1750 60  0001 C CNN
+F 2 "Connect:RJ45_8" H 7800 1750 60  0001 C CNN
 F 3 "" H 7800 1750 60  0000 C CNN
 	1    7800 1750
 	1    0    0    -1  
@@ -990,7 +990,7 @@ Wire Wire Line
 Wire Wire Line
 	1000 2400 11150 2400
 Wire Wire Line
-	11150 5100 11150 2400
+	11150 2400 11150 5100
 Wire Wire Line
 	900  2200 900  2500
 Wire Wire Line
@@ -1170,7 +1170,7 @@ Connection ~ 2800 5100
 Wire Wire Line
 	9450 5100 9450 4700
 Wire Wire Line
-	7750 5100 11150 5100
+	11150 5100 7750 5100
 Wire Wire Line
 	8400 5100 8400 4700
 Wire Wire Line
@@ -1179,11 +1179,7 @@ Wire Wire Line
 	9300 3950 10350 3950
 Wire Wire Line
 	9450 3950 9450 4300
-Wire Wire Line
-	10350 3950 10350 3450
 Connection ~ 9450 3950
-Wire Wire Line
-	8200 3400 8200 3950
 Connection ~ 8400 3950
 Connection ~ 9450 5100
 Connection ~ 8400 5100
@@ -1208,7 +1204,6 @@ Wire Wire Line
 	800  3400 800  3150
 Wire Wire Line
 	600  3100 600  3450
-Connection ~ 10350 3450
 Wire Wire Line
 	10600 3450 10600 3100
 Wire Wire Line
@@ -1235,7 +1230,6 @@ Connection ~ 8600 3400
 Wire Wire Line
 	8400 3100 8400 3450
 Connection ~ 8400 3450
-Connection ~ 8200 3400
 Wire Wire Line
 	7600 3150 7600 3400
 Connection ~ 7600 3400
@@ -1314,7 +1308,7 @@ Wire Wire Line
 Wire Wire Line
 	1200 3700 1500 3700
 Wire Wire Line
-	1500 2600 1500 3700
+	1500 3700 1500 2600
 Connection ~ 1500 2600
 Wire Wire Line
 	3300 2400 3300 5100
@@ -1365,12 +1359,12 @@ Wire Wire Line
 	9800 2200 9800 2500
 Connection ~ 9800 2500
 $Comp
-L LM317_SOT223 U?
+L LM317_SOT223 U1
 U 1 1 554E4B7C
 P 2300 4100
-F 0 "U?" H 2300 4400 60  0000 C CNN
+F 0 "U1" H 2300 4400 60  0000 C CNN
 F 1 "LM317_SOT223" H 2350 3850 60  0000 L CNN
-F 2 "" H 2300 4100 60  0000 C CNN
+F 2 "w_smd_trans:sot223" H 2300 4100 60  0001 C CNN
 F 3 "" H 2300 4100 60  0000 C CNN
 	1    2300 4100
 	1    0    0    -1  
@@ -1378,16 +1372,35 @@ $EndComp
 Wire Wire Line
 	2300 4450 2300 5200
 $Comp
-L LM317_SOT223 U?
+L LM317_SOT223 U2
 U 1 1 554E5584
 P 8900 4100
-F 0 "U?" H 8900 4400 60  0000 C CNN
+F 0 "U2" H 8900 4400 60  0000 C CNN
 F 1 "LM317_SOT223" H 8950 3850 60  0000 L CNN
-F 2 "" H 8900 4100 60  0000 C CNN
+F 2 "w_smd_trans:sot223" H 8900 4100 60  0001 C CNN
 F 3 "" H 8900 4100 60  0000 C CNN
 	1    8900 4100
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
 	8900 4450 8900 5200
+Text Label 6250 2400 0    60   ~ 0
+GND
+Text Label 6050 2500 0    60   ~ 0
+SDA
+Text Label 5950 2600 0    60   ~ 0
+SCL
+Text Label 5100 3450 2    60   ~ 0
++5V
+Text Label 5100 3400 0    60   ~ 0
++3.3V
+Wire Wire Line
+	7900 2300 7900 2500
+Connection ~ 7900 2500
+Wire Wire Line
+	8200 3450 8200 3950
+Connection ~ 8200 3450
+Wire Wire Line
+	10350 3950 10350 3400
+Connection ~ 10350 3400
 $EndSCHEMATC

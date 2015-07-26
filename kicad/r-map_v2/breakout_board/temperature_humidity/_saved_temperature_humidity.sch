@@ -1,0 +1,441 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:temp_sensor
+LIBS:hih6100_sip4
+LIBS:hih6100-soic8
+LIBS:temperature_humidity-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L ADT7420 IC1
+U 1 1 559E98C1
+P 4250 3150
+F 0 "IC1" H 4250 3100 60  0000 C CNN
+F 1 "ADT7420" H 4250 3200 50  0000 C CNN
+F 2 "LFCSP_WQ_CP16-17:LFCSP_WQ_CP16-17" H 4250 3000 60  0001 C CNN
+F 3 "" H 4250 3150 60  0000 C CNN
+	1    4250 3150
+	1    0    0    -1  
+$EndComp
+$Comp
+L HIH6100 U1
+U 1 1 559E995C
+P 4300 4400
+F 0 "U1" H 4300 4750 60  0000 C CNN
+F 1 "HIH6100" H 4300 4000 60  0000 C CNN
+F 2 "sip4_angled:SIP4_ANGLED" H 4300 4400 60  0001 C CNN
+F 3 "" H 4300 4400 60  0000 C CNN
+	1    4300 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L HIH6100-SOIC8 U2
+U 1 1 559E9D81
+P 4300 5600
+F 0 "U2" H 4300 6200 60  0000 C CNN
+F 1 "HIH6100-SOIC8" H 4300 4900 60  0000 C CNN
+F 2 "SMD_Packages:SOIC-8-N" H 4300 5600 60  0001 C CNN
+F 3 "" H 4300 5600 60  0000 C CNN
+	1    4300 5600
+	1    0    0    -1  
+$EndComp
+Text GLabel 2850 2900 0    60   Input ~ 0
+SCL
+Text GLabel 5100 4200 2    60   Input ~ 0
+SCL
+Text GLabel 5100 5250 2    60   Input ~ 0
+SCL
+Text GLabel 5100 4600 2    60   Input ~ 0
+SDA
+Text GLabel 5100 5500 2    60   Input ~ 0
+SDA
+Text GLabel 2850 3100 0    60   Input ~ 0
+SDA
+NoConn ~ 4100 3800
+NoConn ~ 4200 3800
+NoConn ~ 4300 3800
+NoConn ~ 4400 3800
+NoConn ~ 4400 2500
+NoConn ~ 4300 2500
+NoConn ~ 4200 2500
+NoConn ~ 4100 2500
+NoConn ~ 4950 5750
+NoConn ~ 4950 6000
+$Comp
+L GND #PWR01
+U 1 1 559EA13D
+P 5500 3450
+F 0 "#PWR01" H 5500 3200 50  0001 C CNN
+F 1 "GND" H 5500 3300 50  0000 C CNN
+F 2 "" H 5500 3450 60  0000 C CNN
+F 3 "" H 5500 3450 60  0000 C CNN
+	1    5500 3450
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR02
+U 1 1 559EA166
+P 5500 2850
+F 0 "#PWR02" H 5500 2700 50  0001 C CNN
+F 1 "+3.3V" H 5500 2990 50  0000 C CNN
+F 2 "" H 5500 2850 60  0000 C CNN
+F 3 "" H 5500 2850 60  0000 C CNN
+	1    5500 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR03
+U 1 1 559EA18F
+P 3500 4100
+F 0 "#PWR03" H 3500 3950 50  0001 C CNN
+F 1 "+3.3V" H 3500 4240 50  0000 C CNN
+F 2 "" H 3500 4100 60  0000 C CNN
+F 3 "" H 3500 4100 60  0000 C CNN
+	1    3500 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR04
+U 1 1 559EA1B3
+P 3500 5150
+F 0 "#PWR04" H 3500 5000 50  0001 C CNN
+F 1 "+3.3V" H 3500 5290 50  0000 C CNN
+F 2 "" H 3500 5150 60  0000 C CNN
+F 3 "" H 3500 5150 60  0000 C CNN
+	1    3500 5150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR05
+U 1 1 559EA1E1
+P 3500 4700
+F 0 "#PWR05" H 3500 4450 50  0001 C CNN
+F 1 "GND" H 3500 4550 50  0000 C CNN
+F 2 "" H 3500 4700 60  0000 C CNN
+F 3 "" H 3500 4700 60  0000 C CNN
+	1    3500 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR06
+U 1 1 559EA203
+P 3550 5800
+F 0 "#PWR06" H 3550 5550 50  0001 C CNN
+F 1 "GND" H 3550 5650 50  0000 C CNN
+F 2 "" H 3550 5800 60  0000 C CNN
+F 3 "" H 3550 5800 60  0000 C CNN
+	1    3550 5800
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C2
+U 1 1 559EA261
+P 3400 5600
+F 0 "C2" H 3425 5700 50  0000 L CNN
+F 1 "C" H 3425 5500 50  0000 L CNN
+F 2 "w_smd_cap:c_0805" H 3438 5450 30  0001 C CNN
+F 3 "" H 3400 5600 60  0000 C CNN
+	1    3400 5600
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C1
+U 1 1 559EA38D
+P 3050 5600
+F 0 "C1" H 3075 5700 50  0000 L CNN
+F 1 "C" H 3075 5500 50  0000 L CNN
+F 2 "w_smd_cap:c_0805" H 3088 5450 30  0001 C CNN
+F 3 "" H 3050 5600 60  0000 C CNN
+	1    3050 5600
+	1    0    0    -1  
+$EndComp
+Text GLabel 4150 7000 0    60   Input ~ 0
+SDA
+Text GLabel 4150 6750 0    60   Input ~ 0
+SCL
+Text GLabel 3700 7500 0    60   Input ~ 0
++3.3V
+Text GLabel 4150 7250 0    60   Input ~ 0
+GND
+$Comp
+L CONN_01X04 P3
+U 1 1 559EA456
+P 4850 7150
+F 0 "P3" H 4850 7400 50  0000 C CNN
+F 1 "CONN_01X04" V 4950 7150 50  0000 C CNN
+F 2 "w_pin_strip:pin_strip_4" H 4850 7150 60  0001 C CNN
+F 3 "" H 4850 7150 60  0000 C CNN
+	1    4850 7150
+	1    0    0    -1  
+$EndComp
+$Comp
+L GND #PWR07
+U 1 1 559EA7F4
+P 4400 7300
+F 0 "#PWR07" H 4400 7050 50  0001 C CNN
+F 1 "GND" H 4400 7150 50  0000 C CNN
+F 2 "" H 4400 7300 60  0000 C CNN
+F 3 "" H 4400 7300 60  0000 C CNN
+	1    4400 7300
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR08
+U 1 1 559EA8C3
+P 3750 7450
+F 0 "#PWR08" H 3750 7300 50  0001 C CNN
+F 1 "+3.3V" H 3750 7590 50  0000 C CNN
+F 2 "" H 3750 7450 60  0000 C CNN
+F 3 "" H 3750 7450 60  0000 C CNN
+	1    3750 7450
+	1    0    0    -1  
+$EndComp
+$Comp
+L +3.3V #PWR09
+U 1 1 559EAC0F
+P 1700 3150
+F 0 "#PWR09" H 1700 3000 50  0001 C CNN
+F 1 "+3.3V" H 1700 3290 50  0000 C CNN
+F 2 "" H 1700 3150 60  0000 C CNN
+F 3 "" H 1700 3150 60  0000 C CNN
+	1    1700 3150
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 5200 3200
+NoConn ~ 5200 3300
+$Comp
+L CONN_01X01 A1
+U 1 1 559EB0AC
+P 2450 3700
+F 0 "A1" H 2600 3700 50  0000 C CNN
+F 1 "A1" H 2600 3700 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3700 60  0001 C CNN
+F 3 "" H 2450 3700 60  0000 C CNN
+	1    2450 3700
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_01X01 P4
+U 1 1 559EB156
+P 2450 3200
+F 0 "P4" H 2000 3350 50  0000 C CNN
+F 1 "A0" H 2700 3200 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3200 60  0001 C CNN
+F 3 "" H 2450 3200 60  0000 C CNN
+	1    2450 3200
+	-1   0    0    1   
+$EndComp
+$Comp
+L CONN_01X01 3.3V1
+U 1 1 559EB186
+P 2450 3050
+F 0 "3.3V1" H 2450 3150 50  0000 C CNN
+F 1 "3.3V" H 2200 3100 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3050 60  0001 C CNN
+F 3 "" H 2450 3050 60  0000 C CNN
+	1    2450 3050
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X01 GND1
+U 1 1 559EB1CB
+P 2450 3350
+F 0 "GND1" H 2450 3400 50  0000 C CNN
+F 1 "GND" H 2200 3300 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3350 60  0001 C CNN
+F 3 "" H 2450 3350 60  0000 C CNN
+	1    2450 3350
+	1    0    0    -1  
+$EndComp
+$Comp
+L C C3
+U 1 1 559F4863
+P 5700 3050
+F 0 "C3" H 5725 3150 50  0000 L CNN
+F 1 "C" H 5725 2950 50  0000 L CNN
+F 2 "w_smd_cap:c_0805" H 5738 2900 30  0001 C CNN
+F 3 "" H 5700 3050 60  0000 C CNN
+	1    5700 3050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 5250 4950 5250
+Wire Wire Line
+	5100 4200 4750 4200
+Wire Wire Line
+	2850 2900 3300 2900
+Wire Wire Line
+	3300 2900 3300 3000
+Wire Wire Line
+	5100 4600 4750 4600
+Wire Wire Line
+	5100 5500 4950 5500
+Wire Wire Line
+	2850 3100 3300 3100
+Wire Wire Line
+	5500 3100 5500 3450
+Wire Wire Line
+	5500 3100 5200 3100
+Wire Wire Line
+	5500 2850 5500 3000
+Wire Wire Line
+	5500 3000 5200 3000
+Wire Wire Line
+	3800 4200 3500 4200
+Wire Wire Line
+	3500 4200 3500 4100
+Wire Wire Line
+	3050 5250 3700 5250
+Wire Wire Line
+	3500 5250 3500 5150
+Wire Wire Line
+	3050 5750 3700 5750
+Wire Wire Line
+	3550 5750 3550 5800
+Wire Wire Line
+	3400 5450 3700 5450
+Wire Wire Line
+	3700 5450 3700 5500
+Connection ~ 3550 5750
+Connection ~ 3400 5750
+Wire Wire Line
+	3050 5450 3050 5250
+Connection ~ 3500 5250
+Wire Wire Line
+	4150 7000 4400 7000
+Wire Wire Line
+	4400 7000 4400 7100
+Wire Wire Line
+	4400 7100 4650 7100
+Wire Wire Line
+	4150 6750 4650 6750
+Wire Wire Line
+	4650 6750 4650 7000
+Wire Wire Line
+	4650 7200 4400 7200
+Wire Wire Line
+	4400 7200 4400 7300
+Wire Wire Line
+	4400 7250 4150 7250
+Wire Wire Line
+	4650 7500 4650 7300
+Wire Wire Line
+	3700 7500 4650 7500
+Connection ~ 4400 7250
+Wire Wire Line
+	3750 7450 3750 7500
+Connection ~ 3750 7500
+Wire Wire Line
+	3200 3700 2650 3700
+Wire Wire Line
+	3300 3200 2650 3200
+Wire Wire Line
+	3800 4600 3500 4600
+Wire Wire Line
+	3500 4600 3500 4700
+Wire Wire Line
+	5700 2900 5500 2900
+Connection ~ 5500 2900
+Wire Wire Line
+	5700 3200 5500 3200
+Connection ~ 5500 3200
+Text Label 3000 2900 0    60   ~ 0
+SCL
+Text Label 3050 3100 0    60   ~ 0
+SDA
+Text Label 3100 3200 0    60   ~ 0
+A0
+Text Label 3200 3450 0    60   ~ 0
+A1
+$Comp
+L CONN_01X01 3.3V2
+U 1 1 55A2743D
+P 2450 3550
+F 0 "3.3V2" H 2450 3650 50  0000 C CNN
+F 1 "3.3V" H 2600 3550 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3550 60  0001 C CNN
+F 3 "" H 2450 3550 60  0000 C CNN
+	1    2450 3550
+	1    0    0    -1  
+$EndComp
+$Comp
+L CONN_01X01 GND3
+U 1 1 55A27521
+P 2450 3900
+F 0 "GND3" H 2450 4000 50  0000 C CNN
+F 1 "GND" H 2450 3800 50  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 2450 3900 60  0001 C CNN
+F 3 "" H 2450 3900 60  0000 C CNN
+	1    2450 3900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3300 3300 3200 3300
+Wire Wire Line
+	3200 3300 3200 3700
+Wire Wire Line
+	1700 3050 1700 3550
+Wire Wire Line
+	1700 3050 2250 3050
+Wire Wire Line
+	1700 3550 2250 3550
+Connection ~ 1700 3150
+$Comp
+L GND #PWR010
+U 1 1 55A27C99
+P 1950 4000
+F 0 "#PWR010" H 1950 3750 50  0001 C CNN
+F 1 "GND" H 1950 3850 50  0000 C CNN
+F 2 "" H 1950 4000 60  0000 C CNN
+F 3 "" H 1950 4000 60  0000 C CNN
+	1    1950 4000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2250 3350 1950 3350
+Wire Wire Line
+	1950 3350 1950 4000
+Wire Wire Line
+	2250 3900 1950 3900
+Connection ~ 1950 3900
+$EndSCHEMATC

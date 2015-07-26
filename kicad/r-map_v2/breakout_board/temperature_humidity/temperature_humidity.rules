@@ -1,5 +1,5 @@
 
-(rules PCB micrduino_bt
+(rules PCB temperature_humidity
   (snap_angle 
     fortyfive_degree
   )
@@ -11,63 +11,63 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 103)
+    (start_pass_no 462)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
       (preferred_direction_trace_costs 1.0)
-      (against_preferred_direction_trace_costs 2.1)
+      (against_preferred_direction_trace_costs 3.4)
     )
     (layer_rule B.Cu
       (active on)
       (preferred_direction horizontal)
       (preferred_direction_trace_costs 1.0)
-      (against_preferred_direction_trace_costs 1.9)
+      (against_preferred_direction_trace_costs 1.4)
     )
   )
   (rule
-    (width 254.0)
-    (clear 354.2)
-    (clear 127.0 (type smd_to_turn_gap))
-    (clear 88.6 (type smd_smd))
+    (width 250.0)
+    (clear 200.2)
+    (clear 125.0 (type smd_to_turn_gap))
+    (clear 50.0 (type smd_smd))
   )
-  (padstack "Via[0-1]_1035:635_um"
+  (padstack "Via[0-1]_600:400_um"
     (shape
-      (circle F.Cu 1035.0 0.0 0.0)
+      (circle F.Cu 600.0 0.0 0.0)
     )
     (shape
-      (circle B.Cu 1035.0 0.0 0.0)
+      (circle B.Cu 600.0 0.0 0.0)
     )
     (attach off)
   )
   (via 
-    "Via[0-1]_1035:635_um" "Via[0-1]_1035:635_um" default
+    "Via[0-1]_600:400_um" "Via[0-1]_600:400_um" default
   )
   (via 
-    "Via[0-1]_1035:635_um-kicad_default" "Via[0-1]_1035:635_um" "kicad_default"
+    "Via[0-1]_600:400_um-kicad_default" "Via[0-1]_600:400_um" "kicad_default"
   )
   (via_rule
-    default "Via[0-1]_1035:635_um"
+    default "Via[0-1]_600:400_um"
   )
   (via_rule
-    "kicad_default" "Via[0-1]_1035:635_um-kicad_default"
+    "kicad_default" "Via[0-1]_600:400_um-kicad_default"
   )
   (class default
     (clearance_class default)
     (via_rule default)
     (rule
-      (width 254.0)
+      (width 250.0)
     )
     (circuit 
       (use_layer F.Cu B.Cu)
     )
   )
   (class "kicad_default"
-    "Net-(D1-Pad1)" GND "Net-(R1-Pad1)" "Net-(R1-Pad2)" "Net-(U1-Pad26)" /LED /SET "Net-(U1-Pad7)"
+    +3.3V GND "Net-(C2-Pad1)" SCL SDA /A0 /A1
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
-      (width 254.0)
+      (width 250.0)
     )
     (circuit 
       (use_layer F.Cu B.Cu)
