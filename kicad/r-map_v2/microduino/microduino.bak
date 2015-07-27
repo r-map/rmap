@@ -31,20 +31,21 @@ LIBS:valves
 LIBS:microduino
 LIBS:prtr5v0u4y
 LIBS:esda6v1-5sc6
+LIBS:conn_micro_usb
 LIBS:microduino-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
+Title "Stima - Microduino general interface"
+Date "2015-07-26"
 Rev ""
-Comp ""
+Comp "http://rmap.cc/"
 Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Comment2 "Released under MIT License(MIT)"
+Comment3 "Author: Daniele Castellari dcast78@gmail.com"
+Comment4 "This module is part of rmap project"
 $EndDescr
 Text Notes 5600 4700 1    60   ~ 0
 SCL

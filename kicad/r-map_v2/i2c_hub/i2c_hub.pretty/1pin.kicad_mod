@@ -1,0 +1,11 @@
+(module Connect:1pin (layer F.Cu) (tedit 554F30BE)
+  (descr "module 1 pin (ou trou mecanique de percage)")
+  (tags DEV)
+  (fp_text reference REF**2 (at 0 -3.048) (layer F.SilkS) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value 1pin (at 0 2.794) (layer F.Fab) hide
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (pad 1 thru_hole circle (at 0 0) (size 1.4 1.4) (drill 1) (layers *.Cu *.Mask F.SilkS))
+)

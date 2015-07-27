@@ -34,14 +34,14 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
+Title "Stima - Microduino bluetooth interface"
+Date "2015-07-26"
 Rev ""
-Comp ""
+Comp "http://rmap.cc/"
 Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Comment2 "Released under MIT License(MIT)"
+Comment3 "Author: Daniele Castellari dcast78@gmail.com"
+Comment4 "This module is part of rmap project"
 $EndDescr
 $Comp
 L ITEAD_HC-05 U2
