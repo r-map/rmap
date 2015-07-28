@@ -7,7 +7,7 @@ def read(*rnames):
 
 name = "borinud"
 version = "0.7"
-release = version + ".4"
+release = version + ".5"
 
 setup(
     name=name,
