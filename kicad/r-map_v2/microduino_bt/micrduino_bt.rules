@@ -11,41 +11,32 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 245)
+    (start_pass_no 103)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
       (preferred_direction_trace_costs 1.0)
-      (against_preferred_direction_trace_costs 2.4)
+      (against_preferred_direction_trace_costs 2.1)
     )
-    (layer_rule In1.Cu
+    (layer_rule B.Cu
       (active on)
       (preferred_direction horizontal)
       (preferred_direction_trace_costs 1.0)
-      (against_preferred_direction_trace_costs 1.7)
+      (against_preferred_direction_trace_costs 1.9)
     )
   )
   (rule
     (width 254.0)
-    (clear 254.2)
+    (clear 354.2)
     (clear 127.0 (type smd_to_turn_gap))
-    (clear 63.6 (type smd_smd))
+    (clear 88.6 (type smd_smd))
   )
   (padstack "Via[0-1]_1035:635_um"
     (shape
       (circle F.Cu 1035.0 0.0 0.0)
     )
     (shape
-      (circle In1.Cu 1035.0 0.0 0.0)
-    )
-    (attach off)
-  )
-  (padstack "Via[0-1]_889:635_um"
-    (shape
-      (circle F.Cu 889.0 0.0 0.0)
-    )
-    (shape
-      (circle In1.Cu 889.0 0.0 0.0)
+      (circle B.Cu 1035.0 0.0 0.0)
     )
     (attach off)
   )
@@ -55,17 +46,11 @@
   (via 
     "Via[0-1]_1035:635_um-kicad_default" "Via[0-1]_1035:635_um" "kicad_default"
   )
-  (via 
-    "Via[0-1]_889:635_um" "Via[0-1]_889:635_um" default
-  )
-  (via 
-    "Via[0-1]_889:635_um-kicad_default" "Via[0-1]_889:635_um" "kicad_default"
+  (via_rule
+    default "Via[0-1]_1035:635_um"
   )
   (via_rule
-    default "Via[0-1]_889:635_um"
-  )
-  (via_rule
-    "kicad_default" "Via[0-1]_889:635_um-kicad_default"
+    "kicad_default" "Via[0-1]_1035:635_um-kicad_default"
   )
   (class default
     (clearance_class default)
@@ -74,19 +59,18 @@
       (width 254.0)
     )
     (circuit 
-      (use_layer F.Cu In1.Cu)
+      (use_layer F.Cu B.Cu)
     )
   )
   (class "kicad_default"
-    "Net-(D1-Pad1)" GND "Net-(R1-Pad1)" "Net-(R1-Pad2)" "Net-(U1-Pad9)" "Net-(U1-Pad26)" "Net-(D1-Pad2)" "Net-(P2-Pad1)"
-    "Net-(P4-Pad1)" "Net-(P1-Pad1)" "Net-(P3-Pad1)" "Net-(P6-Pad1)"
+    "Net-(D1-Pad1)" GND "Net-(R1-Pad1)" "Net-(R1-Pad2)" "Net-(U1-Pad26)" /LED /SET "Net-(U1-Pad7)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
       (width 254.0)
     )
     (circuit 
-      (use_layer F.Cu In1.Cu)
+      (use_layer F.Cu B.Cu)
     )
   )
 )

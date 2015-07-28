@@ -1,0 +1,8 @@
+(module SIP4_ANLGED (layer F.Cu) (tedit 559ED4D6)
+  (fp_text reference REF** (at 0 5.08) (layer F.SilkS)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+  (fp_text value SIP4_ANLGED (at 0 -3.81) (layer F.Fab)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
+)

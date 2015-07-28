@@ -31,20 +31,21 @@ LIBS:valves
 LIBS:microduino
 LIBS:prtr5v0u4y
 LIBS:esda6v1-5sc6
+LIBS:conn_micro_usb
 LIBS:microduino-cache
 EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
+Title "Stima - Microduino general interface"
+Date "2015-07-26"
 Rev ""
-Comp ""
+Comp "http://rmap.cc/"
 Comment1 ""
-Comment2 ""
-Comment3 ""
-Comment4 ""
+Comment2 "Released under MIT License(MIT)"
+Comment3 "Author: Daniele Castellari dcast78@gmail.com"
+Comment4 "This module is part of rmap project"
 $EndDescr
 Text Notes 5600 4700 1    60   ~ 0
 SCL
@@ -76,9 +77,9 @@ F 3 "" H 3900 4850 60  0000 C CNN
 	1    3900 4850
 	-1   0    0    1   
 $EndComp
-Text Label 6950 4300 1    60   ~ 0
+Text Label 7150 4250 1    60   ~ 0
 GND
-Text Label 3600 4650 2    60   ~ 0
+Text Label 3700 4500 2    60   ~ 0
 Vcc_RELE
 NoConn ~ 5050 5200
 NoConn ~ 5050 5100
@@ -231,27 +232,16 @@ F 3 "" H 7700 3250 60  0000 C CNN
 	1    7700 3250
 	1    0    0    -1  
 $EndComp
-$Comp
-L R R1
-U 1 1 54900F55
-P 8300 3550
-F 0 "R1" V 8380 3550 40  0000 C CNN
-F 1 "1K0" V 8307 3551 40  0000 C CNN
-F 2 "w_smd_resistors:r_1206" V 8230 3550 30  0001 C CNN
-F 3 "" H 8300 3550 30  0000 C CNN
-	1    8300 3550
-	1    0    0    -1  
-$EndComp
 NoConn ~ 8200 3450
 $Comp
 L CONN_02X01 P4
 U 1 1 54837A8A
-P 7000 4750
-F 0 "P4" H 7000 4600 50  0000 C CNN
-F 1 "CONFIG" H 7000 4650 50  0000 C CNN
-F 2 "w_pin_strip:pin_strip_2" H 7000 3550 60  0001 C CNN
-F 3 "" H 7000 3550 60  0000 C CNN
-	1    7000 4750
+P 7150 4750
+F 0 "P4" H 7150 4600 50  0000 C CNN
+F 1 "CONFIG" H 7150 4650 50  0000 C CNN
+F 2 "w_pin_strip:pin_strip_2" H 7150 3550 60  0001 C CNN
+F 3 "" H 7150 3550 60  0000 C CNN
+	1    7150 4750
 	0    1    1    0   
 $EndComp
 NoConn ~ 6450 5100
@@ -279,15 +269,23 @@ F 3 "" H 4800 5500 60  0000 C CNN
 $EndComp
 NoConn ~ 5050 4600
 Wire Wire Line
-	4100 5300 5050 5300
+	4100 5300 4800 5300
 Wire Wire Line
-	5950 3850 5400 3850
+	4800 5300 5050 5300
+Wire Wire Line
+	5950 3850 5650 3850
+Wire Wire Line
+	5650 3850 5400 3850
 Wire Wire Line
 	5650 3850 5650 4100
 Wire Wire Line
-	4200 3000 7000 3000
+	4200 3000 6050 3000
 Wire Wire Line
-	6150 2850 6150 3650
+	6050 3000 7150 3000
+Wire Wire Line
+	6150 2850 6150 2900
+Wire Wire Line
+	6150 2900 6150 3650
 Wire Wire Line
 	6600 5200 6600 3650
 Wire Wire Line
@@ -310,7 +308,9 @@ Wire Wire Line
 Wire Wire Line
 	6600 5400 6600 5300
 Wire Wire Line
-	3700 5400 6600 5400
+	3700 5400 4050 5400
+Wire Wire Line
+	4050 5400 6600 5400
 Wire Wire Line
 	3700 5400 3700 4500
 Wire Wire Line
@@ -318,9 +318,13 @@ Wire Wire Line
 Wire Wire Line
 	4100 4500 4100 4600
 Wire Wire Line
-	5950 2850 5950 3850
+	5950 2850 5950 3250
 Wire Wire Line
-	5850 3650 5850 2850
+	5950 3250 5950 3850
+Wire Wire Line
+	5850 3650 5850 3100
+Wire Wire Line
+	5850 3100 5850 2850
 Wire Wire Line
 	6050 3000 6050 2850
 Wire Wire Line
@@ -328,34 +332,64 @@ Wire Wire Line
 Wire Wire Line
 	5750 3450 6700 3450
 Wire Wire Line
-	6700 3450 6700 5300
+	6700 5300 6700 3450
 Connection ~ 6600 5300
 Wire Wire Line
 	6600 3650 6150 3650
 Wire Wire Line
-	5400 3650 5850 3650
+	5400 3650 5550 3650
+Wire Wire Line
+	5550 3650 5850 3650
 Connection ~ 5550 3650
 Connection ~ 5650 3850
 Wire Wire Line
 	4050 7200 4050 6950
 Wire Wire Line
-	2750 7200 6550 7200
+	2750 7200 3250 7200
+Wire Wire Line
+	3250 7200 3700 7200
+Wire Wire Line
+	3700 7200 4050 7200
+Wire Wire Line
+	4050 7200 4450 7200
+Wire Wire Line
+	4450 7200 5450 7200
+Wire Wire Line
+	5450 7200 6350 7200
+Wire Wire Line
+	6350 7200 6550 7200
 Wire Wire Line
 	6550 7200 6550 6950
 Wire Wire Line
-	5450 7100 5450 7300
+	5450 7100 5450 7200
+Wire Wire Line
+	5450 7200 5450 7300
 Connection ~ 5450 7200
 Wire Wire Line
-	6550 5200 6550 6650
+	6550 5200 6550 6100
 Wire Wire Line
-	4050 5400 4050 6650
+	6550 6100 6550 6650
 Wire Wire Line
-	2750 6100 4650 6100
+	4050 5400 4050 6100
+Wire Wire Line
+	4050 6100 4050 6300
+Wire Wire Line
+	4050 6300 4050 6650
+Wire Wire Line
+	2750 6100 3250 6100
+Wire Wire Line
+	3250 6100 3700 6100
+Wire Wire Line
+	3700 6100 4050 6100
+Wire Wire Line
+	4050 6100 4650 6100
 Wire Wire Line
 	4050 6300 4650 6300
 Connection ~ 4050 6300
 Wire Wire Line
-	6250 6100 6550 6100
+	6250 6100 6350 6100
+Wire Wire Line
+	6350 6100 6550 6100
 Connection ~ 6550 5200
 Connection ~ 4050 7200
 Connection ~ 4050 6100
@@ -386,9 +420,13 @@ Wire Wire Line
 	7200 3250 5950 3250
 Connection ~ 5950 3250
 Wire Wire Line
-	7000 3000 7000 4500
+	7150 3000 7150 3950
 Wire Wire Line
-	8400 3950 7000 3950
+	7150 3950 7150 4500
+Wire Wire Line
+	8400 3950 7700 3950
+Wire Wire Line
+	7700 3950 7150 3950
 Connection ~ 6050 3000
 Wire Wire Line
 	6150 2900 7000 2900
@@ -402,31 +440,36 @@ Connection ~ 6150 2900
 Wire Wire Line
 	8200 3000 8400 3000
 Wire Wire Line
-	8400 3000 8400 3950
+	8400 3000 8400 3100
+Wire Wire Line
+	8400 3100 8400 3200
+Wire Wire Line
+	8400 3200 8400 3950
 Connection ~ 7700 3950
 Wire Wire Line
 	8200 3100 8400 3100
 Connection ~ 8400 3100
 Wire Wire Line
-	8200 3200 8300 3200
+	8200 3200 8400 3200
 Wire Wire Line
-	8300 3200 8300 3400
-Wire Wire Line
-	6450 5000 7000 5000
-Connection ~ 7000 3950
+	6450 5000 7150 5000
+Connection ~ 7150 3950
 Connection ~ 4050 5400
 Wire Wire Line
 	4800 5300 4800 5500
 Connection ~ 4800 5300
 Wire Wire Line
-	6450 5200 6600 5200
+	6450 5200 6550 5200
 Wire Wire Line
-	6700 5300 6450 5300
+	6550 5200 6600 5200
 Wire Wire Line
-	7700 3850 7700 4100
-Connection ~ 8300 3950
+	6450 5300 6600 5300
 Wire Wire Line
-	8300 3700 8300 3950
+	6600 5300 6700 5300
+Wire Wire Line
+	7700 3850 7700 3950
+Wire Wire Line
+	7700 3950 7700 4100
 NoConn ~ 2750 6400
 $Comp
 L USB_OTG P5
@@ -472,4 +515,33 @@ Connection ~ 6350 6100
 Wire Wire Line
 	6350 7050 6350 7200
 Connection ~ 6350 7200
+Text Label 5650 3650 0    60   ~ 0
+SCL
+Text Label 5750 3850 0    60   ~ 0
+SDA
+Connection ~ 8400 3200
+Text Label 6700 2900 0    60   ~ 0
++3.3V
+Text Label 6350 3450 0    60   ~ 0
++5V
+Text Label 4350 6100 0    60   ~ 0
+VIN
+Text Label 6450 4500 0    60   ~ 0
+SCK
+Text Label 6450 4600 0    60   ~ 0
+MISO
+Text Label 6450 4700 0    60   ~ 0
+MOSI
+Text Label 6450 5000 0    60   ~ 0
+CS-ENC28J60
+Text Label 4250 4700 0    60   ~ 0
+INT-28J60
+Text Label 6450 4900 0    60   ~ 0
+CE-NRF24
+Text Label 6450 4800 0    60   ~ 0
+CS-NRF24
+Text Label 4800 4700 0    60   ~ 0
+RX1
+Text Label 4800 4800 0    60   ~ 0
+TX1
 $EndSCHEMATC

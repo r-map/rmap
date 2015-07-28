@@ -63,7 +63,7 @@ android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUET
 #,CAMERA
 
 # (int) Android API to use
-android.api = 21
+android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
 android.minapi = 8

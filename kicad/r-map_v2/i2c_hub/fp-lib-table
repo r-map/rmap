@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name i2c_hub)(type KiCad)(uri "$(KIPRJMOD)/i2c_hub.pretty")(options "")(descr ""))
+)
