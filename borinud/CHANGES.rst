@@ -19,6 +19,11 @@ ChangeLog
   with this program; if not, write to the Free Software Foundation, Inc.,
   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+borinud 0.7.4 (2015-07-28)
+--------------------------
+
+- Timeseries for mobile stations
+
 borinud 0.7.3 (2014-10-08)
 --------------------------
 
