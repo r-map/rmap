@@ -30,10 +30,14 @@
         }
     };
     borinud.config.context = {
-        encode: function(properties) {
+        encode: function(properties, ismobile) {
+            var coords = properties.lon + "," + properties.lat;
+            if (ismobile == true)
+                coords = "*";
+
             return [
                 properties.ident || "-",
-                properties.lon + "," + properties.lat,
+                coords,
                 properties.network,
                 borinud.config.trange.encode(
                     properties.trange_pind,
@@ -165,7 +169,10 @@
     borinud.showFeatureTimeseries = function(e) {
         var f = e.feature;
         var t = borinud.config.root_el.find(".menu input.datetime").val();
-        var u = borinud.config.context.encode(f.attributes) + "/timeseries/" + t;
+        var u = borinud.config.context.encode(
+            f.attributes,
+            $("#ismobile").is(":checked") && f.attributes.ident != null
+        ) + "/timeseries/" + t;
         $.ajax({
             url: borinud.config.ajax.baseUrl + "/"+ u,
             dataType: borinud.config.ajax.dataType,
@@ -272,6 +279,9 @@
                 $(this).change();
             }
         }).datepicker('setDate', new Date());
+
+        $("<input class='query' id='ismobile' type='checkbox'>").appendTo(menu);
+        $("<label for='ismobile'>Stations are mobile</label>").appendTo(menu);
 
         $(menu).trigger("change");
     };
