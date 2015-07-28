@@ -148,11 +148,11 @@ def get_summaries(ident=None, network=None, lon=None, lat=None,
           "<lt1:int>,<l1>,<lt2>,<l2>/<bcode>/"
           "timeseries/<year:int>/<month:int>/<day:int>"))
 def get_resource_timeseries(ident,
-                            lon=None, lat=None, network,
+                            network,
                             pind, p1, p2,
                             lt1, l1, lt2, l2,
                             bcode,
-                            year, month=None, day=None):
+                            year, lon=None, lat=None, month=None, day=None):
     query = dballe.Record()
     if ident != "-":
         query["ident"] = ident
