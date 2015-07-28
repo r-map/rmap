@@ -48,6 +48,7 @@ class SerializerPlugin(object):
         def wrapper(*args, **kwargs):
             response = callback(*args, **kwargs)
             if any([
+                isinstance(response, list),
                 isinstance(response, tuple),
                 isinstance(response, dballe.Cursor)
             ]):
@@ -125,7 +126,7 @@ def get_summaries(ident=None, network=None, lon=None, lat=None,
     query["year"] = year
     query["month"] = month
     query["day"] = day
-    return app.config.db.query_summary(query)
+    return list(app.config.db.query_summary(query))
 
 
 # Timeseries
@@ -169,7 +170,7 @@ def get_resource_timeseries(ident,
     query["month"] = month
     query["day"] = day
 
-    return app.config.db.query_data(query)
+    return list(app.config.db.query_data(query))
 
 
 # Spatialseries
@@ -194,7 +195,7 @@ def get_network_spatialseries(network,
     query["datemin"] = d - timedelta(seconds=1800)
     query["datemax"] = d + timedelta(seconds=1799)
 
-    return app.config.db.query_data(query)
+    return list(app.config.db.query_data(query))
 
 
 # Station data
@@ -208,7 +209,7 @@ def get_station_data(network, ident=None, lon=None, lat=None):
     query["lon"] = lon
     query["lat"] = lat
 
-    return app.config.db.query_stations(query)
+    return list(app.config.db.query_stations(query))
 
 
 # Get local B table

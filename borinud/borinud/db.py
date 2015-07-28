@@ -92,17 +92,17 @@ class MergeDB(DB):
     def query_stations(self, rec):
         for db in self.dbs:
             for r in db.query_stations(rec):
-                yield r
+                yield r.copy()
 
     def query_summary(self, rec):
         for db in self.dbs:
             for r in db.query_summary(rec):
-                yield r
+                yield r.copy()
 
     def query_data(self, rec):
         for db in self.dbs:
             for r in db.query_data(rec):
-                yield r
+                yield r.copy()
 
 
 class DballeDB(DB):
