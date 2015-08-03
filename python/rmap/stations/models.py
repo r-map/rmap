@@ -118,7 +118,7 @@ class Sensor(models.Model):
 class TransportRF24NetworkManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportRF24NetworkManager:",board
-        return self.get(board=Board.objects.get_by_natural_key(board[0]))
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class TransportRF24Network(models.Model):
     """RF24 Network transport."""
@@ -184,7 +184,7 @@ class TransportRF24Network(models.Model):
 class TransportMqttManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportMqttManager: ",board
-        return self.get( board=Board.objects.get_by_natural_key(board[0]))
+        return self.get( board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 
 class TransportMqtt(models.Model):
@@ -220,7 +220,7 @@ class TransportMqtt(models.Model):
 class TransportTcpipManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportTcpipManager: ",board
-        return self.get(board=Board.objects.get_by_natural_key(board[0]))
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class TransportTcpip(models.Model):
     """TCP/IP transport."""
@@ -267,7 +267,7 @@ class TransportTcpip(models.Model):
 class TransportSerialManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportSerialManager:", board
-        return self.get(board=Board.objects.get_by_natural_key(board[0]))
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class TransportSerial(models.Model):
     """Serial transport."""
@@ -342,7 +342,7 @@ class TransportSerial(models.Model):
 class TransportBluetoothManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportBluetoothManager: ",board
-        return self.get(board=Board.objects.get_by_natural_key(board[0]))
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class TransportBluetooth(models.Model):
     """Bluetooth transport."""
@@ -373,7 +373,7 @@ class TransportBluetooth(models.Model):
 class TransportAmqpManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportAmqpManager: ", board
-        return self.get(board=Board.objects.get_by_natural_key(board[0]))
+        return self.get(board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class TransportAmqp(models.Model):
     """amqp transport."""

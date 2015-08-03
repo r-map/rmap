@@ -53,5 +53,40 @@
                 ]
             ]
         }
+    },
+   {
+        "model": "stations.transportserial",
+
+        "fields": {
+            "active": true,
+            "device": "/dev/ttyACM4",
+            "baudrate": 9600,
+            "board": [
+                "BT_mobile",
+                [
+                    "BT_mobile",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportbluetooth",
+        "fields": {
+            "active": true,
+            "name": "stima",
+            "board": [
+                "BT_mobile",
+                [
+                    "BT_mobile",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
     }
+
 ]
