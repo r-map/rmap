@@ -1075,6 +1075,7 @@ class Rmap(App):
                 mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
                 board=mystation.board_set.filter(active=True)[0]
                 config.set('sensors', 'board', str(board.slug))
+                self.config.write()
 
                 self.close_settings()
                 self.destroy_settings()
@@ -1544,7 +1545,7 @@ class Rmap(App):
                 print ">>>>> ----- rpcin message: ", self.rpcin_message
                 time.sleep(.1)
                 osc.readQueue(self.oscid)
-                if (datetime.utcnow()-starttime) > timedelta(seconds=30) :
+                if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
                     print "RPCIN timeout"
                     break
             print "if not timeout received stopped message from rpc"
