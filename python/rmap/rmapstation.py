@@ -397,8 +397,8 @@ class station():
             self.anavarlist=[]
             self.datavarlist=[]
             self.trip=False
-            self.slug= "fixed"
-            self.boardslug= "bluetooth_fixed"
+            self.slug= "BT_fixed"
+            self.boardslug= "BT_fixed"
 
         if trip is not None:
             self.trip=trip
@@ -639,8 +639,8 @@ class station():
             self.anavarlist=[]
             self.datavarlist=[]
             self.trip=False
-            self.slug= "fixed"
-            self.boardslug= "bluetooth_fixed"
+            self.slug= "BT_fixed"
+            self.boardslug= "BT_fixed"
 
 
     def configuresensors(self):

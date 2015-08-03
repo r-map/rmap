@@ -86,5 +86,24 @@
                 ]
             ]
         }
+    },
+    {
+        "model": "stations.transportmqtt",
+        "fields": {
+            "mqttuser": "",
+            "board": [
+                "BT_fixed",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ],
+            "active": true,
+            "mqttpassword": "",
+            "mqttserver": "rmap.cc",
+            "mqttsampletime": 5
+        }
     }
 ]

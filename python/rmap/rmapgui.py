@@ -839,8 +839,8 @@ class Rmap(App):
                                            logfunc=jsonrpc.log_stdout)
         except:
             # retry with default; this happen when DB was modified and is not in sync with config
-            self.config.set('sensors', 'station',"fixed")
-            self.config.set('sensors', 'board',"bluetooth_fixed")
+            self.config.set('sensors', 'station',"BT_fixed")
+            self.config.set('sensors', 'board',"BT_fixed")
             self.config.write()
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
                                            slug=self.config.get('sensors','station'),
@@ -1236,8 +1236,8 @@ class Rmap(App):
 
         config.setdefaults('sensors', {
             'name': 'stima',
-            'station': 'fixed',
-            'board': 'bluetooth_fixed'
+            'station': 'BT_fixed',
+            'board': 'BT_fixed'
         })
 
     def build_settings(self, settings):
