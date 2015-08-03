@@ -38,7 +38,7 @@
             "name": "Temperature on board",
             "level": "103,2,-,-",
             "timerange": "254,0,0",
-            "driver": "I2C",
+            "driver": "JRPC",
             "i2cbus": 1,
             "address": 72,
             "type": "TMP",
@@ -58,7 +58,7 @@
         "model": "stations.transportserial",
 
         "fields": {
-            "active": true,
+            "active": false,
             "device": "/dev/ttyACM4",
             "baudrate": 9600,
             "board": [
