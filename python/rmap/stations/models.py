@@ -47,10 +47,13 @@ else:
 
 class SensorManager(models.Manager):
     def get_by_natural_key(self, name, board):
-        return self.get(name=name, board=board)
+        #print "SensorManager: ",name,board
+        return self.get(name=name, board=Board.objects.get_by_natural_key(board[0],board[1]))
 
 class Sensor(models.Model):
     """Sensor driver metadata."""
+
+    objects = SensorManager()
 
     SENSOR_DRIVER_CHOICES = (
         ('I2C',  'I2C drivers'),
@@ -83,8 +86,11 @@ class Sensor(models.Model):
     board = models.ForeignKey('Board')
 
     def natural_key(self):
-        return (self.name, self.board)
-        natural_key.dependencies = ['stations.board']
+        #print "natural key sensor"
+        #print self,self.name, self.board.natural_key()
+        return (self.name, self.board.natural_key())
+
+    natural_key.dependencies = ['stations.board']
 
 #    def validate_unique(self, *args, **kwargs):
 #        super(Sensor, self).validate_unique(*args, **kwargs)
@@ -111,11 +117,13 @@ class Sensor(models.Model):
 
 class TransportRF24NetworkManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
-
+        #print "TransportRF24NetworkManager:",board
+        return self.get(board=Board.objects.get_by_natural_key(board[0]))
 
 class TransportRF24Network(models.Model):
     """RF24 Network transport."""
+
+    objects = TransportRF24NetworkManager()
 
     RF24_NODE_CHOICES = (
         (0,  'RF24 Network node 0'),
@@ -158,7 +166,9 @@ class TransportRF24Network(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key TransportRF24Network"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -173,11 +183,14 @@ class TransportRF24Network(models.Model):
 
 class TransportMqttManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
+        #print "TransportMqttManager: ",board
+        return self.get( board=Board.objects.get_by_natural_key(board[0]))
 
 
 class TransportMqtt(models.Model):
     """MQTT transport."""
+
+    objects = TransportMqttManager()
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
 
@@ -189,7 +202,9 @@ class TransportMqtt(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -204,11 +219,13 @@ class TransportMqtt(models.Model):
 
 class TransportTcpipManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
+        #print "TransportTcpipManager: ",board
+        return self.get(board=Board.objects.get_by_natural_key(board[0]))
 
 class TransportTcpip(models.Model):
     """TCP/IP transport."""
 
+    objects = TransportTcpipManager()
 
     TCPIP_NAME_CHOICES = (
         ('master',   'master board 1'),
@@ -233,7 +250,9 @@ class TransportTcpip(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -247,10 +266,13 @@ class TransportTcpip(models.Model):
 
 class TransportSerialManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
+        #print "TransportSerialManager:", board
+        return self.get(board=Board.objects.get_by_natural_key(board[0]))
 
 class TransportSerial(models.Model):
     """Serial transport."""
+
+    objects = TransportSerialManager()
 
     SERIAL_BAUDRATE_CHOICES = (
         (9600,   '9600'),
@@ -274,6 +296,25 @@ class TransportSerial(models.Model):
         ('/dev/rfcomm0', 'rfcomm0'),
         ('/dev/rfcomm1', 'rfcomm1'),
         ('/dev/rfcomm2', 'rfcomm2'),
+        ('COM1', 'windows COM1'),
+        ('COM2', 'windows COM2'),
+        ('COM3', 'windows COM3'),
+        ('COM4', 'windows COM4'),
+        ('COM5', 'windows COM5'),
+        ('COM6', 'windows COM6'),
+        ('COM7', 'windows COM7'),
+        ('COM8', 'windows COM8'),
+        ('COM9', 'windows COM9'),
+        ('COM10', 'windows COM10'),
+        ('COM11', 'windows COM11'),
+        ('COM12', 'windows COM12'),
+        ('COM13', 'windows COM13'),
+        ('COM14', 'windows COM14'),
+        ('COM15', 'windows COM15'),
+        ('COM16', 'windows COM16'),
+        ('COM17', 'windows COM17'),
+        ('COM18', 'windows COM18'),
+        ('COM19', 'windows COM19'),
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
@@ -283,7 +324,9 @@ class TransportSerial(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -298,10 +341,13 @@ class TransportSerial(models.Model):
 
 class TransportBluetoothManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
+        #print "TransportBluetoothManager: ",board
+        return self.get(board=Board.objects.get_by_natural_key(board[0]))
 
 class TransportBluetooth(models.Model):
     """Bluetooth transport."""
+
+    objects = TransportBluetoothManager()
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
     name = models.CharField(max_length=80,help_text=ugettext_lazy("bluetooth name"))
@@ -309,7 +355,9 @@ class TransportBluetooth(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -324,10 +372,13 @@ class TransportBluetooth(models.Model):
 
 class TransportAmqpManager(models.Manager):
     def get_by_natural_key(self, board):
-        return self.get( board=board)
+        #print "TransportAmqpManager: ", board
+        return self.get(board=Board.objects.get_by_natural_key(board[0]))
 
 class TransportAmqp(models.Model):
     """amqp transport."""
+
+    objects = TransportAmqpManager()
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
 
@@ -340,7 +391,9 @@ class TransportAmqp(models.Model):
     board = models.OneToOneField("Board")
 
     def natural_key(self):
-        return (self.board,)
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
 
     natural_key.dependencies = ['stations.board']
 
@@ -350,10 +403,13 @@ class TransportAmqp(models.Model):
 
 class BoardManager(models.Manager):
     def get_by_natural_key(self, slug,stationmetadata):
-        return self.get( slug=slug,stationmetadata=stationmetadata)
+        #print "BoardManager: ",slug,stationmetadata
+        return self.get(slug=slug,stationmetadata=StationMetadata.objects.get_by_natural_key(stationmetadata[0],stationmetadata[1]))
 
 class Board(models.Model):
     """Board model."""
+
+    objects = BoardManager()
 
     BOARD_CATEGORY_CHOICES = (
         ('base','Raspberry base'),
@@ -382,6 +438,8 @@ class Board(models.Model):
 #    changeform_link.short_description = ''   # omit column header
 
     def natural_key(self):
+        #print "natural key"
+        #print self,self.slug,self.stationmetadata.natural_key()
         return (self.slug,self.stationmetadata.natural_key())
 
     natural_key.dependencies = ['stations.stationmetadata']
@@ -397,10 +455,13 @@ class Board(models.Model):
 
 class StationConstantDataManager(models.Manager):
     def get_by_natural_key(self, btable,stationmetadata):
-        return self.get( btable=btable, stationmetadata=stationmetadata)
+        #print "StationConstantDataManager: ", stationmetadata
+        return self.get( btable=btable, stationmetadata=StationMetadata.objects.get_by_natural_key(stationmetadata[0],stationmetadata[1]))
 
 class StationConstantData(models.Model):
     """Station constant metadata."""
+
+    objects = StationConstantDataManager()
 
     BTABLE_CHOICES = (
         ("B01019","LONG STATION OR SITE NAME                                        (CCITTIA5)"),
@@ -421,7 +482,9 @@ class StationConstantData(models.Model):
     stationmetadata = models.ForeignKey('StationMetadata')
 
     def natural_key(self):
-        return (self.btable, self.stationmetadata)
+        #print "natural key"
+        #print self,self.btable, self.stationmetadata.natural_key()
+        return (self.btable, self.stationmetadata.natural_key())
 
     natural_key.dependencies = ['stations.stationmetadata']
 
@@ -434,14 +497,15 @@ class StationConstantData(models.Model):
     def __unicode__(self):
         return u'%s' % (self.btable)
 
-
-
 class StationMetadataManager(models.Manager):
     def get_by_natural_key(self, slug, ident):
-        return self.get(slug=slug, ident=ident)
+        #print "StationMetadataManager: ", slug,ident
+        return self.get(slug=slug, ident=User.objects.get_by_natural_key(ident[0]))
 
 class StationMetadata(models.Model):
     """Station Metadata."""
+
+    objects = StationMetadataManager()
 
     STATION_CATEGORY_CHOICES = (
         ('good','Beautifull & Good'),
@@ -471,6 +535,8 @@ class StationMetadata(models.Model):
 
 
     def natural_key(self):
+        #print "StationMetadata natural_key"
+        #print self,self.slug, self.ident.natural_key()
         return (self.slug, self.ident.natural_key())
 
     natural_key.dependencies = ['auth.user']
@@ -481,8 +547,9 @@ class StationMetadata(models.Model):
         verbose_name_plural = 'stations'
         unique_together = (('slug', 'ident'),)
 
+
     def __unicode__(self):
-        return u'%s' % (self.slug)
+        return u'%s-%s' % (self.slug,self.ident)
 
 
 from django.contrib.auth.models import User
@@ -490,9 +557,13 @@ from django.contrib.auth.models import User
 
 class UserProfileManager(models.Manager):
     def get_by_natural_key(self, user):
-        return self.get( user=user)
+        #print "UserProfileManager: ",user
+        return self.get(user=User.objects.get_by_natural_key(user[0]))
 
 class UserProfile(models.Model):
+
+    objects = UserProfileManager()
+
     # This field is required.
     user = models.OneToOneField(User)
 
@@ -501,6 +572,8 @@ class UserProfile(models.Model):
     certification = models.CharField(max_length=20, default="ARPA-ER")
 
     def natural_key(self):
+        #print "UserProfile natural_key"
+        #print self,self.user.natural_key()
         return (self.user.natural_key(),)
 
     natural_key.dependencies = ['auth.user']

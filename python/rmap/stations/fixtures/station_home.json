@@ -1,0 +1,202 @@
+[
+    {
+        "model": "stations.stationmetadata",
+        "fields": {
+            "active": false,
+            "name": "home",
+            "slug": "home",
+            "category": "test",
+            "network": "rmap",
+            "lon": 0.0,
+            "lat": 0.0,
+            "mqttrootpath": "rmap",
+            "mqttmaintpath": "rmap",
+            "ident": [
+                "rmap"
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "base",
+            "slug": "base",
+            "category": "base",
+            "stationmetadata": [
+                "home",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "master",
+            "slug": "master",
+            "category": "master",
+            "stationmetadata": [
+                "home",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "satellite",
+            "slug": "satellite",
+            "category": "satellite",
+            "stationmetadata": [
+                "home",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature",
+            "level": "105,2000,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "base",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Pressure",
+            "level": "105,4000,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 119,
+            "type": "BMP",
+            "node": 1,
+            "board": [
+                "base",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Humidity",
+            "level": "105,3000,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 39,
+            "type": "HIH",
+            "node": 1,
+            "board": [
+                "base",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature",
+            "level": "105,200,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "master",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature",
+            "level": "105,20,-,-",
+            "timerange": "254,0,0",
+            "driver": "RF24",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "master",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature",
+            "level": "105,2,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "satellite",
+                [
+                    "home",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    }
+]

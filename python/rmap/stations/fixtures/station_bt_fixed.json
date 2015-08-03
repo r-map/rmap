@@ -1,0 +1,57 @@
+[
+    {
+        "model": "stations.stationmetadata",
+        "fields": {
+            "active": true,
+            "name": "BT fixed",
+            "slug": "BT_fixed",
+            "category": "test",
+            "network": "rmap",
+            "lon": 0.0,
+            "lat": 0.0,
+            "mqttrootpath": "rmap",
+            "mqttmaintpath": "rmap",
+            "ident": [
+                "rmap"
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "BT fixed",
+            "slug": "BT_fixed",
+            "category": "bluetooth",
+            "stationmetadata": [
+                "BT_fixed",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature on board",
+            "level": "103,2,-,-",
+            "timerange": "254,0,0",
+            "driver": "I2C",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "BT_fixed",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    }
+]
