@@ -38,8 +38,6 @@ lockfilermap=rmap.settings.lockfilestationd
 userrmap=rmap.settings.userstationd
 grouprmap=rmap.settings.groupstationd
 
-print  logfilermap,errfilermap
-
 stationd = daemon.Daemon(
         stdin="/dev/null",
         stdout=logfilermap,

@@ -8,3 +8,7 @@ rmap.sqlite3
 rmap/rmap.ini
 saveddata-service.pickle
 *~
+build
+dist
+rmap.egg-info
+rmap.ini

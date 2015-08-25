@@ -3,6 +3,7 @@ import os
 
 from distutils.command.build import build as build_
 from setuptools.command.develop import develop as develop_
+from setuptools.command.install import install as install_
 from distutils.core import Command
 #from buildutils.cmd import Command
 #from distutils.cmd import Command
@@ -50,6 +51,15 @@ class build(build_):
     sub_commands = build_.sub_commands[:]
     sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
+
+
+class  install(install_):
+     def  run(self):
+         #print "eseguo compilemessages"
+         management.call_command("compilemessages")
+         #createmanpages().run()
+         install_.run(self)
+
 
 class compilemessages(Command):
     description = "generate .mo files from .po"
@@ -152,6 +162,14 @@ for dirpath, dirnames, filenames in os.walk('templates'):
     if filenames:
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
+#for dirpath, dirnames, filenames in os.walk('tables'):
+#    # Ignore dirnames that start with '.'
+#    for i, dirname in enumerate(dirnames):
+#        if dirname.startswith('.'): del dirnames[i]
+#    if filenames:
+#        data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
+
+
 data_files.append(('/etc/rmap',['rmap-site.cfg']))
 data_files.append(('/etc/rmap',['map']))
 
@@ -175,21 +193,22 @@ data_files.append(('/etc/rmap',['map']))
 #package_data.append('rmap_config')
 #package_data.append('settings')
 
+print ">>>>> locale:",data_files
 
 setup(name='rmap',
       version=__version__,
-      description='rete monitoraggio partecipativa',
+      description='rete monitoraggio ambientale partecipativo',
       author='Paolo Patruno',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='http://r-map.sf.net',
-      cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean},
-      packages=['rmap','rmap.stations','rmap.doc','mapview'],
-      package_data={'rmap.stations': ['fixtures/*.json']},
-      scripts=['stationd','mqtt2graphited','borinudd','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi'],
+      cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
+      packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview'],
+      package_data={'rmap': ['icons/*.png','tables/*.txt'],'rmap.stations': ['fixtures/*.json'],'mapview': ['icons/*.png'],},
+      scripts=['stationd','mqtt2graphited','borinudd','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','main.py'],
       data_files = data_files,
       license = "GNU GPL v2",
-      requires= [ "django","kivy"],
+      requires= [ "django","kivy","pika","configobj"],
       long_description="""\
 R-map: participative environmental monitoring net.
 """

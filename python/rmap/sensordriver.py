@@ -26,7 +26,8 @@ from registersrain import *
 try:
     from rmap_bmp085 import *
 except:
-    print "warning bmp085 driver will not be included"
+    pass
+    #print "warning bmp085 driver will not be included"
 import jsonrpc
 
 MAXDELAYTIME = 2000

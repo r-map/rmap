@@ -736,7 +736,7 @@ class MirinoImage(Image):
 
     def __init__(self, **kwargs):
         super(MirinoImage, self).__init__(**kwargs)
-        self.source= 'mirino.png'
+        self.source = os.path.join(os.path.dirname(__file__), "icons", "mirino.png")
         #self.pos_hint= {'center_x': 0.5, 'center_y': 0.5}
         #self.center=(300.,300.)
 
@@ -805,6 +805,31 @@ class Rmap(App):
 
     rpcin_message=""
 
+    def get_application_config(self):
+
+        '''
+        When you are distributing your application on Desktop, please note than
+        if the application is meant to be installed system-wise, then the user
+        might not have any write-access to the application directory. You could
+        overload this method to change the default behavior, and save the
+        configuration file in the user directory by default::
+        class TestApp(App):
+        def get_application_config(self):
+        return super(TestApp, self).get_application_config(
+        '~/.%(appname)s.ini')
+        Some notes:
+        - The tilda '~' will be expanded to the user directory.
+        - %(appdir)s will be replaced with the application :data:`directory`
+        - %(appname)s will be replaced with the application :data:`name`
+        '''
+
+        if platform == 'linux':
+            return super(Rmap, self).get_application_config(
+                '%(appname)s.ini')
+        else:
+            return super(Rmap, self).get_application_config()
+
+
     def build(self):
         '''
         build application
@@ -870,7 +895,7 @@ class Rmap(App):
 
         # add listview widget
         lang=self.config.get('general','language')
-        self.present_weather_table = values("tables/present_weather_"+lang+".txt")
+        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
         self.present_weather_widget=PresentwView(self.present_weather_table)
         root.ids["presentwtab"].add_widget(self.present_weather_widget)
 

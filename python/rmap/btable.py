@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from os.path import join,dirname
 
 # una riga di dballe.txt
 class BtableEntry:
@@ -53,7 +54,7 @@ class Btable(dict):
                 file = open("dballe.txt")
             except:
                 try:
-                    file = open("tables/dballe.txt")
+                    file = open(join(dirname(__file__), "tables","dballe.txt"))
                 except:
                     file = open("/usr/share/wreport/dballe.txt")
         else:

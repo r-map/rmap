@@ -30,7 +30,10 @@ if __name__ == '__main__':
 
     #os.remove("rmap.sqlite3")
     #management.call_command("showmigrations")
-    #management.call_command("migrate",no_initial_data=True )
+    try:
+        management.call_command("migrate",no_initial_data=True )
+    except:
+        print "error on django command migrate on boot"
 
     from rmap.rmapgui import Rmap
     Rmap().run()
