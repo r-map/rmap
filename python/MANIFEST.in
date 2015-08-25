@@ -7,7 +7,7 @@ include rmap.spec
 include map
 global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
 recursive-include doc *
-recursive-include locale *.po
+recursive-include locale *
 recursive-include templates *
 recursive-include static *
 recursive-include debian *
