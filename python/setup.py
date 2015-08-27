@@ -201,14 +201,15 @@ setup(name='rmap',
       author='Paolo Patruno',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
-      url='http://r-map.sf.net',
+      url='https://github.com/r-map/rmap',
       cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview'],
       package_data={'rmap': ['icons/*.png','tables/*.txt'],'rmap.stations': ['fixtures/*.json'],'mapview': ['icons/*.png'],},
       scripts=['stationd','mqtt2graphited','borinudd','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','main.py'],
       data_files = data_files,
       license = "GNU GPL v2",
-      requires= [ "django","kivy","pika","configobj"],
+      install_requires= [ "django","kivy","pika","configobj"],
+      setup_requires= [ "django","configobj"],
       long_description="""\
 R-map: participative environmental monitoring net.
 """

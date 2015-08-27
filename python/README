@@ -19,6 +19,13 @@ comment wsgiref in
 * dump data by natural keys
  python manage.py dumpdata --natural-foreign --natural-primary --format=json auth.user|json_reformat
 
+for pip:
+python setup.py distclean compilemessages sdist upload
+(*.mo files in locale have to be distributed in source tarball)
+
+install with:
+rm -rf /tmp/pip-build-root/rmap/
+pip -v install --upgrade  rmap
 
 #obsolete notes:
 
