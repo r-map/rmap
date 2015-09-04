@@ -32,6 +32,51 @@
         }
     },
     {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "BT fixed LINUX",
+            "slug": "BT_fixed_LINUX",
+            "category": "bluetooth",
+            "stationmetadata": [
+                "BT_fixed",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "BT fixed WINDOWS",
+            "slug": "BT_fixed_WINDOWS",
+            "category": "bluetooth",
+            "stationmetadata": [
+                "BT_fixed",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.board",
+        "fields": {
+            "active": true,
+            "name": "BT fixed OSX",
+            "slug": "BT_fixed_OSX",
+            "category": "bluetooth",
+            "stationmetadata": [
+                "BT_fixed",
+                [
+                    "rmap"
+                ]
+            ]
+        }
+    },
+    {
         "model": "stations.sensor",
         "fields": {
             "active": true,
@@ -58,7 +103,7 @@
         "model": "stations.transportserial",
         "fields": {
             "active": false,
-            "device": "/dev/ttyACM5",
+            "device": "/dev/ttyACM0",
             "baudrate": 9600,
             "board": [
                 "BT_fixed",
@@ -93,6 +138,231 @@
             "mqttuser": "",
             "board": [
                 "BT_fixed",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ],
+            "active": true,
+            "mqttpassword": "",
+            "mqttserver": "rmap.cc",
+            "mqttsampletime": 5
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature on board",
+            "level": "103,2,-,-",
+            "timerange": "254,0,0",
+            "driver": "JRPC",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "BT_fixed_LINUX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportserial",
+        "fields": {
+            "active": true,
+            "device": "/dev/rfcomm0",
+            "baudrate": 9600,
+            "board": [
+                "BT_fixed_LINUX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportbluetooth",
+        "fields": {
+            "active": false,
+            "name": "stima",
+            "board": [
+                "BT_fixed_LINUX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportmqtt",
+        "fields": {
+            "mqttuser": "",
+            "board": [
+                "BT_fixed_LINUX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ],
+            "active": true,
+            "mqttpassword": "",
+            "mqttserver": "rmap.cc",
+            "mqttsampletime": 5
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature on board",
+            "level": "103,2,-,-",
+            "timerange": "254,0,0",
+            "driver": "JRPC",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "BT_fixed_WINDOWS",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportserial",
+        "fields": {
+            "active": true,
+            "device": "/dev/COM13",
+            "baudrate": 9600,
+            "board": [
+                "BT_fixed_WINDOWS",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportbluetooth",
+        "fields": {
+            "active": false,
+            "name": "stima",
+            "board": [
+                "BT_fixed_WINDOWS",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportmqtt",
+        "fields": {
+            "mqttuser": "",
+            "board": [
+                "BT_fixed_WINDOWS",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ],
+            "active": true,
+            "mqttpassword": "",
+            "mqttserver": "rmap.cc",
+            "mqttsampletime": 5
+        }
+    },
+    {
+        "model": "stations.sensor",
+        "fields": {
+            "active": true,
+            "name": "Temperature on board",
+            "level": "103,2,-,-",
+            "timerange": "254,0,0",
+            "driver": "JRPC",
+            "i2cbus": 1,
+            "address": 72,
+            "type": "TMP",
+            "node": 1,
+            "board": [
+                "BT_fixed_OSX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportserial",
+        "fields": {
+            "active": true,
+            "device": "/dev/cu.HC-05-COM0-1",
+            "baudrate": 9600,
+            "board": [
+                "BT_fixed_OSX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportbluetooth",
+        "fields": {
+            "active": false,
+            "name": "stima",
+            "board": [
+                "BT_fixed_OSX",
+                [
+                    "BT_fixed",
+                    [
+                        "rmap"
+                    ]
+                ]
+            ]
+        }
+    },
+    {
+        "model": "stations.transportmqtt",
+        "fields": {
+            "mqttuser": "",
+            "board": [
+                "BT_fixed_OSX",
                 [
                     "BT_fixed",
                     [

@@ -752,6 +752,9 @@ class TransportSERIAL(Transport):
         self.ser.flushInput()  # del buffer in timeout case
         return string
 
+    def close (self):
+        self.ser.close()
+        self.log( "serial port closed" )
 class TransportBLUETOOTH(Transport):
     """receive and send to bluetooth serial port by java api.
 

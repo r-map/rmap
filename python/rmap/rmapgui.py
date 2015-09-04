@@ -1260,7 +1260,7 @@ class Rmap(App):
         })
 
         config.setdefaults('sensors', {
-            'name': 'stima',
+            'name': 'HC-05',
             'station': 'BT_fixed',
             'board': 'BT_fixed'
         })
@@ -1432,9 +1432,9 @@ class Rmap(App):
 
         try:
             self.mystation.configuresensors()
-            self.board_status=_("Transport Status: OK")
+            self.board_status=_("Transport Status: CONFIG OK")
         except:
-            self.board_status=_("Transport Status: ERROR")
+            self.board_status=_("Transport Status: CONFIG ERROR")
             self.popup(_("ERROR configure\nboard"))
 
 
