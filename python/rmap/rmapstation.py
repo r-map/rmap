@@ -38,6 +38,7 @@ from plyer.compat import PY2
 from kivy.lib import osc    ####   osc IPC  ####
 from kivy.utils import platform
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import ugettext as _
 
 #platform = platform()
 
@@ -115,7 +116,6 @@ class rmapmqtt:
         self.maintprefix=maintprefix
         self.connected=False
 
-
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
         # but note that the client id must be unique on the broker. Leaving the client
@@ -123,11 +123,11 @@ class rmapmqtt:
         #self.mqttc = mosquitto.Mosquitto(clientid)
         self.mqttc = mqtt.Client(clientid)
 
-        #self.mqttc.on_message = self.on_message
+        self.mqttc.on_message = self.on_message
         self.mqttc.on_connect = self.on_connect
         self.mqttc.on_disconnect = self.on_disconnect
-        #self.mqttc.on_publish = self.on_publish
-        #self.mqttc.on_subscribe = self.on_subscribe
+        self.mqttc.on_publish = self.on_publish
+        self.mqttc.on_subscribe = self.on_subscribe
         # Uncomment to enable debug messages
         self.mqttc.on_log = self.on_log
 
@@ -135,24 +135,29 @@ class rmapmqtt:
         if (not self.username is None):
             self.mqttc.username_pw_set(self.username,self.password)
 
+        #self.mqttc.max_inflight_messages_set(1)
+
         # mando stato di connessione della stazione con segnalazione di sconnessione gestita male com will
         self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                     payload=dumps({"v": "error01"}),
                        qos=1, retain=True)
 
         try:
+            print "start connect"
+            #self.mqttc.connect_async(self.host,self.port,self.timeout)
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
+            print "end connect"
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
-            # stato della connessione
-            self.connected=True
             rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "conn"}),
                              qos=1,retain=True)
 
             if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
+
+            self.log("publish maint message mid: "+str(rc[1]))
 
         except Exception as inst:
             self.error(inst)
@@ -166,6 +171,7 @@ class rmapmqtt:
                 lonlat=self.lonlat
 
             # mando dati di anagrafica retained
+
             for key,val in anavar.iteritems():
                 rc=self.mqttc.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
                                       payload=dumps(val),
@@ -173,6 +179,8 @@ class rmapmqtt:
                 if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish ana",rc)
 
+                    self.log("publish ana message mid: "+str(rc[1]))
+            
         except Exception as inst:
             self.error(inst)
 
@@ -181,7 +189,7 @@ class rmapmqtt:
 
         try:
 
-            # mando dati (temperatura istantanea) non retained
+            # send data (temperature  for example) non retained
 
             if lon is not None and lat is not None:
                 lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
@@ -198,6 +206,8 @@ class rmapmqtt:
             
                 if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish data",rc)
+
+                self.log("publish data message mid: "+str(rc[1]))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -244,8 +254,6 @@ class rmapmqtt:
 
     def disconnect(self):
 
-        self.connected=False
-
         try:
 
             #clean disconnect
@@ -254,6 +262,8 @@ class rmapmqtt:
                              qos=1,retain=True)
             if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
+
+            self.log("publish maint message mid: "+str(rc[1]))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -279,6 +289,8 @@ class rmapmqtt:
 
                 if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish status",rc)
+
+                self.log("publish maint message mid: "+str(rc[1]))
 
             except Exception as inst:
                 self.error(inst)
@@ -777,7 +789,7 @@ class station():
 
         if self.lat is None or self.lon is None:
             print "you have to set LAT and LON"
-            self.mqtt_status = 'Connect Status: ERROR, you have to define a location !'
+            self.mqtt_status = _('Connect Status: ERROR, you have to define a location !')
             return
 
         try:
@@ -786,11 +798,10 @@ class station():
                                            prefix=self.prefix,maintprefix=self.maintprefix,logfunc=self.log)
 
             self.rmap.loop_start()
-            self.mqtt_status = 'Connect Status: OK connected'
+            self.mqtt_status = _('Connect Status: OK connected')
 
         except:
-            self.mqtt_status = ('Connect Status: ERROR connecting')
-
+            self.mqtt_status = _('Connect Status: ERROR connecting')
 
     def publishmqtt(self):
         '''
@@ -816,8 +827,8 @@ class station():
         #-----------------------------------------------------------
 
 
-        print "queue ana :",self.anavarlist
-        print "queue data:",self.datavarlist
+        #print "queue ana :",self.anavarlist
+        #print "queue data:",self.datavarlist
 
         try:
             if self.rmap.connected:
@@ -830,7 +841,7 @@ class station():
 
                     except:
                         newdatavarlist.append(item)
-                        self.mqtt_status ='Connect Status: ERROR on Publish'
+                        self.mqtt_status =_('Connect Status: ERROR on Publish')
 
                 self.anavarlist=newanavarlist
 
@@ -840,18 +851,18 @@ class station():
                     print "try to publish",item
                     try:
                         self.rmap.data(item["timerange"],item["level"],item["datavar"],lon=item["coord"]["lon"],lat=item["coord"]["lat"])
-                        self.mqtt_status = 'Connect Status: Published'
+                        self.mqtt_status = _('Connect Status: Published')
                         print "pubblicato", item["datavar"]
                     except:
                         newdatavarlist.append(item)
-                        self.mqtt_status ='Connect Status: ERROR on Publish'
+                        self.mqtt_status =_('Connect Status: ERROR on Publish')
 
                 self.datavarlist=newdatavarlist
             else:
-                self.mqtt_status = 'Connect Status: ERROR on Publish, not connected'
+                self.mqtt_status = _('Connect Status: ERROR on Publish, not connected')
 
         except:
-            self.mqtt_status = 'Connect Status: ERROR on Publish, not connected'
+            self.mqtt_status = _('Connect Status: ERROR on Publish, not connected')
 
 
     def stopmqtt(self):
@@ -866,7 +877,7 @@ class station():
         except:
             pass
                 
-        self.mqtt_status = 'Connect Status: disconnected'
+        self.mqtt_status = _('Connect Status: disconnected')
 
 
 
@@ -876,12 +887,16 @@ class station():
         call this to publish data 
         '''
 
-        try:
-            if self.rmap.connected:
-                print "mqtt connected"
-        except:
-            print "try to reconnect mqtt"
-            self.startmqtt()
+        if self.rmap.connected:
+            print "mqtt connected"
+        else:
+            print "mqtt reconnect"
+            try:
+                self.rmap.mqttc.reconnect()
+            except:
+                print "error on reconnect"
+                print "try to restart mqtt"
+                self.startmqtt()
 
         self.publishmqtt()
 
