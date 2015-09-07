@@ -20,10 +20,17 @@
 # Bisognera provvedere a una ripulitura delle stazioni
 # (messaggi retained) dopo un certo lasso di tempo 
 
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+from django.conf import settings
+from django.utils import translation
+from django.core import management
+import django
+django.setup()
 
 import pickle
 import re
-import os
+
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
 import settings
@@ -45,12 +52,6 @@ from django.utils.translation import ugettext as _
 #if platform == "android":
 #     from android.broadcast import BroadcastReceiver
 #     from jnius import autoclass
-
-
-
-
-#####################
-
 
 
 import json
@@ -115,6 +116,7 @@ class rmapmqtt:
         self.prefix=prefix
         self.maintprefix=maintprefix
         self.connected=False
+        self.mid=-1
 
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
@@ -162,6 +164,29 @@ class rmapmqtt:
         except Exception as inst:
             self.error(inst)
 
+    def publish(self,topic,payload,qos=0,retain=False,timeout=3.):
+        ''' 
+        bloking publish
+        with qos > 0 we wait for ack
+        '''
+        self.puback=False
+        rc,self.mid=self.mqttc.publish(topic,payload=payload,qos=qos,retain=retain)
+        if rc != mqtt.MQTT_ERR_SUCCESS:
+            return rc
+        if (qos == 0 ):
+            return rc
+
+        self.log("publish ana message mid: "+str(self.mid))
+
+        last=time.time()
+        while ((time.time()-last) < timeout and not self.puback):
+            time.sleep(.1)
+
+        if (not self.puback):
+            return 50
+        else:
+            return  mqtt.MQTT_ERR_SUCCESS
+
     def ana(self,anavar={},lon=None,lat=None):
 
         try:
@@ -173,14 +198,12 @@ class rmapmqtt:
             # mando dati di anagrafica retained
 
             for key,val in anavar.iteritems():
-                rc=self.mqttc.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
+                rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
                                       payload=dumps(val),
                                       qos=1,retain=True)
-                if rc[0] != mqtt.MQTT_ERR_SUCCESS:
+                if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish ana",rc)
 
-                    self.log("publish ana message mid: "+str(rc[1]))
-            
         except Exception as inst:
             self.error(inst)
 
@@ -197,17 +220,15 @@ class rmapmqtt:
                 lonlat=self.lonlat
 
             for key,val in datavar.iteritems():
-                rc=self.mqttc.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
                                       qos=1,
                                       retain=False
                                   )
             
-                if rc[0] != mqtt.MQTT_ERR_SUCCESS:
+                if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish data",rc)
-
-                self.log("publish data message mid: "+str(rc[1]))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -327,7 +348,9 @@ class rmapmqtt:
         self.log("message: "+msg.topic+" "+str(msg.qos)+" "+str(msg.payload))
 
     def on_publish(self,mosq, userdata, mid):
-        self.log("mid: "+str(mid))
+        self.log("published mid: "+str(mid))
+        if (mid == self.mid):
+            self.puback=True
 
     def on_subscribe(self,mosq, userdata, mid, granted_qos):
         self.log("Subscribed: "+str(mid)+" "+str(granted_qos))
@@ -1141,6 +1164,8 @@ class station():
 
 
 def main():
+
+    django.utils.translation.activate("it")
 
     import random
 
