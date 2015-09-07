@@ -158,7 +158,7 @@ F 1 "CONN_01X01" H 5050 3500 60  0001 C CNN
 F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5050 3500 60  0001 C CNN
 F 3 "" H 5050 3500 60  0001 C CNN
 F 4 "P" H 5050 3600 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5150 3500 50  0000 C CNN "Valore "
+F 5 "CONN_01X01" V 5150 3500 50  0001 C CNN "Valore "
 F 6 "" H 5050 3500 60  0000 C CNN "Impronta"
 F 7 "" H 5050 3500 60  0000 C CNN "Specifiche"
 	1    5050 3500
@@ -256,6 +256,12 @@ Text Label 1950 2850 3    60   ~ 0
 SCL
 Text Label 2050 2850 3    60   ~ 0
 SDA
+Text Label 1450 2250 2    60   ~ 0
+RX1
+Text Label 1400 2150 2    60   ~ 0
+TX1
+Text Label 2850 1950 0    60   ~ 0
+CONFIG
 Text Label 2850 2450 0    60   ~ 0
 SCK
 Text Label 2850 2350 0    60   ~ 0
@@ -266,29 +272,6 @@ Text Label 2850 2150 0    60   ~ 0
 CS_NRF24
 Text Label 2850 2050 0    60   ~ 0
 CE_NRF24
-Text Label 2850 1950 0    60   ~ 0
-CS_ENC28J60
-Text Label 1450 2250 2    60   ~ 0
-RX1
-Text Label 1400 2150 2    60   ~ 0
-TX1
 Text Label 1250 2150 2    60   ~ 0
 INT_28J60
-Text Label 2850 1950 2    60   ~ 0
-CONFIG
-$Comp
-L CONN_01X01 P?
-U 1 1 55A299C8
-P 5050 3700
-F 0 "P?" H 5100 3750 60  0001 C CNN
-F 1 "CONN_01X01" H 5050 3700 60  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5050 3700 60  0001 C CNN
-F 3 "" H 5050 3700 60  0001 C CNN
-F 4 "P" H 5050 3800 50  0000 C CNN "Riferimento"
-F 5 "CONN_01X01" V 5150 3700 50  0000 C CNN "Valore "
-F 6 "" H 5050 3700 60  0000 C CNN "Impronta"
-F 7 "" H 5050 3700 60  0000 C CNN "Specifiche"
-	1    5050 3700
-	1    0    0    -1  
-$EndComp
 $EndSCHEMATC

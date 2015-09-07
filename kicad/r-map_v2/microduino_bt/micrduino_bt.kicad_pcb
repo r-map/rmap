@@ -1,4 +1,4 @@
-(kicad_pcb (version 4) (host pcbnew 0.201507032246+5880~23~ubuntu14.04.1-product)
+(kicad_pcb (version 4) (host pcbnew no-vcs-found-product)
 
   (general
     (links 14)
@@ -13,6 +13,15 @@
   )
 
   (page A4)
+  (title_block
+    (title "Stima - Microduino bluetooth interface")
+    (date 2015-07-28)
+    (company http://rmap.cc/)
+    (comment 2 "Released under MIT License(MIT)")
+    (comment 3 "Author: Daniele Castellari dcast78@gmail.com")
+    (comment 4 "This module is part of rmap project")
+  )
+
   (layers
     (0 F.Cu signal)
     (31 B.Cu signal)

@@ -3,7 +3,7 @@
   (general
     (links 14)
     (no_connects 0)
-    (area 135.839999 89.484999 161.340001 117.525001)
+    (area 135.460999 81.31208 161.719001 117.904001)
     (thickness 1.6)
     (drawings 6)
     (tracks 58)
@@ -376,7 +376,7 @@
     )
   )
 
-  (gr_text SET (at 149.86 91.44) (layer B.SilkS)
+  (gr_text SET (at 149.86 92.71) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.25)) (justify mirror))
   )
   (gr_text rmap.cc (at 154.94 99.06 90) (layer B.SilkS)

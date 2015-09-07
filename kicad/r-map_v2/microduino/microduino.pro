@@ -1,4 +1,4 @@
-update=dom 12 lug 2015 20:59:47 CEST
+update=lun 31 ago 2015 18:45:42 CEST
 version=1
 last_client=kicad
 [general]
@@ -30,16 +30,6 @@ SolderMaskMinWidth=0.3
 DrawSegmentWidth=0.2
 BoardOutlineThickness=0.09999999999999999
 ModuleOutlineThickness=0.15
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-LabSize=60
 [eeschema]
 version=1
 LibDir=../lib
@@ -79,3 +69,13 @@ LibName32=prtr5v0u4y
 LibName33=esda6v1-5sc6
 LibName34=tmp275
 LibName35=/home/raspibo/Documenti/nckicad/esempi/09_raspibo_gadget/conn_micro_usb
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
