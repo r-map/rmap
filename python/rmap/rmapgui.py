@@ -1490,7 +1490,9 @@ class Rmap(App):
     def queueoff(self):
         Clock.unschedule(self.myqueue_loop)
         self.stopmqtt()
-
+        #update to last status
+        self.mqtt_status = self.mystation.mqtt_status
+        self.mqtt_connected = self.mystation.rmap.connected
 
     def rpcin(self, message, *args):
         print "RPC: ",message[2]
@@ -1671,17 +1673,7 @@ class Rmap(App):
         begin mqtt connection
         '''
 
-        if self.lat is None or self.lon is None:
-            print "you have to set LAT and LON"
-            self.mqtt_status = _("Connect Status: ERROR, you have to define a location !")
-            return
-
         self.mystation.startmqtt()
-        self.mqtt_status = self.mystation.mqtt_status
-        try:
-            self.mqtt_connected = self.mystation.rmap.connected
-        except:
-            pass
 
     def stopmqtt(self):
         '''
@@ -1689,8 +1681,6 @@ class Rmap(App):
         '''
 
         self.mystation.stopmqtt()
-        self.mqtt_status = _("Connect Status: DISCONNECTED")
-        self.mqtt_connected = False
 
 
     def updatelocation(self):
@@ -1879,10 +1869,14 @@ class Rmap(App):
 
         try:
             self.mystation.publishmqtt_loop()
+
         except:
             print "error in publishmqtt_loop"
 
         self.root.ids["queue"].text=self.queue2str()
+
+        self.mqtt_connected = self.mystation.rmap.connected
+        self.mqtt_status = self.mystation.mqtt_status
 
         return True
 

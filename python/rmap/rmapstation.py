@@ -249,8 +249,7 @@ class rmapmqtt:
         try:
             rc = self.mqttc.loop_stop(force=True)
         except Exception as inst:
-            self.error(inst)
-
+            self.error(inst)        
 
     def disconnect(self):
 
@@ -295,12 +294,14 @@ class rmapmqtt:
             except Exception as inst:
                 self.error(inst)
 
+        print "--------------------------------> connected"
         self.connected=True
 
 
     def on_disconnect(self,mosq, userdata, rc):
         self.log("disconnect rc: "+str(rc))
 
+        print "--------------------------------> disconnected"
         self.connected=False
 
         #if rc == 1 :
@@ -792,16 +793,17 @@ class station():
             self.mqtt_status = _('Connect Status: ERROR, you have to define a location !')
             return
 
+        self.mqtt_status = _('Connect Status: connecting')
+
         try:
             self.rmap=rmapmqtt(ident=self.mqtt_ident,lon=self.lon,lat=self.lat,network=self.network,
                                            host=self.mqtt_host,username=self.mqtt_user,password=self.mqtt_password,
                                            prefix=self.prefix,maintprefix=self.maintprefix,logfunc=self.log)
 
             self.rmap.loop_start()
-            self.mqtt_status = _('Connect Status: OK connected')
 
         except:
-            self.mqtt_status = _('Connect Status: ERROR connecting')
+            pass
 
     def publishmqtt(self):
         '''
@@ -862,7 +864,7 @@ class station():
                 self.mqtt_status = _('Connect Status: ERROR on Publish, not connected')
 
         except:
-            self.mqtt_status = _('Connect Status: ERROR on Publish, not connected')
+            self.mqtt_status = _('Connect Status: ERROR on Publish')
 
 
     def stopmqtt(self):
@@ -877,8 +879,9 @@ class station():
         except:
             pass
                 
+        #force status and messages because we do not wait ACK
+        self.connected=False
         self.mqtt_status = _('Connect Status: disconnected')
-
 
 
     #@mainthread
@@ -890,13 +893,19 @@ class station():
         if self.rmap.connected:
             print "mqtt connected"
         else:
-            print "mqtt reconnect"
-            try:
-                self.rmap.mqttc.reconnect()
-            except:
-                print "error on reconnect"
-                print "try to restart mqtt"
-                self.startmqtt()
+            #print "mqtt reconnect"
+            #try:
+            #    self.rmap.mqttc.reconnect()
+            #except:
+            #    print "error on reconnect"
+
+            print "try to restart mqtt"
+            self.startmqtt()
+
+        if self.rmap.connected:
+            self.mqtt_status = _('Connect Status: OK connected')
+        else:
+            self.mqtt_status = _('Connect Status: disconnected')
 
         self.publishmqtt()
 

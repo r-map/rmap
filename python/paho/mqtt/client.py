@@ -263,13 +263,15 @@ def _socketpair_compat():
     iface, port = listensock.getsockname()
     sock1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_IP)
     sock1.setblocking(0)
+    sock1.settimeout(10)
     try:
-        sock1.connect(("localhost", port))
+        sock1.connect(("127.0.0.1", port))
     except socket.error as err:
         if err.errno != errno.EINPROGRESS and err.errno != errno.EWOULDBLOCK and err.errno != EAGAIN:
             raise
     sock2, address = listensock.accept()
     sock2.setblocking(0)
+    sock2.settimeout(10)
     listensock.close()
     return (sock1, sock2)
 
