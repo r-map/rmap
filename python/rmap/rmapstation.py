@@ -21,13 +21,6 @@
 # (messaggi retained) dopo un certo lasso di tempo 
 
 import os
-os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-from django.conf import settings
-from django.utils import translation
-from django.core import management
-import django
-django.setup()
-
 import pickle
 import re
 
@@ -1165,6 +1158,13 @@ class station():
 
 def main():
 
+    import os
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
+    from django.conf import settings
+    from django.utils import translation
+    from django.core import management
+    import django
+    django.setup()
     django.utils.translation.activate("it")
 
     import random
