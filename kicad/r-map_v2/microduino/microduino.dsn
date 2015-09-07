@@ -1,9 +1,9 @@
-(pcb "/home/raspibo/Documenti/r-map-code/trunk/kicad/r-map_v2/microduino/microduino.dsn"
+(pcb "/home/raspibo/Documenti/rmap/kicad/r-map_v2/microduino/microduino.dsn"
   (parser
     (string_quote ")
     (space_in_quoted_tokens on)
     (host_cad "KiCad's Pcbnew")
-    (host_version "0.201505071723+5645~23~ubuntu14.04.1-product")
+    (host_version "0.201509030901+6151~29~ubuntu14.04.1-product")
   )
   (resolution um 10)
   (unit um)
@@ -14,7 +14,7 @@
         (index 0)
       )
     )
-    (layer In1.Cu
+    (layer B.Cu
       (type signal)
       (property
         (index 1)
@@ -22,7 +22,7 @@
     )
     (boundary
       (path pcb 0  135890 -88900  135890 -118110  161290 -118110  161290 -88900
-            135890 -88900)
+            135890 -88900  135890 -88900)
     )
     (keepout "" (polygon F.Cu 0  152400 -102235  149860 -102235  149860 -100965  152400 -100965))
     (keepout "" (polygon F.Cu 0  152400 -98425  151130 -98425  151130 -95885  152400 -95885))
@@ -35,18 +35,17 @@
     )
   )
   (placement
-    (component "Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm"
-      (place U4 144780 -98425 front 180 (PN TMP275))
-    )
     (component Rmap:microduino
       (place U1 148590 -105410 front 0 (PN Microduino))
+    )
+    (component "Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm"
+      (place U4 144780 -98425 front 180 (PN TMP275))
     )
     (component w_smd_cap:c_1206
       (place C1 153670 -90805 front 0 (PN 1uF))
       (place C2 148590 -106680 front 270 (PN 0.01uF))
       (place C3 152400 -106680 front 270 (PN 2.2uF))
-      (place R1 143510 -105410 front 180 (PN 1K0))
-      (place R2 145415 -95250 back 180 (PN R))
+      (place R2 145415 -95250 back 180 (PN 150))
     )
     (component w_pin_strip:pin_strip_2
       (place P1 153670 -93980 front 0 (PN CONN_01X02))
@@ -68,33 +67,14 @@
       (place P5 145415 -90805 front 180 (PN USB_OTG))
     )
     (component w_smd_leds:Led_1206
-      (place D1 153670 -90805 back 180 (PN LED))
+      (place D1 153670 -90805 back 180 (PN LED_SMD))
     )
   )
   (library
-    (image "Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm"
-      (outline (path signal 50  -3750 2750  -3750 -2750))
-      (outline (path signal 50  3750 2750  3750 -2750))
-      (outline (path signal 50  -3750 2750  3750 2750))
-      (outline (path signal 50  -3750 -2750  3750 -2750))
-      (outline (path signal 150  -2075 2575  -2075 2430))
-      (outline (path signal 150  2075 2575  2075 2430))
-      (outline (path signal 150  2075 -2575  2075 -2430))
-      (outline (path signal 150  -2075 -2575  -2075 -2430))
-      (outline (path signal 150  -2075 2575  2075 2575))
-      (outline (path signal 150  -2075 -2575  2075 -2575))
-      (outline (path signal 150  -2075 2430  -3475 2430))
-      (pin Rect[T]Pad_1550x600_um 1 -2700 1905)
-      (pin Rect[T]Pad_1550x600_um 2 -2700 635)
-      (pin Rect[T]Pad_1550x600_um 3 -2700 -635)
-      (pin Rect[T]Pad_1550x600_um 4 -2700 -1905)
-      (pin Rect[T]Pad_1550x600_um 5 2700 -1905)
-      (pin Rect[T]Pad_1550x600_um 6 2700 -635)
-      (pin Rect[T]Pad_1550x600_um 7 2700 635)
-      (pin Rect[T]Pad_1550x600_um 8 2700 1905)
-    )
     (image Rmap:microduino
-      (outline (path signal 150  -12700 15240  12700 15240))
+      (outline (path signal 150  -12700 16510  -12700 15240))
+      (outline (path signal 150  12700 15240  12700 16510))
+      (outline (path signal 150  -12700 16510  12700 16510))
       (outline (path signal 150  12700 15240  12700 -12700))
       (outline (path signal 150  12700 -12700  -12700 -12700))
       (outline (path signal 150  -12700 -12700  -12700 15240))
@@ -125,6 +105,27 @@
       (pin Round[A]Pad_1800_um 2 10160 10160)
       (pin Round[A]Pad_1800_um 10 10160 -10160)
       (pin Round[A]Pad_1800_um 1 10160 12700)
+    )
+    (image "Housings_SOIC:SOIC-8_3.9x4.9mm_Pitch1.27mm"
+      (outline (path signal 50  -3750 2750  -3750 -2750))
+      (outline (path signal 50  3750 2750  3750 -2750))
+      (outline (path signal 50  -3750 2750  3750 2750))
+      (outline (path signal 50  -3750 -2750  3750 -2750))
+      (outline (path signal 150  -2075 2575  -2075 2430))
+      (outline (path signal 150  2075 2575  2075 2430))
+      (outline (path signal 150  2075 -2575  2075 -2430))
+      (outline (path signal 150  -2075 -2575  -2075 -2430))
+      (outline (path signal 150  -2075 2575  2075 2575))
+      (outline (path signal 150  -2075 -2575  2075 -2575))
+      (outline (path signal 150  -2075 2430  -3475 2430))
+      (pin Rect[T]Pad_1550x600_um 1 -2700 1905)
+      (pin Rect[T]Pad_1550x600_um 2 -2700 635)
+      (pin Rect[T]Pad_1550x600_um 3 -2700 -635)
+      (pin Rect[T]Pad_1550x600_um 4 -2700 -1905)
+      (pin Rect[T]Pad_1550x600_um 5 2700 -1905)
+      (pin Rect[T]Pad_1550x600_um 6 2700 -635)
+      (pin Rect[T]Pad_1550x600_um 7 2700 635)
+      (pin Rect[T]Pad_1550x600_um 8 2700 1905)
     )
     (image w_smd_cap:c_1206
       (outline (path signal 127  1143 -812.8  1143 812.8))
@@ -227,9 +228,9 @@
       (pin Rect[T]Pad_398.78x1346.2_um 4 647.7 2674.62)
       (pin Rect[T]Pad_398.78x1346.2_um 5 1300.48 2674.62)
       (keepout "" (circle F.Cu 797.56 1897.38 2146.3))
-      (keepout "" (circle In1.Cu 797.56 1897.38 2146.3))
+      (keepout "" (circle B.Cu 797.56 1897.38 2146.3))
       (keepout "" (circle F.Cu 797.56 -1899.92 2148.84))
-      (keepout "" (circle In1.Cu 797.56 -1899.92 2148.84))
+      (keepout "" (circle B.Cu 797.56 -1899.92 2148.84))
     )
     (image w_smd_leds:Led_1206
       (outline (path signal 254  0 200.66  0 -99.06))
@@ -248,12 +249,12 @@
     )
     (padstack Round[A]Pad_1800_um
       (shape (circle F.Cu 1800))
-      (shape (circle In1.Cu 1800))
+      (shape (circle B.Cu 1800))
       (attach off)
     )
     (padstack Oval[A]Pad_1524x2199.64_um
       (shape (path F.Cu 1524  0 -337.82  0 337.82))
-      (shape (path In1.Cu 1524  0 -337.82  0 337.82))
+      (shape (path B.Cu 1524  0 -337.82  0 337.82))
       (attach off)
     )
     (padstack Rect[T]Pad_398.78x1346.2_um
@@ -274,7 +275,7 @@
     )
     (padstack Rect[A]Pad_1524x2199.64_um
       (shape (rect F.Cu -762 -1099.82 762 1099.82))
-      (shape (rect In1.Cu -762 -1099.82 762 1099.82))
+      (shape (rect B.Cu -762 -1099.82 762 1099.82))
       (attach off)
     )
     (padstack Rect[T]Pad_1550x600_um
@@ -291,7 +292,7 @@
     )
     (padstack "Via[0-1]_1035:635_um"
       (shape (circle F.Cu 1035))
-      (shape (circle In1.Cu 1035))
+      (shape (circle B.Cu 1035))
       (attach off)
     )
   )
@@ -303,47 +304,109 @@
       (pins U1-5 P2-3)
     )
     (net "Net-(P2-Pad4)"
-      (pins U1-6 P2-4)
+      (pins U1-10 P2-4)
     )
     (net "Net-(P2-Pad5)"
-      (pins U1-7 P2-5)
-    )
-    (net "Net-(C1-Pad1)"
-      (pins U1-27 C1-1 P1-1 P2-6 P3-1 U3-1 U3-3 P5-1)
+      (pins U1-11 P2-5)
     )
     (net "Net-(C2-Pad1)"
       (pins C2-1 U3-4)
-    )
-    (net "Net-(C3-Pad1)"
-      (pins U4-8 U1-26 C3-1 P3-5 U3-5 D1-2)
-    )
-    (net "Net-(P3-Pad2)"
-      (pins U4-2 U1-12 P3-2 U2-5)
-    )
-    (net "Net-(P3-Pad3)"
-      (pins U4-1 U1-13 P3-3 U2-4)
-    )
-    (net "Net-(R1-Pad1)"
-      (pins U4-5 R1-1)
     )
     (net "Net-(P4-Pad2)"
       (pins U1-24 P4-2)
     )
     (net GND
-      (pins U4-4 U4-6 U4-7 U1-1 C1-2 C2-2 C3-2 P1-2 P2-1 P3-4 P4-1 U2-2 U3-2 P5-5
-        R1-2 R2-2)
+      (pins U1-1 U4-4 U4-5 U4-6 U4-7 C1-2 C2-2 C3-2 P1-2 P2-1 P3-4 P4-1 U2-2 U3-2
+        P5-5 R2-2)
     )
     (net "Net-(D1-Pad1)"
       (pins D1-1 R2-1)
     )
-    (class kicad_default "" GND "Net-(C1-Pad1)" "Net-(C2-Pad1)" "Net-(C3-Pad1)"
-      "Net-(D1-Pad1)" "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)"
-      "Net-(P3-Pad2)" "Net-(P3-Pad3)" "Net-(P4-Pad2)" "Net-(P5-Pad2)" "Net-(P5-Pad3)"
-      "Net-(P5-Pad4)" "Net-(R1-Pad1)" "Net-(U1-Pad10)" "Net-(U1-Pad11)" "Net-(U1-Pad14)"
-      "Net-(U1-Pad15)" "Net-(U1-Pad16)" "Net-(U1-Pad17)" "Net-(U1-Pad18)"
-      "Net-(U1-Pad19)" "Net-(U1-Pad2)" "Net-(U1-Pad20)" "Net-(U1-Pad21)" "Net-(U1-Pad22)"
-      "Net-(U1-Pad23)" "Net-(U1-Pad25)" "Net-(U1-Pad3)" "Net-(U1-Pad8)" "Net-(U1-Pad9)"
-      "Net-(U2-Pad1)" "Net-(U2-Pad3)" "Net-(U2-Pad6)" "Net-(U4-Pad3)"
+    (net /+5V
+      (pins U1-27 C1-1 P1-1 P2-6 P3-1 U2-6 U3-1 U3-3 P5-1)
+    )
+    (net /+3.3V
+      (pins U1-26 U4-8 C3-1 P3-5 U2-1 U3-5 D1-2)
+    )
+    (net /SCL
+      (pins U1-12 U4-2 P3-2 U2-5)
+    )
+    (net /SDA
+      (pins U1-13 U4-1 P3-3 U2-4)
+    )
+    (net "Net-(P5-Pad2)"
+      (pins P5-2)
+    )
+    (net "Net-(P5-Pad3)"
+      (pins P5-3)
+    )
+    (net "Net-(P5-Pad4)"
+      (pins P5-4)
+    )
+    (net "Net-(U1-Pad25)"
+      (pins U1-25)
+    )
+    (net "Net-(U1-Pad23)"
+      (pins U1-23)
+    )
+    (net "Net-(U1-Pad22)"
+      (pins U1-22)
+    )
+    (net "Net-(U1-Pad21)"
+      (pins U1-21)
+    )
+    (net "Net-(U1-Pad20)"
+      (pins U1-20)
+    )
+    (net "Net-(U1-Pad19)"
+      (pins U1-19)
+    )
+    (net "Net-(U1-Pad18)"
+      (pins U1-18)
+    )
+    (net "Net-(U1-Pad17)"
+      (pins U1-17)
+    )
+    (net "Net-(U1-Pad16)"
+      (pins U1-16)
+    )
+    (net "Net-(U1-Pad15)"
+      (pins U1-15)
+    )
+    (net "Net-(U1-Pad14)"
+      (pins U1-14)
+    )
+    (net "Net-(U1-Pad9)"
+      (pins U1-9)
+    )
+    (net "Net-(U1-Pad8)"
+      (pins U1-8)
+    )
+    (net "Net-(U1-Pad7)"
+      (pins U1-7)
+    )
+    (net "Net-(U1-Pad6)"
+      (pins U1-6)
+    )
+    (net "Net-(U1-Pad3)"
+      (pins U1-3)
+    )
+    (net "Net-(U1-Pad2)"
+      (pins U1-2)
+    )
+    (net "Net-(U2-Pad3)"
+      (pins U2-3)
+    )
+    (net "Net-(U4-Pad3)"
+      (pins U4-3)
+    )
+    (class kicad_default "" /+3.3V /+5V /SCL /SDA GND "Net-(C2-Pad1)" "Net-(D1-Pad1)"
+      "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(P4-Pad2)"
+      "Net-(P5-Pad2)" "Net-(P5-Pad3)" "Net-(P5-Pad4)" "Net-(U1-Pad14)" "Net-(U1-Pad15)"
+      "Net-(U1-Pad16)" "Net-(U1-Pad17)" "Net-(U1-Pad18)" "Net-(U1-Pad19)"
+      "Net-(U1-Pad2)" "Net-(U1-Pad20)" "Net-(U1-Pad21)" "Net-(U1-Pad22)" "Net-(U1-Pad23)"
+      "Net-(U1-Pad25)" "Net-(U1-Pad3)" "Net-(U1-Pad6)" "Net-(U1-Pad7)" "Net-(U1-Pad8)"
+      "Net-(U1-Pad9)" "Net-(U2-Pad3)" "Net-(U4-Pad3)"
       (circuit
         (use_via Via[0-1]_1035:635_um)
       )

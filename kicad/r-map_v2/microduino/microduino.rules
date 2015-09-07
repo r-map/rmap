@@ -11,14 +11,14 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 568)
+    (start_pass_no 854)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
       (preferred_direction_trace_costs 1.0)
       (against_preferred_direction_trace_costs 2.1)
     )
-    (layer_rule In1.Cu
+    (layer_rule B.Cu
       (active on)
       (preferred_direction horizontal)
       (preferred_direction_trace_costs 1.0)
@@ -36,7 +36,7 @@
       (circle F.Cu 1035.0 0.0 0.0)
     )
     (shape
-      (circle In1.Cu 1035.0 0.0 0.0)
+      (circle B.Cu 1035.0 0.0 0.0)
     )
     (attach off)
   )
@@ -59,19 +59,22 @@
       (width 254.0)
     )
     (circuit 
-      (use_layer F.Cu In1.Cu)
+      (use_layer F.Cu B.Cu)
     )
   )
   (class "kicad_default"
-    "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(C1-Pad1)" "Net-(C2-Pad1)" "Net-(C3-Pad1)" "Net-(P3-Pad2)"
-    "Net-(P3-Pad3)" "Net-(R1-Pad1)" "Net-(P4-Pad2)" GND "Net-(D1-Pad1)"
+    "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(C2-Pad1)" "Net-(P4-Pad2)" GND "Net-(D1-Pad1)"
+    /+5V /+3.3V /SCL /SDA "Net-(P5-Pad2)" "Net-(P5-Pad3)" "Net-(P5-Pad4)" "Net-(U1-Pad25)"
+    "Net-(U1-Pad23)" "Net-(U1-Pad22)" "Net-(U1-Pad21)" "Net-(U1-Pad20)" "Net-(U1-Pad19)" "Net-(U1-Pad18)" "Net-(U1-Pad17)" "Net-(U1-Pad16)"
+    "Net-(U1-Pad15)" "Net-(U1-Pad14)" "Net-(U1-Pad9)" "Net-(U1-Pad8)" "Net-(U1-Pad7)" "Net-(U1-Pad6)" "Net-(U1-Pad3)" "Net-(U1-Pad2)"
+    "Net-(U2-Pad3)" "Net-(U4-Pad3)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
       (width 254.0)
     )
     (circuit 
-      (use_layer F.Cu In1.Cu)
+      (use_layer F.Cu B.Cu)
     )
   )
 )
