@@ -1,8 +1,9 @@
-from django.conf.urls import urls
+from django.conf.urls import patterns, urls
 
 from . import view
 
 
-urlpatterns = [
-        url(r'?publish/$', views.publish, name='publish'),
-]
+urlpatterns = patterns(
+    '',
+    url(r'^publish/$', views.publish, name='publish'),
+)
