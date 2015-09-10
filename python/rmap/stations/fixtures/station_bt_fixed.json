@@ -328,7 +328,7 @@
         "model": "stations.transportserial",
         "fields": {
             "active": true,
-            "device": "/dev/cu.HC-05-COM0-1",
+            "device": "/dev/tty.HC-05-DevB",
             "baudrate": 9600,
             "board": [
                 "BT_fixed_OSX",
