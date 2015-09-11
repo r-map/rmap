@@ -31,7 +31,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #version.filename = %(source.dir)s/main.py
 
 # (str) Application versioning (method 2)
-version = 2.12
+version = 4.18
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy

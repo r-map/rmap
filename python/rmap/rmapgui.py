@@ -62,6 +62,25 @@ platform = platform()
 
 if platform == 'android':
     from jnius import autoclass
+    station_default= "BT_fixed"
+    board_default= "BT_fixed"
+elif platform == 'linux':
+    station_default= "BT_fixed"
+    board_default= "BT_fixed_LINUX"
+elif platform == 'win':
+    station_default= "BT_fixed"
+    board_default= "BT_fixed_WINDOWS"
+elif platform == 'macosx':
+    station_default= "BT_fixed"
+    board_default= "BT_fixed_OSX"
+elif platform == 'ios':
+    print "ios platform not tested !!!!!"
+    station_default= "BT_fixed"
+    board_default= "BT_fixed_IOS"
+else:
+    print "platform unknown !!!!"
+    station_default= "BT_fixed"
+    board_default= "BT_fixed"
 
 #    from plyer import camera #object to read the camera
 
@@ -178,16 +197,88 @@ ScreenManager:
             #    text: app.message 
 
 
-            BoxLayout:
+            #BoxLayout:
+            Carousel:
                 ScrollView:
                     bar_width: 10
                     Label:
-
                         height: self.texture_size[1]
                         text_size: self.width, None
 
-                        id: help
-                        text: app.str_help_manual
+                        id: help_intro
+                        text: app.str_help_manual_intro
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help_setup
+                        text: app.str_help_manual_setup
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help1
+                        text: app.str_help_manual_page1
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help2
+                        text: app.str_help_manual_page2
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help3
+                        text: app.str_help_manual_page3
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help4
+                        text: app.str_help_manual_page4
+                        markup: True
+                        halign: "left"
+                        size_hint_y: None
+
+                ScrollView:
+                    bar_width: 10
+                    Label:
+                        height: self.texture_size[1]
+                        text_size: self.width, None
+
+                        id: help5
+                        text: app.str_help_manual_page5
                         markup: True
                         halign: "left"
                         size_hint_y: None
@@ -864,8 +955,8 @@ class Rmap(App):
                                            logfunc=jsonrpc.log_stdout)
         except:
             # retry with default; this happen when DB was modified and is not in sync with config
-            self.config.set('sensors', 'station',"BT_fixed")
-            self.config.set('sensors', 'board',"BT_fixed")
+            self.config.set('sensors', 'station',station_default)
+            self.config.set('sensors', 'board',board_default)
             self.config.write()
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
                                            slug=self.config.get('sensors','station'),
@@ -917,7 +1008,13 @@ class Rmap(App):
         translation.activate(self.config.get('general','language'))
 
         self.str_start=_("Start")
-        self.str_help_manual=_("help manual")
+        self.str_help_manual_intro=_("help manual intro")
+        self.str_help_manual_setup=_("help manual setup")
+        self.str_help_manual_page1=_("help manual page 1")
+        self.str_help_manual_page2=_("help manual page 2")
+        self.str_help_manual_page3=_("help manual page 3")
+        self.str_help_manual_page4=_("help manual page 4")
+        self.str_help_manual_page5=_("help manual page 5")
         self.str_Settings=_("Settings")
         self.str_Select_Location=_("Select Location")
         self.str_Next=_("Next")
@@ -1261,8 +1358,8 @@ class Rmap(App):
 
         config.setdefaults('sensors', {
             'name': 'HC-05',
-            'station': 'BT_fixed',
-            'board': 'BT_fixed'
+            'station': station_default,
+            'board': board_default
         })
 
     def build_settings(self, settings):

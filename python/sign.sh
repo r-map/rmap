@@ -2,7 +2,7 @@
 
 set -x
 cd bin
-VERSION="2.12"
+VERSION="4.18"
 NAME="Rmap"
 
 rm $NAME-$VERSION-release-unaligned.apk  $NAME-$VERSION-release-signed.apk
