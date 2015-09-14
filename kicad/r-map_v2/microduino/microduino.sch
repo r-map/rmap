@@ -130,12 +130,12 @@ NoConn ~ 3000 3750
 $Comp
 L LP2985LV U3
 U 1 1 548EC800
-P 5450 6400
-F 0 "U3" H 5650 5950 60  0000 C CNN
-F 1 "LP2985LV" H 5450 6850 60  0000 C CNN
-F 2 "w_smd_trans:sot23-5" H 5450 6400 60  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lp2985-n.pdf" H 5450 6400 60  0001 C CNN
-	1    5450 6400
+P 5300 6400
+F 0 "U3" H 5500 5950 60  0000 C CNN
+F 1 "LP2985LV" H 5300 6850 60  0000 C CNN
+F 2 "w_smd_trans:sot23-5" H 5300 6400 60  0001 C CNN
+F 3 "http://www.ti.com/lit/ds/symlink/lp2985-n.pdf" H 5300 6400 60  0001 C CNN
+	1    5300 6400
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -163,12 +163,12 @@ $EndComp
 $Comp
 L GND #PWR01
 U 1 1 548ECA52
-P 5450 7300
-F 0 "#PWR01" H 5450 7300 30  0001 C CNN
-F 1 "GND" H 5450 7230 30  0001 C CNN
-F 2 "" H 5450 7300 60  0000 C CNN
-F 3 "" H 5450 7300 60  0000 C CNN
-	1    5450 7300
+P 5300 7250
+F 0 "#PWR01" H 5300 7250 30  0001 C CNN
+F 1 "GND" H 5300 7180 30  0001 C CNN
+F 2 "" H 5300 7250 60  0000 C CNN
+F 3 "" H 5300 7250 60  0000 C CNN
+	1    5300 7250
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -264,6 +264,53 @@ F 3 "" H 3450 5400 60  0000 C CNN
 	1    0    0    -1  
 $EndComp
 NoConn ~ 3700 4500
+NoConn ~ 2750 6400
+$Comp
+L USB_OTG P5
+U 1 1 554DBDBA
+P 2450 6300
+F 0 "P5" H 2775 6175 50  0000 C CNN
+F 1 "USB_OTG" H 2450 6500 50  0000 C CNN
+F 2 "w_conn_pc:conn_usb_B_micro_smd-2" V 2400 6200 60  0001 C CNN
+F 3 "" V 2400 6200 60  0000 C CNN
+	1    2450 6300
+	0    -1   1    0   
+$EndComp
+NoConn ~ 2350 6700
+$Comp
+L LED D1
+U 1 1 554DCB01
+P 6350 6400
+F 0 "D1" H 6350 6500 50  0000 C CNN
+F 1 "LED_SMD" H 6350 6300 50  0000 C CNN
+F 2 "w_smd_leds:Led_1206" H 6350 6400 60  0001 C CNN
+F 3 "" H 6350 6400 60  0000 C CNN
+	1    6350 6400
+	0    -1   -1   0   
+$EndComp
+$Comp
+L R R2
+U 1 1 554DCBB2
+P 6350 6900
+F 0 "R2" V 6430 6900 50  0000 C CNN
+F 1 "150" V 6350 6900 50  0000 C CNN
+F 2 "w_smd_resistors:r_1206" V 6280 6900 30  0001 C CNN
+F 3 "" H 6350 6900 30  0000 C CNN
+	1    6350 6900
+	1    0    0    -1  
+$EndComp
+Text Label 4300 3550 0    60   ~ 0
+SCL
+Text Label 4400 3750 0    60   ~ 0
+SDA
+Text Label 5350 2800 0    60   ~ 0
++3.3V
+Text Label 5000 3350 0    60   ~ 0
++5V
+Text Label 4350 6100 0    60   ~ 0
+VIN
+NoConn ~ 3700 4600
+NoConn ~ 3700 4700
 Wire Wire Line
 	2750 5200 3700 5200
 Wire Wire Line
@@ -324,19 +371,17 @@ Wire Wire Line
 Wire Wire Line
 	6550 7200 6550 6950
 Wire Wire Line
-	5450 7100 5450 7300
-Connection ~ 5450 7200
+	5300 7100 5300 7250
+Connection ~ 5300 7200
 Wire Wire Line
 	6550 5100 6550 6650
 Wire Wire Line
 	4050 5650 4050 6650
 Wire Wire Line
-	2750 6100 4650 6100
+	2750 6100 4500 6100
 Wire Wire Line
-	4050 6300 4650 6300
+	4050 6300 4500 6300
 Connection ~ 4050 6300
-Wire Wire Line
-	6250 6100 6550 6100
 Connection ~ 4050 7200
 Connection ~ 4050 6100
 Wire Wire Line
@@ -346,7 +391,7 @@ Wire Wire Line
 	3250 6700 3250 7200
 Connection ~ 3250 7200
 Wire Wire Line
-	4650 6600 4450 6600
+	4500 6600 4450 6600
 Wire Wire Line
 	4450 6600 4450 6700
 Wire Wire Line
@@ -402,43 +447,8 @@ Wire Wire Line
 	5350 5200 5100 5200
 Wire Wire Line
 	6350 3750 6350 4000
-NoConn ~ 2750 6400
-$Comp
-L USB_OTG P5
-U 1 1 554DBDBA
-P 2450 6300
-F 0 "P5" H 2775 6175 50  0000 C CNN
-F 1 "USB_OTG" H 2450 6500 50  0000 C CNN
-F 2 "w_conn_pc:conn_usb_B_micro_smd-2" V 2400 6200 60  0001 C CNN
-F 3 "" V 2400 6200 60  0000 C CNN
-	1    2450 6300
-	0    -1   1    0   
-$EndComp
 Wire Wire Line
 	2750 7200 2750 6500
-NoConn ~ 2350 6700
-$Comp
-L LED D1
-U 1 1 554DCB01
-P 6350 6400
-F 0 "D1" H 6350 6500 50  0000 C CNN
-F 1 "LED_SMD" H 6350 6300 50  0000 C CNN
-F 2 "w_smd_leds:Led_1206" H 6350 6400 60  0001 C CNN
-F 3 "" H 6350 6400 60  0000 C CNN
-	1    6350 6400
-	0    -1   -1   0   
-$EndComp
-$Comp
-L R R2
-U 1 1 554DCBB2
-P 6350 6900
-F 0 "R2" V 6430 6900 50  0000 C CNN
-F 1 "150" V 6350 6900 50  0000 C CNN
-F 2 "w_smd_resistors:r_1206" V 6280 6900 30  0001 C CNN
-F 3 "" H 6350 6900 30  0000 C CNN
-	1    6350 6900
-	1    0    0    -1  
-$EndComp
 Wire Wire Line
 	6350 6750 6350 6600
 Wire Wire Line
@@ -447,17 +457,7 @@ Connection ~ 6350 6100
 Wire Wire Line
 	6350 7050 6350 7200
 Connection ~ 6350 7200
-Text Label 4300 3550 0    60   ~ 0
-SCL
-Text Label 4400 3750 0    60   ~ 0
-SDA
 Connection ~ 7050 3100
-Text Label 5350 2800 0    60   ~ 0
-+3.3V
-Text Label 5000 3350 0    60   ~ 0
-+5V
-Text Label 4350 6100 0    60   ~ 0
-VIN
 Connection ~ 5950 5100
 Connection ~ 4400 3350
 Wire Wire Line
@@ -478,6 +478,35 @@ Wire Wire Line
 	3550 3900 3550 4600
 Wire Wire Line
 	3550 4600 2750 4600
-NoConn ~ 3700 4600
-NoConn ~ 3700 4700
+$Comp
+L CONN_01X01 P6
+U 1 1 55F70AFE
+P 6150 5850
+F 0 "P6" H 6300 5850 50  0000 C CNN
+F 1 "CONN_01X01" V 6250 5850 50  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6150 5850 60  0001 C CNN
+F 3 "" H 6150 5850 60  0000 C CNN
+	1    6150 5850
+	0    -1   -1   0   
+$EndComp
+$Comp
+L CONN_01X01 P7
+U 1 1 55F70BDA
+P 6300 5850
+F 0 "P7" H 6450 5850 50  0000 C CNN
+F 1 "CONN_01X01" V 6400 5850 50  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6300 5850 60  0001 C CNN
+F 3 "" H 6300 5850 60  0000 C CNN
+	1    6300 5850
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	6300 6050 6300 6100
+Connection ~ 6300 6100
+Wire Wire Line
+	6150 6050 6150 6100
+Wire Wire Line
+	6150 6100 6100 6100
+Wire Wire Line
+	6300 6100 6550 6100
 $EndSCHEMATC

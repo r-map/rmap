@@ -26,6 +26,8 @@
     )
     (keepout "" (polygon F.Cu 0  152400 -102235  149860 -102235  149860 -100965  152400 -100965))
     (keepout "" (polygon F.Cu 0  152400 -98425  151130 -98425  151130 -95885  152400 -95885))
+    (keepout "" (polygon B.Cu 0  144145 -104775  142875 -104775  142875 -103505  144145 -103505
+            144145 -104775))
     (via "Via[0-1]_1035:635_um")
     (rule
       (width 254)
@@ -68,6 +70,10 @@
     )
     (component w_smd_leds:Led_1206
       (place D1 153670 -90805 back 180 (PN LED_SMD))
+    )
+    (component "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small"
+      (place P6 144780 -104140 back 180 (PN CONN_01X01))
+      (place P7 142240 -104140 back 180 (PN CONN_01X01))
     )
   )
   (library
@@ -247,6 +253,9 @@
       (pin Rect[T]Pad_1498.6x1498.6_um 1 -1747.52 0)
       (pin Rect[T]Pad_1498.6x1498.6_um 2 1747.52 0)
     )
+    (image "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small"
+      (pin Rect[T]Pad_1501.14x1501.14_um 1 0 0)
+    )
     (padstack Round[A]Pad_1800_um
       (shape (circle F.Cu 1800))
       (shape (circle B.Cu 1800))
@@ -271,6 +280,10 @@
     )
     (padstack Rect[T]Pad_1498.6x1498.6_um
       (shape (rect F.Cu -749.3 -749.3 749.3 749.3))
+      (attach off)
+    )
+    (padstack Rect[T]Pad_1501.14x1501.14_um
+      (shape (rect F.Cu -750.57 -750.57 750.57 750.57))
       (attach off)
     )
     (padstack Rect[A]Pad_1524x2199.64_um
@@ -326,7 +339,7 @@
       (pins U1-27 C1-1 P1-1 P2-6 P3-1 U2-6 U3-1 U3-3 P5-1)
     )
     (net /+3.3V
-      (pins U1-26 U4-8 C3-1 P3-5 U2-1 U3-5 D1-2)
+      (pins U1-26 U4-8 C3-1 P3-5 U2-1 D1-2 P7-1)
     )
     (net /SCL
       (pins U1-12 U4-2 P3-2 U2-5)
@@ -400,13 +413,16 @@
     (net "Net-(U4-Pad3)"
       (pins U4-3)
     )
+    (net "Net-(P6-Pad1)"
+      (pins U3-5 P6-1)
+    )
     (class kicad_default "" /+3.3V /+5V /SCL /SDA GND "Net-(C2-Pad1)" "Net-(D1-Pad1)"
       "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(P4-Pad2)"
-      "Net-(P5-Pad2)" "Net-(P5-Pad3)" "Net-(P5-Pad4)" "Net-(U1-Pad14)" "Net-(U1-Pad15)"
-      "Net-(U1-Pad16)" "Net-(U1-Pad17)" "Net-(U1-Pad18)" "Net-(U1-Pad19)"
-      "Net-(U1-Pad2)" "Net-(U1-Pad20)" "Net-(U1-Pad21)" "Net-(U1-Pad22)" "Net-(U1-Pad23)"
-      "Net-(U1-Pad25)" "Net-(U1-Pad3)" "Net-(U1-Pad6)" "Net-(U1-Pad7)" "Net-(U1-Pad8)"
-      "Net-(U1-Pad9)" "Net-(U2-Pad3)" "Net-(U4-Pad3)"
+      "Net-(P5-Pad2)" "Net-(P5-Pad3)" "Net-(P5-Pad4)" "Net-(P6-Pad1)" "Net-(U1-Pad14)"
+      "Net-(U1-Pad15)" "Net-(U1-Pad16)" "Net-(U1-Pad17)" "Net-(U1-Pad18)"
+      "Net-(U1-Pad19)" "Net-(U1-Pad2)" "Net-(U1-Pad20)" "Net-(U1-Pad21)" "Net-(U1-Pad22)"
+      "Net-(U1-Pad23)" "Net-(U1-Pad25)" "Net-(U1-Pad3)" "Net-(U1-Pad6)" "Net-(U1-Pad7)"
+      "Net-(U1-Pad8)" "Net-(U1-Pad9)" "Net-(U2-Pad3)" "Net-(U4-Pad3)"
       (circuit
         (use_via Via[0-1]_1035:635_um)
       )

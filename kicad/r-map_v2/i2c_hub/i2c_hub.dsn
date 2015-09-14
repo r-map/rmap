@@ -3,7 +3,7 @@
     (string_quote ")
     (space_in_quoted_tokens on)
     (host_cad "KiCad's Pcbnew")
-    (host_version "no-vcs-found-product")
+    (host_version "0.201509030901+6151~29~ubuntu14.04.1-product")
   )
   (resolution um 10)
   (unit um)
@@ -21,10 +21,9 @@
       )
     )
     (boundary
-      (path pcb 0  34290 -116840  34290 -115570  34290 -92710  173990 -92710
-            173990 -115570  173990 -116840  34290 -116840  34290 -116840)
+      (path pcb 0  32512 -92710  32512 -114046  175260 -114046  175260 -113792
+            175260 -92710  32512 -92710  32512 -92710)
     )
-    (plane GND (polygon F.Cu 0  173355 -116205  34925 -116205  34925 -93345  173355 -93345))
     (via "Via[0-1]_1035:635_um")
     (rule
       (width 254)
@@ -35,56 +34,68 @@
   )
   (placement
     (component i2c_hub:1pin
-      (place REF**11115 44450 -114615 front 0 (PN 1pin))
-      (place REF**11114 44450 -109615 front 0 (PN 1pin))
+      (place REF**11115 44450 -112522 front 0 (PN 1pin))
+      (place REF**11116115 163830 -112522 front 0 (PN 1pin))
+      (place REF**1111615 158750 -112522 front 0 (PN 1pin))
+      (place REF**1111612 158750 -98044 front 0 (PN 1pin))
+      (place REF**1111611 158750 -94234 front 0 (PN 1pin))
+      (place REF**111125 77470 -112522 front 0 (PN 1pin))
+      (place REF**111115 59690 -112522 front 0 (PN 1pin))
+      (place REF**111164 148590 -107442 front 0 (PN 1pin))
+      (place REF**111163 148590 -102870 front 0 (PN 1pin))
+      (place REF**111162 148590 -98044 front 0 (PN 1pin))
+      (place REF**111122 77470 -99615 front 0 (PN 1pin))
+      (place REF**111161 148590 -94234 front 0 (PN 1pin))
+      (place REF**1115 49530 -112522 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::1
+      (place REF**11114 44450 -108458 front 0 (PN 1pin))
+      (place REF**111144 113030 -108458 front 0 (PN 1pin))
+      (place REF**111134 95250 -108458 front 0 (PN 1pin))
+      (place REF**111124 77470 -108458 front 0 (PN 1pin))
+      (place REF**111114 59690 -108458 front 0 (PN 1pin))
+      (place REF**1114 49530 -108458 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::2
       (place REF**11113 44450 -104615 front 0 (PN 1pin))
-      (place REF**11112 44450 -99615 front 0 (PN 1pin))
-      (place REF**11111 44450 -94615 front 0 (PN 1pin))
-      (place REF**11116115 163830 -114615 front 0 (PN 1pin))
-      (place REF**11116114 163830 -109615 front 0 (PN 1pin))
       (place REF**11116113 163830 -104615 front 0 (PN 1pin))
-      (place REF**11116112 163830 -99615 front 0 (PN 1pin))
-      (place REF**11116111 163830 -94615 front 0 (PN 1pin))
-      (place REF**1111615 158750 -114615 front 0 (PN 1pin))
-      (place REF**1111614 158750 -109615 front 0 (PN 1pin))
       (place REF**1111613 158750 -104615 front 0 (PN 1pin))
-      (place REF**1111612 158750 -99615 front 0 (PN 1pin))
-      (place REF**1111611 158750 -94615 front 0 (PN 1pin))
-      (place REF**111165 148590 -114615 front 0 (PN 1pin))
-      (place REF**111155 130810 -114615 front 0 (PN 1pin))
-      (place REF**111145 113030 -114615 front 0 (PN 1pin))
-      (place REF**111135 95250 -114615 front 0 (PN 1pin))
-      (place REF**111125 77470 -114615 front 0 (PN 1pin))
-      (place REF**111115 59690 -114615 front 0 (PN 1pin))
-      (place REF**111164 148590 -109615 front 0 (PN 1pin))
-      (place REF**111154 130810 -109615 front 0 (PN 1pin))
-      (place REF**111144 113030 -109615 front 0 (PN 1pin))
-      (place REF**111134 95250 -109615 front 0 (PN 1pin))
-      (place REF**111124 77470 -109615 front 0 (PN 1pin))
-      (place REF**111114 59690 -109615 front 0 (PN 1pin))
-      (place REF**111163 148590 -104615 front 0 (PN 1pin))
       (place REF**111153 130810 -104615 front 0 (PN 1pin))
       (place REF**111143 113030 -104615 front 0 (PN 1pin))
       (place REF**111133 95250 -104615 front 0 (PN 1pin))
       (place REF**111123 77470 -104615 front 0 (PN 1pin))
       (place REF**111113 59690 -104615 front 0 (PN 1pin))
-      (place REF**111162 148590 -99615 front 0 (PN 1pin))
+      (place REF**1113 49530 -104615 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::3
+      (place REF**11112 44450 -99615 front 0 (PN 1pin))
+      (place REF**11116112 163830 -99615 front 0 (PN 1pin))
       (place REF**111152 130810 -99615 front 0 (PN 1pin))
       (place REF**111142 113030 -99615 front 0 (PN 1pin))
       (place REF**111132 95250 -99615 front 0 (PN 1pin))
-      (place REF**111122 77470 -99615 front 0 (PN 1pin))
       (place REF**111112 59690 -99615 front 0 (PN 1pin))
-      (place REF**111161 148590 -94615 front 0 (PN 1pin))
+      (place REF**1112 49530 -99615 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::4
+      (place REF**11111 44450 -94615 front 0 (PN 1pin))
+      (place REF**11116111 163830 -94615 front 0 (PN 1pin))
       (place REF**111151 130810 -94615 front 0 (PN 1pin))
       (place REF**111141 113030 -94615 front 0 (PN 1pin))
       (place REF**111131 95250 -94615 front 0 (PN 1pin))
       (place REF**111121 77470 -94615 front 0 (PN 1pin))
       (place REF**111111 59690 -94615 front 0 (PN 1pin))
-      (place REF**1115 49530 -114615 front 0 (PN 1pin))
-      (place REF**1114 49530 -109615 front 0 (PN 1pin))
-      (place REF**1113 49530 -104615 front 0 (PN 1pin))
-      (place REF**1112 49530 -99615 front 0 (PN 1pin))
       (place REF**1111 49530 -94615 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::5
+      (place REF**11116114 163830 -108712 front 0 (PN 1pin))
+      (place REF**1111614 158750 -108712 front 0 (PN 1pin))
+      (place REF**111154 130810 -108712 front 0 (PN 1pin))
+    )
+    (component i2c_hub:1pin::6
+      (place REF**111165 148590 -112268 front 0 (PN 1pin))
+      (place REF**111155 130810 -112268 front 0 (PN 1pin))
+      (place REF**111145 113030 -112268 front 0 (PN 1pin))
+      (place REF**111135 95250 -112268 front 0 (PN 1pin))
     )
     (component Connect:RJ45_8
       (place J2 86360 -104775 back 0 (PN RJ45))
@@ -105,14 +116,14 @@
       (place P13 166370 -107315 front 0 (PN 3V3))
       (place P15 97790 -101600 front 0 (PN 5V))
       (place P16 166370 -109220 front 0 (PN SEL))
-      (place P17 171450 -107315 front 0 (PN 3V3))
+      (place P17 172974 -107315 front 0 (PN 3V3))
       (place P19 80010 -101600 front 0 (PN 5V))
-      (place P20 171450 -109220 front 0 (PN SEL))
+      (place P20 172974 -109220 front 0 (PN SEL))
       (place P21 52070 -107315 front 0 (PN 3V3))
       (place P24 62230 -101600 front 0 (PN 5V))
       (place P25 64135 -101600 front 0 (PN SEL))
       (place P27 137160 -101600 front 0 (PN 3V3))
-      (place P28 171450 -111125 front 0 (PN 5V))
+      (place P28 172974 -111125 front 0 (PN 5V))
       (place P29 81915 -101600 front 0 (PN SEL))
       (place P30 119380 -101600 front 0 (PN 3V3))
       (place P31 166370 -111125 front 0 (PN 5V))
@@ -136,9 +147,9 @@
       (place P55 46990 -111125 front 0 (PN 5V))
       (place P56 41910 -109220 front 0 (PN SEL))
       (place P57 41910 -107315 front 0 (PN 3V3))
-      (place P60 36830 -111125 front 0 (PN 5V))
-      (place P61 36830 -109220 front 0 (PN SEL))
-      (place P62 36830 -107315 front 0 (PN 3V3))
+      (place P60 34798 -111125 front 0 (PN 5V))
+      (place P61 34798 -109220 front 0 (PN SEL))
+      (place P62 34798 -107315 front 0 (PN 3V3))
     )
     (component w_smd_cap:c_1206
       (place C1 74930 -110490 front 90 (PN 10uF))
@@ -151,12 +162,12 @@
       (place P10 156210 -100330 back 270 (PN CONN_01X04))
       (place P14 161290 -100330 back 270 (PN CONN_01X04))
       (place P18 166370 -100330 back 270 (PN CONN_01X04))
-      (place P23 171450 -100330 back 270 (PN CONN_01X04))
+      (place P23 172974 -100330 back 270 (PN CONN_01X04))
       (place P45 57150 -100330 back 270 (PN CONN_01X04))
       (place P49 52070 -100330 back 270 (PN CONN_01X04))
       (place P53 46990 -100330 back 270 (PN CONN_01X04))
       (place P59 41910 -100330 back 270 (PN CONN_01X04))
-      (place P63 36830 -100330 back 270 (PN CONN_01X04))
+      (place P63 34798 -100330 back 270 (PN CONN_01X04))
     )
     (component w_smd_trans:sot223
       (place U1 139700 -107950 front 0 (PN LM317_SOT223))
@@ -165,16 +176,31 @@
     (component "w_smd_trans:sot23-6"
       (place U3 86360 -106045 front 0 (PN "ESDA6V1-5SC6"))
       (place U4 121920 -106045 front 0 (PN "ESDA6V1-5SC6"))
-      (place U5 39370 -113665 front 90 (PN "ESDA6V1-5SC6"))
-      (place U6 168910 -113665 front 270 (PN "ESDA6V1-5SC6"))
-    )
-    (component Connect:1pin
-      (place REF** 54610 -87630 front 0 (PN 1pin))
+      (place U5 38354 -100584 front 0 (PN "ESDA6V1-5SC6"))
+      (place U6 169672 -100584 front 0 (PN "ESDA6V1-5SC6"))
     )
   )
   (library
     (image i2c_hub:1pin
       (pin Round[A]Pad_1400_um 1 0 0)
+    )
+    (image i2c_hub:1pin::1
+      (pin Round[A]Pad_1400_um 1 0 1016)
+    )
+    (image i2c_hub:1pin::2
+      (pin Round[A]Pad_1400_um 1 0 1745)
+    )
+    (image i2c_hub:1pin::3
+      (pin Round[A]Pad_1400_um 1 0 1571)
+    )
+    (image i2c_hub:1pin::4
+      (pin Round[A]Pad_1400_um 1 0 381)
+    )
+    (image i2c_hub:1pin::5
+      (pin Round[A]Pad_1400_um 1 0 1270)
+    )
+    (image i2c_hub:1pin::6
+      (pin Round[A]Pad_1400_um 1 0 -254)
     )
     (image Connect:RJ45_8
       (outline (path signal 150  -7620 -7874  7620 -7874))
@@ -258,14 +284,6 @@
       (pin Rect[T]Pad_599.44x1000.76_um 6 -952.5 1056.64)
       (pin Rect[T]Pad_599.44x1000.76_um 5 0 1056.64)
     )
-    (image Connect:1pin
-      (outline (path signal 150  2286 0  2174.11 -706.413  1849.41 -1343.68  1343.68 -1849.41
-            706.413 -2174.11  0 -2286  -706.413 -2174.11  -1343.68 -1849.41
-            -1849.41 -1343.68  -2174.11 -706.413  -2286 0  -2174.11 706.413
-            -1849.41 1343.68  -1343.68 1849.41  -706.413 2174.11  0 2286
-            706.413 2174.11  1343.68 1849.41  1849.41 1343.68  2174.11 706.413))
-      (pin Round[A]Pad_4064_um 1 0 0)
-    )
     (padstack Round[A]Pad_1400_um
       (shape (circle F.Cu 1400))
       (shape (circle B.Cu 1400))
@@ -283,11 +301,6 @@
     (padstack Round[A]Pad_3649.98_um
       (shape (circle F.Cu 3649.98))
       (shape (circle B.Cu 3649.98))
-      (attach off)
-    )
-    (padstack Round[A]Pad_4064_um
-      (shape (circle F.Cu 4064))
-      (shape (circle B.Cu 4064))
       (attach off)
     )
     (padstack Oval[A]Pad_1524x2199.64_um
@@ -367,11 +380,11 @@
     )
     (net /+5V
       (pins P1-1 P6-1 P11-1 P15-1 P19-1 P24-1 P28-1 P31-1 P34-1 P37-1 P42-1 P46-1
-        P50-1 P55-1 P60-1 C1-1 C3-1 U1-3 U2-3)
+        P50-1 P55-1 P60-1 C1-1 C3-1 U1-3 U2-3 U3-6 U4-1 U4-6 U5-6 U6-6)
     )
     (net /+3.3V
       (pins P3-1 P8-1 P13-1 P17-1 P21-1 P27-1 P30-1 P33-1 P36-1 P39-1 P44-1 P48-1
-        P52-1 P57-1 P62-1 C2-1 C4-1 U1-2 U2-2)
+        P52-1 P57-1 P62-1 C2-1 C4-1 U1-2 U2-2 U3-1 U5-1 U6-1)
     )
     (net /SCL
       (pins J2-6 P4-2 P10-2 P14-2 P18-2 P23-2 P45-2 P49-2 P53-2 P59-2 P63-2 U3-5 U4-5
@@ -393,6 +406,78 @@
     (net "Net-(J4-Pad5)"
       (pins P35-1 J4-5)
     )
+    (net "Net-(J1-Pad1)"
+      (pins J1-1)
+    )
+    (net "Net-(J1-Pad2)"
+      (pins J1-2)
+    )
+    (net "Net-(J1-Pad7)"
+      (pins J1-7)
+    )
+    (net "Net-(J1-Pad8)"
+      (pins J1-8)
+    )
+    (net "Net-(J2-Pad1)"
+      (pins J2-1)
+    )
+    (net "Net-(J2-Pad2)"
+      (pins J2-2)
+    )
+    (net "Net-(J2-Pad7)"
+      (pins J2-7)
+    )
+    (net "Net-(J2-Pad8)"
+      (pins J2-8)
+    )
+    (net "Net-(J3-Pad1)"
+      (pins J3-1)
+    )
+    (net "Net-(J3-Pad2)"
+      (pins J3-2)
+    )
+    (net "Net-(J3-Pad7)"
+      (pins J3-7)
+    )
+    (net "Net-(J3-Pad8)"
+      (pins J3-8)
+    )
+    (net "Net-(J4-Pad1)"
+      (pins J4-1)
+    )
+    (net "Net-(J4-Pad2)"
+      (pins J4-2)
+    )
+    (net "Net-(J4-Pad7)"
+      (pins J4-7)
+    )
+    (net "Net-(J4-Pad8)"
+      (pins J4-8)
+    )
+    (net "Net-(J5-Pad1)"
+      (pins J5-1)
+    )
+    (net "Net-(J5-Pad2)"
+      (pins J5-2)
+    )
+    (net "Net-(J5-Pad7)"
+      (pins J5-7)
+    )
+    (net "Net-(J5-Pad8)"
+      (pins J5-8)
+    )
+    (net "Net-(U3-Pad3)"
+      (pins U3-3)
+    )
+    (net "Net-(U4-Pad3)"
+      (pins U4-3)
+    )
+    (net "Net-(U5-Pad3)"
+      (pins U5-3)
+    )
+    (net "Net-(U6-Pad3)"
+      (pins U6-3)
+    )
     (class kicad_default "" /+3.3V /+5V /SCL /SDA GND "Net-(J1-Pad1)" "Net-(J1-Pad2)"
       "Net-(J1-Pad5)" "Net-(J1-Pad7)" "Net-(J1-Pad8)" "Net-(J2-Pad1)" "Net-(J2-Pad2)"
       "Net-(J2-Pad5)" "Net-(J2-Pad7)" "Net-(J2-Pad8)" "Net-(J3-Pad1)" "Net-(J3-Pad2)"
@@ -400,9 +485,8 @@
       "Net-(J4-Pad5)" "Net-(J4-Pad7)" "Net-(J4-Pad8)" "Net-(J5-Pad1)" "Net-(J5-Pad2)"
       "Net-(J5-Pad5)" "Net-(J5-Pad7)" "Net-(J5-Pad8)" "Net-(P10-Pad1)" "Net-(P12-Pad1)"
       "Net-(P16-Pad1)" "Net-(P2-Pad1)" "Net-(P20-Pad1)" "Net-(P43-Pad1)" "Net-(P47-Pad1)"
-      "Net-(P51-Pad1)" "Net-(P56-Pad1)" "Net-(P61-Pad1)" "Net-(U3-Pad1)" "Net-(U3-Pad3)"
-      "Net-(U3-Pad6)" "Net-(U4-Pad1)" "Net-(U4-Pad3)" "Net-(U4-Pad6)" "Net-(U5-Pad1)"
-      "Net-(U5-Pad3)" "Net-(U5-Pad6)" "Net-(U6-Pad1)" "Net-(U6-Pad3)" "Net-(U6-Pad6)"
+      "Net-(P51-Pad1)" "Net-(P56-Pad1)" "Net-(P61-Pad1)" "Net-(U3-Pad3)" "Net-(U4-Pad3)"
+      "Net-(U5-Pad3)" "Net-(U6-Pad3)"
       (circuit
         (use_via Via[0-1]_1035:635_um)
       )
