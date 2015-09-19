@@ -2,7 +2,7 @@ Item,Reference(s),Value,Quantity,Package,Esempio
 1,C1,1uF,1,1206 smd,http://it.farnell.com/multicomp/mc1206f105z500ct/condensatore-mlcc-y5v-1uf-50v/dp/1759455
 2,C2,0.01uF,1,1206 smd,http://it.farnell.com/panasonic-electronic-components/echu1h103jx5/condensatore-film-pps-10nf-50v/dp/9695389
 3,C3,2.2uF,1,1206 smd,http://it.farnell.com/vishay-sprague/tr3a225k016c4000/condensatore-tant-2-2uf-16v-case/dp/1754082
-4,D1,LED_SMD,1,http://it.farnell.com/multicomp/ovs-0806/led-0805-super-brt-yellow/dp/1716767
+4,D1,LED_SMD,1,,http://it.farnell.com/multicomp/ovs-0806/led-0805-super-brt-yellow/dp/1716767
 5,CON1,USB-MICRO-B,1,,http://it.farnell.com/global-connector-technology/usb3100-30-a/micro-usb-2-0-tipo-b-presa-smt/dp/2443125
 6,P1,CONN_01X02,1, connettore strip maschio 2 contatti , http://it.farnell.com/harwin/m20-9990246/header-diritta-2-54mm-1row-bifase/dp/1022247
 7,P2,CONN_RELE_BOARD,1, connettore strip maschio 6 contatti, http://it.farnell.com/harwin/m20-9990646/connettore-header-tht-2-54mm-6/dp/1022255
