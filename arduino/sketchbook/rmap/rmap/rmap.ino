@@ -43,22 +43,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <AESLib.h>
 
 #ifdef ETHERNETON
-#ifdef ENC28J60
-#include <UIPEthernet.h>
-#include <UIPUdp.h>
-#ifdef TCPSERVER
-#include <UIPServer.h>
-#endif
-#else
-// comment/uncomment according to ENC28J60 definition
-//#include <SPI.h>         
-//#include <Ethernet.h>
-//#include <EthernetUdp.h>
-#ifdef TCPSERVER
-// comment/uncomment according to ENC28J60 definition
-//#include <EthernetServer.h>
-#endif
-#endif
+  #include <SPI.h>
+  #ifdef ENC28J60
+    #include <UIPEthernet.h>
+    #include <UIPUdp.h>
+    #ifdef TCPSERVER
+      #include <UIPServer.h>
+    #endif
+  #else
+    // comment/uncomment according to ENC28J60 definition
+    //#include <SPI.h>         
+    //#include <Ethernet.h>
+    //#include <EthernetUdp.h>
+    #ifdef TCPSERVER
+      // comment/uncomment according to ENC28J60 definition
+      //#include <EthernetServer.h>
+    #endif
+  #endif
 #endif
 /////////////////////////////////////////////////////////////////////////
 // END Tricky solution for arduino ide 1.6
@@ -360,7 +361,7 @@ byte mac[]={0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 #if defined(ETHERNETON) || defined(GSMGPRSMQTT)
 //declare functions used below
 void mqttcallback(char* topic, byte* payload, unsigned int length);
-char mqttid[18];
+char mqttid[SERVER_LEN+13];
 #endif
 
 #if defined(GSMGPRSMQTT)
@@ -376,6 +377,7 @@ PubSubClient mqttclient(configuration.mqttserver, 1883, mqttcallback, ethclient)
 
 bool rmapconnect()
 {
+  IF_SDEBUG(DBGSERIAL.print(F("#mqttid: ")); DBGSERIAL.println(mqttid));
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
   if (mqttclient.connect(mqttid,configuration.mqttuser,configuration.mqttpassword,mainbuf,1,1,"{\"v\":\"error01\"}")){
@@ -1251,48 +1253,50 @@ int freeRam ()
 struct __freelist {
   size_t sz;
   struct __freelist *nx;
-}
+};
 
 extern char * const __brkval;
 extern struct __freelist *__flp;
 
 uint16_t freeMem(uint16_t *biggest)
 {
-   char *brkval;
-   char *cp;
-   unsigned freeSpace;
-   struct __freelist *fp1, *fp2;
+  char *brkval;
+  char *cp;
+  unsigned freeSpace;
+  struct __freelist *fp1, *fp2;
+  
+  brkval = __brkval;
+  if (brkval == 0) {
+    brkval = __malloc_heap_start;
+  }
+  cp = __malloc_heap_end;
+  if (cp == 0) {
+    cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
+  }
+  if (cp <= brkval) return 0;
+   
+  freeSpace = cp - brkval;
+  
+  for (*biggest = 0, fp1 = __flp, fp2 = 0;
+       fp1;
+       fp2 = fp1, fp1 = fp1->nx) {
+    if (fp1->sz > *biggest) *biggest = fp1->sz;
+    freeSpace += fp1->sz;
+  }
+   
+  return freeSpace;
+}
 
-   brkval = __brkval;
-   if (brkval == 0) {
-     brkval = __malloc_heap_start;
-   }
-   cp = __malloc_heap_end;
-   if (cp == 0) {
-     cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
-   }
-   if (cp <= brkval) return 0;
-   
-   freeSpace = cp - brkval;
-   
-   for (*biggest = 0, fp1 = __flp, fp2 = 0;
-	fp1;
-	fp2 = fp1, fp1 = fp1->nx) {
-     if (fp1->sz > *biggest) *biggest = fp1->sz;
-     freeSpace += fp1->sz;
-   }
-   
-   return freeSpace;
- }
-     
- uint16_t biggest;
-    
- void freeMem(char* message) {
-   IF_SDEBUG(DBGSERIAL.print(message));
-   IF_SDEBUG(DBGSERIAL.print(":\t"));
-   IF_SDEBUG(DBGSERIAL.println(freeMem(&biggest)));
- }
- 
+
+void freeMem(char* message) {
+
+  uint16_t biggest;
+
+  Serial.print(message);
+  IF_SDEBUG(DBGSERIAL.print(":\t"));
+  IF_SDEBUG(DBGSERIAL.println(freeMem(&biggest)));
+}
+
 #endif
 
 
@@ -1614,7 +1618,7 @@ void Repeats() {
       strcat (mainbuf,configuration.sensors[i].mqttpath);
       strcat (mainbuf,valueobj->name);
 
-      IF_SDEBUG(DBGSERIAL.print(F("#mqttrootpath:")));
+      IF_SDEBUG(DBGSERIAL.print(F("#topic:")));
       IF_SDEBUG(DBGSERIAL.println(mainbuf));
       IF_SDEBUG(DBGSERIAL.print(F("#payload:")));
       IF_SDEBUG(DBGSERIAL.println(payload));
@@ -2269,6 +2273,8 @@ void setup()
     DBGSERIAL.println(configuration.ntpserver);
     DBGSERIAL.print(F("#thisnode: "));
     DBGSERIAL.println(configuration.thisnode);
+    DBGSERIAL.print(F("#channel: "));
+    DBGSERIAL.println(configuration.channel);
 
 #endif
 
@@ -2540,9 +2546,20 @@ void setup()
   wdt_reset();
 
 #ifdef ETHERNETON
-  // set mqttid to mac address
-  // TODO: have to be fixed in a better unique id
-  sprintf(mqttid, "%02x:%02x:%02x:%02x:%02x:%02x", configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+  // set mqttid to username+mac address
+  /*
+    The client identifier (short ClientId) is an identifier of each MQTT client 
+    connecting to a MQTT broker. As the word identifier already suggests, 
+    it should be unique per broker. The broker uses it for identifying the 
+    client and the current state of the client. If you don’t need a state to be 
+    hold by the broker, in MQTT 3.1.1 (current standard) it is also possible 
+    to send an empty ClientId, which results in a connection without any state. 
+    A condition is that clean session is true, otherwise the connection will be 
+    rejected.
+  */
+  // TODO: try to use  empty ClientId
+
+  sprintf(mqttid, "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 
 #endif //ETHERNETON
 
@@ -2552,32 +2569,10 @@ void setup()
 #endif
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-  
-  IF_SDEBUG(DBGSERIAL.print(F("#mqttid: ")); DBGSERIAL.println(mqttid));
-  // connect to mqtt server
+ 
+ // connect to mqtt server
+  if (rmapconnect()) IF_SDEBUG(DBGSERIAL.println(F("#mqtt reconnected")));
 
-  strcpy (mainbuf,configuration.mqttrootpath);
-  strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
-  if (!mqttclient.connect(mqttid,configuration.mqttuser,configuration.mqttpassword,mainbuf,1,1,"{\"v\":\"error01\"}"))
-    {
-	IF_SDEBUG(DBGSERIAL.println(F("#error on mqtt connect")));
-	IF_LCD(lcd.setCursor(0,3)); 
-	IF_LCD(lcd.print(F("MQTT: error    ")));
-      }  else 
-    {
-	IF_SDEBUG(DBGSERIAL.println(F("#mqtt connected")));
-	IF_LCD(lcd.setCursor(0,3)); 
-	IF_LCD(lcd.print(F("MQTT: connected")));
-
-	// subcribe to incoming topic
-	mqttclient.subscribe(MQTTSUBPATH);
-	IF_SDEBUG(DBGSERIAL.print(F("#mqtt subcribed to: ")));
-	IF_SDEBUG(DBGSERIAL.println(MQTTSUBPATH));
-
-	if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 13,1)){
-	  IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
-	}
-      }
 
 #endif
 
