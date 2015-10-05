@@ -2,7 +2,7 @@
 compiler.c.extra_flags=
 compiler.c.elf.extra_flags=
 compiler.S.extra_flags=
-compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=200 -DSERIAL_RX_BUFFER_SIZE=200
+compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=200 -DSERIAL_RX_BUFFER_SIZE=200 -fno-strict-aliasing
 compiler.ar.extra_flags=
 compiler.objcopy.eep.extra_flags=
 compiler.elf2hex.extra_flags=
