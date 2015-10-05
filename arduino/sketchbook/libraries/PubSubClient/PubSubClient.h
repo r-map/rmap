@@ -1,6 +1,6 @@
 /*
  PubSubClient.h - A simple client for MQTT.
-  Nicholas O'Leary
+  Nick O'Leary
   http://knolleary.net
 */
 
@@ -18,13 +18,39 @@
 #include "Stream.h"
 #define TCPCLIENT Client
 
+
+#include "IPAddress.h"
+
+#define MQTT_VERSION_3_1      3
+#define MQTT_VERSION_3_1_1    4
+
+// MQTT_VERSION : Pick the version
+//#define MQTT_VERSION MQTT_VERSION_3_1
+#define MQTT_VERSION MQTT_VERSION_3_1_1
+
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
 #define MQTT_MAX_PACKET_SIZE 128
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #define MQTT_KEEPALIVE 15
 
-#define MQTTPROTOCOLVERSION 3
+// MQTT_MAX_TRANSFER_SIZE : limit how much data is passed to the network client
+//  in each write call. Needed for the Arduino Wifi Shield. Leave undefined to
+//  pass the entire MQTT packet in each write call.
+//#define MQTT_MAX_TRANSFER_SIZE 80
+
+// Possible values for client.state()
+#define MQTT_CONNECTION_TIMEOUT     -4
+#define MQTT_CONNECTION_LOST        -3
+#define MQTT_CONNECT_FAILED         -2
+#define MQTT_DISCONNECTED           -1
+#define MQTT_CONNECTED               0
+#define MQTT_CONNECT_BAD_PROTOCOL    1
+#define MQTT_CONNECT_BAD_CLIENT_ID   2
+#define MQTT_CONNECT_UNAVAILABLE     3
+#define MQTT_CONNECT_BAD_CREDENTIALS 4
+#define MQTT_CONNECT_UNAUTHORIZED    5
+
 #define MQTTCONNECT     1 << 4  // Client request to connect to Server
 #define MQTTCONNACK     2 << 4  // Connect Acknowledgment
 #define MQTTPUBLISH     3 << 4  // Publish message
@@ -45,6 +71,8 @@
 #define MQTTQOS1        (1 << 1)
 #define MQTTQOS2        (2 << 1)
 
+#define MQTT_CALLBACK_SIGNATURE void (*callback)(char*,uint8_t*,unsigned int)
+
 class PubSubClient {
 private:
    TCPCLIENT* _client;
@@ -53,35 +81,55 @@ private:
    unsigned long lastOutActivity;
    unsigned long lastInActivity;
    bool pingOutstanding;
-   void (*callback)(char*,uint8_t*,unsigned int);
+   MQTT_CALLBACK_SIGNATURE;
    uint16_t readPacket(uint8_t*);
    uint8_t readByte();
    boolean write(uint8_t header, uint8_t* buf, uint16_t length);
-   uint16_t writeString(char* string, uint8_t* buf, uint16_t pos);
-   uint8_t *ip;
-   char* domain;
+   uint16_t writeString(const char* string, uint8_t* buf, uint16_t pos);
+   IPAddress ip;
+   const char* domain;
    uint16_t port;
    Stream* stream;
+   int _state;
 public:
    PubSubClient();
-   PubSubClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),TCPCLIENT& client);
-   PubSubClient(uint8_t *, uint16_t, void(*)(char*,uint8_t*,unsigned int),TCPCLIENT& client, Stream&);
-   PubSubClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),TCPCLIENT& client);
-   PubSubClient(char*, uint16_t, void(*)(char*,uint8_t*,unsigned int),TCPCLIENT& client, Stream&);
-   boolean connect(char *);
-   boolean connect(char *, char *, char *);
-   boolean connect(char *, char *, uint8_t, uint8_t, char *);
-   boolean connect(char *, char *, char *, char *, uint8_t, uint8_t, char*);
+   PubSubClient(TCPCLIENT& client);
+   PubSubClient(IPAddress, uint16_t, TCPCLIENT& client);
+   PubSubClient(IPAddress, uint16_t, TCPCLIENT& client, Stream&);
+   PubSubClient(IPAddress, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client);
+   PubSubClient(IPAddress, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client, Stream&);
+   PubSubClient(uint8_t *, uint16_t, TCPCLIENT& client);
+   PubSubClient(uint8_t *, uint16_t, TCPCLIENT& client, Stream&);
+   PubSubClient(uint8_t *, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client);
+   PubSubClient(uint8_t *, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client, Stream&);
+   PubSubClient(const char*, uint16_t, TCPCLIENT& client);
+   PubSubClient(const char*, uint16_t, TCPCLIENT& client, Stream&);
+   PubSubClient(const char*, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client);
+   PubSubClient(const char*, uint16_t, MQTT_CALLBACK_SIGNATURE,TCPCLIENT& client, Stream&);
+
+   PubSubClient& setServer(IPAddress ip, uint16_t port);
+   PubSubClient& setServer(uint8_t * ip, uint16_t port);
+   PubSubClient& setServer(const char * domain, uint16_t port);
+   PubSubClient& setCallback(MQTT_CALLBACK_SIGNATURE);
+   PubSubClient& setClient(TCPCLIENT& client);
+   PubSubClient& setStream(Stream& stream);
+
+   boolean connect(const char* id);
+   boolean connect(const char* id, const char* user, const char* pass);
+   boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
+   boolean connect(const char* id, const char* user, const char* pass, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
    void disconnect();
-   boolean publish(char *, char *);
-   boolean publish(char *, uint8_t *, unsigned int);
-   boolean publish(char *, uint8_t *, unsigned int, boolean);
-   boolean publish_P(char *, uint8_t PROGMEM *, unsigned int, boolean);
-   boolean subscribe(char *);
-   boolean subscribe(char *, uint8_t qos);
-   boolean unsubscribe(char *);
+   boolean publish(const char* topic, const char* payload);
+   boolean publish(const char* topic, const char* payload, boolean retained);
+   boolean publish(const char* topic, const uint8_t * payload, unsigned int plength);
+   boolean publish(const char* topic, const uint8_t * payload, unsigned int plength, boolean retained);
+   boolean publish_P(const char* topic, const uint8_t * payload, unsigned int plength, boolean retained);
+   boolean subscribe(const char* topic);
+   boolean subscribe(const char* topic, uint8_t qos);
+   boolean unsubscribe(const char* topic);
    boolean loop();
    boolean connected();
+   int state();
 };
 
 
