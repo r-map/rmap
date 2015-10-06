@@ -377,12 +377,12 @@ PubSubClient mqttclient(configuration.mqttserver, 1883, mqttcallback, ethclient)
 
 bool rmapconnect()
 {
-  IF_SDEBUG(DBGSERIAL.print(F("#mqttid: ")); DBGSERIAL.println(mqttid));
+  IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
   if (mqttclient.connect(mqttid,configuration.mqttuser,configuration.mqttpassword,mainbuf,1,1,"{\"v\":\"error01\"}")){
     wdt_reset();
-    IF_SDEBUG(DBGSERIAL.println(F("#mqtt reconnected")));
+    IF_SDEBUG(DBGSERIAL.println(F("#mqtt connected")));
     IF_LCD(lcd.setCursor(0,3)); 
     IF_LCD(lcd.print(F("MQTT: connected")));
     
@@ -1891,12 +1891,6 @@ void mgrjsonrpc(aJsonObject *msg)
     aJson.addStringToObject(response, "jsonrpc",jsonrpc->valuestring);
     aJson.addItemToObject(response, "result", result );
     //aJson.addNumberToObject(response, "result", 1);
-
-#ifdef FREERAM
-    IF_SDEBUG(DBGSERIAL.print(F("#free ram on ID: ")));
-    IF_SDEBUG(DBGSERIAL.println(freeRam()));
-#endif
-
     aJson.addNumberToObject(response, "id", rpcid->valueint);
     //sprintf(c, "{\"jsonrpc\": \"2.0\",\"result\":%i, \"id\": 0}", requestedStatus);   
   }
@@ -2063,7 +2057,7 @@ void mgrmqtt()
 #endif
     */
 
-    if (rmapconnect()) IF_SDEBUG(DBGSERIAL.println(F("#mqtt reconnected")));
+    rmapconnect();
 
   }
 }
@@ -2240,6 +2234,11 @@ void setup()
 
                                                   // load configuration aand create drivers
   if (configuration.load()){
+
+#ifdef FREERAM
+    IF_SDEBUG(DBGSERIAL.print(F("#free ram on configuration load: ")));
+    IF_SDEBUG(DBGSERIAL.println(freeRam()));
+#endif
 
 #if defined(DEBUGONSERIAL)     
     DBGSERIAL.println(F("#Configuration loaded"));
@@ -2571,7 +2570,7 @@ void setup()
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
  
  // connect to mqtt server
-  if (rmapconnect()) IF_SDEBUG(DBGSERIAL.println(F("#mqtt reconnected")));
+  rmapconnect();
 
 
 #endif
