@@ -103,7 +103,7 @@
         "model": "stations.transportserial",
         "fields": {
             "active": false,
-            "device": "/dev/ttyACM0",
+            "device": "/dev/ttyUSB0",
             "baudrate": 9600,
             "board": [
                 "BT_fixed",

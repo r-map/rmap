@@ -127,11 +127,11 @@ class TransportRF24Network(models.Model):
 
     RF24_NODE_CHOICES = (
         (0,  'RF24 Network node 0'),
-        (1,  'RF24 Network node node 1'),
-        (2,  'RF24 Network node node 2'),
-        (3,  'RF24 Network node node 3'),
-        (4,  'RF24 Network node node 4'),
-        (5,  'RF24 Network node node 5'),
+        (1,  'RF24 Network node 01'),
+        (2,  'RF24 Network node 02'),
+        (3,  'RF24 Network node 03'),
+        (4,  'RF24 Network node 04'),
+        (5,  'RF24 Network node 05'),
     )
 
     RF24_CHANNEL_CHOICES = (
@@ -282,20 +282,6 @@ class TransportSerial(models.Model):
     )
 
     SERIAL_DEVICE_CHOICES = (
-        ('/dev/ttyACM0', 'ttyACM0'),
-        ('/dev/ttyUSB0', 'ttyUSB0'),
-        ('/dev/ttyACM1', 'ttyACM1'),
-        ('/dev/ttyUSB1', 'ttyUSB1'),
-        ('/dev/ttyACM2', 'ttyACM2'),
-        ('/dev/ttyUSB2', 'ttyUSB2'),
-        ('/dev/ttyACM3', 'ttyACM3'),
-        ('/dev/ttyUSB3', 'ttyUSB3'),
-        ('/dev/ttyACM4', 'ttyACM4'),
-        ('/dev/ttyUSB4', 'ttyUSB4'),
-        ('/dev/ttyACM5', 'ttyACM5'),
-        ('/dev/rfcomm0', 'rfcomm0'),
-        ('/dev/rfcomm1', 'rfcomm1'),
-        ('/dev/rfcomm2', 'rfcomm2'),
         ('COM1', 'windows COM1'),
         ('COM2', 'windows COM2'),
         ('COM3', 'windows COM3'),
@@ -315,11 +301,25 @@ class TransportSerial(models.Model):
         ('COM17', 'windows COM17'),
         ('COM18', 'windows COM18'),
         ('COM19', 'windows COM19'),
+        ('/dev/ttyUSB0', 'Linux ttyUSB0'),
+        ('/dev/ttyUSB1', 'Linux ttyUSB1'),
+        ('/dev/ttyUSB2', 'Linux ttyUSB2'),
+        ('/dev/ttyUSB3', 'Linux ttyUSB3'),
+        ('/dev/ttyUSB4', 'Linux ttyUSB4'),
+        ('/dev/ttyACM0', 'Linux ttyACM0'),
+        ('/dev/ttyACM1', 'Linux ttyACM1'),
+        ('/dev/ttyACM2', 'Linux ttyACM2'),
+        ('/dev/ttyACM3', 'Linux ttyACM3'),
+        ('/dev/ttyACM4', 'Linux ttyACM4'),
+        ('/dev/rfcomm0', 'Linux rfcomm0'),
+        ('/dev/rfcomm1', 'Linux rfcomm1'),
+        ('/dev/rfcomm2', 'Linux rfcomm2'),
+        ('/dev/tty.HC-05-DevB', 'OSX tty.HC-05-DevB'),
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
     baudrate = models.PositiveIntegerField(default=9600,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=ugettext_lazy("Baud rate"))
-    device = models.CharField(max_length=13,unique=True,default="/dev/ttyACM0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=ugettext_lazy("Serial device"))
+    device = models.CharField(max_length=13,unique=False,default="/dev/ttyUSB0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=ugettext_lazy("Serial device"))
 
     board = models.OneToOneField("Board")
 
@@ -331,9 +331,9 @@ class TransportSerial(models.Model):
     natural_key.dependencies = ['stations.board']
 
     class Meta:
-        ordering = ['device']
+        ordering = ['board']
         verbose_name = 'serial transport'
-        verbose_name_plural = 'serial transport'
+        verbose_name_plural = 'serial transports'
 
     def __unicode__(self):
         return u'%s' % (self.device)

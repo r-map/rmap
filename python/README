@@ -1,3 +1,21 @@
+* for OSX
+install gettext from  http://www.ellert.se/twain-sane/
+
+* for windows
+use preconfigured environment with python, kivy, and gettext
+to prepare a dist clean local files:
+cd python27/share/rmap
+remove:
+rmap.sqlite3
+saveddata-service.pickle
+cache
+and config.ini in site-package/rmap
+
+
+Upgrade in all system should be done with:
+
+pip install --upgrade rmap
+
 * to extract messages
 django-admin makemessages --settings=rmap.settings -a
 
