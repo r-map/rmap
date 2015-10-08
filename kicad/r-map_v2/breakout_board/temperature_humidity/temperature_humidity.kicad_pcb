@@ -1,4 +1,4 @@
-(kicad_pcb (version 4) (host pcbnew no-vcs-found-product)
+(kicad_pcb (version 4) (host pcbnew 0.201509251832+6217~30~ubuntu14.04.1-product)
 
   (general
     (links 24)
@@ -36,7 +36,7 @@
     (40 Dwgs.User user)
     (41 Cmts.User user)
     (42 Eco1.User user)
-    (43 Eco2.User user)
+    (43 Eco2.User user hide)
     (44 Edge.Cuts user)
     (45 Margin user hide)
     (46 B.CrtYd user hide)
@@ -94,7 +94,7 @@
       (subtractmaskfromsilk false)
       (outputformat 1)
       (mirror false)
-      (drillshape 1)
+      (drillshape 0)
       (scaleselection 1)
       (outputdirectory ""))
   )

@@ -1,9 +1,8 @@
-Item,Reference(s),Value,Quantity,Riferimento,Valore ,Package,Esempio
-1,D1,LED,1,D,LED,LED in package 0805,
-2,P1 P2 P3 P4 P5 P6,CONN_01X01,6,P,CONN_01X01,"pad da saldare, non componenti",
-3,R1,8K2,1,,8K2,package 0805,
-4,R2,15K,1,,15K,package 0805,
-5,R3,150,1,R,150,package 0805,
-6,R4,10K,1,,10K,package 0805,
-7,U1,Microduino,1,,,connettori strip pin torniti femmina 3 x 9 contatti,
-8,U2,ITEAD_HC-05,1,,,modulo HC-06,http://www.wavesen.com/probig.asp?id=24
+Item,Reference(s),Value,Quantity,Riferimento,Valore 
+1,D1,LED,1,D,LED
+2,P3,CONN_01X01,1,P,CONN_01X01
+3,R1,8K2,1,,
+4,R2,15K,1,,
+5,R3,R,1,R,150
+6,U1,Microduino,1,,
+7,U2,ITEAD_HC-05,1,,

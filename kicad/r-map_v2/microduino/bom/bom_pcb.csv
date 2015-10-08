@@ -8,7 +8,7 @@ Item,Reference(s),Value,Quantity
 7,P3,CONN_01X05,1
 8,P4,CONFIG,1
 9,P5,USB_OTG,1
-10,R1,1K0,1
+10,P6 P7,CONN_01X01,2
 11,R2,150,1
 12,U1,Microduino,1
 13,U2,ESDA6V1-5SC6,1
