@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>/home/raspibo/Documenti/rmap/kicad/r-map_v2/breakout_board/temperature_humidity/temperature_humidity.sch</source>
+    <date>gio 08 ott 2015 23:03:52 CEST</date>
+    <tool>Eeschema 0.201509251832+6217~30~ubuntu14.04.1-product</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title>Stima - Temperature - humdity breakout board</title>
+        <company>http://rmap.cc/</company>
+        <rev/>
+        <date>2015-07-26</date>
+        <source>temperature_humidity.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value="Released under MIT License(MIT)"/>
+        <comment number="3" value="Author: Daniele Castellari dcast78@gmail.com"/>
+        <comment number="4" value="This module is part of rmap project"/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="IC1">
+      <value>ADT7420</value>
+      <footprint>LFCSP_WQ_CP16-17:LFCSP_WQ_CP16-17</footprint>
+      <libsource lib="temp_sensor" part="ADT7420"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559E98C1</tstamp>
+    </comp>
+    <comp ref="U1">
+      <value>HIH6100</value>
+      <footprint>sip4_angled:SIP4_ANGLED</footprint>
+      <libsource lib="temp_sensor" part="HIH6100"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559E995C</tstamp>
+    </comp>
+    <comp ref="U2">
+      <value>HIH6100-SOIC8</value>
+      <footprint>SMD_Packages:SOIC-8-N</footprint>
+      <libsource lib="hih6100-soic8" part="HIH6100-SOIC8"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559E9D81</tstamp>
+    </comp>
+    <comp ref="C2">
+      <value>C</value>
+      <footprint>w_smd_cap:c_0805</footprint>
+      <libsource lib="device" part="C"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EA261</tstamp>
+    </comp>
+    <comp ref="C1">
+      <value>C</value>
+      <footprint>w_smd_cap:c_0805</footprint>
+      <libsource lib="device" part="C"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EA38D</tstamp>
+    </comp>
+    <comp ref="P3">
+      <value>CONN_01X04</value>
+      <footprint>w_pin_strip:pin_strip_4</footprint>
+      <libsource lib="conn" part="CONN_01X04"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EA456</tstamp>
+    </comp>
+    <comp ref="A1">
+      <value>A1</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EB0AC</tstamp>
+    </comp>
+    <comp ref="P4">
+      <value>A0</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EB156</tstamp>
+    </comp>
+    <comp ref="3.3V1">
+      <value>3.3V</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EB186</tstamp>
+    </comp>
+    <comp ref="GND1">
+      <value>GND</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559EB1CB</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>C</value>
+      <footprint>w_smd_cap:c_0805</footprint>
+      <libsource lib="device" part="C"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>559F4863</tstamp>
+    </comp>
+    <comp ref="3.3V2">
+      <value>3.3V</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>55A2743D</tstamp>
+    </comp>
+    <comp ref="GND3">
+      <value>GND</value>
+      <footprint>Measurement_Points:Measurement_Point_Square-SMD-Pad_Small</footprint>
+      <libsource lib="conn" part="CONN_01X01"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>55A27521</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="device" part="C">
+      <description>Unpolarized capacitor</description>
+      <footprints>
+        <fp>C?</fp>
+        <fp>C_????_*</fp>
+        <fp>C_????</fp>
+        <fp>SMD*_c</fp>
+        <fp>Capacitor*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="conn" part="CONN_01X01">
+      <footprints>
+        <fp>Pin_Header_Straight_1X01</fp>
+        <fp>Pin_Header_Angled_1X01</fp>
+        <fp>Socket_Strip_Straight_1X01</fp>
+        <fp>Socket_Strip_Angled_1X01</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">P</field>
+        <field name="Value">CONN_01X01</field>
+      </fields>
+      <pins>
+        <pin num="1" name="P1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="conn" part="CONN_01X04">
+      <footprints>
+        <fp>Pin_Header_Straight_1X04</fp>
+        <fp>Pin_Header_Angled_1X04</fp>
+        <fp>Socket_Strip_Straight_1X04</fp>
+        <fp>Socket_Strip_Angled_1X04</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">P</field>
+        <field name="Value">CONN_01X04</field>
+      </fields>
+      <pins>
+        <pin num="1" name="P1" type="passive"/>
+        <pin num="2" name="P2" type="passive"/>
+        <pin num="3" name="P3" type="passive"/>
+        <pin num="4" name="P4" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="temp_sensor" part="ADT7420">
+      <footprints>
+        <fp>LFCSP</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">IC</field>
+        <field name="Value">ADT7420</field>
+        <field name="Footprint">LFCSP-CP16-17</field>
+      </fields>
+      <pins>
+        <pin num="1" name="SCL" type="input"/>
+        <pin num="2" name="SDA" type="input"/>
+        <pin num="3" name="A0" type="input"/>
+        <pin num="4" name="A1" type="input"/>
+        <pin num="5" name="NC" type="input"/>
+        <pin num="6" name="NC" type="input"/>
+        <pin num="7" name="NC" type="input"/>
+        <pin num="8" name="NC" type="input"/>
+        <pin num="9" name="INT" type="input"/>
+        <pin num="10" name="CT" type="input"/>
+        <pin num="11" name="GND" type="input"/>
+        <pin num="12" name="VCC" type="input"/>
+        <pin num="13" name="NC" type="input"/>
+        <pin num="14" name="NC" type="input"/>
+        <pin num="15" name="NC" type="input"/>
+        <pin num="16" name="NC" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="hih6100-soic8" part="HIH6100-SOIC8">
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">HIH6100-SOIC8</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VCORE" type="power_in"/>
+        <pin num="2" name="GND" type="power_out"/>
+        <pin num="3" name="SCL" type="BiDi"/>
+        <pin num="4" name="SDA" type="BiDi"/>
+        <pin num="5" name="AL_H" type="output"/>
+        <pin num="6" name="AL_L" type="input"/>
+        <pin num="7" name="NCC" type="NotConnected"/>
+        <pin num="8" name="VDD" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="temp_sensor" part="HIH6100">
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">HIH6100</field>
+      </fields>
+      <pins>
+        <pin num="1" name="VCC" type="power_in"/>
+        <pin num="2" name="GND" type="power_out"/>
+        <pin num="3" name="SCL" type="BiDi"/>
+        <pin num="4" name="SDA" type="BiDi"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="device">
+      <uri>/usr/share/kicad/library/device.lib</uri>
+    </library>
+    <library logical="conn">
+      <uri>/usr/share/kicad/library/conn.lib</uri>
+    </library>
+    <library logical="temp_sensor">
+      <uri>/home/raspibo/Documenti/rmap/kicad/r-map_v2/breakout_board/temperature_humidity/temp_sensor.lib</uri>
+    </library>
+    <library logical="hih6100-soic8">
+      <uri>/home/raspibo/Documenti/rmap/kicad/r-map_v2/breakout_board/temperature_humidity/hih6100-soic8.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="Net-(C2-Pad1)">
+      <node ref="U2" pin="1"/>
+      <node ref="C2" pin="1"/>
+    </net>
+    <net code="2" name="+3.3V">
+      <node ref="3.3V2" pin="1"/>
+      <node ref="U2" pin="8"/>
+      <node ref="IC1" pin="12"/>
+      <node ref="U1" pin="1"/>
+      <node ref="C1" pin="1"/>
+      <node ref="P3" pin="4"/>
+      <node ref="3.3V1" pin="1"/>
+      <node ref="C3" pin="1"/>
+    </net>
+    <net code="3" name="Net-(IC1-Pad10)">
+      <node ref="IC1" pin="10"/>
+    </net>
+    <net code="4" name="Net-(IC1-Pad9)">
+      <node ref="IC1" pin="9"/>
+    </net>
+    <net code="5" name="SDA">
+      <node ref="P3" pin="2"/>
+      <node ref="U1" pin="4"/>
+      <node ref="U2" pin="4"/>
+      <node ref="IC1" pin="2"/>
+    </net>
+    <net code="6" name="/A0">
+      <node ref="P4" pin="1"/>
+      <node ref="IC1" pin="3"/>
+    </net>
+    <net code="7" name="GND">
+      <node ref="GND3" pin="1"/>
+      <node ref="U1" pin="2"/>
+      <node ref="C2" pin="2"/>
+      <node ref="C1" pin="2"/>
+      <node ref="P3" pin="3"/>
+      <node ref="IC1" pin="11"/>
+      <node ref="U2" pin="2"/>
+      <node ref="C3" pin="2"/>
+      <node ref="GND1" pin="1"/>
+    </net>
+    <net code="8" name="/A1">
+      <node ref="IC1" pin="4"/>
+      <node ref="A1" pin="1"/>
+    </net>
+    <net code="9" name="SCL">
+      <node ref="P3" pin="1"/>
+      <node ref="U2" pin="3"/>
+      <node ref="IC1" pin="1"/>
+      <node ref="U1" pin="3"/>
+    </net>
+    <net code="10" name="Net-(U2-Pad5)">
+      <node ref="U2" pin="5"/>
+    </net>
+    <net code="11" name="Net-(U2-Pad6)">
+      <node ref="U2" pin="6"/>
+    </net>
+    <net code="12" name="Net-(U2-Pad7)">
+      <node ref="U2" pin="7"/>
+    </net>
+    <net code="13" name="Net-(IC1-Pad5)">
+      <node ref="IC1" pin="5"/>
+    </net>
+    <net code="14" name="Net-(IC1-Pad6)">
+      <node ref="IC1" pin="6"/>
+    </net>
+    <net code="15" name="Net-(IC1-Pad7)">
+      <node ref="IC1" pin="7"/>
+    </net>
+    <net code="16" name="Net-(IC1-Pad8)">
+      <node ref="IC1" pin="8"/>
+    </net>
+    <net code="17" name="Net-(IC1-Pad13)">
+      <node ref="IC1" pin="13"/>
+    </net>
+    <net code="18" name="Net-(IC1-Pad14)">
+      <node ref="IC1" pin="14"/>
+    </net>
+    <net code="19" name="Net-(IC1-Pad15)">
+      <node ref="IC1" pin="15"/>
+    </net>
+    <net code="20" name="Net-(IC1-Pad16)">
+      <node ref="IC1" pin="16"/>
+    </net>
+  </nets>
+</export>

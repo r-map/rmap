@@ -129,7 +129,7 @@ F 0 "R3" H 5650 3650 60  0001 C CNN
 F 1 "R" H 5600 3600 60  0001 C CNN
 F 2 "w_smd_resistors:r_0805" H 5600 3600 60  0001 C CNN
 F 3 "" H 5600 3600 60  0001 C CNN
-F 4 "R" V 5680 3600 40  0000 C CNN "Riferimento"
+F 4 "R3" V 5680 3600 40  0000 C CNN "Riferimento"
 F 5 "150" V 5607 3601 40  0000 C CNN "Valore "
 	1    5600 3600
 	1    0    0    -1  

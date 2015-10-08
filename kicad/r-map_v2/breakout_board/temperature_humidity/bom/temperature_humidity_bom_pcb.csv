@@ -1,0 +1,11 @@
+Item,Reference(s),Value,Quantity,
+1,3.3V1 3.3V2,3.3V,2,Piazzola no componenti
+2,A1,A1,1,Piazzola no componenti
+3,C1,0.22uF,1,http://it.farnell.com/multicomp/mc0805b224m250ct/ceramic-capacitor-0-22uf-25v-x7r/dp/1708786
+4,C2 C3,0.1uF,3,http://it.farnell.com/avx/08053e104zat2a/ceramic-capacitor-0-1uf-25v-z5u/dp/4801842
+5,GND1 GND3,GND,2,Piazzola no componenti
+6,IC1,ADT7420,1,http://it.farnell.com/analog-devices/adt7420ucpz-r2/temp-sensor-16bit--0-25c-16lfcsp/dp/2306581?ost=2306581
+7,P3,CONN_01X04,1,http://it.farnell.com/multicomp/2211s-04g/connettore-header-tht-2-54mm-a/dp/1593413?ost=2211S-04G
+8,P4,A0,1,Piazzola no componenti
+9,U1,HIH6100,1,Honeywell HIH6100
+10,U2,HIH6100-SOIC8,1,Honeywell HIH6100-SOIC8

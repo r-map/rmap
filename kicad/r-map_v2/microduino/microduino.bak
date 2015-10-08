@@ -478,15 +478,13 @@ Wire Wire Line
 	3550 3900 3550 4600
 Wire Wire Line
 	3550 4600 2750 4600
-Wire Wire Line
-	6100 6100 6550 6100
 $Comp
 L CONN_01X01 P6
 U 1 1 55F70AFE
 P 6150 5850
 F 0 "P6" H 6300 5850 50  0000 C CNN
 F 1 "CONN_01X01" V 6250 5850 50  0001 C CNN
-F 2 "" H 6150 5850 60  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6150 5850 60  0001 C CNN
 F 3 "" H 6150 5850 60  0000 C CNN
 	1    6150 5850
 	0    -1   -1   0   
@@ -497,7 +495,7 @@ U 1 1 55F70BDA
 P 6300 5850
 F 0 "P7" H 6450 5850 50  0000 C CNN
 F 1 "CONN_01X01" V 6400 5850 50  0001 C CNN
-F 2 "" H 6300 5850 60  0000 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6300 5850 60  0001 C CNN
 F 3 "" H 6300 5850 60  0000 C CNN
 	1    6300 5850
 	0    -1   -1   0   
@@ -507,5 +505,8 @@ Wire Wire Line
 Connection ~ 6300 6100
 Wire Wire Line
 	6150 6050 6150 6100
-Connection ~ 6150 6100
+Wire Wire Line
+	6150 6100 6100 6100
+Wire Wire Line
+	6300 6100 6550 6100
 $EndSCHEMATC
