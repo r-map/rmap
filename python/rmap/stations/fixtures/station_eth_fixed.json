@@ -99,7 +99,7 @@
     },
     {
         "fields": {
-            "mqttuser": "pat1",
+            "mqttuser": "your user",
             "board": [
                 "master_eth_fixed",
                 [
@@ -110,7 +110,7 @@
                 ]
             ],
             "active": true,
-            "mqttpassword": "1password",
+            "mqttpassword": "your password",
             "mqttserver": "rmap.cc",
             "mqttsampletime": 5
         },
