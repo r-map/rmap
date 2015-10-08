@@ -1838,6 +1838,9 @@ class Rmap(App):
             mystation.active=True
             mystation.save()
 
+            #refresh config tabs
+            self.destroy_settings()
+
             try:
                 StationConstantData.objects.filter(stationmetadata=mystation,btable="B01019").delete()
             except:
