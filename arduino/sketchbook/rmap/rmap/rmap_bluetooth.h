@@ -25,8 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /////////////////////////
 
-#include "common.h"
-
 // activate if you have an rtc present (too big program fo arduino uno)
 //#define RTCPRESENT
 // activate if you have an GPS + dedicated arduino for I2C query
@@ -41,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // activate if you have relays connected to some pins
 #define ATTUATORE
 ///////////////////////////////////////////////////////////////////////
+
+#include "common.h"
 
 #define RPCSERIAL Serial1
 

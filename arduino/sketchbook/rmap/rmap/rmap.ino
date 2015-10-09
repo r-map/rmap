@@ -1197,7 +1197,7 @@ void LcdDigitalClockDisplay(time_t t ){
   // digital clock display of the time
 
   if (t == 0UL){
-    lcd.print(F("NULL"));
+    lcd.print(F("time was not set"));
   }
   else{	  
     lcdDigits(hour(t));

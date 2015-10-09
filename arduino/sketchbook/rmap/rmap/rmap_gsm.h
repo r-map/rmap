@@ -23,7 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FIRMWARE FIRMGSM
 /////////////////////////
 
-#include "common.h"
 
 // activate if you have an rtc present (too big program fo arduino uno)
 //#define RTCPRESENT
@@ -38,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // activate if you have relays connected to some pins
 //#define ATTUATORE
 ///////////////////////////////////////////////////////////////////////
+
+#include "common.h"
 
 // override default values defined in common.h
 // for sensoron
