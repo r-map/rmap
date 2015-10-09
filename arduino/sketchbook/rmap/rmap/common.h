@@ -198,7 +198,8 @@ Mega2560	      	        	   21	   20	   19	   18
 #define ETHERNETPORT 1000
 
 // define the output pins used for (relays)
-#define OUTPUTPINS 4,5,6,7
+//#define OUTPUTPINS 4,5,6,7
+#define OUTPUTPINS 4,5,A6,A7
 
 // define pin and led that force and display configuration status at boot
 #define FORCECONFIGPIN 8
