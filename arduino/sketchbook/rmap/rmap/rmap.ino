@@ -361,7 +361,6 @@ byte mac[]={0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 #if defined(ETHERNETON) || defined(GSMGPRSMQTT)
 //declare functions used below
 void mqttcallback(char* topic, byte* payload, unsigned int length);
-char mqttid[SERVER_LEN+13];
 #endif
 
 #if defined(GSMGPRSMQTT)
@@ -377,6 +376,32 @@ PubSubClient mqttclient(configuration.mqttserver, 1883, mqttcallback, ethclient)
 
 bool rmapconnect()
 {
+
+  char mqttid[SERVER_LEN+13];
+
+#ifdef ETHERNETON
+  // set mqttid to username+mac address
+  /*
+    The client identifier (short ClientId) is an identifier of each MQTT client 
+    connecting to a MQTT broker. As the word identifier already suggests, 
+    it should be unique per broker. The broker uses it for identifying the 
+    client and the current state of the client. If you don’t need a state to be 
+    hold by the broker, in MQTT 3.1.1 (current standard) it is also possible 
+    to send an empty ClientId, which results in a connection without any state. 
+    A condition is that clean session is true, otherwise the connection will be 
+    rejected.
+  */
+  // TODO: try to use  empty ClientId
+
+  sprintf(mqttid, "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+
+#endif //ETHERNETON
+
+#ifdef GSMGPRSMQTT
+  // TODO get IMEI code from sim800
+  sprintf(mqttid, "%s", "imeicode");
+#endif
+
   IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
@@ -387,9 +412,22 @@ bool rmapconnect()
     IF_LCD(lcd.print(F("MQTT: connected")));
     
     // subcribe to incoming topic
-    mqttclient.subscribe(MQTTSUBPATH);
+
+#ifdef ETHERNETON
+    char topiccom [SERVER_LEN+21];
+
+    sprintf(topiccom, "%s%s/%02x%02x%02x%02x%02x%02x/com", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+#endif
+
+#ifdef GSMGPRSMQTT
+    char topiccom [SERVER_LEN+21];
+    // TODO get IMEI code from sim800
+    sprintf(topiccom, "%s", "imeicode");
+#endif
+
+    mqttclient.subscribe(topiccom);
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt subscribed to: ")));
-    IF_SDEBUG(DBGSERIAL.println(MQTTSUBPATH));
+    IF_SDEBUG(DBGSERIAL.println(topiccom));
     wdt_reset();
     
     if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 13,1)){
@@ -452,62 +490,27 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 // local method
 // compute how many RPC I have
 
-#if defined (ATTUATORE) && defined (SENSORON) && defined (RADIORF24)
+  #if defined (ATTUATORE) && defined (SENSORON) && defined (RADIORF24)
 JsonRPC rpc(6);
-#elif defined (ATTUATORE) && defined (SENSORON)
+  #elif defined (ATTUATORE) && defined (SENSORON)
 JsonRPC rpc(5);
-#elif defined (ATTUATORE) && defined (RADIORF24)
+  #elif defined (ATTUATORE) && defined (RADIORF24)
 JsonRPC rpc(4);
-#elif defined (ATTUATORE)
+  #elif defined (ATTUATORE)
 JsonRPC rpc(1);
-#elif defined (SENSORON) && defined (RADIORF24)
+  #elif defined (SENSORON) && defined (RADIORF24)
 JsonRPC rpc(5);
-#elif defined (SENSORON)
+  #elif defined (SENSORON)
 JsonRPC rpc(4);
-#else
+  #else
 JsonRPC rpc(0);
-#endif
+  #endif
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
-#ifdef SERIALJSONRPC
-aJsonStream stream(&RPCSERIAL);
-#endif
-
-// mqtt Callback function
-// the payload have to be somelike:
-// {"method": "togglepin", "params": [{"number":4,"status":true},{"number":5,"status":false}]}
-// it's a subset of jsonrpc specification
-
-void mqttcallback(char* topic, byte* payload, unsigned int length) {
-  // In order to republish this payload, a copy must be made
-  // as the orignal payload buffer will be overwritten whilst
-  // constructing the PUBLISH packet.
-  
-  // we use a global buffer so we don't:
-  // Allocate the correct amount of memory for the payload copy
-  // char* p = (char*)malloc(length+1);
-
-  // Copy the payload to the new buffer
-  memcpy(mainbuf,payload,length);
-  memcpy(mainbuf+length,"\0",1);
-  IF_SDEBUG(DBGSERIAL.print(F("#MQTT callback topic: ")));
-  IF_SDEBUG(DBGSERIAL.print(topic));
-  IF_SDEBUG(DBGSERIAL.print(F(" payload: ")));
-  IF_SDEBUG(DBGSERIAL.print(mainbuf));
-
-  aJsonObject *msg = aJson.parse(mainbuf);
-
-  //  call RPC
-  int err=rpc.processMessage(msg);
-  IF_SDEBUG(DBGSERIAL.print(F("#MQTT rpc.processMessage return status:")));
-  IF_SDEBUG(DBGSERIAL.println(err));
-
-  // Free the memory
-  aJson.deleteItem(msg);
-  //free(p);
-}
-
+  #ifdef SERIALJSONRPC
+  aJsonStream stream(&RPCSERIAL);
+  #endif
 #endif
 
 #ifdef GSMGPRSHTTP
@@ -617,8 +620,8 @@ time_t getNtpTime()
 
 // This switch on/off pins on board
 // call rpc example:
-// {"jsonrpc": "2.0", "method": "togglepin", "params": [{"number":4,"status":true},{"number":5,"status":false}], "id": 0}
-// {"jsonrpc": "2.0", "method": "togglepin", "params": [{"number":4,"status":false},{"number":5,"status":true}], "id": 0}
+// {"jsonrpc": "2.0", "method": "togglepin", "params": [{"n":4,"s":true},{"n":5,"s":false}], "id": 0}
+// {"jsonrpc": "2.0", "method": "togglepin", "params": [{"n":4,"s":false},{"n":5,"s":true}], "id": 0}
 //
 
 const int pins [] = {OUTPUTPINS};
@@ -629,10 +632,10 @@ int togglePin(aJsonObject* params)
   if (!pinobj)   return E_INTERNAL_ERROR;
 
   do {
-    aJsonObject* numberParam = aJson.getObjectItem(pinobj, "number");
+    aJsonObject* numberParam = aJson.getObjectItem(pinobj, "n");
     if (!numberParam)   return E_INTERNAL_ERROR;
     
-    aJsonObject* statusParam = aJson.getObjectItem(pinobj, "status");
+    aJsonObject* statusParam = aJson.getObjectItem(pinobj, "s");
     if (!statusParam)   return E_INTERNAL_ERROR;
 	
     int requestedPin = numberParam -> valueint;
@@ -1904,6 +1907,52 @@ void mgrjsonrpc(aJsonObject *msg)
   aJson.deleteItem(response);
 }
 
+// mqtt Callback function
+// the payload have to be somelike:
+// {"method": "togglepin", "params": [{"n":4,"s":true},{"n":5,"s":false}]}
+// it's a subset of jsonrpc specification
+
+void mqttcallback(char* topic, byte* payload, unsigned int length) {
+  // In order to republish this payload, a copy must be made
+  // as the orignal payload buffer will be overwritten whilst
+  // constructing the PUBLISH packet.
+  
+  // we use a global buffer so we don't:
+  // Allocate the correct amount of memory for the payload copy
+  // char* p = (char*)malloc(length+1);
+
+  // Copy the payload to the new buffer
+  memcpy(mainbuf,payload,length);
+  memcpy(mainbuf+length,"\0",1);
+  IF_SDEBUG(DBGSERIAL.print(F("#MQTT callback topic: ")));
+  IF_SDEBUG(DBGSERIAL.println(topic));
+  IF_SDEBUG(DBGSERIAL.print(F("#payload: ")));
+  IF_SDEBUG(DBGSERIAL.println(mainbuf));
+
+  aJsonObject *msg = aJson.parse(mainbuf);
+
+  mgrjsonrpc(msg);
+
+#ifdef ETHERNETON
+  char topicres [SERVER_LEN+21];
+
+  sprintf(topicres, "%s%s/%02x%02x%02x%02x%02x%02x/res", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+#endif
+
+#ifdef GSMGPRSMQTT
+    char topiccom [SERVER_LEN+21];
+    // TODO get IMEI code from sim800
+    sprintf(topiccom, "%s", "imeicode");
+#endif
+
+  if (!mqttclient.publish(topicres,mainbuf)){
+    IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish rpc reponse")));
+  }
+
+  // Free the memory
+  aJson.deleteItem(msg);
+}
+
 #ifdef SERIALJSONRPC
 // receive RPC messages on serial transport
 void mgrserialjsonrpc(void)
@@ -2186,8 +2235,13 @@ void setup()
 #if defined (ATTUATORE)
 
   // initialize the digital pin as an output
-  for (int i=0; i< sizeof(pins)/sizeof(*pins) ; ++i)
+  IF_SDEBUG(DBGSERIAL.print(F("#set pins for ATTUATORE: ")));
+  for (int i=0; i< sizeof(pins)/sizeof(*pins) ; ++i){
     pinMode(pins[i], OUTPUT);
+    IF_SDEBUG(DBGSERIAL.print(pins[i]));
+    IF_SDEBUG(DBGSERIAL.print(F(" ")));
+  }
+  IF_SDEBUG(DBGSERIAL.println(F("")));
 
   // and register the local togglepin method
   rpc.registerMethod("togglepin", &togglePin);
@@ -2543,29 +2597,6 @@ void setup()
 #endif
 
   wdt_reset();
-
-#ifdef ETHERNETON
-  // set mqttid to username+mac address
-  /*
-    The client identifier (short ClientId) is an identifier of each MQTT client 
-    connecting to a MQTT broker. As the word identifier already suggests, 
-    it should be unique per broker. The broker uses it for identifying the 
-    client and the current state of the client. If you don’t need a state to be 
-    hold by the broker, in MQTT 3.1.1 (current standard) it is also possible 
-    to send an empty ClientId, which results in a connection without any state. 
-    A condition is that clean session is true, otherwise the connection will be 
-    rejected.
-  */
-  // TODO: try to use  empty ClientId
-
-  sprintf(mqttid, "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
-
-#endif //ETHERNETON
-
-#ifdef GSMGPRSMQTT
-  // TODO get IMEI code from sim800
-  sprintf(mqttid, "%s", "imeicode");
-#endif
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
  

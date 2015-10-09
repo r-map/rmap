@@ -219,8 +219,8 @@ Mega2560	      	        	   21	   20	   19	   18
 // set the frequensy 
 #define I2C_CLOCK 50000
 
-// MQTT subscribe topic
-#define MQTTSUBPATH "rpc/master"
+// MQTT subscribe topic prefix for RPC
+#define MQTTRPCPREFIX "rpc/"
 
 // required here to have arduino ide 1.6 happy
 // buffer for aJson print output and internal global_buffer

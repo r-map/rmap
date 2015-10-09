@@ -267,7 +267,7 @@ def acl(request):
             return response
 
         #write to all in rmap/username/# report/username/#
-        if topic.startswith(("rmap/"+username+"/","report/"+username+"/","mobile/"+username+"/")) and acc == "2":
+        if topic.startswith(("rmap/"+username+"/","report/"+username+"/","mobile/"+username+"/","rpc/"+username+"/")) and acc == "2":
             response=HttpResponse("allow")
             response.status_code=200
             return response
