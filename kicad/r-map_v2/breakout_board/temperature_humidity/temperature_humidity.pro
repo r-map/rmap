@@ -1,4 +1,4 @@
-update=gio 09 lug 2015 17:58:47 CEST
+update=gio 08 ott 2015 23:19:09 CEST
 version=1
 last_client=kicad
 [pcbnew]
@@ -61,3 +61,13 @@ LibName29=valves
 LibName30=temp_sensor
 LibName31=hih6100_sip4
 LibName32=hih6100-soic8
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60

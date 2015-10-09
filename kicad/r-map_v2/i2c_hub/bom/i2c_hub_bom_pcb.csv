@@ -2,7 +2,7 @@ Item,Reference(s),Value,Quantity,Package,Esempio
 1,C1 C2 C3 C4,10uF,4,1206 smd,http://it.farnell.com/kemet/c1206c106k4pactu/condensatore-mlcc-x5r-10uf-16v/dp/9227881
 2,J1 J2 J3 J4 J5,RJ45,5,connettore RJ45 non schermato, http://it.farnell.com/fci/54601-908wplf/modulare-jack-tht-r-a-rj45-8p8c/dp/2135981
 3,P1 P11 P15 P19 P24 P28 P31 P34 P37 P42 P46 P50 P55 P6 P60,5V,15,piazzola senza componenti,
-4,P10 P14 P18 P23 P4 P45 P49 P53 P59 P63,CONN_01X04,10,strip connector maschio 4 pin
+4,P10 P14 P18 P23 P4 P45 P49 P53 P59 P63,CONN_01X04,10,strip connector maschio 4 pin,http://it.farnell.com/multicomp/2211s-04g/connettore-header-tht-2-54mm-a/dp/1593413?ost=2211S-04G
 5,P12 P16 P2 P20 P25 P29 P32 P35 P38 P43 P47 P51 P56 P61 P7,SEL,15,piazzola senza componenti,
 6,P13 P17 P21 P27 P3 P30 P33 P36 P39 P44 P48 P52 P57 P62 P8,3V3,15,piazzola senza componenti,
 7,U1 U2,LM1117-3.3,2,SOT-223 smd,http://it.farnell.com/texas-instruments/lm1117mp-3-3/v-reg-ldo-3-3v-1117-sot-223-3/dp/9778195?ost=9778195

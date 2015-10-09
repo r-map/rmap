@@ -40,7 +40,7 @@ Sheet 1 1
 Title "Stima - Temperature - humdity breakout board"
 Date "2015-07-26"
 Rev ""
-Comp ""
+Comp "http://rmap.cc/"
 Comment1 ""
 Comment2 "Released under MIT License(MIT)"
 Comment3 "Author: Daniele Castellari dcast78@gmail.com"
