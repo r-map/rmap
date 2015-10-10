@@ -624,7 +624,7 @@ time_t getNtpTime()
 // {"jsonrpc": "2.0", "method": "togglepin", "params": [{"n":4,"s":false},{"n":5,"s":true}], "id": 0}
 //
 
-const int pins [] = {OUTPUTPINS};
+const uint8_t pins [] = {OUTPUTPINS};
 
 int togglePin(aJsonObject* params)
 {
@@ -642,7 +642,7 @@ int togglePin(aJsonObject* params)
     boolean requestedStatus = statusParam -> valuebool;
 
     bool pinok = false;
-    for (int i=0;i < sizeof(pins)/sizeof(*pins) ;i++) 
+    for (uint8_t i=0;i < sizeof(pins)/sizeof(*pins) ;i++) 
       if (requestedPin == pins[i]) pinok=true;
     if (!pinok) return E_INTERNAL_ERROR;
 
@@ -1907,6 +1907,8 @@ void mgrjsonrpc(aJsonObject *msg)
   aJson.deleteItem(response);
 }
 
+#if defined(ETHERNETON) || defined(GSMGPRSMQTT)
+
 // mqtt Callback function
 // the payload have to be somelike:
 // {"method": "togglepin", "params": [{"n":4,"s":true},{"n":5,"s":false}]}
@@ -1952,6 +1954,7 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
   // Free the memory
   aJson.deleteItem(msg);
 }
+#endif
 
 #ifdef SERIALJSONRPC
 // receive RPC messages on serial transport
@@ -2236,7 +2239,7 @@ void setup()
 
   // initialize the digital pin as an output
   IF_SDEBUG(DBGSERIAL.print(F("#set pins for ATTUATORE: ")));
-  for (int i=0; i< sizeof(pins)/sizeof(*pins) ; ++i){
+  for (uint8_t i=0; i< sizeof(pins)/sizeof(*pins) ; i++){
     pinMode(pins[i], OUTPUT);
     IF_SDEBUG(DBGSERIAL.print(pins[i]));
     IF_SDEBUG(DBGSERIAL.print(F(" ")));

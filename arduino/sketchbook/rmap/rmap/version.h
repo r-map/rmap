@@ -1,1 +1,1 @@
-#define FIRMVERSION "1.0-45"
+#define FIRMVERSION "1.0-69"

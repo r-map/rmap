@@ -139,7 +139,7 @@ Board	          int.0	    int.1	int.2	int.3	int.4	int.5
 Uno, Ethernet	      2 	3	 	 	 	 
 Mega2560	      	        	   21	   20	   19	   18
 */
-#define INTERU    4
+#define INTERU    1
 #define INTERUPIN 3
 //#define INTERU    5
 //#define INTERUPIN 18
@@ -198,7 +198,6 @@ Mega2560	      	        	   21	   20	   19	   18
 #define ETHERNETPORT 1000
 
 // define the output pins used for (relays)
-//#define OUTPUTPINS 4,5,6,7
 #define OUTPUTPINS 4,5,A6,A7
 
 // define pin and led that force and display configuration status at boot
