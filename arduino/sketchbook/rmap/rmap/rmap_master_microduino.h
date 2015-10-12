@@ -40,9 +40,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //override common definitions
 
-// define pin and led that force and display configuration status at boot
-#define FORCECONFIGPIN 4
-#define FORCECONFIGLED 5
-
 // disable RTC
 #undef NTPON
