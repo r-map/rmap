@@ -38,6 +38,7 @@ urlpatterns = patterns('',
     url(r'^auth/acl',      'rmap.views.acl'),
     url(r'^accounts/profile',      'rmap.views.profile'),
 
+    url(r'^http2mqtt/', include('http2mqtt.urls')),
 )
 
 
