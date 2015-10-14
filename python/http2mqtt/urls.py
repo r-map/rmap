@@ -1,9 +1,9 @@
-from django.conf.urls import patterns, urls
+from django.conf.urls import patterns, url
 
-from . import view
+import views
 
 
 urlpatterns = patterns(
     '',
-    url(r'^publish/$', views.publish, name='publish'),
+    url(r'^http2mqtt/$', views.publish, name='publish'),
 )

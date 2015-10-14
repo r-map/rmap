@@ -13,18 +13,18 @@ def publish(request):
 
     if "time" in request.GET:
         return HttpResponse(
-            request, datetime.utcnow().strftime('%y/%m/%d,%H:%M:%S+00\n'),
+            datetime.utcnow().strftime('%y/%m/%d,%H:%M:%S+00\n'),
         )
 
     try:
         topic = request.GET["topic"]
     except KeyError:
-        return HttpResponse(request, "please set topic", status_code=500)
+        return HttpResponse("please set topic", status=500)
 
     try:
         payload = request.GET["payload"]
     except KeyError:
-        return HttpResponse(request, "please set payload", status_code=500)
+        return HttpResponse("please set payload", status=500)
 
     try:
         user = request.GET["user"]
@@ -39,15 +39,18 @@ def publish(request):
         response += "password not set\n"
 
     try:
+        auth=None
+        if user is not None:
+            auth={"username": user, "password": password}
         paho.mqtt.publish.single(
-            topic, payload=payload, qos=0, hostname="localhost", port=1883,
-            client_id="Python MQTT Client",
-            auth={"username": user, "password": password},
-    )
+            topic, payload=payload, qos=1, hostname="localhost", port=1883,
+            client_id="http2mqtt Client",
+            auth=None,
+        )
     except Exception as e:
         response += str(e)
-        return HttpResponse(request, response, status_code=500)
+        return HttpResponse(response, status=500)
 
     response += "okay\n"
 
-    return HttpResponse(request, response)
+    return HttpResponse(response)

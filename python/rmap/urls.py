@@ -22,6 +22,8 @@ urlpatterns = patterns('',
 #    Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 
+    url(r'^', include('http2mqtt.urls')),
+
     url(r'^', include('rmap.stations.urls')),
 
 #    override default register form
