@@ -45,7 +45,7 @@ def publish(request):
         paho.mqtt.publish.single(
             topic, payload=payload, qos=1, hostname="localhost", port=1883,
             client_id="http2mqtt Client",
-            auth=None,
+            auth=auth,
         )
     except Exception as e:
         response += str(e)
