@@ -106,6 +106,15 @@ configspec['amqp2amqp_identvalidationd']['lockfile'] = "string(default='/tmp/amq
 configspec['amqp2amqp_identvalidationd']['user']     = "string(default=None)"
 configspec['amqp2amqp_identvalidationd']['group']    = "string(default=None)"
 
+configspec['amqp2djangod']={}
+configspec['amqp2djangod']['logfile']  = "string(default='/tmp/amqp2django.log')"
+configspec['amqp2djangod']['errfile']  = "string(default='/tmp/amqp2django.err')"
+configspec['amqp2djangod']['lockfile'] = "string(default='/tmp/amqp2django.lock')"
+configspec['amqp2djangod']['user']     = "string(default=None)"
+configspec['amqp2djangod']['group']    = "string(default=None)"
+
+
+
 configspec['amqp2arkimetd']={}
 configspec['amqp2arkimetd']['logfile']  = "string(default='/tmp/amqp2arkimetd.log')"
 configspec['amqp2arkimetd']['errfile']  = "string(default='/tmp/amqp2arkimetd.err')"
@@ -234,6 +243,14 @@ errfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidati
 lockfileamqp2amqp_identvalidationd             = config['amqp2amqp_identvalidationd']['lockfile']
 useramqp2amqp_identvalidationd                 = config['amqp2amqp_identvalidationd']['user']
 groupamqp2amqp_identvalidationd                = config['amqp2amqp_identvalidationd']['group']
+
+
+# section amqp2djangod
+logfileamqp2djangod              = config['amqp2djangod']['logfile']
+errfileamqp2djangod              = config['amqp2djangod']['errfile']
+lockfileamqp2djangod             = config['amqp2djangod']['lockfile']
+useramqp2djangod                 = config['amqp2djangod']['user']
+groupamqp2djangod                = config['amqp2djangod']['group']
 
 # section amqp2arkimetd
 logfileamqp2arkimetd              = config['amqp2arkimetd']['logfile']
