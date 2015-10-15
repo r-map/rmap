@@ -25,7 +25,7 @@ from django.contrib.auth.models import User
 from django.core import serializers
 import pika
 
-def send2amqp(body="",user="your user",password="your password",host="rmap.cc",exchange="exc",routing_key="routing"):
+def send2amqp(body="",user="your user",password="your password",host="rmap.cc",exchange="configuration",routing_key="config"):
 
     credentials=pika.PlainCredentials(user, password)
     properties=pika.BasicProperties(
@@ -64,7 +64,7 @@ def export2json(objects):
         use_natural_foreign_keys=True, use_natural_primary_keys=True)
 
 
-def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.cc",exchange="exc"):
+def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.cc",exchange="configuration"):
     objects=[]
 
     mystation=StationMetadata.objects.get(slug=station)
@@ -79,11 +79,11 @@ def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.
 
     #print body
 
-    send2amqp(body,user,password,host,exchange,routing_key="configuration")
+    send2amqp(body,user,password,host,exchange)
 
 
 
-def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc",queue="queue"):
+def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc",queue="configuration"):
 
     def callback(ch, method, properties, body):
         print " [x] Received message"
@@ -150,7 +150,7 @@ def object_auth(object,user):
 
 
 def configdb(username="your user",password="your password",
-             station="home",lat=0,lon=0,constantdata=(),
+             station="home",lat=0,lon=0,constantdata={},
              mqttusername="your user",
              mqttpassword="your password",
              mqttserver="rmap.cc",
@@ -187,7 +187,7 @@ def configdb(username="your user",password="your password",
         raise # "Error\nsetting station"
 
     try:
-        for btable,value in constantdata:
+        for btable,value in constantdata.iteritems():
             StationConstantData.objects.filter(stationmetadata=mystation,btable=btable).delete()
     except:
         pass
@@ -222,7 +222,7 @@ def configdb(username="your user",password="your password",
 
         try:
             if ( board.transportbluetooth.active):
-                print "bluetooth Transport", board.transportblutooth
+                print "bluetooth Transport", board.transportbluetooth
 
                 board.transportbluetooth.name=bluetoothname
                 board.transportbluetooth.save()

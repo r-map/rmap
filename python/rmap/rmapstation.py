@@ -386,8 +386,8 @@ class station():
     You have to specify the station and the board to use.
     The passive transport will be selected by hard coded predefined priority:
     * bluetooth (hight)
-    * tcpip (medium)
-    * serial (low)
+    * serial (medium)
+    * tcpip (low)
     For active transport only MQTT will be taken in account for publish (no AMQP)
     """
 
@@ -485,6 +485,20 @@ class station():
                 print "transport mqtt not present: exit"
                 raise SystemExit(0)
 
+
+            try:
+                if ( board.transporttcpip.active):
+                    print "TCPIP Transport", board.transporttcpip
+                    
+                    self.tcpip_name=board.transporttcpip.name
+                    self.transport_name="tcpip"
+
+            except ObjectDoesNotExist:
+                print "transport tcpip not present"
+                self.tcpip_name=None
+            #    raise SystemExit(0)
+
+
             try:
                 if ( board.transportserial.active):
                     print "Serial Transport", board.transportserial
@@ -497,19 +511,6 @@ class station():
                 print "transport serial not present"
                 self.serial_device=None
                 self.serial_baudrate=None
-            #    raise SystemExit(0)
-
-
-            try:
-                if ( board.transporttcpip.active):
-                    print "TCPIP Transport", board.transporttcpip
-                    
-                    self.tcpip_name=board.transporttcpip.name
-                    self.transport_name="tcpip"
-
-            except ObjectDoesNotExist:
-                print "transport tcpip not present"
-                self.tcpip_name=None
             #    raise SystemExit(0)
 
 

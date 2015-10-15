@@ -35,7 +35,7 @@ version = 4.18
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate
+requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
 
 # (list) Garden requirements
