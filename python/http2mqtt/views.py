@@ -9,34 +9,38 @@ import paho.mqtt.publish
 @csrf_exempt
 def publish(request):
     """Rewriting of php2mqtt."""
-    response = ""
+
+    response = HttpResponse()
+
 
     if "time" in request.GET:
-        return HttpResponse(
-            datetime.utcnow().strftime('%y/%m/%d,%H:%M:%S+00\n'),
-        )
+        response.write(datetime.utcnow().strftime('%y/%m/%d,%H:%M:%S+00\n'))
 
     try:
         topic = request.GET["topic"]
     except KeyError:
-        return HttpResponse("please set topic", status=500)
+        response.write("please set topic")
+        response.status_code=500
+        return response
 
     try:
         payload = request.GET["payload"]
     except KeyError:
-        return HttpResponse("please set payload", status=500)
+        response.write("please set payload")
+        response.status_code=500
+        return response
 
     try:
         user = request.GET["user"]
     except KeyError:
         user = None
-        response += "user not set\n"
+        response.write("user not set\n")
 
     try:
         password = request.GET["password"]
     except KeyError:
         password = None
-        response += "password not set\n"
+        response.write("password not set\n")
 
     try:
         auth=None
@@ -48,9 +52,11 @@ def publish(request):
             auth=auth,
         )
     except Exception as e:
-        response += str(e)
-        return HttpResponse(response, status=500)
+        response.write(str(e))
+        #response.write("MQTT error")
+        response.status_code=500
+        return response
 
-    response += "okay\n"
+    response.write("OK")
 
-    return HttpResponse(response)
+    return response
