@@ -1384,6 +1384,10 @@ time_t periodicResyncGSMRTC() {
 // so we reset everythings one time a week
 void Reset() {
   wdt_enable(WDTO_30MS); while(1) {} 
+
+  // Restarts program from beginning but 
+  // does not reset the peripherals and registers
+  //asm volatile ("  jmp 0");
 }
 
 #ifdef I2CGPSPRESENT
@@ -2241,7 +2245,7 @@ void setup()
   IF_SDEBUG(DBGSERIAL.print(F("#set pins for ATTUATORE: ")));
   for (uint8_t i=0; i< sizeof(pins)/sizeof(*pins) ; i++){
 
-
+    /*
     uint8_t bit = digitalPinToBitMask(pins[i]);
     uint8_t port = digitalPinToPort(pins[i]);
     volatile uint8_t *reg = portModeRegister(port);
@@ -2255,7 +2259,9 @@ void setup()
       // It's an input
       pinMode(pins[i], OUTPUT);
     }
+    */
 
+    pinMode(pins[i], OUTPUT);
     IF_SDEBUG(DBGSERIAL.print(pins[i]));
     IF_SDEBUG(DBGSERIAL.print(F(" ")));
   }
