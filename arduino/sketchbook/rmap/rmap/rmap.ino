@@ -2240,7 +2240,22 @@ void setup()
   // initialize the digital pin as an output
   IF_SDEBUG(DBGSERIAL.print(F("#set pins for ATTUATORE: ")));
   for (uint8_t i=0; i< sizeof(pins)/sizeof(*pins) ; i++){
-    pinMode(pins[i], OUTPUT);
+
+
+    uint8_t bit = digitalPinToBitMask(pins[i]);
+    uint8_t port = digitalPinToPort(pins[i]);
+    volatile uint8_t *reg = portModeRegister(port);
+
+    //https://github.com/r-map/rmap/issues/47
+    //How to read pinMode for digital pin
+    //http://arduino.stackexchange.com/questions/13165/how-to-read-pinmode-for-digital-pin
+    if (*reg & bit) {
+      // It's an output
+    } else {
+      // It's an input
+      pinMode(pins[i], OUTPUT);
+    }
+
     IF_SDEBUG(DBGSERIAL.print(pins[i]));
     IF_SDEBUG(DBGSERIAL.print(F(" ")));
   }
