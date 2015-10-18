@@ -27,10 +27,14 @@ class WizardForm(forms.Form):
         validators.RegexValidator(re.compile('^[\w]+$'), _('Enter a valid username.'), 'invalid')
     ])
 
-    password = forms.CharField(label='Password',help_text=_('Password'))
+    password = forms.CharField(label=_('Password'),help_text=_('Password'))
 
-    latitude = forms.DecimalField(label='Latitude',help_text=_('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
-    longitude = forms.DecimalField(label='Longitude',help_text=_('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+    stationname = forms.CharField(label=_('Station name'),help_text=_('Station name'))
+
+    latitude = forms.DecimalField(label=_('Latitude'),help_text=_('Latitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("90."),decimal_places=5)
+    longitude = forms.DecimalField(label=_('Longitude'),help_text=_('Longitude'),min_value=decimal.Decimal("0."),max_value=decimal.Decimal("360."),decimal_places=5)
+
+    height = forms.DecimalField(label=_('Station height (m.)'),help_text=_('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
 
 
 class WizardForm2(forms.Form):
