@@ -1911,7 +1911,7 @@ void mgrjsonrpc(aJsonObject *msg)
   aJson.deleteItem(response);
 }
 
-#if defined(ETHERNETON) || defined(GSMGPRSMQTT)
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
 // mqtt Callback function
 // the payload have to be somelike:
