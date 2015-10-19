@@ -45,6 +45,12 @@ install with:
 rm -rf /tmp/pip-build-root/rmap/
 pip -v install --upgrade  rmap
 
+
+initialize DB
+
+./rmapctrl --syncdb
+./rmap-configure --wizard --lon=10 --lat=45 --height=5 --stationname=test --username=pat1 --password=1password --station_slug=ETH_fixed
+
 #obsolete notes:
 
 * bug in plyer to patch:

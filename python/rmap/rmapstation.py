@@ -54,7 +54,7 @@ import codecs
 #import mosquitto
 import paho.mqtt.client as mqtt
 from utils import nint
-
+import rmap.rmap_core
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):
@@ -384,14 +384,14 @@ class station():
     All configuration parameter are token from DB
     For now is possible to manage one board a time and only one transport for each
     You have to specify the station and the board to use.
-    The passive transport will be selected by hard coded predefined priority:
+    If not specified the passive transport will be selected by hard coded predefined priority:
     * bluetooth (hight)
     * serial (medium)
     * tcpip (low)
     For active transport only MQTT will be taken in account for publish (no AMQP)
     """
 
-    def __init__(self,slug=None,boardslug=None, picklefile="saveddata-service.pickle",trip=None,gps=plyergps(),logfunc=jsonrpc.log_stdout):
+    def __init__(self,slug=None,boardslug=None, picklefile="saveddata-service.pickle",trip=None,gps=plyergps(),transport_name=None,logfunc=jsonrpc.log_stdout):
         '''
         do all startup operations
         '''
@@ -403,7 +403,13 @@ class station():
         self.bluetooth=None
         self.rpcin_message = ""
         self.log = logfunc
+        self.now=None
 
+        self.anavarlist=[]
+        self.datavarlist=[]
+        self.trip=False
+        self.slug= "BT_fixed"
+        self.boardslug= "BT_fixed"
 
         # Exception: The intent ACTION_ACL_DISCONNECTED doesnt exist
         #self.br=BroadcastReceiver(self.on_broadcast,actions=["acl_disconnected"])
@@ -525,6 +531,8 @@ class station():
                 self.bluetooth_name=None
                 #raise SystemExit(0)
 
+            if not transport_name is None:
+                self.transport_name=transport_name
 
             for sensor in board.sensor_set.all():
                 if not sensor.active: continue
@@ -673,29 +681,39 @@ class station():
             self.boardslug= "BT_fixed"
 
 
-    def configuresensors(self):
+    def configurestation(self,transport="serial"):
         """
         configure the board with those steps:
         * reset configuration
-        * configure sensors
+        * configure board
         * save configuration
         """
 
         try:
-            jsonrpcproxy=jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),self.transport)
-            jsonrpcproxy.configure(reset=True)
-            for driver in self.drivers:
-                print "configure: ",driver
+            self.stoptransport()
+        except:
+            pass
 
-                if driver["driver"] == "JRPC":
+        try:
+            rmap.rmap_core.configstation(station_slug=self.slug,
+                            board_slug=self.boardslug,
+                            transport=transport,
+                            logfunc=self.log)
 
-                    jsonrpcproxy.configure(driver="I2C",node=driver["node"],type=driver["type"],address=driver["address"],\
-                                mqttpath=driver["timerange"]+"/"+driver["level"]+"/")
-            jsonrpcproxy.configure(save=True)
+            #jsonrpcproxy=jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),self.transport)
+            #jsonrpcproxy.configure(reset=True)
+            #for driver in self.drivers:
+            #    print "configure: ",driver
+
+            #    if driver["driver"] == "JRPC":
+
+            #        jsonrpcproxy.configure(driver="I2C",node=driver["node"],type=driver["type"],address=driver["address"],\
+            #                    mqttpath=driver["timerange"]+"/"+driver["level"]+"/")
+            #jsonrpcproxy.configure(save=True)
 
         except:
-            print "error in configure:", driver
-
+            print "error in configure:"
+            raise
 
     def sensorssetup(self):
         """
@@ -709,9 +727,17 @@ class station():
                 print "driver: ",driver
 
                 if driver["driver"] == "JRPC":
+                    print "found JRPC driver; setup for bridged RPC"
                     sd =SensorDriver.factory(driver["driver"],transport=self.transport)
                     # change transport !
                     sd.setup(driver="I2C",node=driver["node"],type=driver["type"],address=driver["address"])
+
+                elif driver["driver"] == "RF24":
+                    print "found RF24 driver; setup for bridged RPC"
+                    sd =SensorDriver.factory("JRPC",transport=self.transport)
+                    # change transport !
+                    sd.setup(driver=driver["driver"],node=driver["node"],type=driver["type"],address=driver["address"])
+
                 else:
                     sd =SensorDriver.factory(driver["driver"],type=driver["type"])
                     sd.setup(i2cbus=driver["i2cbus"],address=driver["address"])
@@ -727,7 +753,7 @@ class station():
                 raise Exception("sensors setup",1)
 
 
-    def getdata(self,trip=None):
+    def getdata(self,trip=None,now=None):
         """
         get data for all sensors with those steps:
       
@@ -756,6 +782,9 @@ class station():
 
         dt=0
         connected=False
+        if now is None:
+            now=datetime.utcnow().replace(microsecond=0)
+
         for sensor in self.sensors:
             print "prepare: ",sensor
             try:
@@ -768,10 +797,12 @@ class station():
         time.sleep(dt/1000.)
 
         #message=""
+        datavars=[]
         for sensor in self.sensors:
             try:
               for btable,value in sensor["driver"].get().iteritems():
-                datavar={btable:{"t": self.now,"v": str(value)}}
+                datavar={btable:{"t": now,"v": str(value)}}
+                datavars.append(datavar)
                 self.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},"timerange":sensor["timerange"],\
                                          "level":sensor["level"],"datavar":datavar})
 #                stringa =""
@@ -781,9 +812,8 @@ class station():
 
             except:
                 print "ERROR executing getJson rpc"
-                datavar={}
 
-        return connected,datavar
+        return connected,datavars
 
 
 #    def on_broadcast(self,context,intent):
@@ -948,7 +978,7 @@ class station():
                     except:
                         print "sensorssetup failed"
 
-        connected,datavar = self.getdata(trip)
+        connected,datavars = self.getdata(trip,self.now)
 
         if not connected and self.transport_name == "bluetooth":
             self.bluetooth.close()
@@ -958,8 +988,7 @@ class station():
             except:
                 print "sensorssetup failed"
 
-        return datavar
-
+        return datavars
 
     def loop(self, *args):
         '''
@@ -981,13 +1010,16 @@ class station():
         print ">>>>>>> start transport"
 
         if self.transport_name == "bluetooth":
+            print "start bluetooth"
             self.bluetooth=androbluetooth(name=self.bluetooth_name, logfunc=self.log)
             self.transport=self.bluetooth.connect()
 
         if self.transport_name == "tcpip":
+            print "start tcpip"
             self.transport=jsonrpc.TransportTcpIp(addr=(self.tcpip_name,1000),timeout=3, logfunc=self.log)
 
         if self.transport_name == "serial":
+            print "start serial"
             self.transport=jsonrpc.TransportSERIAL(port=self.serial_device,baudrate=self.serial_baudrate, logfunc=self.log)
 
         if self.transport is None:
@@ -1006,7 +1038,7 @@ class station():
             raise Exception("stop transport",1)
 
 
-    def boot(self,configuresensors=False):
+    def boot(self,configurestation=False):
 
         print "background boot station"
 
@@ -1023,8 +1055,8 @@ class station():
         notok=True
         while notok:
             try:
-                if configuresensors:
-                    self.configuresensors()
+                if configurestation:
+                    self.configurestation()
                 try:
                     self.sensorssetup()
                 except:

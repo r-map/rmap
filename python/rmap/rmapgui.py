@@ -1493,11 +1493,13 @@ class Rmap(App):
 
     def boardconfigure(self):
 
-        self.root.ids["transport"].state="down"
+        #self.root.ids["transport"].state="down"
 
         try:
-            self.mystation.configuresensors()
+            #self.mystation.starttransport()
+            self.mystation.configurestation()
             self.board_status=_("Transport Status: CONFIG OK")
+            #self.mystation.stoptransport()
         except:
             self.board_status=_("Transport Status: CONFIG ERROR")
             self.popup(_("ERROR configure\nboard"))
@@ -1509,10 +1511,11 @@ class Rmap(App):
 
         try:
             self.mystation.now=datetime.utcnow()
-            datavar=self.mystation.getdata_loop(trip=self.trip)
+            datavars=self.mystation.getdata_loop(trip=self.trip)
             message=""
-            for bcode,data in datavar.iteritems():
-                message += str(self.table[bcode])+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
+            for datavar in datavars:
+                for bcode,data in datavar.iteritems():
+                    message += str(self.table[bcode])+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
 
             self.boardmessage.append(message)
             self.boardmessage=self.boardmessage[-20:]

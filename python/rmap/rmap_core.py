@@ -30,7 +30,7 @@ from rmap import jsonrpc
 
 
 def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
-              device=None,baudrate=None,host=None):
+                  device=None,baudrate=None,host=None,rpcproxy=None):
 
     mystation=StationMetadata.objects.get(slug=station_slug)
 
@@ -65,42 +65,42 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
                 return
 
 
-        rpcproxy=None
+        if rpcproxy is None:
 
-        if transport == "serial":
-            try:
-                if ( board.transportserial.active):
-                    print "Serial Transport", board.transportserial
-                    mydevice =board.transportserial.device
-                    if device is not None :
-                        mydevice=device
-                    mybaudrate=board.transportserial.baudrate
-                    if baudrate is not None :
-                        mybaudrate=baudrate
+            if transport == "serial":
+                try:
+                    if ( board.transportserial.active):
+                        print "Serial Transport", board.transportserial
+                        mydevice =board.transportserial.device
+                        if device is not None :
+                            mydevice=device
+                        mybaudrate=board.transportserial.baudrate
+                        if baudrate is not None :
+                            mybaudrate=baudrate
 
-                    transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
-                    rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
+                        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
 
-            except ObjectDoesNotExist:
-                print "transport serial not present for this board"
-                return
+                except ObjectDoesNotExist:
+                    print "transport serial not present for this board"
+                    return
 
 
-        if transport == "tcpip":
-            try:
-                if ( board.transporttcpip.active):
-                    print "TCP/IP Transport", board.transporttcpip
+            if transport == "tcpip":
+                try:
+                    if ( board.transporttcpip.active):
+                        print "TCP/IP Transport", board.transporttcpip
 
-                    myhost =board.transporttcpip.name
-                    if host is not None :
-                        myhost=host
+                        myhost =board.transporttcpip.name
+                        if host is not None :
+                            myhost=host
 
-                    transport=jsonrpc.TransportTcpIp(logfunc=logfunc,addr=(myhost,1000),timeout=5)
-                    rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+                        transport=jsonrpc.TransportTcpIp(logfunc=logfunc,addr=(myhost,1000),timeout=5)
+                        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
 
-            except ObjectDoesNotExist:
-                print "transport TCPIP not present for this board"
-                return
+                except ObjectDoesNotExist:
+                    print "transport TCPIP not present for this board"
+                    return
 
 
         if (rpcproxy is None): return
@@ -159,7 +159,8 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
         print "save",rpcproxy.configure(save=True )
 
         print "----------------------------- board configured ---------------------------------------"
-
+        
+        transport.close()
 
 
 def send2amqp(body="",user="your user",password="your password",host="rmap.cc",exchange="configuration",routing_key="config"):
