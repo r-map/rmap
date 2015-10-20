@@ -1327,7 +1327,8 @@ class Rmap(App):
         config.setdefaults('sensors', {
             'name': 'HC-05',
             'station': station_default,
-            'board': board_default
+            'board': board_default,
+            'remote_board': "stima_bt"
         })
 
     def build_settings(self, settings):
@@ -1447,6 +1448,14 @@ class Rmap(App):
       "key": "board",
       "options": 
         """ + str(boards).replace("'","\"") + """
+        },
+    { "type": "options",
+      "title": "Remote Board",
+      "desc": "remote board name",
+      "section": "sensors",
+      "key": "remote_board",
+      "options": 
+        """ + str(boards).replace("'","\"") + """
         }
 ]
         """
@@ -1497,7 +1506,7 @@ class Rmap(App):
 
         try:
             #self.mystation.starttransport()
-            self.mystation.configurestation()
+            self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
             self.board_status=_("Transport Status: CONFIG OK")
             #self.mystation.stoptransport()
         except:

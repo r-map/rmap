@@ -1,226 +1,227 @@
 [
-    {
-        "fields": {
-            "category": "good",
-            "ident": [
-                "rmap"
-            ],
-            "name": "ETH_fixed",
-            "mqttmaintpath": "rmap",
-            "lon": 0.0,
-            "lat": 0.0,
-            "mqttrootpath": "rmap",
-            "active": false,
-            "slug": "ETH_fixed",
-            "network": "rmap"
-        },
-        "model": "stations.stationmetadata"
-    },
-    {
-        "fields": {
-            "active": true,
-            "category": "master",
-            "stationmetadata": [
-                "ETH_fixed",
-                [
-                    "rmap"
-                ]
-            ],
-            "name": "master eth fixed",
-            "slug": "master_eth_fixed"
-        },
-        "model": "stations.board"
-    },
-    {
-        "fields": {
-            "active": true,
-            "category": "satellite",
-            "stationmetadata": [
-                "ETH_fixed",
-                [
-                    "rmap"
-                ]
-            ],
-            "name": "satellite eth fixed",
-            "slug": "satellite_eth_fixed"
-        },
-        "model": "stations.board"
-    },
-    {
-        "fields": {
-            "active": true,
-            "device": "/dev/ttyUSB0",
-            "baudrate": 9600,
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transportserial"
-    },
-    {
-        "fields": {
-            "active": true,
-            "device": "/dev/ttyUSB0",
-            "baudrate": 9600,
-            "board": [
-                "satellite_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transportserial"
-    },
-    {
-        "fields": {
-            "active": true,
-            "ntpserver": "pool.ntp.org",
-            "name": "master",
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transporttcpip"
-    },
-    {
-        "fields": {
-            "mqttuser": "your user",
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "active": true,
-            "mqttpassword": "your password",
-            "mqttserver": "rmap.cc",
-            "mqttsampletime": 5
-        },
-        "model": "stations.transportmqtt"
-    },
-    {
-        "fields": {
-            "node": 0,
-            "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "active": true,
-            "channel": 93
-        },
-        "model": "stations.transportrf24network"
-    },
-    {
-        "fields": {
-            "node": 1,
-            "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "board": [
-                "satellite_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "active": true,
-            "channel": 93
-        },
-        "model": "stations.transportrf24network"
-    },
-    {
-        "fields": {
-            "node": 1,
-            "name": "Temperature rf24",
-            "level": "103,2,-,-",
-            "timerange": "254,0,0",
-            "driver": "RF24",
-            "i2cbus": 1,
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "address": 72,
-            "active": true,
-            "type": "TMP"
-        },
-        "model": "stations.sensor"
-    },
-    {
-        "fields": {
-            "node": 1,
-            "name": "Temperature",
-            "level": "103,2,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "board": [
-                "satellite_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "address": 72,
-            "active": true,
-            "type": "TMP"
-        },
-        "model": "stations.sensor"
-    },
-    {
-        "fields": {
-            "node": 1,
-            "name": "Temperature",
-            "level": "103,2000,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "board": [
-                "master_eth_fixed",
-                [
-                    "ETH_fixed",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "address": 72,
-            "active": true,
-            "type": "TMP"
-        },
-        "model": "stations.sensor"
-    }
+{
+  "fields": {
+    "category": "test",
+    "ident": [
+      "rmap"
+    ],
+    "name": "ETH_fixed",
+    "mqttmaintpath": "rmap",
+    "lon": 0.0,
+    "lat": 0.0,
+    "mqttrootpath": "rmap",
+    "active": false,
+    "slug": "ETH_fixed",
+    "network": "rmap"
+  },
+  "model": "stations.stationmetadata"
+},
+{
+  "fields": {
+    "active": true,
+    "category": "master",
+    "stationmetadata": [
+      "ETH_fixed",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "master eth fixed",
+    "slug": "master_eth_fixed"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "103,6,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature rf24",
+    "level": "103,7,-,-",
+    "timerange": "254,0,0",
+    "driver": "RF24",
+    "i2cbus": 1,
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "mqttuser": "your user",
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "your password",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
+    "active": true,
+    "ntpserver": "pool.ntp.org",
+    "name": "master",
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transporttcpip"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "node": 0,
+    "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "board": [
+      "master_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "active": true,
+    "channel": 93
+  },
+  "model": "stations.transportrf24network"
+},
+{
+  "fields": {
+    "active": true,
+    "category": "satellite",
+    "stationmetadata": [
+      "ETH_fixed",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "satellite eth fixed",
+    "slug": "satellite_eth_fixed"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "103,14,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "satellite_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "satellite_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "node": 1,
+    "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "board": [
+      "satellite_eth_fixed",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "active": true,
+    "channel": 93
+  },
+  "model": "stations.transportrf24network"
+}
 ]
+

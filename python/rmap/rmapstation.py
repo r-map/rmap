@@ -488,8 +488,12 @@ class station():
                     self.mqtt_password=board.transportmqtt.mqttpassword
 
             except ObjectDoesNotExist:
-                print "transport mqtt not present: exit"
-                raise SystemExit(0)
+                print "transport mqtt not present"
+                self.mqtt_sampletime=None
+                self.mqtt_host=None
+                self.mqtt_user=None
+                self.mqtt_password=None
+                #raise SystemExit(0)
 
 
             try:
@@ -681,7 +685,7 @@ class station():
             self.boardslug= "BT_fixed"
 
 
-    def configurestation(self,transport="serial"):
+    def configurestation(self,transport="serial",board_slug=None):
         """
         configure the board with those steps:
         * reset configuration
@@ -695,8 +699,10 @@ class station():
             pass
 
         try:
+            if board_slug is None:
+                board_slug=self.boardslug
             rmap.rmap_core.configstation(station_slug=self.slug,
-                            board_slug=self.boardslug,
+                            board_slug=board_slug,
                             transport=transport,
                             logfunc=self.log)
 

@@ -34,8 +34,8 @@
 {
   "fields": {
     "node": 1,
-    "name": "temperatura",
-    "level": "103,2000,-,-",
+    "name": "temperature",
+    "level": "103,8,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
     "i2cbus": 1,
@@ -57,8 +57,8 @@
 {
   "fields": {
     "node": 1,
-    "name": "rf24 temperature",
-    "level": "103,200,-,-",
+    "name": "Temperature rf24",
+    "level": "103,9,-,-",
     "timerange": "254,0,0",
     "driver": "RF24",
     "i2cbus": 1,
@@ -131,8 +131,8 @@
 {
   "fields": {
     "node": 1,
-    "name": "my sensor",
-    "level": "103,2000,-,-",
+    "name": "Temperature",
+    "level": "103,10,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
     "i2cbus": 1,
@@ -205,8 +205,8 @@
 {
   "fields": {
     "node": 1,
-    "name": "remote temperature",
-    "level": "103,200,-,-",
+    "name": "Temperature remote",
+    "level": "103,11,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -228,8 +228,8 @@
 {
   "fields": {
     "node": 1,
-    "name": "rf24 temperature",
-    "level": "103,20,-,-",
+    "name": "Temperature rf24",
+    "level": "103,12,-,-",
     "timerange": "254,0,0",
     "driver": "RF24",
     "i2cbus": 1,
