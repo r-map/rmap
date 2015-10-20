@@ -1505,7 +1505,8 @@ class Rmap(App):
         try:
             # this stop transport if active (configure restart transport and stop it at the end)
             self.root.ids["transport"].state="normal"
-            self.board_status='Transport Status: OK'
+            self.board_status='Transport Status: OFF'
+            time.sleep(1)
 
             self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
             self.board_status=_("Transport Status: CONFIG OK")
