@@ -685,7 +685,7 @@ class station():
             self.boardslug= "BT_fixed"
 
 
-    def configurestation(self,transport="serial",board_slug=None):
+    def configurestation(self,board_slug=None):
         """
         configure the board with those steps:
         * reset configuration
@@ -694,32 +694,21 @@ class station():
         """
 
         try:
-            self.stoptransport()
-        except:
-            pass
-
-        try:
+            self.starttransport()
             if board_slug is None:
                 board_slug=self.boardslug
             rmap.rmap_core.configstation(station_slug=self.slug,
                             board_slug=board_slug,
-                            transport=transport,
+                            transport=self.transport,
                             logfunc=self.log)
-
-            #jsonrpcproxy=jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),self.transport)
-            #jsonrpcproxy.configure(reset=True)
-            #for driver in self.drivers:
-            #    print "configure: ",driver
-
-            #    if driver["driver"] == "JRPC":
-
-            #        jsonrpcproxy.configure(driver="I2C",node=driver["node"],type=driver["type"],address=driver["address"],\
-            #                    mqttpath=driver["timerange"]+"/"+driver["level"]+"/")
-            #jsonrpcproxy.configure(save=True)
 
         except:
             print "error in configure:"
             raise
+
+        finally:
+            self.stoptransport()
+
 
     def sensorssetup(self):
         """

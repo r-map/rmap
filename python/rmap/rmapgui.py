@@ -1502,16 +1502,19 @@ class Rmap(App):
 
     def boardconfigure(self):
 
-        #self.root.ids["transport"].state="down"
-
         try:
-            #self.mystation.starttransport()
+            # this stop transport if active (configure restart transport and stop it at the end)
+            self.root.ids["transport"].state="normal"
+            self.board_status='Transport Status: OK'
+
             self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
             self.board_status=_("Transport Status: CONFIG OK")
             #self.mystation.stoptransport()
         except:
             self.board_status=_("Transport Status: CONFIG ERROR")
             self.popup(_("ERROR configure\nboard"))
+
+
 
 
     def getdata(self):

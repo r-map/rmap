@@ -29,8 +29,8 @@ from rmap.utils import nint
 from rmap import jsonrpc
 
 
-def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
-                  device=None,baudrate=None,host=None,rpcproxy=None):
+def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
+                  device=None,baudrate=None,host=None,transport=None):
 
     mystation=StationMetadata.objects.get(slug=station_slug)
 
@@ -45,7 +45,7 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
         if board_slug is not None and board.slug != board_slug:
             continue
 
-        if transport == "amqp":
+        if transport_name == "amqp":
             try:
                 if ( board.transportamqp.active):
                     print "AMQP Transport", board.transportamqp
@@ -65,9 +65,9 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
                 return
 
 
-        if rpcproxy is None:
+        if transport is None:
 
-            if transport == "serial":
+            if transport_name == "serial":
                 try:
                     if ( board.transportserial.active):
                         print "Serial Transport", board.transportserial
@@ -79,14 +79,13 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
                             mybaudrate=baudrate
 
                         transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
-                        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
 
                 except ObjectDoesNotExist:
                     print "transport serial not present for this board"
                     return
 
 
-            if transport == "tcpip":
+            if transport_name == "tcpip":
                 try:
                     if ( board.transporttcpip.active):
                         print "TCP/IP Transport", board.transporttcpip
@@ -96,13 +95,12 @@ def configstation(transport="serial",station_slug=None,board_slug=None,logfunc=j
                             myhost=host
 
                         transport=jsonrpc.TransportTcpIp(logfunc=logfunc,addr=(myhost,1000),timeout=5)
-                        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
 
                 except ObjectDoesNotExist:
                     print "transport TCPIP not present for this board"
                     return
 
-
+        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
         if (rpcproxy is None): return
 
         print ">>>>>>> reset config"

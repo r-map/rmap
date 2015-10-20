@@ -158,7 +158,7 @@ if args.list_boards:
 
 if args.config_station:
 
-    rmap.rmap_core.configstation(transport=args.transport,station_slug=args.station_slug,
+    rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
                                  device=args.device,baudrate=args.baudrate,host=args.host)
 
