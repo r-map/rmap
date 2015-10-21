@@ -56,6 +56,25 @@
 },
 {
   "fields": {
+    "mqttuser": "",
+    "board": [
+      "BT_fixed",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
     "active": true,
     "name": "HC-05",
     "board": [
@@ -69,6 +88,26 @@
     ]
   },
   "model": "stations.transportbluetooth"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "BT_fixed",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
 },
 {
   "fields": {
@@ -110,6 +149,25 @@
 },
 {
   "fields": {
+    "mqttuser": "",
+    "board": [
+      "BT_fixed_LINUX",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
     "active": true,
     "device": "/dev/rfcomm0",
     "baudrate": 9600,
@@ -124,6 +182,26 @@
     ]
   },
   "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "BT_fixed_LINUX",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
 },
 {
   "fields": {
@@ -165,6 +243,25 @@
 },
 {
   "fields": {
+    "mqttuser": "",
+    "board": [
+      "BT_fixed_OSX",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
     "active": true,
     "device": "/dev/tty.HC-05-DevB",
     "baudrate": 9600,
@@ -179,6 +276,26 @@
     ]
   },
   "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "BT_fixed_OSX",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
 },
 {
   "fields": {
@@ -220,6 +337,25 @@
 },
 {
   "fields": {
+    "mqttuser": "",
+    "board": [
+      "BT_fixed_WINDOWS",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
     "active": true,
     "device": "COM1",
     "baudrate": 9600,
@@ -234,6 +370,26 @@
     ]
   },
   "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "BT_fixed_WINDOWS",
+      [
+        "BT_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
 },
 {
   "fields": {

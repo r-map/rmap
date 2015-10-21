@@ -56,6 +56,25 @@
 },
 {
   "fields": {
+    "mqttuser": "",
+    "board": [
+      "BT_mobile",
+      [
+        "BT_mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
     "active": true,
     "name": "HC-05",
     "board": [
@@ -69,6 +88,26 @@
     ]
   },
   "model": "stations.transportbluetooth"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "BT_mobile",
+      [
+        "BT_mobile",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
 },
 {
   "fields": {
