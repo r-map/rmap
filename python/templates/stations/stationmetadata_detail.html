@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<h2>{{ object.name }}</h2>
+<h2>{% trans 'Station name' %}: {{ object.name }}</h2>
 <table border="1">
 
 <tr><td> Active </td>   <td> {{ object.active }} </td></tr>
@@ -17,11 +17,19 @@
 <h2>{% trans 'Display graph' %}</h2>
 <table border="1">
 
-sito:{{ site.domain }}/
-
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B12101.v>{% trans 'Temperature' %}</a></td></tr>
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B10004.v>{% trans 'Pressure' %}</a></td></tr>
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B13003.v>{% trans 'Humidity' %}</a></td></tr>
+<tr><th>{% trans 'Board name' %}</th></tr>
+{% trans 'access to site' %}: http://{{ site.domain }}/
+{% for board in object.board_set.all %}
+  {% if board.active  %}
+    <tr><td>{{ board.name }}</td>
+    {% for sensor in board.sensor_set.all %}
+    {% if sensor.active  %}
+      <td><a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon }}_{{ object.lat }}.generic.{{ sensor.timerange }}.{{ sensor.level}}.*.v>{{ sensor.name }}</a></td>
+    {% endif %}
+  {% endfor %}
+  </tr>
+  {% endif %}
+{% endfor %}
 
 </table>
 

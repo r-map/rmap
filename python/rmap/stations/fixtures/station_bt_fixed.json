@@ -10,7 +10,7 @@
     "lon": 0.0,
     "lat": 0.0,
     "mqttrootpath": "rmap",
-    "active": true,
+    "active": false,
     "slug": "BT_fixed",
     "network": "rmap"
   },
@@ -18,7 +18,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "bluetooth",
     "stationmetadata": [
       "BT_fixed",
@@ -111,7 +111,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "bluetooth",
     "stationmetadata": [
       "BT_fixed",
@@ -205,7 +205,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "bluetooth",
     "stationmetadata": [
       "BT_fixed",
@@ -299,7 +299,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "bluetooth",
     "stationmetadata": [
       "BT_fixed",
@@ -393,7 +393,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "base",
     "stationmetadata": [
       "BT_fixed",

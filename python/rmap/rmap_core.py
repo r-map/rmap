@@ -201,6 +201,9 @@ def export2json(objects):
 
 
 def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.cc",exchange="configuration"):
+
+    print "sendjson2amqp"
+
     objects=[]
 
     mystation=StationMetadata.objects.get(slug=station)
@@ -296,7 +299,9 @@ def configdb(username="your user",password="your password",
              amqppassword="your password",
              amqpserver="rmap.cc",
              queue="rmap",
-             exchange="rmap"):
+             exchange="rmap",
+             board=None,
+             activate=None):
 
     try:
         user = User.objects.create_user(username, username+'@rmap.cc', password)            
@@ -316,7 +321,7 @@ def configdb(username="your user",password="your password",
         mystation.ident=user
         mystation.lat=lat
         mystation.lon=lon
-        mystation.active=True
+        if not activate is None: mystation.active=activate
         mystation.save()
             
     except:
@@ -346,46 +351,52 @@ def configdb(username="your user",password="your password",
         except:
             pass
 
-    for board in mystation.board_set.all():
-        print "elaborate board: ",board
-        
-        if not board.active: continue
+    for myboard in mystation.board_set.all():
+        print "elaborate board: ",myboard
+
+        if board is None:
+            if not myboard.active: continue
+        else:
+            if not myboard.slug == board: continue
+            if not activate is None: myboard.active=activate
+            myboard.save()
+
         try:
-            if ( board.transportmqtt.active):
-                print "MQTT Transport", board.transportmqtt
+            if ( myboard.transportmqtt.active):
+                print "MQTT Transport", myboard.transportmqtt
                 
-                board.transportmqtt.mqttserver=mqttserver
-                board.transportmqtt.mqttuser=mqttusername
-                board.transportmqtt.mqttpassword=mqttpassword
-                board.transportmqtt.mqttsampletime=mqttsamplerate
-                board.transportmqtt.save()
+                myboard.transportmqtt.mqttserver=mqttserver
+                myboard.transportmqtt.mqttuser=mqttusername
+                myboard.transportmqtt.mqttpassword=mqttpassword
+                myboard.transportmqtt.mqttsampletime=mqttsamplerate
+                myboard.transportmqtt.save()
                 
         except ObjectDoesNotExist:
             print "transport MQTT not present for this board"
 
 
         try:
-            if ( board.transportbluetooth.active):
-                print "bluetooth Transport", board.transportbluetooth
+            if ( myboard.transportbluetooth.active):
+                print "bluetooth Transport", myboard.transportbluetooth
 
-                board.transportbluetooth.name=bluetoothname
-                board.transportbluetooth.save()
+                myboard.transportbluetooth.name=bluetoothname
+                myboard.transportbluetooth.save()
 
         except ObjectDoesNotExist:
             print "transport Bluetooth not present for this board"
 
         try:
-            if ( board.transportamqp.active):
-                print "AMQP Transport", board.transportamqp
+            if ( myboard.transportamqp.active):
+                print "AMQP Transport", myboard.transportamqp
 
-                board.transportamqp.amqpuser=amqpusername
-                board.transportamqp.amqppassword=amqppassword
+                myboard.transportamqp.amqpuser=amqpusername
+                myboard.transportamqp.amqppassword=amqppassword
                 
-                board.transportamqp.amqpserver=amqpserver
-                board.transportamqp.queue=queue
-                board.transportamqp.exchange=exchange
+                myboard.transportamqp.amqpserver=amqpserver
+                myboard.transportamqp.queue=queue
+                myboard.transportamqp.exchange=exchange
                 
-                board.transportamqp.save()
+                myboard.transportamqp.save()
 
         except ObjectDoesNotExist:
             print "transport AMQP not present for this board"

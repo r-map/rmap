@@ -292,9 +292,9 @@ ScreenManager:
         MapView:
             #on_map_relocated: app.map_relocated(self.lat,self.lon)
             id: mapview
-            lat: 45.
-            lon: 11.
-            zoom: 8
+            lat: 42.
+            lon: 13.
+            zoom: 5
             #size_hint: .5, .5
             #pos_hint: {"x": .25, "y": .25}
 
@@ -567,7 +567,7 @@ ScreenManager:
                 Button:
                     id: configure
                     text: app.str_setup
-                    on_release: app.boardconfigure()
+                    on_release: app.configurestation()
                 Button:
                     id: getdata
                     text: app.str_getdata
@@ -946,23 +946,7 @@ class Rmap(App):
         self.getdataerror=0
         self.getdataer=0
 
-        self.config2db()
-
         self.gps = plyergps(call_on_location=self.on_location,call_on_status=self.on_status)
-        try:
-            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                           slug=self.config.get('sensors','station'),
-                                           boardslug=self.config.get('sensors','board'),
-                                           logfunc=jsonrpc.log_stdout)
-        except:
-            # retry with default; this happen when DB was modified and is not in sync with config
-            self.config.set('sensors', 'station',station_default)
-            self.config.set('sensors', 'board',board_default)
-            self.config.write()
-            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                           slug=self.config.get('sensors','station'),
-                                           boardslug=self.config.get('sensors','board'),
-                                           logfunc=jsonrpc.log_stdout)
 
         if  os.path.isfile("servicerunning"):
             try:
@@ -985,27 +969,10 @@ class Rmap(App):
 
         root= Builder.load_string(kv)
 
-        # add listview widget
-        lang=self.config.get('general','language')
-        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
-        self.present_weather_widget=PresentwView(self.present_weather_table)
-        root.ids["presentwtab"].add_widget(self.present_weather_widget)
-
-        root.ids["queue"].text=self.queue2str()
-
         #root = ScreenManager()
         #root.add_widget(LocationScreen())
         #root.add_widget(DataScreen())
         #root.add_widget(PublishScreen())
-
-        try:
-            rmap.rmap_core.sendjson2amqp(
-                station=self.config.get('sensors','station'),
-                user=self.config.get('rmap','user'),
-                password=self.config.get('rmap','password'),
-                host=self.config.get('rmap','server'))
-        except:
-            print _("WARNING: data not synced with server")
 
         return root
 
@@ -1068,6 +1035,65 @@ class Rmap(App):
         self.str_Location=_("Location")
         self.str_Publish=_("Publish")
 
+
+    def on_start(self):
+        '''Event handler for the `on_start` event which is fired after
+        initialization (after build() has been called) but before the
+        application has started running.
+        '''
+
+        try:
+            #sync data from config to db and preserve active status
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+            self.config2db(activate=self.mystation.active)
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+
+
+        except rmapstation.Rmapdonotexist:
+            # retry with default; this happen when DB was modified and is not in sync with config
+            self.config.set('sensors', 'station',station_default)
+            self.config.set('sensors', 'board',board_default)
+            self.config.write()
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+
+        except:
+            print "ERROR: cannot get a good station from DB !"
+            #raise SystemExit(0)
+            raise
+
+
+        # add listview widget
+        lang=self.config.get('general','language')
+        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
+        self.present_weather_widget=PresentwView(self.present_weather_table)
+        self.root.ids["presentwtab"].add_widget(self.present_weather_widget)
+
+        self.root.ids["queue"].text=self.queue2str()
+
+
+        if self.mystation.active:
+
+            try:
+                rmap.rmap_core.sendjson2amqp(
+                    station=self.config.get('sensors','station'),
+                    user=self.config.get('rmap','user'),
+                    password=self.config.get('rmap','password'),
+                    host=self.config.get('rmap','server'))
+            except:
+                print _("WARNING: data not synced with server")
+                self.popup(_("data not\nsynced with server"))
+
+        else:
+            self.open_settings()
 
     def on_stop(self):
         '''
@@ -1205,31 +1231,29 @@ class Rmap(App):
                 print('sensors station have been changed to', value)
 
                 mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
-                board=mystation.board_set.filter(active=True)[0]
+                #board=mystation.board_set.filter(active=True)[0]
+                #TODO check for no boards
+                board=mystation.board_set.all()[0]
                 config.set('sensors', 'board', str(board.slug))
-                self.config.write()
-
-                self.close_settings()
-                self.destroy_settings()
-                self.open_settings()
+                config.set('sensors', 'remote_board', str(board.slug))
                 sensorschanged = True
+
             elif token == ('sensors', 'board'):
                 print('sensors board have been changed to', value)
                 sensorschanged = True
 
+            if locationchanged:
+                print "update location with new parameter"
+
+                self.config2db(activate=True)
+
+                self.location=self.config.get('location','name')
+                self.lon=float(self.config.get('location','lon'))
+                self.lat=float(self.config.get('location','lat'))
+                self.height=float(self.config.get('location','height'))
+
 
             if rmapchanged or locationchanged or sensorschanged:
-                self.config2db()
-                try:
-                    rmap.rmap_core.sendjson2amqp(
-                        station=self.config.get('sensors','station'),
-                        user=self.config.get('rmap','user'),
-                        password=self.config.get('rmap','password'),
-                        host=self.config.get('rmap','server'))
-                except:
-                    self.popup(_("data not\nsynced with server"))
-
-            if rmapchanged or sensorschanged:
                 connected=self.mqtt_connected
                 if connected:
                     print "disconnect MQTT with old parameter"
@@ -1240,6 +1264,29 @@ class Rmap(App):
                                                        slug=self.config.get('sensors','station'),
                                                        boardslug=self.config.get('sensors','board'),
                                                        logfunc=jsonrpc.log_stdout)
+
+                    #TODO: get name and height from DB
+                    #self.location=self.config.get('location','name')
+                    #self.height=float(self.config.get('location','height'))
+
+                    self.lon=self.mystation.lon
+                    self.lat=self.mystation.lat
+
+                    self.config.set('location', 'name',self.location)
+                    self.config.set('location', 'lat',self.lat)
+                    self.config.set('location', 'lon',self.lon)
+                    self.config.set('location', 'height',self.height)
+                    self.config.write()
+
+                    self.updatelocation()
+
+                    if token == ('sensors', 'station'):
+                        self.config.write()
+                        self.close_settings()
+                        self.destroy_settings()
+                        self.open_settings()
+
+
                 except:
                     print "ERROR recreating rmapstaton.station"
 
@@ -1247,22 +1294,31 @@ class Rmap(App):
                     print "reconnect MQTT with new parameter"
                     self.startmqtt()
 
-            if locationchanged:
-                print "save location with new parameter"
+                self.config2db()
 
-                self.location=self.config.get('location','name')
-                self.lon=float(self.config.get('location','lon'))
-                self.lat=float(self.config.get('location','lat'))
-                self.height=float(self.config.get('location','height'))
 
-                self.updatelocation()
+                if self.mystation.active:
+                    try:
+                        rmap.rmap_core.sendjson2amqp(
+                            station=self.config.get('sensors','station'),
+                            user=self.config.get('rmap','user'),
+                            password=self.config.get('rmap','password'),
+                            host=self.config.get('rmap','server'))
+                    except:
+                        self.popup(_("data not\nsynced with server"))
+
 
             if languagechanged:
                 self.popup(_("Restart APP\nneeded"),exit=True)
 
 
 
-    def config2db(self):
+    def config2db(self,activate=False,board=None):
+
+        if board is None:
+            myboard=self.config.get('sensors','board')
+        else:
+            myboard=board
 
         try:
 
@@ -1270,7 +1326,7 @@ class Rmap(App):
                 username=self.config.get('rmap','user'),
                 password=self.config.get('rmap','password'),
                 station=self.config.get('sensors','station'),
-                lat=self.lat,lon=self.lon,
+                lat=self.config.get('location','lat'),lon=self.config.get('location','lon'),
                 constantdata={"B01019":self.config.get('location','name'),
                               "B07030":self.config.get('location','height')},
                 mqttusername=self.config.get('rmap','user'),
@@ -1282,7 +1338,9 @@ class Rmap(App):
                 amqppassword=self.config.get('rmap','password'),
                 amqpserver=self.config.get('rmap','server'),
                 queue="rmap",
-                exchange="rmap")
+                exchange="rmap",
+                board=myboard,
+                activate=activate)
 
         except:
             self.popup(_("Error\nsetting station"))
@@ -1337,12 +1395,15 @@ class Rmap(App):
         '''
 
         stations=[]
-        for station in StationMetadata.objects.filter(active=True):
+        #for station in StationMetadata.objects.filter(active=True):
+        for station in StationMetadata.objects.all():
             stations.append(str(station.slug))
 
         mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
+
         boards=[]
-        for board in mystation.board_set.filter(active=True):
+        #for board in mystation.board_set.filter(active=True):
+        for board in mystation.board_set.all():
             boards.append(str(board.slug))
 
         jsongeneral = """
@@ -1500,7 +1561,7 @@ class Rmap(App):
             self.board_status='Transport Status: ERROR'
 
 
-    def boardconfigure(self):
+    def configurestation(self):
 
         try:
             # this stop transport if active (configure restart transport and stop it at the end)
@@ -1510,8 +1571,20 @@ class Rmap(App):
                 self.stoptransport()
             except:
                 pass
+
+            self.config2db(activate=True,board=self.config.get('sensors','remote_board'))
             self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
             self.board_status=_("Transport Status: CONFIG OK")
+
+            try:
+                rmap.rmap_core.sendjson2amqp(
+                    station=self.config.get('sensors','station'),
+                    user=self.config.get('rmap','user'),
+                    password=self.config.get('rmap','password'),
+                    host=self.config.get('rmap','server'))
+            except:
+                self.popup(_("data not\nsynced with server"))
+
             #self.mystation.stoptransport()
         except:
             self.board_status=_("Transport Status: CONFIG ERROR")
@@ -1826,7 +1899,7 @@ class Rmap(App):
 
             #refresh config tabs
             self.destroy_settings()
-            self.config2db()
+            self.config2db(activate=True)
             try:
                 rmap.rmap_core.sendjson2amqp(
                     station=self.config.get('sensors','station'),

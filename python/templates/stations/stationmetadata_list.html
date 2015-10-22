@@ -9,15 +9,19 @@
       <table border="1">
 	<tr>
 	  <th>Short name</th>
-	  <th>Active</th>
 	  <th>Ident</th>
+	  <th>Lat</th>
+	  <th>Lon</th>
+	  <th>Category</th>
 	</tr>
         {% for station in object_list %}
 	  {% if station.active  %}
 	    <tr>
               <td> <a href={{ station.slug}}>{{ station.name }}</a> </td>
-	      <td> {{ station.active}}</td>
 	      <td> {{ station.ident}}</td>
+	      <td> {{ station.lat}}</td>
+	      <td> {{ station.lon}}</td>
+	      <td> {{ station.category}}</td>
 	    </tr>
 	  {% endif %}
 	{% empty %}

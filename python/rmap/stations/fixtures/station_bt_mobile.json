@@ -10,7 +10,7 @@
     "lon": 0.0,
     "lat": 0.0,
     "mqttrootpath": "mobile",
-    "active": true,
+    "active": false,
     "slug": "BT_mobile",
     "network": "rmap"
   },

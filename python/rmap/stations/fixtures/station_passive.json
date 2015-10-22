@@ -10,7 +10,7 @@
     "lon": 0.0,
     "lat": 0.0,
     "mqttrootpath": "rmap",
-    "active": true,
+    "active": false,
     "slug": "passive",
     "network": "rmap"
   },
@@ -18,7 +18,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "master",
     "stationmetadata": [
       "passive",
@@ -34,7 +34,7 @@
 {
   "fields": {
     "node": 1,
-    "name": "temperature",
+    "name": "Temperature",
     "level": "103,8,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
@@ -115,7 +115,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "satellite",
     "stationmetadata": [
       "passive",
@@ -189,7 +189,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "base",
     "stationmetadata": [
       "passive",
@@ -283,6 +283,23 @@
     ]
   },
   "model": "stations.transporttcpip"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "rmapgui",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
 },
 {
   "fields": {

@@ -18,7 +18,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "base",
     "stationmetadata": [
       "home",
@@ -103,6 +103,43 @@
 {
   "fields": {
     "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
+},
+{
+  "fields": {
+    "active": false,
     "category": "master",
     "stationmetadata": [
       "home",
@@ -235,7 +272,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "satellite",
     "stationmetadata": [
       "home",

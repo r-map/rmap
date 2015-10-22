@@ -83,8 +83,9 @@ if args.wizard:
     if (args.username is None or
         args.password is None or
         args.lon is None or
-        args.lat is None):
-        print " selected wizard without username or password or lat or lon"
+        args.lat is None or
+        args.board_slug is None):
+        print " selected wizard without username or password or lat or lon or board"
         raise SystemExit(1)
 
 
@@ -105,7 +106,9 @@ if args.wizard:
                             amqppassword=args.password,
                             amqpserver=args.server,
                             queue=args.queue,
-                            exchange=args.exchange)
+                            exchange=args.exchange,
+                            board=args.board_slug,
+                            activate=True)
 
     print "END of wizard configuration"
 
@@ -160,6 +163,6 @@ if args.config_station:
 
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 device=args.device,baudrate=args.baudrate,host=args.host)
+                                 device=args.device,baudrate=args.baudrate,host=args.host,activate=True)
 
     print "END of station configuration"

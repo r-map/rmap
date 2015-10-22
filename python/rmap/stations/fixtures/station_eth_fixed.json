@@ -18,7 +18,7 @@
 },
 {
   "fields": {
-    "active": true,
+    "active": false,
     "category": "master",
     "stationmetadata": [
       "ETH_fixed",
@@ -151,7 +151,39 @@
 },
 {
   "fields": {
+    "active": false,
+    "category": "base",
+    "stationmetadata": [
+      "ETH_fixed",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "rmapgui",
+    "slug": "rmapgui"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
     "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "rmapgui",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "active": false,
     "category": "satellite",
     "stationmetadata": [
       "ETH_fixed",

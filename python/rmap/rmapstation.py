@@ -67,6 +67,8 @@ class JSONEncoder(json.JSONEncoder):
 def dumps(o):
     return json.dumps(o, cls=JSONEncoder)
 
+class Rmapdonotexist(Exception):
+    pass
 
 
 def log_dummy( message ):
@@ -396,6 +398,7 @@ class station():
         do all startup operations
         '''
 
+        print "INITIALIZE rmap station"
         self.picklefile=picklefile
 
         self.anavarlist=[]
@@ -449,11 +452,11 @@ class station():
             mystation=StationMetadata.objects.get(slug=self.slug)
         except ObjectDoesNotExist:
             print "not existent station in db: do nothing!"
-            raise SystemExit(0)
+            #raise SystemExit(0)
+            raise Rmapdonotexist("not existent station in db")
 
         if not mystation.active:
-            print "disactivated station: do nothing!"
-            raise SystemExit(0)
+            print "Warning: disactivated station!"
 
         self.lon=mystation.lon
         self.lat=mystation.lat
@@ -462,6 +465,7 @@ class station():
         self.maintprefix=mystation.mqttmaintpath
         self.network=mystation.network
         self.transport_name=None
+        self.active=mystation.active
 
         for cdata in mystation.stationconstantdata_set.all():
             print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> constant data: ", cdata.btable
@@ -472,7 +476,7 @@ class station():
         self.drivers=[]
 
 
-        print "get infor for BOARD:", self.boardslug
+        print "get info for BOARD:", self.boardslug
         for board in mystation.board_set.all().filter(slug=self.boardslug):
             print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name
             if not board.active: continue
@@ -1002,7 +1006,7 @@ class station():
         """
         start transport
         """
-        print ">>>>>>> start transport"
+        print ">>>>>>> start transport ",self.transport_name
 
         if self.transport_name == "bluetooth":
             print "start bluetooth"
