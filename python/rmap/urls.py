@@ -38,7 +38,10 @@ urlpatterns = patterns('',
     url(r'^auth/auth',     'rmap.views.auth'),
     url(r'^auth/superuser','rmap.views.superuser'),
     url(r'^auth/acl',      'rmap.views.acl'),
-    url(r'^accounts/profile',      'rmap.views.profile'),
+
+
+    url(r'^accounts/profile/$',      'rmap.views.profile'),
+    url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      'rmap.views.profile_details'),
 
     url(r'^http2mqtt/', include('http2mqtt.urls')),
 )

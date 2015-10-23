@@ -14,6 +14,7 @@ import rabbitshovel
 import network
 from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
+from rmap.stations.models import StationMetadata
 
 MAINSITE="rmapv.rmap.cc"
 
@@ -252,8 +253,14 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def profile(request):
-    # View code here...
-    return render(request, 'profile.html')
+    stations=StationMetadata.objects.filter(active=True,ident__username=request.user.get_username())
+    return render(request, 'profile.html',{ 'ident' : "pat1","stations":stations})
+
+@login_required
+def profile_details(request,mystation_slug):
+
+    mystation=StationMetadata.objects.get(slug=mystation_slug)
+    return render(request, 'profile_details.html',{"mystation":mystation})
 
 #def profile(request):
 #    html = "<html><body>This is your personal page. TODO</body></html>"

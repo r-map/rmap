@@ -1313,7 +1313,7 @@ class Rmap(App):
 
 
 
-    def config2db(self,activate=False,board=None):
+    def config2db(self,activate=None,board=None):
 
         if board is None:
             myboard=self.config.get('sensors','board')

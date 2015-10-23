@@ -17,14 +17,27 @@
 <h2>{% trans 'Display graph' %}</h2>
 <table border="1">
 
-<tr><th>{% trans 'Board name' %}</th></tr>
+<tr>
+<th>{% trans 'Board name' %}</th>
+<th>{% trans 'Variable' %}</th>
+<th>{% trans 'Report' %}</th>
+<th>{% trans 'Sample' %}</th>
+</tr>
 {% trans 'access to site' %}: http://{{ site.domain }}/
 {% for board in object.board_set.all %}
   {% if board.active  %}
     <tr><td>{{ board.name }}</td>
     {% for sensor in board.sensor_set.all %}
     {% if sensor.active  %}
-      <td><a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon }}_{{ object.lat }}.generic.{{ sensor.timerange }}.{{ sensor.level}}.*.v>{{ sensor.name }}</a></td>
+      <td>
+	{{ sensor.name }} 
+      </td>
+      <td>
+	<a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+      </td>
+      <td>
+	<a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+      </td>
     {% endif %}
   {% endfor %}
   </tr>
@@ -34,3 +47,4 @@
 </table>
 
 {% endblock %}
+report.pat1.1100000_4400000.rmap.0_0_60.103_1_-_-.B12101.v

@@ -7,6 +7,7 @@ from django.db.models import permalink
 from django.db.models import Q
 
 from  django import VERSION as djversion
+from rmap.utils import nint
 
 if ((djversion[0] == 1 and djversion[1] >= 3) or 
     djversion[0] > 1):
@@ -84,6 +85,12 @@ class Sensor(models.Model):
     level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
 
     board = models.ForeignKey('Board')
+
+    def underscored_timerange(self):
+        return self.timerange.replace(',','_')
+
+    def underscored_level(self):
+        return self.level.replace(',','_')
 
     def natural_key(self):
         #print "natural key sensor"
@@ -533,6 +540,8 @@ class StationMetadata(models.Model):
     mqttmaintpath = models.CharField(max_length=100,default="rmap",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
     category = models.CharField(max_length=50, choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
 
+    def lon_lat(self):
+        return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
     def natural_key(self):
         #print "StationMetadata natural_key"

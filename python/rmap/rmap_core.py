@@ -321,7 +321,8 @@ def configdb(username="your user",password="your password",
         mystation.ident=user
         mystation.lat=lat
         mystation.lon=lon
-        if not activate is None: mystation.active=activate
+        if not (activate is None): mystation.active=activate
+        print "ecco ----------------------->",mystation.active
         mystation.save()
             
     except:
@@ -358,7 +359,7 @@ def configdb(username="your user",password="your password",
             if not myboard.active: continue
         else:
             if not myboard.slug == board: continue
-            if not activate is None: myboard.active=activate
+            if not (activate is None): myboard.active=activate
             myboard.save()
 
         try:
