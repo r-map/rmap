@@ -163,6 +163,6 @@ if args.config_station:
 
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 device=args.device,baudrate=args.baudrate,host=args.host,activate=True)
+                                 device=args.device,baudrate=args.baudrate,host=args.host)
 
     print "END of station configuration"

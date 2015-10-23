@@ -322,7 +322,6 @@ def configdb(username="your user",password="your password",
         mystation.lat=lat
         mystation.lon=lon
         if not (activate is None): mystation.active=activate
-        print "ecco ----------------------->",mystation.active
         mystation.save()
             
     except:

@@ -26,22 +26,22 @@
 {% trans 'access to site' %}: http://{{ site.domain }}/
 {% for board in object.board_set.all %}
   {% if board.active  %}
-    <tr><td>{{ board.name }}</td>
     {% for sensor in board.sensor_set.all %}
-    {% if sensor.active  %}
-      <td>
-	{{ sensor.name }} 
-      </td>
-      <td>
-	<a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
-      </td>
-      <td>
-	<a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
-      </td>
-    {% endif %}
-  {% endfor %}
-  </tr>
-  {% endif %}
+      <tr><td>{{ board.name }}</td>
+      {% if sensor.active  %}
+        <td>
+	  {{ sensor.name }} 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+      {% endif %}
+    </tr>
+   {% endfor %}
+ {% endif %}
 {% endfor %}
 
 </table>
