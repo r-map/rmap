@@ -20,14 +20,14 @@ def publish(request):
         topic = request.GET["topic"]
     except KeyError:
         response.write("please set topic")
-        response.status_code=500
+        #response.status_code=500
         return response
 
     try:
         payload = request.GET["payload"]
     except KeyError:
         response.write("please set payload")
-        response.status_code=500
+        #response.status_code=500
         return response
 
     try:
@@ -48,9 +48,8 @@ def publish(request):
             auth={"username": user, "password": password}
         paho.mqtt.publish.single(
             topic, payload=payload, qos=1, hostname="localhost", port=1883,
-            client_id="http2mqtt Client",
-            auth=auth,
-        )
+            client_id="http2mqtt Client",auth=auth)
+
     except Exception as e:
         response.write(str(e))
         #response.write("MQTT error")

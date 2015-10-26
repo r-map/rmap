@@ -9,7 +9,10 @@ remove:
 rmap.sqlite3
 saveddata-service.pickle
 cache
-and config.ini in site-package/rmap
+in lib/site-package/rmap
+and rmap.ini 
+
+7zip -> aggiungi all'archivio -> formato 7z -lzma2 -> crea archvio autoestraente
 
 
 Upgrade in all system should be done with:
