@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include <Time.h>
 //#include <inttypes.h>
+#include "IPAddress.h"
 
 // activate debug on serial port
 #define DEBUGONSERIAL

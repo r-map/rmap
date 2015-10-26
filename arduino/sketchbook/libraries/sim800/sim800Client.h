@@ -13,7 +13,7 @@ class sim800Client : public SIM800 {
   // etherclient compatibility
   //
 
-  int connect(uint8_t *ip, int port);
+  int connect(IPAddress ip, int port);
   int connect(const char *host, int port);
   uint8_t connected();
   int available();
@@ -21,6 +21,7 @@ class sim800Client : public SIM800 {
   //int read(uint8_t *buf, size_t size);
   size_t write(uint8_t);
   size_t write(const uint8_t *buf, size_t size);
+  void flush();
   void stop();
 
   bool transparentescape();

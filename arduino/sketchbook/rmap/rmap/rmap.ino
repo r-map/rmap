@@ -422,7 +422,7 @@ bool rmapconnect()
 #ifdef GSMGPRSMQTT
     char topiccom [SERVER_LEN+21];
     // TODO get IMEI code from sim800
-    sprintf(topiccom, "%s", "imeicode");
+    sprintf(topiccom, "%s/com", "imeicode");
 #endif
 
     mqttclient.subscribe(topiccom);
@@ -1946,9 +1946,9 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
 #endif
 
 #ifdef GSMGPRSMQTT
-    char topiccom [SERVER_LEN+21];
+    char topicres [SERVER_LEN+21];
     // TODO get IMEI code from sim800
-    sprintf(topiccom, "%s", "imeicode");
+    sprintf(topicres, "%s/res", "imeicode");
 #endif
 
   if (!mqttclient.publish(topicres,mainbuf)){
