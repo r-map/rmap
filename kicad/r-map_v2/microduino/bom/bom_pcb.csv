@@ -12,5 +12,5 @@ Item,Reference(s),Value,Quantity
 11,R2,150,1
 12,U1,Microduino,1
 13,U2,ESDA6V1-5SC6,1
-14,U3,LP2985LV,1
+14,U3,REG113NA-3.3/250,1
 15,U4,TMP275,1

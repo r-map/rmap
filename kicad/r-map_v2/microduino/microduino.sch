@@ -132,9 +132,9 @@ L LP2985LV U3
 U 1 1 548EC800
 P 5300 6400
 F 0 "U3" H 5500 5950 60  0000 C CNN
-F 1 "LP2985LV" H 5300 6850 60  0000 C CNN
+F 1 "REG113NA-3.3/250" H 5300 6850 60  0000 C CNN
 F 2 "w_smd_trans:sot23-5" H 5300 6400 60  0001 C CNN
-F 3 "http://www.ti.com/lit/ds/symlink/lp2985-n.pdf" H 5300 6400 60  0001 C CNN
+F 3 "http://it.farnell.com/harwin/d01-9973242/socket-sil-32-vie-circuito-pc/dp/Search?storeId=10165&catalogId=15001&categoryId=&categoryName=&langId=-4&st=REG113NA-3.3%2F250" H 5300 6400 60  0001 C CNN
 	1    5300 6400
 	1    0    0    -1  
 $EndComp
