@@ -5,8 +5,22 @@
     
     <section id="main_content">
 
-      <p><h3>Here your personal data</h3></p>
-      <p>TODO !</p>
+      <p><h3>{{ ident}} Here your personal data</h3></p>
+
+{% for station in  stations %}
+      <p>
+<h2><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></h2>
+<table border="1">
+
+<tr><td> Active </td>   <td> {{ station.active }} </td></tr>
+<tr><td> Ident </td>    <td> {{ station.ident }} </td></tr>
+<tr><td> Lat </td>      <td> {{ station.lat }} </td></tr>
+<tr><td> Lon </td>      <td> {{ station.lon }} </td></tr>
+<tr><td> Category </td> <td> {{ station.category }} </td></tr>
+
+</table>
+    </p> 
+{% endfor %}
 
     </section>
 

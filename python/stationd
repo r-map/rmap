@@ -65,7 +65,7 @@ def main ():
   signal(SIGINT, mystation.exit)
 
   try:
-    mystation.boot(configuresensors=False)
+    mystation.boot(configurestation=False)
     mystation.loopforever()
   except:
     print "error on boot/loopforever"

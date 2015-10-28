@@ -70,6 +70,7 @@ int SensorDriver::setup(const char* driver, const int address, const int node, c
   _network=network;
 
   _timing = 0;
+  _jsrpcid=0;
 
   return 0;
 }
@@ -319,9 +320,11 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
   aJson.addStringToObject(params, "type", _type);
   aJson.addNumberToObject(params, "address", _address);
   aJson.addItemToObject(rpc, "params", params);
-  aJson.addNumberToObject(rpc, "id", 0);
+  aJson.addNumberToObject(rpc, "id", _jsrpcid);
   aJson.print(rpc,_mainbuf, _lenbuf);
   aJson.deleteItem(rpc);
+
+  _jsrpcid++;
 
   //strcpy(_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"prepare\", \"params\": {\"type\":\"TMP\",\"address\": 72}, \"id\": 0}");
 
@@ -436,7 +439,7 @@ aJsonObject* SensorDriverRF24::getJson()
   aJson.addStringToObject(params, "type", _type);
   aJson.addNumberToObject(params, "address", _address);
   aJson.addItemToObject(rpc, "params", params);
-  aJson.addNumberToObject(rpc, "id", 0);
+  aJson.addNumberToObject(rpc, "id", _jsrpcid);
   aJson.print(rpc,_mainbuf, _lenbuf);
   aJson.deleteItem(rpc);
 

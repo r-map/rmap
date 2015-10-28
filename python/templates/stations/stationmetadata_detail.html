@@ -3,7 +3,7 @@
 
 {% block content %}
 
-<h2>{{ object.name }}</h2>
+<h2>{% trans 'Station name' %}: {{ object.name }}</h2>
 <table border="1">
 
 <tr><td> Active </td>   <td> {{ object.active }} </td></tr>
@@ -17,12 +17,34 @@
 <h2>{% trans 'Display graph' %}</h2>
 <table border="1">
 
-sito:{{ site.domain }}/
-
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B12101.v>{% trans 'Temperature' %}</a></td></tr>
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B10004.v>{% trans 'Pressure' %}</a></td></tr>
-<tr><td> <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.*.*.*.*.B13003.v>{% trans 'Humidity' %}</a></td></tr>
+<tr>
+<th>{% trans 'Board name' %}</th>
+<th>{% trans 'Variable' %}</th>
+<th>{% trans 'Report' %}</th>
+<th>{% trans 'Sample' %}</th>
+</tr>
+{% trans 'access to site' %}: http://{{ site.domain }}/
+{% for board in object.board_set.all %}
+  {% if board.active  %}
+    {% for sensor in board.sensor_set.all %}
+      <tr><td>{{ board.name }}</td>
+      {% if sensor.active  %}
+        <td>
+	  {{ sensor.name }} 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.generic.0_0_60.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=report.{{ object.ident }}.{{ object.lon_lat }}.generic.0_0_60.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+      {% endif %}
+    </tr>
+   {% endfor %}
+ {% endif %}
+{% endfor %}
 
 </table>
 
 {% endblock %}
+report.pat1.1100000_4400000.rmap.0_0_60.103_1_-_-.B12101.v

@@ -57,6 +57,7 @@ from kivy.lib import osc
 from kivy.utils import platform
 from kivy.uix.widget import Widget                                                              
 from utils import nint
+import rmap.rmap_core
 
 platform = platform()
 
@@ -291,9 +292,9 @@ ScreenManager:
         MapView:
             #on_map_relocated: app.map_relocated(self.lat,self.lon)
             id: mapview
-            lat: 45.
-            lon: 11.
-            zoom: 8
+            lat: 42.
+            lon: 13.
+            zoom: 5
             #size_hint: .5, .5
             #pos_hint: {"x": .25, "y": .25}
 
@@ -566,7 +567,7 @@ ScreenManager:
                 Button:
                     id: configure
                     text: app.str_setup
-                    on_release: app.boardconfigure()
+                    on_release: app.configurestation()
                 Button:
                     id: getdata
                     text: app.str_getdata
@@ -945,23 +946,7 @@ class Rmap(App):
         self.getdataerror=0
         self.getdataer=0
 
-        self.config2db()
-
         self.gps = plyergps(call_on_location=self.on_location,call_on_status=self.on_status)
-        try:
-            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                           slug=self.config.get('sensors','station'),
-                                           boardslug=self.config.get('sensors','board'),
-                                           logfunc=jsonrpc.log_stdout)
-        except:
-            # retry with default; this happen when DB was modified and is not in sync with config
-            self.config.set('sensors', 'station',station_default)
-            self.config.set('sensors', 'board',board_default)
-            self.config.write()
-            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                           slug=self.config.get('sensors','station'),
-                                           boardslug=self.config.get('sensors','board'),
-                                           logfunc=jsonrpc.log_stdout)
 
         if  os.path.isfile("servicerunning"):
             try:
@@ -983,14 +968,6 @@ class Rmap(App):
         Clock.schedule_once(self.backorfore, 0)
 
         root= Builder.load_string(kv)
-
-        # add listview widget
-        lang=self.config.get('general','language')
-        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
-        self.present_weather_widget=PresentwView(self.present_weather_table)
-        root.ids["presentwtab"].add_widget(self.present_weather_widget)
-
-        root.ids["queue"].text=self.queue2str()
 
         #root = ScreenManager()
         #root.add_widget(LocationScreen())
@@ -1058,6 +1035,65 @@ class Rmap(App):
         self.str_Location=_("Location")
         self.str_Publish=_("Publish")
 
+
+    def on_start(self):
+        '''Event handler for the `on_start` event which is fired after
+        initialization (after build() has been called) but before the
+        application has started running.
+        '''
+
+        try:
+            #sync data from config to db and preserve active status
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+            self.config2db(activate=self.mystation.active)
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+
+
+        except rmapstation.Rmapdonotexist:
+            # retry with default; this happen when DB was modified and is not in sync with config
+            self.config.set('sensors', 'station',station_default)
+            self.config.set('sensors', 'board',board_default)
+            self.config.write()
+            self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                           slug=self.config.get('sensors','station'),
+                                           boardslug=self.config.get('sensors','board'),
+                                           logfunc=jsonrpc.log_stdout)
+
+        except:
+            print "ERROR: cannot get a good station from DB !"
+            #raise SystemExit(0)
+            raise
+
+
+        # add listview widget
+        lang=self.config.get('general','language')
+        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
+        self.present_weather_widget=PresentwView(self.present_weather_table)
+        self.root.ids["presentwtab"].add_widget(self.present_weather_widget)
+
+        self.root.ids["queue"].text=self.queue2str()
+
+
+        if self.mystation.active:
+
+            try:
+                rmap.rmap_core.sendjson2amqp(
+                    station=self.config.get('sensors','station'),
+                    user=self.config.get('rmap','user'),
+                    password=self.config.get('rmap','password'),
+                    host=self.config.get('rmap','server'))
+            except:
+                print _("WARNING: data not synced with server")
+                self.popup(_("data not\nsynced with server"))
+
+        else:
+            self.open_settings()
 
     def on_stop(self):
         '''
@@ -1149,7 +1185,7 @@ class Rmap(App):
     def on_config_change(self, config, section, key, value):
         ''' called when config is changed '''
                                         
-        mqttchanged = False
+        rmapchanged = False
         locationchanged = False
         languagechanged = False
         boardchanged = False
@@ -1162,18 +1198,18 @@ class Rmap(App):
                 print('language have been changed to', value)
                 languagechanged = True
 
-            elif token == ('mqtt', 'mqttserver'):
-                print('mqttserver have been changed to', value)
-                mqttchanged = True
-            elif token == ('mqtt', 'user'):
+            elif token == ('rmap', 'server'):
+                print('server have been changed to', value)
+                rmapchanged = True
+            elif token == ('rmap', 'user'):
                 print('user have been changed to', value)
-                mqttchanged = True
-            elif token == ('mqtt', 'password'):
+                rmapchanged = True
+            elif token == ('rmap', 'password'):
                 print('password have been changed to', value)
-                mqttchanged = True
-            elif token == ('mqtt', 'samplerate'):
+                rmapchanged = True
+            elif token == ('rmap', 'samplerate'):
                 print('samplerate have been changed to', value)
-                mqttchanged = True
+                rmapchanged = True
 
             elif token == ('location', 'name'):
                 print('location name have been changed to', value)
@@ -1195,23 +1231,29 @@ class Rmap(App):
                 print('sensors station have been changed to', value)
 
                 mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
-                board=mystation.board_set.filter(active=True)[0]
+                #board=mystation.board_set.filter(active=True)[0]
+                #TODO check for no boards
+                board=mystation.board_set.all()[0]
                 config.set('sensors', 'board', str(board.slug))
-                self.config.write()
-
-                self.close_settings()
-                self.destroy_settings()
-                self.open_settings()
+                config.set('sensors', 'remote_board', str(board.slug))
                 sensorschanged = True
+
             elif token == ('sensors', 'board'):
                 print('sensors board have been changed to', value)
                 sensorschanged = True
 
+            if locationchanged:
+                print "update location with new parameter"
 
-            if mqttchanged or locationchanged or sensorschanged:
-                self.config2db()
+                self.config2db(activate=True)
 
-            if mqttchanged or sensorschanged:
+                self.location=self.config.get('location','name')
+                self.lon=float(self.config.get('location','lon'))
+                self.lat=float(self.config.get('location','lat'))
+                self.height=float(self.config.get('location','height'))
+
+
+            if rmapchanged or locationchanged or sensorschanged:
                 connected=self.mqtt_connected
                 if connected:
                     print "disconnect MQTT with old parameter"
@@ -1222,6 +1264,29 @@ class Rmap(App):
                                                        slug=self.config.get('sensors','station'),
                                                        boardslug=self.config.get('sensors','board'),
                                                        logfunc=jsonrpc.log_stdout)
+
+                    #TODO: get name and height from DB
+                    #self.location=self.config.get('location','name')
+                    #self.height=float(self.config.get('location','height'))
+
+                    self.lon=self.mystation.lon
+                    self.lat=self.mystation.lat
+
+                    self.config.set('location', 'name',self.location)
+                    self.config.set('location', 'lat',self.lat)
+                    self.config.set('location', 'lon',self.lon)
+                    self.config.set('location', 'height',self.height)
+                    self.config.write()
+
+                    self.updatelocation()
+
+                    if token == ('sensors', 'station'):
+                        self.config.write()
+                        self.close_settings()
+                        self.destroy_settings()
+                        self.open_settings()
+
+
                 except:
                     print "ERROR recreating rmapstaton.station"
 
@@ -1229,100 +1294,61 @@ class Rmap(App):
                     print "reconnect MQTT with new parameter"
                     self.startmqtt()
 
-            if locationchanged:
-                print "save location with new parameter"
+                self.config2db()
 
-                self.location=self.config.get('location','name')
-                self.lon=float(self.config.get('location','lon'))
-                self.lat=float(self.config.get('location','lat'))
-                self.height=float(self.config.get('location','height'))
 
-                self.updatelocation()
+                if self.mystation.active:
+                    try:
+                        rmap.rmap_core.sendjson2amqp(
+                            station=self.config.get('sensors','station'),
+                            user=self.config.get('rmap','user'),
+                            password=self.config.get('rmap','password'),
+                            host=self.config.get('rmap','server'))
+                    except:
+                        self.popup(_("data not\nsynced with server"))
+
 
             if languagechanged:
                 self.popup(_("Restart APP\nneeded"),exit=True)
 
 
 
-    def config2db(self):
+    def config2db(self,activate=None,board=None):
+
+        if board is None:
+            myboard=self.config.get('sensors','board')
+        else:
+            myboard=board
 
         try:
-            username=self.config.get('mqtt','user')
-            password=self.config.get('mqtt','password')
-            user = User.objects.create_user(username, username+'@rmap.cc', password)
-            
-            #trap IntegrityError for user that already exist
-        except IntegrityError:
-            pass
-        except:
-            self.popup(_("Error\nsetting user"))
 
-        try:
-            mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
-            user=User.objects.get(username=username)
-            
-            mystation.ident=user
-            mystation.lat=self.lat
-            mystation.lon=self.lon
-            mystation.active=True
-            mystation.save()
-            
+            rmap.rmap_core.configdb(
+                username=self.config.get('rmap','user'),
+                password=self.config.get('rmap','password'),
+                station=self.config.get('sensors','station'),
+                lat=self.config.get('location','lat'),lon=self.config.get('location','lon'),
+                constantdata={"B01019":self.config.get('location','name'),
+                              "B07030":self.config.get('location','height')},
+                mqttusername=self.config.get('rmap','user'),
+                mqttpassword=self.config.get('rmap','password'),
+                mqttserver=self.config.get('rmap','server'),
+                mqttsamplerate=float(self.config.get('rmap','samplerate')),
+                bluetoothname=self.config.get('sensors','name'),
+                amqpusername=self.config.get('rmap','user'),
+                amqppassword=self.config.get('rmap','password'),
+                amqpserver=self.config.get('rmap','server'),
+                queue="rmap",
+                exchange="rmap",
+                board=myboard,
+                activate=activate)
+
         except:
             self.popup(_("Error\nsetting station"))
-            return
 
-        try:
-            StationConstantData.objects.filter(stationmetadata=mystation,btable="B01019").delete()
-            StationConstantData.objects.filter(stationmetadata=mystation,btable="B07030").delete()
-        except:
-            pass
-
-        try:
-            s = mystation.stationconstantdata_set.create(
-                active=True,
-                btable="B01019",
-                value=self.config.get('location','name')
-            )
-            s = mystation.stationconstantdata_set.create(
-                active=True,
-                btable="B07030",
-                value=self.config.get('location','height')
-            )
-
-        except:
-            pass
-
-        for board in mystation.board_set.all():
-
-            if not board.active: continue
-            try:
-                if ( board.transportmqtt.active):
-                    print "MQTT Transport", board.transportmqtt
-
-                    board.transportmqtt.mqttserver=self.config.get('mqtt','mqttserver')
-                    board.transportmqtt.mqttuser=username
-                    board.transportmqtt.mqttpassword=password
-                    board.transportmqtt.mqttsampletime=float(self.config.get('mqtt','samplerate'))
-                    board.transportmqtt.save()
-
-            except ObjectDoesNotExist:
-                print "transport MQTT not present for this board"
-
-
-            try:
-                if ( board.transportbluetooth.active):
-                    print "bluetooth Transport", board.transportmqtt
-
-                    board.transportbluetooth.name=self.config.get('sensors','name')
-                    board.transportbluetooth.save()
-
-            except ObjectDoesNotExist:
-                print "transport Bluetooth not present for this board"
-
-                #except:
-                #    self.popup(_("Error\nin configure"))
-
-
+        #except Exception as e:
+        #    self.popup(str(e))
+                       #_("Error\nsetting user")
+                       #_("Error\nsetting station")
 
     def start_service(self,cmdservice="webserver"):
         if platform == 'android':
@@ -1342,10 +1368,10 @@ class Rmap(App):
             'language': 'it',
         })
 
-        config.setdefaults('mqtt', {
+        config.setdefaults('rmap', {
             'user': _("your user"),
             'password': _("your password"),
-            'mqttserver': 'rmap.cc',
+            'server': 'rmap.cc',
             'samplerate': 5.,
         })
 
@@ -1359,7 +1385,8 @@ class Rmap(App):
         config.setdefaults('sensors', {
             'name': 'HC-05',
             'station': station_default,
-            'board': board_default
+            'board': board_default,
+            'remote_board': "stima_bt"
         })
 
     def build_settings(self, settings):
@@ -1368,12 +1395,15 @@ class Rmap(App):
         '''
 
         stations=[]
-        for station in StationMetadata.objects.filter(active=True):
+        #for station in StationMetadata.objects.filter(active=True):
+        for station in StationMetadata.objects.all():
             stations.append(str(station.slug))
 
         mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
+
         boards=[]
-        for board in mystation.board_set.filter(active=True):
+        #for board in mystation.board_set.filter(active=True):
+        for board in mystation.board_set.all():
             boards.append(str(board.slug))
 
         jsongeneral = """
@@ -1396,27 +1426,27 @@ class Rmap(App):
       "title": "Rmap configuration" },
 
     { "type": "string",
-      "title": "MQTT user",
-      "desc": "MQTT user to connet to rmap server",
-      "section": "mqtt",
+      "title": "RMAP user",
+      "desc": "RMAP user to connet to rmap server",
+      "section": "rmap",
       "key": "user"},
 
     { "type": "string",
-      "title": "MQTT password",
-      "desc": "MQTT password to connet to rmap server",
-      "section": "mqtt",
+      "title": "RMAP password",
+      "desc": "RMAP password to connet to rmap server",
+      "section": "rmap",
       "key": "password"},
 
     { "type": "string",
-      "title": "MQTT server",
-      "desc": "MQTT server",
-      "section": "mqtt",
-      "key": "mqttserver"},
+      "title": "RMAP server",
+      "desc": "RMAP server",
+      "section": "rmap",
+      "key": "server"},
 
     { "type": "numeric",
       "title": "Sample Time",
       "desc": "Sample Time Frequecy (s.)",
-      "section": "mqtt",
+      "section": "rmap",
       "key": "samplerate"}
 
 ]
@@ -1479,6 +1509,14 @@ class Rmap(App):
       "key": "board",
       "options": 
         """ + str(boards).replace("'","\"") + """
+        },
+    { "type": "options",
+      "title": "Remote Board",
+      "desc": "remote board name",
+      "section": "sensors",
+      "key": "remote_board",
+      "options": 
+        """ + str(boards).replace("'","\"") + """
         }
 ]
         """
@@ -1523,16 +1561,36 @@ class Rmap(App):
             self.board_status='Transport Status: ERROR'
 
 
-    def boardconfigure(self):
-
-        self.root.ids["transport"].state="down"
+    def configurestation(self):
 
         try:
-            self.mystation.configuresensors()
+            # this stop transport if active (configure restart transport and stop it at the end)
+            self.root.ids["transport"].state="normal"
+            self.board_status='Transport Status: OFF'
+            try:
+                self.stoptransport()
+            except:
+                pass
+
+            self.config2db(activate=True,board=self.config.get('sensors','remote_board'))
+            self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
             self.board_status=_("Transport Status: CONFIG OK")
+
+            try:
+                rmap.rmap_core.sendjson2amqp(
+                    station=self.config.get('sensors','station'),
+                    user=self.config.get('rmap','user'),
+                    password=self.config.get('rmap','password'),
+                    host=self.config.get('rmap','server'))
+            except:
+                self.popup(_("data not\nsynced with server"))
+
+            #self.mystation.stoptransport()
         except:
             self.board_status=_("Transport Status: CONFIG ERROR")
             self.popup(_("ERROR configure\nboard"))
+
+
 
 
     def getdata(self):
@@ -1541,10 +1599,11 @@ class Rmap(App):
 
         try:
             self.mystation.now=datetime.utcnow()
-            datavar=self.mystation.getdata_loop(trip=self.trip)
+            datavars=self.mystation.getdata_loop(trip=self.trip)
             message=""
-            for bcode,data in datavar.iteritems():
-                message += str(self.table[bcode])+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
+            for datavar in datavars:
+                for bcode,data in datavar.iteritems():
+                    message += str(self.table[bcode])+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
 
             self.boardmessage.append(message)
             self.boardmessage=self.boardmessage[-20:]
@@ -1572,7 +1631,7 @@ class Rmap(App):
         #update trip inside mystation
         #self.mystation.trip=self.trip
         self.mygetdata_loop=self.getdata_loop
-        Clock.schedule_interval(self.mygetdata_loop, float(self.config.get('mqtt','samplerate')))
+        Clock.schedule_interval(self.mygetdata_loop, float(self.config.get('rmap','samplerate')))
 
     def sampleoff(self):
         Clock.unschedule(self.mygetdata_loop)
@@ -1714,7 +1773,7 @@ class Rmap(App):
 #            browser=Wv()
 #            browser.open("http://rmap.cc/registrazione/register/")
 #        else:
-            webbrowser.open("http://rmap.cc/registrazione/register/")
+            webbrowser.open("http://"+self.config.get('rmap','server')+"/registrazione/register/")
 
 
     def view(self):
@@ -1723,8 +1782,8 @@ class Rmap(App):
 #            browser=Wv()
 #            browser.open("http://graphite.rmapv.rmap.cc/render?width=800&height=600&from=-1hours&until=now&target=rmap.*.*.*.*.105_2_-_-.*.v")
 #        else:
-            webbrowser.open("http://graphite.rmapv.rmap.cc/render?width=400&height=400&from=-1hours&until=now&target=rmap."+
-                            self.config.get('mqtt','user')+".*.*.*.*.*.v")
+            webbrowser.open("http://localhost:8000/stations/"+self.config.get('sensors','station'))
+            webbrowser.open("http://"+self.config.get('rmap','server')+"/stations/"+self.config.get('sensors','station'))
 
     def starttrip(self):
         print self.mystation.prefix
@@ -1840,6 +1899,15 @@ class Rmap(App):
 
             #refresh config tabs
             self.destroy_settings()
+            self.config2db(activate=True)
+            try:
+                rmap.rmap_core.sendjson2amqp(
+                    station=self.config.get('sensors','station'),
+                    user=self.config.get('rmap','user'),
+                    password=self.config.get('rmap','password'),
+                    host=self.config.get('rmap','server'))
+            except:
+                self.popup(_("data not\nsynced with server"))
 
             try:
                 StationConstantData.objects.filter(stationmetadata=mystation,btable="B01019").delete()

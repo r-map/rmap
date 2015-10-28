@@ -23,8 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //Arduino Mega2560 switch
 #define FIRMWARE FIRMALL
 
-#include "common.h"
-
 // activate if you have an rtc present (too big program fo arduino uno)
 //#define RTCPRESENT
 // activate if you have an GPS + dedicated arduino for I2C query
@@ -38,3 +36,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define RADIORF24
 // activate if you have relays connected to some pins
 //#define ATTUATORE
+
+
+#include "common.h"
+

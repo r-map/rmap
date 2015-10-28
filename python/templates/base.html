@@ -90,6 +90,9 @@
 	  <a href="/stations">Stazioni</a>
 	  <ul>
 	    <li><a href="http:/stations">Visualizza stazioni</a></li>
+	    {% if user.is_authenticated %}
+	      <li><a href="http:/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
+            {% endif %}
 	  </ul>
 	</li>
 

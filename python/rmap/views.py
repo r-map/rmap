@@ -13,6 +13,8 @@ import settings
 import rabbitshovel
 import network
 from django.contrib.auth.decorators import login_required
+import rmap.rmap_core
+from rmap.stations.models import StationMetadata
 
 MAINSITE="rmapv.rmap.cc"
 
@@ -42,60 +44,31 @@ def wizard(request):
                 # process the data in form.cleaned_data as required
 
                 try:
+                    username = form.cleaned_data['username']
+                    password=form.cleaned_data['password']
+                    station_slug=form.cleaned_data['station']
+                    lat=form.cleaned_data['latitude']
+                    lon=form.cleaned_data['longitude']
 
-                    user = User.objects.create_user(form.cleaned_data['username'], form.cleaned_data['username']+'@casa.it', form.cleaned_data['password'])
-                    
-                #trap IntegrityError for user that already exist
-                except IntegrityError:
-                    pass
-                except:
-                    return HttpResponseRedirect('/wizard_error/')
+                    height=str(int(form.cleaned_data['height']*10))
+                    stationname=form.cleaned_data['stationname']
+                    constantdata={}
+                    constantdata["B01019"]=stationname
+                    constantdata["B07030"]=height
 
-
-                try:
-                    mystation=StationMetadata.objects.get(slug=form.cleaned_data['station'])
-                    user=User.objects.get(username=form.cleaned_data['username'])
-
-                    mystation.ident=user
-                    mystation.lat=float(form.cleaned_data['latitude'])
-                    mystation.lon=float(form.cleaned_data['longitude'])
-                    mystation.active=True
-                    mystation.save()
-
-                    for board in mystation.board_set.all():
-
-                        if not board.active: continue
-                        try:
-                            if ( board.transportamqp.active):
-                                print "AMQP Transport", board.transportamqp
-
-                                board.transportamqp.amqpuser=form.cleaned_data['username']
-                                board.transportamqp.amqppassword=form.cleaned_data['password']
-                                board.transportamqp.save()
-
-                                amqpserver =board.transportamqp.amqpserver
-                                amqpuser=board.transportamqp.amqpuser
-                                amqppassword=board.transportamqp.amqppassword
-                                queue=board.transportamqp.queue
-                                exchange=board.transportamqp.exchange
-
-                                sh=rabbitshovel.shovel(srcqueue=queue,destexchange=exchange,destserver=amqpserver)
-                                sh.delete()
-                                sh.create(destuser=amqpuser,destpassword=amqppassword)
-
-                        except ObjectDoesNotExist:
-                            print "transport AMQP not present for this board"
-
-                        try:
-                            if ( board.transportmqtt.active):
-                                print "MQTT Transport", board.transportmqtt
-
-                                board.transportmqtt.mqttuser=form.cleaned_data['username']
-                                board.transportmqtt.mqttpassword=form.cleaned_data['password']
-                                board.transportmqtt.save()
-
-                        except ObjectDoesNotExist:
-                            print "transport MQTT not present for this board"
+                    rmap.rmap_core.configdb(username=username,password=password,
+                                            station=station_slug,lat=lat,lon=lon,constantdata={"B07030":height},
+                            mqttusername=username,
+                            mqttpassword=password,
+                            #mqttserver=args.server,
+                            #mqttsamplerate=args.samplerate,
+                            #bluetoothname=args.bluetoothname,
+                            amqpusername=username,
+                            amqppassword=password,
+                            #amqpserver=args.server,
+                            #queue=args.queue,
+                            #exchange=args.exchange
+                    )
 
                 except:
                     return HttpResponseRedirect('/wizard_error/')
@@ -109,8 +82,6 @@ def wizard(request):
             return render(request, 'wizard.html', {'form': form.as_p})
 
         return render(request, 'wizard.html', {'form': form.as_p})
-
-
 
 
 @login_required
@@ -267,7 +238,7 @@ def acl(request):
             return response
 
         #write to all in rmap/username/# report/username/#
-        if topic.startswith(("rmap/"+username+"/","report/"+username+"/","mobile/"+username+"/")) and acc == "2":
+        if topic.startswith(("rmap/"+username+"/","report/"+username+"/","mobile/"+username+"/","rpc/"+username+"/")) and acc == "2":
             response=HttpResponse("allow")
             response.status_code=200
             return response
@@ -282,8 +253,14 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def profile(request):
-    # View code here...
-    return render(request, 'profile.html')
+    stations=StationMetadata.objects.filter(active=True,ident__username=request.user.get_username())
+    return render(request, 'profile.html',{ 'ident' : "pat1","stations":stations})
+
+@login_required
+def profile_details(request,mystation_slug):
+
+    mystation=StationMetadata.objects.get(slug=mystation_slug)
+    return render(request, 'profile_details.html',{"mystation":mystation})
 
 #def profile(request):
 #    html = "<html><body>This is your personal page. TODO</body></html>"

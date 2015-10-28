@@ -854,7 +854,7 @@ bool SIM800::TCPconnect(const char* server, int port)
 sim800Client::sim800Client() {
 }
 
-int sim800Client::connect(uint8_t *ip, int port)
+int sim800Client::connect(IPAddress ip, int port)
 {
   char server[16];
   sprintf(server, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
@@ -926,6 +926,12 @@ bool sim800Client::transparent()
 
   return ATcommand("ATO0", buf, "CONNECT", ERRORSTR, 5000);
 
+}
+
+
+void sim800Client::flush()
+{
+  return;
 }
 
 void sim800Client::stop()

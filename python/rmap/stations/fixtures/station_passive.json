@@ -5,13 +5,13 @@
     "ident": [
       "rmap"
     ],
-    "name": "ETH_fixed",
+    "name": "passive",
     "mqttmaintpath": "rmap",
     "lon": 0.0,
     "lat": 0.0,
     "mqttrootpath": "rmap",
     "active": false,
-    "slug": "ETH_fixed",
+    "slug": "passive",
     "network": "rmap"
   },
   "model": "stations.stationmetadata"
@@ -21,13 +21,13 @@
     "active": false,
     "category": "master",
     "stationmetadata": [
-      "ETH_fixed",
+      "passive",
       [
         "rmap"
       ]
     ],
-    "name": "master eth fixed",
-    "slug": "master_eth_fixed"
+    "name": "passive master",
+    "slug": "passive_master"
   },
   "model": "stations.board"
 },
@@ -35,14 +35,14 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,6,-,-",
+    "level": "103,8,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
     "i2cbus": 1,
     "board": [
-      "master_eth_fixed",
+      "passive_master",
       [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
@@ -58,14 +58,14 @@
   "fields": {
     "node": 1,
     "name": "Temperature rf24",
-    "level": "103,7,-,-",
+    "level": "103,9,-,-",
     "timerange": "254,0,0",
     "driver": "RF24",
     "i2cbus": 1,
     "board": [
-      "master_eth_fixed",
+      "passive_master",
       [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
@@ -79,49 +79,13 @@
 },
 {
   "fields": {
-    "mqttuser": "your user",
-    "board": [
-      "master_eth_fixed",
-      [
-        "ETH_fixed",
-        [
-          "rmap"
-        ]
-      ]
-    ],
-    "active": true,
-    "mqttpassword": "your password",
-    "mqttserver": "rmap.cc",
-    "mqttsampletime": 5
-  },
-  "model": "stations.transportmqtt"
-},
-{
-  "fields": {
-    "active": true,
-    "ntpserver": "pool.ntp.org",
-    "name": "master",
-    "board": [
-      "master_eth_fixed",
-      [
-        "ETH_fixed",
-        [
-          "rmap"
-        ]
-      ]
-    ]
-  },
-  "model": "stations.transporttcpip"
-},
-{
-  "fields": {
     "active": true,
     "device": "/dev/ttyUSB0",
     "baudrate": 9600,
     "board": [
-      "master_eth_fixed",
+      "passive_master",
       [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
@@ -135,9 +99,83 @@
     "node": 0,
     "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
     "board": [
-      "master_eth_fixed",
+      "passive_master",
       [
-        "ETH_fixed",
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "active": true,
+    "channel": 93
+  },
+  "model": "stations.transportrf24network"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "satellite",
+    "stationmetadata": [
+      "passive",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "passive satellite",
+    "slug": "passive_satellite"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "103,10,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "passive_satellite",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "passive_satellite",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "node": 1,
+    "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "board": [
+      "passive_satellite",
+      [
+        "passive",
         [
           "rmap"
         ]
@@ -154,7 +192,7 @@
     "active": false,
     "category": "base",
     "stationmetadata": [
-      "ETH_fixed",
+      "passive",
       [
         "rmap"
       ]
@@ -166,48 +204,16 @@
 },
 {
   "fields": {
-    "active": true,
-    "device": "/dev/ttyUSB0",
-    "baudrate": 9600,
+    "node": 1,
+    "name": "Temperature remote",
+    "level": "103,11,-,-",
+    "timerange": "254,0,0",
+    "driver": "JRPC",
+    "i2cbus": 1,
     "board": [
       "rmapgui",
       [
-        "ETH_fixed",
-        [
-          "rmap"
-        ]
-      ]
-    ]
-  },
-  "model": "stations.transportserial"
-},
-{
-  "fields": {
-    "active": false,
-    "category": "satellite",
-    "stationmetadata": [
-      "ETH_fixed",
-      [
-        "rmap"
-      ]
-    ],
-    "name": "satellite eth fixed",
-    "slug": "satellite_eth_fixed"
-  },
-  "model": "stations.board"
-},
-{
-  "fields": {
-    "node": 1,
-    "name": "Temperature",
-    "level": "103,14,-,-",
-    "timerange": "254,0,0",
-    "driver": "I2C",
-    "i2cbus": 1,
-    "board": [
-      "satellite_eth_fixed",
-      [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
@@ -221,13 +227,72 @@
 },
 {
   "fields": {
+    "node": 1,
+    "name": "Temperature rf24",
+    "level": "103,12,-,-",
+    "timerange": "254,0,0",
+    "driver": "RF24",
+    "i2cbus": 1,
+    "board": [
+      "rmapgui",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "mqttuser": "",
+    "board": [
+      "rmapgui",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "",
+    "mqttserver": "rmap.cc",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
+    "active": true,
+    "ntpserver": "ntpserver",
+    "name": "master",
+    "board": [
+      "rmapgui",
+      [
+        "passive",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transporttcpip"
+},
+{
+  "fields": {
     "active": true,
     "device": "/dev/ttyUSB0",
     "baudrate": 9600,
     "board": [
-      "satellite_eth_fixed",
+      "rmapgui",
       [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
@@ -238,22 +303,23 @@
 },
 {
   "fields": {
-    "node": 1,
-    "iv": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
     "board": [
-      "satellite_eth_fixed",
+      "rmapgui",
       [
-        "ETH_fixed",
+        "passive",
         [
           "rmap"
         ]
       ]
     ],
-    "key": "0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
     "active": true,
-    "channel": 93
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
   },
-  "model": "stations.transportrf24network"
+  "model": "stations.transportamqp"
 }
 ]
 

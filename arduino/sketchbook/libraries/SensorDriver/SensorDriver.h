@@ -61,6 +61,7 @@ class SensorDriver
     char* _mainbuf;
     size_t _lenbuf;
     RF24Network* _network;
+    uint8_t _jsrpcid;
 #endif
 };
 

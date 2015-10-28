@@ -1,310 +1,348 @@
 [
-    {
-        "model": "stations.stationmetadata",
-        "fields": {
-            "active": false,
-            "name": "home",
-            "slug": "home",
-            "category": "test",
-            "network": "rmap",
-            "lon": 0.0,
-            "lat": 0.0,
-            "mqttrootpath": "rmap",
-            "mqttmaintpath": "rmap",
-            "ident": [
-                "rmap"
-            ]
-        }
-    },
-    {
-        "model": "stations.board",
-        "fields": {
-            "active": true,
-            "name": "base",
-            "slug": "base",
-            "category": "base",
-            "stationmetadata": [
-                "home",
-                [
-                    "rmap"
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.board",
-        "fields": {
-            "active": true,
-            "name": "master",
-            "slug": "master",
-            "category": "master",
-            "stationmetadata": [
-                "home",
-                [
-                    "rmap"
-                ]
-            ]
-        }
-    },
-    {
-        "fields": {
-            "active": true,
-            "device": "/dev/ttyUSB0",
-            "baudrate": 9600,
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transportserial"
-    },
-    {
-        "fields": {
-            "active": true,
-            "ntpserver": "ntpserver",
-            "name": "master",
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transporttcpip"
-    },
-    {
-        "model": "stations.board",
-        "fields": {
-            "active": true,
-            "name": "satellite",
-            "slug": "satellite",
-            "category": "satellite",
-            "stationmetadata": [
-                "home",
-                [
-                    "rmap"
-                ]
-            ]
-        }
-    },
-    {
-        "fields": {
-            "active": true,
-            "device": "/dev/ttyUSB0",
-            "baudrate": 9600,
-            "board": [
-                "satellite",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        },
-        "model": "stations.transportserial"
-    },
-    {
-        "fields": {
-            "mqttuser": "your user",
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "active": true,
-            "mqttpassword": "your password",
-            "mqttserver": "mqttserver",
-            "mqttsampletime": 5
-        },
-        "model": "stations.transportmqtt"
-    },
-    {
-        "fields": {
-            "node": 0,
-            "iv": "1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "key": "1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "active": true,
-            "channel": 95
-        },
-        "model": "stations.transportrf24network"
-    },
-    {
-        "fields": {
-            "node": 1,
-            "iv": "1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "board": [
-                "satellite",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ],
-            "key": "1,0,2,3,4,5,6,7,8,9,10,11,12,13,14,15",
-            "active": true,
-            "channel": 95
-        },
-        "model": "stations.transportrf24network"
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Temperature",
-            "level": "105,2000,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "address": 72,
-            "type": "TMP",
-            "node": 1,
-            "board": [
-                "base",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Pressure",
-            "level": "105,4000,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "address": 119,
-            "type": "BMP",
-            "node": 1,
-            "board": [
-                "base",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Humidity",
-            "level": "105,3000,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "address": 39,
-            "type": "HIH",
-            "node": 1,
-            "board": [
-                "base",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Temperature",
-            "level": "105,200,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "address": 72,
-            "type": "TMP",
-            "node": 1,
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Temperature",
-            "level": "105,20,-,-",
-            "timerange": "254,0,0",
-            "driver": "RF24",
-            "i2cbus": 1,
-            "address": 72,
-            "type": "TMP",
-            "node": 1,
-            "board": [
-                "master",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensor",
-        "fields": {
-            "active": true,
-            "name": "Temperature",
-            "level": "105,2,-,-",
-            "timerange": "254,0,0",
-            "driver": "I2C",
-            "i2cbus": 1,
-            "address": 72,
-            "type": "TMP",
-            "node": 1,
-            "board": [
-                "satellite",
-                [
-                    "home",
-                    [
-                        "rmap"
-                    ]
-                ]
-            ]
-        }
-    }
+{
+  "fields": {
+    "category": "test",
+    "ident": [
+      "rmap"
+    ],
+    "name": "home",
+    "mqttmaintpath": "rmap",
+    "lon": 0.0,
+    "lat": 0.0,
+    "mqttrootpath": "rmap",
+    "active": false,
+    "slug": "home",
+    "network": "rmap"
+  },
+  "model": "stations.stationmetadata"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "base",
+    "stationmetadata": [
+      "home",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "base",
+    "slug": "base"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "105,3,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Pressure",
+    "level": "105,3,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 119,
+    "active": true,
+    "type": "BMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Humidity",
+    "level": "105,3,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 39,
+    "active": true,
+    "type": "HIH"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "exchange": "rmap",
+    "queue": "rmap",
+    "amqpuser": "",
+    "board": [
+      "base",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "amqpserver": "rmap.cc",
+    "amqppassword": ""
+  },
+  "model": "stations.transportamqp"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "master",
+    "stationmetadata": [
+      "home",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "master",
+    "slug": "master"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "103,4,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature rf24",
+    "level": "105,5,-,-",
+    "timerange": "254,0,0",
+    "driver": "RF24",
+    "i2cbus": 1,
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "mqttuser": "your user",
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "active": true,
+    "mqttpassword": "your password",
+    "mqttserver": "mqttserver",
+    "mqttsampletime": 5
+  },
+  "model": "stations.transportmqtt"
+},
+{
+  "fields": {
+    "active": true,
+    "ntpserver": "ntpserver",
+    "name": "master",
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transporttcpip"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "node": 0,
+    "iv": "",
+    "board": [
+      "master",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "key": "",
+    "active": true,
+    "channel": 95
+  },
+  "model": "stations.transportrf24network"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "satellite",
+    "stationmetadata": [
+      "home",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "satellite",
+    "slug": "satellite"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "node": 1,
+    "name": "Temperature",
+    "level": "105,13,-,-",
+    "timerange": "254,0,0",
+    "driver": "I2C",
+    "i2cbus": 1,
+    "board": [
+      "satellite",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "address": 72,
+    "active": true,
+    "type": "TMP"
+  },
+  "model": "stations.sensor"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/ttyUSB0",
+    "baudrate": 9600,
+    "board": [
+      "satellite",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "node": 1,
+    "iv": "",
+    "board": [
+      "satellite",
+      [
+        "home",
+        [
+          "rmap"
+        ]
+      ]
+    ],
+    "key": "",
+    "active": true,
+    "channel": 95
+  },
+  "model": "stations.transportrf24network"
+}
 ]
+

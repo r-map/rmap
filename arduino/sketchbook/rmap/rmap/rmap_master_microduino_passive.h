@@ -42,3 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // disable RTC
 #undef NTPON
+// make this module passive
+#undef REPEATTASK
+// disable mqtt protocoll
+#undef ETHERNETMQTT

@@ -150,7 +150,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('active', models.BooleanField(default=False, help_text='Activate this transport for measurements', verbose_name='Active')),
                 ('baudrate', models.PositiveIntegerField(default=9600, help_text='Baud rate', choices=[(9600, b'9600'), (19200, b'19200'), (38400, b'38400'), (11520, b'115200')])),
-                ('device', models.CharField(default=b'/dev/ttyACM0', help_text='Serial device', unique=True, max_length=13, choices=[(b'/dev/ttyACM0', b'ttyACM0'), (b'/dev/ttyUSB0', b'ttyUSB0'), (b'/dev/ttyACM1', b'ttyACM1'), (b'/dev/ttyUSB1', b'ttyUSB1'), (b'/dev/ttyACM2', b'ttyACM2'), (b'/dev/ttyUSB2', b'ttyUSB2'), (b'/dev/ttyACM3', b'ttyACM3'), (b'/dev/ttyUSB3', b'ttyUSB3'), (b'/dev/ttyACM4', b'ttyACM4'), (b'/dev/ttyUSB4', b'ttyUSB4'), (b'/dev/ttyACM5', b'ttyACM5'), (b'/dev/rfcomm0', b'rfcomm0'), (b'/dev/rfcomm1', b'rfcomm1'), (b'/dev/rfcomm2', b'rfcomm2')])),
+                ('device', models.CharField(default=b'/dev/ttyACM0', help_text='Serial device', unique=True, max_length=30, choices=[(b'/dev/ttyACM0', b'ttyACM0'), (b'/dev/ttyUSB0', b'ttyUSB0'), (b'/dev/ttyACM1', b'ttyACM1'), (b'/dev/ttyUSB1', b'ttyUSB1'), (b'/dev/ttyACM2', b'ttyACM2'), (b'/dev/ttyUSB2', b'ttyUSB2'), (b'/dev/ttyACM3', b'ttyACM3'), (b'/dev/ttyUSB3', b'ttyUSB3'), (b'/dev/ttyACM4', b'ttyACM4'), (b'/dev/ttyUSB4', b'ttyUSB4'), (b'/dev/ttyACM5', b'ttyACM5'), (b'/dev/rfcomm0', b'rfcomm0'), (b'/dev/rfcomm1', b'rfcomm1'), (b'/dev/rfcomm2', b'rfcomm2')])),
                 ('board', models.OneToOneField(to='stations.Board')),
             ],
             options={

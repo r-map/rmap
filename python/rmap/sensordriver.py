@@ -101,11 +101,13 @@ class jsonrpcproxy(SensorDriver):
     def prepare(self):
 
         self._timing=time.time()
+        self._delay=None
         self._delay=self.proxy.prepare(driver=self.driver,node=self.node,type=self.type,address=self.address)["waittime"]
         return  self._delay
 
     def get(self):
 
+        if self._delay is None: return None
         if (time.time() - self._timing) < (self._delay/1000.):
             return None
         if (time.time() - self._timing > MAXDELAYTIME/1000.):
