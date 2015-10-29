@@ -3,15 +3,26 @@
 
 {% block content %}
 
+<section id="main_content">
+
 <h2>{% trans 'Station name' %}: {{ object.name }}</h2>
+
 <table border="1">
+<tr>
+<td> {% trans 'Active' %} </td>   </td>
+<td> {% trans 'Ident' %} </td>    </td>
+<td> {% trans 'Lat' %} </td>      </td>
+<td> {% trans 'Lon' %} </td>      </td>
+<td> {% trans 'Category' %} </td> </td>
+</tr>
 
-<tr><td> Active </td>   <td> {{ object.active }} </td></tr>
-<tr><td> Ident </td>    <td> {{ object.ident }} </td></tr>
-<tr><td> Lat </td>      <td> {{ object.lat }} </td></tr>
-<tr><td> Lon </td>      <td> {{ object.lon }} </td></tr>
-<tr><td> Category </td> <td> {{ object.category }} </td></tr>
-
+<tr>
+<td> {{ object.active }}  </td>
+<td> {{ object.ident }}   </td>
+<td> {{ object.lat }}     </td>
+<td> {{ object.lon }}     </td>
+<td> {{ object.category }}</td>
+</tr>
 </table>
 
 <h2>{% trans 'Display graph' %}</h2>
@@ -23,7 +34,6 @@
 <th>{% trans 'Report' %}</th>
 <th>{% trans 'Sample' %}</th>
 </tr>
-{% trans 'access to site' %}: http://{{ site.domain }}/
 {% for board in object.board_set.all %}
   {% if board.active  %}
     {% for sensor in board.sensor_set.all %}
@@ -45,6 +55,6 @@
 {% endfor %}
 
 </table>
+</section>
 
 {% endblock %}
-report.pat1.1100000_4400000.rmap.0_0_60.103_1_-_-.B12101.v

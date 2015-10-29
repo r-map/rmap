@@ -3,26 +3,35 @@
 
 {% block content %}
     
-    <section id="main_content">
+<section id="main_content">
 
-      <p><h3>{{ ident}} Here your personal data</h3></p>
+  <p><h3>{{ ident}} {% trans 'Here your personal data' %}</h3></p>
+  <ul>
 
-{% for station in  stations %}
-      <p>
-<h2><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></h2>
-<table border="1">
+    <table border="1">
+      <tr>
+	<th>Short name</th>
+	<th>Ident</th>
+	<th>Lat</th>
+	<th>Lon</th>
+	<th>Category</th>
+      </tr>
 
-<tr><td> Active </td>   <td> {{ station.active }} </td></tr>
-<tr><td> Ident </td>    <td> {{ station.ident }} </td></tr>
-<tr><td> Lat </td>      <td> {{ station.lat }} </td></tr>
-<tr><td> Lon </td>      <td> {{ station.lon }} </td></tr>
-<tr><td> Category </td> <td> {{ station.category }} </td></tr>
-
-</table>
-    </p> 
-{% endfor %}
-
-    </section>
+      {% for station in  stations %}
+        <tr>
+	  <td><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></td>
+	  <td> {{ station.active }} </td>
+	  <td> {{ station.ident }} </td>
+	  <td> {{ station.lat }} </td>
+	  <td> {{ station.lon }} </td>
+	  <td> {{ station.category }} </td>
+	</tr>
+      {% empty %}
+        <li>{% trans 'No station yet.' %}</li>
+      {% endfor %}
+    </table>
+  </ul> 
+</section>
 
 {% endblock %}
 

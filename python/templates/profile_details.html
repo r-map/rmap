@@ -5,18 +5,26 @@
     
     <section id="main_content">
 
-      <p><h3>Here your personal data</h3></p>
-      <p>
+      <p><h3>{{ ident}} {% trans 'Here your personal data details' %}</h3></p>
 
 <h2>{% trans 'Station name' %}: {{ mystation.name }}</h2>
 <table border="1">
 
-<tr><td> Active </td>   <td> {{ mystation.active }} </td></tr>
-<tr><td> Ident </td>    <td> {{ mystation.ident }} </td></tr>
-<tr><td> Lat </td>      <td> {{ mystation.lat }} </td></tr>
-<tr><td> Lon </td>      <td> {{ mystation.lon }} </td></tr>
-<tr><td> Category </td> <td> {{ mystation.category }} </td></tr>
+<tr>
+<td> {% trans 'Active' %} </td>   </td>
+<td> {% trans 'Ident' %} </td>    </td>
+<td> {% trans 'Lat' %} </td>      </td>
+<td> {% trans 'Lon' %} </td>      </td>
+<td> {% trans 'Category' %} </td> </td>
+</tr>
 
+<tr>
+<td> {{ mystation.active }}  </td>
+<td> {{ mystation.ident }}   </td>
+<td> {{ mystation.lat }}     </td>
+<td> {{ mystation.lon }}     </td>
+<td> {{ mystation.category }}</td>
+</tr>
 </table>
 
 <h2>{% trans 'Display graph' %}</h2>
@@ -28,7 +36,6 @@
 <th>{% trans 'Report' %}</th>
 <th>{% trans 'Sample' %}</th>
 </tr>
-{% trans 'access to site' %}: http://{{ site.domain }}/
 {% for board in mystation.board_set.all %}
   {% if board.active  %}
     <tr><td>{{ board.name }}</td>
@@ -50,8 +57,6 @@
 {% endfor %}
 
 </table>
-
-      </p>
 
     </section>
 

@@ -254,13 +254,13 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def profile(request):
     stations=StationMetadata.objects.filter(active=True,ident__username=request.user.get_username())
-    return render(request, 'profile.html',{ 'ident' : "pat1","stations":stations})
+    return render(request, 'profile.html',{ 'ident' : request.user.get_username(),"stations":stations})
 
 @login_required
 def profile_details(request,mystation_slug):
 
-    mystation=StationMetadata.objects.get(slug=mystation_slug)
-    return render(request, 'profile_details.html',{"mystation":mystation})
+    mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+    return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation})
 
 #def profile(request):
 #    html = "<html><body>This is your personal page. TODO</body></html>"
