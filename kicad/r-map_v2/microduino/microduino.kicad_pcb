@@ -1,9 +1,9 @@
-(kicad_pcb (version 4) (host pcbnew 0.201509251832+6217~30~ubuntu14.04.1-product)
+(kicad_pcb (version 4) (host pcbnew 0.201510090346+6256~30~ubuntu14.04.1-product)
 
   (general
     (links 43)
     (no_connects 0)
-    (area 135.560999 88.350089 177.545 118.439001)
+    (area 135.560999 88.350089 161.619001 118.439001)
     (thickness 1.6)
     (drawings 21)
     (tracks 210)
@@ -481,14 +481,14 @@
     )
   )
 
-  (module w_smd_trans:sot23-5 (layer F.Cu) (tedit 55A25C96) (tstamp 554D2DAB)
+  (module w_smd_trans:sot23-5 (layer F.Cu) (tedit 5630FC19) (tstamp 554D2DAB)
     (at 151.13 101.6 180)
     (descr SOT23-5)
     (path /548EC800)
     (fp_text reference U3 (at 3.175 -0.635 270) (layer F.SilkS) hide
       (effects (font (size 1 1) (thickness 0.2)))
     )
-    (fp_text value LP2985LV (at 0 0 180) (layer F.SilkS) hide
+    (fp_text value REG113NA-3.3/250 (at 0 0 180) (layer F.SilkS) hide
       (effects (font (size 0.50038 0.50038) (thickness 0.09906)))
     )
     (fp_line (start -0.8509 0.6985) (end -1.4986 0.0508) (layer F.SilkS) (width 0.127))
