@@ -30,15 +30,17 @@ from rmap import jsonrpc
 
 
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
-                  device=None,baudrate=None,host=None,transport=None):
+                  device=None,baudrate=None,host=None,transport=None,username=None):
 
-    mystation=StationMetadata.objects.get(slug=station_slug)
+    if (station_slug is None): return
+    if (username is None): return
+
+    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
 
     if not mystation.active:
         print "disactivated station: do nothing!"
         return
 
-    if (station_slug is None): return
 
     for board in mystation.board_set.all():
 
@@ -206,7 +208,7 @@ def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.
 
     objects=[]
 
-    mystation=StationMetadata.objects.get(slug=station)
+    mystation=StationMetadata.objects.get(slug=station,ident__username=user)
     objects.append(mystation)
     for board in mystation.board_set.all():
         objects.append(board)
@@ -315,7 +317,7 @@ def configdb(username="your user",password="your password",
 
         print "elaborate station: ",station
 
-        mystation=StationMetadata.objects.get(slug=station)
+        mystation=StationMetadata.objects.filter(slug=station)[0]
         user=User.objects.get(username=username)
             
         mystation.ident=user

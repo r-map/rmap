@@ -1573,7 +1573,8 @@ class Rmap(App):
                 pass
 
             self.config2db(activate=True,board=self.config.get('sensors','remote_board'))
-            self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board'))
+            self.mystation.configurestation(board_slug=self.config.get('sensors','remote_board')
+                                            ,username=self.config.get('rmap','user'))
             self.board_status=_("Transport Status: CONFIG OK")
 
             try:

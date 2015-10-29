@@ -689,7 +689,7 @@ class station():
             self.boardslug= "BT_fixed"
 
 
-    def configurestation(self,board_slug=None):
+    def configurestation(self,board_slug=None,username=None):
         """
         configure the board with those steps:
         * reset configuration
@@ -701,10 +701,12 @@ class station():
             self.starttransport()
             if board_slug is None:
                 board_slug=self.boardslug
+            if username is None:
+                username=self.username
             rmap.rmap_core.configstation(station_slug=self.slug,
                             board_slug=board_slug,
                             transport=self.transport,
-                            logfunc=self.log)
+                                         logfunc=self.log,username=username)
 
         except:
             print "error in configure:"

@@ -123,7 +123,14 @@ if args.list_stations:
 
 if args.list_boards:
 
-    mystation=StationMetadata.objects.get(slug=args.station_slug)
+
+    if (args.username is None or
+        args.station_slug is None):
+        print " selected list_boards without username or station_slug"
+        raise SystemExit(1)
+
+
+    mystation=StationMetadata.objects.get(slug=args.station_slug,ident__username=args.username)
 
     print "STATION:", mystation
 
@@ -161,8 +168,13 @@ if args.list_boards:
 
 if args.config_station:
 
+    if (args.username is None or
+        args.station_slug is None):
+        print " selected config_station without username or station_slug"
+        raise SystemExit(1)
+
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
-                                 device=args.device,baudrate=args.baudrate,host=args.host)
+                                 device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
 
     print "END of station configuration"
