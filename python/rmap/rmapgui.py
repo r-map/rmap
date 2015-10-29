@@ -1782,8 +1782,8 @@ class Rmap(App):
 #            browser=Wv()
 #            browser.open("http://graphite.rmapv.rmap.cc/render?width=800&height=600&from=-1hours&until=now&target=rmap.*.*.*.*.105_2_-_-.*.v")
 #        else:
-            webbrowser.open("http://localhost:8000/stations/"+self.config.get('sensors','station'))
-            webbrowser.open("http://"+self.config.get('rmap','server')+"/stations/"+self.config.get('sensors','station'))
+            #webbrowser.open("http://localhost:8000/stations/"+self.config.get('sensors','station'))
+            webbrowser.open("http://"+self.config.get('rmap','server')+"/mystations/"+self.config.get('rmap','user')+"/"+self.config.get('sensors','station'))
 
     def starttrip(self):
         print self.mystation.prefix

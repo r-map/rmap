@@ -524,7 +524,7 @@ class StationMetadata(models.Model):
 
     name = models.CharField(max_length=255,help_text=ugettext_lazy("station name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
-    slug = models.SlugField(unique=True, help_text=ugettext_lazy('Auto-generated from name.'))
+    slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
 
     ident = models.ForeignKey(User)
     #ident = models.ForeignKey(User, limit_choices_to={'is_staff': True})

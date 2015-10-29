@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Copyright (c) 2013 Paolo Patruno <p.patruno@iperbole.bologna.it>
 #                    Emanuele Di Giacomo <edigiacomo@arpa.emr.it>

@@ -1,4 +1,4 @@
-#!/home/pat1/tmp/nrmap/bin/python
+#!/usr/bin/env python
 # GPL. (C) 2015 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
