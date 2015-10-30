@@ -198,6 +198,7 @@ uint8_t iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 #ifdef GSMGPRSMQTT
 #include "sim800Client.h"
 sim800Client s800;
+char imeicode[16];
 #endif
 
 #ifdef GSMGPRSHTTP
@@ -398,8 +399,8 @@ bool rmapconnect()
 #endif //ETHERNETON
 
 #ifdef GSMGPRSMQTT
-  // TODO get IMEI code from sim800
-  sprintf(mqttid, "%s", "imeicode");
+  // IMEI code from sim800
+  snprintf(mqttid,16, "%s", imeicode);
 #endif
 
   IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
@@ -421,8 +422,8 @@ bool rmapconnect()
 
 #ifdef GSMGPRSMQTT
     char topiccom [SERVER_LEN+21];
-    // TODO get IMEI code from sim800
-    sprintf(topiccom, "%s/com", "imeicode");
+    // IMEI code from sim800
+    snprintf(topiccom,20, "%s/com", imeicode);
 #endif
 
     mqttclient.subscribe(topiccom);
@@ -1947,8 +1948,8 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
 
 #ifdef GSMGPRSMQTT
     char topicres [SERVER_LEN+21];
-    // TODO get IMEI code from sim800
-    sprintf(topicres, "%s/res", "imeicode");
+    // IMEI code from sim800
+    snprintf(topicres,20, "%s/res", imeicode);
 #endif
 
   if (!mqttclient.publish(topicres,mainbuf)){
@@ -2515,7 +2516,10 @@ void setup()
     wdt_reset();
     s800.stopNetwork();
     wdt_reset();
-
+#ifdef GSMGPRSMQTT
+    s800.getIMEI(imeicode);
+    wdt_reset();
+#endif
   }else{
 
     IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800")));
@@ -2637,7 +2641,7 @@ void setup()
   IF_SDEBUG(DBGSERIAL.println(F("#Initializing SD card...")));
   
   // see if the card is present and can be initialized:
-  if (!SD.begin(SDCHIPSELECT)) {
+  if (!SD.begin(SDCHIPSELECT,SPI_FULL_SPEED)) {
     IF_SDEBUG(DBGSERIAL.println(F("#Card failed, or not present")));
     // don't do anything more:
     //while (1) ;
@@ -2683,7 +2687,7 @@ void setup()
 	  uint32_t size=dataFile.fileSize();
 	  uint32_t pos=0;
 	  bool success = true;
-	  
+
 	  while (pos < size)
 	    {
 		
@@ -2707,6 +2711,8 @@ void setup()
 		      
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
+		      wdt_reset();
+	  
 		      IF_SDEBUG(DBGSERIAL.println(F("#recover mqtt publish"))); 
 		      if (!mqttclient.publish(record.topic, record.payload))
 			{
@@ -2780,6 +2786,8 @@ void setup()
 	    }
 	  
 	  dataFile.close();
+
+	  wdt_reset();
 	  
 	  // check file size
 	  dataFile = SD.open(fullfileName, O_READ);
@@ -2816,6 +2824,8 @@ void setup()
     }
   // Found an unused file name.
   
+  wdt_reset();
+
   IF_SDEBUG(DBGSERIAL.print(F("#open file: ")));
   IF_SDEBUG(DBGSERIAL.println(fullfileName));
   
@@ -2838,6 +2848,8 @@ void setup()
   Alarm.timerRepeat(configuration.rt, Repeats);             // timer for every tr seconds
   Alarm.alarmRepeat(dowMonday,8,0,0,Reset);                 // 8:00:00 every Monday
 #endif
+
+  IF_SDEBUG(DBGSERIAL.println(F("#setup terminated")));
 
 }
 

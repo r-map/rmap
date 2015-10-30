@@ -581,6 +581,40 @@ bool SIM800::GetMyIP(char*ip) {
 
 
 
+bool SIM800::getIMEI(char*imei) {
+  char buf[BUF_LENGTH];
+  bool retstatus;
+
+  if(!isInitialized()) return false;
+  //  if(!isRegistered()) return false;
+
+  IF_SDEBUG(Serial.println(F("get IMEI")));
+  if ((retstatus=ATcommand("+GSN", buf))){
+    int token_count = sscanf(buf,"%s\r\n",imei);
+    if ( token_count == 1 ){
+      IF_SDEBUG(Serial.print(F("IMEI: ")));
+      IF_SDEBUG(Serial.println(imei));
+    }else{
+      IF_SDEBUG(Serial.println(F("ERROR getting IMEI")));
+      IF_SDEBUG(Serial.print(F("token count: ")));
+      IF_SDEBUG(Serial.println(token_count));
+      IF_SDEBUG(Serial.println(buf));
+      retstatus=false;
+      strcpy(imei,"000000000000000");
+    }
+  }else {
+    retstatus=false;
+    strcpy(imei,"000000000000000");
+  }
+  
+  return retstatus;
+}
+
+
+
+
+
+
 bool SIM800::checkNetwork() {
   char buf[BUF_LENGTH];
   bool retstatus;

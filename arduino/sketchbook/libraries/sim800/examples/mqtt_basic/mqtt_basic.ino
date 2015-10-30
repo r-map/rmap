@@ -10,11 +10,13 @@
 #define GSMUSER ""
 #define GSMPASSWORD ""
 
+#include <Time.h>
 #include <sim800Client.h>
 #include <PubSubClient.h>
 #include <TimeAlarms.h>
 
 sim800Client s800;
+char imeicode[16];
 
 // Update these with values suitable for your network.
 //byte server[] = { 192, 168, 1, 199 };
@@ -69,9 +71,10 @@ void setup()
   s800.setup();
   s800.stop();
   s800.TCPstop();
+  s800.getIMEI(imeicode);
   s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
 
-  while (!client.connect("arduinoClient")) {
+  while (!client.connect(imeicode)) {
     Serial.println("connect failed");
     delay(1000);
   }
