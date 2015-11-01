@@ -95,7 +95,7 @@ SIM800::SIM800() {
 
 // send to modem
 void SIM800::send(const char *buf) {
-  IF_SDEBUG(Serial.print(F("SEND:")));
+  IF_SDEBUG(Serial.println(F("#sim800:SEND:")));
   IF_SDEBUG(Serial.println(buf));
   modem->print(buf);
   //Serial1.print(buf);
@@ -144,14 +144,14 @@ bool SIM800::receive(char *buf, uint16_t timeout, char const *checkok, char cons
       }
   }
 
-  IF_SDEBUG(Serial.print(F("RECEIVED:")));
+  IF_SDEBUG(Serial.println(F("#sim800:RECEIVED:")));
   IF_SDEBUG(Serial.println(buf));
 
   if (checkok){
     if (ok){
-      IF_SDEBUG(Serial.println(F("->ok")));
+      IF_SDEBUG(Serial.println(F("#sim800:->ok")));
     }else{
-      IF_SDEBUG(Serial.println(F("->not ok")));
+      IF_SDEBUG(Serial.println(F("#sim800:->not ok")));
     }
   }
 
@@ -182,13 +182,13 @@ bool SIM800::receivelen(char *buf, uint16_t timeout, unsigned int datalen) {
       }
   }
 
-  IF_SDEBUG(Serial.print(F("RECEIVED:")));
+  IF_SDEBUG(Serial.println(F("#sim800:RECEIVED:")));
   IF_SDEBUG(Serial.println(buf));
 
   if (count == datalen){
-    IF_SDEBUG(Serial.println(F("->ok")));
+    IF_SDEBUG(Serial.println(F("#sim800:->ok")));
   }else{
-    IF_SDEBUG(Serial.println(F("->not ok")));
+    IF_SDEBUG(Serial.println(F("#sim800:->not ok")));
   }
 
   return count == datalen;
@@ -200,7 +200,7 @@ void SIM800::cleanInput () {
 
   if ((avail=modem->available())){
     //if ((avail=Serial.available())){
-    IF_SDEBUG(Serial.print(F("SKIP:")));
+    IF_SDEBUG(Serial.print(F("#sim800:SKIP:")));
   }
 
   wasavail=avail;
@@ -308,14 +308,14 @@ bool SIM800::init_autobaud() {
   modem->begin(115200);
   //Serial1.begin(115200);
 
-  IF_SDEBUG(Serial.println(F("initializing modem autobaud ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:initializing modem autobaud ...")));
 
   // try autobaud
 
   byte i = 1;
   do{
     if(init_onceautobaud()){
-      IF_SDEBUG(Serial.println(F("inizialize done")));
+      IF_SDEBUG(Serial.println(F("#sim800:inizialize done")));
       return true;
     }
     //It is recommended to wait 3 to 5 seconds before sending the first AT
@@ -342,7 +342,7 @@ bool SIM800::init_fixbaud() {
   char buf[BUF_LENGTH];
   char command[BUF_LENGTH];
 
-  IF_SDEBUG(Serial.println(F("initializing modem fixbaud ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:initializing modem fixbaud ...")));
 
   // try different fixed baud rate
   long int baudrate []={1200,2400,4800,9600,19200,38400,57600,115200};
@@ -352,16 +352,16 @@ bool SIM800::init_fixbaud() {
     wdt_reset();
 #endif
     cleanInput();
-    IF_SDEBUG(Serial.print(F("TRY BAUDRATE:")));
+    IF_SDEBUG(Serial.print(F("#sim800:TRY BAUDRATE:")));
     IF_SDEBUG(Serial.println(baudrate[i]));
     modem->begin(baudrate[i]);
     //Serial1.begin(baudrate[i]);
     
     if (ATcommand("", buf)){
-      IF_SDEBUG(Serial.println(F("baudrate found")));
+      IF_SDEBUG(Serial.println(F("#sim800:baudrate found")));
       sprintf(command,"+IPR=%ld",baudrate[i]);
       if (ATcommand(command, buf)){
-	IF_SDEBUG(Serial.println(F("inizialize done")));
+	IF_SDEBUG(Serial.println(F("#sim800:inizialize done")));
 	if (!ATcommand("&F", buf)) return false;
 	// this is the default
 	//if (!ATcommand("+IPR=0", buf)) return false;
@@ -388,7 +388,7 @@ bool SIM800::init_fixbaud() {
     }
   }
   state &= ~STATE_INITIALIZED;
-  IF_SDEBUG(Serial.println(F("inizialize failed")));
+  IF_SDEBUG(Serial.println(F("#sim800:inizialize failed")));
 #ifdef ENABLEWDT
   wdt_reset();
 #endif
@@ -416,7 +416,7 @@ bool SIM800::startNetwork(const char *apn, const char *user, const char *pwd ) {
   char buf[BUF_LENGTH];
   char bufcommand[BUFCOMMAND_LENGTH];
 
-  IF_SDEBUG(Serial.println(F("start network ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:start network ...")));
 
   if(!isInitialized()) return false;
 
@@ -460,7 +460,7 @@ bool SIM800::stopNetwork() {
   char buf[BUF_LENGTH];
   bool status=false;
 
-  IF_SDEBUG(Serial.println(F("stop network ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:stop network ...")));
 
   //if (isRegistered()){
   // force stop ever!!
@@ -469,7 +469,7 @@ bool SIM800::stopNetwork() {
   }
   //}
   
-  IF_SDEBUG(Serial.println(F("stop network done")));
+  IF_SDEBUG(Serial.println(F("#sim800:stop network done")));
   return status;
 }
 
@@ -481,7 +481,7 @@ bool SIM800::httpGET(const char* server, int port, const char* path, char* resul
   char buf[BUF_LENGTH];
   char* newpath;
 
-  IF_SDEBUG(Serial.println(F("start httpget ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:start httpget ...")));
 
   if(!isInitialized()) return false;
   if(!isRegistered()) return false;
@@ -510,15 +510,15 @@ bool SIM800::httpGET(const char* server, int port, const char* path, char* resul
   int datalen;
   int token_count = sscanf(buf,"+HTTPACTION:%i,%i,%i",&method,&status,&datalen);
   if ( token_count == 3 ){
-    IF_SDEBUG(Serial.print(F("method: ")));
+    IF_SDEBUG(Serial.print(F("#sim800:method: ")));
     IF_SDEBUG(Serial.println(method));
-    IF_SDEBUG(Serial.print(F("status: ")));
+    IF_SDEBUG(Serial.print(F("#sim800:status: ")));
     IF_SDEBUG(Serial.println(status));
-    IF_SDEBUG(Serial.print(F("datalen: ")));
+    IF_SDEBUG(Serial.print(F("#sim800:datalen: ")));
     IF_SDEBUG(Serial.println(datalen));
     }else{
-    IF_SDEBUG(Serial.println(F("ERROR httpaction")));
-    IF_SDEBUG(Serial.print(F("token count: ")));
+    IF_SDEBUG(Serial.println(F("#sim800:ERROR httpaction")));
+    IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
     IF_SDEBUG(Serial.println(token_count));
     IF_SDEBUG(Serial.println(buf));
     return false;
@@ -529,7 +529,7 @@ bool SIM800::httpGET(const char* server, int port, const char* path, char* resul
   if(!receive(buf,5000,"\r\n",NULL)) return false;   // gel null line
 
   if (datalen+1 > resultlength){
-    IF_SDEBUG(Serial.println(F("ERROR no buffer space for http response")));
+    IF_SDEBUG(Serial.println(F("#sim800:ERROR no buffer space for http response")));
     return false;
   }
   if(!receivelen(result,5000,datalen)) return false;
@@ -550,18 +550,19 @@ bool SIM800::GetMyIP(char*ip) {
   if(!isInitialized()) return false;
   if(!isRegistered()) return false;
 
-  IF_SDEBUG(Serial.println(F("checking network ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:checking network ...")));
   if ((retstatus=ATcommand("+SAPBR=2,1", buf))){
     if (found(buf,"+SAPBR: 1,1")) {
 
       int token_count = sscanf(buf,"+SAPBR: 1,1,%s",ip);
       if ( token_count == 1 ){
-	IF_SDEBUG(Serial.print(F("IP: ")));
+	IF_SDEBUG(Serial.print(F("#sim800:IP: ")));
 	IF_SDEBUG(Serial.println(ip));
       }else{
-	IF_SDEBUG(Serial.println(F("ERROR getting IP")));
-	IF_SDEBUG(Serial.print(F("token count: ")));
+	IF_SDEBUG(Serial.println(F("#sim800:ERROR getting IP")));
+	IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
 	IF_SDEBUG(Serial.println(token_count));
+	IF_SDEBUG(Serial.println(F("#sim800:")));
 	IF_SDEBUG(Serial.println(buf));
 	retstatus=false;
 	strcpy(ip,"0.0.0.0");
@@ -588,15 +589,15 @@ bool SIM800::getIMEI(char*imei) {
   if(!isInitialized()) return false;
   //  if(!isRegistered()) return false;
 
-  IF_SDEBUG(Serial.println(F("get IMEI")));
+  IF_SDEBUG(Serial.println(F("#sim800:get IMEI")));
   if ((retstatus=ATcommand("+GSN", buf))){
     int token_count = sscanf(buf,"%s\r\n",imei);
     if ( token_count == 1 ){
-      IF_SDEBUG(Serial.print(F("IMEI: ")));
+      IF_SDEBUG(Serial.print(F("#sim800:IMEI: ")));
       IF_SDEBUG(Serial.println(imei));
     }else{
-      IF_SDEBUG(Serial.println(F("ERROR getting IMEI")));
-      IF_SDEBUG(Serial.print(F("token count: ")));
+      IF_SDEBUG(Serial.println(F("#sim800:ERROR getting IMEI")));
+      IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
       IF_SDEBUG(Serial.println(token_count));
       IF_SDEBUG(Serial.println(buf));
       retstatus=false;
@@ -622,13 +623,13 @@ bool SIM800::checkNetwork() {
   if(!isInitialized()) return false;
   if(!isRegistered()) return false;
 
-  IF_SDEBUG(Serial.println(F("checking network ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:checking network ...")));
   if ((retstatus=ATcommand("+SAPBR=2,1", buf))){
     // here the secon number=1 means all is OK
     if (found(buf,"+SAPBR: 1,1")) {
       state |= STATE_REGISTERED;
     }else{
-      IF_SDEBUG(Serial.println(F("ERROR network status")));
+      IF_SDEBUG(Serial.println(F("#sim800:ERROR network status")));
       IF_SDEBUG(Serial.println(buf));
       state &= ~STATE_REGISTERED;
       retstatus=false;
@@ -638,7 +639,7 @@ bool SIM800::checkNetwork() {
     state &= ~STATE_REGISTERED;
   }
 
-  IF_SDEBUG(Serial.println(F("cheking network done")));
+  IF_SDEBUG(Serial.println(F("#sim800:cheking network done")));
   return retstatus;
 }
 
@@ -682,21 +683,21 @@ bool SIM800::isHttpInitialized() {
 
 
 void SIM800::switchOn() {
-  IF_SDEBUG(Serial.println(F("switching on")));
+  IF_SDEBUG(Serial.println(F("#sim800:switching on")));
   if (!isOn()) {
     switchModem();
     state |= STATE_ON;
   }
-  IF_SDEBUG(Serial.println(F("done")));
+  IF_SDEBUG(Serial.println(F("#sim800:done")));
 }
 
 void SIM800::switchOff() {
-  IF_SDEBUG(Serial.println(F("switching off")));
+  IF_SDEBUG(Serial.println(F("#sim800:switching off")));
   if (isOn()) {
     switchModem();
     state &= ~STATE_ON;
   }
-  IF_SDEBUG(Serial.println(F("done")));
+  IF_SDEBUG(Serial.println(F("#sim800:done")));
 }
 
 void SIM800::switchModem() {
@@ -789,14 +790,18 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
   char buf[BUF_LENGTH];
   char bufcommand[BUFCOMMAND_LENGTH];
 
-  IF_SDEBUG(Serial.println(F("start TCP ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:start TCP ...")));
 
   // restart network if already connected
   //if (isRegistered()) TCPstop();
 
+  IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CPIN?", buf));
+  IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CSQ", buf));
+  IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CREG?", buf));
+  IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CGATT?", buf));
 
   if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
@@ -809,7 +814,7 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
 
   if (TCPGetMyIP(buf)) {
     state |= STATE_REGISTERED;
-    IF_SDEBUG(Serial.println(F("start TCP done")));
+    IF_SDEBUG(Serial.println(F("#sim800:start TCP done")));
     return true;
   }
 
@@ -834,7 +839,7 @@ bool SIM800::TCPGetMyIP(char*ip) {
   //char ip[16];
   bool retstatus;
 
-  IF_SDEBUG(Serial.println(F("checking network ...")));
+  IF_SDEBUG(Serial.println(F("#sim800:checking network ...")));
   //if ((retstatus=ATcommand("+CIFSR", buf))){
   send("AT+CIFSR\r\n");
   retstatus=receive(buf,5000,"\r\n",NULL);
@@ -842,11 +847,11 @@ bool SIM800::TCPGetMyIP(char*ip) {
   if((retstatus=receive(buf,5000,"\r\n",NULL))){
     int token_count = sscanf(buf,"%s\r\n",ip);
     if ( (token_count == 1) & !(strcmp(ip,"ERROR")==0)){
-      IF_SDEBUG(Serial.print(F("IP: ")));
+      IF_SDEBUG(Serial.print(F("#sim800:IP: ")));
       IF_SDEBUG(Serial.println(ip));
     }else{
-      IF_SDEBUG(Serial.println(F("ERROR getting IP")));
-      IF_SDEBUG(Serial.print(F("token count: ")));
+      IF_SDEBUG(Serial.println(F("#sim800:ERROR getting IP")));
+      IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
       IF_SDEBUG(Serial.println(token_count));
       IF_SDEBUG(Serial.println(buf));
       retstatus=false;
@@ -943,7 +948,7 @@ bool sim800Client::transparentescape()
 {
   char buf[BUF_LENGTH];
   // escape sequence
-  IF_SDEBUG(Serial.println(F("send escape sequence")));
+  IF_SDEBUG(Serial.println(F("#sim800:send escape sequence")));
   delay(1000);
   modem->write("+");
   modem->write("+");
@@ -958,6 +963,7 @@ bool sim800Client::transparent()
 {
   char buf[BUF_LENGTH];
 
+  IF_SDEBUG(Serial.println(F("#sim800:going to transparent mode")));
   return ATcommand("ATO0", buf, "CONNECT", ERRORSTR, 5000);
 
 }
@@ -972,6 +978,7 @@ void sim800Client::stop()
 {
   char buf[BUF_LENGTH];
 
+  IF_SDEBUG(Serial.println(F("#sim800:stop")));
   state &= ~STATE_HTTPINITIALIZED;
   transparentescape();
   ATcommand("+CIPCLOSE=0", buf);

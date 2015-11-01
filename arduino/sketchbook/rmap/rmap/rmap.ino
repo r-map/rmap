@@ -250,7 +250,13 @@ struct driver_t   // use this to instantiate a driver
       return -2;
 
 #if defined (RADIORF24)
+#if defined(SDCARD)
+    // workaround to use SDcard and RF24 together
+    digitalWrite(SDCHIPSELECT, HIGH);
+#endif
     if (manager->setup(driver, address, node, type, mainbuf, MAIN_BUFFER_SIZE, &network) != 0)
+    // workaround to use SDcard and RF24 together
+    digitalWrite(RF24CSPIN, HIGH);
 #else
       if (manager->setup(driver, address, node, type) != 0)
 #endif
@@ -1324,7 +1330,7 @@ time_t ResyncGSMRTC() {
 	IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
 	IF_SDEBUG(DBGSERIAL.println(mainbuf));
 	t=scantime(mainbuf);
-	IF_SDEBUG(DBGSERIAL.print(F("#time from http")));
+	IF_SDEBUG(DBGSERIAL.println(F("#time from http")));
 	IF_SDEBUG(digitalClockDisplay(t));
       }
     }
@@ -1492,12 +1498,19 @@ void Repeats() {
   unsigned long maxwaittime = 0;
 
   //   prepare sensors
+
+#if defined(SDCARD)
+  // workaround to use SDcard and RF24 together
+  digitalWrite(SDCHIPSELECT, HIGH);
+#endif
+
   for (int i = 0; i < SENSORS_LEN; i++) {
     //IF_SDEBUG(DBGSERIAL.println(i));
     //IF_SDEBUG(DBGSERIAL.println((int)drivers[i].manager));
     //IF_SDEBUG(DBGSERIAL.println(configuration.sensors[i].node));
 
     if (drivers[i].manager == NULL) continue;
+
     //if (configuration.sensors[i].node > 0) continue;
     int ok = drivers[i].manager->prepare(waittime);
     IF_SDEBUG(DBGSERIAL.print(F("#prepare: "))); 
@@ -1601,6 +1614,11 @@ void Repeats() {
       // send it to mqtt server appendig path to rootpath
 
       wdt_reset();
+
+#if defined (RADIORF24)
+      // workaround to use SDcard and RF24 together
+      digitalWrite(RF24CSPIN, HIGH);
+#endif
 
 #ifdef I2CGPSPRESENT
 
@@ -1743,6 +1761,11 @@ void Repeats() {
 
 #ifdef SDCARD
 
+#if defined (RADIORF24)
+      // workaround to use SDcard and RF24 together
+      digitalWrite(RF24CSPIN, HIGH);
+#endif
+
       // write data on SD if time is set only
       if ( t != 0 )
 	{
@@ -1784,6 +1807,9 @@ void Repeats() {
 	      pos=0;	  
 	    }
 	}
+
+      // workaround to use SDcard and RF24 together
+      digitalWrite(SDCHIPSELECT, HIGH);
 #endif
 
       // free object in same malloc order !!!
@@ -2286,14 +2312,14 @@ void setup()
 #endif
 #endif
 
-  // check pin8 to force configuration by serial port
+  // check FORCECONFIGPIN to force configuration by serial port
   wdt_reset();
 
 #ifdef SERIALJSONRPC
   pinMode(FORCECONFIGPIN, INPUT_PULLUP);
   pinMode(FORCECONFIGLED, OUTPUT); 
 
-  if (digitalRead(8) == LOW) {
+  if (digitalRead(FORCECONFIGPIN) == LOW) {
     digitalWrite(FORCECONFIGLED, HIGH);
     configured=false;
     IF_SDEBUG(DBGSERIAL.println(F("#force configuration by serial")));
@@ -2357,14 +2383,36 @@ void setup()
 #endif
 
 #if defined(ETHERNETON) || defined(RADIORF24) || defined(SDCARD)
+
+    //disable all chips
+#if defined(ENC28J60)
+    //pinMode(ENC28J60_CONTROL_CS, OUTPUT);
+    pinMode(8, OUTPUT);
+    //digitalWrite(ENC28J60_CONTROL_CS, HIGH);
+    digitalWrite(8, HIGH);
+#endif
+#if defined(RADIORF24)
+    pinMode(RF24CSPIN, OUTPUT);
+    digitalWrite(RF24CSPIN, HIGH);
+#endif
+#if defined(SDCARD)
+    pinMode(SDCHIPSELECT, OUTPUT);
+    digitalWrite(SDCHIPSELECT, HIGH);
+#endif
+
     SPI.begin();
     // make sure that the default chip select pin is set to
     // output, even if you don't use it:
+    // TODO very this statment
     pinMode(SS, OUTPUT);
 #endif
 
     // start rf24 radio 
 #ifdef RADIORF24
+#if defined(SDCARD)
+    // workaround to use SDcard and RF24 together
+    digitalWrite(SDCHIPSELECT, HIGH);
+#endif
     radio.begin();
     network.begin(configuration.channel, configuration.thisnode, configuration.key, configuration.iv);
     radio.setRetries(1,15);
@@ -2377,6 +2425,9 @@ void setup()
     pinMode (INTERUPIN, INPUT);
 #endif
     radio.powerUp();
+
+  // workaround to use SDcard and RF24 together
+  digitalWrite(RF24CSPIN, HIGH);
 #endif
 
     wdt_reset();
@@ -2635,19 +2686,24 @@ void setup()
 #endif
 
 #if defined(SDCARD)
-
   wdt_reset();
+
+#if defined (RADIORF24)
+  // workaround to use SDcard and RF24 together
+  digitalWrite(RF24CSPIN, HIGH);
+#endif
 
   IF_SDEBUG(DBGSERIAL.println(F("#Initializing SD card...")));
   
   // see if the card is present and can be initialized:
-  if (!SD.begin(SDCHIPSELECT,SPI_FULL_SPEED)) {
+  if (!SD.begin(SDCHIPSELECT)) {
     IF_SDEBUG(DBGSERIAL.println(F("#Card failed, or not present")));
     // don't do anything more:
     //while (1) ;
+  }else{
+    IF_SDEBUG(DBGSERIAL.println(F("#card initialized.")));
   }
-  IF_SDEBUG(DBGSERIAL.println(F("#card initialized.")));
-  
+
   // Open up the file we're going to log to!
   dataFile = SD.open("rmap_log.dat", FILE_WRITE);
   if (! dataFile) {
