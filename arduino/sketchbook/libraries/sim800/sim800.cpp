@@ -408,6 +408,7 @@ bool SIM800::setup() {
   //ATcommand("+CIPMUX?", buf);
   //ATcommand("+CIPMODE=?", buf);
   //ATcommand("+CIPMODE?", buf);
+  //ATcommand("+CIPCCFG?", buf);
 
   return true;
 }
@@ -612,10 +613,6 @@ bool SIM800::getIMEI(char*imei) {
 }
 
 
-
-
-
-
 bool SIM800::checkNetwork() {
   char buf[BUF_LENGTH];
   bool retstatus;
@@ -806,6 +803,22 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
 
   if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
   if (!ATcommand("+CIPMODE=1", buf)) return false; //IP transparent mode
+  if (!ATcommand("+CIPCCFG=8,1,1024,1,0,1460,50", buf)) return false; //
+  /*
+    2.2.2 SIM800 Series_TCPIP_Application Note_V1.00 
+    How to Configure Transparent Mode
+    To enable transparent mode, the command AT+CIPMODE should be set to 1. In transparent
+    mode, the command AT+CIPCCFG is used for configuring transfer mode, which has 7 parameters
+    NmRetry, WaitTm, SendSz, Esc, Rxmode, RxSize, Rxtimer.
+
+    NmRetry:    Number of retries to be made for an IP packet.
+    WaitTm:     Number of 200ms intervals to wait for serial input before sending the packet
+    SendSz:     Size in bytes of data block to be received from serial port before sending.
+    Esc:        Whether turn on the escape sequence, default is TRUE.
+    Rxmode:     Whether to set time interval during output data from serial port.
+    RxSize:     Output data length for each time, default value is 1460.
+    Rxtimer:    Time interval (ms) to wait for serial port to output data again. Default value: 50ms 
+  */
 
   sprintf(bufcommand,"+CSTT=\"%s\",\"%s\",\"%s\"",apn,user,pwd );
   //sprintf(bufcommand,"+CSTT=\"%s\"",apn );
