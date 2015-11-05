@@ -146,6 +146,23 @@ void nextName(char* fileName)
 
 #endif
 
+#ifdef RF24DEBUGONSERIAL
+// we need fundamental FILE definitions and printf declarations
+#include <stdio.h>
+
+// create a FILE structure to reference our UART output function
+static FILE uartout = {0} ;
+
+// create a output function
+// This works because Serial.write, although of
+// type virtual, already exists.
+static int uart_putchar (char c, FILE *stream)
+{
+  DBGSERIAL.write(c) ;
+  return 0 ;
+}
+#endif
+
 #ifdef LCD
 #include <Wire.h>
 #include <YwrobotLiquidCrystal_I2C.h>
@@ -1887,7 +1904,7 @@ void mgrjsonrpc(aJsonObject *msg)
 
   if ( err == E_INVALID_REQUEST){
 
-    IF_SDEBUG(DBGSERIAL.print(F("#do not fill a response to an error mesage")));
+    IF_SDEBUG(DBGSERIAL.println(F("#do not fill a response to an error mesage")));
     aJson.deleteItem(response);
     mainbuf[0]='\0';
     return;
@@ -2174,6 +2191,15 @@ void setup()
   while (!DBGSERIAL) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
+
+#ifdef RF24DEBUGONSERIAL
+// fill in the UART file descriptor with pointer to writer.
+   fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
+
+   // The uart is the standard output device STDOUT.
+   stdout = &uartout ;
+#endif
+
 #endif
 
 #ifdef SERIALJSONRPC
@@ -2401,10 +2427,7 @@ void setup()
 #endif
 
     SPI.begin();
-    // make sure that the default chip select pin is set to
-    // output, even if you don't use it:
-    // TODO very this statment
-    pinMode(SS, OUTPUT);
+
 #endif
 
     // start rf24 radio 

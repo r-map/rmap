@@ -39,6 +39,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // output debug messages on serial port
 #define DEBUGONSERIAL
+// define this to activate debug on RF24* libraries
+#define RF24DEBUGONSERIAL
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -201,7 +203,7 @@ Mega2560	      	        	   21	   20	   19	   18
 #define OUTPUTPINS 4,5,A6,A7
 
 // define pin and led that force and display configuration status at boot
-#define FORCECONFIGPIN 8
+#define FORCECONFIGPIN 8          // the same pin of CS for ENC28j60 ENC28J60_CONTROL_CS
 #define FORCECONFIGLED 13
 
 // for sensoron
