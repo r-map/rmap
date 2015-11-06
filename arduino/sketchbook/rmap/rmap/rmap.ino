@@ -200,10 +200,11 @@ RF24 radio(RF24CEPIN,RF24CSPIN);
 // Network uses that radio
 RF24Network network(radio);
 
+#if defined (AES)
 // default AES key and iv
 uint8_t key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 uint8_t iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-
+#endif
 #endif
 
 #include <avr/wdt.h>
@@ -267,13 +268,7 @@ struct driver_t   // use this to instantiate a driver
       return -2;
 
 #if defined (RADIORF24)
-#if defined(SDCARD)
-    // workaround to use SDcard and RF24 together
-    digitalWrite(SDCHIPSELECT, HIGH);
-#endif
     if (manager->setup(driver, address, node, type, mainbuf, MAIN_BUFFER_SIZE, &network) != 0)
-    // workaround to use SDcard and RF24 together
-    digitalWrite(RF24CSPIN, HIGH);
 #else
       if (manager->setup(driver, address, node, type) != 0)
 #endif
@@ -293,8 +288,10 @@ struct config_t                   // configuration to save and load fron eeprom
   char mqttserver[SERVER_LEN];           // server for mqtt publish
   char mqttuser[SERVER_LEN];             // user for mqtt publish
   char mqttpassword[SERVER_LEN];         // password for mqtt publish
+#if defined (AES)
   uint8_t key[16];                       // AES key
   uint8_t iv[16];                        // AES CBC iv
+#endif
   uint16_t thisnode;                     // Address of our RF24 Network node
   int channel;                           // Channel for RF24 Network
   byte mac[6];                           // Ethernet mac address
@@ -342,8 +339,10 @@ struct config_t                   // configuration to save and load fron eeprom
     p+=EEPROM_writeAnything(p, mqttserver);
     p+=EEPROM_writeAnything(p, mqttuser);
     p+=EEPROM_writeAnything(p, mqttpassword);
+#if defined (AES)
     p+=EEPROM_writeAnything(p, key);
     p+=EEPROM_writeAnything(p, iv);
+#endif
     p+=EEPROM_writeAnything(p, thisnode);
     p+=EEPROM_writeAnything(p, channel);
     p+=EEPROM_writeAnything(p, mac);
@@ -363,8 +362,10 @@ struct config_t                   // configuration to save and load fron eeprom
       p+=EEPROM_readAnything(p, mqttserver);
       p+=EEPROM_readAnything(p, mqttuser);
       p+=EEPROM_readAnything(p, mqttpassword);
+#if defined (AES)
       p+=EEPROM_readAnything(p, key);
       p+=EEPROM_readAnything(p, iv);
+#endif
       p+=EEPROM_readAnything(p, thisnode);
       p+=EEPROM_readAnything(p, channel);
       p+=EEPROM_readAnything(p, mac);
@@ -691,6 +692,18 @@ int togglePin(aJsonObject* params)
 
 #if defined (RADIORF24)
 
+bool radioavailabletimeout(unsigned long timeout) {
+
+  unsigned long start_at = millis();
+
+  while (true){
+    network.update();
+    if (network.available())              return true;
+    if ( ( millis() - start_at) > timeout ) return false;
+  }
+}
+
+
 // RPC for an rpc for an other module like a nexted RPC over RF24 transport
 // call rpc example:
 // {"jsonrpc":"2.0","method":"rf24rpc","params":{"node":1,"jsonrpc":"2.0","method":"configure","params":{"reset":true},"id":0},"id":0}
@@ -716,7 +729,7 @@ int rf24rpc(aJsonObject* params)
     IF_SDEBUG(DBGSERIAL.print(F("#message: ")));
     IF_SDEBUG(DBGSERIAL.println(mainbuf));
 
-    bool ok = network.writemulti(header,mainbuf,strlen(mainbuf)+1);
+    bool ok = network.write(header,mainbuf,strlen(mainbuf)+1);
 
     result = aJson.createObject();
     if (ok) {
@@ -727,9 +740,12 @@ int rf24rpc(aJsonObject* params)
       //return E_INTERNAL_ERROR;
     }
 
-    size_t size = network.readmulti(header,mainbuf,sizeof(mainbuf));
-
+    size_t size = 0;
+    if (radioavailabletimeout(500)){
+      size = network.read(header,mainbuf,sizeof(mainbuf));
+    }
     if (size >0){
+      mainbuf[size-1]='\0';
       aJson.addTrueToObject(result, "receive");
       aJsonObject *noderesponse = aJson.parse(mainbuf);
       aJson.addItemToObject(result, "noderesponse",noderesponse );
@@ -784,7 +800,7 @@ int rf24rpc(aJsonObject* params)
     configuration.mqttserver[0]='\0';
     configuration.mqttuser[0]='\0';
     configuration.mqttpassword[0]='\0';
-#if defined(RADIORF24)
+#if defined(AES)
     memcpy(configuration.key, key, 16*sizeof(uint8_t));
     memcpy(configuration.iv, iv, 16*sizeof(uint8_t));
 #endif
@@ -887,6 +903,7 @@ int rf24rpc(aJsonObject* params)
   }
 
 #if defined(RADIORF24)
+#if defined (AES)
   aJsonObject* keyo = aJson.getObjectItem(params, "key");
   if (keyo){
     if (aJson.getArraySize(keyo) != 16)  return E_INTERNAL_ERROR;
@@ -911,7 +928,7 @@ int rf24rpc(aJsonObject* params)
     }
     aJson.addStringToObject(result, "iv","OK");
   }
-  
+#endif  
   aJsonObject* thisnode = aJson.getObjectItem(params, "thisnode");
   if (thisnode){
     configuration.thisnode = thisnode -> valueint;
@@ -1516,11 +1533,6 @@ void Repeats() {
 
   //   prepare sensors
 
-#if defined(SDCARD)
-  // workaround to use SDcard and RF24 together
-  digitalWrite(SDCHIPSELECT, HIGH);
-#endif
-
   for (int i = 0; i < SENSORS_LEN; i++) {
     //IF_SDEBUG(DBGSERIAL.println(i));
     //IF_SDEBUG(DBGSERIAL.println((int)drivers[i].manager));
@@ -1631,11 +1643,6 @@ void Repeats() {
       // send it to mqtt server appendig path to rootpath
 
       wdt_reset();
-
-#if defined (RADIORF24)
-      // workaround to use SDcard and RF24 together
-      digitalWrite(RF24CSPIN, HIGH);
-#endif
 
 #ifdef I2CGPSPRESENT
 
@@ -1778,11 +1785,6 @@ void Repeats() {
 
 #ifdef SDCARD
 
-#if defined (RADIORF24)
-      // workaround to use SDcard and RF24 together
-      digitalWrite(RF24CSPIN, HIGH);
-#endif
-
       // write data on SD if time is set only
       if ( t != 0 )
 	{
@@ -1825,8 +1827,6 @@ void Repeats() {
 	    }
 	}
 
-      // workaround to use SDcard and RF24 together
-      digitalWrite(SDCHIPSELECT, HIGH);
 #endif
 
       // free object in same malloc order !!!
@@ -2086,10 +2086,19 @@ void mgrrf24jsonrpc(void)
     wdt_reset();
     IF_SDEBUG(DBGSERIAL.println(F("#receiving rf24 jsonrpc")));
     RF24NetworkHeader header;
-    size_t size = network.readmulti(header,mainbuf,sizeof(mainbuf));
+    size_t size = network.read(header,mainbuf,sizeof(mainbuf));
+    IF_SDEBUG(DBGSERIAL.print(F("#size:")));
+    IF_SDEBUG(DBGSERIAL.println(size));
+
     wdt_reset();
     if (size >0){
+      mainbuf[size-1]='\0';
+
       IF_SDEBUG(DBGSERIAL.println(F("#rf24 available")));
+      IF_SDEBUG(DBGSERIAL.print(F("#strlen:")));
+      IF_SDEBUG(DBGSERIAL.println(strlen(mainbuf)));
+      IF_SDEBUG(DBGSERIAL.println(mainbuf));
+
       aJsonObject *msg = aJson.parse(mainbuf);
       mgrjsonrpc(msg);
       aJson.deleteItem(msg);
@@ -2099,7 +2108,7 @@ void mgrrf24jsonrpc(void)
 	IF_SDEBUG(DBGSERIAL.println(F("#sendiging rf24 jsonrpc respose")));
 	RF24NetworkHeader sendheader(header.from_node,0);
       
-	bool ok= network.writemulti(sendheader,mainbuf,strlen(mainbuf)+1);
+	bool ok= network.write(sendheader,mainbuf,strlen(mainbuf)+1);
 	if (!ok){
 	  IF_SDEBUG(DBGSERIAL.println(F("#error sendiging rf24 jsonrpc respose")));
 	}
@@ -2385,6 +2394,7 @@ void setup()
     DBGSERIAL.print(F("#mqttpassword:"));
     DBGSERIAL.println(configuration.mqttpassword);
 
+#if defined (AES)
     DBGSERIAL.print(F("#key:"));
     for (int i=0;i<16;i++){
       DBGSERIAL.print(configuration.key[i]);      
@@ -2398,7 +2408,7 @@ void setup()
       DBGSERIAL.print(F(","));
     }
     DBGSERIAL.println(F(" "));
-
+#endif
     DBGSERIAL.print(F("#ntpserver: "));
     DBGSERIAL.println(configuration.ntpserver);
     DBGSERIAL.print(F("#thisnode: "));
@@ -2432,12 +2442,12 @@ void setup()
 
     // start rf24 radio 
 #ifdef RADIORF24
-#if defined(SDCARD)
-    // workaround to use SDcard and RF24 together
-    digitalWrite(SDCHIPSELECT, HIGH);
-#endif
     radio.begin();
+#if defined (AES)    
     network.begin(configuration.channel, configuration.thisnode, configuration.key, configuration.iv);
+#else
+    network.begin(configuration.channel, configuration.thisnode);
+#endif
     radio.setRetries(1,15);
     network.txTimeout=500;
 
@@ -2449,8 +2459,6 @@ void setup()
 #endif
     radio.powerUp();
 
-  // workaround to use SDcard and RF24 together
-  digitalWrite(RF24CSPIN, HIGH);
 #endif
 
     wdt_reset();
@@ -2710,11 +2718,6 @@ void setup()
 
 #if defined(SDCARD)
   wdt_reset();
-
-#if defined (RADIORF24)
-  // workaround to use SDcard and RF24 together
-  digitalWrite(RF24CSPIN, HIGH);
-#endif
 
   IF_SDEBUG(DBGSERIAL.println(F("#Initializing SD card...")));
   

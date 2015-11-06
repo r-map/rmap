@@ -132,6 +132,7 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #ifdef JSONRPCON
 #define SERIALJSONRPC
 #ifdef RADIORF24
+  //#define AES
 #define RF24JSONRPC
 #ifdef RF24SLEEP
 #include <avr/sleep.h>

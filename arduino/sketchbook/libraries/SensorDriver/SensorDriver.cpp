@@ -7,6 +7,9 @@
 //}
 
 
+
+
+
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
@@ -328,20 +331,29 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
 
   //strcpy(_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"prepare\", \"params\": {\"type\":\"TMP\",\"address\": 72}, \"id\": 0}");
 
-  bool ok = _network->writemulti(header,_mainbuf,strlen(_mainbuf)+1);
+  bool ok = _network->write(header,_mainbuf,strlen(_mainbuf)+1);
 
   if (!ok){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio prepare failed.")));
     return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
 
-  size_t size = _network->readmulti(header,_mainbuf,_lenbuf);
+  unsigned long start_at = millis();
+
+  while (true){
+    _network->update();
+    if (_network->available())              break;
+    if ( ( millis() - start_at) > 500 ) break;
+  }
+
+  size_t size = _network->read(header,_mainbuf,_lenbuf);
   // manage json rpc messages
   if (size <= 0){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#error getting rf24 response")));
     return SD_INTERNAL_ERROR;
   }
 
+  _mainbuf[size-1]='\0';
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#receive: ")));
   IF_SDSDEBUG(SDDBGSERIAL.println(_mainbuf));
   
@@ -444,7 +456,7 @@ aJsonObject* SensorDriverRF24::getJson()
   aJson.deleteItem(rpc);
 
   RF24NetworkHeader header( _node,0);
-  bool ok = _network->writemulti(header,_mainbuf,strlen(_mainbuf)+1);
+  bool ok = _network->write(header,_mainbuf,strlen(_mainbuf)+1);
   
   if (!ok) {  
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio failed.")));
@@ -453,10 +465,18 @@ aJsonObject* SensorDriverRF24::getJson()
     return jsonvalues; 
   }
   
-  size_t size = _network->readmulti(header,_mainbuf,_lenbuf);
+  unsigned long start_at = millis();
+
+  while (true){
+    _network->update();
+    if (_network->available())              break;
+    if ( ( millis() - start_at) > 500 ) break;
+  }
+
+  size_t size = _network->read(header,_mainbuf,_lenbuf);
   
   if (size >0){
-
+    _mainbuf[size-1]='\0';
     aJsonObject *noderesponse = aJson.parse(_mainbuf);
     jsonvalues = aJson.detachItemFromObject(noderesponse,"result"); 
 
