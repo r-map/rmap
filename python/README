@@ -58,7 +58,7 @@ Configure a station (wizard) by command line:
 ./rmap-configure --wizard --station_slug=ETH_fixed --board_slug=master_eth_fixed --height=100 --stationname=microduino-eth --username=user --password=password --server=rmap.cc --samplerate=5 --lat=44.69950 --lon=10.64555
 
 Configure eth board
-./rmap-configure --config_station --station_slug=ETH_fixed --board_slug=master_eth_fixed 
+./rmap-configure --config_station --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user
 
 
 #obsolete notes:
