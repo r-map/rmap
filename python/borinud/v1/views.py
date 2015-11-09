@@ -1,17 +1,15 @@
+# encoding: utf-8
+# borinud/v1/views - v1 views for borinud
+# Author: Emanuele Di Giacomo <emanueledigiacomo@gmail.com>
+
 from django.http import JsonResponse
 
 from ..models import Summary
+from .utils import path2query
 
 
 def summaries(request, **kwargs):
-    q = {
-        k: kwargs[k]
-        for k in [
-            "ident", "lon", "lat", "network", "var", "tr", "p1", "p2", "lt1",
-            "lv1", "lt2", "lv2"
-        ]
-        if k in kwargs
-    }
+    q = path2query(kwargs)
     qs = Summary.objects.filter(**q)
 
     return JsonResponse({

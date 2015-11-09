@@ -9,9 +9,21 @@ import dballe
 
 from .models import Source, Summary
 from .utils import sync_source
+from .v1.utils import path2query
 
 
 class TestUtils(TestCase):
+    def test_path2query(self):
+        d = {
+            "network": "*",
+            "tr": "-"
+        }
+        q = path2query(d)
+        self.assertEquals(tuple(q.keys()), ("tr",))
+        self.assertEquals(q["tr"], None)
+
+
+class TestViews(TestCase):
     def setUp(self):
         self.dbfile = tempfile.NamedTemporaryFile(
             mode="w", delete=False, suffix=".sqlite3",
