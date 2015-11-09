@@ -1,4 +1,5 @@
 import os
+import json
 import tempfile
 from datetime import datetime
 
@@ -24,6 +25,11 @@ class TestUtils(TestCase):
 
 
 class TestViews(TestCase):
+    def jsonrequest(self, path):
+        c = Client()
+        r = c.get("/borinud/api/v1/" + path)
+        return json.loads(r.content.decode("utf-8"))
+
     def setUp(self):
         self.dbfile = tempfile.NamedTemporaryFile(
             mode="w", delete=False, suffix=".sqlite3",
@@ -90,15 +96,17 @@ class TestViews(TestCase):
         os.remove(self.dbfile)
 
     def test_summaries(self):
-        import json
-        c = Client()
-        response = c.get("/borinud/api/v1/*/*/*/*/*/*/summaries")
-        geojson = json.loads(response.content.decode("utf-8"))
+        geojson = self.jsonrequest("*/*/*/*/*/*/summaries")
         self.assertEquals(len(geojson["features"]), 3)
 
     def test_summaries_by_network(self):
-        import json
-        c = Client()
-        response = c.get("/borinud/api/v1/*/*/test_net/*/*/*/summaries")
-        geojson = json.loads(response.content.decode("utf-8"))
+        geojson = self.jsonrequest("*/*/test_net/*/*/*/summaries")
         self.assertEquals(len(geojson["features"]), 2)
+
+    def test_summaries_by_ident(self):
+        geojson = self.jsonrequest("test_sta/*/*/*/*/*/summaries")
+        self.assertEquals(len(geojson["features"]), 1)
+
+    def test_summaries_by_fixed_station(self):
+        geojson = self.jsonrequest("-/1200000,4300000/test_net/*/*/*/summaries")
+        self.assertEquals(len(geojson["features"]), 1)
