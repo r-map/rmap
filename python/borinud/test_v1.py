@@ -67,6 +67,8 @@ class TestUtils(TestCase):
         os.remove(self.dbfile)
 
     def test_summaries(self):
+        import json
         c = Client()
         response = c.get("/borinud/api/v1/*/*/*/*/*/*/summaries")
-        print(response.content)
+        geojson = json.loads(response.content.decode("utf-8"))
+        self.assertEquals(len(geojson["features"]), 2)
