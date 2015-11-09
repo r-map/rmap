@@ -3,6 +3,7 @@ import tempfile
 from datetime import datetime
 
 from django.test import TestCase
+from django.utils.timezone import utc
 
 import dballe
 
@@ -60,8 +61,10 @@ class TestUtils(TestCase):
         self.assertEquals(Summary.objects.first().lonmax, 1200000)
         self.assertEquals(Summary.objects.first().latmin, 4300000)
         self.assertEquals(Summary.objects.first().latmax, 4300000)
-        self.assertEquals(Summary.objects.first().datemin, datetime(2015, 1, 1))
-        self.assertEquals(Summary.objects.first().datemax, datetime(2015, 1, 2))
+        self.assertEquals(Summary.objects.first().datemin,
+                          datetime(2015, 1, 1, tzinfo=utc))
+        self.assertEquals(Summary.objects.first().datemax,
+                          datetime(2015, 1, 2, tzinfo=utc))
 
     def test_mobile_sync(self):
         for r in [{
@@ -102,5 +105,7 @@ class TestUtils(TestCase):
         self.assertEquals(Summary.objects.first().lonmax, 1300000)
         self.assertEquals(Summary.objects.first().latmin, 4200000)
         self.assertEquals(Summary.objects.first().latmax, 4300000)
-        self.assertEquals(Summary.objects.first().datemin, datetime(2015, 1, 1))
-        self.assertEquals(Summary.objects.first().datemax, datetime(2015, 1, 2))
+        self.assertEquals(Summary.objects.first().datemin,
+                          datetime(2015, 1, 1, tzinfo=utc))
+        self.assertEquals(Summary.objects.first().datemax,
+                          datetime(2015, 1, 2, tzinfo=utc))

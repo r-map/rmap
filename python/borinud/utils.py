@@ -2,6 +2,8 @@
 # borinud/utils - utilities
 # Author: Emanuele Di Giacomo <emanueledigiacomo@gmail.com>
 
+from django.utils import timezone
+
 import dballe
 
 from .models import Source, Summary
@@ -79,6 +81,6 @@ def sync_dballe_summary(dsn):
             lt2=s["level"][2],
             lv2=s["level"][3],
             var=s["var"],
-            datemin=s["datemin"],
-            datemax=s["datemax"],
+            datemin=s["datemin"].replace(tzinfo=timezone.utc),
+            datemax=s["datemax"].replace(tzinfo=timezone.utc),
         )
