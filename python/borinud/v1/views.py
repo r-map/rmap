@@ -11,7 +11,7 @@ def summaries(request,
                                 var=var, tr=tr, p1=p1, p2=p2, lt1=lt1, lv1=lv1,
                                 lt2=lt2, lv2=lv2)
 
-    return [{
+    return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
             "type": "Feature",
@@ -36,4 +36,4 @@ def summaries(request,
                 "datetime": [s.datemin, s.datemax],
             }
         } for s in qs]
-    }
+    })
