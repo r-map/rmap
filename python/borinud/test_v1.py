@@ -18,7 +18,7 @@ class TestUtils(TestCase):
         ).name
         self.db = dballe.DB.connect_from_file(self.dbfile)
         self.db.reset()
-        for r in [{
+        self.summ = [{
             "ident": None,
             "rep_memo": "test_net",
             "lon": 1200000,
@@ -54,7 +54,18 @@ class TestUtils(TestCase):
             "B12101": 0,
             "trange": (254, 0, 0),
             "level": (103, 2000),
-        }]:
+        }, {
+            "ident": None,
+            "rep_memo": "test_net_2",
+            "lon": 1200000,
+            "lat": 4200000,
+            "datetime": datetime(2015, 1, 2),
+            "B12101": 0,
+            "trange": (254, 0, 0),
+            "level": (103, 2000),
+        }]
+
+        for r in self.summ:
             self.db.insert_data(dballe.Record(**r), can_add_stations=True)
 
         from borinud.utils import sync_source
@@ -70,5 +81,12 @@ class TestUtils(TestCase):
         import json
         c = Client()
         response = c.get("/borinud/api/v1/*/*/*/*/*/*/summaries")
+        geojson = json.loads(response.content.decode("utf-8"))
+        self.assertEquals(len(geojson["features"]), 3)
+
+    def test_summaries_by_network(self):
+        import json
+        c = Client()
+        response = c.get("/borinud/api/v1/*/*/test_net/*/*/*/summaries")
         geojson = json.loads(response.content.decode("utf-8"))
         self.assertEquals(len(geojson["features"]), 2)
