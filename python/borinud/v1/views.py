@@ -3,13 +3,16 @@ from django.http import JsonResponse
 from ..models import Summary
 
 
-def summaries(request,
-              ident=None, lon=None, lat=None, network=None,
-              var=None, tr=None, p1=None, p2=None,
-              lt1=None, lv1=None, lt2=None, lv2=None):
-    qs = Summary.objects.filter(ident=ident, lon=lon, lat=lat, network=network,
-                                var=var, tr=tr, p1=p1, p2=p2, lt1=lt1, lv1=lv1,
-                                lt2=lt2, lv2=lv2)
+def summaries(request, **kwargs):
+    q = {
+        k: kwargs[k]
+        for k in [
+            "ident", "lon", "lat", "network", "var", "tr", "p1", "p2", "lt1",
+            "lv1", "lt2", "lv2"
+        ]
+        if k in kwargs
+    }
+    qs = Summary.objects.filter(**q)
 
     return JsonResponse({
         "type": "FeatureCollection",
