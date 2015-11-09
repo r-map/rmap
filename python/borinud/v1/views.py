@@ -33,6 +33,7 @@ def summaries(request,
                 "level_v1": s.lv1,
                 "level_t2": s.lt2,
                 "level_v2": s.lv2,
+                "bcode": s.var,
                 "datetime": [s.datemin, s.datemax],
             }
         } for s in qs]
