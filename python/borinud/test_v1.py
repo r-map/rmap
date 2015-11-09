@@ -57,6 +57,11 @@ class TestUtils(TestCase):
         }]:
             self.db.insert_data(dballe.Record(**r), can_add_stations=True)
 
+        from borinud.utils import sync_source
+        s = Source.objects.create(connection_type=Source.DBALLE,
+                                  connection="sqlite:{}".format(self.dbfile))
+        sync_source(s)
+
 
     def tearDown(self):
         os.remove(self.dbfile)
@@ -64,3 +69,4 @@ class TestUtils(TestCase):
     def test_summaries(self):
         c = Client()
         response = c.get("/borinud/api/v1/*/*/*/*/*/*/summaries")
+        print(response.content)
