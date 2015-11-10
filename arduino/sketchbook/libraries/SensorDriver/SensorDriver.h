@@ -26,6 +26,9 @@
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
+#if defined (AES)
+#include <AESLib.h>
+#endif
 #endif
 
 // initialize the I2C interface
@@ -34,11 +37,14 @@
 class SensorDriver
 {
   public:
+  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL
 #if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL, char* mainbuf=0, size_t lenbuf=0, RF24Network* network=NULL);
-#else
-  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL);
+		    , char* mainbuf=0, size_t lenbuf=0, RF24Network* network=NULL
+#if defined (AES)
+		    , uint8_t* key=NULL , uint8_t* iv=NULL
 #endif
+#endif
+);
     //virtual int mgroneshot(unsigned long timing);
     virtual int prepare(unsigned long& waittime) = 0;
     virtual int get(long values[],size_t lenvalues) = 0;
@@ -61,6 +67,12 @@ class SensorDriver
     char* _mainbuf;
     size_t _lenbuf;
     RF24Network* _network;
+    #if defined (AES)
+      uint8_t* _key;
+      uint8_t* _iv;
+      void aes_enc(char* mainbuf, size_t* buflen);
+      void aes_dec(char* mainbuf, size_t* buflen);
+    #endif
     uint8_t _jsrpcid;
 #endif
 };
@@ -69,64 +81,78 @@ class SensorDriver
 class SensorDriverTmp : public SensorDriver
 {
   public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL, char* mainbuf=0, size_t lenbuf=0, RF24Network* network=NULL);
-#else
-  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL);
-#endif
+  virtual int setup(const char* driver, const int address, const int node=0, const char* type=NULL
+             #if defined (RADIORF24)
+		    , char* mainbuf=0, size_t lenbuf=0, RF24Network* network=NULL
+               #if defined (AES)
+		    , uint8_t* key=NULL , uint8_t* iv=NULL
+               #endif
+             #endif
+);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+    #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+    #endif
 };
 #endif
 
 #if defined (ADTDRIVER)
-class SensorDriverAdt7420 : public SensorDriver
-{
-  public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
-#else
-  virtual int setup(const char* driver, const int address, const int node, const char* type);
-#endif
+ class SensorDriverAdt7420 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+   #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+     #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+     #endif
+   #endif
+		     );
+
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
-};
+  #endif
+		     };
 #endif
 
 #if defined (RADIORF24)
-class SensorDriverRF24 : public SensorDriver
-{
-  public:
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
+ class SensorDriverRF24 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network
+  #if defined (AES)
+			, uint8_t key[] , uint8_t iv[]
+  #endif
+);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+  #endif
 };
 #endif
 
 
 #if defined (HIHDRIVER)
-class SensorDriverHih6100 : public SensorDriver
-{
-  public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
-#else
-  virtual int setup(const char* driver, const int address, const int node, const char* type);
-#endif
+ class SensorDriverHih6100 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+  #endif
 };
 #endif
 
@@ -154,19 +180,22 @@ class SensorDriverHih6100 : public SensorDriver
 #define BMP085_READTEMPCMD          0x2E
 #define BMP085_READPRESSURECMD            0x34
 
-class SensorDriverBmp085 : public SensorDriver
-{
-  public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
-#else
-  virtual int setup(const char* driver, const int address, const int node, const char* type);
-#endif
+ class SensorDriverBmp085 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+  #endif
 
   float readTemperature(void);
   int32_t readPressure(void);
@@ -193,19 +222,22 @@ class SensorDriverBmp085 : public SensorDriver
 #if defined (DAVISWIND1)
 #include "registers-wind.h"
 
-class SensorDriverDw1 : public SensorDriver
-{
-  public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
-#else
-  virtual int setup(const char* driver, const int address, const int node, const char* type);
-#endif
+ class SensorDriverDw1 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+  #endif
 };
 #endif
 
@@ -213,19 +245,22 @@ class SensorDriverDw1 : public SensorDriver
 #if defined (TIPPINGBUCKETRAINGAUGE)
 #include "registers-rain.h"
 
-class SensorDriverTbr : public SensorDriver
-{
-  public:
-#if defined (RADIORF24)
-  virtual int setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network);
-#else
-  virtual int setup(const char* driver, const int address, const int node, const char* type);
-#endif
+ class SensorDriverTbr : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
     virtual aJsonObject* getJson();
-#endif
+  #endif
 };
 #endif
 

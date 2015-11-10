@@ -7,9 +7,6 @@
 //}
 
 
-
-
-
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
@@ -61,8 +58,35 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 SensorDriver::~SensorDriver() {}
 
 #if defined (RADIORF24)
+  #if defined (AES)
+void SensorDriver::aes_enc( char* mainbuf, size_t* buflen){
+if ((*buflen % 16) != 0) *buflen = (int(*buflen/16)*16) + 16;
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#encode string  :")));
+  //IF_SDSDEBUG(SDDBGSERIAL.print(*buflen));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(mainbuf));
+  aes128_cbc_enc(_key, _iv, mainbuf, *buflen);
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#encoded string :")));
+  //IF_SDSDEBUG(SDDBGSERIAL.write(mainbuf,*buflen));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(F("#")));
+}
 
-int SensorDriver::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
+void SensorDriver::aes_dec( char* mainbuf, size_t* buflen){
+if ((*buflen % 16) != 0) *buflen = (int(*buflen/16)*16) + 16;
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#decode string :")));
+  //IF_SDSDEBUG(SDDBGSERIAL.write(mainbuf,*buflen));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(F("#")));
+  aes128_cbc_dec(_key, _iv, mainbuf, *buflen);
+  //IF_SDSDEBUG(mainbuf[*buflen-1]='\0');
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#decoded string:")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(mainbuf));
+}
+  #endif
+
+int SensorDriver::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network
+  #if defined (AES)
+			, uint8_t key[] , uint8_t iv[]
+  #endif 
+)
 {
   _node=node;
   _driver=driver;
@@ -71,7 +95,10 @@ int SensorDriver::setup(const char* driver, const int address, const int node, c
   _mainbuf=mainbuf;
   _lenbuf=lenbuf;
   _network=network;
-
+  #if defined (AES)
+  _key=key;
+  _iv=iv;
+  #endif
   _timing = 0;
   _jsrpcid=0;
 
@@ -97,27 +124,33 @@ int SensorDriver::setup(const char* driver, const int address, const int node, c
 
 
 #if defined (TMPDRIVER)
-#if defined (RADIORF24)
 int SensorDriverTmp::setup(const char* driver, const int address, const int node, const char* type
-			   , char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverTmp::setup(const char* driver, const int address, const int node, const char* type)
-#endif
+			   , char* mainbuf, size_t lenbuf
+                      #if defined (RADIORF24)
+			   , RF24Network* network
+                        #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+                        #endif
+                      #endif
+			     )
 {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
+  SensorDriver::setup(driver,address,node,type
+                      #if defined (RADIORF24)
+			   , mainbuf, lenbuf, network
+                        #if defined (AES)
+			   , key,iv
+                        #endif
+                      #endif
+			   );
 
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write((byte)0x01);            // Set the register pointer to (0x01)
   Wire.write((byte)0xE1);            // Set resolution and SHUTDOWN MODE and one shot
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  
   return SD_SUCCESS;
-
+  
 }
 
 int SensorDriverTmp::prepare(unsigned long& waittime)
@@ -173,7 +206,7 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
 
 }
 
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
 aJsonObject* SensorDriverTmp::getJson()
 {
   long values[1];
@@ -191,27 +224,32 @@ aJsonObject* SensorDriverTmp::getJson()
   }
   return jsonvalues;
 }
-#endif
+  #endif
 #endif
 
 #if defined (ADTDRIVER)
-#if defined (RADIORF24)
-int SensorDriverAdt7420::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverAdt7420::setup(const char* driver, const int address, const int node, const char* type)
-#endif
+int SensorDriverAdt7420::setup(const char* driver, const int address, const int node, const char* type
+                         #if defined (RADIORF24)
+			       , char* mainbuf, size_t lenbuf, RF24Network* network
+                           #if defined (AES)
+			       , uint8_t key[] , uint8_t iv[]
+                           #endif 
+                         #endif
+			       )
 {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type,mainbuf,lenbuf,network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
+  SensorDriver::setup(driver,address,node,type
+                  #if defined (RADIORF24)
+		      ,mainbuf,lenbuf,network
+                    #if defined (AES)
+		      , key,iv
+                    #endif
+                  #endif
+		      );
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write((byte)0x03);                              // Set the register pointer to (0x01)
   Wire.write((byte)0x20);                              // Set resolution and one shot
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
 
   return SD_SUCCESS;
 
@@ -269,7 +307,7 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
 
 }
 
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
 aJsonObject* SensorDriverAdt7420::getJson()
 {
   long values[1];
@@ -288,15 +326,24 @@ aJsonObject* SensorDriverAdt7420::getJson()
   }
   return jsonvalues;
 }
-#endif
+  #endif
 #endif
 
 #if defined (RADIORF24)
 
-int SensorDriverRF24::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
+int SensorDriverRF24::setup(const char* driver, const int address, const int node, const char* type
+			    , char* mainbuf, size_t lenbuf, RF24Network* network
+                         #if defined (AES)
+			    , uint8_t key[] , uint8_t iv[]
+                         #endif
+			    )
 {
   // setup for remote sensor whould be done local (where you have sensors hard connected !)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
+  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network
+                 #if defined (AES)
+			, key,iv
+                 #endif
+		      );
   return SD_SUCCESS;  // do nothing
 }
 
@@ -331,7 +378,11 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
 
   //strcpy(_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"prepare\", \"params\": {\"type\":\"TMP\",\"address\": 72}, \"id\": 0}");
 
-  bool ok = _network->write(header,_mainbuf,strlen(_mainbuf)+1);
+  size_t buflen=strlen(_mainbuf)+1;
+  #if defined (AES)
+  SensorDriver::aes_enc(_mainbuf, &buflen);
+  #endif
+  bool ok = _network->write(header,_mainbuf,buflen);
 
   if (!ok){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio prepare failed.")));
@@ -352,6 +403,10 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#error getting rf24 response")));
     return SD_INTERNAL_ERROR;
   }
+
+  #if defined (AES)
+  SensorDriver::aes_dec(_mainbuf, &size);
+  #endif
 
   _mainbuf[size-1]='\0';
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#receive: ")));
@@ -415,7 +470,7 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
 
 aJsonObject* SensorDriverRF24::getJson()
 {
@@ -456,7 +511,11 @@ aJsonObject* SensorDriverRF24::getJson()
   aJson.deleteItem(rpc);
 
   RF24NetworkHeader header( _node,0);
-  bool ok = _network->write(header,_mainbuf,strlen(_mainbuf)+1);
+  size_t buflen=strlen(_mainbuf)+1;
+  #if defined (AES)
+  SensorDriver::aes_enc(_mainbuf, &buflen);
+  #endif
+  bool ok = _network->write(header,_mainbuf,buflen);
   
   if (!ok) {  
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio failed.")));
@@ -476,6 +535,11 @@ aJsonObject* SensorDriverRF24::getJson()
   size_t size = _network->read(header,_mainbuf,_lenbuf);
   
   if (size >0){
+
+    #if defined (AES)
+    SensorDriver::aes_dec(_mainbuf, &size);
+    #endif
+
     _mainbuf[size-1]='\0';
     aJsonObject *noderesponse = aJson.parse(_mainbuf);
     jsonvalues = aJson.detachItemFromObject(noderesponse,"result"); 
@@ -493,7 +557,7 @@ aJsonObject* SensorDriverRF24::getJson()
   return NULL;
 }
 
-#endif
+ #endif
 
 int SensorDriverRF24::get(long values[], size_t lenvalues)
 {
@@ -504,18 +568,24 @@ int SensorDriverRF24::get(long values[], size_t lenvalues)
 
 
 #if defined (HIHDRIVER)
-#if defined (RADIORF24)
-int SensorDriverHih6100::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverHih6100::setup(const char* driver, const int address, const int node, const char* type)
-#endif
+int SensorDriverHih6100::setup(const char* driver, const int address, const int node, const char* type
+             #if defined (RADIORF24)
+			       , char* mainbuf, size_t lenbuf, RF24Network* network
+               #if defined (AES)
+			       , uint8_t key[] , uint8_t iv[]
+               #endif
+             #endif
+			       )
 {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
+  SensorDriver::setup(driver,address,node,type
+             #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+               #if defined (AES)
+		      , key,iv
+               #endif
+             #endif
+		      );
 
   return SD_SUCCESS;
 
@@ -817,18 +887,24 @@ int32_t SensorDriverBmp085::readPressure(void) {
   return p;
 }
 
-#if defined (RADIORF24)
- int SensorDriverBmp085::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverBmp085::setup(const char* driver, const int address, const int node, const char* type)
-#endif
-{
+ int SensorDriverBmp085::setup(const char* driver, const int address, const int node, const char* type
+             #if defined (RADIORF24)
+			       , char* mainbuf, size_t lenbuf, RF24Network* network
+               #if defined (AES)
+			       , uint8_t key[] , uint8_t iv[]
+               #endif 
+             #endif
+			       )
+			       {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
+  SensorDriver::setup(driver,address,node,type
+             #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+               #if defined (AES)
+		      , key,iv
+               #endif
+             #endif
+		      );
 
   uint8_t mode= BMP085_HIGHRES;
 
@@ -923,20 +999,24 @@ aJsonObject* SensorDriverBmp085::getJson()
 
 
 #if defined (DAVISWIND1)
-#if defined (RADIORF24)
-int SensorDriverDw1::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverDw1::setup(const char* driver, const int address, const int node, const char* type)
-#endif
+int SensorDriverDw1::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif 
+  #endif 
+			   )
 {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
-
-
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
   bool oneshot=true;
   Wire.beginTransmission(_address);
   Wire.write(I2C_WIND_ONESHOT);
@@ -1014,7 +1094,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
 
 }
 
-#if defined(USEAJSON)
+  #if defined(USEAJSON)
 aJsonObject* SensorDriverDw1::getJson()
 {
   long values[2];
@@ -1033,24 +1113,29 @@ aJsonObject* SensorDriverDw1::getJson()
   }
   return jsonvalues;
 }
-#endif
+  #endif
 #endif
 
 
 #if defined (TIPPINGBUCKETRAINGAUGE)
-#if defined (RADIORF24)
-int SensorDriverTbr::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network)
-#else
-int SensorDriverTbr::setup(const char* driver, const int address, const int node, const char* type)
-#endif
+int SensorDriverTbr::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
 {
 
-#if defined (RADIORF24)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network);
-#else
-  SensorDriver::setup(driver,address,node,type);
-#endif
-
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
 
   bool oneshot=true;
   Wire.beginTransmission(_address);
@@ -1126,5 +1211,3 @@ aJsonObject* SensorDriverTbr::getJson()
 }
 #endif
 #endif
-
-

@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // output debug messages on serial port
 #define DEBUGONSERIAL
 // define this to activate debug on RF24* libraries
-#define RF24DEBUGONSERIAL
+//#define RF24DEBUGONSERIAL
 
 ///////////////////////////////////////////////////////////////////////
 
@@ -51,12 +51,12 @@ ATTENTION ! remember to change:
 in 
 HardwareSerial.cpp
 if arduino >= 1.5
-#define SERIAL_TX_BUFFER_SIZE 256
-#define SERIAL_RX_BUFFER_SIZE 256
+#define SERIAL_TX_BUFFER_SIZE 192
+#define SERIAL_RX_BUFFER_SIZE 192
 in
 HardwareSerial.h
 or set 
-compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=200 -DSERIAL_RX_BUFFER_SIZE=200
+compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=192 -DSERIAL_RX_BUFFER_SIZE=192
 in platform.local.txt
 in sketchbook/hardware/Microduino/avr
 https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
@@ -132,7 +132,6 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #ifdef JSONRPCON
 #define SERIALJSONRPC
 #ifdef RADIORF24
-  //#define AES
 #define RF24JSONRPC
 #ifdef RF24SLEEP
 #include <avr/sleep.h>
@@ -171,7 +170,10 @@ Mega2560	      	        	   21	   20	   19	   18
 #endif
 
 #ifdef DEBUGONSERIAL
+// simple memory stats
 //#define FREERAM
+
+// complex memory stats
 //#define FREEMEM
 
 #define DBGSERIAL Serial
@@ -216,7 +218,7 @@ Mega2560	      	        	   21	   20	   19	   18
 #define MQTTROOTPATH_LEN 100
 #define SERVER_LEN 30
 
-#define MAIN_BUFFER_SIZE 200
+#define MAIN_BUFFER_SIZE 192
 
 // set the frequensy 
 #define I2C_CLOCK 50000

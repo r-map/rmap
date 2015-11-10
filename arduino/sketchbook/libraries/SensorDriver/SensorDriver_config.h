@@ -1,5 +1,5 @@
 // activate debug on serial port
-#define SDDEBUGONSERIAL
+//#define SDDEBUGONSERIAL
 
 //those ms after a prepare the measure will be too old to be considered valid
 #define MAXDELAYFORREAD 4000
@@ -9,6 +9,9 @@
 
 // use RF24Network library for radio transport
 #define RADIORF24
+
+// use AES library for radio transport
+//#define AES
 
 // include TMP driver
 #define TMPDRIVER

@@ -5,7 +5,7 @@ Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of 
+published by the Freeg Software Foundation; either version 2 of 
 the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
@@ -39,8 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // static char mainbuf[MAIN_BUFFER_SIZE];
 
 // added to have arduino ide 1.6 happy
-// comment/uncomment according to RF24 library
-#include <AESLib.h>
 
 #ifdef ETHERNETON
   #include <SPI.h>
@@ -145,6 +143,90 @@ void nextName(char* fileName)
 }
 
 #endif
+#ifdef FREERAM
+/*
+// this function will return the number of bytes currently free in RAM
+// written by David A. Mellis
+// based on code by Rob Faludi http://www.faludi.com
+int freeRam() {
+  int size = 2048; // Use 2048 with ATmega328
+  byte *buf;
+
+  while ((buf = (byte *) malloc(--size)) == NULL)
+    ;
+
+  free(buf);
+
+  return size;
+}
+*/
+
+// this compute the the difference fron heap and stack
+// ehwn heap and stack overload an crash happen
+int freeRam ()
+{
+  //DBGSERIAL.println(__malloc_margin);
+
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+
+#endif
+
+#ifdef FREEMEM
+//Code to print out the free memory
+// more sophisticated method to compute free memory also fragmented by C memory management 
+struct __freelist {
+  size_t sz;
+  struct __freelist *nx;
+};
+
+extern char * const __brkval;
+extern struct __freelist *__flp;
+
+uint16_t freeMem(uint16_t *biggest)
+{
+  char *brkval;
+  char *cp;
+  unsigned freeSpace;
+  struct __freelist *fp1, *fp2;
+  
+  brkval = __brkval;
+  if (brkval == 0) {
+    brkval = __malloc_heap_start;
+  }
+  cp = __malloc_heap_end;
+  if (cp == 0) {
+    cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
+  }
+  if (cp <= brkval) return 0;
+   
+  freeSpace = cp - brkval;
+  
+  for (*biggest = 0, fp1 = __flp, fp2 = 0;
+       fp1;
+       fp2 = fp1, fp1 = fp1->nx) {
+    if (fp1->sz > *biggest) *biggest = fp1->sz;
+    freeSpace += fp1->sz;
+  }
+   
+  return freeSpace;
+}
+
+
+void freeMem(char* message) {
+
+  uint16_t biggest;
+
+  IF_SDEBUG(DBGSERIAL.print(message));
+  IF_SDEBUG(DBGSERIAL.print(F(":\t")));
+  IF_SDEBUG(DBGSERIAL.print(freeMem(&biggest)));
+  IF_SDEBUG(DBGSERIAL.print(F(" biggest:")));
+  IF_SDEBUG(DBGSERIAL.println(biggest));
+}
+
+#endif
 
 #ifdef RF24DEBUGONSERIAL
 // we need fundamental FILE definitions and printf declarations
@@ -189,10 +271,11 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #if defined (SENSORON)
 #include <SensorDriver.h>
 
-#if defined (RADIORF24)
+  #if defined (RADIORF24)
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
+
 
 // nRF24L01(+) radio attached using Getting Started board 
 RF24 radio(RF24CEPIN,RF24CSPIN);
@@ -200,32 +283,70 @@ RF24 radio(RF24CEPIN,RF24CSPIN);
 // Network uses that radio
 RF24Network network(radio);
 
-#if defined (AES)
+    // AES is defined inside RF24Network library
+    #if defined (AES)
+#include <AESLib.h>
+
 // default AES key and iv
 uint8_t key[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 uint8_t iv[] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
-#endif
-#endif
+
+void aes_enc(uint8_t* key, uint8_t* iv, char* mainbuf, size_t* buflen){
+  if (*buflen % 16 != 0) *buflen = (int(*buflen/16)*16) + 16;
+  //IF_SDEBUG(DBGSERIAL.print(F("#encode string  :")));
+  //IF_SDEBUG(DBGSERIAL.println(*buflen));
+  //IF_SDEBUG(DBGSERIAL.println(mainbuf));
+  #ifdef FREEMEM
+    freeMem("#free mem in aes_enc");
+  #endif
+  #ifdef FREERAM
+    IF_SDEBUG(DBGSERIAL.print(F("#free ram on aes_enc: ")));
+    IF_SDEBUG(DBGSERIAL.println(freeRam()));
+  #endif
+  aes128_cbc_enc(key, iv, mainbuf, *buflen);
+  //IF_SDEBUG(DBGSERIAL.print(F("#encoded string :")));
+  //IF_SDEBUG(DBGSERIAL.write(mainbuf,*buflen));
+  //IF_SDEBUG(DBGSERIAL.println(F("#")));
+}
+void aes_dec(uint8_t* key, uint8_t* iv, char* mainbuf, size_t* buflen){
+  if (*buflen % 16 != 0) *buflen = (int(*buflen/16)*16) + 16;
+  //IF_SDEBUG(DBGSERIAL.print(F("#decode string :")));
+  //IF_SDEBUG(DBGSERIAL.write(mainbuf,*buflen));
+  //IF_SDEBUG(DBGSERIAL.println(F("#")));
+  #ifdef FREEMEM
+    freeMem("#free mem in aes_dec");
+  #endif
+  #ifdef FREERAM
+  IF_SDEBUG(DBGSERIAL.print(F("#free ram on aes_dec: ")));
+  IF_SDEBUG(DBGSERIAL.println(freeRam()));
+  #endif
+  aes128_cbc_dec(key, iv, mainbuf, *buflen);
+  //IF_SDEBUG(mainbuf[*buflen-1]='\0');
+  //IF_SDEBUG(DBGSERIAL.print(F("#decoded string:")));
+  //IF_SDEBUG(DBGSERIAL.println(mainbuf));
+}
+    #endif
+  #endif
 
 #include <avr/wdt.h>
 
-#ifdef I2CGPSPRESENT
+  #ifdef I2CGPSPRESENT
 #include "registers.h"
-#endif
+  #endif
 
-#ifdef GSMGPRSMQTT
+  #ifdef GSMGPRSMQTT
 #include "sim800Client.h"
 sim800Client s800;
 char imeicode[16];
-#endif
+  #endif
 
-#ifdef GSMGPRSHTTP
+  #ifdef GSMGPRSHTTP
 #include "sim800.h"
 SIM800 s800;
-#endif
+  #endif
 
 
-#if defined(GSMGPRSRTC) || defined(GSMGPRSRTCBOOT)
+  #if defined(GSMGPRSRTC) || defined(GSMGPRSRTCBOOT)
 time_t scantime(const char *buf)
 {
   tmElements_t tm;
@@ -237,7 +358,7 @@ time_t scantime(const char *buf)
   }
   return 0UL;
 }
-#endif
+  #endif
 
 // sensor information
 struct sensor_t
@@ -260,19 +381,26 @@ struct driver_t   // use this to instantiate a driver
   SensorDriver* manager;
   driver_t() : manager(NULL) {}
 
-  int setup(const char* driver, int node, const char* type, int address) {
+  int setup(const char* driver, int node, const char* type, int address
+    #if defined (AES)
+		       , uint8_t* key, uint8_t* iv
+    #endif
+	      )
+  {
     if (manager != NULL)
       delete manager;
     manager = SensorDriver::create(driver,type);
     if (manager == NULL)
       return -2;
 
-#if defined (RADIORF24)
-    if (manager->setup(driver, address, node, type, mainbuf, MAIN_BUFFER_SIZE, &network) != 0)
-#else
-      if (manager->setup(driver, address, node, type) != 0)
-#endif
-      return -1;
+    if (manager->setup(driver, address, node, type
+      #if defined (RADIORF24)
+		       , mainbuf,sizeof(mainbuf), &network
+        #if defined (AES)
+		       , key, iv
+        #endif
+      #endif
+		       ) != 0) return -1;
     return 0;
   }
 } drivers[SENSORS_LEN];
@@ -314,7 +442,7 @@ struct config_t                   // configuration to save and load fron eeprom
 	sensors[i].mqttpath[SENSORDRIVER_MQTTPATH_LEN-1]='\0';
 	return i;
       }
-      }
+    }
     return -1;
   }
   // Return the index (>= 0) of the requested sensor
@@ -729,7 +857,11 @@ int rf24rpc(aJsonObject* params)
     IF_SDEBUG(DBGSERIAL.print(F("#message: ")));
     IF_SDEBUG(DBGSERIAL.println(mainbuf));
 
-    bool ok = network.write(header,mainbuf,strlen(mainbuf)+1);
+    size_t buflen=strlen(mainbuf)+1;
+#if defined (AES)
+    aes_enc(configuration.key, configuration.iv, mainbuf, &buflen);
+#endif
+    bool ok = network.write(header,mainbuf,buflen);
 
     result = aJson.createObject();
     if (ok) {
@@ -743,6 +875,9 @@ int rf24rpc(aJsonObject* params)
     size_t size = 0;
     if (radioavailabletimeout(500)){
       size = network.read(header,mainbuf,sizeof(mainbuf));
+#if defined (AES)
+    aes_dec(configuration.key, configuration.iv, mainbuf,&size);
+#endif
     }
     if (size >0){
       mainbuf[size-1]='\0';
@@ -841,7 +976,11 @@ int rf24rpc(aJsonObject* params)
 
     int id = configuration.add_device(driver,node,type,address,mqttpath);
 
-    if (!drivers[id].setup(driver, node, type, address) == SD_SUCCESS)
+    if (!drivers[id].setup(driver, node, type, address
+        #if defined (AES)
+			   , configuration.key, configuration.iv
+        #endif
+			   ) == SD_SUCCESS)
       return E_INTERNAL_ERROR;
 
     aJson.addNumberToObject(result, "id",id);
@@ -1259,89 +1398,6 @@ void LcdDigitalClockDisplay(time_t t ){
 }
 #endif
 
-
-#ifdef FREERAM
-/*
-// this function will return the number of bytes currently free in RAM
-// written by David A. Mellis
-// based on code by Rob Faludi http://www.faludi.com
-int freeRam() {
-  int size = 2048; // Use 2048 with ATmega328
-  byte *buf;
-
-  while ((buf = (byte *) malloc(--size)) == NULL)
-    ;
-
-  free(buf);
-
-  return size;
-}
-*/
-
-// this compute the the difference fron heap and stack
-// ehwn heap and stack overload an crash happen
-int freeRam ()
-{
-  //DBGSERIAL.println(__malloc_margin);
-
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
-}
-
-#endif
-
-#ifdef FREEMEM
-//Code to print out the free memory
-// more sophisticated method to compute free memory also fragmented by C memory management 
-struct __freelist {
-  size_t sz;
-  struct __freelist *nx;
-};
-
-extern char * const __brkval;
-extern struct __freelist *__flp;
-
-uint16_t freeMem(uint16_t *biggest)
-{
-  char *brkval;
-  char *cp;
-  unsigned freeSpace;
-  struct __freelist *fp1, *fp2;
-  
-  brkval = __brkval;
-  if (brkval == 0) {
-    brkval = __malloc_heap_start;
-  }
-  cp = __malloc_heap_end;
-  if (cp == 0) {
-    cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
-  }
-  if (cp <= brkval) return 0;
-   
-  freeSpace = cp - brkval;
-  
-  for (*biggest = 0, fp1 = __flp, fp2 = 0;
-       fp1;
-       fp2 = fp1, fp1 = fp1->nx) {
-    if (fp1->sz > *biggest) *biggest = fp1->sz;
-    freeSpace += fp1->sz;
-  }
-   
-  return freeSpace;
-}
-
-
-void freeMem(char* message) {
-
-  uint16_t biggest;
-
-  Serial.print(message);
-  IF_SDEBUG(DBGSERIAL.print(":\t"));
-  IF_SDEBUG(DBGSERIAL.println(freeMem(&biggest)));
-}
-
-#endif
 
 
 #ifdef REPEATTASK
@@ -1864,33 +1920,38 @@ void mgrjsonrpc(aJsonObject *msg)
     
     // parse rpc information
     rpcid = aJson.getObjectItem(msg, "id");
-    jsonrpc = aJson.getObjectItem(msg, "error");
-
+    jsonrpc = aJson.getObjectItem(msg, "error");      //ignore response to rpc
     if (jsonrpc){
       err=E_INVALID_REQUEST;
     }else{
-      jsonrpc = aJson.getObjectItem(msg, "jsonrpc");
+      jsonrpc = aJson.getObjectItem(msg, "response"); //ignore response to rpc
+      if (jsonrpc){
+	err=E_INVALID_REQUEST;
+      }else
+	{
+	  jsonrpc = aJson.getObjectItem(msg, "jsonrpc");
         
-    //  call RPC
-      err=rpc.processMessage(msg);
-      IF_SDEBUG(DBGSERIAL.print(F("#rpc.processMessage return status:")));
-      IF_SDEBUG(DBGSERIAL.println(err));
+	  //  call RPC
+	  err=rpc.processMessage(msg);
+	  IF_SDEBUG(DBGSERIAL.print(F("#rpc.processMessage return status:")));
+	  IF_SDEBUG(DBGSERIAL.println(err));
     
-      if (!rpcid){
-	IF_SDEBUG(DBGSERIAL.println(F("#id not found")));
-	err=E_INTERNAL_ERROR;
-      }
+	  if (!rpcid){
+	    IF_SDEBUG(DBGSERIAL.println(F("#id not found")));
+	    err=E_INTERNAL_ERROR;
+	  }
     
-      if (!jsonrpc){
-	IF_SDEBUG(DBGSERIAL.println(F("#jsonrpc not found")));
-	err=E_INTERNAL_ERROR;
-      } else {
-	if (strcmp (jsonrpc->valuestring,"2.0" ) != 0) {
-	  IF_SDEBUG(DBGSERIAL.print(F("#jsonrpc version is wrong:")));
-	  IF_SDEBUG(DBGSERIAL.println(jsonrpc->valuestring));
-	  err=E_INTERNAL_ERROR;
+	  if (!jsonrpc){
+	    IF_SDEBUG(DBGSERIAL.println(F("#jsonrpc not found")));
+	    err=E_INTERNAL_ERROR;
+	  } else {
+	    if (strcmp (jsonrpc->valuestring,"2.0" ) != 0) {
+	      IF_SDEBUG(DBGSERIAL.print(F("#jsonrpc version is wrong:")));
+	      IF_SDEBUG(DBGSERIAL.println(jsonrpc->valuestring));
+	      err=E_INTERNAL_ERROR;
+	    }
+	  }
 	}
-      }
     }
   }
 
@@ -2087,6 +2148,9 @@ void mgrrf24jsonrpc(void)
     IF_SDEBUG(DBGSERIAL.println(F("#receiving rf24 jsonrpc")));
     RF24NetworkHeader header;
     size_t size = network.read(header,mainbuf,sizeof(mainbuf));
+#if defined (AES)
+    aes_dec(configuration.key, configuration.iv, mainbuf,&size);
+#endif
     IF_SDEBUG(DBGSERIAL.print(F("#size:")));
     IF_SDEBUG(DBGSERIAL.println(size));
 
@@ -2107,8 +2171,12 @@ void mgrrf24jsonrpc(void)
       if (strlen(mainbuf) > 0){
 	IF_SDEBUG(DBGSERIAL.println(F("#sendiging rf24 jsonrpc respose")));
 	RF24NetworkHeader sendheader(header.from_node,0);
-      
-	bool ok= network.write(sendheader,mainbuf,strlen(mainbuf)+1);
+
+	size_t buflen=strlen(mainbuf)+1;      
+#if defined (AES)
+	aes_enc(configuration.key, configuration.iv, mainbuf, &buflen);
+#endif
+	bool ok= network.write(sendheader,mainbuf,buflen);
 	if (!ok){
 	  IF_SDEBUG(DBGSERIAL.println(F("#error sendiging rf24 jsonrpc respose")));
 	}
@@ -2267,6 +2335,9 @@ void setup()
 #endif
 #if defined (RADIORF24)
   DBGSERIAL.print(F(" radiorf24"));
+#endif
+#if defined (AES)
+  DBGSERIAL.print(F(" aes"));
 #endif
 #if defined (GSMGPRSRTC)
   DBGSERIAL.print(F(" gsm-rtc"));
@@ -2443,11 +2514,7 @@ void setup()
     // start rf24 radio 
 #ifdef RADIORF24
     radio.begin();
-#if defined (AES)    
-    network.begin(configuration.channel, configuration.thisnode, configuration.key, configuration.iv);
-#else
     network.begin(configuration.channel, configuration.thisnode);
-#endif
     radio.setRetries(1,15);
     network.txTimeout=500;
 
@@ -2487,7 +2554,12 @@ void setup()
 	  if (!drivers[id].setup(configuration.sensors[id].driver,
 				 configuration.sensors[id].node,
 				 configuration.sensors[id].type,
-				 configuration.sensors[id].address) == SD_SUCCESS){
+				 configuration.sensors[id].address
+
+        #if defined (AES)
+				 , configuration.key, configuration.iv
+        #endif
+				 ) == SD_SUCCESS){
 	    IF_SDEBUG(DBGSERIAL.println(F("error in setup Sensors")));
 	  }
 	}

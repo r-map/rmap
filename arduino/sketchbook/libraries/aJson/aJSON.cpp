@@ -193,6 +193,14 @@ aJsonClass::newItem()
   }else{
     IF_SDEBUG(Serial.print(F("#error aJson malloc: ")));
     IF_SDEBUG(Serial.println(sizeof(aJsonObject)));
+
+    #ifdef DEBUGONSERIAL
+    extern int __heap_start,*__brkval;
+    int v;
+    Serial.print(F("#freeram: "));
+    Serial.println((int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval));
+    #endif
+
     node=NULL;
   }
   return node;
