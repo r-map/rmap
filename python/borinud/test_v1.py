@@ -4,7 +4,7 @@ import tempfile
 from datetime import datetime
 
 from django.test import TestCase
-from django.test import Client
+from django.test import Client, override_settings
 
 import dballe
 
@@ -25,9 +25,11 @@ class TestUtils(TestCase):
 
 
 class TestViews(TestCase):
+    @override_settings(ROOT_URLCONF='borinud.urls')
     def jsonrequest(self, path):
         c = Client()
-        r = c.get("/borinud/api/v1/" + path)
+        r = c.get("/api/v1/" + path)
+        self.assertEquals(r.status_code, 200)
         return json.loads(r.content.decode("utf-8"))
 
     def setUp(self):
