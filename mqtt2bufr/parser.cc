@@ -108,44 +108,27 @@ void Parser::parse_topic(const std::string& topic) {
     std::vector<std::string> items = split_topic(topic);
     // set station ident
     if (items[0] != "-")
-        station_rec.var(WR_VAR(0, 1, 11)).setc(items[0].c_str());
+        station_rec.set_var(dballe::var(WR_VAR(0, 1, 11), items[0].c_str()));
     // set station coordinates
-    station_rec.var(WR_VAR(0, 6,  1)).setc(items[1].c_str());
-    station_rec.var(WR_VAR(0, 5,  1)).setc(items[2].c_str());
+    station_rec.set_var(dballe::var(WR_VAR(0, 6,  1), items[1].c_str()));
+    station_rec.set_var(dballe::var(WR_VAR(0, 5,  1), items[2].c_str()));
     // set station rep_memo
-    station_rec.var(WR_VAR(0, 1,194)).setc(items[3].c_str());
+    station_rec.set_var(dballe::var(WR_VAR(0, 1,194), items[3].c_str()));
     // set variable trange
-    variable_rec.set(
-        dballe::Trange(items[4].c_str(),
-                       items[5].c_str(),
-                       items[6].c_str())
-        );
+    variable_rec.sets("pindicator", items[4]);
+    variable_rec.sets("p1", items[5]);
+    variable_rec.sets("p2", items[6]);
     // set variable level
-    // NOTE: if (-,-,-,-), then is a station context and we use the dballe API
-    // to create the level, without parsing the items (at this moment, station
-    // context is represented internally as (257,-,-,-).
-    if (items[ 7] == "-" &&
-        items[ 8] == "-" &&
-        items[ 9] == "-" &&
-        items[10] == "-")
-        variable_rec.set(dballe::Level::ana());
-    else
-        variable_rec.set(
-                dballe::Level(items[ 7].c_str(),
-                    items[ 8].c_str(),
-                    items[ 9].c_str(),
-                    items[10].c_str())
-                );
+    variable_rec.sets("leveltype1", items[7]);
+    variable_rec.sets("l1", items[8]);
+    variable_rec.sets("leveltype2", items[9]);
+    variable_rec.sets("l2", items[10]);
     // set variable
-    variable_rec.key(dballe::DBA_KEY_VAR).setc(items[11].c_str());
+    variable_rec.set("var", items[11]);
 }
 
 void Parser::parse_payload(const std::string& payload) {
-    wreport::Var bcode = variable_rec.key(dballe::DBA_KEY_VAR);
-    if (!bcode.isset())
-        throw std::runtime_error("bcode not set");
-    wreport::Var var(dballe::varinfo(wreport::descriptor_code(bcode.enqc())));
-
+    wreport::Var var(dballe::varinfo(variable_rec["var"].enqs()));
     json_t* root = json_loads(payload.c_str(), 0, NULL);
     RAIIJson raiijson(root);
     if (!json_is_object(root))
@@ -161,8 +144,8 @@ void Parser::parse_payload(const std::string& payload) {
     else
         throw std::runtime_error("Payload is not a valid JSON object (value associated to key \"v\" is not a string, integer or real)");
     // Parse datetime when data are not in station context
-    if (variable_rec.get_level() != dballe::Level::ana() &&
-        variable_rec.get_trange() != dballe::Trange::ana()) {
+    if (variable_rec.get_level() != dballe::Level() &&
+        variable_rec.get_trange() != dballe::Trange()) {
         json_t* t = json_object_get(root, "t");
         int date[6];
         // A datetime missing or null means "now"
@@ -173,12 +156,12 @@ void Parser::parse_payload(const std::string& payload) {
         else
             throw std::runtime_error("Payload is not a valid JSON object (value associated to key \"t\" is not a string)");
 
-        variable_rec.key(dballe::DBA_KEY_YEAR ).set(date[0]);
-        variable_rec.key(dballe::DBA_KEY_MONTH).set(date[1]);
-        variable_rec.key(dballe::DBA_KEY_DAY  ).set(date[2]);
-        variable_rec.key(dballe::DBA_KEY_HOUR ).set(date[3]);
-        variable_rec.key(dballe::DBA_KEY_MIN  ).set(date[4]);
-        variable_rec.key(dballe::DBA_KEY_SEC  ).set(date[5]);
+        variable_rec.seti("year", date[0]);
+        variable_rec.seti("month", date[1]);
+        variable_rec.seti("day", date[2]);
+        variable_rec.seti("hour", date[3]);
+        variable_rec.seti("min", date[4]);
+        variable_rec.seti("sec", date[5]);
     }
     // Parse attributes (if any)
     if (json_object_iter_at(root, "a")) {
@@ -190,7 +173,7 @@ void Parser::parse_payload(const std::string& payload) {
             const char* k = json_object_iter_key(i);
             json_t* av = json_object_iter_value(i);
             const char* s = json_string_value(av);
-            var.seta(wreport::Var(dballe::varinfo(wreport::descriptor_code(k)), s));
+            var.seta(dballe::var(k, s));
             i = json_object_iter_next(a, i);
         }
     }
@@ -199,12 +182,12 @@ void Parser::parse_payload(const std::string& payload) {
 dballe::Msg Parser::parse(const std::string& topic, const std::string& payload) {
     dballe::Msg msg;
 
-    station_rec.clear();
-    variable_rec.clear();
-    attributes_rec.clear();
-    station_rec.set_ana_context();
-    variable_rec.set_ana_context();
-    attributes_rec.set_ana_context();
+    for (auto r: {station_rec, variable_rec, attributes_rec}) {
+        r.clear();
+        r.set_datetime(dballe::Datetime());
+        r.set_trange(dballe::Trange());
+        r.set_level(dballe::Level());
+    }
     // parse topic
     parse_topic(topic);
     // parse payload
@@ -224,14 +207,7 @@ dballe::Msg Parser::parse(const std::string& topic, const std::string& payload) 
     }
 
     // set datetime from variable_rec
-    int date[6];
-    variable_rec.get_datetime(date);
-    msg.set_year(date[0]);
-    msg.set_month(date[1]);
-    msg.set_day(date[2]);
-    msg.set_hour(date[3]);
-    msg.set_minute(date[4]);
-    msg.set_second(date[5]);
+    msg.set_datetime(variable_rec.get_datetime());
 
     return msg;
 }
@@ -271,7 +247,7 @@ void Parser::parse(const wreport::Var& var, const dballe::Level& level, const db
     topic += "/";
     {
         std::stringstream ss;
-        trange.format(ss);
+        trange.to_stream(ss);
         topic += ss.str();
     }
     topic += "/";
@@ -279,10 +255,7 @@ void Parser::parse(const wreport::Var& var, const dballe::Level& level, const db
         std::stringstream ss;
         // NOTE: at this moment, the station info level is not (-,-,-,-), so we
         // have to translate from dballe internal representation.
-        if (level == dballe::Level::ana())
-            dballe::Level(dballe::MISSING_INT).format(ss);
-        else
-            level.format(ss);
+        level.to_stream(ss);
         topic += ss.str();
     }
     topic += "/";
@@ -293,7 +266,7 @@ void Parser::parse(const wreport::Var& var, const dballe::Level& level, const db
     RAIIJson raiijson(root);
     v = json_string(var.enqc());
     json_object_set_new(root, "v", v);
-    if (level != dballe::Level::ana() && trange != dballe::Trange::ana()) {
+    if (level != dballe::Level() && trange != dballe::Trange()) {
         char d[20];
         sprintf(d, "%04d-%02d-%02dT%02d:%02d:%02d",
                 date[0], date[1], date[2], date[3], date[4], date[5]);
