@@ -44,7 +44,7 @@
 #define P2_RE    "([0-9]+|-)"
 #define VAR_RE   "(B[0-9]{5})"
 
-#define TOPIC_RE "^.*/"IDENT_RE"/"LON_RE","LAT_RE"/"REP_RE"/"PIND_RE","P1_RE","P2_RE"/"LT1_RE","L1_RE","LT2_RE","L2_RE"/"VAR_RE"$"
+#define TOPIC_RE "^.*/" IDENT_RE "/" LON_RE "," LAT_RE "/" REP_RE "/" PIND_RE "," P1_RE "," P2_RE "/" LT1_RE "," L1_RE "," LT2_RE "," L2_RE "/" VAR_RE "$"
 
 #define throw_regexception(errcode, preg, errbuf, prefixmsg) do { regerror(errcode, preg, errbuf, sizeof(errbuf)); throw std::runtime_error(std::string(prefixmsg) + std::string(errbuf)); } while(0);
 
