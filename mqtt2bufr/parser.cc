@@ -220,7 +220,7 @@ namespace bufr2mqtt {
 
 void Parser::parse(const wreport::Var& var, const dballe::Level& level, const dballe::Trange& trange,
                    const dballe::msg::Context& station_context,
-                   int* date,
+                   const dballe::Datetime& datetime,
                    std::string& topic, std::string& payload) {
     topic.clear();
     payload.clear();
@@ -267,10 +267,9 @@ void Parser::parse(const wreport::Var& var, const dballe::Level& level, const db
     v = json_string(var.enqc());
     json_object_set_new(root, "v", v);
     if (level != dballe::Level() && trange != dballe::Trange()) {
-        char d[20];
-        sprintf(d, "%04d-%02d-%02dT%02d:%02d:%02d",
-                date[0], date[1], date[2], date[3], date[4], date[5]);
-        v = json_string(d);
+        std::stringstream ss;
+        datetime.to_stream_iso8601(ss, 'T', "");
+        v = json_string(ss.str().c_str());
         json_object_set_new(root, "t", v);
     }
     v = NULL;

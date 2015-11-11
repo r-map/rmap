@@ -41,9 +41,9 @@ namespace mqtt2bufr {
  */
 class Parser {
  protected:
-  dballe::Record station_rec;
-  dballe::Record variable_rec;
-  dballe::Record attributes_rec;
+  dballe::core::Record station_rec;
+  dballe::core::Record variable_rec;
+  dballe::core::Record attributes_rec;
 
   /**
    * Parse the topic.
@@ -73,7 +73,7 @@ class Parser {
  public:
   void parse(const wreport::Var& var, const dballe::Level& level, const dballe::Trange& trange,
              const dballe::msg::Context& station_context,
-             int* date,
+             const dballe::Datetime& datetime,
              std::string& topic, std::string& payload);
 };
 
