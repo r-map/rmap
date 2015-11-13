@@ -121,13 +121,14 @@ int main(int argc, char** argv)
 
     for (auto file: files) {
         FpRAII f(file);
-        char buf[129];
+        char buf[128];
         while (fread(buf, sizeof(buf), 1, f.fp)) {
-            dballe::msg::BufrExporter exporter;
-            std::string s(buf, sizeof(buf));
-            mqtt2bufr::Parser parser;
             dballe::Messages msgs;
-            dballe::Msg msg = parser.parse(s.substr(0, 63), s.substr(65, 129));
+            dballe::msg::BufrExporter exporter;
+            mqtt2bufr::Parser parser;
+            std::string topic(buf + 1, buf + 63);
+            std::string payload(buf + 65, buf + 128);
+            dballe::Msg msg = parser.parse(topic, payload);
             msgs.append(msg);
             std::cout << exporter.to_binary(msgs);
         }
