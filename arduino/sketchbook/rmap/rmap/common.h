@@ -39,8 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // output debug messages on serial port
 #define DEBUGONSERIAL
-// define this to activate debug on RF24* libraries
-//#define RF24DEBUGONSERIAL
 
 ///////////////////////////////////////////////////////////////////////
 

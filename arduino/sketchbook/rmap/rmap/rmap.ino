@@ -228,7 +228,9 @@ void freeMem(char* message) {
 
 #endif
 
-#ifdef RF24DEBUGONSERIAL
+#ifdef SERIAL_DEBUG
+// for RF24* dubug
+//http://playground.arduino.cc/Main/Printf
 // we need fundamental FILE definitions and printf declarations
 #include <stdio.h>
 
@@ -2269,7 +2271,7 @@ void setup()
     ; // wait for serial port to connect. Needed for Leonardo only
   }
 
-#ifdef RF24DEBUGONSERIAL
+#ifdef SERIAL_DEBUG
 // fill in the UART file descriptor with pointer to writer.
    fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
@@ -2933,6 +2935,10 @@ void setup()
 			      success=false;
 			    }
 			  IF_SDEBUG(DBGSERIAL.println(F("done"))); 
+			}
+		      else
+			{
+			  success=false;
 			}
 		    }
 		}
