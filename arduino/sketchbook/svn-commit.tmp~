@@ -1,5 +1,0 @@
-
---Questa linea, e quelle sotto di essa, saranno ignorate--
-
-M    libraries/SensorDriver/SensorDriver.cpp
-M    rmap/rmap/rmap.ino

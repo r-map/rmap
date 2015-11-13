@@ -35,6 +35,7 @@ aJsonObject* aj;
 void setup()
 {
 
+ /*
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"DW1");
   sensors[0].address=I2C_WIND_ADDRESS;
@@ -43,7 +44,6 @@ void setup()
   strcpy(sensors[1].type,"TBR");
   sensors[1].address=I2C_RAIN_ADDRESS;
 
-  /*
   strcpy(sensors[2].driver,"I2C");
   strcpy(sensors[2].type,"BMP");
   sensors[2].address=119;
@@ -57,6 +57,16 @@ void setup()
   strcpy(sensors[5].type,"HIH");
   sensors[5].address=39;
   */
+
+
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"TMP");
+  sensors[0].address=72;
+
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"TMP");
+  sensors[1].address=73;
+
 
   // start up the serial interface
   Serial.begin(9600);
