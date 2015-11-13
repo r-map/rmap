@@ -1,4 +1,8 @@
+*.la
+*.lo
+*.o
 /.deps/
+/.libs
 /aclocal.m4
 /autom4te.cache/
 /bufr2mqtt
@@ -23,5 +27,7 @@
 /mqtt2bufr
 /mqtt2bufr.1
 /stamp-h1
+/storedjson2bufr
+/storedjson2bufr.1
 Makefile
 Makefile.in
