@@ -34,7 +34,6 @@
 #include <string.h>
 
 #include <dballe/msg/msg.h>
-#include <dballe/msg/msgs.h>
 #include <dballe/msg/wr_codec.h>
 
 #include "parser.h"
@@ -51,12 +50,10 @@ struct mosq : public mosqpp::mosquittopp {
             msg = parser.parse(message->topic,
                                std::string((const char*)message->payload,
                                            message->payloadlen));
-            dballe::Msgs msgs;
+            dballe::Messages msgs;
             dballe::msg::BufrExporter exporter;
-            msgs.acquire(msg);
-            dballe::Rawmsg raw;
-            exporter.to_rawmsg(msgs, raw);
-            std::cout << raw << std::flush;
+            msgs.append(msg);
+            std::cout << exporter.to_binary(msgs) << std::flush;
         } catch(const std::exception& e) {
             std::cerr << e.what() << std::endl;
         }

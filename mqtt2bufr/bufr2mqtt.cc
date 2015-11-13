@@ -36,7 +36,6 @@
 
 #include <wreport/bulletin.h>
 #include <dballe/msg/msg.h>
-#include <dballe/msg/msgs.h>
 #include <dballe/msg/wr_codec.h>
 
 #include "parser.h"
@@ -62,50 +61,41 @@ struct Publisher : mosqpp::mosquittopp {
       return last_ack_mid == last_pub_mid;
     }
 
-    void publish_msgs(const dballe::Msgs& msgs) {
+    void publish_msg(const dballe::Message& message) {
         bufr2mqtt::Parser parser;
-        for (dballe::Msgs::const_iterator i = msgs.begin(); i != msgs.end(); ++i) {
-            int date[6];
-            dballe::Msg* msg = *i;
-            msg->parse_date(date);
-            const dballe::msg::Context* station_context = msg->find_station_context();
-            for (std::vector<dballe::msg::Context*>::const_iterator j = msg->data.begin();
-                 j != msg->data.end(); ++j) {
-                dballe::msg::Context* ctx = *j;
-                for (std::vector<wreport::Var*>::const_iterator k = ctx->data.begin();
-                     k != ctx->data.end(); ++k) {
-                    const wreport::Var* var = *k;
-                    // Skip date from station context
-                    if (ctx == station_context && (
-                            var->code() == WR_VAR(0, 4,  1) ||
-                            var->code() == WR_VAR(0, 4,  2) ||
-                            var->code() == WR_VAR(0, 4,  3) ||
-                            var->code() == WR_VAR(0, 4,  4) ||
-                            var->code() == WR_VAR(0, 4,  5) ||
-                            var->code() == WR_VAR(0, 4,  6)
-                            ))
-                      continue;
-                    std::string topic;
-                    std::string payload;
-                    bool retain = ( ctx->is_station() ? true : false );
-                    parser.parse(*var, ctx->level, ctx->trange,
-                                 *station_context,
-                                 date,
-                                 topic, payload);
-                    for (std::vector<std::string>::const_iterator t = topics.begin();
-                         t != topics.end(); ++t) {
-                      // TODO: do something if publish() fails
-                      int mosqerr;
-                      if ((mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain)) != MOSQ_ERR_SUCCESS) {
+        const dballe::Msg& msg = dballe::Msg::downcast(message);
+        const dballe::msg::Context* station_context = msg.find_station_context();
+        for (const auto& ctx: msg.data) {
+            for (const auto& var: ctx->data) {
+                // Skip date from station context
+                if (ctx->is_station() &&
+                    (var->code() == WR_VAR(0, 4,  1) ||
+                     var->code() == WR_VAR(0, 4,  2) ||
+                     var->code() == WR_VAR(0, 4,  3) ||
+                     var->code() == WR_VAR(0, 4,  4) ||
+                     var->code() == WR_VAR(0, 4,  5) ||
+                     var->code() == WR_VAR(0, 4,  6)))
+                    continue;
+                std::string topic;
+                std::string payload;
+                bool retain = ( ctx->is_station() ? true : false );
+                parser.parse(*var, ctx->level, ctx->trange,
+                             *station_context,
+                             msg.get_datetime(),
+                             topic, payload);
+                for (std::vector<std::string>::const_iterator t = topics.begin();
+                     t != topics.end(); ++t) {
+                    // TODO: do something if publish() fails
+                    int mosqerr;
+                    if ((mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain)) != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while publishing message"
-                                  << ": " << mosqpp::strerror(mosqerr)
-                                  << std::endl;
-                      }
-		      if (loop() != MOSQ_ERR_SUCCESS) {
+                            << ": " << mosqpp::strerror(mosqerr)
+                            << std::endl;
+                    }
+                    if (loop() != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while calling mosquitto loop: "
-                                  << mosqpp::strerror(mosqerr)
-                                  << std::endl;
-                      }
+                            << mosqpp::strerror(mosqerr)
+                            << std::endl;
                     }
                 }
             }
@@ -227,14 +217,16 @@ int main(int argc, char** argv)
     }
 
 
-    dballe::Rawmsg raw;
-    std::auto_ptr<dballe::msg::Importer> importer = dballe::msg::Importer::create(dballe::BUFR);
+    std::unique_ptr<dballe::File> input = dballe::File::create(dballe::File::BUFR, stdin, false, "stdin");
 
-    while (wreport::BufrBulletin::read(stdin, raw, "(stdin)", &raw.offset)) {
-        dballe::Msgs msgs;
-        importer->from_rawmsg(raw, msgs);
-        publisher.publish_msgs(msgs);
-    }
+    input->foreach([&publisher](const dballe::BinaryMessage& bmsg) {
+        dballe::msg::BufrImporter importer;
+        return importer.foreach_decoded(bmsg, [&publisher](std::unique_ptr<dballe::Message>&& msgptr) {
+            publisher.publish_msg(*msgptr);
+            return true;
+        });
+    });
+
     while (not publisher.all_sent()) {
       usleep(1000000);
       publisher.loop();

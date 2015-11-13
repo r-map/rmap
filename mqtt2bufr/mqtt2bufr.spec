@@ -9,6 +9,11 @@ Packager:      Paolo Patruno,,, <ppatruno@arpa.emr.it>
 Source:        mqtt2bufr-%{version}.tar.gz
 License:       G.P.L.
 BuildRoot:     %{_tmppath}/%{name}-%{version}-root
+BuildRequires: jansson-devel
+BuildRequires: libdballe-devel
+BuildRequires: mosquitto-devel
+BuildRequires: libwibble-devel
+BuildRequires: help2man
 
 %description
 Tools to publish BUFR messages to MQTT and to convert MQTT messages to BUFR.
