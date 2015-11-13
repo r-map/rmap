@@ -62,7 +62,7 @@ struct FpRAII {
 void print_help(std::ostream& out)
 {
     out << "Usage: storedjson2bufr [OPTIONS] [FILE...]" << std::endl
-        << "Convert STIMA data to BUFR messages. "
+        << "Convert stored JSON to generic BUFR. "
         << "With no FILE, or when FILE is -, read standard input." << std::endl
         << "Options are" << std::endl
         << " --help             show this help and exit" << std::endl

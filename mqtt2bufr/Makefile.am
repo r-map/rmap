@@ -27,7 +27,7 @@ bufr2mqtt.1: bufr2mqtt.cc
 	$(HELP2MAN) --no-info --name="Publish BUFR messages to MQTT" --output=$@ ./bufr2mqtt
 
 storedjson2bufr.1: storedjson2bufr.cc
-	$(HELP2MAN) --no-info --name="Publish BUFR messages to MQTT" --output=$@ ./storedjson2bufr
+	$(HELP2MAN) --no-info --name="Convert stored JSON to generic BUFR" --output=$@ ./storedjson2bufr
 
 EXTRA_DIST = \
 	     parser.h mqtt2bufr.spec
