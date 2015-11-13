@@ -5,10 +5,14 @@ AC_PREREQ([2.63])
 AC_INIT([mqtt2bufr], [0.6], [edigiacomo@arpa.emr.it])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 AC_PROG_CXX
 AC_PROG_CC
 AC_LANG(C++)
+
+dnl Use c++11
+AX_CXX_COMPILE_STDCXX_11
 
 AM_INIT_AUTOMAKE([nostdinc subdir-objects])
 LT_INIT
