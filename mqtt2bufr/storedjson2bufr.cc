@@ -67,6 +67,7 @@ void print_help(std::ostream& out)
         << "Options are" << std::endl
         << " --help             show this help and exit" << std::endl
         << " --version          show version and exit" << std::endl
+        << " --exclude-sent     exclude records already sent" << std::endl
         << std::endl
         << "Report bugs to: " << PACKAGE_BUGREPORT << std::endl;
         ;
@@ -81,6 +82,7 @@ int main(int argc, char** argv)
 {
     static int show_help = 0;
     static int show_version = 0;
+    static int exclude_sent = 0;
     std::vector<std::string> files;
 
     while (1) {
@@ -89,6 +91,7 @@ int main(int argc, char** argv)
         static struct option opts[] = {
             { "help", no_argument, &show_help, 1 },
             { "version", no_argument, &show_version, 1 },
+            { "exclude-sent", no_argument, &exclude_sent, 1},
             { 0, 0, 0, 0 }
         };
 
@@ -123,6 +126,9 @@ int main(int argc, char** argv)
         FpRAII f(file);
         char buf[128];
         while (fread(buf, sizeof(buf), 1, f.fp)) {
+            bool already_sent = buf[0];
+            if (exclude_sent and already_sent)
+                continue;
             dballe::Messages msgs;
             dballe::msg::BufrExporter exporter;
             mqtt2bufr::Parser parser;
