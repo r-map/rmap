@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([mqtt2bufr], [0.6], [edigiacomo@arpa.emr.it])
+AC_INIT([mqtt2bufr], [0.7], [edigiacomo@arpa.emr.it])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
