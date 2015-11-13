@@ -26,6 +26,7 @@
 #include <string>
 #include <iostream>
 #include <stdexcept>
+#include <vector>
 
 #include <getopt.h>
 #include <string.h>
@@ -113,17 +114,17 @@ int main(int argc, char** argv)
     }
 
     for (int i = optind; i < argc; ++i)
-        files.append(argv[i]);
+        files.push_back(argv[i]);
 
     if (files.empty())
-        files.append("-");
+        files.push_back("-");
 
     for (auto file: files) {
         FpRAII f(file);
-        const char* buf[129];
+        char buf[129];
         while (fread(buf, sizeof(buf), 1, f.fp)) {
             dballe::msg::BufrExporter exporter;
-            std::string s(buf);
+            std::string s(buf, sizeof(buf));
             mqtt2bufr::Parser parser;
             dballe::Messages msgs;
             dballe::Msg msg = parser.parse(s.substr(0, 63), s.substr(65, 129));
