@@ -197,6 +197,9 @@ Mega2560	      	        	   21	   20	   19	   18
 // if you chenge this the board stop waiting configuration when boot
 #define CONFVER "conf00"
 
+// ENC pins
+#define ENCCEPIN 8  //	The pin attached to Chip Enable on the ENC module
+
 // define ethernet port for tcp/ip transport
 #define ETHERNETPORT 1000
 

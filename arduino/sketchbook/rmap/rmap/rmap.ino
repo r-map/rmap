@@ -2579,7 +2579,7 @@ void setup()
 
   IF_SDEBUG(DBGSERIAL.println(F("#Try to configure Ethernet using DHCP")));
                                                                     // start Ethernet
-  while (Ethernet.begin(configuration.mac) == 0) {
+  while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0) {
     IF_SDEBUG(DBGSERIAL.println(F("#Failed to configure Ethernet using DHCP")));
 
     wdt_reset();
