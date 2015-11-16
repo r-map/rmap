@@ -43,6 +43,7 @@ from rmap import jsonrpc
 from rmap import __version__
 import rmap.settings
 from rmap.stations.models import StationMetadata
+from rmap.stations.models import Sensor
 import argparse
 import rmap.rmap_core
 
@@ -55,8 +56,11 @@ parser.add_argument('--version', action='version', version="%(prog)s "+__version
 parser.add_argument('--list_stations',action="store_true", help="list all stations, board and transports")
 parser.add_argument('--list_boards',action="store_true", help="list all board on station and transports")
 parser.add_argument('--wizard',action="store_true", help="wizard configuration tool (simple set user, password, location on station")
+parser.add_argument('--delsensor',action="store_true", help="del sensor from module of station")
+parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete ALL sensor from module of station")
+parser.add_argument('--addsensor',action="store_true", help="add sensor to module of station")
+parser.add_argument('--addsensors_by_template',  default=None, choices=['stima_t_u','stima_t'], help="configure sensor for a module of station by template")
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
-
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -74,6 +78,22 @@ parser.add_argument('--samplerate',  default=5, help="samplerate for sensors")
 parser.add_argument('--queue',  default="rmap", help="queue for amqp broker")
 parser.add_argument('--exchange',  default="rmap", help="exchange for amqp broker")
 parser.add_argument('--bluetoothname',  default="HC-05", help="name of the bluetooth device")
+
+#parser.add_argument('--sensortemplate',  default=None, help="sensor template definition")
+parser.add_argument('--sensorname',  default=None, help="sensor name")
+drivers=[]
+for driver in Sensor.SENSOR_DRIVER_CHOICES:
+    drivers.append(driver[0])
+parser.add_argument('--driver',  default="TMP", help="sensor driver",choices=drivers)
+types=[]
+for type in Sensor.SENSOR_TYPE_CHOICES:
+    types.append(type[0])
+parser.add_argument('--type',  default="TMP", help="sensor type",choices=types)
+parser.add_argument('--i2cbus',  default=1, help="i2c smbus number")
+parser.add_argument('--address',  default=72, help="i2c sensor address")
+parser.add_argument('--node',  default=1, help="RF24Network node")
+parser.add_argument('--timerange',  default="254,0,0", help="sensor timerange (see tables)")
+parser.add_argument('--level',  default="103,2000", help="sensor level (see tables)")
 
 args = parser.parse_args()
 
@@ -111,6 +131,72 @@ if args.wizard:
                             activate=True)
 
     print "END of wizard configuration"
+
+
+if args.delsensor:
+
+    if (   args.sensorname is None
+        or args.board_slug is None):
+
+        print " selected delsensor without sensorname or board_slug"
+        raise SystemExit(1)
+
+    rmap.rmap_core.delsensor(board_slug=args.board_slug,name=args.sensorname)
+
+    print "END of delsensor configuration"
+
+
+if args.delsensors:
+
+    if (args.board_slug is None):
+
+        print " selected delsensor without board_slug"
+        raise SystemExit(1)
+
+    rmap.rmap_core.delsensors(board_slug=args.board_slug)
+
+    print "END of delsensors configuration"
+
+
+
+if args.addsensor:
+
+    if (   args.sensorname is None
+        or args.board_slug is None):
+
+        print " selected addsensor without sensorname or board_slug"
+        raise SystemExit(1)
+
+
+    rmap.rmap_core.addsensor(board_slug=args.board_slug,name=args.sensorname,driver=args.driver,
+                             type=args.type,i2cbus=args.i2cbus,address=args.address,node=args.node,
+                             timerange=args.timerange,level=args.level)
+    #,sensortemplate=args.sensortemplate)
+
+    print "END of addsensor configuration"
+
+
+if args.addsensors_by_template is not None:
+
+    if (args.board_slug is None):
+
+        print " selected addsensors_by_template without board_slug"
+        raise SystemExit(1)
+
+    if (args.addsensors_by_template == "stima_t_u"):
+        rmap.rmap_core.delsensors(board_slug=args.board_slug)
+        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima T",driver="I2C",
+                                 type="ADT",address=49,timerange="254,0,0",level="105,2000,-,-")
+        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima U",driver="I2C",
+                                 type="HIH",address=52,timerange="254,0,0",level="105,2000,-,-")
+
+    if (args.addsensors_by_template == "stima_t"):
+        rmap.rmap_core.delsensors(board_slug=args.board_slug)
+        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima T",driver="I2C",
+                                 type="ADT",address=49,timerange="254,0,0",level="105,2000,-,-")
+
+    print "END of addsensors_by_template configuration"
+
 
 if args.list_stations:
 

@@ -29,6 +29,158 @@ from rmap.utils import nint
 from rmap import jsonrpc
 
 
+#sensortemplates={"stima_t_u":
+#'''
+#[
+#    {
+#        "fields": {
+#            "node": 1,
+#            "name": "Stima T",
+#            "level": "105,2000,-,-",
+#            "timerange": "254,0,0",
+#            "driver": "I2C",
+#            "i2cbus": 1,
+#            "board": [
+#                "base",
+#                [
+#                    "home",
+#                    [
+#                        "rmap"
+#                    ]
+#                ]
+#            ],
+#            "address": 72,
+#            "active": true,
+#            "type": "ADT"
+#        },
+#        "model": "stations.sensor"
+#    },
+#    {
+#        "fields": {
+#            "node": 1,
+#            "name": "Stima U",
+#            "level": "105,2000,-,-",
+#            "timerange": "254,0,0",
+#            "driver": "I2C",
+#            "i2cbus": 1,
+#            "board": [
+#                "base",
+#                [
+#                    "home",
+#                    [
+#                        "rmap"
+#                    ]
+#                ]
+#            ],
+#            "address": 39,
+#            "active": true,
+#            "type": "HIH"
+#        },
+#        "model": "stations.sensor"
+#    }
+#]
+#'''
+#,
+#"stima_wind":
+#'''
+#[
+#    {
+#        "fields": {
+#            "node": 1,
+#            "name": "Stima wind",
+#            "level": "105,10000,-,-",
+#            "timerange": "254,0,0",
+#            "driver": "I2C",
+#            "i2cbus": 1,
+#            "board": [
+#                "base",
+#                [
+#                    "home",
+#                    [
+#                        "rmap"
+#                    ]
+#                ]
+#            ],
+#            "address": 22,
+#            "active": true,
+#            "type": "win"
+#        },
+#        "model": "stations.sensor"
+#    }
+#]
+#'''
+#,
+#"stima_rain":
+#'''
+#[
+#    {
+#        "fields": {
+#            "node": 1,
+#            "name": "Stima rain",
+#            "level": "105,2000,-,-",
+#            "timerange": "254,0,0",
+#            "driver": "I2C",
+#            "i2cbus": 1,
+#            "board": [
+#                "base",
+#                [
+#                    "home",
+#                    [
+#                        "rmap"
+#                    ]
+#                ]
+#            ],
+#            "address": 22,
+#            "active": true,
+#            "type": "rai"
+#        },
+#        "model": "stations.sensor"
+#    }
+#]
+#'''
+#}
+
+
+def delsensor(board_slug=None,name=None):
+
+    Sensor.objects.get(name=name,board__slug=board_slug).delete()
+
+def delsensors(board_slug=None):
+
+    Sensor.objects.filter(board__slug=board_slug).delete()
+
+
+def addsensor(board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1,timerange="254,0,0",level="103,2000"):
+#,sensortemplate=None):
+
+    myboard = Board.objects.get(slug=board_slug)
+
+    #if sensortemplate is None :
+    mysensor=Sensor(board=myboard,active=True,name=name,driver=driver,type=type
+                    ,i2cbus=i2cbus,address=address,node=node
+                    ,timerange=timerange,level=level)
+
+    mysensors=[mysensor]
+
+    #else:
+    #    mysensorstmp=serializers.deserialize("json",sensortemplates[sensortemplate])
+    #    mysensors=[]
+    #    for mysensor in mysensorstmp:
+    #        #myboard.sensor_set.clear()
+    #        #myboard.sensor_set.add(mysensor.object) 
+    #
+    #        mysensors.append(mysensor)
+
+    for mysensor in mysensors:
+        try:
+            mysensor.save()
+        except IntegrityError:
+            oldsensor=Sensor.objects.get(board=myboard,active=True,name=name,driver=driver,type=type
+                                         ,i2cbus=i2cbus,address=address,node=node
+                                         ,timerange=timerange,level=level)
+            oldsensor.delete()
+            mysensor.save()
+
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None):
 
