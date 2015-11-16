@@ -50,7 +50,7 @@ import rmap.rmap_core
 import django
 django.setup()
 
-parser = argparse.ArgumentParser(description='Configure rmap boards.')
+parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
 
 parser.add_argument('--list_stations',action="store_true", help="list all stations, board and transports")
@@ -61,6 +61,9 @@ parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete 
 parser.add_argument('--addsensor',action="store_true", help="add sensor to module of station")
 parser.add_argument('--addsensors_by_template',  default=None, choices=['stima_t_u','stima_t'], help="configure sensor for a module of station by template")
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
+parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
+
+
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -78,7 +81,6 @@ parser.add_argument('--samplerate',  default=5, help="samplerate for sensors")
 parser.add_argument('--queue',  default="rmap", help="queue for amqp broker")
 parser.add_argument('--exchange',  default="rmap", help="exchange for amqp broker")
 parser.add_argument('--bluetoothname',  default="HC-05", help="name of the bluetooth device")
-
 #parser.add_argument('--sensortemplate',  default=None, help="sensor template definition")
 parser.add_argument('--sensorname',  default=None, help="sensor name")
 drivers=[]
@@ -264,3 +266,16 @@ if args.config_station:
                                  device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
 
     print "END of station configuration"
+
+
+if args.upload_to_server:
+
+    if (args.username is None or
+        args.password is None or
+        args.station_slug is None):
+        print " selected upload_to_server without username or station_slug"
+        raise SystemExit(1)
+
+    rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,password=args.password)
+
+    print "END of upload_to_server configuration"
