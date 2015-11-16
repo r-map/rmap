@@ -3,7 +3,7 @@
 __author__ = "Jan-Piet Mens"
 __copyright__ = "Copyright (C) 2013 by Jan-Piet Mens"
 
-import mosquitto
+import paho.mqtt.client as paho
 import os, sys
 import logging
 import time
@@ -39,7 +39,7 @@ class mqtt2graphite():
     self.mqtt_host=mqtt_host
     self.carbon_server=carbon_server
     self.carbon_port=carbon_port
-    self.mqttc = mosquitto.Mosquitto(client_id, clean_session=True)
+    self.mqttc = paho.Client(client_id, clean_session=True)
     self.map = {}
 
     f = open(mapfile)
@@ -107,7 +107,7 @@ class mqtt2graphite():
     # Find out how to handle the topic in this message: slurp through
     # our map 
     for t in self.map:
-        if mosquitto.topic_matches_sub(t, msg.topic):
+        if paho.topic_matches_sub(t, msg.topic):
             # print "%s matches MAP(%s) => %s" % (msg.topic, t, self.map[t])
 
             # Must we rename the received msg topic into a different
@@ -179,14 +179,14 @@ class mqtt2graphite():
     logging.debug("DEBUG MODE")
 
 
-    rc=mosquitto.MOSQ_ERR_CONN_REFUSED
-    while ( not  (rc == mosquitto.MOSQ_ERR_SUCCESS)):
+    rc=paho.MQTT_ERR_CONN_REFUSED
+    while ( not  (rc == paho.MQTT_ERR_SUCCESS)):
         try:
             rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
         except:
-            rc=mosquitto.MOSQ_ERR_CONN_REFUSED
+            rc=paho.MQTT_ERR_CONN_REFUSED
 
-        if (not (rc == mosquitto.MOSQ_ERR_SUCCESS)):
+        if (not (rc == paho.MQTT_ERR_SUCCESS)):
             logging.info("Cannot connect to MQTT; retry in 5 seconds")
             time.sleep(5)
 
