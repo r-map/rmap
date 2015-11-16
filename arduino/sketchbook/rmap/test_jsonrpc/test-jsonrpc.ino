@@ -1,7 +1,8 @@
 /*
-  JsonRPC rmap application
+  JsonRPC test
  
- Demonstrates how to toggle the status of a LED by sending a
+ Demonstrates how to implement json-rpc 
+ exaple to toggle the status of a LED by sending a
  json message to the arduino over the serial connection.
  
  The following python script can be used to toggle the LED
@@ -222,55 +223,4 @@ void loop()
 
   }
 }
-
-
-/*
-//Code to print out the free memory
- 
- struct __freelist {
- size_t sz;
- struct __freelist *nx;
- };
- 
- extern char * const __brkval;
- extern struct __freelist *__flp;
- 
- uint16_t freeMem(uint16_t *biggest)
- {
- char *brkval;
- char *cp;
- unsigned freeSpace;
- struct __freelist *fp1, *fp2;
- 
- brkval = __brkval;
- if (brkval == 0) {
- brkval = __malloc_heap_start;
- }
- cp = __malloc_heap_end;
- if (cp == 0) {
- cp = ((char *)AVR_STACK_POINTER_REG) - __malloc_margin;
- }
- if (cp <= brkval) return 0;
- 
- freeSpace = cp - brkval;
- 
- for (*biggest = 0, fp1 = __flp, fp2 = 0;
- fp1;
- fp2 = fp1, fp1 = fp1->nx) {
- if (fp1->sz > *biggest) *biggest = fp1->sz;
- freeSpace += fp1->sz;
- }
- 
- return freeSpace;
- }
- 
- uint16_t biggest;
- 
- void freeMem(char* message) {
- Serial.print(message);
- Serial.print(":\t");
- Serial.println(freeMem(&biggest));
- }
- 
- */
 
