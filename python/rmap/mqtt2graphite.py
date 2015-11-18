@@ -83,7 +83,7 @@ class mqtt2graphite():
     sys.exit(signum)
 
 
-  def on_connect(self,mosq, userdata, rc):
+  def on_connect(self,mosq, userdata, flags, rc):
     logging.info("Connected to broker at %s as %s" % (self.mqtt_host, client_id))
 
 #    self.mqttc.publish("clients/" + client_id, "Online")
@@ -198,9 +198,9 @@ class mqtt2graphite():
 
 if __name__ == '__main__':
 
-    MQTT_HOST = os.environ.get('MQTT_HOST', 'localhost')
+    MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
     CARBON_SERVER = '127.0.0.1'
     CARBON_PORT = 2003
 
-    m2g=mqtt2graphite(MQTT_HOST, CARBON_SERVER, CARBON_PORT)
+    m2g=mqtt2graphite(MQTT_HOST, CARBON_SERVER, CARBON_PORT,"map")
     m2g.run()
