@@ -173,6 +173,7 @@ def addsensor(board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,
     #        mysensors.append(mysensor)
 
     for mysensor in mysensors:
+        print "try to save:",mysensor
         try:
             mysensor.save()
         except IntegrityError:
@@ -189,28 +190,34 @@ template_choices = ["default","none","test","test_indirect","test_rf24","test_in
 def addsensors_by_template(board_slug=None,template=None):
 
     if (template == "default"):
+        print "setting template:", template
         pass
 
     if (template == "none"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
 
     if (template == "test"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="stima test",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
 
     if (template == "test_indirect"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="stima test jrpc",driver="JRPC",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
 
 
     if (template == "test_rf24"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="stima test rf24",driver="RF24",
                   type="TMP",address=72,timerange="254,0,0",level="0,2,-,-")
 
     if (template == "test_indirect_rf24"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="stima test jrpc",driver="JRPC",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
@@ -218,6 +225,7 @@ def addsensors_by_template(board_slug=None,template=None):
                   type="TMP",address=72,timerange="254,0,0",level="0,2,-,-")
 
     if (template == "test_master"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="stima test",driver="i2c",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
@@ -225,6 +233,7 @@ def addsensors_by_template(board_slug=None,template=None):
                   type="TMP",address=72,timerange="254,0,0",level="0,2,-,-")
 
     if (template == "test_base"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="Temperature",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
@@ -234,6 +243,7 @@ def addsensors_by_template(board_slug=None,template=None):
                   type="BMP",address=119,timerange="254,0,0",level="0,1,-,-")
 
     if (template == "stima_base"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="Temperature",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="103,1000,-,-")
@@ -243,6 +253,7 @@ def addsensors_by_template(board_slug=None,template=None):
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
     if (template == "stima_t_u"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="Temperature",driver="I2C",
                   type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
@@ -250,6 +261,7 @@ def addsensors_by_template(board_slug=None,template=None):
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_t"):
+        print "setting template:", template
         delsensors(board_slug=board_slug)
         addsensor(board_slug=board_slug,name="Temperature",driver="I2C",
                   type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")

@@ -1287,6 +1287,12 @@ class Rmap(App):
                 print('sensors template have been changed to', value)
                 sensorschanged = True
 
+            elif token == ('sensors', 'remote_template'):
+                print('sensors remote_template have been changed to', value)
+                rmap.rmap_core.addsensors_by_template(
+                     board_slug=self.config.get('sensors','remote_board')
+                    ,template=self.config.get('sensors','remote_template'))
+
             if locationchanged:
                 print "update location with new parameter"
 
@@ -1434,8 +1440,9 @@ class Rmap(App):
             'name': 'HC-05',
             'station': station_default,
             'board': board_default,
+            'template': template_default,
             'remote_board': "stima_bt",
-            'template': template_default
+            'remote_template': template_default
         })
 
     def build_settings(self, settings):
@@ -1560,6 +1567,14 @@ class Rmap(App):
       "options": 
         """ + str(boards).replace("'","\"") + """
         },
+    { "type": "scrolloptions",
+      "title": "Template",
+      "desc": "Sensor template",
+      "section": "sensors",
+      "key": "template",
+      "options": 
+        """ + str(rmap.rmap_core.template_choices).replace("'","\"") + """
+        },
     { "type": "options",
       "title": "Remote Board",
       "desc": "remote board name",
@@ -1569,18 +1584,15 @@ class Rmap(App):
         """ + str(boards).replace("'","\"") + """
         },
     { "type": "scrolloptions",
-      "title": "Template",
-      "desc": "Sensor template",
+      "title": "Remote Template",
+      "desc": "Remote Sensor template",
       "section": "sensors",
-      "key": "template",
+      "key": "remote_template",
       "options": 
         """ + str(rmap.rmap_core.template_choices).replace("'","\"") + """
         }
 ]
         """
-
-
-        print jsonsensors
 
         settings.add_json_panel('General',
                                 self.config, data=jsongeneral)
@@ -1845,7 +1857,6 @@ class Rmap(App):
             webbrowser.open("http://"+self.config.get('rmap','server')+"/stations/"+self.config.get('rmap','user')+"/"+self.config.get('sensors','station'))
 
     def starttrip(self):
-        print self.mystation.prefix
         if self.mystation.prefix != "mobile":
             self.popup(_("the station in\nuse is not of\ntype mobile"))
             self.root.ids["trip"].state="normal"
