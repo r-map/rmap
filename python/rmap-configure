@@ -59,7 +59,7 @@ parser.add_argument('--wizard',action="store_true", help="wizard configuration t
 parser.add_argument('--delsensor',action="store_true", help="del sensor from module of station")
 parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete ALL sensor from module of station")
 parser.add_argument('--addsensor',action="store_true", help="add sensor to module of station")
-parser.add_argument('--addsensors_by_template',  default=None, choices=['stima_t_u','stima_t'], help="configure sensor for a module of station by template")
+parser.add_argument('--addsensors_by_template',  default=None, choices=rmap.rmap_core.template_choices, help="configure sensor for a module of station by template")
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
 
@@ -185,17 +185,8 @@ if args.addsensors_by_template is not None:
         print " selected addsensors_by_template without board_slug"
         raise SystemExit(1)
 
-    if (args.addsensors_by_template == "stima_t_u"):
-        rmap.rmap_core.delsensors(board_slug=args.board_slug)
-        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima T",driver="I2C",
-                                 type="ADT",address=49,timerange="254,0,0",level="105,2000,-,-")
-        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima U",driver="I2C",
-                                 type="HIH",address=52,timerange="254,0,0",level="105,2000,-,-")
 
-    if (args.addsensors_by_template == "stima_t"):
-        rmap.rmap_core.delsensors(board_slug=args.board_slug)
-        rmap.rmap_core.addsensor(board_slug=args.board_slug,name="stima T",driver="I2C",
-                                 type="ADT",address=49,timerange="254,0,0",level="105,2000,-,-")
+    rmap.rmap_core.addsensors_by_template(args.board_slug,args.addsensors_by_template)
 
     print "END of addsensors_by_template configuration"
 

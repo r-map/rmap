@@ -24,8 +24,13 @@ from kivy.uix.popup import Popup
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
-#from kivy.uix.settings import Settings
+from kivy.uix.settings import SettingOptions
+from kivy.uix.settings import Settings
 from kivy.uix.image import Image
+from kivy.uix.scrollview import ScrollView
+from kivy.metrics import dp
+from kivy.uix.togglebutton import ToggleButton
+from kivy.uix.settings import SettingSpacer
 from kivy.properties import NumericProperty
 from kivy.lang import Builder
 from kivy.adapters.dictadapter import DictAdapter
@@ -82,6 +87,8 @@ else:
     print "platform unknown !!!!"
     station_default= "BT_fixed"
     board_default= "BT_fixed"
+
+template_default=rmap.rmap_core.template_choices[0]
 
 #    from plyer import camera #object to read the camera
 
@@ -757,6 +764,40 @@ ScreenManager:
 
 '''
 
+#https://github.com/kivy/kivy/wiki/Scollable-Options-in-Settings-panel
+class SettingScrollOptions(SettingOptions):
+
+    def _create_popup(self, instance):
+
+        #global oORCA
+        # create the popup
+
+        content         = GridLayout(cols=1, spacing='5dp')
+        scrollview      = ScrollView( do_scroll_x=False)
+        scrollcontent   = GridLayout(cols=1,  spacing='5dp', size_hint=(None, None))
+        scrollcontent.bind(minimum_height=scrollcontent.setter('height'))
+        self.popup   = popup = Popup(content=content, title=self.title, size_hint=(0.8, 0.9),  auto_dismiss=False)
+
+        #we need to open the popup first to get the metrics 
+        popup.open()
+        #Add some space on top
+        content.add_widget(Widget(size_hint_y=None, height=dp(2)))
+        # add all the options
+        uid = str(self.uid)
+        for option in self.options:
+            state = 'down' if option == self.value else 'normal'
+            btn = ToggleButton(text=option, state=state, group=uid, size=(popup.width, dp(55)), size_hint=(None, None))
+            btn.bind(on_release=self._set_option)
+            scrollcontent.add_widget(btn)
+
+        # finally, add a cancel button to return on the previous panel
+        scrollview.add_widget(scrollcontent)
+        content.add_widget(scrollview)
+        content.add_widget(SettingSpacer())
+        #btn = Button(text='Cancel', size=((oORCA.iAppWidth/2)-sp(25), dp(50)),size_hint=(None, None))
+        btn = Button(text='Cancel', size=(popup.width, dp(50)),size_hint=(0.9, None))
+        btn.bind(on_release=popup.dismiss)
+        content.add_widget(btn)
 
 class values(tables.Table):
 
@@ -1242,6 +1283,10 @@ class Rmap(App):
                 print('sensors board have been changed to', value)
                 sensorschanged = True
 
+            elif token == ('sensors', 'template'):
+                print('sensors template have been changed to', value)
+                sensorschanged = True
+
             if locationchanged:
                 print "update location with new parameter"
 
@@ -1296,6 +1341,9 @@ class Rmap(App):
 
                 self.config2db()
 
+                rmap.rmap_core.addsensors_by_template(
+                     board_slug=self.config.get('sensors','board')
+                    ,template=self.config.get('sensors','template'))
 
                 if self.mystation.active:
                     try:
@@ -1386,13 +1434,15 @@ class Rmap(App):
             'name': 'HC-05',
             'station': station_default,
             'board': board_default,
-            'remote_board': "stima_bt"
+            'remote_board': "stima_bt",
+            'template': template_default
         })
 
     def build_settings(self, settings):
         '''
         define the setting panel
         '''
+        settings.register_type('scrolloptions', SettingScrollOptions)
 
         stations=[]
         #for station in StationMetadata.objects.filter(active=True):
@@ -1517,6 +1567,14 @@ class Rmap(App):
       "key": "remote_board",
       "options": 
         """ + str(boards).replace("'","\"") + """
+        },
+    { "type": "scrolloptions",
+      "title": "Template",
+      "desc": "Sensor template",
+      "section": "sensors",
+      "key": "template",
+      "options": 
+        """ + str(rmap.rmap_core.template_choices).replace("'","\"") + """
         }
 ]
         """

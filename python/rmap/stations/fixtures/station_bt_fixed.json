@@ -35,7 +35,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,1,-,-",
+    "level": "0,15,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -128,7 +128,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,1,-,-",
+    "level": "0,16,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -222,7 +222,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,1,-,-",
+    "level": "0,17,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -316,7 +316,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,1,-,-",
+    "level": "0,18,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -410,7 +410,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,16,-,-",
+    "level": "0,19,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
     "i2cbus": 1,

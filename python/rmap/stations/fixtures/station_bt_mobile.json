@@ -35,7 +35,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature remote",
-    "level": "103,2,-,-",
+    "level": "0,20,-,-",
     "timerange": "254,0,0",
     "driver": "JRPC",
     "i2cbus": 1,
@@ -128,7 +128,7 @@
   "fields": {
     "node": 1,
     "name": "Temperature",
-    "level": "103,15,-,-",
+    "level": "0,21,-,-",
     "timerange": "254,0,0",
     "driver": "I2C",
     "i2cbus": 1,
