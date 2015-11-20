@@ -708,8 +708,10 @@ class station():
                             transport=self.transport,
                                          logfunc=self.log,username=username)
 
-        except:
+
+        except Exception as e:
             print "error in configure:"
+            print e
             raise
 
         finally:

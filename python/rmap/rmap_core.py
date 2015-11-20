@@ -373,8 +373,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 print "RF24Network Transport",board.transportrf24network
                 print "thisnode:",rpcproxy.configure(thisnode=board.transportrf24network.node,
                                                  channel=board.transportrf24network.channel)
-                print "key:",rpcproxy.configure(key=map(int, board.transportrf24network.key.split(',')))
-                print "iv:",rpcproxy.configure(iv=map(int, board.transportrf24network.iv.split(',')))
+                if board.transportrf24network.key != "":
+                    print "key:",rpcproxy.configure(key=map(int, board.transportrf24network.key.split(',')))
+                if board.transportrf24network.iv != "":
+                    print "iv:",rpcproxy.configure(iv=map(int, board.transportrf24network.iv.split(',')))
 
         except ObjectDoesNotExist:
             print "transport rf24network not present"
