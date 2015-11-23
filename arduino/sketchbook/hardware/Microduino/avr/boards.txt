@@ -1,4 +1,6 @@
-﻿menu.cpu=Processor
+﻿# See: http://code.google.com/p/arduino/wiki/Platforms
+
+menu.cpu=Processor
 
 ##Microduino Core (328p)
 ##############################################################
