@@ -60,7 +60,9 @@ from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from kivy.lib import osc
 from kivy.utils import platform
-from kivy.uix.widget import Widget                                                              
+from kivy.uix.widget import Widget
+import traceback
+                
 from utils import nint
 import rmap.rmap_core
 
@@ -1087,17 +1089,19 @@ class Rmap(App):
             #sync data from config to db and preserve active status
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
                                            slug=self.config.get('sensors','station'),
+                                           username=self.config.get('rmap','user'),
                                            boardslug=self.config.get('sensors','board'),
                                            logfunc=jsonrpc.log_stdout)
             self.config2db(activate=self.mystation.active)
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
                                            slug=self.config.get('sensors','station'),
+                                           username=self.config.get('rmap','user'),
                                            boardslug=self.config.get('sensors','board'),
                                            logfunc=jsonrpc.log_stdout)
 
 
-        except rmapstation.Rmapdonotexist:
-            # retry with default; this happen when DB was modified and is not in sync with config
+        except rmap.rmapstation.Rmapdonotexist:
+            # retry with default and without username; this happen when DB was modified and is not in sync with config
             self.config.set('sensors', 'station',station_default)
             self.config.set('sensors', 'board',board_default)
             self.config.write()
@@ -1111,6 +1115,7 @@ class Rmap(App):
             #raise SystemExit(0)
             raise
 
+        self.config2db()
 
         # add listview widget
         lang=self.config.get('general','language')
@@ -1129,8 +1134,10 @@ class Rmap(App):
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
-            except:
-                print _("WARNING: data not synced with server")
+            except Exception as e:
+                print e
+                print "WARNING: data not synced with server"
+                traceback.print_exc()
                 self.popup(_("data not\nsynced with server"))
 
         else:
@@ -1290,7 +1297,9 @@ class Rmap(App):
             elif token == ('sensors', 'remote_template'):
                 print('sensors remote_template have been changed to', value)
                 rmap.rmap_core.addsensors_by_template(
-                     board_slug=self.config.get('sensors','remote_board')
+                    station_slug=self.config.get('sensors','station')
+                    ,username=self.config.get('rmap','user')
+                    ,board_slug=self.config.get('sensors','remote_board')
                     ,template=self.config.get('sensors','remote_template'))
 
             if locationchanged:
@@ -1311,10 +1320,12 @@ class Rmap(App):
                     self.stopmqtt()
 
                 try:
-                    self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                                       slug=self.config.get('sensors','station'),
-                                                       boardslug=self.config.get('sensors','board'),
-                                                       logfunc=jsonrpc.log_stdout)
+                    self.mystation=rmapstation.station(
+                        trip=self.trip,gps=self.gps,
+                        slug=self.config.get('sensors','station'),
+                        username=self.config.get('rmap','user'),
+                        boardslug=self.config.get('sensors','board'),
+                        logfunc=jsonrpc.log_stdout)
 
                     #TODO: get name and height from DB
                     #self.location=self.config.get('location','name')
@@ -1338,7 +1349,8 @@ class Rmap(App):
                         self.open_settings()
 
 
-                except:
+                except Exception as e:
+                    print e
                     print "ERROR recreating rmapstaton.station"
 
                 if connected:
@@ -1348,7 +1360,9 @@ class Rmap(App):
                 self.config2db()
 
                 rmap.rmap_core.addsensors_by_template(
-                     board_slug=self.config.get('sensors','board')
+                    station_slug=self.config.get('sensors','station')
+                    ,username=self.config.get('rmap','user')
+                    ,board_slug=self.config.get('sensors','board')
                     ,template=self.config.get('sensors','template'))
 
                 if self.mystation.active:
@@ -1358,7 +1372,10 @@ class Rmap(App):
                             user=self.config.get('rmap','user'),
                             password=self.config.get('rmap','password'),
                             host=self.config.get('rmap','server'))
-                    except:
+                    except Exception as e:
+                        print e
+                        print "WARNING: data not synced with server"
+                        traceback.print_exc()
                         self.popup(_("data not\nsynced with server"))
 
 
@@ -1429,13 +1446,6 @@ class Rmap(App):
             'samplerate': 5.,
         })
 
-        config.setdefaults('location', {
-            'name': 'home',
-            'lat': 0.,
-            'lon': 0.,
-            'height': 0.
-        })
-
         config.setdefaults('sensors', {
             'name': 'HC-05',
             'station': station_default,
@@ -1443,6 +1453,13 @@ class Rmap(App):
             'template': template_default,
             'remote_board': "stima_bt",
             'remote_template': template_default
+        })
+
+        config.setdefaults('location', {
+            'name': 'home',
+            'lat': 0.,
+            'lon': 0.,
+            'height': 0.
         })
 
     def build_settings(self, settings):
@@ -1509,35 +1526,6 @@ class Rmap(App):
 ]
         """
 
-        jsonlocation = """
-[
-    { "type": "title",
-      "title": "Location" },
-
-    { "type": "string",
-      "title": "Name",
-      "desc": "Location name",
-      "section": "location",
-      "key": "name"},
-    { "type": "numeric",
-      "title": "Latitude",
-      "desc": "Latitude (decimal)",
-      "section": "location",
-      "key": "lat"},
-    { "type": "numeric",
-      "title": "Longitude",
-      "desc": "Longitude (decimal)",
-      "section": "location",
-      "key": "lon"},
-    { "type": "numeric",
-      "title": "Height",
-      "desc": "Ground Height  (m.)",
-      "section": "location",
-      "key": "height"}
-]
-        """
-
-
         jsonsensors = """
 [
     { "type": "title",
@@ -1594,17 +1582,46 @@ class Rmap(App):
 ]
         """
 
+        jsonlocation = """
+[
+    { "type": "title",
+      "title": "Location" },
+
+    { "type": "string",
+      "title": "Name",
+      "desc": "Location name",
+      "section": "location",
+      "key": "name"},
+    { "type": "numeric",
+      "title": "Latitude",
+      "desc": "Latitude (decimal)",
+      "section": "location",
+      "key": "lat"},
+    { "type": "numeric",
+      "title": "Longitude",
+      "desc": "Longitude (decimal)",
+      "section": "location",
+      "key": "lon"},
+    { "type": "numeric",
+      "title": "Height",
+      "desc": "Ground Height  (m.)",
+      "section": "location",
+      "key": "height"}
+]
+        """
+
         settings.add_json_panel('General',
                                 self.config, data=jsongeneral)
 
         settings.add_json_panel('Rmap',
                                 self.config, data=jsonrmap)
 
+        settings.add_json_panel('Sensors',
+                                self.config, data=jsonsensors)
+
         settings.add_json_panel('Location',
                                 self.config, data=jsonlocation)
 
-        settings.add_json_panel('Sensors',
-                                self.config, data=jsonsensors)
 
     def starttransport(self):
 
@@ -1653,7 +1670,10 @@ class Rmap(App):
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
-            except:
+            except Exception as e:
+                print e
+                print "WARNING: data not synced with server"
+                traceback.print_exc()
                 self.popup(_("data not\nsynced with server"))
 
             #self.mystation.stoptransport()
@@ -1961,11 +1981,6 @@ class Rmap(App):
             self.config.set('location', 'height',self.height)
             self.config.write()
 
-            mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
-            mystation.lat=self.lat
-            mystation.lon=self.lon
-            mystation.active=True
-            mystation.save()
 
             #refresh config tabs
             self.destroy_settings()
@@ -1976,8 +1991,15 @@ class Rmap(App):
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
-            except:
+            except Exception as e:
+                print e
+                print "WARNING: data not synced with server"
+                traceback.print_exc()
                 self.popup(_("data not\nsynced with server"))
+
+
+
+            mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
 
             try:
                 StationConstantData.objects.filter(stationmetadata=mystation,btable="B01019").delete()
@@ -2001,6 +2023,13 @@ class Rmap(App):
                 value=self.config.get('location','height')
             )
 
+
+            self.mystation=rmapstation.station(
+                trip=self.trip,gps=self.gps,
+                slug=self.config.get('sensors','station'),
+                username=self.config.get('rmap','user'),
+                boardslug=self.config.get('sensors','board'),
+                logfunc=jsonrpc.log_stdout)
 
         #    def map_relocated(self,lat,lon):
         #       pass

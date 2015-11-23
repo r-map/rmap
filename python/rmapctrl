@@ -38,6 +38,12 @@ def initdb(cwd):
     (options, args) = p.parse_args()
 
     import django
+
+    # go to share dir for virtualenv
+    ve=os.getenv("VIRTUAL_ENV")
+    if ve is not None:
+        os.chdir(ve+"/share/rmap")
+
     django.setup()
 
     if (not options.syncdb and\

@@ -80,7 +80,8 @@ configspec['stationd']['conffile'] = "string(default='dbus-autoradio.conf')"
 configspec['stationd']['user']     = "string(default=None)"
 configspec['stationd']['group']    = "string(default=None)"
 configspec['stationd']['stationslug']    = "string(default='home')"
-configspec['stationd']['boardslug']    = "string(default='base')"
+configspec['stationd']['ident']          = "string(default=None)"
+configspec['stationd']['boardslug']      = "string(default='base')"
 
 
 configspec['mqtt2graphited']={}
@@ -305,6 +306,7 @@ conffilestationd             = config['stationd']['conffile']
 userstationd                 = config['stationd']['user']
 groupstationd                = config['stationd']['group']
 stationslug                  = config['stationd']['stationslug']
+ident                        = config['stationd']['ident']
 boardslug                    = config['stationd']['boardslug']
 
 # section mqtt2graphited

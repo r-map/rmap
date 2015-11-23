@@ -393,7 +393,7 @@ class station():
     For active transport only MQTT will be taken in account for publish (no AMQP)
     """
 
-    def __init__(self,slug=None,boardslug=None, picklefile="saveddata-service.pickle",trip=None,gps=plyergps(),transport_name=None,logfunc=jsonrpc.log_stdout):
+    def __init__(self,slug=None,username=None,boardslug=None, picklefile="saveddata-service.pickle",trip=None,gps=plyergps(),transport_name=None,logfunc=jsonrpc.log_stdout):
         '''
         do all startup operations
         '''
@@ -449,7 +449,10 @@ class station():
 
         try:
             print "get information for station:", self.slug
-            mystation=StationMetadata.objects.get(slug=self.slug)
+            if username is None:
+                mystation=StationMetadata.objects.filter(slug=self.slug)[0]
+            else:
+                mystation=StationMetadata.objects.get(slug=self.slug,ident__username=username)
         except ObjectDoesNotExist:
             print "not existent station in db: do nothing!"
             #raise SystemExit(0)

@@ -49,16 +49,18 @@ rm -rf /tmp/pip-build-root/rmap/
 pip -v install --upgrade  rmap
 
 
-initialize DB
+>>> initialize DB
 
 ./rmapctrl --syncdb
-./rmap-configure --wizard --lon=10 --lat=45 --height=5 --stationname=test --username=pat1 --password=1password --station_slug=ETH_fixed
 
-Configure a station (wizard) by command line:
-./rmap-configure --wizard --station_slug=ETH_fixed --board_slug=master_eth_fixed --height=100 --stationname=ETH_fixed --username=user --password=password --server=rmap.cc --samplerate=5 --lat=44.69950 --lon=10.64555 --upload_to_server
+>>> Configure a station (wizard) by command line:
+./rmap-configure --wizard --station_slug=ETH_fixed --board_slug=master_eth_fixed --height=100 --stationname="Casa esterno" --username=user --password=password --server=rmap.cc --samplerate=5 --lat=44.69950 --lon=10.64555 --upload_to_server
 
-Configure eth board
-./rmap-configure --config_station --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user
+>>> Add sensors to board
+./rmap-configure --addsensors_by_template=stima_t --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user --password=password --upload_to_server
+
+>>> Configure eth board
+./rmap-configure --config_station --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user --password=password --upload_to_server
 
 
 #obsolete notes:

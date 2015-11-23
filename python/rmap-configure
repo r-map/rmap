@@ -48,6 +48,12 @@ import argparse
 import rmap.rmap_core
 
 import django
+
+# go to share dir for virtualenv
+ve=os.getenv("VIRTUAL_ENV")
+if ve is not None:
+    os.chdir(ve+"/share/rmap")
+
 django.setup()
 
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
@@ -138,24 +144,28 @@ if args.wizard:
 if args.delsensor:
 
     if (   args.sensorname is None
+        or args.station_slug is None
+        or args.username is None
         or args.board_slug is None):
 
-        print " selected delsensor without sensorname or board_slug"
+        print " selected delsensor without  station_slug or username or board_slug or sensorname"
         raise SystemExit(1)
 
-    rmap.rmap_core.delsensor(board_slug=args.board_slug,name=args.sensorname)
+    rmap.rmap_core.delsensor(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,name=args.sensorname)
 
     print "END of delsensor configuration"
 
 
 if args.delsensors:
 
-    if (args.board_slug is None):
+    if (args.board_slug is None
+        or args.station_slug is None
+        or args.username is None):
 
-        print " selected delsensor without board_slug"
+        print " selected delsensor without station_slug or username or board_slug"
         raise SystemExit(1)
 
-    rmap.rmap_core.delsensors(board_slug=args.board_slug)
+    rmap.rmap_core.delsensors(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug)
 
     print "END of delsensors configuration"
 
@@ -164,13 +174,15 @@ if args.delsensors:
 if args.addsensor:
 
     if (   args.sensorname is None
+        or args.station_slug is None
+        or args.username is None
         or args.board_slug is None):
 
-        print " selected addsensor without sensorname or board_slug"
+        print " selected addsensor without sensorname or station_slug or username orboard_slug"
         raise SystemExit(1)
 
 
-    rmap.rmap_core.addsensor(board_slug=args.board_slug,name=args.sensorname,driver=args.driver,
+    rmap.rmap_core.addsensor(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,name=args.sensorname,driver=args.driver,
                              type=args.type,i2cbus=args.i2cbus,address=args.address,node=args.node,
                              timerange=args.timerange,level=args.level)
     #,sensortemplate=args.sensortemplate)
@@ -180,13 +192,15 @@ if args.addsensor:
 
 if args.addsensors_by_template is not None:
 
-    if (args.board_slug is None):
+    if (args.board_slug is None
+        or args.station_slug is None
+        or args.username is None):
 
-        print " selected addsensors_by_template without board_slug"
+        print " selected addsensors_by_template without station_slug or username or board_slug"
         raise SystemExit(1)
 
 
-    rmap.rmap_core.addsensors_by_template(args.board_slug,args.addsensors_by_template)
+    rmap.rmap_core.addsensors_by_template(args.station_slug,args.username,args.board_slug,args.addsensors_by_template)
 
     print "END of addsensors_by_template configuration"
 
@@ -264,7 +278,7 @@ if args.upload_to_server:
     if (args.username is None or
         args.password is None or
         args.station_slug is None):
-        print " selected upload_to_server without username or station_slug"
+        print " selected upload_to_server without username or password or station_slug"
         raise SystemExit(1)
 
     rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,password=args.password)
