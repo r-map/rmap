@@ -159,8 +159,8 @@
         "rmap"
       ]
     ],
-    "name": "rmapgui",
-    "slug": "rmapgui"
+    "name": "rmapgui LINUX",
+    "slug": "rmapgui_LINUX"
   },
   "model": "stations.board"
 },
@@ -170,7 +170,71 @@
     "device": "/dev/ttyUSB0",
     "baudrate": 9600,
     "board": [
-      "rmapgui",
+      "rmapgui_LINUX",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "base",
+    "stationmetadata": [
+      "ETH_fixed",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "rmapgui WINDOWS",
+    "slug": "rmapgui_WINDOWS"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "COM1",
+    "baudrate": 9600,
+    "board": [
+      "rmapgui_WINDOWS",
+      [
+        "ETH_fixed",
+        [
+          "rmap"
+        ]
+      ]
+    ]
+  },
+  "model": "stations.transportserial"
+},
+{
+  "fields": {
+    "active": false,
+    "category": "base",
+    "stationmetadata": [
+      "ETH_fixed",
+      [
+        "rmap"
+      ]
+    ],
+    "name": "rmapgui OSX",
+    "slug": "rmapgui_OSX"
+  },
+  "model": "stations.board"
+},
+{
+  "fields": {
+    "active": true,
+    "device": "/dev/tty.usbserial",
+    "baudrate": 9600,
+    "board": [
+      "rmapgui_OSX",
       [
         "ETH_fixed",
         [

@@ -27,19 +27,19 @@ import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 from django.conf import settings
 
-from rmap import daemon
+#from rmap import daemon
 from rmap import __version__
 from django.core import management
 import rmap.settings
 
-rmapweb = daemon.Daemon(
-        stdin="/dev/null",
-        stdout=rmap.settings.logfileweb,
-        stderr=rmap.settings.errfileweb,
-        pidfile=rmap.settings.lockfileweb,
-        user=rmap.settings.userweb,
-        group=rmap.settings.groupweb
-)
+#rmapweb = daemon.Daemon(
+#        stdin="/dev/null",
+#        stdout=rmap.settings.logfileweb,
+#        stderr=rmap.settings.errfileweb,
+#        pidfile=rmap.settings.lockfileweb,
+#        user=rmap.settings.userweb,
+#        group=rmap.settings.groupweb
+#)
 
 
 #class  mydaemon(daemon):
@@ -77,27 +77,27 @@ if __name__ == '__main__':
 
     import sys, os
 
-    # this is a triky for ubuntu and debian that remove /var/run every boot
-    # ATTENTION, this should be a security problem
-    path=os.path.dirname(rmap.settings.lockfileweb)
-    if (not os.path.lexists(path) and path == "/var/run/rmap" ):
-        os.mkdir(path)
-        if (os.getuid() == 0):
+    #    # this is a triky for ubuntu and debian that remove /var/run every boot
+    #    # ATTENTION, this should be a security problem
+    #    path=os.path.dirname(rmap.settings.lockfileweb)
+    #    if (not os.path.lexists(path) and path == "/var/run/rmap" ):
+    #        os.mkdir(path)
+    #        if (os.getuid() == 0):
+    #
+    #            user=rmap.settings.userweb
+    #            group=rmap.settings.groupweb
+    #            if user is not None and group is not None:
+    #                from pwd import getpwnam
+    #                from grp import getgrnam
+    #                uid = getpwnam<(user)[2]
+    #                gid = getgrnam(group)[2]
+    #                os.chown(path,uid,gid)
+    #
+    #    if rmapweb.service():
 
-            user=rmap.settings.userweb
-            group=rmap.settings.groupweb
-            if user is not None and group is not None:
-                from pwd import getpwnam
-                from grp import getgrnam
-                uid = getpwnam<(user)[2]
-                gid = getgrnam(group)[2]
-                os.chown(path,uid,gid)
+    sys.stdout.write("Rmapweb version "+__version__+"\n")
+    sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
+    sys.stdout.write("Daemon stdout output\n")
+    sys.stderr.write("Daemon stderr output\n")
 
-    if rmapweb.service():
-
-        sys.stdout.write("Rmapweb version "+__version__+"\n")
-        sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
-        sys.stdout.write("Daemon stdout output\n")
-        sys.stderr.write("Daemon stderr output\n")
-
-        sys.exit(main())  # (this code was run as script)
+    sys.exit(main())  # (this code was run as script)

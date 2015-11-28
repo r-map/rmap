@@ -62,7 +62,7 @@ from kivy.lib import osc
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
-                
+  
 from utils import nint
 import rmap.rmap_core
 
@@ -1119,8 +1119,9 @@ class Rmap(App):
                             boardslug=self.config.get('sensors','board'),
                             logfunc=jsonrpc.log_stdout)
 
-
-        except rmap.rmapstation.Rmapdonotexist:
+               
+            #except rmap.stations.models.DoesNotExist:
+        except:
             try:
                 print "retry with default and without username; this happen when DB was modified and is not in sync with config"
                 self.config2db()
@@ -1130,34 +1131,35 @@ class Rmap(App):
                                 logfunc=jsonrpc.log_stdout)
 
             except:
-                print "restart everithings with default"
-                self.config.set('sensors', 'station',station_default)
-                self.config.set('sensors', 'board',board_default)
-                self.config.set('sensors', 'template',template_default)
-                self.config.set('sensors', 'remote_template',template_default)
-                self.config.write()
+                try:
+                    print "restart everithings with default"
+                    self.config.set('sensors', 'station',station_default)
+                    self.config.set('sensors', 'board',board_default)
+                    self.config.set('sensors', 'template',template_default)
+                    self.config.set('sensors', 'remote_template',template_default)
+                    self.config.write()
 
-                self.config2db()
-                rmap.rmap_core.addsensors_by_template(
-                    station_slug=self.config.get('sensors','station')
-                    ,username=self.config.get('rmap','user')
+                    self.config2db()
+                    rmap.rmap_core.addsensors_by_template(
+                        station_slug=self.config.get('sensors','station')
+                        ,username=self.config.get('rmap','user')
                     ,board_slug=self.config.get('sensors','board')
                     ,template=self.config.get('sensors','template'))
-                rmap.rmap_core.addsensors_by_template(
-                    station_slug=self.config.get('sensors','station')
-                    ,username=self.config.get('rmap','user')
-                    ,board_slug=self.config.get('sensors','remote_board')
-                    ,template=self.config.get('sensors','remote_template'))
+                    rmap.rmap_core.addsensors_by_template(
+                        station_slug=self.config.get('sensors','station')
+                        ,username=self.config.get('rmap','user')
+                        ,board_slug=self.config.get('sensors','remote_board')
+                        ,template=self.config.get('sensors','remote_template'))
 
-                self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                slug=self.config.get('sensors','station'),
-                                boardslug=self.config.get('sensors','board'),
-                                logfunc=jsonrpc.log_stdout)
+                    self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                                                       slug=self.config.get('sensors','station'),
+                                                       boardslug=self.config.get('sensors','board'),
+                                                       logfunc=jsonrpc.log_stdout)
 
-        except:
-            print "ERROR: cannot get a good station from DB !"
-            #raise SystemExit(0)
-            raise
+                except:
+                    print "ERROR: cannot get a good station from DB !"
+                    #raise SystemExit(0)
+                    raise
 
         self.stationstatus()
 
@@ -1470,16 +1472,15 @@ class Rmap(App):
 
                     self.updatelocation()
 
-                    if token == ('sensors', 'station'):
-                        self.config.write()
-                        self.close_settings()
-                        self.destroy_settings()
-                        self.open_settings()
-
 
                 except Exception as e:
                     print e
                     print "ERROR recreating rmapstaton.station"
+
+                if token == ('sensors', 'station'):
+                    super(Rmap, self).close_settings()
+                    self.destroy_settings()
+                    self.open_settings()
 
                 if connected:
                     print "reconnect MQTT with new parameter"
@@ -1879,26 +1880,46 @@ class Rmap(App):
 
     def servicewebserver(self):
 
-        if platform != 'android':
-            self.popup(_("not supported\non this\nplatform!"))
-            return
-
         if self.root.ids["webserverbutton"].state == "down":
             if self.service is None:
-                self.start_service("webserver")
-                self.servicename="webserver"
+
+                if platform == 'linux':
+                    import subprocess
+                    #self.service=subprocess.Popen(["python", "rmapmanage", "runserver","8888"], 
+                    self.service=subprocess.Popen(["./rmapweb"], 
+                                    stderr=subprocess.STDOUT)
+                    #import os
+                    #os.spawnl(os.P_NOWAIT, "python manage.py runserver")
+
+
+                elif platform == 'win':
+                    import subprocess
+                    #self.service=subprocess.Popen(["python", "rmapmanage", "runserver","8888"], 
+                    self.service=subprocess.Popen(["rmapweb.bat"], 
+                                    stderr=subprocess.STDOUT)
+
+                elif platform == 'android':
+
+                    self.start_service("webserver")
+                    self.servicename="webserver"
 
                 time.sleep(6)
-                webbrowser.open("http://localhost:8888/admin/")
+                webbrowser.open("http://"+rmap.settings.port+"/admin/")
 
             else:
                 self.root.ids["webserverbutton"].state="normal"
                 self.popup(_("service\nalready\nactive!"))
 
         else:
-            if self.servicename=="webserver":
-                self.stop_service()
-                self.servicename=None
+
+            if platform != 'android':
+                self.service.kill()
+                #self.popup(_("not supported\non this\nplatform!"))
+                self.service=None
+            else:
+                if self.servicename=="webserver":
+                    self.stop_service()
+                    self.servicename=None
 
 
     def servicestation(self):

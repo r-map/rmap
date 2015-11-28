@@ -322,6 +322,7 @@ class TransportSerial(models.Model):
         ('/dev/rfcomm1', 'Linux rfcomm1'),
         ('/dev/rfcomm2', 'Linux rfcomm2'),
         ('/dev/tty.HC-05-DevB', 'OSX tty.HC-05-DevB'),
+        ('/dev/tty.usbserial', 'OSX tty.usbserial'),
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
