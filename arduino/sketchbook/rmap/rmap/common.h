@@ -68,8 +68,8 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #endif
 
 #if FIRMWARE == FIRMETHERNET
-#define ETHERNETON
 #define JSONRPCON
+#define ETHERNETON
 #define REPEATTASK
 #define SENSORON
 #endif
@@ -80,6 +80,7 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #define RADIORF24
 #define REPEATTASK
 #define SENSORON
+#define NTPON
 #endif
 
 #if FIRMWARE == FIRMRADIORF24
@@ -92,7 +93,6 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #if FIRMWARE == FIRMGSM
 // activate if you have GSM GPRS module
 #define JSONRPCON
-#define RADIORF24
 #define REPEATTASK
 #define SENSORON
 #define GSMAPN "ibox.tim.it"
@@ -155,7 +155,6 @@ Mega2560	      	        	   21	   20	   19	   18
 
 
 #ifdef ETHERNETON
-#define NTPON
 #define ETHERNETMQTT
 #ifdef JSONRPCON
 #define TCPSERVER

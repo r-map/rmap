@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Compile time configuration
 
 //Arduino Mega2560 switch
-#define FIRMWARE FIRMALL
+#define FIRMWARE FIRMETHERNET
 
 // activate if you have an rtc present (too big program fo arduino uno)
 //#define RTCPRESENT
@@ -35,10 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LCD
 // activate if you have relays connected to some pins
 #define ATTUATORE
+// enable NTP
+//#define NTPON
 
 #include "common.h"
 
-//override common definitions
-
-// disable RTC
-#undef NTPON

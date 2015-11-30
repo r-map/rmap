@@ -8,7 +8,7 @@
 #define USEAJSON
 
 // use RF24Network library for radio transport
-#define RADIORF24
+//#define RADIORF24
 
 // use AES library for radio transport
 //#define AES

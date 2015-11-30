@@ -125,8 +125,8 @@ int SensorDriver::setup(const char* driver, const int address, const int node, c
 
 #if defined (TMPDRIVER)
 int SensorDriverTmp::setup(const char* driver, const int address, const int node, const char* type
-			   , char* mainbuf, size_t lenbuf
                       #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf
 			   , RF24Network* network
                         #if defined (AES)
 			   , uint8_t key[] , uint8_t iv[]
