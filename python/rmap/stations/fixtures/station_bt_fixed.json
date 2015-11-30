@@ -357,7 +357,7 @@
 {
   "fields": {
     "active": true,
-    "device": "COM1",
+    "device": "COM13",
     "baudrate": 9600,
     "board": [
       "BT_fixed_WINDOWS",

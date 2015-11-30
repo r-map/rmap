@@ -199,7 +199,7 @@
 {
   "fields": {
     "active": true,
-    "device": "COM1",
+    "device": "COM20",
     "baudrate": 9600,
     "board": [
       "rmapgui_WINDOWS",
