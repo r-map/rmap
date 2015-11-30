@@ -234,7 +234,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "test_master"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="stima test",driver="i2c",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="stima test",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="stima test rf24",driver="RF24",
                   type="TMP",address=72,timerange="254,0,0",level="0,2,-,-")
