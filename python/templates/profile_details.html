@@ -38,8 +38,8 @@
 </tr>
 {% for board in mystation.board_set.all %}
   {% if board.active  %}
-    <tr><td>{{ board.name }}</td>
     {% for sensor in board.sensor_set.all %}
+    <tr><td>{{ board.name }}</td>
     {% if sensor.active  %}
       <td>
 	{{ sensor.name }} 
@@ -51,9 +51,9 @@
 	<a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
       </td>
     {% endif %}
+    </tr>
   {% endfor %}
-  </tr>
-  {% endif %}
+ {% endif %}
 {% endfor %}
 
 </table>
