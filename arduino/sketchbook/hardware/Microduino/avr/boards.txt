@@ -1,4 +1,4 @@
-﻿# See: http://code.google.com/p/arduino/wiki/Platforms
+# See: http://code.google.com/p/arduino/wiki/Platforms
 
 menu.cpu=Processor
 
