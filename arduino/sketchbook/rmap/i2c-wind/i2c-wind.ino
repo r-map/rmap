@@ -24,8 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
 **********************************************************************/
 
-#define VERSION 02             //Software version for cross checking
-#define SAMPLETIME 2250
+#define VERSION 03             //Software version for cross checking
 
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -134,12 +133,21 @@ volatile unsigned long antirimb=0;
 
 void countadd()
 {
+
+#if defined(DAVIS)
   unsigned long now=millis();
 
   if ((now-antirimb) > SAMPLETIME/150){
     count ++;
     antirimb=now;
   }
+
+#elif defined (INSPEED)
+
+  count ++;
+
+#endif
+
 }
 
 
@@ -152,6 +160,11 @@ void requestEvent()
   Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+
+  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]));
+  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1));
+  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2));
+  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3));
 }
 
 //Handler for receiving data
@@ -272,6 +285,7 @@ void setup() {
     cbsect[i].init(SAMPLE2);
   }
 
+  analogReference(DEFAULT);
   pinMode(pinLed, OUTPUT);
   IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
 
@@ -315,7 +329,6 @@ void setup() {
 
   pinMode(2,INPUT_PULLUP);  // connected to wind intensity sensor
 
-
   IF_SDEBUG(Serial.println(F("end setup")));
 
 }
@@ -337,15 +350,6 @@ void loop() {
   uint8_t i;
 
   wdt_reset();
-
-  // disable interrupts for atomic operation
-  noInterrupts();
-  //exchange double buffer
-  i2c_datasettmp=i2c_dataset1;
-  i2c_dataset1=i2c_dataset2;
-  i2c_dataset2=i2c_datasettmp;
-  interrupts();
-  // new data published
 
   //Check for new incoming command on I2C
   if (new_command!=0) {
@@ -369,9 +373,9 @@ void loop() {
 
   oneshot=i2c_writabledataset1->oneshot;
 
-  IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
-  IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
-  IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
+  //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
+  //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
+  //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
 
 
   //Set up default parameters
@@ -400,13 +404,17 @@ void loop() {
 
   count=0;
   starttime = millis();
-  attachInterrupt(0, countadd, RISING);
+  attachInterrupt(digitalPinToInterrupt(INTERRUPTPIN), countadd, RISING);
 
   // wait to go in the middle of sampletime to get direction
   // will be better to do a mean but direction is not continueous function
+  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLETIME/2));
   delay(SAMPLETIME/2);
 
   int ana=analogRead(ANALOGPIN);    // read the input pin
+
+
+#if defined(DAVIS)
   /*
     The potentiometer in the wind vane is free to move through 360 degrees,
     but there is a dead band of about 10 degrees at the crossover point in the potentiometer travel. 
@@ -429,20 +437,31 @@ void loop() {
     dd=round(ana*(350./1021.)+5);  // linear for no dead band
   }
 
+#elif defined (INSPEED)
+  //IF_SDEBUG(Serial.print(F("ana: ")));IF_SDEBUG(Serial.println(ana));
+  dd=round((ana-50)*(360./921.));  // linear for no dead band fron 5% to 95% of full range (0-1023)
+
+#endif
+
+  dd=max(dd,1);
+  dd=min(dd,360);
+  
+
   //while (FreqCounter::f_ready == 0) { }
   //IF_SDEBUG(Serial.print(F("freq: ")));IF_SDEBUG(Serial.println(FreqCounter::f_freq));
   //count=FreqCounter::f_freq
 
-  
-  delay(SAMPLETIME-(millis()-starttime));
+  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLETIME-(millis()-starttime)));
+  delay(SAMPLERATE-(millis()-starttime));
 
-  detachInterrupt(0);
+  detachInterrupt(digitalPinToInterrupt(INTERRUPTPIN));
   IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
 
 
   // I have to put timing here becouse the timer is used by FreqCounter
   //starttime = millis();
 
+#if defined(DAVIS)
   /*
     We'd like to count the number of pulses in a time interval, which is directly proportional to windspeed.
     Counting the signal from the Davis 6410 for 2.25 seconds will give a result directly in units of mph,
@@ -450,6 +469,17 @@ void loop() {
   */
 
   ff=round(count/(SAMPLETIME/2250.0)*0.44704*10.);   // m/s *10
+
+#elif defined (INSPEED)
+  /*
+    2.5  mph per Hz (1 Hz = 1 pulse/second) 
+  */
+
+  ff=round(count/(SAMPLETIME/2500.0)*0.44704*10.);   // m/s *10
+
+#endif
+
+  if (ff == 0) dd=0;     //wind calm
   
   i2c_dataset1->wind.ff=ff;
   i2c_dataset1->wind.dd=dd;
@@ -477,6 +507,17 @@ void loop() {
     //if one shot we have finish
     IF_SDEBUG(Serial.println(F("oneshot end")));
     start=false;
+
+    // disable interrupts for atomic operation
+    noInterrupts();
+    //exchange double buffer
+    IF_SDEBUG(Serial.println(F("exchange double buffer")));
+    i2c_datasettmp=i2c_dataset1;
+    i2c_dataset1=i2c_dataset2;
+    i2c_dataset2=i2c_datasettmp;
+    interrupts();
+    // new data published
+    
     return;
   }
 
@@ -714,8 +755,18 @@ void loop() {
 
   digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
 
+  // disable interrupts for atomic operation
+  noInterrupts();
+  //exchange double buffer
+  IF_SDEBUG(Serial.println(F("exchange double buffer")));
+  i2c_datasettmp=i2c_dataset1;
+  i2c_dataset1=i2c_dataset2;
+  i2c_dataset2=i2c_datasettmp;
+  interrupts();
+  // new data published
+
   //waittime= 750 - (millis() - starttime) ;
-  waittime= 3000 - (millis() - starttime) ;
+  waittime= SAMPLETIME - (millis() - starttime) ;
   //IF_SDEBUG(Serial.print("elapsed time: "));
   //IF_SDEBUG(Serial.println(millis() - starttime));
   if (waittime > 0) {

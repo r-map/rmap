@@ -3,7 +3,7 @@
 #include "registers-wind.h"
 #include "registers-rain.h"
 
-#define SENSORS_LEN 2
+#define SENSORS_LEN 1
 
 struct sensor_t
 {
@@ -35,11 +35,12 @@ aJsonObject* aj;
 void setup()
 {
 
- /*
+
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"DW1");
   sensors[0].address=I2C_WIND_ADDRESS;
 
+ /*
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"TBR");
   sensors[1].address=I2C_RAIN_ADDRESS;
@@ -56,8 +57,6 @@ void setup()
   strcpy(sensors[5].driver,"I2C");
   strcpy(sensors[5].type,"HIH");
   sensors[5].address=39;
-  */
-
 
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"TMP");
@@ -66,6 +65,8 @@ void setup()
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"TMP");
   sensors[1].address=73;
+
+  */
 
 
   // start up the serial interface
@@ -100,11 +101,12 @@ void loop()
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
+      Serial.println("Prepare");
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
-	maxwaittime=max(maxwaittime,waittime);
+	       maxwaittime=max(maxwaittime,waittime);
       }else{
-	Serial.print(sensors[i].driver);
-	Serial.println(": prepare failed !");
+	       Serial.print(sensors[i].driver);
+	       Serial.println(": prepare failed !");
       }
     }
   }

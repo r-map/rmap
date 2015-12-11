@@ -1043,7 +1043,7 @@ int SensorDriverDw1::prepare(unsigned long& waittime)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   _timing=millis();
-  waittime= 2500ul;
+  waittime= 3500ul;
 
   return SD_SUCCESS;
 }
