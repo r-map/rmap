@@ -356,7 +356,7 @@ Wire Wire Line
 Wire Wire Line
 	4050 3350 5350 3350
 Wire Wire Line
-	5350 3350 5350 5200
+	5350 5200 5350 3350
 Connection ~ 5250 5200
 Wire Wire Line
 	5950 3250 4800 3250
@@ -442,9 +442,7 @@ Wire Wire Line
 	3450 5200 3450 5400
 Connection ~ 3450 5200
 Wire Wire Line
-	5100 5100 6550 5100
-Wire Wire Line
-	5350 5200 5100 5200
+	5100 5200 5350 5200
 Wire Wire Line
 	6350 3750 6350 4000
 Wire Wire Line
@@ -481,32 +479,29 @@ Wire Wire Line
 $Comp
 L CONN_01X01 P6
 U 1 1 55F70AFE
-P 6150 5850
-F 0 "P6" H 6300 5850 50  0000 C CNN
-F 1 "CONN_01X01" V 6250 5850 50  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6150 5850 60  0001 C CNN
-F 3 "" H 6150 5850 60  0000 C CNN
-	1    6150 5850
-	0    -1   -1   0   
+P 5550 5300
+F 0 "P6" H 5700 5300 50  0000 C CNN
+F 1 "CONN_01X01" V 5650 5300 50  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5550 5300 60  0001 C CNN
+F 3 "" H 5550 5300 60  0000 C CNN
+	1    5550 5300
+	0    1    1    0   
 $EndComp
 $Comp
 L CONN_01X01 P7
 U 1 1 55F70BDA
-P 6300 5850
-F 0 "P7" H 6450 5850 50  0000 C CNN
-F 1 "CONN_01X01" V 6400 5850 50  0001 C CNN
-F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 6300 5850 60  0001 C CNN
-F 3 "" H 6300 5850 60  0000 C CNN
-	1    6300 5850
-	0    -1   -1   0   
+P 5800 5300
+F 0 "P7" H 5950 5300 50  0000 C CNN
+F 1 "CONN_01X01" V 5900 5300 50  0001 C CNN
+F 2 "Measurement_Points:Measurement_Point_Square-SMD-Pad_Small" H 5800 5300 60  0001 C CNN
+F 3 "" H 5800 5300 60  0000 C CNN
+	1    5800 5300
+	0    1    1    0   
 $EndComp
 Wire Wire Line
-	6300 6050 6300 6100
-Connection ~ 6300 6100
+	6550 6100 6100 6100
 Wire Wire Line
-	6150 6050 6150 6100
+	5800 5100 6550 5100
 Wire Wire Line
-	6150 6100 6100 6100
-Wire Wire Line
-	6300 6100 6550 6100
+	5100 5100 5550 5100
 $EndSCHEMATC

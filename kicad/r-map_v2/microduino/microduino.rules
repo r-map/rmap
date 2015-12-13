@@ -11,7 +11,7 @@
     (via_costs 50)
     (plane_via_costs 5)
     (start_ripup_costs 100)
-    (start_pass_no 246)
+    (start_pass_no 1620)
     (layer_rule F.Cu
       (active on)
       (preferred_direction vertical)
@@ -46,11 +46,17 @@
   (via 
     "Via[0-1]_1035:635_um-kicad_default" "Via[0-1]_1035:635_um" "kicad_default"
   )
+  (via 
+    "Via[0-1]_1035:635_um-Futura" "Via[0-1]_1035:635_um" Futura
+  )
   (via_rule
     default "Via[0-1]_1035:635_um"
   )
   (via_rule
     "kicad_default" "Via[0-1]_1035:635_um-kicad_default"
+  )
+  (via_rule
+    Futura "Via[0-1]_1035:635_um-Futura"
   )
   (class default
     (clearance_class default)
@@ -63,15 +69,22 @@
     )
   )
   (class "kicad_default"
-    "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(C2-Pad1)" "Net-(P4-Pad2)" GND "Net-(D1-Pad1)"
-    /+5V /+3.3V /SCL /SDA "Net-(P5-Pad2)" "Net-(P5-Pad3)" "Net-(P5-Pad4)" "Net-(U1-Pad25)"
-    "Net-(U1-Pad23)" "Net-(U1-Pad22)" "Net-(U1-Pad21)" "Net-(U1-Pad20)" "Net-(U1-Pad19)" "Net-(U1-Pad18)" "Net-(U1-Pad17)" "Net-(U1-Pad16)"
-    "Net-(U1-Pad15)" "Net-(U1-Pad14)" "Net-(U1-Pad9)" "Net-(U1-Pad8)" "Net-(U1-Pad7)" "Net-(U1-Pad6)" "Net-(U1-Pad3)" "Net-(U1-Pad2)"
-    "Net-(U2-Pad3)" "Net-(U4-Pad3)" "Net-(P6-Pad1)"
     (clearance_class "kicad_default")
     (via_rule kicad_default)
     (rule
       (width 254.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class Futura
+    GND "Net-(P2-Pad2)" "Net-(P2-Pad3)" "Net-(P2-Pad4)" "Net-(P2-Pad5)" "Net-(C2-Pad1)" "Net-(P4-Pad2)" /+5V
+    /+3.3V /SCL /SDA "Net-(P6-Pad1)" "Net-(D1-Pad1)"
+    (clearance_class Futura)
+    (via_rule Futura)
+    (rule
+      (width 508.0)
     )
     (circuit 
       (use_layer F.Cu B.Cu)
