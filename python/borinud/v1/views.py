@@ -17,6 +17,11 @@ def summaries(request, **kwargs):
         "features": [{
             "type": "Feature",
             "geometry": {
+                "type": "Point",
+                "coordinates": [s.lon, s.lat]
+            }
+            if s.lonmin == s.lonmax and s.latmin == s.latmax
+            else {
                 "type": "Polygon",
                 "coordinates": [[s.lonmin, s.latmin], [s.lonmax, s.latmin],
                                 [s.lonmax, s.latmax], [s.lonmin, s.latmax],
