@@ -23,10 +23,27 @@
 //#define MTK_BINARY19
 //#define INIT_MTK_GPS
 
+// serial for GPS
+#define gpsSerial Serial
+
+
 // activate debug on serial port
 //#define DEBUGONSERIAL
 
+
 #ifdef DEBUGONSERIAL
+
+// this for debug on 644p, 1284p or 2560
+//#define DEBUGSOFTWARESERIAL
+
+// this for debug on 328p
+#define dbgSerial Serial
+
+#ifdef DEBUGSOFTWARESERIAL
+#define rxPin 10
+#define txPin 11
+#endif
+
 #define IF_SDEBUG(x) ({x;})
 #else
 #define IF_SDEBUG(x)

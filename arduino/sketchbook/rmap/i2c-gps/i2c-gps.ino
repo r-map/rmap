@@ -29,16 +29,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
 **********************************************************************/
 
-#define VERSION 01                                                         //Software version for cross checking
+#define VERSION 01                                 //Software version for cross checking
 
 
 #include <avr/wdt.h>
 #include "Wire.h"
-#include "registers-gps.h"                                                    //Register definitions
+#include "registers-gps.h"                         //Register definitions
 #include "config.h"
 
-#define REG_MAP_SIZE       sizeof(I2C_REGISTERS)       //size of register map
-#define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
+#define REG_MAP_SIZE       sizeof(I2C_REGISTERS)   //size of register map
+#define MAX_SENT_BYTES     0x0F                    //maximum amount of data that I could receive from a master device (register, plus 15 byte)
 
 
 #if defined(INIT_MTK_GPS)
@@ -110,9 +110,9 @@ static uint8_t         receivedCommands[MAX_SENT_BYTES];
 static uint8_t         new_command;                        //new command received (!=0)
 
 
-#ifdef DEBUGONSERIAL
+#ifdef DEBUGSOFTWARESERIAL
 #include <SoftwareSerial.h>
-SoftwareSerial mySerial(10,11);
+SoftwareSerial dbgSerial(rxPin,txPin);
 #endif
 
 
@@ -427,7 +427,7 @@ void _update_checksum(uint8_t *data, uint8_t len, uint8_t &ck_a, uint8_t &ck_b)
 
 bool UBLOX_parse_gps(void)
 {
-  //IF_SDEBUG(mySerial.print(F("msg_id: "));mySerial.println(_msg_id,HEX));
+  //IF_SDEBUG(dbgSerial.print(F("msg_id: "));dbgSerial.println(_msg_id,HEX));
 
   // we can use _class too
   
@@ -437,7 +437,7 @@ bool UBLOX_parse_gps(void)
 
     case MSG_TIMEUTC:
       i2c_dataset1->datetime=_buffer.timeutc.datetime;
-      IF_SDEBUG(mySerial.println(i2c_dataset1->datetime.sec));
+      IF_SDEBUG(dbgSerial.print(F("seconds:"));dbgSerial.println(i2c_dataset1->datetime.sec));
       break;
       
     case MSG_POSLLH:
@@ -486,7 +486,7 @@ bool UBLOX_parse_gps(void)
 
 bool GPS_UBLOX_newFrame(uint8_t data)
 {
-  //IF_SDEBUG(mySerial.print(data,HEX));
+  //IF_SDEBUG(dbgSerial.print(data,HEX));
 
   bool parsed = false;
   
@@ -539,19 +539,19 @@ bool GPS_UBLOX_newFrame(uint8_t data)
   case 7:
     _step++;
     if (_ck_a != data){				// bad checksum
-      IF_SDEBUG(mySerial.println(F("bad crc A")));
+      IF_SDEBUG(dbgSerial.println(F("bad crc A")));
       _step = 0;
     }
     break;
   case 8:
     _step = 0;
     if (_ck_b != data) { 			// bad checksum
-      IF_SDEBUG(mySerial.println(F("bad crc B")));
+      IF_SDEBUG(dbgSerial.println(F("bad crc B")));
       break;
     }
     if (UBLOX_parse_gps())  { parsed = true; }
-    //IF_SDEBUG(mySerial.print(F("parsed:")));
-    //IF_SDEBUG(mySerial.println(parsed));
+    //IF_SDEBUG(dbgSerial.print(F("parsed:")));
+    //IF_SDEBUG(dbgSerial.println(parsed));
   } //end switch
 
   return parsed;
@@ -792,100 +792,100 @@ uint32_t init_speed[5] = {9600,19200,38400,57600,115200};
 
   void GPS_SerialInit() {
 
-    IF_SDEBUG(mySerial.println(F("start GPS serial init")));
+    IF_SDEBUG(dbgSerial.println(F("start GPS serial init")));
   
-  Serial.begin(GPS_SERIAL_SPEED);  
+  gpsSerial.begin(GPS_SERIAL_SPEED);  
   delay(1000);
   
 #if defined(UBLOX)
 	//Set speed
 
       for(uint8_t i=0;i<5;i++){
-	IF_SDEBUG(mySerial.print(F("set speed: ")));
-	IF_SDEBUG(mySerial.println(init_speed[i]));
-        Serial.begin(init_speed[i]);          // switch UART speed for sending SET BAUDRATE command (NMEA mode)
+	IF_SDEBUG(dbgSerial.print(F("set speed: ")));
+	IF_SDEBUG(dbgSerial.println(init_speed[i]));
+        gpsSerial.begin(init_speed[i]);          // switch UART speed for sending SET BAUDRATE command (NMEA mode)
 
         #if (GPS_SERIAL_SPEED==19200)
-          Serial.print(F("$PUBX,41,1,0003,0001,19200,0*23\r\n"));     // 19200 baud - minimal speed for 5Hz update rate
-	  IF_SDEBUG(mySerial.println(F("$PUBX,41,1,0003,0001,19200,0*23\r\n")));
+          gpsSerial.print(F("$PUBX,41,1,0003,0001,19200,0*23\r\n"));     // 19200 baud - minimal speed for 5Hz update rate
+	  IF_SDEBUG(dbgSerial.println(F("$PUBX,41,1,0003,0001,19200,0*23\r\n")));
         #endif  
         #if (GPS_SERIAL_SPEED==38400)
-          Serial.print(F("$PUBX,41,1,0003,0001,38400,0*26\r\n"));     // 38400 baud
-	  IF_SDEBUG(mySerial.println(F("$PUBX,41,1,0003,0001,38400,0*26\r\n")));
+          gpsSerial.print(F("$PUBX,41,1,0003,0001,38400,0*26\r\n"));     // 38400 baud
+	  IF_SDEBUG(dbgSerial.println(F("$PUBX,41,1,0003,0001,38400,0*26\r\n")));
         #endif  
         #if (GPS_SERIAL_SPEED==57600)
-          Serial.print(F("$PUBX,41,1,0003,0001,57600,0*2D\r\n"));     // 57600 baud
-	  IF_SDEBUG(mySerial.println(F("$PUBX,41,1,0003,0001,57600,0*2D\r\n")));
+          gpsSerial.print(F("$PUBX,41,1,0003,0001,57600,0*2D\r\n"));     // 57600 baud
+	  IF_SDEBUG(dbgSerial.println(F("$PUBX,41,1,0003,0001,57600,0*2D\r\n")));
         #endif  
         #if (GPS_SERIAL_SPEED==115200)
-          Serial.print(F("$PUBX,41,1,0003,0001,115200,0*1E\r\n"));    // 115200 baud
-	  IF_SDEBUG(mySerial.println(F("$PUBX,41,1,0003,0001,115200,0*1E\r\n")));
+          gpsSerial.print(F("$PUBX,41,1,0003,0001,115200,0*1E\r\n"));    // 115200 baud
+	  IF_SDEBUG(dbgSerial.println(F("$PUBX,41,1,0003,0001,115200,0*1E\r\n")));
         #endif  
         delay(300);		//Wait for init 
       }
       delay(200);
 
 
-      IF_SDEBUG(mySerial.println(F("start UBLOX init")));
+      IF_SDEBUG(dbgSerial.println(F("start UBLOX init")));
 
-      Serial.begin(GPS_SERIAL_SPEED);  
+      gpsSerial.begin(GPS_SERIAL_SPEED);  
       for(uint8_t i=0; i<sizeof(UBLOX_INIT); i++) {                        // send configuration data in UBX protocol
 
-	if (pgm_read_byte(UBLOX_INIT+i) == 0xB5 ) {IF_SDEBUG(mySerial.print(F("\r\n")));} 
-	IF_SDEBUG(mySerial.print(pgm_read_byte(UBLOX_INIT+i),HEX));
-	IF_SDEBUG(mySerial.print(F("-")));
+	if (pgm_read_byte(UBLOX_INIT+i) == 0xB5 ) {IF_SDEBUG(dbgSerial.print(F("\r\n")));} 
+	IF_SDEBUG(dbgSerial.print(pgm_read_byte(UBLOX_INIT+i),HEX));
+	IF_SDEBUG(dbgSerial.print(F("-")));
 
-        Serial.write(pgm_read_byte(UBLOX_INIT+i));
+        gpsSerial.write(pgm_read_byte(UBLOX_INIT+i));
         delay(10); //simulating a 38400baud pace (or less), otherwise commands are not accepted by the device.
 	//I found this delay essential for the V1 CN-06 GPS (The one without EEPROM)
 	//Also essential is the bridging of pins 13- and 14 on the NEO-6M module 
 
       }
-      IF_SDEBUG(mySerial.println(F("\r\nend UBLOX init")));
+      IF_SDEBUG(dbgSerial.println(F("\r\nend UBLOX init")));
 
 
 #elif defined(INIT_MTK_GPS)                            // MTK GPS setup
       for(uint8_t i=0;i<5;i++){
-        Serial.begin(init_speed[i]);					   // switch UART speed for sending SET BAUDRATE command
+        gpsSerial.begin(init_speed[i]);					   // switch UART speed for sending SET BAUDRATE command
         #if (GPS_SERIAL_SPEED==19200)
-          Serial.write("$PMTK251,19200*22\r\n");     // 19200 baud - minimal speed for 5Hz update rate
+          gpsSerial.write("$PMTK251,19200*22\r\n");     // 19200 baud - minimal speed for 5Hz update rate
         #endif  
         #if (GPS_SERIAL_SPEED==38400)
-          Serial.write("$PMTK251,38400*27\r\n");     // 38400 baud
+          gpsSerial.write("$PMTK251,38400*27\r\n");     // 38400 baud
         #endif  
         #if (GPS_SERIAL_SPEED==57600)
-          Serial.write("$PMTK251,57600*2C\r\n");     // 57600 baud
+          gpsSerial.write("$PMTK251,57600*2C\r\n");     // 57600 baud
         #endif  
         #if (GPS_SERIAL_SPEED==115200)
-          Serial.write("$PMTK251,115200*1F\r\n");    // 115200 baud
+          gpsSerial.write("$PMTK251,115200*1F\r\n");    // 115200 baud
         #endif  
         delay(300);
       }
       // at this point we have GPS working at selected (via #define GPS_BAUD) baudrate
-      Serial.begin(GPS_SERIAL_SPEED);
+      gpsSerial.begin(GPS_SERIAL_SPEED);
 
-	  Serial.write(MTK_NAVTHRES_OFF);
+	  gpsSerial.write(MTK_NAVTHRES_OFF);
 	  delay(100);
-      Serial.write(SBAS_ON);
+      gpsSerial.write(SBAS_ON);
 	  delay(100);
-      Serial.write(WAAS_ON);
+      gpsSerial.write(WAAS_ON);
 	  delay(100);
-      Serial.write(SBAS_TEST_MODE);
+      gpsSerial.write(SBAS_TEST_MODE);
 	  delay(100);
-      Serial.write(MTK_OUTPUT_5HZ);           // 5 Hz update rate
+      gpsSerial.write(MTK_OUTPUT_5HZ);           // 5 Hz update rate
 	  delay(100);
 
       #if defined(NMEA)
-        Serial.write(MTK_SET_NMEA_SENTENCES); // only GGA and RMC sentence
+        gpsSerial.write(MTK_SET_NMEA_SENTENCES); // only GGA and RMC sentence
       #endif     
       #if defined(MTK_BINARY19) || defined(MTK_BINARY16)
-		Serial.write(MTK_SET_BINARY);
+		gpsSerial.write(MTK_SET_BINARY);
       #endif
 
 
 
 #endif
-		IF_SDEBUG(mySerial.println(F("end GPS serial init")));
+		IF_SDEBUG(dbgSerial.println(F("end GPS serial init")));
   }
 
 
@@ -893,16 +893,6 @@ uint32_t init_speed[5] = {9600,19200,38400,57600,115200};
 // Setup
 //
 void setup() {
-
-/*
-  Nel caso di un chip in standalone senza bootloader, la prima
-  istruzione che è bene mettere nel setup() è sempre la disattivazione
-  del Watchdog stesso: il Watchdog, infatti, resta attivo dopo il
-  reset e, se non disabilitato, esso può provare il reset perpetuo del
-  microcontrollore
-*/
-  wdt_disable();
-
 
   /*
   Nel caso di un chip in standalone senza bootloader, la prima
@@ -917,11 +907,11 @@ void setup() {
   wdt_enable(WDTO_8S);
 
 #ifdef DEBUGONSERIAL
-  mySerial.begin(9600);
+  dbgSerial.begin(9600);
   delay(1000);
-  mySerial.println(F("sync"));
+  dbgSerial.println(F("sync"));
   delay(1000);
-  mySerial.println(F("I2C_GPS_NAV_v2_2 started"));
+  dbgSerial.println(F("I2C_GPS_NAV_v2_2 started"));
 #endif
 
   // inizialize double buffer
@@ -930,7 +920,6 @@ void setup() {
 
   //Init GPS
   GPS_SerialInit();
-
 
   uint8_t *ptr;
   //Init to 0 i2c_dataset1;
@@ -941,7 +930,7 @@ void setup() {
   ptr = (uint8_t *)i2c_dataset2;
   for (uint8_t i=0;i<REG_MAP_SIZE;i++) { *ptr = 0; ptr++;}
 
-  IF_SDEBUG(mySerial.println(F("i2c_dataset set to zero")));
+  IF_SDEBUG(dbgSerial.println(F("i2c_dataset set to zero")));
 
   //Set up default parameters
   i2c_dataset1->status.sw_version          = VERSION;
@@ -951,7 +940,7 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
-  IF_SDEBUG(mySerial.println(F("end setup")));
+  IF_SDEBUG(dbgSerial.println(F("end setup")));
 
 }
 
@@ -963,16 +952,16 @@ void loop() {
   static uint8_t _command;
   static uint32_t _watchdog_timer = 0;
 
-  while (Serial.available()) {
+  while (gpsSerial.available()) {
 
 #if defined(NMEA)
-    if (GPS_NMEA_newFrame(Serial.read())) {
+    if (GPS_NMEA_newFrame(gpsSerial.read())) {
 #endif 
 #if defined(UBLOX)
-    if (GPS_UBLOX_newFrame(Serial.read())) {
+    if (GPS_UBLOX_newFrame(gpsSerial.read())) {
 #endif
 #if defined(MTK_BINARY16) || defined(MTK_BINARY19)
-    if (GPS_MTK_newFrame(Serial.read())) {
+    if (GPS_MTK_newFrame(gpsSerial.read())) {
 #endif
  
       wdt_reset();
@@ -987,23 +976,23 @@ void loop() {
       // new data published
 
       /*      
-	      byte val=Serial.read();
+	      byte val=gpsSerial.read();
 	
-	      if (val == 0xB5 ) {IF_SDEBUG(mySerial.print(F("\r\n")));} 
-	      IF_SDEBUG(mySerial.print(val,HEX));
-	      IF_SDEBUG(mySerial.print(F("-")));
+	      if (val == 0xB5 ) {IF_SDEBUG(dbgSerial.print(F("\r\n")));} 
+	      IF_SDEBUG(dbgSerial.print(val,HEX));
+	      IF_SDEBUG(dbgSerial.print(F("-")));
 	      }
       */
       /*
-	IF_SDEBUG(mySerial.println(i2c_dataset1->gps_loc.lat));
-	IF_SDEBUG(mySerial.println(i2c_dataset1->gps_loc.lon));
+	IF_SDEBUG(dbgSerial.println(i2c_dataset1->gps_loc.lat));
+	IF_SDEBUG(dbgSerial.println(i2c_dataset1->gps_loc.lon));
 	
-	IF_SDEBUG(mySerial.print(i2c_dataset1->datetime.year));
-	IF_SDEBUG(mySerial.print(i2c_dataset1->datetime.month));
-	IF_SDEBUG(mySerial.print(i2c_dataset1->datetime.day));
-	IF_SDEBUG(mySerial.print(i2c_dataset1->datetime.hour));
-	IF_SDEBUG(mySerial.print(i2c_dataset1->datetime.min));
-	IF_SDEBUG(mySerial.println(i2c_dataset1->datetime.sec));
+	IF_SDEBUG(dbgSerial.print(i2c_dataset1->datetime.year));
+	IF_SDEBUG(dbgSerial.print(i2c_dataset1->datetime.month));
+	IF_SDEBUG(dbgSerial.print(i2c_dataset1->datetime.day));
+	IF_SDEBUG(dbgSerial.print(i2c_dataset1->datetime.hour));
+	IF_SDEBUG(dbgSerial.print(i2c_dataset1->datetime.min));
+	IF_SDEBUG(dbgSerial.println(i2c_dataset1->datetime.sec));
 	
       */
 
