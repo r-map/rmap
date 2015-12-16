@@ -1,27 +1,23 @@
-# encoding: utf-8
-# borinud/v1/utils - v1 utils for borinud
-# Author: Emanuele Di Giacomo <emanueledigiacomo@gmail.com>
+import dballe
 
-def path2query(d):
-    q = {
-        k: d[k] if d[k] != "-" else None
-        for k in ["ident", "lon", "lat", "network",
-                  "var", "tr", "p1", "p2", "lt1", "lv1", "lt2", "lv2"]
-        if k in d and d[k] != "*"
-    }
-    if "coords" in d and d["coords"] == "*":
-        del q["lon"]
-        del q["lat"]
 
-    if "trange" in d and d["trange"] == "*":
-        del q["tr"]
-        del q["p1"]
-        del q["p2"]
-
-    if "level" in d and d["level"] == "*":
-        del q["lt1"]
-        del q["lv1"]
-        del q["lt2"]
-        del q["lv2"]
-
+def params2record(p):
+    q = dballe.Record(**{
+        k2: p.get(k1) if p.get(k1) != "-" else None
+        for k1, k2 in (
+            ("ident", "ident"),
+            ("lon", "lon"),
+            ("lat", "lat"),
+            ("network", "rep_memo"),
+            ("tr", "pindicator"),
+            ("p1", "p1"),
+            ("p2", "p2"),
+            ("lt1", "leveltype1"),
+            ("lv1", "l1"),
+            ("lt2", "leveltype2"),
+            ("lv2", "l2"),
+            ("var", "var")
+        )
+        if k1 in p and p.get(k1) != "*"
+    })
     return q

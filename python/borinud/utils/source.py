@@ -1,6 +1,6 @@
-# borinud/db.py - database.
+# borinud/source.py - source utilities.
 #
-# Copyright (C) 2013 ARPA-SIM <urpsim@smr.arpa.emr.it>
+# Copyright (C) 2013-2015 ARPA-SIM <urpsim@smr.arpa.emr.it>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,9 +20,20 @@
 
 import dballe
 import json
-from urllib import quote
-from urllib2 import urlopen
 from datetime import datetime
+
+try:
+    from urllib import quote
+    from urllib2 import urlopen
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.parse import quote
+
+from ..settings import BORINUD
+
+
+def get_db():
+    return DB.get(BORINUD["SOURCES"])
 
 
 class DB(object):
@@ -50,9 +61,6 @@ class DB(object):
         - `cached_summary`: filename of the cached summary
         """
         dbs = []
-
-        if isinstance(urls, basestring):
-            urls = [urls]
 
         for url in urls:
             if url.startswith("sqlite:") or url.startswith("odbc:"):
@@ -161,9 +169,9 @@ class SummaryCacheDB(DB):
 
         If `self.ttl` is None, do nothing.
         """
-        import datetime
+        from datetime import datetime, timedelta
         if self.ttl is not None:
-            self.expirydate = datetime.datetime.now() + datetime.timedelta(self.ttl)
+            self.expirydate = datetime.now() + timedelta(self.ttl)
 
     def is_expired(self):
         """Return True if the in-memory cache is expired, False otherwise.
@@ -228,21 +236,12 @@ class SummaryCacheDB(DB):
         - var
         """
         def wrapper(item):
-            if rec.get("ident") and rec.get("ident") != item.get("ident"):
-                return False
-            elif rec.get("lon") and rec.key("lon") != item.key("lon"):
-                return False
-            elif rec.get("lat") and rec.key("lat") != item.key("lat"):
-                return False
-            elif rec.get("rep_memo") and rec.get("rep_memo") != item.get("rep_memo"):
-                return False
-            elif rec.get("trange") and rec.get("trange") != item.get("trange"):
-                return False
-            elif rec.get("level") and rec.get("level") != item.get("level"):
-                return False
-            elif rec.get("var") and rec.get("var") != item.get("var"):
-                return False
-            return True
+            return all([
+                rec.get(k) == item.get(k)
+                for k in ["ident", "lon", "lat", "rep_memo", "trange", "level",
+                          "var"]
+                if k in rec
+            ])
         return wrapper
 
     def query_stations(self, rec):
@@ -310,7 +309,6 @@ class ArkimetVm2DB(DB):
         if "p2" in rec:
             q["product"]["p2"] = rec["p2"]
 
-
         q["reftime"] = ",".join(q["reftime"])
         q["area"] = "VM2:{}".format(",".join([
             "{}={}".format(k, v) for k, v in q["area"].iteritems()
@@ -339,9 +337,9 @@ class ArkimetVm2DB(DB):
                 "lat": p["lat"],
                 "rep_memo": str(p["network"]),
                 "level": [p[k] for k in ["level_t1", "level_v1",
-                                        "level_t2", "level_v2"]],
+                                         "level_t2", "level_v2"]],
                 "trange": [p[k] for k in ["trange_pind",
-                                        "trange_p1", "trange_p2"]],
+                                          "trange_p1", "trange_p2"]],
                 "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
                 str(p["bcode"]): float(p["value"]),
             })

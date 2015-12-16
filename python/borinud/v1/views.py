@@ -4,43 +4,109 @@
 
 from django.http import JsonResponse
 
-from ..models import Summary
-from .utils import path2query
+from ..settings import BORINUD
+from .utils import params2record
+from ..utils.source import get_db
 
 
 def summaries(request, **kwargs):
-    q = path2query(kwargs)
-    qs = Summary.objects.filter(**q)
-
+    q = params2record(kwargs)
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
-            "type": "Feature",
             "geometry": {
                 "type": "Point",
-                "coordinates": [s.lon, s.lat]
-            }
-            if s.lonmin == s.lonmax and s.latmin == s.latmax
-            else {
-                "type": "Polygon",
-                "coordinates": [[s.lonmin, s.latmin], [s.lonmax, s.latmin],
-                                [s.lonmax, s.latmax], [s.lonmin, s.latmax],
-                                [s.lonmin, s.latmin]]
+                "coordinates": [s.get("lon"), s.get("lat")],
             },
             "properties": {
-                "ident": s.ident,
-                "lon": s.lon,
-                "lat": s.lat,
-                "network": s.network,
-                "trange_pind": s.tr,
-                "trange_p1": s.p1,
-                "trange_p2": s.p2,
-                "level_t1": s.lt1,
-                "level_v1": s.lv1,
-                "level_t2": s.lt2,
-                "level_v2": s.lv2,
-                "bcode": s.var,
-                "datetime": [s.datemin, s.datemax],
-            }
-        } for s in qs]
+                "ident": s.get("ident"),
+                "lon": s.key("lon").enqi(),
+                "lat": s.key("lat").enqi(),
+                "network": s["rep_memo"],
+                "trange": s["trange"],
+                "level": s["level"],
+                "date": [s["datemin"].isoformat(), s["datemax"].isoformat()],
+                "var": s["var"],
+            },
+        } for s in get_db().query_summary(q)],
+    })
+
+
+def timeseries(request, **kwargs):
+    q = params2record(kwargs)
+    q["year"] = kwargs["year"]
+    q["month"] = kwargs.get("month")
+    q["day"] = kwargs.get("day")
+    return JsonResponse({
+        "type": "FeatureCollection",
+        "features": [{
+            "geometry": {
+                "type": "Point",
+                "coordinates": [s.get("lon"), s.get("lat")],
+            },
+            "properties": {
+                "ident": s.get("ident"),
+                "lon": s.key("lon").enqi(),
+                "lat": s.key("lat").enqi(),
+                "network": s["rep_memo"],
+                "trange": s["trange"],
+                "level": s["level"],
+                "date": s["date"],
+                "var": s["var"],
+                "val": s[s["var"]],
+            },
+        } for s in get_db().query_data(q)],
+    })
+
+
+def spatialseries(request, **kwargs):
+    from datetime import datetime, timedelta
+    q = params2record(kwargs)
+    d = datetime(*(int(kwargs[k]) for k in ("year", "month", "day", "hour")))
+    b = d - timedelta(seconds=1799)
+    e = d + timedelta(seconds=1799)
+    q["datemin"] = b
+    q["datemax"] = e
+    return JsonResponse({
+        "type": "FeatureCollection",
+        "features": [{
+            "geometry": {
+                "type": "Point",
+                "coordinates": [s.get("lon"), s.get("lat")],
+            },
+            "properties": {
+                "ident": s.get("ident"),
+                "lon": s.key("lon").enqi(),
+                "lat": s.key("lat").enqi(),
+                "network": s["rep_memo"],
+                "trange": s["trange"],
+                "level": s["level"],
+                "date": s["date"],
+                "var": s["var"],
+                "val": s[s["var"]],
+            },
+        } for s in get_db().query_data(q)],
+    })
+
+
+def stationdata(request, **kwargs):
+    q = params2record(kwargs)
+    return JsonResponse({
+        "type": "FeatureCollection",
+        "features": [{
+            "geometry": {
+                "type": "Point",
+                "coordinates": [s.get("lon"), s.get("lat")],
+            },
+            "properties": {
+                "ident": s.get("ident"),
+                "lon": s.key("lon").enqi(),
+                "lat": s.key("lat").enqi(),
+                "network": s["rep_memo"],
+                "trange": [None, None, None],
+                "level": [None, None, None],
+                "var": s["var"],
+                "val": s[s["var"]],
+            },
+        } for s in get_db().query_stations(q)],
     })
