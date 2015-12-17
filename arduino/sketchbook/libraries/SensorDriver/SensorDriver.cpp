@@ -1186,7 +1186,7 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) * 2 ; // 0.2 Kg/m^2 for tips
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) * RAINFORTIP ;
 
   _timing=0;
 

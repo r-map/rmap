@@ -39,8 +39,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
 
-int pinLed=13;
-
 typedef struct {
   uint8_t    sw_version;     // Version of the I2C_GPS sw
 } status_t;
@@ -94,7 +92,7 @@ void countadd()
 {
   unsigned long now=millis();
 
-  if ((now-antirimb) > 500){
+  if ((now-antirimb) > DEBOUNCINGTIME){
     count ++;
     antirimb=now;
   }
@@ -197,7 +195,7 @@ void setup() {
   i2c_writabledataset1=&i2c_writablebuffer1;
   i2c_writabledataset2=&i2c_writablebuffer2;
 
-  pinMode(pinLed, OUTPUT);
+  pinMode(LEDPIN, OUTPUT);
   IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
 
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
@@ -231,7 +229,7 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
-  pinMode(2,INPUT_PULLUP);  // connected to rain sensor switch
+  pinMode(RAINGAUGEPIN,INPUT_PULLUP);  // connected to rain sensor switch
 
   //Set up default parameters
   i2c_dataset1->status.sw_version          = VERSION;
@@ -240,8 +238,8 @@ void setup() {
   count=0;
   i2c_dataset2->rain.tips=count;
 
-  attachInterrupt(0, countadd, RISING);
-  //detachInterrupt(0);
+  attachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN), countadd, RISING);
+  //detachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN));
 
   IF_SDEBUG(Serial.println(F("end setup")));
 
@@ -319,6 +317,6 @@ void loop() {
 
   }
     
-  digitalWrite(pinLed,count % 2);  // blink Led
+  digitalWrite(LEDPIN,count % 2);  // blink Led
 
 }  

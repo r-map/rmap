@@ -31,3 +31,9 @@
 
 // include tipping bucket rain gauge driver
 #define TIPPINGBUCKETRAINGAUGE
+
+#if defined (TIPPINGBUCKETRAINGAUGE)
+ // how many rain for one tick of the rain gauge (Hg/m^2)
+ // 0.2 Kg/m^2 for tips
+ #define RAINFORTIP 2    
+#endif
