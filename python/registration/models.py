@@ -12,6 +12,7 @@ from django.template import RequestContext, TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.translation import ugettext_lazy as _
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.timezone import now as datetime_now
 from django.utils import six
 
 from registration.users import UserModel, UserModelString
@@ -46,12 +47,13 @@ class RegistrationManager(models.Manager):
         If the key is not valid or has expired, return ``False``.
 
         If the key is valid but the ``User`` is already active,
-        return ``False``.
+        return ``User``.
+
+        If the key is valid but the ``User`` is inactive, return ``False``.
 
         To prevent reactivation of an account which has been
-        deactivated by site administrators, the activation key is
-        reset to the string constant ``RegistrationProfile.ACTIVATED``
-        after successful activation.
+        deactivated by site administrators, ``RegistrationProfile.activated``
+        is set to ``True`` after successful activation.
 
         """
         # Make sure the key we're trying conforms to the pattern of a
@@ -61,17 +63,32 @@ class RegistrationManager(models.Manager):
             try:
                 profile = self.get(activation_key=activation_key)
             except self.model.DoesNotExist:
+                # This is an actual activation failure as the activation
+                # key does not exist. It is *not* the scenario where an
+                # already activated User reuses an activation key.
                 return False
+
+            if profile.activated:
+                # The User has already activated and is trying to activate
+                # again. If the User is active, return the User. Else,
+                # return False as the User has been deactivated by a site
+                # administrator.
+                if profile.user.is_active:
+                    return profile.user
+                else:
+                    return False
+
             if not profile.activation_key_expired():
                 user = profile.user
                 user.is_active = True
                 user.save()
-                profile.activation_key = self.model.ACTIVATED
+                profile.activated = True
                 profile.save()
                 return user
         return False
 
-    def create_inactive_user(self, site, new_user=None, send_email=True, request=None, **user_info):
+    def create_inactive_user(self, site, new_user=None, send_email=True,
+                             request=None, **user_info):
         """
         Create a new, inactive ``User``, generate a
         ``RegistrationProfile`` and email its activation key to the
@@ -83,10 +100,10 @@ class RegistrationManager(models.Manager):
         it will be passed to the email template.
 
         """
-        if new_user == None:
+        if new_user is None:
             password = user_info.pop('password')
             new_user = UserModel()(**user_info)
-            new_user.set_password( password )
+            new_user.set_password(password)
         new_user.is_active = False
         new_user.save()
 
@@ -104,10 +121,11 @@ class RegistrationManager(models.Manager):
 
         The activation key for the ``RegistrationProfile`` will be a
         SHA1 hash, generated from a combination of the ``User``'s
-        username and a random salt.
+        pk and a random salt.
 
         """
-        salt = hashlib.sha1(six.text_type(random.random()).encode('ascii')).hexdigest()[:5]
+        salt = hashlib.sha1(six.text_type(random.random())
+                            .encode('ascii')).hexdigest()[:5]
         salt = salt.encode('ascii')
         user_pk = str(user.pk)
         if isinstance(user_pk, six.text_type):
@@ -184,16 +202,9 @@ class RegistrationProfile(models.Model):
     account registration and activation.
 
     """
-    ACTIVATED = "ALREADY_ACTIVATED"
-
-    user = models.OneToOneField(UserModelString(),verbose_name=_('user'))
-    #WARNINGS:
-    #registration.RegistrationProfile.user: (fields.W342) 
-    #Setting unique=True on a ForeignKey has the same effect as using a OneToOneField.
-    #	HINT: ForeignKey(unique=True) is usually better served by a OneToOneField.
-    #user = models.ForeignKey(UserModelString(), unique=True, verbose_name=_('user'))
- 
+    user = models.OneToOneField(UserModelString(), verbose_name=_('user'))
     activation_key = models.CharField(_('activation key'), max_length=40)
+    activated = models.BooleanField(default=False)
 
     objects = RegistrationManager()
 
@@ -212,10 +223,9 @@ class RegistrationProfile(models.Model):
 
         Key expiration is determined by a two-step process:
 
-        1. If the user has already activated, the key will have been
-           reset to the string constant ``ACTIVATED``. Re-activating
-           is not permitted, and so this method returns ``True`` in
-           this case.
+        1. If the user has already activated, ``self.activated`` will
+           be ``True``. Re-activating is not permitted, and so this
+           method returns ``True`` in this case.
 
         2. Otherwise, the date the user signed up is incremented by
            the number of days specified in the setting
@@ -226,8 +236,9 @@ class RegistrationProfile(models.Model):
            method returns ``True``.
 
         """
-        expiration_date = datetime.timedelta(days=settings.ACCOUNT_ACTIVATION_DAYS)
-        return (self.activation_key == self.ACTIVATED or
+        expiration_date = datetime.timedelta(
+            days=settings.ACCOUNT_ACTIVATION_DAYS)
+        return (self.activated or
                 (self.user.date_joined + expiration_date <= datetime_now()))
     activation_key_expired.boolean = True
 
@@ -270,7 +281,7 @@ class RegistrationProfile(models.Model):
             is installed, this may be an instance of either
             ``django.contrib.sites.models.Site`` (if the sites
             application is installed) or
-            ``django.contrib.sites.models.RequestSite`` (if
+            ``django.contrib.sites.requests.RequestSite`` (if
             not). Consult the documentation for the Django sites
             framework for details regarding these objects' interfaces.
 
@@ -292,20 +303,26 @@ class RegistrationProfile(models.Model):
             'expiration_days': settings.ACCOUNT_ACTIVATION_DAYS,
             'site': site,
         })
-        subject = getattr(settings, 'REGISTRATION_EMAIL_SUBJECT_PREFIX', '') + \
-                  render_to_string('registration/activation_email_subject.txt', ctx_dict)
+        subject = (getattr(settings, 'REGISTRATION_EMAIL_SUBJECT_PREFIX', '') +
+                   render_to_string(
+                       'registration/activation_email_subject.txt', ctx_dict))
         # Email subject *must not* contain newlines
         subject = ''.join(subject.splitlines())
+        from_email = getattr(settings, 'REGISTRATION_DEFAULT_FROM_EMAIL',
+                             settings.DEFAULT_FROM_EMAIL)
+        message_txt = render_to_string('registration/activation_email.txt',
+                                       ctx_dict)
 
-        message_txt = render_to_string('registration/activation_email.txt', ctx_dict)
-        email_message = EmailMultiAlternatives(subject, message_txt, settings.DEFAULT_FROM_EMAIL, [self.user.email])
+        email_message = EmailMultiAlternatives(subject, message_txt,
+                                               from_email, [self.user.email])
 
-        try:
-            message_html = render_to_string('registration/activation_email.html', ctx_dict)
-        except TemplateDoesNotExist:
-            message_html = None
-
-        if message_html:
-            email_message.attach_alternative(message_html, 'text/html')
+        if getattr(settings, 'REGISTRATION_EMAIL_HTML', True):
+            try:
+                message_html = render_to_string(
+                    'registration/activation_email.html', ctx_dict)
+            except TemplateDoesNotExist:
+                pass
+            else:
+                email_message.attach_alternative(message_html, 'text/html')
 
         email_message.send()

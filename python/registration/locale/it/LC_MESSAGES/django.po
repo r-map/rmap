@@ -32,7 +32,31 @@ msgstr "Re-invia email di attivazione"
 msgid "E-mail"
 msgstr ""
 
-#: registration/forms.py:48
+#: .\forms.py:36
+msgid "This value must contain only letters, numbers and underscores."
+msgstr "Questo valore può contenere solo lettere, numeri e sottolineature."
+
+#: .\forms.py:39
+msgid "Email address"
+msgstr "indirizzo email"
+
+#: .\forms.py:41
+msgid "Password"
+msgstr "Password"
+
+#: .\forms.py:43
+msgid "Password (again)"
+msgstr "Password (di nuovo)"
+
+#: .\forms.py:55
+msgid "A user with that username already exists."
+msgstr "Questo nome utente è già usato."
+
+#: .\forms.py:67
+msgid "The two password fields didn't match."
+msgstr "Le password inserite non coincidono."
+
+#: .\forms.py:78
 msgid "I have read and agree to the Terms of Service"
 msgstr "Dichiaro di aver letto e di approvare le Condizioni di Servizio"
 
