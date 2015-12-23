@@ -4,13 +4,14 @@ from stations.form import RmapRegistrationForm
 #from registration.forms import RegistrationFormTermsOfService
 from registration.backends.default.views import RegistrationView
 from views import home,wizard,wizard2,wizard_done,wizard_error
+import rmap.views
+import django.views
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 admin.autodiscover()
 
-urlpatterns = patterns('',
-
+urlpatterns = [
     url(r'^$',home ,name='home' ),
     url(r'^wizard/$',wizard ,name='wizard' ),
     url(r'^wizard2/$',wizard2 ,name='wizard2' ),
@@ -31,28 +32,28 @@ urlpatterns = patterns('',
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
 
     url(r'^registrazione/', include('registration.backends.default.urls')),
-    url(r'^auth/user',     'rmap.views.user'),
-    url(r'^auth/vhost',    'rmap.views.vhost'),
-    url(r'^auth/resource', 'rmap.views.resource'),
+    url(r'^auth/user',     rmap.views.user),
+    url(r'^auth/vhost',    rmap.views.vhost),
+    url(r'^auth/resource', rmap.views.resource),
 
-    url(r'^auth/auth',     'rmap.views.auth'),
-    url(r'^auth/superuser','rmap.views.superuser'),
-    url(r'^auth/acl',      'rmap.views.acl'),
+    url(r'^auth/auth',     rmap.views.auth),
+    url(r'^auth/superuser',rmap.views.superuser),
+    url(r'^auth/acl',      rmap.views.acl),
 
 
-    url(r'^accounts/profile/$',      'rmap.views.profile'),
-    url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      'rmap.views.profile_details'),
+    url(r'^accounts/profile/$',      rmap.views.profile),
+    url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
 
     url(r'^http2mqtt/', include('http2mqtt.urls')),
-)
+]
 
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
-    urlpatterns += patterns('',
-                            (r'^'+settings.MEDIA_PREFIX[1:]+'(.*)', 'django.views.static.serve', {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-                            (r'^'+settings.MEDIA_SITE_PREFIX[1:]+'(.*)', 'django.views.static.serve', {'document_root': settings.MEDIA_SITE_ROOT, 'show_indexes': True}),
-                            )
+    urlpatterns += [
+                            url(r'^'+settings.MEDIA_PREFIX[1:]+'(.*)', django.views.static.serve, {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
+                            url(r'^'+settings.MEDIA_SITE_PREFIX[1:]+'(.*)', django.views.static.serve, {'document_root': settings.MEDIA_SITE_ROOT, 'show_indexes': True}),
+                            ]
 
     #To use the view with a different local development server, 
     #add the following helper function that'll do this for you to the end of 

@@ -8,13 +8,14 @@ msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-11-26 17:19+0100\n"
-"PO-Revision-Date: 2015-11-26 17:38+0100\n"
-"Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
+"PO-Revision-Date: 2015-12-23 16:59+0100\n"
+"Last-Translator: \n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
+"Language: IT\n"
 
 #: build/lib/rmap/form.py:22 rmap/form.py:22
 msgid "station to configure"
@@ -613,7 +614,7 @@ msgstr "Accetto la licenza ODBL"
 
 #: build/lib/rmap/stations/models.py:571 rmap/stations/models.py:580
 msgid "You need to accept ODBL license to provide your data"
-msgstr "PEr fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
+msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
 #: rmap/form.py:32 templates/profile.html:22 templates/profile_details.html:10
 #: templates/stations/stationmetadata_detail.html:8
@@ -996,10 +997,10 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"  Tu (o qualcuno che dichiara di essere te) ha chiesto di registrare un "
+"   Tu (o qualcuno che dichiara di essere te) ha chiesto di registrare un "
 "account su\n"
-"  %(site.name)s. Se non sei tu, per favore ignora questa email\n"
-"  e il tuo indirizzo sarà rimosso dalla nostra lista.\n"
+"    {{ site.name }}. Se non sei tu, per favore ignora questa email\n"
+"    e il tuo indirizzo sarà rimosso dalla nostra lista.\n"
 "  "
 
 #: templates/registration/activation_email.html:19
@@ -1014,7 +1015,7 @@ msgstr ""
 "\n"
 "  Per attivare questo account, per favore clicca il seguente link entro i "
 "prossimi\n"
-"  %(expiration_days)s giorni:\n"
+"  {{ expiration_days }} giorni:\n"
 "   "
 
 #: templates/registration/activation_email.html:31
@@ -1041,7 +1042,7 @@ msgstr ""
 "\n"
 "Tu (o qualcuno che dichiara di essere te) ha chiesto di registrare un "
 "account\n"
-" %(site.name)s. Se non sei tu, per favore ignora questa email\n"
+" {{ site.name }}. Se non sei tu, per favore ignora questa email\n"
 "e il tuo indirizzo sarà rimosso dalla nostra lista.\n"
 
 #: templates/registration/activation_email.txt:8
@@ -1065,7 +1066,7 @@ msgid ""
 msgstr ""
 "\n"
 "Cordialmente,\n"
-"L'amministratore di %(site.name)s\n"
+"L'amministratore di {{ site.name }}\n"
 
 #: templates/registration/activation_email_subject.txt:1
 msgid "Account activation on"
@@ -1178,7 +1179,7 @@ msgstr "L'email di attivazione è stata inviata"
 
 #: templates/registration/registration_complete.html:7
 msgid "Please check your email to complete the registration process."
-msgstr "PEr favore controlla la tua posta per completare la registrazione."
+msgstr "Per favore controlla la tua posta per completare la registrazione."
 
 #: templates/registration/registration_form.html:4
 msgid "Register for an account"

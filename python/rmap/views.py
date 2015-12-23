@@ -3,7 +3,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth import authenticate
 from django.shortcuts import render
 #from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.sites.models import get_current_site
+from django.contrib.sites.shortcuts import get_current_site
 from form import WizardForm,WizardForm2
 from django.contrib.auth.models import User
 from django.db import IntegrityError

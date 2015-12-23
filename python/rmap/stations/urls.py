@@ -1,8 +1,10 @@
-from django.conf.urls import patterns, url
+from django.conf.urls import url
 from rmap.stations.views import StationList
 from rmap.stations.views import StationDetail
+from rmap.stations.views import mystationmetadata_list
+from rmap.stations.views import mystationmetadata_detail
 
-urlpatterns = patterns('',
+urlpatterns = [
 
 #                       url(r'^stations/$',StationList.as_view()
 #                           ,name='stationmetadata-list' ),
@@ -15,8 +17,8 @@ urlpatterns = patterns('',
                            ,name='stationmetadata-list' ),
 
                        url(r'^stations/(?P<ident>[-_\w]+)/$',
-                           'rmap.stations.views.mystationmetadata_list'),
+                           mystationmetadata_list),
 
                        url(r'^stations/(?P<ident>[-_\w]+)/(?P<slug>[-_\w]+)/$',
-                           'rmap.stations.views.mystationmetadata_detail'),
-)
+                           mystationmetadata_detail),
+]

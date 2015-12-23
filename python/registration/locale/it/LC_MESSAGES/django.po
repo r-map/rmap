@@ -9,16 +9,15 @@ msgstr ""
 "Project-Id-Version: django-registration 0.8 alpha-1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-11-26 17:19+0100\n"
-"PO-Revision-Date: 2011-08-04 12:41-0600\n"
-"Last-Translator: Flavio Curella <flavio.curella@gmail.com>\n"
+"PO-Revision-Date: 2015-12-23 16:34+0100\n"
+"Last-Translator: \n"
 "Language-Team: Italiano <it@li.org>\n"
-"Language: \n"
+"Language: it_IT\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Poedit-Language: Italian\n"
-"X-Poedit-Country: ITALY\n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: registration/admin.py:23
 msgid "Activate users"
@@ -38,7 +37,7 @@ msgstr "Questo valore può contenere solo lettere, numeri e sottolineature."
 
 #: .\forms.py:39
 msgid "Email address"
-msgstr "indirizzo email"
+msgstr "Indirizzo email"
 
 #: .\forms.py:41
 msgid "Password"
@@ -94,24 +93,3 @@ msgstr "profilo di registrazione"
 #: registration/models.py:202
 msgid "registration profiles"
 msgstr "profili di registrazione"
-
-#~ msgid "Username"
-#~ msgstr "Nome utente"
-
-#~ msgid "This value must contain only letters, numbers and underscores."
-#~ msgstr "Questo valore può contenere solo lettere, numeri e sottolineature."
-
-#~ msgid "Email address"
-#~ msgstr "indirizzo email"
-
-#~ msgid "Password"
-#~ msgstr "Password"
-
-#~ msgid "Password (again)"
-#~ msgstr "Password (di nuovo)"
-
-#~ msgid "A user with that username already exists."
-#~ msgstr "Questo nome utente è già usato."
-
-#~ msgid "The two password fields didn't match."
-#~ msgstr "Le password inserite non coincidono."
