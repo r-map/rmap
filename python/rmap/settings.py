@@ -411,17 +411,24 @@ AUTH_PROFILE_MODULE = 'stations.UserProfile'
 
 LOGIN_URL = '/registrazione/login'
 
-from django.conf import global_settings
+#from django.conf import global_settings
 
-
-TEMPLATES=[
+TEMPLATES= [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS'  : config['django']['TEMPLATE_DIRS'],
         'OPTIONS': {
             # List of callables that know how to import templates from various sources.
-            'context_processors': global_settings.TEMPLATE_CONTEXT_PROCESSORS + 
-            ["rmap.processor.site",],
+            'context_processors': [
+                'rmap.processor.site',
+                'django.contrib.auth.context_processors.auth',
+                'django.template.context_processors.debug',
+                'django.template.context_processors.i18n',
+                'django.template.context_processors.media',
+                'django.template.context_processors.static',
+                'django.template.context_processors.tz',
+                'django.contrib.messages.context_processors.messages',
+            ],
             'debug' : config['django']['TEMPLATE_DEBUG']
         }
     }

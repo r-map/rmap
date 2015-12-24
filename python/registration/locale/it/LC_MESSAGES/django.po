@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-registration 0.8 alpha-1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-11-26 17:19+0100\n"
+"POT-Creation-Date: 2015-12-24 15:00+0100\n"
 "PO-Revision-Date: 2015-12-23 16:34+0100\n"
 "Last-Translator: \n"
 "Language-Team: Italiano <it@li.org>\n"
@@ -19,58 +19,34 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: registration/admin.py:23
+#: registration/admin.py:25
 msgid "Activate users"
 msgstr "Attiva utenti"
 
-#: registration/admin.py:43
+#: registration/admin.py:45
 msgid "Re-send activation emails"
 msgstr "Re-invia email di attivazione"
 
-#: registration/forms.py:34
+#: registration/forms.py:36
 msgid "E-mail"
 msgstr ""
 
-#: .\forms.py:36
-msgid "This value must contain only letters, numbers and underscores."
-msgstr "Questo valore può contenere solo lettere, numeri e sottolineature."
-
-#: .\forms.py:39
-msgid "Email address"
-msgstr "Indirizzo email"
-
-#: .\forms.py:41
-msgid "Password"
-msgstr "Password"
-
-#: .\forms.py:43
-msgid "Password (again)"
-msgstr "Password (di nuovo)"
-
-#: .\forms.py:55
-msgid "A user with that username already exists."
-msgstr "Questo nome utente è già usato."
-
-#: .\forms.py:67
-msgid "The two password fields didn't match."
-msgstr "Le password inserite non coincidono."
-
-#: .\forms.py:78
+#: registration/forms.py:50
 msgid "I have read and agree to the Terms of Service"
 msgstr "Dichiaro di aver letto e di approvare le Condizioni di Servizio"
 
-#: registration/forms.py:49
+#: registration/forms.py:51
 msgid "You must agree to the terms to register"
 msgstr "Per registrarsi bisogna approvare le condizioni"
 
-#: registration/forms.py:65
+#: registration/forms.py:67
 msgid ""
 "This email address is already in use. Please supply a different email "
 "address."
 msgstr ""
 "Questo indirizzo email è già in uso. Inserisci un altro indirizzo email."
 
-#: registration/forms.py:92
+#: registration/forms.py:94
 msgid ""
 "Registration using free email addresses is prohibited. Please supply a "
 "different email address."
@@ -78,18 +54,36 @@ msgstr ""
 "La registrazione con indirizzi email gratis non è permessa. Inserisci un "
 "altro indirizzo email."
 
-#: registration/models.py:189
+#: registration/models.py:205
 msgid "user"
 msgstr "utente"
 
-#: registration/models.py:196
+#: registration/models.py:206
 msgid "activation key"
 msgstr "chiave di attivazione"
 
-#: registration/models.py:201
+#: registration/models.py:212
 msgid "registration profile"
 msgstr "profilo di registrazione"
 
-#: registration/models.py:202
+#: registration/models.py:213
 msgid "registration profiles"
 msgstr "profili di registrazione"
+
+#~ msgid "This value must contain only letters, numbers and underscores."
+#~ msgstr "Questo valore può contenere solo lettere, numeri e sottolineature."
+
+#~ msgid "Email address"
+#~ msgstr "Indirizzo email"
+
+#~ msgid "Password"
+#~ msgstr "Password"
+
+#~ msgid "Password (again)"
+#~ msgstr "Password (di nuovo)"
+
+#~ msgid "A user with that username already exists."
+#~ msgstr "Questo nome utente è già usato."
+
+#~ msgid "The two password fields didn't match."
+#~ msgstr "Le password inserite non coincidono."
