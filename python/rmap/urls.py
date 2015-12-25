@@ -50,9 +50,10 @@ urlpatterns = [
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
+    from django.contrib.staticfiles import views
     urlpatterns += [
-                            url(r'^'+settings.MEDIA_PREFIX[1:]+'(.*)', django.views.static.serve, {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
-                            url(r'^'+settings.MEDIA_SITE_PREFIX[1:]+'(.*)', django.views.static.serve, {'document_root': settings.MEDIA_SITE_ROOT, 'show_indexes': True}),
+                            url(r'^'+settings.MEDIA_PREFIX[1:]+'(.*)', views.serve, {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
+                            url(r'^'+settings.MEDIA_SITE_PREFIX[1:]+'(.*)', views.serve, {'document_root': settings.MEDIA_SITE_ROOT, 'show_indexes': True}),
                             ]
 
     #To use the view with a different local development server, 
