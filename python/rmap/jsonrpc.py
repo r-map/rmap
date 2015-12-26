@@ -755,6 +755,122 @@ class TransportSERIAL(Transport):
     def close (self):
         self.ser.close()
         self.log( "serial port closed" )
+
+class TransportMQTT(Transport):
+    """receive and send to mqtt broker.
+
+    tested with mosquitto
+    """
+
+    def __init__(self,host="rmap.cc",user=None,password=None,rpctopic="rpc",mac="000000000001",client_id=None,timeout=5,logfunc=log_dummy):
+
+        import paho.mqtt.client as mqtt
+        import signal
+
+        self.mqtt_host = host
+        self.mqttc = mqtt.Client(client_id, clean_session=True)
+        if user is not None:
+            self.mqttc.username_pw_set(user,password)
+
+        self.mqttc.on_message = self.on_message
+        self.mqttc.on_connect = self.on_connect
+        self.mqttc.on_disconnect = self.on_disconnect
+        self.mqttc.on_publish = self.on_publish
+        self.mqttc.on_subscribe = self.on_subscribe
+        self.mqtt_lastmessage=""
+
+        self.timeout=timeout
+        self.start=0
+
+        self.topiccom=rpctopic+"/"+user+"/"+mac+"/com"
+        self.topicres=rpctopic+"/"+user+"/"+mac+"/res"
+
+        self.log    = logfunc
+        self.log( "mqtt connect" )
+
+        rc=mqtt.MQTT_ERR_CONN_REFUSED
+        while ( not  (rc == mqtt.MQTT_ERR_SUCCESS)):
+            try:
+                rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
+            except:
+                rc=mqtt.MQTT_ERR_CONN_REFUSED
+
+            if (not (rc == mqtt.MQTT_ERR_SUCCESS)):
+                self.log("Cannot connect to MQTT; retry in 5 seconds")
+                time.sleep(5)
+
+        signal.signal(signal.SIGTERM, self.cleanup)
+        signal.signal(signal.SIGINT, self.cleanup)
+
+        #self.mqttc.loop_forever()
+        self.mqttc.loop_start()
+
+    def cleanup(self,signum, frame):
+        '''Disconnect cleanly on SIGTERM or SIGINT'''
+
+        self.mqttc.loop_stop()
+        self.mqttc.disconnect()
+        self.log("Disconnected from broker; exiting on signal %d", signum)
+        sys.exit(signum)
+
+    def on_connect(self,mosq, userdata, flags, rc):
+        self.log("Connected to broker at %s" % (self.mqtt_host,))
+
+        self.log("Subscribing to topic %s" % self.topicres)
+        self.mqttc.subscribe(self.topicres, 0)
+
+    def on_publish(self,mosq, userdata, mid):
+        self.log("pubblish %s with id %s" % (userdata, mid))
+
+
+    def on_message(self,mosq, userdata, msg):
+
+        # this remove all retained messages
+        # mosq.publish(msg.topic, payload=None, qos=0, retain=True)
+
+        self.log("Topic [%s]  payload [%s]" %
+                      (msg.topic, msg.payload))
+
+        self.mqtt_lastmessage=msg.payload
+
+    def on_subscribe(self,mosq, userdata, mid, granted_qos):
+        self.log("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+    def on_disconnect(self,mosq, userdata, rc):
+
+        if rc == 0:
+            self.log("Clean disconnection")
+        else:
+            self.log("Unexpected disconnect (rc %s); reconnecting in 5 seconds" % rc)
+            time.sleep(5)
+
+    def send(self, string):
+        """write data to mqtt broker """
+
+        self.mqttc.publish(self.topiccom, payload=string, qos=0, retain=False)
+        self.log( "mqtt publish : %s" % (string) )
+
+        self.start=time.time()
+
+    def recv(self):
+        """read data from mqtt broker """
+        if (time.time() - self.start) > self.timeout:
+            self.mqtt_lastmessage=""
+        else:
+            while (time.time() - self.start) < self.timeout and self.mqtt_lastmessage == "":
+                time.sleep(.1)
+
+        message=self.mqtt_lastmessage
+        self.log( "serial port (%s): %s" % ("RECEIVE",message) )
+        self.mqtt_lastmessage=""
+        return message
+
+    def close (self):
+        self.ser.close()
+        self.mqttc.loop_stop()
+        self.mqtt.disconnect()
+        self.log( "mqtt connetion closed" )
+
 class TransportBLUETOOTH(Transport):
     """receive and send to bluetooth serial port by java api.
 
