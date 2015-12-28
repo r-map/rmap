@@ -155,8 +155,6 @@ class SummaryCacheDB(DB):
         self.timeout = timeout
 
     def set_cached_summary(self):
-        from .codec import SummaryJSONEncoder
-
         res = self.db.query_summary(dballe.Record())
         summary = [{
             "ident": o.get("ident"),
