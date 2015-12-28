@@ -34,7 +34,8 @@ from ..settings import BORINUD
 
 def get_db():
     return DB.get(BORINUD["SOURCES"],
-                  cached_summary=BORINUD["CACHED_SUMMARY"])
+                  cached_summary=BORINUD["CACHED_SUMMARY"],
+                  cached_summary_timeout=BORINUD["CACHED_SUMMARY_TIMEOUT"])
 
 
 class DB(object):
@@ -60,6 +61,7 @@ class DB(object):
         Keyword arguments:
 
         - `cached_summary`: name of the cache for the cached summary
+        - `cached_summary_timeout`: cached summary timeout
         """
         dbs = []
 
@@ -76,7 +78,8 @@ class DB(object):
         db = MergeDB(dbs)
 
         if kw.get("cached_summary"):
-            db = SummaryCacheDB(db, kw.get("cached_summary"))
+            db = SummaryCacheDB(db, kw.get("cached_summary"),
+                                kw.get("cached_summary_timeout"))
 
         return db
 
