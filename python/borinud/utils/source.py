@@ -33,7 +33,7 @@ from ..settings import BORINUD
 
 
 def get_db():
-    return DB.get(BORINUD["SOURCES"])
+    return DB.get(BORINUD["SOURCES"], cached_summary=BORINUD["CACHED_SUMMARY"])
 
 
 class DB(object):
