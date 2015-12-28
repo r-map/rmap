@@ -158,20 +158,37 @@ class SummaryCacheDB(DB):
         from .codec import SummaryJSONEncoder
 
         res = self.db.query_summary(dballe.Record())
-        summary = json.dumps(res, cls=SummaryJSONEncoder)
+        summary = [{
+            "ident": o.get("ident"),
+            "lon": o.key("lon").enqi(),
+            "lat": o.key("lat").enqi(),
+            "rep_memo": o.get("rep_memo"),
+            "level": o.get("level"),
+            "trange": o.get("trange"),
+            "bcode": o.get("var"),
+            "date": o.date_extremes(),
+        } for o in res]
         self.cache.set('borinud-summary-cache', summary, self.timeout)
         return summary
 
     def get_cached_summary(self):
         """Get the cached summary."""
-        from .codec import SummaryJSONDecoder
-
         summary = self.cache.get('borinud-summary-cache')
 
         if summary is None:
             summary = self.set_cached_summary()
 
-        return json.loads(summary, cls=SummaryJSONDecoder)
+        return tuple(dballe.Record(**{
+            "ident": None if i["ident"] is None else i["ident"],
+            "lon": i["lon"],
+            "lat": i["lat"],
+            "rep_memo": i["rep_memo"],
+            "level": tuple(i["level"]),
+            "trange": tuple(i["trange"]),
+            "var": i["bcode"],
+            "datemin": i["date"][0],
+            "datemax": i["date"][1],
+        }) for i in summary)
 
     def get_filter_summary(self, rec):
         """Return a filter function based on dballe.Record `rec`.
