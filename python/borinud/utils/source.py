@@ -208,7 +208,7 @@ class SummaryCacheDB(DB):
         # The summary is first written in a temporary file and then moved to the
         # right path (os.rename is atomic in POSIX OS)
         cachedir = os.path.realpath(os.path.dirname(self.cachefile))
-        with NamedTemporaryFile(delete=False, dir=cachedir) as f:
+        with NamedTemporaryFile('w', delete=False, dir=cachedir) as f:
             try:
                 from .codec import SummaryJSONEncoder
                 json.dump(
