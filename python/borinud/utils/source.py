@@ -202,12 +202,21 @@ class SummaryCacheDB(DB):
         - var
         """
         def wrapper(item):
-            return all([
+            f = [
                 rec.get(k) == item.get(k)
                 for k in ["ident", "lon", "lat", "rep_memo", "trange", "level",
                           "var"]
                 if k in rec
-            ])
+            ]
+
+            if rec.get("datemin"):
+                f.append(rec.get("datemin") <= item.get("date")[0] or item.get("date")[0] is None)
+
+            if rec.get("datemax"):
+                f.append(rec.get("datemax") >= item.get("date")[1] or item.get("date")[1] is None)
+
+            return(all(f))
+
         return wrapper
 
     def query_stations(self, rec):
