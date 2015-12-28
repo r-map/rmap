@@ -1,5 +1,6 @@
 from django.conf.urls import url, include
 
+from . import views
 from .v1 import urls as v1_urls
 
 
@@ -8,5 +9,6 @@ api_patterns = [
 ]
 
 urlpatterns = [
+    url(r'^$', views.get_map),
     url(r'^api/', include(api_patterns, namespace='api')),
 ]
