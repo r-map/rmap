@@ -33,7 +33,8 @@ from ..settings import BORINUD
 
 
 def get_db():
-    return DB.get(BORINUD["SOURCES"], cached_summary=BORINUD["CACHED_SUMMARY"])
+    return DB.get(BORINUD["SOURCES"],
+                  cached_summary=BORINUD["CACHED_SUMMARY"])
 
 
 class DB(object):
@@ -58,7 +59,7 @@ class DB(object):
 
         Keyword arguments:
 
-        - `cached_summary`: filename of the cached summary
+        - `cached_summary`: name of the cache for the cached summary
         """
         dbs = []
 
@@ -139,88 +140,35 @@ class DballeDB(DB):
 
 
 class SummaryCacheDB(DB):
-    """Preemptive summary cache.
-
-    The cache must be loaded and updated using the method
-    `write_cached_summary`.
-    For example, a crontab script can update every 10 minutes the cache file::
-
-        # cacheupdater.py
-        from borinud.db import SummaryCacheDB, DballeDB
-        c = SummaryCacheDB(DballeDB("sqlite:mydb.sqlite"), "/tmp/cache.json")
-        c.write_cached_summary()
-
-        # crontab
-        */10 * * * * python cacheupdater.py
-    """
-    def __init__(self, db, cachefile, ttl=None):
-        """Creates a summary cache for the database `db` reading the file with
-        name `cachefile`.
+    def __init__(self, db, cachename, timeout=None):
+        """Creates a summary cache for the database `db`
 
         The summary cache can be loaded in memory setting the parameter `ttl`
         (number of seconds the memory cache lives).
         """
+        from django.core.cache import caches
         self.db = db
-        self.cachefile = cachefile
-        self.ttl = ttl
+        self.cache = caches[cachename]
+        self.timeout = timeout
 
-    def update_expirydate(self):
-        """Update the expirydate of the in-memory cache.
+    def set_cached_summary(self):
+        from .codec import SummaryJSONEncoder
 
-        If `self.ttl` is None, do nothing.
-        """
-        from datetime import datetime, timedelta
-        if self.ttl is not None:
-            self.expirydate = datetime.now() + timedelta(self.ttl)
-
-    def is_expired(self):
-        """Return True if the in-memory cache is expired, False otherwise.
-
-        If `self.ttl` is None, this method always return True
-        """
-        if getattr(self, "expirydate", None) is None:
-            return True
-        else:
-            import datetime
-            return self.expirydate < datetime.datetime.now()
+        res = self.db.query_summary(dballe.Record())
+        summary = json.dumps(res, cls=SummaryJSONEncoder)
+        self.cache.set('borinud-summary-cache', summary, self.timeout)
+        return summary
 
     def get_cached_summary(self):
-        """Get the cached summary.
-
-        If the in-memory cache is expired, read the cache from the file and
-        update the expiry date.
-        """
-        if self.is_expired():
-            self.summary = self.read_cached_summary()
-            self.update_expirydate()
-        return self.summary
-
-    def read_cached_summary(self):
-        """Read the summary from the cache file."""
+        """Get the cached summary."""
         from .codec import SummaryJSONDecoder
-        with open(self.cachefile) as f:
-            return json.load(f, cls=SummaryJSONDecoder)
 
-    def write_cached_summary(self):
-        """Write the db summary to the cache file."""
-        import os
-        from tempfile import NamedTemporaryFile
-        # The summary is first written in a temporary file and then moved to the
-        # right path (os.rename is atomic in POSIX OS)
-        cachedir = os.path.realpath(os.path.dirname(self.cachefile))
-        with NamedTemporaryFile('w', delete=False, dir=cachedir) as f:
-            try:
-                from .codec import SummaryJSONEncoder
-                json.dump(
-                    self.db.query_summary(dballe.Record()),
-                    f,
-                    cls=SummaryJSONEncoder
-                )
-                # Atomic rename in POSIX OS
-                os.rename(f.name, self.cachefile)
-            except:
-                os.unlink(f.name)
-                raise
+        summary = self.cache.get('borinud-summary-cache')
+
+        if summary is None:
+            summary = self.set_cached_summary()
+
+        return json.loads(summary, cls=SummaryJSONDecoder)
 
     def get_filter_summary(self, rec):
         """Return a filter function based on dballe.Record `rec`.
