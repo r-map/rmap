@@ -11,6 +11,9 @@ from ..utils.source import get_db
 
 def summaries(request, **kwargs):
     q = params2record(kwargs)
+    q['year'] = kwargs.get('year')
+    q['month'] = kwargs.get('month')
+    q['day'] = kwargs.get('day')
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
