@@ -210,10 +210,16 @@ class SummaryCacheDB(DB):
             ]
 
             if rec.get("datemin"):
-                f.append(rec.get("datemin") <= item.get("datemin") or item.get("datemin") is None)
+                f.append(any([
+                    rec.get("datemin") <= item.get("datemax"),
+                    item.get("datemax") is None,
+                ]))
 
             if rec.get("datemax"):
-                f.append(rec.get("datemax") >= item.get("datemax") or item.get("datemax") is None)
+                f.append(any([
+                    rec.get("datemax") >= item.get("datemin"),
+                    item.get("datemin") is None,
+                ]))
 
             return(all(f))
 
