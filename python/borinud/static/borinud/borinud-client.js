@@ -226,7 +226,22 @@
 
         $("<input class='query' id='ismobile' type='checkbox'>").appendTo(menu);
         $("<label for='ismobile'>Stations are mobile</label>").appendTo(menu);
-
+        
+        // calculate min and max dates
+        var daterange = _.reduce(this.summary.items, function(memo, f) {
+            var d = memo;
+            if (memo[0] == null || f.properties.date[0] < memo[0])
+                d[0] = f.properties.date[0];
+            if (memo[1] == null || f.properties.date[1] > memo[1])
+                d[1] = f.properties.date[1];
+            return d;
+        }, [null, null]);
+        if (daterange[0])
+            $(".query.datetime").datepicker("option", "minDate", new Date(daterange[0]));
+        if (daterange[1])
+            $(".query.datetime").datepicker("option", "maxDate", new Date(daterange[1]));
+            
+        console.log(daterange);
         $(menu).trigger("change");
     };
 
