@@ -267,11 +267,14 @@
         borinud.config.root_el.append($("<div class='map'/>").height("80%"));
         borinud.config.root_el.find(".map").css("position", "relative");
 
-        borinud._createMap();
         $(borinud.summary).bind("updated", function() {
             borinud._createMenu();
         });
         borinud.summary.update();
+        borinud.config.root_el.find(".map").height(function(i, h) {
+            return window.innerHeight - $(this).offset().top;
+        });
+        borinud._createMap();
     };
     this.borinud = borinud;
 }());
