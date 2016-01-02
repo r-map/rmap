@@ -5,13 +5,16 @@
 
 <head>
     <!--link rel="stylesheet" href="{% static "style.css" %}" /-->
-    <title>{% block title %}User test{% endblock %}</title>
+    <link rel="shortcut icon" href="{% static "rmap/rmap.ico" %}" />
+    <title>
+      {% block title %}
+        RMAP
+      {% endblock %}
+    </title>
     <link rel="stylesheet" type="text/css" href="{% static "registration/main.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "registration/skin.css" %}">
     <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/superfish/1.7.4/superfish.min.css" %}">
-    <script src="{% static "rmap/libs/superfish/1.7.4/superfish.min.js" %}" type="text/javascript"></script>
-    <script src="{% static "rmap/libs/overintent/1.8.0/jquery.hoverIntent.minified.js" %}" type="text/javascript"></script>
     <link rel="stylesheet" type="text/css" href="{% static "registration/navigation.css" %}">
     <meta name="viewport" content="width=device-width">
 </head>
@@ -21,26 +24,29 @@
 
     {% block header %}
 
+    <script src="{% static "rmap/libs/superfish/1.7.4/superfish.min.js" %}" type="text/javascript"></script>
+    <script src="{% static "rmap/libs/overintent/1.8.0/jquery.hoverIntent.minified.js" %}" type="text/javascript"></script>
+
      <a href="/" title="{% trans "Home" %}" class="title" ><h1>R m a p</h1></a>
     <nav id="main_nav">
       <ul class="sf-menu">
 	<li>
-	  <a href="http://rmap.cc">Server RMAP</a>
+	  <a href="/">Server RMAP</a>
 <!--
 	  <ul>
 	    <li>
 	      <a href="http://rmapv.rmap.cc">Server RMAP Veneto</a>
 -->
 	      <ul>
-		<li><a href="http://rmapv.rmap.cc:5925">punti stazione su mappa e grafici</a></li>
+		<li><a href="/borinud/">punti stazione su mappa e grafici</a></li>
 		<li><a href="http://graphite.rmapv.rmap.cc/dashboard/#rmap default">Dashboard di esempio</a></li>
 		<li><a href="http://graphite.rmapv.rmap.cc">Grafici graphite</a></li>
 		<li><a href="http://rmapv.rmap.cc/arkiweb">Estrazione dati storici</a></li>
 
 		<li>
-		  <a href="http://rmapv.rmap.cc">Amministrazione</a>
+		  <a href="/">Amministrazione</a>
 		  <ul>
-		    <li><a href="http://rmapv.rmap.cc/http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
+		    <li><a href="/http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
 		    <li><a href="http://rmapv.rmap.cc:443">Monitoraggio processi (da portare alla porta 2812</a></li>
 		    <li><a href="http://rmapv.rmap.cc:15672">Amministrazione rabbitmq</a></li>
  		  </ul>
@@ -89,9 +95,9 @@
 	<li>
 	  <a href="/stations">Stazioni</a>
 	  <ul>
-	    <li><a href="http:/stations">Visualizza stazioni</a></li>
+	    <li><a href="/stations">Visualizza stazioni</a></li>
 	    {% if user.is_authenticated %}
-	      <li><a href="http:/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
+	      <li><a href="/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
             {% endif %}
 	  </ul>
 	</li>
@@ -100,6 +106,14 @@
     </nav>
 
     <hr />
+
+<script>
+
+	jQuery(document).ready(function() {
+		jQuery('ul.sf-menu').superfish();
+	});
+
+</script>
 
     {% endblock %}
 
@@ -122,14 +136,6 @@
     
     {% endblock %}
     </div>
-
-<script>
-
-	jQuery(document).ready(function() {
-		jQuery('ul.sf-menu').superfish();
-	});
-
-</script>
 
 </body>
 
