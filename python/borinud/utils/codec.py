@@ -1,6 +1,6 @@
 # borinud/codec.py - encoding/decoding utilities
 #
-# Copyright (C) 2013 ARPA-SIM <urpsim@smr.arpa.emr.it>
+# Copyright (C) 2013-2015  ARPA-SIM <urpsim@smr.arpa.emr.it>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -95,37 +95,3 @@ class GeoJSONEncoder(BaseJSONEncoder):
         elif rec.date_extremes() != (None, None):
             p["datetime"] = rec.date_extremes()
         return p
-
-class SummaryJSONEncoder(BaseJSONEncoder):
-    """Encode a JSON summary."""
-    def default(self, o):
-        if isinstance(o, dballe.Cursor):
-            return [ r.copy() for r in o ]
-        elif isinstance(o, dballe.Record):
-            return {
-                "ident": o.get("ident"),
-                "lon": o.key("lon").enqi(),
-                "lat": o.key("lat").enqi(),
-                "rep_memo": o.get("rep_memo"),
-                "level": o.get("level"),
-                "trange": o.get("trange"),
-                "bcode": o.get("var"),
-                "date": o.date_extremes(),
-            }
-        else:
-            return super(SummaryJSONEncoder, self).default(o)
-
-class SummaryJSONDecoder(json.JSONDecoder):
-    """Decode a JSON summary."""
-    def decode(self, s):
-        # TODO: decode datemin and datemax
-        jsonsumm = super(SummaryJSONDecoder, self).decode(s)
-        return tuple(dballe.Record(**{
-            "ident": None if i["ident"] is None else i["ident"].encode(),
-            "lon": i["lon"],
-            "lat": i["lat"],
-            "rep_memo": i["rep_memo"].encode(),
-            "level": i["level"],
-            "trange": i["trange"],
-            "var": i["bcode"].encode(),
-        }) for i in jsonsumm)

@@ -24,7 +24,7 @@
         config: {
             root_el: null,
             ajax: {
-                baseUrl: "",
+                baseUrl: "borinud/v1/api",
                 dataType: "json"
             },
         }
@@ -40,29 +40,29 @@
                 coords,
                 properties.network,
                 borinud.config.trange.encode(
-                    properties.trange_pind,
-                    properties.trange_p1,
-                    properties.trange_p2),
+                    properties.trange[0],
+                    properties.trange[1],
+                    properties.trange[2]),
                 borinud.config.level.encode(
-                    properties.level_t1,
-                    properties.level_v1,
-                    properties.level_t2,
-                    properties.level_v2),
-                properties.bcode
+                    properties.level[0],
+                    properties.level[1],
+                    properties.level[2],
+                    properties.level[3]),
+                properties.var
             ].join("/")
         },
         describe: function(properties) {
-            var b = borinud.config.B[properties.bcode];
+            var b = borinud.config.B[properties.var];
             var l = borinud.config.level.describe(
-                properties.level_t1,
-                properties.level_v1,
-                properties.level_t2,
-                properties.level_v2
+                properties.level[0],
+                properties.level[1],
+                properties.level[2],
+                properties.level[3]
             );
             var t = borinud.config.trange.describe(
-                properties.trange_pind,
-                properties.trange_p1,
-                properties.trange_p2
+                properties.trange[0],
+                properties.trange[1],
+                properties.trange[2]
             );
 
             var desc = b.description +
@@ -77,7 +77,7 @@
     borinud.summary = new function() {
         this.items = [];
         this.networks = [];
-        this.bcodes = [];
+        this.vars = [];
         this.levels = [];
         this.tranges = [];
         this.var_contexts = [];
@@ -90,40 +90,6 @@
                 dataType: borinud.config.ajax.dataType,
                 success: function(resp) {
                     $this.items = resp.features;
-                    // networks
-                    //$this.networks = _.chain(resp.features).map(function(val, idx) {
-                    //    return val.properties.network;
-                    //}).uniq().value();
-                    //// bcodes
-                    //$this.bcodes = _.chain(resp.features).map(function(val, idx) {
-                    //    return {
-                    //        "id": val.properties.bcode,
-                    //        "desc": val.properties.bcode_desc,
-                    //        "unit": val.properties.bcode_unit
-                    //    };
-                    //}).uniq(false, function(item) {
-                    //    return item.id;
-                    //}).value();
-                    //// tranges
-                    //$this.tranges = _.chain(resp.features).map(function(val, idx) {
-                    //    var id = val.properties.id.split("/")[4];
-                    //    return {
-                    //        "id": id,
-                    //        "desc": val.properties.trange_desc
-                    //    }
-                    //}).uniq(false, function(item) {
-                    //    return item.id;
-                    //}).value();
-                    //// levels
-                    //$this.levels = _.chain(resp.features).map(function(val, idx) {
-                    //    var id = val.properties.id.split("/")[5];
-                    //    return {
-                    //        "id": id,
-                    //        "desc": val.properties.level_desc
-                    //    };
-                    //}).uniq(false, function(item) {
-                    //    return item.id
-                    //}).value();
                     // contexts
                     $this.var_contexts = _.chain(resp.features).map(function(val, idx) {
                         return {
@@ -191,12 +157,12 @@
                 });
                 var series = {
                     data: [],
-                    label: borinud.config.B[f.attributes.bcode].unit
+                    label: borinud.config.B[f.attributes.var].unit
                 };
                 $.each(resp.features, function(idx, feature) {
                     series.data.push([
-                                     new Date(feature.properties.datetime + "Z").getTime(),
-                                     feature.properties.value
+                                     new Date(feature.properties.date + "Z").getTime(),
+                                     feature.properties.val
                     ]);
                 });
                 content.plot([series], {
@@ -248,28 +214,6 @@
             return "<option value='" + obj.id + "'>" + obj.desc + "</option>";
         }).join(""));
 
-        /*
-        var s = $("<select class='query networks'>").appendTo(menu).append("<option value=''>-</option>");
-        $.each(borinud.summary.networks, function(idx, n) {
-            s.append("<option value='" + n + "'>" + n + "</option>");
-        });
-
-        s = $("<select class='query bcodes'>").appendTo(menu).append("<option value=''>-</option>");
-        $.each(borinud.summary.bcodes, function(idx, n) {
-            s.append("<option value='" + n.id + "'>" + n.desc + "(" + n.unit + ")</option>");
-        });
-
-        s = $("<select class='query levels'>").appendTo(menu).append("<option value=''>-</option>");
-        $.each(borinud.summary.levels, function(idx, n) {
-            s.append("<option value='" + n.id + "'>" + n.desc + ")</option>");
-        });
-
-        s = $("<select class='query tranges'>").appendTo(menu).append("<option value=''>-</option>");
-        $.each(borinud.summary.tranges, function(idx, n) {
-            s.append("<option value='" + n.id + "'>" + n.desc + ")</option>");
-        });
-        */
-
         $("<input class='query datetime'>").appendTo(menu).datepicker({
             dateFormat: 'yy/mm/dd',
             changeDay: true,
@@ -282,7 +226,22 @@
 
         $("<input class='query' id='ismobile' type='checkbox'>").appendTo(menu);
         $("<label for='ismobile'>Stations are mobile</label>").appendTo(menu);
-
+        
+        // calculate min and max dates
+        var daterange = _.reduce(this.summary.items, function(memo, f) {
+            var d = memo;
+            if (memo[0] == null || f.properties.date[0] < memo[0])
+                d[0] = f.properties.date[0];
+            if (memo[1] == null || f.properties.date[1] > memo[1])
+                d[1] = f.properties.date[1];
+            return d;
+        }, [null, null]);
+        if (daterange[0])
+            $(".query.datetime").datepicker("option", "minDate", new Date(daterange[0]));
+        if (daterange[1])
+            $(".query.datetime").datepicker("option", "maxDate", new Date(daterange[1]));
+            
+        console.log(daterange);
         $(menu).trigger("change");
     };
 
@@ -323,11 +282,14 @@
         borinud.config.root_el.append($("<div class='map'/>").height("80%"));
         borinud.config.root_el.find(".map").css("position", "relative");
 
-        borinud._createMap();
         $(borinud.summary).bind("updated", function() {
             borinud._createMenu();
         });
         borinud.summary.update();
+        borinud.config.root_el.find(".map").height(function(i, h) {
+            return window.innerHeight - $(this).offset().top;
+        });
+        borinud._createMap();
     };
     this.borinud = borinud;
 }());
