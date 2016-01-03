@@ -130,13 +130,6 @@ configspec['amqp2mqttd']['lockfile'] = "string(default='/tmp/amqp2mqttd.lock')"
 configspec['amqp2mqttd']['user']     = "string(default=None)"
 configspec['amqp2mqttd']['group']    = "string(default=None)"
 
-configspec['borinudd']={}
-configspec['borinudd']['logfile']  = "string(default='/tmp/borinudd.log')"
-configspec['borinudd']['errfile']  = "string(default='/tmp/borinudd.err')"
-configspec['borinudd']['lockfile'] = "string(default='/tmp/borinudd.lock')"
-configspec['borinudd']['user']     = "string(default=None)"
-configspec['borinudd']['group']    = "string(default=None)"
-
 configspec['mqtt2dballed']={}
 configspec['mqtt2dballed']['logfile']  = "string(default='/tmp/mqtt2dballed.log')"
 configspec['mqtt2dballed']['errfile']  = "string(default='/tmp/mqtt2dballed.err')"
@@ -264,13 +257,6 @@ errfileamqp2mqttd              = config['amqp2mqttd']['errfile']
 lockfileamqp2mqttd             = config['amqp2mqttd']['lockfile']
 useramqp2mqttd                 = config['amqp2mqttd']['user']
 groupamqp2mqttd                = config['amqp2mqttd']['group']
-
-# section borinudd
-logfileborinudd              = config['borinudd']['logfile']
-errfileborinudd              = config['borinudd']['errfile']
-lockfileborinudd             = config['borinudd']['lockfile']
-userborinudd                 = config['borinudd']['user']
-groupborinudd                = config['borinudd']['group']
 
 # section mqtt2dballed
 logfilemqtt2dballed              = config['mqtt2dballed']['logfile']

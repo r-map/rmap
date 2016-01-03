@@ -100,8 +100,6 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2graphited.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2dballed.1","./mqtt2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2dballed.1"])
-            subprocess.check_call(["help2man","-N","-o","man/man1/borinudd.1","./borinudd"])
-            subprocess.check_call(["gzip", "-f","man/man1/borinudd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
             subprocess.check_call(["gzip", "-f","man/man1/poweroffd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/composereportd.1","./composereportd"])
@@ -228,9 +226,9 @@ setup(name='rmap',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
       cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
-      packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview','registration','http2mqtt','borinud','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','paho','paho.mqtt'],
+      packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview','registration','http2mqtt','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','paho','paho.mqtt'],
       package_data={'rmap': ['icons/*.png','tables/*.txt'],'rmap.stations': ['fixtures/*.json'],'mapview': ['icons/*.png'],},
-      scripts=['stationd','mqtt2graphited','borinudd','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod'],
+      scripts=['stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial"],
