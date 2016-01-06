@@ -91,8 +91,10 @@ else:
     board_default= "BT_fixed"
 
 template_default=rmap.rmap_core.template_choices[0]
+from kivy.uix.camera import Camera
 
-#    from plyer import camera #object to read the camera
+if platform == 'android':
+    from plyer import camera #object to read the camera
 
 #    from android.runnable import run_on_ui_thread
 #    WebView = autoclass('android.webkit.WebView')
@@ -523,6 +525,38 @@ ScreenManager:
                         Label:
                             text: app.str_Water_quality_tab_content_area
 
+                TabbedPanelItem:
+                    text: app.str_Camera
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        canvas:
+                            Color:
+                                rgba: 50/255., 50/255., 100/255., 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        Camera:
+                            id: mycamera
+                            #resolution: 399, 299
+
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: '40dp'
+                            Button:
+                                text: app.str_start
+                                on_release: app.camera_start()
+
+                            Button:
+                                text: app.str_Stop
+                                on_release: app.camera_stop()
+
+                            # android only button
+                            Button:
+                                text: app.str_Take_Photo
+                                on_release: app.camera_take_photo()
 
                     #GridLayout:
                     #    orientation: 'vertical'
@@ -716,61 +750,6 @@ ScreenManager:
                 spacing: '2dp'
                 Label:
                     text: app.mqtt_status 
-
-
-# android version
-#    Screen:
-#        name: "Camera"
-#        id: camerascreen
-#
-#        BoxLayout:
-#            orientation: 'vertical'
-#            canvas:
-#                Color:
-#                    rgba: 50/255., 50/255., 100/255., 1
-#                Rectangle:
-#                    pos: self.pos
-#                    size: self.size
-#
-#
-#            BoxLayout:
-#                orientation: 'horizontal'
-#                size_hint_y: None
-#                height: '40dp'
-#                Button:
-#                    text: app.str_Start
-#                    on_release: app.take_photo
-
-
-#linux version
-#    Screen:
-#        name: "Camera"
-#        id: camerascreen
-#
-#        BoxLayout:
-#            orientation: 'vertical'
-#            canvas:
-#                Color:
-#                    rgba: 50/255., 50/255., 100/255., 1
-#                Rectangle:
-#                    pos: self.pos
-#                    size: self.size
-#
-#            camera:
-#                id: mycamera
-#                resolution: 399, 299
-#
-#            BoxLayout:
-#                orientation: 'horizontal'
-#                size_hint_y: None
-#                height: '40dp'
-#                Button:
-#                    text: app.str_Start
-#                    on_release: mycamera.play = True
-#
-#                Button:
-#                    text: app.str_Stop
-#                    on_release: mycamera.play = False
 
 '''
 
@@ -1046,7 +1025,10 @@ class Rmap(App):
         self.str_Settings=_("Settings")
         self.str_Select_Location=_("Select Location")
         self.str_Next=_("Next")
+        self.str_Camera=_("Camera")
+        self.str_Take_Photo=_("Take Photo")
         self.str_Start_GPS=_("Start GPS") 
+        self.str_Stop=_("Stop")
         self.str_Stop_GPS=_("Stop GPS")
         self.str_Start_Trip=_("Start Trip")
         self.str_Stop_Trip=_("Stop Trip")
@@ -2231,14 +2213,58 @@ class Rmap(App):
          self.mystation.datavarlist=[]
          self.root.ids["queue"].text=""
 
+    def camera_start(self):
+        if platform == 'linux':
+            self.root.ids["mycamera"].resolution=(399, 299)
+            self.root.ids["mycamera"].play= True
 
-#    def take_photo(self):
-#        if platform == 'android':
-#            camera.take_picture('photo.jpg', self.photo_done) #Take a picture and save at this location. After will call done() callback
-#    
-#    def photo_done(self, e): #receive e as the image location
-#        #self.lblCam.text = e; #update the label to the image location
-#        pass
+    def camera_stop(self):
+        if platform == 'linux':
+            self.root.ids["mycamera"].play= False
+
+    def camera_take_photo(self):
+        if platform == 'android':
+            camera.take_picture('photo.jpg', self.photo_done) #Take a picture and save at this location. After will call done() callback
+        else:
+            self.root.ids["mycamera"].texture.save(filename="photo.jpg",flipped=False)
+
+
+            # self.popup(_("not supported\non this\nplatform!"))
+
+        # TODO input comment from user
+        comment = "a simple comment"
+
+        # TODO work more on timestamp
+
+        import pexif
+
+        # Add exif in a file
+        img = pexif.JpegFile.fromFile("photo.jpg")
+        #img = pexif.JpegFile.fromString(body)
+        img.exif.primary.ImageDescription =str(self.config.get('rmap','user'))
+        img.exif.primary.ExtendedEXIF.UserComment = comment
+        img.set_geo(float(self.lat), float(self.lon))
+        img.writeFile("photo.jpg")
+
+        # read image in memory.
+        photo_file = open("photo.jpg","r")
+        body = photo_file.read()
+        photo_file.close()
+
+        try:
+            rmap.rmap_core.send2amqp(body=body,
+                                 user=self.config.get('rmap','user'),
+                                 password=self.config.get('rmap','password'),
+                                 host=self.config.get('rmap','server'),
+                                 exchange="photo",routing_key="photo")
+        except:
+            self.popup(_("error sending\nimage to server!"))
+
+    def photo_done(self, e): #receive e as the image location
+        #self.lblCam.text = e; #update the label to the image location
+        pass
+
+
 
     @mainthread
     def getdata_loop(self, *args):
