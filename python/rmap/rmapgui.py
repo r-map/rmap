@@ -652,6 +652,38 @@ ScreenManager:
                         size_hint_y: None
 
             Toolbar:
+                ToggleButton:
+                    id: relay_0
+                    background_normal: ""
+                    background_color: .5,1.,.5,1.
+                    text: app.str_On_relay+" 0" if self.state == 'normal' else app.str_Off_relay+" 0"
+                    on_state: app.togglepin(0,True) if self.state == 'down' else app.togglepin(0,False)
+
+            Toolbar:
+                ToggleButton:
+                    id: relay_1
+                    background_normal: ""
+                    background_color: .5,1.,.5,1.
+                    text: app.str_On_relay+" 1" if self.state == 'normal' else app.str_Off_relay+" 1"
+                    on_state: app.togglepin(1,True) if self.state == 'down' else app.togglepin(1,False)
+
+            Toolbar:
+                ToggleButton:
+                    id: relay_2
+                    background_normal: ""
+                    background_color: .5,1.,.5,1.
+                    text: app.str_On_relay+" 2" if self.state == 'normal' else app.str_Off_relay+" 2"
+                    on_state: app.togglepin(2,True) if self.state == 'down' else app.togglepin(2,False)
+
+            Toolbar:
+                ToggleButton:
+                    id: relay_3
+                    background_normal: ""
+                    background_color: .5,1.,.5,1.
+                    text: app.str_On_relay+" 3" if self.state == 'normal' else app.str_Off_relay+" 3"
+                    on_state: app.togglepin(3,True) if self.state == 'down' else app.togglepin(3,False)
+
+            Toolbar:
                 height: '40dp'
                 padding: '2dp'
                 spacing: '2dp'
@@ -1025,6 +1057,8 @@ class Rmap(App):
         self.str_Settings=_("Settings")
         self.str_Select_Location=_("Select Location")
         self.str_Next=_("Next")
+        self.str_On_relay=_("switch ON relay")
+        self.str_Off_relay=_("switch OFF relay")
         self.str_Camera=_("Camera")
         self.str_Take_Photo=_("Take Photo")
         self.str_Start_GPS=_("Start GPS") 
@@ -1746,6 +1780,17 @@ class Rmap(App):
             print "error in stoptransport"
             self.board_status='Transport Status: ERROR'
 
+
+    def togglepin(self,n,status):
+
+        self.root.ids["transport"].state="down"
+
+        try:
+            rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),self.mystation.transport)
+            rpcproxy.togglepin({"n":n,"s":status})
+        except:
+            self.popup(_("toggle\nrelay\nfailed!"))
+            
 
     def configureboard(self):
 
