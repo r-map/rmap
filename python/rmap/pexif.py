@@ -241,6 +241,7 @@ SHORT = ExifType(3, "short", 2).id
 LONG = ExifType(4, "long", 4).id
 RATIONAL = ExifType(5, "rational", 8).id
 UNDEFINED = ExifType(7, "undefined", 1).id
+SIGNEDSORT = ExifType(8, "signedshort", 2).id
 SLONG = ExifType(9, "slong", 4).id
 SRATIONAL = ExifType(10, "srational", 8).id
 
@@ -248,7 +249,6 @@ SRATIONAL = ExifType(10, "srational", 8).id
 def exif_type_size(exif_type):
     """Return the size of a type"""
     return ExifType.lookup.get(exif_type).size
-
 
 class Rational:
     """A simple fraction class. Python 2.6 could use the inbuilt Fraction class."""
@@ -408,6 +408,7 @@ class IfdData(object):
             entry = unpack(e + "HHII", data[start:start+12])
             tag, exif_type, components, the_data = entry
 
+            debug("%s %s" % (hex(tag), exif_type))
             debug("%s %s %s %s %s" % (hex(tag), exif_type,
                                       exif_type_size(exif_type), components,
                                       the_data))
@@ -427,7 +428,7 @@ class IfdData(object):
                 else:
                     the_data = data[start+8:start+8+byte_size]
 
-                if exif_type == BYTE or exif_type == UNDEFINED:
+                if exif_type == BYTE or exif_type == UNDEFINED or exif_type == SIGNEDSORT:
                     actual_data = list(the_data)
                 elif exif_type == ASCII:
                     if the_data[-1] != '\0':
@@ -505,7 +506,7 @@ class IfdData(object):
                 magic_components = components = len(the_data)
                 byte_size = exif_type_size(exif_type) * components
 
-            if exif_type == BYTE or exif_type == UNDEFINED:
+            if exif_type == BYTE or exif_type == UNDEFINED or exif_type == SIGNEDSORT:
                 actual_data = "".join(the_data)
             elif exif_type == ASCII:
                 actual_data = the_data

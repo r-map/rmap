@@ -68,6 +68,9 @@ import rmap.rmap_core
 
 platform = platform()
 
+PHOTOIMAGE="photo.jpg"
+QUEUEDIMAGE="queuedphoto.jpg"
+
 if platform == 'android':
     from jnius import autoclass
     station_default= "BT_fixed"
@@ -91,7 +94,7 @@ else:
     board_default= "BT_fixed"
 
 template_default=rmap.rmap_core.template_choices[0]
-from kivy.uix.camera import Camera
+#from kivy.uix.camera import Camera
 
 if platform == 'android':
     from plyer import camera #object to read the camera
@@ -454,6 +457,56 @@ ScreenManager:
                 tab_width: '100sp'
 
                 TabbedPanelItem:
+                    text: app.str_Camera
+
+                    BoxLayout:
+                        orientation: 'vertical'
+                        canvas:
+                            Color:
+                                rgba: 50/255., 50/255., 100/255., 1
+                            Rectangle:
+                                pos: self.pos
+                                size: self.size
+
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: '40dp'
+                            #Button:
+                            #    text: app.str_start
+                            #    on_release: app.camera_start()
+
+                            #Button:
+                            #    text: app.str_Stop
+                            #    on_release: app.camera_stop()
+
+                            # android only button
+                            Button:
+                                text: app.str_Take_Photo
+                                on_release: app.camera_take_photo()
+
+                        BoxLayout:
+                            orientation: 'horizontal'
+                            size_hint_y: None
+                            height: '40dp'
+
+
+                            TextInput:
+                                id: cameracomment
+                                text: app.str_Comment_Photo
+                                multiline: False
+                                #on_text_validate: self.validatetext()
+
+                        #Camera:
+                        #    id: mycamera
+                        #    #resolution: 399, 299
+
+                        CameraImage:
+                            id: cameraimage
+                            #center: self.parent.center
+                            #center: mapview.get_window_xy_from(mapview.lat, mapview.lon, mapview.zoom)
+
+                TabbedPanelItem:
                     text: app.str_Meteo
 
                     TabbedPanel:
@@ -524,39 +577,6 @@ ScreenManager:
 
                         Label:
                             text: app.str_Water_quality_tab_content_area
-
-                TabbedPanelItem:
-                    text: app.str_Camera
-
-                    BoxLayout:
-                        orientation: 'vertical'
-                        canvas:
-                            Color:
-                                rgba: 50/255., 50/255., 100/255., 1
-                            Rectangle:
-                                pos: self.pos
-                                size: self.size
-
-                        Camera:
-                            id: mycamera
-                            #resolution: 399, 299
-
-                        BoxLayout:
-                            orientation: 'horizontal'
-                            size_hint_y: None
-                            height: '40dp'
-                            Button:
-                                text: app.str_start
-                                on_release: app.camera_start()
-
-                            Button:
-                                text: app.str_Stop
-                                on_release: app.camera_stop()
-
-                            # android only button
-                            Button:
-                                text: app.str_Take_Photo
-                                on_release: app.camera_take_photo()
 
                     #GridLayout:
                     #    orientation: 'vertical'
@@ -769,6 +789,10 @@ ScreenManager:
                         halign: "left"
                         size_hint_y: None
 
+            BoxLayout:
+                QueuedImage:
+                    id: queuedimage
+
             Toolbar:
 
                 ToggleButton:
@@ -885,6 +909,27 @@ def to_background(*args):
     PythonActivity = autoclass('org.renpy.android.PythonActivity')
     currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
     currentActivity.moveTaskToBack(True)
+
+
+
+class CameraImage(Image):
+
+    def __init__(self, **kwargs):
+        super(CameraImage, self).__init__(**kwargs)
+        if os.path.isfile(PHOTOIMAGE):
+            self.source = PHOTOIMAGE
+        else:
+            self.source = os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+
+
+class QueuedImage(Image):
+
+    def __init__(self, **kwargs):
+        super(QueuedImage, self).__init__(**kwargs)
+        if os.path.isfile(QUEUEDIMAGE):
+            self.source = QUEUEDIMAGE
+        else:
+            self.source = os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
 
 class MirinoImage(Image):
 
@@ -1060,6 +1105,7 @@ class Rmap(App):
         self.str_On_relay=_("switch ON relay")
         self.str_Off_relay=_("switch OFF relay")
         self.str_Camera=_("Camera")
+        self.str_Comment_Photo= _("Comment your photo")
         self.str_Take_Photo=_("Take Photo")
         self.str_Start_GPS=_("Start GPS") 
         self.str_Stop=_("Stop")
@@ -1878,6 +1924,10 @@ class Rmap(App):
             self.startmqtt()
             self.myqueue_loop=self.publishmqtt_loop
             Clock.schedule_interval(self.myqueue_loop, 5.)
+
+            self.myphoto_loop=self.publishphoto_loop
+            Clock.schedule_once(self.myphoto_loop)
+            Clock.schedule_interval(self.myphoto_loop, 180.)
         else:
             self.root.ids["connect"].state="normal"
 
@@ -1887,11 +1937,17 @@ class Rmap(App):
             self.stopmqtt()
             #update to last status
             self.mqtt_status = self.mystation.mqtt_status
-            self.mqtt_connected = self.mystation.rmap.connected
+            try:
+                self.mqtt_connected = self.mystation.rmap.connected
+            except AttributeError:
+                pass
         else:
             self.mqtt_connected = False
             #self.mqtt_status = _('Connect Status: disconnected')
             self.mqtt_status = _("Station")+": "+_(" disactive")
+
+        Clock.unschedule(self.myphoto_loop)
+
 
     def rpcin(self, message, *args):
         print "RPC: ",message[2]
@@ -2207,7 +2263,6 @@ class Rmap(App):
         return stringa
 
     def queuedata(self):
-        print self.root.ids
         try:
             value=float(self.root.ids["fog"].text)/10
             datavar={"B20001":{"t": datetime.utcnow(),"v": str(value)}}
@@ -2252,63 +2307,112 @@ class Rmap(App):
         print self.mystation.datavarlist
         self.root.ids["queue"].text=self.queue2str()
 
+        if os.path.isfile(PHOTOIMAGE):
+            try:
+
+                if os.path.isfile(QUEUEDIMAGE):
+                    os.remove(QUEUEDIMAGE)
+                # queue photo for the server
+                import pexif
+                # Add exif in a file
+                img = pexif.JpegFile.fromFile(PHOTOIMAGE)
+                #img = pexif.JpegFile.fromString(body)
+                img.exif.primary.ImageDescription =str(self.config.get('rmap','user'))
+                img.exif.primary.ExtendedEXIF.UserComment = self.root.ids["cameracomment"].text
+                img.set_geo(float(self.lat), float(self.lon))
+                img.writeFile(QUEUEDIMAGE)
+                os.remove(PHOTOIMAGE)
+
+                self.root.ids["queuedimage"].source= QUEUEDIMAGE
+                self.root.ids["queuedimage"].reload()
+                self.root.ids["cameraimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+                self.root.ids["cameraimage"].reload()
+
+            except Exception as e:
+                print e
+                print "WARNING: photo not queued"
+                traceback.print_exc()
+                self.popup(_("problems with\nCamera!"))
+                #os.rename(PHOTOIMAGE,QUEUEDIMAGE)
+
 
     def cleandata(self):
          self.mystation.anavarlist=[]
          self.mystation.datavarlist=[]
          self.root.ids["queue"].text=""
 
-    def camera_start(self):
-        if platform == 'linux':
-            self.root.ids["mycamera"].resolution=(399, 299)
-            self.root.ids["mycamera"].play= True
+         # remove queued image
+         if os.path.isfile(QUEUEDIMAGE):
+             os.remove(QUEUEDIMAGE)
+         self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+         self.root.ids["queuedimage"].reload()
 
-    def camera_stop(self):
-        if platform == 'linux':
-            self.root.ids["mycamera"].play= False
+#    def camera_start(self):
+#        if platform == 'linux':
+#            self.root.ids["mycamera"].resolution=(399, 299)
+#            self.root.ids["mycamera"].play= True
+#
+#    def camera_stop(self):
+#        if platform == 'linux':
+#            self.root.ids["mycamera"].play= False
 
     def camera_take_photo(self):
         if platform == 'android':
-            camera.take_picture('photo.jpg', self.photo_done) #Take a picture and save at this location. After will call done() callback
+
+            from jnius import autoclass
+            Environment = autoclass('android.os.Environment')
+
+            # simple queued file names
+            #index=0
+            #while True:
+            #    index += 1
+            #    fn = (Environment.getExternalStorageDirectory().getPath() +
+            #          '/takepicture{}.jpg'.format(index))
+            #    if not os.path.exists(fn):
+            #        break
+
+            fn = Environment.getExternalStorageDirectory().getPath() + '/rmap_picture.jpg'
+            if os.path.isfile(fn):
+                os.remove(fn)
+
+            #Take a picture and save at this location. After will call on_complete() callback
+            camera.take_picture(filename=fn, on_complete=self.photo_done)
+
         else:
-            self.root.ids["mycamera"].texture.save(filename="photo.jpg",flipped=False)
+            #self.camera_start()
+            #while self.root.ids["mycamera"].texture is None:
+            #    print "wait"
+            #    time.sleep(1)
 
+            try:
+                if self.root.ids["mycamera"].texture is None:
+                    self.popup(_("Start Camera!"))
+                    return
+            except:
+                return
 
-            # self.popup(_("not supported\non this\nplatform!"))
-
-        # TODO input comment from user
-        comment = "a simple comment"
-
+            self.root.ids["mycamera"].texture.save(filename=PHOTOIMAGE,flipped=False)
+            self.camera_stop()
+            
         # TODO work more on timestamp
 
-        import pexif
 
-        # Add exif in a file
-        img = pexif.JpegFile.fromFile("photo.jpg")
-        #img = pexif.JpegFile.fromString(body)
-        img.exif.primary.ImageDescription =str(self.config.get('rmap','user'))
-        img.exif.primary.ExtendedEXIF.UserComment = comment
-        img.set_geo(float(self.lat), float(self.lon))
-        img.writeFile("photo.jpg")
+    def photo_done(self, filename): #receive filename as the image location
+        print "photo is in: ",filename
 
-        # read image in memory.
-        photo_file = open("photo.jpg","r")
-        body = photo_file.read()
-        photo_file.close()
+        import shutil
+        shutil.copyfile(filename, PHOTOIMAGE)
+        #os.rename(filename,PHOTOIMAGE)
+        # do not ask me why, but without schedule_once the file is not accessible
+        Clock.schedule_once(self.photo_show,5)
 
-        try:
-            rmap.rmap_core.send2amqp(body=body,
-                                 user=self.config.get('rmap','user'),
-                                 password=self.config.get('rmap','password'),
-                                 host=self.config.get('rmap','server'),
-                                 exchange="photo",routing_key="photo")
-        except:
-            self.popup(_("error sending\nimage to server!"))
+        # return true unlink the file (not shure if it's a good think)
+        return True
 
-    def photo_done(self, e): #receive e as the image location
-        #self.lblCam.text = e; #update the label to the image location
-        pass
 
+    def photo_show(self,*largs):
+        self.root.ids["cameraimage"].source= PHOTOIMAGE
+        self.root.ids["cameraimage"].reload()
 
 
     @mainthread
@@ -2341,14 +2445,49 @@ class Rmap(App):
 
             self.root.ids["queue"].text=self.queue2str()
 
-            self.mqtt_connected = self.mystation.rmap.connected
+            try:
+                self.mqtt_connected = self.mystation.rmap.connected
+            except AttributeError:
+                pass
             self.mqtt_status = self.mystation.mqtt_status
         else:
             self.mqtt_connected = False
             #self.mqtt_status = _('Connect Status: disconnected')
             self.mqtt_status = _("Station")+": "+_(" disactive")
 
-        return True
+
+    @mainthread
+    def publishphoto_loop(self, *args):
+        '''
+        This function publish photo to amqp broker.
+        '''
+        print "call in publishphoto_loop"
+
+        try:
+            if os.path.isfile(QUEUEDIMAGE):
+                # read image in memory.
+                photo_file = open(QUEUEDIMAGE,"r")
+                body = photo_file.read()
+                photo_file.close()
+
+                rmap.rmap_core.send2amqp(body=body,
+                                 user=self.config.get('rmap','user'),
+                                 password=self.config.get('rmap','password'),
+                                 host=self.config.get('rmap','server'),
+                                 exchange="photo",routing_key="photo")
+
+                os.remove(QUEUEDIMAGE)
+                self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+                self.root.ids["queuedimage"].reload()
+
+                return True
+
+        except:
+
+            self.popup(_("error sending\nimage to server!"))
+            # disable until new connect
+            return False
+
 
 
     @mainthread
