@@ -26,7 +26,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.settings import SettingOptions
 from kivy.uix.settings import Settings
-from kivy.uix.image import Image
+from kivy.uix.image import __Image
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 from kivy.uix.togglebutton import ToggleButton
@@ -2263,6 +2263,11 @@ class Rmap(App):
         return stringa
 
     def queuedata(self):
+
+        if self.trip and not self.gps.gpsfix:
+            self.popup(_("travel with\nGPS not fixed!\nretry"))
+            return
+
         try:
             value=float(self.root.ids["fog"].text)/10
             datavar={"B20001":{"t": datetime.utcnow(),"v": str(value)}}

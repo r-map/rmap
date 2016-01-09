@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-08 22:52+0100\n"
-"PO-Revision-Date: 2016-01-08 23:00+0100\n"
+"POT-Creation-Date: 2016-01-09 22:23+0100\n"
+"PO-Revision-Date: 2016-01-09 22:27+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -18,16 +18,12 @@ msgstr ""
 "X-Generator: Poedit 1.5.4\n"
 
 #: build/lib/registration/admin.py:23
-#, fuzzy
-#| msgid "Activation email sent"
 msgid "Activate users"
-msgstr "L'email di attivazione è stata inviata"
+msgstr "Utenti attivati"
 
 #: build/lib/registration/admin.py:43
-#, fuzzy
-#| msgid "Activation email sent"
 msgid "Re-send activation emails"
-msgstr "L'email di attivazione è stata inviata"
+msgstr "reinvio email di attivazione"
 
 #: build/lib/registration/forms.py:34
 msgid "E-mail"
@@ -58,28 +54,20 @@ msgstr ""
 "fornire un indirizzo email differente."
 
 #: build/lib/registration/models.py:189
-#, fuzzy
-#| msgid "your user"
 msgid "user"
-msgstr "il tuo utente"
+msgstr "utente"
 
 #: build/lib/registration/models.py:196
-#, fuzzy
-#| msgid "Account activation on"
 msgid "activation key"
-msgstr "Attivazione account attiva"
+msgstr "chiave attivazione"
 
 #: build/lib/registration/models.py:201
-#, fuzzy
-#| msgid "registration"
 msgid "registration profile"
-msgstr "registrazione"
+msgstr "profilo di egistrazione"
 
 #: build/lib/registration/models.py:202
-#, fuzzy
-#| msgid "registration"
 msgid "registration profiles"
-msgstr "registrazione"
+msgstr "profili di registrazione"
 
 #: build/lib/rmap/form.py:22 rmap/form.py:22
 msgid "station to configure"
@@ -564,7 +552,7 @@ msgstr "Attenzione"
 #: build/lib/rmap/rmapgui.py:1287 build/lib/rmap/rmapgui.py:1289
 #: build/lib/rmap/rmapgui.py:1291 build/lib/rmap/rmapgui.py:1866
 #: build/lib/rmap/rmapgui.py:2257 rmap/rmapgui.py:1351 rmap/rmapgui.py:1353
-#: rmap/rmapgui.py:1355 rmap/rmapgui.py:1947 rmap/rmapgui.py:2456
+#: rmap/rmapgui.py:1355 rmap/rmapgui.py:1947 rmap/rmapgui.py:2461
 msgid "Station"
 msgstr "Stazione"
 
@@ -575,7 +563,7 @@ msgstr "Attiva"
 #: build/lib/rmap/rmapgui.py:1289 build/lib/rmap/rmapgui.py:1291
 #: build/lib/rmap/rmapgui.py:1866 build/lib/rmap/rmapgui.py:2257
 #: rmap/rmapgui.py:1353 rmap/rmapgui.py:1355 rmap/rmapgui.py:1947
-#: rmap/rmapgui.py:2456
+#: rmap/rmapgui.py:2461
 msgid " disactive"
 msgstr "Disattiva"
 
@@ -715,7 +703,7 @@ msgstr ""
 msgid "STATION DATA QUEUED:"
 msgstr ""
 
-#: build/lib/rmap/rmapgui.py:2272 rmap/rmapgui.py:2503
+#: build/lib/rmap/rmapgui.py:2272 rmap/rmapgui.py:2508
 msgid "GPS: new coordinate acquired"
 msgstr "GPS: acquisite nuove coordinate"
 
@@ -947,11 +935,11 @@ msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
 #: rmap/rmapgui.py:1105
 msgid "switch ON relay"
-msgstr "commuta il relay a ACCESO"
+msgstr "commuta a ACCESO il relay"
 
 #: rmap/rmapgui.py:1106
 msgid "switch OFF relay"
-msgstr "commuta il relay a SPENTO"
+msgstr "commuta a SPENTO il relay"
 
 #: rmap/rmapgui.py:1107
 msgid "Camera"
@@ -966,10 +954,8 @@ msgid "Take Photo"
 msgstr "Fai una foto"
 
 #: rmap/rmapgui.py:1111
-#, fuzzy
-#| msgid "Stop GPS"
 msgid "Stop"
-msgstr "Stop GPS"
+msgstr ""
 
 #: rmap/rmapgui.py:1838
 msgid ""
@@ -981,7 +967,17 @@ msgstr ""
 "relay\n"
 "fallita!"
 
-#: rmap/rmapgui.py:2335
+#: rmap/rmapgui.py:2268
+msgid ""
+"travel with\n"
+"GPS not fixed!\n"
+"retry"
+msgstr ""
+"in viaggio con\n"
+"GPS non fixed!\n"
+"riprova"
+
+#: rmap/rmapgui.py:2340
 msgid ""
 "problems with\n"
 "Camera!"
@@ -989,13 +985,11 @@ msgstr ""
 "problemi con\n"
 "la fotocamera"
 
-#: rmap/rmapgui.py:2389
-#, fuzzy
-#| msgid "Start Trip"
+#: rmap/rmapgui.py:2394
 msgid "Start Camera!"
-msgstr "Inizia Viaggio"
+msgstr "Attiva Fotocamera!"
 
-#: rmap/rmapgui.py:2487
+#: rmap/rmapgui.py:2492
 msgid ""
 "error sending\n"
 "image to server!"
