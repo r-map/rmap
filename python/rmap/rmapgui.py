@@ -26,7 +26,7 @@ from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.settings import SettingOptions
 from kivy.uix.settings import Settings
-from kivy.uix.image import __Image
+from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
 from kivy.uix.togglebutton import ToggleButton
