@@ -259,7 +259,7 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 #endif
 
 #ifdef I2CGPSPRESENT
-#include <GPSRTC.h>  // a basic DS1307 library that returns time as a time_t
+#include <GPSRTC.h>  // a library that returns GPS time as a time_t
 #endif
 
 #include <EEPROM.h>

@@ -19,13 +19,13 @@
 #define I2C_GPS_GROUND_COURSE	      0x10   // GPS ground course (uint16_t)
 #define I2C_GPS_TIME                  0x12   // UTC Time from GPS in hhmmss.sss * 100 (uint32_t)(unneccesary precision) (Read Only)
 
-#define I2C_GPS_REG_DATETIME          0x16   // YEAR (uint16_t)
-#define I2C_GPS_REG_YEAR              0x16   // YEAR (uint16_t)
-#define I2C_GPS_REG_MONTH             0x18   // YEAR (uint8_t)
-#define I2C_GPS_REG_DAY               0x19   // YEAR (uint8_t)
-#define I2C_GPS_REG_HOUR              0x1A   // YEAR (uint8_t)
-#define I2C_GPS_REG_MIN               0x1B   // YEAR (uint8_t)
-#define I2C_GPS_REG_SEC               0x1C   // YEAR (uint8_t)
+#define I2C_GPS_REG_DATETIME          0x16   // YEAR  (7 byte)
+#define I2C_GPS_REG_YEAR              0x16   // YEAR  (uint16_t)
+#define I2C_GPS_REG_MONTH             0x18   // MONTH (uint8_t)
+#define I2C_GPS_REG_DAY               0x19   // DAY   (uint8_t)
+#define I2C_GPS_REG_HOUR              0x1A   // HOUR  (uint8_t)
+#define I2C_GPS_REG_MIN               0x1B   // MIN   (uint8_t)
+#define I2C_GPS_REG_SEC               0x1C   // SEC   (uint8_t)
 
 #define I2C_GPS_MAP_WRITABLE          0x1F
 
