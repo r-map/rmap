@@ -1028,6 +1028,13 @@ class station():
             print "start serial"
             self.transport=jsonrpc.TransportSERIAL(port=self.serial_device,baudrate=self.serial_baudrate, logfunc=self.log)
 
+        if self.transport_name == "mqtt":
+            print "start mqtt"
+            self.transport=jsonrpc.TransportMQTT(user=self.mqtt_user,
+                                                 password=self.mqtt_password,
+                                                 host=self.mqtt_host,
+                                                 logfunc=self.log)
+
         if self.transport is None:
             raise Exception("start transport",1)
 
