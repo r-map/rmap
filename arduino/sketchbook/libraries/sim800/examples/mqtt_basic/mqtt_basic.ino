@@ -2,8 +2,8 @@
  Basic MQTT example 
  
   - connects to an MQTT server
-  - publishes "hello world" to the topic "outTopic"
-  - subscribes to the topic "inTopic"
+  - publishes "hello world" to the topic "test/out"
+  - subscribes to the topic "test/in"
 */
 
 #define GSMAPN "ibox.tim.it"
