@@ -316,7 +316,7 @@ void loop() {
     start=false;
 
   }
-    
+
   digitalWrite(LEDPIN,count % 2);  // blink Led
 
 }  

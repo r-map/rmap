@@ -1043,6 +1043,8 @@ int SensorDriverDw1::prepare(unsigned long& waittime)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   _timing=millis();
+  // should be better to use SAMPLERATE in config file of i2c-wind
+  //waittime= SAMPLERATE + 500ul;
   waittime= 3500ul;
 
   return SD_SUCCESS;

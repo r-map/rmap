@@ -2536,34 +2536,32 @@ void setup()
 
     for (int id = 0; id < SENSORS_LEN; id++) {
       if (configuration.sensors[id].type[0] != '\0') {
-	if (id >= 0){
 
-	  IF_SDEBUG(DBGSERIAL.print(F("# >> CONFIGURE NEW SENSOR: ")));
-	  IF_SDEBUG(DBGSERIAL.println(id));
+	IF_SDEBUG(DBGSERIAL.print(F("# >> CONFIGURE NEW SENSOR: ")));
+	IF_SDEBUG(DBGSERIAL.println(id));
 	  
 #if defined(DEBUGONSERIAL)     
-	  DBGSERIAL.print(F("#driver:"));
-	  DBGSERIAL.println(configuration.sensors[id].driver);
-	  DBGSERIAL.print(F("#node:"));
-	  DBGSERIAL.println(configuration.sensors[id].node);
-	  DBGSERIAL.print(F("#type:"));
-	  DBGSERIAL.println(configuration.sensors[id].type);
-	  DBGSERIAL.print(F("#address:"));
-	  DBGSERIAL.println(configuration.sensors[id].address);
-	  DBGSERIAL.print(F("#mqttpath:"));
-	  DBGSERIAL.println(configuration.sensors[id].mqttpath);
+	DBGSERIAL.print(F("#driver:"));
+	DBGSERIAL.println(configuration.sensors[id].driver);
+	DBGSERIAL.print(F("#node:"));
+	DBGSERIAL.println(configuration.sensors[id].node);
+	DBGSERIAL.print(F("#type:"));
+	DBGSERIAL.println(configuration.sensors[id].type);
+	DBGSERIAL.print(F("#address:"));
+	DBGSERIAL.println(configuration.sensors[id].address);
+	DBGSERIAL.print(F("#mqttpath:"));
+	DBGSERIAL.println(configuration.sensors[id].mqttpath);
 #endif
-	  if (!drivers[id].setup(configuration.sensors[id].driver,
-				 configuration.sensors[id].node,
-				 configuration.sensors[id].type,
-				 configuration.sensors[id].address
-
+	if (!drivers[id].setup(configuration.sensors[id].driver,
+			       configuration.sensors[id].node,
+			       configuration.sensors[id].type,
+			       configuration.sensors[id].address
+			       
         #if defined (AES)
-				 , configuration.key, configuration.iv
+			       , configuration.key, configuration.iv
         #endif
-				 ) == SD_SUCCESS){
-	    IF_SDEBUG(DBGSERIAL.println(F("error in setup Sensors")));
-	  }
+			       ) == SD_SUCCESS){
+	  IF_SDEBUG(DBGSERIAL.println(F("error in setup Sensors")));
 	}
       }
     }

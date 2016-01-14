@@ -41,7 +41,7 @@
 #define I2C_WIND_SECTORCALM            0x19      // frequency of calm wind
 
 #define I2C_WIND_MAP_WRITABLE          0x1F
-#define I2C_WIND_ONESHOT               0x00      // saple mode (bool)
+#define I2C_WIND_ONESHOT               0x00      // sample mode (bool)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

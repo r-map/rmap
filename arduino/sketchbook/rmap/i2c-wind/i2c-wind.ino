@@ -408,8 +408,8 @@ void loop() {
 
   // wait to go in the middle of sampletime to get direction
   // will be better to do a mean but direction is not continueous function
-  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLETIME/2));
-  delay(SAMPLETIME/2);
+  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLERATE/2));
+  delay(SAMPLERATE/2);
 
   int ana=analogRead(ANALOGPIN);    // read the input pin
 
