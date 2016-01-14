@@ -192,7 +192,8 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
 
 # the first is the default
 template_choices = ["default","none","test","test_indirect","test_rf24","test_indirect_rf24","test_master"
-                    ,"stima_base","stima_t_u","stima_t"]
+                    ,"stima_base","stima_t","stima_h","stima_w","stima_r","stima_p"
+                    ,"stima_th","stima_thw","stima_thwr","stima_thwrp"]
 
 def addsensors_by_template(station_slug=None,username=None,board_slug=None,template=None):
 
@@ -215,7 +216,6 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="stima test jrpc",driver="JRPC",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
-
 
     if (template == "test_rf24"):
         print "setting template:", template
@@ -242,30 +242,18 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "test_base"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="test Temperature",driver="I2C",
                   type="TMP",address=72,timerange="254,0,0",level="0,1,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
-                  type="HIH",address=39,timerange="254,0,0",level="0,1,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
-                  type="BMP",address=119,timerange="254,0,0",level="0,1,-,-")
 
     if (template == "stima_base"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
-                  type="TMP",address=72,timerange="254,0,0",level="103,1000,-,-")
+                  type="ADT",address=49,timerange="254,0,0",level="103,1000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,1000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
-
-    if (template == "stima_t_u"):
-        print "setting template:", template
-        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
-                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
-                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_t"):
         print "setting template:", template
@@ -273,7 +261,83 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
                   type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
 
+    if (template == "stima_h"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
 
+    if (template == "stima_w"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
+                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "stima_r"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
+                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+
+    if (template == "stima_p"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
+                  type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
+
+    if (template == "stima_th"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "stima_thw"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "stima_thp"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+
+    if (template == "stima_thwr"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
+                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
+                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+
+    if (template == "stima_thwrp"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=49,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
+                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
+                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
+                  type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None):

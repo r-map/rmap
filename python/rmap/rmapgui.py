@@ -676,32 +676,32 @@ ScreenManager:
                     id: relay_0
                     background_normal: ""
                     background_color: .5,1.,.5,1.
-                    text: app.str_On_relay+" 0" if self.state == 'normal' else app.str_Off_relay+" 0"
-                    on_state: app.togglepin(0,True) if self.state == 'down' else app.togglepin(0,False)
+                    text: app.str_On_relay+" 1" if self.state == 'normal' else app.str_Off_relay+" 1"
+                    on_state: app.togglepin(4,True) if self.state == 'down' else app.togglepin(4,False)
 
             Toolbar:
                 ToggleButton:
                     id: relay_1
                     background_normal: ""
                     background_color: .5,1.,.5,1.
-                    text: app.str_On_relay+" 1" if self.state == 'normal' else app.str_Off_relay+" 1"
-                    on_state: app.togglepin(1,True) if self.state == 'down' else app.togglepin(1,False)
+                    text: app.str_On_relay+" 2" if self.state == 'normal' else app.str_Off_relay+" 2"
+                    on_state: app.togglepin(5,True) if self.state == 'down' else app.togglepin(5,False)
 
             Toolbar:
                 ToggleButton:
                     id: relay_2
                     background_normal: ""
                     background_color: .5,1.,.5,1.
-                    text: app.str_On_relay+" 2" if self.state == 'normal' else app.str_Off_relay+" 2"
-                    on_state: app.togglepin(2,True) if self.state == 'down' else app.togglepin(2,False)
+                    text: app.str_On_relay+" 3" if self.state == 'normal' else app.str_Off_relay+" 3"
+                    on_state: app.togglepin(30,True) if self.state == 'down' else app.togglepin(30,False)
 
             Toolbar:
                 ToggleButton:
                     id: relay_3
                     background_normal: ""
                     background_color: .5,1.,.5,1.
-                    text: app.str_On_relay+" 3" if self.state == 'normal' else app.str_Off_relay+" 3"
-                    on_state: app.togglepin(3,True) if self.state == 'down' else app.togglepin(3,False)
+                    text: app.str_On_relay+" 4" if self.state == 'normal' else app.str_Off_relay+" 4"
+                    on_state: app.togglepin(31,True) if self.state == 'down' else app.togglepin(31,False)
 
             Toolbar:
                 height: '40dp'
