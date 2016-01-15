@@ -45,11 +45,11 @@ def callback(ch, method, properties, body):
 
 	r = amqp2arkimetd.procs[0].wait()
         if r != 0:
-            print "There were some errors executing dbadb import ({})".format(r)
+            print "There were some errors executing arki-scan ({})".format(r)
             print "----\n{}\n---".format(body)
             raise arkimet_error
     except:
-        print "There were some errors executing dbadb import"
+        print "There were some errors executing arki-scan"
         # raise TODO: enqueue in error
 
     print " [x] Done"

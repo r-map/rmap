@@ -34,9 +34,10 @@ def is_number(s):
 
 class mqtt2rmap():
 
-  def __init__(self,mqtt_host):
+  def __init__(self,mqtt_host,prefix="rmap"):
 
     self.mqtt_host=mqtt_host
+    self.prefix=prefix
     self.mqttc = paho.Client(client_id, clean_session=True)
     self.mqttc.on_message = self.on_message
     self.mqttc.on_connect = self.on_connect
@@ -61,7 +62,7 @@ class mqtt2rmap():
   def on_connect(self,mosq, userdata, flags, rc):
     logging.info("Connected to broker at %s as %s" % (self.mqtt_host, client_id))
 
-    topic = "rmap/+/+/+/-,-,-/-,-,-,-/B01213"
+    topic = self.prefix+"/+/+/+/-,-,-/-,-,-,-/B01213"
     logging.debug("Subscribing to topic %s" % topic)
     self.mqttc.subscribe(topic, 0)
 
@@ -72,7 +73,7 @@ class mqtt2rmap():
   def on_message(self,mosq, userdata, msg):
 
     # this remove all retained messages
-    # mosq.publish(msg.topic, payload=None, qos=0, retain=True)
+    #mosq.publish(msg.topic, payload=None, qos=0, retain=True)
 
     now = int(time.time())
     logging.debug("deltatime [%d]" % (now-self.start,))
@@ -139,5 +140,5 @@ if __name__ == '__main__':
 
     MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
 
-    m2g=mqtt2rmap(MQTT_HOST)
+    m2g=mqtt2rmap(MQTT_HOST,prefix="rmap")
     m2g.run()
