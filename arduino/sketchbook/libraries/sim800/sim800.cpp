@@ -803,7 +803,7 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
 
   if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
   if (!ATcommand("+CIPMODE=1", buf)) return false; //IP transparent mode
-  if (!ATcommand("+CIPCCFG=8,3,1024,1,0,1460,50", buf)) return false; // fixed the second parameter minimum is 2
+  if (!ATcommand("+CIPCCFG=8,2,1024,1,0,1460,50", buf)) return false; // fixed the second parameter minimum is 2
   //For Sim900 /800 
   //+CIPCCFG: (NmRetry:3-8),(WaitTm:2-10),(SendSz:1-1460),(esc:0,1) ,(Rxmode:0,1), (RxSize:50-1460),(Rxtimer:20-1000)
   /*
