@@ -351,13 +351,16 @@ STATICFILES_FINDERS = [
 
 
 MIDDLEWARE_CLASSES = [
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'django.middleware.doc.XViewMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware']
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.cache.FetchFromCacheMiddleware',
+]
 
 ROOT_URLCONF = 'rmap.urls'
 
@@ -423,3 +426,26 @@ TEMPLATES= [
 #to avoid this message:
 #CommandError: Unable to serialize database: <User: rmap> is not JSON serializable
 #SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
+#CACHES = {
+#    'default': {
+#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'LOCATION': '127.0.0.1:11211',
+#    }
+#}
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/var/tmp/django_cache',
+    }
+}
+
+# for now dsn is static; we have to put it in cfg files and use in mqtt2dballed & borinud
+dsn="odbc://rmap"
+
+BORINUD = {
+    "SOURCES": [ dsn ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 3600*24,
+}
