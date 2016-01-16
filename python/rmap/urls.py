@@ -11,6 +11,9 @@ import django.views
 from django.contrib import admin
 admin.autodiscover()
 
+from os import environ
+android=('ANDROID_ARGUMENT' in environ)
+
 urlpatterns = [
     url(r'^$',home ,name='home' ),
     url(r'^wizard/$',wizard ,name='wizard' ),
@@ -45,12 +48,12 @@ urlpatterns = [
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
 
     url(r'^http2mqtt/', include('http2mqtt.urls')),
-
-    #borinud
-    url(r'^borinud/', include('borinud.urls')),
-
 ]
 
+if not android  :
+    #borinud
+    print "import borinud"
+    urlpatterns.append( url(r'^borinud/', include('borinud.urls')))
 
 if ( settings.SERVE_STATIC ):
 #serve local static files

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GPL. (C) 2007-2009 Paolo Patruno.
+# GPL. (C) 2015 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -16,12 +16,6 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
-# ToDo:
-# controllare gli inserimenti al livello di django ADMIN INTERFACE
-# controllare altri conflitti in districa oltre ai jingles
-# utilizzare mp3splt per spezzare i programmi per fare gli inserimenti pubblicitari
-# alternare meglio i jingle tenendo in considerazione la priorita
-# a cavallo della mezzanotte verificare il funzionamento
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'

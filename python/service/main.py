@@ -23,6 +23,9 @@ os.chdir("..")
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 from django.conf import settings
 
+import django
+django.setup()
+
 from rmap.rmapstation import station
 
 if __name__ == '__main__':
@@ -33,18 +36,14 @@ if __name__ == '__main__':
     if arg is None:
         arg="station"
 
-
     if arg == "webserver":
 
         from django.core.servers.basehttp import run, get_internal_wsgi_application
 
-        run("localhost",8888,get_internal_wsgi_application(),
+        run("127.0.0.1",8888,get_internal_wsgi_application(),
             ipv6=False, threading=False)
 
     if arg == "station":
-
-        import django
-        django.setup()
 
         mystation=station()
         print "background restored queue:",mystation.anavarlist,mystation.datavarlist

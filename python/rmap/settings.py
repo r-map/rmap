@@ -4,6 +4,8 @@ import os
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
 
+android=('ANDROID_ARGUMENT' in os.environ)
+
 configspec={}
 
 configspec['django']={}
@@ -58,7 +60,7 @@ configspec['rmapweb']['errfile']  = "string(default='/tmp/rmapweb.err')"
 configspec['rmapweb']['lockfile'] = "string(default='/tmp/rmapweb.lock')"
 configspec['rmapweb']['user']     = "string(default=None)"
 configspec['rmapweb']['group']    = "string(default=None)"
-configspec['rmapweb']['port']    = "string(default='8080')"
+configspec['rmapweb']['port']    = "string(default='127.0.0.1:8888')"
 
 
 configspec['database']={}
@@ -430,17 +432,18 @@ TEMPLATES= [
 
 #CACHES = {
 #    'default': {
-#        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#        'BACKEND': 'django.core.cache.backerlnds.memcached.MemcachedCache',
 #        'LOCATION': '127.0.0.1:11211',
 #    }
 #}
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
+if not android :
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/var/tmp/django_cache',
+        }
     }
-}
 
 # for now dsn is static; we have to put it in cfg files and use in mqtt2dballed & borinud
 dsn="odbc://rmap"
