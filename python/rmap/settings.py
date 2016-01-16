@@ -406,6 +406,7 @@ TEMPLATES= [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS'  : config['django']['TEMPLATE_DIRS'],
+        'APP_DIRS' : True,
         'OPTIONS': {
             # List of callables that know how to import templates from various sources.
             'context_processors': [
