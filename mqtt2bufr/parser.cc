@@ -180,19 +180,18 @@ void Parser::parse_payload(const std::string& payload) {
     variable_rec.set(var);
 }
 dballe::Msg Parser::parse(const std::string& topic, const std::string& payload) {
-    dballe::Msg msg;
+    // clear records
+    station_rec.clear();
+    variable_rec.clear();
+    attributes_rec.clear();
 
-    for (auto r: {station_rec, variable_rec, attributes_rec}) {
-        r.clear();
-        r.set_datetime(dballe::Datetime());
-        r.set_trange(dballe::Trange());
-        r.set_level(dballe::Level());
-    }
     // parse topic
     parse_topic(topic);
     // parse payload
     parse_payload(payload);
+
     // create message
+    dballe::Msg msg;
     std::vector<wreport::Var*> vars;
     std::vector<wreport::Var*>::const_iterator it;
 
