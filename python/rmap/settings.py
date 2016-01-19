@@ -451,5 +451,5 @@ dsn="odbc://rmap"
 BORINUD = {
     "SOURCES": [ dsn ],
     "CACHED_SUMMARY": "default",
-    "CACHED_SUMMARY_TIMEOUT": 3600*24,
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
 }
