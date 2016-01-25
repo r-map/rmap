@@ -586,7 +586,7 @@ bool rmapconnect()
     IF_SDEBUG(DBGSERIAL.println(topiccom));
     wdt_reset();
     
-    if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 13,1)){
+    if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
       IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
     }
     return true;
@@ -603,7 +603,7 @@ bool rmapdisconnect()
 {
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
-  if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"disconn\"}", 16,1)){
+  if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"disconn\"}", 15,1)){
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
   }
   mqttclient.disconnect();
