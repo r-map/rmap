@@ -2,10 +2,11 @@ from datetime import datetime
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
+from django.views.decorators.cache import never_cache
 
 import paho.mqtt.publish
 
-
+@never_cache
 @csrf_exempt
 def publish(request):
     """Rewriting of php2mqtt."""

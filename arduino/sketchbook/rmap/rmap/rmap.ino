@@ -569,15 +569,16 @@ bool rmapconnect()
     // subcribe to incoming topic
 
 #ifdef ETHERNETON
-    char topiccom [SERVER_LEN+21];
 
+    char topiccom [strlen(MQTTRPCPREFIX)+(SERVER_LEN-1)+6*2+5+1];
     sprintf(topiccom, "%s%s/%02x%02x%02x%02x%02x%02x/com", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 #endif
 
 #ifdef GSMGPRSMQTT
-    char topiccom [SERVER_LEN+21];
+
+    char topiccom [strlen(MQTTRPCPREFIX)+(SERVER_LEN-1)+strlen(imeicode)+5+1];
     // IMEI code from sim800
-    snprintf(topiccom,20, "%s/com", imeicode);
+    snprintf(topiccom,SERVER_LEN+21, "%s%s/%s/com", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
     mqttclient.subscribe(topiccom);
@@ -585,7 +586,7 @@ bool rmapconnect()
     IF_SDEBUG(DBGSERIAL.println(topiccom));
     wdt_reset();
     
-    if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 13,1)){
+    if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
       IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
     }
     return true;
@@ -602,7 +603,7 @@ bool rmapdisconnect()
 {
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
-  if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"disconn\"}", 16,1)){
+  if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"disconn\"}", 15,1)){
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
   }
   mqttclient.disconnect();
@@ -2055,7 +2056,7 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
 #ifdef GSMGPRSMQTT
     char topicres [SERVER_LEN+21];
     // IMEI code from sim800
-    snprintf(topicres,20, "%s/res", imeicode);
+    snprintf(topicres,SERVER_LEN+21, "%s%s/%s/res", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
   if (!mqttclient.publish(topicres,mainbuf)){
