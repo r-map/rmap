@@ -65,7 +65,7 @@ def main(self):
             #               "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
             #               "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
             #               "--comp-step","0000000000 00:01:00.000","--comp-frac-valid",".002",
-            #               "--comp-stat-proc=254:0","--set-network","generic","rmap/rmap@rmap",
+            #               "--comp-stat-proc=254:0","generic","rmap/rmap@rmap",
             #               filename]
 
             #compute 60s mean with max intervall = 20s as instantaneous values
@@ -74,7 +74,7 @@ def main(self):
                                           "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
                                           "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
                                           "--comp-step","0000000000 00:01:00.000","--comp-frac-valid",".002",
-                                          "--comp-stat-proc=254:0","--set-network","generic","rmap/rmap@rmap",
+                                          "--comp-stat-proc=254:0","rmap/rmap@rmap",
                                           filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)]
                                           #,env=my_env
 
