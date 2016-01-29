@@ -26,10 +26,9 @@
 #include <regex.h>
 
 #include <iostream>
+#include <ctime>
 
 #include <jansson.h>
-
-#include <wibble/grcal/grcal.h>
 
 #define IDENT_RE "([^/]+)"
 #define LON_RE   "([0-9]+)"
@@ -80,6 +79,18 @@ static std::vector<std::string> split_topic(const std::string& topic) {
         items.push_back(topic.substr(matches[i].rm_so, matches[i].rm_eo - matches[i].rm_so));
     }
     return items;
+}
+
+static void datetime_now(int* values)
+{
+    time_t t = time(nullptr);
+    struct tm* tm = gmtime(&t);
+    values[0] = tm->tm_year + 1900;
+    values[1] = tm->tm_mon + 1;
+    values[2] = tm->tm_mday;
+    values[3] = tm->tm_hour;
+    values[4] = tm->tm_min;
+    values[5] = tm->tm_sec;
 }
 
 static void parse_datetime(const std::string str, int* values)
@@ -150,7 +161,7 @@ void Parser::parse_payload(const std::string& payload) {
         int date[6];
         // A datetime missing or null means "now"
         if (!t || json_is_null(t))
-            wibble::grcal::date::now(date);
+            datetime_now(date);
         else if (json_is_string(t))
             parse_datetime(json_string_value(t), date);
         else

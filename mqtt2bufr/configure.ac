@@ -46,14 +46,6 @@ else
 	AC_MSG_ERROR([libmosquittopp not found])
 fi
 
-dnl Check for wibble
-PKG_CHECK_MODULES([WIBBLE], [libwibble],
-                  [
-                   LIBS="$LIBS $WIBBLE_LIBS"
-                   CFLAGS="$CFLAGS
-                   $WIBBLE_CFLAGS"
-                  ])
-
 dnl Check for help2man
 AC_CHECK_PROG([HELP2MAN], [help2man], [help2man])
 
