@@ -115,16 +115,16 @@ void Parser::parse_topic(const std::string& topic) {
     // set station rep_memo
     station_rec.set_var(dballe::var(WR_VAR(0, 1,194), items[3].c_str()));
     // set variable trange
-    variable_rec.setf("pindicator", items[4].c_str());
-    variable_rec.setf("p1", items[5].c_str());
-    variable_rec.setf("p2", items[6].c_str());
+    variable_rec.sets("pindicator", items[4]);
+    variable_rec.sets("p1", items[5]);
+    variable_rec.sets("p2", items[6]);
     // set variable level
-    variable_rec.setf("leveltype1", items[7].c_str());
-    variable_rec.setf("l1", items[8].c_str());
-    variable_rec.setf("leveltype2", items[9].c_str());
-    variable_rec.setf("l2", items[10].c_str());
+    variable_rec.sets("leveltype1", items[7]);
+    variable_rec.sets("l1", items[8]);
+    variable_rec.sets("leveltype2", items[9]);
+    variable_rec.sets("l2", items[10]);
     // set variable
-    variable_rec.setf("var", items[11].c_str());
+    variable_rec.set("var", items[11]);
 }
 
 void Parser::parse_payload(const std::string& payload) {
