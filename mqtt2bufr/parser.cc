@@ -162,6 +162,8 @@ void Parser::parse_payload(const std::string& payload) {
         variable_rec.seti("hour", date[3]);
         variable_rec.seti("min", date[4]);
         variable_rec.seti("sec", date[5]);
+    }else{
+      variable_rec.set_datetime(Datetime());
     }
     // Parse attributes (if any)
     if (json_object_iter_at(root, "a")) {
