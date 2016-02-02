@@ -32,6 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "IntBuffer.h"
 #include "FloatBuffer.h"
+#include <math.h> 
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
@@ -128,24 +129,6 @@ static bool stop=false;
 volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
-void countadd()
-{
-
-#if defined(DAVIS)
-  unsigned long now=millis();
-
-  if ((now-antirimb) > SAMPLETIME/150){
-    count ++;
-    antirimb=now;
-  }
-
-#elif defined (INSPEED)
-
-  count ++;
-
-#endif
-
-}
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -226,6 +209,336 @@ void receiveEvent( int bytesReceived)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+// this is required to reset windsonic to default configuration and baud
+bool init_baud() {
+
+  /*
+    statup message (terminator <CR><LF>):
+
+WINDSONIC (Gill Instruments Ltd)
+
+2368-106-01
+
+RS232 (CFG)
+
+CHECKSUM ROM:7D3C 7D3C *PASS*
+CHECKSUM FAC:09EE 09EE *PASS*
+CHECKSUM ENG:17FB 17FB *PASS*
+CHECKSUM CAL:CC55 CC55 *PASS*
+
+  */
+
+  /* commands to set defaults:
+
+     *     to enter in setup mode
+
+     M2,U1,O1,L1,P3,B3,H2,NQ,F1,E3,T1,S4,C2,G0,K50,
+
+     Q     exit from setup mode
+
+     M1 Gill, UV, Continuous
+
+  */
+
+  IF_SDEBUG(Serial.println(F("#initializing modem fixbaud ...")));
+
+  /* Initialize serial for wind sensor comunication
+     WindSonic default settings are :
+     Bits per second            9600
+     Data bits                  8
+     Parity                     None
+     Stop bits                  1
+     Flow Control(Handshaking)  None
+  */
+
+  // try different fixed baud rate
+  long int baudrate []={1200,2400,4800,9600,19200,38400,57600,115200};
+
+  for (byte i=0; (i<(sizeof(baudrate) / sizeof(long int))); i++) {
+    wdt_reset();
+
+    IF_SDEBUG(Serial.print(F("#TRY BAUDRATE:")));
+    IF_SDEBUG(Serial.println(baudrate[i]));
+    SERIALWIND.begin(baudrate[i]);
+
+    SERIALWIND.print("");
+
+    if (SERIALWIND.read()){
+      // TODO
+
+      IF_SDEBUG(Serial.println(F("#baudrate found")));
+	return true;
+    }
+  }
+
+  IF_SDEBUG(Serial.println(F("inizialize failed")));
+  wdt_reset();
+  return false;
+}
+
+bool readvalue(  unsigned int& dd, unsigned int& ff)
+{
+
+  SERIALWIND.print("?");
+  SERIALWIND.print("Q");
+  SERIALWIND.setTimeout(SAMPLETIME);
+  SERIALWIND.find(2);       // wait for <STX> = Start of string character (ASCII value 2)
+  SERIALWIND.setTimeout(100);
+  
+  String myString=SERIALWIND.readStringUntil(10);   //read until <LF> ASCII character
+  
+  IF_SDEBUG(Serial.println(myString));
+
+  //TODO parse periodic windsonic serial messages
+  // max 8 sec watchdog timer
+  /* sample messages:
+     Q,,000.03,M,00,2D
+     Q,,000.04,M,00,2A
+     Q,349,000.05,M,00,15
+     Q,031,000.06,M,00,1A
+     Q,103,000.06,M,00,1A
+     
+
+     Gill format Polar, Continuous (Default format)
+     
+     <STX>Q, 229, 002.74, M, 00, <ETX>16
+     
+     Where:
+     <STX> = Start of string character (ASCII value 2)
+     WindSonic node address = Unit identifier
+     Wind direction = Wind Direction
+     Wind speed = Wind Speed
+     Units = Units of measure (knots, m/s etc)
+     Status = Anemometer status code (see Section 11.5 for further details)
+     <ETX> = End of string character (ASCII value 3)
+     Checksum = This is the EXCLUSIVE OR of the bytes between (and not including) the <STX> and <ETX> characters.
+     <CR> ASCII character
+     <LF> ASCII characte
+     
+     The Status code is sent as part of each wind measurement message 
+     Code  Status                 Condition
+     00    OK                     Sufficient samples in average period
+     01    Axis 1 failed          Insufficient samples in average period on U axis
+     02    Axis 2 failed          Insufficient samples in average period on V axis
+     04    Axis 1 and 2 failed    Insufficient samples in average period on both axes
+     08    NVM error              NVM checksum failed
+     09    ROM error              ROM checksum failed
+     
+  */
+
+  int firstDelimiter = myString.indexOf(',');
+  if (firstDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("1 , not found in windsonic message")));
+    return false;
+  }
+    
+  String value = myString.substring(0, firstDelimiter);
+
+  /*
+  for(int i = 0; i < value.length(); i++)
+    {
+      IF_SDEBUG(Serial.println(value[i],HEX));
+    }
+  */
+
+  char unitidentifier=value[0];
+
+  if ( unitidentifier != 'Q'){
+    IF_SDEBUG(Serial.println(F("Q not found in windsonic message")));
+    return false;
+  }
+
+  //  Search for the next comma just after the first
+  int secondDelimiter = myString.indexOf(',', firstDelimiter+1);
+  if (secondDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("2 , not found in windsonic message")));
+    return false;
+  }
+  value = myString.substring(firstDelimiter+1, secondDelimiter);
+  int direction = value.toFloat();
+
+  //IF_SDEBUG(Serial.println(value));
+  IF_SDEBUG(Serial.print(F("direction :")));
+  IF_SDEBUG(Serial.println(direction));
+
+  firstDelimiter = secondDelimiter;
+  secondDelimiter = myString.indexOf(',', firstDelimiter+1);
+  if (secondDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("3 , not found in windsonic message")));
+    return false;
+  }
+  value = myString.substring(firstDelimiter+1, secondDelimiter);
+  float speed = value.toFloat();
+
+  //IF_SDEBUG(Serial.println(value));
+  IF_SDEBUG(Serial.print(F("speed :")));
+  IF_SDEBUG(Serial.println(speed));
+
+  firstDelimiter = secondDelimiter;
+  secondDelimiter = myString.indexOf(',', firstDelimiter+1);
+  if (secondDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("4 , not found in windsonic message")));
+    return false;
+  }
+  value = myString.substring(firstDelimiter+1, secondDelimiter);
+
+  /*
+    for(int i = 0; i < value.length(); i++)
+    {
+      IF_SDEBUG(Serial.println(value[i],HEX));
+    }
+  */
+
+  char units =value[0];
+
+  if ( units != 'M'){
+
+    /*
+      Metres per second (default) M
+      Knots                       N
+      Miles per hour              P
+      Kilometres per hour         K
+      Feet per minute             F
+    */
+
+    IF_SDEBUG(Serial.println(F("M not found in windsonic message")));
+    return false;
+  }
+
+  firstDelimiter = secondDelimiter;
+  secondDelimiter = myString.indexOf(',', firstDelimiter+1);
+  if (secondDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("5 , not found in windsonic message")));
+    return false;
+  }
+  value = myString.substring(firstDelimiter+1, secondDelimiter);
+  int status = value.toFloat();
+
+  //IF_SDEBUG(Serial.println(value));
+  //IF_SDEBUG(Serial.print(F("status :")));
+  //IF_SDEBUG(Serial.println(status));
+
+  /*
+  if (status == 0){
+    IF_SDEBUG(Serial.println(F("OK                     Sufficient samples in average period")));
+  }
+  */
+
+  if (status == 1){
+    IF_SDEBUG(Serial.println(F("Axis 1 failed          Insufficient samples in average period on U axis")));
+  }
+  if (status == 2){
+    IF_SDEBUG(Serial.println(F("Axis 2 failed          Insufficient samples in average period on V axis")));
+  }
+  if (status == 4){
+    IF_SDEBUG(Serial.println(F("Axis 1 and 2 failed    Insufficient samples in average period on both axes")));
+  }
+  if (status == 8){
+    IF_SDEBUG(Serial.println(F("NVM error              NVM checksum failed")));
+  }
+  if (status == 9){
+    IF_SDEBUG(Serial.println(F("ROM error              ROM checksum failed")));
+  }
+
+  if (status != 0){
+    IF_SDEBUG(Serial.println(F("status error found  in windsonic message")));
+    return false;
+  }
+
+  if (myString[secondDelimiter+1] != char(3)){
+    IF_SDEBUG(Serial.println(F("<ETX> not found  in windsonic message")));
+    return false;
+  }
+
+  unsigned char mychecksum = myString[0] ;
+  //IF_SDEBUG(Serial.println(F("check: ")));
+  //IF_SDEBUG(Serial.println(myString[0]));
+  //IF_SDEBUG(Serial.println(myString[0],HEX));
+  for (unsigned int i=1; i <= secondDelimiter; i++){ // iterates through the string to checksum starting from second char
+    //IF_SDEBUG(Serial.println(F("check: ")));
+    //IF_SDEBUG(Serial.println(myString[i]));
+    //IF_SDEBUG(Serial.println(myString[i],HEX));
+    mychecksum=(unsigned char)(mychecksum ^ myString[i]) ; // ^ - XOR operator in C++
+  }
+
+  firstDelimiter = secondDelimiter;
+  secondDelimiter = myString.indexOf('\r', firstDelimiter+1);
+  if (secondDelimiter == -1){
+    IF_SDEBUG(Serial.println(F("<CR> not found in windsonic message")));
+    return false;
+  }
+
+  unsigned char checksum = myString[secondDelimiter-1];
+
+  if (mychecksum != checksum){
+    IF_SDEBUG(Serial.print(F("mychecksum :")));
+    IF_SDEBUG(Serial.println(mychecksum,HEX));
+    IF_SDEBUG(Serial.print(F("  checksum :")));
+    IF_SDEBUG(Serial.println(checksum,HEX));
+    IF_SDEBUG(Serial.println(F("checksum error in windsonic message")));
+    //return false;
+  }
+
+  if (myString[myString.length()-1] != char(13)){
+    IF_SDEBUG(Serial.println(F("<CR> not found  in windsonic message")));
+    return false;
+  }
+
+  /*
+    Low Wind Speeds (below 0.05ms)
+    Whilst the wind speed is below 0.05 metres/sec, the wind direction will not be calculated.
+    In both CSV mode and in Fixed Field mode, Channel 2 wind direction output
+    will freeze at
+    the last known valid direction value until a new valid value can be calculated.
+    The above applies with the K command set for K50. If K for instance is set for 100 then the
+    above applies at 0.1m/s.
+  */
+
+  dd=direction;
+  ff=int(round(speed*10.));   // m/s *10
+
+  dd=max(dd,1);
+  dd=min(dd,360);
+  if (ff == 0) dd=0;     //wind calm
+
+  SERIALWIND.print("!");
+
+  return true;
+
+}
+
+// not used for now
+bool readvalueoneshot(  unsigned int& dd, unsigned int& ff)
+{
+
+    //TODO query windsonic and parse response
+    // max 8 sec watchdog timer
+    /*
+      When in the Polled mode, an output is only generated when the host system sends a Poll 
+      signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
+      letter A - Z.
+      The commands available in this mode are:
+      Description                       Command            WindSonic response
+      WindSonic Unit Identifier         A ..... Z          Wind speed output generated
+      Enable Polled mode                ?                  (None)
+      Disable Polled mode               !                  (None)
+      Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
+      Enter Configuration mode          *<N>               CONFIGURATION MODE
+
+      Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
+      ID's A to F and KMNP are not used as these characters can be present in the data string.
+ 
+      It is suggested that in polled mode the following sequence is used for every poll for 
+      information.
+      ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
+      A-Z Appropriate unit designator sent to retrieve a line of data.
+      ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
+
+      When in polled mode the system will respond to the data command within 130mS with the 
+      last valid data sample as calculated by the Output rate (P Mode Setting).
+
+   */
+}
 
 void setup() {
 
@@ -265,7 +578,7 @@ void setup() {
 
   nsample1=1;
 
-#define SAMPLE1 20
+#define SAMPLE1 60000/SAMPLERATE
 #define SAMPLE2 10
 
   cbu60m.init(SAMPLE2);
@@ -308,64 +621,106 @@ void setup() {
   for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
   // set default to oneshot
-  i2c_writabledataset1->oneshot=true;
-  i2c_writabledataset2->oneshot=true;
+  i2c_writabledataset1->oneshot=false;
+  i2c_writabledataset2->oneshot=false;
 
   //Start I2C communication routines
   Wire.begin(I2C_WINDSONIC_ADDRESS);
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
-
-  /* Initialize serial for wind sensor comunication
-     WindSonic default settings are :
-     Bits per second            9600
-     Data bits                  8
-     Parity                     None
-     Stop bits                  1
-     Flow Control(Handshaking)  None
-  */
-
   SERIALWIND.begin(9600);
 
-  //TODO insert windsonic initialization
+  //TODO windsonic initialization
+  //init_baud()
+
+  delay(500);
 
   /*
-    statup message (terminator <CR><LF>):
+  // clean serial buffer
+  while (SERIALWIND.available() > 0) {
+    byte incomingByte = Serial.read();
+    // read the incoming byte:
+    IF_SDEBUG(Serial.print(F("received: ")));
+    IF_SDEBUG(Serial.println(incomingByte, HEX));
+  }
 
-WINDSONIC (Gill Instruments Ltd)
+  SERIALWIND.print("Q\n");   // exit from setup in poll mode
+  delay(500);
+  SERIALWIND.print("Q\n");   // exit from setup in poll mode
+  delay(500);
+  SERIALWIND.print("*");     // enter in setup
+  delay(1000);
+  SERIALWIND.print("*");     // enter in setup
+  delay(500);
+  SERIALWIND.print("*Q");    // enter in setup from poll mode
 
-2368-106-01
+ #define BUF_LENGTH 100
 
-RS232 (CFG)
+  char buf[BUF_LENGTH];
+  byte count = 0;
+  bool ok = false;
+  unsigned long timeIsOut;
+  char *rec;
+  rec=buf;
+  *rec = 0;
 
-CHECKSUM ROM:7D3C 7D3C *PASS*
-CHECKSUM FAC:09EE 09EE *PASS*
-CHECKSUM ENG:17FB 17FB *PASS*
-CHECKSUM CAL:CC55 CC55 *PASS*
+  timeIsOut = millis() + 3000;
+  while (timeIsOut > millis() && count < (BUF_LENGTH - 1) && !ok) {  
+    wdt_reset();
+
+    if (SERIALWIND.available())
+      {
+	count++;
+	*rec++ = SERIALWIND.read();
+	*rec = 0;           // terminate the string
+	ok=strstr(buf,"CONFIGURATION MODE");
+      }
+  }
+
+  IF_SDEBUG(Serial.println(F("#windsonic:RECEIVED:")));
+  IF_SDEBUG(Serial.println(buf));
+
+  if (ok){
+    IF_SDEBUG(Serial.println(F("#setup mode:->ok")));
+  }else{
+    IF_SDEBUG(Serial.println(F("#setup mode:->not ok")));
+  }
+
+  SERIALWIND.print("M4\r");
+  delay(100);
+  SERIALWIND.print("U1\r");
+  delay(100);
+  SERIALWIND.print("O1\r");
+  delay(100);
+  SERIALWIND.print("L1\r");
+  delay(100);
+  SERIALWIND.print("P3\r");
+  delay(100);
+  SERIALWIND.print("B3\r");
+  delay(100);
+  SERIALWIND.print("H2\r");
+  delay(100);
+  SERIALWIND.print("NQ\r");
+  delay(100);
+  SERIALWIND.print("F1\r");
+  delay(100);
+  SERIALWIND.print("E3\r");
+  delay(100);
+  SERIALWIND.print("T1\r");
+  delay(100);
+  SERIALWIND.print("S4\r");
+  delay(100);
+  SERIALWIND.print("C2\r");
+  delay(100);
+  SERIALWIND.print("G0\r");
+  delay(100);
+  SERIALWIND.print("K50\r");
+  delay(100);
+  SERIALWIND.print("Q\r");
+  delay(100);
 
   */
-
-  /* commands to set defaults:
-
-     *     to enter in setup mode
-
-     B3
-     C2
-     F1
-     H1
-     K50
-     L1
-     M2
-     NQ
-     O1
-     P3
-     U1
-
-     exit from setup mode
-
-  */
-
 
   IF_SDEBUG(Serial.println(F("end setup")));
 
@@ -388,6 +743,8 @@ void loop() {
   uint8_t i;
 
   wdt_reset();
+
+  starttime=millis();
 
   //Check for new incoming command on I2C
   if (new_command!=0) {
@@ -433,122 +790,24 @@ void loop() {
       stop=false;
     }
 
-    if (! start) return;
-
-  }
-
-  
-  if (oneshot) {
-
-    //TODO query windsonic and parse response
-    // max 8 sec watchdog timer
-    /*
-      When in the Polled mode, an output is only generated when the host system sends a Poll 
-      signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
-      letter A - Z.
-      The commands available in this mode are:
-      Description                       Command            WindSonic response
-      WindSonic Unit Identifier         A ..... Z          Wind speed output generated
-      Enable Polled mode                ?                  (None)
-      Disable Polled mode               !                  (None)
-      Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
-      Enter Configuration mode          *<N>               CONFIGURATION MODE
-
-      Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
-      ID's A to F and KMNP are not used as these characters can be present in the data string.
- 
-      It is suggested that in polled mode the following sequence is used for every poll for 
-      information.
-      ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
-      A-Z Appropriate unit designator sent to retrieve a line of data.
-      ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
-
-      When in polled mode the system will respond to the data command within 130mS with the 
-      last valid data sample as calculated by the Output rate (P Mode Setting).
-
-   */
-
-
-  }else{
-
-    SERIALWIND.setTimeout(1500);
-    SERIALWIND.find(2)
-    SERIALWIND.setTimeout(100);
-
-    String myString=SERIALWIND.readStringUntil(3)
-      int commaIndex = myString.indexOf(',');
-    //  Search for the next comma just after the first
-    int secondCommaIndex = myString.indexOf(',', commaIndex+1);
-    String firstValue = myString.substring(0, commaIndex);
-    String secondValue = myString.substring(commaIndex+1, secondCommaIndex);
-    String thirdValue = myString.substring(secondCommaIndex);
-    int r = firstValue.toFloat();
-    int g = secondValue.toFloat();
-    int b = thirdValue.toInt();
-      
-    int mychecksum = myString[0] ;
-    for (unsigned int i(1); i < myString.length()-1; i++) // iterates through the string to encrypt
-      mychecksum ^ str[i] ; // ^ - XOR operator in C++
-
-    myString=SERIALWIND.readStringUntil('\r')
-      int checksum = myString[:myString.length-2].toInt();
-
-    if (mychecksum == checksum){}
-
-    if (!SERIALWIND.find('\n')){
-      errore;
+    if (start)
+      {
+	
+	// clean serial buffer
+	while (SERIALWIND.available() > 0) {
+	  byte incomingByte = Serial.read();
+	  // read the incoming byte:
+	IF_SDEBUG(Serial.print(F("received: ")));
+	IF_SDEBUG(Serial.println(incomingByte, HEX));
+	}
+      }
+    else {
+      return;
     }
-
-    //TODO parse periodic windsonic serial messages
-    // max 8 sec watchdog timer
-    /* sample messages:
-       Q,,000.03,M,00,2D
-       Q,,000.04,M,00,2A
-       Q,349,000.05,M,00,15
-       Q,031,000.06,M,00,1A
-       Q,103,000.06,M,00,1A
-
-
-       Gill format Polar, Continuous (Default format)
-
-       <STX>Q, 229, 002.74, M, 00, <ETX>16
-
-       Where:
-       <STX> = Start of string character (ASCII value 2)
-       WindSonic node address = Unit identifier
-       Wind direction = Wind Direction
-       Wind speed = Wind Speed
-       Units = Units of measure (knots, m/s etc)
-       Status = Anemometer status code (see Section 11.5 for further details)
-       <ETX> = End of string character (ASCII value 3)
-       Checksum = This is the EXCLUSIVE OR of the bytes between (and not including) the <STX> and <ETX> characters.
-       <CR> ASCII character
-       <LF> ASCII characte
-
-       The Status code is sent as part of each wind measurement message 
-       Code  Status                 Condition
-       00    OK                     Sufficient samples in average period
-       01    Axis 1 failed          Insufficient samples in average period on U axis
-       02    Axis 2 failed          Insufficient samples in average period on V axis
-       04    Axis 1 and 2 failed    Insufficient samples in average period on both axes
-       08    NVM error              NVM checksum failed
-       09    ROM error              ROM checksum failed
-       
-    */
-
   }
 
-
-
-  // todo
-  //dd=
-  //ff=   // m/s *10
-
-  //dd=max(dd,1);
-  //dd=min(dd,360);
-  //if (ff == 0) dd=0;     //wind calm
+  if (! readvalue(dd,ff)) return;
   
-
   i2c_dataset1->wind.ff=ff;
   i2c_dataset1->wind.dd=dd;
 
@@ -833,8 +1092,7 @@ void loop() {
   interrupts();
   // new data published
 
-  //waittime= 750 - (millis() - starttime) ;
-  waittime= SAMPLETIME - (millis() - starttime) ;
+  waittime= SAMPLERATE - (millis() - starttime) ;
   //IF_SDEBUG(Serial.print("elapsed time: "));
   //IF_SDEBUG(Serial.println(millis() - starttime));
   if (waittime > 0) {
@@ -842,7 +1100,7 @@ void loop() {
     IF_SDEBUG(Serial.println(waittime));
     delay(waittime); 
   }else{
-    IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
+    IF_SDEBUG(Serial.println("WARNIG: timing error , I am late"));    
   }
 
 }  

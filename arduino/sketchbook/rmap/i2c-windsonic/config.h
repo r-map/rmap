@@ -7,7 +7,7 @@
 
 #if defined(WINDSONIC)
 // time in us equired for oneshot measure
-#define SAMPLETIME 1000
+#define SAMPLETIME 300
 #endif
 
 // take one measure every SAMPLERATE us

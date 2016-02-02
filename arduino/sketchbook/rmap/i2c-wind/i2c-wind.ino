@@ -268,7 +268,7 @@ void setup() {
 
   nsample1=1;
 
-#define SAMPLE1 20
+#define SAMPLE1 60000/SAMPLERATE
 #define SAMPLE2 10
 
   cbu60m.init(SAMPLE2);
@@ -451,7 +451,7 @@ void loop() {
   //IF_SDEBUG(Serial.print(F("freq: ")));IF_SDEBUG(Serial.println(FreqCounter::f_freq));
   //count=FreqCounter::f_freq
 
-  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLETIME-(millis()-starttime)));
+  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLERATE-(millis()-starttime)));
   delay(SAMPLERATE-(millis()-starttime));
 
   detachInterrupt(digitalPinToInterrupt(INTERRUPTPIN));
@@ -766,7 +766,7 @@ void loop() {
   // new data published
 
   //waittime= 750 - (millis() - starttime) ;
-  waittime= SAMPLETIME - (millis() - starttime) ;
+  waittime= SAMPLERATE - (millis() - starttime) ;
   //IF_SDEBUG(Serial.print("elapsed time: "));
   //IF_SDEBUG(Serial.println(millis() - starttime));
   if (waittime > 0) {
