@@ -1104,10 +1104,17 @@ aJsonObject* SensorDriverDw1::getJson()
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverDw1::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B11001", values[0]);      
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B11001", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B11001");
+    }
     // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B11002", values[1]);      
-
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B11002", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B11002");
+    }
   }else{
     aJson.addNullToObject(jsonvalues, "B11001");
     // if you have a second value add here

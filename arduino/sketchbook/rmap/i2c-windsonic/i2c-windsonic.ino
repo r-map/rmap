@@ -19,8 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*********************************************************************
  *
- * This program implements wind intensity and direction 
- * exported to i2c interface.
+ * This program implements elaboration of wind speed and direction for
+ * Gill Windsonic exported to i2c interface.
  * 
 **********************************************************************/
 
@@ -32,13 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include "IntBuffer.h"
 #include "FloatBuffer.h"
-#include <math.h> 
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
-
 
 IntBuffer cbu60m;
 IntBuffer cbv60m;
@@ -276,21 +274,186 @@ CHECKSUM CAL:CC55 CC55 *PASS*
   return false;
 }
 
-bool readvalue(  unsigned int& dd, unsigned int& ff)
+bool init_setup()
+{
+  /*  Configuraion string
+*
+M4
+U1
+O1
+L1
+P3
+B3
+H2
+NQ
+F1
+E3
+T1
+S4
+C2
+G0
+K50
+Q
+  */
+
+  /*
+
+  // clean serial buffer
+  while (SERIALWIND.available() > 0) {
+    byte incomingByte = SERIALWIND.read();
+    // read the incoming byte:
+    IF_SDEBUG(Serial.print(F("received: ")));
+    IF_SDEBUG(Serial.write(incomingByte));
+    IF_SDEBUG(Serial.print(F(" : ")));
+    IF_SDEBUG(Serial.println(incomingByte, HEX));
+  }
+
+  SERIALWIND.print("Q\n");   // exit from setup in poll mode
+  delay(500);
+  SERIALWIND.print("Q\n");   // exit from setup in poll mode
+  delay(500);
+  SERIALWIND.print("*");     // enter in setup
+  delay(1000);
+  SERIALWIND.print("*");     // enter in setup
+  delay(500);
+  SERIALWIND.print("*Q");    // enter in setup from poll mode
+
+ #define BUF_LENGTH 100
+
+  char buf[BUF_LENGTH];
+  byte count = 0;
+  bool ok = false;
+  unsigned long timeIsOut;
+  char *rec;
+  rec=buf;
+  *rec = 0;
+
+  timeIsOut = millis() + 3000;
+  while (timeIsOut > millis() && count < (BUF_LENGTH - 1) && !ok) {  
+    wdt_reset();
+
+    if (SERIALWIND.available())
+      {
+	count++;
+	*rec++ = SERIALWIND.read();
+	*rec = 0;           // terminate the string
+	ok=strstr(buf,"CONFIGURATION MODE");
+      }
+  }
+
+  IF_SDEBUG(Serial.println(F("#windsonic:RECEIVED:")));
+  IF_SDEBUG(Serial.println(buf));
+
+  if (ok){
+    IF_SDEBUG(Serial.println(F("#setup mode:->ok")));
+  }else{
+    IF_SDEBUG(Serial.println(F("#setup mode:->not ok")));
+  }
+
+  SERIALWIND.print("M4\r");
+  delay(100);
+  SERIALWIND.print("U1\r");
+  delay(100);
+  SERIALWIND.print("O1\r");
+  delay(100);
+  SERIALWIND.print("L1\r");
+  delay(100);
+  SERIALWIND.print("P3\r");
+  delay(100);
+  SERIALWIND.print("B3\r");
+  delay(100);
+  SERIALWIND.print("H2\r");
+  delay(100);
+  SERIALWIND.print("NQ\r");
+  delay(100);
+  SERIALWIND.print("F1\r");
+  delay(100);
+  SERIALWIND.print("E3\r");
+  delay(100);
+  SERIALWIND.print("T1\r");
+  delay(100);
+  SERIALWIND.print("S4\r");
+  delay(100);
+  SERIALWIND.print("C2\r");
+  delay(100);
+  SERIALWIND.print("G0\r");
+  delay(100);
+  SERIALWIND.print("K50\r");
+  delay(100);
+  SERIALWIND.print("Q\r");
+  delay(100);
+  */
+
+}
+
+
+// read dd & ff from windsonic in Polled mode
+bool readMessage(String& myString)
+{
+  wdt_reset();
+
+  SERIALWIND.setTimeout(SAMPLETIME);
+  SERIALWIND.find(2);                        // wait for <STX> = Start of string character (ASCII value 2)
+  SERIALWIND.setTimeout(100);
+  myString=SERIALWIND.readStringUntil(10);   //read until <LF> ASCII character
+  IF_SDEBUG(Serial.println(myString));
+
+  wdt_reset();
+
+  return true;
+}
+
+bool readPolledMessage(String& myString)
 {
 
-  SERIALWIND.print("?");
-  SERIALWIND.print("Q");
-  SERIALWIND.setTimeout(SAMPLETIME);
-  SERIALWIND.find(2);       // wait for <STX> = Start of string character (ASCII value 2)
-  SERIALWIND.setTimeout(100);
+  /*
+    When in the Polled mode, an output is only generated when the host system sends a Poll 
+    signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
+    letter A - Z.
+    The commands available in this mode are:
+    Description                       Command            WindSonic response
+    WindSonic Unit Identifier         A ..... Z          Wind speed output generated
+    Enable Polled mode                ?                  (None)
+    Disable Polled mode               !                  (None)
+    Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
+    Enter Configuration mode          *<N>               CONFIGURATION MODE
+
+    Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
+    ID's A to F and KMNP are not used as these characters can be present in the data string.
+ 
+    It is suggested that in polled mode the following sequence is used for every poll for 
+    information.
+    ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
+    A-Z Appropriate unit designator sent to retrieve a line of data.
+    ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
+
+    When in polled mode the system will respond to the data command within 130mS with the 
+    last valid data sample as calculated by the Output rate (P Mode Setting).
+  */
+
+  wdt_reset();
+
+  // query and read one message
+  SERIALWIND.print("?");                     // Enaable Polled mode
+  SERIALWIND.print("Q");                     // Wind speed output generated
+
+  bool status=readMessage(myString);
+
+  SERIALWIND.print("!");                     // Disable Polled mode
+  wdt_reset();
+
+  return status;
+}
+
   
-  String myString=SERIALWIND.readStringUntil(10);   //read until <LF> ASCII character
-  
-  IF_SDEBUG(Serial.println(myString));
+bool decodeValue(const String& myString,  unsigned int& dd, unsigned int& ff)
+{
+    
+  String strmychecksum;
 
   //TODO parse periodic windsonic serial messages
   // max 8 sec watchdog timer
+
   /* sample messages:
      Q,,000.03,M,00,2D
      Q,,000.04,M,00,2A
@@ -459,6 +622,9 @@ bool readvalue(  unsigned int& dd, unsigned int& ff)
     //IF_SDEBUG(Serial.println(myString[i]));
     //IF_SDEBUG(Serial.println(myString[i],HEX));
     mychecksum=(unsigned char)(mychecksum ^ myString[i]) ; // ^ - XOR operator in C++
+    // using an int and a base (hexadecimal):
+    strmychecksum = String(mychecksum, HEX);
+
   }
 
   firstDelimiter = secondDelimiter;
@@ -468,15 +634,15 @@ bool readvalue(  unsigned int& dd, unsigned int& ff)
     return false;
   }
 
-  unsigned char checksum = myString[secondDelimiter-1];
+  String checksum = myString.substring(firstDelimiter+2,secondDelimiter);
 
-  if (mychecksum != checksum){
+  if (!strmychecksum.equalsIgnoreCase(checksum)){
     IF_SDEBUG(Serial.print(F("mychecksum :")));
-    IF_SDEBUG(Serial.println(mychecksum,HEX));
+    IF_SDEBUG(Serial.println(strmychecksum));
     IF_SDEBUG(Serial.print(F("  checksum :")));
-    IF_SDEBUG(Serial.println(checksum,HEX));
+    IF_SDEBUG(Serial.println(checksum));
     IF_SDEBUG(Serial.println(F("checksum error in windsonic message")));
-    //return false;
+    return false;
   }
 
   if (myString[myString.length()-1] != char(13)){
@@ -495,49 +661,15 @@ bool readvalue(  unsigned int& dd, unsigned int& ff)
   */
 
   dd=direction;
-  ff=int(round(speed*10.));   // m/s *10
+  ff=int(round(speed*10.)); // m/s *10
 
-  dd=max(dd,1);
-  dd=min(dd,360);
-  if (ff == 0) dd=0;     //wind calm
-
-  SERIALWIND.print("!");
+  if (dd == 0) dd=360;      // traslate 0 -> 360
+  //dd=max(dd,1);
+  //dd=min(dd,360);
+  if (ff == 0) dd=0;        // wind calm
 
   return true;
 
-}
-
-// not used for now
-bool readvalueoneshot(  unsigned int& dd, unsigned int& ff)
-{
-
-    //TODO query windsonic and parse response
-    // max 8 sec watchdog timer
-    /*
-      When in the Polled mode, an output is only generated when the host system sends a Poll 
-      signal to the WindSonic consisting of the WindSonic Unit Identifier that is, the relevant 
-      letter A - Z.
-      The commands available in this mode are:
-      Description                       Command            WindSonic response
-      WindSonic Unit Identifier         A ..... Z          Wind speed output generated
-      Enable Polled mode                ?                  (None)
-      Disable Polled mode               !                  (None)
-      Request WindSonic Unit Identifier ?&                 A ..... Z (as configured)
-      Enter Configuration mode          *<N>               CONFIGURATION MODE
-
-      Where <N> is the unit identifier, if used in a multidrop system then it is recommended that 
-      ID's A to F and KMNP are not used as these characters can be present in the data string.
- 
-      It is suggested that in polled mode the following sequence is used for every poll for 
-      information.
-      ? Ensures that the Sensor is enabled to cover the event that a power down has occurred.
-      A-Z Appropriate unit designator sent to retrieve a line of data.
-      ! Sent to disable poll mode and reduce possibility of erroneous poll generation.
-
-      When in polled mode the system will respond to the data command within 130mS with the 
-      last valid data sample as calculated by the Output rate (P Mode Setting).
-
-   */
 }
 
 void setup() {
@@ -609,8 +741,6 @@ void setup() {
   ptr = (uint8_t *)i2c_dataset2;
   for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
-
-
   IF_SDEBUG(Serial.println(F("i2c_writabledataset 1&2 set to 1")));
   //Init to FF i2c_writabledataset1;
   ptr = (uint8_t *)i2c_writabledataset1;
@@ -621,8 +751,8 @@ void setup() {
   for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
   // set default to oneshot
-  i2c_writabledataset1->oneshot=false;
-  i2c_writabledataset2->oneshot=false;
+  i2c_writabledataset1->oneshot=true;
+  i2c_writabledataset2->oneshot=true;
 
   //Start I2C communication routines
   Wire.begin(I2C_WINDSONIC_ADDRESS);
@@ -631,96 +761,42 @@ void setup() {
 
   SERIALWIND.begin(9600);
 
+  /*
+    Al momento la configurazione sia del baud rate che delle impostazioni non funziona
+    Il windsonic non risponde come ci si aspetta
+
+    Quindi questo firmware funziona se le conf vengono fatte a mano sul
+    windsonic come riportato in init_setup
+
+    Quindi in modalità non oneshot comunque i dati vengono richiesti
+    come nella modalità oneshot e la temporarizzazione è interna a
+    questo firmware con una delay alla fine del main loop
+
+    In via definitiva bisognerebbe gestire il cambio di modalità di
+    funzionamento configurando runtime il windsonic in modalità
+    continua quando si passa alla modalità non oneshot e usare il
+    timing del windsonic per ottenere una misura ogni 250 us
+
+    Attualmente le elaborazioni fatte in modalità non oneshot sono
+    fatte con un dato ogni 500us; in fondo poco male visto che il
+    tutto risulta molto più stabile
+  */
+
   //TODO windsonic initialization
-  //init_baud()
+  //init_baud();
+  //init_setup();
 
   delay(500);
 
-  /*
   // clean serial buffer
   while (SERIALWIND.available() > 0) {
-    byte incomingByte = Serial.read();
+    byte incomingByte = SERIALWIND.read();
     // read the incoming byte:
     IF_SDEBUG(Serial.print(F("received: ")));
+    IF_SDEBUG(Serial.write(incomingByte));
+    IF_SDEBUG(Serial.print(F(" : ")));
     IF_SDEBUG(Serial.println(incomingByte, HEX));
   }
-
-  SERIALWIND.print("Q\n");   // exit from setup in poll mode
-  delay(500);
-  SERIALWIND.print("Q\n");   // exit from setup in poll mode
-  delay(500);
-  SERIALWIND.print("*");     // enter in setup
-  delay(1000);
-  SERIALWIND.print("*");     // enter in setup
-  delay(500);
-  SERIALWIND.print("*Q");    // enter in setup from poll mode
-
- #define BUF_LENGTH 100
-
-  char buf[BUF_LENGTH];
-  byte count = 0;
-  bool ok = false;
-  unsigned long timeIsOut;
-  char *rec;
-  rec=buf;
-  *rec = 0;
-
-  timeIsOut = millis() + 3000;
-  while (timeIsOut > millis() && count < (BUF_LENGTH - 1) && !ok) {  
-    wdt_reset();
-
-    if (SERIALWIND.available())
-      {
-	count++;
-	*rec++ = SERIALWIND.read();
-	*rec = 0;           // terminate the string
-	ok=strstr(buf,"CONFIGURATION MODE");
-      }
-  }
-
-  IF_SDEBUG(Serial.println(F("#windsonic:RECEIVED:")));
-  IF_SDEBUG(Serial.println(buf));
-
-  if (ok){
-    IF_SDEBUG(Serial.println(F("#setup mode:->ok")));
-  }else{
-    IF_SDEBUG(Serial.println(F("#setup mode:->not ok")));
-  }
-
-  SERIALWIND.print("M4\r");
-  delay(100);
-  SERIALWIND.print("U1\r");
-  delay(100);
-  SERIALWIND.print("O1\r");
-  delay(100);
-  SERIALWIND.print("L1\r");
-  delay(100);
-  SERIALWIND.print("P3\r");
-  delay(100);
-  SERIALWIND.print("B3\r");
-  delay(100);
-  SERIALWIND.print("H2\r");
-  delay(100);
-  SERIALWIND.print("NQ\r");
-  delay(100);
-  SERIALWIND.print("F1\r");
-  delay(100);
-  SERIALWIND.print("E3\r");
-  delay(100);
-  SERIALWIND.print("T1\r");
-  delay(100);
-  SERIALWIND.print("S4\r");
-  delay(100);
-  SERIALWIND.print("C2\r");
-  delay(100);
-  SERIALWIND.print("G0\r");
-  delay(100);
-  SERIALWIND.print("K50\r");
-  delay(100);
-  SERIALWIND.print("Q\r");
-  delay(100);
-
-  */
 
   IF_SDEBUG(Serial.println(F("end setup")));
 
@@ -792,13 +868,15 @@ void loop() {
 
     if (start)
       {
-	
+	byte incomingByte;
 	// clean serial buffer
 	while (SERIALWIND.available() > 0) {
-	  byte incomingByte = Serial.read();
+	  incomingByte = SERIALWIND.read();
 	  // read the incoming byte:
-	IF_SDEBUG(Serial.print(F("received: ")));
-	IF_SDEBUG(Serial.println(incomingByte, HEX));
+	  IF_SDEBUG(Serial.print(F("received: ")));
+	  IF_SDEBUG(Serial.write(incomingByte));
+	  IF_SDEBUG(Serial.print(F(" : ")));
+	  IF_SDEBUG(Serial.println(incomingByte, HEX));
 	}
       }
     else {
@@ -806,7 +884,19 @@ void loop() {
     }
   }
 
-  if (! readvalue(dd,ff)) return;
+  String myString;
+
+  //for now we work ever in polled mode
+  // uncomment if you introduce continuous mode
+  //  if (oneshot) {
+  if (! readPolledMessage(myString)) return;
+    //}else{
+    //if (! readMessage(myString)) return;
+    //}    
+
+  if (! decodeValue(myString, dd, ff)) return;
+
+  wdt_reset();
   
   i2c_dataset1->wind.ff=ff;
   i2c_dataset1->wind.dd=dd;
@@ -1091,6 +1181,9 @@ void loop() {
   i2c_dataset2=i2c_datasettmp;
   interrupts();
   // new data published
+
+  // comment this if you manage continous mode
+  // in this case timing is getted from windsonic that send valuer every SAMPLERATE us
 
   waittime= SAMPLERATE - (millis() - starttime) ;
   //IF_SDEBUG(Serial.print("elapsed time: "));
