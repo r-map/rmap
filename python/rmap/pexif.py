@@ -621,6 +621,12 @@ class FujiIFD(IfdData):
 
 def ifd_maker_note(e, offset, exif_file, mode, data):
     """Factory function for creating MakeNote entries"""
+
+    if (not hasattr(exif_file, 'make')):
+        msg = "Missed maker"
+        exc = JpegFile.SkipTag
+        raise exc(msg)
+    
     if exif_file.make == "Canon":
         # Canon maker note appears to always be in Little-Endian
         return CanonIFD('<', offset, exif_file, mode, data)
