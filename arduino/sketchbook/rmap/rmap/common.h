@@ -100,7 +100,7 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #define GSMPASSWORD ""
 //#define GSMSERIAL   Serial1
 #define GSMONOFFPIN 0
-#define GSMRESETPIN 0
+#define GSMRESETPIN 6
 #ifdef REPEATTASK
 #define SDCARD
 #define SDCHIPSELECT 7

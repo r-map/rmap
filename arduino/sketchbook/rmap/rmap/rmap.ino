@@ -1828,7 +1828,12 @@ void Repeats() {
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart sim800"));
 
+	  wdt_reset();
+
 	  //s800.switchOn();
+	  s800.resetModem();
+
+	  wdt_reset();
 
 	  // fast restart
 	  if (s800.init_onceautobaud()){
@@ -2661,6 +2666,11 @@ void setup()
   // static hardwareserial defined at compile time in sim800 library 
   //if (s800.init(&GSMSERIAL , GSMONOFFPIN, GSMRESETPIN)){
   if (s800.init(GSMONOFFPIN, GSMRESETPIN)){
+    // In Stima configuration sim800 will be always on becouse PWRKEY
+    // Pin should be pulled down 
+    //s800.switchOn();
+
+    s800.resetModem();
     IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
     wdt_reset();
     s800.setup();
