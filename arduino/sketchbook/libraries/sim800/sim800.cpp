@@ -699,14 +699,14 @@ void SIM800::switchOff() {
 
 void SIM800::switchModem() {
   digitalWrite(onOffPin, HIGH);
-  delay(2000);
+  delay(1500);
   digitalWrite(onOffPin, LOW);
-  delay(1000);
+  delay(2000);
 }
 
 void SIM800::resetModem() {
   digitalWrite(resetPin, LOW);
-  delay(1300);
+  delay(300);
   digitalWrite(resetPin, HIGH);
   delay(3000);
 }
