@@ -46,7 +46,7 @@ class SensorAdmin(admin.ModelAdmin):
 
     list_display = ('name','active','driver','type','address','timerange','level','board')
     list_editable = ('active','timerange','level')
-    search_fields = ['name','driver','type','address','timerange','level','board']
+    search_fields = ['name','driver','type','address','timerange','level','board__name']
 
     list_filter = ('driver','timerange','level','board')
 
@@ -70,9 +70,9 @@ class BoardAdmin(admin.ModelAdmin):
 
     list_display = ('name','active','slug','category','stationmetadata')
     list_editable = ('active',)
-    search_fields = ('active','category','stationmetadata')
+    search_fields = ('name','active','slug','category','stationmetadata__name')
 
-    list_filter = ('active','category','stationmetadata')
+    list_filter = ('active','category','stationmetadata','category')
 
 
 
@@ -106,7 +106,7 @@ class StationMetadataAdmin(admin.ModelAdmin):
 
     list_display = ('name','active','slug','ident','lat','lon','network','mqttrootpath','mqttmaintpath','category')
     list_editable = ('active','ident','lat','lon')
-    search_fields = ['name','slug','ident','network']
+    search_fields = ['name','slug','ident__username','network']
 
     list_filter = ('ident','network','mqttrootpath','mqttmaintpath','category')
 
