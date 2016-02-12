@@ -179,27 +179,16 @@ void receiveEvent( int bytesReceived)
      if ((receivedCommands[0]>=I2C_WINDSONIC_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
-	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
+	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
 	   *ptr++ = receivedCommands[a];
 	 }
-
-	 //IF_SDEBUG(Serial.println("writable buffer exchange"));
-
-	 // disable interrupts for atomic operation
-	 //noInterrupts();  // just inside irs
-	 //exchange double buffer
-	 i2c_writabledatasettmp=i2c_writabledataset1;
-	 i2c_writabledataset1=i2c_writabledataset2;
-	 i2c_writabledataset2=i2c_writabledatasettmp;
-	 //interrupts();  // just inside irs
-	 // new data written
-
 	 // the two buffer should be in sync
 	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { *ptr++ = receivedCommands[a]; }
 
+	 // new data written
 
        }
     }
@@ -750,6 +739,11 @@ void setup() {
   ptr = (uint8_t *)i2c_writabledataset2;
   for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
+
+  //Set up default parameters
+  i2c_dataset1->status.sw_version          = VERSION;
+  i2c_dataset2->status.sw_version          = VERSION;
+
   // set default to oneshot
   i2c_writabledataset1->oneshot=true;
   i2c_writabledataset2->oneshot=true;
@@ -822,6 +816,15 @@ void loop() {
 
   starttime=millis();
 
+  //IF_SDEBUG(Serial.println("writable buffer exchange"));
+  // disable interrupts for atomic operation
+  noInterrupts();
+  //exchange double writable buffer
+  i2c_writabledatasettmp=i2c_writabledataset1;
+  i2c_writabledataset1=i2c_writabledataset2;
+  i2c_writabledataset2=i2c_writabledatasettmp;
+  interrupts();
+
   //Check for new incoming command on I2C
   if (new_command!=0) {
     _command = new_command;                                                   //save command byte for processing
@@ -836,40 +839,47 @@ void loop() {
       IF_SDEBUG(Serial.println(F("COMMAND: oneshot stop")));
       stop=true;
       break;
-    case I2C_WINDSONIC_COMMAND_TEST:
-      IF_SDEBUG(Serial.println(F("COMMAND: test")));
-      break;         
+    case I2C_WINDSONIC_COMMAND_STOP:
+      IF_SDEBUG(Serial.println(F("COMMAND: stop")));
+      stop=true;
+      break;
     } //switch  
   }
 
-  oneshot=i2c_writabledataset1->oneshot;
+  oneshot=i2c_writabledataset2->oneshot;
 
   //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
   //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
   //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
 
+  if (stop) {
 
-  //Set up default parameters
-  i2c_dataset1->status.sw_version          = VERSION;
+    // disable interrupts for atomic operation
+    noInterrupts();
+    //exchange double buffer
+    IF_SDEBUG(Serial.println(F("exchange double buffer")));
+    i2c_datasettmp=i2c_dataset1;
+    i2c_dataset1=i2c_dataset2;
+    i2c_dataset2=i2c_datasettmp;
+    interrupts();
+    // new data published
 
-
+    IF_SDEBUG(Serial.println(F("clean buffer")));
+    uint8_t *ptr;
+    //Init to FF i2c_dataset1;
+    ptr = (uint8_t *)i2c_dataset1;
+    for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+    //Init to FF i2c_dataset2;
+    //ptr = (uint8_t *)i2c_dataset2;
+    //for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+    stop=false;
+  }
+  
   if (oneshot) {
-    if (stop) {
-      IF_SDEBUG(Serial.println(F("clean buffer")));
-      uint8_t *ptr;
-      //Init to FF i2c_dataset1;
-      ptr = (uint8_t *)i2c_dataset1;
-      for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
-      //Init to FF i2c_dataset2;
-      ptr = (uint8_t *)i2c_dataset2;
-      for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
-      stop=false;
-    }
-
     if (start)
       {
-	byte incomingByte;
 	// clean serial buffer
+	byte incomingByte;
 	while (SERIALWIND.available() > 0) {
 	  incomingByte = SERIALWIND.read();
 	  // read the incoming byte:
@@ -923,18 +933,7 @@ void loop() {
   if (oneshot) {
     //if one shot we have finish
     IF_SDEBUG(Serial.println(F("oneshot end")));
-    start=false;
-
-    // disable interrupts for atomic operation
-    noInterrupts();
-    //exchange double buffer
-    IF_SDEBUG(Serial.println(F("exchange double buffer")));
-    i2c_datasettmp=i2c_dataset1;
-    i2c_dataset1=i2c_dataset2;
-    i2c_dataset2=i2c_datasettmp;
-    interrupts();
-    // new data published
-    
+    start=false;    
     return;
   }
 
@@ -1171,16 +1170,6 @@ void loop() {
   }
 
   digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
-
-  // disable interrupts for atomic operation
-  noInterrupts();
-  //exchange double buffer
-  IF_SDEBUG(Serial.println(F("exchange double buffer")));
-  i2c_datasettmp=i2c_dataset1;
-  i2c_dataset1=i2c_dataset2;
-  i2c_dataset2=i2c_datasettmp;
-  interrupts();
-  // new data published
 
   // comment this if you manage continous mode
   // in this case timing is getted from windsonic that send valuer every SAMPLERATE us

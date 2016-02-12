@@ -15,7 +15,7 @@
 #define I2C_WIND_COMMAND               0xFF
 #define I2C_WIND_COMMAND_ONESHOT_START   1
 #define I2C_WIND_COMMAND_ONESHOT_STOP    2
-#define I2C_WIND_COMMAND_TEST            3
+#define I2C_WIND_COMMAND_STOP            3
 
 #define I2C_WIND_VERSION               0x00      // Version
 #define I2C_WIND_DD                    0x01      // DD
