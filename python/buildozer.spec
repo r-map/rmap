@@ -65,12 +65,14 @@ android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUET
 android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
-android.minapi = 8
+android.minapi = 13
 
 # (int) Android SDK version to use
+#android.sdk = 24
 android.sdk = 21
 
 # (str) Android NDK version to use
+#android.ndk = 10e
 android.ndk = 9c
 
 # (bool) Use --private data storage (True) or --dir public storage (False)

@@ -24,8 +24,9 @@ from kivy.uix.popup import Popup
 from kivy.uix.tabbedpanel import TabbedPanel
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.settings import SettingOptions
+from kivy.uix.settings import SettingOptions #, SettingString, SettingItem
 from kivy.uix.settings import Settings
+#from kivy.uix.settings import SettingsWithSidebar #, SettingsWithSpinner, SettingsWithTabbedPanel, SettingsWithNoMenu
 from kivy.uix.image import Image
 from kivy.uix.scrollview import ScrollView
 from kivy.metrics import dp
@@ -979,6 +980,13 @@ class mytextinput(TextInput):
 #class MyTab(TabbedPanel):
 #    pass
 
+#class SettingPassword(SettingString):
+#    def add_widget(self, *largs):
+#
+#        if self.content is None:
+#            return super(SettingItem, self).add_widget(*myargs)
+#        return self.content.add_widget(*myargs)
+
 
 class Rmap(App):
 
@@ -1003,6 +1011,10 @@ class Rmap(App):
     trip=False
 
     rpcin_message=""
+    #settings_cls=SettingsWithSidebar
+    #settings_cls=SettingsWithSpinner
+    #settings_cls=SettingsWithTabbedPanel
+    #settings_cls=SettingsWithNoMenu
 
     def get_application_config(self):
 
@@ -1645,6 +1657,7 @@ class Rmap(App):
         define the setting panel
         '''
         settings.register_type('scrolloptions', SettingScrollOptions)
+        #settings.register_type('password', SettingPassword)
 
         stations=[]
         #for station in StationMetadata.objects.filter(active=True):
