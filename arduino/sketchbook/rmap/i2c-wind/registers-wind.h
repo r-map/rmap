@@ -2,7 +2,7 @@
 // I2C WIND registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_WIND_ADDRESS        0x21                      //7 bit address 0x40 write, 0x41 read
+#define I2C_WIND_ADDRESS        0x22                      //7 bit address 0x40 write, 0x41 read
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF
