@@ -273,13 +273,13 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_r"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_p"):
         print "setting template:", template
@@ -303,7 +303,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_thp"):
         print "setting template:", template
@@ -313,7 +313,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_thwr"):
         print "setting template:", template
@@ -323,9 +323,9 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_thwrp"):
         print "setting template:", template
@@ -335,9 +335,9 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Precipitation",driver="I2C",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
@@ -358,13 +358,13 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Wind",driver="RF24",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_rf24_r"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Precipitation",driver="RF24",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_rf24_p"):
         print "setting template:", template
@@ -388,7 +388,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_rf24_thp"):
         print "setting template:", template
@@ -398,7 +398,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_rf24_thwr"):
         print "setting template:", template
@@ -408,9 +408,9 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Wind",driver="RF24",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Precipitation",driver="RF24",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
 
     if (template == "stima_rf24_thwrp"):
         print "setting template:", template
@@ -420,9 +420,9 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Humidity",driver="RF24",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Wind",driver="RF24",
-                  type="DW1",address=33,timerange="254,0,0",level="103,2000,-,-")
+                  type="DW1",address=34,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Precipitation",driver="RF24",
-                  type="TBR",address=34,timerange="1,0,0",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Pressure",driver="RF24",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 

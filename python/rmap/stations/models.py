@@ -67,7 +67,7 @@ class Sensor(models.Model):
         ('ADT',  'I2C ADT temperature sensor'),
         ('BMP',  'I2C BMP085/BMP180 pressure sensor'),
         ('HIH',  'I2C HIH6100 series humidity sensor'),
-        ('DW1',  'I2C Davis wind direction and intensity adapter'),
+        ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
         ('TBR',  'I2C Tipping bucket rain gauge adapter'),
         ('RF24', 'RF24 Network jsonrpc'),
     )
