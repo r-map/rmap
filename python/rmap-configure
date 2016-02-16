@@ -42,10 +42,7 @@ from rmap import jsonrpc
 
 from rmap import __version__
 import rmap.settings
-from rmap.stations.models import StationMetadata
-from rmap.stations.models import Sensor
 import argparse
-import rmap.rmap_core
 
 import django
 
@@ -55,6 +52,10 @@ if ve is not None:
     os.chdir(ve+"/share/rmap")
 
 django.setup()
+
+from rmap.stations.models import StationMetadata
+from rmap.stations.models import Sensor
+import rmap.rmap_core
 
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
