@@ -6,6 +6,7 @@ from registration.backends.default.views import RegistrationView
 from views import home,wizard,wizard2,wizard_done,wizard_error
 import rmap.views
 import django.views
+from django.conf.urls.static import static
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -48,6 +49,7 @@ urlpatterns = [
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
 
     url(r'^http2mqtt/', include('http2mqtt.urls')),
+    url(r'^geoimage/', include('geoimage.urls')),
 ]
 
 if not android  :
@@ -58,6 +60,7 @@ if not android  :
 if ( settings.SERVE_STATIC ):
 #serve local static files
     from django.contrib.staticfiles import views
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += [
                             url(r'^'+settings.MEDIA_PREFIX[1:]+'(.*)', views.serve, {'document_root': settings.MEDIA_ROOT, 'show_indexes': True}),
                             url(r'^'+settings.MEDIA_SITE_PREFIX[1:]+'(.*)', views.serve, {'document_root': settings.MEDIA_SITE_ROOT, 'show_indexes': True}),

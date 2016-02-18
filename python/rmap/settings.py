@@ -42,8 +42,8 @@ configspec['django']['BASE_URL']="string(default='/django/')"
 configspec['django']['ADMIN_MEDIA_PREFIX']="string(default='/django/media/admin/')"
 configspec['django']['STATIC_URL']="string(default='/static/')"
 configspec['django']['STATIC_ROOT'] = "string(default='/usr/lib/python2.7/site-packages/django/contrib/admin/static/admin/')"
-configspec['django']['MEDIA_PREFIX']="string(default='/static/')"
-configspec['django']['MEDIA_SITE_PREFIX']="string(default='/static/sito/')"
+configspec['django']['MEDIA_PREFIX']="string(default='/media/')"
+configspec['django']['MEDIA_SITE_PREFIX']="string(default='/media/sito/')"
 configspec['django']['SERVE_STATIC']="boolean(default=True)"
 
 
@@ -208,7 +208,7 @@ STATIC_ROOT             = config['django']['STATIC_ROOT']
 MEDIA_PREFIX            = config['django']['MEDIA_PREFIX']
 MEDIA_SITE_PREFIX       = config['django']['MEDIA_SITE_PREFIX']
 SERVE_STATIC            = config['django']['SERVE_STATIC']
-MEDIA_URL               = BASE_URL+MEDIA_PREFIX
+MEDIA_URL               = "media/"
 SITE_MEDIA_URL          = BASE_URL+MEDIA_SITE_PREFIX
 
 
@@ -378,6 +378,9 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rmap.stations',
     'rmap.doc',
+    'leaflet',
+    'djgeojson',
+    'geoimage'
 ]
 
 # django save the files on memory, but large files are saved in a path.
@@ -452,4 +455,11 @@ BORINUD = {
     "SOURCES": [ dsn ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
+}
+
+LEAFLET_CONFIG = {
+#    'SPATIAL_EXTENT': (0.0, 30.0, 30, 60),
+'DEFAULT_CENTER': (11.0, 45.0),
+'DEFAULT_ZOOM': 16,
+'MIN_ZOOM': 3,
 }
