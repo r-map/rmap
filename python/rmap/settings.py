@@ -117,6 +117,13 @@ configspec['amqp2djangod']['user']     = "string(default=None)"
 configspec['amqp2djangod']['group']    = "string(default=None)"
 
 
+configspec['amqp2geoimaged']={}
+configspec['amqp2geoimaged']['logfile']  = "string(default='/tmp/amqp2geoimage.log')"
+configspec['amqp2geoimaged']['errfile']  = "string(default='/tmp/amqp2geoimage.err')"
+configspec['amqp2geoimaged']['lockfile'] = "string(default='/tmp/amqp2geoimage.lock')"
+configspec['amqp2geoimaged']['user']     = "string(default=None)"
+configspec['amqp2geoimaged']['group']    = "string(default=None)"
+
 
 configspec['amqp2arkimetd']={}
 configspec['amqp2arkimetd']['logfile']  = "string(default='/tmp/amqp2arkimetd.log')"
@@ -245,6 +252,13 @@ errfileamqp2djangod              = config['amqp2djangod']['errfile']
 lockfileamqp2djangod             = config['amqp2djangod']['lockfile']
 useramqp2djangod                 = config['amqp2djangod']['user']
 groupamqp2djangod                = config['amqp2djangod']['group']
+
+# section amqp2geoimaged
+logfileamqp2geoimaged              = config['amqp2geoimaged']['logfile']
+errfileamqp2geoimaged              = config['amqp2geoimaged']['errfile']
+lockfileamqp2geoimaged             = config['amqp2geoimaged']['lockfile']
+useramqp2geoimaged                 = config['amqp2geoimaged']['user']
+groupamqp2geoimaged                = config['amqp2geoimaged']['group']
 
 # section amqp2arkimetd
 logfileamqp2arkimetd              = config['amqp2arkimetd']['logfile']
@@ -457,9 +471,9 @@ BORINUD = {
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }
 
-LEAFLET_CONFIG = {
+#LEAFLET_CONFIG = {
 #    'SPATIAL_EXTENT': (0.0, 30.0, 30, 60),
-'DEFAULT_CENTER': (11.0, 45.0),
-'DEFAULT_ZOOM': 16,
-'MIN_ZOOM': 3,
-}
+#'DEFAULT_CENTER': (11.0, 45.0),
+#'DEFAULT_ZOOM': 16,
+#'MIN_ZOOM': 3,
+#}

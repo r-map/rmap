@@ -27,6 +27,10 @@ from django.core import serializers
 import pika
 from rmap.utils import nint
 from rmap import jsonrpc
+from geoimage.models import GeorefencedImage
+from django.core.files.base import ContentFile
+from datetime import datetime
+import pexif
 
 #sensortemplates={"stima_t_u":
 #'''
@@ -621,6 +625,92 @@ def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.
     #print body
 
     send2amqp(body,user,password,host,exchange)
+
+
+def receivegeoimagefromamqp(user=u"your user",password="your password",host="rmap.cc",queue="photo"):
+
+    def callback(ch, method, properties, body):
+        print " [x] Received message"
+
+        if properties.user_id is None:
+            print "Ignore anonymous message"
+            print " [x] Done"
+            ch.basic_ack(delivery_tag = method.delivery_tag)
+            return
+  
+        #At this point we can check if we trust this authenticated user... 
+        ident=properties.user_id
+        print "Received from user: %r" % ident 
+
+        try:
+            # store image in DB
+            img = pexif.JpegFile.fromString(body)
+
+            exif = img.get_exif()
+            if exif:
+                primary = exif.get_primary()
+            if exif is None or primary is None:
+                print >> sys.stderr, "image has no EXIF tag, skipping"
+                ident=None
+            else:
+                imgident=primary.ImageDescription
+
+            #but we check that message content is with the same ident
+            if (imgident == ident):
+
+                comment="".join(img.exif.primary.ExtendedEXIF.UserComment)
+                lat,lon=img.get_geo()
+
+                primary = exif.get_primary()
+                timetag=primary.DateTime
+                date = datetime.strptime(timetag, '%Y:%m:%d %H:%M:%S')
+
+                print lat,lon
+                print comment
+                print date
+                print imgident
+
+                geoimage=GeorefencedImage()
+                geoimage.geom = {'type': 'Point', 'coordinates': [lon, lat]}
+                geoimage.comment=comment
+                geoimage.date=date
+
+                try:
+                    geoimage.ident=User.objects.get(username=ident)
+                    geoimage.image.save('geoimage.jpg',ContentFile(body))
+                    geoimage.save()
+                except User.DoesNotExist:
+                    print "user does not exist"
+            else:
+                print "reject:",ident
+
+        except:
+            print "errore!"
+            #file = open(ident+".jpg","w")
+            #file.write(body)
+            #file.close()
+
+        print " [x] Done"
+        ch.basic_ack(delivery_tag = method.delivery_tag)
+
+    credentials=pika.PlainCredentials(user, password)
+
+    connection = pika.BlockingConnection(pika.ConnectionParameters(
+        host=host,credentials=credentials))
+    channel = connection.channel()
+    #channel.queue_declare(queue=queue)
+
+    print ' [*] Waiting for messages. To exit press CTRL+C'
+
+
+    channel.basic_consume(callback,
+                          queue=queue,
+                          no_ack=False)
+
+    channel.start_consuming()
+
+    connection.close()
+    sendconnection.close()
 
 
 
