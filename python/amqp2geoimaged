@@ -43,8 +43,8 @@ def main(self):
     import rmap.rmap_core
     print user,password
     rmap.rmap_core.receivegeoimagefromamqp(user=user,password=password
-    #                                           ,host=host,queue=queue)
-    )
+                                               ,host=host,queue=queue)
+
 if __name__ == '__main__':
 
     import sys, os

@@ -63,14 +63,31 @@ from kivy.lib import osc
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
-  
+from glob import glob
 from utils import nint
 import rmap.rmap_core
 
 platform = platform()
 
 PHOTOIMAGE="photo.jpg"
-QUEUEDIMAGE="queuedphoto.jpg"
+QUEUEDIMAGES="queuedphoto_*.jpg"
+def queuednewfilename():
+    i = 0
+    while os.path.exists("queuedphoto_%3.3d.jpg" % i):
+        print "search for new filename; found file: queuedphoto_%3.3d.jpg" % i
+        i += 1
+    print "new filename: queuedphoto_%3.3d.jpg" % i
+    return "queuedphoto_%3.3d.jpg" % i
+
+def queuedfilename():
+    files = glob(QUEUEDIMAGES)
+    try:
+        sfiles=sorted(files)
+        print "found queued files:", sfiles
+        return sfiles[0]
+    except Exception as e:
+        print e
+        return None
 
 if platform == 'android':
     from jnius import autoclass
@@ -777,6 +794,7 @@ ScreenManager:
 #                    on_release: app.publishmqtt() 
 
             BoxLayout:
+                id: queued
                 ScrollView:
                     bar_width: 10
                     Label:
@@ -791,8 +809,14 @@ ScreenManager:
                         size_hint_y: None
 
             BoxLayout:
-                QueuedImage:
-                    id: queuedimage
+                id: queuedimagebox
+
+                #ScrollView:
+                #    bar_width: 10
+                #    BoxLayout:
+
+#                    QueuedImage:
+#                        id: queuedimage
 
             Toolbar:
 
@@ -925,10 +949,14 @@ class CameraImage(Image):
 
 class QueuedImage(Image):
 
-    def __init__(self, **kwargs):
+    def __init__(self,queuedimage=None, **kwargs):
         super(QueuedImage, self).__init__(**kwargs)
-        if os.path.isfile(QUEUEDIMAGE):
-            self.source = QUEUEDIMAGE
+
+        if queuedimage is None:
+            queuedimage=queuedfilename()
+        if (not queuedimage is None):
+            #if os.path.isfile(queued):
+            self.source = queuedimage
         else:
             self.source = os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
 
@@ -1244,6 +1272,10 @@ class Rmap(App):
         self.root.ids["presentwtab"].add_widget(self.present_weather_widget)
 
         self.root.ids["queue"].text=self.queue2str()
+
+        #add noimage in queue
+        image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
+        self.root.ids["queuedimagebox"].add_widget(image)
 
 
         if self.mystation.active:
@@ -1947,6 +1979,7 @@ class Rmap(App):
     def queueoff(self):
         if self.mystation.active:
             Clock.unschedule(self.myqueue_loop)
+            Clock.unschedule(self.myphoto_loop)
             self.stopmqtt()
             #update to last status
             self.mqtt_status = self.mystation.mqtt_status
@@ -1959,7 +1992,6 @@ class Rmap(App):
             #self.mqtt_status = _('Connect Status: disconnected')
             self.mqtt_status = _("Station")+": "+_(" disactive")
 
-        Clock.unschedule(self.myphoto_loop)
 
 
     def rpcin(self, message, *args):
@@ -2093,6 +2125,25 @@ class Rmap(App):
             bottone.bind(on_release=self.mypopup.dismiss)
 
         self.mypopup.open()
+
+    def notify(self,message):
+
+        # open only one notification popup (the last)
+        self.notifydismiss()
+
+        box = BoxLayout(orientation='vertical')
+        label = Label(text=message)
+
+        box.add_widget(label)
+
+        self.mynotify = Popup(title=_("Info"), content=box,size_hint=(.5, .5))
+        self.mynotify.open()
+
+    def notifydismiss(self):
+        try:
+            self.mynotify.dismiss()
+        except:
+            pass
 
     def popupcloseandexit(self,*args):
         self.mypopup.dismiss()
@@ -2328,23 +2379,68 @@ class Rmap(App):
         if os.path.isfile(PHOTOIMAGE):
             try:
 
-                if os.path.isfile(QUEUEDIMAGE):
-                    os.remove(QUEUEDIMAGE)
+                #QUEUEDIMAGE=queuedfilename()
+                ##if os.path.isfile(QUEUEDIMAGE):
+                #if (not QUEUEDIMAGE is None):
+                #    os.remove(QUEUEDIMAGE)
+
                 # queue photo for the server
                 import pexif
                 # Add exif in a file
                 img = pexif.JpegFile.fromFile(PHOTOIMAGE)
                 #img = pexif.JpegFile.fromString(body)
-                img.exif.primary.ImageDescription =str(self.config.get('rmap','user'))
-                img.exif.primary.ExtendedEXIF.UserComment = self.root.ids["cameracomment"].text
-                img.set_geo(float(self.lat), float(self.lon))
-                img.writeFile(QUEUEDIMAGE)
-                os.remove(PHOTOIMAGE)
+                exif = img.get_exif()
+                if exif:
+                    primary = exif.get_primary()
+                if not exif is None or not primary is None:
 
-                self.root.ids["queuedimage"].source= QUEUEDIMAGE
-                self.root.ids["queuedimage"].reload()
-                self.root.ids["cameraimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
-                self.root.ids["cameraimage"].reload()
+                    print ">",self.root.ids["cameracomment"].text,"<"
+                    primary.ImageDescription =str(self.config.get('rmap','user'))
+                    primary.ExtendedEXIF.UserComment = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+str(self.root.ids["cameracomment"].text)
+                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
+                    #embedded["UserComment"] = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+self.root.ids["cameracomment"].text
+                    img.set_geo(float(self.lat), float(self.lon))
+
+                    try:
+                        print primary.DateTime
+                    except:
+                        print "DateTime not present"
+
+                    #datetime
+                    primary.DateTime=datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
+                    print primary.DateTime
+                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
+                    #if embedded["DateTime"]:
+                    #    embedded["DateTime"] = datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
+                    #try:
+                    #    os.remove(QUEUEDIMAGE)
+                    #except:
+                    #    pass
+                    newfilename=queuednewfilename()
+                    img.writeFile(newfilename)
+                
+                    os.remove(PHOTOIMAGE)
+
+                    #self.root.ids["queuedimage"].source=newfilename
+
+
+
+                    self.root.ids["queuedimagebox"].clear_widgets()
+
+                    queuedimage=queuedfilename()
+                    if (not queuedimage is None):
+                        #self.root.ids["queuedimage"].source= queuedimage
+                        for file in sorted(glob(QUEUEDIMAGES)):
+                            if os.path.isfile(file):
+                                image=QueuedImage(queuedimage=file)
+                                self.root.ids["queuedimagebox"].add_widget(image)
+
+                    #self.root.ids["queuedimage"].reload()
+                    self.root.ids["cameraimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+                    self.root.ids["cameraimage"].reload()
+
+                else:
+                    self.popup(_("Error in\nimage!"))
 
             except Exception as e:
                 print e
@@ -2360,10 +2456,16 @@ class Rmap(App):
          self.root.ids["queue"].text=""
 
          # remove queued image
-         if os.path.isfile(QUEUEDIMAGE):
-             os.remove(QUEUEDIMAGE)
-         self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
-         self.root.ids["queuedimage"].reload()
+         for file in glob(QUEUEDIMAGES):
+             if os.path.isfile(file):
+                 os.remove(file)
+
+         self.root.ids["queuedimagebox"].clear_widgets()
+         image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
+         self.root.ids["queuedimagebox"].add_widget(image)
+
+#         self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+#         self.root.ids["queuedimage"].reload()
 
 #    def camera_start(self):
 #        if platform == 'linux':
@@ -2376,6 +2478,8 @@ class Rmap(App):
 
     def camera_take_photo(self):
         if platform == 'android':
+
+            self.notify(_("Wait"))
 
             from jnius import autoclass
             Environment = autoclass('android.os.Environment')
@@ -2431,7 +2535,7 @@ class Rmap(App):
     def photo_show(self,*largs):
         self.root.ids["cameraimage"].source= PHOTOIMAGE
         self.root.ids["cameraimage"].reload()
-
+        self.notifydismiss()
 
     @mainthread
     def getdata_loop(self, *args):
@@ -2482,30 +2586,59 @@ class Rmap(App):
         print "call in publishphoto_loop"
 
         try:
-            if os.path.isfile(QUEUEDIMAGE):
-                # read image in memory.
-                photo_file = open(QUEUEDIMAGE,"r")
-                body = photo_file.read()
-                photo_file.close()
 
-                rmap.rmap_core.send2amqp(body=body,
-                                 user=self.config.get('rmap','user'),
-                                 password=self.config.get('rmap','password'),
-                                 host=self.config.get('rmap','server'),
-                                 exchange="photo",routing_key="photo")
+            for file in sorted(glob(QUEUEDIMAGES)):
+                if os.path.isfile(file):
 
-                os.remove(QUEUEDIMAGE)
-                self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
-                self.root.ids["queuedimage"].reload()
+                    #self.notify(_("Wait"))
 
-                return True
+                    print "send image: ",file
+                    # read image in memory.
+                    photo_file = open(file,"r")
+                    body = photo_file.read()
+                    photo_file.close()
+
+                    rmap.rmap_core.send2amqp(body=body,
+                                             user=self.config.get('rmap','user'),
+                                             password=self.config.get('rmap','password'),
+                                             host=self.config.get('rmap','server'),
+                                             exchange="photo",routing_key="photo")
+
+                    os.remove(file)
+                    #self.notifydismiss()
+
+            self.root.ids["queuedimagebox"].clear_widgets()
+            image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
+            self.root.ids["queuedimagebox"].add_widget(image)
+
+#            self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+#            self.root.ids["queuedimage"].reload()
+
+            return True
 
         except:
+
+            #self.notifydismiss()
+            self.root.ids["queuedimagebox"].clear_widgets()
+
+            queuedimage=queuedfilename()
+            if (not queuedimage is None):
+                #self.root.ids["queuedimage"].source= queuedimage
+                for file in sorted(glob(QUEUEDIMAGES)):
+                    if os.path.isfile(file):
+                        image=QueuedImage(queuedimage=file)
+                        self.root.ids["queuedimagebox"].add_widget(image)
+
+            else:
+                image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
+                self.root.ids["queuedimagebox"].add_widget(image)
+
+                #self.root.ids["queuedimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+                #self.root.ids["queuedimage"].reload()
 
             self.popup(_("error sending\nimage to server!"))
             # disable until new connect
             return False
-
 
 
     @mainthread

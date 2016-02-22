@@ -392,10 +392,15 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rmap.stations',
     'rmap.doc',
-    'leaflet',
-    'djgeojson',
-    'geoimage'
 ]
+
+if not android :
+    INSTALLED_APPS += [
+        'leaflet',
+        'djgeojson',
+        'geoimage',
+        'imagekit'
+    ]
 
 # django save the files on memory, but large files are saved in a path.
 # The size of "large file" can be defined in settings using

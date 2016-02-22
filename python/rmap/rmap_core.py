@@ -27,7 +27,6 @@ from django.core import serializers
 import pika
 from rmap.utils import nint
 from rmap import jsonrpc
-from geoimage.models import GeorefencedImage
 from django.core.files.base import ContentFile
 from datetime import datetime
 import pexif
@@ -629,6 +628,8 @@ def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.
 
 def receivegeoimagefromamqp(user=u"your user",password="your password",host="rmap.cc",queue="photo"):
 
+    from geoimage.models import GeorefencedImage
+
     def callback(ch, method, properties, body):
         print " [x] Received message"
 
@@ -650,15 +651,15 @@ def receivegeoimagefromamqp(user=u"your user",password="your password",host="rma
             if exif:
                 primary = exif.get_primary()
             if exif is None or primary is None:
-                print >> sys.stderr, "image has no EXIF tag, skipping"
-                ident=None
+                print "image has no EXIF tag, skipping"
+                imgident=None
             else:
                 imgident=primary.ImageDescription
 
             #but we check that message content is with the same ident
             if (imgident == ident):
 
-                comment="".join(img.exif.primary.ExtendedEXIF.UserComment)
+                comment="".join(img.exif.primary.ExtendedEXIF.UserComment[8:])
                 lat,lon=img.get_geo()
 
                 primary = exif.get_primary()
@@ -684,7 +685,8 @@ def receivegeoimagefromamqp(user=u"your user",password="your password",host="rma
             else:
                 print "reject:",ident
 
-        except:
+        except Exception as e:
+            print e
             print "errore!"
             #file = open(ident+".jpg","w")
             #file.write(body)

@@ -1,3 +1,6 @@
+from imagekit.models import ImageSpecField
+from imagekit.models import ProcessedImageField
+from imagekit.processors import ResizeToFill, Transpose, SmartResize, ResizeToFit
 from djgeojson.fields import PointField
 from django.db import models
 from django.contrib.auth.models import User
@@ -9,9 +12,9 @@ if ((djversion[0] == 1 and djversion[1] >= 3) or
 
     from django.db.models import signals
 
-    class DeletingImageField(models.ImageField):
+    class DeletingImageField(ProcessedImageField):
         """
-        ImageField subclass that deletes the refernced file when the model object
+        ProcessedImageField subclass that deletes the refernced file when the model object
         itself is deleted.
         
         WARNING: Be careful using this class - it can cause data loss! This class
@@ -36,7 +39,7 @@ if ((djversion[0] == 1 and djversion[1] >= 3) or
                 file.close()
 
 else:
-    DeletingImageField=models.ImageField
+    DeletingImageField=ProcessedImageField
 
 
 CATEGORY_CHOICES = (
@@ -50,16 +53,28 @@ class GeorefencedImage(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this geoimage"))
     geom = PointField()
     comment = models.TextField()
-    image = DeletingImageField()
+    #image = DeletingImageField()
     ident = models.ForeignKey(User)
     date=models.DateTimeField(auto_now=False, auto_now_add=False)
     category = models.CharField(max_length=50, blank=False,choices=CATEGORY_CHOICES)
 
+
+    image = DeletingImageField(processors=[Transpose(),ResizeToFit(600, 600)],
+                                          format='jpeg',
+                                          options={'quality': 70})
+
+    image_thumbnail = ImageSpecField(
+        source='image',
+        processors = [Transpose(),SmartResize(128, 128)],
+        format = 'JPEG',
+        options = {'quality': 60}
+    )
+
     @property
     def popupContent(self):
 
-      return '<a href="/{}"><img src="/{}" style="width:128px;height:128px;" ></a><p>{}</p>'.format(
+      return '<a href="/{}"><img src="/{}"></a><p>{}</p>'.format(
           self.image.url,
-          self.image.url,
+          self.image_thumbnail.url,
           self.comment)
 

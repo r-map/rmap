@@ -49,13 +49,11 @@ urlpatterns = [
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
 
     url(r'^http2mqtt/', include('http2mqtt.urls')),
-    url(r'^geoimage/', include('geoimage.urls')),
 ]
 
 if not android  :
-    #borinud
-    print "import borinud"
-    urlpatterns.append( url(r'^borinud/', include('borinud.urls')))
+    urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
+    urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
