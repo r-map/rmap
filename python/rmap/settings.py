@@ -42,8 +42,8 @@ configspec['django']['BASE_URL']="string(default='/django/')"
 configspec['django']['ADMIN_MEDIA_PREFIX']="string(default='/django/media/admin/')"
 configspec['django']['STATIC_URL']="string(default='/static/')"
 configspec['django']['STATIC_ROOT'] = "string(default='/usr/lib/python2.7/site-packages/django/contrib/admin/static/admin/')"
-configspec['django']['MEDIA_PREFIX']="string(default='/static/')"
-configspec['django']['MEDIA_SITE_PREFIX']="string(default='/static/sito/')"
+configspec['django']['MEDIA_PREFIX']="string(default='/media/')"
+configspec['django']['MEDIA_SITE_PREFIX']="string(default='/media/sito/')"
 configspec['django']['SERVE_STATIC']="boolean(default=True)"
 
 
@@ -116,6 +116,13 @@ configspec['amqp2djangod']['lockfile'] = "string(default='/tmp/amqp2django.lock'
 configspec['amqp2djangod']['user']     = "string(default=None)"
 configspec['amqp2djangod']['group']    = "string(default=None)"
 
+
+configspec['amqp2geoimaged']={}
+configspec['amqp2geoimaged']['logfile']  = "string(default='/tmp/amqp2geoimage.log')"
+configspec['amqp2geoimaged']['errfile']  = "string(default='/tmp/amqp2geoimage.err')"
+configspec['amqp2geoimaged']['lockfile'] = "string(default='/tmp/amqp2geoimage.lock')"
+configspec['amqp2geoimaged']['user']     = "string(default=None)"
+configspec['amqp2geoimaged']['group']    = "string(default=None)"
 
 
 configspec['amqp2arkimetd']={}
@@ -208,7 +215,7 @@ STATIC_ROOT             = config['django']['STATIC_ROOT']
 MEDIA_PREFIX            = config['django']['MEDIA_PREFIX']
 MEDIA_SITE_PREFIX       = config['django']['MEDIA_SITE_PREFIX']
 SERVE_STATIC            = config['django']['SERVE_STATIC']
-MEDIA_URL               = BASE_URL+MEDIA_PREFIX
+MEDIA_URL               = "media/"
 SITE_MEDIA_URL          = BASE_URL+MEDIA_SITE_PREFIX
 
 
@@ -245,6 +252,13 @@ errfileamqp2djangod              = config['amqp2djangod']['errfile']
 lockfileamqp2djangod             = config['amqp2djangod']['lockfile']
 useramqp2djangod                 = config['amqp2djangod']['user']
 groupamqp2djangod                = config['amqp2djangod']['group']
+
+# section amqp2geoimaged
+logfileamqp2geoimaged              = config['amqp2geoimaged']['logfile']
+errfileamqp2geoimaged              = config['amqp2geoimaged']['errfile']
+lockfileamqp2geoimaged             = config['amqp2geoimaged']['lockfile']
+useramqp2geoimaged                 = config['amqp2geoimaged']['user']
+groupamqp2geoimaged                = config['amqp2geoimaged']['group']
 
 # section amqp2arkimetd
 logfileamqp2arkimetd              = config['amqp2arkimetd']['logfile']
@@ -380,6 +394,14 @@ INSTALLED_APPS = [
     'rmap.doc',
 ]
 
+if not android :
+    INSTALLED_APPS += [
+        'leaflet',
+        'djgeojson',
+        'geoimage',
+        'imagekit'
+    ]
+
 # django save the files on memory, but large files are saved in a path.
 # The size of "large file" can be defined in settings using
 # FILE_UPLOAD_MAX_MEMORY_SIZE and The FILE_UPLOAD_HANDLERS by default are:
@@ -453,3 +475,10 @@ BORINUD = {
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }
+
+#LEAFLET_CONFIG = {
+#    'SPATIAL_EXTENT': (0.0, 30.0, 30, 60),
+#'DEFAULT_CENTER': (11.0, 45.0),
+#'DEFAULT_ZOOM': 16,
+#'MIN_ZOOM': 3,
+#}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+{% load geojson_tags %}
+
+{% block extra_assets %}
+  {% leaflet_js %}
+  {% leaflet_css %}
+{% endblock %}
+
+{% block content %}
+
+
+    <script type="text/javascript">
+
+      var collection = {{ grimages|geojsonfeature:"popupContent"|safe }};
+
+      function onEachFeature(feature, layer) {
+         if (feature.properties && feature.properties.popupContent) {
+           layer.bindPopup(feature.properties.popupContent);
+         }
+      }
+
+      function map_init(map, options) {
+         L.geoJson(collection, {onEachFeature: onEachFeature}).addTo(map);
+      }
+
+    </script>
+
+    {% leaflet_map "spots" callback="window.map_init" %}
+
+{% endblock %}

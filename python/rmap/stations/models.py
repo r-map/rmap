@@ -12,7 +12,6 @@ from rmap.utils import nint
 if ((djversion[0] == 1 and djversion[1] >= 3) or 
     djversion[0] > 1):
 
-    from django.db import models
     from django.db.models import signals
 
     class DeletingFileField(models.FileField):

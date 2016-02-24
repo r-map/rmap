@@ -17,8 +17,10 @@
     <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/superfish/1.7.4/superfish.min.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "registration/navigation.css" %}">
     <meta name="viewport" content="width=device-width">
-</head>
 
+    {% block extra_assets %}{% endblock %}
+
+</head>
 <body>
     <div id="header" class="mainstyle">
 
@@ -38,7 +40,8 @@
 	      <a href="http://rmapv.rmap.cc">Server RMAP Veneto</a>
 -->
 	      <ul>
-		<li><a href="/borinud/">punti stazione su mappa e grafici</a></li>
+		<li><a href="/borinud/">Punti stazione su mappa e grafici</a></li>
+		<li><a href="/geoimage/">Immagini georeferenziate su mappa</a></li>
 		<li><a href="http://graphite.rmapv.rmap.cc/dashboard/#rmap default">Dashboard di esempio</a></li>
 		<li><a href="http://graphite.rmapv.rmap.cc">Grafici graphite</a></li>
 		<li><a href="http://rmapv.rmap.cc/arkiweb">Estrazione dati storici</a></li>
@@ -47,7 +50,7 @@
 		  <a href="/">Amministrazione</a>
 		  <ul>
 		    <li><a href="/http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
-		    <li><a href="http://rmapv.rmap.cc:/admin">Amministrazione Django</a></li>
+		    <li><a href="/admin">Amministrazione Django</a></li>
 		    <li><a href="http://rmapv.rmap.cc:443">Monitoraggio processi (da portare alla porta 2812</a></li>
 		    <li><a href="http://rmapv.rmap.cc:15672">Amministrazione rabbitmq</a></li>
  		  </ul>
