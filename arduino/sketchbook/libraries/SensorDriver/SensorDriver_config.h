@@ -2,7 +2,7 @@
 //#define SDDEBUGONSERIAL
 
 //those ms after a prepare the measure will be too old to be considered valid
-#define MAXDELAYFORREAD 4000
+#define MAXDELAYFORREAD 8000
 
 // use ajson library for json response
 #define USEAJSON

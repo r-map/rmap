@@ -1055,14 +1055,14 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-
   // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_WIND_COMMAND);
   Wire.write(I2C_WIND_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   // get DD
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_WIND_DD);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
