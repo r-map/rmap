@@ -354,3 +354,135 @@ class ArkimetVm2DB(DB):
     def query_stations(self, rec):
         """Not yet implemented."""
         return DB.query_stations(self, rec)
+
+
+class ArkimetBufrDB(DB):
+    """Arkimet dataset containing generic ``BUFR`` data."""
+    def __init__(self, dataset, measurements):
+        """
+        Create a DB from an `HTTP` Arkimet `dataset` containing generic BUFR
+        data.
+
+        :param dataset: `URL` of Arkimet dataset
+        :param measurements: array of dict with `var`, `level` and `trange`
+
+        Example::
+
+            ArkimetBufrDB(
+                "http://localhost:8090/dataset/rmap", [{
+                    "var": "B13011",
+                    "level": (1, None, None, None),
+                    "trange": (0, 0, 3600),
+                }, {
+                    "var": "B12101",
+                    "level": (103, 2000, None, None),
+                }],
+            )
+        """
+        self.dataset = dataset
+        self.measurements = measurements
+
+    def query_stations(self, rec):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/summary?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "json",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        for i in json.load(r)["items"]:
+            yield dballe.Record(**{
+                "ident": i["proddef"]["va"]["id"] if all([
+                    "proddef" in i,
+                    "va" in i["proddef"],
+                    "id" in i["proddef"]["va"]
+                ]) else None,
+                "lon": i["area"]["va"]["lon"],
+                "lat": i["area"]["va"]["lat"],
+                "rep_memo": i["product"]["va"]["t"],
+            })
+
+    def query_summary(self, rec):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/summary?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "json",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        for i in json.load(r)["items"]:
+            for m in self.measurements:
+                if all([
+                    rec.get(k) == item.get(k)
+                    for k in ["var", "level", "trange"]
+                    if k in rec
+                ]):
+                    yield dballe.Record(**{
+                        "var": m["var"],
+                        "level": m["level"],
+                        "trange": m["trange"],
+                        "ident": i["proddef"]["va"]["id"] if all([
+                            "proddef" in i,
+                            "va" in i["proddef"],
+                            "id" in i["proddef"]["va"]
+                        ]) else None,
+                        "lon": i["area"]["va"]["lon"],
+                        "lat": i["area"]["va"]["lat"],
+                        "rep_memo": i["product"]["va"]["t"],
+                        "datemin": datetime(*i["summarystats"]["b"]),
+                        "datemax": datetime(*i["summarystats"]["e"]),
+                    })
+
+    def query_data(self, rec):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/query?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "data",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        db = dballe.DB.connect_from_url("mem:")
+        return db.query_data(rec)
+
+
+    def record_to_arkiquery(self, rec):
+        """Translate a dballe.Record to arkimet query."""
+        # TODO: less verbose implementation
+        q = {
+            "reftime": [],
+            "area": {},
+            "product": {},
+            "proddef": {},
+        }
+
+        d1, d2 = rec.date_extremes()
+        if d1:
+            q["reftime"].append(">={}".format(d1))
+
+        if d2:
+            q["reftime"].append("<={}".format(d2))
+
+        for k in ["lon", "lat"]:
+            if k in rec:
+                q["area"][k] = int(rec[k] * 10**5)
+
+        if "rep_memo" in rec:
+            q["product"]["t"] = rec["rep_memo"]
+
+        if "ident" in rec:
+            q["proddef"]["id"] = rec["ident"]
+
+        q["reftime"] = ",".join(q["reftime"])
+        q["area"] = "GRIB:{}".format(",".join([
+            "{}={}".format(k, v) for k, v in q["area"].iteritems()
+        ]))
+        q["product"] = "BUFR:{}".format(",".join([
+            "{}={}".format(k, v) for k, v in q["product"].iteritems()
+        ]))
+        q["proddef"] = "GRIB:{}".format(",".join([
+            "{}={}".format(k, v) for k, v in q["proddef"].iteritems()
+        ]))
+
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+
+        return arkiquery
