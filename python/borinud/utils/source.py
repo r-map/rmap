@@ -434,7 +434,9 @@ class ArkimetBufrDB(DB):
             }.iteritems()]))
         r = urlopen(url)
         db = dballe.DB.connect_from_url("mem:")
-        return db.query_data(rec)
+        db.load(r, "BUFR")
+        for r in db.query_data(rec):
+            yield r.copy()
 
 
     def record_to_arkiquery(self, rec):
