@@ -362,6 +362,13 @@ class ArkimetBufrDB(DB):
         self.measurements = measurements
 
     def query_stations(self, rec):
+        """Query stations.
+
+        .. warning::
+
+            Only `ident`, `rep_memo`, `lon` and `lat` are returned.
+            Loading static data must be implemented.
+        """
         query = self.record_to_arkiquery(rec)
         url = "{}/summary?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
@@ -388,6 +395,12 @@ class ArkimetBufrDB(DB):
                     yield r2
 
     def query_summary(self, rec):
+        """Query summary.
+
+        .. warning::
+
+            Every station is supposed to measure all the `self.measurements`
+        """
         query = self.record_to_arkiquery(rec)
         url = "{}/summary?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
