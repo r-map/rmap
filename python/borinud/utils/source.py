@@ -101,7 +101,6 @@ class MergeDB(DB):
     def query_summary(self, rec):
         def reducer(g):
             rec = g.next()
-            print(self.unique_record_key(rec))
             for r in g:
                 if r["datemin"] < rec["datemin"]:
                     rec["datemin"] = r["datemin"]
