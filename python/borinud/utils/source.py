@@ -33,9 +33,25 @@ from ..settings import BORINUD
 
 
 def get_db():
-    return DB.get(BORINUD["SOURCES"],
-                  cached_summary=BORINUD["CACHED_SUMMARY"],
-                  cached_summary_timeout=BORINUD["CACHED_SUMMARY_TIMEOUT"])
+    from django.utils.module_loading import import_string
+    dbs = [
+        import_string(i["class"])(**{
+            k: v for k, v in i.items() if k != "class"
+        })
+        for i in BORINUD["SOURCES"]
+    ]
+    if len(dbs) == 1:
+        db = dbs[0]
+    else:
+        db = MergeDB(dbs)
+
+    if BORINUD["CACHED_SUMMARY"]:
+        db = SummaryCacheDB(
+            db, BORINUD["CACHED_SUMMARY"],
+            BORINUD["CACHED_SUMMARY_TIMEOUT"],
+        )
+
+    return db
 
 
 class DB(object):
@@ -46,43 +62,6 @@ class DB(object):
     - `query_summary`
     - `query_data`
     """
-
-    @classmethod
-    def get(cls, urls, *args, **kw):
-        """Factory method.
-
-        The supported `url` are:
-
-        - ``sqlite:FILENAME`` (DB-All.e).
-        - ``odbc:DSN`` (DB-All.e).
-        - ``http://...`` (Arkimet dataset).
-        - A ``list`` of the previous
-
-        Keyword arguments:
-
-        - `cached_summary`: name of the cache for the cached summary
-        - `cached_summary_timeout`: cached summary timeout
-        """
-        dbs = []
-
-        for url in urls:
-            if url.startswith("sqlite:") or url.startswith("odbc:"):
-                db = DballeDB(url)
-            elif url.startswith("http:"):
-                db = ArkimetVm2DB(url)
-            else:
-                raise Exception("Invalid db url: " + url)
-
-            dbs.append(db)
-
-        db = MergeDB(dbs)
-
-        if kw.get("cached_summary"):
-            db = SummaryCacheDB(db, kw.get("cached_summary"),
-                                kw.get("cached_summary_timeout"))
-
-        return db
-
     def query_stations(self, rec):
         """Query stations. Return a dballe.Record."""
         raise NotImplementedError()
