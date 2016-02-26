@@ -99,9 +99,21 @@ class MergeDB(DB):
             yield r.copy()
 
     def query_summary(self, rec):
-        for db in self.dbs:
-            for r in db.query_summary(rec):
-                yield r.copy()
+        def reducer(g):
+            rec = g.next()
+            print(self.unique_record_key(rec))
+            for r in g:
+                if r["datemin"] < rec["datemin"]:
+                    rec["datemin"] = r["datemin"]
+                if r["datemax"] > rec["datemax"]:
+                    rec["datemax"] = r["datemax"]
+
+            return rec
+
+        for r in self.get_unique_records(
+            "query_summary", rec, reducer
+        ):
+            yield r.copy()
 
     def query_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
