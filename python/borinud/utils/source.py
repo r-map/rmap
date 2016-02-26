@@ -392,11 +392,7 @@ class ArkimetBufrDB(DB):
         r = urlopen(url)
         for i in json.load(r)["items"]:
             yield dballe.Record(**{
-                "ident": i["proddef"]["va"]["id"] if all([
-                    "proddef" in i,
-                    "va" in i["proddef"],
-                    "id" in i["proddef"]["va"]
-                ]) else None,
+                "ident": i.get("proddef", {}).get("va", {}).get("id", None),
                 "lon": i["area"]["va"]["lon"],
                 "lat": i["area"]["va"]["lat"],
                 "rep_memo": i["product"]["va"]["t"],
@@ -421,11 +417,7 @@ class ArkimetBufrDB(DB):
                         "var": m["var"],
                         "level": m["level"],
                         "trange": m["trange"],
-                        "ident": i["proddef"]["va"]["id"] if all([
-                            "proddef" in i,
-                            "va" in i["proddef"],
-                            "id" in i["proddef"]["va"]
-                        ]) else None,
+                        "ident": i.get("proddef", {}).get("va", {}).get("id", None),
                         "lon": i["area"]["va"]["lon"],
                         "lat": i["area"]["va"]["lat"],
                         "rep_memo": i["product"]["va"]["t"],
