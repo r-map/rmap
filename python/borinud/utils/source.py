@@ -369,30 +369,13 @@ class ArkimetBufrDB(DB):
             Only `ident`, `rep_memo`, `lon` and `lat` are returned.
             Loading static data must be implemented.
         """
-        query = self.record_to_arkiquery(rec)
-        url = "{}/summary?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "json",
-                "query": query,
-            }.iteritems()]))
-        r = urlopen(url)
-        for i in json.load(r)["items"]:
-            for n, b in (
-                ("ident", "B01011"),
-                ("rep_memo", "B01194"),
-                ("lon", "B06001"),
-                ("lat", "B05001")
-            ):
-                r = dballe.Record(**{
-                    "ident": i.get("proddef", {}).get("va", {}).get("id", None),
-                    "lon": i["area"]["va"]["lon"],
-                    "lat": i["area"]["va"]["lat"],
-                    "rep_memo": i["product"]["va"]["t"],
-                })
-                if n in r:
-                    r2 = r.copy()
-                    r2.update(**{"var": b, b: r2[n]})
-                    yield r2
+        dates = set(r["datemax"] for r in self.query_summary(dballe.Record()))
+        db = dballe.DB.connect_from_url("mem:")
+        for d in dates:
+            self.load_arkiquery_to_dbadb(dballe.Record(date=d), db)
+
+        for s in db.query_station_data(rec):
+            yield s
 
     def query_summary(self, rec):
         """Query summary.
@@ -428,6 +411,12 @@ class ArkimetBufrDB(DB):
                     })
 
     def query_data(self, rec):
+        db = dballe.DB.connect_from_url("mem:")
+        self.load_arkiquery_to_dbadb(rec, db)
+        for r in db.query_data(rec):
+            yield r.copy()
+
+    def load_arkiquery_to_dbadb(self, rec, db):
         query = self.record_to_arkiquery(rec)
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
@@ -435,11 +424,7 @@ class ArkimetBufrDB(DB):
                 "query": query,
             }.iteritems()]))
         r = urlopen(url)
-        db = dballe.DB.connect_from_url("mem:")
         db.load(r, "BUFR")
-        for r in db.query_data(rec):
-            yield r.copy()
-
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
