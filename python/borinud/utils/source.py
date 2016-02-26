@@ -80,10 +80,21 @@ class MergeDB(DB):
     def __init__(self, dbs):
         self.dbs = dbs
 
+    def unique_record_key(self, rec):
+        return tuple(map(rec.get, (
+            "ident", "lon", "lat", "rep_memo", "var", "level", "trange",
+        )))
+
+    def get_unique_records(self, funcname, rec):
+        from itertools import groupby
+        for k, g in groupby(sorted([
+            r for db in self.dbs for r in getattr(db, funcname)(rec)
+        ], key=self.unique_record_key), self.unique_record_key):
+            yield g.next()
+
     def query_stations(self, rec):
-        for db in self.dbs:
-            for r in db.query_stations(rec):
-                yield r.copy()
+        for r in self.get_unique_records("query_stations", rec):
+            yield r.copy()
 
     def query_summary(self, rec):
         for db in self.dbs:
