@@ -370,12 +370,22 @@ class ArkimetBufrDB(DB):
             }.iteritems()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
-            yield dballe.Record(**{
-                "ident": i.get("proddef", {}).get("va", {}).get("id", None),
-                "lon": i["area"]["va"]["lon"],
-                "lat": i["area"]["va"]["lat"],
-                "rep_memo": i["product"]["va"]["t"],
-            })
+            for n, b in (
+                ("ident", "B01011"),
+                ("rep_memo", "B01194"),
+                ("lon", "B06001"),
+                ("lat", "B05001")
+            ):
+                r = dballe.Record(**{
+                    "ident": i.get("proddef", {}).get("va", {}).get("id", None),
+                    "lon": i["area"]["va"]["lon"],
+                    "lat": i["area"]["va"]["lat"],
+                    "rep_memo": i["product"]["va"]["t"],
+                })
+                if n in r:
+                    r2 = r.copy()
+                    r2.update(**{"var": b, b: r2[n]})
+                    yield r2
 
     def query_summary(self, rec):
         query = self.record_to_arkiquery(rec)
