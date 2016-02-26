@@ -91,9 +91,15 @@ class MergeDB(DB):
                 yield r.copy()
 
     def query_data(self, rec):
+        memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
             for r in db.query_data(rec):
-                yield r.copy()
+                del r["ana_id"]
+                del r["data_id"]
+                memdb.insert_data(r, True, True)
+
+        for r in memdb.query_data(rec):
+            yield r.copy()
 
 
 class DballeDB(DB):
