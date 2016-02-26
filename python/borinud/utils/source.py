@@ -443,8 +443,6 @@ class ArkimetBufrDB(DB):
         q = {
             "reftime": [],
             "area": {},
-            "product": {},
-            "proddef": {},
         }
 
         d1, d2 = rec.date_extremes()
@@ -459,20 +457,15 @@ class ArkimetBufrDB(DB):
                 q["area"][k] = int(rec[k] * 10**5)
 
         if "rep_memo" in rec:
-            q["product"]["t"] = rec["rep_memo"]
+            q["product"] = "BUFR:{}".format(rec["rep_memo"])
 
         if "ident" in rec:
-            q["proddef"]["id"] = rec["ident"]
+            q["proddef"] = "GRIB:id={}".format(rec["ident"])
 
         q["reftime"] = ",".join(q["reftime"])
+
         q["area"] = "GRIB:{}".format(",".join([
             "{}={}".format(k, v) for k, v in q["area"].iteritems()
-        ]))
-        q["product"] = "BUFR:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["product"].iteritems()
-        ]))
-        q["proddef"] = "GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["proddef"].iteritems()
         ]))
 
         arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
