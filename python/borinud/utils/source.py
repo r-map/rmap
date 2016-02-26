@@ -33,9 +33,25 @@ from ..settings import BORINUD
 
 
 def get_db():
-    return DB.get(BORINUD["SOURCES"],
-                  cached_summary=BORINUD["CACHED_SUMMARY"],
-                  cached_summary_timeout=BORINUD["CACHED_SUMMARY_TIMEOUT"])
+    from django.utils.module_loading import import_string
+    dbs = [
+        import_string(i["class"])(**{
+            k: v for k, v in i.items() if k != "class"
+        })
+        for i in BORINUD["SOURCES"]
+    ]
+    if len(dbs) == 1:
+        db = dbs[0]
+    else:
+        db = MergeDB(dbs)
+
+    if BORINUD["CACHED_SUMMARY"]:
+        db = SummaryCacheDB(
+            db, BORINUD["CACHED_SUMMARY"],
+            BORINUD["CACHED_SUMMARY_TIMEOUT"],
+        )
+
+    return db
 
 
 class DB(object):
@@ -46,43 +62,6 @@ class DB(object):
     - `query_summary`
     - `query_data`
     """
-
-    @classmethod
-    def get(cls, urls, *args, **kw):
-        """Factory method.
-
-        The supported `url` are:
-
-        - ``sqlite:FILENAME`` (DB-All.e).
-        - ``odbc:DSN`` (DB-All.e).
-        - ``http://...`` (Arkimet dataset).
-        - A ``list`` of the previous
-
-        Keyword arguments:
-
-        - `cached_summary`: name of the cache for the cached summary
-        - `cached_summary_timeout`: cached summary timeout
-        """
-        dbs = []
-
-        for url in urls:
-            if url.startswith("sqlite:") or url.startswith("odbc:"):
-                db = DballeDB(url)
-            elif url.startswith("http:"):
-                db = ArkimetVm2DB(url)
-            else:
-                raise Exception("Invalid db url: " + url)
-
-            dbs.append(db)
-
-        db = MergeDB(dbs)
-
-        if kw.get("cached_summary"):
-            db = SummaryCacheDB(db, kw.get("cached_summary"),
-                                kw.get("cached_summary_timeout"))
-
-        return db
-
     def query_stations(self, rec):
         """Query stations. Return a dballe.Record."""
         raise NotImplementedError()
@@ -354,3 +333,145 @@ class ArkimetVm2DB(DB):
     def query_stations(self, rec):
         """Not yet implemented."""
         return DB.query_stations(self, rec)
+
+
+class ArkimetBufrDB(DB):
+    """Arkimet dataset containing generic ``BUFR`` data."""
+    def __init__(self, dataset, measurements):
+        """
+        Create a DB from an `HTTP` Arkimet `dataset` containing generic BUFR
+        data.
+
+        :param dataset: `URL` of Arkimet dataset
+        :param measurements: array of dict with `var`, `level` and `trange`
+
+        Example::
+
+            ArkimetBufrDB(
+                "http://localhost:8090/dataset/rmap", [{
+                    "var": "B13011",
+                    "level": (1, None, None, None),
+                    "trange": (0, 0, 3600),
+                }, {
+                    "var": "B12101",
+                    "level": (103, 2000, None, None),
+                }],
+            )
+        """
+        self.dataset = dataset
+        self.measurements = measurements
+
+    def query_stations(self, rec):
+        """Query stations.
+
+        .. warning::
+
+            Only `ident`, `rep_memo`, `lon` and `lat` are returned.
+            Loading static data must be implemented.
+        """
+        query = self.record_to_arkiquery(rec)
+        url = "{}/summary?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "json",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        for i in json.load(r)["items"]:
+            for n, b in (
+                ("ident", "B01011"),
+                ("rep_memo", "B01194"),
+                ("lon", "B06001"),
+                ("lat", "B05001")
+            ):
+                r = dballe.Record(**{
+                    "ident": i.get("proddef", {}).get("va", {}).get("id", None),
+                    "lon": i["area"]["va"]["lon"],
+                    "lat": i["area"]["va"]["lat"],
+                    "rep_memo": i["product"]["va"]["t"],
+                })
+                if n in r:
+                    r2 = r.copy()
+                    r2.update(**{"var": b, b: r2[n]})
+                    yield r2
+
+    def query_summary(self, rec):
+        """Query summary.
+
+        .. warning::
+
+            Every station is supposed to measure all the `self.measurements`
+        """
+        query = self.record_to_arkiquery(rec)
+        url = "{}/summary?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "json",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        for i in json.load(r)["items"]:
+            for m in self.measurements:
+                if all([
+                    rec.get(k) == item.get(k)
+                    for k in ["var", "level", "trange"]
+                    if k in rec
+                ]):
+                    yield dballe.Record(**{
+                        "var": m["var"],
+                        "level": m["level"],
+                        "trange": m["trange"],
+                        "ident": i.get("proddef", {}).get("va", {}).get("id", None),
+                        "lon": i["area"]["va"]["lon"],
+                        "lat": i["area"]["va"]["lat"],
+                        "rep_memo": i["product"]["va"]["t"],
+                        "datemin": datetime(*i["summarystats"]["b"]),
+                        "datemax": datetime(*i["summarystats"]["e"]),
+                    })
+
+    def query_data(self, rec):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/query?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "data",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        db = dballe.DB.connect_from_url("mem:")
+        db.load(r, "BUFR")
+        for r in db.query_data(rec):
+            yield r.copy()
+
+
+    def record_to_arkiquery(self, rec):
+        """Translate a dballe.Record to arkimet query."""
+        # TODO: less verbose implementation
+        q = {
+            "reftime": [],
+            "area": {},
+        }
+
+        d1, d2 = rec.date_extremes()
+        if d1:
+            q["reftime"].append(">={}".format(d1))
+
+        if d2:
+            q["reftime"].append("<={}".format(d2))
+
+        for k in ["lon", "lat"]:
+            if k in rec:
+                q["area"][k] = int(rec[k] * 10**5)
+
+        if "rep_memo" in rec:
+            q["product"] = "BUFR:{}".format(rec["rep_memo"])
+
+        if "ident" in rec:
+            q["proddef"] = "GRIB:id={}".format(rec["ident"])
+
+        q["reftime"] = ",".join(q["reftime"])
+
+        q["area"] = "GRIB:{}".format(",".join([
+            "{}={}".format(k, v) for k, v in q["area"].iteritems()
+        ]))
+
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+
+        return arkiquery
