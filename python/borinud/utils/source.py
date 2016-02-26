@@ -85,15 +85,17 @@ class MergeDB(DB):
             "ident", "lon", "lat", "rep_memo", "var", "level", "trange",
         )))
 
-    def get_unique_records(self, funcname, rec):
+    def get_unique_records(self, funcname, rec, reducer):
         from itertools import groupby
         for k, g in groupby(sorted([
             r for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
-            yield g.next()
+            yield reducer(g)
 
     def query_stations(self, rec):
-        for r in self.get_unique_records("query_stations", rec):
+        for r in self.get_unique_records(
+            "query_stations", rec, lambda g: g.next()
+        ):
             yield r.copy()
 
     def query_summary(self, rec):
