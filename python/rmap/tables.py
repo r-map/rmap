@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+from collections import OrderedDict
 
 # one table row
 class TableEntry:
@@ -24,26 +25,23 @@ class TableEntry:
 
 
 # table.txt
-class Table(dict):
+class Table(OrderedDict):
     def __init__(self, filename=None):
 
+        super(Table,self).__init__()
 
         if filename is None:
             file = open("table.txt")
         else:
             file = open(filename)
 
-
         for line in file.readlines():
             entry=TableEntry(line)
             self[entry.code]=entry
 
-
     def output(self, fileobj=sys.stdout):
-        for entry in self.iterkeys():
+        for entry in tmp.iterkeys():
             self[entry].output(fileobj)
-
-
 
 def main():
 

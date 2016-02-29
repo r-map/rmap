@@ -54,6 +54,7 @@ urlpatterns = [
 if not android  :
     urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
     urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
+    urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
