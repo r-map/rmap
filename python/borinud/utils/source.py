@@ -80,20 +80,50 @@ class MergeDB(DB):
     def __init__(self, dbs):
         self.dbs = dbs
 
+    def unique_record_key(self, rec):
+        return tuple(map(rec.get, (
+            "ident", "lon", "lat", "rep_memo", "var", "level", "trange",
+        )))
+
+    def get_unique_records(self, funcname, rec, reducer):
+        from itertools import groupby
+        for k, g in groupby(sorted([
+            r for db in self.dbs for r in getattr(db, funcname)(rec)
+        ], key=self.unique_record_key), self.unique_record_key):
+            yield reducer(g)
+
     def query_stations(self, rec):
-        for db in self.dbs:
-            for r in db.query_stations(rec):
-                yield r.copy()
+        for r in self.get_unique_records(
+            "query_stations", rec, lambda g: g.next()
+        ):
+            yield r.copy()
 
     def query_summary(self, rec):
-        for db in self.dbs:
-            for r in db.query_summary(rec):
-                yield r.copy()
+        def reducer(g):
+            rec = g.next()
+            for r in g:
+                if r["datemin"] < rec["datemin"]:
+                    rec["datemin"] = r["datemin"]
+                if r["datemax"] > rec["datemax"]:
+                    rec["datemax"] = r["datemax"]
+
+            return rec
+
+        for r in self.get_unique_records(
+            "query_summary", rec, reducer
+        ):
+            yield r.copy()
 
     def query_data(self, rec):
+        memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
             for r in db.query_data(rec):
-                yield r.copy()
+                del r["ana_id"]
+                del r["data_id"]
+                memdb.insert_data(r, True, True)
+
+        for r in memdb.query_data(rec):
+            yield r.copy()
 
 
 class DballeDB(DB):
