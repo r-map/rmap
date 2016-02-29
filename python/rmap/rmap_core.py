@@ -29,7 +29,7 @@ from rmap.utils import nint
 from rmap import jsonrpc
 from django.core.files.base import ContentFile
 from datetime import datetime
-import pexif
+import exifutils
 
 #sensortemplates={"stima_t_u":
 #'''
@@ -645,32 +645,38 @@ def receivegeoimagefromamqp(user=u"your user",password="your password",host="rma
 
         try:
             # store image in DB
-            img = pexif.JpegFile.fromString(body)
 
-            exif = img.get_exif()
-            if exif:
-                primary = exif.get_primary()
-            if exif is None or primary is None:
-                print "image has no EXIF tag, skipping"
-                imgident=None
-            else:
-                imgident=primary.ImageDescription
+            lat,lon,imgident,comment,date=exifutils.getgeoimage(body)
+
+
+            #img = pexif.JpegFile.fromString(body)
+
+            #exif = img.get_exif()
+            #if exif:
+            #    primary = exif.get_primary()
+            #if exif is None or primary is None:
+            #    print "image has no EXIF tag, skipping"
+            #    imgident=None
+            #else:
+            #    imgident=primary.ImageDescription
 
             #but we check that message content is with the same ident
+            #if (imgident == ident):
+
+            #    comment="".join(img.exif.primary.ExtendedEXIF.UserComment[8:])
+            #    lat,lon=img.get_geo()
+
+            #    primary = exif.get_primary()
+            #    timetag=primary.DateTime
+            #    date = datetime.strptime(timetag, '%Y:%m:%d %H:%M:%S')
+
+            print "getted those metadata from exif:"
+            print lat,lon
+            print comment
+            print date
+            print imgident
+
             if (imgident == ident):
-
-                comment="".join(img.exif.primary.ExtendedEXIF.UserComment[8:])
-                lat,lon=img.get_geo()
-
-                primary = exif.get_primary()
-                timetag=primary.DateTime
-                date = datetime.strptime(timetag, '%Y:%m:%d %H:%M:%S')
-
-                print lat,lon
-                print comment
-                print date
-                print imgident
-
                 geoimage=GeorefencedImage()
                 geoimage.geom = {'type': 'Point', 'coordinates': [lon, lat]}
                 geoimage.comment=comment
@@ -687,10 +693,7 @@ def receivegeoimagefromamqp(user=u"your user",password="your password",host="rma
 
         except Exception as e:
             print e
-            print "errore!"
-            #file = open(ident+".jpg","w")
-            #file.write(body)
-            #file.close()
+            raise
 
         print " [x] Done"
         ch.basic_ack(delivery_tag = method.delivery_tag)

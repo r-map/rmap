@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+img {
+    float: right;
+    border: 3px solid black;
+    margin: 0px 0px 10px 10px;
+}
+</style>
+</head>
+<body>
+
+<p>
+  <img src="/{{ grimage.image.url }}">
+</p>
+<p>
+  {{grimage.comment}}
+</p>
+<p>
+<a href="/geoimage/{{grimage.ident}}">{{grimage.ident}}</a>
+ {{grimage.date}}
+</p>
+
+</body>
+</html>

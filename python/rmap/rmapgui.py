@@ -66,6 +66,7 @@ import traceback
 from glob import glob
 from utils import nint
 import rmap.rmap_core
+from rmap import exifutils
 
 platform = platform()
 
@@ -1974,6 +1975,7 @@ class Rmap(App):
             Clock.schedule_once(self.myphoto_loop)
             Clock.schedule_interval(self.myphoto_loop, 180.)
         else:
+            self.popup(_("Cannot connect.\nStation disabled!"))
             self.root.ids["connect"].state="normal"
 
     def queueoff(self):
@@ -2385,62 +2387,74 @@ class Rmap(App):
                 #    os.remove(QUEUEDIMAGE)
 
                 # queue photo for the server
-                import pexif
-                # Add exif in a file
-                img = pexif.JpegFile.fromFile(PHOTOIMAGE)
-                #img = pexif.JpegFile.fromString(body)
-                exif = img.get_exif()
-                if exif:
-                    primary = exif.get_primary()
-                if not exif is None or not primary is None:
 
-                    print ">",self.root.ids["cameracomment"].text,"<"
-                    primary.ImageDescription =str(self.config.get('rmap','user'))
-                    primary.ExtendedEXIF.UserComment = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+str(self.root.ids["cameracomment"].text)
-                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
-                    #embedded["UserComment"] = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+self.root.ids["cameracomment"].text
-                    img.set_geo(float(self.lat), float(self.lon))
+#                import pexif
+#                # Add exif in a file
+#                img = pexif.JpegFile.fromFile(PHOTOIMAGE)
+#                #img = pexif.JpegFile.fromString(body)
+#                exif = img.get_exif()
+#                if exif:
+#                    primary = exif.get_primary()
+#                if not exif is None or not primary is None:
+#
+#                    print ">",self.root.ids["cameracomment"].text,"<"
+#                    primary.ImageDescription =str(self.config.get('rmap','user'))
+#                    primary.ExtendedEXIF.UserComment = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+str(self.root.ids["cameracomment"].text)
+#                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
+#                    #embedded["UserComment"] = chr(0x55)+chr(0x4E)+chr(0x49)+chr(0x43)+chr(0x4F)+chr(0x44)+chr(0x45)+chr(0x00)+self.root.ids["cameracomment"].text
+#                    img.set_geo(float(self.lat), float(self.lon))
+#
+#                    try:
+#                        print primary.DateTime
+#                    except:
+#                        print "DateTime not present"
+#
+#                    #datetime
+#                    primary.DateTime=datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
+#                    print primary.DateTime
+#                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
+#                    #if embedded["DateTime"]:
+#                    #    embedded["DateTime"] = datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
+#                    #try:
+#                    #    os.remove(QUEUEDIMAGE)
+#                    #except:
+#                    #    pass
 
-                    try:
-                        print primary.DateTime
-                    except:
-                        print "DateTime not present"
+#                    newfilename=queuednewfilename()
+##                    img.writeFile(newfilename)
 
-                    #datetime
-                    primary.DateTime=datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
-                    print primary.DateTime
-                    #embedded = img.exif.primary.__getattr__("ExtendedEXIF")
-                    #if embedded["DateTime"]:
-                    #    embedded["DateTime"] = datetime.utcnow().strftime("%Y:%m:%d %H:%M:%S")
-                    #try:
-                    #    os.remove(QUEUEDIMAGE)
-                    #except:
-                    #    pass
-                    newfilename=queuednewfilename()
-                    img.writeFile(newfilename)
+                ident=str(self.config.get('rmap','user'))
+                comment=self.root.ids["cameracomment"].text
+                lat=float(self.lat)
+                lon=float(self.lon)
+
+                with open(PHOTOIMAGE,"rb") as pi:
+                    data=pi.read()
+
+                exifutils.setgeoimage(data,lat,lon,imagedescription=ident,usercomment=comment)
+
+                with open(PHOTOIMAGE) as pi:
+                    data=pi.read()
                 
-                    os.remove(PHOTOIMAGE)
+                with open(queuednewfilename(),"wb") as pi:
+                    pi.write(data)
 
-                    #self.root.ids["queuedimage"].source=newfilename
+                os.remove(PHOTOIMAGE)
 
+                self.root.ids["queuedimagebox"].clear_widgets()
 
+                queuedimage=queuedfilename()
+                if (not queuedimage is None):
+                    #self.root.ids["queuedimage"].source= queuedimage
+                    for file in sorted(glob(QUEUEDIMAGES)):
+                        if os.path.isfile(file):
+                            image=QueuedImage(queuedimage=file)
+                            self.root.ids["queuedimagebox"].add_widget(image)
 
-                    self.root.ids["queuedimagebox"].clear_widgets()
+                #self.root.ids["queuedimage"].reload()
+                self.root.ids["cameraimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
+                self.root.ids["cameraimage"].reload()
 
-                    queuedimage=queuedfilename()
-                    if (not queuedimage is None):
-                        #self.root.ids["queuedimage"].source= queuedimage
-                        for file in sorted(glob(QUEUEDIMAGES)):
-                            if os.path.isfile(file):
-                                image=QueuedImage(queuedimage=file)
-                                self.root.ids["queuedimagebox"].add_widget(image)
-
-                    #self.root.ids["queuedimage"].reload()
-                    self.root.ids["cameraimage"].source= os.path.join(os.path.dirname(__file__), "icons", "noimage.png")
-                    self.root.ids["cameraimage"].reload()
-
-                else:
-                    self.popup(_("Error in\nimage!"))
 
             except Exception as e:
                 print e
@@ -2511,6 +2525,7 @@ class Rmap(App):
                     self.popup(_("Start Camera!"))
                     return
             except:
+                self.popup(_("not supported\non this\nplatform!"))
                 return
 
             self.root.ids["mycamera"].texture.save(filename=PHOTOIMAGE,flipped=False)
