@@ -1,11 +1,31 @@
+"""
+Settings for Borinud.
+
+Example::
+    # project/settings.py
+    BORINUD["SOURCES"] = [{
+        "class": "borinud.utils.source.DballeDB",
+        "url": "odbc://rmap",
+    }, {
+        "class": "borinud.utils.source.ArkimetBufrDB",
+        "dataset": "http://localhost:8090/dataset/rmap",
+        "measurements": [{
+            "var": "B13011",
+            "level": (1, None, None, None),
+            "trange": (0, 0, 3600),
+        }, {
+            "var": "B12101",
+            "level": (103, 2000, None, None),
+        }],
+    }]
+    BORINUD["CACHED_SUMMARY"] = "default"
+    BORINUD["CACHED_SUMMARY_TIMEOUT"] = 3600
+"""
 from django.conf import settings
 
 DEFAULTS = {
-    # List of databases (e.g. ["sqlite:/path/to/db.sqlite3"]).
     "SOURCES": [],
-    # Name of the cache used for the summary (None if disabled)
     "CACHED_SUMMARY": None,
-    # Cache timeout
     "CACHED_SUMMARY_TIMEOUT": 0,
 }
 
