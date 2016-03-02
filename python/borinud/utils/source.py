@@ -478,7 +478,7 @@ class ArkimetBufrDB(DB):
                 q["area"][k] = int(rec[k] * 10**5)
 
         if "rep_memo" in rec:
-            q["product"] = "BUFR:{}".format(rec["rep_memo"])
+            q["product"] = "BUFR:t={}".format(rec["rep_memo"])
 
         if "ident" in rec:
             q["proddef"] = "GRIB:id={}".format(rec["ident"])
