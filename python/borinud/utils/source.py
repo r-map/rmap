@@ -343,19 +343,21 @@ class ArkimetVm2DB(DB):
             }.iteritems()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
+            if not "va" in  i["area"] or not "va" in i["product"]:
+                continue
             yield dballe.Record(**{
                 "ident": i["area"]["va"].get("ident"),
                 "lon": i["area"]["va"]["lon"],
                 "lat": i["area"]["va"]["lat"],
                 "rep_memo": i["area"]["va"]["rep"],
                 "var": i["product"]["va"]["bcode"],
-                "level": [i["product"]["va"]["lt1"],
+                "level": (i["product"]["va"]["lt1"],
                           i["product"]["va"].get("l1"),
                           i["product"]["va"].get("lt2"),
-                          i["product"]["va"].get("l2")],
-                "trange": [i["product"]["va"]["tr"],
+                          i["product"]["va"].get("l2")),
+                "trange": (i["product"]["va"]["tr"],
                            i["product"]["va"]["p1"],
-                           i["product"]["va"]["p2"]],
+                           i["product"]["va"]["p2"]),
                 "datemin": datetime(*i["summarystats"]["b"]),
                 "datemax": datetime(*i["summarystats"]["e"]),
             })
