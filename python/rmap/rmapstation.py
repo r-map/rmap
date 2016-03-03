@@ -112,6 +112,7 @@ class rmapmqtt:
         self.maintprefix=maintprefix
         self.connected=False
         self.mid=-1
+        self.loop_started=False
 
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
@@ -176,6 +177,8 @@ class rmapmqtt:
         last=time.time()
         while ((time.time()-last) < timeout and not self.puback):
             time.sleep(.1)
+            if (not self.loop_started):
+                self.loop()
 
         if (not self.puback):
             return 50
@@ -257,14 +260,18 @@ class rmapmqtt:
         """
         try:
             rc = self.mqttc.loop_start()
+            self.loop_started=True
         except Exception as inst:
+            self.loop_started=False
             self.error(inst)
 
     def loop_stop(self):
 
         try:
             rc = self.mqttc.loop_stop(force=True)
+            self.loop_started=False
         except Exception as inst:
+            self.loop_started=False
             self.error(inst)        
 
     def disconnect(self):
