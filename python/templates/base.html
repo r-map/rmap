@@ -71,21 +71,35 @@
 	  </li>
 -->
 	<li>
+	  <a href="/stations">Stazioni</a>
+	  <ul>
+	    <li><a href="/stations">Visualizza stazioni</a></li>
+	    {% if user.is_authenticated %}
+	      <li><a href="/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
+            {% endif %}
+	  </ul>
+	</li>
+	<li>
+	  <a>Partecipa</a>
+	  <ul>
+	    <li><a href="http://rmap.cc/registrazione/login/">Gestisci/Registra una nuova stazione</a></li>
+	    <li><a href="/insertdata/manualdata">Inserisci dati rilevti manualmente</a></li>
+	    <li><a href="/insertdata/image">Inserisci immagini georeferenziate</a></li>
+
+
+
+	    <li><a href="http://raspibo.ofpcina.net/groups/profile/2963/stazione-per-il-rilevamento-di-parametri-meteo-ambientali">Social Network</a></li>
+	    <li><a href="http://liste.raspibo.org/wws/info/meteo">Mailing List</a></li>
+	  </ul>
+	</li>
+
+	<li>
 	  <a>Documentation</a>
 	  <ul>
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">Il
 	    progetto sul sito RaspiBO</a></li>
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/RFC-rmap">Rmap
 	    standard RFC</a></li>
-	  </ul>
-	</li>
-
-	<li>
-	  <a>Community</a>
-	  <ul>
-	    <li><a href="http://rmap.cc/registrazione/login/">Manage/Register a new station</a></li>
-	    <li><a href="http://raspibo.ofpcina.net/groups/profile/2963/stazione-per-il-rilevamento-di-parametri-meteo-ambientali">Social Network</a></li>
-	    <li><a href="http://liste.raspibo.org/wws/info/meteo">Mailing List</a></li>
 	  </ul>
 	</li>
 	<li>
@@ -101,16 +115,6 @@
 	    software Fedora 20 i386</a></li>
 	  </ul>
 	</li>
-	<li>
-	  <a href="/stations">Stazioni</a>
-	  <ul>
-	    <li><a href="/stations">Visualizza stazioni</a></li>
-	    {% if user.is_authenticated %}
-	      <li><a href="/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
-            {% endif %}
-	  </ul>
-	</li>
-
       </ul>
     </nav>
 

@@ -7,6 +7,7 @@ from collections import OrderedDict
 # one table row
 class TableEntry:
     def __init__(self, line=None, code=None, description=None):
+
         if line is not None:
             self.code=int(line[0:3])
             self.description = line[4:].replace("\n","").replace("\\n","\n")

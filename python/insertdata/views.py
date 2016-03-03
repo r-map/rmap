@@ -9,24 +9,27 @@ from django.http import HttpResponseRedirect
 from leaflet.forms.widgets import LeafletWidget
 from leaflet.forms.fields import PointField
 from django.core.urlresolvers import reverse
-from  rmap.tables import Table
+from  rmap.tables import Table,TableEntry
 import os
 from django.utils.translation import ugettext as _
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
 from rmap.rmapstation import rmapmqtt
+from rmap.stations.models import StationMetadata
+from django.contrib.gis.geos import Point
 
 lang="it"
 
 
-class scelta():
+class scelta_present_weather(object):
     '''
     build choices for build 
     '''
 
     def __init__(self):
         self.table = Table(os.path.join(os.path.dirname(__file__), "../rmap/tables","present_weather_"+lang+".txt"))
+        self.table[""]=TableEntry(code="",description="----------------")
 
     def __iter__(self):
         self.iter=self.table.__iter__()
@@ -35,6 +38,30 @@ class scelta():
     def next(self):
         entry=self.iter.next()
         return (self.table[entry].code,self.table[entry].description)
+
+
+class scelta_stations(object):
+
+    def __init__(self,username):
+        self.username=username
+
+    def __iter__(self):
+        #self.stations=StationMetadata.objects.filter(active=True,ident__username=self.username).values("slug","lat","lon")
+        self.stations=StationMetadata.objects.filter(active=True,ident__username=self.username).iterator()
+        self.first=True
+        return self
+
+    def next(self):
+
+        if self.first:
+            self.first=False
+            return ("","--------------")
+
+        station=self.stations.next()
+        print "station",station
+        #return (station["slug"],str(station["lat"])+str(station["lon"]))
+        return (station.slug,station.name)
+
 
 class ImageForm(forms.ModelForm):
     #geom = PointField()
@@ -45,13 +72,28 @@ class ImageForm(forms.ModelForm):
         widgets = {'geom': LeafletWidget()}
 
 
+class StationForm(forms.Form):
+
+    def __init__(self, username, *args, **kwargs):
+
+        print "init manualform",username
+
+        super(StationForm, self).__init__(*args, **kwargs)
+        self.fields['station_slug'] = forms.ChoiceField(scelta_stations(username),required=False,label=_('Your station'),help_text=_('Select configurated station'),initial="")
+
+
 class ManualForm(forms.ModelForm):
 
     #geom = PointField()
-    presentweather=forms.ChoiceField(choices=scelta(),required=False,label=_('Present weather'),help_text=_('Present weather'))
+
+    presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
+
+    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text=_(''),min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text=_(''),min_value=0,max_value=1000)
+
     class Meta:
         model = GeorefencedImage
-        fields = ('geom','presentweather')
+        fields = ('geom',)
         widgets = {'geom': LeafletWidget()}
 
 
@@ -154,37 +196,64 @@ def insertDataImage(request):
 def insertDataManualData(request):
 
     if request.method == 'POST': # If the form has been submitted...
-        form = ManualForm(request.POST, request.FILES) # A form bound to the POST data
-        if form.is_valid(): # All validation rules pass
 
-            value=form.cleaned_data['presentweather']
+        stationform = StationForm(request.user.get_username(),request.POST, request.FILES) # A form bound to the POST data
+        form = ManualForm(request.POST, request.FILES) # A form bound to the POST data
+
+        if stationform.is_valid(): # All validation rules pass
+
+            slug=stationform.cleaned_data['station_slug']
+            if slug:
+                station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
+                request.POST['geom']= str(Point(station.lon,station.lat))
+                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
+        else:
+            stationform = StationForm(request.user.get_username())
+
+        if form.is_valid(): # All validation rules pass
+            
             geom=form.cleaned_data['geom']
-            print geom
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)
-
-
-            datavar={"B20003":{"t": dt,"v": str(value)}}
-
-            print datavar
-            stationslug=None
-            boardslug=None
             ident=request.user.username
 
-            mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="rmap.cc",port=1883,prefix="test",maintprefix="test")
-            mqtt.loop()
-            mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
-            mqtt.loop()
-            mqtt.diconnect()
+            datavar={}
+            value=form.cleaned_data['presentweather']
+            if (value != ""):
+                datavar["B20003"]={"t": dt,"v": str(value)}
 
-            return render(request, 'insertdata/manualdataform.html',{'form': form})
+            value=form.cleaned_data['snow_height']
+            if (not value is None):
+                value=float(value*10.)
+                datavar["B13013"]={"t": dt,"v": str(value)}
+
+            value=form.cleaned_data['visibility']
+            if (not value is None):
+                value=float(value/10.)
+                datavar["B20001"]={"t": dt,"v": str(value)}
+
+            print datavar
+            if (len(datavar)>0):
+                try:
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="rmap.cc",port=1883,prefix="test",maintprefix="test")
+                    mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
+                    mqtt.disconnect()
+
+                    form = ManualForm() # An unbound form
+                except:
+                    print "error"
+                    pass
+
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
 
         else:
 
+            print "invalid form"
             form = ManualForm() # An unbound form
-            return render(request, 'insertdata/manualdataform.html',{'form': form})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
 
     else:
-            form = ManualForm() # An unbound form
-            return render(request, 'insertdata/manualdataform.html',{'form': form})
+        stationform = StationForm(request.user.get_username()) # An unbound form
+        form = ManualForm() # An unbound form
+        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})

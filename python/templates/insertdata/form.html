@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load i18n %}
+
+{% block extra_assets %}
+  {% leaflet_js plugins="forms" %}
+  {% leaflet_css plugins="forms" %}
+{% endblock %}
+
+{% block content %}
+
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      <table style="width:100%">
+
+        {{ form.as_table }}
+
+      </table>
+      <input type="submit" value={%trans "Submit" %}>
+    </form>
+
+{% endblock %}
