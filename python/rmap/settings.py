@@ -399,6 +399,7 @@ if not android :
         'leaflet',
         'djgeojson',
         'geoimage',
+        'insertdata',
         'imagekit'
     ]
 
@@ -452,6 +453,10 @@ TEMPLATES= [
 #CommandError: Unable to serialize database: <User: rmap> is not JSON serializable
 #SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
 
+SERIALIZATION_MODULES = {
+    'geojson' : 'djgeojson.serializers'
+}
+
 #CACHES = {
 #    'default': {
 #        'BACKEND': 'django.core.cache.backerlnds.memcached.MemcachedCache',
@@ -476,9 +481,12 @@ BORINUD = {
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }
 
-#LEAFLET_CONFIG = {
+LEAFLET_CONFIG = {
 #    'SPATIAL_EXTENT': (0.0, 30.0, 30, 60),
-#'DEFAULT_CENTER': (11.0, 45.0),
-#'DEFAULT_ZOOM': 16,
-#'MIN_ZOOM': 3,
-#}
+'DEFAULT_CENTER': (41.5, 11.0),
+'MIN_ZOOM': 4,
+'DEFAULT_ZOOM': 5,
+'MAX_ZOOM': 18,
+#'RESET_VIEW': False,
+#'MINIMAP': True,
+}
