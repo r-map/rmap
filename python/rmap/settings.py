@@ -476,7 +476,10 @@ if not android :
 dsn="odbc://rmap"
 
 BORINUD = {
-    "SOURCES": [ dsn ],
+    "SOURCES": [{
+        "class": "borinud.utils.source.DballeDB",
+        "url": dsn,
+    }],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }

@@ -326,10 +326,10 @@ class ArkimetVm2DB(DB):
                 "lon": p["lon"],
                 "lat": p["lat"],
                 "rep_memo": str(p["network"]),
-                "level": [p[k] for k in ["level_t1", "level_v1",
-                                         "level_t2", "level_v2"]],
-                "trange": [p[k] for k in ["trange_pind",
-                                          "trange_p1", "trange_p2"]],
+                "level": tuple(p[k] for k in ["level_t1", "level_v1",
+                                              "level_t2", "level_v2"]),
+                "trange": tuple(p[k] for k in ["trange_pind",
+                                               "trange_p1", "trange_p2"]),
                 "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
                 str(p["bcode"]): float(p["value"]),
             })
@@ -343,19 +343,21 @@ class ArkimetVm2DB(DB):
             }.iteritems()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
+            if not "va" in  i["area"] or not "va" in i["product"]:
+                continue
             yield dballe.Record(**{
                 "ident": i["area"]["va"].get("ident"),
                 "lon": i["area"]["va"]["lon"],
                 "lat": i["area"]["va"]["lat"],
                 "rep_memo": i["area"]["va"]["rep"],
                 "var": i["product"]["va"]["bcode"],
-                "level": [i["product"]["va"]["lt1"],
+                "level": (i["product"]["va"]["lt1"],
                           i["product"]["va"].get("l1"),
                           i["product"]["va"].get("lt2"),
-                          i["product"]["va"].get("l2")],
-                "trange": [i["product"]["va"]["tr"],
+                          i["product"]["va"].get("l2")),
+                "trange": (i["product"]["va"]["tr"],
                            i["product"]["va"]["p1"],
-                           i["product"]["va"]["p2"]],
+                           i["product"]["va"]["p2"]),
                 "datemin": datetime(*i["summarystats"]["b"]),
                 "datemax": datetime(*i["summarystats"]["e"]),
             })
@@ -476,7 +478,7 @@ class ArkimetBufrDB(DB):
                 q["area"][k] = int(rec[k] * 10**5)
 
         if "rep_memo" in rec:
-            q["product"] = "BUFR:{}".format(rec["rep_memo"])
+            q["product"] = "BUFR:t={}".format(rec["rep_memo"])
 
         if "ident" in rec:
             q["proddef"] = "GRIB:id={}".format(rec["ident"])
