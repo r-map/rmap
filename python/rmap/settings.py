@@ -51,6 +51,8 @@ configspec['daemon']={}
 
 configspec['daemon']['amqpuser']        = "string(default='rmap')"
 configspec['daemon']['amqppassword']    = "string(default='rmap')"
+configspec['daemon']['mqttuser']        = "string(default='rmap')"
+configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 
 
 configspec['rmapweb']={}
@@ -222,6 +224,8 @@ SITE_MEDIA_URL          = BASE_URL+MEDIA_SITE_PREFIX
 # section daemon
 amqpuser                = config['daemon']['amqpuser']
 amqppassword            = config['daemon']['amqppassword']
+mqttuser                = config['daemon']['mqttuser']
+mqttpassword            = config['daemon']['mqttpassword']
 
 # section rmapweb
 logfileweb              = config['rmapweb']['logfile']

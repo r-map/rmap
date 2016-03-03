@@ -18,6 +18,7 @@ from django.core.files.base import ContentFile
 from rmap.rmapstation import rmapmqtt
 from rmap.stations.models import StationMetadata
 from django.contrib.gis.geos import Point
+import rmap.settings
 
 lang="it"
 
@@ -55,10 +56,9 @@ class scelta_stations(object):
 
         if self.first:
             self.first=False
-            return ("","--------------")
+            return ("","-------")
 
         station=self.stations.next()
-        print "station",station
         #return (station["slug"],str(station["lat"])+str(station["lon"]))
         return (station.slug,station.name)
 
@@ -76,8 +76,6 @@ class StationForm(forms.Form):
 
     def __init__(self, username, *args, **kwargs):
 
-        print "init manualform",username
-
         super(StationForm, self).__init__(*args, **kwargs)
         self.fields['station_slug'] = forms.ChoiceField(scelta_stations(username),required=False,label=_('Your station'),help_text=_('Select configurated station'),initial="")
 
@@ -86,6 +84,7 @@ class ManualForm(forms.ModelForm):
 
     #geom = PointField()
 
+    coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
 
     visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text=_(''),min_value=0,max_value=1000000)
@@ -104,6 +103,22 @@ def insertDataImage(request):
 
     if request.method == 'POST': # If the form has been submitted...
         form = ImageForm(request.POST, request.FILES) # A form bound to the POST data
+        stationform = StationForm(request.user.get_username(),request.POST, request.FILES) # A form bound to the POST data
+
+        if stationform.is_valid(): # All validation rules pass
+
+            slug=stationform.cleaned_data['station_slug']
+            if slug:
+                station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
+                #stationlat=station.lat
+                #stationlon=station.lon
+                request.POST['geom']= str(Point(station.lon,station.lat))
+                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform})
+        else:
+            stationform = StationForm(request.user.get_username())
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,"invalid":True})
+
+
         if form.is_valid(): # All validation rules pass
 
             if True:
@@ -184,11 +199,12 @@ def insertDataImage(request):
         else:
 
             form = ImageForm() # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form})
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,"invalid":True})
 
     else:
             form = ImageForm() # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form})
+            stationform = StationForm(request.user.get_username()) # An unbound form
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform})
 
 
 
@@ -197,18 +213,26 @@ def insertDataManualData(request):
 
     if request.method == 'POST': # If the form has been submitted...
 
-        stationform = StationForm(request.user.get_username(),request.POST, request.FILES) # A form bound to the POST data
-        form = ManualForm(request.POST, request.FILES) # A form bound to the POST data
+        #stationlat=None
+        #stationlon=None
+
+        form = ManualForm(request.POST) # A form bound to the POST data
+
+        stationform = StationForm(request.user.get_username(),request.POST) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
 
             slug=stationform.cleaned_data['station_slug']
             if slug:
                 station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
+                #stationlat=station.lat
+                #stationlon=station.lon
                 request.POST['geom']= str(Point(station.lon,station.lat))
+                request.POST['coordinate_slug']= slug
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
         else:
             stationform = StationForm(request.user.get_username())
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
 
         if form.is_valid(): # All validation rules pass
             
@@ -217,6 +241,15 @@ def insertDataManualData(request):
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)
             ident=request.user.username
+
+            #if (not stationlat is None):
+            #    if (stationlat != lat):
+            #        stationform = StationForm(request.user.get_username())
+            #        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
+            #if (not stationlon is None):
+            #    if (stationlon != lon):
+            #        stationform = StationForm(request.user.get_username())
+            #        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
 
             datavar={}
             value=form.cleaned_data['presentweather']
@@ -236,14 +269,25 @@ def insertDataManualData(request):
             print datavar
             if (len(datavar)>0):
                 try:
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="rmap.cc",port=1883,prefix="test",maintprefix="test")
+
+                    user=rmap.settings.mqttuser
+                    password=rmap.settings.mqttpassword
+
+                    slug=form.cleaned_data['coordinate_slug']
+                    if (slug):
+                        prefix="rmap"
+                    else:
+                        prefix="mobile"
+
+                    print "<",slug,">","prefix:",prefix
+
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 
                     form = ManualForm() # An unbound form
                 except:
-                    print "error"
-                    pass
+                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"error":True})
 
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
 

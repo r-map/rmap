@@ -9,6 +9,25 @@
 {% endblock %}
 
 {% block content %}
+{% if invalid  %}
+<h2>{% trans 'Invalid data; retry' %}</h2>
+{% endif %}
+
+{% if error  %}
+<h2>{% trans 'Error on publish data; retry' %}</h2>
+{% endif %}
+
+<h3>{% trans 'Select coordinate from you stations' %}</h3>
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      <table style="width:100%">
+
+        {{ stationform.as_table }}
+
+      </table>
+      <input type="submit" value={%trans "Select station" %}>
+    </form>
+
+<h3>{% trans 'Select coordinate from map and upload your image' %}</h3>
 
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
       <table style="width:100%">
