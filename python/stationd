@@ -20,6 +20,9 @@
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 
@@ -55,10 +58,9 @@ def main ():
   # this import overwrite stdin, stdout ... so to make daemon module work it ave to go here
   from rmap import rmapstation
   from rmap.rmapstation import station
-  from rmap.rmapstation import log_dummy
   from signal import signal, SIGINT
 
-  mystation=station(slug=rmap.settings.stationslug,username=settings.ident,boardslug=rmap.settings.boardslug,trip=False)
+  mystation=station(slug=rmap.settings.stationslug,username=rmap.settings.ident,boardslug=rmap.settings.boardslug,trip=False)
   print "background restored queue:",mystation.anavarlist,mystation.datavarlist
   mystation.display()
 

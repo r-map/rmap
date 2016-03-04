@@ -390,12 +390,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    'registration',
     'django.contrib.admin',
 #    'django.contrib.admindocs',
     'django.contrib.staticfiles',
-    'rmap.stations',
     'rmap.doc',
+    'rmap.stations',
+    'registration',
 ]
 
 if not android :

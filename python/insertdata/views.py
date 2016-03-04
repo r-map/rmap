@@ -15,7 +15,7 @@ from django.utils.translation import ugettext as _
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
-from rmap.rmapstation import rmapmqtt
+from rmap.rmapmqtt import rmapmqtt
 from rmap.stations.models import StationMetadata
 from django.contrib.gis.geos import Point
 import rmap.settings
