@@ -41,7 +41,6 @@ amqp2geoimaged = daemon.Daemon(
 
 def main(self):
     import rmap.rmap_core
-    print user,password
     rmap.rmap_core.receivegeoimagefromamqp(user=user,password=password
                                                ,host=host,queue=queue)
 

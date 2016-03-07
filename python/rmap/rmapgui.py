@@ -2431,11 +2431,8 @@ class Rmap(App):
                 with open(PHOTOIMAGE,"rb") as pi:
                     data=pi.read()
 
-                exifutils.setgeoimage(data,lat,lon,imagedescription=ident,usercomment=comment)
+                data=exifutils.setgeoimage(data,lat,lon,imagedescription=ident,usercomment=comment)
 
-                with open(PHOTOIMAGE) as pi:
-                    data=pi.read()
-                
                 with open(queuednewfilename(),"wb") as pi:
                     pi.write(data)
 
