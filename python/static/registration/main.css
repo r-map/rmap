@@ -13,10 +13,11 @@ form {
   color: #000000;
   box-shadow: 2px 2px 4px #dedede;
   position: relative;
-  background-image: url(rmap-02.png);
+  /*background-image: url(rmap-02.png);
   background-repeat: no-repeat;
   background-position: center -75px;
-  padding-top: 125px;
+  padding-top: 125px;*/
+  padding-top: 25px;
   padding-bottom: 25px;
   text-align: center;
 }
