@@ -51,7 +51,7 @@ urlpatterns = [
     url(r'^http2mqtt/', include('http2mqtt.urls')),
 ]
 
-if not android  :
+if False  :
     urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
     urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
     urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
