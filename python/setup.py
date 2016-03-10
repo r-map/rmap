@@ -232,6 +232,9 @@ setup(name='rmap',
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","python-django-appconf"],
+      extras_require: {
+          'borinud': ['dballe']
+      },
       #install_requires= [ "django","Cython","pil","pysdl2","kivy","plyer","configobj","pika","simplejson"],
       #setup_requires= [ "django","configobj"],
       long_description="""\
