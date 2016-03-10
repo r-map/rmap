@@ -2493,7 +2493,13 @@ class Rmap(App):
             self.notify(_("Wait"))
 
             from jnius import autoclass
+
             Environment = autoclass('android.os.Environment')
+            dir=Environment.getExternalStorageDirectory().getPath()
+
+            #PythonActivity = autoclass('org.renpy.android.PythonActivity')
+            #activity = PythonActivity.mActivity
+            #dir =  activity.getCacheDir().getPath()
 
             # simple queued file names
             #index=0
@@ -2504,7 +2510,7 @@ class Rmap(App):
             #    if not os.path.exists(fn):
             #        break
 
-            fn = Environment.getExternalStorageDirectory().getPath() + '/rmap_picture.jpg'
+            fn = dir + '/rmap_picture.jpg'
             if os.path.isfile(fn):
                 os.remove(fn)
 
