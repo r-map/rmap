@@ -51,10 +51,19 @@ urlpatterns = [
     url(r'^http2mqtt/', include('http2mqtt.urls')),
 ]
 
-if False  :
-    urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
-    urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
-    urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
+if not android  :
+    try:
+        urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
+    except:
+        print "Warnig: borinud disabled"
+    try:
+        urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
+    except:
+        print "Warnig: geoimage disabled"
+    try:
+        urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
+    except:
+        print "Warnig: insertdata disabled"
 
 if ( settings.SERVE_STATIC ):
 #serve local static files

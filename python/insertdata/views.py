@@ -87,8 +87,8 @@ class ManualForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
 
-    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text=_(''),min_value=0,max_value=1000000)
-    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text=_(''),min_value=0,max_value=1000)
+    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
 
     class Meta:
         model = GeorefencedImage
