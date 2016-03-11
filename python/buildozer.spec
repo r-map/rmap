@@ -1,4 +1,4 @@
-[app]
+R[app]
 
 # (str) Title of your application
 title = Rmap
@@ -31,7 +31,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #version.filename = %(source.dir)s/main.py
 
 # (str) Application versioning (method 2)
-version = 6.6
+version = 6.7
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy

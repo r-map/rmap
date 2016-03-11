@@ -2495,7 +2495,8 @@ class Rmap(App):
             from jnius import autoclass
 
             Environment = autoclass('android.os.Environment')
-            dir=Environment.getExternalStorageDirectory().getPath()
+            #dir=Environment.getExternalStorageDirectory().getPath()
+            dir=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).getPath()
 
             #PythonActivity = autoclass('org.renpy.android.PythonActivity')
             #activity = PythonActivity.mActivity
@@ -2509,6 +2510,11 @@ class Rmap(App):
             #          '/takepicture{}.jpg'.format(index))
             #    if not os.path.exists(fn):
             #        break
+
+            try:
+                os.makedirs(dir)
+            except:
+                print "error makedirs:",dir
 
             fn = dir + '/rmap_picture.jpg'
             if os.path.isfile(fn):
@@ -2543,6 +2549,14 @@ class Rmap(App):
         import shutil
         shutil.copyfile(filename, PHOTOIMAGE)
         #os.rename(filename,PHOTOIMAGE)
+
+        ##MediaScanner
+        #MediaScannerConnection = autoclass('android.media.MediaScannerConnection')
+        #PythonActivity = autoclass('org.renpy.android.PythonActivity')
+        #activity = cast('android.app.Activity', PythonActivity.mActivity)
+        #context = activity.getApplicationContext()
+        #MediaScannerConnection.scanFile(context,filename,None,None)   # filename is a list of absolute paths of files on Android
+
         # do not ask me why, but without schedule_once the file is not accessible
         Clock.schedule_once(self.photo_show,5)
 
