@@ -110,6 +110,23 @@
                   <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/RPMS/i386/repoview">Repository Fedora 20 i386</a></li>
                 </ul>
               </li>
+	      <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+		{% if user.is_authenticated %}
+		{{ user.username }}
+		{% else %}
+		{% trans "Log in" %}
+	        {% endif %}
+                <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+		{% if user.is_authenticated %}
+		<li><a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a></li>
+		<li><a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a></li>
+		{% else %}
+		<li><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a></li>
+	        {% endif %}
+		<ul>
+              </li>
             </ul>
             
           </div>
@@ -125,28 +142,8 @@
 
     <div id="maincontent" class="container">
     {% block content %}{% endblock %}
+    </div>
 
-
-
-
-    <footer>
-      <div class="container">
-<p class="text-muted">
-    {% block footer %}
-
-    {% if user.is_authenticated %}
-    {% trans "Logged in" %}: {{ user.username }} 
-    (<a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a> | 
-    <a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a>)
-    {% else %}
-    <a href="{% url 'auth_login' %}">{% trans "Log in" %}</a>
-    {% endif %}
-    
-    {% endblock %}
-</p>
-      </div>
-    </footer>
-</div>
 </body>
 
 </html>
