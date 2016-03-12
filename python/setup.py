@@ -231,7 +231,7 @@ setup(name='rmap',
       scripts=['stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod','amqp2geoimaged'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf"],
+      install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf","nominatim"],
       extras_require = {
           'borinud': ['dballe']
       },

@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-10 18:12+0100\n"
-"PO-Revision-Date: 2016-03-10 18:28+0100\n"
+"POT-Creation-Date: 2016-03-12 14:34+0100\n"
+"PO-Revision-Date: 2016-03-12 14:38+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -28,12 +28,10 @@ msgid "Active"
 msgstr "Attivo"
 
 #: geoimage/models.py:53
-#| msgid "Activate this metadata"
 msgid "Activate this geoimage"
 msgstr "Attiva questa immagine georeferenziata"
 
 #: geoimage/views.py:13
-#| msgid "Start Camera!"
 msgid "Starting date"
 msgstr "Data iniziale"
 
@@ -49,27 +47,29 @@ msgstr "Data finale"
 msgid "Elaborate ending to this date"
 msgstr "Data finale elaborazione"
 
-#: insertdata/views.py:80
-#| msgid "No station yet."
+#: insertdata/views.py:81
 msgid "Your station"
 msgstr "La tua stazione"
 
-#: insertdata/views.py:80
-#| msgid "Select Location"
+#: insertdata/views.py:81
 msgid "Select configurated station"
 msgstr "Seleziona una stazione configurata"
 
-#: insertdata/views.py:88 rmap/rmapgui.py:1186
+#: insertdata/views.py:89 rmap/rmapgui.py:1186
 msgid "Present weather"
 msgstr "Tempo presente"
 
-#: insertdata/views.py:90 rmap/rmapgui.py:1163
+#: insertdata/views.py:91 rmap/rmapgui.py:1163
 msgid "Visibility(m.)"
 msgstr "Visibilità (m)"
 
-#: insertdata/views.py:91 rmap/rmapgui.py:1162
+#: insertdata/views.py:92 rmap/rmapgui.py:1162
 msgid "Snow height(cm.)"
 msgstr "Altezza neve (cm)"
+
+#: insertdata/views.py:101
+msgid "Search address"
+msgstr "Indirizzo di ricerca"
 
 #: rmap/form.py:22
 msgid "station to configure"
@@ -554,7 +554,7 @@ msgid "Warning"
 msgstr "Attenzione"
 
 #: rmap/rmapgui.py:1396 rmap/rmapgui.py:1398 rmap/rmapgui.py:1400
-#: rmap/rmapgui.py:1995 rmap/rmapgui.py:2596
+#: rmap/rmapgui.py:1995 rmap/rmapgui.py:2610
 msgid "Station"
 msgstr "Stazione"
 
@@ -563,7 +563,7 @@ msgid " active"
 msgstr "Attiva"
 
 #: rmap/rmapgui.py:1398 rmap/rmapgui.py:1400 rmap/rmapgui.py:1995
-#: rmap/rmapgui.py:2596
+#: rmap/rmapgui.py:2610
 msgid " disactive"
 msgstr "Disattiva"
 
@@ -671,7 +671,7 @@ msgstr ""
 "già\n"
 "attivi!"
 
-#: rmap/rmapgui.py:2058 rmap/rmapgui.py:2531
+#: rmap/rmapgui.py:2058 rmap/rmapgui.py:2537
 msgid ""
 "not supported\n"
 "on this\n"
@@ -743,11 +743,11 @@ msgstr ""
 msgid "Wait"
 msgstr "Attendi"
 
-#: rmap/rmapgui.py:2528
+#: rmap/rmapgui.py:2534
 msgid "Start Camera!"
 msgstr "Attiva Fotocamera!"
 
-#: rmap/rmapgui.py:2657
+#: rmap/rmapgui.py:2671
 msgid ""
 "error sending\n"
 "image to server!"
@@ -755,7 +755,7 @@ msgstr ""
 "errore invio\n"
 "immagine al server!"
 
-#: rmap/rmapgui.py:2672
+#: rmap/rmapgui.py:2686
 msgid "GPS: new coordinate acquired"
 msgstr "GPS: acquisite nuove coordinate"
 
@@ -788,7 +788,6 @@ msgid "Connect Status: OK connected"
 msgstr "Stato connessione: OK connesso"
 
 #: rmap/stations/form.py:15
-#| msgid "Required: max 9 alphanumeric characters"
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici"
 
@@ -989,13 +988,13 @@ msgid "Selected user"
 msgstr "Seleziona utente"
 
 #: templates/geoimage/georefencedimage_list.html:14
-#| msgid "Reset it"
 msgid "Reset filter"
 msgstr "Reimposta filtro"
 
 #: templates/geoimage/georefencedimage_list.html:43
-#: templates/insertdata/form.html:38
+#: templates/insertdata/form.html:37 templates/insertdata/form.html.py:48
 #: templates/insertdata/manualdataform.html:38
+#: templates/insertdata/manualdataform.html:48
 #: templates/registration/registration_form.html:10
 msgid "Submit"
 msgstr "Invia"
@@ -1017,15 +1016,20 @@ msgstr "Seleziona le coordinate dalla tua stazione"
 
 #: templates/insertdata/form.html:27
 #: templates/insertdata/manualdataform.html:28
-#| msgid "Select Location"
 msgid "Select station"
 msgstr "Seleziona una stazione"
 
 #: templates/insertdata/form.html:30
+#: templates/insertdata/manualdataform.html:31
+#| msgid "Select coordinate from you stations"
+msgid "Select coordinate from address"
+msgstr "Seleziona le coordinate dall'indirizzo"
+
+#: templates/insertdata/form.html:40
 msgid "Select coordinate from map and upload your image"
 msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
 
-#: templates/insertdata/manualdataform.html:31
+#: templates/insertdata/manualdataform.html:41
 msgid "Select coordinate from map and insert your actual data"
 msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 
