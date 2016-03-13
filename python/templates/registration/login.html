@@ -4,15 +4,16 @@
 {% block title %}{% trans "Log in" %}{% endblock %}
 
 {% block content %}
-<form method="post" action="">
+<form class="form-signin" method="post" action="">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="{% trans 'Log in' %}" />
+    <button class="btn btn-lg btn-primary btn-block" type="submit">{% trans 'Log in' %}</button>
     <input type="hidden" name="next" value="{{ next }}" />
 </form>
 
 <p>{% trans "Forgot your password?" %} <a href="{% url 'auth_password_reset' %}">{% trans "Reset it" %}</a>.</p>
 <p>{% trans "Not a member?" %} <a href="{% url 'registration_register' %}">{% trans "Register" %}</a>.</p>
+
 {% endblock %}
 
 
