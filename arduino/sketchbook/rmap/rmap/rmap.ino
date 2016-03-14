@@ -2940,10 +2940,10 @@ void setup()
 
 			  if (dataFile.write(&record,sizeof(record)) == -1)
 			    {
-			      IF_SDEBUG(DBGSERIAL.println(F("WRITE ERROR")));
+			      IF_SDEBUG(DBGSERIAL.println(F("#WRITE ERROR")));
 			      success=false;
 			    }
-			  IF_SDEBUG(DBGSERIAL.println(F("done"))); 
+			  IF_SDEBUG(DBGSERIAL.println(F("#done"))); 
 			}
 		      else
 			{
