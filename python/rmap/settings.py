@@ -468,13 +468,13 @@ SERIALIZATION_MODULES = {
 #    }
 #}
 
-#if not android :
-#    CACHES = {
-#        'default': {
-#            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-#            'LOCATION': '/var/tmp/django_cache',
-#        }
-#    }
+if not android :
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': '/var/tmp/django_cache',
+        }
+    }
 
 # for now dsn is static; we have to put it in cfg files and use in mqtt2dballed & borinud
 dsn="odbc://rmap"

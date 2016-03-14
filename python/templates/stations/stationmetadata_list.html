@@ -5,10 +5,11 @@
  
   <section id="main_content">
 
-    <h2 id="striped-rows">{% trans 'Stations' %}</h2>
-    <div class="table-responsive">
-      <table class="table">
-	<thead  class="thead-default">
+
+    <h2>{% trans 'Stations' %}</h2>
+    <ul>
+
+      <table border="1">
 	<tr>
 	  <th>Short name</th>
 	  <th>Ident</th>
@@ -16,7 +17,6 @@
 	  <th>Lon</th>
 	  <th>Category</th>
 	</tr>
-	</thead>
         {% for station in object_list %}
 	  {% if station.active  %}
 	    <tr>
@@ -31,7 +31,7 @@
 	    <li>{% trans 'No station yet.' %}</li>
         {% endfor %}
       </table>
-    </div>
+    </ul>
   </section>
 
 {% endblock %}

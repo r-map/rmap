@@ -5,64 +5,56 @@
 
 <section id="main_content">
 
-<h2 id="striped-rows">{% trans 'Station name' %}: {{ object.name }}</h2>
-<div class="table-responsive">
-<table class="table">
-<thead class="thead-default">
+<h2>{% trans 'Station name' %}: {{ object.name }}</h2>
+
+<table border="1">
 <tr>
-<th> {% trans 'Active' %} </td>   </td>
-<th> {% trans 'Ident' %} </td>    </td>
-<th> {% trans 'Lat' %} </td>      </td>
-<th> {% trans 'Lon' %} </td>      </td>
-<th> {% trans 'Locate' %} </td>      </td>
-<th> {% trans 'Category' %} </td> </td>
+<td> {% trans 'Active' %} </td>   </td>
+<td> {% trans 'Ident' %} </td>    </td>
+<td> {% trans 'Lat' %} </td>      </td>
+<td> {% trans 'Lon' %} </td>      </td>
+<td> {% trans 'Category' %} </td> </td>
 </tr>
 
 <tr>
-<td> 
-{% if object.active %} 
- <img src="../../../static/rmap/true.svg" alt="location icon" class="img-responsive" style="max-width: 25px;"> 
-{% else %}
- <img src="../../../static/rmap/false.svg" alt="location icon" class="img-responsive" style="max-width: 25px;"> 
-{% endif %}
-</td>
+<td> {{ object.active }}  </td>
 <td> {{ object.ident }}   </td>
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
-<td><a href=https://www.openstreetmap.org/#map=15/{{ object.lat }}/{{ object.lon }}><img src="../../../static/rmap/location_icon.svg" alt="location icon" class="img-responsive" style="max-width: 30px;"></a></td>
 <td> {{ object.category }}</td>
 </tr>
 </table>
 
-<h2 id="striped-rows">{% trans 'Display graph' %}</h2>
+<h2>{% trans 'Display graph' %}</h2>
+<table border="1">
 
-
-    <div class="container-fluid">
-      <!-- Example row of columns -->
-      <div class="row">
+<tr>
+<th>{% trans 'Board name' %}</th>
+<th>{% trans 'Variable' %}</th>
+<th>{% trans 'Report' %}</th>
+<th>{% trans 'Sample' %}</th>
+</tr>
 {% for board in object.board_set.all %}
   {% if board.active  %}
     {% for sensor in board.sensor_set.all %}
-      <h2>{{ board.name }}</h2>
+      <tr><td>{{ board.name }}</td>
       {% if sensor.active  %}
-	  <h3><span class="bv aig"></span>{{ sensor.name }}</h3>
-     <div class="col-md-6">
-	  <h4><span class="bv aig"></span>Report</h4>
-          <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&width=586&height=308&_salt=1457007175.147" alt="..." class="img-thumbnail"></p>
-          <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" role="button">Graphite &raquo;</a></p>
-     </div>
-     <div class="col-md-6">
-	  <h4><span class="bv aig"></span>Sample</h4>
-          <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&width=586&height=308&_salt=1457007175.147" alt="..." class="img-thumbnail"></p>
-          <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" role="button">Graphite &raquo;</a></p>
-     </div>
-
-       {% endif %}
+        <td>
+	  {{ sensor.name }} 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+        <td>
+	  <a href=http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v><img src="http://graphite.{{ site.domain }}/render/?width=250&height=150&hideLegend=true&areaMode=stacked&graphOnly=true&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange}}.{{ sensor.underscored_level}}.*.v" alt="{{ sensor.name }} graph"></a> 
+        </td>
+      {% endif %}
+    </tr>
    {% endfor %}
-       </div>
  {% endif %}
 {% endfor %}
-       </div>
+
+</table>
 </section>
 
 {% endblock %}

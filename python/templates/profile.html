@@ -5,25 +5,20 @@
     
 <section id="main_content">
 
- <h3 id="striped-rows">{{ ident}} {% trans 'Here your personal data' %}</h3>
-  <div class="bs-callout">
-   <h4>{% trans "Your images" %}</h4>
-   <a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a>
-  </div>
-  <div class="bs-callout">
-  <h4>{% trans "Your stations" %}</h4>
-  <div class="table-responsive">
-    <table class="table">
-      <thead  class="thead-default">
-       <tr> 
+  <p><h3>{{ ident}} {% trans 'Here your personal data' %}</h3></p>
+  <p><a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a></p> 
+  <ul>
+
+    <table border="1">
+      <tr>
 	<th>Short name</th>
 	<th>Active</th>
 	<th>Ident</th>
 	<th>Lat</th>
 	<th>Lon</th>
 	<th>Category</th>
-       </tr>
-      </thead>
+      </tr>
+
       {% for station in  stations %}
         <tr>
 	  <td><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></td>
@@ -37,7 +32,7 @@
         <li>{% trans 'No station yet.' %}</li>
       {% endfor %}
     </table>
-  </div>
+  </ul> 
 </section>
 
 {% endblock %}
