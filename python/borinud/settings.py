@@ -16,6 +16,7 @@ Example::
         }, {
             "var": "B12101",
             "level": (103, 2000, None, None),
+            "trange": (254, 0, 0),
         }],
     }]
     BORINUD["CACHED_SUMMARY"] = "default"

@@ -1,6 +1,7 @@
 #include <Wire.h>
 #include <SensorDriver.h>
 #include "registers-wind.h"
+#include "registers-windsonic.h"
 #include "registers-rain.h"
 
 #define SENSORS_LEN 1
@@ -35,12 +36,12 @@ aJsonObject* aj;
 void setup()
 {
 
-
+  
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"DW1");
-  sensors[0].address=I2C_WIND_ADDRESS;
+  sensors[0].address=I2C_WINDSONIC_ADDRESS;
 
- /*
+  /*
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"TBR");
   sensors[1].address=I2C_RAIN_ADDRESS;
@@ -48,33 +49,23 @@ void setup()
   strcpy(sensors[2].driver,"I2C");
   strcpy(sensors[2].type,"BMP");
   sensors[2].address=119;
-  strcpy(sensors[3].driver,"I2C");
-  strcpy(sensors[3].type,"ADT");
-  sensors[3].address=0x33;
-  strcpy(sensors[4].driver,"I2C");
-  strcpy(sensors[4].type,"TMP");
-  sensors[4].address=72;
-  strcpy(sensors[5].driver,"I2C");
-  strcpy(sensors[5].type,"HIH");
-  sensors[5].address=39;
 
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"TMP");
-  sensors[0].address=72;
-
+  strcpy(sensors[0].type,"ADT");
+  sensors[0].address=0x4A;
+  
   strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"TMP");
-  sensors[1].address=73;
+  strcpy(sensors[1].type,"HIH");
+  sensors[1].address=0x27;
 
+  strcpy(sensors[2].driver,"I2C");
+  strcpy(sensors[2].type,"TMP");
+  sensors[2].address=0x48;
   */
-
 
   // start up the serial interface
   Serial.begin(9600);
   Serial.println("started");
-
-  // start up the i2c interface
-  Wire.begin();
 
   // set the frequency 
 #define I2C_CLOCK 50000
@@ -82,10 +73,13 @@ void setup()
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
 
+  // start up the i2c interface
+  Wire.begin();
+
   for (int i = 0; i < SENSORS_LEN; i++) {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
-    if (sd[0] == NULL){
+    if (sd[i] == NULL){
       Serial.print(sensors[i].driver);
       Serial.println(": driver not created !");
     }else{
@@ -101,12 +95,17 @@ void loop()
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
-      Serial.println("Prepare");
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
-	       maxwaittime=max(maxwaittime,waittime);
+        Serial.print(sensors[i].driver);
+        Serial.print(" : ");
+        Serial.print(sensors[i].type);
+        Serial.println(" : Prepare OK");
+	      maxwaittime=max(maxwaittime,waittime);
       }else{
-	       Serial.print(sensors[i].driver);
-	       Serial.println(": prepare failed !");
+	      Serial.print(sensors[i].driver);
+        Serial.print(" : ");
+        Serial.print(sensors[i].type);
+	      Serial.println(" : Prepare failed !");
       }
     }
   }
@@ -137,7 +136,10 @@ void loop()
 	Serial.println("Error");
       }
       */
-
+      Serial.print(sensors[i].driver);
+      Serial.print(" : ");
+      Serial.print(sensors[i].type);
+      Serial.print(" : "); 
       // get values in json format
       aj=sd[i]->getJson();
       json=aJson.print(aj,50);
@@ -148,7 +150,7 @@ void loop()
   }
 
   // sleep some time to do not go tired ;)
-  Serial.println("#sleep for 3s");
-  delay(3000);
+  Serial.println("#sleep for 1s");
+  delay(1000);
 
 }

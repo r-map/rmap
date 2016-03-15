@@ -27,6 +27,16 @@
       <input type="submit" value={%trans "Select station" %}>
     </form>
 
+<h3>{% trans 'Select coordinate from address' %}</h3>
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      <table style="width:100%">
+
+        {{ nominatimform.as_table }}
+
+      </table>
+      <input type="submit" value={%trans "Submit" %}>
+    </form>
+
 <h3>{% trans 'Select coordinate from map and upload your image' %}</h3>
 
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}

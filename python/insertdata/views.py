@@ -19,6 +19,7 @@ from rmap.rmapmqtt import rmapmqtt
 from rmap.stations.models import StationMetadata
 from django.contrib.gis.geos import Point
 import rmap.settings
+from nominatim import Nominatim
 
 lang="it"
 
@@ -87,13 +88,17 @@ class ManualForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
 
-    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text=_(''),min_value=0,max_value=1000000)
-    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text=_(''),min_value=0,max_value=1000)
+    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
 
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
         widgets = {'geom': LeafletWidget()}
+
+
+class NominatimForm(forms.Form):
+    address= forms.CharField(required=False,label=_("Search address"),help_text='')
 
 
 from django.contrib.auth.decorators import login_required
@@ -102,8 +107,9 @@ from django.contrib.auth.decorators import login_required
 def insertDataImage(request):
 
     if request.method == 'POST': # If the form has been submitted...
-        form = ImageForm(request.POST, request.FILES) # A form bound to the POST data
         stationform = StationForm(request.user.get_username(),request.POST, request.FILES) # A form bound to the POST data
+        nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        form = ImageForm(request.POST, request.FILES) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
 
@@ -113,11 +119,27 @@ def insertDataImage(request):
                 #stationlat=station.lat
                 #stationlon=station.lon
                 request.POST['geom']= str(Point(station.lon,station.lat))
-                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform})
+                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,"invalid":True})
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
+        if nominatimform.is_valid(): # All validation rules pass
+
+            address=nominatimform.cleaned_data['address']
+            if address:
+                nom = Nominatim(base_url="http://nominatim.openstreetmap.org")
+                result=nom.query(address,limit=1,countrycodes="IT")
+                if len(result) >= 1:
+                    lat= result[0]["lat"]
+                    lon= result[0]["lon"]
+                    address= result[0]["display_name"]
+                    request.POST['geom']= str(Point(float(lon),float(lat)))
+                    request.POST['address']= address
+                return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+        else:
+            nominatimform = NominatimForm()
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
         if form.is_valid(): # All validation rules pass
 
@@ -199,12 +221,13 @@ def insertDataImage(request):
         else:
 
             form = ImageForm() # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,"invalid":True})
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
     else:
-            form = ImageForm() # An unbound form
             stationform = StationForm(request.user.get_username()) # An unbound form
-            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform})
+            nominatimform = NominatimForm() # An unbound form
+            form = ImageForm() # An unbound form
+            return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
 
 
 
@@ -216,9 +239,9 @@ def insertDataManualData(request):
         #stationlat=None
         #stationlon=None
 
-        form = ManualForm(request.POST) # A form bound to the POST data
-
         stationform = StationForm(request.user.get_username(),request.POST) # A form bound to the POST data
+        nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        form = ManualForm(request.POST) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
 
@@ -229,10 +252,27 @@ def insertDataManualData(request):
                 #stationlon=station.lon
                 request.POST['geom']= str(Point(station.lon,station.lat))
                 request.POST['coordinate_slug']= slug
-                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
+                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+
+        if nominatimform.is_valid(): # All validation rules pass
+
+            address=nominatimform.cleaned_data['address']
+            if address:
+                nom = Nominatim(base_url="http://nominatim.openstreetmap.org")
+                result=nom.query(address,limit=1,countrycodes="IT")
+                if len(result) >= 1:
+                    lat= result[0]["lat"]
+                    lon= result[0]["lon"]
+                    address= result[0]["display_name"]
+                    request.POST['geom']= str(Point(float(lon),float(lat)))
+                    request.POST['address']= address
+                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+        else:
+            nominatimform = NominatimForm()
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
         if form.is_valid(): # All validation rules pass
             
@@ -287,17 +327,18 @@ def insertDataManualData(request):
 
                     form = ManualForm() # An unbound form
                 except:
-                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"error":True})
+                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"error":True})
 
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
 
         else:
 
             print "invalid form"
             form = ManualForm() # An unbound form
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,"invalid":True})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
     else:
         stationform = StationForm(request.user.get_username()) # An unbound form
+        nominatimform = NominatimForm() # An unbound form
         form = ManualForm() # An unbound form
-        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform})
+        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})

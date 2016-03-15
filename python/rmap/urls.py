@@ -52,9 +52,18 @@ urlpatterns = [
 ]
 
 if not android  :
-    urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
-    urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
-    urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
+    try:
+        urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
+    except:
+        print "Warnig: borinud disabled"
+    try:
+        urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
+    except:
+        print "Warnig: geoimage disabled"
+    try:
+        urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
+    except:
+        print "Warnig: insertdata disabled"
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
