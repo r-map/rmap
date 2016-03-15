@@ -227,7 +227,8 @@ int main(int argc, char** argv)
         });
     });
 
-    while (not publisher.all_sent()) {
+    // TODO: optional synchronized publish and custom timeout
+    for (int i = 0; i < 60 && not publisher.all_sent(); ++i) {
       usleep(1000000);
       publisher.loop();
     }
