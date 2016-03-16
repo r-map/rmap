@@ -88,7 +88,7 @@ class MergeDB(DB):
     def get_unique_records(self, funcname, rec, reducer):
         from itertools import groupby
         for k, g in groupby(sorted([
-            r for db in self.dbs for r in getattr(db, funcname)(rec)
+            r.copy() for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
             yield reducer(g)
 
