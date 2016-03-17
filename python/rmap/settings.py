@@ -480,10 +480,52 @@ if not android :
 dsn="odbc://rmap"
 
 BORINUD = {
-    "SOURCES": [{
-        "class": "borinud.utils.source.DballeDB",
-        "url": dsn,
-    }],
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsn,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/meteonetwork",
+            "measurements": 
+            [
+                {
+                    "var": "B13011",
+                    "level": (1, None, None, None),
+                    "trange": (0, 0, 3600),
+                }, 
+                {
+                    "var": "B12101",
+                    "level": (103, 2000, None, None),
+                    "trange": (254, 0, 0),
+                },
+                {
+                    "var": "B13003",
+                    "level": (103, 2000, None, None),
+                    "trange": (254, 0, 0),
+                },
+            ]
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/rmap",
+            "measurements": 
+            [
+                {
+                    "var": "B12101",
+                    "level": (103, 2000, None, None),
+                    "trange": (254, 0, 0),
+                },
+                {
+                    "var": "B13003",
+                    "level": (103, 2000, None, None),
+                    "trange": (254, 0, 0),
+                },
+            ],
+        }
+    ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }

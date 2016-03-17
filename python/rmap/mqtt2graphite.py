@@ -13,7 +13,7 @@ import signal
 
 LOGFORMAT = '%(asctime)-15s %(message)s'
 
-DEBUG = 1
+DEBUG = 0
 if DEBUG:
     logging.basicConfig(level=logging.DEBUG, format=LOGFORMAT)
 else:
