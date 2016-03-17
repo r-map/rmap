@@ -18,7 +18,7 @@ storedjson2bufr_SOURCES = storedjson2bufr.cc
 
 storedjson2bufr_LDADD = libmqtt2bufr-utils.la
 
-dist_man_MANS = mqtt2bufr.1 bufr2mqtt.1 storedjson2bufr.1
+man_MANS = mqtt2bufr.1 bufr2mqtt.1 storedjson2bufr.1
 
 mqtt2bufr.1: mqtt2bufr.cc
 	$(HELP2MAN) --no-info --name="MQTT subscriber for BUFR messages" --output=$@ ./mqtt2bufr
