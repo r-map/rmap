@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-12 14:34+0100\n"
-"PO-Revision-Date: 2016-03-12 14:38+0100\n"
+"POT-Creation-Date: 2016-03-18 11:55+0100\n"
+"PO-Revision-Date: 2016-03-18 11:57+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -106,8 +106,8 @@ msgid "Station height (m.)"
 msgstr "Altezza stazione (m)"
 
 #: rmap/form.py:42
-msgid "SSID of your wiki network"
-msgstr ""
+msgid "SSID of your wifi network"
+msgstr "SSID della tua rete wifi"
 
 #: rmap/rmapgui.py:1081
 msgid "Start GPS to get location updates"
@@ -965,27 +965,27 @@ msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 msgid "Home"
 msgstr ""
 
-#: templates/base.html:145
+#: templates/base.html:148
 msgid "Logged in"
 msgstr "Entrato"
 
-#: templates/base.html:146
+#: templates/base.html:149
 msgid "Log out"
 msgstr "Esci"
 
-#: templates/base.html:147 templates/registration/password_change_form.html:4
+#: templates/base.html:150 templates/registration/password_change_form.html:4
 #: templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "Cambio password"
 
-#: templates/base.html:149 templates/registration/login.html.py:4
+#: templates/base.html:152 templates/registration/login.html.py:4
 #: templates/registration/login.html:10
 msgid "Log in"
 msgstr "Entra"
 
 #: templates/geoimage/georefencedimage_list.html:14
 msgid "Selected user"
-msgstr "Seleziona utente"
+msgstr "Utente selezionato"
 
 #: templates/geoimage/georefencedimage_list.html:14
 msgid "Reset filter"
@@ -1021,7 +1021,6 @@ msgstr "Seleziona una stazione"
 
 #: templates/insertdata/form.html:30
 #: templates/insertdata/manualdataform.html:31
-#| msgid "Select coordinate from you stations"
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
 

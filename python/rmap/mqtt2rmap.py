@@ -13,7 +13,7 @@ import signal
 
 LOGFORMAT = '%(asctime)-15s %(message)s'
 
-DEBUG = 0
+DEBUG = 1
 if DEBUG:
     logging.basicConfig(level=logging.DEBUG, format=LOGFORMAT)
 else:
@@ -34,9 +34,12 @@ def is_number(s):
 
 class mqtt2rmap():
 
-  def __init__(self,mqtt_host,prefix="rmap"):
+  def __init__(self,mqtt_host,prefix="rmap",mqtt_username=None,mqtt_password=None):
 
     self.mqtt_host=mqtt_host
+    self.mqtt_username=mqtt_username
+    self.mqtt_password=mqtt_password
+
     self.prefix=prefix
     self.mqttc = paho.Client(client_id, clean_session=True)
     self.mqttc.on_message = self.on_message
@@ -67,13 +70,14 @@ class mqtt2rmap():
     self.mqttc.subscribe(topic, 0)
 
   def on_publish(self,mosq, userdata, mid):
-    logging.debug("pubblish %s with id %s" % (userdata, mid))
+    logging.debug("pubblished %s with id %s" % (userdata, mid))
 
 
   def on_message(self,mosq, userdata, msg):
 
-    # this remove all retained messages
-    #mosq.publish(msg.topic, payload=None, qos=0, retain=True)
+    # this remove all retained messages (but produce an infinite loop)
+    #logging.debug("Remove Topic [%s]" % (msg.topic,))
+    #mosq.publish(msg.topic, payload=None, qos=1, retain=True)
 
     now = int(time.time())
     logging.debug("deltatime [%d]" % (now-self.start,))
@@ -116,7 +120,7 @@ class mqtt2rmap():
     logging.debug("DEBUG MODE")
 
 
-    #self.mqttc.username_pw_set(user,password)
+    self.mqttc.username_pw_set(self.mqtt_username,self.mqtt_password)
 
 
     rc=paho.MQTT_ERR_CONN_REFUSED
@@ -139,6 +143,8 @@ class mqtt2rmap():
 if __name__ == '__main__':
 
     MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
+    MQTT_USERNAME = os.environ.get('MQTT_USERNAME', 'rmap')
+    MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', 'rmap')
 
-    m2g=mqtt2rmap(MQTT_HOST,prefix="rmap")
+    m2g=mqtt2rmap(MQTT_HOST,prefix="report",mqtt_username=MQTT_USERNAME,mqtt_password=MQTT_PASSWORD)
     m2g.run()
