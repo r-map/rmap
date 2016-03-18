@@ -36,10 +36,11 @@ def main(self):
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
 
     p1 = subprocess.Popen(["mqtt2bufr","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE)
-    p2 = subprocess.Popen(["dbadb","import","-f","--dsn=rmap"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
-    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    output = p2.communicate()[0]
-    #,env=my_env
+    while True:
+        p2 = subprocess.Popen(["dbadb","import","-f","--dsn=rmap"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
+        #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+        output = p2.communicate()[0]
+        #,env=my_env
 
 
 if __name__ == '__main__':
