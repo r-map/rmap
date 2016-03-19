@@ -17,3 +17,16 @@ def mystationmetadata_list(request,ident):
 def mystationmetadata_detail(request,ident,slug):
     mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
     return render(request, 'stations/stationmetadata_detail.html',{"object":mystation})
+
+
+def StationsOnMap(request,ident=None,slug=None):
+    if ident is None:
+        stations=StationMetadata.objects.all()
+    else:
+        if slug is None:
+            stations=StationMetadata.objects.filter(ident__username=ident)
+        else:
+            stations=StationMetadata.objects.filter(ident__username=ident,slug=slug)
+
+    print stations
+    return render(request, 'stations/stationsonmap.html',{"stations":stations,"ident":ident,"slug":slug})

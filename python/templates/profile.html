@@ -6,7 +6,11 @@
 <section id="main_content">
 
   <p><h3>{{ ident}} {% trans 'Here your personal data' %}</h3></p>
-  <p><a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a></p> 
+  <p><h2><a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a></h2></p> 
+  <p><h2><a href="{% url 'stationsonmap' ident %}">{% trans 'View on the map' %}</a></h2></p>
+
+
+
   <ul>
 
     <table border="1">

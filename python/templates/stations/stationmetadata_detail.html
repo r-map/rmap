@@ -5,15 +5,18 @@
 
 <section id="main_content">
 
+<h2><a href="{% url 'stationsonmap' object.ident %}">{% trans 'View on the map' %}</a></h2>
+
 <h2>{% trans 'Station name' %}: {{ object.name }}</h2>
 
 <table border="1">
 <tr>
-<td> {% trans 'Active' %} </td>   </td>
-<td> {% trans 'Ident' %} </td>    </td>
-<td> {% trans 'Lat' %} </td>      </td>
-<td> {% trans 'Lon' %} </td>      </td>
-<td> {% trans 'Category' %} </td> </td>
+<th> {% trans 'Active' %}         </th>
+<th> {% trans 'Ident' %}          </th>
+<th> {% trans 'Lat' %}            </th>
+<th> {% trans 'Lon' %}            </th>
+<th> {% trans 'Category' %}       </th>
+<th> {% trans 'View on the map' %}</th>
 </tr>
 
 <tr>
@@ -22,6 +25,7 @@
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
 <td> {{ object.category }}</td>
+<td> <a href="/stationsonmap/{{ object.ident }}/{{ object.slug }}">{{ object.slug }}</a></td>
 </tr>
 </table>
 

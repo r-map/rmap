@@ -8,6 +8,8 @@ from django.db.models import Q
 
 from  django import VERSION as djversion
 from rmap.utils import nint
+#from leaflet.forms.fields import PointField
+from django.contrib.gis.geos import Point
 
 if ((djversion[0] == 1 and djversion[1] >= 3) or 
     djversion[0] > 1):
@@ -542,6 +544,36 @@ class StationMetadata(models.Model):
 
     def lon_lat(self):
         return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
+
+    @property
+    def geom(self):
+        #return PointField({'type': 'Point', 'coordinates': [self.lon, self.lat]})
+        return Point(self.lon, self.lat)
+
+
+    @property
+    def popupContent(self):
+        return  u'\
+        <p>\
+           ident: <a href="/stationsonmap/{}">{}\
+           </a>\
+        </p>\
+        <p>\
+           name: {}\
+        </p>\
+        <p>\
+           slug: <a href="/stations/{}/{}">{}\
+           </a>\
+        </p>'\
+        .format(
+            self.ident,
+            self.ident,
+            self.name,
+            self.ident,
+            self.slug,
+            self.slug,
+        )
+
 
     def natural_key(self):
         #print "StationMetadata natural_key"
