@@ -2558,7 +2558,7 @@ class Rmap(App):
         #MediaScannerConnection.scanFile(context,filename,None,None)   # filename is a list of absolute paths of files on Android
 
         # do not ask me why, but without schedule_once the file is not accessible
-        Clock.schedule_once(self.photo_show,5)
+        Clock.schedule_once(self.photo_show,15)
 
         # return true unlink the file (not shure if it's a good think)
         return True

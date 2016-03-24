@@ -146,5 +146,5 @@ if __name__ == '__main__':
     MQTT_USERNAME = os.environ.get('MQTT_USERNAME', 'rmap')
     MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', 'rmap')
 
-    m2g=mqtt2rmap(MQTT_HOST,prefix="report",mqtt_username=MQTT_USERNAME,mqtt_password=MQTT_PASSWORD)
+    m2g=mqtt2rmap(MQTT_HOST,prefix="rmap",mqtt_username=MQTT_USERNAME,mqtt_password=MQTT_PASSWORD)
     m2g.run()
