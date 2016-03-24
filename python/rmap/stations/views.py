@@ -21,7 +21,7 @@ def mystationmetadata_detail(request,ident,slug):
 
 def StationsOnMap(request,ident=None,slug=None):
     if ident is None:
-        stations=StationMetadata.objects.all()
+        stations=StationMetadata.objects.exclude(lat=0,lon=0)
     else:
         if slug is None:
             stations=StationMetadata.objects.filter(ident__username=ident).exclude(lat=0,lon=0)
