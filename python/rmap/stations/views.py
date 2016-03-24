@@ -24,9 +24,9 @@ def StationsOnMap(request,ident=None,slug=None):
         stations=StationMetadata.objects.all()
     else:
         if slug is None:
-            stations=StationMetadata.objects.filter(ident__username=ident)
+            stations=StationMetadata.objects.filter(ident__username=ident).exclude(lat=0,lon=0)
         else:
-            stations=StationMetadata.objects.filter(ident__username=ident,slug=slug)
+            stations=StationMetadata.objects.filter(ident__username=ident,slug=slug).exclude(lat=0,lon=0)
 
     print stations
     return render(request, 'stations/stationsonmap.html',{"stations":stations,"ident":ident,"slug":slug})
