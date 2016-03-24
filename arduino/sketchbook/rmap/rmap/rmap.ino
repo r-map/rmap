@@ -2682,11 +2682,13 @@ void setup()
     s800.stopNetwork();
     wdt_reset();
 #ifdef GSMGPRSMQTT
-    s800.getIMEI(imeicode);
+    if (!s800.getIMEI(imeicode)){
+      IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR getting IMEI; reboot")));
+      Reset();
+    }
     wdt_reset();
 #endif
   }else{
-
     IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800")));
   }
 #endif
