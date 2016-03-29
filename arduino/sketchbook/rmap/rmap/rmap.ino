@@ -986,7 +986,8 @@ int rf24rpc(aJsonObject* params)
 			   ) == SD_SUCCESS)
 			   
 			   IF_SDEBUG(DBGSERIAL.print(F("#sensor not present or broken")));
-			   //return E_INTERNAL_ERROR;
+			   // comment the next line to be less restrictive
+			   return E_INTERNAL_ERROR;
 
     aJson.addNumberToObject(result, "id",id);
 

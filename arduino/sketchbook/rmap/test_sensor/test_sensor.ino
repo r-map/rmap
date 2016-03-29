@@ -38,20 +38,16 @@ void setup()
 
   
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"DW1");
-<<<<<<< Updated upstream
-  sensors[0].address=I2C_WINDSONIC_ADDRESS;
-=======
-  sensors[0].address=34;
+  strcpy(sensors[0].type,"TBR");
+  sensors[0].address=33;
 
   strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"TBR");
-  sensors[1].address=33;
+  strcpy(sensors[1].type,"DW1");
+  sensors[1].address=34;
 
   strcpy(sensors[2].driver,"I2C");
   strcpy(sensors[2].type,"DW1");
   sensors[2].address=35;
->>>>>>> Stashed changes
 
   /*
   strcpy(sensors[1].driver,"I2C");
