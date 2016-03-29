@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-12 14:34+0100\n"
-"PO-Revision-Date: 2016-03-12 14:38+0100\n"
+"POT-Creation-Date: 2016-03-19 09:55+0100\n"
+"PO-Revision-Date: 2016-03-19 10:40+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: geoimage/models.py:53 rmap/stations/models.py:74
-#: rmap/stations/models.py:164 rmap/stations/models.py:201
-#: rmap/stations/models.py:251 rmap/stations/models.py:327
-#: rmap/stations/models.py:359 rmap/stations/models.py:390
-#: rmap/stations/models.py:430 rmap/stations/models.py:486
-#: rmap/stations/models.py:526 templates/profile_details.html.py:14
+#: geoimage/models.py:53 rmap/stations/models.py:76
+#: rmap/stations/models.py:166 rmap/stations/models.py:203
+#: rmap/stations/models.py:253 rmap/stations/models.py:329
+#: rmap/stations/models.py:361 rmap/stations/models.py:392
+#: rmap/stations/models.py:432 rmap/stations/models.py:488
+#: rmap/stations/models.py:528 templates/profile_details.html.py:14
 #: templates/stations/stationmetadata_detail.html:12
 msgid "Active"
 msgstr "Attivo"
@@ -93,11 +93,11 @@ msgstr ""
 msgid "Station name"
 msgstr "Nome stazione"
 
-#: rmap/form.py:34 rmap/stations/models.py:534
+#: rmap/form.py:34 rmap/stations/models.py:536
 msgid "Latitude"
 msgstr "Latitudine"
 
-#: rmap/form.py:35 rmap/stations/models.py:535
+#: rmap/form.py:35 rmap/stations/models.py:537
 msgid "Longitude"
 msgstr "Longitudine"
 
@@ -106,8 +106,8 @@ msgid "Station height (m.)"
 msgstr "Altezza stazione (m)"
 
 #: rmap/form.py:42
-msgid "SSID of your wiki network"
-msgstr ""
+msgid "SSID of your wifi network"
+msgstr "SSID della tua rete wifi"
 
 #: rmap/rmapgui.py:1081
 msgid "Start GPS to get location updates"
@@ -791,173 +791,173 @@ msgstr "Stato connessione: OK connesso"
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici"
 
-#: rmap/stations/models.py:74
+#: rmap/stations/models.py:76
 msgid "Activate this sensor to take measurements"
 msgstr "Attiva questo sensore per rilevare le misure"
 
-#: rmap/stations/models.py:75
+#: rmap/stations/models.py:77
 msgid "Descriptive text"
 msgstr "Testo descrittivo"
 
-#: rmap/stations/models.py:77
+#: rmap/stations/models.py:79
 msgid "Driver to use"
 msgstr "Driver da usare"
 
-#: rmap/stations/models.py:78
+#: rmap/stations/models.py:80
 msgid "Type of sensor"
 msgstr "Tipo del sensore"
 
-#: rmap/stations/models.py:79
+#: rmap/stations/models.py:81
 msgid "I2C bus number (for raspberry only)"
 msgstr ""
 
-#: rmap/stations/models.py:80
+#: rmap/stations/models.py:82
 msgid "I2C ddress (decimal)"
 msgstr ""
 
-#: rmap/stations/models.py:81
+#: rmap/stations/models.py:83
 msgid "RF24Network node ddress"
 msgstr ""
 
-#: rmap/stations/models.py:83 rmap/stations/models.py:84
+#: rmap/stations/models.py:85 rmap/stations/models.py:86
 msgid "Sensor metadata from rmap RFC"
 msgstr "Metadati del sensore dal RFC rmap"
 
-#: rmap/stations/models.py:164 rmap/stations/models.py:201
-#: rmap/stations/models.py:251 rmap/stations/models.py:327
-#: rmap/stations/models.py:359 rmap/stations/models.py:390
+#: rmap/stations/models.py:166 rmap/stations/models.py:203
+#: rmap/stations/models.py:253 rmap/stations/models.py:329
+#: rmap/stations/models.py:361 rmap/stations/models.py:392
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
-#: rmap/stations/models.py:165
+#: rmap/stations/models.py:167
 msgid "Node ID for RF24 Network"
 msgstr ""
 
-#: rmap/stations/models.py:166
+#: rmap/stations/models.py:168
 msgid "Channel number for RF24"
 msgstr "Numero canale per RF24"
 
-#: rmap/stations/models.py:169
+#: rmap/stations/models.py:171
 msgid "AES key"
 msgstr ""
 
-#: rmap/stations/models.py:170
+#: rmap/stations/models.py:172
 msgid "AES cbc iv"
 msgstr ""
 
-#: rmap/stations/models.py:203
+#: rmap/stations/models.py:205
 msgid "interval in seconds for publish"
 msgstr "intervallo in secondi per la pubblicazione"
 
-#: rmap/stations/models.py:204
+#: rmap/stations/models.py:206
 msgid "MQTT server"
 msgstr ""
 
-#: rmap/stations/models.py:205
+#: rmap/stations/models.py:207
 msgid "MQTT user"
 msgstr ""
 
-#: rmap/stations/models.py:206
+#: rmap/stations/models.py:208
 msgid "MQTT password"
 msgstr ""
 
-#: rmap/stations/models.py:252
+#: rmap/stations/models.py:254
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: rmap/stations/models.py:254
+#: rmap/stations/models.py:256
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: rmap/stations/models.py:328
+#: rmap/stations/models.py:330
 msgid "Baud rate"
 msgstr ""
 
-#: rmap/stations/models.py:329
+#: rmap/stations/models.py:331
 msgid "Serial device"
 msgstr ""
 
-#: rmap/stations/models.py:360
+#: rmap/stations/models.py:362
 msgid "bluetooth name"
 msgstr "Nome Bluetooth"
 
-#: rmap/stations/models.py:392
+#: rmap/stations/models.py:394
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: rmap/stations/models.py:393
+#: rmap/stations/models.py:395
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: rmap/stations/models.py:394
+#: rmap/stations/models.py:396
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP "
 
-#: rmap/stations/models.py:395
+#: rmap/stations/models.py:397
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: rmap/stations/models.py:396
+#: rmap/stations/models.py:398
 msgid "AMQP password"
 msgstr "Password AMQP"
 
-#: rmap/stations/models.py:429 rmap/stations/models.py:525
+#: rmap/stations/models.py:431 rmap/stations/models.py:527
 msgid "station name"
 msgstr "nome stazione"
 
-#: rmap/stations/models.py:430
+#: rmap/stations/models.py:432
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
-#: rmap/stations/models.py:431 rmap/stations/models.py:527
+#: rmap/stations/models.py:433 rmap/stations/models.py:529
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: rmap/stations/models.py:486
+#: rmap/stations/models.py:488
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: rmap/stations/models.py:487
+#: rmap/stations/models.py:489
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: rmap/stations/models.py:488
+#: rmap/stations/models.py:490
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: rmap/stations/models.py:526
+#: rmap/stations/models.py:528
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: rmap/stations/models.py:534
+#: rmap/stations/models.py:536
 msgid "Precise Latitude of the station"
 msgstr "Latitudine precisa della stazione"
 
-#: rmap/stations/models.py:535
+#: rmap/stations/models.py:537
 msgid "Precise Longitude of the station"
 msgstr "Longitudine precisa della stazione"
 
-#: rmap/stations/models.py:537
+#: rmap/stations/models.py:539
 msgid "station network"
 msgstr "rete stazione"
 
-#: rmap/stations/models.py:539
+#: rmap/stations/models.py:541
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: rmap/stations/models.py:540
+#: rmap/stations/models.py:542
 msgid "maint mqtt path for publish"
 msgstr ""
 
-#: rmap/stations/models.py:541
+#: rmap/stations/models.py:543
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:580
+#: rmap/stations/models.py:600
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: rmap/stations/models.py:580
+#: rmap/stations/models.py:600
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
@@ -965,29 +965,31 @@ msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 msgid "Home"
 msgstr ""
 
-#: templates/base.html:145
+#: templates/base.html:148
 msgid "Logged in"
 msgstr "Entrato"
 
-#: templates/base.html:146
+#: templates/base.html:149
 msgid "Log out"
 msgstr "Esci"
 
-#: templates/base.html:147 templates/registration/password_change_form.html:4
+#: templates/base.html:150 templates/registration/password_change_form.html:4
 #: templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "Cambio password"
 
-#: templates/base.html:149 templates/registration/login.html.py:4
+#: templates/base.html:152 templates/registration/login.html.py:4
 #: templates/registration/login.html:10
 msgid "Log in"
 msgstr "Entra"
 
 #: templates/geoimage/georefencedimage_list.html:14
+#: templates/stations/stationsonmap.html:14
 msgid "Selected user"
-msgstr "Seleziona utente"
+msgstr "Utente selezionato"
 
 #: templates/geoimage/georefencedimage_list.html:14
+#: templates/stations/stationsonmap.html:14
 msgid "Reset filter"
 msgstr "Reimposta filtro"
 
@@ -996,6 +998,7 @@ msgstr "Reimposta filtro"
 #: templates/insertdata/manualdataform.html:38
 #: templates/insertdata/manualdataform.html:48
 #: templates/registration/registration_form.html:10
+#: templates/stations/stationsonmap.html:43
 msgid "Submit"
 msgstr "Invia"
 
@@ -1021,7 +1024,6 @@ msgstr "Seleziona una stazione"
 
 #: templates/insertdata/form.html:30
 #: templates/insertdata/manualdataform.html:31
-#| msgid "Select coordinate from you stations"
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
 
@@ -1041,7 +1043,7 @@ msgstr "Questi i tuoi dati personali"
 msgid "Your images"
 msgstr "Le tue immagini"
 
-#: templates/profile.html:32 templates/stations/stationmetadata_list.html:31
+#: templates/profile.html:32 templates/stations/stationmetadata_list.html:32
 msgid "No station yet."
 msgstr "Non ci sono stazioni."
 
@@ -1332,6 +1334,10 @@ msgstr ""
 #: templates/stations/stationmetadata_list.html:9
 msgid "Stations"
 msgstr "Stazioni"
+
+#: templates/stations/stationmetadata_list.html:10
+msgid "View on the map"
+msgstr "Visualizza sulla mappa"
 
 #~ msgid "Activate users"
 #~ msgstr "Utenti attivati"

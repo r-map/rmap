@@ -39,7 +39,7 @@ class WizardForm(forms.Form):
 
 class WizardForm2(forms.Form):
 
-    ssid = forms.CharField(label=_('SSID of your wiki network'),required=False)
+    ssid = forms.CharField(label=_('SSID of your wifi network'),required=False)
 
     password = forms.CharField(label='Password',help_text=_('Password'),required=False)
 

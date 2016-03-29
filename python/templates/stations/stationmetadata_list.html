@@ -7,6 +7,7 @@
 
 
     <h2>{% trans 'Stations' %}</h2>
+    <h2><a href="{% url 'stationsonmap' %}">{% trans 'View on the map' %}</a></h2>
     <ul>
 
       <table border="1">
@@ -16,6 +17,7 @@
 	  <th>Lat</th>
 	  <th>Lon</th>
 	  <th>Category</th>
+	  <th> {% trans 'View on the map' %}</th>
 	</tr>
         {% for station in object_list %}
 	  {% if station.active  %}
@@ -25,6 +27,7 @@
 	      <td> {{ station.lat}}</td>
 	      <td> {{ station.lon}}</td>
 	      <td> {{ station.category}}</td>
+	      <td> <a href="/stationsonmap/{{ station.ident }}/{{ station.slug }}">{{ station.slug }}</a></td>
 	    </tr>
 	  {% endif %}
 	{% empty %}

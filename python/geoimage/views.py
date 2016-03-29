@@ -25,8 +25,8 @@ def showImage(request,ident=None):
             datetime_start=form.cleaned_data['datetime_start']
             datetime_end=form.cleaned_data['datetime_end']
 
-            datetime_start = datetime.combine(datetime_start.date(),time(00))
-            datetime_end = datetime.combine(datetime_end.date(),time(23,59))
+            datetime_start = datetime.combine(datetime_start.date(),time(00,00))
+            datetime_end = datetime.combine(datetime_end.date(),time(23,59,59))
 
     else:
 
@@ -37,10 +37,10 @@ def showImage(request,ident=None):
 
     if ident is None:
         print "query no ident:",datetime_start,datetime_end
-        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end)
+        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end).order_by("date")
     else:
         print "query:",datetime_start,datetime_end,ident
-        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,ident__username=ident)
+        grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,ident__username=ident).order_by("date")
 
     return render(request, 'geoimage/georefencedimage_list.html',{'form': form,"grimages":grimages,"ident":ident})
 
