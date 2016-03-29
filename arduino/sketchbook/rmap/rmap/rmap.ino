@@ -83,7 +83,7 @@ File dataFile;
 
 // Log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "RMAP_"
-#define MAX_FILESIZE 2097152 // 22h for 5s sampletime
+#define MAX_FILESIZE 8388608 // 44h for 5s sampletime
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
 char fileName[BASE_NAME_SIZE+4] = FILE_BASE_NAME "000";
 char fullfileName[BASE_NAME_SIZE+8];
@@ -2929,10 +2929,10 @@ void setup()
 		      }else{
 			IF_SDEBUG(DBGSERIAL.println(F("#error http publish")));
 		      }
-		      wdt_reset();
 
 #endif
 		      
+		      wdt_reset();
 		      if (record.done==true)
 			{
 			  dataFile.seekSet(pos);
@@ -2949,6 +2949,7 @@ void setup()
 			      success=false;
 			    }
 			  IF_SDEBUG(DBGSERIAL.println(F("#done"))); 
+			  wdt_reset();
 			}
 		      else
 			{
