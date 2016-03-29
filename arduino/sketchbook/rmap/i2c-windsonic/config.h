@@ -1,6 +1,5 @@
 // wind sensor definition
 
-//#define DAVIS
 #define WINDSONIC
 
 // other parameters

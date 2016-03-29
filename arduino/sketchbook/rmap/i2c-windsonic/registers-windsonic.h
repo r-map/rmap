@@ -2,7 +2,7 @@
 // I2C WINDSONIC registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_WINDSONIC_ADDRESS        0x23                      //7 bit address 0x40 write, 0x41 read
+#define I2C_WINDSONIC_ADDRESS        0x25                      //7 bit address 0x40 write, 0x41 read
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF

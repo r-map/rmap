@@ -17,13 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 ///////////////////////////////////////////////////////////////////////
 // Compile time configuration
 
-#define FIRMWARE FIRMSERIAL
-
+#define FIRMWARE FIRMGSM
 /////////////////////////
+
 
 // activate if you have an rtc present (too big program fo arduino uno)
 //#define RTCPRESENT
@@ -34,13 +33,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define ENC28J60
 // activate if you have the Hobby Components I2C LCD module (HCARDU0023)
 // LCD Version 1 - Marked YwRobot Arduino LCM1602 IIC V1
-//#define LCD
-//#define RADIORF24
+#define LCD
 // activate if you have relays connected to some pins
 #define ATTUATORE
 ///////////////////////////////////////////////////////////////////////
 
 #include "common.h"
 
-#define RPCSERIAL Serial1
+// override default values defined in common.h
+// for sensoron
+#define SENSORS_LEN 10
+
+//#define MQTTROOTPATH_LEN 30
+//#define SERVER_LEN 30
+
+#define MAIN_BUFFER_SIZE 300
+
+// force use of gsm mqtt
+#undef ETHERNETMQTT
 

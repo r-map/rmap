@@ -1,7 +1,7 @@
 // wind sensor definition
 
-//#define DAVIS
-#define INSPEED
+#define DAVIS
+//#define INSPEED
 
 // other parameters
 

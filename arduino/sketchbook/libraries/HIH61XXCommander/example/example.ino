@@ -4,7 +4,7 @@
 
 //  Create an HIH61XXCommander with I2C address 0x27, powered by digital pin 4
 //  If you want to use Command Mode you MUST use the powerPin!
-HIH61XXCommander hih(0x28, 4);
+HIH61XXCommander hih(0x26, 4);
 
 
 
@@ -13,14 +13,23 @@ void setup()
   Serial.begin(9600);
   Serial.println("Started");
   Wire.begin();
+
+  //  start the sensor, eeprom data is automatically read.
+  hih.start();
+
+  //  This is how you change the I2C address to 0x28:
+  //hih.setAddress(0x26);
+  //hih.restart();      
+
+  //  Make sure we're not in Command Mode any more:
+  //hih.leaveCommandMode();
+
 }
 
 
 
 void loop()
 {
-  //  start the sensor, eeprom data is automatically read.
-  hih.start();
 
   //  print out the whole EEPROM
   Serial.print("EEPROM:                   ");
@@ -84,13 +93,9 @@ void loop()
   //  If you don't want to save your changes, use:
   //  hih.resetEEPROM();
 
-
-  //  This is how you change the I2C address to 0x28:
-  //hih.setAddress(0x28);
-  //hih.restart();      
-
   //  Make sure we're not in Command Mode any more:
-  hih.leaveCommandMode();
+  //hih.leaveCommandMode();
+
 
   //  Update the sensor readings, you must call this to have current readings
   hih.update();
@@ -103,12 +108,14 @@ void loop()
   Serial.print(hih.temperature(), 5);
   Serial.println(" C");
 
+  /*
   while(1) {
     while(Serial.available()) {
       hih.commandRequest(Serial);
     }
     delay(100);
   }
+  */
 
   Serial.println("Done");
   delay(60000);

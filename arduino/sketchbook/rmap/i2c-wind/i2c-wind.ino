@@ -174,6 +174,8 @@ void requestEvent()
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
 
+  //Serial.print("receivedCommands: ");
+  //Serial.println(receivedCommands[0]);
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]));
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1));
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2));
@@ -184,13 +186,17 @@ void requestEvent()
 void receiveEvent( int bytesReceived)
 {
      uint8_t  *ptr;
+     //Serial.print("received:");
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
+	       //Serial.println(receivedCommands[a]);
           } else {
                Wire.read();  // if we receive more data then allowed just throw it away
           }
      }
+
+     //Serial.println("");
 
      if (bytesReceived == 2){
        // check for a command

@@ -63,6 +63,10 @@ pip -v install --upgrade  rmap
 ./rmap-configure --config_station --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user --password=password --upload_to_server
 
 
+>>> Configure GSM board (richardson station)
+./rmap-configure --config_station --board_slug=stima_gps --station_slug=richardson --username=pat1
+
+
 #obsolete notes:
 
 * bug in plyer to patch:
