@@ -19,7 +19,7 @@ source.dir = .
 source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient
+source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient, test
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
@@ -31,7 +31,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #version.filename = %(source.dir)s/main.py
 
 # (str) Application versioning (method 2)
-version = 6.8
+version = 6.9
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
