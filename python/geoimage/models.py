@@ -59,7 +59,7 @@ class GeorefencedImage(models.Model):
     category = models.CharField(max_length=50, blank=False,choices=CATEGORY_CHOICES)
 
 
-    image = DeletingImageField(processors=[Transpose(),ResizeToFit(600, 600)],
+    image = DeletingImageField(processors=[Transpose(),ResizeToFit(1024, 1024)],
                                           format='jpeg',
                                           options={'quality': 70})
 

@@ -67,6 +67,7 @@ from glob import glob
 from utils import nint
 import rmap.rmap_core
 from rmap import exifutils
+from rmap import piexif
 
 platform = platform()
 
@@ -2558,13 +2559,87 @@ class Rmap(App):
         #MediaScannerConnection.scanFile(context,filename,None,None)   # filename is a list of absolute paths of files on Android
 
         # do not ask me why, but without schedule_once the file is not accessible
-        Clock.schedule_once(self.photo_show,15)
+        Clock.schedule_once(self.photo_show,5)
 
         # return true unlink the file (not shure if it's a good think)
         return True
 
 
+    def photo_manage(self):
+        """
+        resize (and rotate) PHOTOIMAGE image 
+        """
+
+        #size_mini = 200, 200
+        size_maxi = 1024, 1024
+        try:
+            try:
+                from PIL import Image as PILImage
+            except:
+                import Image as PILImage
+        except:
+            print "To use this program, you need to install Python Imaging Library - http://www.pythonware.com/products/pil/"
+            sys.exit(1)
+
+        im = PILImage.open(PHOTOIMAGE)
+        # We create the thumbnail
+        im.thumbnail(size_maxi, PILImage.ANTIALIAS)
+        exif_dict = piexif.load(im.info["exif"])
+        ###exif_dict["0th"][piexif.ImageIFD.XResolution]
+
+        ## We rotate regarding to the EXIF orientation information
+        #if 'Exif.Image.Orientation' in image.exifKeys():
+        #    orientation = image['Exif.Image.Orientation']
+        #    if orientation == 1:
+        #        # Nothing
+        #        mirror = im.copy()
+        #    elif orientation == 2:
+        #        # Vertical Mirror
+        #        mirror = im.transpose(PILImage.FLIP_LEFT_RIGHT)
+        #    elif orientation == 3:
+        #        # Rotation 180
+        #        mirror = im.transpose(PILImage.ROTATE_180)
+        #    elif orientation == 4:
+        #        # Horizontal Mirror
+        #        mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM)
+        #    elif orientation == 5:
+        #        # Horizontal Mirror + Rotation 90 CCW
+        #        mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM).transpose(PILImage.ROTATE_90)
+        #    elif orientation == 6:
+        #        # Rotation 270
+        #        mirror = im.transpose(PILImage.ROTATE_270)
+        #    elif orientation == 7:
+        #        # Horizontal Mirror + Rotation 270
+        #        mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM).transpose(PILImage.ROTATE_270)
+        #    elif orientation == 8:
+        #        # Rotation 90
+        #        mirror = im.transpose(PILImage.ROTATE_90)
+        #    # No more Orientation information
+        #    image['Exif.Image.Orientation'] = 1
+        #else:
+        # No EXIF information, the user has to do it
+
+        mirror = im.copy()
+        exif_bytes = piexif.dump(exif_dict)
+
+        mirror.save(PHOTOIMAGE, "JPEG", quality=70,exif=exif_bytes)
+        #img_grand = pyexiv2.Image(grand)
+        #img_grand.readMetadata()
+        #image.copyMetadataTo(img_grand)
+        #img_grand.writeMetadata()
+        #print grand
+
+        #mirror.thumbnail(size_mini, PILImage.ANTIALIAS)
+        #mirror.save(mini, "JPEG", quality=85)
+        #img_mini = pyexiv2.Image(mini)
+        #img_mini.readMetadata()
+        #image.copyMetadataTo(img_mini)
+        #img_mini.writeMetadata()
+        #print mini
+
     def photo_show(self,*largs):
+
+        self.photo_manage()
         self.root.ids["cameraimage"].source= PHOTOIMAGE
         self.root.ids["cameraimage"].reload()
         self.notifydismiss()
