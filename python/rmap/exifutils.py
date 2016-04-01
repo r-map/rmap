@@ -152,6 +152,80 @@ def getgeoimage(data):
         return lat,lon,imagedescription,usercomment,dt
 
 
+def photo_manage(filename):
+    """
+    resize (and rotate) image 
+    """
+    #size_mini = 200, 200
+    size_maxi = 1024, 1024
+    try:
+        try:
+            from PIL import Image as PILImage
+        except:
+            import Image as PILImage
+    except:
+        print "To use this program, you need to install Python Imaging Library - http://www.pythonware.com/products/pil/"
+        sys.exit(1)
+
+    im = PILImage.open(filename)
+    # We create the thumbnail
+    im.thumbnail(size_maxi, PILImage.ANTIALIAS)
+    exif_dict = piexif.load(im.info["exif"])
+
+    ## We rotate regarding to the EXIF orientation information
+    if piexif.ImageIFD.Orientation in exif_dict["0th"]:
+        orientation = exif_dict["0th"][piexif.ImageIFD.Orientation]
+
+        print "ECCO ORIENTATION:",orientation
+
+        if orientation == 1:
+            # Nothing
+            mirror = im.copy()
+        elif orientation == 2:
+            # Vertical Mirror
+            mirror = im.transpose(PILImage.FLIP_LEFT_RIGHT)
+        elif orientation == 3:
+            # Rotation 180
+            mirror = im.transpose(PILImage.ROTATE_180)
+        elif orientation == 4:
+            # Horizontal Mirror
+            mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM)
+        elif orientation == 5:
+            # Horizontal Mirror + Rotation 270 CCW
+            mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM).transpose(PILImage.ROTATE_270)
+        elif orientation == 6:
+            # Rotation 90
+            mirror = im.transpose(PILImage.ROTATE_270)
+        elif orientation == 7:
+            # Horizontal Mirror + Rotation 90
+            mirror = im.transpose(PILImage.FLIP_TOP_BOTTOM).transpose(PILImage.ROTATE_90)
+        elif orientation == 8:
+            # Rotation 90
+            mirror = im.transpose(PILImage.ROTATE_90)
+        # No more Orientation information
+        exif_dict["0th"][piexif.ImageIFD.Orientation] = 1
+    else:
+        # No EXIF information, the user has to do it
+        mirror = im.copy()
+
+    exif_bytes = piexif.dump(exif_dict)
+    mirror.save(filename, "JPEG", quality=70,exif=exif_bytes)
+
+    #img_grand = pyexiv2.Image(grand)
+    #img_grand.readMetadata()
+    #image.copyMetadataTo(img_grand)
+    #img_grand.writeMetadata()
+    #print grand
+    
+    #mirror.thumbnail(size_mini, PILImage.ANTIALIAS)
+    #mirror.save(mini, "JPEG", quality=85)
+    #img_mini = pyexiv2.Image(mini)
+    #img_mini.readMetadata()
+    #image.copyMetadataTo(img_mini)
+    #img_mini.writeMetadata()
+    #print mini
+
+
 if __name__ == "__main__":
 
 
@@ -174,6 +248,8 @@ if __name__ == "__main__":
 
         for fname in files:
 
+            photo_manage(fname)
+
             with open(fname) as file:
                 data = file.read()
 
@@ -181,7 +257,7 @@ if __name__ == "__main__":
                      print "Input metadata:"
                      dumpimage(data)
 
-                new_data=geoimage(data,lat=44.,lon=11.,imagedescription="pat1",usercomment="prova")
+                new_data=setgeoimage(data,lat=44.,lon=11.,imagedescription="pat1",usercomment="prova")
 
                 if options.dump:
                      print "Output metadata:"
