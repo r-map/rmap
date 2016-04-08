@@ -168,9 +168,16 @@ def photo_manage(filename):
         sys.exit(1)
 
     im = PILImage.open(filename)
+
+    try:
+        exif_dict = piexif.load(im.info["exif"])
+    except:
+        exif_dict={"0th":{}}
+
     # We create the thumbnail
     im.thumbnail(size_maxi, PILImage.ANTIALIAS)
-    exif_dict = piexif.load(im.info["exif"])
+    print im.info
+
 
     ## We rotate regarding to the EXIF orientation information
     if piexif.ImageIFD.Orientation in exif_dict["0th"]:
