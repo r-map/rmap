@@ -64,6 +64,11 @@ if not android  :
         urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
     except:
         print "Warnig: insertdata disabled"
+    try:
+        urlpatterns.append(url(r'^amatyr/', include('amatyr.urls')))
+    except:
+        print "Warnig: amatyr disabled"
+
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
