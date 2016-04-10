@@ -979,7 +979,7 @@ bool sim800Client::transparent()
   char buf[BUF_LENGTH];
 
   IF_SDEBUG(Serial.println(F("#sim800:going to transparent mode")));
-  return ATcommand("ATO0", buf, "CONNECT", ERRORSTR, 5000);
+  return ATcommand("O", buf, "CONNECT", ERRORSTR, 5000);
 
 }
 
