@@ -5,12 +5,10 @@
  
   <section id="main_content">
 
-
-    <h2>{% trans 'Stations' %}</h2>
-    <h2><a href="{% url 'stationsonmap' %}">{% trans 'View on the map' %}</a></h2>
-    <ul>
-
-      <table border="1">
+    <h2 id="striped-rows">{% trans 'Stations' %}</h2>
+    <div class="table-responsive">
+      <table class="table">
+	<thead  class="thead-default">
 	<tr>
 	  <th>Short name</th>
 	  <th>Ident</th>
@@ -19,6 +17,7 @@
 	  <th>Category</th>
 	  <th> {% trans 'View on the map' %}</th>
 	</tr>
+	</thead>
         {% for station in object_list %}
 	  {% if station.active  %}
 	    <tr>
@@ -34,7 +33,7 @@
 	    <li>{% trans 'No station yet.' %}</li>
         {% endfor %}
       </table>
-    </ul>
+    </div>
   </section>
 
 {% endblock %}

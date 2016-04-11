@@ -4,18 +4,18 @@
 {% block title %}{% trans "Register for an account" %}{% endblock %}
 
 {% block content %}
-<form method="post" action="">
+<div class="table">
+<form method="post" action=""  class="form-horizontal" role="form">
     {% csrf_token %}
     {{ form.as_p }}
-    <input type="submit" value="{% trans 'Submit' %}" />
+    <input type="submit" value="{% trans 'Submit' %}" class="btn btn-primary"/>
 </form>
-<p>
-<b><strong>{% trans "Terms of Service" %}</strong></b>
-</p>
-<p>
-{% trans "Rmap data-base is made available under the <a href=http://opendatacommons.org/licenses/odbl/1.0/>Open Database License</a>. Any rights in individual contents of the database are licensed under the <a href=http://opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>." %}
-</p>
-
+<hr>
+ <div class="panel panel-default" style="width: 90%; margin: 0 auto;">
+  <div class="panel-heading"><strong>{% trans "Terms of Service" %}</strong></div>
+  <div class="panel-body">{% trans "Rmap data-base is made available under the <a href=http://opendatacommons.org/licenses/odbl/1.0/>Open Database License</a>. Any rights in individual contents of the database are licensed under the <a href=http://opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>." %}</div>
+ </div>
+</div>
 {% endblock %}
 
 

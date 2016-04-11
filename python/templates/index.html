@@ -1,13 +1,16 @@
 {% extends "base.html" %}
 {% load i18n %}
+{% load staticfiles %}
 
 {% block content %}
     
     <section id="main_content">
+<div class="container">
+<div class="row">
+<div class="col-md-12"><h2>Rete di Monitoraggio Ambientale Partecipativo</h2></div>
 
-      <p><h3>Rete di Monitoraggio Ambientale Partecipativo</h3></p>
-
-      <p>Obiettivi R-map</p>
+<div class="col-md-10"><h3>Obiettivi R-map</h3></div>
+<div class="col-md-10">
 <ul>
 <li>Raccogliere e distribuire dati ambientali rilevati dai cittadini</li>
 
@@ -25,6 +28,9 @@ servizi per testare e migliorare la qualità dei dati</li>
 <li>Creare un circolo virtuoso tra Enti Formativi, Pubbliche
 Amministazioni, Aziende private e cittadini.</li>
 </ul>
+</div>
+<div class="col-md-2"><img src="{% static "rmap/logo_rmap.svg" %}" class="image img-responsive"></div>
+</div>
       </section>
 
 {% endblock %}

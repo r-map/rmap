@@ -4,22 +4,20 @@
 {% block content %}
     
     <section id="main_content">
+    <div class="container">
+    <div class="row">
+    <div class="col-md-12"><h2>Rete di Monitoraggio Ambientale Partecipativo</h2></div>
 
-      <p><h3>Rete di Monitoraggio Ambientale Partecipativo</h3></p>
-
-      <p><h2><a href="http:/">My station</a></h2></p>
-
-      <div id="navcontainer">
+    <div class="col-md-12"><h3><a href="http:/">My station</a></h3></div>
+    <div class="col-md-12">
       <ul>
-
       <li>
         <label><a href="wizard">Configuration wizard</a></label>
       </li>
-
       <li>
         <label>Visualizzazione</label>
           <ul>
-            <li><a href="http://{{site.domain}}:5925">punti stazione su mappa e grafici</a></li>
+            <li><a href="http://{{site.domain}}:5925">Punti stazione su mappa e grafici</a></li>
             <li><a href="http://graphite/dashboard/#rmap">Dashboard temperatura con graphite</a></li>
             <li><a href="http://graphite">Grafici graphite</a></li>
           </ul>
@@ -34,6 +32,8 @@
           </ul>
       </li>
       </ul>
+      </div> 
+     </div> 
       </div> 
 
     </section>

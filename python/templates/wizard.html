@@ -4,16 +4,14 @@
 {% block content %}
     
     <section id="main_content">
-
-      <p><h2>Configuration Wizard: station information </h2></p>
-      <p>
-	<form action="/wizard/" method="post">
+     <div class="table-responsive">
+      <h2 id="striped-rows">Configuration Wizard: station information </h2></p>
+	<form action="/wizard/" method="post" class="form-inline" role="form">
 	  {% csrf_token %}
 	  {{ form }}
-	  <input type="submit" value="Submit" />
+	  <input type="submit" value="Submit" class="btn btn-primary"/>
 	</form>
-
-      </p>
+     </div>
     </section>
 
 {% endblock %}

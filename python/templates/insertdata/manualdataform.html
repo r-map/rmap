@@ -11,41 +11,40 @@
 {% block content %}
 
 {% if invalid  %}
-<h2>{% trans 'Invalid data; retry' %}</h2>
+<div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
 {% endif %}
 
 {% if error  %}
-<h2>{% trans 'Error on publish data; retry' %}</h2>
+<div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}
 
-<h3>{% trans 'Select coordinate from you stations' %}</h3>
+<h3 id="striped-rows">{% trans 'Select coordinates from your stations' %}</h3>
+<div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
-      <table style="width:100%">
-
-        {{ stationform.as_table }}
-
+     <table class="table">
+        {{ stationform.as_p }}
       </table>
-      <input type="submit" value={%trans "Select station" %}>
+     <input type="submit" value={%trans "Select" %} class="btn">
     </form>
+</div>
 
-<h3>{% trans 'Select coordinate from address' %}</h3>
+<h3 id="striped-rows">{% trans 'Select coordinate from address' %}</h3>
+<div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
-      <table style="width:100%">
-
-        {{ nominatimform.as_table }}
-
-      </table>
-      <input type="submit" value={%trans "Submit" %}>
+     <table class="table">
+        {{ nominatimform.as_p }}
+     </table>
+     <input type="submit" value={%trans "Select" %} class="btn">
     </form>
+</div>
 
-<h3>{% trans 'Select coordinate from map and insert your actual data' %}</h3>
+
+
+<h3 id="striped-rows">{% trans 'Select coordinate from map and insert your actual data' %}</h3>
+<div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
-      <table style="width:100%">
-
-        {{ form.as_table }}
-
-      </table>
-      <input type="submit" value={%trans "Submit" %}>
+        {{ form.as_p }}
+     <input type="submit" value={%trans "Submit" %} class="btn btn-primary">
     </form>
-
+</div>
 {% endblock %}

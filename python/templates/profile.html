@@ -5,15 +5,18 @@
     
 <section id="main_content">
 
-  <p><h3>{{ ident}} {% trans 'Here your personal data' %}</h3></p>
-  <p><h2><a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a></h2></p> 
-  <p><h2><a href="{% url 'stationsonmap' ident %}">{% trans 'View on the map' %}</a></h2></p>
+ <h3 id="striped-rows">{{ ident}} {% trans 'Here your personal data' %}</h3>
+  <div class="bs-callout">
+   <h4>{% trans "Your images" %}</h4>
+   <a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a>
+  </div>
+  <div class="bs-callout">
+  <h4>{% trans "Your stations" %}</h4>
+  <h4><a href="{% url 'stationsonmap' ident %}">{% trans 'View on the map' %}</a></h4>
 
-
-
-  <ul>
-
-    <table border="1">
+  <div class="table-responsive">
+    <table class="table">
+      <thead  class="thead-default">
       <tr>
 	<th>Short name</th>
 	<th>Active</th>
@@ -22,7 +25,7 @@
 	<th>Lon</th>
 	<th>Category</th>
       </tr>
-
+      </thead>
       {% for station in  stations %}
         <tr>
 	  <td><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></td>
@@ -36,7 +39,8 @@
         <li>{% trans 'No station yet.' %}</li>
       {% endfor %}
     </table>
-  </ul> 
+  </div>
+  </div>
 </section>
 
 {% endblock %}

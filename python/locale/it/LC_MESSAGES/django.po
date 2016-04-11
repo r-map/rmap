@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-03-19 09:55+0100\n"
-"PO-Revision-Date: 2016-03-19 10:40+0100\n"
+"POT-Creation-Date: 2016-04-10 11:49+0200\n"
+"PO-Revision-Date: 2016-04-10 11:46+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -22,8 +22,8 @@ msgstr ""
 #: rmap/stations/models.py:253 rmap/stations/models.py:329
 #: rmap/stations/models.py:361 rmap/stations/models.py:392
 #: rmap/stations/models.py:432 rmap/stations/models.py:488
-#: rmap/stations/models.py:528 templates/profile_details.html.py:14
-#: templates/stations/stationmetadata_detail.html:12
+#: rmap/stations/models.py:528 templates/profile_details.html.py:15
+#: templates/stations/stationmetadata_detail.html:14
 msgid "Active"
 msgstr "Attivo"
 
@@ -87,9 +87,9 @@ msgstr "Inserisci un nome utente valido."
 msgid "Password"
 msgstr ""
 
-#: rmap/form.py:32 templates/profile.html.py:24
+#: rmap/form.py:32 templates/profile.html.py:31
 #: templates/profile_details.html:10
-#: templates/stations/stationmetadata_detail.html:8
+#: templates/stations/stationmetadata_detail.html:10
 msgid "Station name"
 msgstr "Nome stazione"
 
@@ -468,7 +468,7 @@ msgstr "Campionamento OFF"
 msgid "Publish"
 msgstr "Pubblica"
 
-#: rmap/rmapgui.py:1180 templates/registration/login.html.py:15
+#: rmap/rmapgui.py:1180 templates/registration/login.html.py:18
 msgid "Register"
 msgstr "Registrazione"
 
@@ -554,7 +554,7 @@ msgid "Warning"
 msgstr "Attenzione"
 
 #: rmap/rmapgui.py:1396 rmap/rmapgui.py:1398 rmap/rmapgui.py:1400
-#: rmap/rmapgui.py:1995 rmap/rmapgui.py:2610
+#: rmap/rmapgui.py:1995 rmap/rmapgui.py:2624
 msgid "Station"
 msgstr "Stazione"
 
@@ -563,7 +563,7 @@ msgid " active"
 msgstr "Attiva"
 
 #: rmap/rmapgui.py:1398 rmap/rmapgui.py:1400 rmap/rmapgui.py:1995
-#: rmap/rmapgui.py:2610
+#: rmap/rmapgui.py:2624
 msgid " disactive"
 msgstr "Disattiva"
 
@@ -747,7 +747,7 @@ msgstr "Attendi"
 msgid "Start Camera!"
 msgstr "Attiva Fotocamera!"
 
-#: rmap/rmapgui.py:2671
+#: rmap/rmapgui.py:2685
 msgid ""
 "error sending\n"
 "image to server!"
@@ -755,7 +755,7 @@ msgstr ""
 "errore invio\n"
 "immagine al server!"
 
-#: rmap/rmapgui.py:2686
+#: rmap/rmapgui.py:2700
 msgid "GPS: new coordinate acquired"
 msgstr "GPS: acquisite nuove coordinate"
 
@@ -953,52 +953,41 @@ msgstr ""
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:600
+#: rmap/stations/models.py:612
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: rmap/stations/models.py:600
+#: rmap/stations/models.py:612
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
-#: templates/base.html:32
-msgid "Home"
-msgstr ""
+#: templates/base.html:123 templates/base.html.py:131
+#: templates/registration/login.html:4 templates/registration/login.html:10
+msgid "Log in"
+msgstr "Entra"
 
-#: templates/base.html:148
-msgid "Logged in"
-msgstr "Entrato"
-
-#: templates/base.html:149
+#: templates/base.html:128
 msgid "Log out"
 msgstr "Esci"
 
-#: templates/base.html:150 templates/registration/password_change_form.html:4
+#: templates/base.html:129 templates/registration/password_change_form.html:4
 #: templates/registration/password_change_form.html:10
 msgid "Change password"
 msgstr "Cambio password"
 
-#: templates/base.html:152 templates/registration/login.html.py:4
-#: templates/registration/login.html:10
-msgid "Log in"
-msgstr "Entra"
-
-#: templates/geoimage/georefencedimage_list.html:14
+#: templates/geoimage/georefencedimage_list.html:15
 #: templates/stations/stationsonmap.html:14
 msgid "Selected user"
 msgstr "Utente selezionato"
 
-#: templates/geoimage/georefencedimage_list.html:14
-#: templates/stations/stationsonmap.html:14
+#: templates/geoimage/georefencedimage_list.html:15
 msgid "Reset filter"
 msgstr "Reimposta filtro"
 
-#: templates/geoimage/georefencedimage_list.html:43
-#: templates/insertdata/form.html:37 templates/insertdata/form.html.py:48
-#: templates/insertdata/manualdataform.html:38
-#: templates/insertdata/manualdataform.html:48
-#: templates/registration/registration_form.html:10
-#: templates/stations/stationsonmap.html:43
+#: templates/geoimage/georefencedimage_list.html:45
+#: templates/insertdata/form.html:51
+#: templates/insertdata/manualdataform.html:47
+#: templates/registration/registration_form.html:11
 msgid "Submit"
 msgstr "Invia"
 
@@ -1014,24 +1003,25 @@ msgstr "Errore pubblicando i dati; riprova"
 
 #: templates/insertdata/form.html:20
 #: templates/insertdata/manualdataform.html:21
-msgid "Select coordinate from you stations"
-msgstr "Seleziona le coordinate dalla tua stazione"
+msgid "Select coordinates from your stations"
+msgstr "Seleziona le coordinate dalle tue stazioni"
 
-#: templates/insertdata/form.html:27
-#: templates/insertdata/manualdataform.html:28
-msgid "Select station"
-msgstr "Seleziona una stazione"
+#: templates/insertdata/form.html:28 templates/insertdata/form.html.py:40
+#: templates/insertdata/manualdataform.html:27
+#: templates/insertdata/manualdataform.html:37
+msgid "Select"
+msgstr "Seleziona"
 
-#: templates/insertdata/form.html:30
+#: templates/insertdata/form.html:32
 #: templates/insertdata/manualdataform.html:31
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
 
-#: templates/insertdata/form.html:40
+#: templates/insertdata/form.html:44
 msgid "Select coordinate from map and upload your image"
 msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
 
-#: templates/insertdata/manualdataform.html:41
+#: templates/insertdata/manualdataform.html:43
 msgid "Select coordinate from map and insert your actual data"
 msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 
@@ -1039,11 +1029,21 @@ msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 msgid "Here your personal data"
 msgstr "Questi i tuoi dati personali"
 
-#: templates/profile.html:9
+#: templates/profile.html:10 templates/profile.html.py:11
 msgid "Your images"
 msgstr "Le tue immagini"
 
-#: templates/profile.html:32 templates/stations/stationmetadata_list.html:32
+#: templates/profile.html:14
+msgid "Your stations"
+msgstr "Le tue stazioni"
+
+#: templates/profile.html:15 templates/stations/stationmetadata_detail.html:8
+#: templates/stations/stationmetadata_detail.html:19
+#: templates/stations/stationmetadata_list.html:18
+msgid "View on the map"
+msgstr "Visualizza sulla mappa"
+
+#: templates/profile.html:39 templates/stations/stationmetadata_list.html:33
 msgid "No station yet."
 msgstr "Non ci sono stazioni."
 
@@ -1051,50 +1051,34 @@ msgstr "Non ci sono stazioni."
 msgid "Here your personal data details"
 msgstr "Questi i tuoi dati personali in dettaglio"
 
-#: templates/profile_details.html:15
-#: templates/stations/stationmetadata_detail.html:13
+#: templates/profile_details.html:16
+#: templates/stations/stationmetadata_detail.html:15
 msgid "Ident"
 msgstr ""
 
-#: templates/profile_details.html:16
-#: templates/stations/stationmetadata_detail.html:14
+#: templates/profile_details.html:17
+#: templates/stations/stationmetadata_detail.html:16
 msgid "Lat"
 msgstr ""
 
-#: templates/profile_details.html:17
-#: templates/stations/stationmetadata_detail.html:15
+#: templates/profile_details.html:18
+#: templates/stations/stationmetadata_detail.html:17
 msgid "Lon"
 msgstr ""
 
-#: templates/profile_details.html:18
-#: templates/stations/stationmetadata_detail.html:16
+#: templates/profile_details.html:19
+msgid "Locate"
+msgstr "Mappa"
+
+#: templates/profile_details.html:20
+#: templates/stations/stationmetadata_detail.html:18
 msgid "Category"
 msgstr "Categoria"
 
-#: templates/profile_details.html:30
-#: templates/stations/stationmetadata_detail.html:28
+#: templates/profile_details.html:39
+#: templates/stations/stationmetadata_detail.html:38
 msgid "Display graph"
 msgstr "Visualizzazione grafici"
-
-#: templates/profile_details.html:34
-#: templates/stations/stationmetadata_detail.html:32
-msgid "Board name"
-msgstr "Nome scheda"
-
-#: templates/profile_details.html:35
-#: templates/stations/stationmetadata_detail.html:33
-msgid "Variable"
-msgstr "Variabile"
-
-#: templates/profile_details.html:36
-#: templates/stations/stationmetadata_detail.html:34
-msgid "Report"
-msgstr ""
-
-#: templates/profile_details.html:37
-#: templates/stations/stationmetadata_detail.html:35
-msgid "Sample"
-msgstr "Campionamento"
 
 #: templates/registration/activate.html:5
 msgid "Account activation failed."
@@ -1202,15 +1186,15 @@ msgstr ""
 msgid "Account activation on"
 msgstr "Attivazione account attiva"
 
-#: templates/registration/login.html:14
+#: templates/registration/login.html:15
 msgid "Forgot your password?"
 msgstr "Hai dimenticato la password?"
 
-#: templates/registration/login.html:14
+#: templates/registration/login.html:15
 msgid "Reset it"
 msgstr "Reimposta"
 
-#: templates/registration/login.html:15
+#: templates/registration/login.html:18
 msgid "Not a member?"
 msgstr "Non sei un menbro?"
 
@@ -1285,13 +1269,14 @@ msgstr "Reimposta password"
 #: templates/registration/password_reset_form.html:8
 msgid ""
 "\n"
-"    Forgot your password?  Enter your email in the form below and we'll send "
-"you instructions for creating a new one.\n"
+"    <strong>Forgot your password?</strong> Enter your email in the form "
+"below and we'll send you instructions for creating a new one.\n"
 "    "
 msgstr ""
 "\n"
-"    Hai dimenticato la password? Inserisci la tua email nel modulo "
-"sottostante e ti saranno inviate le istruzioni per crearne una nuova.\n"
+"    <strong>Hai dimenticato la password?</strong> Inserisci la tua email nel "
+"modulo sottostante e ti saranno inviate le istruzioni per crearne una "
+"nuova.\n"
 "    "
 
 #: templates/registration/registration_closed.html:4
@@ -1315,7 +1300,7 @@ msgstr "Per favore controlla la tua posta per completare la registrazione."
 msgid "Register for an account"
 msgstr "Registrati per ottenere un account"
 
-#: templates/registration/registration_form.html:13
+#: templates/registration/registration_form.html:15
 msgid "Terms of Service"
 msgstr "Condizioni del servizio"
 
@@ -1331,13 +1316,48 @@ msgstr ""
 "contenuti individuali del data-base sono lecenziati con la <a href=http://"
 "opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>."
 
-#: templates/stations/stationmetadata_list.html:9
+#: templates/stations/stationmetadata_detail.html:47
+msgid "Board name"
+msgstr "Nome scheda"
+
+#: templates/stations/stationmetadata_detail.html:48
+msgid "Variable"
+msgstr "Variabile"
+
+#: templates/stations/stationmetadata_detail.html:51
+#: templates/stations/stationmetadata_detail.html:56
+msgid "Sample"
+msgstr "Campionamento"
+
+#: templates/stations/stationmetadata_list.html:8
 msgid "Stations"
 msgstr "Stazioni"
 
-#: templates/stations/stationmetadata_list.html:10
-msgid "View on the map"
-msgstr "Visualizza sulla mappa"
+#: templates/stations/stationsonmap.html:14
+msgid "Reset ident filter"
+msgstr "Annulla filtro su IDENT"
+
+#: templates/stations/stationsonmap.html:18
+msgid "Selected slug"
+msgstr "SLUG selezionato"
+
+#: templates/stations/stationsonmap.html:18
+msgid "Reset slug filter"
+msgstr "Annulla filtro su SLUG"
+
+#: templates/wizard_done.html:12
+msgid "Profile"
+msgstr ""
+
+#~| msgid "Select coordinate from you stations"
+#~ msgid "Select coordinate from your stations"
+#~ msgstr "Seleziona le coordinate dalle tue stazioni"
+
+#~ msgid "Logged in"
+#~ msgstr "Entrato"
+
+#~ msgid "Select station"
+#~ msgstr "Seleziona una stazione"
 
 #~ msgid "Activate users"
 #~ msgstr "Utenti attivati"

@@ -4,11 +4,13 @@
 {% block content %}
     
     <section id="main_content">
-
-      <p><h2>Configuration Wizard</h2></p>
-      <p>
+     <div class="table-responsive">
+      <h2 id="striped-rows">Configuration Wizard: Success </h2>
+       <div class="alert alert-success">
 	<h1>Wizard Done</h1>
-      </p>
+       </div>	
+      <a href="/accounts/profile">{{ user.username }} {% trans "Profile" %}</a>
+     </div> 
     </section>
 
 {% endblock %}
