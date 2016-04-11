@@ -42,16 +42,16 @@
 {% for board in mystation.board_set.all %}
   {% if board.active  %}
     {% for sensor in board.sensor_set.all %}
-      <h2>{{ board.name }}</h2>
+      <h3>{{ board.name }}</h3>
     {% if sensor.active  %}
-	  <h3><span class="bv aig"></span>{{ sensor.name }}</h3>
+	  <h4><span class="bv aig"></span>{{ sensor.name }}</h4>
      <div class="col-md-6">
-	  <h4><span class="bv aig"></span>Report</h4>
+	  <h5><span class="bv aig"></span>Report</h5>
           <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=report.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&target=report.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&width=586&height=308&_salt=1457007175.147" alt="..." class="img-thumbnail"></p>
           <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=report.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v" role="button">Graphite &raquo;</a></p>
      </div>
      <div class="col-md-6">
-	  <h4><span class="bv aig"></span>Sample</h4>
+	  <h5><span class="bv aig"></span>Sample</h5>
           <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=rmap.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v&target=rmap.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v&width=586&height=308&_salt=1457007175.147" alt="..." class="img-thumbnail"></p>
           <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ mystation.ident }}.{{ mystation.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v" role="button">Graphite &raquo;</a></p>
      </div>
