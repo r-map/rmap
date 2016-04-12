@@ -735,12 +735,16 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
         print "Received from user: %r" % ident 
         
         #but we check that message content is with the same ident
-        for deserialized_object in serializers.deserialize("json",body):
-            if object_auth(deserialized_object.object,ident):
-                print "save:",deserialized_object.object
-                deserialized_object.save()
-            else:
-                print "reject:",deserialized_object.object
+        try:
+            for deserialized_object in serializers.deserialize("json",body):
+                if object_auth(deserialized_object.object,ident):
+                    print "save:",deserialized_object.object
+                    deserialized_object.save()
+                else:
+                    print "reject:",deserialized_object.object
+
+        except Exception as e:
+            print ("error in deserialize object; skip it",e)
 
         print " [x] Done"
         ch.basic_ack(delivery_tag = method.delivery_tag)
