@@ -129,7 +129,7 @@ def insertDataImage(request):
 
             address=nominatimform.cleaned_data['address']
             if address:
-                nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer=current_site = get_current_site(request))
+                nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer= get_current_site(request))
                 result=nom.query(address,limit=1,countrycodes="IT")
                 if len(result) >= 1:
                     lat= result[0]["lat"]
@@ -262,7 +262,7 @@ def insertDataManualData(request):
 
             address=nominatimform.cleaned_data['address']
             if address:
-                nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer=current_site = get_current_site(request))
+                nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer=get_current_site(request))
                 result=nom.query(address,limit=1,countrycodes="IT")
                 if len(result) >= 1:
                     lat= result[0]["lat"]

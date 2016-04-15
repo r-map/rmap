@@ -54,20 +54,24 @@ urlpatterns = [
 if not android  :
     try:
         urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
-    except:
+    except Exception as e:
         print "Warnig: borinud disabled"
+        print e
     try:
         urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
-    except:
+    except Exception as e:
         print "Warnig: geoimage disabled"
+        print e
     try:
         urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
-    except:
+    except Exception as e:
         print "Warnig: insertdata disabled"
+        print e
     try:
         urlpatterns.append(url(r'^amatyr/', include('amatyr.urls')))
-    except:
+    except Exception as e:
         print "Warnig: amatyr disabled"
+        print e
 
 
 if ( settings.SERVE_STATIC ):
