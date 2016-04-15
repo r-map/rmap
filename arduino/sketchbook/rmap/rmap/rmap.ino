@@ -339,7 +339,8 @@ void aes_dec(uint8_t* key, uint8_t* iv, char* mainbuf, size_t* buflen){
   #ifdef GSMGPRSMQTT
 #include "sim800Client.h"
 sim800Client s800;
-char imeicode[16];
+#DEFINE IMEICODE_LEN 16
+char imeicode[IMEICODE_LEN];
   #endif
 
   #ifdef GSMGPRSHTTP
@@ -532,8 +533,6 @@ PubSubClient mqttclient(configuration.mqttserver, 1883, mqttcallback, ethclient)
 bool rmapconnect()
 {
 
-  char mqttid[SERVER_LEN+13];
-
 #ifdef ETHERNETON
   // set mqttid to username+mac address
   /*
@@ -548,13 +547,16 @@ bool rmapconnect()
   */
   // TODO: try to use  empty ClientId
 
+  char mqttid[SERVER_LEN+13];
+
   sprintf(mqttid, "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 
 #endif //ETHERNETON
 
 #ifdef GSMGPRSMQTT
   // IMEI code from sim800
-  snprintf(mqttid,16, "%s", imeicode);
+  char mqttid[IMEICODE_LEN];
+  snprintf(mqttid,IMEICODE_LEN, "%s", imeicode);
 #endif
 
   IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
