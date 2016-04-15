@@ -2,10 +2,12 @@ from django.conf.urls import url, include
 
 from . import views
 from .v1 import urls as v1_urls
+from .v2 import urls as v2_urls
 
 
 api_patterns = [
     url(r'^v1/', include(v1_urls, namespace='v1')),
+    url(r'^v2/', include(v2_urls, namespace='v2')),
 ]
 
 urlpatterns = [
