@@ -339,7 +339,7 @@ void aes_dec(uint8_t* key, uint8_t* iv, char* mainbuf, size_t* buflen){
   #ifdef GSMGPRSMQTT
 #include "sim800Client.h"
 sim800Client s800;
-#DEFINE IMEICODE_LEN 16
+#define IMEICODE_LEN 16
 char imeicode[IMEICODE_LEN];
   #endif
 
@@ -583,6 +583,7 @@ bool rmapconnect()
     snprintf(topiccom,SERVER_LEN+21, "%s%s/%s/com", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
+    // default to QoS=0
     mqttclient.subscribe(topiccom);
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt subscribed to: ")));
     IF_SDEBUG(DBGSERIAL.println(topiccom));
@@ -922,6 +923,8 @@ int rf24rpc(aJsonObject* params)
   boolean save=false;
   result = aJson.createObject();
 
+  IF_SDEBUG(DBGSERIAL.println(F("#mgrConfiguration")));
+
   // set config version
   strcpy (confver,CONFVER);
 
@@ -930,6 +933,8 @@ int rf24rpc(aJsonObject* params)
      reset = resetParam -> valuebool;
 
   if (reset){
+
+    IF_SDEBUG(DBGSERIAL.println(F("#reset")));
 
     configured=false;
 
@@ -965,6 +970,8 @@ int rf24rpc(aJsonObject* params)
   aJsonObject* driverParam = aJson.getObjectItem(params, "driver");
 
   if (driverParam) {
+    IF_SDEBUG(DBGSERIAL.println(F("#sensor")));
+
     char* driver = {driverParam -> valuestring};
 
     aJsonObject* typeParam = aJson.getObjectItem(params, "type");
@@ -985,12 +992,11 @@ int rf24rpc(aJsonObject* params)
         #if defined (AES)
 			   , configuration.key, configuration.iv
         #endif
-			   ) == SD_SUCCESS)
-			   
+			   ) == SD_SUCCESS) {			   
 			   IF_SDEBUG(DBGSERIAL.print(F("#sensor not present or broken")));
 			   // comment the next line to be less restrictive
 			   return E_INTERNAL_ERROR;
-
+			   }
     aJson.addNumberToObject(result, "id",id);
 
 #endif
@@ -1002,6 +1008,7 @@ int rf24rpc(aJsonObject* params)
   //aJson.deleteItem(saveParam);
 
   if (save){
+    IF_SDEBUG(DBGSERIAL.println(F("#save")));
     configuration.save();
     //EEPROM_writeAnything(0, configuration);
     aJson.addTrueToObject(result, "save");
@@ -1107,6 +1114,8 @@ int rf24rpc(aJsonObject* params)
 
   aJsonObject* Date = aJson.getObjectItem(params, "date");
   if (Date){
+     IF_SDEBUG(DBGSERIAL.println(F("#settime")));
+
      if (aJson.getArraySize(Date) != 6)  return E_INTERNAL_ERROR;
 
      aJsonObject* element;
@@ -2835,6 +2844,11 @@ void setup()
 	
       wdt_reset();
 
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+      // poll mqtt connection if required
+      mgrmqtt();
+#endif
+
       IF_SDEBUG(DBGSERIAL.print(F("#file exist: ")));
       IF_SDEBUG(DBGSERIAL.println(fileName));
       
@@ -3002,6 +3016,10 @@ void setup()
   // Found an unused file name.
   
   wdt_reset();
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  // poll mqtt connection if required
+  mgrmqtt();
+#endif
 
   IF_SDEBUG(DBGSERIAL.print(F("#open file: ")));
   IF_SDEBUG(DBGSERIAL.println(fullfileName));
@@ -3020,6 +3038,10 @@ void setup()
 #endif
 
   wdt_reset();
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  // poll mqtt connection if required
+  mgrmqtt();
+#endif
   
 #if defined(REPEATTASK)
   Alarm.timerRepeat(configuration.rt, Repeats);             // timer for every tr seconds
