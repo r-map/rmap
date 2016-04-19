@@ -23,15 +23,15 @@
 <tr>
 <td> 
 {% if mystation.active %} 
- <img src="../../../static/rmap/true.svg" alt="true" class="img-responsive" style="max-width: 25px;"> 
+<i class="fa fa-check fa-2x"></i>
 {% else %}
- <img src="../../../static/rmap/false.svg" alt="false" class="img-responsive" style="max-width: 25px;"> 
+<i class="fa fa-times fa-2x"></i>
 {% endif %}
 </td>
 <td> {{ mystation.ident }}   </td>
 <td> {{ mystation.lat }}     </td>
 <td> {{ mystation.lon }}     </td>
-<td><a href=../../../stationsonmap/{{ mystation.ident }}/{{ mystation.slug}}/><img src="../../../static/rmap/location_icon.svg" alt="location icon" class="img-responsive" style="max-width: 30px;"></a></td>
+<td><a href=../../../stationsonmap/{{ mystation.ident }}/{{ mystation.slug}}/><i class="fa fa-map-marker fa-2x"></i></a></td>
 <td> {{ mystation.category }}</td>
 </tr>
 </table>
