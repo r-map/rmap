@@ -3,6 +3,10 @@
 #define DAVIS
 //#define INSPEED
 
+// take one measure every SAMPLERATE us
+#define SAMPLERATE 3000
+
+
 // other parameters
 
 #if defined(DAVIS)
@@ -12,9 +16,9 @@
 #define SAMPLETIME 2500
 #endif
 
-// take one measure every SAMPLERATE us
-#define SAMPLERATE 3000
-
+#if SAMPLERATE <= SAMPLETIME
+   ERROR: SAMPLERATE should be > SAMPLETIME 
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // i2C comm definitions

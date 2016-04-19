@@ -1044,8 +1044,7 @@ int SensorDriverDw1::prepare(unsigned long& waittime)
 
   _timing=millis();
   // should be better to use SAMPLERATE in config file of i2c-wind
-  //waittime= SAMPLERATE + 500ul;
-  waittime= 3500ul;
+  waittime= 3000ul;
 
   return SD_SUCCESS;
 }

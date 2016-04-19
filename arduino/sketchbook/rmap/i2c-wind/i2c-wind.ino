@@ -37,7 +37,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 03             //Software version for cross checking
+#define VERSION 04             //Software version for cross checking
 
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -150,7 +150,9 @@ void countadd()
 #if defined(DAVIS)
   unsigned long now=millis();
 
-  if ((now-antirimb) > SAMPLETIME/150){
+  // this define the max wind speed taken in account
+  // if ((now-antirimb) > SAMPLETIME/150){
+  if ((now-antirimb) > 15){
     count ++;
     antirimb=now;
   }
@@ -435,10 +437,10 @@ void loop() {
   starttime = millis();
   attachInterrupt(digitalPinToInterrupt(INTERRUPTPIN), countadd, RISING);
 
-  // wait to go in the middle of sampletime to get direction
+  // wait to go in the middle of samplerate to get direction
   // will be better to do a mean but direction is not continueous function
-  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLERATE/2));
-  delay(SAMPLERATE/2);
+  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLETIME/2));
+  delay(SAMPLETIME/2);
 
   int ana=analogRead(ANALOGPIN);    // read the input pin
 
@@ -468,19 +470,18 @@ void loop() {
 
 #elif defined (INSPEED)
   //IF_SDEBUG(Serial.print(F("ana: ")));IF_SDEBUG(Serial.println(ana));
-  dd=round((ana-50)*(360./921.));  // linear for no dead band fron 5% to 95% of full range (0-1023)
+  dd=round((ana-50)*(360./921.));  // linear for no dead band from 5% to 95% of full range (0-1023)
 
 #endif
 
   dd=max(dd,1);
   dd=min(dd,360);
-  
 
   //while (FreqCounter::f_ready == 0) { }
   //IF_SDEBUG(Serial.print(F("freq: ")));IF_SDEBUG(Serial.println(FreqCounter::f_freq));
   //count=FreqCounter::f_freq
 
-  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLERATE-(millis()-starttime)));
+  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLETIME-(millis()-starttime)));
   delay(SAMPLERATE-(millis()-starttime));
 
   detachInterrupt(digitalPinToInterrupt(INTERRUPTPIN));
@@ -490,23 +491,20 @@ void loop() {
   // I have to put timing here becouse the timer is used by FreqCounter
   //starttime = millis();
 
-#if defined(DAVIS)
   /*
+    DAVIS
     We'd like to count the number of pulses in a time interval, which is directly proportional to windspeed.
     Counting the signal from the Davis 6410 for 2.25 seconds will give a result directly in units of mph,
      mph = 2.25 * counts / seconds     ' (so counts=mph when seconds=2.25)
   */
 
-  ff=round(count/(SAMPLETIME/2250.0)*0.44704*10.);   // m/s *10
-
-#elif defined (INSPEED)
   /*
+    INSPEED
     2.5  mph per Hz (1 Hz = 1 pulse/second) 
   */
 
-  ff=round(count/(SAMPLETIME/2500.0)*0.44704*10.);   // m/s *10
+  ff=round(count*0.44704*10.);   // m/s *10
 
-#endif
 
   if (ff == 0) dd=0;     //wind calm
   
