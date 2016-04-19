@@ -7,7 +7,7 @@
 
     <h2 id="striped-rows">{% trans 'Stations' %}</h2>
 
-    <h3 id="striped-rows"><a href="/stationsonmap">{% trans 'View on the map' %}</a></h3>
+    <h3 id="striped-rows"><a href="/stationsonmap"><i class="fa fa-map-marker"></i> {% trans 'View on the map' %}</a></h3>
 
     <div class="table-responsive">
       <table class="table">
@@ -18,7 +18,7 @@
 	  <th>Lat</th>
 	  <th>Lon</th>
 	  <th>Category</th>
-	  <th> {% trans 'View on the map' %}</th>
+	  <th><i class="fa fa-map"></i> {% trans 'View on the map' %}</th>
 	</tr>
 	</thead>
         {% for station in object_list %}
@@ -29,7 +29,7 @@
 	      <td> {{ station.lat}}</td>
 	      <td> {{ station.lon}}</td>
 	      <td> {{ station.category}}</td>
-	      <td> <a href="/stationsonmap/{{ station.ident }}/{{ station.slug }}">{{ station.slug }}</a></td>
+	      <td> <a href="/stationsonmap/{{ station.ident }}/{{ station.slug }}"><i class="fa fa-map-marker "></i> {{ station.name }}</a></td>
 	    </tr>
 	  {% endif %}
 	{% empty %}
