@@ -44,7 +44,7 @@
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
         {{ form.as_p }}
-     <input type="submit" value={%trans "Submit" %} class="btn btn-primary">
+     <input type="submit" value={%trans "Submit" %} class="btn">
     </form>
 </div>
 {% endblock %}

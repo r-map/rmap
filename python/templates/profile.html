@@ -8,11 +8,11 @@
  <h3 id="striped-rows">{{ ident}} {% trans 'Here your personal data' %}</h3>
   <div class="bs-callout">
    <h4>{% trans "Your images" %}</h4>
-   <a href= {% url 'geoimage-ident' ident %}> {% trans "Your images" %}</a>
+   <a href= {% url 'geoimage-ident' ident %}><i class="fa fa-picture-o"></i> {% trans "Your images" %}</a>
   </div>
   <div class="bs-callout">
   <h4>{% trans "Your stations" %}</h4>
-  <h4><a href="{% url 'stationsonmap' ident %}">{% trans 'View on the map' %}</a></h4>
+  <h4><a href="{% url 'stationsonmap' ident %}"><i class="fa fa-map-marker "></i> {% trans 'View on the map' %}</a></h4>
 
   <div class="table-responsive">
     <table class="table">
@@ -29,7 +29,13 @@
       {% for station in  stations %}
         <tr>
 	  <td><a href=/accounts/profile/{{ station.slug }}>{% trans 'Station name' %}: {{ station.name }}</a></td>
-	  <td> {{ station.active }} </td>
+	  <td> 
+	  {% if station.active %}
+		<i class="fa fa-check "></i>
+	  {% else %}
+		<i class="fa fa-times "></i>
+	  {% endif %}
+	  </td>
 	  <td> {{ station.ident }} </td>
 	  <td> {{ station.lat }} </td>
 	  <td> {{ station.lon }} </td>

@@ -14,9 +14,10 @@
     <link rel="stylesheet" type="text/css" href="{% static "registration/main.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "registration/skin.css" %}">
     <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
-    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/superfish/1.7.4/superfish.min.css" %}">
     <link rel="stylesheet" type="text/css" href="{% static "registration/navigation.css" %}">
     <meta name="viewport" content="width=device-width">
+
+    <link rel="stylesheet" type="text/css" href="{% static "fa/css/font-awesome.min.css" %}">
 
     <!-- Bootstrap core CSS -->
     <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/bootstrap/3.3.6/css/bootstrap.min.css" %}" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" >
@@ -25,6 +26,8 @@
 
     <!-- Custom styles for this template -->
     <script src="{% static "rmap/libs/bootstrap/3.3.6/js/bootstrap.min.js" %}" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" type="text/javascript"></script>
+
+
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     {% block extra_assets %}{% endblock %}
@@ -54,7 +57,7 @@
           <div id="navbar" class="navbar-collapse collapse">
             <ul class="nav navbar-nav">
             <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Server Rmap <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-database"></i> Server Rmap <span class="caret"></span></a>
                 <ul class="dropdown-menu">
 		<li><a href="/borinud/">Punti stazione su mappa e grafici</a></li>
 		<li><a href="/geoimage/">Immagini georeferenziate su mappa</a></li>
@@ -70,7 +73,7 @@
  		  </ul>
 		</li>
              <li class="dropdown">
-                <a href="/stations" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Stazioni <span class="caret"></span></a>
+                <a href="/stations" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-tachometer"></i> Stazioni <span class="caret"></span></a>
                 <ul class="dropdown-menu">
 	    <li><a href="/stations">Visualizza stazioni</a></li>
 	    {% if user.is_authenticated %}
@@ -79,21 +82,20 @@
 	  </ul>
 	</li>
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Partecipa <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users fa-fw"></i> Partecipa <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="/registrazione/login/">Gestisci/registra una nuova stazione</a></li>
 	    <li><a href="/insertdata/manualdata">Inserisci dati rilevati manualmente</a></li>
 	    <li><a href="/insertdata/image">Inserisci immagini georeferenziate</a></li>
 	    <li><a href="https://play.google.com/store/apps/details?id=org.test.rmap">Scarica l'APP RMAP per Android</a></li>
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/HowTo#Applicazione_Rmap">Installa l'APP RMAP su altri sistemi operativi</a></li>
-
 	    <li><a href="http://raspibo.ofpcina.net/groups/profile/2963/stazione-per-il-rilevamento-di-parametri-meteo-ambientali">Social Network</a></li>
 	    <li><a href="http://liste.raspibo.org/wws/info/meteo">Mailing List</a></li>
 	  </ul>
 	</li>
 
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Documentazione <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-book fa-fw"></i> Documentazione <span class="caret"></span></a>
                 <ul class="dropdown-menu">
                   <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">Il progetto sul sito RaspiBO</a></li>
                   <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/RFC-rmap">Rmap standard RFC</a></li>
@@ -102,7 +104,7 @@
 
 
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Sviluppo <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-code fa-fw"></i> Sviluppo <span class="caret"></span></a>
                 <ul class="dropdown-menu">
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">Overview</a></li>
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/HowTo">HowTo</a></li>
@@ -116,7 +118,7 @@
 	  </ul>
 	</li>
 	      <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user fa-fw"></i>&nbsp;
 		{% if user.is_authenticated %}
 		{{ user.username }}
 		{% else %}
@@ -142,7 +144,6 @@
     <hr />
 
     {% endblock %}
-
     </div>
 
     <div id="maincontent" class="container">
