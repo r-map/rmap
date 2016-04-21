@@ -2680,12 +2680,14 @@ void setup()
   // static hardwareserial defined at compile time in sim800 library 
   //if (s800.init(&GSMSERIAL , GSMONOFFPIN, GSMRESETPIN)){
   if (s800.init(GSMONOFFPIN, GSMRESETPIN)){
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
+  }else{
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800; retry")));
+
     // In Stima configuration sim800 will be always on becouse PWRKEY
     // Pin should be pulled down 
     //s800.switchOn();
-
     s800.resetModem();
-    IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
     wdt_reset();
     s800.setup();
     wdt_reset();
@@ -2694,17 +2696,18 @@ void setup()
     s800.TCPstop();
     wdt_reset();
     s800.stopNetwork();
-    wdt_reset();
-#ifdef GSMGPRSMQTT
-    if (!s800.getIMEI(imeicode)){
-      IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR getting IMEI; reboot")));
-      Reset();
-    }
-    wdt_reset();
-#endif
-  }else{
-    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800")));
   }
+
+  wdt_reset();
+
+#ifdef GSMGPRSMQTT
+  if (!s800.getIMEI(imeicode)){
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR getting IMEI; reboot")));
+    // I cannot continue without IMEI
+    Reset();
+  }
+  wdt_reset();
+#endif
 #endif
 
 #ifdef GSMGPRSRTCBOOT
@@ -2760,9 +2763,7 @@ void setup()
     // set the rtc clock if we have one
     if (RTC.set(t) != 0) IF_SDEBUG(DBGSERIAL.println(F("#error setting RTC time")));
     }
-#endif
 
-#ifdef RTCPRESENT
   if (timeStatus() != timeSet){
     IF_SDEBUG(DBGSERIAL.println(F("#RTC try set the system time")));
     setSyncProvider(RTC.get);   // the function to get the time from the RTC

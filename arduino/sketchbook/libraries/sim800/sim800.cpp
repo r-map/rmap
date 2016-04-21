@@ -281,6 +281,7 @@ bool SIM800::init(byte onOffPin, byte resetPin) {
   digitalWrite(resetPin, HIGH);
 
   switchOn();
+  resetModem();
 
   bool status;
 
@@ -702,6 +703,9 @@ void SIM800::switchModem() {
   delay(1500);
   digitalWrite(onOffPin, LOW);
   delay(2000);
+#ifdef ENABLEWDT
+  wdt_reset();
+#endif
 }
 
 void SIM800::resetModem() {
@@ -709,6 +713,10 @@ void SIM800::resetModem() {
   delay(300);
   digitalWrite(resetPin, HIGH);
   delay(3000);
+#ifdef ENABLEWDT
+  wdt_reset();
+#endif
+
 }
 
 time_t SIM800::RTCget()   // Aquire data from buffer and convert to time_t
@@ -969,6 +977,9 @@ bool sim800Client::transparentescape()
   modem->write("+");
   modem->write("+");
   delay(1000);
+#ifdef ENABLEWDT
+  wdt_reset();
+#endif
   return ATcommand("", buf);
 
 }
