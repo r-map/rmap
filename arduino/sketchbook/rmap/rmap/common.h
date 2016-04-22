@@ -166,6 +166,19 @@ Mega2560	      	        	   21	   20	   19	   18
 //#define SDCHIPSELECT 7
 #endif
 
+#ifdef SDCARD
+#define SDCARDLOGFILE
+
+#ifdef SDCARDLOGFILE
+#define IF_LOGFILE(x) ({if (logFile.write(x,sizeof(x)) == -1) IF_SDEBUG(DBGSERIAL.println(F("#LOGFILE WRITE ERROR"))); dataFile.flush();} )
+#else
+#define IF_LOGFILE(x)
+#endif
+
+
+
+#endif
+
 #ifdef DEBUGONSERIAL
 // simple memory stats
 //#define FREERAM

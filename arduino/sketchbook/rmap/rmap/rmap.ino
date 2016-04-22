@@ -80,6 +80,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <SdFat.h>
 SdFat SD;
 File dataFile;
+File logFile;
 
 // Log file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "RMAP_"
@@ -2680,6 +2681,7 @@ void setup()
   // static hardwareserial defined at compile time in sim800 library 
   //if (s800.init(&GSMSERIAL , GSMONOFFPIN, GSMRESETPIN)){
   if (s800.init(GSMONOFFPIN, GSMRESETPIN)){
+    s800.setup();
     IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
   }else{
     IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800; retry")));
@@ -2728,9 +2730,8 @@ void setup()
     //s800.stopNetwork();
     //wdt_reset();
     // if already connected reuse it
-    IF_SDEBUG(DBGSERIAL.println(F("#GSM start network")));
-
     for (int i = 0; (i < 10 & !s800.checkNetwork()); i++) {
+      IF_SDEBUG(DBGSERIAL.println(F("#GSM start network")));
       s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
       wdt_reset();
     }
@@ -2739,8 +2740,8 @@ void setup()
 
 #ifdef GSMGPRSMQTT
   wdt_reset();
-  IF_SDEBUG(DBGSERIAL.println(F("#GSM try to start TCP")));
   for (int i = 0; ((i < 10) & !s800.TCPGetMyIP(mainbuf)); i++) {
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM try to start TCP")));
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
     wdt_reset();
   }
@@ -2830,14 +2831,20 @@ void setup()
     IF_SDEBUG(DBGSERIAL.println(F("#card initialized.")));
   }
 
+#if defined(SDCARDLOGFILE)
   // Open up the file we're going to log to!
-  dataFile = SD.open("rmap_log.dat", FILE_WRITE);
-  if (! dataFile) {
+  logFile = SD.open("rmap_log.dat", FILE_WRITE);
+  if (! logFile) {
     IF_SDEBUG(DBGSERIAL.println(F("#error opening log data file on SD")));
     // Wait forever since we cant write data
     //while (1) ;
   }
 
+  logFile.seekEnd(0);
+
+#endif
+
+  IF_LOGFILE(F("Start\n"));
 
   // find exixting file name
   while (exists(fileName))
@@ -2872,9 +2879,9 @@ void setup()
 	  
 	  dataFile.seekSet(0);
 	  uint32_t size=dataFile.fileSize();
-	  uint32_t pos=0;
 	  bool success = true;
 
+	  pos=0;
 	  while (pos < size)
 	    {
 		
@@ -2899,7 +2906,8 @@ void setup()
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
 		      wdt_reset();
-	  
+		      mgrmqtt();
+		      wdt_reset();
 		      IF_SDEBUG(DBGSERIAL.println(F("#recover mqtt publish"))); 
 		      if (!mqttclient.publish(record.topic, record.payload))
 			{
@@ -2985,6 +2993,7 @@ void setup()
 	  dataFile = SD.open(fullfileName, O_READ);
 	  size = dataFile.fileSize();
 	  dataFile.close();
+	  wdt_reset();
 	  
 	  IF_SDEBUG(DBGSERIAL.print(F("#filesize: ")));
 	  IF_SDEBUG(DBGSERIAL.println(size));
@@ -3008,6 +3017,7 @@ void setup()
 	    {
 	      // Found an not full file name.
 	      // go to append new data
+	      IF_SDEBUG(DBGSERIAL.println(F("#SD append data")));
 	      break;
 	      }
 	}
@@ -3022,6 +3032,7 @@ void setup()
   mgrmqtt();
 #endif
 
+  wdt_reset();
   IF_SDEBUG(DBGSERIAL.print(F("#open file: ")));
   IF_SDEBUG(DBGSERIAL.println(fullfileName));
   
@@ -3033,6 +3044,7 @@ void setup()
     //while (1) ;
   }
 
+  wdt_reset();
   dataFile.seekEnd(0);
   pos = dataFile.curPosition(); 	
 

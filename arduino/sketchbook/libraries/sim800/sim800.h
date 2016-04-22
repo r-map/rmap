@@ -8,7 +8,7 @@
 #include "IPAddress.h"
 
 // activate debug on serial port
-#define DEBUGONSERIAL
+//#define DEBUGONSERIAL
 #define ENABLEWDT 1
 // if define HARDWARESERIAL is set then it will be static (required by Time library)
 #define HARDWARESERIAL Serial1
