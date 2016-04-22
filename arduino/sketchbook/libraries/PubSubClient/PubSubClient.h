@@ -10,13 +10,13 @@
 #include <Arduino.h>
 
 // if use sim800 client
-//#include "sim800Client.h"
-//#define TCPCLIENT sim800Client
+#include "sim800Client.h"
+#define TCPCLIENT sim800Client
 
 // if use arduino_uip or etherclient
-#include "Client.h"
-#include "Stream.h"
-#define TCPCLIENT Client
+//#include "Client.h"
+//#include "Stream.h"
+//#define TCPCLIENT Client
 
 
 #include "IPAddress.h"
@@ -37,12 +37,12 @@
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
 #ifndef MQTT_KEEPALIVE
-#define MQTT_KEEPALIVE 30
+#define MQTT_KEEPALIVE 60
 #endif
 
 // MQTT_SOCKET_TIMEOUT: socket timeout interval in Seconds
 #ifndef MQTT_SOCKET_TIMEOUT
-#define MQTT_SOCKET_TIMEOUT 5
+#define MQTT_SOCKET_TIMEOUT 30
 #endif
 
 // MQTT_MAX_TRANSFER_SIZE : limit how much data is passed to the network client
