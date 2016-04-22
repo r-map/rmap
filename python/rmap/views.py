@@ -16,12 +16,11 @@ from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
 
-MAINSITE="rmapv.rmap.cc"
 
 def home(request):
     current_site = get_current_site(request)
 
-    if current_site.domain == MAINSITE:
+    if current_site.domain in settings.MAINSITES:
         return render(request, 'index.html')
     else:
         return render(request, 'mystation.html')
@@ -31,7 +30,7 @@ def home(request):
 def wizard(request):
     current_site = get_current_site(request)
 
-    if current_site.domain == MAINSITE:
+    if current_site.domain in settings.MAINSITES:
         return render(request, 'index.html')
     else:
 
@@ -88,7 +87,7 @@ def wizard(request):
 def wizard2(request):
     current_site = get_current_site(request)
 
-    if current_site.domain == MAINSITE:
+    if current_site.domain in settings.MAINSITES:
         return render(request, 'index.html')
     else:
 
@@ -132,7 +131,7 @@ def wizard2(request):
 def wizard_done(request):
     current_site = get_current_site(request)
 
-    if current_site.domain == MAINSITE:
+    if current_site.domain in settings.MAINSITES:
         return render(request, 'index.html')
     else:
         return render(request, 'wizard_done.html')
@@ -140,7 +139,7 @@ def wizard_done(request):
 def wizard_error(request):
     current_site = get_current_site(request)
 
-    if current_site.domain == MAINSITE:
+    if current_site.domain in settings.MAINSITES:
         return render(request, 'index.html')
     else:
         return render(request, 'wizard_error.html')

@@ -539,3 +539,6 @@ LEAFLET_CONFIG = {
 #'RESET_VIEW': False,
 #'MINIMAP': True,
 }
+
+MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
+
