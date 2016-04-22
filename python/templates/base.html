@@ -59,34 +59,34 @@
             <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-database"></i> Server Rmap <span class="caret"></span></a>
                 <ul class="dropdown-menu">
-		<li><a href="/borinud/">Punti stazione su mappa e grafici</a></li>
-		<li><a href="/geoimage/">Immagini georeferenziate su mappa</a></li>
-                  <li><a href="http://graphite.rmapv.rmap.cc/dashboard/#rmap%20default">Dashboard di esempio</a></li>
-                  <li><a href="http://graphite.rmapv.rmap.cc/">Grafici Graphite</a></li>
-		<li><a href="http://rmapv.rmap.cc/arkiweb">Estrazione dati storici</a></li>
+		<li><a href="http://{{site.domain}}/borinud/">Punti stazione su mappa e grafici</a></li>
+		<li><a href="http://{{site.domain}}/geoimage/">Immagini georeferenziate su mappa</a></li>
+                  <li><a href="http://{{site.domain}}/dashboard/#rmap%20default">Dashboard di esempio</a></li>
+                  <li><a href="http://{{site.domain}}/">Grafici Graphite</a></li>
+		<li><a href="http://{{site.domain}}/arkiweb">Estrazione dati storici</a></li>
                   <li role="separator" class="divider"></li>
                   <li class="dropdown-header">Amministrazione</li>
-                  <li><a href="http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
-		    <li><a href="/admin">Amministrazione Django</a></li>
-                  <li><a href="http://rmapv.rmap.cc:443/">Monitoraggio processi</a></li>
-                  <li><a href="http://rmapv.rmap.cc:15672/">Amministrazione Rabbitmq</a></li>
+                  <li><a href="http://{{site.domain}}/http2mqtt/">Pubblicazione su broker mqtt con http</a></li>
+		    <li><a href="http://{{site.domain}}/admin">Amministrazione Django</a></li>
+                  <li><a href="http://{{site.domain}}:443/">Monitoraggio processi</a></li>
+                  <li><a href="http://{{site.domain}}:15672/">Amministrazione Rabbitmq</a></li>
  		  </ul>
 		</li>
              <li class="dropdown">
-                <a href="/stations" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-tachometer"></i> Stazioni <span class="caret"></span></a>
+                <a href="http://{{site.domain}}/stations" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-tachometer"></i> Stazioni <span class="caret"></span></a>
                 <ul class="dropdown-menu">
-	    <li><a href="/stations">Visualizza stazioni</a></li>
+	    <li><a href="http://{{site.domain}}/stations">Visualizza stazioni</a></li>
 	    {% if user.is_authenticated %}
-	      <li><a href="/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
+	      <li><a href="http://{{site.domain}}/accounts/profile">La tua pagina personale {{ user.username }}</a></li>
             {% endif %}
 	  </ul>
 	</li>
               <li class="dropdown">
                 <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-users fa-fw"></i> Partecipa <span class="caret"></span></a>
                 <ul class="dropdown-menu">
-                  <li><a href="/registrazione/login/">Gestisci/registra una nuova stazione</a></li>
-	    <li><a href="/insertdata/manualdata">Inserisci dati rilevati manualmente</a></li>
-	    <li><a href="/insertdata/image">Inserisci immagini georeferenziate</a></li>
+                  <li><a href="http://{{site.domain}}/registrazione/login/">Gestisci/registra una nuova stazione</a></li>
+	    <li><a href="http://{{site.domain}}/insertdata/manualdata">Inserisci dati rilevati manualmente</a></li>
+	    <li><a href="http://{{site.domain}}/insertdata/image">Inserisci immagini georeferenziate</a></li>
 	    <li><a href="https://play.google.com/store/apps/details?id=org.test.rmap">Scarica l'APP RMAP per Android</a></li>
 	    <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/HowTo#Applicazione_Rmap">Installa l'APP RMAP su altri sistemi operativi</a></li>
 	    <li><a href="http://raspibo.ofpcina.net/groups/profile/2963/stazione-per-il-rilevamento-di-parametri-meteo-ambientali">Social Network</a></li>
@@ -112,8 +112,8 @@
 	    <li><a href="https://play.google.com/apps/testing/org.test.rmap">Diventa beta tester per l'APP RMAP per Android"</a></li>
 	    <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/RPMS/arm/repoview/">Repository
 	    software per Pidora (raspberry)</a></li>
-	    <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/SRPMS/repoview/">Repository software sorgenti</a></li>
-	    <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/RPMS/i386/repoview/">Repository
+	    <li><a href="http://{{site.domain}}/repo/rmap/fedora/20/SRPMS/repoview/">Repository software sorgenti</a></li>
+	    <li><a href="http://{{site.domain}}/repo/rmap/fedora/20/RPMS/i386/repoview/">Repository
 	    software Fedora 20 i386</a></li>
 	  </ul>
 	</li>
