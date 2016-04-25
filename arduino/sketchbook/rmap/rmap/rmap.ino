@@ -650,21 +650,25 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 // local method
 // compute how many RPC I have
 
-  #if defined (ATTUATORE) && defined (SENSORON) && defined (RADIORF24)
-JsonRPC rpc(6);
-  #elif defined (ATTUATORE) && defined (SENSORON)
-JsonRPC rpc(5);
-  #elif defined (ATTUATORE) && defined (RADIORF24)
-JsonRPC rpc(4);
-  #elif defined (ATTUATORE)
-JsonRPC rpc(1);
-  #elif defined (SENSORON) && defined (RADIORF24)
-JsonRPC rpc(5);
-  #elif defined (SENSORON)
-JsonRPC rpc(4);
-  #else
-JsonRPC rpc(0);
-  #endif
+#define NJSRPCATT
+#define NJSRPCSEN
+#define NJSRPCRAD
+#define NJSRPCSDC
+
+#if defined (ATTUATORE)
+#define NJSRPCATT  +1
+#endif
+#if defined (SENSORON)
+#define NJSRPCSEN  +4
+#endif
+#if defined (RADIORF24)
+#define NJSRPCRAD  +1
+#endif
+#if defined (SDCARD)
+#define NJSRPCSDC  +1
+#endif
+
+JsonRPC rpc(0 NJSRPCATT NJSRPCSEN NJSRPCRAD NJSRPCSDC);
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
@@ -2264,6 +2268,242 @@ void mgrmqtt()
 #endif
 
 
+#if defined(SDCARD)
+
+			   // recovery data from SD card
+			   // set write pointer to the end of last file
+			   // all parameter not used for now
+void mgrsdcard()
+{
+  wdt_reset();
+
+  // find exixting file name
+  while (exists(fileName))
+    {
+	
+      wdt_reset();
+
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+      // poll mqtt connection if required
+      mgrmqtt();
+#endif
+
+      IF_SDEBUG(DBGSERIAL.print(F("#file exist: ")));
+      IF_SDEBUG(DBGSERIAL.println(fileName));
+      
+      //strcpy(fullfileName,fileName);
+      //strcat (fullfileName,".que");
+      
+      // check if .que filename exists
+      if (SD.exists(fullfileName))
+	{
+	  if (dataFile.isOpen()) dataFile.close();
+
+	  IF_SDEBUG(DBGSERIAL.print(F("#found que file; open: ")));
+	  IF_SDEBUG(DBGSERIAL.println(fullfileName));
+	  
+	  dataFile = SD.open(fullfileName, FILE_WRITE);
+	  if (! dataFile) {
+	    IF_SDEBUG(DBGSERIAL.print(F("error opening: ")));
+	    IF_SDEBUG(DBGSERIAL.println(fullfileName));
+	    // Wait forever since we cant write data
+	    //while (1) ;
+	  }
+	  
+	  dataFile.seekSet(0);
+	  uint32_t size=dataFile.fileSize();
+	  bool success = true;
+
+	  pos=0;
+	  while (pos < size)
+	    {
+		
+	      wdt_reset();
+		
+	      if (dataFile.read(&record,sizeof(record)) != sizeof(record) )
+		{
+		  IF_SDEBUG(DBGSERIAL.println(F("#READ ERROR")));
+		  break;
+		}
+	      else
+		{
+		  //IF_SDEBUG(DBGSERIAL.print(F("#read:"))); 
+		  //IF_SDEBUG(DBGSERIAL.print(record.done)); 
+		  //IF_SDEBUG(DBGSERIAL.print(record.separator)); 
+		  //IF_SDEBUG(DBGSERIAL.print(record.topic));
+		  //IF_SDEBUG(DBGSERIAL.println(record.payload)); 
+
+		  if (record.done == false)
+		    {
+		      
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+
+		      wdt_reset();
+		      mgrmqtt();
+		      wdt_reset();
+		      IF_SDEBUG(DBGSERIAL.println(F("#recover mqtt publish"))); 
+		      if (!mqttclient.publish(record.topic, record.payload))
+			{
+			  IF_SDEBUG(DBGSERIAL.println(F("#error mqtt publish")));
+			}
+		      else
+			{
+			  record.done=true;
+			}
+#endif
+#ifdef GSMGPRSHTTP
+		      IF_SDEBUG(DBGSERIAL.println(F("#recover http publish"))); 
+		      // compose URL
+		      strcpy (mainbuf, "/http2mqtt/?topic=");
+		      strcat (mainbuf,record.topic);
+		      strcat (mainbuf,"&payload=");
+		      strcat (mainbuf,record.payload);
+		      strcat (mainbuf,"&user=");
+		      strcat (mainbuf,configuration.mqttuser);
+		      strcat (mainbuf,"&password=");
+		      strcat (mainbuf,configuration.mqttpassword);
+
+		      IF_SDEBUG(DBGSERIAL.print(F("#GSM send get:")));
+		      IF_SDEBUG(DBGSERIAL.println(mainbuf));
+
+		      //reattach gsm if needed
+		      //if (!gsm.IsRegistered()) gsmgprsstart();
+
+		      wdt_reset();
+		      //TCP Client GET, send a GET request to the server and save the reply.
+		      if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
+			//Print the results.
+			IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
+			IF_SDEBUG(DBGSERIAL.print("#"));
+			IF_SDEBUG(DBGSERIAL.println(mainbuf));
+
+			if (strstr(mainbuf,"OK") != NULL){
+			  record.done=true;
+			}else{
+			  record.done=false;
+			  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
+			}
+
+		      }else{
+			IF_SDEBUG(DBGSERIAL.println(F("#error http publish")));
+		      }
+
+#endif
+		      
+		      wdt_reset();
+		      if (record.done==true)
+			{
+			  dataFile.seekSet(pos);
+
+			  IF_SDEBUG(DBGSERIAL.print(F("#write:"))); 
+			  IF_SDEBUG(DBGSERIAL.print(record.done)); 
+			  IF_SDEBUG(DBGSERIAL.print(record.separator)); 
+			  IF_SDEBUG(DBGSERIAL.print(record.topic)); 
+			  IF_SDEBUG(DBGSERIAL.println(record.payload)); 
+
+			  if (dataFile.write(&record,sizeof(record)) == -1)
+			    {
+			      IF_SDEBUG(DBGSERIAL.println(F("#WRITE ERROR")));
+			      success=false;
+			    }
+			  IF_SDEBUG(DBGSERIAL.println(F("#done"))); 
+			  wdt_reset();
+			}
+		      else
+			{
+			  success=false;
+			}
+		    }
+		}
+	      pos+= sizeof(record);
+	    }
+	  
+	  dataFile.close();
+
+	  wdt_reset();
+	  
+	  // check file size
+	  dataFile = SD.open(fullfileName, O_READ);
+	  size = dataFile.fileSize();
+	  dataFile.close();
+	  wdt_reset();
+	  
+	  IF_SDEBUG(DBGSERIAL.print(F("#filesize: ")));
+	  IF_SDEBUG(DBGSERIAL.println(size));
+	  
+	  if (size >= MAX_FILESIZE)
+	    {
+	      // if dequeued move to archive
+	      if (success)
+		{		  
+		  strcpy(newfileName,fileName);
+		  strcat (newfileName,".don");
+		  dataFile = SD.open(fullfileName, O_WRITE | O_CREAT);
+		  IF_SDEBUG(DBGSERIAL.print(F("#RENAME: ")));
+		  IF_SDEBUG(DBGSERIAL.print(fullfileName));
+		  IF_SDEBUG(DBGSERIAL.println(newfileName));
+		  dataFile.rename(SD.vwd(),newfileName);
+		  dataFile.close();
+		  }
+	    }
+	  else
+	    {
+	      // Found an not full file name.
+	      // go to append new data
+	      IF_SDEBUG(DBGSERIAL.println(F("#SD append data")));
+	      break;
+	      }
+	}
+      // check new file
+      nextName(fileName);
+    }
+  // Found an unused file name.
+  
+  wdt_reset();
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  // poll mqtt connection if required
+  mgrmqtt();
+#endif
+
+  wdt_reset();
+  IF_SDEBUG(DBGSERIAL.print(F("#open file: ")));
+  IF_SDEBUG(DBGSERIAL.println(fullfileName));
+  
+  dataFile = SD.open(fullfileName, FILE_WRITE);
+  if (! dataFile) {
+    IF_SDEBUG(DBGSERIAL.print(F("#error opening: ")));
+    IF_SDEBUG(DBGSERIAL.println(fullfileName));
+    // Wait forever since we cant write data
+    //while (1) ;
+  }
+
+  wdt_reset();
+  dataFile.seekEnd(0);
+  pos = dataFile.curPosition();
+
+}
+
+int sdrecoveryrpc(aJsonObject* params)
+{
+  //boolean all=false;
+  //aJsonObject* allParam = aJson.getObjectItem(params, "all");
+  //if (allParam)  all = allParam -> valuebool;
+  //IF_SDEBUG(DBGSERIAL.print(F("#sdrecoveryrpc : all: ")));
+  //IF_SDEBUG(DBGSERIAL.print(all));
+  //mgrsdcard(all);
+
+  mgrsdcard();
+
+  result = aJson.createObject();
+
+  // aJson.addNumberToObject(result, "value", requestedStatus);
+  // aJson.addStringToObject(result, "description", "Led status");
+
+  return E_SUCCESS;  
+}
+
+#endif
+
 void setup() 
 {
 
@@ -2438,6 +2678,10 @@ void setup()
   rpc.registerMethod("getjson", &getjson);
   rpc.registerMethod("prepandget", &prepandget);
   rpc.registerMethod("configure", &mgrConfiguration);
+#endif
+#if defined (SDCARD)
+  // and register the local sdcardrpc method
+  rpc.registerMethod("sdrecovery", &sdrecoveryrpc);
 #endif
 #endif
 
@@ -2818,7 +3062,6 @@ void setup()
 #endif
 
 #if defined(SDCARD)
-  wdt_reset();
 
   IF_SDEBUG(DBGSERIAL.println(F("#Initializing SD card...")));
   
@@ -2846,207 +3089,7 @@ void setup()
 
   IF_LOGFILE(F("Start\n"));
 
-  // find exixting file name
-  while (exists(fileName))
-    {
-	
-      wdt_reset();
-
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-      // poll mqtt connection if required
-      mgrmqtt();
-#endif
-
-      IF_SDEBUG(DBGSERIAL.print(F("#file exist: ")));
-      IF_SDEBUG(DBGSERIAL.println(fileName));
-      
-      //strcpy(fullfileName,fileName);
-      //strcat (fullfileName,".que");
-      
-      // check if .que filename exists
-      if (SD.exists(fullfileName))
-	{
-	  IF_SDEBUG(DBGSERIAL.print(F("#found que file; open: ")));
-	  IF_SDEBUG(DBGSERIAL.println(fullfileName));
-	  
-	  dataFile = SD.open(fullfileName, FILE_WRITE);
-	  if (! dataFile) {
-	    IF_SDEBUG(DBGSERIAL.print(F("error opening: ")));
-	    IF_SDEBUG(DBGSERIAL.println(fullfileName));
-	    // Wait forever since we cant write data
-	    //while (1) ;
-	  }
-	  
-	  dataFile.seekSet(0);
-	  uint32_t size=dataFile.fileSize();
-	  bool success = true;
-
-	  pos=0;
-	  while (pos < size)
-	    {
-		
-	      wdt_reset();
-		
-	      if (dataFile.read(&record,sizeof(record)) != sizeof(record) )
-		{
-		  IF_SDEBUG(DBGSERIAL.println(F("#READ ERROR")));
-		  break;
-		}
-	      else
-		{
-		  //IF_SDEBUG(DBGSERIAL.print(F("#read:"))); 
-		  //IF_SDEBUG(DBGSERIAL.print(record.done)); 
-		  //IF_SDEBUG(DBGSERIAL.print(record.separator)); 
-		  //IF_SDEBUG(DBGSERIAL.print(record.topic));
-		  //IF_SDEBUG(DBGSERIAL.println(record.payload)); 
-
-		  if (record.done == false)
-		    {
-		      
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-
-		      wdt_reset();
-		      mgrmqtt();
-		      wdt_reset();
-		      IF_SDEBUG(DBGSERIAL.println(F("#recover mqtt publish"))); 
-		      if (!mqttclient.publish(record.topic, record.payload))
-			{
-			  IF_SDEBUG(DBGSERIAL.println(F("#error mqtt publish")));
-			}
-		      else
-			{
-			  record.done=true;
-			}
-#endif
-#ifdef GSMGPRSHTTP
-		      IF_SDEBUG(DBGSERIAL.println(F("#recover http publish"))); 
-		      // compose URL
-		      strcpy (mainbuf, "/http2mqtt/?topic=");
-		      strcat (mainbuf,record.topic);
-		      strcat (mainbuf,"&payload=");
-		      strcat (mainbuf,record.payload);
-		      strcat (mainbuf,"&user=");
-		      strcat (mainbuf,configuration.mqttuser);
-		      strcat (mainbuf,"&password=");
-		      strcat (mainbuf,configuration.mqttpassword);
-
-		      IF_SDEBUG(DBGSERIAL.print(F("#GSM send get:")));
-		      IF_SDEBUG(DBGSERIAL.println(mainbuf));
-
-		      //reattach gsm if needed
-		      //if (!gsm.IsRegistered()) gsmgprsstart();
-
-		      wdt_reset();
-		      //TCP Client GET, send a GET request to the server and save the reply.
-		      if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
-			//Print the results.
-			IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
-			IF_SDEBUG(DBGSERIAL.print("#"));
-			IF_SDEBUG(DBGSERIAL.println(mainbuf));
-
-			if (strstr(mainbuf,"OK") != NULL){
-			  record.done=true;
-			}else{
-			  record.done=false;
-			  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
-			}
-
-		      }else{
-			IF_SDEBUG(DBGSERIAL.println(F("#error http publish")));
-		      }
-
-#endif
-		      
-		      wdt_reset();
-		      if (record.done==true)
-			{
-			  dataFile.seekSet(pos);
-
-			  IF_SDEBUG(DBGSERIAL.print(F("#write:"))); 
-			  IF_SDEBUG(DBGSERIAL.print(record.done)); 
-			  IF_SDEBUG(DBGSERIAL.print(record.separator)); 
-			  IF_SDEBUG(DBGSERIAL.print(record.topic)); 
-			  IF_SDEBUG(DBGSERIAL.println(record.payload)); 
-
-			  if (dataFile.write(&record,sizeof(record)) == -1)
-			    {
-			      IF_SDEBUG(DBGSERIAL.println(F("#WRITE ERROR")));
-			      success=false;
-			    }
-			  IF_SDEBUG(DBGSERIAL.println(F("#done"))); 
-			  wdt_reset();
-			}
-		      else
-			{
-			  success=false;
-			}
-		    }
-		}
-	      pos+= sizeof(record);
-	    }
-	  
-	  dataFile.close();
-
-	  wdt_reset();
-	  
-	  // check file size
-	  dataFile = SD.open(fullfileName, O_READ);
-	  size = dataFile.fileSize();
-	  dataFile.close();
-	  wdt_reset();
-	  
-	  IF_SDEBUG(DBGSERIAL.print(F("#filesize: ")));
-	  IF_SDEBUG(DBGSERIAL.println(size));
-	  
-	  if (size >= MAX_FILESIZE)
-	    {
-	      // if dequeued move to archive
-	      if (success)
-		{		  
-		  strcpy(newfileName,fileName);
-		  strcat (newfileName,".don");
-		  dataFile = SD.open(fullfileName, O_WRITE | O_CREAT);
-		  IF_SDEBUG(DBGSERIAL.print(F("#RENAME: ")));
-		  IF_SDEBUG(DBGSERIAL.print(fullfileName));
-		  IF_SDEBUG(DBGSERIAL.println(newfileName));
-		  dataFile.rename(SD.vwd(),newfileName);
-		  dataFile.close();
-		  }
-	    }
-	  else
-	    {
-	      // Found an not full file name.
-	      // go to append new data
-	      IF_SDEBUG(DBGSERIAL.println(F("#SD append data")));
-	      break;
-	      }
-	}
-      // check new file
-      nextName(fileName);
-    }
-  // Found an unused file name.
-  
-  wdt_reset();
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-  // poll mqtt connection if required
-  mgrmqtt();
-#endif
-
-  wdt_reset();
-  IF_SDEBUG(DBGSERIAL.print(F("#open file: ")));
-  IF_SDEBUG(DBGSERIAL.println(fullfileName));
-  
-  dataFile = SD.open(fullfileName, FILE_WRITE);
-  if (! dataFile) {
-    IF_SDEBUG(DBGSERIAL.print(F("#error opening: ")));
-    IF_SDEBUG(DBGSERIAL.println(fullfileName));
-    // Wait forever since we cant write data
-    //while (1) ;
-  }
-
-  wdt_reset();
-  dataFile.seekEnd(0);
-  pos = dataFile.curPosition(); 	
+  mgrsdcard();
 
 #endif
 
