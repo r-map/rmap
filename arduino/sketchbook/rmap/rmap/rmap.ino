@@ -1420,6 +1420,57 @@ void LcdDigitalClockDisplay(time_t t ){
 }
 #endif
 
+#ifdef SDCARDLOGFILE
+
+void logDigits(int digits){
+  // utility function for digital clock display: log display preceding colon and leading 0
+  char str[(sizeof(int)*8+1)];
+  if(digits < 10)
+    IF_LOGFILE("0");
+  sprintf(str,"%d",digits);
+  IF_LOGFILE(str);
+}
+
+
+// utility function to print to Logfile
+void LogDigitalClockDisplay(){
+  // digital clock display of the time
+
+  IF_SDEBUG(DBGSERIAL.println(F("#write on the log file")));
+
+
+  if(timeStatus()== timeNotSet) {
+    IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
+    //return;
+    time_t t = 0; // Store the current time in time variable t 
+
+  }else{
+    time_t t = now(); // Store the current time in time variable t 
+  }
+
+  if (t == 0UL){
+    IF_LOGFILE("time was not set:");
+  }
+  else{	  
+    logDigits(year(t)); 
+    IF_LOGFILE("-");
+    logDigits(month(t));
+    IF_LOGFILE("-");
+    logDigits(day(t));
+    IF_LOGFILE(" ");
+    logDigits(hour(t));
+    IF_LOGFILE(":");
+    logDigits(minute(t));
+    IF_LOGFILE(":");
+    logDigits(second(t));
+    IF_LOGFILE("> ");
+  }
+}
+
+#define IF_LOGDATEFILE(x) ({LogDigitalClockDisplay(); IF_LOGFILE(x);})
+#else
+#define IF_LOGDATEFILE(x)
+#endif
 
 
 #ifdef REPEATTASK
@@ -2241,6 +2292,7 @@ void mgrmqtt()
       
     IF_SDEBUG(digitalClockDisplay(now()));
     IF_SDEBUG(DBGSERIAL.println(F("#mqtt disconnected")));
+    IF_LOGDATEFILE("mqtt disconnected\n");
 
     /*
 #ifdef GSMGPRSMQTT
@@ -3087,7 +3139,7 @@ void setup()
 
 #endif
 
-  IF_LOGFILE(F("Start\n"));
+  IF_LOGDATEFILE("Start\n");
 
   mgrsdcard();
 
