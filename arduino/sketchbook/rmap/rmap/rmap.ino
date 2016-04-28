@@ -82,7 +82,7 @@ SdFat SD;
 File dataFile;
 File logFile;
 
-// Log file base name.  Must be six characters or less.
+// Data file base name.  Must be six characters or less.
 #define FILE_BASE_NAME "RMAP_"
 #define MAX_FILESIZE 8388608 // 44h for 5s sampletime
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
@@ -654,6 +654,7 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 #define NJSRPCSEN
 #define NJSRPCRAD
 #define NJSRPCSDC
+#define NJSRPCRES
 
 #if defined (ATTUATORE)
 #define NJSRPCATT  +1
@@ -667,8 +668,11 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 #if defined (SDCARD)
 #define NJSRPCSDC  +1
 #endif
+#if defined (RESETRPC)
+#define NJSRPCRES  +1
+#endif
 
-JsonRPC rpc(0 NJSRPCATT NJSRPCSEN NJSRPCRAD NJSRPCSDC);
+JsonRPC rpc(0 NJSRPCATT NJSRPCSEN NJSRPCRAD NJSRPCSDC NJSRPCRES);
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
@@ -779,7 +783,143 @@ time_t getNtpTime()
 
 #endif
 
+#if defined(DEBUGONSERIAL)     
+
+// utility function to debug
+void printDigits(int digits){
+  // utility function for digital clock display: prints preceding colon and leading 0
+  if(digits < 10)
+    DBGSERIAL.print('0');
+  DBGSERIAL.print(digits);
+}
+
+// utility function to debug
+void digitalClockDisplay(time_t t ){
+  // digital clock display of the time
+
+  DBGSERIAL.print(F("#"));
+
+  if (t == 0UL){
+    DBGSERIAL.println(F("NULL"));
+  }
+  else{	  
+    printDigits(hour(t));
+    DBGSERIAL.print(":");
+    printDigits(minute(t));
+    DBGSERIAL.print(":");
+    printDigits(second(t));
+    DBGSERIAL.print(" ");
+    printDigits(day(t));
+    DBGSERIAL.print(" ");
+    printDigits(month(t));
+    DBGSERIAL.print(" ");
+    DBGSERIAL.print(year(t)); 
+    DBGSERIAL.println(); 
+  }
+}
+
+#endif
+
+#if defined(LCD)     
+
+void lcdDigits(int digits){
+  // utility function for digital clock display: lcd display preceding colon and leading 0
+  if(digits < 10)
+    lcd.print('0');
+  lcd.print(digits);
+}
+
+// utility function to print to LCD
+void LcdDigitalClockDisplay(time_t t ){
+  // digital clock display of the time
+
+  if (t == 0UL){
+    lcd.print(F("time was not set"));
+  }
+  else{	  
+    lcdDigits(hour(t));
+    lcd.print(":");
+    lcdDigits(minute(t));
+    lcd.print(":");
+    lcdDigits(second(t));
+    lcd.print(" ");
+    lcdDigits(day(t));
+    lcd.print(" ");
+    lcdDigits(month(t));
+    lcd.print(" ");
+    lcd.print(year(t)); 
+  }
+}
+#endif
+
+#ifdef SDCARDLOGFILE
+
+bool msgconnected=false;
+
+void logDigits(int digits){
+  // utility function for digital clock display: log display preceding colon and leading 0
+  char str[(sizeof(int)*8+1)];
+  if(digits < 10)
+    IF_LOGFILE("0");
+  sprintf(str,"%d",digits);
+  IF_LOGFILE(str);
+}
+
+
+// utility function to print to Logfile
+void LogDigitalClockDisplay(){
+  // digital clock display of the time
+
+  IF_SDEBUG(DBGSERIAL.println(F("#write on the log file")));
+
+
+  if(timeStatus()== timeNotSet) {
+    IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
+    //return;
+    time_t t = 0; // Store the current time in time variable t 
+
+  }else{
+    time_t t = now(); // Store the current time in time variable t 
+  }
+
+  if (t == 0UL){
+    IF_LOGFILE("time was not set:");
+  }
+  else{	  
+    logDigits(year(t)); 
+    IF_LOGFILE("-");
+    logDigits(month(t));
+    IF_LOGFILE("-");
+    logDigits(day(t));
+    IF_LOGFILE(" ");
+    logDigits(hour(t));
+    IF_LOGFILE(":");
+    logDigits(minute(t));
+    IF_LOGFILE(":");
+    logDigits(second(t));
+    IF_LOGFILE("> ");
+  }
+}
+
+#define IF_LOGDATEFILE(x) ({LogDigitalClockDisplay(); IF_LOGFILE(x);})
+#else
+#define IF_LOGDATEFILE(x)
+#endif
+
 #if defined (JSONRPCON)
+
+#if defined (RESETRPC)
+int resetrpc(aJsonObject* params)
+{
+  IF_LOGDATEFILE("jrpc reset\n");
+
+  Reset();
+
+  //result = aJson.createObject();
+  //return E_SUCCESS;  
+}
+#endif
+
 #if defined (ATTUATORE)
 
 // This switch on/off pins on board
@@ -814,7 +954,9 @@ int togglePin(aJsonObject* params)
     IF_SDEBUG(DBGSERIAL.print(requestedPin));
     IF_SDEBUG(DBGSERIAL.print(F(" status: ")));
     IF_SDEBUG(DBGSERIAL.println(requestedStatus));
-    
+
+    IF_LOGDATEFILE("jrpc togglepin\n");
+
     digitalWrite(requestedPin, requestedStatus);
     pinobj=pinobj->next;
   } while ( pinobj );
@@ -854,6 +996,8 @@ int rf24rpc(aJsonObject* params)
     int node = nodeParam -> valueint;
     aJson.deleteItemFromObject(params,"node");
     IF_SDEBUG(DBGSERIAL.print(F("#rf24rpc : node -> ")); DBGSERIAL.println(node));
+
+    IF_LOGDATEFILE("jrpc rf24rpc\n");
 
     /*
     aJsonObject* remotecmdParam = aJson.getObjectItem(params, "remotecmd");
@@ -929,6 +1073,7 @@ int rf24rpc(aJsonObject* params)
   result = aJson.createObject();
 
   IF_SDEBUG(DBGSERIAL.println(F("#mgrConfiguration")));
+  IF_LOGDATEFILE("jrpc configure\n");
 
   // set config version
   strcpy (confver,CONFVER);
@@ -1163,7 +1308,7 @@ int rf24rpc(aJsonObject* params)
 int prepare(aJsonObject* params)
 {
   IF_SDEBUG(DBGSERIAL.println(F("#rpc prepare")));
-
+  IF_LOGDATEFILE("jrpc prepare\n");
 
   aJsonObject* nodeParam = aJson.getObjectItem(params, "node");
   if (!nodeParam) {
@@ -1228,6 +1373,7 @@ int getjson(aJsonObject* params)
 {
 
   IF_SDEBUG(DBGSERIAL.println(F("#rpc getjson")));
+  IF_LOGDATEFILE("jrpc getjson\n");
 
   aJsonObject* nodeParam = aJson.getObjectItem(params, "node");
   if (!nodeParam) {
@@ -1284,6 +1430,7 @@ int getjson(aJsonObject* params)
 int prepandget(aJsonObject* params)
 {
   IF_SDEBUG(DBGSERIAL.println(F("#rpc getvalues")));
+  IF_LOGDATEFILE("jrpc prepandget\n");
 
   aJsonObject* driverParam = aJson.getObjectItem(params, "driver");
   if (!driverParam) {
@@ -1349,127 +1496,6 @@ int prepandget(aJsonObject* params)
   return E_SUCCESS;
 
 }
-#endif
-
-#if defined(DEBUGONSERIAL)     
-
-// utility function to debug
-void printDigits(int digits){
-  // utility function for digital clock display: prints preceding colon and leading 0
-  if(digits < 10)
-    DBGSERIAL.print('0');
-  DBGSERIAL.print(digits);
-}
-
-// utility function to debug
-void digitalClockDisplay(time_t t ){
-  // digital clock display of the time
-
-  DBGSERIAL.print(F("#"));
-
-  if (t == 0UL){
-    DBGSERIAL.println(F("NULL"));
-  }
-  else{	  
-    printDigits(hour(t));
-    DBGSERIAL.print(":");
-    printDigits(minute(t));
-    DBGSERIAL.print(":");
-    printDigits(second(t));
-    DBGSERIAL.print(" ");
-    printDigits(day(t));
-    DBGSERIAL.print(" ");
-    printDigits(month(t));
-    DBGSERIAL.print(" ");
-    DBGSERIAL.print(year(t)); 
-    DBGSERIAL.println(); 
-  }
-}
-
-#endif
-
-#if defined(LCD)     
-
-void lcdDigits(int digits){
-  // utility function for digital clock display: lcd display preceding colon and leading 0
-  if(digits < 10)
-    lcd.print('0');
-  lcd.print(digits);
-}
-
-// utility function to print to LCD
-void LcdDigitalClockDisplay(time_t t ){
-  // digital clock display of the time
-
-  if (t == 0UL){
-    lcd.print(F("time was not set"));
-  }
-  else{	  
-    lcdDigits(hour(t));
-    lcd.print(":");
-    lcdDigits(minute(t));
-    lcd.print(":");
-    lcdDigits(second(t));
-    lcd.print(" ");
-    lcdDigits(day(t));
-    lcd.print(" ");
-    lcdDigits(month(t));
-    lcd.print(" ");
-    lcd.print(year(t)); 
-  }
-}
-#endif
-
-#ifdef SDCARDLOGFILE
-
-void logDigits(int digits){
-  // utility function for digital clock display: log display preceding colon and leading 0
-  char str[(sizeof(int)*8+1)];
-  if(digits < 10)
-    IF_LOGFILE("0");
-  sprintf(str,"%d",digits);
-  IF_LOGFILE(str);
-}
-
-
-// utility function to print to Logfile
-void LogDigitalClockDisplay(){
-  // digital clock display of the time
-
-  IF_SDEBUG(DBGSERIAL.println(F("#write on the log file")));
-
-
-  if(timeStatus()== timeNotSet) {
-    IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
-    //return;
-    time_t t = 0; // Store the current time in time variable t 
-
-  }else{
-    time_t t = now(); // Store the current time in time variable t 
-  }
-
-  if (t == 0UL){
-    IF_LOGFILE("time was not set:");
-  }
-  else{	  
-    logDigits(year(t)); 
-    IF_LOGFILE("-");
-    logDigits(month(t));
-    IF_LOGFILE("-");
-    logDigits(day(t));
-    IF_LOGFILE(" ");
-    logDigits(hour(t));
-    IF_LOGFILE(":");
-    logDigits(minute(t));
-    IF_LOGFILE(":");
-    logDigits(second(t));
-    IF_LOGFILE("> ");
-  }
-}
-
-#define IF_LOGDATEFILE(x) ({LogDigitalClockDisplay(); IF_LOGFILE(x);})
-#else
-#define IF_LOGDATEFILE(x)
 #endif
 
 
@@ -1553,6 +1579,9 @@ time_t periodicResyncGSMRTC() {
 // system clock and other can have overflow problem
 // so we reset everythings one time a week
 void Reset() {
+
+  IF_LOGDATEFILE("programmed Reset\n");
+
   wdt_enable(WDTO_30MS); while(1) {} 
 
   // Restarts program from beginning but 
@@ -2288,11 +2317,27 @@ void mgrmqtt()
 #endif
 
     wdt_reset();
+
+#ifdef SDCARDLOGFILE
+    if (!msgconnected){
+      IF_LOGDATEFILE("mqtt connected\n");
+      msgconnected=true;
+    }
+    wdt_reset();
+#endif
+
   }else{
       
     IF_SDEBUG(digitalClockDisplay(now()));
     IF_SDEBUG(DBGSERIAL.println(F("#mqtt disconnected")));
-    IF_LOGDATEFILE("mqtt disconnected\n");
+#ifdef SDCARDLOGFILE
+    if (msgconnected){
+      IF_LOGDATEFILE("mqtt disconnected\n");
+      msgconnected=false;
+    }
+    wdt_reset();
+#endif
+
 
     /*
 #ifdef GSMGPRSMQTT
@@ -2544,6 +2589,8 @@ int sdrecoveryrpc(aJsonObject* params)
   //IF_SDEBUG(DBGSERIAL.print(all));
   //mgrsdcard(all);
 
+  IF_LOGDATEFILE("jrpc sdrecovery\n");
+
   mgrsdcard();
 
   result = aJson.createObject();
@@ -2735,6 +2782,12 @@ void setup()
   // and register the local sdcardrpc method
   rpc.registerMethod("sdrecovery", &sdrecoveryrpc);
 #endif
+
+#if defined (RESETRPC)
+  // and register the local reset method
+  rpc.registerMethod("reset", &resetrpc);
+#endif
+
 #endif
 
   // check FORCECONFIGPIN to force configuration by serial port
@@ -3105,12 +3158,21 @@ void setup()
 
   wdt_reset();
 
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
- 
- // connect to mqtt server
+// connect to mqtt server
+ #if defined(GSMGPRSMQTT)
+  wdt_reset();
+  s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+  for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
+    IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
+    s800.stopNetwork();
+    wdt_reset();
+    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+    wdt_reset();
+  }
+#endif
+
+#if defined(ETHERNETMQTT)
   rmapconnect();
-
-
 #endif
 
 #if defined(SDCARD)
