@@ -86,7 +86,7 @@ File logFile;
 #define FILE_BASE_NAME "RMAP_"
 #define MAX_FILESIZE 8388608 // 44h for 5s sampletime
 const uint8_t BASE_NAME_SIZE = sizeof(FILE_BASE_NAME) - 1;
-char fileName[BASE_NAME_SIZE+4] = FILE_BASE_NAME "000";
+char fileName[BASE_NAME_SIZE+4];
 char fullfileName[BASE_NAME_SIZE+8];
 char newfileName[BASE_NAME_SIZE+8];
 
@@ -2374,6 +2374,9 @@ void mgrsdcard()
 {
   wdt_reset();
 
+  strcpy(fileName,FILE_BASE_NAME);
+  strcat (fileName,"000");
+
   // find exixting file name
   while (exists(fileName))
     {
@@ -2785,7 +2788,7 @@ void setup()
 
 #if defined (REBOOTRPC)
   // and register the local reset method
-  rpc.registerMethod("reset", &rebootrpc);
+  rpc.registerMethod("reboot", &rebootrpc);
 #endif
 
 #endif
