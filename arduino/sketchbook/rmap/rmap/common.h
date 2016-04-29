@@ -129,7 +129,7 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 
 #ifdef JSONRPCON
 #define SERIALJSONRPC
-#define RESETRPC
+#define REBOOTRPC
 #ifdef RADIORF24
 #define RF24JSONRPC
 #ifdef RF24SLEEP

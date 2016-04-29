@@ -935,10 +935,10 @@ uint8_t sim800Client::connected()
 
 int sim800Client::available()
 {
-  return modem->available();
 #ifdef ENABLEWDT
   wdt_reset();
 #endif
+  return modem->available();
 }
 
 int sim800Client::read()

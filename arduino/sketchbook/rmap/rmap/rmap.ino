@@ -654,7 +654,7 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 #define NJSRPCSEN
 #define NJSRPCRAD
 #define NJSRPCSDC
-#define NJSRPCRES
+#define NJSRPCREB
 
 #if defined (ATTUATORE)
 #define NJSRPCATT  +1
@@ -668,11 +668,11 @@ aJsonObject *response=NULL ,*result=NULL ;  // ,*error=NULL;
 #if defined (SDCARD)
 #define NJSRPCSDC  +1
 #endif
-#if defined (RESETRPC)
-#define NJSRPCRES  +1
+#if defined (REBOOTRPC)
+#define NJSRPCREB  +1
 #endif
 
-JsonRPC rpc(0 NJSRPCATT NJSRPCSEN NJSRPCRAD NJSRPCSDC NJSRPCRES);
+JsonRPC rpc(0 NJSRPCATT NJSRPCSEN NJSRPCRAD NJSRPCSDC NJSRPCREB);
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
@@ -908,12 +908,12 @@ void LogDigitalClockDisplay(){
 
 #if defined (JSONRPCON)
 
-#if defined (RESETRPC)
-int resetrpc(aJsonObject* params)
+#if defined (REBOOTRPC)
+int rebootrpc(aJsonObject* params)
 {
   IF_LOGDATEFILE("jrpc reset\n");
 
-  Reset();
+  Reboot();
 
   //result = aJson.createObject();
   //return E_SUCCESS;  
@@ -1578,9 +1578,9 @@ time_t periodicResyncGSMRTC() {
 
 // system clock and other can have overflow problem
 // so we reset everythings one time a week
-void Reset() {
+void Reboot() {
 
-  IF_LOGDATEFILE("programmed Reset\n");
+  IF_LOGDATEFILE("programmed Reboot\n");
 
   wdt_enable(WDTO_30MS); while(1) {} 
 
@@ -2783,9 +2783,9 @@ void setup()
   rpc.registerMethod("sdrecovery", &sdrecoveryrpc);
 #endif
 
-#if defined (RESETRPC)
+#if defined (REBOOTRPC)
   // and register the local reset method
-  rpc.registerMethod("reset", &resetrpc);
+  rpc.registerMethod("reset", &rebootrpc);
 #endif
 
 #endif
@@ -3055,7 +3055,7 @@ void setup()
   if (!s800.getIMEI(imeicode)){
     IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR getting IMEI; reboot")));
     // I cannot continue without IMEI
-    Reset();
+    Reboot();
   }
   wdt_reset();
 #endif
@@ -3215,7 +3215,7 @@ void setup()
   
 #if defined(REPEATTASK)
   Alarm.timerRepeat(configuration.rt, Repeats);             // timer for every tr seconds
-  Alarm.alarmRepeat(dowMonday,8,0,0,Reset);                 // 8:00:00 every Monday
+  Alarm.alarmRepeat(dowMonday,8,0,0,Reboot);                 // 8:00:00 every Monday
 #endif
 
   IF_SDEBUG(DBGSERIAL.println(F("#setup terminated")));
