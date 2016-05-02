@@ -911,8 +911,8 @@ void LogDigitalClockDisplay(){
 #if defined (REBOOTRPC)
 int rebootrpc(aJsonObject* params)
 {
-  IF_LOGDATEFILE("jrpc reset\n");
 
+  IF_LOGDATEFILE("jrpc reboot\n");
   Reboot();
 
   //result = aJson.createObject();
@@ -1579,6 +1579,20 @@ time_t periodicResyncGSMRTC() {
 // system clock and other can have overflow problem
 // so we reset everythings one time a week
 void Reboot() {
+
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  if (mqttclient.connected()){
+    //disconn clean
+    rmapdisconnect();
+
+    #ifdef GSMGPRSMQTT
+    s800.TCPstop();
+    #endif
+  }
+  #ifdef GSMGPRSMQTT
+  s800.stopNetwork();
+  #endif
+#endif
 
   IF_LOGDATEFILE("programmed Reboot\n");
 
