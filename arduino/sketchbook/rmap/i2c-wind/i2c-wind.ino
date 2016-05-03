@@ -37,7 +37,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 04             //Software version for cross checking
+#define VERSION 05             //Software version for cross checking
 
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -482,7 +482,7 @@ void loop() {
   //count=FreqCounter::f_freq
 
   IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLETIME-(millis()-starttime)));
-  delay(SAMPLERATE-(millis()-starttime));
+  delay(SAMPLETIME-(millis()-starttime));
 
   detachInterrupt(digitalPinToInterrupt(INTERRUPTPIN));
   IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
