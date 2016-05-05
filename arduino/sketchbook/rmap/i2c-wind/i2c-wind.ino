@@ -342,7 +342,7 @@ void setup() {
   // TODO the the next read is 1 with calm too
   */
 
-  pinMode(2,INPUT_PULLUP);  // connected to wind intensity sensor
+  pinMode(INTERRUPTPIN,INPUT_PULLUP);  // connected to wind intensity sensor
 
   IF_SDEBUG(Serial.println(F("end setup")));
 
