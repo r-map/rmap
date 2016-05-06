@@ -506,6 +506,16 @@ BORINUD = {
                     "level": (103, 2000, None, None),
                     "trange": (254, 0, 0),
                 },
+                {
+                    "var": "B12101",
+                    "level": (103, 2000, None, None),
+                    "trange": (0, 0, 60),
+                },
+                {
+                    "var": "B13003",
+                    "level": (103, 2000, None, None),
+                    "trange": (0, 0, 60),
+                },
             ]
         },
         {
