@@ -8,7 +8,7 @@
 #include "IPAddress.h"
 
 // activate debug on serial port
-//#define DEBUGONSERIAL
+#define DEBUGONSERIAL
 #define ENABLEWDT 1
 // if define HARDWARESERIAL is set then it will be static (required by Time library)
 #define HARDWARESERIAL Serial1
@@ -46,8 +46,9 @@ class SIM800 {
   bool stopNetwork();
 
   bool checkNetwork();
-  bool GetMyIP(char*ip); // no less 16 char
-  bool getIMEI(char *imei); // no less 16 char
+  bool GetMyIP(char*ip); // ip no less 15 char + terminator
+  bool getIMEI(char *imei); // imei no less 15 char + terminator
+  bool getSignalQualityRepor(int*rssi,int*ber);
 
   bool httpGET(const char* server, int port, const char* path, char* result, int resultlength);
 

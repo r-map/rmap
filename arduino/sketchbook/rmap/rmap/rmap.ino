@@ -342,6 +342,7 @@ void aes_dec(uint8_t* key, uint8_t* iv, char* mainbuf, size_t* buflen){
 sim800Client s800;
 #define IMEICODE_LEN 16
 char imeicode[IMEICODE_LEN];
+int rssi, ber;
   #endif
 
   #ifdef GSMGPRSHTTP
@@ -584,8 +585,8 @@ bool rmapconnect()
     snprintf(topiccom,SERVER_LEN+21, "%s%s/%s/com", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
-    // default to QoS=0
-    mqttclient.subscribe(topiccom);
+    // QoS=1
+    mqttclient.subscribe(topiccom,1);
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt subscribed to: ")));
     IF_SDEBUG(DBGSERIAL.println(topiccom));
     wdt_reset();
@@ -1289,7 +1290,7 @@ int rf24rpc(aJsonObject* params)
 
      //this for GPSGPRSRTCBOOT work only at boot before tcpstart
 #if defined(GPSGPRSRTC) || defined(GPSGPRSRTCBOOT) 
-     if (s800.set(now()) != 0)  return E_INTERNAL_ERROR;
+     if (s800.RTCset(now()) != 0)  return E_INTERNAL_ERROR;
 #endif
      aJson.addNumberToObject(result, "date",ss);
   }
@@ -1502,8 +1503,10 @@ int prepandget(aJsonObject* params)
 #ifdef REPEATTASK
 
 #ifdef GSMGPRSRTCBOOT
-
-time_t ResyncGSMRTC() {
+/*
+  this function return time from rmap.cc server with http get
+*/
+time_t GSMHTTPRTC() {
 
   time_t t=0UL;
 
@@ -1523,10 +1526,20 @@ time_t ResyncGSMRTC() {
 	IF_SDEBUG(digitalClockDisplay(t));
       }
     }
+  } 
+  else {
+    IF_SDEBUG(DBGSERIAL.println(F("#s800 not registered cannot get time from http"))); 
   }
   return t;
 }
 
+/*
+  this function disconnect from mqtt
+  get time from GSM RTC
+  get time with GSMHTTPRTC
+  reconnect to mqtt
+  return the better time available
+*/
 
 time_t periodicResyncGSMRTC() {
 
@@ -1535,49 +1548,62 @@ time_t periodicResyncGSMRTC() {
   bool mc;
 
   mc=mqttclient.connected();
-
+  
   if (mc){
     //disconn clean
     rmapdisconnect();
     s800.TCPstop();
   }
-    s800.stopNetwork();
-
+  //s800.stopNetwork();
+  
   // get first guess time from sim800 RTC
   t = s800.RTCget();
   IF_SDEBUG(DBGSERIAL.println(F("#time from sim800 RTC")));
   IF_SDEBUG(digitalClockDisplay(t));
 
+  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   for (int i = 0; ((i < 10) &  !s800.checkNetwork()); i++) {
+    s800.stopNetwork();
+    delay(1000);
     s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   }
 
-  if ((tt=ResyncGSMRTC()) != 0UL){
-    t=tt;
-    s800.RTCset(t);
-    IF_SDEBUG(DBGSERIAL.println(F("#set to system time  and sim800 RTC")));
-    digitalClockDisplay(t);
-}
+  s800.getSignalQualityRepor(&rssi,&ber);
+  IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
+  IF_SDEBUG(DBGSERIAL.println(rssi));
+  IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
+  IF_SDEBUG(DBGSERIAL.println(ber));
+  wdt_reset();    
 
+  char str[16];
+  sprintf(str,"rssi:%d,ber:%d\n",rssi,ber);
+  IF_LOGDATEFILE(str);
+
+  if ((tt=GSMHTTPRTC()) != 0UL){
+      t=tt;
+      s800.RTCset(t);
+      IF_SDEBUG(DBGSERIAL.println(F("#set to system time  and sim800 RTC")));
+      IF_SDEBUG(digitalClockDisplay(t));
+    }
+  
   s800.stopNetwork();
 
-  if (mc){
-    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
-    for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
-      IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
-      s800.stopNetwork();
+  if (mc)    {
       s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
-    }
-    
-  }
+      for (int i = 0; ((i < 3) & !rmapconnect()); i++) {
+        IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
+        s800.stopNetwork();
+	delay(1000);
+        s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+      }
+
+    }    
   return t;
 
 }
 
 #endif
 
-// system clock and other can have overflow problem
-// so we reset everythings one time a week
 void Reboot() {
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
@@ -1589,7 +1615,7 @@ void Reboot() {
     s800.TCPstop();
     #endif
   }
-  #ifdef GSMGPRSMQTT
+#ifdef GSMGPRSHTTP
   s800.stopNetwork();
   #endif
 #endif
@@ -1846,15 +1872,25 @@ void Repeats() {
       IF_SDEBUG(DBGSERIAL.println(payload));
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+
+      bool mqttstatus;
+
+#ifdef SDCARD
+      strcpy(record.topic, mainbuf);
+      //strcat( record.separator, ";");
+      strcpy( record.payload, payload);
+#endif
+
       wdt_reset();
       if (!mqttclient.publish(mainbuf, payload))
 	{
-#ifdef SDCARD
-	  record.done=false;
-#endif
+
+	  mqttstatus=false;
+
 	  IF_SDEBUG(DBGSERIAL.println(F("#error mqtt publish")));
 	  
 #ifdef GSMGPRSMQTT
+	  rmapdisconnect();
 	  IF_SDEBUG(DBGSERIAL.println(F("#try to restart sim800 TCP")));
 	  // try to restart sim800
 	  wdt_reset();
@@ -1867,24 +1903,26 @@ void Repeats() {
 	      wdt_reset();
 	      s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
 	      wdt_reset();
+
+	      s800.getSignalQualityRepor(&rssi,&ber);
+	      IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
+	      IF_SDEBUG(DBGSERIAL.println(rssi));
+	      IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
+	      IF_SDEBUG(DBGSERIAL.println(ber));
+	      wdt_reset();
+
+	      rmapconnect();
 	    }
           }
 #endif
 	}
-#ifdef SDCARD
       else
 	{
-	  record.done=true;	  
+	  mqttstatus=true;
 	}
-#endif
       wdt_reset();
 #endif
 
-#ifdef SDCARD
-      strcpy(record.topic, mainbuf);
-      //strcat( record.separator, ";");
-      strcpy( record.payload, payload);
-#endif
 
 #ifdef GSMGPRSHTTP
 
@@ -1908,9 +1946,8 @@ void Repeats() {
       //reattach gsm if needed
       //if (!gsm.IsRegistered()) gsmgprsstart();
 
-#ifdef SDCARD
-      record.done=false;
-#endif
+      mqttstatus=false;
+
       //TCP Client GET, send a GET request to the server and save the reply.
       if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
 	//Print the results.
@@ -1925,9 +1962,7 @@ void Repeats() {
 	}
 #endif
 	if (strstr(mainbuf,"OK") != NULL){
-#ifdef SDCARD
-	  record.done=true;
-#endif
+	  mqttstatus=true;
 	}else{
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
 	}
@@ -1941,14 +1976,8 @@ void Repeats() {
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart sim800"));
 
-	  wdt_reset();
-
-	  //s800.switchOn();
-	  s800.resetModem();
-
-	  wdt_reset();
-
 	  // fast restart
+	  wdt_reset();
 	  if (s800.init_onceautobaud()){
 	    if (s800.setup()){
 	      s800.stopNetwork();
@@ -1957,6 +1986,13 @@ void Repeats() {
 	  }
         }
       }
+
+      s800.getSignalQualityRepor(&rssi,&ber);
+      IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
+      IF_SDEBUG(DBGSERIAL.println(rssi));
+      IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
+      IF_SDEBUG(DBGSERIAL.println(ber));
+      wdt_reset();
       
 #endif
 
@@ -1966,6 +2002,7 @@ void Repeats() {
       if ( t != 0 )
 	{
 
+	  record.done=mqttstatus;
 	  IF_SDEBUG(DBGSERIAL.print(F("#write:"))); 
 	  IF_SDEBUG(DBGSERIAL.print(record.done)); 
 	  IF_SDEBUG(DBGSERIAL.print(record.separator)); 
@@ -2138,6 +2175,62 @@ void mgrjsonrpc(aJsonObject *msg)
 }
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+
+void StartModem() {
+
+  IF_SDEBUG(DBGSERIAL.println(F("#GSM try to init sim800")));
+  // static hardwareserial defined at compile time in sim800 library 
+  //if (s800.init(&GSMSERIAL , GSMONOFFPIN, GSMRESETPIN)){
+  wdt_reset();  
+  if (s800.init(GSMONOFFPIN, GSMRESETPIN)){
+    s800.setup();
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
+  }else{
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800; retry")));
+    
+    // In Stima configuration sim800 will be always on becouse PWRKEY
+    // Pin should be pulled down 
+    //s800.switchOn();
+    s800.resetModem();
+    wdt_reset();
+    s800.setup();
+    wdt_reset();
+    s800.stop();
+    wdt_reset();
+    s800.TCPstop();
+    wdt_reset();
+    s800.stopNetwork();
+  }
+  wdt_reset();
+}
+
+void RestartModem() {
+
+  IF_SDEBUG(DBGSERIAL.println("#RestartModem"));
+
+#if defined(ETHERNETMQTT)
+  if (!s800.checkNetwork()){
+    IF_SDEBUG(DBGSERIAL.println("#GSM try to restart network"));
+#endif
+
+#if defined(GSMGPRSMQTT)
+  if (!mqttclient.connected()) {
+    IF_SDEBUG(DBGSERIAL.println(F("#GSM try to start TCP")));
+#endif
+
+    IF_LOGDATEFILE("hard GSM restart\n");
+    StartModem();
+
+#if defined(ETHERNETMQTT)
+    s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
+#endif
+
+#if defined(GSMGPRSMQTT)
+    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+#endif
+  }
+}
+
 
 // mqtt Callback function
 // the payload have to be somelike:
@@ -2464,6 +2557,9 @@ void mgrsdcard()
 			{
 			  record.done=true;
 			}
+
+		      mgrmqtt();
+
 #endif
 #ifdef GSMGPRSHTTP
 		      IF_SDEBUG(DBGSERIAL.println(F("#recover http publish"))); 
@@ -2594,7 +2690,17 @@ void mgrsdcard()
   wdt_reset();
   dataFile.seekEnd(0);
   pos = dataFile.curPosition();
+  // check if position is phased
+  int phase=pos % sizeof(record);
+  if (phase != 0 ){
 
+    IF_LOGDATEFILE("datafile trunkated\n");
+    IF_SDEBUG(DBGSERIAL.print(F("#ERROR datafile trunkated: ")));
+    IF_SDEBUG(DBGSERIAL.print(phase));
+
+    pos-=phase;
+    dataFile.seekSet(pos);
+  }
 }
 
 int sdrecoveryrpc(aJsonObject* params)
@@ -3039,34 +3145,7 @@ void setup()
 
 #if defined(GSMGPRSHTTP) || defined(GSMGPRSMQTT)
 
-  //wdt_reset();
-  //wdt_disable();
-  wdt_reset();
-
-  IF_SDEBUG(DBGSERIAL.println(F("#GSM try to init sim800")));
-  // static hardwareserial defined at compile time in sim800 library 
-  //if (s800.init(&GSMSERIAL , GSMONOFFPIN, GSMRESETPIN)){
-  if (s800.init(GSMONOFFPIN, GSMRESETPIN)){
-    s800.setup();
-    IF_SDEBUG(DBGSERIAL.println(F("#GSM sim800 initialized")));
-  }else{
-    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR init sim800; retry")));
-
-    // In Stima configuration sim800 will be always on becouse PWRKEY
-    // Pin should be pulled down 
-    //s800.switchOn();
-    s800.resetModem();
-    wdt_reset();
-    s800.setup();
-    wdt_reset();
-    s800.stop();
-    wdt_reset();
-    s800.TCPstop();
-    wdt_reset();
-    s800.stopNetwork();
-  }
-
-  wdt_reset();
+  StartModem();
 
 #ifdef GSMGPRSMQTT
   if (!s800.getIMEI(imeicode)){
@@ -3091,16 +3170,28 @@ void setup()
 #ifdef GSMGPRSHTTP
   wdt_reset();
 
-    //GPRS attach, put in order APN, username and password.
-    //If no needed auth let them blank.
-    //s800.stopNetwork();
-    //wdt_reset();
-    // if already connected reuse it
-    for (int i = 0; (i < 10 & !s800.checkNetwork()); i++) {
-      IF_SDEBUG(DBGSERIAL.println(F("#GSM start network")));
-      s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
-      wdt_reset();
-    }
+  //GPRS attach, put in order APN, username and password.
+  //If no needed auth let them blank.
+  //s800.stopNetwork();
+  //wdt_reset();
+  // if already connected reuse it
+  IF_SDEBUG(DBGSERIAL.println(F("#GSM start network")));
+  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
+  for (int i = 0; (i < 10 & !s800.checkNetwork()); i++) {
+    s800.stopNetwork();
+    wdt_reset();
+    delay(3000);
+    wdt_reset();
+    s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
+    wdt_reset();
+  }
+
+  s800.getSignalQualityRepor(&rssi,&ber);
+  IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
+  IF_SDEBUG(DBGSERIAL.println(rssi));
+  IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
+  IF_SDEBUG(DBGSERIAL.println(ber));
+  wdt_reset();
 
 #endif
 
@@ -3181,14 +3272,16 @@ void setup()
   s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
   for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
     IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
-    s800.stopNetwork();
+    s800.TCPstop();
+    wdt_reset();
+    delay(3000);
     wdt_reset();
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
     wdt_reset();
   }
 #endif
 
-#if defined(ETHERNETMQTT)
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   rmapconnect();
 #endif
 
@@ -3232,7 +3325,15 @@ void setup()
   
 #if defined(REPEATTASK)
   Alarm.timerRepeat(configuration.rt, Repeats);             // timer for every tr seconds
-  Alarm.alarmRepeat(dowMonday,8,0,0,Reboot);                 // 8:00:00 every Monday
+
+  // system clock and other can have overflow problem
+  // so we reset everythings one time a week
+  Alarm.alarmRepeat(dowMonday,8,0,0,Reboot);                // 8:00:00 every Monday
+
+  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  Alarm.timerRepeat(60*60*3, RestartModem);                     // timer for restart GSM modem
+  #endif
+
 #endif
 
   IF_SDEBUG(DBGSERIAL.println(F("#setup terminated")));

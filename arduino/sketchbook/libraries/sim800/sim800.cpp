@@ -425,6 +425,8 @@ bool SIM800::startNetwork(const char *apn, const char *user, const char *pwd ) {
   // restart network if already connected
   if (isRegistered()) stopNetwork();
 
+  if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
+
   if (!isRegistered()){
     if (ATcommand("+SAPBR=3,1,\"Contype\",\"GPRS\"", buf)){
       sprintf(bufcommand,"+SAPBR=3,1,\"APN\",\"%s\"",apn );
@@ -433,8 +435,8 @@ bool SIM800::startNetwork(const char *apn, const char *user, const char *pwd ) {
 	if (ATcommand(bufcommand, buf)){
 	  sprintf(bufcommand,"+SAPBR=3,1,\"PWD\",\"%s\"",pwd );
 	  if (ATcommand(bufcommand, buf)){
-  // 60 sec timeout!
-	    if(ATcommand("+SAPBR=1,1", buf, OKSTR, ERRORSTR, 60000)){
+  // 85 sec timeout!
+	    if(ATcommand("+SAPBR=1,1", buf, OKSTR, ERRORSTR, 85000)){
 	      if(ATcommand("+SAPBR=2,1", buf)){
 		state |= STATE_REGISTERED;
 	      }
@@ -466,7 +468,7 @@ bool SIM800::stopNetwork() {
 
   //if (isRegistered()){
   // force stop ever!!
-  if ((status=ATcommand("  +SAPBR=0,1", buf))){
+  if (status=ATcommand("+SAPBR=0,1", buf , OKSTR, ERRORSTR, 65000)){
     state &= ~STATE_REGISTERED;
   }
   //}
@@ -613,6 +615,44 @@ bool SIM800::getIMEI(char*imei) {
   return retstatus;
 }
 
+
+bool SIM800::getSignalQualityRepor(int*rssi,int*ber) {
+  /*
+    returns received signal strength indication <rssi>
+    and channel bit error rate <ber> 
+  */
+  
+  char buf[BUF_LENGTH];
+  bool retstatus;
+
+  if(!isInitialized()) return false;
+  //  if(!isRegistered()) return false;
+
+  IF_SDEBUG(Serial.println(F("#sim800:get Signal Quality Repor")));
+  if ((retstatus=ATcommand("+CSQ", buf))){
+    int token_count = sscanf(buf,"+CSQ: %i,%i\r\n",rssi,ber);
+    if ( token_count == 2 ){
+      IF_SDEBUG(Serial.print(F("#sim800:rssi: ")));
+      IF_SDEBUG(Serial.println(*rssi));
+      IF_SDEBUG(Serial.print(F("#sim800:ber: ")));
+      IF_SDEBUG(Serial.println(*ber));
+    }else{
+      IF_SDEBUG(Serial.println(F("#sim800:ERROR getting Signal Quality Repor")));
+      IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
+      IF_SDEBUG(Serial.println(token_count));
+      IF_SDEBUG(Serial.println(buf));
+      retstatus=false;
+      *rssi=99;
+      *ber=99;
+    }
+  }else {
+    retstatus=false;
+    *rssi=99;
+    *ber=99;
+  }
+  
+  return retstatus;
+}
 
 bool SIM800::checkNetwork() {
   char buf[BUF_LENGTH];
@@ -809,7 +849,7 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
   IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CGATT?", buf));
 
-  if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
+  //  if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
   if (!ATcommand("+CIPMODE=1", buf)) return false; //IP transparent mode
   if (!ATcommand("+CIPCCFG=8,2,1024,1,0,1460,50", buf)) return false; // fixed the second parameter minimum is 2
   //For Sim900 /800 
@@ -852,7 +892,7 @@ bool SIM800::TCPstop()
 
   state &= ~STATE_REGISTERED;
 
-  if (!ATcommand("+CIPSHUT", buf)) return false;
+  if (!ATcommand("+CIPSHUT", buf,"SHUT OK", ERRORSTR, 65000)) return false;
 
   return true;
 }

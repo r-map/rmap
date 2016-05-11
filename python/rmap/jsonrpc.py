@@ -1181,7 +1181,7 @@ class ServerProxy:
         try:
             resp_str = self.__transport.sendrecv( req_str )
         except Exception,err:
-            raise RPCTransportError(err)
+            raise RPCTransportError()
         resp = self.__data_serializer.loads_response( resp_str )
         return resp[0]
 
