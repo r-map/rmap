@@ -39,7 +39,7 @@ amqp2amqp_identvalidationd = daemon.Daemon(
 credentials=pika.PlainCredentials(user, password)
 
 sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
-    host=host,credentials=credentials))
+    host=host,credentials=credentials,heartbeat_interval=0))
 sendchannel = sendconnection.channel()
 
 
@@ -114,7 +114,7 @@ def callback(ch, method, properties, body):
 def main(self):
 
     connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials))
+        host=host,credentials=credentials,heartbeat_interval=0))
     channel = connection.channel()
     #channel.queue_declare(queue=queue)
 
