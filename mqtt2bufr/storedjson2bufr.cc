@@ -122,6 +122,7 @@ int main(int argc, char** argv)
     if (files.empty())
         files.push_back("-");
 
+    int return_value = 0;
     for (auto file: files) {
         FpRAII f(file);
         char buf[128];
@@ -134,11 +135,18 @@ int main(int argc, char** argv)
             mqtt2bufr::Parser parser;
             std::string topic(buf + 1, buf + 63);
             std::string payload(buf + 65, buf + 128);
-            dballe::Msg msg = parser.parse(topic, payload);
-            msgs.append(msg);
-            std::cout << exporter.to_binary(msgs);
+            try {
+                dballe::Msg msg = parser.parse(topic, payload);
+                msgs.append(msg);
+                std::cout << exporter.to_binary(msgs);
+            } catch (const std::exception& e) {
+                return_value = 1;
+                std::cerr << "Error while parsing "
+                    << file << "[" << topic << " " << payload << "]"
+                    << ": " << e.what() << std::endl;
+            }
         }
     }
 
-    return 0;
+    return return_value;
 }
