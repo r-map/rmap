@@ -48,7 +48,7 @@ class SIM800 {
   bool checkNetwork();
   bool GetMyIP(char*ip); // ip no less 15 char + terminator
   bool getIMEI(char *imei); // imei no less 15 char + terminator
-  bool getSignalQualityRepor(int*rssi,int*ber);
+  bool getSignalQualityReport(int*rssi,int*ber);
 
   bool httpGET(const char* server, int port, const char* path, char* result, int resultlength);
 

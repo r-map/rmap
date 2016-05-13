@@ -616,7 +616,7 @@ bool SIM800::getIMEI(char*imei) {
 }
 
 
-bool SIM800::getSignalQualityRepor(int*rssi,int*ber) {
+bool SIM800::getSignalQualityReport(int*rssi,int*ber) {
   /*
     returns received signal strength indication <rssi>
     and channel bit error rate <ber> 
@@ -628,7 +628,7 @@ bool SIM800::getSignalQualityRepor(int*rssi,int*ber) {
   if(!isInitialized()) return false;
   //  if(!isRegistered()) return false;
 
-  IF_SDEBUG(Serial.println(F("#sim800:get Signal Quality Repor")));
+  IF_SDEBUG(Serial.println(F("#sim800:get Signal Quality Report")));
   if ((retstatus=ATcommand("+CSQ", buf))){
     int token_count = sscanf(buf,"+CSQ: %i,%i\r\n",rssi,ber);
     if ( token_count == 2 ){
@@ -637,7 +637,7 @@ bool SIM800::getSignalQualityRepor(int*rssi,int*ber) {
       IF_SDEBUG(Serial.print(F("#sim800:ber: ")));
       IF_SDEBUG(Serial.println(*ber));
     }else{
-      IF_SDEBUG(Serial.println(F("#sim800:ERROR getting Signal Quality Repor")));
+      IF_SDEBUG(Serial.println(F("#sim800:ERROR getting Signal Quality Report")));
       IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
       IF_SDEBUG(Serial.println(token_count));
       IF_SDEBUG(Serial.println(buf));
@@ -938,7 +938,7 @@ bool SIM800::TCPconnect(const char* server, int port)
 
     sprintf(bufcommand, "+CIPSTART=\"TCP\",\"%s\",\"%i\"",server,port );
     if(!ATcommand(bufcommand, buf)) return false;
-    receive(buf,5000,"\r\n",NULL);
+    receive(buf,150000,"\r\n",NULL);
     receive(buf,10000,"\r\n",NULL);
     if (found(buf,"CONNECT")){
       state |= STATE_HTTPINITIALIZED;

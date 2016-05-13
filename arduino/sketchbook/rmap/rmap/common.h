@@ -151,7 +151,7 @@ Mega2560	      	        	   21	   20	   19	   18
 
 #ifdef SERIALJSONRPC
 #define RPCSERIAL Serial
-#define RPCSERIALBAUDRATE 9600
+#define RPCSERIALBAUDRATE 115200
 #endif
 
 
@@ -175,7 +175,7 @@ Mega2560	      	        	   21	   20	   19	   18
 //#define FREEMEM
 
 #define DBGSERIAL Serial
-#define DBGSERIALBAUDRATE 9600
+#define DBGSERIALBAUDRATE 115200
 
 #define IF_SDEBUG(x) ({x;})
 #else
@@ -193,7 +193,7 @@ Mega2560	      	        	   21	   20	   19	   18
 #endif
 
 #ifdef SDCARDLOGFILE
-#define IF_LOGFILE(x) ({if (logFile.write(x,strlen(x)) == -1) IF_SDEBUG(DBGSERIAL.println(F("#LOGFILE WRITE ERROR"))); logFile.flush();})
+#define IF_LOGFILE(x) ({if (logFile.write(x,strlen(x)) == -1) IF_SDEBUG(DBGSERIAL.print(F("#LOGFILE WRITE ERROR"))); IF_SDEBUG(DBGSERIAL.print(x));})
 #else
 #define IF_LOGFILE(x)
 #endif

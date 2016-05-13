@@ -551,14 +551,14 @@ bool rmapconnect()
 
   char mqttid[SERVER_LEN+13];
 
-  sprintf(mqttid, "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+  snprintf(mqttid,sizeof(mqttid), "%s-%02x%02x%02x%02x%02x%02x", configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 
 #endif //ETHERNETON
 
 #ifdef GSMGPRSMQTT
   // IMEI code from sim800
   char mqttid[IMEICODE_LEN];
-  snprintf(mqttid,IMEICODE_LEN, "%s", imeicode);
+  snprintf(mqttid,sizeof(mqttid), "%s", imeicode);
 #endif
 
   IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
@@ -575,14 +575,14 @@ bool rmapconnect()
 #ifdef ETHERNETON
 
     char topiccom [strlen(MQTTRPCPREFIX)+(SERVER_LEN-1)+6*2+5+1];
-    sprintf(topiccom, "%s%s/%02x%02x%02x%02x%02x%02x/com", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+    snprintf(topiccom,sizeof(topiccom),"%s%s/%02x%02x%02x%02x%02x%02x/com", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 #endif
 
 #ifdef GSMGPRSMQTT
 
     char topiccom [strlen(MQTTRPCPREFIX)+(SERVER_LEN-1)+strlen(imeicode)+5+1];
     // IMEI code from sim800
-    snprintf(topiccom,SERVER_LEN+21, "%s%s/%s/com", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
+    snprintf(topiccom,sizeof(topiccom), "%s%s/%s/com", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
     // QoS=1
@@ -628,7 +628,7 @@ bool rmapdisconnect()
 const char* ip_to_str(const IPAddress& ipAddr)
 {
   static char buf[16];
-  sprintf(buf, "%d.%d.%d.%d", ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
+  snprintf(buf,sizeof(buf),"%d.%d.%d.%d", ipAddr[0], ipAddr[1], ipAddr[2], ipAddr[3]);
   return buf;
 }
 #endif
@@ -871,8 +871,7 @@ void logDigits(int digits){
 void LogDigitalClockDisplay(){
   // digital clock display of the time
 
-  IF_SDEBUG(DBGSERIAL.println(F("#write on the log file")));
-
+  IF_SDEBUG(DBGSERIAL.print(F("#write on the log file: ")));
 
   if(timeStatus()== timeNotSet) {
     IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
@@ -884,7 +883,7 @@ void LogDigitalClockDisplay(){
   }
 
   if (t == 0UL){
-    IF_LOGFILE("time was not set:");
+    IF_LOGFILE("#time was not set:");
   }
   else{	  
     logDigits(year(t)); 
@@ -902,7 +901,7 @@ void LogDigitalClockDisplay(){
   }
 }
 
-#define IF_LOGDATEFILE(x) ({LogDigitalClockDisplay(); IF_LOGFILE(x);})
+#define IF_LOGDATEFILE(x) ({LogDigitalClockDisplay(); IF_LOGFILE(x);logFile.flush();})
 #else
 #define IF_LOGDATEFILE(x)
 #endif
@@ -1506,7 +1505,9 @@ int prepandget(aJsonObject* params)
 /*
   this function return time from rmap.cc server with http get
 */
-time_t GSMHTTPRTC() {
+time_t gsmhttpRTC() {
+
+  IF_SDEBUG(DBGSERIAL.println(F("#gsmhttpRTC")));
 
   time_t t=0UL;
 
@@ -1536,12 +1537,14 @@ time_t GSMHTTPRTC() {
 /*
   this function disconnect from mqtt
   get time from GSM RTC
-  get time with GSMHTTPRTC
+  get time with gsmhttpRTC
   reconnect to mqtt
   return the better time available
 */
 
 time_t periodicResyncGSMRTC() {
+
+  IF_SDEBUG(DBGSERIAL.println(F("#periodicResyncGSMRTC")));
 
   time_t tt;
   time_t t;
@@ -1568,18 +1571,19 @@ time_t periodicResyncGSMRTC() {
     s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   }
 
-  s800.getSignalQualityRepor(&rssi,&ber);
+  s800.getSignalQualityReport(&rssi,&ber);
   IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
   IF_SDEBUG(DBGSERIAL.println(rssi));
   IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
   IF_SDEBUG(DBGSERIAL.println(ber));
-  wdt_reset();    
 
-  char str[16];
-  sprintf(str,"rssi:%d,ber:%d\n",rssi,ber);
-  IF_LOGDATEFILE(str);
+  // do not use LOGDATEFILE here becouse it call time and go in infinite recursive loop !
+  sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
+  IF_LOGFILE(mainbuf);
 
-  if ((tt=GSMHTTPRTC()) != 0UL){
+  wdt_reset();
+
+  if ((tt=gsmhttpRTC()) != 0UL){
       t=tt;
       s800.RTCset(t);
       IF_SDEBUG(DBGSERIAL.println(F("#set to system time  and sim800 RTC")));
@@ -1605,6 +1609,7 @@ time_t periodicResyncGSMRTC() {
 #endif
 
 void Reboot() {
+  IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   if (mqttclient.connected()){
@@ -1904,7 +1909,7 @@ void Repeats() {
 	      s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
 	      wdt_reset();
 
-	      s800.getSignalQualityRepor(&rssi,&ber);
+	      s800.getSignalQualityReport(&rssi,&ber);
 	      IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
 	      IF_SDEBUG(DBGSERIAL.println(rssi));
 	      IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
@@ -1987,7 +1992,7 @@ void Repeats() {
         }
       }
 
-      s800.getSignalQualityRepor(&rssi,&ber);
+      s800.getSignalQualityReport(&rssi,&ber);
       IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
       IF_SDEBUG(DBGSERIAL.println(rssi));
       IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
@@ -2228,6 +2233,10 @@ void RestartModem() {
 #if defined(GSMGPRSMQTT)
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
 #endif
+
+  sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
+  IF_LOGDATEFILE(mainbuf);
+
   }
 }
 
@@ -2261,13 +2270,13 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
 #ifdef ETHERNETON
   char topicres [SERVER_LEN+21];
 
-  sprintf(topicres, "%s%s/%02x%02x%02x%02x%02x%02x/res", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
+  snprintf(topicres,sizeof(topicres),"%s%s/%02x%02x%02x%02x%02x%02x/res", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
 #endif
 
 #ifdef GSMGPRSMQTT
     char topicres [SERVER_LEN+21];
     // IMEI code from sim800
-    snprintf(topicres,SERVER_LEN+21, "%s%s/%s/res", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
+    snprintf(topicres,sizeof(topicres), "%s%s/%s/res", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
 #endif
 
   if (!mqttclient.publish(topicres,mainbuf)){
@@ -3186,7 +3195,7 @@ void setup()
     wdt_reset();
   }
 
-  s800.getSignalQualityRepor(&rssi,&ber);
+  s800.getSignalQualityReport(&rssi,&ber);
   IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
   IF_SDEBUG(DBGSERIAL.println(rssi));
   IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
@@ -3281,7 +3290,7 @@ void setup()
   }
 #endif
 
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+#if defined(ETHERNETMQTT)
   rmapconnect();
 #endif
 
