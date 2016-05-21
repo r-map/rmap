@@ -111,6 +111,14 @@ configspec['amqp2amqp_identvalidationd']['lockfile'] = "string(default='/tmp/amq
 configspec['amqp2amqp_identvalidationd']['user']     = "string(default=None)"
 configspec['amqp2amqp_identvalidationd']['group']    = "string(default=None)"
 
+configspec['amqp2amqp_json2bufrd']={}
+configspec['amqp2amqp_json2bufrd']['logfile']  = "string(default='/tmp/amqp2amqp_json2bufrd.log')"
+configspec['amqp2amqp_json2bufrd']['errfile']  = "string(default='/tmp/amqp2amqp_json2bufrd.err')"
+configspec['amqp2amqp_json2bufrd']['lockfile'] = "string(default='/tmp/amqp2amqp_json2bufrd.lock')"
+configspec['amqp2amqp_json2bufrd']['user']     = "string(default=None)"
+configspec['amqp2amqp_json2bufrd']['group']    = "string(default=None)"
+
+
 configspec['amqp2djangod']={}
 configspec['amqp2djangod']['logfile']  = "string(default='/tmp/amqp2django.log')"
 configspec['amqp2djangod']['errfile']  = "string(default='/tmp/amqp2django.err')"
@@ -249,6 +257,12 @@ lockfileamqp2amqp_identvalidationd             = config['amqp2amqp_identvalidati
 useramqp2amqp_identvalidationd                 = config['amqp2amqp_identvalidationd']['user']
 groupamqp2amqp_identvalidationd                = config['amqp2amqp_identvalidationd']['group']
 
+# section amqp2amqp_json2bufrd
+logfileamqp2amqp_json2bufrd              = config['amqp2amqp_json2bufrd']['logfile']
+errfileamqp2amqp_json2bufrd              = config['amqp2amqp_json2bufrd']['errfile']
+lockfileamqp2amqp_json2bufrd             = config['amqp2amqp_json2bufrd']['lockfile']
+useramqp2amqp_json2bufrd                 = config['amqp2amqp_json2bufrd']['user']
+groupamqp2amqp_json2bufrd                = config['amqp2amqp_json2bufrd']['group']
 
 # section amqp2djangod
 logfileamqp2djangod              = config['amqp2djangod']['logfile']
@@ -477,7 +491,7 @@ if not android :
     }
 
 # for now dsn is static; we have to put it in cfg files and use in mqtt2dballed & borinud
-dsn="odbc://rmap"
+dsn="mysql:///rmap?user=rmap&password=rmap"
 
 BORINUD = {
     "SOURCES": 

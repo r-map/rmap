@@ -108,6 +108,8 @@ class createmanpages(Command):
             #subprocess.check_call(["gzip", "-f","man/man1/rmapweb.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2amqp_identvalidationd.1","./amqp2amqp_identvalidationd"])
             subprocess.check_call(["gzip", "-f","man/man1/amqp2amqp_identvalidationd.1"])
+            subprocess.check_call(["help2man","-N","-o","man/man1/amqp2amqp_json2bufrd.1","./amqp2amqp_json2bufrd"])
+            subprocess.check_call(["gzip", "-f","man/man1/amqp2amqp_json2bufrd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2dballed.1","./amqp2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/amqp2dballed.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2arkimetd.1","./amqp2arkimetd"])
@@ -228,7 +230,7 @@ setup(name='rmap',
       cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview','http2mqtt','registration','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','registration.migrations','paho','paho.mqtt','borinud','borinud.v1','borinud.v2','borinud.utils','borinud.migrations','geoimage','geoimage.migrations','insertdata','rmap.piexif','amatyr'],
       package_data={'rmap': ['icons/*.png','tables/*.txt'],'rmap.stations': ['fixtures/*.json'],'mapview': ['icons/*.png'],},
-      scripts=['stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod','amqp2geoimaged'],
+      scripts=['stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod','amqp2geoimaged'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf","nominatim"],

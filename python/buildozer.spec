@@ -23,7 +23,7 @@ source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, Pub
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*
+source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
