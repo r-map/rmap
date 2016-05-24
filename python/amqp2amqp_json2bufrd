@@ -19,13 +19,18 @@
 from rmap import daemon
 import pika, subprocess
 import rmap.settings
+import os
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-queue="validated_json"
+queue="validatedjson"
 outexchange="validated"
 routing_key="validated"
+
+DSNFILE="/dev/shm/amqp2amqp_json2bufrd.sqlite"
+DSN="sqlite:"+DSNFILE
+
 
 amqp2amqp_json2bufr = daemon.Daemon(
         stdin="/dev/null",
@@ -42,7 +47,6 @@ sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
     host=host,credentials=credentials,heartbeat_interval=0))
 sendchannel = sendconnection.channel()
 
-
 def callback(ch, method, properties, body):
     print " [x] Received message"
 
@@ -53,7 +57,7 @@ def callback(ch, method, properties, body):
     #    return
   
     try:
-        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","import","--type=json","--wipe-first","--dsn=sqlite:/tmp/amqp2amqp_json2bufrd.sqlite"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)]
+        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","import","--type=json","--wipe-first","--dsn="+DSN], stdin=subprocess.PIPE)]
 
         outbody,outerr=amqp2amqp_json2bufr.procs[0].communicate(input=body)
 
@@ -68,9 +72,15 @@ def callback(ch, method, properties, body):
         print "There were some errors executing dbadb import"
         raise
 
+    finally:
+        try:
+            os.remove(DSNFILE)
+        except:
+            pass
+
 
     try:
-        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","export","--dsn=sqlite:/tmp/amqp2amqp_json2bufrd.sqlite"], stdin=subprocess.PIPE, stdout=subprocess.PIPE)]
+        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","export","--dsn="+DSN], stdout=subprocess.PIPE)]
 
         outbody,outerr=amqp2amqp_json2bufr.procs[0].communicate()
 
@@ -85,7 +95,11 @@ def callback(ch, method, properties, body):
         print "There were some errors executing dbadb export"
         raise
 
-
+    finally:
+        try:
+            os.remove(DSNFILE)
+        except:
+            pass
     try:
 
         if (outbody == ""):
@@ -97,7 +111,7 @@ def callback(ch, method, properties, body):
         
             #set user_id property to don't get  "PRECONDITION_FAILED - user_id property set to 'guest' but authenticated user was 'rmap'
             properties.user_id=user
-        
+
             # Turn on delivery confirmations
             sendchannel.confirm_delivery()
 
