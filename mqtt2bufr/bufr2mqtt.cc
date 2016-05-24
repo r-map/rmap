@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <set>
 #include <unistd.h>
 #include <iostream>
 
@@ -43,10 +44,9 @@
 struct Publisher : mosqpp::mosquittopp {
     std::vector<std::string> topics;
     bool debug;
-    int last_ack_mid;
-    int last_pub_mid;
+    std::set<int> mids;
 
-    Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug), last_ack_mid(-1), last_pub_mid(-1) {}
+    Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug) {}
 
     virtual void on_log(int level, const char *str) {
       if (debug)
@@ -54,11 +54,11 @@ struct Publisher : mosqpp::mosquittopp {
     }
 
     virtual void on_publish(int mid) {
-      last_ack_mid = mid;
+      mids.erase(mid);
     }
 
     bool all_sent() const {
-      return last_ack_mid == last_pub_mid;
+      return mids.empty();
     }
 
     void publish_msg(const dballe::Message& message) {
@@ -87,10 +87,13 @@ struct Publisher : mosqpp::mosquittopp {
                      t != topics.end(); ++t) {
                     // TODO: do something if publish() fails
                     int mosqerr;
-                    if ((mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain)) != MOSQ_ERR_SUCCESS) {
+                    int mid;
+                    if ((mosqerr = publish(&mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain)) != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while publishing message"
                             << ": " << mosqpp::strerror(mosqerr)
                             << std::endl;
+                    } else {
+                        mids.insert(mid);
                     }
                     if (loop() != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while calling mosquitto loop: "
@@ -244,7 +247,9 @@ int main(int argc, char** argv)
     mosqpp::lib_cleanup();
 
     if (not publisher.all_sent()) {
-      std::cerr << "Ack timeout error." << std::endl;
+      std::cerr << "Ack timeout error:" << std::endl;
+      for (auto mid: publisher.mids)
+          std::cerr << "- " << mid << std::endl;
       return 2;
     }
 
