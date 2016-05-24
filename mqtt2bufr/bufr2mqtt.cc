@@ -45,6 +45,7 @@ struct Publisher : mosqpp::mosquittopp {
     std::vector<std::string> topics;
     bool debug;
     std::set<int> mids;
+    std::size_t max_mids_size = 20;
 
     Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug) {}
 
@@ -59,6 +60,19 @@ struct Publisher : mosqpp::mosquittopp {
 
     bool all_sent() const {
       return mids.empty();
+    }
+
+    void wait_dequeue() {
+        int mosqerr;
+        for (int i = 0; i < 60 && mids.size() > max_mids_size; ++i) {
+            usleep(1000000);
+            mosqerr = loop();
+            if (mosqerr != MOSQ_ERR_SUCCESS) {
+                std::cerr << "Error while calling mosquitto loop: "
+                    << mosqpp::strerror(mosqerr)
+                    << std::endl;
+            }
+        }
     }
 
     void publish_msg(const dballe::Message& message) {
@@ -95,11 +109,7 @@ struct Publisher : mosqpp::mosquittopp {
                     } else {
                         mids.insert(mid);
                     }
-                    if (loop() != MOSQ_ERR_SUCCESS) {
-                        std::cerr << "Error while calling mosquitto loop: "
-                            << mosqpp::strerror(mosqerr)
-                            << std::endl;
-                    }
+                    wait_dequeue();
                 }
             }
         }
@@ -219,7 +229,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     std::unique_ptr<dballe::File> input = dballe::File::create(dballe::File::BUFR, stdin, false, "stdin");
 
     input->foreach([&publisher](const dballe::BinaryMessage& bmsg) {
@@ -230,11 +239,7 @@ int main(int argc, char** argv)
         });
     });
 
-    // TODO: optional synchronized publish and custom timeout
-    for (int i = 0; i < 60 && not publisher.all_sent(); ++i) {
-      usleep(1000000);
-      publisher.loop();
-    }
+    publisher.wait_dequeue();
 
     if ((mosqerr = publisher.disconnect()) != 0) {
         std::cerr << "Error while disconnetting from "
