@@ -26,6 +26,9 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <cerrno>
+#include <cstring>
+#include <clocale>
 
 #include <mosquittopp.h>
 
@@ -87,15 +90,21 @@ struct Publisher : mosqpp::mosquittopp {
                      t != topics.end(); ++t) {
                     // TODO: do something if publish() fails
                     int mosqerr;
-                    if ((mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain)) != MOSQ_ERR_SUCCESS) {
+                    mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain);
+                    if (mosqerr != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while publishing message"
                             << ": " << mosqpp::strerror(mosqerr)
                             << std::endl;
                     }
-                    if (loop() != MOSQ_ERR_SUCCESS) {
+                    mosqerr = loop();
+                    if (mosqerr != MOSQ_ERR_SUCCESS) {
+                        std::string msg;
+                        if (mosqerr == MOSQ_ERR_ERRNO)
+                            msg = std::strerror(errno);
+                        else
+                            msg = mosqpp::strerror(mosqerr);
                         std::cerr << "Error while calling mosquitto loop: "
-                            << mosqpp::strerror(mosqerr)
-                            << std::endl;
+                            << msg << std::endl;
                     }
                 }
             }
