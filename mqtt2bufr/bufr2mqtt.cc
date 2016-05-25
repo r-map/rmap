@@ -48,7 +48,7 @@ struct Publisher : mosqpp::mosquittopp {
     std::vector<std::string> topics;
     bool debug;
     std::set<int> mids;
-    std::size_t max_mids_size = 20;
+    std::size_t max_mids_size = 40;
 
     Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug) {}
 
@@ -65,7 +65,7 @@ struct Publisher : mosqpp::mosquittopp {
       return mids.empty();
     }
 
-    void wait_dequeue() {
+    bool wait_dequeue() {
         int mosqerr;
         for (int i = 0; i < 60 && mids.size() > max_mids_size; ++i) {
             usleep(1000000);
@@ -80,9 +80,11 @@ struct Publisher : mosqpp::mosquittopp {
                     << msg << std::endl;
             }
         }
+	if (mids.size() > max_mids_size) return false;
+	return true;
     }
 
-    void publish_msg(const dballe::Message& message) {
+    bool publish_msg(const dballe::Message& message) {
         bufr2mqtt::Parser parser;
         const dballe::Msg& msg = dballe::Msg::downcast(message);
         const dballe::msg::Context* station_context = msg.find_station_context();
@@ -114,13 +116,15 @@ struct Publisher : mosqpp::mosquittopp {
                         std::cerr << "Error while publishing message"
                             << ": " << mosqpp::strerror(mosqerr)
                             << std::endl;
+			return false;
                     } else {
                         mids.insert(mid);
                     }
-                    wait_dequeue();
+                    if (not wait_dequeue()) return false;
                 }
             }
         }
+	return true;
     }
 };
 
@@ -242,12 +246,17 @@ int main(int argc, char** argv)
     input->foreach([&publisher](const dballe::BinaryMessage& bmsg) {
         dballe::msg::BufrImporter importer;
         return importer.foreach_decoded(bmsg, [&publisher](std::unique_ptr<dballe::Message>&& msgptr) {
-            publisher.publish_msg(*msgptr);
-            return true;
+            return publisher.publish_msg(*msgptr);
+            //return true;
         });
     });
 
-    publisher.wait_dequeue();
+    if (not publisher.wait_dequeue()) {
+      std::cerr << "Ack timeout error:" << std::endl;
+      for (auto mid: publisher.mids)
+          std::cerr << "- " << mid << std::endl;
+      return 2;
+    }
 
     if ((mosqerr = publisher.disconnect()) != 0) {
         std::cerr << "Error while disconnetting from "
@@ -263,7 +272,7 @@ int main(int argc, char** argv)
       std::cerr << "Ack timeout error:" << std::endl;
       for (auto mid: publisher.mids)
           std::cerr << "- " << mid << std::endl;
-      return 2;
+      return 3;
     }
 
     return 0;
