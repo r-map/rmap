@@ -24,6 +24,7 @@
 #include "config.h"
 #endif
 
+#include <set>
 #include <unistd.h>
 #include <iostream>
 #include <cerrno>
@@ -46,10 +47,10 @@
 struct Publisher : mosqpp::mosquittopp {
     std::vector<std::string> topics;
     bool debug;
-    int last_ack_mid;
-    int last_pub_mid;
+    std::set<int> mids;
+    std::size_t max_mids_size = 20;
 
-    Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug), last_ack_mid(-1), last_pub_mid(-1) {}
+    Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug) {}
 
     virtual void on_log(int level, const char *str) {
       if (debug)
@@ -57,11 +58,28 @@ struct Publisher : mosqpp::mosquittopp {
     }
 
     virtual void on_publish(int mid) {
-      last_ack_mid = mid;
+      mids.erase(mid);
     }
 
     bool all_sent() const {
-      return last_ack_mid == last_pub_mid;
+      return mids.empty();
+    }
+
+    void wait_dequeue() {
+        int mosqerr;
+        for (int i = 0; i < 60 && mids.size() > max_mids_size; ++i) {
+            usleep(1000000);
+            mosqerr = loop();
+            if (mosqerr != MOSQ_ERR_SUCCESS) {
+                std::string msg;
+                if (mosqerr == MOSQ_ERR_ERRNO)
+                    msg = std::strerror(errno);
+                else
+                    msg = mosqpp::strerror(mosqerr);
+                std::cerr << "Error while calling mosquitto loop: "
+                    << msg << std::endl;
+            }
+        }
     }
 
     void publish_msg(const dballe::Message& message) {
@@ -90,22 +108,16 @@ struct Publisher : mosqpp::mosquittopp {
                      t != topics.end(); ++t) {
                     // TODO: do something if publish() fails
                     int mosqerr;
-                    mosqerr = publish(&last_pub_mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain);
+                    int mid;
+                    mosqerr = publish(&mid, (*t + topic).c_str(), payload.size(), payload.c_str(), 1, retain);
                     if (mosqerr != MOSQ_ERR_SUCCESS) {
                         std::cerr << "Error while publishing message"
                             << ": " << mosqpp::strerror(mosqerr)
                             << std::endl;
+                    } else {
+                        mids.insert(mid);
                     }
-                    mosqerr = loop();
-                    if (mosqerr != MOSQ_ERR_SUCCESS) {
-                        std::string msg;
-                        if (mosqerr == MOSQ_ERR_ERRNO)
-                            msg = std::strerror(errno);
-                        else
-                            msg = mosqpp::strerror(mosqerr);
-                        std::cerr << "Error while calling mosquitto loop: "
-                            << msg << std::endl;
-                    }
+                    wait_dequeue();
                 }
             }
         }
@@ -225,7 +237,6 @@ int main(int argc, char** argv)
         return 1;
     }
 
-
     std::unique_ptr<dballe::File> input = dballe::File::create(dballe::File::BUFR, stdin, false, "stdin");
 
     input->foreach([&publisher](const dballe::BinaryMessage& bmsg) {
@@ -236,11 +247,7 @@ int main(int argc, char** argv)
         });
     });
 
-    // TODO: optional synchronized publish and custom timeout
-    for (int i = 0; i < 60 && not publisher.all_sent(); ++i) {
-      usleep(1000000);
-      publisher.loop();
-    }
+    publisher.wait_dequeue();
 
     if ((mosqerr = publisher.disconnect()) != 0) {
         std::cerr << "Error while disconnetting from "
@@ -253,7 +260,9 @@ int main(int argc, char** argv)
     mosqpp::lib_cleanup();
 
     if (not publisher.all_sent()) {
-      std::cerr << "Ack timeout error." << std::endl;
+      std::cerr << "Ack timeout error:" << std::endl;
+      for (auto mid: publisher.mids)
+          std::cerr << "- " << mid << std::endl;
       return 2;
     }
 
