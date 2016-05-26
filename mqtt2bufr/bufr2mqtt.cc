@@ -48,7 +48,7 @@ struct Publisher : mosqpp::mosquittopp {
     std::vector<std::string> topics;
     bool debug;
     std::set<int> mids;
-    std::size_t max_mids_size = 40;
+    std::size_t max_mids_size = 0;
 
     Publisher(const std::vector<std::string>& topics, bool debug=false) : topics(topics), debug(debug) {}
 
@@ -67,8 +67,9 @@ struct Publisher : mosqpp::mosquittopp {
 
     bool wait_dequeue() {
         int mosqerr;
-        for (int i = 0; i < 60 && mids.size() > max_mids_size; ++i) {
-            usleep(1000000);
+        for (int i = 0; i < 300 && mids.size() > max_mids_size; ++i) {
+	    //std::cerr << "sleep: .1" << std::endl;
+            usleep(100000);
             mosqerr = loop();
             if (mosqerr != MOSQ_ERR_SUCCESS) {
                 std::string msg;
@@ -269,7 +270,7 @@ int main(int argc, char** argv)
     mosqpp::lib_cleanup();
 
     if (not publisher.all_sent()) {
-      std::cerr << "Ack timeout error:" << std::endl;
+      std::cerr << "error: not all Ack received:" << std::endl;
       for (auto mid: publisher.mids)
           std::cerr << "- " << mid << std::endl;
       return 3;
