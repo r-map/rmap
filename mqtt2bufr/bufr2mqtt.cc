@@ -72,13 +72,15 @@ struct Publisher : mosqpp::mosquittopp {
             usleep(100000);
             mosqerr = loop();
             if (mosqerr != MOSQ_ERR_SUCCESS) {
-                std::string msg;
-                if (mosqerr == MOSQ_ERR_ERRNO)
-                    msg = std::strerror(errno);
-                else
-                    msg = mosqpp::strerror(mosqerr);
-                std::cerr << "Error while calling mosquitto loop: "
-                    << msg << std::endl;
+	      std::string msg;
+	      if (mosqerr == MOSQ_ERR_ERRNO)
+		msg = std::strerror(errno);
+	      else
+		msg = mosqpp::strerror(mosqerr);
+
+	      std::cerr << "Error while calling mosquitto loop: "
+			<< msg << std::endl;
+	      return false;
             }
         }
 	if (mids.size() > max_mids_size) return false;
