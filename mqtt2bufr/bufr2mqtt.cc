@@ -250,7 +250,6 @@ int main(int argc, char** argv)
         dballe::msg::BufrImporter importer;
         return importer.foreach_decoded(bmsg, [&publisher](std::unique_ptr<dballe::Message>&& msgptr) {
             return publisher.publish_msg(*msgptr);
-            //return true;
         });
     });
 
