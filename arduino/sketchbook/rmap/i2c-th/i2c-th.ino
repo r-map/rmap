@@ -505,29 +505,25 @@ void loop() {
   i2c_dataset1->humidity.max=maxv;
   i2c_dataset1->humidity.min=minv;
 
-  /*
-  // TODO sigma
+  // sigma
   sum2=0;
-  for (i=0 ; i < cbtsum2.getCapacity() ; i++){
-    sum2 += cbtsum2.peek(i);
-  }
-
   sum=0;
-  for (i=0 ; i < cbtsum.getCapacity() ; i++){
-    sum += cbtsum.peek(i);
+  unsigned short int n=cbt60mean.getCapacity();
+  for (i=0 ; i < n ; i++){
+    sum2 += cbt60mean.peek(i)*cbt60mean.peek(i);
+    sum += cbt60mean.peek(i);
   }
-  i2c_dataset1->temperature.sigma=round(sqrt((sum2-(sum*sum)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+  i2c_dataset1->temperature.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
 
   sum2=0;
-  for (i=0 ; i < cbhsum2.getCapacity() ; i++){
-    sum2 += cbhsum2.peek(i);
-  }
   sum=0;
-  for (i=0 ; i < cbhsum.getCapacity() ; i++){
-    sum += cbhsum.peek(i);
+  n=cbh60mean.getCapacity();
+  for (i=0 ; i < n ; i++){
+    sum2 += cbh60mean.peek(i)*cbh60mean.peek(i);
+    sum += cbh60mean.peek(i);
   }
-  i2c_dataset1->humidity.sigma=round(sqrt((sum2-(sum*sum)/(*SAMPLE2))/(SAMPLE2)))+OFFSET;
-  */
+  i2c_dataset1->humidity.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
+
 
   nsample1++;
 
