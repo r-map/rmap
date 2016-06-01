@@ -222,6 +222,7 @@ class amqpConsumer(object):
         """
         LOGGER.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
+        self._channel.basic_qos(prefetch_count=1)
         self._consumer_tag = self._channel.basic_consume(self.on_message,queue)
 
     def add_on_cancel_callback(self):
@@ -269,14 +270,19 @@ class amqpConsumer(object):
         td.start()
         user_queue.put(body)
 
-        self._connection.ioloop.stop()
+        #self._connection.ioloop.stop()
         while (td.isAlive()):
-            self._connection.ioloop.poll(write_only=True)
+            #self._connection.ioloop.poll(write_only=True)
             time.sleep(3)
 
-        self._connection.ioloop.start()
+        #self._connection.ioloop.start()
 
-        if (self.user_queue.get_nowait() == "OK"):
+        try:
+            response=user_queue.get_nowait()
+        except Queue.Empty:
+            response=""
+        
+        if (response == "OK"):
             self.acknowledge_message(basic_deliver.delivery_tag)
         else:
             self.not_acknowledge_message(basic_deliver.delivery_tag)
