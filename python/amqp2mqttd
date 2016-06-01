@@ -42,15 +42,18 @@ amqp2mqttd = daemon.Daemon(
         group=rmap.settings.groupamqp2mqttd
 )
 
+send_queue = Queue.Queue()
+receive_queue = Queue.Queue()
+
 
 class Threaded_bufr2mqtt(threading.Thread):
-    def __init__(self, user_queue):
+    def __init__(self,delivery_tag):
         threading.Thread.__init__(self)
-        self.user_queue = user_queue
+        self.delivery_tag=delivery_tag
 
     def run(self):
 
-        body = self.user_queue.get()
+        body = send_queue.get()
 
         try:
             amqp2mqttd.procs = [subprocess.Popen(["bufr2mqtt","-t","report","-u",user,"-P",password], stdin=subprocess.PIPE)]
@@ -65,16 +68,14 @@ class Threaded_bufr2mqtt(threading.Thread):
         except:
             LOGGER.error("There were some errors executing bufr2mqtt")
             #self.stop()
-            raise bufr2mqtt_error
+            #raise bufr2mqtt_error
             # raise TODO: enqueue in error
+            receive_queue.put_nowait(("nook",self.delivery_tag))
+
+        else:
             
-        LOGGER.info("Done")
-
-        self.user_queue.put_nowait("OK")
-
-        # TODO how we can pass procs to daemon ?
-
-
+            LOGGER.info("Done")
+            receive_queue.put_nowait(("ok",self.delivery_tag))
 
 
 class amqpConsumer(object):
@@ -154,12 +155,8 @@ class amqpConsumer(object):
         self._connection.ioloop.stop()
 
         if not self._closing:
+            self.run()
 
-            # Create a new connection
-            self._connection = self.connect()
-
-            # There is now a new connection, needs a new ioloop to run
-            self._connection.ioloop.start()
     def open_channel(self):
         """Open a new channel with RabbitMQ by issuing the Channel.Open RPC
         command. When RabbitMQ responds that the channel is open, the
@@ -222,7 +219,7 @@ class amqpConsumer(object):
         """
         LOGGER.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
-        self._channel.basic_qos(prefetch_count=1)
+        self._channel.basic_qos(prefetch_count=3)
         self._consumer_tag = self._channel.basic_consume(self.on_message,queue)
 
     def add_on_cancel_callback(self):
@@ -264,28 +261,17 @@ class amqpConsumer(object):
                     basic_deliver.delivery_tag, properties.app_id)
 
 
-        user_queue = Queue.Queue()
-        td = Threaded_bufr2mqtt(user_queue)
+        td = Threaded_bufr2mqtt(basic_deliver.delivery_tag)
         td.setDaemon(True)
         td.start()
-        user_queue.put(body)
+        send_queue.put(body)
 
-        #self._connection.ioloop.stop()
-        while (td.isAlive()):
-            #self._connection.ioloop.poll(write_only=True)
-            time.sleep(3)
+        ##self._connection.ioloop.stop()
+        #while (td.isAlive()):
+        #    #self._connection.ioloop.poll(write_only=True)
+        #    time.sleep(3)
 
-        #self._connection.ioloop.start()
-
-        try:
-            response=user_queue.get_nowait()
-        except Queue.Empty:
-            response=""
-        
-        if (response == "OK"):
-            self.acknowledge_message(basic_deliver.delivery_tag)
-        else:
-            self.not_acknowledge_message(basic_deliver.delivery_tag)
+        ##self._connection.ioloop.start()
 
 
     def not_acknowledge_message(self, delivery_tag):
@@ -344,7 +330,33 @@ class amqpConsumer(object):
 
         """
         self._connection = self.connect()
+        self._connection.add_timeout(3, self.mgrack)
         self._connection.ioloop.start()
+
+
+    def mgrack(self):
+        """
+        """
+
+        try:
+            response=receive_queue.get_nowait()
+        except Queue.Empty:
+            response=("",0)
+
+        #try:
+        #    LOGGER.info('RESPONSE %s %s' % response)
+        #except:
+        #    LOGGER.info('STRANGE RESPONSE')
+        #    print response
+
+        if (response[0] == "ok"):
+            LOGGER.info('ACK %s' % response[1])
+            self.acknowledge_message(response[1])
+        elif (response[0] == "nook"):
+            LOGGER.info('NOT ACK %s' % response[1])
+            self.not_acknowledge_message(response[1])
+
+        self._connection.add_timeout(3, self.mgrack)
 
     def stop(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
@@ -377,6 +389,7 @@ def main(amqp2mqttd):
     consumer = amqpConsumer()
     try:
         consumer.run()
+
     except KeyboardInterrupt:
         consumer.stop()
 
