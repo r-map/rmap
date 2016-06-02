@@ -16,22 +16,26 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
-import logging
+import logging,logging.handlers
 from rmap import daemon
 import pika, subprocess
 import threading,Queue
 import rmap.settings
 import time
 
-LOG_FORMAT = ('%(levelname) -10s %(asctime)s %(name) -10s %(funcName) '
-              '-10s %(lineno) -5d: %(message)s')
-LOGGER = logging.getLogger(__name__)
-
-
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
 queue="mqtt"
+
+
+formatter = logging.Formatter('%(asctime) -1s %(levelname)s %(name) -1s %(funcName) -1s %(lineno) -5d: %(message)s')
+handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileamqp2mqttd, maxBytes=5000000, backupCount=10)
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+logger=logging.getLogger(__name__)
+logger.addHandler(handler)
+
 
 amqp2mqttd = daemon.Daemon(
         stdin="/dev/null",
@@ -61,12 +65,12 @@ class Threaded_bufr2mqtt(threading.Thread):
 
             r = amqp2mqttd.procs[0].wait()
             if r != 0:
-                LOGGER.error("There were some errors executing bufr2mqtt ({})".format(r))
-                #LOGGER.info("----\n{}\n---".format(body))
+                logger.error("There were some errors executing bufr2mqtt ({})".format(r))
+                #logger.info("----\n{}\n---".format(body))
                 #self.stop()
                 raise bufr2mqtt_error
         except:
-            LOGGER.error("There were some errors executing bufr2mqtt")
+            logger.error("There were some errors executing bufr2mqtt")
             #self.stop()
             #raise bufr2mqtt_error
             # raise TODO: enqueue in error
@@ -74,7 +78,7 @@ class Threaded_bufr2mqtt(threading.Thread):
 
         else:
             
-            LOGGER.info("Done")
+            logger.info("Task done: thread terminated")
             receive_queue.put_nowait(("ok",self.delivery_tag))
 
 
@@ -100,7 +104,7 @@ class amqpConsumer(object):
         :rtype: pika.SelectConnection
 
         """
-        LOGGER.info('Connecting to %s', host)
+        logger.info('Connecting to %s', host)
 
         credentials=pika.PlainCredentials(user, password)
         return pika.SelectConnection(pika.ConnectionParameters(host=host,credentials=credentials),
@@ -116,7 +120,7 @@ class amqpConsumer(object):
         :type unused_connection: pika.SelectConnection
 
         """
-        LOGGER.info('Connection opened')
+        logger.info('Connection opened')
         self.add_on_connection_close_callback()
         self.open_channel()
 
@@ -125,7 +129,7 @@ class amqpConsumer(object):
         when RabbitMQ closes the connection to the publisher unexpectedly.
 
         """
-        LOGGER.info('Adding connection close callback')
+        logger.info('Adding connection close callback')
         self._connection.add_on_close_callback(self.on_connection_closed)
 
     def on_connection_closed(self, connection, reply_code, reply_text):
@@ -142,7 +146,7 @@ class amqpConsumer(object):
         if self._closing:
             self._connection.ioloop.stop()
         else:
-            LOGGER.warning('Connection closed, reopening in 5 seconds: (%s) %s',
+            logger.warning('Connection closed, reopening in 5 seconds: (%s) %s',
                            reply_code, reply_text)
             self._connection.add_timeout(5, self.reconnect)
 
@@ -163,7 +167,7 @@ class amqpConsumer(object):
         on_channel_open callback will be invoked by pika.
 
         """
-        LOGGER.info('Creating a new channel')
+        logger.info('Creating a new channel')
         self._connection.channel(on_open_callback=self.on_channel_open)
 
     def on_channel_open(self, channel):
@@ -175,7 +179,7 @@ class amqpConsumer(object):
         :param pika.channel.Channel channel: The channel object
 
         """
-        LOGGER.info('Channel opened')
+        logger.info('Channel opened')
         self._channel = channel
         self.add_on_channel_close_callback()
 
@@ -187,7 +191,7 @@ class amqpConsumer(object):
         RabbitMQ unexpectedly closes the channel.
 
         """
-        LOGGER.info('Adding channel close callback')
+        logger.info('Adding channel close callback')
         self._channel.add_on_close_callback(self.on_channel_closed)
 
     def on_channel_closed(self, channel, reply_code, reply_text):
@@ -202,7 +206,7 @@ class amqpConsumer(object):
         :param str reply_text: The text reason the channel was closed
 
         """
-        LOGGER.warning('Channel %i was closed: (%s) %s',
+        logger.warning('Channel %i was closed: (%s) %s',
                        channel, reply_code, reply_text)
         self._connection.close()
 
@@ -217,7 +221,7 @@ class amqpConsumer(object):
         will invoke when a message is fully received.
 
         """
-        LOGGER.info('Issuing consumer related RPC commands')
+        logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._channel.basic_qos(prefetch_count=3)
         self._consumer_tag = self._channel.basic_consume(self.on_message,queue)
@@ -228,7 +232,7 @@ class amqpConsumer(object):
         on_consumer_cancelled will be invoked by pika.
 
         """
-        LOGGER.info('Adding consumer cancellation callback')
+        logger.info('Adding consumer cancellation callback')
         self._channel.add_on_cancel_callback(self.on_consumer_cancelled)
 
     def on_consumer_cancelled(self, method_frame):
@@ -238,7 +242,7 @@ class amqpConsumer(object):
         :param pika.frame.Method method_frame: The Basic.Cancel frame
 
         """
-        LOGGER.info('Consumer was cancelled remotely, shutting down: %r',
+        logger.info('Consumer was cancelled remotely, shutting down: %r',
                     method_frame)
         if self._channel:
             self._channel.close()
@@ -257,7 +261,7 @@ class amqpConsumer(object):
         :param str|unicode body: The message body
 
         """
-        LOGGER.info('Received message # %s from %s',
+        logger.info('Received message # %s from %s',
                     basic_deliver.delivery_tag, properties.app_id)
 
 
@@ -281,7 +285,7 @@ class amqpConsumer(object):
         :param int delivery_tag: The delivery tag from the Basic.Deliver frame
 
         """
-        LOGGER.info('Not acknowledging message %s', delivery_tag)
+        logger.info('Not acknowledging message %s', delivery_tag)
         self._channel.basic_nack(delivery_tag)
 
 
@@ -292,7 +296,7 @@ class amqpConsumer(object):
         :param int delivery_tag: The delivery tag from the Basic.Deliver frame
 
         """
-        LOGGER.info('Acknowledging message %s', delivery_tag)
+        logger.info('Acknowledging message %s', delivery_tag)
         self._channel.basic_ack(delivery_tag)
 
     def stop_consuming(self):
@@ -301,7 +305,7 @@ class amqpConsumer(object):
 
         """
         if self._channel:
-            LOGGER.info('Sending a Basic.Cancel RPC command to RabbitMQ')
+            logger.info('Sending a Basic.Cancel RPC command to RabbitMQ')
             self._channel.basic_cancel(self.on_cancelok, self._consumer_tag)
 
     def on_cancelok(self, unused_frame):
@@ -313,7 +317,7 @@ class amqpConsumer(object):
         :param pika.frame.Method unused_frame: The Basic.CancelOk frame
 
         """
-        LOGGER.info('RabbitMQ acknowledged the cancellation of the consumer')
+        logger.info('RabbitMQ acknowledged the cancellation of the consumer')
         self.close_channel()
 
     def close_channel(self):
@@ -321,7 +325,7 @@ class amqpConsumer(object):
         Channel.Close RPC command.
 
         """
-        LOGGER.info('Closing the channel')
+        logger.info('Closing the channel')
         self._channel.close()
 
     def run(self):
@@ -344,16 +348,16 @@ class amqpConsumer(object):
             response=("",0)
 
         #try:
-        #    LOGGER.info('RESPONSE %s %s' % response)
+        #    logger.info('RESPONSE %s %s' % response)
         #except:
-        #    LOGGER.info('STRANGE RESPONSE')
+        #    logger.info('STRANGE RESPONSE')
         #    print response
 
         if (response[0] == "ok"):
-            LOGGER.info('ACK %s' % response[1])
+            logger.info('ACK %s' % response[1])
             self.acknowledge_message(response[1])
         elif (response[0] == "nook"):
-            LOGGER.info('NOT ACK %s' % response[1])
+            logger.info('NOT ACK %s' % response[1])
             self.not_acknowledge_message(response[1])
 
         self._connection.add_timeout(3, self.mgrack)
@@ -369,22 +373,24 @@ class amqpConsumer(object):
         the IOLoop will be buffered but not processed.
 
         """
-        LOGGER.info('Stopping')
+        logger.info('Stopping')
         self._closing = True
         self.stop_consuming()
         self.close_connection()
         #self._connection.ioloop.start()
-        LOGGER.info('Stopped')
+        logger.info('Stopped')
 
     def close_connection(self):
         """This method closes the connection to RabbitMQ."""
-        LOGGER.info('Closing connection')
+        logger.info('Closing connection')
         self._connection.close()
 
 
 def main(amqp2mqttd):
 
-    logging.basicConfig(level=logging.INFO, format=LOG_FORMAT)
+    logger.error("Start version: "+rmap.__version__)
+
+    print ' [*] Waiting for messages. To exit press CTRL+C'
 
     consumer = amqpConsumer()
     try:
@@ -392,9 +398,6 @@ def main(amqp2mqttd):
 
     except KeyboardInterrupt:
         consumer.stop()
-
-    print ' [*] Waiting for messages. To exit press CTRL+C'
-
 
 
 if __name__ == '__main__':

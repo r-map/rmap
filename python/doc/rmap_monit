@@ -55,6 +55,11 @@
     stop program  = "/usr/bin/amqp2amqp_identvalidationd stop"
     depends on apache, wsgirmap, rmap
 
+  check process amqp2amqp_json2bufrd with pidfile /var/run/rmap/amqp2amqp_json2bufrd.lock
+    start program = "/usr/bin/amqp2amqp_json2bufrd restart"
+    stop program  = "/usr/bin/amqp2amqp_json2bufrd stop"
+    depends on rmap
+
   check process amqp2djangod with pidfile /var/run/rmap/amqp2djangod.lock
     start program = "/usr/bin/amqp2djangod restart"
     stop program  = "/usr/bin/amqp2djangod stop"
