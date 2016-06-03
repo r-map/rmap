@@ -44,11 +44,27 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	return new SensorDriverTbr();
       else
 #endif
-#if defined (TEMPERATUREHUMIDITY)
+#if defined (TEMPERATUREHUMIDITY_ONESHOT)
       if (strcmp(type, "STH") == 0)
-	return new SensorDriverTH();
+	return new SensorDriverTHoneshot();
       else
 #endif
+
+#if defined (TEMPERATUREHUMIDITY_REPORT)
+      if (strcmp(type, "ITH") == 0)   // istantaneous
+	return new SensorDriverTH60mean();
+      else
+      if (strcmp(type, "MTH") == 0)   // mean
+	return new SensorDriverTHmean();
+      else
+      if (strcmp(type, "NTH") == 0)   // min
+	return new SensorDriverTHmin();
+      else
+      if (strcmp(type, "MTH") == 0)   //max
+	return new SensorDriverTHmax();
+      else
+#endif
+
 	return NULL;
     } else {
 
@@ -1223,8 +1239,11 @@ aJsonObject* SensorDriverTbr::getJson()
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverTbr::get(values,1) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B13011", values[0]);      
-
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13011", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13011");
+    }
   }else{
     aJson.addNullToObject(jsonvalues, "B13011");
   }
@@ -1234,8 +1253,8 @@ aJsonObject* SensorDriverTbr::getJson()
 #endif
 
 
-#if defined (TEMPERATUREHUMIDITY)
-int SensorDriverTH::setup(const char* driver, const int address, const int node, const char* type
+#if defined (TEMPERATUREHUMIDITY_ONESHOT)
+int SensorDriverTHoneshot::setup(const char* driver, const int address, const int node, const char* type
   #if defined (RADIORF24)
 			   , char* mainbuf, size_t lenbuf, RF24Network* network
     #if defined (AES)
@@ -1271,7 +1290,7 @@ int SensorDriverTH::setup(const char* driver, const int address, const int node,
 
 }
 
-int SensorDriverTH::prepare(unsigned long& waittime)
+int SensorDriverTHoneshot::prepare(unsigned long& waittime)
 {
 
   Wire.beginTransmission(_address);
@@ -1285,7 +1304,7 @@ int SensorDriverTH::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTH::get(long values[],size_t lenvalues)
+int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -1336,15 +1355,24 @@ int SensorDriverTH::get(long values[],size_t lenvalues)
 }
 
 #if defined(USEAJSON)
-aJsonObject* SensorDriverTH::getJson()
+aJsonObject* SensorDriverTHoneshot::getJson()
 {
   long values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverTH::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+  if (SensorDriverTHoneshot::get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");
+    }
 
   }else{
     aJson.addNullToObject(jsonvalues, "B12101");
@@ -1353,4 +1381,479 @@ aJsonObject* SensorDriverTH::getJson()
   return jsonvalues;
 }
 #endif
+#endif
+
+#if defined (TEMPERATUREHUMIDITY_REPORT)
+
+
+int SensorDriverTH60mean::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_TH_ONESHOT);
+  Wire.write(oneshot);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverTH60mean::prepare(unsigned long& waittime)
+{
+
+  _timing=millis();
+  waittime= 500ul;
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverTH60mean::get(long values[],size_t lenvalues)
+{
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(1);
+
+  // get temperature
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TEMPERATURE_MEAN60);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+
+
+  // get humidity
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_HUMIDITY_MEAN60);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverTH60mean::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverTH60mean::get(values,2) == SD_SUCCESS){
+
+
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+
+
+int SensorDriverTHmean::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_TH_ONESHOT);
+  Wire.write(oneshot);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverTHmean::prepare(unsigned long& waittime)
+{
+
+  _timing=millis();
+  waittime= 500ul;
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverTHmean::get(long values[],size_t lenvalues)
+{
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(1);
+
+  // get temperature
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TEMPERATURE_MEAN);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+
+
+  // get humidity
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_HUMIDITY_MEAN);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverTHmean::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverTHmean::get(values,2) == SD_SUCCESS){
+
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");      
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+
+
+
+int SensorDriverTHmin::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_TH_ONESHOT);
+  Wire.write(oneshot);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverTHmin::prepare(unsigned long& waittime)
+{
+
+  _timing=millis();
+  waittime= 500ul;
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverTHmin::get(long values[],size_t lenvalues)
+{
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(1);
+
+  // get temperature
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TEMPERATURE_MIN);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+
+
+  // get humidity
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_HUMIDITY_MIN);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverTHmin::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverTHmin::get(values,2) == SD_SUCCESS){
+
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+
+int SensorDriverTHmax::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_TH_ONESHOT);
+  Wire.write(oneshot);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverTHmax::prepare(unsigned long& waittime)
+{
+
+  _timing=millis();
+  waittime= 500ul;
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverTHmax::get(long values[],size_t lenvalues)
+{
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(1);
+
+  // get temperature
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TEMPERATURE_MAX);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+
+
+  // get humidity
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_HUMIDITY_MAX);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(1);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverTHmax::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverTHmax::get(values,2) == SD_SUCCESS){
+
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+
 #endif

@@ -265,10 +265,10 @@ class SensorDriverTmp : public SensorDriver
 #endif
 
 
-#if defined (TEMPERATUREHUMIDITY)
+#if defined (TEMPERATUREHUMIDITY_ONESHOT)
 #include "registers-th.h"
 
- class SensorDriverTH : public SensorDriver
+ class SensorDriverTHoneshot : public SensorDriver
  {
  public:
    virtual int setup(const char* driver, const int address, const int node, const char* type
@@ -285,6 +285,86 @@ class SensorDriverTmp : public SensorDriver
     virtual aJsonObject* getJson();
   #endif
 };
+#endif
+
+
+#if defined (TEMPERATUREHUMIDITY_REPORT)
+#include "registers-th.h"
+
+ class SensorDriverTH60mean : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+
+ class SensorDriverTHmean : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+
+ class SensorDriverTHmin : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+ class SensorDriverTHmax : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
 #endif
 
 #define SD_INTERNAL_ERROR 0

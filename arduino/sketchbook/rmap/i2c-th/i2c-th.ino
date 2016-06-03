@@ -135,7 +135,6 @@ uint8_t nsample1;
 static bool start=false;
 static bool stop=false;
 
-volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
 
@@ -149,23 +148,23 @@ void requestEvent()
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
 
-  //Serial.print("receivedCommands: ");
-  //Serial.println(receivedCommands[0]);
-  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]));
-  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1));
-  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2));
-  //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3));
+  IF_SDEBUG(Serial.print(F("receivedCommands: ")));
+  IF_SDEBUG(Serial.println(receivedCommands[0]));
+  IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0])));
+  IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1)));
+  IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2)));
+  IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3)));
 }
 
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
      uint8_t  *ptr;
-     //Serial.print("received:");
+     Serial.print("received:");
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
-	       //Serial.println(receivedCommands[a]);
+	       IF_SDEBUG(Serial.println(receivedCommands[a]));
           } else {
                Wire.read();  // if we receive more data then allowed just throw it away
           }
@@ -175,8 +174,8 @@ void receiveEvent( int bytesReceived)
 
      if (bytesReceived == 2){
        // check for a command
-       if (receivedCommands[0] == I2C_WIND_COMMAND) {
-	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
+       if (receivedCommands[0] == I2C_TH_COMMAND) {
+	 IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
 	 new_command = receivedCommands[1]; return; }  //Just one byte, ignore all others
      }
 
@@ -184,7 +183,7 @@ void receiveEvent( int bytesReceived)
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
        if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
-	 //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
+	 IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
 	 receivedCommands[0]=0;
 	 return;
        }
@@ -192,12 +191,12 @@ void receiveEvent( int bytesReceived)
 
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
-     if ((receivedCommands[0]>=I2C_WIND_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+     if ((receivedCommands[0]>=I2C_TH_MAP_WRITABLE) && (receivedCommands[0] < (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
+       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
-	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
+	   IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
 	   *ptr++ = receivedCommands[a];
 	 }
 
@@ -285,9 +284,9 @@ void setup() {
   i2c_dataset1->status.sw_version          = VERSION;
   i2c_dataset2->status.sw_version          = VERSION;
 
-  // set default to disable oneshot
-  i2c_writabledataset1->oneshot=true;
-  i2c_writabledataset2->oneshot=true;
+  // set default for oneshot
+  i2c_writabledataset1->oneshot=false;
+  i2c_writabledataset2->oneshot=false;
 
   //Start I2C communication routines
   Wire.begin(I2C_TH_ADDRESS);
@@ -349,15 +348,15 @@ void loop() {
     new_command = 0;                                                          //clear it
     //_command = _command & 0x0F;                                               //empty 4MSB bits   
     switch (_command) {
-    case I2C_WIND_COMMAND_ONESHOT_START:
+    case I2C_TH_COMMAND_ONESHOT_START:
       IF_SDEBUG(Serial.println(F("COMMAND: oneshot start")));
       start=true;
       break;          
-    case I2C_WIND_COMMAND_ONESHOT_STOP:
+    case I2C_TH_COMMAND_ONESHOT_STOP:
       IF_SDEBUG(Serial.println(F("COMMAND: oneshot stop")));
       stop=true;
       break;
-    case I2C_WIND_COMMAND_STOP:
+    case I2C_TH_COMMAND_STOP:
       IF_SDEBUG(Serial.println(F("COMMAND: stop")));
       stop=true;      
       break;
@@ -399,7 +398,6 @@ void loop() {
     if (! start) return;
   }
 
-  count=0;
   starttime = millis();
 
   long unsigned int waittime,maxwaittime=0;

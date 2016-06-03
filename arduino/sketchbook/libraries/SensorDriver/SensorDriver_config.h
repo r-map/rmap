@@ -32,8 +32,17 @@
 // include tipping bucket rain gauge driver
 #define TIPPINGBUCKETRAINGAUGE
 
-// include TH temperature/humidity driver
-#define TEMPERATUREHUMIDITY
+// include TH temperature/humidity driver SAMPLE MODE
+//#define TEMPERATUREHUMIDITY_ONESHOT
+
+// include TH temperature/humidity driver REPORT MODE
+#define TEMPERATUREHUMIDITY_REPORT
+
+#if defined (TEMPERATUREHUMIDITY_ONESHOT)
+#if defined (TEMPERATUREHUMIDITY_REPORT)
+CANNOT DEFINE TEMPERATUREHUMIDITY_ONESHOT AND TEMPERATUREHUMIDITY_REPORT TOGETHER
+#endif
+#endif
 
 #if defined (TIPPINGBUCKETRAINGAUGE)
  // how many rain for one tick of the rain gauge (Hg/m^2)
