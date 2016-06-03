@@ -1,9 +1,10 @@
 #include <Wire.h>
 #include <SensorDriver.h>
-#include "registers-wind.h"
-#include "registers-rain.h"
+//#include "registers-wind.h"
+//#include "registers-rain.h"
+//#include "registers-th.h"
 
-#define SENSORS_LEN 2
+#define SENSORS_LEN 1
 
 struct sensor_t
 {
@@ -56,8 +57,8 @@ void setup()
   strcpy(sensors[5].driver,"I2C");
   strcpy(sensors[5].type,"HIH");
   sensors[5].address=39;
-  */
 
+  //
 
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"TMP");
@@ -66,6 +67,11 @@ void setup()
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"TMP");
   sensors[1].address=73;
+  */
+
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"STH");
+  sensors[0].address=I2C_TH_ADDRESS;
 
 
   // start up the serial interface
@@ -80,6 +86,10 @@ void setup()
 
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+
+
+  delay(1000);
+
 
   for (int i = 0; i < SENSORS_LEN; i++) {
 
@@ -110,7 +120,7 @@ void loop()
   }
 
   //wait sensors to go ready
-  Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
   delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
 
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -146,7 +156,7 @@ void loop()
   }
 
   // sleep some time to do not go tired ;)
-  Serial.println("#sleep for 3s");
-  delay(3000);
+  //  Serial.println("#sleep for 3s");
+  //delay(3000);
 
 }

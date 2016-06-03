@@ -1,5 +1,5 @@
 // activate debug on serial port
-//#define SDDEBUGONSERIAL
+#define SDDEBUGONSERIAL
 
 //those ms after a prepare the measure will be too old to be considered valid
 #define MAXDELAYFORREAD 8000
@@ -31,6 +31,9 @@
 
 // include tipping bucket rain gauge driver
 #define TIPPINGBUCKETRAINGAUGE
+
+// include TH temperature/humidity driver
+#define TEMPERATUREHUMIDITY
 
 #if defined (TIPPINGBUCKETRAINGAUGE)
  // how many rain for one tick of the rain gauge (Hg/m^2)

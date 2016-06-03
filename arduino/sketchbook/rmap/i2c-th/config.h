@@ -1,10 +1,10 @@
 //sensor definition
 
-#define TEMPERATURE_ADDRESS 0x33
-#define HUMIDITY_ADDRESS 0x39
+#define TEMPERATURE_ADDRESS 73
+#define HUMIDITY_ADDRESS 39
 
 #define SAMPLERATE 3000
-
+#define MINUTEFORREPORT 14
 
 // activate debug on serial port
 #define DEBUGONSERIAL
@@ -14,4 +14,3 @@
 #else
 #define IF_SDEBUG(x)
 #endif
-

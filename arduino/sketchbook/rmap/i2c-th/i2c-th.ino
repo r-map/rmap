@@ -39,8 +39,9 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define VERSION 01             //Software version for cross checking
 //#define HUGE 4294967296
-#define HUGE 2147483647
+//#define SHUGE 2147483647
 
+#include <limits.h>
 #include <SensorDriver.h>
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -256,6 +257,7 @@ void setup() {
 
   IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
 
+  IF_SDEBUG(Serial.println(F("Start")));
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
   uint8_t *ptr;
@@ -283,7 +285,7 @@ void setup() {
   i2c_dataset1->status.sw_version          = VERSION;
   i2c_dataset2->status.sw_version          = VERSION;
 
-  // set default to oneshot
+  // set default to disable oneshot
   i2c_writabledataset1->oneshot=true;
   i2c_writabledataset2->oneshot=true;
 
@@ -320,11 +322,11 @@ void setup() {
 void loop() {
 
   static uint8_t _command;
-  unsigned int t;
-  unsigned int h;
+  unsigned long int t;
+  unsigned long int h;
   float mean;
   unsigned long int maxv,minv;
-  long int value;
+  long unsigned int value;
   bool oneshot;
 
   unsigned long starttime;
@@ -363,9 +365,8 @@ void loop() {
   }
 
   oneshot=i2c_writabledataset2->oneshot;
-  oneshot=false;
 
-  //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
+  //IF_SDEBUG(Serial.print(F("oneshot : ")));IF_SDEBUG(Serial.println(oneshot));
   //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
   //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
 
@@ -386,7 +387,12 @@ void loop() {
     //Init to FF i2c_dataset1;
     ptr = (uint8_t *)i2c_dataset1;
     for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
-    stop=false;
+ 
+    // resets the buffer into an original state (with no data)	
+    cbt60mean.clear();
+    cbh60mean.clear();
+
+   stop=false;
   }
   
   if (oneshot) {
@@ -414,8 +420,8 @@ void loop() {
   Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
   delay(maxwaittime);
 
-  t=HUGE;
-  h=HUGE;
+  t=ULONG_MAX;
+  h=ULONG_MAX;
 
   for (int i = 0; i < SENSORS_LEN; i++) 
     {
@@ -423,7 +429,7 @@ void loop() {
 	
 	// get integers values       
 	for (int ii = 0; ii < lenvalues; ii++) {
-	  values[ii]=HUGE;
+	  values[ii]=LONG_MAX;
 	}
 	
 	if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
@@ -487,7 +493,7 @@ void loop() {
 
   mean=0.;
   maxv=0;
-  minv= HUGE;
+  minv= ULONG_MAX;
   for (i=0 ; i < cbt60mean.getSize() ; i++){
     value=cbt60mean.peek(i);
     mean += float(value - mean) / (i+1);
@@ -495,7 +501,7 @@ void loop() {
     minv = min(minv, value);
     
   }
-  if (cbt60mean.getSize() >= 1)
+  if (cbt60mean.getSize() >= MINUTEFORREPORT)
     {
       i2c_dataset1->temperature.mean=round(mean);
       i2c_dataset1->temperature.max=maxv;
@@ -504,14 +510,14 @@ void loop() {
 
   mean=0;
   maxv=0;
-  minv= HUGE;
+  minv= ULONG_MAX;
   for (i=0 ; i < cbh60mean.getSize() ; i++){
     value=cbh60mean.peek(i);
     mean += float(value - mean) / (i+1);
     maxv = max(maxv, value);
     minv = min(minv, value);
   }
-  if (cbt60mean.getSize() >= 1)
+  if (cbt60mean.getSize() >= MINUTEFORREPORT)
     {
       i2c_dataset1->humidity.mean=round(mean);
       i2c_dataset1->humidity.max=maxv;
@@ -526,7 +532,7 @@ void loop() {
     sum2 += cbt60mean.peek(i)*cbt60mean.peek(i);
     sum += cbt60mean.peek(i);
   }
-  if (cbt60mean.getSize() >= 1)
+  if (cbt60mean.getSize() >= MINUTEFORREPORT)
     {
       i2c_dataset1->temperature.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
     }
@@ -538,7 +544,7 @@ void loop() {
     sum2 += cbh60mean.peek(i)*cbh60mean.peek(i);
     sum += cbh60mean.peek(i);
   }
-  if (cbt60mean.getSize() >= 1)
+  if (cbt60mean.getSize() >= MINUTEFORREPORT)
     {
       i2c_dataset1->humidity.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
     }
