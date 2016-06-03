@@ -2786,6 +2786,11 @@ void setup()
   // start up the i2c interface
   Wire.begin();
 
+  //The Wire library enables the internal pullup resistors for SDA and SCL.
+  //You can turn them off after Wire.begin()
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
 
