@@ -127,6 +127,7 @@ static bool stop=false;
 volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
+unsigned long starttime;
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -177,7 +178,7 @@ void receiveEvent( int bytesReceived)
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
      if ((receivedCommands[0]>=I2C_WINDSONIC_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
@@ -792,6 +793,8 @@ void setup() {
     IF_SDEBUG(Serial.println(incomingByte, HEX));
   }
 
+  starttime = millis()+SAMPLERATE;
+
   IF_SDEBUG(Serial.println(F("end setup")));
 
 }
@@ -808,13 +811,9 @@ void loop() {
 
   unsigned int sector;
   
-  unsigned long starttime;
-  long waittime;
   uint8_t i;
 
   wdt_reset();
-
-  starttime=millis();
 
   //IF_SDEBUG(Serial.println("writable buffer exchange"));
   // disable interrupts for atomic operation
@@ -893,6 +892,24 @@ void loop() {
       return;
     }
   }
+
+
+  long int timetowait;
+
+  // comment this if you manage continous mode
+  // in this case timing is getted from windsonic that send valuer every SAMPLERATE us
+  timetowait= SAMPLERATE - (millis() - starttime) ;
+  //IF_SDEBUG(Serial.print("elapsed time: "));
+  //IF_SDEBUG(Serial.println(millis() - starttime));
+  if (timetowait > 0) {
+    return;
+  }
+  else {
+    if (timetowait < -10) IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
+  }
+
+  starttime = millis()+timetowait;
+
 
   String myString;
 
@@ -1173,16 +1190,5 @@ void loop() {
 
   // comment this if you manage continous mode
   // in this case timing is getted from windsonic that send valuer every SAMPLERATE us
-
-  waittime= SAMPLERATE - (millis() - starttime) ;
-  //IF_SDEBUG(Serial.print("elapsed time: "));
-  //IF_SDEBUG(Serial.println(millis() - starttime));
-  if (waittime > 0) {
-    IF_SDEBUG(Serial.print("wait for: "));
-    IF_SDEBUG(Serial.println(waittime));
-    delay(waittime); 
-  }else{
-    IF_SDEBUG(Serial.println("WARNIG: timing error , I am late"));    
-  }
 
 }  

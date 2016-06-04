@@ -144,6 +144,8 @@ static bool stop=false;
 volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
+unsigned long starttime;
+
 void countadd()
 {
 
@@ -220,7 +222,7 @@ void receiveEvent( int bytesReceived)
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
      if ((receivedCommands[0]>=I2C_WIND_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
@@ -344,6 +346,8 @@ void setup() {
 
   pinMode(INTERRUPTPIN,INPUT_PULLUP);  // connected to wind intensity sensor
 
+  starttime = millis()+SAMPLERATE;
+
   IF_SDEBUG(Serial.println(F("end setup")));
 
 }
@@ -360,8 +364,6 @@ void loop() {
 
   unsigned int sector;
   
-  unsigned long starttime;
-  long waittime;
   uint8_t i;
 
   wdt_reset();
@@ -430,11 +432,26 @@ void loop() {
     if (! start) return;
   }
 
+
+  long int timetowait;
+
+  timetowait= SAMPLERATE - (millis() - starttime) ;
+  //IF_SDEBUG(Serial.print("elapsed time: "));
+  //IF_SDEBUG(Serial.println(millis() - starttime));
+  if (timetowait > 0) {
+    return;
+  }
+  else {
+    if (timetowait < -10) IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
+  }
+
+  starttime = millis()+timetowait;
+
+
   //FreqCounter::f_comp=10;          // Cal Value / Calibrate with professional Freq Counter
   //FreqCounter::start(SAMPLETIME);    // ms Gate Time
 
   count=0;
-  starttime = millis();
   attachInterrupt(digitalPinToInterrupt(INTERRUPTPIN), countadd, RISING);
 
   // wait to go in the middle of samplerate to get direction
@@ -769,17 +786,5 @@ void loop() {
   }
 
   digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
-
-  //waittime= 750 - (millis() - starttime) ;
-  waittime= SAMPLERATE - (millis() - starttime) ;
-  //IF_SDEBUG(Serial.print("elapsed time: "));
-  //IF_SDEBUG(Serial.println(millis() - starttime));
-  if (waittime > 0) {
-    IF_SDEBUG(Serial.print("wait for: "));
-    IF_SDEBUG(Serial.println(waittime));
-    delay(waittime); 
-  }else{
-    IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
-  }
 
 }  

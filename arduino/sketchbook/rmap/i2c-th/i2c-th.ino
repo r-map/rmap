@@ -136,6 +136,7 @@ static bool start=false;
 static bool stop=false;
 
 volatile unsigned long antirimb=0;
+unsigned long starttime;
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -162,8 +163,8 @@ void requestEvent()
 void receiveEvent( int bytesReceived)
 {
 
-     Serial.print(F("receive event, bytes:"));
-     Serial.println(bytesReceived);
+     IF_SDEBUG(Serial.print(F("receive event, bytes:")));
+     IF_SDEBUG(Serial.println(bytesReceived));
 
      uint8_t  *ptr;
      for (int a = 0; a < bytesReceived; a++) {
@@ -203,7 +204,7 @@ void receiveEvent( int bytesReceived)
      IF_SDEBUG(Serial.println(I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE));
 
      if ((receivedCommands[0]>=I2C_TH_MAP_WRITABLE) && (receivedCommands[0] < (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
@@ -316,14 +317,16 @@ void setup() {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
     if (sd[i] == NULL){
-      Serial.print(sensors[i].driver);
-      Serial.print(F("-"));
-      Serial.print(sensors[i].type);
-      Serial.println(F(": driver not created !"));
+      IF_SDEBUG(Serial.print(sensors[i].driver));
+      IF_SDEBUG(Serial.print(F("-")));
+      IF_SDEBUG(Serial.print(sensors[i].type));
+      IF_SDEBUG(Serial.println(F(": driver not created !")));
     }else{
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
+
+  starttime = millis();
 
   IF_SDEBUG(Serial.println(F("end setup")));
 
@@ -339,7 +342,6 @@ void loop() {
   long unsigned int value;
   bool oneshot;
 
-  unsigned long starttime;
   uint8_t i;
 
   wdt_reset();
@@ -409,9 +411,20 @@ void loop() {
     if (! start) return;
   }
 
-  starttime = millis();
-
+  long int timetowait;
   long unsigned int waittime,maxwaittime=0;
+
+  timetowait= SAMPLERATE - (millis() - starttime) ;
+  //IF_SDEBUG(Serial.print("elapsed time: "));
+  //IF_SDEBUG(Serial.println(millis() - starttime));
+  if (timetowait > 0) {
+    return;
+  }
+  else {
+    if (timetowait < -10) IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
+  }
+
+  starttime = millis()+timetowait;
 
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -419,14 +432,14 @@ void loop() {
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=max(maxwaittime,waittime);
       }else{
-	Serial.print(sensors[i].driver);
-	Serial.println(": prepare failed !");
+	IF_SDEBUG(Serial.print(sensors[i].driver));
+	IF_SDEBUG(Serial.println(": prepare failed !"));
       }
     }
   }
 
   //wait sensors to go ready
-  Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+  IF_SDEBUG(Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime));
   delay(maxwaittime);
 
   t=ULONG_MAX;
@@ -581,16 +594,5 @@ void loop() {
 
 
   digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
-
-  waittime= SAMPLERATE - (millis() - starttime) ;
-  //IF_SDEBUG(Serial.print("elapsed time: "));
-  //IF_SDEBUG(Serial.println(millis() - starttime));
-  if (waittime > 0) {
-    IF_SDEBUG(Serial.print("wait for: "));
-    IF_SDEBUG(Serial.println(waittime));
-    delay(waittime); 
-  }else{
-    IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
-  }
 
 }  

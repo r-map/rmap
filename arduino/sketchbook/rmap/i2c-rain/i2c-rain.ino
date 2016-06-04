@@ -142,7 +142,7 @@ void receiveEvent( int bytesReceived)
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
      if ((receivedCommands[0]>=I2C_RAIN_MAP_WRITABLE) && (receivedCommands[0] < (I2C_RAIN_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_RAIN_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_RAIN_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
