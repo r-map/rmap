@@ -168,10 +168,10 @@ void receiveEvent( int bytesReceived)
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
        if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
-	 //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
 	 receivedCommands[0]=0;
-	 return;
        }
+       //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
+       return;
      }
 
      //More than 1 byte was received, so there is definitely some data to write into a register

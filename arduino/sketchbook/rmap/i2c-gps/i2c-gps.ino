@@ -748,8 +748,8 @@ void receiveEvent(int bytesReceived)
        //Addressing over the reg_map fallback to first byte
        if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
 	 receivedCommands[0]=0;
-	 return;
        }
+       return;
      }
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable

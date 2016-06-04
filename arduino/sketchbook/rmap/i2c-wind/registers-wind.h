@@ -2,7 +2,7 @@
 // I2C WIND registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_WIND_ADDRESS        0x24                      //7 bit address 0x40 write, 0x41 read
+#define I2C_WIND_ADDRESS        34                      //7 bit address 0x40 write, 0x41 read
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF
@@ -41,7 +41,7 @@
 #define I2C_WIND_SECTORCALM            0x19      // frequency of calm wind
 
 #define I2C_WIND_MAP_WRITABLE          0x1F
-#define I2C_WIND_ONESHOT               0x00      // sample mode (bool)
+#define I2C_WIND_ONESHOT               0x1F      // sample mode (bool)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

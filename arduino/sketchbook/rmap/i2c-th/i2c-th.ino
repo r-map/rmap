@@ -144,23 +144,28 @@ volatile unsigned long antirimb=0;
 //
 void requestEvent()
 {
-  Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
-  //Write up to 32 byte, since master is responsible for reading and sending NACK
-  //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
 
-  IF_SDEBUG(Serial.print(F("receivedCommands: ")));
+  IF_SDEBUG(Serial.print(F("request event: ")));
   IF_SDEBUG(Serial.println(receivedCommands[0]));
   IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0])));
   IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1)));
   IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2)));
   IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3)));
+
+  Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);
+  //Write up to 32 byte, since master is responsible for reading and sending NACK
+  //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+
 }
 
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
+
+     Serial.print(F("receive event, bytes:"));
+     Serial.println(bytesReceived);
+
      uint8_t  *ptr;
-     Serial.print("received:");
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
@@ -175,7 +180,7 @@ void receiveEvent( int bytesReceived)
      if (bytesReceived == 2){
        // check for a command
        if (receivedCommands[0] == I2C_TH_COMMAND) {
-	 IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
+	 IF_SDEBUG(Serial.print(F("       received command:")));IF_SDEBUG(Serial.println(receivedCommands[1]));
 	 new_command = receivedCommands[1]; return; }  //Just one byte, ignore all others
      }
 
@@ -183,20 +188,26 @@ void receiveEvent( int bytesReceived)
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
        if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
-	 IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
 	 receivedCommands[0]=0;
-	 return;
        }
+       IF_SDEBUG(Serial.print(F("       set register:")));IF_SDEBUG(Serial.println(receivedCommands[0]));
+       return;
      }
 
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
+
+     IF_SDEBUG(Serial.print(F("         check  writable buffer:")));
+     IF_SDEBUG(Serial.println(receivedCommands[0]));
+     IF_SDEBUG(Serial.println(I2C_TH_MAP_WRITABLE));
+     IF_SDEBUG(Serial.println(I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE));
+
      if ((receivedCommands[0]>=I2C_TH_MAP_WRITABLE) && (receivedCommands[0] < (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)bytesReceived) <= (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { 
-	   IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
+	   IF_SDEBUG(Serial.print(F("write in writable buffer:")));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
 	   *ptr++ = receivedCommands[a];
 	 }
 

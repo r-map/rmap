@@ -21,7 +21,7 @@
 #define I2C_RAIN_TIPS                  0x01      // TIPS
 
 #define I2C_RAIN_MAP_WRITABLE          0x1F
-#define I2C_RAIN_ONESHOT               0x00      // saple mode (bool)
+#define I2C_RAIN_ONESHOT               0x1F      // saple mode (bool)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

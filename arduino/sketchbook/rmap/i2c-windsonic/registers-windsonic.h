@@ -41,7 +41,7 @@
 #define I2C_WINDSONIC_SECTORCALM            0x19      // frequency of calm wind
 
 #define I2C_WINDSONIC_MAP_WRITABLE          0x1F
-#define I2C_WINDSONIC_ONESHOT               0x00      // saple mode (bool)
+#define I2C_WINDSONIC_ONESHOT               0x1F      // saple mode (bool)
 
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -33,7 +33,7 @@
 #define I2C_HUMIDITY_SIGMA           0x17      // humidity sigma        
 
 #define I2C_TH_MAP_WRITABLE          0x1F
-#define I2C_TH_ONESHOT               0x00      // sample mode (bool)
+#define I2C_TH_ONESHOT               0x1F      // sample mode (bool)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
