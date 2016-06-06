@@ -164,9 +164,17 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
     print station_slug,username,board_slug
     print "---------------------------"
 
-    myboard = Board.objects.get(slug=board_slug
-                                ,stationmetadata__slug=station_slug
-                                ,stationmetadata__ident__username=username)
+    try:
+        myboard = Board.objects.get(slug=board_slug
+                                    ,stationmetadata__slug=station_slug
+                                    ,stationmetadata__ident__username=username)
+    except ObjectDoesNotExist :
+        mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+        myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation)
+        myboard.save()
+        myboard = Board.objects.get(slug=board_slug
+                                    ,stationmetadata__slug=station_slug
+                                    ,stationmetadata__ident__username=username)
 
     #if sensortemplate is None :
     mysensor=Sensor(board=myboard,active=True,name=name,driver=driver,type=type
@@ -198,7 +206,7 @@ template_choices = ["default","none","test","test_indirect","test_rf24","test_in
                     ,"stima_base","stima_t","stima_h","stima_w","stima_r","stima_p"
                     ,"stima_th","stima_thw","stima_thwr","stima_thwrp"
                     ,"stima_rf24_t","stima_rf24__h","stima_rf24__w","stima_rf24__r","stima_rf24__p"
-                    ,"stima_rf24__th","stima_rf24__thw","stima_rf24__thwr","stima_rf24__thwrp"]
+                    ,"stima_rf24__th","stima_rf24__thw","stima_rf24__thwr","stima_rf24__thwrp","stima_report_thp"]
 
 def addsensors_by_template(station_slug=None,username=None,board_slug=None,template=None):
 
@@ -429,6 +437,25 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Pressure",driver="RF24",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
+    if (template == "stima_report_thp"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="I2C",
+                  type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="I2C",
+                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="I2C",
+                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max malues",driver="I2C",
+                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="I2C",
+                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+
 
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None):
@@ -480,6 +507,8 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         mybaudrate=board.transportserial.baudrate
                         if baudrate is not None :
                             mybaudrate=baudrate
+
+                        print "mybaudrate:",mybaudrate
 
                         transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
 
@@ -802,7 +831,8 @@ def configdb(username="your user",password="your password",
              queue="rmap",
              exchange="rmap",
              board=None,
-             activate=None):
+             activate=None,
+             stationname=None):
 
     try:
         user = User.objects.create_user(username, username+'@rmap.cc', password)            
@@ -816,7 +846,16 @@ def configdb(username="your user",password="your password",
 
         print "elaborate station: ",station
 
-        mystation=StationMetadata.objects.filter(slug=station)[0]
+        try:
+            #TODO: why filter and get [0]? should be better StationMetadata.get(.....) ?
+            #mystation=StationMetadata.objects.filter(slug=station)[0]
+            mystation=StationMetadata.objects.get(slug=station,ident__username=username)
+        #except IndexError:
+        except ObjectDoesNotExist:
+            if (stationname is None):
+                stationname=""
+            mystation=StationMetadata(slug=station,name=stationname)
+
         user=User.objects.get(username=username)
             
         mystation.ident=user

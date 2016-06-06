@@ -2,7 +2,12 @@
 //#define SDDEBUGONSERIAL
 
 //those ms after a prepare the measure will be too old to be considered valid
-#define MAXDELAYFORREAD 8000
+
+// this the value for mqtt and sample/observation
+//#define MAXDELAYFORREAD 8000
+
+// this the value for http and report
+#define MAXDELAYFORREAD 60000
 
 // use ajson library for json response
 #define USEAJSON

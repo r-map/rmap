@@ -348,6 +348,7 @@ int rssi, ber;
   #ifdef GSMGPRSHTTP
 #include "sim800.h"
 SIM800 s800;
+int rssi, ber;
   #endif
 
 
@@ -516,7 +517,7 @@ struct config_t                   // configuration to save and load fron eeprom
 boolean configured;
 byte mac[]={0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
 
-#if defined(ETHERNETON) || defined(GSMGPRSMQTT)
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 //declare functions used below
 void mqttcallback(char* topic, byte* payload, unsigned int length);
 #endif
@@ -1145,7 +1146,7 @@ int rf24rpc(aJsonObject* params)
 			   ) == SD_SUCCESS) {			   
 			   IF_SDEBUG(DBGSERIAL.print(F("#sensor not present or broken")));
 			   // comment the next line to be less restrictive
-			   return E_INTERNAL_ERROR;
+			   //return E_INTERNAL_ERROR;
 			   }
     aJson.addNumberToObject(result, "id",id);
 
@@ -1548,8 +1549,9 @@ time_t periodicResyncGSMRTC() {
 
   time_t tt;
   time_t t;
-  bool mc;
 
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  bool mc;
   mc=mqttclient.connected();
   
   if (mc){
@@ -1558,6 +1560,7 @@ time_t periodicResyncGSMRTC() {
     s800.TCPstop();
   }
   //s800.stopNetwork();
+#endif
   
   // get first guess time from sim800 RTC
   t = s800.RTCget();
@@ -1592,6 +1595,7 @@ time_t periodicResyncGSMRTC() {
   
   s800.stopNetwork();
 
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   if (mc)    {
       s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
       for (int i = 0; ((i < 3) & !rmapconnect()); i++) {
@@ -1601,7 +1605,9 @@ time_t periodicResyncGSMRTC() {
         s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
       }
 
-    }    
+    }
+#endif
+
   return t;
 
 }
@@ -1611,7 +1617,7 @@ time_t periodicResyncGSMRTC() {
 void Reboot() {
   IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
 
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   if (mqttclient.connected()){
     //disconn clean
     rmapdisconnect();
@@ -1620,10 +1626,10 @@ void Reboot() {
     s800.TCPstop();
     #endif
   }
-#ifdef GSMGPRSHTTP
+  #ifdef GSMGPRSHTTP
   s800.stopNetwork();
   #endif
-#endif
+  #endif
 
   IF_LOGDATEFILE("programmed Reboot\n");
 
@@ -1876,10 +1882,11 @@ void Repeats() {
       IF_SDEBUG(DBGSERIAL.print(F("#payload:")));
       IF_SDEBUG(DBGSERIAL.println(payload));
 
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT) || defined(GSMGPRSHTTP)
+      bool sendstatus;
+#endif
+
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-
-      bool mqttstatus;
-
 #ifdef SDCARD
       strcpy(record.topic, mainbuf);
       //strcat( record.separator, ";");
@@ -1890,7 +1897,7 @@ void Repeats() {
       if (!mqttclient.publish(mainbuf, payload))
 	{
 
-	  mqttstatus=false;
+	  sendstatus=false;
 
 	  IF_SDEBUG(DBGSERIAL.println(F("#error mqtt publish")));
 	  
@@ -1923,13 +1930,13 @@ void Repeats() {
 	}
       else
 	{
-	  mqttstatus=true;
+	  sendstatus=true;
 	}
       wdt_reset();
 #endif
 
 
-#ifdef GSMGPRSHTTP
+      #ifdef GSMGPRSHTTP
 
       // compose URL
       prepend(mainbuf, "/http2mqtt/?topic=");
@@ -1940,9 +1947,9 @@ void Repeats() {
       strcat (mainbuf,"&password=");
       strcat (mainbuf,configuration.mqttpassword);
 
-#ifdef GSMGPRSRTC
+      #ifdef GSMGPRSRTC
       strcat (mainbuf,"&time=t");
-#endif
+      #endif
       
       IF_SDEBUG(DBGSERIAL.print("#GSM send get:"));
       IF_SDEBUG(DBGSERIAL.println(mainbuf));
@@ -1951,7 +1958,7 @@ void Repeats() {
       //reattach gsm if needed
       //if (!gsm.IsRegistered()) gsmgprsstart();
 
-      mqttstatus=false;
+      sendstatus=false;
 
       //TCP Client GET, send a GET request to the server and save the reply.
       if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
@@ -1959,15 +1966,15 @@ void Repeats() {
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
 	IF_SDEBUG(DBGSERIAL.println(mainbuf));
 
-#ifdef GSMGPRSRTC
+        #ifdef GSMGPRSRTC
 	if (s800.RTCset(scantime(mainbuf)) != 0){
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR setting RTC time")));
 	}else{
 	  setSyncProvider(s800.RTCget);   // the function to get the time from the RTC
 	}
-#endif
+        #endif
 	if (strstr(mainbuf,"OK") != NULL){
-	  mqttstatus=true;
+	  sendstatus=true;
 	}else{
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
 	}
@@ -1999,7 +2006,7 @@ void Repeats() {
       IF_SDEBUG(DBGSERIAL.println(ber));
       wdt_reset();
       
-#endif
+      #endif
 
 #ifdef SDCARD
 
@@ -2007,7 +2014,7 @@ void Repeats() {
       if ( t != 0 )
 	{
 
-	  record.done=mqttstatus;
+	  record.done=sendstatus;
 	  IF_SDEBUG(DBGSERIAL.print(F("#write:"))); 
 	  IF_SDEBUG(DBGSERIAL.print(record.done)); 
 	  IF_SDEBUG(DBGSERIAL.print(record.separator)); 
@@ -2179,7 +2186,7 @@ void mgrjsonrpc(aJsonObject *msg)
   aJson.deleteItem(response);
 }
 
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+#if defined(GSMGPRSHTTP) || defined(GSMGPRSMQTT)
 
 void StartModem() {
 
@@ -2200,7 +2207,9 @@ void StartModem() {
     wdt_reset();
     s800.setup();
     wdt_reset();
+    #ifdef GSMGPRSMQTT
     s800.stop();
+    #endif
     wdt_reset();
     s800.TCPstop();
     wdt_reset();
@@ -2212,33 +2221,37 @@ void StartModem() {
 void RestartModem() {
 
   IF_SDEBUG(DBGSERIAL.println("#RestartModem"));
-
-#if defined(ETHERNETMQTT)
-  if (!s800.checkNetwork()){
+  
+  #if defined(GSMGPRSHTTP)
+  if (!s800.checkNetwork()) {
     IF_SDEBUG(DBGSERIAL.println("#GSM try to restart network"));
-#endif
+  #endif
 
-#if defined(GSMGPRSMQTT)
+  #if defined(GSMGPRSMQTT)
   if (!mqttclient.connected()) {
     IF_SDEBUG(DBGSERIAL.println(F("#GSM try to start TCP")));
-#endif
+  #endif
 
     IF_LOGDATEFILE("hard GSM restart\n");
     StartModem();
 
-#if defined(ETHERNETMQTT)
+    #if defined(GSMGPRSHTTP)
     s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
-#endif
+    #endif
 
-#if defined(GSMGPRSMQTT)
+    #if defined(GSMGPRSMQTT)
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
-#endif
+    #endif
 
   sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
   IF_LOGDATEFILE(mainbuf);
 
   }
 }
+#endif
+
+
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
 
 // mqtt Callback function
@@ -2267,17 +2280,17 @@ void mqttcallback(char* topic, byte* payload, unsigned int length) {
 
   mgrjsonrpc(msg);
 
-#ifdef ETHERNETON
+  #ifdef ETHERNETMQTT
   char topicres [SERVER_LEN+21];
 
   snprintf(topicres,sizeof(topicres),"%s%s/%02x%02x%02x%02x%02x%02x/res", MQTTRPCPREFIX,configuration.mqttuser,configuration.mac[0], configuration.mac[1], configuration.mac[2], configuration.mac[3], configuration.mac[4], configuration.mac[5]);
-#endif
+  #endif
 
-#ifdef GSMGPRSMQTT
-    char topicres [SERVER_LEN+21];
-    // IMEI code from sim800
-    snprintf(topicres,sizeof(topicres), "%s%s/%s/res", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
-#endif
+  #ifdef GSMGPRSMQTT
+  char topicres [SERVER_LEN+21];
+  // IMEI code from sim800
+  snprintf(topicres,sizeof(topicres), "%s%s/%s/res", MQTTRPCPREFIX,configuration.mqttuser,imeicode);
+  #endif
 
   if (!mqttclient.publish(topicres,mainbuf)){
     IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish rpc reponse")));

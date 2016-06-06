@@ -2,7 +2,7 @@
 // I2C TH registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_TH_ADDRESS        34                      //7 bit address 0x40 write, 0x41 read
+#define I2C_TH_ADDRESS        35                      //7 bit address 0x40 write, 0x41 read
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF

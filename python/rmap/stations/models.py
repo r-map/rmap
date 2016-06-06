@@ -71,6 +71,12 @@ class Sensor(models.Model):
         ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
         ('TBR',  'I2C Tipping bucket rain gauge adapter'),
         ('RF24', 'RF24 Network jsonrpc'),
+
+        ('STH',  'I2C TH module, one shot mode'),
+        ('ITH',  'I2C TH module, report mode, istantaneous values'),
+        ('NTH',  'I2C TH module, report mode, minimum values'),
+        ('MTH',  'I2C TH module, report mode, mean values'),
+        ('XTH',  'I2C TH module, report mode, maximum values'),
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
@@ -286,7 +292,7 @@ class TransportSerial(models.Model):
         (9600,   '9600'),
         (19200,  '19200'),
         (38400,  '38400'),
-        (11520, '115200'),
+        (115200, '115200'),
     )
 
     SERIAL_DEVICE_CHOICES = (

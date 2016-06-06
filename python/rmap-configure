@@ -137,7 +137,8 @@ if args.wizard:
                             queue=args.queue,
                             exchange=args.exchange,
                             board=args.board_slug,
-                            activate=True)
+                            activate=True,
+                            stationname=args.stationname)
 
     print "END of wizard configuration"
 

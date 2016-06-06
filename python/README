@@ -70,6 +70,18 @@ pip -v install --upgrade  rmap
 ./rmap-configure --config_station --board_slug=stima_gps --station_slug=richardson --username=pat1
 
 
+>>> Create GSM report THP station and configure board
+rmap-configure --wizard --station_slug=report_thp --board_slug=report_thp_gsm --height=100 --stationname="ARPAE" --username=username --password=password --server=rmap.cc --samplerate=180 --lat=44.69950 --lon=10.64555 --upload_to_server
+rmap-configure --addsensors_by_template=stima_report_thp --station_slug=report_thp --board_slug=report_thp --user=username --password=password --upload_to_server
+rmapweb
+modify board report_thp :
+  * activate
+  * activate MQTT transport with parameter
+  * activate SERIAL transport with parameter
+
+rmap-configure --config_station --board_slug=report_thp --station_slug=report_thp --username=username
+
+
 #obsolete notes:
 
 * bug in plyer to patch:

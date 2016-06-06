@@ -226,15 +226,6 @@ void mgr_command(){
 
   static uint8_t _command;
 
-  //IF_SDEBUG(Serial.println("writable buffer exchange"));
-  // disable interrupts for atomic operation
-  noInterrupts();
-  //exchange double buffer
-  i2c_writabledatasettmp=i2c_writabledataset1;
-  i2c_writabledataset1=i2c_writabledataset2;
-  i2c_writabledataset2=i2c_writabledatasettmp;
-  interrupts();
-
   //Check for new incoming command on I2C
   if (new_command!=0) {
     _command = new_command;                                                   //save command byte for processing
@@ -263,10 +254,11 @@ void mgr_command(){
 
   if (stop) {
 
+    IF_SDEBUG(Serial.println("exchange double buffer"));
+
     // disable interrupts for atomic operation
     noInterrupts();
     //exchange double buffer
-    IF_SDEBUG(Serial.println("exchange double buffer"));
     i2c_datasettmp=i2c_dataset1;
     i2c_dataset1=i2c_dataset2;
     i2c_dataset2=i2c_datasettmp;
@@ -408,6 +400,15 @@ void loop() {
   uint8_t i;
 
   wdt_reset();
+
+  IF_SDEBUG(Serial.println("writable buffer exchange"));
+  // disable interrupts for atomic operation
+  noInterrupts();
+  //exchange double buffer
+  i2c_writabledatasettmp=i2c_writabledataset1;
+  i2c_writabledataset1=i2c_writabledataset2;
+  i2c_writabledataset2=i2c_writabledatasettmp;
+  interrupts();
 
   mgr_command();
 
