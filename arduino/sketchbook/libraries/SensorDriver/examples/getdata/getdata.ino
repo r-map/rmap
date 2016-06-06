@@ -1,10 +1,19 @@
+/*
+TODO
+
+* missing data as -1
+* writeble registers (oneshot) do not work
+
+ */
+
+
 #include <Wire.h>
 #include <SensorDriver.h>
 //#include "registers-wind.h"
 //#include "registers-rain.h"
 //#include "registers-th.h"
 
-#define SENSORS_LEN 1
+#define SENSORS_LEN 4
 
 struct sensor_t
 {
@@ -69,10 +78,29 @@ void setup()
   sensors[1].address=73;
   */
 
+
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"STH");
+  strcpy(sensors[0].type,"ITH");
   sensors[0].address=I2C_TH_ADDRESS;
 
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"NTH");
+  sensors[1].address=I2C_TH_ADDRESS;
+
+  strcpy(sensors[2].driver,"I2C");
+  strcpy(sensors[2].type,"MTH");
+  sensors[2].address=I2C_TH_ADDRESS;
+
+  strcpy(sensors[3].driver,"I2C");
+  strcpy(sensors[3].type,"XTH");
+  sensors[3].address=I2C_TH_ADDRESS;
+
+
+  /*
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"XTH");
+  sensors[0].address=I2C_TH_ADDRESS;
+  */
 
   // start up the serial interface
   Serial.begin(9600);
@@ -94,13 +122,18 @@ void setup()
   for (int i = 0; i < SENSORS_LEN; i++) {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
-    if (sd[0] == NULL){
+    if (sd[i] == NULL){
       Serial.print(sensors[i].driver);
       Serial.println(": driver not created !");
     }else{
+      Serial.print(sensors[i].driver);
+      Serial.println(": driver created");
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
+
+  Serial.println("end setup");
+
 }
 
 void loop()
@@ -149,6 +182,8 @@ void loop()
       // get values in json format
       aj=sd[i]->getJson();
       json=aJson.print(aj,50);
+      Serial.print(sensors[i].type);
+	Serial.print(" : ");
       Serial.println(json);
       free(json);
       aJson.deleteItem(aj);
@@ -156,7 +191,11 @@ void loop()
   }
 
   // sleep some time to do not go tired ;)
-  //  Serial.println("#sleep for 3s");
-  //delay(3000);
+  Serial.println("sleep for 180s");
+  delay(180000);
+
+  //Serial.println("Reboot");
+  //delay(1000);
+  //asm volatile ("  jmp 0");
 
 }

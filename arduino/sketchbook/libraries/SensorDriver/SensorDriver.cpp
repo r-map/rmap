@@ -60,7 +60,7 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
       if (strcmp(type, "NTH") == 0)   // min
 	return new SensorDriverTHmin();
       else
-      if (strcmp(type, "MTH") == 0)   //max
+      if (strcmp(type, "XTH") == 0)   //max
 	return new SensorDriverTHmax();
       else
 #endif
@@ -1044,7 +1044,7 @@ int SensorDriverDw1::setup(const char* driver, const int address, const int node
   Wire.write(oneshot);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(1);
+  delay(10);
 
   Wire.beginTransmission(_address);
   Wire.write(I2C_WIND_COMMAND);
@@ -1081,7 +1081,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
   Wire.write(I2C_WIND_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(1);
+  delay(10);
 
   // get DD
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1180,7 +1180,7 @@ int SensorDriverTbr::setup(const char* driver, const int address, const int node
   Wire.write(oneshot);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(1);
+  delay(10);
 
   Wire.beginTransmission(_address);
   Wire.write(I2C_RAIN_COMMAND);
@@ -1200,7 +1200,7 @@ int SensorDriverTbr::prepare(unsigned long& waittime)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   _timing=millis();
-  waittime= 500ul;
+  waittime= 1ul;
 
   return SD_SUCCESS;
 }
@@ -1279,7 +1279,7 @@ int SensorDriverTHoneshot::setup(const char* driver, const int address, const in
   Wire.write(oneshot);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(1);
+  delay(10);
 
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_COMMAND);
@@ -1315,7 +1315,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   Wire.write(I2C_TH_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(1);
+  delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1419,7 +1419,7 @@ int SensorDriverTH60mean::prepare(unsigned long& waittime)
 {
 
   _timing=millis();
-  waittime= 500ul;
+  waittime= 1ul;
 
   return SD_SUCCESS;
 }
@@ -1429,13 +1429,14 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
+  // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
   // command STOP
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TH_COMMAND);
   Wire.write(I2C_TH_COMMAND_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(1);
+  // wait for sensor to accept command
+  delay(100);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1537,7 +1538,7 @@ int SensorDriverTHmean::prepare(unsigned long& waittime)
 {
 
   _timing=millis();
-  waittime= 500ul;
+  waittime= 1ul;
 
   return SD_SUCCESS;
 }
@@ -1548,12 +1549,11 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
   // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(1);
+  //Wire.beginTransmission(_address);   // Open I2C line in write mode
+  //Wire.write(I2C_TH_COMMAND);
+  //Wire.write(I2C_TH_COMMAND_STOP);
+  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1656,7 +1656,7 @@ int SensorDriverTHmin::prepare(unsigned long& waittime)
 {
 
   _timing=millis();
-  waittime= 500ul;
+  waittime= 1ul;
 
   return SD_SUCCESS;
 }
@@ -1667,12 +1667,11 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
   // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(1);
+  //Wire.beginTransmission(_address);   // Open I2C line in write mode
+  //Wire.write(I2C_TH_COMMAND);
+  //Wire.write(I2C_TH_COMMAND_STOP);
+  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1772,7 +1771,7 @@ int SensorDriverTHmax::prepare(unsigned long& waittime)
 {
 
   _timing=millis();
-  waittime= 500ul;
+  waittime= 1ul;
 
   return SD_SUCCESS;
 }
@@ -1783,12 +1782,11 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
   // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(1);
+  //Wire.beginTransmission(_address);   // Open I2C line in write mode
+  //Wire.write(I2C_TH_COMMAND);
+  //Wire.write(I2C_TH_COMMAND_STOP);
+  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode

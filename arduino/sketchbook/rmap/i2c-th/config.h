@@ -4,7 +4,7 @@
 #define HUMIDITY_ADDRESS 39
 
 #define SAMPLERATE 3000
-#define MINUTEFORREPORT 1
+#define MINUTEFORREPORT 2
 
 // activate debug on serial port
 //#define DEBUGONSERIAL
