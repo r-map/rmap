@@ -1884,14 +1884,16 @@ void Repeats() {
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT) || defined(GSMGPRSHTTP)
       bool sendstatus;
-#endif
 
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 #ifdef SDCARD
       strcpy(record.topic, mainbuf);
       //strcat( record.separator, ";");
       strcpy( record.payload, payload);
 #endif
+
+#endif
+
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
       wdt_reset();
       if (!mqttclient.publish(mainbuf, payload))
@@ -3327,9 +3329,10 @@ void setup()
 
 #if defined(SDCARDLOGFILE)
   // Open up the file we're going to log to!
+  IF_SDEBUG(DBGSERIAL.println(F("#opening log data file on SD")));
   logFile = SD.open("rmap_log.dat", FILE_WRITE);
   if (! logFile) {
-    IF_SDEBUG(DBGSERIAL.println(F("#error opening log data file on SD")));
+    IF_SDEBUG(DBGSERIAL.println(F("#error opening log data file")));
     // Wait forever since we cant write data
     //while (1) ;
   }

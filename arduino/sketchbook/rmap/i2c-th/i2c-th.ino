@@ -211,10 +211,22 @@ void receiveEvent( int bytesReceived)
 	   *ptr++ = receivedCommands[a];
 	 }
 
+	 /*
 	 // the two buffer should be in sync
 	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
 	 for (int a = 1; a < bytesReceived; a++) { *ptr++ = receivedCommands[a]; }
 	 // new data written
+
+
+	 IF_SDEBUG(Serial.println("writable buffer exchange"));
+	 // disable interrupts for atomic operation
+	 noInterrupts();
+	 //exchange double buffer
+	 i2c_writabledatasettmp=i2c_writabledataset1;
+	 i2c_writabledataset1=i2c_writabledataset2;
+	 i2c_writabledataset2=i2c_writabledatasettmp;
+	 interrupts();
+	 */
 
        }
     }
@@ -400,15 +412,6 @@ void loop() {
   uint8_t i;
 
   wdt_reset();
-
-  IF_SDEBUG(Serial.println("writable buffer exchange"));
-  // disable interrupts for atomic operation
-  noInterrupts();
-  //exchange double buffer
-  i2c_writabledatasettmp=i2c_writabledataset1;
-  i2c_writabledataset1=i2c_writabledataset2;
-  i2c_writabledataset2=i2c_writabledatasettmp;
-  interrupts();
 
   mgr_command();
 
