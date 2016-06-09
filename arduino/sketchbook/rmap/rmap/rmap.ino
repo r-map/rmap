@@ -1979,11 +1979,13 @@ void Repeats() {
 	  sendstatus=true;
 	}else{
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
+	  IF_LOGDATEFILE("GSM ERROR in httpget response\n");
 	}
 
       }else{
 
 	IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
+	IF_LOGDATEFILE("GSM ERROR in httpget\n");
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart network"));
 	  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
@@ -2016,10 +2018,12 @@ void Repeats() {
 	    sendstatus=true;
 	  }else{
 	    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
+	    IF_LOGDATEFILE("GSM ERROR in httpget response\n");
 	  }
 
 	}else{
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
+	  IF_LOGDATEFILE("GSM ERROR in httpget\n");
 	}
 
       }
@@ -2639,6 +2643,7 @@ void mgrsdcard()
 			}else{
 			  record.done=false;
 			  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
+			  IF_LOGDATEFILE("GSM ERROR recovery from SD in httpget response\n");
 			}
 
 		      }else{
@@ -2831,6 +2836,7 @@ void setup()
 
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //Wire.setclock(31000L)
 
 #if defined(LCD)
   /* Initialise the LCD */

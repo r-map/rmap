@@ -226,6 +226,12 @@ void setup() {
 
   //Start I2C communication routines
   Wire.begin(I2C_RAIN_ADDRESS);
+
+  //The Wire library enables the internal pullup resistors for SDA and SCL.
+  //You can turn them off after Wire.begin()
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
