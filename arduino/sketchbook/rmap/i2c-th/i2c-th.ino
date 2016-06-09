@@ -437,7 +437,7 @@ void loop() {
   }
 
   //starttime = millis()+timetowait;
-  starttime += SAMPLERATE
+  starttime += SAMPLERATE;
 
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {

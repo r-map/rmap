@@ -1965,7 +1965,7 @@ void Repeats() {
       //TCP Client GET, send a GET request to the server and save the reply.
       if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
 	//Print the results.
-	  IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
+	IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
 	IF_SDEBUG(DBGSERIAL.println(mainbuf));
 
         #ifdef GSMGPRSRTC
@@ -1983,6 +1983,7 @@ void Repeats() {
 
       }else{
 
+	IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart network"));
 	  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
@@ -1999,6 +2000,28 @@ void Repeats() {
 	    }
 	  }
         }
+
+	IF_SDEBUG(DBGSERIAL.println(F("#Retry httpget")));
+	if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
+	  //Print the results.
+	  IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
+	  IF_SDEBUG(DBGSERIAL.println(mainbuf));
+	  
+          #ifdef GSMGPRSRTC
+	  if (s800.RTCset(scantime(mainbuf)) != 0){
+	    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR setting RTC time")));
+	  }
+          #endif
+	  if (strstr(mainbuf,"OK") != NULL){
+	    sendstatus=true;
+	  }else{
+	    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
+	  }
+
+	}else{
+	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
+	}
+
       }
 
       s800.getSignalQualityReport(&rssi,&ber);
