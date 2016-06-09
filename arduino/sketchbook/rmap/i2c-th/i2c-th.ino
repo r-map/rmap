@@ -129,7 +129,8 @@ float meanft;
 float meanfh;
 float sum2;
 float sum;
-uint8_t nsample1;
+uint8_t nsamplet,nsampleh,nsample1;
+int lastsize=-1;
 
 // one shot management
 static bool start=false;
@@ -327,7 +328,9 @@ void setup() {
 
   meanft=0.;
   meanfh=0.;
-  nsample1=1;
+  nsamplet=0;
+  nsampleh=0;
+  nsample1=0;
 
 #define SAMPLE1 60000/SAMPLERATE
 #define SAMPLE2 180
@@ -403,11 +406,11 @@ void setup() {
 
 void loop() {
 
-  unsigned long int t;
-  unsigned long int h;
+  long int t;
+  long int h;
   float mean;
-  unsigned long int maxv,minv;
-  long unsigned int value;
+  long int maxv,minv;
+  long int value;
 
   uint8_t i;
 
@@ -433,7 +436,8 @@ void loop() {
     if (timetowait < -10) IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
   }
 
-  starttime = millis()+timetowait;
+  //starttime = millis()+timetowait;
+  starttime += SAMPLERATE
 
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -458,8 +462,8 @@ void loop() {
   }
 
 
-  t=ULONG_MAX;
-  h=ULONG_MAX;
+  t=LONG_MAX;
+  h=LONG_MAX;
 
   for (int i = 0; i < SENSORS_LEN; i++) 
     {
@@ -478,11 +482,21 @@ void loop() {
 	  if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
 	  if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
 	}else{
-	  IF_SDEBUG(Serial.println(F("Error")));
+	  IF_SDEBUG(Serial.println(F("Error: RETRY")));
+	  delay(20);
+	  if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
+	    for (int ii = 0; ii < lenvalues; ii++) {
+	      IF_SDEBUG(Serial.print(F("value read: ")));IF_SDEBUG(Serial.println(values[ii]));
+	    }
+	    if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
+	    if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
+	  }else{
+	    IF_SDEBUG(Serial.println(F("Error")));
+	  }
 	}
       }
     }
-
+  
 
   i2c_dataset1->temperature.sample=t;
   i2c_dataset1->humidity.sample=h;
@@ -499,116 +513,191 @@ void loop() {
     return;
   }
 
+  ///////////////////////////////////////////////
   // statistical processing
+  ///////////////////////////////////////////////
 
   // first level mean:   sample => observation
 
-  IF_SDEBUG(Serial.print("data in store first: "));
-  IF_SDEBUG(Serial.println(nsample1));
+  nsample1++;
 
   // temperature and humidity mean
 
-  meanft += (float(t) - meanft) / nsample1;
-  meanfh += (float(h) - meanfh) / nsample1;
+  if (t != LONG_MAX) {	
+    nsamplet++;
+    meanft += (float(t) - meanft) / nsamplet;
+  }
+  if (h != LONG_MAX) {	
+    nsampleh++;
+    meanfh += (float(h) - meanfh) / nsampleh;
+  }
 
+  IF_SDEBUG(Serial.print("data in store first: "));
+  IF_SDEBUG(Serial.print(nsample1));
+  IF_SDEBUG(Serial.print(" : "));
+  IF_SDEBUG(Serial.print(nsamplet));
+  IF_SDEBUG(Serial.print(" : "));
+  IF_SDEBUG(Serial.println(nsampleh));
+
+  // after 1 minute store it in circular buffer and expose to i2c
   if (nsample1 == SAMPLE1) {
+
+    if (nsamplet < (nsample1-MAXMISSING)){
+      i2c_dataset1->temperature.mean60=UINT_MAX;
+      cbt60mean.autoput(LONG_MAX);
+    }else{
+      i2c_dataset1->temperature.mean60=round(meanft);
+      cbt60mean.autoput(i2c_dataset1->temperature.mean60);
+    }
+
+
+    if (nsampleh < (nsample1-MAXMISSING)){
+      i2c_dataset1->humidity.mean60=UINT_MAX;
+      cbh60mean.autoput(LONG_MAX);
+    }else{
+      i2c_dataset1->humidity.mean60=round(meanfh);
+      cbh60mean.autoput(i2c_dataset1->humidity.mean60);
+    }
+
     IF_SDEBUG(Serial.print("T mean: "));
-    IF_SDEBUG(Serial.println(meanft));
+    IF_SDEBUG(Serial.println(i2c_dataset1->temperature.mean60));
     IF_SDEBUG(Serial.print("H mean: "));
-    IF_SDEBUG(Serial.println(meanfh));
-
-    cbt60mean.autoput(round(meanft));
-    cbh60mean.autoput(round(meanfh));
-
-    i2c_dataset1->temperature.mean60=round(meanft);
-    i2c_dataset1->humidity.mean60=round(meanfh);
+    IF_SDEBUG(Serial.println(i2c_dataset1->humidity.mean60));
 
     meanft=0.;
     meanfh=0.;
+    nsamplet=0;
+    nsampleh=0;
     nsample1=0;
 
   }
 
-  mean=0.;
-  maxv=0;
-  minv= ULONG_MAX;
-  for (i=0 ; i < cbt60mean.getSize() ; i++){
-    value=cbt60mean.peek(i);
-    mean += float(value - mean) / (i+1);
-    maxv = max(maxv, value);
-    minv = min(minv, value);
+  // second level statistical processing
+
+  if (cbt60mean.getSize() != lastsize)  {
+
+    lastsize=cbt60mean.getSize();
     
-  }
-  if (cbt60mean.getSize() >= MINUTEFORREPORT)
-    {
-      i2c_dataset1->temperature.mean=round(mean);
-      i2c_dataset1->temperature.max=maxv;
-      i2c_dataset1->temperature.min=minv;
+    //temperature
+
+    if (cbt60mean.getSize() >= MINUTEFORREPORT) {
+      
+      int ndata=0;
+      mean=0.;
+      maxv=0;
+      minv= LONG_MAX;
+      for (i=0 ; i < cbt60mean.getSize() ; i++){
+	value=cbt60mean.peek(i);
+	
+	if (value != LONG_MAX) {	
+	  ndata++;
+	  IF_SDEBUG(Serial.print("cbt60mean: "));
+	  IF_SDEBUG(Serial.print(i));
+	  IF_SDEBUG(Serial.print(" : "));
+	  IF_SDEBUG(Serial.println(value));
+	  
+	  mean += float(value - mean) / (i+1);
+	  maxv = max(maxv, value);
+	  minv = min(minv, value);
+	}
+	
+      }
+      
+      if (ndata >= MINUTEFORREPORT) {
+	i2c_dataset1->temperature.mean=round(mean);
+	i2c_dataset1->temperature.max=maxv;
+	i2c_dataset1->temperature.min=minv;
+      }	else{
+	i2c_dataset1->temperature.mean=UINT_MAX;
+	i2c_dataset1->temperature.max=UINT_MAX;
+	i2c_dataset1->temperature.min=UINT_MAX;	
+      }
+
+      // sigma temperature
+      if (ndata >= MINUTEFORREPORT) {
+	sum2=0;
+	sum=0;
+	unsigned short int n=cbt60mean.getSize();
+	for (i=0 ; i < n ; i++){
+	  sum2 += cbt60mean.peek(i)*cbt60mean.peek(i);
+	  sum += cbt60mean.peek(i);
+	}
+	i2c_dataset1->temperature.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
+      }else{
+	i2c_dataset1->temperature.sigma=UINT_MAX;
+      }
     }
 
-  mean=0;
-  maxv=0;
-  minv= ULONG_MAX;
-  for (i=0 ; i < cbh60mean.getSize() ; i++){
-    value=cbh60mean.peek(i);
-    mean += float(value - mean) / (i+1);
-    maxv = max(maxv, value);
-    minv = min(minv, value);
-  }
-  if (cbt60mean.getSize() >= MINUTEFORREPORT)
-    {
-      i2c_dataset1->humidity.mean=round(mean);
-      i2c_dataset1->humidity.max=maxv;
-      i2c_dataset1->humidity.min=minv;
+    //humidity
+      
+    if (cbh60mean.getSize() >= MINUTEFORREPORT) {
+    
+      int ndata=0;
+      mean=0;
+      maxv=0;
+      minv= LONG_MAX;
+      for (i=0 ; i < cbh60mean.getSize() ; i++){
+	value=cbh60mean.peek(i);
+	
+	if (value != LONG_MAX) {	
+	  ndata++;
+	  IF_SDEBUG(Serial.print("cbh60mean: "));
+	  IF_SDEBUG(Serial.print(i));
+	  IF_SDEBUG(Serial.print(" : "));
+	  IF_SDEBUG(Serial.println(value));
+	  
+	  mean += float(value - mean) / (i+1);
+	  maxv = max(maxv, value);
+	  minv = min(minv, value);
+	}
+      }	
+      if (ndata >= MINUTEFORREPORT) {
+	i2c_dataset1->humidity.mean=round(mean);
+	i2c_dataset1->humidity.max=maxv;
+	i2c_dataset1->humidity.min=minv;
+      }	else{
+	i2c_dataset1->humidity.mean=UINT_MAX;
+	i2c_dataset1->humidity.max=UINT_MAX;
+	i2c_dataset1->humidity.min=UINT_MAX;	
+      }
+
+      // sigma humidity
+    
+      if (ndata >= MINUTEFORREPORT) {
+	sum2=0;
+	sum=0;
+	unsigned short int n=cbh60mean.getSize();
+	for (i=0 ; i < n ; i++){
+	  sum2 += cbh60mean.peek(i)*cbh60mean.peek(i);
+	  sum += cbh60mean.peek(i);
+	}
+	i2c_dataset1->humidity.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
+      }else{
+	i2c_dataset1->humidity.sigma=UINT_MAX;
+      }
+
     }
-
-  // sigma
-  sum2=0;
-  sum=0;
-  unsigned short int n=cbt60mean.getSize();
-  for (i=0 ; i < n ; i++){
-    sum2 += cbt60mean.peek(i)*cbt60mean.peek(i);
-    sum += cbt60mean.peek(i);
+    
+    
+    IF_SDEBUG(Serial.print(F("T mean  second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->temperature.mean));
+    IF_SDEBUG(Serial.print(F("T max   second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->temperature.max));
+    IF_SDEBUG(Serial.print(F("T min   second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->temperature.min));
+    IF_SDEBUG(Serial.print(F("T sigma second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->temperature.sigma));
+    
+    IF_SDEBUG(Serial.print(F("H mean second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->humidity.mean));
+    IF_SDEBUG(Serial.print(F("H max second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->humidity.max));
+    IF_SDEBUG(Serial.print(F("H min   second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->humidity.min));
+    IF_SDEBUG(Serial.print(F("H sigma second order: ")));
+    IF_SDEBUG(Serial.println(i2c_dataset1->humidity.sigma));
   }
-  if (cbt60mean.getSize() >= MINUTEFORREPORT)
-    {
-      i2c_dataset1->temperature.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
-    }
-
-  sum2=0;
-  sum=0;
-  n=cbh60mean.getSize();
-  for (i=0 ; i < n ; i++){
-    sum2 += cbh60mean.peek(i)*cbh60mean.peek(i);
-    sum += cbh60mean.peek(i);
-  }
-  if (cbt60mean.getSize() >= MINUTEFORREPORT)
-    {
-      i2c_dataset1->humidity.sigma=round(sqrt((sum2-(sum*sum)/n)/n))+OFFSET;
-    }
-
-  IF_SDEBUG(Serial.print("T mean  second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->temperature.mean));
-  IF_SDEBUG(Serial.print("T max   second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->temperature.max));
-  IF_SDEBUG(Serial.print("T min   second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->temperature.min));
-  IF_SDEBUG(Serial.print("T sigma second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->temperature.sigma));
-  
-  IF_SDEBUG(Serial.print("H mean second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->humidity.mean));
-  IF_SDEBUG(Serial.print("H max second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->humidity.max));
-  IF_SDEBUG(Serial.print("H min   second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->humidity.min));
-  IF_SDEBUG(Serial.print("H sigma second order: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->humidity.sigma));
-
-
-  nsample1++;
-
 
   digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
 
-}  
+}

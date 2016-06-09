@@ -6,8 +6,11 @@
 #define SAMPLERATE 3000
 #define MINUTEFORREPORT 2
 
+// max missing data for minute
+#define MAXMISSING 1
+
 // activate debug on serial port
-//#define DEBUGONSERIAL
+#define DEBUGONSERIAL
 
 #ifdef DEBUGONSERIAL
 #define IF_SDEBUG(x) ({x;})
