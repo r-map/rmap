@@ -1729,6 +1729,20 @@ void Repeats() {
 
   }else{
     t = now(); // Store the current time in time variable t 
+
+    #ifdef REPORTMODE
+    // round time to minute
+    #if defined(DEBUGONSERIAL)
+    DBGSERIAL.print(F("#time before: "));
+    digitalClockDisplay(t);
+    #endif
+    t=t - (((t+30) % 60)-30);
+    #if defined(DEBUGONSERIAL)
+    DBGSERIAL.print(F("#time after: "));
+    digitalClockDisplay(t);
+    #endif
+    #endif
+
   }
 
   IF_SDEBUG(digitalClockDisplay(t));
@@ -2527,10 +2541,18 @@ void mgrmqtt()
 
 			   // recovery data from SD card
 			   // set write pointer to the end of last file
-			   // all parameter not used for now
-void mgrsdcard()
+void mgrsdcard(time_t maxtime)
 {
   wdt_reset();
+
+  unsigned long int starttime=millis()/1000 - 60;  // 60 sec tollerance
+
+  // TODO !!!!!
+  if (((millis()/1000)-starttime) > starttime){ 
+    IF_SDEBUG(DBGSERIAL.println(F("#the time for recovery data from SD is terminated")));    
+    // close file, opend and go to the end of the last
+    return; 
+  }
 
   strcpy(fileName,FILE_BASE_NAME);
   strcat (fileName,"000");
@@ -2766,7 +2788,7 @@ int sdrecoveryrpc(aJsonObject* params)
 
   IF_LOGDATEFILE("jrpc sdrecovery\n");
 
-  mgrsdcard();
+  mgrsdcard(configuration.rt);
 
   result = aJson.createObject();
 
@@ -3372,7 +3394,10 @@ void setup()
 
   IF_LOGDATEFILE("Start\n");
 
-  mgrsdcard();
+  // TODO in report mode open and go to the end of the last file
+  //#ifndef (REPORTMODE)
+  mgrsdcard(ULONG_MAX);
+  //#endif
 
 #endif
 
@@ -3381,7 +3406,18 @@ void setup()
   // poll mqtt connection if required
   mgrmqtt();
 #endif
-  
+
+  #if defined(REPORTMODE)
+  //sync to even time
+  IF_SDEBUG(DBGSERIAL.print(F("#start delay to sync to even time: ")));
+  IF_SDEBUG(DBGSERIAL.println(configuration.rt-(now() % configuration.rt)));
+  wdt_disable();
+  delay((configuration.rt-(now() % configuration.rt))*1000);
+  wdt_enable(WDTO_8S);
+  IF_SDEBUG(DBGSERIAL.print(F("#end delay: ")));
+  IF_SDEBUG(digitalClockDisplay(now()));
+  #endif
+
 #if defined(REPEATTASK)
   Alarm.timerRepeat(configuration.rt, Repeats);             // timer for every tr seconds
 
@@ -3389,8 +3425,10 @@ void setup()
   // so we reset everythings one time a week
   Alarm.alarmRepeat(dowMonday,8,0,0,Reboot);                // 8:00:00 every Monday
 
+  #ifndef REPORTMODE
   #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   Alarm.timerRepeat(60*60*3, RestartModem);                     // timer for restart GSM modem
+  #endif
   #endif
 
 #endif
@@ -3416,6 +3454,10 @@ void loop()
   wdt_reset();
 #endif
 
+  // TODO recover data when in "sleep" mode
+  //#ifdef REPORTMODE
+  //mgrsdcard(configuration.rt);
+  //#endif
 
 #ifdef FREEMEM
   freeMem("#free mem in loop");
