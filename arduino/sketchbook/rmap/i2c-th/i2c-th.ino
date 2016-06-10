@@ -137,7 +137,7 @@ static bool start=false;
 static bool stop=false;
 
 volatile unsigned long antirimb=0;
-unsigned long starttime;
+unsigned long starttime, regsettime;
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -153,10 +153,18 @@ void requestEvent()
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),HEX));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3),HEX));
 
-  Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);
-  //Write up to 32 byte, since master is responsible for reading and sending NACK
-  //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+  if ((millis()-regsettime) > 500) {
+    Wire.write(0xFF);
+    Wire.write(0xFF);
+    Wire.write(0xFF);
+    Wire.write(0xFF);
+  }else{
 
+    Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);
+    //Write up to 32 byte, since master is responsible for reading and sending NACK
+    //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+  }
+  regsettime=0;
 }
 
 //Handler for receiving data
@@ -190,6 +198,9 @@ void receiveEvent( int bytesReceived)
        //Addressing over the reg_map fallback to first byte
        if((receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE)) {
 	 receivedCommands[0]=0;
+	 regsettime=0;
+       }else{
+	 regsettime=millis();
        }
        //IF_SDEBUG(Serial.print("       set register:"));IF_SDEBUG(Serial.println(receivedCommands[0],HEX));
        return;
@@ -308,6 +319,7 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
+  regsettime=0;
 
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
