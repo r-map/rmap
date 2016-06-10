@@ -1441,7 +1441,13 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MEAN60);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1457,7 +1463,13 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MEAN60);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1528,7 +1540,12 @@ int SensorDriverTHmean::setup(const char* driver, const int address, const int n
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   return SD_SUCCESS;
 
@@ -1558,7 +1575,13 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MEAN);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1574,7 +1597,13 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MEAN);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1646,7 +1675,13 @@ int SensorDriverTHmin::setup(const char* driver, const int address, const int no
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+ 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   return SD_SUCCESS;
 
@@ -1676,7 +1711,13 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MIN);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1692,7 +1733,13 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MIN);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1761,7 +1808,12 @@ int SensorDriverTHmax::setup(const char* driver, const int address, const int no
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   return SD_SUCCESS;
 
@@ -1791,7 +1843,14 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MAX);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  short unsigned int ntry=3;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
@@ -1807,7 +1866,13 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MAX);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    delay(100);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
   delay(1);
 
   Wire.requestFrom(_address, 2);
