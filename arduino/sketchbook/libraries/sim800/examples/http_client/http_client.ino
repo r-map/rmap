@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2015  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2016  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
 
@@ -24,7 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "sim800.h"
 
 SIM800 s800;
-char buf[200];
 
 void setup()
 {
@@ -37,70 +36,55 @@ void setup()
     delay(5000);
     Serial.println("try to init sim800");
 
-#ifdef HARDWARESERIAL
-    if (s800.init( 7, 6)) break;
-#else
-    if (s800.init(&Serial1 , 7, 6)) break;
-#endif
+    #ifdef HARDWARESERIAL
+    if (s800.init( 0, 6)) break;
+    #else
+    if (s800.init(&Serial1 , 0, 6)) break;
+    #endif
 
   }
 
   Serial.println("try to setup sim800");
   s800.setup();
-
-  // at command examples
-  //s800.ATcommand("+CLTS=1",buf);
-  //s800.ATcommand("+CENG=3",buf);
-  //s800.ATcommand("+CCLK=\"yy/MM/dd,hh:mm:ss±zz\"",buf);
-  //s800.ATcommand("+CCLK=\"15/04/27,16:12:00+00\"",buf);
+  delay (5000);
+  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
 
 };
 
 void loop()
 {  
-  Serial.println("null loop");
-
   #define RESULTL 512
   char result[RESULTL];
 
-  Serial.println(millis());
-
-  if(s800.httpGET("rmap.cc", 80, "/http2mqtt/?topic=mobile/user/test&payload=ciao&user=user&password=password", result, RESULTL)){
-
-    Serial.println("-----------------<>-------------------");
-    Serial.println(result);
-    Serial.println("-----------------<>-------------------");
-    Serial.println(millis());
-
-  }else{
-    Serial.println(">>>>>>>>>>>>>  errore httpGET");
-
-    if (!s800.checkNetwork()){
-      Serial.println("#GSM try to restart network");
-      s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
-    }
-    if (!s800.checkNetwork()){
-      Serial.println("#GSM try to restart sim800");
-
-      //s800.switchOn();
-
-      // fast restart
-      if (s800.init_onceautobaud()){
-	if (s800.setup()){
-	  s800.ATcommand("+CLTS=1",buf);
-	  s800.ATcommand("+CENG=3",buf);
-	  s800.stopNetwork();
-	  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
-	}
-      }
-    }
-
-    s800.init_onceautobaud();
-    s800.setup();
+  if (!s800.checkNetwork()){
+    Serial.println("#GSM try to restart network");
     s800.stopNetwork();
     s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   }
 
-  delay(10000);
+  if(s800.httpGET("rmap.cc", 80, "/http2mqtt/?time=true", result, RESULTL)){
 
-};
+    Serial.println("-----------------<>-------------------");
+    Serial.println(result);
+    Serial.println("-----------------<>-------------------");
+
+  }else{
+    Serial.println(">>>>>>>>>>>>>  errore httpGET");
+    Serial.println("#GSM try to restart network");
+    s800.stopNetwork();
+    s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
+
+    if(s800.httpGET("rmap.cc", 80, "/http2mqtt/?time=true", result, RESULTL)){
+
+      Serial.println("-----------------<SECOND>-------------------");
+      Serial.println(result);
+      Serial.println("-----------------<SECOND>-------------------");
+
+    }else{
+      Serial.println(">>>>>>>>>>>>>  errore httpGET SECOND");
+    }
+  }
+
+  delay(5000);
+
+}

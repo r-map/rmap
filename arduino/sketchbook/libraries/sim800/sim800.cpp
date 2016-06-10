@@ -507,12 +507,13 @@ bool SIM800::httpGET(const char* server, int port, const char* path, char* resul
   free(newpath);
   if(!ATcommand(bufcommand, buf)) return false;
   if(!ATcommand("+HTTPACTION=0", buf)) return false;
-  receive(buf,5000,"\r\n",NULL);
-  receive(buf,5000,"\r\n",NULL);
+  //receive(buf,5000,"\n",NULL);             // here we receive some spourious \r\n; do not wait for it
+  receive(buf,20000,"+HTTPACTION",NULL);     // timeout for response 20 sec
+  receive(buf,5000,"\n",NULL);
   int method;
   int status;
   int datalen;
-  int token_count = sscanf(buf,"+HTTPACTION:%i,%i,%i",&method,&status,&datalen);
+  int token_count = sscanf(buf,":%i,%i,%i",&method,&status,&datalen);
   if ( token_count == 3 ){
     IF_SDEBUG(Serial.print(F("#sim800:method: ")));
     IF_SDEBUG(Serial.println(method));
