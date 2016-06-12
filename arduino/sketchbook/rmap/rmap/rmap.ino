@@ -69,6 +69,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef REPEATTASK
 #include <TimeAlarms.h>
+bool repeattaskdone;
+#ifdef REPORTMODE
+#include <Sleep_n0m1.h>
+Sleep sleep;
+#endif
 #endif
 
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
@@ -1686,6 +1691,11 @@ void Repeats() {
   wdt_reset();
 
   IF_SDEBUG(DBGSERIAL.println(F("#Repeats")));
+  #ifdef REPORTMODE
+  IF_LOGDATEFILE("Repeats\n");
+  #endif
+
+  repeattaskdone=true;
 
 #ifdef ETHERNETON
 
@@ -1978,6 +1988,7 @@ void Repeats() {
 
       //TCP Client GET, send a GET request to the server and save the reply.
       if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
+        wdt_reset();
 	//Print the results.
 	IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
 	IF_SDEBUG(DBGSERIAL.println(mainbuf));
@@ -1988,6 +1999,7 @@ void Repeats() {
 	}else{
 	  setSyncProvider(s800.RTCget);   // the function to get the time from the RTC
 	}
+	wdt_reset();
         #endif
 	if (strstr(mainbuf,"OK") != NULL){
 	  sendstatus=true;
@@ -1998,15 +2010,18 @@ void Repeats() {
 
       }else{
 
+        wdt_reset();
 	IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
 	IF_LOGDATEFILE("GSM ERROR in httpget\n");
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart network"));
 	  s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
         }
+	wdt_reset();
 	if (!s800.checkNetwork()){
 	  IF_SDEBUG(DBGSERIAL.println("#GSM try to restart sim800"));
 
+	  wdt_reset();
 	  // fast restart
 	  wdt_reset();
 	  if (s800.init_onceautobaud()){
@@ -2017,8 +2032,10 @@ void Repeats() {
 	  }
         }
 
+	wdt_reset();
 	IF_SDEBUG(DBGSERIAL.println(F("#Retry httpget")));
 	if (s800.httpGET(configuration.mqttserver, 80,mainbuf, mainbuf, sizeof(mainbuf))){
+          wdt_reset();
 	  //Print the results.
 	  IF_SDEBUG(DBGSERIAL.println(F("#GSM Data received:")));
 	  IF_SDEBUG(DBGSERIAL.println(mainbuf));
@@ -2032,24 +2049,32 @@ void Repeats() {
 	    sendstatus=true;
 	  }else{
 	    IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget response")));
-	    IF_LOGDATEFILE("GSM ERROR in httpget response\n");
+	    IF_LOGDATEFILE("GSM ERROR in retry httpget response\n");
 	  }
 
 	}else{
-	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in httpget")));
+	  IF_SDEBUG(DBGSERIAL.println(F("#GSM ERROR in retry httpget")));
 	  IF_LOGDATEFILE("GSM ERROR in httpget\n");
-	}
 
+	  wdt_reset();
+	  
+	  s800.getSignalQualityReport(&rssi,&ber);
+	  IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
+	  IF_SDEBUG(DBGSERIAL.println(rssi));
+	  IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
+	  IF_SDEBUG(DBGSERIAL.println(ber));
+	  wdt_reset();
+
+	  sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
+	  IF_LOGDATEFILE(mainbuf);
+
+	}
+	wdt_reset();
       }
 
-      s800.getSignalQualityReport(&rssi,&ber);
-      IF_SDEBUG(DBGSERIAL.print(F("#s800 rssi:")));
-      IF_SDEBUG(DBGSERIAL.println(rssi));
-      IF_SDEBUG(DBGSERIAL.print(F("#s800 ber:")));
-      IF_SDEBUG(DBGSERIAL.println(ber));
-      wdt_reset();
-      
       #endif
+
+      wdt_reset();
 
 #ifdef SDCARD
 
@@ -2286,8 +2311,8 @@ void RestartModem() {
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
     #endif
 
-  sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
-  IF_LOGDATEFILE(mainbuf);
+    sprintf(mainbuf,"rssi:%d,ber:%d\n",rssi,ber);
+    IF_LOGDATEFILE(mainbuf);
 
   }
 }
@@ -2540,19 +2565,13 @@ void mgrmqtt()
 #if defined(SDCARD)
 
 			   // recovery data from SD card
+                           // exit before maxtime elapsed time
 			   // set write pointer to the end of last file
 void mgrsdcard(time_t maxtime)
 {
   wdt_reset();
 
-  unsigned long int starttime=millis()/1000 - 60;  // 60 sec tollerance
-
-  // TODO !!!!!
-  if (((millis()/1000)-starttime) > starttime){ 
-    IF_SDEBUG(DBGSERIAL.println(F("#the time for recovery data from SD is terminated")));    
-    // close file, opend and go to the end of the last
-    return; 
-  }
+  unsigned long int starttime=millis() - 60000;  // 60 sec tollerance
 
   strcpy(fileName,FILE_BASE_NAME);
   strcat (fileName,"000");
@@ -2600,6 +2619,17 @@ void mgrsdcard(time_t maxtime)
 		
 	      wdt_reset();
 		
+	      if ((millis()-starttime) > (maxtime*1000)){ 
+		if (starttime != 0){
+		  IF_SDEBUG(DBGSERIAL.println(F("#the time for recovery data from SD is terminated")));
+		  starttime=0;
+		  success = false;
+		}
+		// skip reading file
+		pos+= sizeof(record);
+		continue; 
+	      }
+
 	      if (dataFile.read(&record,sizeof(record)) != sizeof(record) )
 		{
 		  IF_SDEBUG(DBGSERIAL.println(F("#READ ERROR")));
@@ -2615,7 +2645,7 @@ void mgrsdcard(time_t maxtime)
 
 		  if (record.done == false)
 		    {
-		      
+
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
 
 		      wdt_reset();
@@ -3394,10 +3424,11 @@ void setup()
 
   IF_LOGDATEFILE("Start\n");
 
-  // TODO in report mode open and go to the end of the last file
-  //#ifndef (REPORTMODE)
+  #ifndef REPORTMODE
   mgrsdcard(ULONG_MAX);
-  //#endif
+  #else
+  repeattaskdone=false;
+  #endif
 
 #endif
 
@@ -3446,18 +3477,29 @@ void loop()
   wdt_reset();
 
 #ifdef REPEATTASK
-
   //IF_SDEBUG(DBGSERIAL.println(F("#loop")));
   //IF_SDEBUG(Alarm.delay(100));
   // call repeat when required
   Alarm.delay(0);
   wdt_reset();
-#endif
 
-  // TODO recover data when in "sleep" mode
-  //#ifdef REPORTMODE
-  //mgrsdcard(configuration.rt);
-  //#endif
+  // recover data when in report mode
+  #ifdef REPORTMODE
+  #if defined(SDCARD)
+  mgrsdcard(configuration.rt);
+  wdt_reset();
+  #endif
+  while (!repeattaskdone)
+    {
+      Alarm.delay(0);
+      wdt_reset();
+      IF_SDEBUG(DBGSERIAL.println(F("#sleep 10s ")));
+      delay(100);
+      sleep.idleMode(); //set sleep mode
+      sleep.sleepDelay(9900); //sleep for: sleepTime
+
+  #endif
+#endif
 
 #ifdef FREEMEM
   freeMem("#free mem in loop");
@@ -3491,6 +3533,13 @@ void loop()
 #ifdef TCPSERVER
   mgrethserver();
   wdt_reset();
+#endif
+
+#ifdef REPEATTASK
+  #ifdef REPORTMODE
+    }
+  repeattaskdone=false; 
+#endif
 #endif
 
 }
