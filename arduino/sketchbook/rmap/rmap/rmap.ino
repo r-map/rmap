@@ -73,6 +73,17 @@ bool repeattaskdone;
 #ifdef REPORTMODE
 #include <Sleep_n0m1.h>
 Sleep sleep;
+
+//https://tomblanch.wordpress.com/2013/07/27/resetting_millis/
+extern volatile unsigned long timer0_millis;
+
+void setMillis(unsigned long new_millis){
+  uint8_t oldSREG = SREG;
+  cli();
+  timer0_millis = new_millis;
+  SREG = oldSREG;
+}
+
 #endif
 #endif
 
@@ -3495,8 +3506,9 @@ void loop()
       wdt_reset();
       IF_SDEBUG(DBGSERIAL.println(F("#sleep 10s ")));
       delay(100);
-      sleep.idleMode(); //set sleep mode
+      sleep.pwrDownMode(); //set sleep mode
       sleep.sleepDelay(9900); //sleep for: sleepTime
+      setMillis(millis()+10000);   
 
   #endif
 #endif
