@@ -69,9 +69,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef REPEATTASK
 #include <TimeAlarms.h>
-bool repeattaskdone;
 #ifdef REPORTMODE
 #include <Sleep_n0m1.h>
+unsigned long repeattasktime;
 Sleep sleep;
 
 //https://tomblanch.wordpress.com/2013/07/27/resetting_millis/
@@ -1706,8 +1706,6 @@ void Repeats() {
   IF_LOGDATEFILE("Repeats\n");
   #endif
 
-  repeattaskdone=true;
-
 #ifdef ETHERNETON
 
   // Allows for the renewal of DHCP leases
@@ -1762,6 +1760,7 @@ void Repeats() {
     DBGSERIAL.print(F("#time after: "));
     digitalClockDisplay(t);
     #endif
+    repeattasktime=t;
     #endif
 
   }
@@ -2582,7 +2581,7 @@ void mgrsdcard(time_t maxtime)
 {
   wdt_reset();
 
-  unsigned long int starttime=millis() - 60000;  // 60 sec tollerance
+  unsigned long int starttime=max(millis() - 60000,1);  // 60 sec tollerance
 
   strcpy(fileName,FILE_BASE_NAME);
   strcat (fileName,"000");
@@ -3437,8 +3436,6 @@ void setup()
 
   #ifndef REPORTMODE
   mgrsdcard(ULONG_MAX);
-  #else
-  repeattaskdone=false;
   #endif
 
 #endif
@@ -3458,6 +3455,7 @@ void setup()
   wdt_enable(WDTO_8S);
   IF_SDEBUG(DBGSERIAL.print(F("#end delay: ")));
   IF_SDEBUG(digitalClockDisplay(now()));
+  repeattasktime=now();
   #endif
 
 #if defined(REPEATTASK)
@@ -3486,29 +3484,43 @@ void setup()
 void loop()
 {  
   wdt_reset();
+  //IF_SDEBUG(DBGSERIAL.println(F("#loop")));
 
 #ifdef REPEATTASK
-  //IF_SDEBUG(DBGSERIAL.println(F("#loop")));
-  //IF_SDEBUG(Alarm.delay(100));
   // call repeat when required
   Alarm.delay(0);
   wdt_reset();
 
-  // recover data when in report mode
   #ifdef REPORTMODE
-  #if defined(SDCARD)
-  mgrsdcard(configuration.rt);
+
+  long dt=configuration.rt - (now() - repeattasktime) ; 
+  if (dt >90) {
+    #if defined(SDCARD)
+    // recover data when in report mode
+    mgrsdcard(configuration.rt);
+    wdt_reset();
+    #endif
+  }
+  dt=configuration.rt - (now() - repeattasktime) ; 
+  if (dt >10) {
+    // sleep with energy saving
+    IF_SDEBUG(DBGSERIAL.print(F("#sleep: ")));
+    IF_SDEBUG(DBGSERIAL.println(dt-3));
+    delay(100);
+    sleep.pwrDownMode(); //set sleep mode
+    sleep.sleepDelay((dt-3)*1000); //sleep for: sleepTime
+    setMillis(millis()+((dt-3)*1000));   
+    wdt_reset();
+    IF_SDEBUG(DBGSERIAL.println(F("#endsleep")));
+    #if defined(DEBUGONSERIAL)
+    DBGSERIAL.print(F("#time: "));
+    digitalClockDisplay(now());
+    #endif
+  }
+
+  // call repeat when required
+  Alarm.delay(0);
   wdt_reset();
-  #endif
-  while (!repeattaskdone)
-    {
-      Alarm.delay(0);
-      wdt_reset();
-      IF_SDEBUG(DBGSERIAL.println(F("#sleep 10s ")));
-      delay(100);
-      sleep.pwrDownMode(); //set sleep mode
-      sleep.sleepDelay(9900); //sleep for: sleepTime
-      setMillis(millis()+10000);   
 
   #endif
 #endif
@@ -3545,13 +3557,6 @@ void loop()
 #ifdef TCPSERVER
   mgrethserver();
   wdt_reset();
-#endif
-
-#ifdef REPEATTASK
-  #ifdef REPORTMODE
-    }
-  repeattaskdone=false; 
-#endif
 #endif
 
 }
