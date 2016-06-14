@@ -64,9 +64,9 @@ def callback(ch, method, properties, body):
         status=amqp2amqp_json2bufr.procs[0].wait()
         if status != 0:
             print "There were some errors executing dbadb import error: ",status,outerr
-            #print "skip message: "
-            #print body
-            #print "---------------------"
+            print "skip message: "
+            print body
+            print "---------------------"
 
     except:
         print "There were some errors executing dbadb import"
@@ -93,13 +93,8 @@ def callback(ch, method, properties, body):
 
     except:
         print "There were some errors executing dbadb export"
-        raise
+        #raise
 
-    finally:
-        try:
-            os.remove(DSNFILE)
-        except:
-            pass
     try:
 
         if (outbody == ""):
@@ -130,6 +125,12 @@ def callback(ch, method, properties, body):
     except:
         print "There were some errors publishing message"
         raise        
+
+    finally:
+        try:
+            os.remove(DSNFILE)
+        except:
+            pass
 
     print " [x] Done"
     ch.basic_ack(delivery_tag = method.delivery_tag)
