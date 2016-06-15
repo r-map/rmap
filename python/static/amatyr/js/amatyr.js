@@ -84,7 +84,7 @@ var AmatYr = function(apiurl) {
             var day = this.params['day'];
             var url = apiurl + 'day/' + day;
             // Fetch data for this year
-            d3.json(url+'?start='+day, function(json) { 
+            d3.json('esempio'+day, function(json) { 
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
