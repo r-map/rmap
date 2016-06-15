@@ -84,7 +84,7 @@ var AmatYr = function(apiurl) {
             var day = this.params['day'];
             var url = apiurl + 'day/' + day;
             // Fetch data for this year
-            d3.json('http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/2016/06/13', function(json) { 
+            d3.json(url+'?start='+day, function(json) { 
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
