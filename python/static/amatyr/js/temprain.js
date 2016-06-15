@@ -1,5 +1,5 @@
 /* D3 function for drawing temperatures and rain bars in same svg */
-var temprain = function(el, data, width, height) { 
+var temprain = function(el, data, width, height) {
     var margin = {top: 20, right: 0, bottom: 20, left: 25},
         width = width - margin.left - margin.right,
         height = height - margin.top - margin.bottom,
@@ -44,7 +44,7 @@ var temprain = function(el, data, width, height) {
     if (data[0].tempmin != undefined) {
         ydomain = [d3.min(data, function(d) { return d.tempmin }), d3.max(data, function(d) { return d.tempmax; })];
     }else {
-        ydomain = d3.extent(data, function(d) { return d.outtemp});
+        ydomain = d3.extent(data, function(d) { return d.data.vars[0].B12101});
     }
     y.domain(ydomain);
 
@@ -77,7 +77,7 @@ var temprain = function(el, data, width, height) {
         .attr("x2", x)
         .attr("y1", 0)
         .attr("y2", height)
-        .style('stroke', function(d, i) { 
+        .style('stroke', function(d, i) {
             if(d.getHours() == 0) {
                 return '#ccc';
             }
@@ -104,7 +104,7 @@ var temprain = function(el, data, width, height) {
         .attr("x2", width)
         .attr("y1", y)
         .attr("y2", y)
-        .style('stroke', function(d, i) { 
+        .style('stroke', function(d, i) {
             if(d == 0) {
                 return 'steelblue';
             }
@@ -170,7 +170,7 @@ var temprain = function(el, data, width, height) {
     // Temp line
     var line = d3.svg.line()
         .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.outtemp); })
+        .y(function(d) { return y(d.data.vars[0].B12101); })
         .interpolate(interpolation)
 
     var pathos = svg.append("path")
@@ -181,7 +181,7 @@ var temprain = function(el, data, width, height) {
 
     amatyrlib.addLineAnimation(pathos);
 
-    // Check if key is available in source 
+    // Check if key is available in source
     if (data[0].tempmin != undefined) {
         // Low Temp line
         var line = d3.svg.line()
@@ -194,7 +194,7 @@ var temprain = function(el, data, width, height) {
           .attr("stroke-dasharray", "5,5")
           .attr("d", line);
     }
-    // Check if key is available in source 
+    // Check if key is available in source
     if (data[0].tempmax != undefined) {
         // High Temp line
         var line = d3.svg.line()
@@ -242,7 +242,7 @@ var temprain = function(el, data, width, height) {
     timex.domain(data.map(function(d) { return d.date; }));
     timey.domain([0, d3.max(data, function(d) { return d.dayrain; })]);
 
-    var barxpos = function(d) { 
+    var barxpos = function(d) {
       var nr = timex(d.date);
       var bwidth = (width/data.length)*0.8
       var barmargin = (width/data.length)*0.2
@@ -294,7 +294,7 @@ var temprain = function(el, data, width, height) {
 
 
     /* Bar text formatter */
-    var valfmt = function(d) { 
+    var valfmt = function(d) {
         var nr = d.dayrain;
         if (nr == 0) return '';
         if (nr < 1 )
@@ -314,7 +314,7 @@ var temprain = function(el, data, width, height) {
             .attr("dx", (width/data.length)*0.4)
             .attr("dy", (width/data.length)*0.4)
             .attr("text-anchor", "middle")
-            .attr('class', function(d) { 
+            .attr('class', function(d) {
                 // Hide score if it's below 0
                 var c ='score ';
                 var y = timey(d.dayrain) + 10;
@@ -345,13 +345,13 @@ var temprain = function(el, data, width, height) {
           // move tooltip off screen
           d3.select('#tooltip')
             .attr('style', 'display:hidden;top:-1000pxleft:-1000px');
-          // hide the ruler 
+          // hide the ruler
           mRule.style("stroke", "none");
       })
 
     // set up the timestamp rivets object
     ttobj = {d:{}};
-    for(key in data[0]) { 
+    for(key in data[0]) {
         ttobj.d[key] = data[0][key];
     }
     // bind timestamp object to tooltip using rivets
@@ -366,7 +366,7 @@ var temprain = function(el, data, width, height) {
         if (d3.event.pageX != undefined && d3.event.pageY != undefined) {
             tx = d3.event.pageX;
             ty = d3.event.pageY;
-        } 
+        }
         // if the posititon is too close to the edge, move it left
         if ((window.innerWidth - tx) < 300) {
             // roughly the size of the tooltip
@@ -377,7 +377,7 @@ var temprain = function(el, data, width, height) {
         d3.select('#tooltip')
             .attr('style', 'display: block; top:'+(ty+10)+'px;left:'+(tx+10)+'px');
         // update the rivets tt obj
-        for(key in d) { 
+        for(key in d) {
             ttobj.d[key] = d[key];
         }
 
@@ -408,4 +408,3 @@ var temprain = function(el, data, width, height) {
     }
     return this;
 }
-

@@ -37,26 +37,26 @@ var xFormatter = function(xAxis, xextent) {
 // Helps out with the bars
 var bartender = function(target, key, legend, width, height) {
     // Fetch new json data
-    d3.json("/api/max?key="+key, function(source) { 
-        
+    d3.json("/api/max?key="+key, function(source) {
+
         valfmt = function(d) { return d.val }
         if (key == 'temp') {
-            valfmt = function(d) { 
+            valfmt = function(d) {
                 return rivets.formatters.temp(d.val)
             }
         }
         else if (key == 'rain') {
-            valfmt = function(d) { 
+            valfmt = function(d) {
                 return rivets.formatters.rain(d.val)
             }
         }
         else if (key == 'windspeed') {
-            valfmt = function(d) { 
+            valfmt = function(d) {
                 return rivets.formatters.wind(d.val)
             }
         }
         else if (key == 'wind') {
-            valfmt = function(d) { 
+            valfmt = function(d) {
                 return rivets.formatters.wind(d.val)
             }
         }
@@ -74,13 +74,17 @@ var draw = function(source) {
 
 
     // The date format of SQL
-    var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
-
+    var parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S").parse;
+    function parseTemp(temp){
+      return temp-273.15;
+    }
     // Add d3 js date for each datum
     source.forEach(function(d) {
-        d.date = parseDate(d.datetime);
-        d.windspeed = d.windspeed;
-        d.windgust = d.windgust;
+        d.date = parseDate(d.date);
+        var temp=d.data.vars[0].B12101;
+        d.data.vars[0].B12101=parseTemp(temp);
+      //  d.windspeed = d.windspeed;
+      //  d.windgust = d.windgust;
     });
     var width = $('#main').css('width').split('px')[0];
     var height = width/4;
@@ -109,7 +113,7 @@ var draw = function(source) {
             return false;
         }
         )
-        .html(function(d, i) { 
+        .html(function(d, i) {
             return '<a data-toggle="tab" href="#tab_graph_'+d+'">'+d.charAt(0).toUpperCase() + d.substr(1).toLowerCase()+'</a>'
         });
     d3.select('#graphtabs .tab-content').selectAll('div')
@@ -124,7 +128,7 @@ var draw = function(source) {
         }
         )
         .attr('id', function(d,i) { return 'tab_graph_'+d; })
-        .html(function(d, i) { 
+        .html(function(d, i) {
             return '<div class="svgholder '+d+'"></div>';
         });
     vals.forEach(function(k,v) {
@@ -198,7 +202,7 @@ var amatyrlib = function() {
     rivets.formatters.temp = function(value) {
         if(!value)
             return '';
-        if (value != undefined) 
+        if (value != undefined)
             return Number((value).toFixed(1))+ ' °C';
     }
     rivets.formatters.pressure = function(value) {
@@ -294,7 +298,7 @@ var amatyrlib = function() {
      It expects data in the following form
        float unit
        eg. -2.9 hPa
-     and will only look at the value 
+     and will only look at the value
     */
     rivets.binders.texttransition = function(el, value) {
         var newVal, oldVal, transitonTime = 5*1000, color;
