@@ -82,10 +82,14 @@ var AmatYr = function(apiurl) {
             getAndDrawYearData(year);
         });
         Path.map("/day/:day").to(function(){
-            var day = this.params['day'];
-            var url = apiurl + 'day/' + day;
+            var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/2016/06/15';
+            var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/2016/06/15';
+            var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/2016/06/15';
+            var valori=[];
+
+
             // Fetch data for this year
-            d3.json('http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/2016/06/15', function(json) {
+            d3.json(valori, function(json) {
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
