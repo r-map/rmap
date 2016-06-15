@@ -160,6 +160,8 @@ var AmatYr = function(apiurl) {
      * */
 
     // Init the data structure to be used by records and rivets
+
+    // Questa è la tabella in basso con tutti i dati
     var record_weather = {current:{}};
 
     // Fetch record weather
