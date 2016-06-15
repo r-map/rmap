@@ -22,8 +22,8 @@ var AmatYr = function(apiurl) {
     function on_resize(c,t){onresize=function(){clearTimeout(t);t=setTimeout(c,300)};return c};
 
     // Fetch current weather
-    d3.json(apiurl + 'now', function(json) { 
-        current_weather = { 
+    d3.json(apiurl + 'now', function(json) {
+        current_weather = {
             current: json[0]
         };
         rivets.bind(document.getElementById('current_weather'), current_weather);
@@ -71,12 +71,12 @@ var AmatYr = function(apiurl) {
             var year = this.params['year'];
             var yearurl = apiurl + 'year/' + year;
             // Fetch data for this year
-            d3.json(yearurl, function(json) { 
+            d3.json(yearurl, function(json) {
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
-            }); 
-            drawWindrose(year); 
+            });
+            drawWindrose(year);
             // Draw current year
             getAndDrawYearData(year);
         });
@@ -84,32 +84,32 @@ var AmatYr = function(apiurl) {
             var day = this.params['day'];
             var url = apiurl + 'day/' + day;
             // Fetch data for this year
-            d3.json(url+'?start='+day, function(json) { 
+            d3.json('http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/2016/06/13', function(json) { 
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
-            }); 
-            drawWindrose(day); 
+            });
+            drawWindrose(day);
         });
         Path.map("/hour/:arg").to(function(){
             var arg = this.params['arg'];
             var url = apiurl + 'hour/' + arg;
             // Fetch data for this year
-            d3.json(url+'?start='+arg, function(json) { 
-                // Save to global for redrawing
-                currentsource = json;
-                draw(json);
-            }); 
-            drawWindrose(arg); 
-        });
-        Path.map("/").to(function(){
-            var width = $('#main').css('width').split('px')[0];
-            d3.json(apiurl+'hour?start=3day', function(json) { 
+            d3.json(url+'?start='+arg, function(json) {
                 // Save to global for redrawing
                 currentsource = json;
                 draw(json);
             });
-            drawWindrose('3DAY'); 
+            drawWindrose(arg);
+        });
+        Path.map("/").to(function(){
+            var width = $('#main').css('width').split('px')[0];
+            d3.json(apiurl+'hour?start=3day', function(json) {
+                // Save to global for redrawing
+                currentsource = json;
+                draw(json);
+            });
+            drawWindrose('3DAY');
         });
 
         // Start listening for URL events
@@ -123,7 +123,7 @@ var AmatYr = function(apiurl) {
     initPath();
 
     // Fetch current weather with 1 minute interval
-    setInterval(function() { d3.json(apiurl + 'now', function(json) { 
+    setInterval(function() { d3.json(apiurl + 'now', function(json) {
         // Update each key with new val
         for(key in current_weather.current) {
             current_weather.current[key] = json[0][key]
@@ -132,8 +132,8 @@ var AmatYr = function(apiurl) {
 
     // Draw sparkline
     d3.json(apiurl+'recent', function(json) {
-        var tdata = []; 
-        var wdata = []; 
+        var tdata = [];
+        var wdata = [];
         var pdata = [];
         json.forEach(function(k, v) {
             // Ordered wrong way, so unshift
@@ -150,10 +150,10 @@ var AmatYr = function(apiurl) {
         }
     });
 
-    /**** 
+    /****
      *
      *
-     * RECORD WEATHER SECTION 
+     * RECORD WEATHER SECTION
      *
      *
      * */
@@ -173,7 +173,7 @@ var AmatYr = function(apiurl) {
                 record_weather.current[func+k+'age'] = '';
                 /// XXX needs a black list for certain types that doesn't make sense
                 // like min daily_rain or min windspeed
-                d3.json(apiurl + 'record/'+k+'/'+func+'?start='+year, function(json) { 
+                d3.json(apiurl + 'record/'+k+'/'+func+'?start='+year, function(json) {
                     if (json) {
                         record_weather.current[func+k+'date'] = json[0].datetime;
                         record_weather.current[func+k+'value'] = json[0][k];
@@ -185,7 +185,7 @@ var AmatYr = function(apiurl) {
         // Additional entries
         var k = 'rain',
             func = 'sum';
-        d3.json(apiurl + 'record/'+k+'/'+func+'?start='+year, function(json) { 
+        d3.json(apiurl + 'record/'+k+'/'+func+'?start='+year, function(json) {
             record_weather.current[func+k+'value'] = json[0][k];
         });
     }
@@ -272,7 +272,7 @@ var AmatYr = function(apiurl) {
 
         var aggdata =  d3.nest()
           .key(function(d) { return d.jsdate.getMonth(); })
-          .rollup(function(d) { 
+          .rollup(function(d) {
             return {
                 barometer: d3.mean(d, function(g) { return +g.barometer }),
                 windspeed: d3.mean(d, function(g) { return +g.windspeed }),
@@ -294,7 +294,7 @@ var AmatYr = function(apiurl) {
                 values = agg.values,
                 monthname = d3.time.format('%Y %B')(new Date(values.date)),
                 header = monthname,
-                headertext = 
+                headertext =
                     ' Rain: <span class="blue">' + amatyrlib.autoformat('dayrain', values.dayrain) + '</span>' +
                     ' Avg Temp: ' + amatyrlib.autoformat('outtemp', values.outtemp) +
                     ' Min Temp: ' + amatyrlib.autoformat('outtemp', values.tempmin) +
@@ -348,14 +348,14 @@ var AmatYr = function(apiurl) {
     }
     function getAndDrawYearData(year) {
         // Get the year data and use it for both calendar and tabular data
-        d3.json(apiurl + 'year/'+year, function(json) { 
+        d3.json(apiurl + 'year/'+year, function(json) {
             var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
 
             // Add d3 js date for each datum
             json.forEach(function(d) {
                 d.date = ""+(+parseDate(d.datetime))/1000;
             });
-            
+
             updateTabularData(json);
             // The tabular data uses the same data source as calendar, so it is
             // reused in that function
@@ -364,7 +364,7 @@ var AmatYr = function(apiurl) {
     }
     // Draw current year
     getAndDrawYearData(new Date().getFullYear());
-        
+
 
     // Auto update webcam
     setInterval(function () {
