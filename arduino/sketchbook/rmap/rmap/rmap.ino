@@ -72,8 +72,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef REPORTMODE
 #include <Sleep_n0m1.h>
 unsigned long repeattasktime;
+bool newqueued=true;
 Sleep sleep;
 
+/*
 //https://tomblanch.wordpress.com/2013/07/27/resetting_millis/
 extern volatile unsigned long timer0_millis;
 
@@ -83,7 +85,7 @@ void setMillis(unsigned long new_millis){
   timer0_millis = new_millis;
   SREG = oldSREG;
 }
-
+*/
 #endif
 #endif
 
@@ -1704,6 +1706,25 @@ void Repeats() {
   IF_SDEBUG(DBGSERIAL.println(F("#Repeats")));
   #ifdef REPORTMODE
   IF_LOGDATEFILE("Repeats\n");
+
+  #if defined(GSMGPRSMQTT)
+  // connect to mqtt server
+  IF_SDEBUG(DBGSERIAL.println("#MQTT connect in reportmode"));
+  wdt_reset();
+  s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+  for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
+    IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
+    s800.TCPstop();
+    wdt_reset();
+    delay(3000);
+    wdt_reset();
+    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+    wdt_reset();
+  }
+  #endif
+  #if defined(ETHERNETMQTT)
+  rmapconnect();
+  #endif
   #endif
 
 #ifdef ETHERNETON
@@ -1937,6 +1958,7 @@ void Repeats() {
 
 	  IF_SDEBUG(DBGSERIAL.println(F("#error mqtt publish")));
 	  
+#ifndef REPORTMODE
 #ifdef GSMGPRSMQTT
 	  rmapdisconnect();
 	  IF_SDEBUG(DBGSERIAL.println(F("#try to restart sim800 TCP")));
@@ -1963,6 +1985,11 @@ void Repeats() {
 	    }
           }
 #endif
+	  #ifdef REPORTMODE
+	  newqueued=true;
+	  #endif
+#endif
+
 	}
       else
 	{
@@ -2146,6 +2173,21 @@ void Repeats() {
     wdt_reset();
 
   }
+
+  #ifdef REPORTMODE
+  #if defined(GSMGPRSMQTT)
+  // disconnect to mqtt server
+  IF_SDEBUG(DBGSERIAL.println("#MQTT disconnect in reportmode"));
+  wdt_reset();
+  rmapdisconnect();
+  s800.TCPstop();
+  wdt_reset();
+  #endif
+  #if defined(ETHERNETMQTT)
+  rmapdisconnect();
+  #endif
+  #endif
+
 }
 #endif
 
@@ -2583,6 +2625,29 @@ void mgrsdcard(time_t maxtime)
 
   unsigned long int starttime=max(millis() - 60000,1);  // 60 sec tollerance
 
+  #if defined(REPORTMODE)
+  newqueued=false;
+
+  #if defined(GSMGPRSMQTT)
+  // connect to mqtt server
+  IF_SDEBUG(DBGSERIAL.println("#MQTT connect in reportmode"));
+  wdt_reset();
+  s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+  for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
+    IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
+    s800.TCPstop();
+    wdt_reset();
+    delay(3000);
+    wdt_reset();
+    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+    wdt_reset();
+  }
+  #endif
+  #if defined(ETHERNETMQTT)
+  rmapconnect();
+  #endif
+  #endif
+
   strcpy(fileName,FILE_BASE_NAME);
   strcat (fileName,"000");
 
@@ -2745,7 +2810,11 @@ void mgrsdcard(time_t maxtime)
 	  dataFile.close();
 
 	  wdt_reset();
-	  
+
+          #ifdef REPORTMODE
+	  newqueued=newqueued && !success;
+	  #endif
+
 	  // check file size
 	  dataFile = SD.open(fullfileName, O_READ);
 	  size = dataFile.fileSize();
@@ -2787,6 +2856,20 @@ void mgrsdcard(time_t maxtime)
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   // poll mqtt connection if required
   mgrmqtt();
+
+#ifdef REPORTMODE
+  #if defined(GSMGPRSMQTT)
+  // disconnect to mqtt server
+  IF_SDEBUG(DBGSERIAL.println("#MQTT disconnect in reportmode"));
+  wdt_reset();
+  rmapdisconnect();
+  s800.TCPstop();
+  wdt_reset();
+  #endif
+  #if defined(ETHERNETMQTT)
+  rmapdisconnect();
+  #endif
+#endif
 #endif
 
   wdt_reset();
@@ -3386,8 +3469,9 @@ void setup()
 
   wdt_reset();
 
-// connect to mqtt server
- #if defined(GSMGPRSMQTT)
+#ifndef REPORTMODE
+  // connect to mqtt server
+  #if defined(GSMGPRSMQTT)
   wdt_reset();
   s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
   for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
@@ -3399,10 +3483,11 @@ void setup()
     s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
     wdt_reset();
   }
-#endif
+  #endif
 
-#if defined(ETHERNETMQTT)
+  #if defined(ETHERNETMQTT)
   rmapconnect();
+  #endif
 #endif
 
 #if defined(SDCARD)
@@ -3441,9 +3526,12 @@ void setup()
 #endif
 
   wdt_reset();
+
+#ifndef REPORTMODE
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   // poll mqtt connection if required
   mgrmqtt();
+#endif
 #endif
 
   #if defined(REPORTMODE)
@@ -3474,7 +3562,6 @@ void setup()
 #endif
 
   IF_SDEBUG(DBGSERIAL.println(F("#setup terminated")));
-
 }
 
 // the main loop
@@ -3492,32 +3579,46 @@ void loop()
   wdt_reset();
 
   #ifdef REPORTMODE
+  long dt;
 
-  long dt=configuration.rt - (now() - repeattasktime) ; 
-  if (dt >90) {
-    #if defined(SDCARD)
-    // recover data when in report mode
-    mgrsdcard(configuration.rt);
-    wdt_reset();
-    #endif
+  #if defined(SDCARD)
+  dt=configuration.rt - (now() - repeattasktime) ; 
+  if ( dt >90 ) {
+    if (newqueued) {
+      // recover data when in report mode
+      IF_SDEBUG(DBGSERIAL.print(F("#start mgrsdcard: ")));
+      IF_SDEBUG(digitalClockDisplay(now()));
+
+      mgrsdcard(configuration.rt);
+
+      IF_SDEBUG(DBGSERIAL.print(F("#end mgrsdcard: ")));
+      IF_SDEBUG(digitalClockDisplay(now()));
+
+      wdt_reset();
+    }
   }
+  #endif
+
   dt=configuration.rt - (now() - repeattasktime) ; 
   if (dt >10) {
     // sleep with energy saving
+
+    IF_SDEBUG(DBGSERIAL.print(F("#start sleep: ")));
+    IF_SDEBUG(digitalClockDisplay(now()));
+
     IF_SDEBUG(DBGSERIAL.print(F("#sleep: ")));
     IF_SDEBUG(DBGSERIAL.println(dt-3));
     delay(100);
-    sleep.pwrDownMode(); //set sleep mode
+    sleep.idleMode(); //set sleep mode
+    //sleep.pwrDownMode(); //set sleep mode
     sleep.sleepDelay((dt-3)*1000); //sleep for: sleepTime
-    setMillis(millis()+((dt-3)*1000));   
+    //setMillis(millis()+((dt-3)*1000));   
     wdt_reset();
     IF_SDEBUG(DBGSERIAL.println(F("#endsleep")));
-    #if defined(DEBUGONSERIAL)
-    DBGSERIAL.print(F("#time: "));
-    digitalClockDisplay(now());
-    #endif
-  }
 
+    IF_SDEBUG(DBGSERIAL.print(F("#end sleep: ")));
+    IF_SDEBUG(digitalClockDisplay(now()));
+  }
   // call repeat when required
   Alarm.delay(0);
   wdt_reset();
@@ -3549,9 +3650,11 @@ void loop()
   wdt_reset();
 #endif
 
+#ifndef REPORTMODE
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   if (configured) mgrmqtt();
   wdt_reset();
+#endif
 #endif
 
 #ifdef TCPSERVER

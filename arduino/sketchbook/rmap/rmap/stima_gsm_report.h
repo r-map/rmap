@@ -51,8 +51,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // force use of gsm mqtt
 #undef ETHERNETMQTT
+#undef GSMGPRSHTTP
 
-#undef GSMGPRSMQTT
-#define GSMGPRSHTTP
+#define GSMGPRSMQTT
 
 #define REPORTMODE
