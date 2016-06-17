@@ -1441,19 +1441,12 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MEAN60);
-  short unsigned int ntry=3;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+
   msb = Wire.read();
   lsb = Wire.read();
   
@@ -1464,18 +1457,11 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MEAN60);
 
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+
   msb = Wire.read();
   lsb = Wire.read();
   
@@ -1494,9 +1480,15 @@ aJsonObject* SensorDriverTH60mean::getJson()
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverTH60mean::get(values,2) == SD_SUCCESS){
 
+  short unsigned int ntry=NTRY;
 
+  while (ntry > 0 && SensorDriverTH60mean::get(values,2) != SD_SUCCESS){
+    delay(100);
+    ntry--;
+  }
+
+  if (ntry > 0){
     if (values[0] >= 0){
       aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
     }else{
@@ -1575,22 +1567,14 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MEAN);
-  short unsigned int ntry=3;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
-  
+
   if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
 
 
@@ -1598,21 +1582,13 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MEAN);
 
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
-  
+
   if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
 
   _timing=0;
@@ -1628,8 +1604,15 @@ aJsonObject* SensorDriverTHmean::getJson()
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverTHmean::get(values,2) == SD_SUCCESS){
 
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverTHmean::get(values,2) != SD_SUCCESS){
+    delay(100);
+    ntry--;
+  }
+
+  if (ntry > 0){
     if (values[0] >= 0){
       aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
     }else{
@@ -1711,41 +1694,24 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MIN);
-  short unsigned int ntry=3;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
-  
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
 
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MIN);
 
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
   
@@ -1764,8 +1730,15 @@ aJsonObject* SensorDriverTHmin::getJson()
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverTHmin::get(values,2) == SD_SUCCESS){
 
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverTHmin::get(values,2) != SD_SUCCESS){
+    delay(100);
+    ntry--;
+  }
+
+  if (ntry > 0){
     if (values[0] >= 0){
       aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
     }else{
@@ -1844,44 +1817,26 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_MAX);
 
-  short unsigned int ntry=3;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
-  
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
 
+  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MAX);
 
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    delay(100);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(1);
-
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
-  
+
   if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
 
   _timing=0;
@@ -1897,8 +1852,15 @@ aJsonObject* SensorDriverTHmax::getJson()
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverTHmax::get(values,2) == SD_SUCCESS){
 
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverTHmax::get(values,2) != SD_SUCCESS){
+    delay(100);
+    ntry--;
+  }
+
+  if (ntry > 0){
     if (values[0] >= 0){
       aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
     }else{

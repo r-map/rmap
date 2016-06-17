@@ -1706,25 +1706,6 @@ void Repeats() {
   IF_SDEBUG(DBGSERIAL.println(F("#Repeats")));
   #ifdef REPORTMODE
   IF_LOGDATEFILE("Repeats\n");
-
-  #if defined(GSMGPRSMQTT)
-  // connect to mqtt server
-  IF_SDEBUG(DBGSERIAL.println("#MQTT connect in reportmode"));
-  wdt_reset();
-  s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
-  for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
-    IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
-    s800.TCPstop();
-    wdt_reset();
-    delay(3000);
-    wdt_reset();
-    s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
-    wdt_reset();
-  }
-  #endif
-  #if defined(ETHERNETMQTT)
-  rmapconnect();
-  #endif
   #endif
 
 #ifdef ETHERNETON
@@ -3589,7 +3570,7 @@ void loop()
       IF_SDEBUG(DBGSERIAL.print(F("#start mgrsdcard: ")));
       IF_SDEBUG(digitalClockDisplay(now()));
 
-      mgrsdcard(configuration.rt);
+      mgrsdcard(dt-30);
 
       IF_SDEBUG(DBGSERIAL.print(F("#end mgrsdcard: ")));
       IF_SDEBUG(digitalClockDisplay(now()));
@@ -3600,25 +3581,52 @@ void loop()
   #endif
 
   dt=configuration.rt - (now() - repeattasktime) ; 
-  if (dt >10) {
+  if (dt >30) {
     // sleep with energy saving
 
     IF_SDEBUG(DBGSERIAL.print(F("#start sleep: ")));
     IF_SDEBUG(digitalClockDisplay(now()));
 
     IF_SDEBUG(DBGSERIAL.print(F("#sleep: ")));
-    IF_SDEBUG(DBGSERIAL.println(dt-3));
+    IF_SDEBUG(DBGSERIAL.println(dt-25));
     delay(100);
     sleep.idleMode(); //set sleep mode
     //sleep.pwrDownMode(); //set sleep mode
-    sleep.sleepDelay((dt-3)*1000); //sleep for: sleepTime
-    //setMillis(millis()+((dt-3)*1000));   
+    sleep.sleepDelay((dt-25)*1000); //sleep for: sleepTime
+    //setMillis(millis()+((dt-25)*1000));   
     wdt_reset();
     IF_SDEBUG(DBGSERIAL.println(F("#endsleep")));
 
     IF_SDEBUG(DBGSERIAL.print(F("#end sleep: ")));
     IF_SDEBUG(digitalClockDisplay(now()));
   }
+
+  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  if (!mqttclient.connected())
+    {
+      // connect to mqtt server
+      // this is not in Repeat function becouse we start before to connect 
+      // to be in sync and have time to manage mqtt RPC
+      #if defined(GSMGPRSMQTT)
+      IF_SDEBUG(DBGSERIAL.println("#MQTT connect in reportmode"));
+      wdt_reset();
+      s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+      for (int i = 0; ((i < 10) & !rmapconnect()); i++) {
+        IF_SDEBUG(DBGSERIAL.println("#MQTT connect failed"));
+	s800.TCPstop();
+	wdt_reset();
+	delay(3000);
+	wdt_reset();
+	s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+	wdt_reset();
+      }
+      #endif
+      #if defined(ETHERNETMQTT)
+      rmapconnect();
+      #endif
+    }
+  #endif
+
   // call repeat when required
   Alarm.delay(0);
   wdt_reset();
@@ -3650,11 +3658,9 @@ void loop()
   wdt_reset();
 #endif
 
-#ifndef REPORTMODE
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
   if (configured) mgrmqtt();
   wdt_reset();
-#endif
 #endif
 
 #ifdef TCPSERVER

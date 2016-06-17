@@ -154,10 +154,11 @@ void requestEvent()
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3),HEX));
 
   if ((millis()-regsettime) > 500) {
-    Wire.write(0xFF);
-    Wire.write(0xFF);
-    Wire.write(0xFF);
-    Wire.write(0xFF);
+    //Wire.write(0xFF);
+    //Wire.write(0xFF);
+    //Wire.write(0xFF);
+    //Wire.write(0xFF);
+    IF_SDEBUG(Serial.println("late"));
   }else{
 
     Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);

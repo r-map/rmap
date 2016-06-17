@@ -18,6 +18,9 @@
 // use AES library for radio transport
 //#define AES
 
+// retry number for multimaster I2C configuration
+#define NTRY 3 
+
 // include TMP driver
 #define TMPDRIVER
 
