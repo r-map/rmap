@@ -1588,7 +1588,7 @@ time_t periodicResyncGSMRTC() {
   s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   for (int i = 0; ((i < 10) &  !s800.checkNetwork()); i++) {
     s800.stopNetwork();
-    delay(1000);
+    delay(200);
     s800.startNetwork(GSMAPN, GSMUSER, GSMPASSWORD);
   }
 
@@ -2717,6 +2717,10 @@ void mgrsdcard(time_t maxtime)
 			  record.done=true;
 			}
 
+		      // we cannot put data too fast
+		      // we have to develop ack for qos=1
+		      delay(1000);
+
 		      mgrmqtt();
 
 #endif
@@ -2793,7 +2797,7 @@ void mgrsdcard(time_t maxtime)
 	  wdt_reset();
 
           #ifdef REPORTMODE
-	  newqueued=newqueued && !success;
+	  newqueued=newqueued || (!success);
 	  #endif
 
 	  // check file size
