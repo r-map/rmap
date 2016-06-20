@@ -231,8 +231,9 @@ Mega2560	      	        	   21	   20	   19	   18
 
 #define MAIN_BUFFER_SIZE 192
 
-// set the frequensy 
-#define I2C_CLOCK 50000
+// set the frequency
+// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
+#define I2C_CLOCK 30418
 
 // MQTT subscribe topic prefix for RPC
 #define MQTTRPCPREFIX "rpc/"

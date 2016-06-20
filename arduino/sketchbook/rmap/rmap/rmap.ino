@@ -2965,8 +2965,10 @@ void setup()
   digitalWrite( SCL, LOW);
 
   //set the i2c clock 
-  TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
-  //Wire.setclock(31000L)
+  //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //TWBR =255    //  30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz
+  Wire.setClock(I2C_CLOCK);
+
 
 #if defined(LCD)
   /* Initialise the LCD */

@@ -619,7 +619,7 @@ int SensorDriverHih6100::prepare(unsigned long& waittime)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   _timing=millis();
-  waittime= 10ul;
+  waittime= 40ul;   //The measurement cycle duration is typically 36.65 ms for temperature and humidity readings
 
   return SD_SUCCESS;
 
@@ -630,7 +630,6 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
   
   /*   python code
     val = self.bus.read_i2c_block_data(self.address,0,4)
@@ -648,35 +647,28 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
   uint16_t t;
   
   Wire.requestFrom(_address, 4);
-  if(Wire.available()) {
+  if(Wire.available() >= 4) {
     x = Wire.read();
     y = Wire.read();
     s = x >> 6;
     
     //status 0 == OK
-    switch(s) { 
+    switch(s) {
     case 0:
       h = (((uint16_t) (x & 0x3f)) << 8) | y;
       x = Wire.read();
       y = Wire.read();
       t = ((((uint16_t) x) << 8) | y) >> 2;
       
-      Wire.endTransmission();
+      //Wire.endTransmission();
       break;
 
-    case 1:
-      Wire.endTransmission();
-      return SD_INTERNAL_ERROR;             // End Write Transmission 
-      
-    case 2:
-      Wire.endTransmission();
-      return SD_INTERNAL_ERROR;             // End Write Transmission 
-
     default:
-      return SD_INTERNAL_ERROR;             // End Write Transmission 
+      return SD_INTERNAL_ERROR;
     }
+
   }else{
-    return SD_INTERNAL_ERROR;             // End Write Transmission  
+    return SD_INTERNAL_ERROR;
   }
 
   if (lenvalues >= 1)  values[0] = (long) (float(h) / 16382 * 100) ;
@@ -1087,7 +1079,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_WIND_DD);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
 
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2){
@@ -1102,7 +1094,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_WIND_FF);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2){
     return SD_INTERNAL_ERROR;
@@ -1214,7 +1206,7 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_RAIN_TIPS);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
 
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2){
@@ -1321,7 +1313,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_TEMPERATURE_SAMPLE);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
 
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2){
@@ -1330,14 +1322,16 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
-
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_SAMPLE);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
 
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2){
@@ -1346,7 +1340,10 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   _timing=0;
 
@@ -1443,14 +1440,17 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   Wire.write(I2C_TEMPERATURE_MEAN60);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
 
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
 
   // get humidity
@@ -1458,14 +1458,17 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   Wire.write(I2C_HUMIDITY_MEAN60);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
 
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   _timing=0;
 
@@ -1569,27 +1572,32 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   Wire.write(I2C_TEMPERATURE_MEAN);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
-
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MEAN);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
-  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   _timing=0;
 
@@ -1696,26 +1704,32 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   Wire.write(I2C_TEMPERATURE_MIN);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MIN);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
   
-  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   _timing=0;
 
@@ -1818,27 +1832,32 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   Wire.write(I2C_TEMPERATURE_MAX);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) ;
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
 
   // get humidity
   Wire.beginTransmission(_address);   // Open I2C line in write mode
   Wire.write(I2C_HUMIDITY_MAX);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(1);
+  delay(10);
   Wire.requestFrom(_address, 2);
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
-  if (lenvalues >= 2)  values[1] = ((int) lsb<<8 | msb) ;
-
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
   _timing=0;
 
   return SD_SUCCESS;

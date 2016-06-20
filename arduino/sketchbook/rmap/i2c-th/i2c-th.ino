@@ -153,11 +153,15 @@ void requestEvent()
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),HEX));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3),HEX));
 
-  if ((millis()-regsettime) > 500) {
+  if ((millis()-regsettime) > 1000) {
     //Wire.write(0xFF);
     //Wire.write(0xFF);
     //Wire.write(0xFF);
     //Wire.write(0xFF);
+    Wire.write(0);
+    Wire.write(0);
+    Wire.write(0);
+    Wire.write(0);
     IF_SDEBUG(Serial.println("late"));
   }else{
 
@@ -387,12 +391,11 @@ void setup() {
 
   //Start I2C communication routines
   Wire.begin(I2C_TH_ADDRESS);
-
-  // set the frequency 
-  #define I2C_CLOCK 50000
   
   //set the i2c clock 
-  TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //TWBR =255    //  30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz
+  Wire.setClock(I2C_CLOCK);
 
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
@@ -500,17 +503,17 @@ void loop() {
 	  if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
 	  if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
 	}else{
-	  IF_SDEBUG(Serial.println(F("Error: RETRY")));
-	  delay(20);
-	  if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
-	    for (int ii = 0; ii < lenvalues; ii++) {
-	      IF_SDEBUG(Serial.print(F("value read: ")));IF_SDEBUG(Serial.println(values[ii]));
-	    }
-	    if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
-	    if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
-	  }else{
+	  //IF_SDEBUG(Serial.println(F("Error: RETRY")));
+	  //delay(20);
+	  //if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
+	  //  for (int ii = 0; ii < lenvalues; ii++) {
+	  //    IF_SDEBUG(Serial.print(F("value read: ")));IF_SDEBUG(Serial.println(values[ii]));
+	  //  }
+	  //  if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
+	  //  if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
+	  //}else{
 	    IF_SDEBUG(Serial.println(F("Error")));
-	  }
+	  //}
 	}
       }
     }

@@ -17,3 +17,6 @@
 #else
 #define IF_SDEBUG(x)
 #endif
+
+// set the I2C clock frequency 
+#define I2C_CLOCK 30418
