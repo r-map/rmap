@@ -4,6 +4,19 @@ var AmatYr = function(apiurl) {
     this.windroseData;
     this.that = this;
     that = this;
+    var day = new Date();
+    var today=day.getDate()
+    var yesterday = day.getDate()-1;
+    var month = day.getMonth()+1; //January is 0!
+
+    // il mese deve essere del tipo 01, 02...... 10, 11, 12
+    if(month<10){
+      month='0'+month;
+    }
+
+    var year = day.getFullYear();
+
+
     currentsource = false;
     // array of all sparklines, used for updating them dynamically
     var sparklines = [];
@@ -20,7 +33,7 @@ var AmatYr = function(apiurl) {
 
     // debulked onresize handler
     function on_resize(c,t){onresize=function(){clearTimeout(t);t=setTimeout(c,300)};return c};
-
+/*
     // Fetch current weather
     d3.json(apiurl + 'now', function(json) {
         current_weather = {
@@ -28,7 +41,7 @@ var AmatYr = function(apiurl) {
         };
         rivets.bind(document.getElementById('current_weather'), current_weather);
     });
-
+*/
     /****
      *
      *
@@ -36,6 +49,8 @@ var AmatYr = function(apiurl) {
      *
      *
      */
+
+     /*
     var drawWindrose = function(startarg) {
         if (this.windroseData == undefined) {
             // Get all the wind history and draw two wind roses
@@ -54,6 +69,8 @@ var AmatYr = function(apiurl) {
     // Create windroses
     windrose = new WindRose();
 
+*/
+
 // In questa sezione creo i Grafici
 
     var initPath = function() {
@@ -69,44 +86,158 @@ var AmatYr = function(apiurl) {
         });
 
         Path.map("/year/:year").to(function(){
-            var year = this.params['year'];
-            var yearurl = apiurl + 'year/' + year;
-            // Fetch data for this year
-            d3.json(yearurl, function(json) {
-                // Save to global for redrawing
-                currentsource = json;
-                draw(json);
-            });
-            drawWindrose(year);
-            // Draw current year
-            getAndDrawYearData(year);
+          var valori=[];
+          var giorno = this.params['year'];
+          if(giorno==='2016'){
+            giorno=""+year;
+          }
+          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+giorno;
+          var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+giorno;
+          var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+giorno;
+          var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+giorno;
+
+          d3.json(temp_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var elem={};
+              var item=json[i];
+              elem.datetime=item.date;
+              elem.outtemp=(item.data.vars[0].B12101)-273.15;
+              valori.push(elem);
+          }
+
+          });
+
+          d3.json(press_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+              valori[i].barometer=(item.data.vars[0].B10004)/100;
+            }
+          });
+
+          d3.json(humidity_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+            valori[i].humidity=item.data.vars[0].B13003;
+            }
+          });
+
+          d3.json(daily_rain, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+            valori[i].dayrain=item.data.vars[0].B13011;
+            }
+          });
+          currentsource=valori;
+          // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
+         draw(valori);
+
         });
+
+        // grafico della sezione day/today e day/yesterday
         Path.map("/day/:day").to(function(){
-            var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/2016/06/15';
-            var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/2016/06/15';
-            var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/2016/06/15';
             var valori=[];
+            var giorno = this.params['day'];
+            if(giorno==='today'){
+              giorno=today
+            }
+            else {
+              giorno=yesterday;
+            }
+            var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+year+'/'+month+'/'+giorno;
+            var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+year+'/'+month+'/'+giorno;
+            var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+year+'/'+month+'/'+giorno;
+            var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+year+'/'+month+'/'+giorno;
 
+            d3.json(temp_url, function(json) {
+              for(var i=0;i<json.length;i++){
+                var elem={};
+                var item=json[i];
+                elem.datetime=item.date;
+                elem.outtemp=(item.data.vars[0].B12101)-273.15;
+                valori.push(elem);
+            }
 
-            // Fetch data for this year
-            d3.json(valori, function(json) {
-                // Save to global for redrawing
-                currentsource = json;
-                draw(json);
             });
-            drawWindrose(day);
+
+            d3.json(press_url, function(json) {
+              for(var i=0;i<json.length;i++){
+                var item=json[i];
+                valori[i].barometer=(item.data.vars[0].B10004)/100;
+              }
+            });
+
+            d3.json(humidity_url, function(json) {
+              for(var i=0;i<json.length;i++){
+                var item=json[i];
+              valori[i].humidity=item.data.vars[0].B13003;
+              }
+            });
+
+            d3.json(daily_rain, function(json) {
+              for(var i=0;i<json.length;i++){
+                var item=json[i];
+              valori[i].dayrain=item.data.vars[0].B13011;
+              }
+            });
+            currentsource=valori;
+            // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
+           draw(valori);
+
+          //  drawWindrose(day);
         });
+
+        //grafico della sezione hour/month
         Path.map("/hour/:arg").to(function(){
-            var arg = this.params['arg'];
-            var url = apiurl + 'hour/' + arg;
-            // Fetch data for this year
-            d3.json(url+'?start='+arg, function(json) {
-                // Save to global for redrawing
-                currentsource = json;
-                draw(json);
-            });
-            drawWindrose(arg);
+          var valori=[];
+          var giorno = this.params['arg'];
+          if(giorno==='month'){
+            giorno=""+year+'/'+month;
+          }
+          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+giorno;
+          var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+giorno;
+          var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+giorno;
+          var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+giorno;
+
+          d3.json(temp_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var elem={};
+              var item=json[i];
+              elem.datetime=item.date;
+              elem.outtemp=(item.data.vars[0].B12101)-273.15;
+              valori.push(elem);
+          }
+
+          });
+
+          d3.json(press_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+              valori[i].barometer=(item.data.vars[0].B10004)/100;
+            }
+          });
+
+          d3.json(humidity_url, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+            valori[i].humidity=item.data.vars[0].B13003;
+            }
+          });
+
+          d3.json(daily_rain, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+            valori[i].dayrain=item.data.vars[0].B13011;
+            }
+          });
+          currentsource=valori;
+          // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
+         draw(valori);
+
+        //    drawWindrose(arg);
         });
+/*
+        // sezione del sito dei 3 giorni, non ha url, è una sorta di home
+
         Path.map("/").to(function(){
             var width = $('#main').css('width').split('px')[0];
             d3.json(apiurl+'hour?start=3day', function(json) {
@@ -116,7 +247,7 @@ var AmatYr = function(apiurl) {
             });
             drawWindrose('3DAY');
         });
-
+*/
         // Start listening for URL events
         Path.history.listen(true);  // Yes, please fall back to hashtags if HTML5 is not supported.
 
@@ -178,7 +309,7 @@ var AmatYr = function(apiurl) {
                 record_weather.current[func+k+'date'] = '';
                 record_weather.current[func+k+'value'] = '';
                 record_weather.current[func+k+'age'] = '';
-                /// XXX needs a black list for certain types that doesn't make sense
+                /// XX needs a black list for certain types that doesn't make sense
                 // like min daily_rain or min windspeed
                 d3.json(apiurl + 'record/'+k+'/'+func+'?start='+year, function(json) {
                     if (json) {
@@ -223,6 +354,10 @@ var AmatYr = function(apiurl) {
         $(this).tab('show');
 
     });
+
+
+
+
 
     /* Calendar generation */
     var updateCalender = function(json, year) {

@@ -75,14 +75,10 @@ var draw = function(source) {
 
     // The date format of SQL
     var parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S").parse;
-    function parseTemp(temp){
-      return temp-273.15;
-    }
+
     // Add d3 js date for each datum
     source.forEach(function(d) {
-        d.date = parseDate(d.date);
-        var temp=d.data.vars[0].B12101;
-        d.data.vars[0].B12101=parseTemp(temp);
+        d.date = parseDate(d.datetime);
       //  d.windspeed = d.windspeed;
       //  d.windgust = d.windgust;
     });

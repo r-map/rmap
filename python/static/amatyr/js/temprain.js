@@ -44,7 +44,7 @@ var temprain = function(el, data, width, height) {
     if (data[0].tempmin != undefined) {
         ydomain = [d3.min(data, function(d) { return d.tempmin }), d3.max(data, function(d) { return d.tempmax; })];
     }else {
-        ydomain = d3.extent(data, function(d) { return d.data.vars[0].B12101});
+        ydomain = d3.extent(data, function(d) { return d.outtemp});
     }
     y.domain(ydomain);
 
@@ -170,7 +170,7 @@ var temprain = function(el, data, width, height) {
     // Temp line
     var line = d3.svg.line()
         .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.data.vars[0].B12101); })
+        .y(function(d) { return y(d.outtemp); })
         .interpolate(interpolation)
 
     var pathos = svg.append("path")
