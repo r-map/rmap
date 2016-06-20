@@ -850,6 +850,11 @@ bool SIM800::TCPstart(const char *apn, const char *user, const char *pwd ) {
   IF_SDEBUG(Serial.print(F("#sim800:")));
   IF_SDEBUG(ATcommand("+CGATT?", buf));
 
+  // If not attached to GPRS attach to GPRS
+  if(!ATcommand("+CGATT?", buf, "+CGATT: 1", "+CGATT: 0", 5000)) {
+    if(!ATcommand("+CGATT=1", buf, OKSTR, ERRORSTR, 10000)) return false;
+  }
+  
   //  if (!ATcommand("+CIPMUX=0", buf)) return false; //IP Single Connection
   if (!ATcommand("+CIPMODE=1", buf)) return false; //IP transparent mode
   if (!ATcommand("+CIPCCFG=8,2,1024,1,0,1460,50", buf)) return false; // fixed the second parameter minimum is 2
@@ -894,6 +899,11 @@ bool SIM800::TCPstop()
   state &= ~STATE_REGISTERED;
 
   if (!ATcommand("+CIPSHUT", buf,"SHUT OK", ERRORSTR, 65000)) return false;
+
+  // If attached to GPRS detach GPRS
+  if(!ATcommand("+CGATT?", buf, "+CGATT: 0", "+CGATT: 1", 5000)) {
+    if(!ATcommand("+CGATT=0", buf)) return false;
+  }
 
   return true;
 }
