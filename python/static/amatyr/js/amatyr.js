@@ -85,6 +85,16 @@ var AmatYr = function(apiurl) {
             Path.history.pushState({}, "", $(this).attr("href"));
         });
 
+        Path.map("/").to(function(){
+                   var width = $('#main').css('width').split('px')[0];
+                   d3.json(apiurl+'hour?start=3day', function(json) {
+                       // Save to global for redrawing
+                       currentsource = json;
+                       draw(json);
+                   });
+                   drawWindrose('3DAY');
+               });
+
         Path.map("/year/:year").to(function(){
           var valori=[];
           var giorno = this.params['year'];
