@@ -38,8 +38,10 @@
           <a class="brand" href="/"><i class="fa fa-cloud"></i> RMAP</a>
           <div class="nav-collapse collapse">
             <ul id="main_nav" class="nav">
+                <li class="active"> <a href="/">3 day</a></li>
                 <li class=""><a href="/day/today">Today</a></li>
                 <li class=""><a href="/day/yesterday">Yesterday</a></li>
+                <li class=""><a href="/hour/week">Week</a></li>
                 <li class=""><a href="/hour/month">Month</a></li>
                 <li class=""><a href="/year/2016">2016</a></li>
             </ul>
@@ -162,11 +164,9 @@
                 <th><i class="fa fa-clock-o"></i></th>
                 <th data-text="d.datetime | date"></th>
             </tr>
-            <tr class="avg"><td>Temperature </td><td><i class="icon-met icon-temp"></i></td><td data-text="d.outtemp | temp"></td></tr>
+                <tr class="avg"><td>Temperature </td><td><i class="icon-met icon-temp"></i></td><td data-text="d.outtemp | temp"></td></tr>
                 <tr class="rain"><td>Daily rain </td><td><i class="fa fa-tint"></i></td><td data-text="d.dayrain | rain"></td></tr>
-                <tr class="wind"><td>Wind speed </td><td><i class="icon-met icon-wind"></i></td><td data-text="d.windspeed | wind"></td></tr>
-                <tr class="wind"><td>Wind direction </td><td><i class="icon-met icon-compass"></i></td><td data-text="d.winddir | degree"></td></tr>
-            <tr class="pressure"><td>Pressure</td><td><i class="fa fa-signal"></i></td><td data-text="d.barometer | pressure"></td></tr>
+                <tr class="pressure"><td>Pressure</td><td><i class="fa fa-signal"></i></td><td data-text="d.barometer | pressure"></td></tr>
                 <tr class="hum"><td>Humidity</td><td><i class="fa fa-dashboard"></i></td><td data-text="d.outhumidity | percent"></td></tr>
         </table>
     </div>

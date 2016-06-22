@@ -229,7 +229,7 @@ var amatyrlib = function() {
         return 'display:inline-block;-o-transform: rotate('+value+'deg);-ms-transform: rotate('+value+'deg);-moz-transform: rotate('+value+'deg);-webkit-transform: rotate('+value+'deg);transform: rotate('+value+'deg);'
     }
     rivets.formatters.date = function(date) {
-        var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+        var parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S").parse;
         var date = parseDate(date);
         return date.getHours().pad(2) + ':' + date.getMinutes().pad(2);
     }
@@ -255,7 +255,7 @@ var amatyrlib = function() {
     /* Formatter helper */
     this.autoformat = function(name, value) {
         if (name == undefined || value == undefined) return value;
-        var parseDate = d3.time.format("%Y-%m-%d %H:%M:%S").parse;
+        var parseDate = d3.time.format("%Y-%m-%dT%H:%M:%S").parse;
         if (name == 'datetime') {
             var date = parseDate(value);
             return d3.time.format('%b')(date) + ' ' + date.getDate().pad(2);

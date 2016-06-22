@@ -4,18 +4,14 @@ var AmatYr = function(apiurl) {
     this.windroseData;
     this.that = this;
     that = this;
-    var day = new Date();
-    var today=day.getDate()
-    var yesterday = day.getDate()-1;
-    var month = day.getMonth()+1; //January is 0!
 
-    // il mese deve essere del tipo 01, 02...... 10, 11, 12
-    if(month<10){
-      month='0'+month;
+    var week={};
+    var i;
+    for(i=0; i<7; i++){
+      var day=new Date();
+      day.setDate(day.getDate()-i);
+      week['day_'+i]=day;
     }
-
-    var year = day.getFullYear();
-
 
     currentsource = false;
     // array of all sparklines, used for updating them dynamically
@@ -85,21 +81,170 @@ var AmatYr = function(apiurl) {
             Path.history.pushState({}, "", $(this).attr("href"));
         });
 
+//grafico dei 3 giorni
+
         Path.map("/").to(function(){
-                   var width = $('#main').css('width').split('px')[0];
-                   d3.json(apiurl+'hour?start=3day', function(json) {
-                       // Save to global for redrawing
-                       currentsource = json;
-                       draw(json);
-                   });
-                   drawWindrose('3DAY');
-               });
+        var valori=[];
+
+      //variabili per comporre gli url dei vari giorni
+        var giorno1;
+        var mese1;
+        var anno1;
+        giorno1=""+week["day_0"].getDate();
+        mese1=+week["day_0"].getMonth()+1;
+        if(mese1<10){
+          mese1="0"+mese1;
+        }
+        else{
+          mese1=""+mese1;
+        }
+        anno1=""+week["day_0"].getFullYear();
+
+        var giorno2;
+        var mese2;
+        var anno2;
+        giorno2=""+week["day_1"].getDate();
+        mese2=+week["day_1"].getMonth()+1;
+        if(mese2<10){
+          mese2="0"+mese2;
+        }
+        else{
+          mese2=""+mese2;
+        }
+        anno2=""+week["day_1"].getFullYear();
+
+        var giorno3;
+        var mese3;
+        var anno3;
+        giorno3=""+week["day_2"].getDate();
+        mese3=+week["day_2"].getMonth()+1;
+        if(mese3<10){
+          mese3="0"+mese3;
+        }
+        else{
+          mese3=""+mese3;
+        }
+        anno3=""+week["day_2"].getFullYear();
+
+        //giorno 1
+        var temp_url1='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno1+'/'+mese1+'/'+giorno1;
+        var press_url1='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno1+'/'+mese1+'/'+giorno1;
+        var humidity_url1='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno1+'/'+mese1+'/'+giorno1;
+        var daily_rain1='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno1+'/'+mese1+'/'+giorno1;
+
+        //giorno 2
+        var temp_url2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
+        var press_url2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
+        var humidity_url2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
+        var daily_rain2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
+
+        //giorno 3
+        var temp_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
+        var press_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
+        var humidity_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
+        var daily_rain3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
+
+
+
+        d3.json(temp_url1, function(json) {
+          for(var i=0;i<json.length;i++){
+            var elem={};
+            var item=json[i];
+            elem.datetime=item.date;
+            elem.outtemp=(item.data.vars[0].B12101)-273.15;
+            valori.push(elem);
+        }
+        });
+        d3.json(temp_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var elem={};
+            var item=json[i];
+            elem.datetime=item.date;
+            elem.outtemp=(item.data.vars[0].B12101)-273.15;
+            valori.push(elem);
+        }
+        });
+
+
+        d3.json(temp_url3, function(json) {
+          for(var i=0;i<json.length;i++){
+            var elem={};
+            var item=json[i];
+            elem.datetime=item.date;
+            elem.outtemp=(item.data.vars[0].B12101)-273.15;
+            valori.push(elem);
+        }
+        });
+
+
+        d3.json(press_url1, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+            valori[i].barometer=(item.data.vars[0].B10004)/100;
+          }
+        });
+        d3.json(press_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+            valori[i].barometer=(item.data.vars[0].B10004)/100;
+          }
+        });
+        d3.json(press_url3, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+            valori[i].barometer=(item.data.vars[0].B10004)/100;
+          }
+        });
+
+        d3.json(humidity_url1, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].humidity=item.data.vars[0].B13003;
+          }
+        });
+        d3.json(humidity_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].humidity=item.data.vars[0].B13003;
+          }
+        });
+        d3.json(humidity_url3, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].humidity=item.data.vars[0].B13003;
+          }
+        });
+
+        d3.json(daily_rain1, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].dayrain=item.data.vars[0].B13011;
+          }
+        });
+        d3.json(daily_rain2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].dayrain=item.data.vars[0].B13011;
+          }
+        });
+        d3.json(daily_rain3, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[i].dayrain=item.data.vars[0].B13011;
+          }
+        });
+
+        currentsource=valori;
+        // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
+       draw(valori);
+
+        });
 
         Path.map("/year/:year").to(function(){
           var valori=[];
           var giorno = this.params['year'];
           if(giorno==='2016'){
-            giorno=""+year;
+            giorno=""+2016;
           }
           var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+giorno;
           var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+giorno;
@@ -127,7 +272,7 @@ var AmatYr = function(apiurl) {
           d3.json(humidity_url, function(json) {
             for(var i=0;i<json.length;i++){
               var item=json[i];
-            valori[i].humidity=item.data.vars[0].B13003;
+            valori[i].outhumidity=item.data.vars[0].B13003;
             }
           });
 
@@ -147,16 +292,35 @@ var AmatYr = function(apiurl) {
         Path.map("/day/:day").to(function(){
             var valori=[];
             var giorno = this.params['day'];
+            var mese;
+            var anno;
             if(giorno==='today'){
-              giorno=today
+              giorno=""+week["day_0"].getDate();
+              mese=+week["day_0"].getMonth()+1;
+              if(mese<10){
+                mese="0"+mese;
+              }
+              else{
+                mese=""+mese;
+              }
+
+              anno=""+week["day_0"].getFullYear();
             }
             else {
-              giorno=yesterday;
+              giorno=""+week["day_1"].getDate();
+              mese=week["day_1"].getMonth()+1;
+              if(mese<10){
+                mese="0"+mese;
+              }
+              else{
+                mese=""+mese;
+              }
+              anno=""+week["day_1"].getFullYear();
             }
-            var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+year+'/'+month+'/'+giorno;
-            var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+year+'/'+month+'/'+giorno;
-            var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+year+'/'+month+'/'+giorno;
-            var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+year+'/'+month+'/'+giorno;
+            var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese+'/'+giorno;
+            var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno+'/'+mese+'/'+giorno;
+            var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese+'/'+giorno;
+            var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese+'/'+giorno;
 
             d3.json(temp_url, function(json) {
               for(var i=0;i<json.length;i++){
@@ -166,7 +330,6 @@ var AmatYr = function(apiurl) {
                 elem.outtemp=(item.data.vars[0].B12101)-273.15;
                 valori.push(elem);
             }
-
             });
 
             d3.json(press_url, function(json) {
@@ -179,7 +342,7 @@ var AmatYr = function(apiurl) {
             d3.json(humidity_url, function(json) {
               for(var i=0;i<json.length;i++){
                 var item=json[i];
-              valori[i].humidity=item.data.vars[0].B13003;
+              valori[i].outhumidity=item.data.vars[0].B13003;
               }
             });
 
@@ -200,13 +363,22 @@ var AmatYr = function(apiurl) {
         Path.map("/hour/:arg").to(function(){
           var valori=[];
           var giorno = this.params['arg'];
+          var mese;
+          var anno;
           if(giorno==='month'){
-            giorno=""+year+'/'+month;
+            mese=+week["day_0"].getMonth()+1;
+            if(mese<10){
+              mese="0"+mese;
+            }
+            else{
+              mese=""+mese;
+            }
+            anno=""+week["day_1"].getFullYear();
           }
-          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+giorno;
-          var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+giorno;
-          var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+giorno;
-          var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+giorno;
+          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
+          var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno+'/'+mese;
+          var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese;
+          var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese;
 
           d3.json(temp_url, function(json) {
             for(var i=0;i<json.length;i++){
@@ -229,7 +401,7 @@ var AmatYr = function(apiurl) {
           d3.json(humidity_url, function(json) {
             for(var i=0;i<json.length;i++){
               var item=json[i];
-            valori[i].humidity=item.data.vars[0].B13003;
+            valori[i].outhumidity=item.data.vars[0].B13003;
             }
           });
 
@@ -245,19 +417,7 @@ var AmatYr = function(apiurl) {
 
         //    drawWindrose(arg);
         });
-/*
-        // sezione del sito dei 3 giorni, non ha url, è una sorta di home
 
-        Path.map("/").to(function(){
-            var width = $('#main').css('width').split('px')[0];
-            d3.json(apiurl+'hour?start=3day', function(json) {
-                // Save to global for redrawing
-                currentsource = json;
-                draw(json);
-            });
-            drawWindrose('3DAY');
-        });
-*/
         // Start listening for URL events
         Path.history.listen(true);  // Yes, please fall back to hashtags if HTML5 is not supported.
 
@@ -265,7 +425,8 @@ var AmatYr = function(apiurl) {
         Path.history.pushState({}, "", window.location.pathname);
         // Fix initial active link in case user got direct link and not started at /
         $('#main_nav a[href="'+window.location.pathname+'"]').closest('li').addClass('active');
-    }
+    };
+
     initPath();
 
     // Fetch current weather with 1 minute interval
