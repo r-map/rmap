@@ -150,7 +150,9 @@ var AmatYr = function(apiurl) {
           for(var i=0;i<json.length;i++){
             var elem={};
             var item=json[i];
-            elem.datetime=item.date;
+            var mia_data=item.date;
+            var miadata=mia_data.replace("T"," ");
+            elem.datetime=miadata;
             elem.outtemp=(item.data.vars[0].B12101)-273.15;
             valori.push(elem);
         }
@@ -159,7 +161,9 @@ var AmatYr = function(apiurl) {
           for(var i=0;i<json.length;i++){
             var elem={};
             var item=json[i];
-            elem.datetime=item.date;
+            var mia_data=item.date;
+            var miadata=mia_data.replace("T"," ");
+            elem.datetime=miadata;
             elem.outtemp=(item.data.vars[0].B12101)-273.15;
             valori.push(elem);
         }
@@ -170,7 +174,9 @@ var AmatYr = function(apiurl) {
           for(var i=0;i<json.length;i++){
             var elem={};
             var item=json[i];
-            elem.datetime=item.date;
+            var mia_data=item.date;
+            var miadata=mia_data.replace("T"," ");
+            elem.datetime=miadata;
             elem.outtemp=(item.data.vars[0].B12101)-273.15;
             valori.push(elem);
         }
@@ -255,7 +261,9 @@ var AmatYr = function(apiurl) {
             for(var i=0;i<json.length;i++){
               var elem={};
               var item=json[i];
-              elem.datetime=item.date;
+              var mia_data=item.date;
+              var miadata=mia_data.replace("T"," ");
+              elem.datetime=miadata;
               elem.outtemp=(item.data.vars[0].B12101)-273.15;
               valori.push(elem);
           }
@@ -326,7 +334,9 @@ var AmatYr = function(apiurl) {
               for(var i=0;i<json.length;i++){
                 var elem={};
                 var item=json[i];
-                elem.datetime=item.date;
+                var mia_data=item.date;
+                var miadata=mia_data.replace("T"," ");
+                elem.datetime=miadata;
                 elem.outtemp=(item.data.vars[0].B12101)-273.15;
                 valori.push(elem);
             }
@@ -384,7 +394,9 @@ var AmatYr = function(apiurl) {
             for(var i=0;i<json.length;i++){
               var elem={};
               var item=json[i];
-              elem.datetime=item.date;
+              var mia_data=item.date;
+              var miadata=mia_data.replace("T"," ");
+              elem.datetime=miadata;
               elem.outtemp=(item.data.vars[0].B12101)-273.15;
               valori.push(elem);
           }
