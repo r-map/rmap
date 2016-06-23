@@ -1977,6 +1977,15 @@ void Repeats() {
 	  sendstatus=true;
 	}
       wdt_reset();
+
+      // we cannot put data too fast
+      // we have to develop ack for qos=1
+      delay(100);
+      
+      mgrmqtt();
+
+      wdt_reset();
+
 #endif
 
 

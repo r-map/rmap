@@ -15,7 +15,9 @@
 #define I2C_TH_COMMAND               0xFF
 #define I2C_TH_COMMAND_ONESHOT_START   1
 #define I2C_TH_COMMAND_ONESHOT_STOP    2
-#define I2C_TH_COMMAND_STOP            3
+#define I2C_TH_COMMAND_START           3
+#define I2C_TH_COMMAND_STOP            4
+#define I2C_TH_COMMAND_STOP_START      5
 
 #define I2C_TH_VERSION               0x00      // Version		   
 #define I2C_TEMPERATURE_SAMPLE       0x01      // temperature sample	   

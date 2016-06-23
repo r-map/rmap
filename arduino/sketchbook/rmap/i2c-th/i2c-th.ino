@@ -153,16 +153,22 @@ void requestEvent()
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),HEX));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3),HEX));
 
-  if ((millis()-regsettime) > 1000) {
+  if ((millis()-regsettime) > 5000) {
+
+    // missing
     //Wire.write(0xFF);
     //Wire.write(0xFF);
     //Wire.write(0xFF);
     //Wire.write(0xFF);
-    Wire.write(0);
-    Wire.write(0);
-    Wire.write(0);
-    Wire.write(0);
+
+    // zero
+    //Wire.write(0);
+    //Wire.write(0);
+    //Wire.write(0);
+    //Wire.write(0);
+
     IF_SDEBUG(Serial.println("late"));
+
   }else{
 
     Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);
@@ -269,9 +275,21 @@ void mgr_command(){
       IF_SDEBUG(Serial.println("COMMAND: oneshot stop"));
       stop=true;
       break;
+    case I2C_TH_COMMAND_START:
+      IF_SDEBUG(Serial.println("COMMAND: start"));
+      start=true;
+      starttime = millis();
+      break;
     case I2C_TH_COMMAND_STOP:
       IF_SDEBUG(Serial.println("COMMAND: stop"));
+      stop=true;
+      start=false;
+      break;
+    case I2C_TH_COMMAND_STOP_START:
+      IF_SDEBUG(Serial.println("COMMAND: stop and start"));
       stop=true;      
+      start=true;
+      starttime = millis();
       break;
     } //switch  
   }
@@ -439,10 +457,7 @@ void loop() {
 
   mgr_command();
 
-  if (i2c_writabledataset2->oneshot) {
-    if (! start) return;
-  }
-
+  if (! start) return;
 
   long int timetowait;
   long unsigned int waittime,maxwaittime=0;
@@ -454,7 +469,10 @@ void loop() {
     return;
   }
   else {
-    if (timetowait < -10) IF_SDEBUG(Serial.print("WARNIG: timing error , I am late"));    
+    if (timetowait < -10) {
+      IF_SDEBUG(Serial.print(F("WARNIG: timing error , I am late ")));    
+      IF_SDEBUG(Serial.println(timetowait));    
+    }
   }
 
   //starttime = millis()+timetowait;
