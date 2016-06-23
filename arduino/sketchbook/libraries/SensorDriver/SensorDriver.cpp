@@ -7,6 +7,8 @@
 //}
 
 
+int THcounter=0;
+
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
@@ -1324,7 +1326,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   
   if (lenvalues >= 1) {
     values[0] = ((int) lsb<<8 | msb) ;
-    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
   // get humidity
@@ -1342,7 +1344,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   
   if (lenvalues >= 2) {
     values[1] = ((int) lsb<<8 | msb) ;
-    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
   }
 
   _timing=0;
@@ -1406,7 +1408,33 @@ int SensorDriverTH60mean::setup(const char* driver, const int address, const int
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+ 
+  short unsigned int ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+    ntry--;
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_TH_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_START);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   return SD_SUCCESS;
 
@@ -1415,25 +1443,41 @@ int SensorDriverTH60mean::setup(const char* driver, const int address, const int
 int SensorDriverTH60mean::prepare(unsigned long& waittime)
 {
 
+  if (THcounter < 0) THcounter=0;
+  THcounter++;
   _timing=millis();
-  waittime= 1ul;
+
+  if (THcounter == 1) {
+    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_STOP_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_STOP_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
+
 
   return SD_SUCCESS;
 }
 
 int SensorDriverTH60mean::get(long values[],size_t lenvalues)
 {
+  THcounter--;
+
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
-  // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  // wait for sensor to accept command
-  delay(100);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1442,6 +1486,10 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
 
   msb = Wire.read();
@@ -1449,7 +1497,7 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   
   if (lenvalues >= 1) {
     values[0] = ((int) lsb<<8 | msb) ;
-    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
 
@@ -1460,6 +1508,10 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
 
   msb = Wire.read();
@@ -1467,8 +1519,29 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
   
   if (lenvalues >= 2) {
     values[1] = ((int) lsb<<8 | msb) ;
-    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
   }
+
+  /*
+  if (THcounter == 0) {
+    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
 
   _timing=0;
 
@@ -1487,7 +1560,8 @@ aJsonObject* SensorDriverTH60mean::getJson()
   short unsigned int ntry=NTRY;
 
   while (ntry > 0 && SensorDriverTH60mean::get(values,2) != SD_SUCCESS){
-    delay(100);
+    delay(1000);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean get retry ")));
     ntry--;
   }
 
@@ -1535,10 +1609,30 @@ int SensorDriverTHmean::setup(const char* driver, const int address, const int n
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  short unsigned int ntry=3;
+  short unsigned int ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmean setup retry ")));
     ntry--;
-    delay(100);
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_TH_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_START);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -1549,23 +1643,40 @@ int SensorDriverTHmean::setup(const char* driver, const int address, const int n
 int SensorDriverTHmean::prepare(unsigned long& waittime)
 {
 
+  if (THcounter < 0) THcounter=0;
+  THcounter++;
   _timing=millis();
-  waittime= 1ul;
+
+  if (THcounter == 1) {
+    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_STOP_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_STOP_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
 
   return SD_SUCCESS;
 }
 
 int SensorDriverTHmean::get(long values[],size_t lenvalues)
 {
+  THcounter--;
+
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // command STOP
-  //Wire.beginTransmission(_address);   // Open I2C line in write mode
-  //Wire.write(I2C_TH_COMMAND);
-  //Wire.write(I2C_TH_COMMAND_STOP);
-  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1574,13 +1685,17 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
   if (lenvalues >= 1) {
     values[0] = ((int) lsb<<8 | msb) ;
-    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
   // get humidity
@@ -1590,15 +1705,39 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
   if (lenvalues >= 2) {
     values[1] = ((int) lsb<<8 | msb) ;
-    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
   }
 
+  /*
+  if (THcounter == 0) {
+    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
   _timing=0;
 
   return SD_SUCCESS;
@@ -1616,7 +1755,8 @@ aJsonObject* SensorDriverTHmean::getJson()
   short unsigned int ntry=NTRY;
 
   while (ntry > 0 && SensorDriverTHmean::get(values,2) != SD_SUCCESS){
-    delay(100);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmean get retry ")));
+    delay(1000);
     ntry--;
   }
 
@@ -1667,10 +1807,30 @@ int SensorDriverTHmin::setup(const char* driver, const int address, const int no
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
  
-  short unsigned int ntry=3;
+  short unsigned int ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     ntry--;
-    delay(100);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmin setup retry ")));
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_TH_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_START);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -1681,23 +1841,39 @@ int SensorDriverTHmin::setup(const char* driver, const int address, const int no
 int SensorDriverTHmin::prepare(unsigned long& waittime)
 {
 
+  if (THcounter < 0) THcounter=0;
+  THcounter++;
   _timing=millis();
-  waittime= 1ul;
+
+  if (THcounter == 1) {
+    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_STOP_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_STOP_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
 
   return SD_SUCCESS;
 }
 
 int SensorDriverTHmin::get(long values[],size_t lenvalues)
 {
+  THcounter--;
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // command STOP
-  //Wire.beginTransmission(_address);   // Open I2C line in write mode
-  //Wire.write(I2C_TH_COMMAND);
-  //Wire.write(I2C_TH_COMMAND_STOP);
-  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1706,13 +1882,17 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
   if (lenvalues >= 1) {
     values[0] = ((int) lsb<<8 | msb) ;
-    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
   // get humidity
@@ -1722,14 +1902,39 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
   
   if (lenvalues >= 2) {
     values[1] = ((int) lsb<<8 | msb) ;
-    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
   }
+
+  /*
+  if (THcounter == 0) {
+    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
 
   _timing=0;
 
@@ -1748,7 +1953,8 @@ aJsonObject* SensorDriverTHmin::getJson()
   short unsigned int ntry=NTRY;
 
   while (ntry > 0 && SensorDriverTHmin::get(values,2) != SD_SUCCESS){
-    delay(100);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmin get retry ")));
+    delay(1000);
     ntry--;
   }
 
@@ -1795,10 +2001,30 @@ int SensorDriverTHmax::setup(const char* driver, const int address, const int no
   Wire.beginTransmission(_address);
   Wire.write(I2C_TH_ONESHOT);
   Wire.write(oneshot);
-  short unsigned int ntry=3;
+  short unsigned int ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     ntry--;
-    delay(100);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmax setup retry ")));
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_TH_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_TH_COMMAND);
+  Wire.write(I2C_TH_COMMAND_START);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -1809,23 +2035,38 @@ int SensorDriverTHmax::setup(const char* driver, const int address, const int no
 int SensorDriverTHmax::prepare(unsigned long& waittime)
 {
 
+  if (THcounter < 0) THcounter=0;
+  THcounter++;
   _timing=millis();
-  waittime= 1ul;
+  if (THcounter == 1) {
+    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_STOP_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_STOP_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
 
   return SD_SUCCESS;
 }
 
 int SensorDriverTHmax::get(long values[],size_t lenvalues)
 {
+  THcounter--;
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // command STOP
-  //Wire.beginTransmission(_address);   // Open I2C line in write mode
-  //Wire.write(I2C_TH_COMMAND);
-  //Wire.write(I2C_TH_COMMAND_STOP);
-  //if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  //delay(10);
 
   // get temperature
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -1834,13 +2075,17 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
   if (lenvalues >= 1) {
     values[0] = ((int) lsb<<8 | msb) ;
-    if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
   // get humidity
@@ -1850,14 +2095,40 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
   Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
   if (Wire.available()<2)return SD_INTERNAL_ERROR;
   msb = Wire.read();
   lsb = Wire.read();
 
   if (lenvalues >= 2) {
     values[1] = ((int) lsb<<8 | msb) ;
-    if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
   }
+
+  /*
+  if (THcounter == 0) {
+    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_TH_COMMAND);
+    Wire.write(I2C_TH_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_TH_COMMAND);
+      Wire.write(I2C_TH_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
+
   _timing=0;
 
   return SD_SUCCESS;
@@ -1875,7 +2146,8 @@ aJsonObject* SensorDriverTHmax::getJson()
   short unsigned int ntry=NTRY;
 
   while (ntry > 0 && SensorDriverTHmax::get(values,2) != SD_SUCCESS){
-    delay(100);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmax get retry ")));
+    delay(1000);
     ntry--;
   }
 

@@ -57,3 +57,12 @@ CANNOT DEFINE TEMPERATUREHUMIDITY_ONESHOT AND TEMPERATUREHUMIDITY_REPORT TOGETHE
  // 0.2 Kg/m^2 for tips
  #define RAINFORTIP 2    
 #endif
+
+#ifdef SDDEBUGONSERIAL
+
+#define SDDBGSERIAL Serial
+
+#define IF_SDSDEBUG(x) ({x;})
+#else
+#define IF_SDSDEBUG(x)
+#endif

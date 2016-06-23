@@ -9,15 +9,6 @@
 #include "SensorDriver_config.h"
 #include "Arduino.h"
 
-#ifdef SDDEBUGONSERIAL
-
-#define SDDBGSERIAL Serial
-
-#define IF_SDSDEBUG(x) ({x;})
-#else
-#define IF_SDSDEBUG(x)
-#endif
-
 #if defined(USEAJSON)
 #include "aJSON.h"
 #endif
