@@ -238,11 +238,12 @@ var AmatYr = function(apiurl) {
             var item=json[i];
           valori[i].dayrain=item.data.vars[0].B13011;
           }
+          draw(valori);
         });
 
         currentsource=valori;
         // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
-       draw(valori);
+
 
         });
 
@@ -289,10 +290,11 @@ var AmatYr = function(apiurl) {
               var item=json[i];
             valori[i].dayrain=item.data.vars[0].B13011;
             }
+            draw(valori);
           });
           currentsource=valori;
           // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
-         draw(valori);
+
 
         });
 
@@ -361,10 +363,11 @@ var AmatYr = function(apiurl) {
                 var item=json[i];
               valori[i].dayrain=item.data.vars[0].B13011;
               }
+               draw(valori);
             });
             currentsource=valori;
             // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
-           draw(valori);
+
 
           //  drawWindrose(day);
         });
@@ -422,10 +425,11 @@ var AmatYr = function(apiurl) {
               var item=json[i];
             valori[i].dayrain=item.data.vars[0].B13011;
             }
+             draw(valori);
           });
           currentsource=valori;
           // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
-         draw(valori);
+
 
         //    drawWindrose(arg);
         });
