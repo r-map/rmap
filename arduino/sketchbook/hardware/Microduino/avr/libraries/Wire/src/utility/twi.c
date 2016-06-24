@@ -73,8 +73,8 @@ void twi_init(void)
   twi_inRepStart = false;
   
   // activate internal pullups for twi.
-  digitalWrite(SDA, 1);
-  digitalWrite(SCL, 1);
+  //digitalWrite(SDA, 1);
+  //digitalWrite(SCL, 1);
 
   // initialize twi prescaler and bit rate
   cbi(TWSR, TWPS0);
@@ -102,8 +102,8 @@ void twi_disable(void)
   TWCR &= ~(_BV(TWEN) | _BV(TWIE) | _BV(TWEA));
 
   // deactivate internal pullups for twi.
-  digitalWrite(SDA, 0);
-  digitalWrite(SCL, 0);
+  //digitalWrite(SDA, 0);
+  //digitalWrite(SCL, 0);
 }
 
 /* 
