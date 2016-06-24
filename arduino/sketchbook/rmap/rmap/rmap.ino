@@ -3593,19 +3593,6 @@ void loop()
 
   #ifdef REPORTMODE
 
-  // timing for REPORT MODE
-  #define MQTPUBLISH_TIME 60
-  #define MGRSDCARD_TIME 60
-  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-    #define MQTTCONNECT_TIME 150
-    #define MQTTCONNECT_ONCE_TIME 75
-  #else
-    #define MQTTCONNECT_TIME 0
-    #define MQTTCONNECT_ONCE_TIME 10000
-  #endif
-  #define SLEEP_TIME 5
-  #define TOLLERANCE_TIME 5
-
   if ( (MQTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME) >  configuration.rt){ 
     IF_SDEBUG(DBGSERIAL.print(F("#WARNING wrong timing: ")));
     IF_SDEBUG(DBGSERIAL.print(MQTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME));
@@ -3624,7 +3611,7 @@ void loop()
       IF_SDEBUG(DBGSERIAL.print(F("#start mgrsdcard: ")));
       IF_SDEBUG(digitalClockDisplay(now()));
 
-      mgrsdcard(dt-MQTTCONNECT_TIME-TOLLERANCE_TIME);
+      if (configured) mgrsdcard(dt-MQTTCONNECT_TIME-TOLLERANCE_TIME);
 
       IF_SDEBUG(DBGSERIAL.print(F("#end mgrsdcard: ")));
       IF_SDEBUG(digitalClockDisplay(now()));
@@ -3660,7 +3647,7 @@ void loop()
   // we expect to have >= XX sec until the repeat task
   dt=configuration.rt - (now() - repeattasktime) ; 
   if (dt >MQTTCONNECT_ONCE_TIME) {
-    if (!mqttclient.connected())
+    if (!mqttclient.connected() & configured)
       {
 	IF_SDEBUG(DBGSERIAL.print(F("#start mqttconnect: ")));
 	IF_SDEBUG(digitalClockDisplay(now()));

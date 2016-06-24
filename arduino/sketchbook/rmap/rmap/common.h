@@ -242,3 +242,17 @@ Mega2560	      	        	   21	   20	   19	   18
 // buffer for aJson print output and internal global_buffer
 static char mainbuf[MAIN_BUFFER_SIZE];
 
+#ifdef REPORTMODE
+  // timing for REPORT MODE
+  #define MQTPUBLISH_TIME 60
+  #define MGRSDCARD_TIME 60
+  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+    #define MQTTCONNECT_TIME 150
+    #define MQTTCONNECT_ONCE_TIME 75
+  #else
+    #define MQTTCONNECT_TIME 0
+    #define MQTTCONNECT_ONCE_TIME 10000
+  #endif
+  #define SLEEP_TIME 5
+  #define TOLLERANCE_TIME 5
+#endif

@@ -36,6 +36,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define LCD
 // activate if you have relays connected to some pins
 #define ATTUATORE
+
+#define REPORTMODE
+
 ///////////////////////////////////////////////////////////////////////
 
 #include "common.h"
@@ -52,7 +55,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // force use of gsm mqtt
 #undef ETHERNETMQTT
 #undef GSMGPRSHTTP
-
 #define GSMGPRSMQTT
 
-#define REPORTMODE
