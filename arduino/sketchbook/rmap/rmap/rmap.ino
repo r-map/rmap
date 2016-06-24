@@ -3597,8 +3597,8 @@ void loop()
   #define MQTPUBLISH_TIME 60
   #define MGRSDCARD_TIME 60
   #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-    #define MQTTCONNECT_TIME 60
-    #define MQTTCONNECT_ONCE_TIME 20
+    #define MQTTCONNECT_TIME 150
+    #define MQTTCONNECT_ONCE_TIME 75
   #else
     #define MQTTCONNECT_TIME 0
     #define MQTTCONNECT_ONCE_TIME 10000
