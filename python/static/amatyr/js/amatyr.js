@@ -12,6 +12,45 @@ var AmatYr = function(apiurl) {
       day.setDate(day.getDate()-i);
       week['day_'+i]=day;
     }
+    //variabili per comporre gli url dei vari giorni
+      var giorno1;
+      var mese1;
+      var anno1;
+      giorno1=""+week["day_0"].getDate();
+      mese1=+week["day_0"].getMonth()+1;
+      if(mese1<10){
+        mese1="0"+mese1;
+      }
+      else{
+        mese1=""+mese1;
+      }
+      anno1=""+week["day_0"].getFullYear();
+
+      var giorno2;
+      var mese2;
+      var anno2;
+      giorno2=""+week["day_1"].getDate();
+      mese2=+week["day_1"].getMonth()+1;
+      if(mese2<10){
+        mese2="0"+mese2;
+      }
+      else{
+        mese2=""+mese2;
+      }
+      anno2=""+week["day_1"].getFullYear();
+
+      var giorno3;
+      var mese3;
+      var anno3;
+      giorno3=""+week["day_2"].getDate();
+      mese3=+week["day_2"].getMonth()+1;
+      if(mese3<10){
+        mese3="0"+mese3;
+      }
+      else{
+        mese3=""+mese3;
+      }
+      anno3=""+week["day_2"].getFullYear();
 
     currentsource = false;
     // array of all sparklines, used for updating them dynamically
@@ -20,7 +59,7 @@ var AmatYr = function(apiurl) {
     /* Initial and on resize we draw draw draw */
     on_resize(function() {
         // Redraw graphs
-        draw(currentsource);
+        //draw(currentsource);
         // Redraw sparklines
         for(key in sparklines) {
             sparklines[key].redrawWithAnimation();
@@ -86,45 +125,6 @@ var AmatYr = function(apiurl) {
         Path.map("/").to(function(){
         var valori=[];
 
-      //variabili per comporre gli url dei vari giorni
-        var giorno1;
-        var mese1;
-        var anno1;
-        giorno1=""+week["day_0"].getDate();
-        mese1=+week["day_0"].getMonth()+1;
-        if(mese1<10){
-          mese1="0"+mese1;
-        }
-        else{
-          mese1=""+mese1;
-        }
-        anno1=""+week["day_0"].getFullYear();
-
-        var giorno2;
-        var mese2;
-        var anno2;
-        giorno2=""+week["day_1"].getDate();
-        mese2=+week["day_1"].getMonth()+1;
-        if(mese2<10){
-          mese2="0"+mese2;
-        }
-        else{
-          mese2=""+mese2;
-        }
-        anno2=""+week["day_1"].getFullYear();
-
-        var giorno3;
-        var mese3;
-        var anno3;
-        giorno3=""+week["day_2"].getDate();
-        mese3=+week["day_2"].getMonth()+1;
-        if(mese3<10){
-          mese3="0"+mese3;
-        }
-        else{
-          mese3=""+mese3;
-        }
-        anno3=""+week["day_2"].getFullYear();
 
         //giorno 1
         var temp_url1='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno1+'/'+mese1+'/'+giorno1;
@@ -138,37 +138,12 @@ var AmatYr = function(apiurl) {
         var humidity_url2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
         var daily_rain2='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno2+'/'+mese2+'/'+giorno2;
 
+
         //giorno 3
         var temp_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
         var press_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
         var humidity_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
         var daily_rain3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
-
-
-
-        d3.json(temp_url1, function(json) {
-          for(var i=0;i<json.length;i++){
-            var elem={};
-            var item=json[i];
-            var mia_data=item.date;
-            var miadata=mia_data.replace("T"," ");
-            elem.datetime=miadata;
-            elem.outtemp=(item.data.vars[0].B12101)-273.15;
-            valori.push(elem);
-        }
-        });
-        d3.json(temp_url2, function(json) {
-          for(var i=0;i<json.length;i++){
-            var elem={};
-            var item=json[i];
-            var mia_data=item.date;
-            var miadata=mia_data.replace("T"," ");
-            elem.datetime=miadata;
-            elem.outtemp=(item.data.vars[0].B12101)-273.15;
-            valori.push(elem);
-        }
-        });
-
 
         d3.json(temp_url3, function(json) {
           for(var i=0;i<json.length;i++){
@@ -179,72 +154,123 @@ var AmatYr = function(apiurl) {
             elem.datetime=miadata;
             elem.outtemp=(item.data.vars[0].B12101)-273.15;
             valori.push(elem);
-        }
+
+          }
+
         });
 
+        d3.json(temp_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var elem={};
+            var item=json[i];
+            var mia_data=item.date;
+            var miadata=mia_data.replace("T"," ");
+            elem.datetime=miadata;
+            elem.outtemp=(item.data.vars[0].B12101)-273.15;
+            valori.push(elem);
+          }
 
-        d3.json(press_url1, function(json) {
-          for(var i=0;i<json.length;i++){
-            var item=json[i];
-            valori[i].barometer=(item.data.vars[0].B10004)/100;
-          }
         });
-        d3.json(press_url2, function(json) {
+
+        d3.json(temp_url1, function(json) {
           for(var i=0;i<json.length;i++){
+            var elem={};
             var item=json[i];
-            valori[i].barometer=(item.data.vars[0].B10004)/100;
+            var mia_data=item.date;
+            var miadata=mia_data.replace("T"," ");
+            elem.datetime=miadata;
+            elem.outtemp=(item.data.vars[0].B12101)-273.15;
+            valori.push(elem);
           }
+
         });
+        var index=0;
         d3.json(press_url3, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
-            valori[i].barometer=(item.data.vars[0].B10004)/100;
+            valori[index].barometer=(item.data.vars[0].B10004)/100;
+            index++;
           }
+
+        });
+
+        d3.json(press_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+            valori[index].barometer=(item.data.vars[0].B10004)/100;
+            index++;
+          }
+
+        });
+        d3.json(press_url1, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+            valori[index].barometer=(item.data.vars[0].B10004)/100;
+            index++;
+          }
+
+        });
+
+        var index1=0;
+
+        d3.json(humidity_url3, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[index1].outhumidity=item.data.vars[0].B13003;
+          index1++;
+          }
+
+        });
+
+        d3.json(humidity_url2, function(json) {
+          for(var i=0;i<json.length;i++){
+            var item=json[i];
+          valori[index1].outhumidity=item.data.vars[0].B13003;
+          index1++;
+          }
+
         });
 
         d3.json(humidity_url1, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
-          valori[i].humidity=item.data.vars[0].B13003;
+          valori[index1].outhumidity=item.data.vars[0].B13003;
+          index1++;
           }
+
         });
-        d3.json(humidity_url2, function(json) {
+
+        var index2=0;
+
+        d3.json(daily_rain3, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
-          valori[i].humidity=item.data.vars[0].B13003;
+          valori[index2].dayrain=item.data.vars[0].B13011;
+          index2++;
           }
+
         });
-        d3.json(humidity_url3, function(json) {
+
+        d3.json(daily_rain2, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
-          valori[i].humidity=item.data.vars[0].B13003;
+          valori[index2].dayrain=item.data.vars[0].B13011;
+          index2++;
           }
+
         });
 
         d3.json(daily_rain1, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
-          valori[i].dayrain=item.data.vars[0].B13011;
-          }
-        });
-        d3.json(daily_rain2, function(json) {
-          for(var i=0;i<json.length;i++){
-            var item=json[i];
-          valori[i].dayrain=item.data.vars[0].B13011;
-          }
-        });
-        d3.json(daily_rain3, function(json) {
-          for(var i=0;i<json.length;i++){
-            var item=json[i];
-          valori[i].dayrain=item.data.vars[0].B13011;
+          valori[index2].dayrain=item.data.vars[0].B13011;
+          index2++;
           }
           draw(valori);
         });
 
         currentsource=valori;
         // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
-
-
         });
 
         Path.map("/year/:year").to(function(){
