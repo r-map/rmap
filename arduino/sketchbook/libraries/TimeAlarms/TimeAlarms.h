@@ -48,6 +48,7 @@ public:
   time_t value;
   time_t nextTrigger;
   AlarmMode_t Mode;
+  time_t lasttime;
 };
 
 // class containing the collection of alarms
