@@ -72,7 +72,16 @@ void setup()
   s800.stop();
   s800.TCPstop();
   s800.getIMEI(imeicode);
-  s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD);
+  Serial.print("IMEI: ");
+  Serial.println(imeicode);
+
+
+  while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
+    Serial.println("TCPstart failed");
+    s800.TCPstop();
+    delay(1000);
+  }
+  Serial.println("TCPstart started");
 
   while (!client.connect(imeicode)) {
     Serial.println("connect failed");

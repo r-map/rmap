@@ -18,7 +18,8 @@ class sim800Client : public SIM800 {
   uint8_t connected();
   int available();
   int read();
-  //int read(uint8_t *buf, size_t size);
+  int readBytes(char *buf, size_t size);
+  void setTimeout(unsigned long timeout);
   size_t write(uint8_t);
   size_t write(const uint8_t *buf, size_t size);
   void flush();

@@ -1000,12 +1000,17 @@ int sim800Client::read()
   //Serial.println(buf);
   return buf;
 }
-/*
-int SIM800::read(uint8_t *buf, size_t size)
+
+int sim800Client::readBytes(char *buf, size_t size)
 {
   return modem->readBytes(buf,size);
 }
-*/
+
+void sim800Client::setTimeout(unsigned long timeout)
+{
+  modem->setTimeout(timeout);
+}
+
 size_t sim800Client::write(uint8_t buf)
 {
   //Serial.print("---> write:");
