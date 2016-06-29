@@ -27,7 +27,7 @@
 #include <SPI.h>
 //#include <Ethernet.h>
 #include <sim800Client.h>
-#include <IPStackSim800.h>
+#include <Sim800IPStack.h>
 #include <Countdown.h>
 #include <MQTTClient.h>
 
@@ -52,12 +52,11 @@ void messageArrived(MQTT::MessageData& md)
 }
 
 
-sim800Client s800; // replace by a YunClient if running on a Yun
-char imeicode[16];
+sim800Client s800;
 IPStack ipstack(s800);
-MQTT::Client<IPStack, Countdown, 50, 1> client = MQTT::Client<IPStack, Countdown, 50, 1>(ipstack);
+char imeicode[16];
+MQTT::Client<IPStack, Countdown, 100, 1> client = MQTT::Client<IPStack, Countdown, 100, 1>(ipstack,10000);
 
-//byte mac[] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55 };  // replace with your device's MAC
 const char* topic = "test/MQTTClient/sim800";
 
 void connect()
@@ -101,13 +100,7 @@ void connect()
 void setup()
 {
   Serial.begin(9600);
-  //Ethernet.begin(mac);
-
-  Serial.begin(9600);
-  Serial.println("SIM800 Shield testing.");
   Serial.println("MQTT Hello example");
-
-  //Ethernet.begin(mac, ip);
 
   for (int i=0; i<10; i++){
     delay(5000);
@@ -152,6 +145,7 @@ void loop()
   // Send and receive QoS 0 message
   char buf[100];
   strcpy(buf, "Hello World! QoS 0 message");
+  Serial.println(buf);
   message.qos = MQTT::QOS0;
   message.retained = false;
   message.dup = false;
@@ -165,14 +159,22 @@ void loop()
     arrivedcount ++;
   }
 
-  while (arrivedcount == 0)
+  int i=0;
+  while (arrivedcount < 1 && i < 10)
   {
     Serial.println("Waiting for QoS 0 message");
     client.yield(1000);
+    i++;
+  }
+
+  if (arrivedcount < 1 && i == 10){
+    Serial.println("message lost, Q0S 0");
+    arrivedcount ++;
   }
   
   // Send and receive QoS 1 message
   strcpy(buf, "Hello World! QoS 1 message");
+  Serial.println(buf);
   message.qos = MQTT::QOS1;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(topic, message);
@@ -183,7 +185,7 @@ void loop()
     arrivedcount ++;
   }
 
-  while (arrivedcount == 1)
+  while (arrivedcount < 2)
   {
     Serial.println("Waiting for QoS 1 message");
     client.yield(1000);
@@ -191,6 +193,7 @@ void loop()
 
   // Send and receive QoS 2 message
   strcpy(buf, "Hello World! QoS 2 message");
+  Serial.println(buf);
   message.qos = MQTT::QOS2;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(topic, message);
@@ -200,10 +203,14 @@ void loop()
     Serial.println(rc);
     arrivedcount ++;
   }
-  while (arrivedcount == 2)
+
+  while (arrivedcount < 3)
   {
     Serial.println("Waiting for QoS 2 message");
     client.yield(1000);  
-  }    
-  delay(2000);
+  }
+
+  client.yield(5000);  
+
+  //delay(2000);
 }

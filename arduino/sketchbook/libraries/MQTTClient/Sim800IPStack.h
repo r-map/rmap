@@ -42,26 +42,18 @@ public:
 
     int read(unsigned char* buffer, int len, int timeout)
     {
-        int interval = 10;  // all times are in milliseconds
-		int total = 0, rc = -1;
 
-		if (timeout < 30)
-			interval = 2;
-		while (client->available() < len && total < timeout)
-		{
-			delay(interval);
-			total += interval;
-		}
-
-		if (client->available() >= len)
-			rc = client->readBytes((char*)buffer, len);
-		return rc;
+      //Serial.print("read timeout: ");
+      //Serial.println(timeout);
+      client->setTimeout((unsigned long int)timeout);  
+      return (int)client->readBytes((char*)buffer, len);
     }
     
     int write(unsigned char* buffer, int len, int timeout)
     {
-      client->setTimeout(timeout);  
-		return client->write((uint8_t*)buffer, len);
+      //Serial.print("write timeout: ");
+      //Serial.println(timeout);
+      return client->write((uint8_t*)buffer, len);
     }
     
     int disconnect()

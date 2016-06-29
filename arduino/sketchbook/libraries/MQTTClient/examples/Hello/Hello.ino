@@ -52,11 +52,11 @@ IPStack ipstack(c);
 MQTT::Client<IPStack, Countdown, 50, 1> client = MQTT::Client<IPStack, Countdown, 50, 1>(ipstack);
 
 byte mac[] = { 0x00, 0x11, 0x22, 0x33, 0x44, 0x55 };  // replace with your device's MAC
-const char* topic = "arduino-sample";
+const char* topic = "test/MQTTClient/sim800";
 
 void connect()
 {
-  char hostname[] = "iot.eclipse.org";
+  char hostname[] = "rmap.cc";
   int port = 1883;
 
   Serial.print("Connecting to ");
@@ -104,6 +104,7 @@ MQTT::Message message;
 
 void loop()
 { 
+  Serial.println("Loop");
   if (!client.isConnected())
     connect();
     
@@ -118,6 +119,13 @@ void loop()
   message.payload = (void*)buf;
   message.payloadlen = strlen(buf)+1;
   int rc = client.publish(topic, message);
+  if (rc != 0)
+  {
+    Serial.print("rc from MQTT pubblish is ");
+    Serial.println(rc);
+    arrivedcount ++;
+  }
+
   while (arrivedcount == 0)
   {
     Serial.println("Waiting for QoS 0 message");
@@ -129,6 +137,13 @@ void loop()
   message.qos = MQTT::QOS1;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(topic, message);
+  if (rc != 0)
+  {
+    Serial.print("rc from MQTT pubblish is ");
+    Serial.println(rc);
+    arrivedcount ++;
+  }
+
   while (arrivedcount == 1)
   {
     Serial.println("Waiting for QoS 1 message");
@@ -140,6 +155,12 @@ void loop()
   message.qos = MQTT::QOS2;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(topic, message);
+  if (rc != 0)
+  {
+    Serial.print("rc from MQTT pubblish is ");
+    Serial.println(rc);
+    arrivedcount ++;
+  }
   while (arrivedcount == 2)
   {
     Serial.println("Waiting for QoS 2 message");

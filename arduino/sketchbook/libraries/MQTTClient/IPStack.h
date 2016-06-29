@@ -59,7 +59,7 @@ public:
     
     int write(unsigned char* buffer, int len, int timeout)
     {
-        client->setTimeout(timeout);  
+      //client->setTimeout(timeout);  
 		return client->write((uint8_t*)buffer, len);
     }
     
