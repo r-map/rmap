@@ -46,6 +46,9 @@ def timeseries(request, **kwargs):
         "val": s[s["var"]],
     } for s in get_db().query_data(q)]
 
+    #https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
+    #from collections import defaultdict
+    #d = defaultdict(list)
 
     return JsonResponse(
         [
