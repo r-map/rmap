@@ -414,12 +414,14 @@ var AmatYr = function(apiurl) {
             }
             anno=""+week["day_1"].getFullYear();
           }
-          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
+          var temp_url_avg='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/0,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
+          var temp_url_max='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/2,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
+          var temp_url_min='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/3,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
           var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno+'/'+mese;
           var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese;
           var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese;
 
-          d3.json(temp_url, function(json) {
+          d3.json(temp_url_avg, function(json) {
             for(var i=0;i<json.length;i++){
               var elem={};
               var item=json[i];
@@ -430,6 +432,20 @@ var AmatYr = function(apiurl) {
               valori.push(elem);
           }
 
+          });
+
+          d3.json(temp_url_min, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+              valori[i].tempmin=(item.data.vars[0].B12101)-273.15;
+            }
+          });
+
+          d3.json(temp_url_max, function(json) {
+            for(var i=0;i<json.length;i++){
+              var item=json[i];
+              valori[i].tempmax=(item.data.vars[0].B12101)-273.15;
+            }
           });
 
           d3.json(press_url, function(json) {
