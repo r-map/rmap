@@ -64,6 +64,14 @@ void connect()
   char hostname[] = "rmap.cc";
   int port = 1883;
 
+  while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
+    Serial.println("TCPstart failed");
+    s800.stop();
+    s800.TCPstop();
+    delay(1000);
+  }
+  Serial.println("TCPstart started");
+
   Serial.print("Connecting to ");
   Serial.print(hostname);
   Serial.print(":");
@@ -121,13 +129,6 @@ void setup()
   s800.getIMEI(imeicode);
   Serial.print("IMEI: ");
   Serial.println(imeicode);
-
-  while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
-    Serial.println("TCPstart failed");
-    s800.TCPstop();
-    delay(1000);
-  }
-  Serial.println("TCPstart started");
 
   connect();
 }
