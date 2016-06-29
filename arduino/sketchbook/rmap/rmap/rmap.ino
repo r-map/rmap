@@ -895,27 +895,27 @@ void LogDigitalClockDisplay(){
   if(timeStatus()== timeNotSet) {
     IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
     //return;
-    time_t t = 0; // Store the current time in time variable t 
+    time_t tf = 0; // Store the current time in time variable t 
 
   }else{
-    time_t t = now(); // Store the current time in time variable t 
+    time_t tf = now(); // Store the current time in time variable t 
   }
 
-  if (t == 0UL){
+  if (tf == 0UL){
     IF_LOGFILE("#time was not set:");
   }
   else{	  
-    logDigits(year(t)); 
+    logDigits(year(tf)); 
     IF_LOGFILE("-");
-    logDigits(month(t));
+    logDigits(month(tf));
     IF_LOGFILE("-");
-    logDigits(day(t));
+    logDigits(day(tf));
     IF_LOGFILE(" ");
-    logDigits(hour(t));
+    logDigits(hour(tf));
     IF_LOGFILE(":");
-    logDigits(minute(t));
+    logDigits(minute(tf));
     IF_LOGFILE(":");
-    logDigits(second(t));
+    logDigits(second(tf));
     IF_LOGFILE("> ");
   }
 }
