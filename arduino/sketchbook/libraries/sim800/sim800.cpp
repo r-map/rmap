@@ -997,13 +997,19 @@ int sim800Client::read()
   byte buf;
   buf = modem->read();
   //Serial.print("----> read:");
-  //Serial.println(buf);
+  //Serial.println(buf,HEX);
   return buf;
 }
 
-int sim800Client::readBytes(char *buf, size_t size)
+byte sim800Client::readBytes(char *buf, size_t size)
 {
-  return modem->readBytes(buf,size);
+  byte rc =  modem->readBytes(buf,size);
+  //Serial.print("----> readBytes:");
+  //for (size_t i=0; i<rc; i++) {
+  //  Serial.print(buf[i],HEX);
+  //}
+  //Serial.println("");
+  return rc;
 }
 
 void sim800Client::setTimeout(unsigned long timeout)
@@ -1014,15 +1020,17 @@ void sim800Client::setTimeout(unsigned long timeout)
 size_t sim800Client::write(uint8_t buf)
 {
   //Serial.print("---> write:");
-  //Serial.write(buf);
+  //Serial.println(buf,HEX);
   return modem->write(buf);
 }
 size_t sim800Client::write(const uint8_t *buf, size_t size)
 {
-  //Serial.println("---> write:");
+  //Serial.print("---> write:");
   //for (size_t i=0; i<size; i++){
-  //  Serial.write(buf[i]);
+  //  Serial.print(buf[i],HEX);
   //}
+  //Serial.println("");
+
   return modem->write(buf,size);
 }
 
