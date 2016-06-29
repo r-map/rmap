@@ -57,3 +57,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #undef GSMGPRSHTTP
 #define GSMGPRSMQTT
 
+
+#ifdef REPORTMODE
+  // timing for REPORT MODE
+  #define MQTPUBLISH_TIME 45
+  #define MGRSDCARD_TIME 60
+  #define MQTTCONNECT_TIME 75
+  #define MQTTCONNECT_ONCE_TIME 75
+#endif
