@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>AmatYr - {{ conf.station.name }}</title>
+    <title>AmatYr - Insert Station Name</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="Tor Hveem">
@@ -38,22 +38,23 @@
           <a class="brand" href="/"><i class="fa fa-cloud"></i> RMAP</a>
           <div class="nav-collapse collapse">
             <ul id="main_nav" class="nav">
-                <li class="active"> <a href="/">3 day</a></li>
-                <li class=""><a href="/day/today">Today</a></li>
-                <li class=""><a href="/day/yesterday">Yesterday</a></li>
-                <li class=""><a href="/hour/week">Week</a></li>
-                <li class=""><a href="/hour/month">Month</a></li>
-                <li class=""><a href="/year/2016">2016</a></li>
+                <li class="active"> <a href="/amatyr">3 day</a></li>
+                <li class=""><a href="/amatyr/day/today">Today</a></li>
+                <li class=""><a href="/amatyr/day/yesterday">Yesterday</a></li>
+                <li class=""><a href="/amatyr/hour/week">Week</a></li>
+                <li class=""><a href="/amatyr/hour/month">Month</a></li>
+                <li class=""><a href="/amatyr/year/2016">2016</a></li>
             </ul>
             <ul class="nav pull-right">
                 <li>
-                    <a class="" href="{{conf.station.url}}"><i class="fa fa-globe"></i> {{ conf.station.name }}</a>
+                    <a class="" href="http://rmap.cc/stations"><i class="fa fa-globe"></i>Insert Station Name</a>
                 </li>
             </ul>
           </div>
         </div>
       </div>
     </div>
+
     {( "dashbar.html"  )}
 
     <div class="container-fluid">
