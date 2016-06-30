@@ -43,7 +43,8 @@
                 <li class=""><a href="/amatyr/day/yesterday">Yesterday</a></li>
                 <li class=""><a href="/amatyr/hour/week">Week</a></li>
                 <li class=""><a href="/amatyr/hour/month">Month</a></li>
-                <li class=""><a href="/amatyr/year/2016">2016</a></li>
+		{% now "Y" as current_year %}
+                <li class=""><a href="/amatyr/year/{{current_year}}">{{current_year}}</a></li>
             </ul>
             <ul class="nav pull-right">
                 <li>
@@ -55,7 +56,7 @@
       </div>
     </div>
 
-    {( "dashbar.html"  )}
+    {% include "amatyr/dashbar.html" %}
 
     <div class="container-fluid">
         <div class="row-fluid">
