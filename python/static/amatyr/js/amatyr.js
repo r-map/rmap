@@ -358,6 +358,53 @@ var AmatYr = function(apiurl) {
             var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese+'/'+giorno;
             var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese+'/'+giorno;
 
+            // In questo caso jQuery è più utile di d3.
+            // $.when aspetta che tutte le chiamate AJAX abbiano terminato prima di chiamare ".done"
+            $.when(
+                $.ajax(temp_url),
+                $.ajax(press_url),
+                $.ajax(humidity_url),
+                $.ajax(daily_rain)
+            )
+                // Qua sono sicuro che tutte le chiamate sono terminate con successo
+                .done(function (tempResponse, pressResponse, humidityResponse, rainResponse) {
+                    var tempJson = tempResponse[0];
+                    var pressJson = pressResponse[0];
+                    var humidityJson = humidityResponse[0];
+                    var rainJson = rainResponse[0];
+
+                    // Temp
+                    $.each(tempJson, function (i, item) {
+                        var elem = {};
+                        var mia_data = item.date;
+                        elem.datetime = mia_data.replace("T", " ");
+                        elem.outtemp = (item.data.vars[0].B12101) - 273.15;
+                        valori.push(elem);
+                    });
+
+                    // Press
+                    $.each(pressJson, function (i, item) {
+                        valori[i].barometer = (item.data.vars[0].B10004) / 100;
+                    });
+
+                    // Humidity
+                    $.each(humidityJson, function (i, item) {
+                        valori[i].outhumidity = item.data.vars[0].B13003;
+                    });
+
+                    // Daily rain
+                    $.each(rainJson, function (i, item) {
+                        valori[i].dayrain = item.data.vars[0].B13011;
+                    });
+
+                    draw(valori);
+                })
+                .fail(function () {
+                    // Qua si può eseguire qualcosa nel caso le chiamate falliscano
+                });
+
+            /*
+            // OLD WAY
             d3.json(temp_url, function(json) {
               for(var i=0;i<json.length;i++){
                 var elem={};
@@ -391,6 +438,8 @@ var AmatYr = function(apiurl) {
               }
                draw(valori);
             });
+            */
+
             currentsource=valori;
             // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
 
