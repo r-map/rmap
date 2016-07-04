@@ -32,24 +32,30 @@ public:
     
     int connect(char* hostname, int port)
     {
-        return client->connect(hostname, port);
+      if (client->connect(hostname, port)) return 1;
+      return 0;
     }
 
     int connect(uint32_t hostname, int port)
     {
-        return client->connect(hostname, port);
+      if (client->connect(hostname, port)) return 1;
+      return 0;
     }
 
-    int read(unsigned char* buffer, int len, int timeout)
+    int read(unsigned char* buffer, int len, unsigned long timeout)
     {
-
-      //Serial.print("read timeout: ");
-      //Serial.println(timeout);
-      client->setTimeout((unsigned long int)timeout);  
-      return (int)client->readBytes((char*)buffer, len);
+      Serial.print("+ read timeout: ");
+      Serial.println(timeout);
+      client->setTimeout(timeout);  
+      int rc=(int)client->readBytes((char*)buffer, len);
+      Serial.print("+ read wanted: ");
+      Serial.println(len);
+      Serial.print("+ read getted: ");
+      Serial.println(rc);
+      return rc;
     }
     
-    int write(unsigned char* buffer, int len, int timeout)
+    int write(unsigned char* buffer, int len, unsigned long timeout)
     {
       //Serial.print("write timeout: ");
       //Serial.println(timeout);
@@ -59,7 +65,7 @@ public:
     int disconnect()
     {
         client->stop();
-        return 0;
+        return 1;
     }
 
 private:

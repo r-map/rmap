@@ -55,7 +55,7 @@ void messageArrived(MQTT::MessageData& md)
 sim800Client s800;
 IPStack ipstack(s800);
 char imeicode[16];
-MQTT::Client<IPStack, Countdown, 100, 1> client = MQTT::Client<IPStack, Countdown, 100, 1>(ipstack,10000);
+MQTT::Client<IPStack, Countdown, 120, 2> client = MQTT::Client<IPStack, Countdown, 120, 2>(ipstack,100000);
 
 const char* topic = "test/MQTTClient/sim800";
 
@@ -64,11 +64,17 @@ void connect()
   char hostname[] = "rmap.cc";
   int port = 1883;
 
-  while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
-    Serial.println("TCPstart failed");
-    s800.stop();
-    s800.TCPstop();
-    delay(1000);
+  client.disconnect();
+  ipstack.disconnect();
+  s800.TCPstop();
+
+  if (s800.init_onceautobaud()){
+    if (s800.setup()){
+      while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
+	    Serial.println("TCPstart failed");
+	    delay(1000);
+      }
+    }
   }
   Serial.println("TCPstart started");
 

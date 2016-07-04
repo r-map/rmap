@@ -72,7 +72,7 @@ public:
 
     int getNext()
     {
-        return next = (next == MAX_PACKET_ID) ? 1 : ++next;
+        return next = (next == MAX_PACKET_ID) ? 1 : next + 1;
     }
 
 private:
@@ -103,7 +103,7 @@ public:
      *      before calling MQTT connect
      *  @param limits an instance of the Limit class - to alter limits as required
      */
-    Client(Network& network, unsigned int command_timeout_ms = 30000);
+    Client(Network& network, unsigned long command_timeout_ms = 30000);
 
     /** Set the default message handling callback - used for any message which does not match a subscription message handler
      *  @param mh - pointer to the callback function
@@ -197,7 +197,7 @@ private:
     int keepalive();
     int publish(int len, Timer& timer, enum QoS qos);
 
-    int decodePacket(int* value, int timeout);
+    int decodePacket(int* value, unsigned long timeout);
     int readPacket(Timer& timer);
     int sendPacket(int length, Timer& timer);
     int deliverMessage(MQTTString& topicName, Message& message);
@@ -210,7 +210,7 @@ private:
     unsigned char readbuf[MAX_MQTT_PACKET_SIZE];
 
     Timer last_sent, last_received;
-    unsigned int keepAliveInterval;
+    unsigned  int keepAliveInterval;
     bool ping_outstanding;
     bool cleansession;
 
@@ -250,7 +250,7 @@ private:
 
 
 template<class Network, class Timer, int a, int MAX_MESSAGE_HANDLERS>
-MQTT::Client<Network, Timer, a, MAX_MESSAGE_HANDLERS>::Client(Network& network, unsigned int command_timeout_ms)  : ipstack(network), packetid()
+MQTT::Client<Network, Timer, a, MAX_MESSAGE_HANDLERS>::Client(Network& network, unsigned long command_timeout_ms)  : ipstack(network), packetid()
 {
     last_sent = Timer();
     last_received = Timer();
@@ -347,7 +347,7 @@ int MQTT::Client<Network, Timer, a, b>::sendPacket(int length, Timer& timer)
 
 
 template<class Network, class Timer, int a, int b>
-int MQTT::Client<Network, Timer, a, b>::decodePacket(int* value, int timeout)
+int MQTT::Client<Network, Timer, a, b>::decodePacket(int* value, unsigned long timeout)
 {
     unsigned char c;
     int multiplier = 1;
@@ -537,7 +537,7 @@ int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::cycle(Timer& timer)
             MQTTString topicName = MQTTString_initializer;
             Message msg;
             if (MQTTDeserialize_publish((unsigned char*)&msg.dup, (int*)&msg.qos, (unsigned char*)&msg.retained, (unsigned short*)&msg.id, &topicName,
-                                 (unsigned char**)&msg.payload, (int*)&msg.payloadlen, readbuf, MAX_MQTT_PACKET_SIZE) != 1)
+                                 (unsigned char**)&msg.payload, &msg.payloadlen, readbuf, MAX_MQTT_PACKET_SIZE) != 1)
                 goto exit;
 #if MQTTCLIENT_QOS2
             if (msg.qos != QOS2)
@@ -617,7 +617,7 @@ int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::keepalive()
     {
         if (!ping_outstanding)
         {
-            Timer timer = Timer(1000);
+            Timer timer = Timer(1000L);
             int len = MQTTSerialize_pingreq(sendbuf, MAX_MQTT_PACKET_SIZE);
             if (len > 0 && (rc = sendPacket(len, timer)) == SUCCESS) // send the ping packet
                 ping_outstanding = true;

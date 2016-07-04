@@ -28,13 +28,13 @@
   * @param packetid returned integer - the MQTT packet identifier
   * @param topicName returned MQTTString - the MQTT topic in the publish
   * @param payload returned byte buffer - the MQTT publish payload
-  * @param payloadlen returned integer - the length of the MQTT payload
+  * @param payloadlen returned size_t - the length of the MQTT payload
   * @param buf the raw buffer data, of the correct length determined by the remaining length field
   * @param buflen the length in bytes of the data in the supplied buffer
   * @return error code.  1 is success
   */
 int MQTTDeserialize_publish(unsigned char* dup, int* qos, unsigned char* retained, unsigned short* packetid, MQTTString* topicName,
-		unsigned char** payload, int* payloadlen, unsigned char* buf, int buflen)
+		unsigned char** payload, size_t* payloadlen, unsigned char* buf, int buflen)
 {
 	MQTTHeader header = {0};
 	unsigned char* curdata = buf;
