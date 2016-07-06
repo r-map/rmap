@@ -1,3 +1,4 @@
+
 /*
 Copyright (C) 2015  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
@@ -410,6 +411,23 @@ bool SIM800::setup() {
   //ATcommand("+CIPMODE=?", buf);
   //ATcommand("+CIPMODE?", buf);
   //ATcommand("+CIPCCFG?", buf);
+
+  // wait Network Registration
+  unsigned short int ntryreg=0;
+  while(ATcommand("+CREG?", buf)) {
+    if (found(buf,"+CREG: 0,1")) break;
+    if (ntryreg++ == 20) return false;
+    IF_SDEBUG(Serial.println(F("#sim800 wait for Network Registration")));
+    IF_SDEBUG(if(found(buf,"+CREG: 0,2")) Serial.println(F("Not registered, but MT is currently searching a new operator to register to")));
+    IF_SDEBUG(if(found(buf,"+CREG: 0,3")) Serial.println(F("Registration denied")));
+    IF_SDEBUG(if(found(buf,"+CREG: 0,4")) Serial.println(F("Unknown")));
+    IF_SDEBUG(if(found(buf,"+CREG: 0,5")) Serial.println(F("Registered,roaming")));
+    delay(1000);
+
+#ifdef ENABLEWDT
+    wdt_reset();
+#endif
+  }
 
   return true;
 }
@@ -953,6 +971,7 @@ bool SIM800::TCPconnect(const char* server, int port)
     receive(buf,10000,"\r\n",NULL);
     if (found(buf,"CONNECT")){
       state |= STATE_HTTPINITIALIZED;
+
       return true;
     }
   }
@@ -1006,7 +1025,8 @@ byte sim800Client::readBytes(char *buf, size_t size)
   byte rc =  modem->readBytes(buf,size);
   //Serial.print("----> readBytes:");
   //for (size_t i=0; i<rc; i++) {
-  //  Serial.print(buf[i],HEX);
+  //  Serial.print((byte)buf[i],HEX);
+  //  Serial.print(":");
   //}
   //Serial.println("");
   return rc;
@@ -1028,6 +1048,7 @@ size_t sim800Client::write(const uint8_t *buf, size_t size)
   //Serial.print("---> write:");
   //for (size_t i=0; i<size; i++){
   //  Serial.print(buf[i],HEX);
+  //  Serial.print(":");
   //}
   //Serial.println("");
 
