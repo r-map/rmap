@@ -55,7 +55,7 @@ void messageArrived(MQTT::MessageData& md)
 sim800Client s800;
 IPStack ipstack(s800);
 char imeicode[16];
-MQTT::Client<IPStack, Countdown, 120, 2> client = MQTT::Client<IPStack, Countdown, 120, 2>(ipstack,100000);
+MQTT::Client<IPStack, Countdown, 120, 2> client = MQTT::Client<IPStack, Countdown, 120, 2>(ipstack,30000);
 
 const char* topic = "test/MQTTClient/sim800";
 
@@ -64,19 +64,36 @@ void connect()
   char hostname[] = "rmap.cc";
   int port = 1883;
 
+  Serial.println("close modem connections");
   client.disconnect();
   ipstack.disconnect();
+  s800.stop();
   s800.TCPstop();
 
-  if (s800.init_onceautobaud()){
-    if (s800.setup()){
-      while (!s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
-	    Serial.println("TCPstart failed");
-	    delay(1000);
-      }
-    }
+
+  Serial.println("Reset modem status");
+  s800.init_onceautobaud();
+  if (s800.setup()){
+    Serial.println("s800 setup ok");
+  }else{
+    Serial.println("Error s800 setup");
+    return;
   }
-  Serial.println("TCPstart started");
+
+  if (s800.getIMEI(imeicode)){
+    Serial.print("IMEI: ");
+    Serial.println(imeicode);
+  }else{
+    Serial.println("Error getting IMEI code");
+  }
+
+
+  if (s800.TCPstart(GSMAPN,GSMUSER,GSMPASSWORD)) {
+    Serial.println("TCP started");
+  }else{
+    Serial.println("start TCP failed");
+    return;
+  }
 
   Serial.print("Connecting to ");
   Serial.print(hostname);
@@ -86,10 +103,13 @@ void connect()
   int rc = ipstack.connect(hostname, port);
   if (rc != 1)
   {
-    Serial.print("rc from TCP connect is ");
+    Serial.print("error rc from TCP connect is ");
     Serial.println(rc);
+    return;
+  }else{
+    Serial.println("TCP connected");
   }
- 
+
   Serial.println("MQTT connecting");
   MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
   data.MQTTVersion = 3;
@@ -97,18 +117,21 @@ void connect()
   rc = client.connect(data);
   if (rc != 0)
   {
-    Serial.print("rc from MQTT connect is ");
+    Serial.print("error rc from MQTT connect is ");
     Serial.println(rc);
+    return;
+  }else{
+    Serial.println("MQTT connected");
   }
-  Serial.println("MQTT connected");
-  
+
   rc = client.subscribe(topic, MQTT::QOS2, messageArrived);   
   if (rc != 0)
   {
     Serial.print("rc from MQTT subscribe is ");
     Serial.println(rc);
+  }else{
+    Serial.println("MQTT subscribed");
   }
-  Serial.println("MQTT subscribed");
 }
 
 void setup()
@@ -128,15 +151,8 @@ void setup()
 
   }
 
-  Serial.println("try to setup sim800");
-  s800.setup();
-  s800.stop();
-  s800.TCPstop();
-  s800.getIMEI(imeicode);
-  Serial.print("IMEI: ");
-  Serial.println(imeicode);
-
   connect();
+
 }
 
 MQTT::Message message;
@@ -148,17 +164,19 @@ void loop()
     connect();
     
   arrivedcount = 0;
-
-  // Send and receive QoS 0 message
+  int rc;
   char buf[100];
-  strcpy(buf, "Hello World! QoS 0 message");
-  Serial.println(buf);
-  message.qos = MQTT::QOS0;
+
   message.retained = false;
   message.dup = false;
   message.payload = (void*)buf;
+
+  // Send and receive QoS 0 message
+  strcpy(buf, "Hello World! QoS 0 message");
+  Serial.println(buf);
+  message.qos = MQTT::QOS0;
   message.payloadlen = strlen(buf)+1;
-  int rc = client.publish(topic, message);
+  rc = client.publish(topic, message);
   if (rc != 0)
   {
     Serial.print("rc from MQTT pubblish is ");
@@ -170,7 +188,7 @@ void loop()
   while (arrivedcount < 1 && i < 10)
   {
     Serial.println("Waiting for QoS 0 message");
-    client.yield(1000);
+    client.yield(10000L);
     i++;
   }
 
@@ -179,6 +197,7 @@ void loop()
     arrivedcount ++;
   }
   
+
   // Send and receive QoS 1 message
   strcpy(buf, "Hello World! QoS 1 message");
   Serial.println(buf);
@@ -192,10 +211,10 @@ void loop()
     arrivedcount ++;
   }
 
-  while (arrivedcount < 2)
+  while (arrivedcount < 1)
   {
     Serial.println("Waiting for QoS 1 message");
-    client.yield(1000);
+    client.yield(10000L);
   }
 
   // Send and receive QoS 2 message
@@ -214,10 +233,10 @@ void loop()
   while (arrivedcount < 3)
   {
     Serial.println("Waiting for QoS 2 message");
-    client.yield(1000);  
+    client.yield(10000L);  
   }
 
-  client.yield(5000);  
+  client.yield(10L);  
 
   //delay(2000);
 }

@@ -44,14 +44,14 @@ public:
 
     int read(unsigned char* buffer, int len, unsigned long timeout)
     {
-      Serial.print("+ read timeout: ");
-      Serial.println(timeout);
+      //Serial.print("+ read timeout: ");
+      //Serial.println(timeout);
       client->setTimeout(timeout);  
       int rc=(int)client->readBytes((char*)buffer, len);
-      Serial.print("+ read wanted: ");
-      Serial.println(len);
-      Serial.print("+ read getted: ");
-      Serial.println(rc);
+      //Serial.print("+ read wanted: ");
+      //Serial.println(len);
+      //Serial.print("+ read getted: ");
+      //Serial.println(rc);
       return rc;
     }
     
