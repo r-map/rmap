@@ -5,6 +5,7 @@ var AmatYr = function(apiurl) {
     this.that = this;
     that = this;
 
+//create the days of the current week
     var week={};
     var i;
     for(i=0; i<7; i++){
@@ -12,7 +13,7 @@ var AmatYr = function(apiurl) {
       day.setDate(day.getDate()-i);
       week['day_'+i]=day;
     }
-    //variabili per comporre gli url dei vari giorni
+    //these variables are used to compose the url for the download of the rmap json in the 3day section
       var giorno1;
       var mese1;
       var anno1;
@@ -130,9 +131,17 @@ var AmatYr = function(apiurl) {
             Path.history.pushState({}, "", $(this).attr("href"));
         });
 
-//grafico dei 3 giorni
+
+// 3DAY, TODAY, YESTERDAY, WEEK, MONTH YEAR graphics section
+
+// the var valori[] is the JSON file that is used like input in the function draw(json)
+
+
+//3day graph
 
         Path.map("/amatyr").to(function(){
+
+
         var valori=[];
 
 
@@ -155,6 +164,7 @@ var AmatYr = function(apiurl) {
         var humidity_url3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
         var daily_rain3='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno3+'/'+mese3+'/'+giorno3;
 
+// temperature and date insertion
         d3.json(temp_url3, function(json) {
           for(var i=0;i<json.length;i++){
             var elem={};
@@ -168,7 +178,7 @@ var AmatYr = function(apiurl) {
           }
 
         });
-
+// temperature and date insertion
         d3.json(temp_url2, function(json) {
           for(var i=0;i<json.length;i++){
             var elem={};
@@ -181,7 +191,7 @@ var AmatYr = function(apiurl) {
           }
 
         });
-
+// temperature and date insertion
         d3.json(temp_url1, function(json) {
           for(var i=0;i<json.length;i++){
             var elem={};
@@ -203,7 +213,7 @@ var AmatYr = function(apiurl) {
           }
 
         });
-
+//pressure insertion
         d3.json(press_url2, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
@@ -222,7 +232,7 @@ var AmatYr = function(apiurl) {
         });
 
         var index1=0;
-
+// humidity insertion
         d3.json(humidity_url3, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
@@ -251,7 +261,7 @@ var AmatYr = function(apiurl) {
         });
 
         var index2=0;
-
+// daily rain insertion
         d3.json(daily_rain3, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
@@ -270,6 +280,7 @@ var AmatYr = function(apiurl) {
 
         });
 
+// in this last insertion i call the funcion draw on the json valori
         d3.json(daily_rain1, function(json) {
           for(var i=0;i<json.length;i++){
             var item=json[i];
@@ -283,6 +294,8 @@ var AmatYr = function(apiurl) {
         // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
         });
 
+// current year graph
+// same logic as the previous section
         Path.map("/amatyr/year/:year").to(function(){
           var valori=[];
           var giorno = this.params['year'];
@@ -333,8 +346,8 @@ var AmatYr = function(apiurl) {
 
 
         });
-
-        // grafico della sezione day/today e day/yesterday
+// same logic as the previous section
+        // today and yesterday graph
         Path.map("/amatyr/day/:day").to(function(){
             var valori=[];
             var giorno = this.params['day'];
@@ -414,7 +427,8 @@ var AmatYr = function(apiurl) {
           //  drawWindrose(day);
         });
 
-        //grafico della sezione hour/month
+        //week and current month graph
+        // same logic as the previous section
         Path.map("/amatyr/hour/:arg").to(function(){
           var valori=[];
           var giorno = this.params['arg'];
