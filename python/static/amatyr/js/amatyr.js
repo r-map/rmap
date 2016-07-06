@@ -24,12 +24,19 @@ var AmatYr = function(apiurl) {
       else{
         mese1=""+mese1;
       }
+      if(giorno1<10){
+        giorno1="0"+giorno1;
+      }
+
       anno1=""+week["day_0"].getFullYear();
 
       var giorno2;
       var mese2;
       var anno2;
       giorno2=""+week["day_1"].getDate();
+      if(giorno2<10){
+        giorno2="0"+giorno2;
+      }
       mese2=+week["day_1"].getMonth()+1;
       if(mese2<10){
         mese2="0"+mese2;
@@ -43,6 +50,9 @@ var AmatYr = function(apiurl) {
       var mese3;
       var anno3;
       giorno3=""+week["day_2"].getDate();
+      if(giorno3<10){
+        giorno3="0"+giorno3;
+      }
       mese3=+week["day_2"].getMonth()+1;
       if(mese3<10){
         mese3="0"+mese3;
@@ -122,7 +132,7 @@ var AmatYr = function(apiurl) {
 
 //grafico dei 3 giorni
 
-        Path.map("/").to(function(){
+        Path.map("/amatyr").to(function(){
         var valori=[];
 
 
@@ -273,7 +283,7 @@ var AmatYr = function(apiurl) {
         // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
         });
 
-        Path.map("/year/:year").to(function(){
+        Path.map("/amatyr/year/:year").to(function(){
           var valori=[];
           var giorno = this.params['year'];
           if(giorno==='2016'){
@@ -325,13 +335,16 @@ var AmatYr = function(apiurl) {
         });
 
         // grafico della sezione day/today e day/yesterday
-        Path.map("/day/:day").to(function(){
+        Path.map("/amatyr/day/:day").to(function(){
             var valori=[];
             var giorno = this.params['day'];
             var mese;
             var anno;
             if(giorno==='today'){
               giorno=""+week["day_0"].getDate();
+              if(giorno<10){
+                giorno="0"+giorno;
+              }
               mese=+week["day_0"].getMonth()+1;
               if(mese<10){
                 mese="0"+mese;
@@ -344,6 +357,9 @@ var AmatYr = function(apiurl) {
             }
             else {
               giorno=""+week["day_1"].getDate();
+              if(giorno<10){
+                giorno="0"+giorno;
+              }
               mese=week["day_1"].getMonth()+1;
               if(mese<10){
                 mese="0"+mese;
@@ -358,53 +374,6 @@ var AmatYr = function(apiurl) {
             var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese+'/'+giorno;
             var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese+'/'+giorno;
 
-            // In questo caso jQuery è più utile di d3.
-            // $.when aspetta che tutte le chiamate AJAX abbiano terminato prima di chiamare ".done"
-            $.when(
-                $.ajax(temp_url),
-                $.ajax(press_url),
-                $.ajax(humidity_url),
-                $.ajax(daily_rain)
-            )
-                // Qua sono sicuro che tutte le chiamate sono terminate con successo
-                .done(function (tempResponse, pressResponse, humidityResponse, rainResponse) {
-                    var tempJson = tempResponse[0];
-                    var pressJson = pressResponse[0];
-                    var humidityJson = humidityResponse[0];
-                    var rainJson = rainResponse[0];
-
-                    // Temp
-                    $.each(tempJson, function (i, item) {
-                        var elem = {};
-                        var mia_data = item.date;
-                        elem.datetime = mia_data.replace("T", " ");
-                        elem.outtemp = (item.data.vars[0].B12101) - 273.15;
-                        valori.push(elem);
-                    });
-
-                    // Press
-                    $.each(pressJson, function (i, item) {
-                        valori[i].barometer = (item.data.vars[0].B10004) / 100;
-                    });
-
-                    // Humidity
-                    $.each(humidityJson, function (i, item) {
-                        valori[i].outhumidity = item.data.vars[0].B13003;
-                    });
-
-                    // Daily rain
-                    $.each(rainJson, function (i, item) {
-                        valori[i].dayrain = item.data.vars[0].B13011;
-                    });
-
-                    draw(valori);
-                })
-                .fail(function () {
-                    // Qua si può eseguire qualcosa nel caso le chiamate falliscano
-                });
-
-            /*
-            // OLD WAY
             d3.json(temp_url, function(json) {
               for(var i=0;i<json.length;i++){
                 var elem={};
@@ -438,8 +407,6 @@ var AmatYr = function(apiurl) {
               }
                draw(valori);
             });
-            */
-
             currentsource=valori;
             // prendo il json che ho creato e lo do in pasto alla funzione draw che disegnerà il grafico
 
@@ -448,7 +415,7 @@ var AmatYr = function(apiurl) {
         });
 
         //grafico della sezione hour/month
-        Path.map("/hour/:arg").to(function(){
+        Path.map("/amatyr/hour/:arg").to(function(){
           var valori=[];
           var giorno = this.params['arg'];
           var mese;
@@ -463,14 +430,12 @@ var AmatYr = function(apiurl) {
             }
             anno=""+week["day_1"].getFullYear();
           }
-          var temp_url_avg='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/0,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
-          var temp_url_max='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/2,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
-          var temp_url_min='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/3,0,86400/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
+          var temp_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B12101/timeseries/'+anno+'/'+mese;
           var press_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/1,-,-,-/B10004/timeseries/'+anno+'/'+mese;
           var humidity_url='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/254,0,0/103,2000,-,-/B13003/timeseries/'+anno+'/'+mese;
           var daily_rain='http://rmapv.rmap.cc/borinud/api/v2/-/1162264,4465378/locali/1,0,3600/1,-,-,-/B13011/timeseries/'+anno+'/'+mese;
 
-          d3.json(temp_url_avg, function(json) {
+          d3.json(temp_url, function(json) {
             for(var i=0;i<json.length;i++){
               var elem={};
               var item=json[i];
@@ -481,20 +446,6 @@ var AmatYr = function(apiurl) {
               valori.push(elem);
           }
 
-          });
-
-          d3.json(temp_url_min, function(json) {
-            for(var i=0;i<json.length;i++){
-              var item=json[i];
-              valori[i].tempmin=(item.data.vars[0].B12101)-273.15;
-            }
-          });
-
-          d3.json(temp_url_max, function(json) {
-            for(var i=0;i<json.length;i++){
-              var item=json[i];
-              valori[i].tempmax=(item.data.vars[0].B12101)-273.15;
-            }
           });
 
           d3.json(press_url, function(json) {
