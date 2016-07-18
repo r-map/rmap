@@ -925,6 +925,32 @@ void LogDigitalClockDisplay(){
 #define IF_LOGDATEFILE(x)
 #endif
 
+void Reboot() {
+  IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
+
+  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  if (mqttclient.connected()){
+    //disconn clean
+    rmapdisconnect();
+
+    #ifdef GSMGPRSMQTT
+    s800.TCPstop();
+    #endif
+  }
+  #ifdef GSMGPRSHTTP
+  s800.stopNetwork();
+  #endif
+  #endif
+
+  IF_LOGDATEFILE("programmed Reboot\n");
+
+  wdt_enable(WDTO_30MS); while(1) {} 
+
+  // Restarts program from beginning but 
+  // does not reset the peripherals and registers
+  //asm volatile ("  jmp 0");
+}
+
 #if defined (JSONRPCON)
 
 #if defined (REBOOTRPC)
@@ -1631,32 +1657,6 @@ time_t periodicResyncGSMRTC() {
 }
 
 #endif
-
-void Reboot() {
-  IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
-
-  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-  if (mqttclient.connected()){
-    //disconn clean
-    rmapdisconnect();
-
-    #ifdef GSMGPRSMQTT
-    s800.TCPstop();
-    #endif
-  }
-  #ifdef GSMGPRSHTTP
-  s800.stopNetwork();
-  #endif
-  #endif
-
-  IF_LOGDATEFILE("programmed Reboot\n");
-
-  wdt_enable(WDTO_30MS); while(1) {} 
-
-  // Restarts program from beginning but 
-  // does not reset the peripherals and registers
-  //asm volatile ("  jmp 0");
-}
 
 #ifdef I2CGPSPRESENT
 
