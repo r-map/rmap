@@ -1508,7 +1508,8 @@ class Rmap(App):
             elif token == ('sensors', 'station'):
                 print('sensors station have been changed to', value)
 
-                mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
+                mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
+
                 self.stationstatus()
                 #board=mystation.board_set.filter(active=True)[0]
                 #TODO check for no boards
@@ -1697,7 +1698,8 @@ class Rmap(App):
         for station in StationMetadata.objects.all():
             stations.append(str(station.slug))
 
-        mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'))
+        mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
+
         self.stationstatus()
 
         boards=[]

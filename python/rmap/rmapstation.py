@@ -381,11 +381,12 @@ class station():
                 board_slug=self.boardslug
             if username is None:
                 username=self.username
-                rmap_core.configstation(station_slug=self.slug,
-                            board_slug=board_slug,
-                            transport=self.transport,
-                                         logfunc=self.log,username=username)
 
+            print "configstation:",self.slug,board_slug,board_slug,username
+            rmap_core.configstation(station_slug=self.slug,
+                                    board_slug=board_slug,
+                                    transport=self.transport,
+                                    logfunc=self.log,username=username)
 
         except Exception as e:
             print "error in configure:"

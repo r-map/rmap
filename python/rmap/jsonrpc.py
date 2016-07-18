@@ -731,7 +731,7 @@ class TransportSERIAL(Transport):
         time.sleep(sleep)
         self.ser.flushInput()
         self.log    = logfunc
-        self.log( "serial port (%s): %s" % (port,"opended") )
+        self.log( "serial port (%s): %s" % (port,"opened") )
 
     def send(self, string):
         """write data to Serial port """
