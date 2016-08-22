@@ -651,21 +651,38 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
   Wire.requestFrom(_address, 4);
   if(Wire.available() >= 4) {
     x = Wire.read();
-    y = Wire.read();
-    s = x >> 6;
+    s = (x & 0xc0 ) >> 6;
     
-    //status 0 == OK
     switch(s) {
     case 0:
+      // status 0 == OK  
+      // Normal Operation, Valid Data that has not been fetched since the last measurement cycle
+
+      y = Wire.read();
       h = (((uint16_t) (x & 0x3f)) << 8) | y;
+
       x = Wire.read();
       y = Wire.read();
-      t = ((((uint16_t) x) << 8) | y) >> 2;
+      t = (((uint16_t) x) << 6) | ((y & 0xfc) >> 2);
       
       //Wire.endTransmission();
       break;
 
     default:
+      // status 1  
+      // Stale Data: Data that has already been
+      // fetched since the last measurement cycle, or
+      // data fetched before the first measurement
+      // has been completed
+
+      // status 2
+      // Device in Command Mode
+      // Command Mode is used for programming the sensor.
+      // This mode should not be seen during normal operation
+
+      // status 3
+      // Not Used
+
       return SD_INTERNAL_ERROR;
     }
 
@@ -673,8 +690,8 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
     return SD_INTERNAL_ERROR;
   }
 
-  if (lenvalues >= 1)  values[0] = (long) (float(h) / 16382 * 100) ;
-  if (lenvalues >= 2)  values[1] = (long)((float(t)/16382) * 165 - 40) * 100 + 27315 ;
+  if (lenvalues >= 1)  values[0] = (long) round (float(h) / 16382. * 100.) ;
+  if (lenvalues >= 2)  values[1] = (long) round((float(t) / 16382. * 165. - 40.) * 100. + 27315.) ;
   _timing=0;
 
   return SD_SUCCESS;
