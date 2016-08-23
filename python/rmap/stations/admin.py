@@ -105,6 +105,7 @@ class StationMetadataAdmin(admin.ModelAdmin):
 
 
     list_display = ('name','active','slug','ident','lat','lon','network','mqttrootpath','mqttmaintpath','category')
+    list_display_links = ('name', 'slug')
     list_editable = ('active','ident','lat','lon')
     search_fields = ['name','slug','ident__username','network']
 

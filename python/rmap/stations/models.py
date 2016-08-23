@@ -530,7 +530,7 @@ class StationMetadata(models.Model):
     )
 
 
-    name = models.CharField(max_length=255,help_text=ugettext_lazy("station name"))
+    name = models.CharField(max_length=255,default="My station",help_text=ugettext_lazy("station name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
 
@@ -596,7 +596,7 @@ class StationMetadata(models.Model):
 
 
     def __unicode__(self):
-        return u'%s-%s' % (self.slug,self.ident)
+        return u'%s/%s' % (self.slug,self.ident)
 
 
 from django.contrib.auth.models import User
