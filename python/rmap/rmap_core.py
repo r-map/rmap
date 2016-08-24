@@ -24,6 +24,7 @@ from stations.models import Board
 from stations.models import Sensor
 from django.contrib.auth.models import User
 from django.core import serializers
+from django.utils.translation import ugettext as _
 import pika
 from rmap.utils import nint
 from rmap import jsonrpc
@@ -818,6 +819,12 @@ def object_auth(object,user):
 
 
 
+def updateusername(oldusername="rmap",newusername=_("your user")):
+    "returns the number of affected rows"
+    
+    return User.objects.filter(username=oldusername).update(username=newusername)
+
+
 def configdb(username="your user",password="your password",
              station="home",lat=0,lon=0,constantdata={},
              mqttusername="your user",
@@ -847,10 +854,7 @@ def configdb(username="your user",password="your password",
         print "elaborate station: ",station
 
         try:
-            #TODO: why filter and get [0]? should be better StationMetadata.get(.....) ?
-            #mystation=StationMetadata.objects.filter(slug=station)[0]
             mystation=StationMetadata.objects.get(slug=station,ident__username=username)
-        #except IndexError:
         except ObjectDoesNotExist:
             if (stationname is None):
                 stationname=""
