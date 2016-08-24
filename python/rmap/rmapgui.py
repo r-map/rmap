@@ -92,24 +92,24 @@ def queuedfilename():
 
 if platform == 'android':
     from jnius import autoclass
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed"
 elif platform == 'linux':
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed_LINUX"
 elif platform == 'win':
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed_WINDOWS"
 elif platform == 'macosx':
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed_OSX"
 elif platform == 'ios':
     print "ios platform not tested !!!!!"
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed_IOS"
 else:
     print "platform unknown !!!!"
-    station_default= "BT_fixed/"+_("your user")
+    station_default= "BT_fixed"
     board_default= "BT_fixed"
 
 template_default=rmap.rmap_core.template_choices[0]
@@ -1203,25 +1203,25 @@ class Rmap(App):
 
             #sync data from config to db and preserve active status
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                            slug=self.config.get('sensors','station').split("/")[0],
+                            slug=self.config.get('sensors','station'),
                             username=self.config.get('rmap','user'),
                             boardslug=self.config.get('sensors','board'),
                             logfunc=jsonrpc.log_stdout)
 
             self.config2db(activate=self.mystation.active)
             rmap.rmap_core.addsensors_by_template(
-                station_slug=self.config.get('sensors','station').split("/")[0]
+                station_slug=self.config.get('sensors','station')
                 ,username=self.config.get('rmap','user')
                 ,board_slug=self.config.get('sensors','board')
                 ,template=self.config.get('sensors','template'))
             rmap.rmap_core.addsensors_by_template(
-                station_slug=self.config.get('sensors','station').split("/")[0]
+                station_slug=self.config.get('sensors','station')
                 ,username=self.config.get('rmap','user')
                 ,board_slug=self.config.get('sensors','remote_board')
                 ,template=self.config.get('sensors','remote_template'))
 
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                            slug=self.config.get('sensors','station').split("/")[0],
+                            slug=self.config.get('sensors','station'),
                             username=self.config.get('rmap','user'),
                             boardslug=self.config.get('sensors','board'),
                             logfunc=jsonrpc.log_stdout)
@@ -1233,7 +1233,7 @@ class Rmap(App):
                 print "retry with default and without username; this happen when DB was modified and is not in sync with config"
                 self.config2db()
                 self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                slug=self.config.get('sensors','station').split("/")[0],
+                                slug=self.config.get('sensors','station'),
                                 boardslug=self.config.get('sensors','board'),
                                 logfunc=jsonrpc.log_stdout)
 
@@ -1248,18 +1248,18 @@ class Rmap(App):
 
                     self.config2db()
                     rmap.rmap_core.addsensors_by_template(
-                        station_slug=self.config.get('sensors','station').split("/")[0]
+                        station_slug=self.config.get('sensors','station')
                         ,username=self.config.get('rmap','user')
                     ,board_slug=self.config.get('sensors','board')
                     ,template=self.config.get('sensors','template'))
                     rmap.rmap_core.addsensors_by_template(
-                        station_slug=self.config.get('sensors','station').split("/")[0]
+                        station_slug=self.config.get('sensors','station')
                         ,username=self.config.get('rmap','user')
                         ,board_slug=self.config.get('sensors','remote_board')
                         ,template=self.config.get('sensors','remote_template'))
 
                     self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                                       slug=self.config.get('sensors','station').split("/")[0],
+                                                       slug=self.config.get('sensors','station'),
                                                        boardslug=self.config.get('sensors','board'),
                                                        logfunc=jsonrpc.log_stdout)
 
@@ -1287,7 +1287,7 @@ class Rmap(App):
 
             try:
                 rmap.rmap_core.sendjson2amqp(
-                    station=self.config.get('sensors','station').split("/")[0],
+                    station=self.config.get('sensors','station'),
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
@@ -1428,7 +1428,7 @@ class Rmap(App):
 
         self.mystation=rmapstation.station(
             trip=self.trip,gps=self.gps,
-            slug=self.config.get('sensors','station').split("/")[0],
+            slug=self.config.get('sensors','station'),
             username=self.config.get('rmap','user'),
             boardslug=self.config.get('sensors','board'),
             logfunc=jsonrpc.log_stdout)
@@ -1439,7 +1439,7 @@ class Rmap(App):
         if self.mystation.active:
             try:
                 rmap.rmap_core.sendjson2amqp(
-                    station=self.config.get('sensors','station').split("/")[0],
+                    station=self.config.get('sensors','station'),
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
@@ -1456,7 +1456,7 @@ class Rmap(App):
 
         self.mystation=rmapstation.station(
             trip=self.trip,gps=self.gps,
-            slug=self.config.get('sensors','station').split("/")[0],
+            slug=self.config.get('sensors','station'),
             username=self.config.get('rmap','user'),
             boardslug=self.config.get('sensors','board'),
             logfunc=jsonrpc.log_stdout)
@@ -1487,7 +1487,6 @@ class Rmap(App):
                 print('user have been changed to', value)
                 print "number of update records with updateusername",rmap.rmap_core.updateusername(oldusername=self.username,newusername=value)
                 self.username=value
-                config.set('sensors','station',self.config.get('sensors','station').split("/")[0]+"/"+value)
                 rmapchanged = True
             elif token == ('rmap', 'password'):
                 print('password have been changed to', value)
@@ -1495,7 +1494,6 @@ class Rmap(App):
             elif token == ('rmap', 'samplerate'):
                 print('samplerate have been changed to', value)
                 rmapchanged = True
-
             elif token == ('location', 'name'):
                 print('location name have been changed to', value)
                 locationchanged = True
@@ -1508,14 +1506,12 @@ class Rmap(App):
             elif token == ('location', 'height'):
                 print('height have been changed to', value)
                 locationchanged = True
-
             elif token == ('sensors', 'name'):
                 print('sensors name have been changed to', value)
                 sensorschanged = True
             elif token == ('sensors', 'station'):
                 print('sensors station have been changed to', value)
-                slug,username=self.config.get('sensors','station').split("/",1)
-                mystation=StationMetadata.objects.get(slug=slug,ident__username=username)
+                mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
 
                 self.stationstatus()
                 try:
@@ -1540,7 +1536,7 @@ class Rmap(App):
             elif token == ('sensors', 'remote_template'):
                 print('sensors remote_template have been changed to', value)
                 rmap.rmap_core.addsensors_by_template(
-                    station_slug=self.config.get('sensors','station').split("/")[0]
+                    station_slug=self.config.get('sensors','station')
                     ,username=self.config.get('rmap','user')
                     ,board_slug=self.config.get('sensors','remote_board')
                     ,template=self.config.get('sensors','remote_template'))
@@ -1569,7 +1565,7 @@ class Rmap(App):
                 try:
                     self.mystation=rmapstation.station(
                         trip=self.trip,gps=self.gps,
-                        slug=self.config.get('sensors','station').split("/")[0],
+                        slug=self.config.get('sensors','station'),
                         username=self.config.get('rmap','user'),
                         boardslug=self.config.get('sensors','board'),
                         logfunc=jsonrpc.log_stdout)
@@ -1596,7 +1592,7 @@ class Rmap(App):
                     print e
                     print "ERROR recreating rmapstaton.station"
 
-                if token == ('sensors', 'station') or token == ('rmap', 'user'):
+                if token == ('sensors', 'station'):
                     super(Rmap, self).close_settings()
                     self.destroy_settings()
                     self.open_settings()
@@ -1608,7 +1604,7 @@ class Rmap(App):
                 self.config2db()
 
                 rmap.rmap_core.addsensors_by_template(
-                    station_slug=self.config.get('sensors','station').split("/")[0]
+                    station_slug=self.config.get('sensors','station')
                     ,username=self.config.get('rmap','user')
                     ,board_slug=self.config.get('sensors','board')
                     ,template=self.config.get('sensors','template'))
@@ -1631,7 +1627,7 @@ class Rmap(App):
             rmap.rmap_core.configdb(
                 username=self.config.get('rmap','user'),
                 password=self.config.get('rmap','password'),
-                station=self.config.get('sensors','station').split("/")[0],
+                station=self.config.get('sensors','station'),
                 lat=self.config.get('location','lat'),lon=self.config.get('location','lon'),
                 constantdata={"B01019":self.config.get('location','name'),
                               "B07030":self.config.get('location','height')},
@@ -1707,10 +1703,9 @@ class Rmap(App):
         stations=[]
         #for station in StationMetadata.objects.filter(active=True):
         for station in StationMetadata.objects.all():
-            stations.append(str(station))
+            stations.append(str(station.slug))
         try:
-            slug,username=self.config.get('sensors','station').split("/",1)
-            mystation=StationMetadata.objects.get(slug=slug,ident__username=username)
+            mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
         except:
                 try:
                     print "restart everithings with default"
@@ -1722,18 +1717,18 @@ class Rmap(App):
 
                     self.config2db()
                     rmap.rmap_core.addsensors_by_template(
-                        station_slug=self.config.get('sensors','station').split("/")[0]
+                        station_slug=self.config.get('sensors','station')
                         ,username=self.config.get('rmap','user')
                     ,board_slug=self.config.get('sensors','board')
                     ,template=self.config.get('sensors','template'))
                     rmap.rmap_core.addsensors_by_template(
-                        station_slug=self.config.get('sensors','station').split("/")[0]
+                        station_slug=self.config.get('sensors','station')
                         ,username=self.config.get('rmap','user')
                         ,board_slug=self.config.get('sensors','remote_board')
                         ,template=self.config.get('sensors','remote_template'))
 
                     self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
-                                                       slug=self.config.get('sensors','station').split("/")[0],
+                                                       slug=self.config.get('sensors','station'),
                                                        boardslug=self.config.get('sensors','board'),
                                                        logfunc=jsonrpc.log_stdout)
 
@@ -1743,8 +1738,7 @@ class Rmap(App):
                     raise
 
 
-        slug,username=self.config.get('sensors','station').split("/",1)
-        mystation=StationMetadata.objects.get(slug=slug,ident__username=username)
+        mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
 
         self.stationstatus()
 
@@ -1950,7 +1944,7 @@ class Rmap(App):
 
             try:
                 rmap.rmap_core.sendjson2amqp(
-                    station=self.config.get('sensors','station').split("/")[0],
+                    station=self.config.get('sensors','station'),
                     user=self.config.get('rmap','user'),
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
@@ -2329,8 +2323,7 @@ class Rmap(App):
 
             #refresh config tabs
             self.destroy_settings()
-            slug,username=self.config.get('sensors','station').split("/",1)
-            mystation=StationMetadata.objects.get(slug=slug,ident__username=username)
+            mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
 
             try:
                 StationConstantData.objects.filter(stationmetadata=mystation,btable="B01019").delete()
