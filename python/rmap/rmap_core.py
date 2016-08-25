@@ -22,6 +22,10 @@ from stations.models import StationMetadata
 from stations.models import StationConstantData
 from stations.models import Board
 from stations.models import Sensor
+from stations.models import TransportMqtt
+from stations.models import TransportBluetooth
+from stations.models import TransportAmqp
+from stations.models import TransportSerial
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.utils.translation import ugettext as _
@@ -157,9 +161,12 @@ def delsensors(station_slug=None,username=None,board_slug=None):
                                 ,board__stationmetadata__ident__username=username).delete()
 
 
-def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1
-              ,timerange="254,0,0",level="0,1"):
-    #,sensortemplate=None):
+def addboard(station_slug=None,username=None,board_slug=None,activate=False
+              ,serialactivate=False
+              ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
+              ,bluetoothactivate=False, bluetoothname="HC-05"
+              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+          ):
 
     print "---------------------------"
     print station_slug,username,board_slug
@@ -171,11 +178,81 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
                                     ,stationmetadata__ident__username=username)
     except ObjectDoesNotExist :
         mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
-        myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation)
+        myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation,active=activate)
         myboard.save()
         myboard = Board.objects.get(slug=board_slug
                                     ,stationmetadata__slug=station_slug
                                     ,stationmetadata__ident__username=username)
+
+
+    try:
+        transportserial=myboard.transportserial
+    except ObjectDoesNotExist :
+        transportserial=TransportSerial()
+
+    transportserial.active=serialactivate
+    myboard.transportserial=transportserial
+    print "Serial Transport", myboard.transportserial
+    myboard.transportserial.save()
+
+    try:
+        transportmqtt=myboard.transportmqtt
+    except ObjectDoesNotExist :
+        transportmqtt=TransportMqtt()
+
+    transportmqtt.active=mqttactivate
+    transportmqtt.mqttserver=mqttserver
+    transportmqtt.mqttuser=mqttusername
+    transportmqtt.mqttpassword=mqttpassword
+    transportmqtt.mqttsampletime=mqttsamplerate
+    myboard.transportmqtt=transportmqtt
+    print "MQTT Transport", myboard.transportmqtt
+    myboard.transportmqtt.save()
+                
+    try:
+        transportbluetooth=myboard.transportbluetooth
+    except ObjectDoesNotExist :
+        transportbluetooth=TransportBluetooth()
+    transportbluetooth.active=bluetoothactivate
+    transportbluetooth.name=bluetoothname
+    myboard.transportbluetooth=transportbluetooth
+    print "bluetooth Transport", myboard.transportbluetooth
+    myboard.transportbluetooth.save()
+
+
+    try:
+        transportamqp=myboard.transportamqp
+    except ObjectDoesNotExist :
+        transportamqp=TransportAmqp()
+    transportamqp.active=amqpactivate
+    transportamqp.amqpuser=amqpusername
+    transportamqp.amqppassword=amqppassword
+    transportamqp.amqpserver=amqpserver
+    transportamqp.queue=queue
+    transportamqp.exchange=exchange
+    myboard.transportamqp=transportamqp
+    print "AMQP Transport", myboard.transportamqp                
+    myboard.transportamqp.save()
+
+
+def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1
+              ,timerange="254,0,0",level="0,1",activate=False
+              ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
+              ,bluetoothactivate=False, bluetoothname="hc-05"
+              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+          ):
+    #,sensortemplate=None):
+
+    print "---------------------------"
+    print station_slug,username,board_slug
+    print "---------------------------"
+
+    try:
+        myboard = Board.objects.get(slug=board_slug
+                                    ,stationmetadata__slug=station_slug
+                                    ,stationmetadata__ident__username=username)
+    except ObjectDoesNotExist :
+            print "board not present for this station"
 
     #if sensortemplate is None :
     mysensor=Sensor(board=myboard,active=True,name=name,driver=driver,type=type

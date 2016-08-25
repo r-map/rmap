@@ -57,7 +57,7 @@ pip -v install --upgrade  rmap
 ./rmapctrl --syncdb
 
 >>> Configure a station (wizard) by command line:
-./rmap-configure --wizard --station_slug=ETH_fixed --board_slug=master_eth_fixed --height=100 --stationname="Casa esterno" --username=user --password=password --server=rmap.cc --samplerate=5 --lat=44.69950 --lon=10.64555 --upload_to_server
+./rmap-configure --wizard --station_slug=ETH_fixed --board_slug=master_eth_fixed --height=100 --stationname="Casa esterno" --username=user --password=password --server=rmap.cc --mqttsamplerate=5 --lat=44.69950 --lon=10.64555 --upload_to_server
 
 >>> Add sensors to board
 ./rmap-configure --addsensors_by_template=stima_t --station_slug=ETH_fixed --board_slug=master_eth_fixed --user=user --password=password --upload_to_server
@@ -71,15 +71,12 @@ pip -v install --upgrade  rmap
 
 
 >>> Create GSM report THP station and configure board
-rmap-configure --wizard --station_slug=report_thp --board_slug=report_thp_gsm --height=100 --stationname="ARPAE" --username=username --password=password --server=rmap.cc --samplerate=180 --lat=44.69950 --lon=10.64555 --upload_to_server
-rmap-configure --addsensors_by_template=stima_report_thp --station_slug=report_thp --board_slug=report_thp --user=username --password=password --upload_to_server
-rmapweb
-modify board report_thp :
-  * activate
-  * activate MQTT transport with parameter
-  * activate SERIAL transport with parameter
+rmapctrl --syncdb
+rmap-configure --wizard --station_slug=report_thp --height=100 --stationname="ARPAE" --username=username --password=password --server=rmap.cc --lat=44.69950 --lon=10.64555
+rmap-configure --addboard --station_slug=report_thp --board_slug=report_thp_gsm --user=username --serialactivate --mqttactivate --mqttuser=username --mqttpassword=password --mqttsamplerate=900
+rmap-configure --addsensors_by_template=stima_report_thp --station_slug=report_thp --board_slug=report_thp_gsm --user=username --password=password --upload_to_server
 
-rmap-configure --config_station --board_slug=report_thp --station_slug=report_thp --username=username
+rmap-configure --config_station --station_slug=report_thp --board_slug=report_thp_gsm --username=username
 
 
 #obsolete notes:
