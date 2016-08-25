@@ -1490,6 +1490,9 @@ class Rmap(App):
                 rmapchanged = True
             elif token == ('rmap', 'password'):
                 print('password have been changed to', value)
+                u = User.objects.get(username__exact=self.config.get('rmap','user'))
+                u.set_password(value)
+                u.save()
                 rmapchanged = True
             elif token == ('rmap', 'samplerate'):
                 print('samplerate have been changed to', value)
