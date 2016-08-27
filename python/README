@@ -44,7 +44,7 @@ find .buildozer/applibs/django -name \*.po -exec rm \{\} \;
  python manage.py dumpdata --natural-foreign --natural-primary --format=json auth.user|json_reformat
 
 for pip:
-python setup.py distclean compilemessages sdist upload
+python setup.py distclean compilemessages sdist upload -r pypi
 (*.mo files in locale have to be distributed in source tarball)
 
 install with:
