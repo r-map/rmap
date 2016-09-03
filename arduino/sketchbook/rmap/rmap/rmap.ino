@@ -892,13 +892,15 @@ void LogDigitalClockDisplay(){
 
   IF_SDEBUG(DBGSERIAL.print(F("#write on the log file: ")));
 
+  time_t tf;
+
   if(timeStatus()== timeNotSet) {
     IF_SDEBUG(DBGSERIAL.println(F("#The time has never been set")));
     //return;
-    time_t tf = 0; // Store the current time in time variable t 
+    tf = 0; // Store the current time in time variable t 
 
   }else{
-    time_t tf = now(); // Store the current time in time variable t 
+    tf = now(); // Store the current time in time variable t 
   }
 
   if (tf == 0UL){
@@ -2928,15 +2930,12 @@ void setup()
   microcontrollore
 */
   wdt_disable();
-
+  
 
 #ifndef RF24SLEEP
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 #endif
-
-  //TODO: here DBGSERIAL and RPCSERIAL shoud be the same
-  //check to do not "rebegin"
 
 #if defined (DEBUGONSERIAL)
   // Open serial communications and wait for port to open:
@@ -2946,68 +2945,14 @@ void setup()
   }
 
 #ifdef SERIAL_DEBUG
-// fill in the UART file descriptor with pointer to writer.
-   fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
+  // fill in the UART file descriptor with pointer to writer.
+  fdev_setup_stream (&uartout, uart_putchar, NULL, _FDEV_SETUP_WRITE);
 
-   // The uart is the standard output device STDOUT.
-   stdout = &uartout ;
+  // The uart is the standard output device STDOUT.
+  stdout = &uartout ;
 #endif
-
-#endif
-
-#ifdef SERIALJSONRPC
-  RPCSERIAL.begin(RPCSERIALBAUDRATE);
-  while (!RPCSERIAL) {
-    ; // wait for serial port to connect. Needed for Leonardo only
-  }
-#endif
-
-  //#endif
-
-  // inside witch ifdef ?
-  // start up the i2c interface
-  Wire.begin();
-
-  //The Wire library enables the internal pullup resistors for SDA and SCL.
-  //You can turn them off after Wire.begin()
-  // solved by https://github.com/r-map/rmap/commit/87e9b4482d82c94a6f62cf9f96bdc09c9c7fc918
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
-
-  //set the i2c clock 
-  //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
-  //TWBR =255    //  30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz
-  //freq = clock / (16 + (2 * TWBR * prescaler))
-  //TWBR   prescaler   Frequency 
-  //  12       1       400   kHz  (the maximum supported frequency)
-  //  32       1       200   kHz
-  //  72       1       100   kHz  (the default)
-  // 152       1        50   kHz
-  //  78       4        25   kHz
-  // 158       4        12.5 kHz
-
-  //To set the prescaler to 4 you need to set the bit TWPS0 in TWSR, so for example to have a clock of 12.5 kHz:
-  //TWBR = 158;  
-  //TWSR |= bit (TWPS0);
-
-  Wire.setClock(I2C_CLOCK);
-
-
-#if defined(LCD)
-  /* Initialise the LCD */
-  lcd.init();
-  /* Make sure the backlight is turned on */
-  lcd.backlight();
-  delay(1000);
-  /* Output the test message to the LCD */
-  lcd.setCursor(0,0); 
-  lcd.print(F("R-map project"));
-#endif
-
-  wdt_reset();
 
   // print a summary of compile time configuration
-#if defined(DEBUGONSERIAL)
   DBGSERIAL.print(F("#Started; version: "));
   DBGSERIAL.print(F(STR(FIRMVERSION)));
 #if defined (JSONRPCON)
@@ -3064,9 +3009,75 @@ void setup()
   DBGSERIAL.print(F("#free ram on start: "));
   DBGSERIAL.println(freeRam());
 #endif
+
+  wdt_reset();
+
+#endif
+
+  //TODO: here DBGSERIAL and RPCSERIAL shoud be the same
+  //check to do not "rebegin"
+
+#ifdef SERIALJSONRPC
+ #if ndef DEBUGONSERIAL
+  RPCSERIAL.begin(RPCSERIALBAUDRATE);
+  while (!RPCSERIAL) {
+    ; // wait for serial port to connect. Needed for Leonardo only
+  }
+ #endif
+#endif
+
+  //#endif
+
+  // inside witch ifdef ?
+  // start up the i2c interface
+  IF_SDEBUG(DBGSERIAL.println(F("#start WIRE")));
+  Wire.begin();
+
+  //The Wire library enables the internal pullup resistors for SDA and SCL.
+  //You can turn them off after Wire.begin()
+  // solved by https://github.com/r-map/rmap/commit/87e9b4482d82c94a6f62cf9f96bdc09c9c7fc918
+
+  // here we enforce we do not want pullup
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+
+  //if you want to set the internal pullup
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
+
+  //set the i2c clock 
+  //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //TWBR =255    //  30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz
+  //freq = clock / (16 + (2 * TWBR * prescaler))
+  //TWBR   prescaler   Frequency 
+  //  12       1       400   kHz  (the maximum supported frequency)
+  //  32       1       200   kHz
+  //  72       1       100   kHz  (the default)
+  // 152       1        50   kHz
+  //  78       4        25   kHz
+  // 158       4        12.5 kHz
+
+  //To set the prescaler to 4 you need to set the bit TWPS0 in TWSR, so for example to have a clock of 12.5 kHz:
+  //TWBR = 158;  
+  //TWSR |= bit (TWPS0);
+
+  Wire.setClock(I2C_CLOCK);
+
+
+#if defined(LCD)
+  /* Initialise the LCD */
+  IF_SDEBUG(DBGSERIAL.println(F("#initialize LCD")));
+  lcd.init();
+  /* Make sure the backlight is turned on */
+  lcd.backlight();
+  delay(1000);
+  /* Output the test message to the LCD */
+  lcd.setCursor(0,0); 
+  lcd.print(F("R-map project"));
 #endif
 
   wdt_reset();
+
 
 #if defined (JSONRPCON)
                                                       // register function for jsonrpc 
