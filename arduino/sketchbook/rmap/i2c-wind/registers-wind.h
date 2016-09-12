@@ -16,6 +16,7 @@
 #define I2C_WIND_COMMAND_ONESHOT_START   1
 #define I2C_WIND_COMMAND_ONESHOT_STOP    2
 #define I2C_WIND_COMMAND_STOP            3
+#define I2C_WIND_COMMAND_SAVE            4
 
 #define I2C_WIND_VERSION               0x00      // Version
 #define I2C_WIND_DD                    0x01      // DD
@@ -42,6 +43,7 @@
 
 #define I2C_WIND_MAP_WRITABLE          0x1F
 #define I2C_WIND_ONESHOT               0x1F      // sample mode (bool)
+#define I2C_WIND_ADDRESS               0x20      // i2c bus address (short unsigned int)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
