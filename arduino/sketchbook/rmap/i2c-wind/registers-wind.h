@@ -10,6 +10,9 @@
 // offset to write signed int in unsigned int
 #define OFFSET 32768
 
+// sensortype table
+#define DAVISSENSORTYPE 1
+#define INSPEEDSENSORTYPE 2
 
 //
 #define I2C_WIND_COMMAND               0xFF
@@ -44,6 +47,7 @@
 #define I2C_WIND_MAP_WRITABLE          0x1F
 #define I2C_WIND_ONESHOT               0x1F      // sample mode (bool)
 #define I2C_WIND_ADDRESS               0x20      // i2c bus address (short unsigned int)
+#define I2C_WIND_SENSORTYPE            0x21      // sensor type table (short unsigned int)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

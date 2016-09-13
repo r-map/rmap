@@ -37,7 +37,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 06             //Software version for cross checking
+#define VERSION 6             //Software version for cross checking
 
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -55,8 +55,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
 
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
+char confver[7] = CONFVER; // version of configuration saved on eeprom
 
 //#include <FreqCounter.h>
 
@@ -73,19 +72,18 @@ FloatBuffer cbsum;
 IntBuffer cbsect[9];
 
 int cnt;
-int pinLed=13;
 
 typedef struct {
   uint8_t    sw_version;                          // Version of the I2C_WIND sw
 
   void save (int* p) volatile {                            // save to eeprom
-    *p+=EEPROM_writeAnything(*p, sw_version);
+    *p+=EEPROM_writeAnything(*p, confver);
   }
   
   bool load (int* p) volatile {                            // load from eeprom
-    uint8_t    EE_sw_version;
-    *p+=EEPROM_readAnything(*p, EE_sw_version);
-    return (EE_sw_version == VERSION);
+    char EE_confver[7];
+    *p+=EEPROM_readAnything(*p, EE_confver);
+    return (strcmp(EE_confver,confver ) == 0);
   }
 
 } status_t;
@@ -121,14 +119,17 @@ typedef struct {
 //sample mode
   bool                  oneshot;                  // one shot active
   uint8_t               i2c_address;              // i2c bus address (short unsigned int)
+  uint8_t               sensortype ;              // sensor type table (1 for Davis; 2 for Inspeed ) (short unsigned int)
   void save (int* p) volatile {                            // save to eeprom
     *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
+    *p+=EEPROM_writeAnything(*p, sensortype);
   }
   
   void load (int* p) volatile {                            // load from eeprom
     *p+=EEPROM_readAnything(*p, oneshot);
     *p+=EEPROM_readAnything(*p, i2c_address);
+    *p+=EEPROM_readAnything(*p, sensortype);
   }
 } I2C_WRITABLE_REGISTERS;
 
@@ -171,25 +172,26 @@ volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
 unsigned long starttime;
+boolean forcedefault=false;
+unsigned int sampletime;
 
 void countadd()
 {
 
-#if defined(DAVIS)
-  unsigned long now=millis();
+  if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
+    //DAVIS
+    unsigned long now=millis();
 
-  // this define the max wind speed taken in account
-  // if ((now-antirimb) > SAMPLETIME/150){
-  if ((now-antirimb) > 15){
+    // this define the max wind speed taken in account
+    // if ((now-antirimb) > SAMPLETIME/150){
+    if ((now-antirimb) > 15){
+      count ++;
+      antirimb=now;
+    }
+  }else if ( i2c_writabledataset1->sensortype == INSPEEDSENSORTYPE){
+    //INSPEED
     count ++;
-    antirimb=now;
   }
-
-#elif defined (INSPEED)
-
-  count ++;
-
-#endif
 
 }
 
@@ -225,8 +227,6 @@ void receiveEvent( int bytesReceived)
                Wire.read();  // if we receive more data then allowed just throw it away
           }
      }
-
-     //Serial.println("");
 
      if (bytesReceived == 2){
        // check for a command
@@ -289,7 +289,7 @@ void setup() {
 
   IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
   IF_SDEBUG(Serial.print(F("Start firmware version: ")));
-  IF_SDEBUG(Serial.println(F(STR(VERSION))));
+  IF_SDEBUG(Serial.println(VERSION));
 
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
@@ -333,7 +333,6 @@ void setup() {
   }
 
   analogReference(DEFAULT);
-  pinMode(pinLed, OUTPUT);
 
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
@@ -362,17 +361,28 @@ void setup() {
   i2c_dataset1->status.sw_version          = VERSION;
   i2c_dataset2->status.sw_version          = VERSION;
 
+
+  pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
+  pinMode(LEDPIN, OUTPUT); 
+
+  if (digitalRead(FORCEDEFAULTPIN) == LOW) {
+    digitalWrite(LEDPIN, HIGH);
+    forcedefault=true;
+  }
+
+
   // load configuration saved on eeprom
   IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
   int p=0;
   // check for configuration version on eeprom
-  if(i2c_dataset1->status.load(&p))
+  if(i2c_dataset1->status.load(&p) || !forcedefault)
     {
       //load writable registers
       IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
       i2c_writabledataset1->load(&p);
       i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
       i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
+      i2c_writabledataset2->sensortype=i2c_writabledataset1->sensortype;
     }
   else
     {
@@ -383,7 +393,31 @@ void setup() {
       i2c_writabledataset2->oneshot=true;
       i2c_writabledataset1->i2c_address = I2C_WIND_ADDRESS;
       i2c_writabledataset2->i2c_address = I2C_WIND_ADDRESS;
+      i2c_writabledataset1->sensortype = SENSORTYPE;
+      i2c_writabledataset2->sensortype = SENSORTYPE;
     }
+
+
+  if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
+
+    //DAVIS)
+    // time in us equired for oneshot measure
+    sampletime = 2250;
+
+  }else if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
+
+    //INSPEED)
+    sampletime = 2500;
+
+  }else{
+    IF_SDEBUG(Serial.print(F("invalid sensor type:")));IF_SDEBUG(Serial.println(i2c_writabledataset1->sensortype));
+    delay(100000);
+  }
+
+  if (SAMPLERATE <= sampletime){
+    IF_SDEBUG(Serial.print(F("ERROR: SAMPLERATE should be > sampletime")));
+    delay(100000);
+  }
 
   IF_SDEBUG(Serial.print(F("i2c_address: ")));
   IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
@@ -395,6 +429,7 @@ void setup() {
 
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
+  // do not need this with patched Wire library
   digitalWrite( SDA, LOW);
   digitalWrite( SCL, LOW);
   //digitalWrite( SDA, HIGH);
@@ -478,6 +513,8 @@ void loop() {
     } //switch  
   }
 
+  //if (forcedefault) return;
+
   oneshot=i2c_writabledataset2->oneshot;
 
   //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
@@ -512,47 +549,47 @@ void loop() {
   }
 
   //FreqCounter::f_comp=10;          // Cal Value / Calibrate with professional Freq Counter
-  //FreqCounter::start(SAMPLETIME);    // ms Gate Time
+  //FreqCounter::start(sampletime);    // ms Gate Time
 
   count=0;
   attachInterrupt(digitalPinToInterrupt(INTERRUPTPIN), countadd, RISING);
 
   // wait to go in the middle of sampletime to get direction
   // will be better to do a mean but direction is not continueous function
-  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(SAMPLETIME/2));
-  delay(SAMPLETIME/2);
+  IF_SDEBUG(Serial.print(F("delay for middle: ")));IF_SDEBUG(Serial.println(sampletime/2));
+  delay(sampletime/2);
 
   int ana=analogRead(ANALOGPIN);    // read the input pin
 
 
-#if defined(DAVIS)
-  /*
-    The potentiometer in the wind vane is free to move through 360 degrees,
-    but there is a dead band of about 10 degrees at the crossover point in the potentiometer travel. 
-    As shown in the graph, the output signal is zero volts for 5 degrees before the signal starts its 
-    linear rise, and the signal is maximum voltage through 5 degrees at the other extreme of the travel.
-    The dead band varies some from unit to unit. If you are looking for the greatest possible accuracy, 
-    then you will need to find out exactly what the dead band is. You can also find out exactly what the 
-    dead band is by cutting a hole and a slit in a sheet of polar graph paper and putting it around the 
-    vane, and taking readings of w1 as a function of position of the vane in degrees. If you do not need 
-    great accuracy (5%) then simply use the typical value, 10 for the dead band calibration factor.
+  if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
+    //DAVIS)
+    /*
+      The potentiometer in the wind vane is free to move through 360 degrees,
+      but there is a dead band of about 10 degrees at the crossover point in the potentiometer travel. 
+      As shown in the graph, the output signal is zero volts for 5 degrees before the signal starts its 
+      linear rise, and the signal is maximum voltage through 5 degrees at the other extreme of the travel.
+      The dead band varies some from unit to unit. If you are looking for the greatest possible accuracy, 
+      then you will need to find out exactly what the dead band is. You can also find out exactly what the 
+      dead band is by cutting a hole and a slit in a sheet of polar graph paper and putting it around the 
+      vane, and taking readings of w1 as a function of position of the vane in degrees. If you do not need 
+      great accuracy (5%) then simply use the typical value, 10 for the dead band calibration factor.
     
-    http://www.emesystems.com/OL2wind.htm
-  */
+      http://www.emesystems.com/OL2wind.htm
+    */
   
-  if (ana ==0){             //first half od dead band
-    dd=2;
-  }else if (ana ==1023){    //second half od dead band
-    dd=358;
-  }else{
-    dd=round(ana*(350./1021.)+5);  // linear for no dead band
+    if (ana ==0){             //first half od dead band
+      dd=2;
+    }else if (ana ==1023){    //second half od dead band
+      dd=358;
+    }else{
+      dd=round(ana*(350./1021.)+5);  // linear for no dead band
+    }
+  } else if (i2c_writabledataset1->sensortype == INSPEEDSENSORTYPE){
+    //INSPEED)
+    //IF_SDEBUG(Serial.print(F("ana: ")));IF_SDEBUG(Serial.println(ana));
+    dd=round((ana-50)*(360./921.));  // linear for no dead band from 5% to 95% of full range (0-1023)
   }
-
-#elif defined (INSPEED)
-  //IF_SDEBUG(Serial.print(F("ana: ")));IF_SDEBUG(Serial.println(ana));
-  dd=round((ana-50)*(360./921.));  // linear for no dead band from 5% to 95% of full range (0-1023)
-
-#endif
 
   dd=max(dd,1);
   dd=min(dd,360);
@@ -561,8 +598,8 @@ void loop() {
   //IF_SDEBUG(Serial.print(F("freq: ")));IF_SDEBUG(Serial.println(FreqCounter::f_freq));
   //count=FreqCounter::f_freq
 
-  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(SAMPLETIME-(millis()-starttime)));
-  delay(SAMPLETIME-(millis()-starttime));
+  IF_SDEBUG(Serial.print(F("delay for end: ")));IF_SDEBUG(Serial.println(sampletime-(millis()-starttime)));
+  delay(sampletime-(millis()-starttime));
 
   detachInterrupt(digitalPinToInterrupt(INTERRUPTPIN));
   IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
@@ -858,6 +895,6 @@ void loop() {
     if (timetowait < -10) IF_SDEBUG(Serial.println("WARNIG: timing error , I am late"));    
   }
 
-  digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
+  digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
 }  

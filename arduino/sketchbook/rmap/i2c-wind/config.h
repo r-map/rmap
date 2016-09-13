@@ -1,24 +1,10 @@
-// wind sensor definition
+// wind sensor default definition
+#define SENSORTYPE DAVISSENSORTYPE
+//#define SENSORTYPE INSPEEDSENSORTYPE
 
-#define DAVIS
-//#define INSPEED
-
-// take one measure every SAMPLERATE us
+// in non oneshot mode take one measure every SAMPLERATE us
 #define SAMPLERATE 3000
 
-
-// other parameters
-
-#if defined(DAVIS)
-// time in us equired for oneshot measure
-#define SAMPLETIME 2250
-#elif defined (INSPEED)
-#define SAMPLETIME 2500
-#endif
-
-#if SAMPLERATE <= SAMPLETIME
-   ERROR: SAMPLERATE should be > SAMPLETIME 
-#endif
 
 //////////////////////////////////////////////////////////////////////////////
 // i2C comm definitions
@@ -41,4 +27,11 @@
 #else
 #define IF_SDEBUG(x)
 #endif
+
+#define LEDPIN 13
+#define FORCEDEFAULTPIN 8
+
+// define the version of the configuration saved on eeprom
+// if you chenge this the board start with default configuration at boot
+#define CONFVER "conf00"
 
