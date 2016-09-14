@@ -217,7 +217,7 @@ void requestEvent()
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
-     uint8_t  *ptr;
+  uint8_t  *ptr1, *ptr2;
      //Serial.print("received:");
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
@@ -255,17 +255,15 @@ void receiveEvent( int bytesReceived)
      if ((receivedCommands[0]>=I2C_WIND_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_WIND_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
-	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;
+	 // the two buffer should be in sync
+	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;
+	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;;
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   ++*ptr = receivedCommands[a];
+	   ++*ptr1 = receivedCommands[a];
+	   ++*ptr2 = receivedCommands[a];
 	 }
-
-	 // the two buffer should be in sync
-	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;;
-	 for (int a = 1; a < bytesReceived; a++) { ++*ptr = receivedCommands[a]; }
 	 // new data written
-
        }
     }
 }
@@ -386,7 +384,7 @@ void setup() {
     }
   else
     {
-      IF_SDEBUG(Serial.println(F("EEPROM data not usefull")));
+      IF_SDEBUG(Serial.println(F("EEPROM data not useful")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
       // set default to oneshot
       i2c_writabledataset1->oneshot=true;
@@ -404,7 +402,7 @@ void setup() {
     // time in us equired for oneshot measure
     sampletime = 2250;
 
-  }else if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
+  }else if (i2c_writabledataset1->sensortype == INSPEEDSENSORTYPE){
 
     //INSPEED)
     sampletime = 2500;
