@@ -75,17 +75,6 @@ int cnt;
 
 typedef struct {
   uint8_t    sw_version;                          // Version of the I2C_WIND sw
-
-  void save (int* p) volatile {                            // save to eeprom
-    *p+=EEPROM_writeAnything(*p, confver);
-  }
-  
-  bool load (int* p) volatile {                            // load from eeprom
-    char EE_confver[7];
-    *p+=EEPROM_readAnything(*p, EE_confver);
-    return (strcmp(EE_confver,confver ) == 0);
-  }
-
 } status_t;
 
 typedef struct {
@@ -121,6 +110,11 @@ typedef struct {
   uint8_t               i2c_address;              // i2c bus address (short unsigned int)
   uint8_t               sensortype ;              // sensor type table (1 for Davis; 2 for Inspeed ) (short unsigned int)
   void save (int* p) volatile {                            // save to eeprom
+
+    IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
+    IF_SDEBUG(Serial.print(F("i2c address: "))); IF_SDEBUG(Serial.println(i2c_address));
+    IF_SDEBUG(Serial.print(F("sensortype: "))); IF_SDEBUG(Serial.println(sensortype));
+
     *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
     *p+=EEPROM_writeAnything(*p, sensortype);
@@ -165,6 +159,7 @@ uint8_t nsample1;
 uint16_t sect[9];
 
 // one shot management
+static bool oneshot;
 static bool start=false;
 static bool stop=false;
 
@@ -260,8 +255,8 @@ void receiveEvent( int bytesReceived)
 	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;;
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   ++*ptr1 = receivedCommands[a];
-	   ++*ptr2 = receivedCommands[a];
+	   *ptr1++ = receivedCommands[a];
+	   *ptr2++ = receivedCommands[a];
 	 }
 	 // new data written
        }
@@ -285,7 +280,7 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
-  IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
+  IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
   IF_SDEBUG(Serial.print(F("Start firmware version: ")));
   IF_SDEBUG(Serial.println(VERSION));
 
@@ -373,7 +368,10 @@ void setup() {
   IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
   int p=0;
   // check for configuration version on eeprom
-  if(i2c_dataset1->status.load(&p) || !forcedefault)
+  char EE_confver[7];
+  p+=EEPROM_readAnything(p, EE_confver);
+
+  if((strcmp(EE_confver,confver ) == 0) && !forcedefault)
     {
       //load writable registers
       IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
@@ -384,17 +382,18 @@ void setup() {
     }
   else
     {
-      IF_SDEBUG(Serial.println(F("EEPROM data not useful")));
+      IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
       // set default to oneshot
       i2c_writabledataset1->oneshot=true;
       i2c_writabledataset2->oneshot=true;
-      i2c_writabledataset1->i2c_address = I2C_WIND_ADDRESS;
-      i2c_writabledataset2->i2c_address = I2C_WIND_ADDRESS;
+      i2c_writabledataset1->i2c_address = I2C_WIND_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_WIND_DEFAULTADDRESS;
       i2c_writabledataset1->sensortype = SENSORTYPE;
       i2c_writabledataset2->sensortype = SENSORTYPE;
     }
 
+  oneshot=i2c_writabledataset2->oneshot;
 
   if (i2c_writabledataset1->sensortype == DAVISSENSORTYPE){
 
@@ -419,6 +418,8 @@ void setup() {
 
   IF_SDEBUG(Serial.print(F("i2c_address: ")));
   IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
+  IF_SDEBUG(Serial.print(F("sensortype: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->sensortype));
   IF_SDEBUG(Serial.print(F("oneshot: ")));
   IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
 
@@ -459,7 +460,6 @@ void loop() {
   int u;
   int v;
   float mean;
-  bool oneshot;
 
   unsigned int sector;
   
@@ -500,20 +500,15 @@ void loop() {
       // save configuration to eeprom
       IF_SDEBUG(Serial.println(F("save configuration to eeprom")));
       int p=0;
+
       // save configuration version on eeprom
-      i2c_dataset2->status.save(&p);
+      p+=EEPROM_writeAnything(p, confver);
       //save writable registers
-      IF_SDEBUG(Serial.print(F("i2c address: ")));
-      IF_SDEBUG(Serial.println(i2c_writabledataset2->i2c_address));
       i2c_writabledataset2->save(&p);
 
       break;
     } //switch  
   }
-
-  //if (forcedefault) return;
-
-  oneshot=i2c_writabledataset2->oneshot;
 
   //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
   //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
