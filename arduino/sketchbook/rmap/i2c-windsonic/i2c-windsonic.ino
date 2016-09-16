@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (C) 2014  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2016  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
 
@@ -23,8 +23,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Gill Windsonic exported to i2c interface.
  * 
 **********************************************************************/
+/*
+buffer scrivibili da i2c
+viene scritto buffer1 e buffer2
+viene letto buffer2
+i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica all'inizio del main loop
+*/
 
-#define VERSION 01             //Software version for cross checking
+/*
+buffer leggibili da i2c
+le elaborazioni scrivono sempre su buffer1
+viene sempre letto buffer2
+i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
+*/
+
+#define VERSION 02             //Software version for cross checking
 
 #include <avr/wdt.h>
 #include "Wire.h"
@@ -33,10 +46,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "IntBuffer.h"
 #include "FloatBuffer.h"
 
+#include "EEPROMAnything.h"
+
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
+#define REG_WIND_SIZE           sizeof(wind_t)                  //size of register map for wind
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
+
+char confver[9] = CONFVER; // version of configuration saved on eeprom
+
 
 IntBuffer cbu60m;
 IntBuffer cbv60m;
@@ -51,10 +70,9 @@ FloatBuffer cbsum;
 IntBuffer cbsect[9];
 
 int cnt;
-int pinLed=13;
 
 typedef struct {
-  uint8_t    sw_version;     // 0x00  Version of the I2C_GPS sw
+  uint8_t    sw_version;                          // Version of the I2C_WINDSONIC sw
 } status_t;
 
 typedef struct {
@@ -87,6 +105,20 @@ typedef struct {
 
 //sample mode
   bool                  oneshot;                  // one shot active
+  uint8_t               i2c_address;              // i2c bus address (short unsigned int)
+  void save (int* p) volatile {                            // save to eeprom
+
+    IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
+    IF_SDEBUG(Serial.print(F("i2c address: "))); IF_SDEBUG(Serial.println(i2c_address));
+
+    *p+=EEPROM_writeAnything(*p, oneshot);
+    *p+=EEPROM_writeAnything(*p, i2c_address);
+  }
+  
+  void load (int* p) volatile {                            // load from eeprom
+    *p+=EEPROM_readAnything(*p, oneshot);
+    *p+=EEPROM_readAnything(*p, i2c_address);
+  }
 } I2C_WRITABLE_REGISTERS;
 
 
@@ -121,6 +153,7 @@ uint8_t nsample1;
 uint16_t sect[9];
 
 // one shot management
+static bool oneshot;
 static bool start=false;
 static bool stop=false;
 
@@ -128,7 +161,7 @@ volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
 unsigned long starttime;
-
+boolean forcedefault=false;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -140,6 +173,8 @@ void requestEvent()
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
 
+  //Serial.print("receivedCommands: ");
+  //Serial.println(receivedCommands[0]);
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]));
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1));
   //Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2));
@@ -149,10 +184,12 @@ void requestEvent()
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
-     uint8_t  *ptr;
+  uint8_t  *ptr1, *ptr2;
+     //Serial.print("received:");
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
+	       //Serial.println(receivedCommands[a]);
           } else {
                Wire.read();  // if we receive more data then allowed just throw it away
           }
@@ -162,7 +199,7 @@ void receiveEvent( int bytesReceived)
        // check for a command
        if (receivedCommands[0] == I2C_WINDSONIC_COMMAND) {
 	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
-	 new_command = receivedCommands[1]; return; }  //Just one byte, ignore all others
+	 new_command = receivedCommands[1]; return; }
      }
 
      if (bytesReceived == 1){
@@ -177,20 +214,23 @@ void receiveEvent( int bytesReceived)
 
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
+
+     //IF_SDEBUG(Serial.println("data for write: "));
+     //IF_SDEBUG(Serial.println(receivedCommands[0]));
+     //IF_SDEBUG(Serial.println(receivedCommands[1]));
+     
      if ((receivedCommands[0]>=I2C_WINDSONIC_MAP_WRITABLE) && (receivedCommands[0] < (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_WINDSONIC_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
-	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
-	 for (int a = 1; a < bytesReceived; a++) { 
-	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   *ptr++ = receivedCommands[a];
-	 }
 	 // the two buffer should be in sync
-	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
-	 for (int a = 1; a < bytesReceived; a++) { *ptr++ = receivedCommands[a]; }
-
+	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_WINDSONIC_MAP_WRITABLE;
+	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WINDSONIC_MAP_WRITABLE;
+	 for (int a = 1; a < bytesReceived; a++) { 
+	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
+	   *ptr1++ = receivedCommands[a];
+	   *ptr2++ = receivedCommands[a];
+	 }
 	 // new data written
-
        }
     }
 }
@@ -676,6 +716,10 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
+  IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
+  IF_SDEBUG(Serial.print(F("Start firmware version: ")));
+  IF_SDEBUG(Serial.println(VERSION));
+
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
   i2c_dataset2=&i2c_buffer2;
@@ -717,8 +761,6 @@ void setup() {
     cbsect[i].init(SAMPLE2);
   }
 
-  pinMode(pinLed, OUTPUT);
-  IF_SDEBUG(Serial.begin(9600));        // connect to the serial port
 
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
@@ -730,6 +772,8 @@ void setup() {
   //Init to FF i2c_dataset1;
   ptr = (uint8_t *)i2c_dataset2;
   for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+
+
 
   IF_SDEBUG(Serial.println(F("i2c_writabledataset 1&2 set to 1")));
   //Init to FF i2c_writabledataset1;
@@ -745,17 +789,59 @@ void setup() {
   i2c_dataset1->status.sw_version          = VERSION;
   i2c_dataset2->status.sw_version          = VERSION;
 
+
+  pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
+  pinMode(LEDPIN, OUTPUT); 
+
+  if (digitalRead(FORCEDEFAULTPIN) == LOW) {
+    digitalWrite(LEDPIN, HIGH);
+    forcedefault=true;
+  }
+
+
+  // load configuration saved on eeprom
+  IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
+  int p=0;
+  // check for configuration version on eeprom
+  char EE_confver[9];
+  p+=EEPROM_readAnything(p, EE_confver);
+
+  if((strcmp(EE_confver,confver ) == 0) && !forcedefault)
+    {
+      //load writable registers
+      IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
+      i2c_writabledataset1->load(&p);
+      i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
+      i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
+    }
+  else
+    {
+      IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
+      IF_SDEBUG(Serial.println(F("set default values for writable registers")));
   // set default to oneshot
-  i2c_writabledataset1->oneshot=true;
-  i2c_writabledataset2->oneshot=true;
+      i2c_writabledataset1->oneshot=true;
+      i2c_writabledataset2->oneshot=true;
+      i2c_writabledataset1->i2c_address = I2C_WINDSONIC_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_WINDSONIC_DEFAULTADDRESS;
+    }
+
+  oneshot=i2c_writabledataset2->oneshot;
+
+  IF_SDEBUG(Serial.print(F("i2c_address: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
+  IF_SDEBUG(Serial.print(F("oneshot: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
 
   //Start I2C communication routines
-  Wire.begin(I2C_WINDSONIC_ADDRESS);
+  Wire.begin(i2c_writabledataset1->i2c_address);
 
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
+  // do not need this with patched Wire library
+  //digitalWrite( SDA, LOW);
+  //digitalWrite( SCL, LOW);
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
@@ -813,7 +899,6 @@ void loop() {
   int u;
   int v;
   float mean;
-  bool oneshot;
 
   unsigned int sector;
   
@@ -848,14 +933,26 @@ void loop() {
       IF_SDEBUG(Serial.println(F("COMMAND: stop")));
       stop=true;
       break;
+    case I2C_WINDSONIC_COMMAND_SAVE:
+      IF_SDEBUG(Serial.println(F("COMMAND: save")));
+
+      // save configuration to eeprom
+      IF_SDEBUG(Serial.println(F("save configuration to eeprom")));
+      int p=0;
+
+      // save configuration version on eeprom
+      p+=EEPROM_writeAnything(p, confver);
+      //save writable registers
+      i2c_writabledataset2->save(&p);
+
+      break;
     } //switch  
   }
-
-  oneshot=i2c_writabledataset2->oneshot;
 
   //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
   //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
   //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
+
 
   if (stop) {
 
@@ -872,11 +969,9 @@ void loop() {
     IF_SDEBUG(Serial.println(F("clean buffer")));
     uint8_t *ptr;
     //Init to FF i2c_dataset1;
-    ptr = (uint8_t *)i2c_dataset1;
-    for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
-    //Init to FF i2c_dataset2;
-    //ptr = (uint8_t *)i2c_dataset2;
-    //for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+    ptr = (uint8_t *)&i2c_dataset1->wind;
+    for (i=0;i<REG_WIND_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+
     stop=false;
   }
   
@@ -959,7 +1054,6 @@ void loop() {
     start=false;    
     return;
   }
-
 
   // 8 sector  (sector 1  =>  -22.5 to +22.5 North)
   if (ff == 0){
@@ -1192,7 +1286,7 @@ void loop() {
     IF_SDEBUG(Serial.println(i2c_dataset1->wind.sect[i]-OFFSET));
   }
 
-  digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
+  digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
   // comment this if you manage continous mode
   // in this case timing is getted from windsonic that send valuer every SAMPLERATE us

@@ -6,10 +6,6 @@
 #define SAMPLERATE 3000
 
 
-//////////////////////////////////////////////////////////////////////////////
-// i2C comm definitions
-//
-
 // we use interrupt 0 so in arduino uno digital pin 2 is used for wind intensity switch sensor
 #define INTERRUPTPIN 2
 // temporary patch for microduino; see http://forum.microduino.cc/topic/91/digitalpintointerrupt-was-not-declared-in-this-scope
@@ -33,5 +29,5 @@
 
 // define the version of the configuration saved on eeprom
 // if you chenge this the board start with default configuration at boot
-#define CONFVER "conf00"
+#define CONFVER "confwi00"
 

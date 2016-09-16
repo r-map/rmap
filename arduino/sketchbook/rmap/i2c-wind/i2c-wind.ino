@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (C) 2014  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2016  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
 
@@ -55,9 +55,8 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
 
-char confver[7] = CONFVER; // version of configuration saved on eeprom
+char confver[9] = CONFVER; // version of configuration saved on eeprom
 
-//#include <FreqCounter.h>
 
 IntBuffer cbu60m;
 IntBuffer cbv60m;
@@ -252,7 +251,7 @@ void receiveEvent( int bytesReceived)
 	 //Writeable registers
 	 // the two buffer should be in sync
 	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;
-	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;;
+	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_WIND_MAP_WRITABLE;
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
 	   *ptr1++ = receivedCommands[a];
@@ -368,7 +367,7 @@ void setup() {
   IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
   int p=0;
   // check for configuration version on eeprom
-  char EE_confver[7];
+  char EE_confver[9];
   p+=EEPROM_readAnything(p, EE_confver);
 
   if((strcmp(EE_confver,confver ) == 0) && !forcedefault)
@@ -429,20 +428,13 @@ void setup() {
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
   // do not need this with patched Wire library
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
+  //digitalWrite( SDA, LOW);
+  //digitalWrite( SCL, LOW);
   //digitalWrite( SDA, HIGH);
   //digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
-
-  /*
-  // mmm needed to iniziatize FreqCounter: if not the first read is wrong
-  FreqCounter::start(1);    // ms Gate Time
-  while (FreqCounter::f_ready == 0) { }
-  // TODO the the next read is 1 with calm too
-  */
 
   pinMode(INTERRUPTPIN,INPUT_PULLUP);  // connected to wind intensity sensor
 
@@ -541,8 +533,6 @@ void loop() {
     starttime = millis();
   }
 
-  //FreqCounter::f_comp=10;          // Cal Value / Calibrate with professional Freq Counter
-  //FreqCounter::start(sampletime);    // ms Gate Time
 
   count=0;
   attachInterrupt(digitalPinToInterrupt(INTERRUPTPIN), countadd, RISING);

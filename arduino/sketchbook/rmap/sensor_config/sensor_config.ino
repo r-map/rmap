@@ -20,7 +20,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wire.h"
 #include <Arduino.h>
 #include "registers-wind.h"         //Register definitions
+#include "registers-windsonic.h"         //Register definitions
 #include "registers-th.h"         //Register definitions
+#include "registers-rain.h"         //Register definitions
 
 const char version[] = "1.0";
 
@@ -42,7 +44,9 @@ void displayHelp()
   Serial.println();
   Serial.println(F("Sensor to config:"));
   Serial.println(F("\tw = i2c-wind"));
+  Serial.println(F("\ts = i2c-windsonic"));
   Serial.println(F("\tt = i2c-th"));
+  Serial.println(F("\tr = i2c-rain"));
   Serial.println(F("\th = hih humidity sensorr"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
@@ -141,6 +145,51 @@ void loop() {
       displayHelp();
       break;
 
+
+    case 's':
+      
+      new_address= -1;
+      while (new_address < 1 || new_address > 127){
+	Serial.println(F("digit new i2c address for i2c-windsonic (1-127)"));
+	new_address=Serial.parseInt();
+	Serial.println(new_address);
+      }
+      delay(1000);
+      
+      Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
+      Wire.write(I2C_WINDSONIC_ADDRESS);
+      Wire.write(new_address);
+      if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      delay(1000);
+
+      oneshot=-1;
+      while (oneshot < 0 || oneshot > 1){
+	Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-windsonic (0/1)"));
+	oneshot=Serial.parseInt();
+	Serial.println(oneshot);
+      }
+      delay(1000);
+      
+      Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
+      Wire.write(I2C_WINDSONIC_ONESHOT);
+      Wire.write((bool)oneshot);
+      if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      delay(1000);
+      Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
+      Wire.write(I2C_WINDSONIC_COMMAND);
+      Wire.write(I2C_WINDSONIC_COMMAND_SAVE);
+      if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      Serial.println(F("Done; switch off"));
+      delay(10000);
+
+
+      displayHelp();
+      break;
+
+
     case 't':
 
       new_address=-1;
@@ -206,6 +255,49 @@ void loop() {
       Wire.beginTransmission(I2C_TH_DEFAULTADDRESS);
       Wire.write(I2C_TH_COMMAND);
       Wire.write(I2C_TH_COMMAND_SAVE);
+      if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      Serial.println(F("Done; switch off"));
+      delay(10000);
+
+      displayHelp();
+      break;
+
+    case 'r':
+
+      new_address=-1;
+      while (new_address < 1 || new_address > 127){
+	Serial.println(F("digit new i2c address for i2c-rain (1-127)"));
+	new_address=Serial.parseInt();
+	Serial.println(new_address);
+      }
+
+      delay(1000);      
+
+      Wire.beginTransmission(I2C_RAIN_DEFAULTADDRESS);
+      Wire.write(I2C_RAIN_ADDRESS);
+      Wire.write(new_address);
+      if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      delay(1000);
+
+      oneshot=-1;
+      while (oneshot < 0 || oneshot > 1){
+	Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-rain (0/1)"));
+	oneshot=Serial.parseInt();
+	Serial.println(oneshot);
+      }
+      delay(1000);
+      
+      Wire.beginTransmission(I2C_RAIN_DEFAULTADDRESS);
+      Wire.write(I2C_RAIN_ONESHOT);
+      Wire.write((bool)oneshot);
+      if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+      delay(1000);
+      Wire.beginTransmission(I2C_RAIN_DEFAULTADDRESS);
+      Wire.write(I2C_RAIN_COMMAND);
+      Wire.write(I2C_RAIN_COMMAND_SAVE);
       if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
       
       Serial.println(F("Done; switch off"));

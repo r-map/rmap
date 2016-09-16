@@ -2,7 +2,7 @@
 // I2C WINDSONIC registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_WINDSONIC_ADDRESS        0x25                      //7 bit address 0x40 write, 0x41 read
+#define I2C_WINDSONIC_DEFAULTADDRESS        37                      //7 bit address
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF
@@ -16,6 +16,7 @@
 #define I2C_WINDSONIC_COMMAND_ONESHOT_START   1
 #define I2C_WINDSONIC_COMMAND_ONESHOT_STOP    2
 #define I2C_WINDSONIC_COMMAND_STOP            3
+#define I2C_WINDSONIC_COMMAND_SAVE            4
 
 #define I2C_WINDSONIC_VERSION               0x00      // Version
 #define I2C_WINDSONIC_DD                    0x01      // DD
@@ -42,8 +43,9 @@
 
 #define I2C_WINDSONIC_MAP_WRITABLE          0x1F
 #define I2C_WINDSONIC_ONESHOT               0x1F      // saple mode (bool)
+#define I2C_WINDSONIC_ADDRESS               0x20      // i2c bus address (short unsigned int)
 
 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 
-////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
