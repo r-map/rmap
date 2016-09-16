@@ -16,7 +16,7 @@
 
 
 // activate debug on serial port
-//#define DEBUGONSERIAL
+#define DEBUGONSERIAL
 
 #ifdef DEBUGONSERIAL
 #define IF_SDEBUG(x) ({x;})
