@@ -50,10 +50,15 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "LongIntBuffer.h"
 #include "FloatBuffer.h"
 
+#include "EEPROMAnything.h"
+
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
+#define REG_TH_SIZE           sizeof(values_t)                  //size of register map for th
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
 
 #define MAX_SENT_BYTES     0x0F   //maximum amount of data that I could receive from a master device (register, plus 15 byte)
+
+char confver[9] = CONFVER; // version of configuration saved on eeprom
 
 #define SENSORS_LEN 2     // number of sensors
 #define LENVALUES 2
@@ -72,7 +77,6 @@ SensorDriver* sd[SENSORS_LEN];
 LongIntBuffer cbt60mean;
 LongIntBuffer cbh60mean;
 
-int pinLed=13;
 
 typedef struct {
   uint8_t    sw_version;       // 0x00  Version of the I2C_GPS sw
@@ -105,6 +109,28 @@ typedef struct {
 
 //sample mode
   bool                  oneshot;                  // one shot active
+  uint8_t               i2c_address;              // i2c bus address (short unsigned int)
+  uint8_t               i2c_temperature_address ; // i2c bus address of temperature sensor (short unsigned int)
+  uint8_t               i2c_humidity_address ;    // i2c bus address of humidity sensor (short unsigned int)
+  void save (int* p) volatile {                            // save to eeprom
+
+    IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
+    IF_SDEBUG(Serial.print(F("i2c address: "))); IF_SDEBUG(Serial.println(i2c_address));
+    IF_SDEBUG(Serial.print(F("i2c temperature address: "))); IF_SDEBUG(Serial.println(i2c_temperature_address));
+    IF_SDEBUG(Serial.print(F("i2c humidity address: ")));    IF_SDEBUG(Serial.println(i2c_humidity_address));
+
+    *p+=EEPROM_writeAnything(*p, oneshot);
+    *p+=EEPROM_writeAnything(*p, i2c_address);
+    *p+=EEPROM_writeAnything(*p, i2c_temperature_address);
+    *p+=EEPROM_writeAnything(*p, i2c_humidity_address);
+  }
+  
+  void load (int* p) volatile {                            // load from eeprom
+    *p+=EEPROM_readAnything(*p, oneshot);
+    *p+=EEPROM_readAnything(*p, i2c_address);
+    *p+=EEPROM_readAnything(*p, i2c_temperature_address);
+    *p+=EEPROM_readAnything(*p, i2c_humidity_address);
+  }
 } I2C_WRITABLE_REGISTERS;
 
 
@@ -133,12 +159,13 @@ uint8_t nsamplet,nsampleh,nsample1;
 int lastsize=-1;
 
 // one shot management
+static bool oneshot;
 static bool start=false;
 static bool stop=false;
 
 volatile unsigned long antirimb=0;
 unsigned long starttime, regsettime;
-
+boolean forcedefault=false;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -185,7 +212,8 @@ void receiveEvent( int bytesReceived)
      IF_SDEBUG(Serial.print("receive event, bytes:"));
      IF_SDEBUG(Serial.println(bytesReceived));
 
-     uint8_t  *ptr;
+  uint8_t  *ptr1, *ptr2;
+     //IF_SDEBUG(SSerial.print("received:"));
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
@@ -199,21 +227,19 @@ void receiveEvent( int bytesReceived)
        // check for a command
        if (receivedCommands[0] == I2C_TH_COMMAND) {
 	 //IF_SDEBUG(Serial.print("       received command:"));IF_SDEBUG(Serial.println(receivedCommands[1],HEX));
-	 new_command = receivedCommands[1]; return;
-	 return;   //Just one byte, ignore all others
-       }
+	 new_command = receivedCommands[1]; return; }
      }
 
      if (bytesReceived == 1){
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
-       if((receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE)) {
+       if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
 	 receivedCommands[0]=0;
 	 regsettime=0;
        }else{
 	 regsettime=millis();
        }
-       //IF_SDEBUG(Serial.print("       set register:"));IF_SDEBUG(Serial.println(receivedCommands[0],HEX));
+       //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
        return;
      }
 
@@ -228,29 +254,15 @@ void receiveEvent( int bytesReceived)
      if ((receivedCommands[0]>=I2C_TH_MAP_WRITABLE) && (receivedCommands[0] < (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_TH_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
-	 ptr = (uint8_t *)i2c_writabledataset1+receivedCommands[0];
-	 for (int a = 1; a < bytesReceived; a++) { 
-	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.print(a));IF_SDEBUG(Serial.println(receivedCommands[a],HEX));
-	   *ptr++ = receivedCommands[a];
-	 }
-
-	 /*
 	 // the two buffer should be in sync
-	 ptr = (uint8_t *)i2c_writabledataset2+receivedCommands[0];
-	 for (int a = 1; a < bytesReceived; a++) { *ptr++ = receivedCommands[a]; }
+	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_TH_MAP_WRITABLE;
+	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_TH_MAP_WRITABLE;
+	 for (int a = 1; a < bytesReceived; a++) { 
+	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
+	   *ptr1++ = receivedCommands[a];
+	   *ptr2++ = receivedCommands[a];
+	 }
 	 // new data written
-
-
-	 IF_SDEBUG(Serial.println("writable buffer exchange"));
-	 // disable interrupts for atomic operation
-	 noInterrupts();
-	 //exchange double buffer
-	 i2c_writabledatasettmp=i2c_writabledataset1;
-	 i2c_writabledataset1=i2c_writabledataset2;
-	 i2c_writabledataset2=i2c_writabledatasettmp;
-	 interrupts();
-	 */
-
        }
     }
 }
@@ -260,6 +272,15 @@ void receiveEvent( int bytesReceived)
 void mgr_command(){
 
   static uint8_t _command;
+
+  //IF_SDEBUG(Serial.println("writable buffer exchange"));
+  // disable interrupts for atomic operation
+  noInterrupts();
+  //exchange double buffer
+  i2c_writabledatasettmp=i2c_writabledataset1;
+  i2c_writabledataset1=i2c_writabledataset2;
+  i2c_writabledataset2=i2c_writabledatasettmp;
+  interrupts();
 
   //Check for new incoming command on I2C
   if (new_command!=0) {
@@ -290,6 +311,19 @@ void mgr_command(){
       stop=true;      
       start=true;
       starttime = millis();
+      break;
+    case I2C_TH_COMMAND_SAVE:
+      IF_SDEBUG(Serial.println(F("COMMAND: save")));
+
+      // save configuration to eeprom
+      IF_SDEBUG(Serial.println(F("save configuration to eeprom")));
+      int p=0;
+
+      // save configuration version on eeprom
+      p+=EEPROM_writeAnything(p, confver);
+      //save writable registers
+      i2c_writabledataset2->save(&p);
+
       break;
     } //switch  
   }
@@ -330,6 +364,8 @@ void mgr_command(){
 
 void setup() {
 
+  uint8_t i;
+
   /*
   Nel caso di un chip in standalone senza bootloader, la prima
   istruzione che è bene mettere nel setup() è sempre la disattivazione
@@ -342,16 +378,11 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
+  IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
+  IF_SDEBUG(Serial.print(F("Start firmware version: ")));
+  IF_SDEBUG(Serial.println(VERSION));
+
   regsettime=0;
-
-  strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"ADT");
-  sensors[0].address=TEMPERATURE_ADDRESS;
-
-  strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"HIH");
-  sensors[1].address=HUMIDITY_ADDRESS;
-
 
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
@@ -373,42 +404,89 @@ void setup() {
   cbt60mean.init(SAMPLE2);
   cbh60mean.init(SAMPLE2);
 
-  IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
 
-  IF_SDEBUG(Serial.println(F("Start")));
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
   uint8_t *ptr;
   //Init to FF i2c_dataset1;
   ptr = (uint8_t *)i2c_dataset1;
-  for (int i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+  for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
   //Init to FF i2c_dataset1;
   ptr = (uint8_t *)i2c_dataset2;
-  for (int i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+  for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
 
 
   IF_SDEBUG(Serial.println(F("i2c_writabledataset 1&2 set to 1")));
   //Init to FF i2c_writabledataset1;
   ptr = (uint8_t *)i2c_writabledataset1;
-  for (int i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+  for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
   //Init to FF i2c_writabledataset2;
   ptr = (uint8_t *)i2c_writabledataset2;
-  for (int i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+  for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
 
   //Set up default parameters
   i2c_dataset1->status.sw_version          = VERSION;
   i2c_dataset2->status.sw_version          = VERSION;
 
-  // set default for oneshot
-  i2c_writabledataset1->oneshot=false;
-  i2c_writabledataset2->oneshot=false;
+
+  pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
+  pinMode(LEDPIN, OUTPUT); 
+
+  if (digitalRead(FORCEDEFAULTPIN) == LOW) {
+    digitalWrite(LEDPIN, HIGH);
+    forcedefault=true;
+  }
+
+
+  // load configuration saved on eeprom
+  IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
+  int p=0;
+  // check for configuration version on eeprom
+  char EE_confver[9];
+  p+=EEPROM_readAnything(p, EE_confver);
+
+  if((strcmp(EE_confver,confver ) == 0) && !forcedefault)
+    {
+      //load writable registers
+      IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
+      i2c_writabledataset1->load(&p);
+      i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
+      i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
+      i2c_writabledataset2->i2c_temperature_address=i2c_writabledataset1->i2c_temperature_address;
+      i2c_writabledataset2->i2c_humidity_address=i2c_writabledataset1->i2c_humidity_address;
+    }
+  else
+    {
+      IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
+      IF_SDEBUG(Serial.println(F("set default values for writable registers")));
+      // set default to oneshot
+      i2c_writabledataset1->oneshot=false;
+      i2c_writabledataset2->oneshot=false;
+      i2c_writabledataset1->i2c_address = I2C_TH_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_TH_DEFAULTADDRESS;
+      i2c_writabledataset1->i2c_temperature_address = TEMPERATURE_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_temperature_address = TEMPERATURE_DEFAULTADDRESS;
+      i2c_writabledataset1->i2c_humidity_address = HUMIDITY_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_humidity_address = HUMIDITY_DEFAULTADDRESS;
+    }
+
+  IF_SDEBUG(Serial.print(F("i2c address: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
+  IF_SDEBUG(Serial.print(F("i2c temperature address: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_temperature_address));
+  IF_SDEBUG(Serial.print(F("i2c humidity address: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_humidity_address));
+  IF_SDEBUG(Serial.print(F("oneshot: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
+
+  oneshot=i2c_writabledataset2->oneshot;
 
   //Start I2C communication routines
-  Wire.begin(I2C_TH_ADDRESS);
+  Wire.begin(i2c_writabledataset1->i2c_address);
   
   //set the i2c clock 
   //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
@@ -417,12 +495,22 @@ void setup() {
 
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
+  // do not need this with patched Wire library
+  //digitalWrite( SDA, LOW);
+  //digitalWrite( SCL, LOW);
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"ADT");
+  sensors[0].address=i2c_writabledataset1->i2c_temperature_address;
+
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"HIH");
+  sensors[1].address=i2c_writabledataset1->i2c_humidity_address;
 
   for (int i = 0; i < SENSORS_LEN; i++) {
 
@@ -545,7 +633,7 @@ void loop() {
   IF_SDEBUG(Serial.print(F("humidity: ")));
   IF_SDEBUG(Serial.println(i2c_dataset1->humidity.sample));
 
-  if (i2c_writabledataset2->oneshot) {
+  if (oneshot) {
     //if one shot we have finish
     IF_SDEBUG(Serial.println(F("oneshot end")));
     start=false;    
@@ -737,6 +825,6 @@ void loop() {
     IF_SDEBUG(Serial.println(i2c_dataset1->humidity.sigma));
   }
 
-  digitalWrite(pinLed,!digitalRead(pinLed));  // blink Led
+  digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
 }

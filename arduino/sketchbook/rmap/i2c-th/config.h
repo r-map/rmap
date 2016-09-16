@@ -1,7 +1,7 @@
 //sensor definition
 
-#define TEMPERATURE_ADDRESS 73
-#define HUMIDITY_ADDRESS 39
+#define TEMPERATURE_DEFAULTADDRESS 73
+#define HUMIDITY_DEFAULTADDRESS 39
 
 #define SAMPLERATE 3000
 #define MINUTEFORREPORT 2
@@ -20,3 +20,11 @@
 
 // set the I2C clock frequency 
 #define I2C_CLOCK 30418
+
+#define LEDPIN 13
+#define FORCEDEFAULTPIN 8
+
+// define the version of the configuration saved on eeprom
+// if you chenge this the board start with default configuration at boot
+#define CONFVER "confth00"
+
