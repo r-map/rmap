@@ -4,7 +4,7 @@
 #define HUMIDITY_DEFAULTADDRESS 39
 
 #define SAMPLERATE 3000
-#define MINUTEFORREPORT 2
+#define MINUTEFORREPORT 14
 
 // max missing data for minute
 #define MAXMISSING 1

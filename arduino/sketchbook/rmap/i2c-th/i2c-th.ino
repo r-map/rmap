@@ -163,7 +163,6 @@ static bool oneshot;
 static bool start=false;
 static bool stop=false;
 
-volatile unsigned long antirimb=0;
 unsigned long starttime, regsettime;
 boolean forcedefault=false;
 
@@ -399,7 +398,7 @@ void setup() {
   nsample1=0;
 
 #define SAMPLE1 60000/SAMPLERATE
-#define SAMPLE2 180
+#define SAMPLE2 60
 
   cbt60mean.init(SAMPLE2);
   cbh60mean.init(SAMPLE2);
