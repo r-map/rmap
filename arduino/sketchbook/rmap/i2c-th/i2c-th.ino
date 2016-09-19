@@ -37,7 +37,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 01             //Software version for cross checking
+#define VERSION 02             //Software version for cross checking
 //#define HUGE 4294967296
 //#define SHUGE 2147483647
 
@@ -173,8 +173,8 @@ boolean forcedefault=false;
 //
 void requestEvent()
 {
-  IF_SDEBUG(Serial.print("request event: "));
-  IF_SDEBUG(Serial.println(receivedCommands[0]));
+  //IF_SDEBUG(Serial.print("request event: "));
+  //IF_SDEBUG(Serial.println(receivedCommands[0]));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]),HEX));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1),HEX));
   //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),HEX));
@@ -199,7 +199,7 @@ void requestEvent()
   }else{
 
     Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],4);
-    //Write up to 32 byte, since master is responsible for reading and sending NACK
+    //Write up to 4 byte, since master is responsible for reading and sending NACK
     //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
   }
   regsettime=0;
@@ -209,8 +209,8 @@ void requestEvent()
 void receiveEvent( int bytesReceived)
 {
 
-     IF_SDEBUG(Serial.print("receive event, bytes:"));
-     IF_SDEBUG(Serial.println(bytesReceived));
+  //IF_SDEBUG(Serial.print("receive event, bytes:"));
+  //IF_SDEBUG(Serial.println(bytesReceived));
 
   uint8_t  *ptr1, *ptr2;
      //IF_SDEBUG(SSerial.print("received:"));
