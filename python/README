@@ -76,7 +76,7 @@ rmap-configure --wizard --station_slug=report_thp --height=100 --stationname="AR
 rmap-configure --addboard --station_slug=report_thp --board_slug=report_thp_gsm --user=username --serialactivate --mqttactivate --mqttuser=username --mqttpassword=password --mqttsamplerate=900
 rmap-configure --addsensors_by_template=stima_report_thp --station_slug=report_thp --board_slug=report_thp_gsm --user=username --password=password --upload_to_server
 
-rmap-configure --config_station --station_slug=report_thp --board_slug=report_thp_gsm --username=username
+rmap-configure --config_station --station_slug=report_thp --board_slug=report_thp_gsm --username=username --baudrate 115200
 
 
 #obsolete notes:

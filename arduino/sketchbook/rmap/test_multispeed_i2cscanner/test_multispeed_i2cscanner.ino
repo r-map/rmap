@@ -174,6 +174,13 @@ void setSpeed(char sp)
       }
       break;
   }
+
+  Serial.print(F("Set speeds to = "));
+  for (uint8_t s = 0; s < speeds ; s++)
+    {
+       Serial.print(speed[s]); Serial.print(F(", "));
+    }
+  Serial.println(F(" "));
 }
 
 char getCommand()

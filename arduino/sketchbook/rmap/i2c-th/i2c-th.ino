@@ -398,7 +398,7 @@ void setup() {
   nsample1=0;
 
 #define SAMPLE1 60000/SAMPLERATE
-#define SAMPLE2 60
+#define SAMPLE2 180
 
   cbt60mean.init(SAMPLE2);
   cbh60mean.init(SAMPLE2);

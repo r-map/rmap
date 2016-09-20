@@ -659,10 +659,20 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
       // Normal Operation, Valid Data that has not been fetched since the last measurement cycle
 
       y = Wire.read();
+      //IF_SDSDEBUG(SDDBGSERIAL.print(F("#hih read humidity x,y: ")));
+      //IF_SDSDEBUG(SDDBGSERIAL.print(x));
+      //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
+      //IF_SDSDEBUG(SDDBGSERIAL.println(y));
+
       h = (((uint16_t) (x & 0x3f)) << 8) | y;
 
       x = Wire.read();
       y = Wire.read();
+      //IF_SDSDEBUG(SDDBGSERIAL.print(F("#hih read temperature x,y: ")));
+      //IF_SDSDEBUG(SDDBGSERIAL.print(x));
+      //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
+      //IF_SDSDEBUG(SDDBGSERIAL.println(y));
+
       t = (((uint16_t) x) << 6) | ((y & 0xfc) >> 2);
       
       //Wire.endTransmission();
