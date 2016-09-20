@@ -4,7 +4,7 @@
 
 //  Create an HIH61XXCommander with I2C address 0x27, powered by digital pin 4
 //  If you want to use Command Mode you MUST use the powerPin!
-HIH61XXCommander hih(0x26, 4);
+HIH61XXCommander hih(0x27, 4);
 
 
 
