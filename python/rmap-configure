@@ -109,6 +109,9 @@ parser.add_argument('--mqttactivate',action="store_true", help="activate mqtt tr
 parser.add_argument('--mqttusername',  default="", help="mqtt username")
 parser.add_argument('--mqttpassword',  default="", help="mqtt password")
 parser.add_argument('--mqttsamplerate',type=int,  default=5, help="mqtt samplerate for sensorsin seconds")
+parser.add_argument('--mqttrootpath',  default="rmap", help="mqtt topic root path")
+parser.add_argument('--mqttmaintpath',  default="rmap", help="mqtt topic maint path for admin RPC")
+
 parser.add_argument('--bluetoothactivate', action="store_true", help="activate bluetooth transport")
 parser.add_argument('--amqpactivate', action="store_true", help="activate amqp transport")
 parser.add_argument('--amqpuser',  default="rmap", help="amqp user")
@@ -140,6 +143,8 @@ if args.wizard:
                             mqttpassword=args.password,
                             mqttserver=args.server,
                             mqttsamplerate=args.mqttsamplerate,
+                            mqttrootpath=args.mqttrootpath,
+                            mqttmaintpath=args.mqttmaintpath,
                             bluetoothname=args.bluetoothname,
                             amqpusername=args.username,
                             amqppassword=args.password,

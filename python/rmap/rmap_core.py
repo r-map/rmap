@@ -916,7 +916,9 @@ def configdb(username="your user",password="your password",
              exchange="rmap",
              board=None,
              activate=None,
-             stationname=None):
+             stationname=None,
+             mqttrootpath="rmap",
+             mqttmaintpath="rmap"):
 
     try:
         user = User.objects.create_user(username, username+'@rmap.cc', password)            
@@ -942,6 +944,9 @@ def configdb(username="your user",password="your password",
         mystation.ident=user
         mystation.lat=lat
         mystation.lon=lon
+        mystation.mqttrootpath=mqttrootpath
+        mystation.mqttmaintpath=mqttmaintpath
+
         if not (activate is None): mystation.active=activate
         mystation.save()
             
