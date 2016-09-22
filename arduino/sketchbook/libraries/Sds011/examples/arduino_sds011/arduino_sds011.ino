@@ -1,6 +1,6 @@
 #include <SoftwareSerial.h>
 #include "Sds011.h"
-#include "Pcd8544.h"
+//#include "Pcd8544.h"
 
 #ifdef ESP8266
 #include <ESP8266WiFi.h>
@@ -15,9 +15,10 @@ sds011::Sds011 sensor(Serial);
 pcd8544::Pcd8544 display(13, 12, 14);
 #else
 // RX, TX
-SoftwareSerial mySerial(8,9);
-sds011::Sds011 sensor(mySerial);
-pcd8544::Pcd8544 display(A3, A2, A1, A0, 13);
+//SoftwareSerial mySerial(8,9);
+//sds011::Sds011 sensor(mySerial);
+sds011::Sds011 sensor(Serial1);
+//pcd8544::Pcd8544 display(A3, A2, A1, A0, 13);
 #endif
 
 String val_to_str(uint16_t v)
@@ -36,6 +37,7 @@ String val_to_str(uint16_t v)
     return r;
 }
 
+/*
 void display_data(uint16_t pm25, uint16_t pm10)
 {
     display.clear();
@@ -54,13 +56,15 @@ void display_data(uint16_t pm25, uint16_t pm10)
     display.setCursor(8*7, 2);
     display.print(val_to_str((10*pm10/PM10_NORM)*10).c_str());
 }
+*/
 
 void setup()
 {
     bool clear = true;
 
 #ifndef ESP8266
-    mySerial.begin(9600);
+    //mySerial.begin(9600);
+    Serial1.begin(9600);
 #endif
     Serial.begin(9600);
 
@@ -77,13 +81,14 @@ void setup()
     }
 #endif
 
+    /*
     display.begin();
     if (clear) {
         display.clear();
         display.setCursor(0,0);
         display.println("Hello");
     }
-
+    */
     sensor.set_sleep(false);
     sensor.set_mode(sds011::QUERY);
 }
@@ -99,11 +104,20 @@ void loop()
     sensor.set_sleep(true);
 
     if (ok) {
-        display_data(pm25, pm10);
+      //display_data(pm25, pm10);
+      Serial.print(F("pm25: "));
+      Serial.println(pm25);
+
+      Serial.print(F("pm10: "));
+      Serial.println(pm10);
+
     } else {
+      /*
         display.clear();
         display.setCursor(0, 0);
         display.println("NO SENSOR!");
+      */
+      Serial.println(F("NO SENSOR!"));
     }
 
 #ifdef ESP8266
