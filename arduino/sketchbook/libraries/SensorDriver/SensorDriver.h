@@ -358,6 +358,110 @@ class SensorDriverTmp : public SensorDriver
 
 #endif
 
+
+#if defined (SDS011_ONESHOT)
+#include "registers-sds011.h"
+
+ class SensorDriverSDS011oneshot : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+#endif
+
+
+#if defined (SDS011_REPORT)
+#include "registers-sds011.h"
+
+ class SensorDriverSDS01160mean : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+
+ class SensorDriverSDS011mean : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+
+ class SensorDriverSDS011min : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+ class SensorDriverSDS011max : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
+
+#endif
+
+
 #define SD_INTERNAL_ERROR 0
 #define SD_SUCCESS 1
 
