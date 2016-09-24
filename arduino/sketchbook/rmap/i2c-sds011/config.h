@@ -1,12 +1,7 @@
 // sds011 sensor definition
 
-// time in us equired for oneshot measure
-// setting windsonic for 4 sample for second we wait a little more
-#define SAMPLETIME 3500
-
 //// take one measure every SAMPLERATE us
-// setting windsonic for 4 sample for second we wait double for non oneshot measuremets
-#define SAMPLERATE 1250
+#define SAMPLERATE 6000
 
 // serial port for wind connector
 #define SERIALSDS011 Serial1

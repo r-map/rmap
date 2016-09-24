@@ -39,12 +39,13 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define VERSION 01             //Software version for cross checking
 
+#include <limits.h>
 #include <avr/wdt.h>
 #include "Wire.h"
 #include "registers-sds011.h"         //Register definitions
 #include "config.h"
 #include "IntBuffer.h"
-//#include "FloatBuffer.h"
+#include "FloatBuffer.h"
 #include "Sds011.h"
 
 #include "EEPROMAnything.h"
@@ -59,18 +60,21 @@ char confver[9] = CONFVER; // version of configuration saved on eeprom
 
 sds011::Sds011 sensor(SERIALSDS011);
 
-/*
+
+IntBuffer cbpm2560n;
+IntBuffer cbpm1060n;
+
 IntBuffer cbpm2560m;
 IntBuffer cbpm1060m;
 
 IntBuffer cbpm2560x;
 IntBuffer cbpm1060x;
 
-IntBuffer cb60m;
+FloatBuffer cbsum2pm25;
+FloatBuffer cbsumpm25;
+FloatBuffer cbsum2pm10;
+FloatBuffer cbsumpm10;
 
-FloatBuffer cbsum2;
-FloatBuffer cbsum;
-*/
 
 typedef struct {
   uint8_t    sw_version;                          // Version of the I2C_SDS011 sw
@@ -139,12 +143,14 @@ volatile static uint8_t         new_command;                        //new comman
 
 float meanpm25;
 float meanpm10;
-int minpm25;
-int minpm10;
-int maxpm25;
-int maxpm10;
-float sum2;
-float sum;
+long int minpm25;
+long int minpm10;
+long int maxpm25;
+long int maxpm10;
+float sum2pm25;
+float sumpm25;
+float sum2pm10;
+float sumpm10;
 float sum260;
 float sum60;
 uint8_t nsample1;
@@ -265,28 +271,37 @@ void setup() {
 #define SAMPLE1 60000/SAMPLERATE
 #define SAMPLE2 10
 
-  /*
-  meanff=0.;
-  meanu=0.;
-  meanv=0.;
-  peakgust=-1;
-  peakgustu=0;
-  peakgustv=0;
-  sum2=0;
-  sum=0;
+  meanpm25=0.;
+  meanpm10=0.;
+
+  maxpm25=-1;
+  maxpm10=-1;
+
+  minpm25=LONG_MAX;
+  minpm10=LONG_MAX;
+
+  sum2pm25=0;
+  sumpm25=0;
+
+  sum2pm10=0;
+  sumpm10=0;
 
   nsample1=1;
 
-  cbu60m.init(SAMPLE2);
-  cbv60m.init(SAMPLE2);
+  cbpm2560n.init(SAMPLE2);
+  cbpm1060n.init(SAMPLE2);
 
-  cbu60p.init(SAMPLE2);
-  cbv60p.init(SAMPLE2);
+  cbpm2560m.init(SAMPLE2);
+  cbpm1060m.init(SAMPLE2);
 
-  cb60m.init(SAMPLE2);
-  cbsum2.init(SAMPLE2);
-  cbsum.init(SAMPLE2);
-  */
+  cbpm2560x.init(SAMPLE2);
+  cbpm1060x.init(SAMPLE2);
+
+  cbsum2pm25.init(SAMPLE2);
+  cbsumpm25.init(SAMPLE2);
+
+  cbsum2pm10.init(SAMPLE2);
+  cbsumpm10.init(SAMPLE2);
 
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
@@ -366,15 +381,15 @@ void setup() {
   // do not need this with patched Wire library
   //digitalWrite( SDA, LOW);
   //digitalWrite( SCL, LOW);
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
   SERIALSDS011.begin(9600);
 
-  sensor.set_sleep(true);
+  if (oneshot) sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
 
   starttime = millis()+SAMPLERATE;
@@ -391,7 +406,7 @@ void loop() {
   int pm25;
   int pm10;
 
-  float mean;
+  float mean, min, max;
   
   uint8_t i;
   bool ok;
@@ -487,10 +502,10 @@ void loop() {
 
   starttime = millis()+timetowait;
 
-  sensor.set_sleep(false);
+  if (oneshot) sensor.set_sleep(false);
   delay(1000);
   ok = sensor.query_data_auto(&pm25, &pm10, 3);
-  sensor.set_sleep(true);
+  if (oneshot) sensor.set_sleep(true);
 
   wdt_reset();
 
@@ -511,7 +526,6 @@ void loop() {
     return;
   }
 
-  /*
   // statistical processing
 
   // first level mean
@@ -519,191 +533,230 @@ void loop() {
   IF_SDEBUG(Serial.print("data in store first: "));
   IF_SDEBUG(Serial.println(nsample1));
 
-  // FF mean
-  float fff;
-  fff = sqrt(float(u)*float(u) + float(v)*float(v));
-  meanff += (fff - meanff) / (nsample1);
 
-  // U and V mean
-  meanu += (float(u) - meanu) / (nsample1);
-  meanv += (float(v) - meanv) / (nsample1);
+  // first level min
+  if (minpm25 > pm25) minpm25=pm25;
+  if (minpm10 > pm10) minpm10=pm10;
 
-  // first level peak gust
-  if (peakgust < fff){
-    peakgust=fff;
-    peakgustu=u;
-    peakgustv=v;
+  // first level mean
+  meanpm25 += (float(pm25) - meanpm25) / nsample1;
+  meanpm10 += (float(pm10) - meanpm10) / nsample1;
+
+  // first level max
+  if (maxpm25 < pm25) maxpm25=pm25;
+  if (maxpm10 < pm10) maxpm10=pm10;
+
+  // sigma
+  sum2pm25+=pm25*pm25;
+  sumpm25+=pm25;
+
+  sum2pm10+=pm10*pm10;
+  sumpm10+=pm10;
+
+  if (nsample1 == SAMPLE1) {
+    IF_SDEBUG(Serial.print("meanpm25: "));
+    IF_SDEBUG(Serial.println(meanpm25));
+    IF_SDEBUG(Serial.print("meanpm10: "));
+    IF_SDEBUG(Serial.println(meanpm10));
+
+    cbpm2560n.autoput(minpm25);
+    cbpm1060n.autoput(minpm10);
+
+    cbpm2560m.autoput(meanpm25);
+    cbpm1060m.autoput(meanpm10);
+
+    cbpm2560x.autoput(maxpm25);
+    cbpm1060x.autoput(maxpm10);
+
+    cbsum2pm25.autoput(sum2pm25);
+    cbsumpm25.autoput(sumpm25);
+
+    cbsum2pm10.autoput(sum2pm10);
+    cbsumpm10.autoput(sumpm10);
+
+    nsample1=0;
+
+    minpm25=-1;
+    meanpm25=0.;
+    maxpm25=0.;
+
+    minpm10=-1;
+    meanpm10=0.;
+    maxpm10=0.;
+
+    sum2pm25=0;
+    sumpm25=0;
+
+    sum2pm10=0;
+    sumpm10=0;
+
   }
 
   // sigma
-  sum2+=fff*fff;
-  sum+=fff;
+  float sum260, sum60;
 
-  if (nsample1 == SAMPLE1) {
-    IF_SDEBUG(Serial.print("meanff: "));
-    IF_SDEBUG(Serial.println(meanff));
-    IF_SDEBUG(Serial.print("meanu: "));
-    IF_SDEBUG(Serial.println(meanu));
-    IF_SDEBUG(Serial.print("meanv: "));
-    IF_SDEBUG(Serial.println(meanv));
-
-    cb60m.autoput(round(meanff));
-    cbu60m.autoput(round(meanu));
-    cbv60m.autoput(round(meanv));
-    cbu60p.autoput(peakgustu);
-    cbv60p.autoput(peakgustv);
-    cbsum2.autoput(sum2);
-    cbsum.autoput(sum);
-
-    meanff=0.;
-    meanu=0.;
-    meanv=0.;
-    nsample1=0;
-    peakgust=-1;
-    peakgustu=0;
-    peakgustv=0;
-    sum2=0;
-    sum=0;
-  }
-
-
-  if (cbsum2.getSize() == cbsum2.getCapacity() && cbsum.getSize() == cbsum.getCapacity()){
+  if (cbsum2pm25.getSize() == cbsum2pm25.getCapacity() && cbsumpm25.getSize() == cbsumpm25.getCapacity()){
     sum260=0;
-    for (i=0 ; i < cbsum2.getCapacity() ; i++){
-      sum260 += cbsum2.peek(i);
+    for (i=0 ; i < cbsum2pm25.getCapacity() ; i++){
+      sum260 += cbsum2pm25.peek(i);
     }
 
     sum60=0;
-    for (i=0 ; i < cbsum.getCapacity() ; i++){
-      sum60 += cbsum.peek(i);
+    for (i=0 ; i < cbsumpm25.getCapacity() ; i++){
+      sum60 += cbsumpm25.peek(i);
     }
 	
-    i2c_dataset1->pm.sigma=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+    i2c_dataset1->pm.sigmapm25=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
       
   }else{
-    i2c_dataset1->pm.sigma=MISSINTVALUE;
+    i2c_dataset1->pm.sigmapm25=MISSINTVALUE;
   }
+
+  IF_SDEBUG(Serial.print("sigma pm25: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm25-OFFSET));
+
+
+  if (cbsum2pm10.getSize() == cbsum2pm10.getCapacity() && cbsumpm10.getSize() == cbsumpm10.getCapacity()){
+    sum260=0;
+    for (i=0 ; i < cbsum2pm10.getCapacity() ; i++){
+      sum260 += cbsum2pm10.peek(i);
+    }
+
+    sum60=0;
+    for (i=0 ; i < cbsumpm10.getCapacity() ; i++){
+      sum60 += cbsumpm10.peek(i);
+    }
+	
+    i2c_dataset1->pm.sigmapm10=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+      
+  }else{
+    i2c_dataset1->pm.sigmapm10=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("sigma pm10: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm10-OFFSET));
+
 
   nsample1++;
 
-  // second level mean
+  // second level pm25
 
-  // FF mean
+  IF_SDEBUG(Serial.print("data in store second pm25 min: "));
+  IF_SDEBUG(Serial.println(cbpm2560n.getSize()));
 
-  IF_SDEBUG(Serial.print("data in store second FF: "));
-  IF_SDEBUG(Serial.println(cb60m.getSize()));
-  IF_SDEBUG(Serial.print("data in store second U: "));
-  IF_SDEBUG(Serial.println(cbu60m.getSize()));
-  IF_SDEBUG(Serial.print("data in store second V: "));
-  IF_SDEBUG(Serial.println(cbv60m.getSize()));
+  if (cbpm2560n.getSize() == cbpm2560n.getCapacity()){
+    min=0;
+    for (i=0 ; i < cbpm2560n.getCapacity() ; i++){
+      min += (cbpm2560n.peek(i) - min) / (i+1);
+    }
 
-  if (cb60m.getSize() == cb60m.getCapacity()){
+    i2c_dataset1->pm.minpm25=round(min)+OFFSET;
+
+  }else{
+    i2c_dataset1->pm.minpm25=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("pm25 second min: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm25-OFFSET));
+
+
+  IF_SDEBUG(Serial.print("data in store second pm25 mean: "));
+  IF_SDEBUG(Serial.println(cbpm2560m.getSize()));
+
+  if (cbpm2560m.getSize() == cbpm2560m.getCapacity()){
     mean=0;
-    for (i=0 ; i < cb60m.getCapacity() ; i++){
-      mean += (cb60m.peek(i) - mean) / (i+1);
+    for (i=0 ; i < cbpm2560m.getCapacity() ; i++){
+      mean += (cbpm2560m.peek(i) - mean) / (i+1);
     }
 
-    i2c_dataset1->pm.meanff=round(mean)+OFFSET;
+    i2c_dataset1->pm.meanpm25=round(mean)+OFFSET;
 
   }else{
-    i2c_dataset1->pm.meanff=MISSINTVALUE;
+    i2c_dataset1->pm.meanpm25=MISSINTVALUE;
   }
 
-  IF_SDEBUG(Serial.print("mean FF second: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanff-OFFSET));
+  IF_SDEBUG(Serial.print("pm25 second mean: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm25-OFFSET));
 
 
-  // U and V mean
+  IF_SDEBUG(Serial.print("data in store second pm25 max: "));
+  IF_SDEBUG(Serial.println(cbpm2560x.getSize()));
 
-  if (cbu60m.getSize() == cbu60m.getCapacity()){
+  if (cbpm2560x.getSize() == cbpm2560x.getCapacity()){
+    max=0;
+    for (i=0 ; i < cbpm2560x.getCapacity() ; i++){
+      max += (cbpm2560x.peek(i) - max) / (i+1);
+    }
+
+    i2c_dataset1->pm.maxpm25=round(mean)+OFFSET;
+
+  }else{
+    i2c_dataset1->pm.maxpm25=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("pm25 second max: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm25-OFFSET));
+
+
+  // second level pm10
+
+  IF_SDEBUG(Serial.print("data in store second pm10 min: "));
+  IF_SDEBUG(Serial.println(cbpm1060n.getSize()));
+
+  if (cbpm1060n.getSize() == cbpm1060n.getCapacity()){
+    min=0;
+    for (i=0 ; i < cbpm1060n.getCapacity() ; i++){
+      min += (cbpm1060n.peek(i) - min) / (i+1);
+    }
+
+    i2c_dataset1->pm.minpm10=round(min)+OFFSET;
+
+  }else{
+    i2c_dataset1->pm.minpm10=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("pm10 second min: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm10-OFFSET));
+
+
+  IF_SDEBUG(Serial.print("data in store second pm10 mean: "));
+  IF_SDEBUG(Serial.println(cbpm1060m.getSize()));
+
+  if (cbpm1060m.getSize() == cbpm1060m.getCapacity()){
     mean=0;
-    for ( i=0 ; i < cbu60m.getCapacity() ; i++){
-      mean += (cbu60m.peek(i) - mean) / (i+1);
+    for (i=0 ; i < cbpm1060m.getCapacity() ; i++){
+      mean += (cbpm1060m.peek(i) - mean) / (i+1);
     }
-    i2c_dataset1->pm.meanu=round(mean)+OFFSET;
+
+    i2c_dataset1->pm.meanpm10=round(mean)+OFFSET;
+
   }else{
-    i2c_dataset1->pm.meanu=MISSINTVALUE;
+    i2c_dataset1->pm.meanpm10=MISSINTVALUE;
   }
 
-  if (cbv60m.getSize() == cbv60m.getCapacity()){
-    mean=0;
-    for ( i=0 ; i < cbv60m.getCapacity() ; i++){
-      mean += (cbv60m.peek(i) - mean) / (i+1);
+  IF_SDEBUG(Serial.print("pm10 second mean: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm10-OFFSET));
+
+
+  IF_SDEBUG(Serial.print("data in store second pm10 max: "));
+  IF_SDEBUG(Serial.println(cbpm1060x.getSize()));
+
+  if (cbpm1060x.getSize() == cbpm1060x.getCapacity()){
+    max=0;
+    for (i=0 ; i < cbpm1060x.getCapacity() ; i++){
+      max += (cbpm1060x.peek(i) - max) / (i+1);
     }
-    i2c_dataset1->pm.meanv=round(mean)+OFFSET;
+
+    i2c_dataset1->pm.maxpm10=round(mean)+OFFSET;
+
   }else{
-    i2c_dataset1->pm.meanv=MISSINTVALUE;
+    i2c_dataset1->pm.maxpm10=MISSINTVALUE;
   }
 
-  IF_SDEBUG(Serial.print("meanu: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanu-OFFSET));
-  IF_SDEBUG(Serial.print("meanv: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanv-OFFSET));
-
-  //second level peak gust
-
-  if ((cbu60p.getSize() == cbu60p.getCapacity()) && (cbv60p.getSize() == cbv60p.getCapacity())){
-
-    float peakgust=-1;
-    float gust;
-
-    for ( i=0 ; i < cbv60p.getCapacity() ; i++){
-
-      //IF_SDEBUG(Serial.println(cbu60p.peek(i)));
-      //IF_SDEBUG(Serial.println(cbv60p.peek(i)));
-      float u = float(cbu60p.peek(i));
-      float v = float(cbv60p.peek(i));
-
-      gust = sqrt(u*u + v*v);
-      if (peakgust < gust){
-	peakgust= gust;
-	i2c_dataset1->pm.peakgustu=cbu60p.peek(i)+OFFSET;
-	i2c_dataset1->pm.peakgustv=cbv60p.peek(i)+OFFSET;
-      }
-    }
-  }else{
-    i2c_dataset1->pm.peakgustu=MISSINTVALUE;
-    i2c_dataset1->pm.peakgustv=MISSINTVALUE;
-  }
-
-  IF_SDEBUG(Serial.print("peakgustu: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.peakgustu-OFFSET));
-  IF_SDEBUG(Serial.print("peakgustv: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.peakgustv-OFFSET));
+  IF_SDEBUG(Serial.print("pm10 second max: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm10-OFFSET));
 
 
-  //second level long gust
-
-  if ((cbu60m.getSize() == cbu60m.getCapacity()) && (cbv60m.getSize() == cbv60m.getCapacity())){
-
-    float peakgust=-1;
-    float gust;
-
-    for ( i=0 ; i < cbv60m.getCapacity() ; i++){
-
-      //IF_SDEBUG(Serial.println(cbu60m.peek(i)));
-      //IF_SDEBUG(Serial.println(cbv60m.peek(i)));
-      
-      float u = float(cbu60m.peek(i));
-      float v = float(cbv60m.peek(i));
-
-      gust = sqrt(u*u +v*v);
-      if (peakgust < gust){
-	peakgust= gust;
-	i2c_dataset1->pm.longgustu=cbu60m.peek(i)+OFFSET;
-	i2c_dataset1->pm.longgustv=cbv60m.peek(i)+OFFSET;
-      }
-    }
-  }else{
-    i2c_dataset1->pm.longgustu=MISSINTVALUE;
-    i2c_dataset1->pm.longgustv=MISSINTVALUE;
-  }
-
-
-  IF_SDEBUG(Serial.print("sigma: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigma-OFFSET));
-
-  */
 
   digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
