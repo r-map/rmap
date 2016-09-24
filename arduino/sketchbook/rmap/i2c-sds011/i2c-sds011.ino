@@ -389,8 +389,8 @@ void setup() {
 
   SERIALSDS011.begin(9600);
 
-  if (oneshot) sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
+  if (oneshot) sensor.set_sleep(true);
 
   starttime = millis()+SAMPLERATE;
 
