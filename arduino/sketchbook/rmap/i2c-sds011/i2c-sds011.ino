@@ -22,6 +22,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * This program implements elaboration of sds011 inovafitness sensor
  * for pm2.5 and pm 10 exported to i2c interface.
  * 
+
+elaborazioni:
+
+a) eseguo 3 misure di fila (1 al secondo per 3 secondi) e butto via il
+minimo e il massimo e tengo il valore "centrale" (internal to Sds011 library)
+
+b) ogni 6 secondi memorizzo questo valore
+
+c) ogni 60 secondi faccio media minimo massimo e deviazione standard
+
+d) ogni ora faccio media minimo massimo e deviazione standard dai
+valori sul periodo di 60 sec, ma che equivale a farlo sui dati a) il
+sensore ha due modalità di funzionamento
+
+1) oneshot; dico fai una miura e mi vengono dati i dati a) (poi farò
+conti come e quando voglio) posso fare una misura ogni 3 secondi circa
+
+2)continuo: mi vengono forniti a richiesta i valori b) e d)
+
 **********************************************************************/
 /*
 buffer scrivibili da i2c
@@ -269,7 +288,7 @@ void setup() {
   i2c_writabledataset2=&i2c_writablebuffer2;
 
 #define SAMPLE1 60000/SAMPLERATE
-#define SAMPLE2 10
+#define SAMPLE2 60
 
   meanpm25=0.;
   meanpm10=0.;
@@ -360,8 +379,8 @@ void setup() {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
   // set default to oneshot
-      i2c_writabledataset1->oneshot=true;
-      i2c_writabledataset2->oneshot=true;
+      i2c_writabledataset1->oneshot=false;
+      i2c_writabledataset2->oneshot=false;
       i2c_writabledataset1->i2c_address = I2C_SDS011_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_SDS011_DEFAULTADDRESS;
     }
@@ -406,7 +425,7 @@ void loop() {
   int pm25;
   int pm10;
 
-  float mean, min, max;
+  float mean;
   
   uint8_t i;
   bool ok;
@@ -484,23 +503,21 @@ void loop() {
   
   if (oneshot) {
     if (!start) return;
-  }
+  } else  {
+    // comment this if you manage continous mode
+    // in this case timing is getted from sensor that send valuer every SAMPLERATE us
+    long int timetowait= SAMPLERATE - (millis() - starttime) ;
+    //IF_SDEBUG(Serial.print("elapsed time: "));
+    //IF_SDEBUG(Serial.println(millis() - starttime));
+    if (timetowait > 0) {
+      return;
+    }
 
-  long int timetowait;
-
-  // comment this if you manage continous mode
-  // in this case timing is getted from windsonic that send valuer every SAMPLERATE us
-  timetowait= SAMPLERATE - (millis() - starttime) ;
-  //IF_SDEBUG(Serial.print("elapsed time: "));
-  //IF_SDEBUG(Serial.println(millis() - starttime));
-  if (timetowait > 0) {
-    return;
-  }
-  else {
     if (timetowait < -10) IF_SDEBUG(Serial.println("WARNIG: timing error , I am late"));    
+    starttime = millis()+timetowait;
+
   }
 
-  starttime = millis()+timetowait;
 
   if (oneshot) sensor.set_sleep(false);
   delay(1000);
@@ -554,10 +571,20 @@ void loop() {
   sumpm10+=pm10;
 
   if (nsample1 == SAMPLE1) {
+    IF_SDEBUG(Serial.print("minpm25: "));
+    IF_SDEBUG(Serial.println(minpm25));
+    IF_SDEBUG(Serial.print("minpm10: "));
+    IF_SDEBUG(Serial.println(minpm10));
+
     IF_SDEBUG(Serial.print("meanpm25: "));
     IF_SDEBUG(Serial.println(meanpm25));
     IF_SDEBUG(Serial.print("meanpm10: "));
     IF_SDEBUG(Serial.println(meanpm10));
+
+    IF_SDEBUG(Serial.print("maxpm25: "));
+    IF_SDEBUG(Serial.println(maxpm25));
+    IF_SDEBUG(Serial.print("maxpm10: "));
+    IF_SDEBUG(Serial.println(maxpm10));
 
     cbpm2560n.autoput(minpm25);
     cbpm1060n.autoput(minpm10);
@@ -576,11 +603,11 @@ void loop() {
 
     nsample1=0;
 
-    minpm25=-1;
+    minpm25=LONG_MAX;
     meanpm25=0.;
     maxpm25=0.;
 
-    minpm10=-1;
+    minpm10=LONG_MAX;
     meanpm10=0.;
     maxpm10=0.;
 
@@ -606,14 +633,14 @@ void loop() {
       sum60 += cbsumpm25.peek(i);
     }
 	
-    i2c_dataset1->pm.sigmapm25=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+    i2c_dataset1->pm.sigmapm25=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)));
       
   }else{
     i2c_dataset1->pm.sigmapm25=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("sigma pm25: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm25-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm25));
 
 
   if (cbsum2pm10.getSize() == cbsum2pm10.getCapacity() && cbsumpm10.getSize() == cbsumpm10.getCapacity()){
@@ -627,14 +654,14 @@ void loop() {
       sum60 += cbsumpm10.peek(i);
     }
 	
-    i2c_dataset1->pm.sigmapm10=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+    i2c_dataset1->pm.sigmapm10=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)));
       
   }else{
     i2c_dataset1->pm.sigmapm10=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("sigma pm10: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm10-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm10));
 
 
   nsample1++;
@@ -645,19 +672,18 @@ void loop() {
   IF_SDEBUG(Serial.println(cbpm2560n.getSize()));
 
   if (cbpm2560n.getSize() == cbpm2560n.getCapacity()){
-    min=0;
-    for (i=0 ; i < cbpm2560n.getCapacity() ; i++){
-      min += (cbpm2560n.peek(i) - min) / (i+1);
-    }
+    i2c_dataset1->pm.minpm25=LONG_MAX;
 
-    i2c_dataset1->pm.minpm25=round(min)+OFFSET;
+    for (i=0 ; i < cbpm2560n.getCapacity() ; i++){
+      i2c_dataset1->pm.minpm25 = min(cbpm2560n.peek(i), i2c_dataset1->pm.minpm25);
+    }
 
   }else{
     i2c_dataset1->pm.minpm25=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm25 second min: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm25-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm25));
 
 
   IF_SDEBUG(Serial.print("data in store second pm25 mean: "));
@@ -669,33 +695,30 @@ void loop() {
       mean += (cbpm2560m.peek(i) - mean) / (i+1);
     }
 
-    i2c_dataset1->pm.meanpm25=round(mean)+OFFSET;
+    i2c_dataset1->pm.meanpm25=round(mean);
 
   }else{
     i2c_dataset1->pm.meanpm25=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm25 second mean: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm25-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm25));
 
 
   IF_SDEBUG(Serial.print("data in store second pm25 max: "));
   IF_SDEBUG(Serial.println(cbpm2560x.getSize()));
 
   if (cbpm2560x.getSize() == cbpm2560x.getCapacity()){
-    max=0;
+    i2c_dataset1->pm.maxpm25=0;
     for (i=0 ; i < cbpm2560x.getCapacity() ; i++){
-      max += (cbpm2560x.peek(i) - max) / (i+1);
+      i2c_dataset1->pm.maxpm25 = max(cbpm2560x.peek(i), i2c_dataset1->pm.maxpm25);
     }
-
-    i2c_dataset1->pm.maxpm25=round(mean)+OFFSET;
-
   }else{
     i2c_dataset1->pm.maxpm25=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm25 second max: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm25-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm25));
 
 
   // second level pm10
@@ -704,19 +727,16 @@ void loop() {
   IF_SDEBUG(Serial.println(cbpm1060n.getSize()));
 
   if (cbpm1060n.getSize() == cbpm1060n.getCapacity()){
-    min=0;
+    i2c_dataset1->pm.minpm10=LONG_MAX;
     for (i=0 ; i < cbpm1060n.getCapacity() ; i++){
-      min += (cbpm1060n.peek(i) - min) / (i+1);
+      i2c_dataset1->pm.minpm10 = min(cbpm1060n.peek(i), i2c_dataset1->pm.minpm10);
     }
-
-    i2c_dataset1->pm.minpm10=round(min)+OFFSET;
-
   }else{
     i2c_dataset1->pm.minpm10=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm10 second min: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm10-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.minpm10));
 
 
   IF_SDEBUG(Serial.print("data in store second pm10 mean: "));
@@ -728,39 +748,33 @@ void loop() {
       mean += (cbpm1060m.peek(i) - mean) / (i+1);
     }
 
-    i2c_dataset1->pm.meanpm10=round(mean)+OFFSET;
+    i2c_dataset1->pm.meanpm10=round(mean);
 
   }else{
     i2c_dataset1->pm.meanpm10=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm10 second mean: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm10-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.meanpm10));
 
 
   IF_SDEBUG(Serial.print("data in store second pm10 max: "));
   IF_SDEBUG(Serial.println(cbpm1060x.getSize()));
 
   if (cbpm1060x.getSize() == cbpm1060x.getCapacity()){
-    max=0;
+    i2c_dataset1->pm.maxpm10=0;
     for (i=0 ; i < cbpm1060x.getCapacity() ; i++){
-      max += (cbpm1060x.peek(i) - max) / (i+1);
+      i2c_dataset1->pm.maxpm10 = max(cbpm1060x.peek(i), i2c_dataset1->pm.maxpm10);
     }
-
-    i2c_dataset1->pm.maxpm10=round(mean)+OFFSET;
-
   }else{
     i2c_dataset1->pm.maxpm10=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("pm10 second max: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm10-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm10));
 
 
 
   digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
-
-  // comment this if you manage continous mode
-  // in this case timing is getted from windsonic that send valuer every SAMPLERATE us
 
 }  
