@@ -2338,20 +2338,20 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
   jsonvalues = aJson.createObject();
   if (SensorDriverSDS011oneshot::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+      aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15208", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15208");
+      aJson.addNullToObject(jsonvalues, "B15195");
     }
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B15208");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
 }
@@ -2543,19 +2543,19 @@ aJsonObject* SensorDriverSDS01160mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+      aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15208", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15208");
+      aJson.addNullToObject(jsonvalues, "B15195");
     }
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B15208");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
 }
@@ -2738,20 +2738,20 @@ aJsonObject* SensorDriverSDS011mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+      aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15208", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15208");      
+      aJson.addNullToObject(jsonvalues, "B15195");      
     }
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B15208");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
 }
@@ -2936,19 +2936,19 @@ aJsonObject* SensorDriverSDS011min::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+      aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15208", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15208");
+      aJson.addNullToObject(jsonvalues, "B15195");
     }
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B15208");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
 }
@@ -3129,20 +3129,20 @@ aJsonObject* SensorDriverSDS011max::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+      aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15208", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15208");
+      aJson.addNullToObject(jsonvalues, "B15195");
     }
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B15208");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
 }
