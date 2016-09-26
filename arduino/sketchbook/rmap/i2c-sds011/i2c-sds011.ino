@@ -32,9 +32,11 @@ b) ogni 6 secondi memorizzo questo valore
 
 c) ogni 60 secondi faccio media minimo massimo e deviazione standard
 
-d) ogni ora faccio media minimo massimo e deviazione standard dai
-valori sul periodo di 60 sec, ma che equivale a farlo sui dati a) il
-sensore ha due modalità di funzionamento
+d) ogni 60 secondi si elaborano i valori orari della media, minimo,
+massimo e deviazione standard dai valori sul periodo di 60 sec, ma che
+equivale a farlo sui dati a) 
+
+il sensore ha due modalità di funzionamento:
 
 1) oneshot; dico fai una miura e mi vengono dati i dati a) (poi farò
 conti come e quando voglio) posso fare una misura ogni 3 secondi circa
@@ -379,8 +381,8 @@ void setup() {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
   // set default to oneshot
-      i2c_writabledataset1->oneshot=false;
-      i2c_writabledataset2->oneshot=false;
+      i2c_writabledataset1->oneshot=true;
+      i2c_writabledataset2->oneshot=true;
       i2c_writabledataset1->i2c_address = I2C_SDS011_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_SDS011_DEFAULTADDRESS;
     }
