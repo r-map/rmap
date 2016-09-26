@@ -1136,7 +1136,7 @@ void loop() {
       sum60 += cbsum.peek(i);
     }
 	
-    i2c_dataset1->wind.sigma=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)))+OFFSET;
+    i2c_dataset1->wind.sigma=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)));
       
   }else{
     i2c_dataset1->wind.sigma=MISSINTVALUE;
@@ -1148,9 +1148,6 @@ void loop() {
       for (int ii=0 ; ii < cbsum2.getCapacity() ; ii++){
 	i2c_dataset1->wind.sect[i]+=cbsect[i].peek(ii);
       }
-
-      i2c_dataset1->wind.sect[i]+=OFFSET;
-
     }else{
       i2c_dataset1->wind.sect[i]=MISSINTVALUE;
     }
@@ -1175,14 +1172,14 @@ void loop() {
       mean += (cb60m.peek(i) - mean) / (i+1);
     }
 
-    i2c_dataset1->wind.meanff=round(mean)+OFFSET;
+    i2c_dataset1->wind.meanff=round(mean);
 
   }else{
     i2c_dataset1->wind.meanff=MISSINTVALUE;
   }
 
   IF_SDEBUG(Serial.print("mean FF second: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->wind.meanff-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->wind.meanff));
 
 
   // U and V mean
@@ -1277,13 +1274,13 @@ void loop() {
   IF_SDEBUG(Serial.println(i2c_dataset1->wind.longgustv-OFFSET));
 
   IF_SDEBUG(Serial.print("sigma: "));
-  IF_SDEBUG(Serial.println(i2c_dataset1->wind.sigma-OFFSET));
+  IF_SDEBUG(Serial.println(i2c_dataset1->wind.sigma));
 
   for (i=0; i<9 ; i++){
     IF_SDEBUG(Serial.print("sect: "));
     IF_SDEBUG(Serial.print(i));
     IF_SDEBUG(Serial.print("->"));
-    IF_SDEBUG(Serial.println(i2c_dataset1->wind.sect[i]-OFFSET));
+    IF_SDEBUG(Serial.println(i2c_dataset1->wind.sect[i]));
   }
 
   digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
