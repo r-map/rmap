@@ -270,7 +270,7 @@ static int uart_putchar (char c, FILE *stream)
 #include <Wire.h>
 #include <YwrobotLiquidCrystal_I2C.h>
 /* Initialise the LiquidCrystal library. The default address is 0x27 and this is a 16x2 or 16x4 line display */
-LiquidCrystal_I2C lcd(0x27,20,4);
+LiquidCrystal_I2C lcd(LCD_I2CADDRESS,LCD_CHAR,LCD_ROW);
 #endif
 
 #ifdef RTCPRESENT

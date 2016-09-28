@@ -13,7 +13,7 @@ TODO
 //#include "registers-rain.h"
 //#include "registers-th.h"
 
-#define SENSORS_LEN 4
+#define SENSORS_LEN 1
 
 struct sensor_t
 {
@@ -78,7 +78,7 @@ void setup()
   sensors[1].address=73;
   */
 
-
+  /*
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ITH");
   sensors[0].address=I2C_TH_ADDRESS;
@@ -94,13 +94,18 @@ void setup()
   strcpy(sensors[3].driver,"I2C");
   strcpy(sensors[3].type,"XTH");
   sensors[3].address=I2C_TH_ADDRESS;
-
+  */
 
   /*
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"XTH");
   sensors[0].address=I2C_TH_ADDRESS;
   */
+
+
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"SSD");
+  sensors[0].address=I2C_SDS011_DEFAULTADDRESS;
 
   // start up the serial interface
   Serial.begin(9600);
@@ -191,8 +196,8 @@ void loop()
   }
 
   // sleep some time to do not go tired ;)
-  Serial.println("sleep for 180s");
-  delay(180000);
+  Serial.println("sleep for 10s");
+  delay(10000);
 
   //Serial.println("Reboot");
   //delay(1000);
