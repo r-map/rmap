@@ -244,7 +244,7 @@ static char mainbuf[MAIN_BUFFER_SIZE];
 
 #ifdef REPORTMODE
   // timing for REPORT MODE
-  #define MQTPUBLISH_TIME 60
+  #define MQTTPUBLISH_TIME 60
   #define MGRSDCARD_TIME 60
   #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
     #define MQTTCONNECT_TIME 150

@@ -44,4 +44,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define RPCSERIAL Serial1
 #define RPCSERIALBAUDRATE 9600
-
+#define I2CPULLUP

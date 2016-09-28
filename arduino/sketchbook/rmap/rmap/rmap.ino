@@ -3014,16 +3014,14 @@ void setup()
 
 #endif
 
-  //TODO: here DBGSERIAL and RPCSERIAL shoud be the same
-  //check to do not "rebegin"
 
 #ifdef SERIALJSONRPC
- #if ndef DEBUGONSERIAL
+  //TODO: here DBGSERIAL and RPCSERIAL can be the same
+  //check to do not "rebegin" (also with different baudrate!)
   RPCSERIAL.begin(RPCSERIALBAUDRATE);
   while (!RPCSERIAL) {
     ; // wait for serial port to connect. Needed for Leonardo only
   }
- #endif
 #endif
 
   //#endif
@@ -3037,13 +3035,15 @@ void setup()
   //You can turn them off after Wire.begin()
   // solved by https://github.com/r-map/rmap/commit/87e9b4482d82c94a6f62cf9f96bdc09c9c7fc918
 
+#ifdef I2CPULLUP
+  //if you want to set the internal pullup
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
+#else
   // here we enforce we do not want pullup
   digitalWrite( SDA, LOW);
   digitalWrite( SCL, LOW);
-
-  //if you want to set the internal pullup
-  //digitalWrite( SDA, HIGH);
-  //digitalWrite( SCL, HIGH);
+#endif
 
   //set the i2c clock 
   //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
@@ -3604,9 +3604,9 @@ void loop()
 
   #ifdef REPORTMODE
 
-  if ( (MQTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME) >  configuration.rt){ 
+  if ( (MQTTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME) >  configuration.rt){ 
     IF_SDEBUG(DBGSERIAL.print(F("#WARNING wrong timing: ")));
-    IF_SDEBUG(DBGSERIAL.print(MQTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME));
+    IF_SDEBUG(DBGSERIAL.print(MQTTPUBLISH_TIME + MGRSDCARD_TIME + MQTTCONNECT_TIME));
     IF_SDEBUG(DBGSERIAL.print(F(" versus ")));
     IF_SDEBUG(DBGSERIAL.println(configuration.rt));
   }
