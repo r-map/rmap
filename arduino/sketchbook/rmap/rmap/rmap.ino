@@ -635,7 +635,7 @@ bool rmapdisconnect()
   wdt_reset();
   
   IF_LCD(lcd.setCursor(0,3)); 
-  IF_LCD(lcd.print(F("MQTT: disconnec")));
+  IF_LCD(lcd.print(F("MQTT: disconnected")));
   return true;
 }
 
@@ -1968,10 +1968,10 @@ void Repeats() {
 	    }
           }
 #endif
+#endif
 	  #ifdef REPORTMODE
 	  newqueued=true;
 	  #endif
-#endif
 
 	}
       else
@@ -2618,6 +2618,7 @@ void mgrsdcard(time_t maxtime)
   unsigned long int starttime=max(millis() - 10000,1);  // 10 sec tollerance
 
   #if defined(REPORTMODE)
+
   newqueued=false;
 
   #if defined(GSMGPRSMQTT)
@@ -2672,8 +2673,9 @@ void mgrsdcard(time_t maxtime)
 	  if (! dataFile) {
 	    IF_SDEBUG(DBGSERIAL.print(F("error opening: ")));
 	    IF_SDEBUG(DBGSERIAL.println(fullfileName));
-	    // Wait forever since we cant write data
+	    // Wait forever since we cant write data and reboot with watchdog
 	    //while (1) ;
+	    continue;       // skip the file
 	  }
 	  
 	  dataFile.seekSet(0);
@@ -3615,7 +3617,7 @@ void loop()
 
   #if defined(SDCARD)
   //execute recovery only if we have XX sec; the task require 60 sec max
-  dt=configuration.rt - (now() - repeattasktime) ; 
+  dt=configuration.rt - (now() - repeattasktime)/1000 ; 
   if ( dt > (MGRSDCARD_TIME + MQTTCONNECT_TIME) ) {
     if (newqueued) {
       // recover data when in report mode
@@ -3628,8 +3630,13 @@ void loop()
       IF_SDEBUG(digitalClockDisplay(now()));
 
       wdt_reset();
+    }else{
+      //IF_SDEBUG(DBGSERIAL.println(F("#mgrsdcard: no queued data to send")));
     }
+  }else{
+    //IF_SDEBUG(DBGSERIAL.println(F("#no time to execute mgrsdcard")));
   }
+
   #endif
 
   // we expect to have >= XX sec until the repeat task
