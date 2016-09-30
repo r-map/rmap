@@ -2956,7 +2956,9 @@ void setup()
 
   // print a summary of compile time configuration
   DBGSERIAL.print(F("#Started; version: "));
-  DBGSERIAL.print(F(STR(FIRMVERSION)));
+  DBGSERIAL.print(STR(FIRMVERSION));
+  //DBGSERIAL.print(F(STR(FIRMVERSION)));
+
 #if defined (JSONRPCON)
   DBGSERIAL.print(F(" jsonrpc"));
 #endif
