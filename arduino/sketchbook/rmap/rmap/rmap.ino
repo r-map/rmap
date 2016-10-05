@@ -2686,7 +2686,10 @@ void mgrsdcard(time_t maxtime)
 	  while (pos < size)
 	    {
 		
+#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+	      if(mqttclient.connected()) mqttclient.loop();
 	      wdt_reset();
+#endif
 		
 	      if ((millis()-starttime) > (maxtime*1000)){ 
 		if (starttime != 0){
