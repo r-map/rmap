@@ -611,7 +611,7 @@ bool rmapconnect()
     wdt_reset();
     
     if (!mqttclient.publish(mainbuf,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-      IF_SDEBUG(DBGSERIAL.print(F("#mqtt ERROR publish status")));
+      IF_SDEBUG(DBGSERIAL.println(F("#mqtt ERROR publish status")));
     }
     return true;
   }else{
@@ -2687,8 +2687,8 @@ void mgrsdcard(time_t maxtime)
 	    {
 		
 #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
-	      if(mqttclient.connected()) mqttclient.loop();
-	      wdt_reset();
+	      // poll mqtt connection if required
+	      mqttclient.loop();
 #endif
 		
 	      if ((millis()-starttime) > (maxtime*1000)){ 
@@ -3698,7 +3698,7 @@ void loop()
       }
   }
 
-  if(mqttclient.connected()) mqttclient.loop();
+  mqttclient.loop();
   wdt_reset();
 
   #endif
