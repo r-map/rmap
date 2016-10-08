@@ -1830,6 +1830,8 @@ void Repeats() {
     aJsonObject *valueobj = valuesobj->child;
     if (!valueobj) continue;
 
+    uint8_t nvalue=0;
+
     do {
 
       wdt_reset();
@@ -2157,7 +2159,8 @@ void Repeats() {
       aJson.deleteItem(payloadobj);
       
       valueobj=valueobj->next;
-    } while ( valueobj );
+      nvalue++;
+    } while ( valueobj && nvalue < MAX_VALUES_FOR_SENSOR);
     
     // free object in same malloc order !!!
     aJson.deleteItem(valuesobj);
@@ -3582,7 +3585,7 @@ void setup()
   Alarm.alarmRepeat(dowMonday,8,0,0,Reboot);                // 8:00:00 every Monday
 
   #ifndef REPORTMODE
-  #if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+  #if defined(GSMGPRSHTTP) || defined(GSMGPRSMQTT)
   Alarm.timerRepeat(60*60*3, RestartModem);                     // timer for restart GSM modem
   #endif
   #endif
