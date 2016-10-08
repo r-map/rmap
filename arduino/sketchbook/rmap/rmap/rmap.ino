@@ -1859,7 +1859,7 @@ void Repeats() {
 	//aJson.addNullToObject(payloadobj, "v");
 	
       }else{
-	aJson.addNumberToObject(payloadobj, "v", valueobj->valueint);
+	aJson.addNumberToObject(payloadobj, "v", valueobj->valuelong);
 
 	IF_SDEBUG(DBGSERIAL.print(F("#")));
 	IF_SDEBUG(DBGSERIAL.print(valueobj->name));
