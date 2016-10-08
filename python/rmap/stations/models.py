@@ -77,6 +77,7 @@ class Sensor(models.Model):
         ('NTH',  'I2C TH module, report mode, minimum values'),
         ('MTH',  'I2C TH module, report mode, mean values'),
         ('XTH',  'I2C TH module, report mode, maximum values'),
+        ('SSD',  'I2C SDS011 module, one shot mode'),
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
