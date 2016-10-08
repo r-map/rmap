@@ -712,9 +712,7 @@ def export2json(objects):
         use_natural_foreign_keys=True, use_natural_primary_keys=True)
 
 
-def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.cc",exchange="configuration"):
-
-    print "sendjson2amqp"
+def dumpstation(station,user=u"your user"):
 
     objects=[]
 
@@ -726,10 +724,14 @@ def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.
         for sensor in board.sensor_set.all():
             objects.append(sensor)
         
-    body = export2json(objects)
+    return export2json(objects)
 
-    #print body
 
+def sendjson2amqp(station,user=u"your user",password="your password",host="rmap.cc",exchange="configuration"):
+
+    print "sendjson2amqp"
+
+    body=dumpstation(station,user)
     send2amqp(body,user,password,host,exchange)
 
 

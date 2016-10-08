@@ -68,6 +68,7 @@ parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete 
 parser.add_argument('--addsensor',action="store_true", help="add sensor to module of station")
 parser.add_argument('--addsensors_by_template',  default=None, choices=rmap.rmap_core.template_choices, help="configure sensor for a module of station by template")
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
+parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
 
 
@@ -305,6 +306,16 @@ if args.config_station:
                                  device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
 
     print "END of station configuration"
+
+
+if args.dump_station:
+
+    if (args.username is None or
+        args.station_slug is None):
+        print " selected dump station without username or station_slug"
+        raise SystemExit(1)
+
+    print rmap.rmap_core.dumpstation(station=args.station_slug,user=args.username)
 
 
 if args.upload_to_server:
