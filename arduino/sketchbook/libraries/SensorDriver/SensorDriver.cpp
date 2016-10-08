@@ -1028,7 +1028,7 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
   if (lenvalues>=1) values[0] = (long)readPressure();
-  if (lenvalues>=2) values[1] = 0;
+  //if (lenvalues>=2) values[1] = 0;
 
   _timing=0;
 
@@ -1048,12 +1048,12 @@ aJsonObject* SensorDriverBmp085::getJson()
     aJson.addNumberToObject(jsonvalues, "B10004", values[0]);      
     // if you have a second value add here
     // temperature
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    //aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
 
   }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    // if you have a second value add here
     aJson.addNullToObject(jsonvalues, "B10004");
+    // if you have a second value add here
+    //aJson.addNullToObject(jsonvalues, "B12101");
   }
   return jsonvalues;
 }
