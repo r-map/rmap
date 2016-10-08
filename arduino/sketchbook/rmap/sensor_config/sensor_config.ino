@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "registers-windsonic.h"         //Register definitions
 #include "registers-th.h"         //Register definitions
 #include "registers-rain.h"         //Register definitions
+#include "registers-sds011.h"         //Register definitions
 #include <HIH61XXCommander.h>
 
 byte start_address = 1;
@@ -88,6 +89,7 @@ void displayHelp()
   Serial.println(F("\ts = i2c-windsonic"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
+  Serial.println(F("\td = i2c-sds011"));
   Serial.println(F("\th = hih humidity sensor"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
@@ -359,6 +361,55 @@ void loop() {
 	displayHelp();
 	break;
       }
+
+
+    case 'd':
+      {
+	int new_address;
+	int oneshot;
+
+	new_address=-1;
+	while (new_address < 1 || new_address > 127){
+	  Serial.println(F("digit new i2c address for i2c-sds011 (1-127)"));
+	  new_address=Serial.parseInt();
+	  Serial.println(new_address);
+	}
+	
+	delay(1000);      
+	
+	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
+	Wire.write(I2C_SDS011_ADDRESS);
+	Wire.write(new_address);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1000);
+
+	oneshot=-1;
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-sds011 (0/1)"));
+	  oneshot=Serial.parseInt();
+	  Serial.println(oneshot);
+	}
+	delay(1000);
+	
+	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
+	Wire.write(I2C_SDS011_ONESHOT);
+	Wire.write((bool)oneshot);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1000);
+	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
+	Wire.write(I2C_SDS011_COMMAND);
+	Wire.write(I2C_SDS011_COMMAND_SAVE);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+      
+	Serial.println(F("Done; switch off"));
+	delay(10000);
+	
+	displayHelp();
+	break;
+      }
+
     case 'h':
       {
 	int address;
