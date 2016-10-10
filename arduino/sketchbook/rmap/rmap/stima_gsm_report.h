@@ -64,4 +64,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #define MGRSDCARD_TIME 60
   #define MQTTCONNECT_TIME 75
   #define MQTTCONNECT_ONCE_TIME 75
+  #define MAX_VALUES_FOR_SENSOR 5
 #endif
