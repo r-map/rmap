@@ -1201,7 +1201,16 @@ class Rmap(App):
 
         try:
 
-            #sync data from config to db and preserve active status
+            print "sync data from config to db and preserve active status"
+            print "trip=",self.trip\
+                        ,"username=",self.config.get('rmap','user')
+            print "station=",self.config.get('sensors','station')\
+                        ,"board=",self.config.get('sensors','board')\
+                        ,"template=",self.config.get('sensors','template')\
+                        ,"remote board=",self.config.get('sensors','remote_board')\
+                        ,"template=",self.config.get('sensors','remote_template')
+
+
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
                             slug=self.config.get('sensors','station'),
                             username=self.config.get('rmap','user'),

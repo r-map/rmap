@@ -639,7 +639,7 @@ msgstr "Stato Trasporto: ATTIVO"
 
 #: rmap/rmapgui.py:1942 rmap/rmapgui.py:1949
 msgid " err: "
-msgstr "err:"
+msgstr " err:"
 
 #: rmap/rmapgui.py:1947
 msgid ""
