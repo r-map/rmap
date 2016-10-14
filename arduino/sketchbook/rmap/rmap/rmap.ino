@@ -1864,14 +1864,14 @@ void Repeats() {
 	IF_SDEBUG(DBGSERIAL.print(F("#")));
 	IF_SDEBUG(DBGSERIAL.print(valueobj->name));
 	IF_SDEBUG(DBGSERIAL.print(F(":")));
-	IF_SDEBUG(DBGSERIAL.println(valueobj->valueint,DEC));
+	IF_SDEBUG(DBGSERIAL.println(valueobj->valuelong,DEC));
 
 	IF_LCD(lcd.setCursor(0,i)); 
 	IF_LCD(lcd.print(F("                    ")));
 	IF_LCD(lcd.setCursor(0,i)); 
 	IF_LCD(lcd.print(valueobj->name));
 	IF_LCD(lcd.setCursor(10,i)); 
-	IF_LCD(lcd.print(valueobj->valueint));
+	IF_LCD(lcd.print(valueobj->valuelong));
 
       }
       // if time was never setted I suppose I have no time and I do not pubblish time
