@@ -79,6 +79,7 @@ class station():
         self.anavarlist=[]
         self.datavarlist=[]
         self.bluetooth=None
+        self.mqtt_status = _('Connect Status: disconnected')
         self.rpcin_message = ""
         self.log = logfunc
         self.now=None
