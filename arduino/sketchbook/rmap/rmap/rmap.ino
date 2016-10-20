@@ -1190,7 +1190,7 @@ int rf24rpc(aJsonObject* params)
 			   , configuration.key, configuration.iv
         #endif
 			   ) == SD_SUCCESS) {			   
-			   IF_SDEBUG(DBGSERIAL.print(F("#sensor not present or broken")));
+			   IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
 			   // comment the next line to be less restrictive
 			   //return E_INTERNAL_ERROR;
 			   }
