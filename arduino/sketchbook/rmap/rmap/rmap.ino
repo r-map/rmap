@@ -3306,10 +3306,13 @@ void setup()
 
   IF_SDEBUG(DBGSERIAL.println(F("#Try to configure Ethernet using DHCP")));
                                                                     // start Ethernet
-  while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0) {
+
+  uint8_t ntry=0;
+  while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0 && ntry < 5) {
     IF_SDEBUG(DBGSERIAL.println(F("#Failed to configure Ethernet using DHCP")));
 
     wdt_reset();
+    ntry++
 
     IF_LCD(lcd.setCursor(0,1)); 
     IF_LCD(lcd.print(F("DHCP failed")));
