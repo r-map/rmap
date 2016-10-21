@@ -739,13 +739,17 @@ aJsonObject* SensorDriverHih6100::getJson()
   //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
   if (SensorDriverHih6100::get(values,2) == SD_SUCCESS){
     aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
+
+#if defined(SECONDARYPARAMETER)
     // if you have a second value add here
     aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
-
+#endif
   }else{
     aJson.addNullToObject(jsonvalues, "B12101");
+#if defined(SECONDARYPARAMETER)
     // if you have a second value add here
     aJson.addNullToObject(jsonvalues, "B13003");
+#endif
   }
   return jsonvalues;
 }

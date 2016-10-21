@@ -1,6 +1,10 @@
 // activate debug on serial port
 //#define SDDEBUGONSERIAL
 
+
+// add secondary to primary parameters to send in multiparameter sensors 
+//#define SECONDARYPARAMETER
+
 //those ms after a prepare the measure will be too old to be considered valid
 
 // this the value for mqtt and sample/observation
