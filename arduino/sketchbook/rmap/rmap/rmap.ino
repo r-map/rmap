@@ -3312,7 +3312,7 @@ void setup()
     IF_SDEBUG(DBGSERIAL.println(F("#Failed to configure Ethernet using DHCP")));
 
     wdt_reset();
-    ntry++
+    ntry++;
 
     IF_LCD(lcd.setCursor(0,1)); 
     IF_LCD(lcd.print(F("DHCP failed")));
