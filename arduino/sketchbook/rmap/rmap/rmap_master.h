@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define FIRMWARE FIRMALL
 
 // activate if you have an rtc present (too big program fo arduino uno)
-#define RTCPRESENT DS1307RTC
+#define RTCPRESENT "DS1307RTC.h"
 // activate if you have an GPS + dedicated arduino for I2C query
 //#define I2CGPSPRESENT
 //#define I2C_GPS_ADDRESS 0x20

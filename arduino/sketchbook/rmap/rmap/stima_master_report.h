@@ -41,7 +41,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NTPON
 
 // activate if you have an rtc present (too big program fo arduino uno)
-#define RTCPRESENT  DS3232RTC
+#define RTCPRESENT  "DS3232RTC.h"
 //SDcard
 #define SDCARD
 #define SDCHIPSELECT 7
