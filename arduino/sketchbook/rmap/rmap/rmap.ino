@@ -274,7 +274,7 @@ LiquidCrystal_I2C lcd(LCD_I2CADDRESS,LCD_CHAR,LCD_ROW);
 #endif
 
 #ifdef RTCPRESENT
-#include <DS1307RTC.h>  // a basic DS1307 library that returns time as a time_t
+#include <RTCPRESENT.h>  // a basic DS1307 library that returns time as a time_t
 #endif
 
 #ifdef I2CGPSPRESENT
