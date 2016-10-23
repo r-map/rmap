@@ -3458,7 +3458,7 @@ void setup()
   if(timeStatus()== timeSet){
     // if time is set and is synced set the RTC
     // set the rtc clock if we have one
-    if (RTC.set(t) != 0) IF_SDEBUG(DBGSERIAL.println(F("#error setting RTC time")));
+    if (RTC.set(now()) != 0) IF_SDEBUG(DBGSERIAL.println(F("#error setting RTC time")));
     }
 
   if (timeStatus() != timeSet){

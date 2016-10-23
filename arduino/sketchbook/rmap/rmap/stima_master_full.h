@@ -37,8 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // activate if you have relays connected to some pins
 #define ATTUATORE
 
-#define REPORTMODE
-
 // enable NTP
 #define NTPON
 
@@ -53,15 +51,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 //#define I2CPULLUP
 
-//#define MQTTROOTPATH_LEN 30
-//#define SERVER_LEN 30
-
-#define MAIN_BUFFER_SIZE 300
-
-#ifdef REPORTMODE
-  // timing for REPORT MODE
-  #define MQTPUBLISH_TIME 45
-  #define MGRSDCARD_TIME 60
-  #define MQTTCONNECT_TIME 75
-  #define MQTTCONNECT_ONCE_TIME 75
-#endif
