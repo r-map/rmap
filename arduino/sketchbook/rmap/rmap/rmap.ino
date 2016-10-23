@@ -2917,7 +2917,11 @@ int sdrecoveryrpc(aJsonObject* params)
 
   IF_LOGDATEFILE("jrpc sdrecovery\n");
 
-  mgrsdcard(configuration.rt);
+#ifdef REPORTMODE
+  mgrsdcard(configuration.rt);       // recovery with timeout
+#else
+  mgrsdcard(ULONG_MAX);              // recovery all without timeout
+#endif
 
   result = aJson.createObject();
 
