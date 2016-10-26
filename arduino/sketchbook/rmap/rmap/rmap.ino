@@ -2179,7 +2179,8 @@ void Repeats() {
   wdt_reset();
   #endif
   #if defined(ETHERNETMQTT)
-  rmapdisconnect();
+  // do not disconnect if we have no energy saver mode for ethernet
+  //rmapdisconnect();
   #endif
   #endif
 
@@ -2873,7 +2874,8 @@ void mgrsdcard(time_t maxtime)
   wdt_reset();
   #endif
   #if defined(ETHERNETMQTT)
-  rmapdisconnect();
+  // do not disconnect if we have no energy saver mode for ethernet
+  //rmapdisconnect();
   #endif
 #endif
 #endif
@@ -3668,11 +3670,23 @@ void loop()
     IF_SDEBUG(DBGSERIAL.print(F("#sleep: ")));
     IF_SDEBUG(DBGSERIAL.println(dt-MQTTCONNECT_TIME-TOLLERANCE_TIME));
     delay(100);
+
+#if defined(GSMGPRSMQTT)
     sleep.idleMode(); //set sleep mode
     //sleep.pwrDownMode(); //set sleep mode
     sleep.sleepDelay((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000); //sleep for: sleepTime
     //setMillis(millis()+((dt-25)*1000));   
     wdt_reset();
+#endif
+
+#if defined(ETHERNETMQTT)
+    time_t endtime=now()+((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000 );
+    while(now() < endtime)
+      {
+	    mqttclient.loop();
+	    wdt_reset();
+      }
+#endif
 
     IF_SDEBUG(DBGSERIAL.print(F("#end sleep: ")));
     IF_SDEBUG(digitalClockDisplay(now()));
@@ -3746,12 +3760,17 @@ void loop()
   wdt_reset();
 #endif
 
-#ifndef REPORTMODE
-#if defined(ETHERNETMQTT) || defined(GSMGPRSMQTT)
+#ifndef REPORTMODE 
+#if defined(GSMGPRSMQTT)
   if (configured) mgrmqtt();
   wdt_reset();
 #endif
-#endif 
+#endif
+
+#if defined(ETHERNETMQTT) 
+  if (configured) mgrmqtt();
+  wdt_reset();
+#endif
 
 #ifdef TCPSERVER
   mgrethserver();
