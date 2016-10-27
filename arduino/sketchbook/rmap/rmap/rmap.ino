@@ -2970,7 +2970,7 @@ void setup()
 
   // print a summary of compile time configuration
   DBGSERIAL.print(F("#Started; version: "));
-  DBGSERIAL.print(STR(FIRMVERSION));
+  DBGSERIAL.print(F(STR(FIRMVERSION)));
   //DBGSERIAL.print(F(STR(FIRMVERSION)));
 
 #if defined (JSONRPCON)
@@ -3581,6 +3581,8 @@ void setup()
   IF_SDEBUG(DBGSERIAL.print(F("#start delay to sync to even time: ")));
   IF_SDEBUG(DBGSERIAL.println(configuration.rt-(now() % configuration.rt)));
   wdt_disable();
+  IF_LCD(lcd.setCursor(0,3)); 
+  IF_LCD(lcd.print(F("wait even time")));
   delay((configuration.rt-(now() % configuration.rt))*1000);
   wdt_enable(WDTO_8S);
   IF_SDEBUG(DBGSERIAL.print(F("#end delay: ")));
@@ -3680,11 +3682,14 @@ void loop()
 #endif
 
 #if defined(ETHERNETMQTT)
-    time_t endtime=now()+((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000 );
-    while(now() < endtime)
+    unsigned long endtime=millis()+((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000 );
+    while(millis() < endtime)
       {
-	    mqttclient.loop();
-	    wdt_reset();
+	if (configured) mgrmqtt();
+	wdt_reset();
+	IF_LCD(lcd.setCursor(0,2)); 
+	IF_LCD(LcdDigitalClockDisplay(t));
+	delay(1000);
       }
 #endif
 
