@@ -16,6 +16,7 @@ Adafruit_SSD1306 display(OLED_RESET);
 #define YPOS 1
 #define DELTAY 2
 
+//File with settings for wifi and rmap server address and topic
 #include "settings.h"
 
 
