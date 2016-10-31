@@ -37,7 +37,11 @@
 #include <stdlib.h>
 #include <float.h>
 #include <ctype.h>
+#ifdef __AVR__
 #include <avr/pgmspace.h>
+#else
+#include <pgmspace.h>
+#endif
 
 #include "aJSON.h"
 #include "utility/stringbuffer.h"
@@ -262,7 +266,7 @@ aJsonStream::parseNumber(aJsonObject *item)
         in = this->getch();
       }
     while (in >= '0' && in <= '9'); // Number?
-  //end of integer part Ð or isn't it?
+  //end of integer part ï¿½ or isn't it?
   if (!(in == '.' || in == 'e' || in == 'E'))
     {
       item->valuelong = i * (long) sign;
