@@ -49,6 +49,11 @@ void setup()   {
   aJson.addStringToObject(jsondisplay, "B13003_u"," %");
   aJson.addStringToObject(jsondisplay, "B15195_u","ug/m3");
   aJson.addStringToObject(jsondisplay, "B15198_u","ug/m3");
+  aJson.addNumberToObject(jsondisplay, "B10004_v",0);
+  aJson.addNumberToObject(jsondisplay, "B12101_v",0);
+  aJson.addNumberToObject(jsondisplay, "B13003_v",0);
+  aJson.addNumberToObject(jsondisplay, "B15195_v",0);
+  aJson.addNumberToObject(jsondisplay, "B15198_v",0);
 }
 
 
@@ -56,6 +61,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
   float f_val;
   int i_val;
   char* unit;
+  aJsonObject* linea;
 
   Serial.print("Topic= ");
   Serial.print(topic);
@@ -71,9 +77,10 @@ void callback(char* topic, byte* payload, unsigned int length) {
   if (s_topic.substring(BCODE_pos + 1) == "B10004") {
     aJson.deleteItemFromObject(jsondisplay, "B10004_v");
     aJson.addNumberToObject(jsondisplay, "B10004_v",(int)(valore -> valueint/100));
+    aJson.addStringToObject(jsondisplay, "B10004_u"," 2322");
   }  else if (s_topic.substring(BCODE_pos + 1) == "B12101") {
     aJson.deleteItemFromObject(jsondisplay, "B12101_v");
-    aJson.addNumberToObject(jsondisplay, "B12101_v",(float)((valore ->valueint-27315)/10));
+    aJson.addNumberToObject(jsondisplay, "B12101_v",(float)((valore ->valueint-27315)/100));
   } else if (s_topic.substring(BCODE_pos + 1) == "B13003") {
     aJson.deleteItemFromObject(jsondisplay, "B13003_v");
     aJson.addNumberToObject(jsondisplay, "B13003_v",(int)valore -> valueint);
@@ -87,21 +94,42 @@ void callback(char* topic, byte* payload, unsigned int length) {
     return;
   }
   prepare_line(0);
-  aJsonObject* linea = aJson.getObjectItem(jsondisplay, "B10004_v");
+  
+  
   linea = aJson.getObjectItem(jsondisplay, "B10004_v");
-  //Serial.println(linea->valueint);
+  Serial.print(linea->valueint);
+  display.print(linea->valueint);
+  linea = aJson.getObjectItem(jsondisplay, "B10004_u");
+  Serial.println(linea->valuestring);
+  display.println(linea->valuestring);
   prepare_line(1);
   linea = aJson.getObjectItem(jsondisplay, "B12101_v");
+  Serial.print(linea->valuefloat);
+  display.print(linea->valuefloat);
   linea = aJson.getObjectItem(jsondisplay, "B12101_u");
+  Serial.println(linea->valuestring);
+  display.println(linea->valuestring);
   prepare_line(2);
   linea = aJson.getObjectItem(jsondisplay, "B13003_v");
+  Serial.print(linea->valueint);
+  display.print(linea->valueint);
   linea = aJson.getObjectItem(jsondisplay, "B13003_u");
+  Serial.println(linea->valuestring);
+  display.println(linea->valuestring);
   prepare_line(3);
   linea = aJson.getObjectItem(jsondisplay, "B15195_v");
+  Serial.print(linea->valuefloat);
+  display.print(linea->valuefloat);
   linea = aJson.getObjectItem(jsondisplay, "B15195_u");
+  Serial.println(linea->valuestring);
+  display.println(linea->valuestring);
   prepare_line(4);
   linea = aJson.getObjectItem(jsondisplay, "B15198_v");
+  Serial.print(linea->valuefloat);
+  display.print(linea->valuefloat);
   linea = aJson.getObjectItem(jsondisplay, "B15198_u");
+  Serial.println(linea->valuestring);
+  display.println(linea->valuestring);
   display.display();
 //  char* jsondbg = aJson.print(jsondisplay);
 //  Serial.println(jsondbg);
