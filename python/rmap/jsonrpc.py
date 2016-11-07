@@ -135,6 +135,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE."""
 
 import sys
 import time
+import traceback
 
 #=========================================
 # errors
@@ -910,7 +911,12 @@ class TransportBLUETOOTH(Transport):
             try:
                 self.socket.connect()
                 self.log( "bluetooth name %s: %s" % (self.name,"connected") )
-            except:
+
+            except Exception as e:
+                print e
+                print "ERROR: connecting bluetooth"
+                traceback.print_exc()
+
                 try:
                     self.recv_stream.close()
                 except:

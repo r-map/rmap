@@ -1287,10 +1287,17 @@ class Rmap(App):
 
         self.root.ids["queue"].text=self.queue2str()
 
-        #add noimage in queue
-        image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
-        self.root.ids["queuedimagebox"].add_widget(image)
-
+        queuedimage=queuedfilename()
+        if (not queuedimage is None):
+            #self.root.ids["queuedimage"].source= queuedimage
+            for file in sorted(glob(QUEUEDIMAGES)):
+                if os.path.isfile(file):
+                    image=QueuedImage(queuedimage=file)
+                    self.root.ids["queuedimagebox"].add_widget(image)
+        else:
+            #add noimage in queue
+            image=QueuedImage(queuedimage=os.path.join(os.path.dirname(__file__), "icons", "noimage.png"))
+            self.root.ids["queuedimagebox"].add_widget(image)
 
         if self.mystation.active:
 
@@ -2289,7 +2296,10 @@ class Rmap(App):
         self.root.ids["markerlabel"].text= self.str_lat_lon_height % (self.location,self.lat,self.lon,self.height)
 
         self.root.ids["mapview"].do_update(10)
-        self.root.ids["height"].text= self.str_Height.format(self.height)
+        height=self.height
+        if (height is None):
+            height=0
+        self.root.ids["height"].text= self.str_Height.format(height)
 
 
     def savelocation(self,lat=None,lon=None,height=None,location=None):
