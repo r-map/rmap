@@ -18,6 +18,7 @@
  * Adaption to Enc28J60 by Norbert Truchsess <norbert.truchsess@t-online.de>
  */
 
+#include <SPI.h>         
 #include <UIPEthernet.h>
 // The connection_data struct needs to be defined in an external file.
 #include <UIPServer.h>
@@ -29,12 +30,26 @@ void setup()
 {
   Serial.begin(9600);
 
-  uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
-  IPAddress myIP(192,168,0,6);
+  Serial.println("Started");
 
-  Ethernet.begin(mac,myIP);
+  uint8_t mac[6] = {0x00,0x01,0x02,0x03,0x04,0x05};
+
+
+  SPI.begin();
+  // make sure that the default chip select pin is set to
+  // output, even if you don't use it:
+  pinMode(SS, OUTPUT);
+
+  //IPAddress myIP(192,168,1,6);
+  //Ethernet.begin(mac,myIP,8);
+  Ethernet.begin(mac,8);
+
+  Serial.println("Ethernet started");
 
   server.begin();
+
+  Serial.println("Server started");
+
 }
 
 void loop()

@@ -23,15 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <UIPUdp.h>
 #include <Time.h>
 #include <SPI.h>         
+#include <Dns.h>
 
-byte mac[6]={1,2,3,4,5,6};                           // Ethernet mac address
+byte mac[6]={0x74,0xd0,0x2b,0x24,0x24,0xff};                           // Ethernet mac address
 // A UDP and TCP instance
 EthernetUDP Udp;
 
 
 char ntpserver[]="pool.ntp.org";
 //char ntpserver[]="pat1";
-//byte ntpserver[]={193,204,114,233};
+//byte ntpserver[]={192,168,1,1};
 time_t t;
 
 
@@ -77,7 +78,7 @@ void sendNTPpacket()
 
   // all NTP fields have been given values, now
   // you can send a packet requesting a timestamp: 		   
-  Udp.beginPacket(ntpserver, 8888); //NTP requests are to port 123
+  Udp.beginPacket(ntpserver, 123); //NTP requests are to port 123
   Udp.write(packetBuffer,NTP_PACKET_SIZE);
   Udp.endPacket(); 
   Serial.println(F("#ntp packet sended"));
@@ -170,9 +171,13 @@ void setup()
   // output, even if you don't use it:
   pinMode(SS, OUTPUT);
 
-  while (Ethernet.begin(mac) == 0) {
+
+  while (Ethernet.begin(mac,8) == 0) {
     Serial.println(F("#Failed to configure Ethernet using DHCP"));
   }
+
+  //IPAddress myIP(192,168,1,6);
+  //Ethernet.begin(mac,myIP,8);
 
   Serial.print(F("#My IP address is "));
   Serial.println(ip_to_str(Ethernet.localIP()));
@@ -185,6 +190,13 @@ void setup()
   
   Serial.print(F("#DNS IP address is "));
   Serial.println(ip_to_str(Ethernet.dnsServerIP()));
+
+
+  IPAddress otherIP(0,0,0,0);
+  DNSClient dns;
+  dns.begin(Ethernet.dnsServerIP());
+  Serial.println(dns.getHostByName("pool.ntp.org", otherIP));
+  Serial.println(ip_to_str(otherIP));
 
   Udp.begin(123);
 
