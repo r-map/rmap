@@ -788,7 +788,10 @@ time_t receiveNTPpacket(){
       const unsigned long seventy_years = 2208988800UL;
       return secsSince1900 -  seventy_years;
     }
+    wdt_reset();
     delay(500);
+    wdt_reset();
+
   }
       
   IF_SDEBUG(DBGSERIAL.println(F("#error getting ntp packet response")));
