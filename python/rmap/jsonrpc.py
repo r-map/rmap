@@ -891,7 +891,7 @@ class TransportBLUETOOTH(Transport):
         UUID = None
 
     def __init__(self,name ="mybluetooth",timeout=5,logfunc=log_dummy):
-    
+
         self.recv_stream = None
         self.send_stream = None
         self.socket = None
@@ -914,7 +914,7 @@ class TransportBLUETOOTH(Transport):
 
             except Exception as e:
                 print e
-                print "ERROR: connecting bluetooth"
+                self.log("ERROR: connecting bluetooth")
                 traceback.print_exc()
 
                 try:

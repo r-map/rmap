@@ -30,7 +30,7 @@ except:
     #print "warning bmp085 driver will not be included"
 import jsonrpc
 
-MAXDELAYTIME = 2000
+MAXDELAYTIME = 5000
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):

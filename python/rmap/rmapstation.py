@@ -22,6 +22,7 @@
 
 import os
 import pickle
+import traceback
 
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
@@ -473,8 +474,11 @@ class station():
             try:
                 dt=max(sensor["driver"].prepare(),dt)
                 connected=True
-            except:
+
+            except Exception as e:
+                print e
                 print "ERROR executing prepare rpc"
+                traceback.print_exc()
 
         print "sleep ms:",dt
         time.sleep(dt/1000.)
@@ -493,8 +497,10 @@ class station():
 #                    stringa += btable+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
 #                message=stringa
 
-            except:
+            except Exception as e:
+                print e
                 print "ERROR executing getJson rpc"
+                traceback.print_exc()
 
         return connected,datavars
 

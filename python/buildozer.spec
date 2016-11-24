@@ -23,7 +23,7 @@ source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, Pub
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*
+source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
@@ -31,7 +31,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #version.filename = %(source.dir)s/main.py
 
 # (str) Application versioning (method 2)
-version = 6.16
+version = 6.17
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy

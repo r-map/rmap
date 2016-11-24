@@ -281,12 +281,12 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
 
 # the first is the default
 template_choices = ["default","none","test","test_indirect","test_rf24","test_indirect_rf24","test_master"
-                    ,"stima_base","stima_t","stima_h","stima_w","stima_r","stima_p"
+                    ,"stima_base","stima_t","stima_h","stima_w","stima_r","stima_p","stima_s"
                     ,"stima_th","stima_thw","stima_thwr","stima_thwrp"
                     ,"stima_rf24_t","stima_rf24_h","stima_rf24_w","stima_rf24_r","stima_rf24_p"
                     ,"stima_rf24_th","stima_rf24_thw","stima_rf24_thwr","stima_rf24_thwrp","stima_report_thp"
 
-                    ,"stima_indirect_base","stima_indirect_t","stima_indirect_h","stima_indirect_w","stima_indirect_r","stima_indirect_p"
+                    ,"stima_indirect_base","stima_indirect_t","stima_indirect_h","stima_indirect_w","stima_indirect_r","stima_indirect_p","stima_indirect_s"
                     ,"stima_indirect_th","stima_indirect_thw","stima_indirect_thwr","stima_indirect_thwrp"
                     ,"stima_indirect_rf24_t","stima_indirect_rf24_h","stima_indirect_rf24_w","stima_indirect_rf24_r","stima_indirect_rf24_p"
                     ,"stima_indirect_rf24_th","stima_indirect_rf24_thw","stima_indirect_rf24_thwr","stima_indirect_rf24_thwrp","stima_report_indirect_thp"]
@@ -294,7 +294,7 @@ template_choices = ["default","none","test","test_indirect","test_rf24","test_in
 def addsensors_by_template(station_slug=None,username=None,board_slug=None,template=None):
 
     if (template == "default"):
-        print "setting template:", template
+        print "setting template:", template," do not change sensors on db"
         pass
 
     if (template == "none"):
@@ -380,6 +380,12 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="I2C",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
+
+    if (template == "stima_s"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_th"):
         print "setting template:", template
@@ -570,6 +576,12 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Pressure",driver="JRPC",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
+
+    if (template == "stima_indirect_s"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_indirect_th"):
         print "setting template:", template
