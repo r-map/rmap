@@ -282,12 +282,12 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
 # the first is the default
 template_choices = ["default","none","test","test_indirect","test_rf24","test_indirect_rf24","test_master"
                     ,"stima_base","stima_t","stima_h","stima_w","stima_r","stima_p","stima_s"
-                    ,"stima_th","stima_thw","stima_thwr","stima_thwrp"
+                    ,"stima_th","stima_thw","stima_ths","stima_thwr","stima_thwrp"
                     ,"stima_rf24_t","stima_rf24_h","stima_rf24_w","stima_rf24_r","stima_rf24_p"
                     ,"stima_rf24_th","stima_rf24_thw","stima_rf24_thwr","stima_rf24_thwrp","stima_report_thp"
 
                     ,"stima_indirect_base","stima_indirect_t","stima_indirect_h","stima_indirect_w","stima_indirect_r","stima_indirect_p","stima_indirect_s"
-                    ,"stima_indirect_th","stima_indirect_thw","stima_indirect_thwr","stima_indirect_thwrp"
+                    ,"stima_indirect_th","stima_indirect_thw","stima_indirect_ths","stima_indirect_thwr","stima_indirect_thwrp"
                     ,"stima_indirect_rf24_t","stima_indirect_rf24_h","stima_indirect_rf24_w","stima_indirect_rf24_r","stima_indirect_rf24_p"
                     ,"stima_indirect_rf24_th","stima_indirect_rf24_thw","stima_indirect_rf24_thwr","stima_indirect_rf24_thwrp","stima_report_indirect_thp"]
 
@@ -394,6 +394,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "stima_ths"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_thw"):
         print "setting template:", template
@@ -610,6 +620,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="JRPC",
                   type="TBR",address=33,timerange="1,0,0",level="1,-,-,-")
+
+    if (template == "stima_indirect_ths"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="JRPC",
+                  type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="JRPC",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="JRPC",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_indirect_thwr"):
         print "setting template:", template
@@ -880,7 +900,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         transport.close()
 
 
-def send2amqp(body="",user="your user",password="your password",host="rmap.cc",exchange="configuration",routing_key="config"):
+def send2amqp(body="",user=None,password=None,host="rmap.cc",exchange="configuration",routing_key="config"):
 
     credentials=pika.PlainCredentials(user, password)
     properties=pika.BasicProperties(
@@ -1105,19 +1125,44 @@ def object_auth(object,user):
 
 
 
-def updateusername(oldusername="rmap",newusername=_("your user")):
+def updateusername(oldusername="rmap",newusername="rmap",newpassword=None):
     "returns the number of affected rows"
-    
-    return User.objects.filter(username=oldusername).update(username=newusername)
+
+    row=0
+    if (oldusername != newusername):
+        row=User.objects.filter(username=oldusername).update(username=newusername)
+    if (not newpassword is None):
+        u = User.objects.get(username__exact=newusername)
+        u.set_password(newpassword)
+        u.save()
+    return row
+
+def activatestation(username="rmap",station="home",board=None,activate=None,activateboard=None):
+
+    print "elaborate station: ",station
+
+    mystation=StationMetadata.objects.get(slug=station,ident__username=username)
+
+    if not (activate is None):
+        mystation.active=activate
+        mystation.save()
+
+    if not (activateboard is None) and not (board is None):
+        for myboard in mystation.board_set.all():
+            print "elaborate board: ",myboard
+
+            if not (myboard.slug == board): continue
+            if not (activateboard is None): myboard.active=activate
+            myboard.save()
 
 
-def configdb(username="your user",password="your password",
+def configdb(username="rmap",password="rmap",
              station="home",lat=0,lon=0,constantdata={},
              mqttusername="your user",
              mqttpassword="your password",
              mqttserver="rmap.cc",
              mqttsamplerate=5,
-             bluetoothname="hc05",
+             bluetoothname="hc06",
              amqpusername="your user",
              amqppassword="your password",
              amqpserver="rmap.cc",
@@ -1126,8 +1171,8 @@ def configdb(username="your user",password="your password",
              board=None,
              activate=None,
              stationname=None,
-             mqttrootpath="rmap",
-             mqttmaintpath="rmap"):
+             mqttrootpath=None,
+             mqttmaintpath=None):
 
     try:
         user = User.objects.create_user(username, username+'@rmap.cc', password)            
@@ -1136,6 +1181,8 @@ def configdb(username="your user",password="your password",
         pass
     except:
         raise
+
+    updateusername(oldusername=username,newusername=username,newpassword=password)
         
     try:
 
@@ -1153,8 +1200,12 @@ def configdb(username="your user",password="your password",
         mystation.ident=user
         mystation.lat=lat
         mystation.lon=lon
-        mystation.mqttrootpath=mqttrootpath
-        mystation.mqttmaintpath=mqttmaintpath
+
+        if not (mqttrootpath is None):
+            mystation.mqttrootpath=mqttrootpath
+
+        if not (mqttmaintpath is None):
+            mystation.mqttmaintpath=mqttmaintpath
 
         if not (activate is None): mystation.active=activate
         mystation.save()

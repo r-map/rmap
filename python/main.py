@@ -28,7 +28,6 @@ if __name__ == '__main__':
     django.setup()
     translation.activate("it")
 
-    #os.remove("rmap.sqlite3")
     #management.call_command("showmigrations")
     try:
         management.call_command("migrate",no_initial_data=True )
