@@ -1152,8 +1152,9 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
             print "elaborate board: ",myboard
 
             if not (myboard.slug == board): continue
-            if not (activateboard is None): myboard.active=activate
-            myboard.save()
+            if not (activateboard is None): 
+                myboard.active=activateboard
+                myboard.save()
 
 
 def configdb(username="rmap",password="rmap",

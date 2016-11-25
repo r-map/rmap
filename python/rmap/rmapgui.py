@@ -1516,6 +1516,9 @@ class Rmap(App):
             elif token == ('location', 'name'):
                 print('location name have been changed to', value)
                 locationchanged = True
+            elif token == ('location', 'mobile'):
+                print('location mobile have been changed to', value)
+                locationchanged = True
             elif token == ('location', 'lat'):
                 print('lat have been changed to', value)
                 locationchanged = True
@@ -1528,11 +1531,6 @@ class Rmap(App):
             elif token == ('sensors', 'name'):
                 print('sensors name have been changed to', value)
                 sensorschanged = True
-
-            elif token == ('sensors', 'mobile'):
-                print('sensors mobile have been changed to', value)
-                sensorschanged = True
-
             elif token == ('sensors', 'station'):
                 print('sensors station have been changed to', value)
                 mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
@@ -1622,7 +1620,7 @@ class Rmap(App):
 
         try:
 
-            if (self.config.get('sensors','mobile') == '0'):
+            if (self.config.get('location','mobile') == '0'):
                 mqttrootpath="rmap"
                 mqttmaintpath="rmap"                
             else:
@@ -1698,7 +1696,6 @@ class Rmap(App):
 
         config.setdefaults('sensors', {
             'name': 'HC-05',
-            'mobile': 0,
             'station': station_default,
             'board': board_default,
             'template': template_default,
@@ -1708,6 +1705,7 @@ class Rmap(App):
 
         config.setdefaults('location', {
             'name': 'home',
+            'mobile': 0,
             'lat': 0.,
             'lon': 0.,
             'height': 0.
@@ -1797,13 +1795,6 @@ class Rmap(App):
       "key": "name"
         },
 
-    { "type": "bool",
-      "title": "Mobile",
-      "desc": "Station can go traveling",
-      "section": "sensors",
-      "key": "mobile"
-        },
-
     { "type": "options",
       "title": "Station",
       "desc": "station name",
@@ -1858,6 +1849,11 @@ class Rmap(App):
       "desc": "Location name",
       "section": "location",
       "key": "name"},
+    { "type": "bool",
+      "title": "Mobile",
+      "desc": "Station can go traveling",
+      "section": "location",
+      "key": "mobile"},
     { "type": "numeric",
       "title": "Latitude",
       "desc": "Latitude (decimal)",

@@ -453,6 +453,14 @@ class station():
         if trip is None:
             trip=self.trip
 
+        if trip and self.prefix != "mobile":
+            print "trip with fix station: do nothing"
+            return True,{}
+
+        if not trip and self.prefix == "mobile":
+            print "not on trip with mobile station: do nothing"
+            return True,{}
+
         if trip and self.gps.gpsfix:
             self.lat=self.gps.lat
             self.lon=self.gps.lon
