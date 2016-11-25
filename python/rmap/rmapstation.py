@@ -458,7 +458,7 @@ class station():
             print "trip with fix station: do nothing"
             return True,{}
 
-        if not trip and self.ismobile:
+        if not trip and self.ismobile():
             print "not on trip with mobile station: do nothing"
             return True,{}
 
