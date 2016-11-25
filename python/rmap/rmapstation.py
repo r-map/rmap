@@ -233,7 +233,8 @@ class station():
                                      "node":sensor.node,
                                      "timerange":sensor.timerange,
                                      "level":sensor.level})
-                
+    def ismobile(self):
+        return self.prefix == "mobile"
 
     def display(self):
 
@@ -453,11 +454,11 @@ class station():
         if trip is None:
             trip=self.trip
 
-        if trip and self.prefix != "mobile":
+        if trip and not self.ismobile():
             print "trip with fix station: do nothing"
             return True,{}
 
-        if not trip and self.prefix == "mobile":
+        if not trip and self.ismobile:
             print "not on trip with mobile station: do nothing"
             return True,{}
 
@@ -750,6 +751,9 @@ class station():
         osc.init()
         self.oscid = osc.listen(ipAddr='0.0.0.0', port=3000)
         osc.bind(self.oscid, self.rpcin, '/rpc')
+
+        #force trip for mobile station in background
+        self.trip=self.ismobile()
 
         try:
             self.starttransport()

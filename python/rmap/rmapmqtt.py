@@ -89,10 +89,13 @@ class rmapmqtt:
 
         #self.mqttc.max_inflight_messages_set(1)
 
+        # retained only if the station is fixed
+        retain = self.maintprefix != "mobile"
+
         # mando stato di connessione della stazione con segnalazione di sconnessione gestita male com will
         self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                     payload=dumps({"v": "error01"}),
-                       qos=1, retain=True)
+                            qos=1, retain=retain)
 
         try:
             print "start connect"
@@ -102,9 +105,12 @@ class rmapmqtt:
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
+            # retained only if the station is fixed
+            retain = self.maintprefix != "mobile"
+
             rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "conn"}),
-                             qos=1,retain=True)
+                                  qos=1,retain=retain)
 
             if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
@@ -147,12 +153,15 @@ class rmapmqtt:
             else:
                 lonlat=self.lonlat
 
-            # mando dati di anagrafica retained
+            # mando dati di anagrafica
+
+            # retained only if the station is fixed
+            retain = self.prefix != "mobile"
 
             for key,val in anavar.iteritems():
                 rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
                                       payload=dumps(val),
-                                      qos=1,retain=True)
+                                      qos=1,retain=retain)
                 if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish ana",rc)
 
@@ -233,9 +242,12 @@ class rmapmqtt:
         try:
 
             #clean disconnect
+            # retained only if the station is fixed
+            retain = self.maintprefix != "mobile"
+
             rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "disconn"}),
-                             qos=1,retain=True)
+                                  qos=1,retain=retain)
             if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
 
@@ -259,9 +271,12 @@ class rmapmqtt:
 
         if not self.connected:
             try:
+                # retained only if the station is fixed
+                retain = self.maintprefix != "mobile"
+
                 rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "conn"}),
-                             qos=1,retain=True)
+                                      qos=1,retain=retain)
 
                 if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish status",rc)
