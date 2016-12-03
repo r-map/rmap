@@ -6,6 +6,7 @@
 <section id="main_content">
 
 <h2>{% trans 'Station name' %}: {{ object.name }}</h2>
+
 <div class="table-responsive">
 <table class="table">
 <tr>
@@ -18,13 +19,13 @@
 </tr>
 
 <tr>
-<td> 
-{% if object.active %} 
- <img src="../../../static/rmap/true.svg" alt="location icon" class="img-responsive" style="max-width: 25px;"> 
-{% else %}
- <img src="../../../static/rmap/false.svg" alt="location icon" class="img-responsive" style="max-width: 25px;"> 
-{% endif %}
-</td>
+  <td> 
+    {% if object.active %}
+      <i class="fa fa-check "></i>
+    {% else %}
+      <i class="fa fa-times "></i>
+    {% endif %}
+  </td>
 <td> {{ object.ident }}   </td>
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
@@ -33,6 +34,8 @@
 </tr>
 </table>
 </div>
+
+<p><h3> <a href="/delstation/{{ object.ident }}/{{ object.slug }}">{% trans 'Delete' %} {{ object.slug }}</a></h3></p>
 
 <h2 id="striped-rows">{% trans 'Display graph' %}</h2>
 

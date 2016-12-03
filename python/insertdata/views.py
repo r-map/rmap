@@ -21,6 +21,7 @@ from django.contrib.gis.geos import Point
 import rmap.settings
 from nominatim import Nominatim
 from django.contrib.sites.shortcuts import get_current_site
+from django.utils.text import slugify
 
 lang="it"
 
@@ -100,6 +101,20 @@ class ManualForm(forms.ModelForm):
 
 class NominatimForm(forms.Form):
     address= forms.CharField(required=False,label=_("Search address"),help_text='')
+
+
+
+class NewStationForm(forms.ModelForm):
+
+    #geom = PointField()
+
+    coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
+    name= forms.CharField(required=True,label=_("New station name"),help_text=_('The name of the station to insert'))
+
+    class Meta:
+        model = GeorefencedImage
+        fields = ('geom',)
+        widgets = {'geom': LeafletWidget()}
 
 
 from django.contrib.auth.decorators import login_required
@@ -251,6 +266,7 @@ def insertDataManualData(request):
                 station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
                 #stationlat=station.lat
                 #stationlon=station.lon
+
                 request.POST['geom']= str(Point(station.lon,station.lat))
                 request.POST['coordinate_slug']= slug
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
@@ -307,7 +323,7 @@ def insertDataManualData(request):
                 value=float(value/10.)
                 datavar["B20001"]={"t": dt,"v": str(value)}
 
-            print datavar
+            print "datavar:",datavar
             if (len(datavar)>0):
                 try:
 
@@ -343,3 +359,70 @@ def insertDataManualData(request):
         nominatimform = NominatimForm() # An unbound form
         form = ManualForm() # An unbound form
         return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+
+
+@login_required
+def insertNewStation(request):
+
+    if request.method == 'POST': # If the form has been submitted...
+
+        nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        newstationform = NewStationForm(request.POST) # A form bound to the POST data
+
+        if nominatimform.is_valid(): # All validation rules pass
+
+            address=nominatimform.cleaned_data['address']
+            if address:
+                nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer=get_current_site(request))
+                result=nom.query(address,limit=1,countrycodes="IT")
+                if len(result) >= 1:
+                    lat= result[0]["lat"]
+                    lon= result[0]["lon"]
+                    address= result[0]["display_name"]
+                    request.POST['geom']= str(Point(float(lon),float(lat)))
+                    request.POST['address']= address
+                return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
+        else:
+            nominatimform = NominatimForm()
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"invalid":True})
+
+
+        if newstationform.is_valid(): # All validation rules pass
+            
+            geom=newstationform.cleaned_data['geom']
+            lon=geom['coordinates'][0]
+            lat=geom['coordinates'][1]
+            ident=request.user.username
+
+            name=newstationform.cleaned_data['name']
+
+            if name:
+                try:
+                    print "new station:", name,ident,lon,lat
+
+                    mystation=StationMetadata(slug=slugify(name),name=name)
+                    user=User.objects.get(username=ident)
+                    mystation.ident=user
+                    mystation.lat=lat
+                    mystation.lon=lon
+                    mystation.active=True
+
+                    mystation.save()
+
+                except:
+                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True})
+
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
+
+        else:
+
+            print "invalid form"
+            form = NewStationForm() # An unbound form
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"invalid":True})
+
+    else:
+        nominatimform = NominatimForm() # An unbound form
+        newstationform = NewStationForm() # An unbound form
+        return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,})
+
+
