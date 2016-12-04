@@ -1,0 +1,11 @@
+*.pyc
+*.egg
+
+_build/
+_env/
+dist/
+django_cookie_law.egg-info/
+
+.idea/
+
+geckodriver.log
