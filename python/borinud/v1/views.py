@@ -65,11 +65,18 @@ def timeseries(request, **kwargs):
 def spatialseries(request, **kwargs):
     from datetime import datetime, timedelta
     q = params2record(kwargs)
-    d = datetime(*(int(kwargs[k]) for k in ("year", "month", "day", "hour")))
-    b = d - timedelta(seconds=1799)
-    e = d + timedelta(seconds=1799)
+
+    if kwargs.get("hour") is None:
+        b = datetime(*(int(kwargs[k]) for k in ("year", "month", "day")))
+        e = datetime(*(int(kwargs[k]) for k in ("year", "month", "day")),hour=23,minute=59,second=59)
+    else:
+        d = datetime(*(int(kwargs[k]) for k in ("year", "month", "day", "hour")))
+        b = d - timedelta(seconds=1800)
+        e = d + timedelta(seconds=1799)
+
     q["datemin"] = b
     q["datemax"] = e
+
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{

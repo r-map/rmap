@@ -21,6 +21,7 @@ urlpatterns = [
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', views.timeseries),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.timeseries),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.timeseries),
+    url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.spatialseries),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.spatialseries),
     url(basepattern + r'/stationdata', views.stationdata),
 ]
