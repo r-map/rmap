@@ -3,9 +3,9 @@
 102 Stato del cielo generalmente invariato\n durante l'ultima ora
 103 Nubi generalmente in formazione o sviluppo\n durante l'ultima ora
 112 Fulmini in lontananza
-110 Foschia (100m < visibilita' < 10Km)
+110 Foschia (1000m < visibilita' < 10Km)
 127 Neve o sabbia sollevata o trasportata dal vento
-130 Nebbia (visibilita' < 100m)
+130 Nebbia (visibilita' < 1000m)
 150 Pioviggine (non congelantesi)
 155 Pioviggine congelantesi al suolo (moderata)
 160 Pioggia (non congelantesi)

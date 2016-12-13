@@ -3,12 +3,12 @@
 102 State of sky on the whole unchanged\nduring the past hour
 103 Clouds generally forming or developing\nduring the past hour
 112 Distant lightning
-110 Mist
-127 BLOWING OR DRIFTING SNOW OR SAND
-130 FOG
-150 DRIZZLE
+110 Mist (1000m < visibility < 10Km)
+127 Blowing or drifting snow or sand
+130 Fog (visibility < 1000m)
+150 Drizzle
 155 Drizzle, freezing ( moderate )
-160 RAIN
+160 Rain
 165 Rain, freezing ( moderate )
 171 Snow, slight
 172 Snow, moderate
