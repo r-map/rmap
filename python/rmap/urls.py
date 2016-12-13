@@ -73,6 +73,11 @@ if not android  :
         print "Warnig: amatyr disabled"
         print e
 
+    try:
+        urlpatterns.append(url(r'^showdata/', include('showdata.urls',namespace="showdata")))
+    except Exception as e:
+        print "Warnig: showdata disabled"
+        print e
 
 if ( settings.SERVE_STATIC ):
 #serve local static files
