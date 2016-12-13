@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load i18n %}
+
+{% block extra_assets %}
+  {% leaflet_js %}
+  {% leaflet_css %}
+{% endblock %}
+
+{% block content %}
+
+Get data from: {% url 'api:v1:stationdata' ident coords network trange level var %}
+
+    <script type="text/javascript">
+
+      var url = "{% url 'api:v1:stationdata' ident coords network trange level var %}"
+
+      function map_init(map, options) {
+
+      $.ajax({
+        url: url,
+        dataType: "json",
+        success: function(collection) {
+          // Aggiungi il JSON in leaflet
+         L.geoJson(collection,
+      {
+        onEachFeature: function(feature, layer)
+          {
+            var popupText = "Ident: " + feature.properties.ident
+                + "<br>Lon: " + feature.properties.lon
+                + "<br>Lat: " + feature.properties.lat
+                + "<br>Network: " + feature.properties.network
+                + "<br>Trange: " + feature.properties.trange
+                + "<br>Level: " + feature.properties.level
+                + "<br>Date: " + feature.properties.date
+                + "<br>Var: " + feature.properties.var + " " + feature.properties.val
+                + "<br><a href='" + "{% url 'showdata:stationdata' ident coords network trange level var %}" + "'>All stations</a>";
+             layer.bindPopup(popupText);
+          }
+      }
+        ).addTo(map);
+	}
+      })
+
+      }
+
+    </script>
+
+    {% leaflet_map "spots" callback="window.map_init" %}
+
+
+{% endblock %}
