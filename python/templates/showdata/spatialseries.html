@@ -6,49 +6,143 @@
 {% block extra_assets %}
   {% leaflet_js %}
   {% leaflet_css %}
+
+<link rel="stylesheet" href="/static/rmap/libs/jquery-ui-1.12.1//jquery-ui.css" type="text/css" />
+<script type="text/javascript" src="/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" ></script>
+
+<style>
+
+.ui-dialog,.ui-dialog-content {background:green}
+
+.myDivIcon {
+    /*opacity: .9; */border: 1px solid #000;
+    font-family: "Lucida Grande", "Arial", sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+    width: 20px;
+    height: 14px;
+    vertical-align: middle;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -khtml-border-radius: 3px;
+    color: #FFF;
+    background: #333;
+    line-height: 14px;
+}
+
+</style>
+
 {% endblock %}
 
 {% block content %}
 
-Get data from: {% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day  %}
+{% if hour %}
+Get data from: {% url 'api:v1:spatialserieshourly' ident coords network trange level var year month day hour %}
+{% else %}
+Get data from: {% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day %}
+{% endif %}
 
-    <script type="text/javascript">
+
+<div id="loading" title="Loading data"> 
+    <p>Please wait ...</p>
+</div>
+
+<script type="text/javascript">
+  
+$("#loading").dialog({
+    hide: 'slide',
+    show: 'slide',
+    autoOpen: false
+});
+
+  
+{% if hour %}
+var url = "{% url 'api:v1:spatialserieshourly' ident coords network trange level var year month day hour %}"
+{% else %}
+var url = "{% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day %}"
+{% endif %}
+
+var coords=[];
+
+function oneachfeature(feature, layer)
+{
+    var popupText = "Ident: " + feature.properties.ident
+	+ "<br>Lon: " + feature.properties.lon
+	+ "<br>Lat: " + feature.properties.lat
+	+ "<br>Network: " + feature.properties.network
+	+ "<br>Trange: " + feature.properties.trange
+	+ "<br>Level: " + feature.properties.level
+	+ "<br>Date: " + feature.properties.date
+	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
+	+ "<br><a href='" + "{% url 'showdata:stationdata'  ident coords network "*" "*" "*" %}" + "'>More info</a>";
+    layer.bindPopup(popupText);
+}
+
+function pointtolayer(feature, latlng) 
+{
+    
+    if (feature.geometry && feature.geometry.coordinates) {
+	coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
+
+	var vallen= (feature.properties.val).toString().length * 6;
+	
+	var myIcon = L.divIcon({
+            iconSize: new L.Point(vallen, 14),
+            html: feature.properties.val,
+            className: 'myDivIcon '
+        });
+	
+	return L.marker(latlng, {icon: myIcon,  riseOnHover: true, riseOffset: 10000, title:feature.properties.date});
+	
+	//, zIndexOffset: 1
+    }
+}
+
+function beforesend(){
+    $("#loading").dialog('open').html("<p>Please Wait...</p>");
+}
 
 
-      var url = "{% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day  %}"
+function map_init(map, options) 
+{
+    
+    $.ajax
+    (
+	{
+	    url: url,
+	    dataType: "json",
+	    beforeSend: beforesend,
+	    success: function(collection)
+	    {	
+		// Aggiungi il JSON in leaflet
+		L.geoJson
+		(
+		    collection,
+		    {
+			onEachFeature: oneachfeature,
+			pointToLayer: pointtolayer
+		    }
+		).addTo(map);
+		
+		map.fitBounds(coords);
+		
+		$('#loading').html("<p>Result Complete...</p>");
+		$("#loading").dialog('close')
+	    },
 
-      function map_init(map, options) {
 
-      $.ajax({
-        url: url,
-        dataType: "json",
-        success: function(collection) {
-          // Aggiungi il JSON in leaflet
-         L.geoJson(collection,
-      {
-        onEachFeature: function(feature, layer)
-          {
-            var popupText = "Ident: " + feature.properties.ident
-                + "<br>Lon: " + feature.properties.lon
-                + "<br>Lat: " + feature.properties.lat
-                + "<br>Network: " + feature.properties.network
-                + "<br>Trange: " + feature.properties.trange
-                + "<br>Level: " + feature.properties.level
-                + "<br>Date: " + feature.properties.date
-                + "<br>Var: " + feature.properties.var + " " + feature.properties.val
-                + "<br><a href='" + "{% url 'showdata:stationdata'  ident coords network "*" "*" "*" %}" + "'>More info</a>";
-             layer.bindPopup(popupText);
-          }
-      }
-        ).addTo(map);
+	    error: function(jqXHR,textStatus,errorThrown )
+	    {	
+		$('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
+	    }
 	}
-      })
+    )
+}
 
-      }
-
-    </script>
+</script>
 
     {% leaflet_map "spots" callback="window.map_init" %}
-
 
 {% endblock %}

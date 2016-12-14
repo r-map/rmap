@@ -418,7 +418,8 @@ if not android :
         'djgeojson',
         'geoimage',
         'insertdata',
-        'imagekit'
+        'imagekit',
+        'showdata'
     ]
 
 # django save the files on memory, but large files are saved in a path.
@@ -553,6 +554,10 @@ BORINUD = {
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 }
+
+
+SHOWDATA = BORINUD
+
 
 LEAFLET_CONFIG = {
 #    'SPATIAL_EXTENT': (0.0, 30.0, 30, 60),

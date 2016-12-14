@@ -17,6 +17,7 @@ def summaries(request, **kwargs):
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
+            "type": "Feature",
             "geometry": {
                 "type": "Point",
                 "coordinates": [s.get("lon"), s.get("lat")],

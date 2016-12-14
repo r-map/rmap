@@ -37,7 +37,6 @@ def mystationmetadata_del(request,ident,slug):
 
             except Exception as e:
                 print e
-                raise
                 return render(request, 'insertdata/delstationform.html',{'delstationform':delstationform,"error":True})
 
             return render(request, 'insertdata/delstationform.html',{'delstationform':delstationform,"deleted":True})
@@ -69,5 +68,4 @@ def StationsOnMap(request,ident=None,slug=None):
         else:
             stations=StationMetadata.objects.filter(ident__username=ident,slug=slug).exclude(lat=0,lon=0)
 
-    print stations
     return render(request, 'stations/stationsonmap.html',{"stations":stations,"ident":ident,"slug":slug})
