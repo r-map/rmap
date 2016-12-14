@@ -20,7 +20,7 @@ def json_serial(obj):
         raise TypeError("Type not serializable")
 
 
-class jsonlines(object):
+class ResultIter(object):
     def __init__(self, q, summary=False):
         self.q = q
         self.summary = summary
@@ -34,13 +34,15 @@ class jsonlines(object):
         return self.next()
 
     def next(self):
+        from django.utils.timezone import utc
         for s in self.handle:
-            jsonline = json.dumps({
+            yield {
                 "ident": s.get("ident"),
                 "lon": s.key("lon").enqi(),
                 "lat": s.key("lat").enqi(),
                 "network": s["rep_memo"],
-                "date": s.date_extremes() if self.summary else s["date"],
+                "date": list(utc.localize(d) for d in s.date_extremes())
+                if self.summary else utc.localize(s["date"]),
                 "data": [{
                     "vars": {
                         s["var"]: {
@@ -50,9 +52,7 @@ class jsonlines(object):
                     "timerange": s["trange"],
                     "level": s["level"],
                 }]
-            }, default=json_serial)+"\n"
-
-            yield jsonline
+            }
 
 
 def summaries(request, **kwargs):
@@ -61,8 +61,8 @@ def summaries(request, **kwargs):
     q['month'] = kwargs.get('month')
     q['day'] = kwargs.get('day')
 
-    return JsonResponse([j for j in jsonlines(q, summary=True)], safe=False)
-    # return StreamingHttpResponse(jsonlines(q,summary=True))
+    return JsonResponse([j for j in ResultIter(q, summary=True)], safe=False)
+    # return StreamingHttpResponse(ResultIter(q,summary=True))
 
 
 def timeseries(request, **kwargs):
@@ -71,8 +71,8 @@ def timeseries(request, **kwargs):
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
 
-    # return JsonResponse([j for j in jsonlines(q)],safe=False)
-    return StreamingHttpResponse(jsonlines(q))
+    return JsonResponse([j for j in ResultIter(q)], safe=False)
+    # return StreamingHttpResponse(ResultIter(q))
 
 
 def spatialseries(request, **kwargs):
@@ -84,11 +84,12 @@ def spatialseries(request, **kwargs):
     q["datemin"] = b
     q["datemax"] = e
 
-    return StreamingHttpResponse(jsonlines(q))
+    return JsonResponse([j for j in ResultIter(q)], safe=False)
+    # return StreamingHttpResponse(ResultIter(q))
 
 
 def stationdata(request, **kwargs):
     q = params2record(kwargs)
 
-    # return JsonResponse([j for j in jsonlines(q)],safe=False)
-    return StreamingHttpResponse(jsonlines(q))
+    return JsonResponse([j for j in ResultIter(q)], safe=False)
+    # return StreamingHttpResponse(ResultIter(q))
