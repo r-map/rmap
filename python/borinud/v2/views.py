@@ -3,13 +3,14 @@
 # Author: Emanuele Di Giacomo <emanueledigiacomo@gmail.com>
 
 from django.http import JsonResponse
-from django.http import StreamingHttpResponse
 import json
 from datetime import datetime
 
-from ..settings import BORINUD
+from django.http import StreamingHttpResponse
+
 from .utils import params2record
 from ..utils.source import get_db
+
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -17,20 +18,21 @@ def json_serial(obj):
     if isinstance(obj, datetime):
         serial = obj.isoformat()
         return serial
-    raise TypeError ("Type not serializable")
+    else:
+        raise TypeError("Type not serializable")
 
 
 class jsonlines:
 
-    def __init__(self,q,summary=False):
-        self.q=q
-        self.summary=summary
+    def __init__(self, q, summary=False):
+        self.q = q
+        self.summary = summary
 
     def __iter__(self):
         if (self.summary):
-            self.handle=get_db().query_summary(self.q)
+            self.handle = get_db().query_summary(self.q)
         else:
-            self.handle=get_db().query_data(self.q)
+            self.handle = get_db().query_data(self.q)
 
         return self.next()
 
@@ -38,32 +40,27 @@ class jsonlines:
         for s in self.handle:
 
             # TODO !
-            #per summary gestire:
+            # per summary gestire:
             #    "lon": s.key("lon").enqi(),
             #    "lat": s.key("lat").enqi(),
             #    "date": [s["datemin"].isoformat(), s["datemax"].isoformat()],
 
-            jsonline=json.dumps({
+            jsonline = json.dumps({
                 "ident": s.get("ident"),
                 "lon": s.key("lon").enqi(),
                 "lat": s.key("lat").enqi(),
                 "network": s["rep_memo"],
                 "date": s["date"],
-                "data": 
-                [
-                    {
-                        "vars":
-                        {
-                            s["var"]:
-                            {
-                                "v": s[s["var"]]
-                            }
-                        },
-                        "timerange": s["trange"],
-                        "level": s["level"],
-                    }
-                ]
-            },default=json_serial)+"\n"
+                "data": [{
+                    "vars": {
+                        s["var"]: {
+                            "v": s[s["var"]]
+                        }
+                    },
+                    "timerange": s["trange"],
+                    "level": s["level"],
+                }]
+            }, default=json_serial)+"\n"
 
             yield jsonline
 
@@ -74,8 +71,9 @@ def summaries(request, **kwargs):
     q['month'] = kwargs.get('month')
     q['day'] = kwargs.get('day')
 
-    return JsonResponse([j for j in jsonlines(q,summary=True)],safe=False)
-    #return StreamingHttpResponse(jsonlines(q,summary=True))
+    return JsonResponse([j for j in jsonlines(q, summary=True)], safe=False)
+    # return StreamingHttpResponse(jsonlines(q,summary=True))
+
 
 def timeseries(request, **kwargs):
     q = params2record(kwargs)
@@ -83,11 +81,11 @@ def timeseries(request, **kwargs):
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
 
-    #https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
-    #from collections import defaultdict
-    #d = defaultdict(list)
+    # https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
+    # from collections import defaultdict
+    # d = defaultdict(list)
 
-    #return JsonResponse([j for j in jsonlines(q)],safe=False)
+    # return JsonResponse([j for j in jsonlines(q)],safe=False)
     return StreamingHttpResponse(jsonlines(q))
 
 
@@ -102,9 +100,9 @@ def spatialseries(request, **kwargs):
 
     return StreamingHttpResponse(jsonlines(q))
 
+
 def stationdata(request, **kwargs):
     q = params2record(kwargs)
 
-    #return JsonResponse([j for j in jsonlines(q)],safe=False)
+    # return JsonResponse([j for j in jsonlines(q)],safe=False)
     return StreamingHttpResponse(jsonlines(q))
-
