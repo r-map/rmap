@@ -71,10 +71,6 @@ def timeseries(request, **kwargs):
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
 
-    # https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
-    # from collections import defaultdict
-    # d = defaultdict(list)
-
     # return JsonResponse([j for j in jsonlines(q)],safe=False)
     return StreamingHttpResponse(jsonlines(q))
 
