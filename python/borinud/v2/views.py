@@ -38,19 +38,12 @@ class jsonlines:
 
     def next(self):
         for s in self.handle:
-
-            # TODO !
-            # per summary gestire:
-            #    "lon": s.key("lon").enqi(),
-            #    "lat": s.key("lat").enqi(),
-            #    "date": [s["datemin"].isoformat(), s["datemax"].isoformat()],
-
             jsonline = json.dumps({
                 "ident": s.get("ident"),
                 "lon": s.key("lon").enqi(),
                 "lat": s.key("lat").enqi(),
                 "network": s["rep_memo"],
-                "date": s["date"],
+                "date": s.date_extremes() if self.summary else s["date"],
                 "data": [{
                     "vars": {
                         s["var"]: {
