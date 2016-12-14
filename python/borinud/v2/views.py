@@ -12,7 +12,7 @@ from .utils import params2record
 from ..utils.source import get_db
 
 
-def json_serial(object):
+def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, datetime):
         serial = obj.isoformat()
