@@ -27,7 +27,7 @@ class jsonlines(object):
         self.summary = summary
 
     def __iter__(self):
-        if (self.summary):
+        if self.summary:
             self.handle = get_db().query_summary(self.q)
         else:
             self.handle = get_db().query_data(self.q)
