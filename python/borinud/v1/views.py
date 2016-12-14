@@ -44,6 +44,7 @@ def timeseries(request, **kwargs):
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
+            "type": "Feature",
             "geometry": {
                 "type": "Point",
                 "coordinates": [s.get("lon"), s.get("lat")],
@@ -81,6 +82,7 @@ def spatialseries(request, **kwargs):
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
+            "type": "Feature",
             "geometry": {
                 "type": "Point",
                 "coordinates": [s.get("lon"), s.get("lat")],
@@ -105,6 +107,7 @@ def stationdata(request, **kwargs):
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{
+            "type": "Feature",
             "geometry": {
                 "type": "Point",
                 "coordinates": [s.get("lon"), s.get("lat")],
