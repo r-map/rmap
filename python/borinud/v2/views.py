@@ -12,9 +12,8 @@ from .utils import params2record
 from ..utils.source import get_db
 
 
-def json_serial(obj):
+def json_serial(object):
     """JSON serializer for objects not serializable by default json code"""
-
     if isinstance(obj, datetime):
         serial = obj.isoformat()
         return serial
@@ -22,8 +21,7 @@ def json_serial(obj):
         raise TypeError("Type not serializable")
 
 
-class jsonlines:
-
+class jsonlines(object):
     def __init__(self, q, summary=False):
         self.q = q
         self.summary = summary
