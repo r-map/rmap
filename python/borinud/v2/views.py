@@ -2,10 +2,9 @@
 # borinud/v2/views - v2 views for borinud
 # Author: Emanuele Di Giacomo <emanueledigiacomo@gmail.com>
 
-from django.http import JsonResponse
-import json
 from datetime import datetime
 
+from django.http import JsonResponse
 from django.http import StreamingHttpResponse
 
 from .utils import params2record
