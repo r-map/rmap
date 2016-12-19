@@ -38,12 +38,12 @@
 
 {% block content %}
 
-{% if hour %}
-Get data from: {% url 'api:v1:spatialserieshourly' ident coords network trange level var year month day hour %}
-{% else %}
-Get data from: {% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day %}
-{% endif %}
-
+<h4>
+{{vartxt}}<br>
+{{trangetxt}}<br>
+{{leveltxt}}<br>
+{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
+</h4>
 
 <div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
@@ -57,7 +57,6 @@ $("#loading").dialog({
     autoOpen: false
 });
 
-  
 {% if hour %}
 var url = "{% url 'api:v1:spatialserieshourly' ident coords network trange level var year month day hour %}"
 {% else %}
@@ -65,6 +64,32 @@ var url = "{% url 'api:v1:spatialseriesdaily' ident coords network trange level 
 {% endif %}
 
 var coords=[];
+
+
+function null2_(i)
+{
+    return(i === null) ? "-" : i;
+}
+
+/*
+function  null2_( target ) 
+{
+    Object.keys( target ).map
+    ( 
+	function ( key ) {
+	    if ( ! target[ key ] instanceof Object ) 
+	    {
+		if ( target[ key ] === null ) 
+		{
+		    target[ key ] = "-";
+		}
+	    }
+	}
+    );
+  return target;
+};
+*/
+
 
 function oneachfeature(feature, layer)
 {
@@ -76,7 +101,21 @@ function oneachfeature(feature, layer)
 	+ "<br>Level: " + feature.properties.level
 	+ "<br>Date: " + feature.properties.date
 	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
-	+ "<br><a href='" + "{% url 'showdata:stationdata'  ident coords network "*" "*" "*" %}" + "'>More info</a>";
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stationdata'>Constant station data</a>"
+
+{% if hour %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
+
+{% else %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
+{% endif %}
+
+	+ "<img src='http://graphite.{{ site.domain }}/render/?target=report."
++null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
++".v&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true&_salt=2457007175.149' alt='graphic for {{var}}' class='img-thumbnail'>"
++"</a>"
+
+
     layer.bindPopup(popupText);
 }
 
@@ -143,6 +182,15 @@ function map_init(map, options)
 
 </script>
 
-    {% leaflet_map "spots" callback="window.map_init" %}
+  {% leaflet_map "spots" callback="window.map_init" %}
+
+  <p style="text-align:right">
+  <a href='
+  {% if hour %}
+    {% url 'api:v2:spatialserieshourly' ident coords network trange level var year month day hour %}
+  {% else %}
+    {% url 'api:v2:spatialseriesdaily' ident coords network trange level var year month day %}
+  {% endif %}
+  '>Download data</a></p>
 
 {% endblock %}

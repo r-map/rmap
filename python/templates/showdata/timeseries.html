@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block extra_assets %}
+{% endblock %}
+
+{% block content %}
+
+<h4>
+{{vartxt}}<br>
+{{trangetxt}}<br>
+{{leveltxt}}<br>
+{{datefrom}} - {{dateuntil}} GMT
+</h4>
+
+<p>
+  <img src="http://graphite.{{ site.domain }}/render/?target=report.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}.v&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400&_salt=1457007175.149" alt="graphic for {{var}}" class="img-thumbnail">
+</p>
+
+          <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=report.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}.v" role="button">Graphite &raquo;</a></p>
+
+  <p style="text-align:right">
+  <a href='
+{% if hour %}
+  {% url 'api:v2:timeserieshourly' ident coords network trange level var year month day hour %}
+{% elif day %}
+  {% url 'api:v2:timeseriesdaily' ident coords network trange level var year month day %}
+{% elif month %}
+  {% url 'api:v2:timeseriesmonthly' ident coords network trange level var year month %}
+{% elif year %}
+  {% url 'api:v2:timeseriesyearly' ident coords network trange level var year %}
+{% endif %}
+  '>Download data</a></p>
+
+{% endblock %}

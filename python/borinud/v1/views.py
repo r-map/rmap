@@ -41,6 +41,7 @@ def timeseries(request, **kwargs):
     q["year"] = kwargs["year"]
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
+    q["hour"] = kwargs.get("hour")
     return JsonResponse({
         "type": "FeatureCollection",
         "features": [{

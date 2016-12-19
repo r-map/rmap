@@ -80,6 +80,7 @@ def timeseries(request, **kwargs):
     q["year"] = kwargs["year"]
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
+    q["hour"] = kwargs.get("hour")
 
     #https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
     #from collections import defaultdict

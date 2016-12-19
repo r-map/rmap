@@ -10,9 +10,17 @@
 
 {% block content %}
 
-Get data from: {% url 'api:v1:stationdata' ident coords network trange level var %}
+<h4>
+Ident: {{ident}}<br>
+Network: {{network}}<br>
+</h4>
 
     <script type="text/javascript">
+
+function null2_(i)
+{
+    return(i === null) ? "-" : i;
+}
 
       var url = "{% url 'api:v1:stationdata' ident coords network trange level var %}"
 
@@ -27,16 +35,20 @@ Get data from: {% url 'api:v1:stationdata' ident coords network trange level var
       {
         onEachFeature: function(feature, layer)
           {
-            var popupText = "Ident: " + feature.properties.ident
-                + "<br>Lon: " + feature.properties.lon
-                + "<br>Lat: " + feature.properties.lat
-                + "<br>Network: " + feature.properties.network
-                + "<br>Trange: " + feature.properties.trange
-                + "<br>Level: " + feature.properties.level
-                + "<br>Date: " + feature.properties.date
-                + "<br>Var: " + feature.properties.var + " " + feature.properties.val
-                + "<br><a href='" + "{% url 'showdata:stationdata' ident coords network trange level var %}" + "'>All stations</a>";
-             layer.bindPopup(popupText);
+              var popupText = "Ident: " + feature.properties.ident
+                  + "<br>Lon: " + feature.properties.lon
+                  + "<br>Lat: " + feature.properties.lat
+                  + "<br>Network: " + feature.properties.network
+                  + "<br>Var: " + feature.properties.var + " " + feature.properties.val
+
+		  + "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/*/*/*/stationdata"
+		  + "'>All stations same ident and network</a>"
+
+		  + "<br><a href='/showdata/*/*/"+null2_(feature.properties.network)+"/*/*/*/stationdata"
+		  + "'>All stations same network</a>"
+
+                  + "<br><a href='" + "{% url 'showdata:stationdata' '*' '*' '*' '*' '*' '*' %}" + "'>All stations</a>";
+              layer.bindPopup(popupText);
           }
       }
         ).addTo(map);
@@ -49,5 +61,11 @@ Get data from: {% url 'api:v1:stationdata' ident coords network trange level var
 
     {% leaflet_map "spots" callback="window.map_init" %}
 
+
+
+  <p style="text-align:right">
+  <a href='
+  {% url 'api:v2:stationdata' ident coords network trange level var %}
+  '>Download data</a></p>
 
 {% endblock %}
