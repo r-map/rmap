@@ -315,12 +315,12 @@ def insertDataManualData(request):
 
             value=form.cleaned_data['snow_height']
             if (not value is None):
-                value=float(value*10.)
+                value=int(value*10)
                 datavar["B13013"]={"t": dt,"v": str(value)}
 
             value=form.cleaned_data['visibility']
             if (not value is None):
-                value=float(value/10.)
+                value=int(value/10)
                 datavar["B20001"]={"t": dt,"v": str(value)}
 
             print "datavar:",datavar
