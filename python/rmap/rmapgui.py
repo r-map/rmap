@@ -2419,7 +2419,7 @@ class Rmap(App):
             return
 
         try:
-            value=float(self.root.ids["fog"].text)/10
+            value=int(self.root.ids["fog"].text)/10
             datavar={"B20001":{"t": datetime.utcnow(),"v": str(value)}}
             self.root.ids["fog"].text=""
 
@@ -2431,7 +2431,7 @@ class Rmap(App):
             pass
             
         try:
-            value=float(self.root.ids["snow"].text)*10
+            value=int(self.root.ids["snow"].text)*10
             datavar={"B13013":{"t": datetime.utcnow(),"v": str(value)}}
             self.root.ids["snow"].text=""
             self.mystation.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},
