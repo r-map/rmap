@@ -63,28 +63,13 @@ class Sensor(models.Model):
         ('JRPC',  'INDIRECT jsonrpc over some transport'),
     )
 
-    SENSOR_TYPE_CHOICES = (
-        ('TMP',  'I2C TMP temperature sensor'),
-        ('ADT',  'I2C ADT temperature sensor'),
-        ('BMP',  'I2C BMP085/BMP180 pressure sensor'),
-        ('HIH',  'I2C HIH6100 series humidity sensor'),
-        ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
-        ('TBR',  'I2C Tipping bucket rain gauge adapter'),
-        ('RF24', 'RF24 Network jsonrpc'),
-
-        ('STH',  'I2C TH module, one shot mode'),
-        ('ITH',  'I2C TH module, report mode, istantaneous values'),
-        ('NTH',  'I2C TH module, report mode, minimum values'),
-        ('MTH',  'I2C TH module, report mode, mean values'),
-        ('XTH',  'I2C TH module, report mode, maximum values'),
-        ('SSD',  'I2C SDS011 module, one shot mode'),
-    )
-
     active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=50,default="my sensor",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
     driver = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
-    type = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
+
+    type = models.ForeignKey('Sensortype',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
+
     i2cbus=models.PositiveIntegerField(default=1,null=False,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
     address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C ddress (decimal)"))
     node=models.PositiveIntegerField(default=1,blank=True,help_text=ugettext_lazy("RF24Network node ddress"))
@@ -105,7 +90,7 @@ class Sensor(models.Model):
         #print self,self.name, self.board.natural_key()
         return (self.name, self.board.natural_key())
 
-    natural_key.dependencies = ['stations.board']
+    natural_key.dependencies = ['stations.board','stations.sensortype']
 
 #    def validate_unique(self, *args, **kwargs):
 #        super(Sensor, self).validate_unique(*args, **kwargs)
@@ -130,6 +115,90 @@ class Sensor(models.Model):
         #return u'%s-%s-%s-%s-%d-%s-%s-%s' % (self.name,self.active,self.driver,self.type,self.address,self.timerange,self.level,self.board)
         return u'%s-%s-%s' % (self.name,self.active,self.driver)
 
+
+
+class SensorTypeManager(models.Manager):
+    def get_by_natural_key(self, type):
+        #print "SensorTypeManager: ",type
+        return self.get(type=type)
+
+class SensorType(models.Model):
+    """Sensor type metadata."""
+
+    objects = SensorTypeManager()
+
+    SENSOR_TYPE_CHOICES = (
+        ('TMP',  'I2C TMP temperature sensor'),
+        ('ADT',  'I2C ADT temperature sensor'),
+        ('BMP',  'I2C BMP085/BMP180 pressure sensor'),
+        ('HIH',  'I2C HIH6100 series humidity sensor'),
+        ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
+        ('TBR',  'I2C Tipping bucket rain gauge adapter'),
+        ('RF24', 'RF24 Network jsonrpc'),
+
+        ('STH',  'I2C TH module, one shot mode'),
+        ('ITH',  'I2C TH module, report mode, istantaneous values'),
+        ('NTH',  'I2C TH module, report mode, minimum values'),
+        ('MTH',  'I2C TH module, report mode, mean values'),
+        ('XTH',  'I2C TH module, report mode, maximum values'),
+        ('SSD',  'I2C SDS011 module, one shot mode'),
+    )
+
+    active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
+    name = models.CharField(max_length=50,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
+
+    type = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
+
+    bcodes = models.ManyToManyField('Bcode',blank=False,help_text=ugettext_lazy("Bcode variable definition"))
+    
+    def natural_key(self):
+        #print "natural key sensor type"
+        #print self,self.name, self.board.natural_key()
+        return (self.type)
+
+    natural_key.dependencies = ['stations.bcode']
+    
+    class Meta:
+        ordering = ['type']
+        verbose_name = 'Sensor Type' 
+        verbose_name_plural = 'Sensors Type' 
+        #unique_together = (('name', 'type'),)
+
+    def __unicode__(self):
+        return u'%s-%s-%s' % (self.name,self.active,self.type)
+
+
+
+class BcodeManager(models.Manager):
+    def get_by_natural_key(self, bcode):
+        #print "SensorTypeManager: ",type
+        return self.get(bcode=bcode)
+
+class Bcode(models.Model):
+    """Variable definition."""
+
+    objects = BcodeManager()
+
+    bcode = models.CharField(max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
+    description = models.CharField(max_length=50,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
+    unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
+
+    def natural_key(self):
+        #print "natural key bcode"
+        #print self,self.bcode
+        return (self.bcode)
+
+    class Meta:
+        ordering = ['bcode']
+        verbose_name = 'Variable Bcode' 
+        verbose_name_plural = 'Variable Bcode' 
+        #unique_together = (('name', 'type'),)
+
+    def __unicode__(self):
+        return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
+
+
+    
 class TransportRF24NetworkManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportRF24NetworkManager:",board

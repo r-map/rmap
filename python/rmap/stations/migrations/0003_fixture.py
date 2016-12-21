@@ -21,7 +21,7 @@ def load_fixture(apps, schema_editor):
     u.set_password('rmap')
     u.save()
 
-    for fixture_filename in os.listdir(fixture_dir):
+    for fixture_filename in ("site_rmap.cc.json",):
         if fixture_filename[-5:] == ".json":
             
             fixture_file = os.path.join(fixture_dir, fixture_filename)
@@ -39,16 +39,19 @@ def load_fixture(apps, schema_editor):
 def unload_fixture(apps, schema_editor):
     "Brutally deleting all entries for this model..."
 
-    MyModel = apps.get_model("stations", "StationMetadata")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Board")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Sensor")
-    MyModel.objects.all().delete()
+    #MyModel = apps.get_model("stations", "StationMetadata")
+    #MyModel.objects.all().delete()
+    #MyModel = apps.get_model("stations", "Board")
+    #MyModel.objects.all().delete()
+    #MyModel = apps.get_model("stations", "Sensor")
+    #MyModel.objects.all().delete()
 
-#    MyModel = apps.get_model("stations", "UserProfile")
-#    MyModel.objects.get(user=apps.get_model("auth", "User").objects.get(username="rmap")).delete()
-#    apps.get_model("auth", "User").objects.get(username="rmap").delete()
+    #    MyModel = apps.get_model("stations", "UserProfile")
+    #    MyModel.objects.get(user=apps.get_model("auth", "User").objects.get(username="rmap")).delete()
+    #    apps.get_model("auth", "User").objects.get(username="rmap").delete()
+
+    pass
+
 
 class Migration(migrations.Migration):
 

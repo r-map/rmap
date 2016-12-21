@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import StationMetadata,Board,Sensor,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData
+from models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData
 from django import forms
 from django.utils.translation import ugettext_lazy
 import rmap.settings
@@ -26,6 +26,7 @@ class TransportAmqpInline(admin.TabularInline):
 class SensorInline(admin.TabularInline):
     model = Sensor
     extra=0   # this require javascript to add record inline
+
 class BoardInline(admin.StackedInline):
     model = Board
     extra=0   # this require javascript to add record inline
@@ -51,6 +52,27 @@ class SensorAdmin(admin.ModelAdmin):
     list_filter = ('driver','timerange','level','board')
 
 admin.site.register(Sensor, SensorAdmin)
+
+
+class SensorTypeAdmin(admin.ModelAdmin):
+
+    list_display = ('name','active','type')
+    list_editable = ('active',)
+    search_fields = ['name','type','bcodes']
+
+    list_filter = ('bcodes',)
+
+admin.site.register(SensorType, SensorTypeAdmin)
+
+
+class BcodeAdmin(admin.ModelAdmin):
+
+    list_display = ('bcode','description','unit')
+    search_fields = ['bcode','description','unit']
+
+    list_filter = ('unit',)
+
+admin.site.register(Bcode, BcodeAdmin)
 
 
 class BoardAdmin(admin.ModelAdmin):

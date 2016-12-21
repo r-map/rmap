@@ -50,7 +50,7 @@
     ],
     "address": 72,
     "active": true,
-    "type": "TMP"
+    "type": ["TMP"]
   },
   "model": "stations.sensor"
 },
@@ -73,7 +73,7 @@
     ],
     "address": 119,
     "active": true,
-    "type": "BMP"
+    "type": ["BMP"]
   },
   "model": "stations.sensor"
 },
@@ -96,7 +96,7 @@
     ],
     "address": 39,
     "active": true,
-    "type": "HIH"
+    "type": ["HIH"]
   },
   "model": "stations.sensor"
 },
@@ -171,7 +171,7 @@
     ],
     "address": 72,
     "active": true,
-    "type": "TMP"
+    "type": ["TMP"]
   },
   "model": "stations.sensor"
 },
@@ -194,7 +194,7 @@
     ],
     "address": 72,
     "active": true,
-    "type": "TMP"
+    "type": ["TMP"]
   },
   "model": "stations.sensor"
 },
@@ -304,7 +304,7 @@
     ],
     "address": 72,
     "active": true,
-    "type": "TMP"
+    "type": ["TMP"]
   },
   "model": "stations.sensor"
 },
