@@ -10,6 +10,14 @@ fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtur
 
 def load_fixture(apps, schema_editor):
 
+    fixture_file=fixture_dir+"/sensor_type.json"
+    fixture = open(fixture_file, 'rb')
+    objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
+    for obj in objects:
+        obj.save()
+        fixture.close()
+
+
     for fixture_filename in os.listdir(fixture_dir):
         if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
             

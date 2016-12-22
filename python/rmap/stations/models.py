@@ -147,14 +147,14 @@ class SensorType(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=50,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
-    type = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
+    type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
 
     bcodes = models.ManyToManyField('Bcode',blank=False,help_text=ugettext_lazy("Bcode variable definition"))
     
     def natural_key(self):
         #print "natural key sensor type"
-        #print self,self.name, self.board.natural_key()
-        return (self.type)
+        #print self,self.type, self.board.natural_key()
+        return (self.type,)
 
     natural_key.dependencies = ['stations.bcode']
     
@@ -171,7 +171,7 @@ class SensorType(models.Model):
 
 class BcodeManager(models.Manager):
     def get_by_natural_key(self, bcode):
-        #print "SensorTypeManager: ",type
+        print "SensorTypeManager: ",bcode
         return self.get(bcode=bcode)
 
 class Bcode(models.Model):
@@ -179,14 +179,14 @@ class Bcode(models.Model):
 
     objects = BcodeManager()
 
-    bcode = models.CharField(max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
+    bcode = models.CharField(unique=True,max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
     description = models.CharField(max_length=50,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
     unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
 
     def natural_key(self):
         #print "natural key bcode"
         #print self,self.bcode
-        return (self.bcode)
+        return (self.bcode,)
 
     class Meta:
         ordering = ['bcode']

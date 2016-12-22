@@ -1,0 +1,60 @@
+[
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B12101",
+            "description": "Temperature",
+            "unit": "K"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13003",
+            "description": "Relative Humidity",
+            "unit": "%"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B10004",
+            "description": "Pressure",
+            "unit": "Pa"
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": false,
+            "name": "ADT 7420",
+            "type": "TMP",
+            "bcodes": [
+                ["B12101"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": false,
+            "name": "Honeywell HIH",
+            "type": "HIH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": false,
+            "name": "BMP 180 barometric pressure",
+            "type": "BMP",
+            "bcodes": [
+                ["B10004"]
+            ]
+        }
+    }
+]
