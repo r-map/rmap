@@ -26,7 +26,7 @@
     {
         "model": "stations.sensortype",
         "fields": {
-            "active": false,
+            "active": true,
             "name": "ADT 7420",
             "type": "TMP",
             "bcodes": [
@@ -37,7 +37,7 @@
     {
         "model": "stations.sensortype",
         "fields": {
-            "active": false,
+            "active": true,
             "name": "Honeywell HIH",
             "type": "HIH",
             "bcodes": [
@@ -49,11 +49,70 @@
     {
         "model": "stations.sensortype",
         "fields": {
-            "active": false,
+            "active": true,
             "name": "BMP 180 barometric pressure",
             "type": "BMP",
             "bcodes": [
                 ["B10004"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "ITH istantaneous temperature and humidity ",
+            "type": "ITH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "NTH min temperature and humidity ",
+            "type": "NTH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "MTH mean temperature and humidity ",
+            "type": "MTH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "XTH max temperature and humidity ",
+            "type": "XTH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "Stima Precipitation",
+            "type": "TBR",
+            "bcodes": [
+                ["B13003"]
             ]
         }
     }

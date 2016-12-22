@@ -144,7 +144,7 @@ class SensorType(models.Model):
         ('SSD',  'I2C SDS011 module, one shot mode'),
     )
 
-    active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
+    active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=50,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
     type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
@@ -171,7 +171,7 @@ class SensorType(models.Model):
 
 class BcodeManager(models.Manager):
     def get_by_natural_key(self, bcode):
-        print "SensorTypeManager: ",bcode
+        #print "BcodeManager: ",bcode
         return self.get(bcode=bcode)
 
 class Bcode(models.Model):

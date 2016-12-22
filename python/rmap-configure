@@ -54,7 +54,7 @@ if ve is not None:
 django.setup()
 
 from rmap.stations.models import StationMetadata
-from rmap.stations.models import Sensor
+from rmap.stations.models import Sensor, SensorType
 import rmap.rmap_core
 
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
@@ -95,8 +95,8 @@ for driver in Sensor.SENSOR_DRIVER_CHOICES:
     drivers.append(driver[0])
 parser.add_argument('--driver',  default="TMP", help="sensor driver",choices=drivers)
 types=[]
-for type in Sensor.SENSOR_TYPE_CHOICES:
-    types.append(type[0])
+for type in SensorType.objects.all():
+    types.append(type.type)
 parser.add_argument('--type',  default="TMP", help="sensor type",choices=types)
 parser.add_argument('--i2cbus',  default=1, help="i2c smbus number")
 parser.add_argument('--address',  default=72, help="i2c sensor address")

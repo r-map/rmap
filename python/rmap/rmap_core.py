@@ -21,7 +21,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from stations.models import StationMetadata
 from stations.models import StationConstantData
 from stations.models import Board
-from stations.models import Sensor
+from stations.models import Sensor, SensorType
 from stations.models import TransportMqtt
 from stations.models import TransportBluetooth
 from stations.models import TransportAmqp
@@ -253,9 +253,16 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
                                     ,stationmetadata__ident__username=username)
     except ObjectDoesNotExist :
             print "board not present for this station"
+            raise
+
+    try:
+        mytype = SensorType.objects.get(type=type)
+    except ObjectDoesNotExist :
+        print "sensor type: ",type,"  not present in DB"
+        raise
 
     #if sensortemplate is None :
-    mysensor=Sensor(board=myboard,active=True,name=name,driver=driver,type=type
+    mysensor=Sensor(board=myboard,active=True,name=name,driver=driver,type=mytype
                     ,i2cbus=i2cbus,address=address,node=node
                     ,timerange=timerange,level=level)
 
