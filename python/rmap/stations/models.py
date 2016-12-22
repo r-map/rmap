@@ -127,27 +127,27 @@ class SensorType(models.Model):
 
     objects = SensorTypeManager()
 
-    SENSOR_TYPE_CHOICES = (
-        ('TMP',  'I2C TMP temperature sensor'),
-        ('ADT',  'I2C ADT temperature sensor'),
-        ('BMP',  'I2C BMP085/BMP180 pressure sensor'),
-        ('HIH',  'I2C HIH6100 series humidity sensor'),
-        ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
-        ('TBR',  'I2C Tipping bucket rain gauge adapter'),
-        ('RF24', 'RF24 Network jsonrpc'),
-
-        ('STH',  'I2C TH module, one shot mode'),
-        ('ITH',  'I2C TH module, report mode, istantaneous values'),
-        ('NTH',  'I2C TH module, report mode, minimum values'),
-        ('MTH',  'I2C TH module, report mode, mean values'),
-        ('XTH',  'I2C TH module, report mode, maximum values'),
-        ('SSD',  'I2C SDS011 module, one shot mode'),
-    )
+#    SENSOR_TYPE_CHOICES = (
+#        ('TMP',  'I2C TMP temperature sensor'),
+#        ('ADT',  'I2C ADT temperature sensor'),
+#        ('BMP',  'I2C BMP085/BMP180 pressure sensor'),
+#        ('HIH',  'I2C HIH6100 series humidity sensor'),
+#        ('DW1',  'I2C Davis/Inspeed/Windsonic wind direction and intensity adapter'),
+#        ('TBR',  'I2C Tipping bucket rain gauge adapter'),
+#        ('RF24', 'RF24 Network jsonrpc'),
+#
+#        ('STH',  'I2C TH module, one shot mode'),
+#        ('ITH',  'I2C TH module, report mode, istantaneous values'),
+#        ('NTH',  'I2C TH module, report mode, minimum values'),
+#        ('MTH',  'I2C TH module, report mode, mean values'),
+#        ('XTH',  'I2C TH module, report mode, maximum values'),
+#        ('SSD',  'I2C SDS011 module, one shot mode'),
+#    )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=50,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
-    type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_TYPE_CHOICES,help_text=ugettext_lazy("Type of sensor"))
+    type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
 
     bcodes = models.ManyToManyField('Bcode',blank=False,help_text=ugettext_lazy("Bcode variable definition"))
     

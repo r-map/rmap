@@ -3,7 +3,7 @@
         "model": "stations.bcode",
         "fields": {
             "bcode": "B12101",
-            "description": "Temperature",
+            "description": "TEMPERATURE/DRY-BULB TEMPERATURE",
             "unit": "K"
         }
     },
@@ -11,7 +11,7 @@
         "model": "stations.bcode",
         "fields": {
             "bcode": "B13003",
-            "description": "Relative Humidity",
+            "description": "RELATIVE HUMIDITY",
             "unit": "%"
         }
     },
@@ -19,15 +19,59 @@
         "model": "stations.bcode",
         "fields": {
             "bcode": "B10004",
-            "description": "Pressure",
+            "description": "PRESSURE",
             "unit": "Pa"
         }
     },
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B11001",
+            "description": "WIND DIRECTION",
+            "unit": "DEGREE TRUE"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B11002",
+            "description": "WIND SPEED",
+            "unit": "M/S"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13011",
+            "description": "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
+            "unit": "KG/M**2"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15198",
+            "description": "PM2.5 Concentration",
+            "unit": "KG/M**3"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15195",
+            "description": "PM10 Concentration",
+            "unit": "KG/M**3"
+        }
+    },
+
+
+
+
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "ADT 7420",
+            "name": "I2C TMP temperature sensor",
             "type": "TMP",
             "bcodes": [
                 ["B12101"]
@@ -38,11 +82,10 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "Honeywell HIH",
-            "type": "HIH",
+            "name": "ADT temperature sensor",
+            "type": "ADT",
             "bcodes": [
-                ["B12101"],
-                ["B13003"]
+                ["B12101"]
             ]
         }
     },
@@ -50,7 +93,7 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "BMP 180 barometric pressure",
+            "name": "I2C BMP085/BMP180 pressure sensor",
             "type": "BMP",
             "bcodes": [
                 ["B10004"]
@@ -61,7 +104,75 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "ITH istantaneous temperature and humidity ",
+            "name": "I2C HIH6100 series humidity sensor",
+            "type": "HIH",
+            "bcodes": [
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C Davis/Inspeed/Windsonic wind direction and intensity adapter",
+            "type": "DW1",
+            "bcodes": [
+                ["B11001"],
+                ["B11002"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C Tipping bucket rain gauge adapter",
+            "type": "TBR",
+            "bcodes": [
+                ["B13011"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "RF24 Network jsonrpc",
+            "type": "RF24",
+            "bcodes": [
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDS011 module, one shot mode",
+            "type": "SSD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C TH module, one shot mode",
+            "type": "STH",
+            "bcodes": [
+                ["B12101"],
+                ["B13003"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C TH module, report mode, istantaneous values",
             "type": "ITH",
             "bcodes": [
                 ["B12101"],
@@ -73,7 +184,7 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "NTH min temperature and humidity ",
+            "name": "I2C TH module, report mode, minimum values",
             "type": "NTH",
             "bcodes": [
                 ["B12101"],
@@ -85,7 +196,7 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "MTH mean temperature and humidity ",
+            "name": "I2C TH module, report mode, mean values",
             "type": "MTH",
             "bcodes": [
                 ["B12101"],
@@ -97,21 +208,10 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "XTH max temperature and humidity ",
+            "name": "I2C TH module, report mode, maximum values",
             "type": "XTH",
             "bcodes": [
                 ["B12101"],
-                ["B13003"]
-            ]
-        }
-    },
-    {
-        "model": "stations.sensortype",
-        "fields": {
-            "active": true,
-            "name": "Stima Precipitation",
-            "type": "TBR",
-            "bcodes": [
                 ["B13003"]
             ]
         }
