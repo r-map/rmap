@@ -74,7 +74,7 @@ def initdb(cwd):
 
 
     if (options.dumpdata):
-        management.call_command("dumpdata")
+        management.call_command("dumpdata",use_natural_foreign_keys = True, use_natural_primary_keys = True, exclude=["sessions","admin","contenttypes","auth.Permission"])
 
     if (options.loaddata is not None):
         print "loaddata",options.loaddata

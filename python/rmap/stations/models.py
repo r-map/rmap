@@ -68,7 +68,7 @@ class Sensor(models.Model):
 
     driver = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
 
-    type = models.ForeignKey('Sensortype',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
+    type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
 
     i2cbus=models.PositiveIntegerField(default=1,null=False,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
     address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C ddress (decimal)"))
@@ -145,7 +145,7 @@ class SensorType(models.Model):
 #    )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
-    name = models.CharField(max_length=50,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
+    name = models.CharField(max_length=100,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
     type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
 
@@ -180,7 +180,7 @@ class Bcode(models.Model):
     objects = BcodeManager()
 
     bcode = models.CharField(unique=True,max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
-    description = models.CharField(max_length=50,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
+    description = models.CharField(max_length=100,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
     unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
 
     def natural_key(self):

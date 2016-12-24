@@ -436,7 +436,7 @@ try:
     import django_extensions
     INSTALLED_APPS += 'django_extensions',
 except ImportError:
-    print "django_extensions is not installed; I do not use it"
+    #print "django_extensions is not installed; I do not use it"
     pass
 
 #for django < 1.6 only
