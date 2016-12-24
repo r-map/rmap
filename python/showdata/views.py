@@ -3,6 +3,114 @@
 
 from django.shortcuts import render
 import dballe
+from datetime import date,datetime,timedelta,time
+
+def menu(request, **kwargs):
+
+    now=datetime.utcnow()
+    showdate=(now-timedelta(minutes=30))
+
+    metad=[]
+
+
+####   define what to put on menu #############
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,2000,-,-",
+    "var":"B12101"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,2000,-,-",
+    "var":"B13003"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,2000,-,-",
+    "var":"B10004"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,2000,-,-",
+    "var":"B15195"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,2000,-,-",
+    "var":"B15198"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"1,0,0",
+    "level":"1,-,-,-",
+    "var":"B13011"}
+    metad.append(metadatasub)
+
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"103,10000,-,-",
+    "var":"B11002"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"1,-,-,-",
+    "var":"B13013"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"1,-,-,-",
+    "var":"B20001"}
+    metad.append(metadatasub)
+
+    metadatasub={
+    "trange":"254,0,0",
+    "level":"1,-,-,-",
+    "var":"B20003"}
+    metad.append(metadatasub)
+
+
+####################
+
+
+
+    metadata=[]
+
+    for meta in metad:
+
+        if meta["level"] == "*":
+            meta["leveltxt"]="All levels"
+        else:
+            meta["leveltxt"]=dballe.describe_level(*[None if v == "-" else int(v) for v in meta["level"].split(",")])
+
+        if meta["trange"]== "*":
+            meta["trangetxt"]="All timeranges"
+        else:
+            meta["trangetxt"]=dballe.describe_trange(*[None if v == "-" else int(v) for v in meta["trange"].split(",")])
+
+        if meta["var"]== "*":
+            meta["vartxt"]="All vars"
+        else:
+            varinfo=dballe.varinfo(meta["var"])
+            meta["vartxt"]=varinfo.desc+" "+varinfo.unit
+
+        metadata.append(meta)
+
+
+    return render(request, 'showdata/menu.html',{
+        "ident":"*", "coords":"*", "network":"*",
+        #"trange":trange, "level":level, "var":var,
+        "metadata":metadata,
+        "year":showdate.year,"month":showdate.month,"day":showdate.day,"hour":showdate.hour
+    })
+
 
 def timeseries(request, **kwargs):
 

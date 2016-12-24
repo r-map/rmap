@@ -20,6 +20,9 @@ basepattern = (
 )
 
 urlpatterns = [
+
+    url(r'^$', views.menu,name="menu"),
+
 #    url(basepattern + r'/summaries$', views.summaries),
 #    url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})$', views.summaries),
 #    url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.summaries),
