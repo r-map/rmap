@@ -165,8 +165,13 @@ function map_init(map, options)
 		    }
 		).addTo(map);
 		
-		map.fitBounds(coords);
-		
+		try{
+		    map.fitBounds(coords);
+		}
+		catch(err) {
+		    $('#loading').html("<p>Error setting bounds...</p>");
+		}
+
 		$('#loading').html("<p>Result Complete...</p>");
 		$("#loading").dialog('close')
 	    },

@@ -37,6 +37,15 @@
   {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
 {% endif %}
   '>Spatialseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}} {{hour}} </a></p>
+
+{% if hour %}
+<h4>Daily</h4>
+<p><a href='
+  {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
+  '>Spatialseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}}</a></p>
+{% endif %}
+
+
 {% endif %}
 {% endif %}
 

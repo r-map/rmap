@@ -46,7 +46,7 @@ def menu(request, **kwargs):
     metad.append(metadatasub)
 
     metadatasub={
-    "trange":"1,0,0",
+    "trange":"1,0,3600",
     "level":"1,-,-,-",
     "var":"B13011"}
     metad.append(metadatasub)
