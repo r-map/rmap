@@ -30,21 +30,29 @@
 {% if year %}
 {% if month %}
 
-<p><a href='
+<p>
 {% if hour %}
-  {% url 'showdata:spatialserieshourly' ident coords network meta.trange meta.level meta.var year month day hour %}
+  <a href='
+   {% url 'showdata:spatialserieshourly' ident coords network meta.trange meta.level meta.var year month day hour %}
+  '>Spatialseries horly {{ident}} {{coords}} {{network}}
+   {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}} {{hour}}
+  </a><br>
 {% elif day %}
+  <a href='
   {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
+     '>Spatialseries daily {{ident}} {{coords}} {{network}}
+    {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}}
+  </a>
 {% endif %}
-  '>Spatialseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}} {{hour}} </a></p>
 
 {% if hour %}
-<h4>Daily</h4>
-<p><a href='
+  <a href='
   {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
-  '>Spatialseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}}</a></p>
+     '>Spatialseries daily {{ident}} {{coords}} {{network}}
+    {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}}
+  </a>
 {% endif %}
-
+</p>
 
 {% endif %}
 {% endif %}
