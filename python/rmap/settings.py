@@ -103,6 +103,7 @@ configspec['amqp2dballed']['errfile']  = "string(default='/tmp/amqp2dballed.err'
 configspec['amqp2dballed']['lockfile'] = "string(default='/tmp/amqp2dballed.lock')"
 configspec['amqp2dballed']['user']     = "string(default=None)"
 configspec['amqp2dballed']['group']    = "string(default=None)"
+configspec['amqp2dballed']['dsn']      = "string(default='mysql:///rmap?user=rmap&password=rmap')"
 
 configspec['amqp2amqp_identvalidationd']={}
 configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='/tmp/amqp2amqp_identvalidationd.log')"
@@ -155,6 +156,7 @@ configspec['mqtt2dballed']['errfile']  = "string(default='/tmp/mqtt2dballed.err'
 configspec['mqtt2dballed']['lockfile'] = "string(default='/tmp/mqtt2dballed.lock')"
 configspec['mqtt2dballed']['user']     = "string(default=None)"
 configspec['mqtt2dballed']['group']    = "string(default=None)"
+configspec['mqtt2dballed']['dsn']      = "string(default='mysql:///rmap?user=rmap&password=rmap')"
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='/tmp/composereportd.log')"
@@ -249,6 +251,7 @@ errfileamqp2dballed              = config['amqp2dballed']['errfile']
 lockfileamqp2dballed             = config['amqp2dballed']['lockfile']
 useramqp2dballed                 = config['amqp2dballed']['user']
 groupamqp2dballed                = config['amqp2dballed']['group']
+dsnamqp2dballed                  = config['amqp2dballed']['dsn']
 
 # section amqp2amqp_identvalidationd
 logfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidationd']['logfile']
@@ -298,6 +301,7 @@ errfilemqtt2dballed              = config['mqtt2dballed']['errfile']
 lockfilemqtt2dballed             = config['mqtt2dballed']['lockfile']
 usermqtt2dballed                 = config['mqtt2dballed']['user']
 groupmqtt2dballed                = config['mqtt2dballed']['group']
+dsnmqtt2dballed                  = config['mqtt2dballed']['dsn']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
@@ -491,15 +495,12 @@ if not android :
         }
     }
 
-# for now dsn is static; we have to put it in cfg files and use in mqtt2dballed & borinud
-dsn="mysql:///rmap?user=rmap&password=rmap"
-
 BORINUD = {
     "SOURCES": 
     [
         {
             "class": "borinud.utils.source.DballeDB",
-            "url": dsn,
+            "url": dsnmqtt2dballed,
         }, 
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
