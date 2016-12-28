@@ -9,9 +9,13 @@ def menu(request, **kwargs):
 
     now=datetime.utcnow()
     showdate=(now-timedelta(minutes=30))
+    year='{:04d}'.format(showdate.year)
+    month='{:02d}'.format(showdate.month)
+    day='{:02d}'.format(showdate.day)
+    hour='{:02d}'.format(showdate.hour)
+
 
     metad=[]
-
 
 ####   define what to put on menu #############
 
@@ -80,7 +84,6 @@ def menu(request, **kwargs):
 ####################
 
 
-
     metadata=[]
 
     for meta in metad:
@@ -103,12 +106,11 @@ def menu(request, **kwargs):
 
         metadata.append(meta)
 
-
     return render(request, 'showdata/menu.html',{
         "ident":"*", "coords":"*", "network":"*",
         #"trange":trange, "level":level, "var":var,
         "metadata":metadata,
-        "year":showdate.year,"month":showdate.month,"day":showdate.day,"hour":showdate.hour
+        "year":year,"month":month,"day":day,"hour":hour
     })
 
 
