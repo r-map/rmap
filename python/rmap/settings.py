@@ -572,3 +572,98 @@ LEAFLET_CONFIG = {
 
 MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
 
+
+#               graphite
+
+from os.path import abspath, dirname, join
+
+INSTALLED_APPS += (
+    'graphite-dballe',
+    'graphite-dballe.metrics',
+    'graphite-dballe.render',
+    'graphite-dballe.browser',
+    'graphite-dballe.composer',
+    'graphite-dballe.account',
+    'graphite-dballe.dashboard',
+    'graphite-dballe.whitelist',
+    'graphite-dballe.events',
+    'graphite-dballe.url_shortener',
+    'tagging',
+)
+
+JAVASCRIPT_DEBUG = False
+DATE_FORMAT = '%m/%d'
+WEB_DIR = dirname( abspath(__file__) )
+WEBAPP_DIR = dirname(WEB_DIR)
+GRAPHITE_ROOT = dirname(WEBAPP_DIR)
+DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+LOG_CACHE_PERFORMANCE = False
+LOG_ROTATION = True
+LOG_ROTATION_COUNT = 1
+MAX_FETCH_RETRIES = 2
+DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
+ALLOW_ANONYMOUS_CLI = True
+LEGEND_MAX_ITEMS = 10
+RRD_CF = 'AVERAGE'
+#STORAGE_FINDERS = (
+#    'graphite.finders.standard.StandardFinder',
+#)
+STORAGE_FINDERS = (
+    'graphite-dballe.dballe.DballeFinder',
+)
+
+MAX_TAG_LENGTH = 50
+AUTO_REFRESH_INTERVAL = 60
+# Set to True to require authentication to save or delete dashboards
+DASHBOARD_REQUIRE_AUTHENTICATION = False
+# Require Django change/delete permissions to save or delete dashboards.
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_PERMISSIONS = False
+# Name of a group to which the user must belong to save or delete dashboards.  Alternative to
+# DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_EDIT_GROUP = None
+
+CONF_DIR = ''
+DASHBOARD_CONF = ''
+GRAPHTEMPLATES_CONF = ''
+STORAGE_DIR = ''
+WHITELIST_FILE = ''
+INDEX_FILE = ''
+LOG_DIR = ''
+LOG_RENDERING_PERFORMANCE = False
+CARBONLINK_HOSTS = ["127.0.0.1:7002"]
+CARBONLINK_TIMEOUT = 1.0
+CARBONLINK_HASHING_KEYFUNC = None
+CARBONLINK_HASHING_TYPE = 'carbon_ch'
+CARBONLINK_RETRY_DELAY = 15
+REPLICATION_FACTOR = 1
+STANDARD_DIRS = []
+# Cluster settings
+CLUSTER_SERVERS = []
+URL_PREFIX = ''
+DEFAULT_CACHE_POLICY = []
+#Remote rendering settings
+REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
+RENDERING_HOSTS = []
+REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
+LOG_RENDERING_PERFORMANCE = False
+FIND_CACHE_DURATION = 300
+FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
+REMOTE_STORE_MERGE_RESULTS = True
+
+if not CONF_DIR:
+  CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
+if not DASHBOARD_CONF:
+  DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
+if not GRAPHTEMPLATES_CONF:
+  GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
+if not STORAGE_DIR:
+  STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
+if not WHITELIST_FILE:
+  WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
+if not INDEX_FILE:
+  INDEX_FILE = join(STORAGE_DIR, 'index')
+if not LOG_DIR:
+  LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
+
