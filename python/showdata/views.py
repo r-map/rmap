@@ -4,6 +4,7 @@
 from django.shortcuts import render
 import dballe
 from datetime import date,datetime,timedelta,time
+from rmap.settings import *
 
 def menu(request, **kwargs):
 
@@ -14,95 +15,35 @@ def menu(request, **kwargs):
     day='{:02d}'.format(showdate.day)
     hour='{:02d}'.format(showdate.hour)
 
-
-    metad=[]
-
 ####   define what to put on menu #############
 
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,2000,-,-",
-    "var":"B12101"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,2000,-,-",
-    "var":"B13003"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,2000,-,-",
-    "var":"B10004"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,2000,-,-",
-    "var":"B15195"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,2000,-,-",
-    "var":"B15198"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"1,0,3600",
-    "level":"1,-,-,-",
-    "var":"B13011"}
-    metad.append(metadatasub)
-
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"103,10000,-,-",
-    "var":"B11002"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"1,-,-,-",
-    "var":"B13013"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"1,-,-,-",
-    "var":"B20001"}
-    metad.append(metadatasub)
-
-    metadatasub={
-    "trange":"254,0,0",
-    "level":"1,-,-,-",
-    "var":"B20003"}
-    metad.append(metadatasub)
-
-
-####################
-
+    metad=BORINUD ["SOURCES"][0]["measurements"] 
 
     metadata=[]
 
-    for meta in metad:
+    for mymeta in metad:
 
-        if meta["level"] == "*":
+        meta={}
+
+        if mymeta["level"] == "*":
             meta["leveltxt"]="All levels"
         else:
-            meta["leveltxt"]=dballe.describe_level(*[None if v == "-" else int(v) for v in meta["level"].split(",")])
+            meta["leveltxt"]=dballe.describe_level(*mymeta["level"])
 
-        if meta["trange"]== "*":
+        if mymeta["trange"]== "*":
             meta["trangetxt"]="All timeranges"
         else:
-            meta["trangetxt"]=dballe.describe_trange(*[None if v == "-" else int(v) for v in meta["trange"].split(",")])
+            meta["trangetxt"]=dballe.describe_trange(*mymeta["trange"])
 
-        if meta["var"]== "*":
+        if mymeta["var"]== "*":
             meta["vartxt"]="All vars"
         else:
-            varinfo=dballe.varinfo(meta["var"])
+            varinfo=dballe.varinfo(mymeta["var"])
             meta["vartxt"]=varinfo.desc+" "+varinfo.unit
+
+        meta["var"]=mymeta["var"]
+        meta["level"]  = "%s,%s,%s,%s" % tuple(("-" if v is None else str(v) for v in mymeta["level"]))
+        meta["trange"] = "%s,%s,%s" % tuple(("-" if v is None else str(v) for v in mymeta["trange"]))
 
         metadata.append(meta)
 

@@ -2,15 +2,16 @@
 
 import time
 #import requests
+import re
 
 from .intervals import Interval, IntervalSet
 from .node import LeafNode, BranchNode
-
+from rmap.settings import *
 
 class DballeFinder(object):
 
-    def is_branch(self,path):
-        return not "@" in path
+#    def is_branch(self,path):
+#        return not "@" in path
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
@@ -25,22 +26,42 @@ class DballeFinder(object):
         #query.startTime
         #query.endTime
 
-        if query.pattern == "*":
-            matches=["uno","due","tre"]
-        elif query.pattern == "uno.*":
-            matches=["menouno","menodue","menotre"]
-        elif query.pattern == "due.*":
-            matches=["ugualeuno","ugualedue","ugualetre"]
-        elif query.pattern == "tre.*":
-            matches=["piuuno","piudue","piutre"]
-        else:
-            matches=["misura1@","misura2@","misura3@"]
+        metad=BORINUD ["SOURCES"][0]["measurements"] 
+
+        p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
+
+        # if query.pattern == "*":
+        #     matches=["uno","due","tre"]
+        # elif query.pattern == "uno.*":
+        #     matches=["menouno","menodue","menotre"]
+        # elif query.pattern == "due.*":
+        #     matches=["ugualeuno","ugualedue","ugualetre"]
+        # elif query.pattern == "tre.*":
+        #     matches=["piuuno","piudue","piutre"]
+        # else:
+        #     matches=["misura1@","misura2@","misura3@"]
+
+        for mymeta in metad:
+
+            trange = "%s_%s_%s" % tuple(("-" if v is None else str(v) for v in mymeta["trange"]))
+            level  = "%s_%s_%s_%s" % tuple(("-" if v is None else str(v) for v in mymeta["level"]))
+            var=mymeta["var"]
+            path=trange+"."+level+"."+var
+
+            position=query.pattern.count(".")
+            if position == 0:
+                node=trange
+            elif position == 1:
+                node=level
+            elif position == 2:
+                node=var
             
-        for path in matches:
-            if self.is_branch(path):
-                yield BranchNode(path)
-            else:
-                yield LeafNode(path, DballeReader(path))
+            if  not (p.match(path) is None):
+                #if   query.pattern[:-2].endswith(var):
+                if   node == var:
+                    yield LeafNode(path, DballeReader(node))
+                else:
+                    yield BranchNode(node)
 
 
 #LeafNode is created with a reader, which is the class responsible for
