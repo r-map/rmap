@@ -25,14 +25,22 @@ def json_serial(obj):
     
 class dbajson:
 
-    def __init__(self,q,summary=False,format="jsonlines"):
+    def __init__(self,q,summary=False,stations=False,format="jsonlines"):
         self.q=q
         self.summary=summary
+        self.stations=stations
         self.format=format
-        
+        if self.stations:
+            self.jsondict=self.jsondictstation
+        else:    
+            self.jsondict=self.jsondictdata
+
+
     def __iter__(self):
         if self.summary:
             self.handle = get_db().query_summary(self.q)
+        elif self.stations:
+            self.handle = get_db().query_stations(self.q)
         else:
             self.handle = get_db().query_data(self.q)
 
@@ -52,26 +60,37 @@ class dbajson:
             #per summary gestire:
             #    "lon": self.s.key("lon").enqi(),
             #    "lat": self.s.key("lat").enqi(),
-            #    "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],
-
+            #    "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],            
 
             if self.format == "geojson" :
+
+                if self.stations:
+                    properties= {
+                        "ident": self.s.get("ident"),
+                        "lon": self.s.key("lon").enqi(),
+                        "lat": self.s.key("lat").enqi(),
+                        "network": self.s["rep_memo"],
+                    }
+
+                else:
+                    properties= {
+                        "ident": self.s.get("ident"),
+                        "lon": self.s.key("lon").enqi(),
+                        "lat": self.s.key("lat").enqi(),
+                        "network": self.s["rep_memo"],
+                        "trange": self.s["trange"],
+                        "level": self.s["level"],
+                        "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],
+                        "var": self.s["var"],
+                    }
+                
                 features.append({
                     "type": "Feature",
                         "geometry": {
                             "type": "Point",
                             "coordinates": [self.s.get("lon"), self.s.get("lat")],
                         },
-                        "properties": {
-                            "ident": self.s.get("ident"),
-                            "lon": self.s.key("lon").enqi(),
-                            "lat": self.s.key("lat").enqi(),
-                            "network": self.s["rep_memo"],
-                            "trange": self.s["trange"],
-                            "level": self.s["level"],
-                            "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],
-                            "var": self.s["var"],
-                        },
+                        "properties": properties
                     })
 
                     
@@ -88,7 +107,7 @@ class dbajson:
         if self.format == "geojson" :
             yield {"type": "FeatureCollection", "features": features}
             
-    def jsondict (self):
+    def jsondictdata (self):
 
         return {
             "ident": self.s.get("ident"),
@@ -106,7 +125,16 @@ class dbajson:
                 "level": self.s["level"],
             }]
         }
-    
+
+    def jsondictstation (self):
+
+        return {
+            "ident": self.s.get("ident"),
+            "lon": self.s.key("lon").enqi(),
+            "lat": self.s.key("lat").enqi(),
+            "network": self.s["rep_memo"],
+        }
+
 
 def summaries(request, **kwargs):
     q = params2record(kwargs)
@@ -176,3 +204,15 @@ def stationdata(request, **kwargs):
 
     if format == "jsonline" :
         return StreamingHttpResponse(dbajson(q,format=format))
+
+
+def stations(request, **kwargs):
+    q = params2record(kwargs)
+
+    format=kwargs.get('format')
+
+    if format == "geojson" or format == "dbajson" :
+        return JsonResponse(next(itertools.islice(dbajson(q,stations=True,format=format),0,None)),safe=False)
+
+    if format == "jsonline" :
+        return StreamingHttpResponse(dbajson(q,stations=True,format=format))
