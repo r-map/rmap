@@ -6,7 +6,8 @@ from . import views
 # TODO: each item must be configured to allow fixed, all or miss
 
 basepattern = (
-    r'^(?P<ident>\w+|\*|-)'
+    r'^(?P<format>\w+)'
+    r'/(?P<ident>\w+|\*|-)'
     r'/(?P<coords>(?P<lon>\d+|-),(?P<lat>\d+|-)|\*)'
     r'/(?P<network>[-\w]+|\*)'
     r'/(?P<trange>(?P<tr>\d+|-|\*),(?P<p1>\d+|-|\*),(?P<p2>\d+|-|\*)|\*)'
