@@ -29,9 +29,9 @@ class  wssummaries(object):
 
     def __iter__(self):
 
-        #query.pattern
-        #query.startTime
-        #query.endTime
+        #print "query pattern: ",self.query.pattern
+        #self.query.startTime
+        #self.query.endTime
 
         self.branch =True
 
@@ -61,7 +61,7 @@ class  wssummaries(object):
         self.summaries=[]
         for station in rj:
             newstation={}
-            newstation["ident"]=station["ident"]                
+            newstation["ident"]=station["ident"] if not station["ident"] is None else "-"                 
             newstation["lonlat"]=str(station["lon"])+"_"+str(station["lat"])
             newstation["network"]=station["network"]
 
@@ -92,18 +92,26 @@ class  wssummaries(object):
         return self.next()
 
     def next(self):
-        
-        for k,g in sortandgroup(self.summaries,self.key):
-            #print "---->>",self.key," = ",k
-            #for station in g:
-            #    print "---->> station = ",station
-        
-            if k is None:
-                k="-"
-                
-            self.node=str(k)
 
-            yield self.branch,self.node
+        if self.branch:
+            for k,g in sortandgroup(self.summaries,self.key):
+                #print "---->>",self.key," = ",k
+                #for station in g:
+                #    print "---->> station = ",station
+                
+                if k is None:
+                    k="-"
+                
+                self.node=str(k)
+
+                yield self.branch,self.node
+
+        else:
+            for summary in self.summaries:
+                #print "summary",summary
+                self.node=summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
+
+                yield self.branch,self.node
 
 
 class DballeFinder(object):
@@ -115,7 +123,7 @@ class DballeFinder(object):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(query.pattern))
+                yield LeafNode(node, DballeReader(node))
             
 #LeafNode is created with a reader, which is the class responsible for
 #fetching the datapoints for the given path. It is a simple class with
@@ -139,18 +147,19 @@ class DballeReader(object):
 
     def __init__(self, path):
         self.path = path
-        print "path: ", self.path
+        #print "path: ", self.path
         
     def fetch(self, start_time, end_time):
 
         # fetch data
-        print "fetch: ",start_time,end_time
+        #print "fetch: ",start_time,end_time
         
         uri=path2uri(self.path)
         
         #check which query we have to do
-        mytime=time.gmtime(start_time)
-        print "mytime: ",mytime
+        #TODO why we are 1 hour shifted?
+        mytime=time.gmtime(start_time+3600)
+        #print "mytime: ",mytime
 
         #hour
         #r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(mytime.tm_year)+"/{:02d}".format(mytime.tm_mon)+"/{:02d}".format(mytime.tm_mday)+"/{:02d}".format(mytime.tm_hour))
@@ -161,26 +170,32 @@ class DballeReader(object):
 
         rj=r.json()
 
+        #size=100
+        #series=[None for i in xrange(size)]
+        #firsttime=rj[0]["date"]
+        #lasttime=rj[-1]["date"]
+
         series=[]
+
         for station in rj:
-            print "station: ", station
+            #print "station: ", station
             val=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
 
-            # todo: put data in an equaly tyme spaced array
+            # todo: put data in an equaly time spaced array
             
-            print "val: ",val
+            #print "val: ",val
             series.append(val)
-        print series
 
         if len(series) > 0:
-            step=int((int(end_time)-int(start_time))/len(rj))
-            time_info=(int(start_time), int(end_time),step)
+            step=int((int(end_time)-int(start_time))/(len(series)-1))
+            #print "step: ",step
+            time_info=(start_time, end_time,step)
         else:
-            time_info=(int(start_time), int(end_time),end_time-start_time)
+            time_info=(start_time, end_time,end_time-start_time)
 
-        print "step: ",step
-        print "time_info: ",time_info
-        
+        #print "time_info: ",time_info
+        #print "series: ",series
+
         #time_info = _from_, _to_, _step_
         #time_info=(int(time.time()-100), int(time.time()),1)
         #series=range(*time_info)
@@ -200,8 +215,8 @@ class DballeReader(object):
         startdate = dateutil.parser.parse(start)  
         enddate   = dateutil.parser.parse(end)
 
-        #return IntervalSet([Interval(int(time.mktime(startdate.timetuple())),int(time.mktime(enddate.timetuple())))])
+        return IntervalSet([Interval(int(time.mktime(startdate.timetuple())),int(time.mktime(enddate.timetuple())))])
         
-        return IntervalSet([Interval(int(time.time())-100, int(time.time()))])
+        #return IntervalSet([Interval(int(time.time())-100, int(time.time()))])
 
 
