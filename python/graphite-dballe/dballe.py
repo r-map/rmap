@@ -158,39 +158,103 @@ class DballeReader(object):
         
         #check which query we have to do
         #TODO why we are 1 hour shifted?
-        mytime=time.gmtime(start_time+3600)
-        #print "mytime: ",mytime
 
-        #hour
-        #r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(mytime.tm_year)+"/{:02d}".format(mytime.tm_mon)+"/{:02d}".format(mytime.tm_mday)+"/{:02d}".format(mytime.tm_hour))
-        #day
-        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(mytime.tm_year)+"/{:02d}".format(mytime.tm_mon)+"/{:02d}".format(mytime.tm_mday))
-        #month
-        #r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(mytime.tm_year)+"/{:02d}".format(mytime.tm_mon))
+        starttime=time.gmtime(start_time+3600)
+        endtime=time.gmtime(end_time+3600)
+        #print "starttime: ",starttime
 
-        rj=r.json()
+        if starttime.tm_year != endtime.tm_year:
+            #span years: get two month minimum
+            #span years
+            step=3600
+            rj=[]
+            for year in xrange( starttime.tm_year, endtime.tm_year+1):
+                if starttime.tm_mon < endtime.tm_mon:
+                    for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
+                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        rj+=r.json()
+                else:
+                    for month in xrange( starttime.tm_mon, 12+1):
+                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        rj+=r.json()
+                    for month in xrange( 1, endtime.tm_mon+1):
+                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        rj+=r.json()
 
-        #size=100
-        #series=[None for i in xrange(size)]
-        #firsttime=rj[0]["date"]
-        #lasttime=rj[-1]["date"]
+        elif starttime.tm_mon != endtime.tm_mon:
+            #span months, same year: get two month minimum
+            step=3600
+            rj=[]
+            for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
+                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
+                rj+=r.json()
 
-        series=[]
+        elif starttime.tm_mday != endtime.tm_mday:
+            #span day same month: get two month minimum
+            step=3600
+            rj=[]
+            for day in xrange( starttime.tm_mday, endtime.tm_mday+1):
+                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
+                rj+=r.json()
 
-        for station in rj:
-            #print "station: ", station
-            val=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
+        elif starttime.tm_hour != endtime.tm_hour:
+            #span hour same day: get two hour minimum
+            step=60
+            rj=[]
+            for hour in xrange( starttime.tm_hour, endtime.tm_hour+1):
+                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
+                rj+=r.json()
 
-            # todo: put data in an equaly time spaced array
-            
-            #print "val: ",val
-            series.append(val)
+        else:
+            #one hour
+            step=60
+            r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
+            step=60*5
+            rj=r.json()
 
-        if len(series) > 0:
-            step=int((int(end_time)-int(start_time))/(len(series)-1))
+        if len(rj) > 0:
+
+            #step=int((int(end_time)-int(start_time))/(len(series)-1))
             #print "step: ",step
             time_info=(start_time, end_time,step)
+            size=int((int(end_time)-int(start_time))/step)+1
+            series=[None for i in xrange(size)]
+            
+            start = rj[0]["date"]
+            end   = rj[-1]["date"]
+            
+            startdate = dateutil.parser.parse(start)  
+            enddate   = dateutil.parser.parse(end)
+        
+            starttime = int(time.mktime(startdate.timetuple()))
+            endtime   = int(time.mktime(enddate.timetuple()))
+
+            #print "request time: ",start_time,end_time
+            #print "getted  time: ",starttime,endtime
+
+            for station in rj:
+                #print "station: ", station
+
+                # put data in an equaly time spaced array
+
+                isodate = station["date"]
+                #print "isodate: ", isodate
+            
+                date = dateutil.parser.parse(isodate)  
+        
+                mytime = int(time.mktime(date.timetuple()))
+
+                #print "mytime: ",mytime
+
+                i=int(((mytime+(step/2))-start_time)/step)
+                #print "i: ",i
+                if i<0 or i>size:
+                    continue
+
+                series[i]=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
+            
         else:
+            series=[]
             time_info=(start_time, end_time,end_time-start_time)
 
         #print "time_info: ",time_info
@@ -199,6 +263,7 @@ class DballeReader(object):
         #time_info = _from_, _to_, _step_
         #time_info=(int(time.time()-100), int(time.time()),1)
         #series=range(*time_info)
+
         return time_info, series
 
     def get_intervals(self):
