@@ -28,7 +28,8 @@ configspec['django']['REGISTRATION_OPEN']="boolean(default=False)"
 configspec['django']['REGISTRATION_EMAIL_SUBJECT_PREFIX']="string(default='RMAP:')"
 
 
-configspec['django']['TIME_ZONE']="string(default='Europe/Rome')"
+#configspec['django']['TIME_ZONE']="string(default='Europe/Rome')"
+configspec['django']['TIME_ZONE']="string(default='GMT')"
 configspec['django']['LANGUAGE_CODE']="string(default='en-us')"
 configspec['django']['SITE_ID']="integer(default=1)"
 configspec['django']['USE_I18N']="boolean(default=True)"
@@ -606,10 +607,10 @@ ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
 #STORAGE_FINDERS = (
-#    'graphite.finders.standard.StandardFinder',
+#    'graphite-dballe.finders.standard.StandardFinder',
 #)
 STORAGE_FINDERS = (
-    'graphite-dballe.dballe.DballeFinder',
+    'graphite-dballe.finders.dballe.DballeFinder',
 )
 
 MAX_TAG_LENGTH = 50

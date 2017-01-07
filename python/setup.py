@@ -8,6 +8,12 @@ from distutils.core import Command
 #from buildutils.cmd import Command
 #from distutils.cmd import Command
 
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+    README = readme.read()
+
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
+
 try:
     from rmap import __version__
 
@@ -175,6 +181,23 @@ for dirpath, dirnames, filenames in os.walk('geoid_heights'):
     if filenames:
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
+for dirpath, dirnames, filenames in os.walk('graphite-dballe/templates'):
+    # Ignore dirnames that start with '.'
+    for i, dirname in enumerate(dirnames):
+        if dirname.startswith('.'): del dirnames[i]
+    if filenames:
+        path=os.path.relpath(dirpath,'graphite-dballe/templates')
+        print "path=",path
+        data_files.append(['share/rmap/templates/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
+
+for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+    # Ignore dirnames that start with '.'
+    for i, dirname in enumerate(dirnames):
+        if dirname.startswith('.'): del dirnames[i]
+    if filenames:
+        path=os.path.relpath(dirpath,'graphite-dballe/static')
+        data_files.append(['share/rmap/static/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
+
 
 #for dirpath, dirnames, filenames in os.walk('tables'):
 #    # Ignore dirnames that start with '.'
@@ -223,24 +246,55 @@ except OSError as e:
 setup(name='rmap',
       version=__version__,
       description='rete monitoraggio ambientale partecipativo',
+      long_description=README,
       author='Paolo Patruno',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
       cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
-      packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc','mapview','http2mqtt','registration','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','registration.migrations','paho','paho.mqtt','borinud','borinud.v1','borinud.v2','borinud.utils','borinud.migrations','geoimage','geoimage.migrations','insertdata','rmap.piexif','amatyr','showdata','showdata.migrations'],
-      package_data={'rmap': ['icons/*.png','tables/*.txt'],'rmap.stations': ['fixtures/*.json'],'mapview': ['icons/*.png'],},
-      scripts=['stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd','amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi','rmapgui','amqp2djangod','amqp2geoimaged'],
+#      include_package_data=True,
+#      packages=find_packages(),
+      packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc',
+                'mapview',
+                'http2mqtt',
+                'registration','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','registration.migrations',
+                'paho','paho.mqtt',
+                'borinud','borinud.v1','borinud.utils','borinud.migrations',
+                'geoimage','geoimage.migrations',
+                'insertdata',
+                'rmap.piexif',
+                'amatyr',
+                'showdata','showdata.migrations',
+                'graphite-dballe','graphite-dballe.migrations',
+                'graphite-dballe.account','graphite-dballe.account.migrations',
+                'graphite-dballe.browser',
+                'graphite-dballe.composer',
+                'graphite-dballe.dashboard','graphite-dballe.dashboard.migrations',
+                'graphite-dballe.events','graphite-dballe.events.migrations',
+                'graphite-dballe.finders',
+                'graphite-dballe.metrics',
+                'graphite-dballe.render',
+                'graphite-dballe.url_shortener','graphite-dballe.url_shortener.migrations',
+                'graphite-dballe.version',
+                'graphite-dballe.whitelist',
+      ],
+      
+      package_data={
+          'rmap': ['icons/*.png','tables/*.txt'],
+          'rmap.stations': ['fixtures/*.json'],
+          'mapview': ['icons/*.png'],          
+      },
+      scripts=[
+          'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
+          'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
+          'rmapgui','amqp2djangod','amqp2geoimaged'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ "django","configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf","nominatim"],
+      install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf","nominatim"],
       extras_require = {
-          'borinud': ['dballe']
+          'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi']
       },
       #install_requires= [ "django","Cython","pil","pysdl2","kivy","plyer","configobj","pika","simplejson"],
       #setup_requires= [ "django","configobj"],
-      long_description="""\
-R-map: participative environmental monitoring net.
-"""
      )
 

@@ -5,10 +5,12 @@ import requests
 import re
 import dateutil.parser
 
-from .intervals import Interval, IntervalSet
-from .node import LeafNode, BranchNode
+from ..intervals import Interval, IntervalSet
+from ..node import LeafNode, BranchNode
 from rmap.settings import *
 from itertools import groupby
+from django.contrib.sites.models import Site
+
 
 def sortandgroup(rj,key):
     return groupby(sorted(rj, key=lambda staz: staz[key]),key=lambda staz: staz[key])
@@ -55,7 +57,7 @@ class  wssummaries(object):
         #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
         uri=path2uri(self.query.pattern)
         
-        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/summaries")
+        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
         rj=r.json()
 
         self.summaries=[]
@@ -159,8 +161,8 @@ class DballeReader(object):
         #check which query we have to do
         #TODO why we are 1 hour shifted?
 
-        starttime=time.gmtime(start_time+3600)
-        endtime=time.gmtime(end_time+3600)
+        starttime=time.gmtime(start_time)
+        endtime=time.gmtime(end_time)
         #print "starttime: ",starttime
 
         if starttime.tm_year != endtime.tm_year:
@@ -171,14 +173,14 @@ class DballeReader(object):
             for year in xrange( starttime.tm_year, endtime.tm_year+1):
                 if starttime.tm_mon < endtime.tm_mon:
                     for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
                         rj+=r.json()
                 else:
                     for month in xrange( starttime.tm_mon, 12+1):
-                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
                         rj+=r.json()
                     for month in xrange( 1, endtime.tm_mon+1):
-                        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
                         rj+=r.json()
 
         elif starttime.tm_mon != endtime.tm_mon:
@@ -186,7 +188,7 @@ class DballeReader(object):
             step=3600
             rj=[]
             for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
                 rj+=r.json()
 
         elif starttime.tm_mday != endtime.tm_mday:
@@ -194,7 +196,7 @@ class DballeReader(object):
             step=3600
             rj=[]
             for day in xrange( starttime.tm_mday, endtime.tm_mday+1):
-                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
                 rj+=r.json()
 
         elif starttime.tm_hour != endtime.tm_hour:
@@ -202,23 +204,30 @@ class DballeReader(object):
             step=60
             rj=[]
             for hour in xrange( starttime.tm_hour, endtime.tm_hour+1):
-                r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
                 rj+=r.json()
 
         else:
             #one hour
             step=60
-            r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
             step=60*5
             rj=r.json()
 
         if len(rj) > 0:
 
-            #step=int((int(end_time)-int(start_time))/(len(series)-1))
-            #print "step: ",step
-            time_info=(start_time, end_time,step)
-            size=int((int(end_time)-int(start_time))/step)+1
-            series=[None for i in xrange(size)]
+            # find minimum step in data and overwrite default
+            if len(rj) > 1:
+                step=end_time-start_time
+                startstep = rj[0]["date"]
+                startdatestep = dateutil.parser.parse(startstep)  
+                starttimestep = int(time.mktime(startdatestep.timetuple()))
+                for i in xrange(1,len(rj)):
+                    endstep   = rj[i]["date"]
+                    enddatestep   = dateutil.parser.parse(endstep)
+                    endtimestep   = int(time.mktime(enddatestep.timetuple()))
+                    step=min([step,endtimestep-starttimestep])
+                    starttimestep=endtimestep
             
             start = rj[0]["date"]
             end   = rj[-1]["date"]
@@ -231,6 +240,12 @@ class DballeReader(object):
 
             #print "request time: ",start_time,end_time
             #print "getted  time: ",starttime,endtime
+            #print "step: ",step
+
+            time_info=(starttime, endtime,step)
+            size=int((int(endtime)-int(starttime))/step)+1
+            series=[None for i in xrange(size)]
+
 
             for station in rj:
                 #print "station: ", station
@@ -271,7 +286,10 @@ class DballeReader(object):
         #return IntervalSet([Interval(start, end)])
 
         uri=path2uri(self.path)
-        r=requests.get("http://127.0.0.1:8888/borinud/api/v1/dbajson/"+uri+"/summaries")
+
+        print "_________>>>>>  http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries"
+
+        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
         rj=r.json()
 
         start=rj[0]["date"][0]
