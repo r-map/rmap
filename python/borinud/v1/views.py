@@ -82,6 +82,7 @@ class dbajson:
                         "level": self.s["level"],
                         "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],
                         "var": self.s["var"],
+                        "val": self.s[self.s["var"]],
                     }
                 
                 features.append({

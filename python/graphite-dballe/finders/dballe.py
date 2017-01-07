@@ -287,8 +287,6 @@ class DballeReader(object):
 
         uri=path2uri(self.path)
 
-        print "_________>>>>>  http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries"
-
         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
         rj=r.json()
 

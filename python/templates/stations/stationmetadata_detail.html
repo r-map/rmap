@@ -52,13 +52,13 @@
       <h4>{% trans 'Variable' %}: {{ sensor.name }}</h4>
      <div class="col-md-6">
 	  <h5><span class="bv aig"></span>{% trans 'Observation' %}</h5>
-          <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.*.v&target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.{{bcode.bcode}}.v&width=586&height=308&_salt=1457007175.149" alt="..." class="img-thumbnail"></p>
-          <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.{{bcode.bcode}}.v" role="button">Graphite &raquo;</a></p>
+          <p><img src="/graphite/render/?target{{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.{{bcode.bcode}}&width=300&height=200" alt="{{bcode.bcode}} graph" class="img-thumbnail"></p>
+          <p><a class="btn btn-default" href="/graphite/composer/?target={{ object.ident }}.{{ object.lon_lat }}.rmap.0_0_60.{{ sensor.underscored_level}}.{{bcode.bcode}}" role="button">Graphite composer &raquo;</a></p>
      </div>
      <div class="col-md-6">
 	  <h5><span class="bv aig"></span>{% trans 'Sample' %}</h5>
-          <p><img src="http://graphite.{{ site.domain }}/render/?showTarget=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.*.v&target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}.v&width=586&height=308&_salt=1457007175.148" alt="..." class="img-thumbnail"></p>
-          <p><a class="btn btn-default" href="http://graphite.{{ site.domain }}/graphlot/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}.v" role="button">Graphite &raquo;</a></p>
+          <p><img src="/graphite/render/?target={{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&width=300&height=200" alt="{{bcode.bcode}} graph" class="img-thumbnail"></p>
+          <p><a class="btn btn-default" href="/graphite/composer/?target={{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}" role="button">Graphite composer &raquo;</a></p>
      </div>
             {% endfor %}
           {% endif %}
