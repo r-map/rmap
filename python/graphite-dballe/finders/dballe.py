@@ -246,10 +246,12 @@ class DballeReader(object):
             if len(rj) > 1:
                 step=end_time-start_time
                 startstep = rj[0]["date"]
+                #print "startstep:",startstep
                 startdatestep = dateutil.parser.parse(startstep)  
                 starttimestep = int(time.mktime(startdatestep.timetuple()))
                 for i in xrange(1,len(rj)):
                     endstep   = rj[i]["date"]
+                    #print "endstep:",endstep
                     enddatestep   = dateutil.parser.parse(endstep)
                     endtimestep   = int(time.mktime(enddatestep.timetuple()))
                     step=min([step,endtimestep-starttimestep])
@@ -264,12 +266,13 @@ class DballeReader(object):
             starttime = int(time.mktime(startdate.timetuple()))
             endtime   = int(time.mktime(enddate.timetuple()))
 
-            print "request time: ",start_time,end_time
-            print "getted  time: ",starttime,endtime
-            print "step: ",step
-
             size=int((int(end_time)-int(start_time))/step)+1
             series=[None for i in xrange(size)]
+
+            #print "request time: ",start_time,end_time
+            #print "getted  time: ",starttime,endtime
+            #print "step: ",step
+            #print "size: ",size
 
             # recompute end time to not have spare
             end_time=start_time+(step*(size-1))
@@ -286,11 +289,9 @@ class DballeReader(object):
                 mytime = int(time.mktime(date.timetuple()))
                 #print "mytime: ",mytime
 
-                i=int(((mytime+(step/2))-start_time)/step)
-                #print "i: ",i
-                if i<0 or i>size:
-                    continue
-                series[i]=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
+                i=int(((mytime+(step/2))-start_time)/step)-1
+                if i>=0 and i<=(size-1):
+                    series[i]=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
             
         else:
             series=[]
