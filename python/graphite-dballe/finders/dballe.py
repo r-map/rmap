@@ -10,7 +10,8 @@ from ..node import LeafNode, BranchNode
 from rmap.settings import *
 from itertools import groupby
 from django.contrib.sites.models import Site
-
+from datetime import timedelta, datetime
+from rrule import rrule, YEARLY, MONTHLY, DAILY, HOURLY
 
 def sortandgroup(rj,key):
     return groupby(sorted(rj, key=lambda staz: staz[key]),key=lambda staz: staz[key])
@@ -18,7 +19,6 @@ def sortandgroup(rj,key):
 
 def path2uri(path):
     #uri="/*/*/*/*/*/*"
-
     #print "path=",path
     uri = path.replace(".","/").replace("_",",")
     uri+="/*" * (5-uri.count("/"))
@@ -157,66 +157,92 @@ class DballeReader(object):
         #print "fetch: ",start_time,end_time
         
         uri=path2uri(self.path)
-        
+        #starttime=time.gmtime(start_time)
+        #print starttime
+        #endtime=time.gmtime(end_time)
+        #print endtime
+        startdt=datetime.utcfromtimestamp(start_time)
+        enddt  =datetime.utcfromtimestamp(end_time)
+
+        step=3600
+        rj=[]
+
+        for dt in rrule(DAILY, dtstart=startdt, until=enddt):
+            #print "loop: ", dt
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day))
+            rj+=r.json()
+
+        # for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
+        #     print "loop: ", dt
+        #     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"/{:02d}".format(dt.hour))
+        #     rj+=r.json()
+
         #check which query we have to do
-        #TODO why we are 1 hour shifted?
+        # dt=enddt-startdt
+        # if dt > timedelta(days=30*8):
+        #     #get  years
+        #     step=3600*24
+        # elif dt > timedelta(days=20):
+        #     #get  month
+        #     step=3600*24
+        #     rj=[]
+        # elif dt > timedelta(hours=18):
+        #     #get days
+        # else:
+        #     #get hours
 
-        starttime=time.gmtime(start_time)
-        endtime=time.gmtime(end_time)
-        #print "starttime: ",starttime
+        # if starttime.tm_year != endtime.tm_year:
+        #     #span years: get two month minimum
+        #     #span years
+        #     step=3600
+        #     rj=[]
+        #     for year in xrange( starttime.tm_year, endtime.tm_year+1):
+        #         if starttime.tm_mon < endtime.tm_mon:
+        #             for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
+        #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+        #                 rj+=r.json()
+        #         else:
+        #             for month in xrange( starttime.tm_mon, 12+1):
+        #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+        #                 rj+=r.json()
+        #             for month in xrange( 1, endtime.tm_mon+1):
+        #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
+        #                 rj+=r.json()
 
-        if starttime.tm_year != endtime.tm_year:
-            #span years: get two month minimum
-            #span years
-            step=3600
-            rj=[]
-            for year in xrange( starttime.tm_year, endtime.tm_year+1):
-                if starttime.tm_mon < endtime.tm_mon:
-                    for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-                        rj+=r.json()
-                else:
-                    for month in xrange( starttime.tm_mon, 12+1):
-                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-                        rj+=r.json()
-                    for month in xrange( 1, endtime.tm_mon+1):
-                        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-                        rj+=r.json()
+        # elif starttime.tm_mon != endtime.tm_mon:
+        #     #span months, same year: get two month minimum
+        #     step=3600
+        #     rj=[]
+        #     for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
+        #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
+        #         rj+=r.json()
 
-        elif starttime.tm_mon != endtime.tm_mon:
-            #span months, same year: get two month minimum
-            step=3600
-            rj=[]
-            for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
-                rj+=r.json()
+        # elif starttime.tm_mday != endtime.tm_mday:
+        #     #span day same month: get two month minimum
+        #     step=3600
+        #     rj=[]
+        #     for day in xrange( starttime.tm_mday, endtime.tm_mday+1):
+        #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
+        #         rj+=r.json()
 
-        elif starttime.tm_mday != endtime.tm_mday:
-            #span day same month: get two month minimum
-            step=3600
-            rj=[]
-            for day in xrange( starttime.tm_mday, endtime.tm_mday+1):
-                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
-                rj+=r.json()
+        # elif starttime.tm_hour != endtime.tm_hour:
+        #     #span hour same day: get two hour minimum
+        #     step=60
+        #     rj=[]
+        #     for hour in xrange( starttime.tm_hour, endtime.tm_hour+1):
+        #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
+        #         rj+=r.json()
 
-        elif starttime.tm_hour != endtime.tm_hour:
-            #span hour same day: get two hour minimum
-            step=60
-            rj=[]
-            for hour in xrange( starttime.tm_hour, endtime.tm_hour+1):
-                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
-                rj+=r.json()
-
-        else:
-            #one hour
-            step=60
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
-            step=60*5
-            rj=r.json()
+        # else:
+        #     #one hour
+        #     step=60
+        #     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
+        #     step=60*5
+        #     rj=r.json()
 
         if len(rj) > 0:
 
-            # find minimum step in data and overwrite default
+            # find minimum step in data
             if len(rj) > 1:
                 step=end_time-start_time
                 startstep = rj[0]["date"]
@@ -238,34 +264,32 @@ class DballeReader(object):
             starttime = int(time.mktime(startdate.timetuple()))
             endtime   = int(time.mktime(enddate.timetuple()))
 
-            #print "request time: ",start_time,end_time
-            #print "getted  time: ",starttime,endtime
-            #print "step: ",step
+            print "request time: ",start_time,end_time
+            print "getted  time: ",starttime,endtime
+            print "step: ",step
 
-            time_info=(starttime, endtime,step)
-            size=int((int(endtime)-int(starttime))/step)+1
+            size=int((int(end_time)-int(start_time))/step)+1
             series=[None for i in xrange(size)]
 
+            # recompute end time to not have spare
+            end_time=start_time+(step*(size-1))
+            time_info=(start_time, end_time, step)
 
             for station in rj:
                 #print "station: ", station
-
                 # put data in an equaly time spaced array
 
                 isodate = station["date"]
                 #print "isodate: ", isodate
             
                 date = dateutil.parser.parse(isodate)  
-        
                 mytime = int(time.mktime(date.timetuple()))
-
                 #print "mytime: ",mytime
 
                 i=int(((mytime+(step/2))-start_time)/step)
                 #print "i: ",i
                 if i<0 or i>size:
                     continue
-
                 series[i]=station["data"][0]["vars"][uri.split("/")[-1]]["v"]
             
         else:
