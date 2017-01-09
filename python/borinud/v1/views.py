@@ -56,12 +56,6 @@ class dbajson:
         
         for self.s in self.handle:
 
-            # TODO !
-            #per summary gestire:
-            #    "lon": self.s.key("lon").enqi(),
-            #    "lat": self.s.key("lat").enqi(),
-            #    "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],            
-
             if self.format == "geojson" :
 
                 if self.stations:
@@ -80,7 +74,7 @@ class dbajson:
                         "network": self.s["rep_memo"],
                         "trange": self.s["trange"],
                         "level": self.s["level"],
-                        "date": [self.s["datemin"].isoformat(), self.s["datemax"].isoformat()],
+                        "date": list( d for d in self.s.date_extremes()) if self.summary else self.s["date"],
                         "var": self.s["var"],
                         "val": self.s[self.s["var"]],
                     }
