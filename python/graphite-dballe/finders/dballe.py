@@ -164,32 +164,43 @@ class DballeReader(object):
         startdt=datetime.utcfromtimestamp(start_time)
         enddt  =datetime.utcfromtimestamp(end_time)
 
-        step=3600
         rj=[]
 
-        for dt in rrule(DAILY, dtstart=startdt, until=enddt):
-            #print "loop: ", dt
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day))
-            rj+=r.json()
-
-        # for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
-        #     print "loop: ", dt
-        #     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"/{:02d}".format(dt.hour))
-        #     rj+=r.json()
-
         #check which query we have to do
-        # dt=enddt-startdt
-        # if dt > timedelta(days=30*8):
-        #     #get  years
-        #     step=3600*24
-        # elif dt > timedelta(days=20):
-        #     #get  month
-        #     step=3600*24
-        #     rj=[]
-        # elif dt > timedelta(hours=18):
-        #     #get days
-        # else:
-        #     #get hours
+        dt=enddt-startdt
+        if dt > timedelta(days=30*8):
+            #get  years
+            step=3600*24
+            for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
+                #print "loop: ", dt
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
+                               "/timeseries/"+"{:04d}".format(dt.year))
+                rj+=r.json()
+        elif dt > timedelta(days=20):
+            #get  month
+            step=3600*6
+            for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
+                #print "loop: ", dt
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month))
+                rj+=r.json()
+        elif dt > timedelta(hours=18):
+            #get days
+            step=3600
+            for dt in rrule(DAILY, dtstart=startdt, until=enddt):
+                #print "loop: ", dt
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day))
+                rj+=r.json()
+        else:
+            #get hours
+            step=60
+            for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
+                print "loop: ", dt
+                r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
+                               "/{:02d}".format(dt.hour))
+                rj+=r.json()
 
         # if starttime.tm_year != endtime.tm_year:
         #     #span years: get two month minimum
@@ -269,10 +280,10 @@ class DballeReader(object):
             size=int((int(end_time)-int(start_time))/step)+1
             series=[None for i in xrange(size)]
 
-            #print "request time: ",start_time,end_time
-            #print "getted  time: ",starttime,endtime
-            #print "step: ",step
-            #print "size: ",size
+            print "request time: ",start_time,end_time
+            print "getted  time: ",starttime,endtime
+            print "step: ",step
+            print "size: ",size
 
             # recompute end time to not have spare
             end_time=start_time+(step*(size-1))
@@ -316,7 +327,7 @@ class DballeReader(object):
         rj=r.json()
 
         start=rj[0]["date"][0]
-        end=rj[0]["date"][1]
+        end=rj[-1]["date"][1]
 
         startdate = dateutil.parser.parse(start)  
         enddate   = dateutil.parser.parse(end)
