@@ -26,9 +26,9 @@
 {% elif day %}
   {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}
 {% elif month %}
-  {% url 'api:v2:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}
+  {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}
 {% elif year %}
-  {% url 'api:v2:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
+  {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
 {% endif %}
   '>Download data</a></p>
 
