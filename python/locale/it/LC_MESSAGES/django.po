@@ -789,7 +789,7 @@ msgstr "Stato connessione: OK connesso"
 
 #: rmap/stations/form.py:15
 msgid "Required: max 9 lowercase alphanumeric characters"
-msgstr "Richiesta: al massimo 9 caratteri alfanumerici"
+msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 
 #: rmap/stations/models.py:76
 msgid "Activate this sensor to take measurements"
