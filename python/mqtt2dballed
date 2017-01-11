@@ -41,7 +41,7 @@ def main(self):
             if not p1.poll() is None:
                 break
 
-            p2 = subprocess.Popen(["dbadb","import","-f","--dsn="+rmap.settings.dsnmqtt2dballed],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
+            p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",rmap.settings.dsnmqtt2dballed],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
             #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
             stdoutdata, stderrdata = p2.communicate()
             #,env=my_env
