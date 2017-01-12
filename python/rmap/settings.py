@@ -496,6 +496,67 @@ if not android :
         }
     }
 
+
+
+measurements=[
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B10004",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11001",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11002",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13011",
+        "level": (1, None, None, None),
+        "trange": (1, 0, 3600),
+    },
+    {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B20003",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13013",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B20001",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+]
+
+
 BORINUD = {
     "SOURCES": 
     [
@@ -506,51 +567,12 @@ BORINUD = {
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
             "dataset": "http://localhost:8090/dataset/meteonetwork",
-            "measurements": 
-            [
-                {
-                    "var": "B13011",
-                    "level": (1, None, None, None),
-                    "trange": (0, 0, 3600),
-                }, 
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (0, 0, 60),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (0, 0, 60),
-                },
-            ]
+            "measurements": measurements
         },
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
             "dataset": "http://localhost:8090/dataset/rmap",
-            "measurements": 
-            [
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-            ],
+            "measurements": measurements
         }
     ],
     "CACHED_SUMMARY": "default",

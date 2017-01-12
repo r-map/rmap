@@ -17,11 +17,9 @@ def menu(request, **kwargs):
 
 ####   define what to put on menu #############
 
-    metad=BORINUD ["SOURCES"][0]["measurements"] 
-
     metadata=[]
 
-    for mymeta in metad:
+    for mymeta in measurements:
 
         meta={}
 
