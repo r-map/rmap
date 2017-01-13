@@ -564,16 +564,16 @@ BORINUD = {
             "class": "borinud.utils.source.DballeDB",
             "url": dsnmqtt2dballed,
         }, 
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/meteonetwork",
-            "measurements": measurements
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/rmap",
-            "measurements": measurements
-        }
+#        {
+#            "class": "borinud.utils.source.ArkimetBufrDB",
+#            "dataset": "http://localhost:8090/dataset/meteonetwork",
+#            "measurements": measurements
+#        },
+#        {
+#            "class": "borinud.utils.source.ArkimetBufrDB",
+#            "dataset": "http://localhost:8090/dataset/rmap",
+#            "measurements": measurements
+#        }
     ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,

@@ -132,7 +132,7 @@ def spatialseries(request, **kwargs):
     return render(request, 'showdata/spatialseries.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var"), "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"), "hour":kwargs.get("hour"), "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,"datefrom":datefrom,"dateuntil":dateuntil})
 
 
-def stationdata(request, **kwargs):
+def stations(request, **kwargs):
 
-    return render(request, 'showdata/stationdata.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var")})
+    return render(request, 'showdata/stations.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var")})
 

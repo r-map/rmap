@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load i18n %}
+
+{% block extra_assets %}
+  {% leaflet_js %}
+  {% leaflet_css %}
+
+<link rel="stylesheet" href="/static/rmap/libs/jquery-ui-1.12.1//jquery-ui.css" type="text/css" />
+<script type="text/javascript" src="/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" ></script>
+
+<style>
+
+.ui-dialog,.ui-dialog-content {background:green}
+
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<h4>
+Ident: {{ident}}<br>
+Network: {{network}}<br>
+</h4>
+
+<div id="loading" title="Loading data"> 
+    <p>Please wait ...</p>
+</div>
+
+    <script type="text/javascript">
+
+$("#loading").dialog({
+    hide: 'slide',
+    show: 'slide',
+    autoOpen: false
+});
+
+var url = "{% url 'api:v1:stations' 'geojson' ident coords network trange level var %}"
+var coords=[];
+
+
+function null2_(i)
+{
+    return(i === null) ? "-" : i;
+}
+
+/*
+function  null2_( target ) 
+{
+    Object.keys( target ).map
+    ( 
+	function ( key ) {
+	    if ( ! target[ key ] instanceof Object ) 
+	    {
+		if ( target[ key ] === null ) 
+		{
+		    target[ key ] = "-";
+		}
+	    }
+	}
+    );
+  return target;
+};
+*/
+
+
+function oneachfeature(feature, layer)
+			  {
+			      var popupText = "Ident: " + feature.properties.ident
+				  + "<br>Lon: " + feature.properties.lon
+				  + "<br>Lat: " + feature.properties.lat
+				  + "<br>Network: " + feature.properties.network
+                  //+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
+				  + "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/*/*/*/stations"
+				  + "'>All stations same ident and network</a>"
+			      
+				  + "<br><a href='/showdata/*/*/"+null2_(feature.properties.network)+"/*/*/*/stations"
+				  + "'>All stations same network</a>"
+			      
+				  + "<br><a href='" + "{% url 'showdata:stations' '*' '*' '*' '*' '*' '*' %}" + "'>All stations</a>";
+			      layer.bindPopup(popupText);
+			  }
+
+function pointtolayer(feature, latlng) 
+{
+    
+    if (feature.geometry && feature.geometry.coordinates) {
+	coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
+
+	return L.marker(latlng, {  riseOnHover: true, riseOffset: 10000, title:feature.properties.ident});
+	
+	//, zIndexOffset: 1
+    }
+}
+
+function beforesend(){
+    $("#loading").dialog('open').html("<p>Please Wait...</p>");
+}
+
+
+function map_init(map, options) 
+{
+    
+    $.ajax
+    (
+	{
+            url: url,
+            dataType: "json",
+	    beforeSend: beforesend,
+	    success: function(collection)
+	    {	
+		// Aggiungi il JSON in leaflet
+		L.geoJson
+		(
+		    collection,
+		      {
+			onEachFeature: oneachfeature,
+			  pointToLayer: pointtolayer	
+		      }
+			 ).addTo(map);
+		
+		try{
+		    map.fitBounds(coords);
+		}
+		catch(err) {
+		    $('#loading').html("<p>Error setting bounds...</p>");
+		}
+	    
+		$('#loading').html("<p>Result Complete...</p>");
+		$("#loading").dialog('close')
+	    },
+
+	    
+	    error: function(jqXHR,textStatus,errorThrown )
+	    {	
+		$('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
+	    }
+	}
+    )
+}
+
+</script>
+
+{% leaflet_map "spots" callback="window.map_init" %}
+
+    <p style="text-align:right">
+    <a href='
+{% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}
+'>Download data</a></p>
+    
+{% endblock %}
