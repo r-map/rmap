@@ -38,12 +38,21 @@
 
 {% block content %}
 
+<div class="row">
+<div class="span4">
 <h4>
 {{vartxt}}<br>
 {{trangetxt}}<br>
 {{leveltxt}}<br>
 {{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
 </h4>
+</div>
+
+                     <div class="span3 offset2">{{less}}</div>
+<div class="span3">{{previous}}</div>       <div class="span3 offset2"> {{next}}</div>
+                     <div class="span3 offset2">{{more}}</div>
+</div>
+
 
 <div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
