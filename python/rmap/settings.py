@@ -59,6 +59,10 @@ configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 configspec['rmapweb']={}
 
 configspec['rmapweb']['logfile']  = "string(default='/tmp/rmapweb.log')"
+configspec['rmapweb']['graphiteinfologfile']  = "string(default='/tmp/graphiteinfo.log')"
+configspec['rmapweb']['graphiteexceptionlogfile']  = "string(default='/tmp/graphiteexception.log')"
+configspec['rmapweb']['graphitecachelogfile']  = "string(default='/tmp/graphitecache.log')"
+configspec['rmapweb']['graphiterenderinglogfile']  = "string(default='/tmp/graphiterendering.log')"
 configspec['rmapweb']['errfile']  = "string(default='/tmp/rmapweb.err')"
 configspec['rmapweb']['lockfile'] = "string(default='/tmp/rmapweb.lock')"
 configspec['rmapweb']['user']     = "string(default=None)"
@@ -240,6 +244,10 @@ mqttpassword            = config['daemon']['mqttpassword']
 
 # section rmapweb
 logfileweb              = config['rmapweb']['logfile']
+GRAPHITEINFOLOG         = config['rmapweb']['graphiteinfologfile']
+GRAPHITEEXCEPTIONLOG    = config['rmapweb']['graphiteexceptionlogfile']
+GRAPHITECACHELOG        = config['rmapweb']['graphitecachelogfile']
+GRAPHITERENDERINGLOG    = config['rmapweb']['graphiterenderinglogfile']
 errfileweb              = config['rmapweb']['errfile']
 lockfileweb             = config['rmapweb']['lockfile']
 userweb                 = config['rmapweb']['user']
@@ -653,7 +661,6 @@ GRAPHTEMPLATES_CONF = ''
 STORAGE_DIR = ''
 WHITELIST_FILE = ''
 INDEX_FILE = ''
-LOG_DIR = ''
 LOG_RENDERING_PERFORMANCE = False
 CARBONLINK_HOSTS = ["127.0.0.1:7002"]
 CARBONLINK_TIMEOUT = 1.0
@@ -687,6 +694,3 @@ if not WHITELIST_FILE:
   WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
 if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
-if not LOG_DIR:
-  LOG_DIR = join(STORAGE_DIR, 'log', 'webapp')
-

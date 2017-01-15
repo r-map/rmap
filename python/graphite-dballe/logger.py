@@ -34,28 +34,28 @@ logging.addLevelName(30,"cache")
 
 class GraphiteLogger:
   def __init__(self):
-    self.infoLogger = self._config_logger('info.log',
+    self.infoLogger = self._config_logger(settings.GRAPHITEINFOLOG,
                                           'info',
                                           True,
                                           level = logging.INFO,
                                           )
-    self.exceptionLogger = self._config_logger('exception.log',
+    self.exceptionLogger = self._config_logger(settings.GRAPHITEEXCEPTIONLOG,
                                                'exception',
                                                True,
                                                )
-    self.cacheLogger = self._config_logger('cache.log',
+    self.cacheLogger = self._config_logger(settings.GRAPHITECACHELOG,
                                            'cache',
                                            settings.LOG_CACHE_PERFORMANCE,
                                            )
-    self.renderingLogger = self._config_logger('rendering.log',
+    self.renderingLogger = self._config_logger(settings.GRAPHITERENDERINGLOG,
                                                'rendering',
                                                settings.LOG_RENDERING_PERFORMANCE,
                                                )
 
   @staticmethod
-  def _config_logger(log_file_name, name, activate,
+  def _config_logger(log_file, name, activate,
                      level=None, when='midnight', backupCount=settings.LOG_ROTATION_COUNT):
-    log_file = os.path.join(settings.LOG_DIR, log_file_name)
+    #log_file = os.path.join(settings.LOG_DIR, log_file_name)
     logger = logging.getLogger(name)
     if level is not None:
         logger.setLevel(level)
