@@ -13,6 +13,13 @@
 {{datefrom}} - {{dateuntil}} GMT
 </h4>
 
+</div>
+
+                     <div class="span3 offset2">{{less}}</div>
+<div class="span3">{{previous}}</div>       <div class="span3 offset2"> {{next}}</div>
+                     <div class="span3 offset2">{{more}}</div>
+</div>
+
 <p>
   <img src="/graphite/render/?target={{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400" alt="graphic for {{var}}" class="img-thumbnail">
 </p>

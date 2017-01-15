@@ -59,18 +59,59 @@ def timeseries(request, **kwargs):
         if kwargs.get("month"):
             if kwargs.get("day"):
                 if kwargs.get("hour"):
+                    #HOURLY
+                    timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")), day=int(kwargs.get("day")), hour=int(kwargs.get("hour")))
+                    delta=timedelta(hours=1)
+                    dtprevious = timerequested - delta
+                    dtnext     = timerequested + delta
+                    previous = '{:04d}/{:02d}/{:02d}/{:02d}'.format(dtprevious.year,dtprevious.month,dtprevious.day,dtprevious.hour)
+                    next     = '{:04d}/{:02d}/{:02d}/{:02d}'.format(dtnext.year,    dtnext.month,    dtnext.day,    dtnext.hour)
+                    less='{year}/{month}/{day}'.format(year=kwargs.get("year"),month=kwargs.get("month"),day=kwargs.get("day"))
+                    more=None
                     datefrom=kwargs.get("hour")+":00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                 else:
+                    #DAILY
+                    timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"), day=kwargs.get("day"))
+                    delta=timedelta(days=1)
+                    dtprevious = timerequested - delta
+                    dtnext     = timerequested + delta
+                    previous = '{:04d}/{:02d}/{:02d}'.format(dtprevious.year,dtprevious.month,dtprevious.day)
+                    next     = '{:04d}/{:02d}/{:02d}'.format(dtnext.year,    dtnext.month,    dtnext.day)
+                    less='{year}/{month}/{day}/12'.format(year=kwargs.get("year"),month=kwargs.get("month"),day=kwargs.get("day"))
+                    more='{year}/{month}'.format(year=kwargs.get("year"),month=kwargs.get("month"))
                     datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
             else:
+                #MONTHLY
+                timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"))
+                delta=timedelta(months=1)
+                dtprevious = timerequested - delta
+                dtnext     = timerequested + delta
+                previous = '{:04d}/{:02d}'.format(dtprevious.year,dtprevious.month)
+                next     = '{:04d}/{:02d}'.format(dtnext.year,    dtnext.month)
+                less='{year}/{month}/15'.format(year=kwargs.get("year"),month=kwargs.get("month"))
+                more='{year}'.format(year=kwargs.get("year"))
                 datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+"01"
                 dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+"31"
         else:
+            #YEARLY
+            timerequested=datetime(year=kwargs.get("year"))
+            delta=timedelta(yearss=1)
+            dtprevious = timerequested - delta
+            dtnext     = timerequested + delta
+            previous = '{:04d}/{:02d}'.format(dtprevious.year,dtprevious.month)
+            next     = '{:04d}/{:02d}'.format(dtnext.year,    dtnext.month)
+            less='{year}/06'.format(year=kwargs.get("year"))
+            more=None
             datefrom="00:00_"+kwargs.get("year")+"0101"
             dateuntil="23:59_"+kwargs.get("year")+"1231"
     else:
+        #WRONG
+        previous=None
+        next=None
+        less=None
+        more=None
         datefrom=""
         dateuntil=""
 
