@@ -2,13 +2,19 @@
 {% load leaflet_tags %}
 {% load geojson_tags %}
 {% load i18n %}
-
+{% load staticfiles %}
 {% block extra_assets %}
   {% leaflet_js %}
   {% leaflet_css %}
 
-<link rel="stylesheet" href="/static/rmap/libs/jquery-ui-1.12.1//jquery-ui.css" type="text/css" />
-<script type="text/javascript" src="/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" ></script>
+    <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/bootstrap/3.3.6/css/bootstrap.min.css" %}" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" >
+    <link rel="stylesheet" type="text/css" href="{% static "rmap/libs/bootstrap/3.3.6/css/docs.min.css" %}" >
+
+    <!-- Custom styles for this template -->
+    <script src="{% static "rmap/libs/bootstrap/3.3.6/js/bootstrap.min.js" %}" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" type="text/javascript"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 
@@ -37,14 +43,37 @@
 {% endblock %}
 
 {% block content %}
-
+<div class="container-fluid">
+<div class="row">
+  <div class="col-xs-8">
 <h4>
 {{vartxt}}<br>
 {{trangetxt}}<br>
 {{leveltxt}}<br>
 {{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
 </h4>
-
+  </div>
+  <div class="col-xs-4">
+    <div class=row>
+      <div class="col-xs-1 col-xs-offset-2">
+       Up 
+      </div>
+    </div>
+    <div class=row>
+      <div class="col-xs-1">
+        Left
+      </div>
+      <div class="col-xs-1 col-xs-offset-3">
+        Right
+      </div>
+    </div>
+    <div class=row>
+      <div class="col-xs-1 col-xs-offset-2">
+        Down
+      </div>
+    </div>
+  </div>
+</div>
 <div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
 </div>
@@ -188,14 +217,18 @@ function map_init(map, options)
 </script>
 
   {% leaflet_map "spots" callback="window.map_init" %}
+<div class="row">
+    <div class="col-xs-12 col-xs-offset-10">
 
-  <p style="text-align:right">
   <a href='
   {% if hour %}
     {% url 'api:v2:spatialserieshourly' ident coords network trange level var year month day hour %}
   {% else %}
     {% url 'api:v2:spatialseriesdaily' ident coords network trange level var year month day %}
   {% endif %}
-  '>Download data</a></p>
+  '>Download data</a>
+     </div>
+  </div>
+</div>
 
 {% endblock %}
