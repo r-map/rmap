@@ -72,7 +72,7 @@ def timeseries(request, **kwargs):
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                 else:
                     #DAILY
-                    timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"), day=kwargs.get("day"))
+                    timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")), day=int(kwargs.get("day")))
                     delta=timedelta(days=1)
                     dtprevious = timerequested - delta
                     dtnext     = timerequested + delta
@@ -84,7 +84,7 @@ def timeseries(request, **kwargs):
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
             else:
                 #MONTHLY
-                timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"))
+                timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")))
                 delta=timedelta(months=1)
                 dtprevious = timerequested - delta
                 dtnext     = timerequested + delta
@@ -96,7 +96,7 @@ def timeseries(request, **kwargs):
                 dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+"31"
         else:
             #YEARLY
-            timerequested=datetime(year=kwargs.get("year"))
+            timerequested=datetime(year=int(kwargs.get("year")))
             delta=timedelta(yearss=1)
             dtprevious = timerequested - delta
             dtnext     = timerequested + delta
@@ -161,7 +161,7 @@ def spatialseries(request, **kwargs):
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                 else:
                     #DAILY
-                    timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"), day=kwargs.get("day"))
+                    timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")), day=int(kwargs.get("day")))
                     delta=timedelta(days=1)
                     dtprevious = timerequested - delta
                     dtnext     = timerequested + delta
@@ -173,7 +173,7 @@ def spatialseries(request, **kwargs):
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
             else:
                 #MONTHLY
-                timerequested=datetime(year=kwargs.get("year"), month=kwargs.get("month"))
+                timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")))
                 delta=timedelta(months=1)
                 dtprevious = timerequested - delta
                 dtnext     = timerequested + delta
@@ -185,7 +185,7 @@ def spatialseries(request, **kwargs):
                 dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+"31"
         else:
             #YEARLY
-            timerequested=datetime(year=kwargs.get("year"))
+            timerequested=datetime(year=int(kwargs.get("year")))
             delta=timedelta(yearss=1)
             dtprevious = timerequested - delta
             dtnext     = timerequested + delta
