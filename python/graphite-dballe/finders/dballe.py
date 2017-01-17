@@ -21,15 +21,18 @@ def path2uri(path):
     #uri="/*/*/*/*/*/*"
     #print "path=",path
     uri = path.replace(".","/").replace("_",",")
-    uri+="/*" * (5-uri.count("/"))
+    uri+="/*" * (6-uri.count("/"))
+    print uri
+    #remove the root path
+    uri = "{}/{}/{}/{}/{}/{}".format(*uri.split("/")[1:])
+
     return uri
 
 class  wssummaries(object):
 
-    def __init__(self,query):
+    def __init__(self,query,rootpath):
         self.query=query
-
-    def __iter__(self):
+        self.rootpath=rootpath
 
         #print "query pattern: ",self.query.pattern
         #self.query.startTime
@@ -39,63 +42,90 @@ class  wssummaries(object):
 
         position=self.query.pattern.count(".")
         if position == 0:
-            self.key="ident"
+            self.key="root"
         elif position == 1:
-            self.key="lonlat"
+            self.key="ident"
         elif position == 2:
-            self.key="network"
+            self.key="lonlat"
         elif position == 3:
-            self.key="timerange"
+            self.key="network"
         elif position == 4:
-            self.key="level"
+            self.key="timerange"
         elif position == 5:
+            self.key="level"
+        elif position == 6:
             self.key="var"
             self.branch=False
         else:
             raise "error in graphite query to dballe"
 
-        #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
-        uri=path2uri(self.query.pattern)
-        
-        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
-        rj=r.json()
-
         self.summaries=[]
-        for station in rj:
-            newstation={}
-            newstation["ident"]=station["ident"] if not station["ident"] is None else "-"                 
-            newstation["lonlat"]=str(station["lon"])+"_"+str(station["lat"])
-            newstation["network"]=station["network"]
 
-            for data in station["data"]:
-                #print "data: ",data
+        if self.key != "root" and self.query.pattern.split(".")[0] == self.rootpath:
 
-                for i,value in enumerate(data["level"]):
-                    if data["level"][i] is None:
-                        data["level"][i]="-"
-                    else:
-                        data["level"][i]=str(data["level"][i])
+            #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
+            uri=path2uri(self.query.pattern)
+        
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
+            rj=r.json()
 
-                for i,value in enumerate(data["timerange"]):
-                    if data["timerange"][i] is None:
-                        data["timerange"][i]="-"
-                    else:
-                        data["timerange"][i]=str(data["timerange"][i])
+            #serialize json in a new json good to build graphite path 
+            for station in rj:
+
+                #skip fixed station in mobile
+                if self.rootpath == "mobile" and station["ident"] is None:
+                    continue
+
+                newstation={}
+                newstation["ident"]=station["ident"] if not station["ident"] is None else "-"                 
+
+                if self.rootpath == "mobile" :
+                    newstation["lonlat"]="*"
+                else:
+                    newstation["lonlat"]=str(station["lon"])+"_"+str(station["lat"])
+
+                newstation["network"]=station["network"]
+
+                for data in station["data"]:
+                    #print "data: ",data
+
+                    for i,value in enumerate(data["level"]):
+                        if data["level"][i] is None:
+                            data["level"][i]="-"
+                        else:
+                            data["level"][i]=str(data["level"][i])
+
+                    for i,value in enumerate(data["timerange"]):
+                        if data["timerange"][i] is None:
+                            data["timerange"][i]="-"
+                        else:
+                            data["timerange"][i]=str(data["timerange"][i])
                             
-                newstation["level"]= data["level"][0]+"_"+data["level"][1]+"_"+data["level"][2]+"_"+data["level"][3]
-                newstation["timerange"]=data["timerange"][0]+"_"+data["timerange"][1]+"_"+data["timerange"][2]
+                    newstation["level"]= data["level"][0]+"_"+data["level"][1]+"_"+data["level"][2]+"_"+data["level"][3]
+                    newstation["timerange"]=data["timerange"][0]+"_"+data["timerange"][1]+"_"+data["timerange"][2]
 
-                for key in data["vars"].keys():
-                    newstation["var"]=key
+                    for key in data["vars"].keys():
+                        newstation["var"]=key
                             
-                    self.summaries.append(newstation)
+                        self.summaries.append(newstation)
 
-                
-        return self.next()
+        #initialize generator
+        self.mygenerator=self.generator()
+
+    def __iter__(self):
+        return self
 
     def next(self):
+        #the next of iterator is next of generator
+        return self.mygenerator.next()
 
-        if self.branch:
+    def generator(self):
+
+        if self.key == "root":
+            #we are in the root branch
+            yield True,self.rootpath
+
+        elif self.branch:
             for k,g in sortandgroup(self.summaries,self.key):
                 #print "---->>",self.key," = ",k
                 #for station in g:
@@ -105,14 +135,13 @@ class  wssummaries(object):
                     k="-"
                 
                 self.node=str(k)
-
+                print "---------->",self.node
                 yield self.branch,self.node
 
         else:
             for summary in self.summaries:
                 #print "summary",summary
-                self.node=summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
-
+                self.node=self.rootpath+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
                 yield self.branch,self.node
 
 
@@ -120,12 +149,11 @@ class DballeFinder(object):
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query):
-
+        for branch,node in wssummaries(query,"fixed"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node))
+                yield LeafNode(node, DballeReader(node,"fixed"))
             
 #LeafNode is created with a reader, which is the class responsible for
 #fetching the datapoints for the given path. It is a simple class with
@@ -144,11 +172,25 @@ class DballeFinder(object):
 #available for this given metric in the database.
 #It must return an IntervalSet of one or more Interval objects.
 
-class DballeReader(object):
-    __slots__ = ('path',)  # __slots__ is recommended to save memory on readers
+class DballeFinderMobile(object):
 
-    def __init__(self, path):
+    def find_nodes(self, query):
+
+        # find some paths matching the query, then yield them
+        for branch,node in wssummaries(query,"mobile"):
+            if branch:
+                yield BranchNode(node)
+            else:
+                yield LeafNode(node, DballeReader(node,"mobile"))
+
+
+
+class DballeReader(object):
+    __slots__ = ('path','rootpath')  # __slots__ is recommended to save memory on readers
+
+    def __init__(self, path, rootpath):
         self.path = path
+        self.rootpath = rootpath
         #print "path: ", self.path
         
     def fetch(self, start_time, end_time):
@@ -196,7 +238,7 @@ class DballeReader(object):
             #get hours
             step=60
             for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
-                print "loop: ", dt
+                #print "loop: ", dt
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
                                "/{:02d}".format(dt.hour))
@@ -253,6 +295,11 @@ class DballeReader(object):
 
         if len(rj) > 0:
 
+            if self.rootpath == "mobile" :
+                print "unsorted: ",rj
+                rj=sorted(rj, key=lambda staz: staz["date"])
+                print "sorted: ",rj
+
             # find minimum step in data
             if len(rj) > 1:
                 step=end_time-start_time
@@ -280,10 +327,10 @@ class DballeReader(object):
             size=int((int(end_time)-int(start_time))/step)+1
             series=[None for i in xrange(size)]
 
-            print "request time: ",start_time,end_time
-            print "getted  time: ",starttime,endtime
-            print "step: ",step
-            print "size: ",size
+            #print "request time: ",start_time,end_time
+            #print "getted  time: ",starttime,endtime
+            #print "step: ",step
+            #print "size: ",size
 
             # recompute end time to not have spare
             end_time=start_time+(step*(size-1))
@@ -308,8 +355,8 @@ class DballeReader(object):
             series=[]
             time_info=(start_time, end_time,end_time-start_time)
 
-        #print "time_info: ",time_info
-        #print "series: ",series
+        print "time_info: ",time_info
+        print "series: ",series
 
         #time_info = _from_, _to_, _step_
         #time_info=(int(time.time()-100), int(time.time()),1)
