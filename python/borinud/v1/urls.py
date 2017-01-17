@@ -6,7 +6,8 @@ from . import views
 # TODO: each item must be configured to allow fixed, all or miss
 
 basepattern = (
-    r'^(?P<ident>\w+|\*|-)'
+    r'^(?P<format>\w+)'
+    r'/(?P<ident>\w+|\*|-)'
     r'/(?P<coords>(?P<lon>\d+|-),(?P<lat>\d+|-)|\*)'
     r'/(?P<network>[-\w]+|\*)'
     r'/(?P<trange>(?P<tr>\d+|-|\*),(?P<p1>\d+|-|\*),(?P<p2>\d+|-|\*)|\*)'
@@ -24,5 +25,6 @@ urlpatterns = [
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.timeseries, name="timeserieshourly"),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.spatialseries, name="spatialseriesdaily"),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.spatialseries, name="spatialserieshourly"),
-    url(basepattern + r'/stationdata', views.stationdata, name="stationdata"),
+    url(basepattern + r'/stationdata$', views.stationdata, name="stationdata"),
+    url(basepattern + r'/stations$', views.stations, name="stations"),
 ]

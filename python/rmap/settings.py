@@ -28,7 +28,8 @@ configspec['django']['REGISTRATION_OPEN']="boolean(default=False)"
 configspec['django']['REGISTRATION_EMAIL_SUBJECT_PREFIX']="string(default='RMAP:')"
 
 
-configspec['django']['TIME_ZONE']="string(default='Europe/Rome')"
+#configspec['django']['TIME_ZONE']="string(default='Europe/Rome')"
+configspec['django']['TIME_ZONE']="string(default='GMT')"
 configspec['django']['LANGUAGE_CODE']="string(default='en-us')"
 configspec['django']['SITE_ID']="integer(default=1)"
 configspec['django']['USE_I18N']="boolean(default=True)"
@@ -58,6 +59,10 @@ configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 configspec['rmapweb']={}
 
 configspec['rmapweb']['logfile']  = "string(default='/tmp/rmapweb.log')"
+configspec['rmapweb']['graphiteinfologfile']  = "string(default='/tmp/graphiteinfo.log')"
+configspec['rmapweb']['graphiteexceptionlogfile']  = "string(default='/tmp/graphiteexception.log')"
+configspec['rmapweb']['graphitecachelogfile']  = "string(default='/tmp/graphitecache.log')"
+configspec['rmapweb']['graphiterenderinglogfile']  = "string(default='/tmp/graphiterendering.log')"
 configspec['rmapweb']['errfile']  = "string(default='/tmp/rmapweb.err')"
 configspec['rmapweb']['lockfile'] = "string(default='/tmp/rmapweb.lock')"
 configspec['rmapweb']['user']     = "string(default=None)"
@@ -239,6 +244,10 @@ mqttpassword            = config['daemon']['mqttpassword']
 
 # section rmapweb
 logfileweb              = config['rmapweb']['logfile']
+GRAPHITEINFOLOG         = config['rmapweb']['graphiteinfologfile']
+GRAPHITEEXCEPTIONLOG    = config['rmapweb']['graphiteexceptionlogfile']
+GRAPHITECACHELOG        = config['rmapweb']['graphitecachelogfile']
+GRAPHITERENDERINGLOG    = config['rmapweb']['graphiterenderinglogfile']
 errfileweb              = config['rmapweb']['errfile']
 lockfileweb             = config['rmapweb']['lockfile']
 userweb                 = config['rmapweb']['user']
@@ -495,6 +504,67 @@ if not android :
         }
     }
 
+
+
+measurements=[
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B10004",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11001",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11002",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13011",
+        "level": (1, None, None, None),
+        "trange": (1, 0, 3600),
+    },
+    {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B20003",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13013",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B20001",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+]
+
+
 BORINUD = {
     "SOURCES": 
     [
@@ -502,55 +572,16 @@ BORINUD = {
             "class": "borinud.utils.source.DballeDB",
             "url": dsnmqtt2dballed,
         }, 
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/meteonetwork",
-            "measurements": 
-            [
-                {
-                    "var": "B13011",
-                    "level": (1, None, None, None),
-                    "trange": (0, 0, 3600),
-                }, 
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (0, 0, 60),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (0, 0, 60),
-                },
-            ]
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/rmap",
-            "measurements": 
-            [
-                {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-                {
-                    "var": "B13003",
-                    "level": (103, 2000, None, None),
-                    "trange": (254, 0, 0),
-                },
-            ],
-        }
+#        {
+#            "class": "borinud.utils.source.ArkimetBufrDB",
+#            "dataset": "http://localhost:8090/dataset/meteonetwork",
+#            "measurements": measurements
+#        },
+#        {
+#            "class": "borinud.utils.source.ArkimetBufrDB",
+#            "dataset": "http://localhost:8090/dataset/rmap",
+#            "measurements": measurements
+#        }
     ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
@@ -572,3 +603,94 @@ LEAFLET_CONFIG = {
 
 MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
 
+
+#               graphite
+
+from os.path import abspath, dirname, join
+
+INSTALLED_APPS += (
+    'graphite-dballe',
+    'graphite-dballe.metrics',
+    'graphite-dballe.render',
+    'graphite-dballe.browser',
+    'graphite-dballe.composer',
+    'graphite-dballe.account',
+    'graphite-dballe.dashboard',
+    'graphite-dballe.whitelist',
+    'graphite-dballe.events',
+    'graphite-dballe.url_shortener',
+    'tagging',
+)
+
+JAVASCRIPT_DEBUG = False
+DATE_FORMAT = '%m/%d'
+WEB_DIR = dirname( abspath(__file__) )
+WEBAPP_DIR = dirname(WEB_DIR)
+GRAPHITE_ROOT = dirname(WEBAPP_DIR)
+DEFAULT_CACHE_DURATION = 60 #metric data and graphs are cached for one minute by default
+LOG_CACHE_PERFORMANCE = False
+LOG_ROTATION = True
+LOG_ROTATION_COUNT = 1
+MAX_FETCH_RETRIES = 2
+DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
+ALLOW_ANONYMOUS_CLI = True
+LEGEND_MAX_ITEMS = 10
+RRD_CF = 'AVERAGE'
+#STORAGE_FINDERS = (
+#    'graphite-dballe.finders.standard.StandardFinder',
+#)
+STORAGE_FINDERS = (
+    'graphite-dballe.finders.dballe.DballeFinder',
+)
+
+MAX_TAG_LENGTH = 50
+AUTO_REFRESH_INTERVAL = 60
+# Set to True to require authentication to save or delete dashboards
+DASHBOARD_REQUIRE_AUTHENTICATION = False
+# Require Django change/delete permissions to save or delete dashboards.
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_PERMISSIONS = False
+# Name of a group to which the user must belong to save or delete dashboards.  Alternative to
+# DASHBOARD_REQUIRE_PERMISSIONS, particularly useful when using only LDAP (without Admin app)
+# NOTE: Requires DASHBOARD_REQUIRE_AUTHENTICATION to be set
+DASHBOARD_REQUIRE_EDIT_GROUP = None
+
+CONF_DIR = ''
+DASHBOARD_CONF = ''
+GRAPHTEMPLATES_CONF = ''
+STORAGE_DIR = ''
+WHITELIST_FILE = ''
+INDEX_FILE = ''
+LOG_RENDERING_PERFORMANCE = False
+CARBONLINK_HOSTS = ["127.0.0.1:7002"]
+CARBONLINK_TIMEOUT = 1.0
+CARBONLINK_HASHING_KEYFUNC = None
+CARBONLINK_HASHING_TYPE = 'carbon_ch'
+CARBONLINK_RETRY_DELAY = 15
+REPLICATION_FACTOR = 1
+STANDARD_DIRS = []
+# Cluster settings
+CLUSTER_SERVERS = []
+URL_PREFIX = ''
+DEFAULT_CACHE_POLICY = []
+#Remote rendering settings
+REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
+RENDERING_HOSTS = []
+REMOTE_RENDER_CONNECT_TIMEOUT = 1.0
+LOG_RENDERING_PERFORMANCE = False
+FIND_CACHE_DURATION = 300
+FIND_TOLERANCE = 2 * FIND_CACHE_DURATION
+REMOTE_STORE_MERGE_RESULTS = True
+
+if not CONF_DIR:
+  CONF_DIR = os.environ.get('GRAPHITE_CONF_DIR', join(GRAPHITE_ROOT, 'conf'))
+if not DASHBOARD_CONF:
+  DASHBOARD_CONF = join(CONF_DIR, 'dashboard.conf')
+if not GRAPHTEMPLATES_CONF:
+  GRAPHTEMPLATES_CONF = join(CONF_DIR, 'graphTemplates.conf')
+if not STORAGE_DIR:
+  STORAGE_DIR = os.environ.get('GRAPHITE_STORAGE_DIR', join(GRAPHITE_ROOT, 'storage'))
+if not WHITELIST_FILE:
+  WHITELIST_FILE = join(STORAGE_DIR, 'lists', 'whitelist')
+if not INDEX_FILE:
+  INDEX_FILE = join(STORAGE_DIR, 'index')

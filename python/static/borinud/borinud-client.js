@@ -24,7 +24,7 @@
         config: {
             root_el: null,
             ajax: {
-                baseUrl: "borinud/v1/api",
+                baseUrl: "borinud/v1/api/geojson",
                 dataType: "json"
             },
         }

@@ -45,38 +45,42 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="container-fluid">
 <div class="row">
   <div class="col-xs-8">
-<h4>
-{{vartxt}}<br>
-{{trangetxt}}<br>
-{{leveltxt}}<br>
-{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
-</h4>
+    
+   <h4>
+     {{vartxt}}<br>
+     {{trangetxt}}<br>
+     {{leveltxt}}<br>
+     {{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
+  </h4>
+
   </div>
   <div class="col-xs-4">
     <div class=row>
       <div class="col-xs-1 col-xs-offset-2">
-       Up 
+      {{more}}
       </div>
     </div>
     <div class=row>
       <div class="col-xs-1">
-        Left
+        {{previous}}
       </div>
       <div class="col-xs-1 col-xs-offset-3">
-        Right
+        {{next}}
       </div>
     </div>
     <div class=row>
       <div class="col-xs-1 col-xs-offset-2">
-        Down
+        {{less}}
       </div>
     </div>
   </div>
 </div>
-<div id="loading" title="Loading data"> 
+
+  <div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
 </div>
 
@@ -89,9 +93,9 @@ $("#loading").dialog({
 });
 
 {% if hour %}
-var url = "{% url 'api:v1:spatialserieshourly' ident coords network trange level var year month day hour %}"
+var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}"
 {% else %}
-var url = "{% url 'api:v1:spatialseriesdaily' ident coords network trange level var year month day %}"
+var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}"
 {% endif %}
 
 var coords=[];
@@ -132,7 +136,7 @@ function oneachfeature(feature, layer)
 	+ "<br>Level: " + feature.properties.level
 	+ "<br>Date: " + feature.properties.date
 	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stationdata'>Constant station data</a>"
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations'>Constant station data</a>"
 
 {% if hour %}
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
@@ -141,9 +145,9 @@ function oneachfeature(feature, layer)
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
 {% endif %}
 
-	+ "<img src='http://graphite.{{ site.domain }}/render/?target=*."
+	+ "<img src=/graphite/render/?target="
 +null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
-+".v&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true&_salt=2457007175.149' alt='graphic for {{var}}' class='img-thumbnail'>"
++"&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>"
 +"</a>"
 
 
@@ -224,9 +228,9 @@ function map_init(map, options)
 
   <a href='
   {% if hour %}
-    {% url 'api:v2:spatialserieshourly' ident coords network trange level var year month day hour %}
+    {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
   {% else %}
-    {% url 'api:v2:spatialseriesdaily' ident coords network trange level var year month day %}
+    {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}
   {% endif %}
   '>Download data</a>
      </div>

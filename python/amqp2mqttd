@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify
@@ -27,14 +27,6 @@ user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
 queue="mqtt"
-
-
-formatter = logging.Formatter('%(asctime) -1s %(levelname)s %(name) -1s %(funcName) -1s %(lineno) -5d: %(message)s')
-handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileamqp2mqttd, maxBytes=5000000, backupCount=10)
-handler.setFormatter(formatter)
-handler.setLevel(logging.DEBUG)
-logger=logging.getLogger(__name__)
-logger.addHandler(handler)
 
 
 amqp2mqttd = daemon.Daemon(
@@ -406,6 +398,14 @@ if __name__ == '__main__':
     amqp2mqttd.cwd=os.getcwd()
 
     if amqp2mqttd.service():
+
+
+        formatter = logging.Formatter('%(asctime) -1s %(levelname)s %(name) -1s %(funcName) -1s %(lineno) -5d: %(message)s')
+        handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileamqp2mqttd, maxBytes=5000000, backupCount=10)
+        handler.setFormatter(formatter)
+        handler.setLevel(logging.DEBUG)
+        logger=logging.getLogger(__name__)
+        logger.addHandler(handler)
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
         sys.stdout.write("Daemon stdout output\n")

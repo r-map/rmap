@@ -1,6 +1,7 @@
 include COPYING
 include NEWS
 include README
+include README.rst
 include TODO
 include *.txt
 include rmap.spec
@@ -12,5 +13,7 @@ recursive-include locale *
 recursive-include templates *
 recursive-include static *
 recursive-include debian *
+recursive-include graphite-dballe/static *
+recursive-include graphite-dballe/templates *
 prune obsolete
 prune .buildozer

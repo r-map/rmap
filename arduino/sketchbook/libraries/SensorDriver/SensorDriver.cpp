@@ -1031,7 +1031,7 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  if (lenvalues>=1) values[0] = (long)readPressure();
+  if (lenvalues>=1) values[0] = (long) round(float(readPressure())/10.);
   //if (lenvalues>=2) values[1] = 0;
 
   _timing=0;

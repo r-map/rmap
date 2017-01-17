@@ -8,7 +8,7 @@ import dballe
 class TestUtils(TestCase):
     def test_summaries_all(self):
         c = Client()
-        response = c.get("/borinud/api/v1/*/*/*/*/*/*/summaries")
+        response = c.get("/borinud/api/v1/geojson/*/*/*/*/*/*/summaries")
         geojson = json.loads(response.content.decode("utf-8"))
         self.assertTrue("type" in geojson)
         self.assertEquals(geojson["type"], "FeatureCollection")
@@ -18,7 +18,7 @@ class TestUtils(TestCase):
     def test_summaries_by_network(self):
         c = Client()
 
-        response = c.get("/borinud/api/v1/*/*/boa/*/*/*/summaries")
+        response = c.get("/borinud/api/v1/geojson/*/*/boa/*/*/*/summaries")
         geojson = json.loads(response.content.decode("utf-8"))
         self.assertTrue(all([
             f["properties"]["network"] == "boa"
@@ -27,7 +27,7 @@ class TestUtils(TestCase):
 
     def test_summaries_by_fixed_station(self):
         c = Client()
-        response = c.get("/borinud/api/v1/-/1251139,4452250/boa/*/*/*/summaries")
+        response = c.get("/borinud/api/v1/geojson/-/1251139,4452250/boa/*/*/*/summaries")
         geojson = json.loads(response.content.decode("utf-8"))
         self.assertTrue(all([
             (f["properties"]["ident"],
