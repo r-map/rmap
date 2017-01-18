@@ -22,7 +22,6 @@ def path2uri(path):
     #print "path=",path
     uri = path.replace(".","/").replace("_",",")
     uri+="/*" * (6-uri.count("/"))
-    print uri
     #remove the root path
     uri = "{}/{}/{}/{}/{}/{}".format(*uri.split("/")[1:])
 
@@ -135,7 +134,6 @@ class  wssummaries(object):
                     k="-"
                 
                 self.node=str(k)
-                print "---------->",self.node
                 yield self.branch,self.node
 
         else:
@@ -296,9 +294,7 @@ class DballeReader(object):
         if len(rj) > 0:
 
             if self.rootpath == "mobile" :
-                print "unsorted: ",rj
                 rj=sorted(rj, key=lambda staz: staz["date"])
-                print "sorted: ",rj
 
             # find minimum step in data
             if len(rj) > 1:
@@ -355,9 +351,8 @@ class DballeReader(object):
             series=[]
             time_info=(start_time, end_time,end_time-start_time)
 
-        print "time_info: ",time_info
-        print "series: ",series
-
+        #print "time_info: ",time_info
+        #print "series: ",series
         #time_info = _from_, _to_, _step_
         #time_info=(int(time.time()-100), int(time.time()),1)
         #series=range(*time_info)

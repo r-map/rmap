@@ -16,8 +16,8 @@
     <script src="{% static "rmap/libs/bootstrap/3.3.6/js/bootstrap.min.js" %}" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" type="text/javascript"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
- <link rel="stylesheet" href="/static/rmap/libs/jquery-ui-1.12.1//jquery-ui.css" type="text/css" />
- <script type="text/javascript" src="/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" ></script>
+ <link rel="stylesheet" href="{% static "rmap/libs/jquery-ui-1.12.1//jquery-ui.css" %}" type="text/css" />
+ <script type="text/javascript" src="{% static "/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
 <style>
 
 .ui-dialog,.ui-dialog-content {background:green}
@@ -48,39 +48,41 @@
 
 <div class="container-fluid">
 <div class="row">
-  <div class="col-xs-8">
+  <div class="col-xs-9">
     
    <h4>
      {{vartxt}}<br>
      {{trangetxt}}<br>
      {{leveltxt}}<br>
      {{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
-  </h4>
-
+   </h4>
   </div>
-  <div class="col-xs-4">
+
+  <div class="col-xs-3">
     <div class=row>
       <div class="col-xs-1 col-xs-offset-2">
-      {{more}}
+      <p class="text-center">
+      <a href="{% url 'showdata:spatialserieshourly' ident coords network trange level var year month day hour %}">{{more}}</a>
+      </p>
       </div>
     </div>
     <div class=row>
       <div class="col-xs-1">
-        {{previous}}
+        <p class="text-center">{{previous}}</p>
       </div>
       <div class="col-xs-1 col-xs-offset-3">
-        {{next}}
+        <p class="text-center">{{next}}</p>
       </div>
     </div>
     <div class=row>
       <div class="col-xs-1 col-xs-offset-2">
-        {{less}}
+        <p class="text-center">{{less}}</p>
       </div>
     </div>
   </div>
 </div>
 
-  <div id="loading" title="Loading data"> 
+<div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
 </div>
 
@@ -128,7 +130,7 @@ function  null2_( target )
 
 function oneachfeature(feature, layer)
 {
-    var popupText = "Ident: " + feature.properties.ident
+    var popupText = "Ident: " + null2_(feature.properties.ident)
 	+ "<br>Lon: " + feature.properties.lon
 	+ "<br>Lat: " + feature.properties.lat
 	+ "<br>Network: " + feature.properties.network
@@ -137,7 +139,6 @@ function oneachfeature(feature, layer)
 	+ "<br>Date: " + feature.properties.date
 	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations'>Constant station data</a>"
-
 {% if hour %}
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
 
@@ -145,10 +146,21 @@ function oneachfeature(feature, layer)
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
 {% endif %}
 
-	+ "<img src=/graphite/render/?target="
-+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
+      + "<img src=/graphite/render/?target="
++"fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
 +"&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>"
 +"</a>"
+
+    if ( feature.properties.ident !== null ) 
+    {
+    popupText +=
+      {% if hour %}
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?type=mobile'>"
+      {% else %}
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?type=mobile'>"
+      {% endif %}
+     +"Mobile station data</a>"
+    }
 
 
     layer.bindPopup(popupText);

@@ -21,10 +21,10 @@
 </div>
 
 <p>
-  <img src="/graphite/render/?target={{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400" alt="graphic for {{var}}" class="img-thumbnail">
+  <img src="/graphite/render/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400" alt="graphic for {{var}}" class="img-thumbnail">
 </p>
 
-          <p><a class="btn btn-default" href="/graphite/composer/?target={{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
+          <p><a class="btn btn-default" href="/graphite/composer/?target=fixed.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
 
   <p style="text-align:right">
   <a href='
