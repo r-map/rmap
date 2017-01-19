@@ -64,7 +64,7 @@ class  wssummaries(object):
 
             #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
             uri=path2uri(self.query.pattern)
-        
+
             r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
             rj=r.json()
 
@@ -105,9 +105,13 @@ class  wssummaries(object):
 
                     for key in data["vars"].keys():
                         newstation["var"]=key
+                        if self.rootpath == "mobile" :
+                            #compat mobile stations same ident ... and different coordinates 
+                            if not newstation in self.summaries:
+                                self.summaries.append(newstation)
+                        else:
+                            self.summaries.append(newstation)
                             
-                        self.summaries.append(newstation)
-
         #initialize generator
         self.mygenerator=self.generator()
 
@@ -367,6 +371,9 @@ class DballeReader(object):
 
         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
         rj=r.json()
+
+        if self.rootpath == "mobile" :
+            rj=sorted(rj, key=lambda staz: staz["date"])
 
         start=rj[0]["date"][0]
         end=rj[-1]["date"][1]
