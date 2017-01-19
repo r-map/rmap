@@ -19,6 +19,8 @@ try:
 
     os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
     from django.conf import settings
+    import django
+    django.setup()
 
 except:
     print "error setting django env"
@@ -41,6 +43,10 @@ class distclean(Command):
             shutil.rmtree("man")
         except:
             pass
+        try:
+            shutil.rmtree("static")
+        except:
+            pass
         for root, dirs, files in os.walk('locale'):
             for name in files:
                 if name[-3:] == ".mo":
@@ -57,6 +63,7 @@ class distclean(Command):
 class build(build_):
 
     sub_commands = build_.sub_commands[:]
+    sub_commands.append(('djangocollectstatic', None))
     sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
 
@@ -132,6 +139,31 @@ class createmanpages(Command):
         except:
             pass
 
+
+class djangocollectstatic(Command):
+    description = "collect static files for web server to serve it"
+    user_options = []   
+    boolean_options = []
+
+    def initialize_options(self):
+        pass
+    
+    def finalize_options(self):
+        pass
+
+    def run(self):
+
+        print "execute django collectstatic files"
+
+        from django.core import management
+        management.call_command("collectstatic", verbosity=0, interactive=False)
+
+        #os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rmap.settings")
+        #from django.core.management import execute_from_command_line
+        #execute_from_command_line([ "execname",'collectstatic',"--noinput"])
+
+
+
 # Compile the list of files available, because distutils doesn't have
 # an easy way to do this.
 package_data = []
@@ -181,22 +213,29 @@ for dirpath, dirnames, filenames in os.walk('geoid_heights'):
     if filenames:
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
-for dirpath, dirnames, filenames in os.walk('graphite-dballe/templates'):
-    # Ignore dirnames that start with '.'
-    for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
-    if filenames:
-        path=os.path.relpath(dirpath,'graphite-dballe/templates')
-        print "path=",path
-        data_files.append(['share/rmap/templates/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
+#for dirpath, dirnames, filenames in os.walk('graphite-dballe/templates'):
+#    # Ignore dirnames that start with '.'
+#    for i, dirname in enumerate(dirnames):
+#        if dirname.startswith('.'): del dirnames[i]
+#    if filenames:
+#        path=os.path.relpath(dirpath,'graphite-dballe/templates')
+#        print "path=",path
+#        data_files.append(['share/rmap/templates/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
 
-for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+#for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+#    # Ignore dirnames that start with '.'
+#    for i, dirname in enumerate(dirnames):
+#        if dirname.startswith('.'): del dirnames[i]
+#    if filenames:
+#        path=os.path.relpath(dirpath,'graphite-dballe/static')
+#        data_files.append(['share/rmap/static/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
+
+for dirpath, dirnames, filenames in os.walk('static'):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
         if dirname.startswith('.'): del dirnames[i]
     if filenames:
-        path=os.path.relpath(dirpath,'graphite-dballe/static')
-        data_files.append(['share/rmap/static/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
+        data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
 
 #for dirpath, dirnames, filenames in os.walk('tables'):
@@ -251,7 +290,7 @@ setup(name='rmap',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
-      cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install},
+      cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
 #      include_package_data=True,
 #      packages=find_packages(),
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc',

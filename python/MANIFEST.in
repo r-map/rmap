@@ -11,9 +11,10 @@ global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
 recursive-include doc *
 recursive-include locale *
 recursive-include templates *
-recursive-include static *
+recursive-include global_static *
 recursive-include debian *
 recursive-include graphite-dballe/static *
 recursive-include graphite-dballe/templates *
+prune static
 prune obsolete
 prune .buildozer
