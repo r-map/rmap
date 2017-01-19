@@ -28,7 +28,7 @@ urlpatterns = [
 #    url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.summaries),
 
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', views.timeseries,name="timeseriesyearly"),
-    url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.timeseries,name="timeseriesmounthly"),
+    url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.timeseries,name="timeseriesmonthly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.timeseries,name="timeseriesdaily"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.timeseries,name="timeserieshourly"),
 

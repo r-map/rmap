@@ -4,8 +4,8 @@
 {% load i18n %}
 {% load staticfiles %}
 {% block extra_assets %}
-  {% leaflet_js %}
-  {% leaflet_css %}
+{% leaflet_js %}
+{% leaflet_css %}
 
     <script src="{% static "rmap/libs/jquery/2.1.1/jquery.min.js" %}" type="text/javascript"></script>
     <!-- Bootstrap core CSS -->
@@ -47,46 +47,55 @@
 {% block content %}
 
 <div class="container-fluid">
-<div class="row">
-  <div class="col-xs-9">
-    
-   <h4>
-     {{vartxt}}<br>
-     {{trangetxt}}<br>
-     {{leveltxt}}<br>
-     {{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
-   </h4>
-  </div>
+  <div class="row">
+    <div class="col-xs-9">
+      <h4>
+	{{vartxt}}<br>
+	{{trangetxt}}<br>
+	{{leveltxt}}<br>
+	{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
+      </h4>
+    </div>
 
-  <div class="col-xs-3">
-    <div class=row>
-      <div class="col-xs-1 col-xs-offset-2">
-      <p class="text-center">
-      <a href="{% url 'showdata:spatialserieshourly' ident coords network trange level var year month day hour %}">{{more}}</a>
-      </p>
+    <div class="col-xs-3">
+      <div class=row>
+	<div class="col-xs-1 col-xs-offset-2">
+	  {% if more %} 
+	  <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{more}}">More</a>
+	  </p>
+	  {% endif %} 
+	</div>
       </div>
-    </div>
-    <div class=row>
-      <div class="col-xs-1">
-        <p class="text-center">{{previous}}</p>
+      <div class=row>
+	<div class="col-xs-1">
+          <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{previous}}">Prev</a>
+	  </p>
+	</div>
+	<div class="col-xs-1 col-xs-offset-3">
+          <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{next}}">Next</a>
+	  </p>
+	</div>
       </div>
-      <div class="col-xs-1 col-xs-offset-3">
-        <p class="text-center">{{next}}</p>
-      </div>
-    </div>
-    <div class=row>
-      <div class="col-xs-1 col-xs-offset-2">
-        <p class="text-center">{{less}}</p>
+      <div class=row>
+	<div class="col-xs-1 col-xs-offset-2">
+	  {% if less %} 
+	  <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{less}}">Less</a>
+	  </p>
+	  {% endif %} 
+	</div>
       </div>
     </div>
   </div>
-</div>
-
-<div id="loading" title="Loading data"> 
+  
+  <div id="loading" title="Loading data"> 
     <p>Please wait ...</p>
-</div>
+  </div>
 
-<script type="text/javascript">
+  <script type="text/javascript">
   
 $("#loading").dialog({
     hide: 'slide',
@@ -235,17 +244,50 @@ function map_init(map, options)
 </script>
 
   {% leaflet_map "spots" callback="window.map_init" %}
-<div class="row">
-    <div class="col-xs-12 col-xs-offset-10">
 
-  <a href='
-  {% if hour %}
-    {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
-  {% else %}
-    {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}
-  {% endif %}
-  '>Download data</a>
-     </div>
+
+  <div class="row">
+    <div class="col-xs-8">
+      <p style="text-align:left">
+	<a href='
+	   {% if hour %}
+	   {% url 'showdata:spatialserieshourly' ident "*" network trange level var year month day hour %}
+	   {% elif day %}
+	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}
+	   {% endif %}
+	   '>Show all coordinates on a map
+	</a>
+      </p>
+    </div>
+
+    <div class="col-xs-4">
+      <p style="text-align:left">
+	<a href='
+	   {% if hour %}
+	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}
+	   {% elif day %}
+	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}
+	   {% endif %}
+	   '>Show all values on a graph
+	</a>
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-xs-4 col-xs-offset-8">
+      <p style="text-align:left">
+
+	<a href='
+	   {% if hour %}
+	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
+	   {% else %}
+	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}
+	   {% endif %}
+	   '>Download data
+	</a>
+      </p>
+    </div>
   </div>
 </div>
 

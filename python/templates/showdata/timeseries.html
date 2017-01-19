@@ -6,37 +6,95 @@
 
 {% block content %}
 
-<h4>
-{{vartxt}}<br>
-{{trangetxt}}<br>
-{{leveltxt}}<br>
-{{datefrom}} - {{dateuntil}} GMT
-</h4>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-xs-9">
+      
+      <h4>
+	{{vartxt}}<br>
+	{{trangetxt}}<br>
+	{{leveltxt}}<br>
+	{{datefrom}} - {{dateuntil}} GMT
+      </h4>
+      
+    </div>
+    
+    <div class="col-xs-3">
+      <div class=row>
+	<div class="col-xs-1 col-xs-offset-2">
+	  {% if more %} 
+	  <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{more}}">More</a>
+	  </p>
+	{% endif %} 
+	</div>
+      </div>
+      <div class=row>
+	<div class="col-xs-1">
+          <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{previous}}">Prev</a>
+	  </p>
+	</div>
+	<div class="col-xs-1 col-xs-offset-3">
+          <p class="text-center">
+	<a class="btn btn-default" role="button" href="{{next}}">Next</a>
+	  </p>
+	</div>
+      </div>
+      <div class=row>
+	<div class="col-xs-1 col-xs-offset-2">
+	  {% if less %} 
+	  <p class="text-center">
+	    <a class="btn btn-default" role="button" href="{{less}}">Less</a>
+	  </p>
+	  {% endif %} 
+	</div>
+      </div>
+    </div>
+  </div>
+  
+  <p>
+    <img src="/graphite/render/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400" alt="graphic for {{var}}" class="img-thumbnail">
+  </p>
 
+  <div class="row">
+    <div class="col-xs-8">
+
+      <p><a class="btn btn-default" href="/graphite/composer/?target=fixed.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
+    </div>
+
+    <div class="col-xs-4">
+      <p style="text-align:left">
+	<a href='
+	   {% if hour %}
+	   {% url 'showdata:spatialserieshourly' ident coords network trange level var year month day hour %}
+	   {% elif day %}
+	   {% url 'showdata:spatialseriesdaily'  ident coords network trange level var year month day %}
+	   {% endif %}
+	   '>Show last values on a map
+	</a>
+      </p>
+    </div>
+  </div>
+
+
+  <div class="row">
+    <div class="col-xs-4 col-xs-offset-8">
+      <p style="text-align:left">
+	<a href='
+	   {% if hour %}
+	   {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
+	   {% elif day %}
+	   {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}
+	   {% elif month %}
+	   {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}
+	   {% elif year %}
+	   {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
+	   {% endif %}
+	   '>Download data
+	</a>
+      </p>
+    </div>
+  </div>
 </div>
-
-                     <div class="span3 offset2">{{less}}</div>
-<div class="span3">{{previous}}</div>       <div class="span3 offset2"> {{next}}</div>
-                     <div class="span3 offset2">{{more}}</div>
-</div>
-
-<p>
-  <img src="/graphite/render/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400" alt="graphic for {{var}}" class="img-thumbnail">
-</p>
-
-          <p><a class="btn btn-default" href="/graphite/composer/?target=fixed.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
-
-  <p style="text-align:right">
-  <a href='
-{% if hour %}
-  {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
-{% elif day %}
-  {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}
-{% elif month %}
-  {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}
-{% elif year %}
-  {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
-{% endif %}
-  '>Download data</a></p>
-
 {% endblock %}
