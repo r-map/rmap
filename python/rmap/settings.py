@@ -38,11 +38,10 @@ configspec['django']['ADMINS']="list(default=list('',))"
 configspec['django']['MANAGERS']="list(default=list('',))"
 configspec['django']['MEDIA_ROOT']="string(default='%s/media/')" % os.getcwd()
 configspec['django']['MEDIA_SITE_ROOT']="string(default='%s/media/')" % os.getcwd()
-configspec['django']['TEMPLATE_DIRS']="list(default=list('templates',))"
 configspec['django']['BASE_URL']="string(default='/django/')"
 configspec['django']['ADMIN_MEDIA_PREFIX']="string(default='/django/media/admin/')"
 configspec['django']['STATIC_URL']="string(default='/static/')"
-configspec['django']['STATIC_ROOT'] = "string(default='/usr/lib/python2.7/site-packages/django/contrib/admin/static/admin/')"
+configspec['django']['STATIC_ROOT'] = "string(default='%s/static/')" % os.getcwd()
 configspec['django']['MEDIA_PREFIX']="string(default='/media/')"
 configspec['django']['MEDIA_SITE_PREFIX']="string(default='/media/sito/')"
 configspec['django']['SERVE_STATIC']="boolean(default=True)"
@@ -229,6 +228,8 @@ BASE_URL                = config['django']['BASE_URL']
 ADMIN_MEDIA_PREFIX      = config['django']['ADMIN_MEDIA_PREFIX']
 STATIC_URL              = config['django']['STATIC_URL']
 STATIC_ROOT             = config['django']['STATIC_ROOT']
+if "%s" in STATIC_ROOT:
+    STATIC_ROOT = STATIC_ROOT  % os.getcwd()
 MEDIA_PREFIX            = config['django']['MEDIA_PREFIX']
 MEDIA_SITE_PREFIX       = config['django']['MEDIA_SITE_PREFIX']
 SERVE_STATIC            = config['django']['SERVE_STATIC']
@@ -381,10 +382,7 @@ else:
 
 # Additional locations of static files
 STATICFILES_DIRS = [
-    # Put strings here, like "/home/html/static" or "C:/www/django/static".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
-    'static/',
+    "global_static",
 ]
 
 
@@ -421,6 +419,7 @@ INSTALLED_APPS = [
 #    'django.contrib.admindocs',
     'django.contrib.staticfiles',
     'rmap.doc',
+    'rmap',
     'rmap.stations',
     'registration',
 ]
@@ -432,7 +431,9 @@ if not android :
         'geoimage',
         'insertdata',
         'imagekit',
-        'showdata'
+        'showdata',
+        'amatyr',
+        'borinud',
     ]
 
 # django save the files on memory, but large files are saved in a path.
@@ -462,7 +463,7 @@ LOGIN_URL = '/registrazione/login'
 TEMPLATES= [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS'  : config['django']['TEMPLATE_DIRS'],
+        'DIRS'  : [],
         'APP_DIRS' : True,
         'OPTIONS': {
             # List of callables that know how to import templates from various sources.

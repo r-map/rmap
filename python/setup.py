@@ -199,13 +199,6 @@ for dirpath, dirnames, filenames in os.walk('locale'):
     if filenames:
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
-for dirpath, dirnames, filenames in os.walk('templates'):
-    # Ignore dirnames that start with '.'
-    for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
-    if filenames:
-        data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
-
 for dirpath, dirnames, filenames in os.walk('geoid_heights'):
     # Ignore dirnames that start with '.'
     for i, dirname in enumerate(dirnames):
@@ -322,6 +315,16 @@ setup(name='rmap',
           'rmap': ['icons/*.png','tables/*.txt'],
           'rmap.stations': ['fixtures/*.json'],
           'mapview': ['icons/*.png'],          
+          'amatyr':['templates/amatyr/*'],
+          'borinud':['templates/borinud/*'],
+          'geoimage':['templates/geoimage/*'],
+          'graphite-dballe':['templates/*'],
+          'http2mqtt':['templates/*'],
+          'insertdata':['templates/insertdata/*'],
+          'registration':['templates/registration/*'],
+          'rmap':['templates/*.htm*'],
+          'rmap':['templates/stations/*'],
+          'showdata':['templates/showdata/*'],
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
