@@ -312,7 +312,7 @@ setup(name='rmap',
       ],
       
       package_data={
-          'rmap': ['icons/*.png','tables/*.txt'],
+          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/stations/*'],
           'rmap.stations': ['fixtures/*.json'],
           'mapview': ['icons/*.png'],          
           'amatyr':['templates/amatyr/*'],
@@ -322,8 +322,6 @@ setup(name='rmap',
           'http2mqtt':['templates/*'],
           'insertdata':['templates/insertdata/*'],
           'registration':['templates/registration/*'],
-          'rmap':['templates/*.htm*'],
-          'rmap':['templates/stations/*'],
           'showdata':['templates/showdata/*'],
       },
       scripts=[

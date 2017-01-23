@@ -3,10 +3,10 @@ import time
 import traceback
 import signal
 import sys
-import rmap.settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rmap.settings")
 
+import rmap.settings
 from django.core.wsgi import get_wsgi_application
 
 try:

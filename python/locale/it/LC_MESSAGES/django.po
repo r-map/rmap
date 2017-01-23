@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-01-23 11:53+0000\n"
-"PO-Revision-Date: 2017-01-23 12:51+0100\n"
+"PO-Revision-Date: 2017-01-23 14:28+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: IT\n"
@@ -17,13 +17,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: build/lib/geoimage/models.py:53 build/lib/rmap/stations/models.py:66
-#: build/lib/rmap/stations/models.py:147 build/lib/rmap/stations/models.py:242
-#: build/lib/rmap/stations/models.py:279 build/lib/rmap/stations/models.py:329
-#: build/lib/rmap/stations/models.py:405 build/lib/rmap/stations/models.py:437
-#: build/lib/rmap/stations/models.py:468 build/lib/rmap/stations/models.py:508
-#: build/lib/rmap/stations/models.py:564 build/lib/rmap/stations/models.py:604
-#: build/lib/rmap/templates/stations/stationmetadata_detail.html:13
 #: geoimage/models.py:53 rmap/stations/models.py:66
 #: rmap/stations/models.py:147 rmap/stations/models.py:242
 #: rmap/stations/models.py:279 rmap/stations/models.py:329
@@ -39,23 +32,15 @@ msgstr "Attivo"
 msgid "Activate this geoimage"
 msgstr "Attiva questa immagine georeferenziata"
 
-#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:15
-#: build/lib/rmap/templates/stations/stationsonmap.html:14
 #: geoimage/templates/geoimage/georefencedimage_list.html:15
 #: rmap/templates/stations/stationsonmap.html:14
 msgid "Selected user"
 msgstr "Utente selezionato"
 
-#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:15
 #: geoimage/templates/geoimage/georefencedimage_list.html:15
 msgid "Reset filter"
 msgstr "Reimposta filtro"
 
-#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:45
-#: build/lib/insertdata/templates/insertdata/form.html:51
-#: build/lib/insertdata/templates/insertdata/manualdataform.html:47
-#: build/lib/insertdata/templates/insertdata/newstationform.html:37
-#: build/lib/registration/templates/registration/registration_form.html:11
 #: geoimage/templates/geoimage/georefencedimage_list.html:45
 #: insertdata/templates/insertdata/form.html:51
 #: insertdata/templates/insertdata/manualdataform.html:47
@@ -214,311 +199,6 @@ msgstr "Nome nuova stazione"
 #: build/lib/insertdata/views.py:112 insertdata/views.py:112
 msgid "The name of the station to insert"
 msgstr "Il nome della stazione da inserire"
-
-#: build/lib/registration/admin.py:25
-msgid "Activate users"
-msgstr "Utenti attivati"
-
-#: build/lib/registration/admin.py:45
-msgid "Re-send activation emails"
-msgstr "reinvio email di attivazione"
-
-#: build/lib/registration/forms.py:36
-msgid "E-mail"
-msgstr ""
-
-#: build/lib/registration/forms.py:50
-msgid "I have read and agree to the Terms of Service"
-msgstr "Ho letto e accetto le condizioni di servizio"
-
-#: build/lib/registration/forms.py:51
-msgid "You must agree to the terms to register"
-msgstr "E' obbligatorio accettare le condizioni di servizio"
-
-#: build/lib/registration/forms.py:67
-msgid ""
-"This email address is already in use. Please supply a different email "
-"address."
-msgstr ""
-"Questo indirizzo email è già in uso. Per cortesia fornire un indirizzo email "
-"differente."
-
-#: build/lib/registration/forms.py:94
-msgid ""
-"Registration using free email addresses is prohibited. Please supply a "
-"different email address."
-msgstr ""
-"Registrarsi utilizzando un indirizzo email gratuito è proibito. Per cortesia "
-"fornire un indirizzo email differente."
-
-#: build/lib/registration/models.py:205
-msgid "user"
-msgstr "utente"
-
-#: build/lib/registration/models.py:206
-msgid "activation key"
-msgstr "chiave attivazione"
-
-#: build/lib/registration/models.py:212
-msgid "registration profile"
-msgstr "profilo di egistrazione"
-
-#: build/lib/registration/models.py:213
-msgid "registration profiles"
-msgstr "profili di registrazione"
-
-#: build/lib/registration/templates/registration/activate.html:5
-msgid "Account activation failed."
-msgstr "L'attivazione dell'account è fallita."
-
-#: build/lib/registration/templates/registration/activation_complete.html:4
-msgid "Account Activated"
-msgstr "L' Account è stato Attivato"
-
-#: build/lib/registration/templates/registration/activation_complete.html:8
-msgid "Your account is now activated."
-msgstr "Il tuo account ora è ora attivato."
-
-#: build/lib/registration/templates/registration/activation_complete.html:10
-msgid "You can log in."
-msgstr "Puoi entrare."
-
-#: build/lib/registration/templates/registration/activation_email.html:6
-msgid "registration"
-msgstr "registrazione"
-
-#: build/lib/registration/templates/registration/activation_email.html:11
-#, python-format
-msgid ""
-"\n"
-"    You (or someone pretending to be you) have asked to register an account "
-"at\n"
-"    %(site.name)s.  If this wasn't you, please ignore this email\n"
-"    and your address will be removed from our records.\n"
-"    "
-msgstr ""
-"\n"
-"   Tu (o qualcuno che dichiara di essere te) ha chiesto di registrare un "
-"account su\n"
-"    %(site.name)s. Se non sei tu, per favore ignora questa email\n"
-"    e il tuo indirizzo sarà rimosso dalla nostra lista.\n"
-"  "
-
-#: build/lib/registration/templates/registration/activation_email.html:18
-#, python-format
-msgid ""
-"\n"
-"    To activate this account, please click the following link within the "
-"next\n"
-"    %(expiration_days)s days:\n"
-"    "
-msgstr ""
-"\n"
-"  Per attivare questo account, per favore clicca il seguente link entro i "
-"prossimi\n"
-"  %(expiration_days)s giorni:\n"
-"   "
-
-#: build/lib/registration/templates/registration/activation_email.html:30
-#, python-format
-msgid ""
-"\n"
-"    Sincerely,\n"
-"    %(site.name)s Management\n"
-"    "
-msgstr ""
-"\n"
-"   Cordialmente,\n"
-"   l'amministratore di %(site.name)s\n"
-"   "
-
-#: build/lib/registration/templates/registration/activation_email.txt:2
-#, python-format
-msgid ""
-"\n"
-"You (or someone pretending to be you) have asked to register an account at\n"
-"%(site.name)s.  If this wasn't you, please ignore this email\n"
-"and your address will be removed from our records.\n"
-msgstr ""
-"\n"
-"Tu (o qualcuno che dichiara di essere te) ha chiesto di registrare un "
-"account\n"
-" %(site.name)s. Se non sei tu, per favore ignora questa email\n"
-"e il tuo indirizzo sarà rimosso dalla nostra lista.\n"
-
-#: build/lib/registration/templates/registration/activation_email.txt:7
-#, python-format
-msgid ""
-"\n"
-"To activate this account, please click the following link within the next\n"
-"%(expiration_days)s days:\n"
-msgstr ""
-"\n"
-"Per attivare questo account, per favore clicca il seguente link entro i "
-"prossimi\n"
-"%(expiration_days)s giorni:\n"
-
-#: build/lib/registration/templates/registration/activation_email.txt:14
-#, python-format
-msgid ""
-"\n"
-"Sincerely,\n"
-"%(site.name)s Management\n"
-msgstr ""
-"\n"
-"Cordialmente,\n"
-"L'amministratore di %(site.name)s\n"
-
-#: build/lib/registration/templates/registration/activation_email_subject.txt:1
-msgid "Account activation on"
-msgstr "Attivazione account attiva"
-
-#: build/lib/registration/templates/registration/login.html:4
-#: build/lib/registration/templates/registration/login.html:10
-#: rmap/templates/base.html:128 rmap/templates/base.html:136
-msgid "Log in"
-msgstr "Entra"
-
-#: build/lib/registration/templates/registration/login.html:15
-msgid "Forgot your password?"
-msgstr "Hai dimenticato la password?"
-
-#: build/lib/registration/templates/registration/login.html:15
-msgid "Reset it"
-msgstr "Reimposta"
-
-#: build/lib/registration/templates/registration/login.html:18
-msgid "Not a member?"
-msgstr "Non sei un menbro?"
-
-#: build/lib/registration/templates/registration/login.html:18
-#: build/lib/rmap/rmapgui.py:1193 rmap/rmapgui.py:1193
-msgid "Register"
-msgstr "Registrazione"
-
-#: build/lib/registration/templates/registration/logout.html:4
-msgid "Logged out"
-msgstr "Uscito"
-
-#: build/lib/registration/templates/registration/logout.html:7
-msgid "Successfully logged out"
-msgstr "Usciti con successo"
-
-#: build/lib/registration/templates/registration/password_change_done.html:4
-msgid "Password changed"
-msgstr "Password cambiata"
-
-#: build/lib/registration/templates/registration/password_change_done.html:7
-msgid "Password successfully changed!"
-msgstr "Password cambiata con successo!"
-
-#: build/lib/registration/templates/registration/password_change_form.html:4
-#: build/lib/registration/templates/registration/password_change_form.html:10
-#: rmap/templates/base.html:134
-msgid "Change password"
-msgstr "Cambio password"
-
-#: build/lib/registration/templates/registration/password_reset_complete.html:4
-msgid "Password reset complete"
-msgstr "Reimpostazione password completata"
-
-#: build/lib/registration/templates/registration/password_reset_complete.html:8
-msgid "Your password has been reset!"
-msgstr "La tua password è stata reimpostata!"
-
-#: build/lib/registration/templates/registration/password_reset_complete.html:9
-msgid "You may now"
-msgstr "Ora puoi"
-
-#: build/lib/registration/templates/registration/password_reset_complete.html:9
-msgid "log in"
-msgstr "entra"
-
-#: build/lib/registration/templates/registration/password_reset_confirm.html:4
-msgid "Confirm password reset"
-msgstr "Conferma la reimpostazione della password"
-
-#: build/lib/registration/templates/registration/password_reset_confirm.html:7
-msgid "Enter your new password below to reset your password:"
-msgstr ""
-"Inserisci la tua nuova password qui sotto per reimpostare la tua password:"
-
-#: build/lib/registration/templates/registration/password_reset_confirm.html:11
-msgid "Set password"
-msgstr "Imposta password"
-
-#: build/lib/registration/templates/registration/password_reset_done.html:4
-msgid "Password reset"
-msgstr "Resetta pasword"
-
-#: build/lib/registration/templates/registration/password_reset_done.html:8
-msgid ""
-"\n"
-"    We have sent you an email with a link to reset your password.  Please "
-"check\n"
-"    your email and click the link to continue.\n"
-"    "
-msgstr ""
-"\n"
-"   Abbiamo inviato un'email con un link per reimpostare la password. Per "
-"favore controlla\n"
-"   la tua posta e clicca sul link per continuare.\n"
-"  "
-
-#: build/lib/registration/templates/registration/password_reset_form.html:4
-#: build/lib/registration/templates/registration/password_reset_form.html:15
-msgid "Reset password"
-msgstr "Reimposta password"
-
-#: build/lib/registration/templates/registration/password_reset_form.html:8
-msgid ""
-"\n"
-"    <strong>Forgot your password?</strong> Enter your email in the form "
-"below and we'll send you instructions for creating a new one.\n"
-"    "
-msgstr ""
-"\n"
-"    <strong>Hai dimenticato la password?</strong> Inserisci la tua email nel "
-"modulo sottostante e ti saranno inviate le istruzioni per crearne una "
-"nuova.\n"
-"    "
-
-#: build/lib/registration/templates/registration/registration_closed.html:4
-msgid "Registration is closed"
-msgstr "Le registrazioni sono chiuse"
-
-#: build/lib/registration/templates/registration/registration_closed.html:7
-msgid "Sorry, but registration is closed at this moment. Come back later."
-msgstr ""
-"Ci dispiace, ma le registrazioni sono al momento chiuse. Riprova più tardi."
-
-#: build/lib/registration/templates/registration/registration_complete.html:4
-msgid "Activation email sent"
-msgstr "L'email di attivazione è stata inviata"
-
-#: build/lib/registration/templates/registration/registration_complete.html:7
-msgid "Please check your email to complete the registration process."
-msgstr "Per favore controlla la tua posta per completare la registrazione."
-
-#: build/lib/registration/templates/registration/registration_form.html:4
-msgid "Register for an account"
-msgstr "Registrati per ottenere un account"
-
-#: build/lib/registration/templates/registration/registration_form.html:15
-msgid "Terms of Service"
-msgstr "Condizioni del servizio"
-
-#: build/lib/registration/templates/registration/registration_form.html:16
-msgid ""
-"Rmap data-base is made available under the <a href=http://opendatacommons."
-"org/licenses/odbl/1.0/>Open Database License</a>. Any rights in individual "
-"contents of the database are licensed under the <a href=http://"
-"opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>."
-msgstr ""
-"Il data-base Rmap è reso disponibile con la <a href=http://opendatacommons."
-"org/licenses/odbl/1.0/>Open Database License</a>. Ogni diritto con la sui "
-"contenuti individuali del data-base sono lecenziati con la <a href=http://"
-"opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>."
 
 #: build/lib/rmap/form.py:22 rmap/form.py:22
 msgid "station to configure"
@@ -792,7 +472,7 @@ msgstr "Posizione"
 #: showdata/templates/showdata/spatialseries.html:78
 #: showdata/templates/showdata/timeseries.html:40
 msgid "Next"
-msgstr "Successivo"
+msgstr "Dopo"
 
 #: build/lib/rmap/rmapgui.py:1159 rmap/rmapgui.py:1159
 msgid "switch ON relay"
@@ -1582,7 +1262,7 @@ msgstr "Di più"
 #: showdata/templates/showdata/spatialseries.html:73
 #: showdata/templates/showdata/timeseries.html:35
 msgid "Prev"
-msgstr "Prec"
+msgstr "Prima"
 
 #: showdata/templates/showdata/spatialseries.html:86
 #: showdata/templates/showdata/timeseries.html:48
