@@ -334,7 +334,8 @@ setup(name='rmap',
       license = "GNU GPL v2",
       install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","pilkit","django-imagekit","django-appconf","nominatim"],
       extras_require = {
-          'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi']
+          'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
+                      'django-classy-tags','django_cookie_law']
       },
       #install_requires= [ "django","Cython","pil","pysdl2","kivy","plyer","configobj","pika","simplejson"],
       #setup_requires= [ "django","configobj"],
