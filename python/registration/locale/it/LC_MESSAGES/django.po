@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-registration 0.8 alpha-1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-23 11:53+0000\n"
+"POT-Creation-Date: 2017-01-23 15:29+0100\n"
 "PO-Revision-Date: 2017-01-23 13:19+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: Italiano <it@li.org>\n"
@@ -71,7 +71,6 @@ msgid "registration profiles"
 msgstr "profili di registrazione"
 
 #: registration/templates/registration/activate.html:5
-#| msgid "Re-send activation emails"
 msgid "Account activation failed."
 msgstr "Attivazione utente fallita."
 
@@ -88,7 +87,6 @@ msgid "You can log in."
 msgstr "Puoi entrare"
 
 #: registration/templates/registration/activation_email.html:6
-#| msgid "registration profile"
 msgid "registration"
 msgstr "registrazione"
 
@@ -173,7 +171,6 @@ msgstr ""
 "I gestori di %(site.name)s\n"
 
 #: registration/templates/registration/activation_email_subject.txt:1
-#| msgid "activation key"
 msgid "Account activation on"
 msgstr "Attivazione utente attiva"
 
@@ -207,7 +204,6 @@ msgid "Successfully logged out"
 msgstr "Entrato con successo"
 
 #: registration/templates/registration/password_change_done.html:4
-#| msgid "Password (again)"
 msgid "Password changed"
 msgstr "Password cambiata"
 
@@ -217,7 +213,6 @@ msgstr "Password cambiata con successo"
 
 #: registration/templates/registration/password_change_form.html:4
 #: registration/templates/registration/password_change_form.html:10
-#| msgid "Password"
 msgid "Change password"
 msgstr "Cambio password"
 
@@ -246,12 +241,10 @@ msgid "Enter your new password below to reset your password:"
 msgstr "Inserisci la tua nuova password qui sotto per reimpostare la password:"
 
 #: registration/templates/registration/password_reset_confirm.html:11
-#| msgid "Password"
 msgid "Set password"
 msgstr "Imposta password"
 
 #: registration/templates/registration/password_reset_done.html:4
-#| msgid "Password"
 msgid "Password reset"
 msgstr "Reimposta password"
 
@@ -272,7 +265,6 @@ msgstr ""
 
 #: registration/templates/registration/password_reset_form.html:4
 #: registration/templates/registration/password_reset_form.html:15
-#| msgid "Password"
 msgid "Reset password"
 msgstr "Reimposta password"
 
@@ -289,7 +281,6 @@ msgstr ""
 "   "
 
 #: registration/templates/registration/registration_closed.html:4
-#| msgid "registration profile"
 msgid "Registration is closed"
 msgstr "La registrazione è chiusa"
 
@@ -299,7 +290,6 @@ msgstr ""
 "Scusate, ma la registrazione e temporaneamente chiusa. Riprovare più tardi."
 
 #: registration/templates/registration/registration_complete.html:4
-#| msgid "Re-send activation emails"
 msgid "Activation email sent"
 msgstr "Mail di attivazione inviata"
 
