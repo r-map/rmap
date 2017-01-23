@@ -24,7 +24,7 @@
 	<div class="col-xs-1 col-xs-offset-2">
 	  {% if more %} 
 	  <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{more}}">More</a>
+	    <a class="btn btn-default" role="button" href="{{more}}">{% trans "More" %}</a>
 	  </p>
 	{% endif %} 
 	</div>
@@ -32,12 +32,12 @@
       <div class=row>
 	<div class="col-xs-1">
           <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{previous}}">Prev</a>
+	    <a class="btn btn-default" role="button" href="{{previous}}">{% trans "Prev" %}</a>
 	  </p>
 	</div>
 	<div class="col-xs-1 col-xs-offset-3">
           <p class="text-center">
-	<a class="btn btn-default" role="button" href="{{next}}">Next</a>
+	<a class="btn btn-default" role="button" href="{{next}}">{% trans "Next" %}</a>
 	  </p>
 	</div>
       </div>
@@ -45,7 +45,7 @@
 	<div class="col-xs-1 col-xs-offset-2">
 	  {% if less %} 
 	  <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{less}}">Less</a>
+	    <a class="btn btn-default" role="button" href="{{less}}">{% trans "Less" %}</a>
 	  </p>
 	  {% endif %} 
 	</div>
@@ -71,7 +71,7 @@
 	   {% elif day %}
 	   {% url 'showdata:spatialseriesdaily'  ident coords network trange level var year month day %}
 	   {% endif %}
-	   '>Show last values on a map
+	   '>{% trans "Show last values on a map" %}
 	</a>
       </p>
     </div>
@@ -91,7 +91,7 @@
 	   {% elif year %}
 	   {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
 	   {% endif %}
-	   '>Download data
+	   '>{% trans "Download data" %}
 	</a>
       </p>
     </div>

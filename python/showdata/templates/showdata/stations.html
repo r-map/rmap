@@ -26,7 +26,7 @@ Network: {{network}}<br>
 </h4>
 
 <div id="loading" title="Loading data"> 
-    <p>Please wait ...</p>
+    <p>{% trans "Please wait ..." %}</p>
 </div>
 
     <script type="text/javascript">
@@ -74,12 +74,12 @@ function oneachfeature(feature, layer)
 				  + "<br>Network: " + feature.properties.network
                   //+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
 				  + "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/*/*/*/stations"
-				  + "'>All stations same ident and network</a>"
+				  + "'>{% trans "All stations same ident and network" %}</a>"
 			      
 				  + "<br><a href='/showdata/*/*/"+null2_(feature.properties.network)+"/*/*/*/stations"
-				  + "'>All stations same network</a>"
+				  + "'>{% trans "All stations same network" %}</a>"
 			      
-				  + "<br><a href='" + "{% url 'showdata:stations' '*' '*' '*' '*' '*' '*' %}" + "'>All stations</a>";
+				  + "<br><a href='" + "{% url 'showdata:stations' '*' '*' '*' '*' '*' '*' %}" + "'>{% trans "All stations" %}</a>";
 			      layer.bindPopup(popupText);
 			  }
 
@@ -96,7 +96,7 @@ function pointtolayer(feature, latlng)
 }
 
 function beforesend(){
-    $("#loading").dialog('open').html("<p>Please Wait...</p>");
+    $("#loading").dialog('open').html("<p>{% trans "Please Wait..." %}</p>");
 }
 
 
@@ -148,6 +148,6 @@ function map_init(map, options)
     <p style="text-align:right">
     <a href='
 {% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}
-'>Download data</a></p>
+'>{% trans "Download data" %}</a></p>
     
 {% endblock %}

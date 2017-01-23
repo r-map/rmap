@@ -62,7 +62,7 @@
 	<div class="col-xs-1 col-xs-offset-2">
 	  {% if more %} 
 	  <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{more}}">More</a>
+	    <a class="btn btn-default" role="button" href="{{more}}">{% trans "More" %}</a>
 	  </p>
 	  {% endif %} 
 	</div>
@@ -70,12 +70,12 @@
       <div class=row>
 	<div class="col-xs-1">
           <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{previous}}">Prev</a>
+	    <a class="btn btn-default" role="button" href="{{previous}}">{% trans "Prev" %}</a>
 	  </p>
 	</div>
 	<div class="col-xs-1 col-xs-offset-3">
           <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{next}}">Next</a>
+	    <a class="btn btn-default" role="button" href="{{next}}">{% trans "Next" %}</a>
 	  </p>
 	</div>
       </div>
@@ -83,7 +83,7 @@
 	<div class="col-xs-1 col-xs-offset-2">
 	  {% if less %} 
 	  <p class="text-center">
-	    <a class="btn btn-default" role="button" href="{{less}}">Less</a>
+	    <a class="btn btn-default" role="button" href="{{less}}">{% trans "Less" %}</a>
 	  </p>
 	  {% endif %} 
 	</div>
@@ -91,8 +91,8 @@
     </div>
   </div>
   
-  <div id="loading" title="Loading data"> 
-    <p>Please wait ...</p>
+  <div id="loading" title="{% trans "Loading data" %}"> 
+    <p>{% trans "Please wait ..." %}</p>
   </div>
 
   <script type="text/javascript">
@@ -168,7 +168,7 @@ function oneachfeature(feature, layer)
       {% else %}
         "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?type=mobile'>"
       {% endif %}
-     +"Mobile station data</a>"
+     +"{% trans "Mobile station data" %}</a>"
     }
 
 
@@ -196,7 +196,7 @@ function pointtolayer(feature, latlng)
 }
 
 function beforesend(){
-    $("#loading").dialog('open').html("<p>Please Wait...</p>");
+    $("#loading").dialog('open').html("<p>{% trans "Please Wait..." %}</p>");
 }
 
 
@@ -255,7 +255,7 @@ function map_init(map, options)
 	   {% elif day %}
 	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}
 	   {% endif %}
-	   '>Show all coordinates on a map
+	   '>{% trans "Show all coordinates on a map" %}
 	</a>
       </p>
     </div>
@@ -268,7 +268,7 @@ function map_init(map, options)
 	   {% elif day %}
 	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}
 	   {% endif %}
-	   '>Show all values on a graph
+	   '>{% trans "Show all values on a graph" %}
 	</a>
       </p>
     </div>
@@ -284,7 +284,7 @@ function map_init(map, options)
 	   {% else %}
 	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}
 	   {% endif %}
-	   '>Download data
+	   '>{% trans "Download data" %}
 	</a>
       </p>
     </div>

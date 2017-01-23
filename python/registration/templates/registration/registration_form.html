@@ -5,16 +5,18 @@
 
 {% block content %}
 <div class="table">
-<form method="post" action=""  class="form-horizontal" role="form">
+  <form method="post" action=""  class="form-horizontal" role="form">
     {% csrf_token %}
     {{ form.as_p }}
     <input type="submit" value="{% trans 'Submit' %}" class="btn"/>
-</form>
-<hr>
- <div class="panel panel-default" style="width: 90%; margin: 0 auto;">
-  <div class="panel-heading"><strong>{% trans "Terms of Service" %}</strong></div>
-  <div class="panel-body">{% trans "Rmap data-base is made available under the <a href=http://opendatacommons.org/licenses/odbl/1.0/>Open Database License</a>. Any rights in individual contents of the database are licensed under the <a href=http://opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>." %}</div>
- </div>
+  </form>
+  <hr>
+  <div class="panel panel-default" style="width: 90%; margin: 0 auto;">
+    <div class="panel-heading"><strong>{% trans "Terms of Service" %}</strong></div>
+    <div class="panel-body">
+      {% trans "Rmap data-base is made available under the <a href=http://opendatacommons.org/licenses/odbl/1.0/>Open Database License</a>. Any rights in individual contents of the database are licensed under the <a href=http://opendatacommons.org/licenses/dbcl/1.0/>Database Contents License</a>." %}<br>{% trans "AVAILABLE IN ITALIAN LANGUAGE ONLY: Il/la sottoscritto/a, acquisite le informazioni fornite dal titolare del trattamento ai sensi dell'articolo 13 del D.Lgs. 196/2003 disponibili a <a href=https://www.arpae.it/dettaglio_generale.asp?id=7&idlivello=1504>Informativa privacy</a>, l'interessato presta il suo consenso al trattamento dei dati personali per i fini indicati nella suddetta informativa. Nello specifico presta il suo consenso per la comunicazione dei dati personali per le finalità ed ai soggetti indicati nell'informativa, presta il suo consenso per la diffusione dei dati personali per le finalità e nell'ambito indicato nell'informativa, presta il suo consenso per il trattamento dei dati sensibili necessari per lo svolgimento delle operazioni indicate nell'informativa." %}
+    </div>
+  </div>
 </div>
 {% endblock %}
 
