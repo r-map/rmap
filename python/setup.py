@@ -256,21 +256,12 @@ except OSError as e:
     else:
         print >> sys.stderr, "There are some problems to install files in /etc !"
 
-#for dirpath, dirnames, filenames in os.walk('rmap/templates'):
-#    # Ignore dirnames that start with '.'
-#    for i, dirname in enumerate(dirnames):
-#        if dirname.startswith('.'): del dirnames[i]
-#    if filenames:
-#        for file in filenames:
-#            package_data.append('templates/'+ os.path.join(dirname, file))
-#
-#for dirpath, dirnames, filenames in os.walk('rmap/locale'):
-#    # Ignore dirnames that start with '.'
-#    for i, dirname in enumerate(dirnames):
-#        if dirname.startswith('.'): del dirnames[i]
-#    if filenames:
-#        for file in filenames:
-#            package_data.append('locale/'+ os.path.join(dirname, file))
+for dirpath, dirnames, filenames in os.walk('registration/locale'):
+    if filenames:
+        for file in filenames:
+            package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
+
+print package_data
 
 #package_data.append('rmap_config')
 #package_data.append('settings')
@@ -321,7 +312,7 @@ setup(name='rmap',
           'graphite-dballe':['templates/*'],
           'http2mqtt':['templates/*'],
           'insertdata':['templates/insertdata/*'],
-          'registration':['templates/registration/*'],
+          'registration':['templates/registration/*',]+package_data,
           'showdata':['templates/showdata/*'],
       },
       scripts=[

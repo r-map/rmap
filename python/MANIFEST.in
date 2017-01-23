@@ -33,6 +33,8 @@ recursive-include insertdata/templates *
 
 recursive-include registration/static *
 recursive-include registration/templates *
+recursive-include registration/tests *
+recursive-include registration/locale *
 
 recursive-include rmap/static *
 recursive-include rmap/templates *
