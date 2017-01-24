@@ -19,8 +19,13 @@ Upgrade in all system should be done with:
 
 pip install --upgrade rmap
 
-* to extract messages
-django-admin makemessages --settings=rmap.settings -a
+* to extract messages and translate and compile
+python setup.py makemessages
+
+poedit locale/it/LC_MESSAGES/django.po
+poedit registration/locale/it/LC_MESSAGES/django.po
+
+python setup.py compilemessages
 
 * to rebuild android package
 buildozer android release

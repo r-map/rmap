@@ -47,6 +47,10 @@ class distclean(Command):
             shutil.rmtree("static")
         except:
             pass
+        try:
+            shutil.rmtree("build")
+        except:
+            pass
         for root, dirs, files in os.walk('locale'):
             for name in files:
                 if name[-3:] == ".mo":
@@ -67,7 +71,7 @@ class build(build_):
     sub_commands.append(('compilemessages', None))
     sub_commands.append(('createmanpages', None))
 
-
+    
 class  install(install_):
      def  run(self):
          from django.core import management
@@ -75,6 +79,28 @@ class  install(install_):
          management.call_command("compilemessages")
          #createmanpages().run()
          install_.run(self)
+
+class makemessages(Command):
+    description = "Runs over the entire source tree of the current directory and pulls out all strings marked for translation."
+    user_options = []
+    boolean_options = []
+    
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+
+        # rm build to do not duplicate messages
+        try:
+            shutil.rmtree("build")
+        except:
+            pass
+
+        from django.core import management
+        management.call_command("makemessages",all=True)
 
 
 class compilemessages(Command):
@@ -166,7 +192,7 @@ class djangocollectstatic(Command):
 
 # Compile the list of files available, because distutils doesn't have
 # an easy way to do this.
-package_data = []
+registration_package_data = []
 data_files = []
 
 for dirpath, dirnames, filenames in os.walk('man'):
@@ -259,9 +285,7 @@ except OSError as e:
 for dirpath, dirnames, filenames in os.walk('registration/locale'):
     if filenames:
         for file in filenames:
-            package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
-
-print package_data
+            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
 
 #package_data.append('rmap_config')
 #package_data.append('settings')
@@ -274,7 +298,7 @@ setup(name='rmap',
       author_email='p.patruno@iperbole.bologna.it',
       platforms = ["any"],
       url='https://github.com/r-map/rmap',
-      cmdclass={'build': build,'compilemessages':compilemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
+      cmdclass={'build': build,'compilemessages':compilemessages,'makemessages':makemessages,'createmanpages':createmanpages,"distclean":distclean,'install': install,'djangocollectstatic':djangocollectstatic},
 #      include_package_data=True,
 #      packages=find_packages(),
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc',
@@ -312,7 +336,7 @@ setup(name='rmap',
           'graphite-dballe':['templates/*'],
           'http2mqtt':['templates/*'],
           'insertdata':['templates/insertdata/*'],
-          'registration':['templates/registration/*',]+package_data,
+          'registration':['templates/registration/*',]+registration_package_data,
           'showdata':['templates/showdata/*'],
       },
       scripts=[
