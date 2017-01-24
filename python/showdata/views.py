@@ -191,7 +191,8 @@ def timeseries(request, **kwargs):
                     "month":kwargs.get("month"),
                     "day":"15"})
                 datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+"01"
-                dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+"31"
+                lastdayinmonth="{:02d}".format((dtnext.replace(day=1)-timedelta(days=1)).day)
+                dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+lastdayinmonth
         else:
             #YEARLY
             timerequested=datetime(year=int(kwargs.get("year")),month=6,day=15)
