@@ -232,38 +232,6 @@ for dirpath, dirnames, filenames in os.walk('geoid_heights'):
     if filenames:
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
-#for dirpath, dirnames, filenames in os.walk('graphite-dballe/templates'):
-#    # Ignore dirnames that start with '.'
-#    for i, dirname in enumerate(dirnames):
-#        if dirname.startswith('.'): del dirnames[i]
-#    if filenames:
-#        path=os.path.relpath(dirpath,'graphite-dballe/templates')
-#        print "path=",path
-#        data_files.append(['share/rmap/templates/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
-
-#for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
-#    # Ignore dirnames that start with '.'
-#    for i, dirname in enumerate(dirnames):
-#        if dirname.startswith('.'): del dirnames[i]
-#    if filenames:
-#        path=os.path.relpath(dirpath,'graphite-dballe/static')
-#        data_files.append(['share/rmap/static/graphite-dballe/'+path, [os.path.join(dirpath, f) for f in filenames]])
-
-for dirpath, dirnames, filenames in os.walk('static'):
-    # Ignore dirnames that start with '.'
-    for i, dirname in enumerate(dirnames):
-        if dirname.startswith('.'): del dirnames[i]
-    if filenames:
-        data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
-
-
-#for dirpath, dirnames, filenames in os.walk('tables'):
-#    # Ignore dirnames that start with '.'
-#    for i, dirname in enumerate(dirnames):
-#        if dirname.startswith('.'): del dirnames[i]
-#    if filenames:
-#        data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
-
 
 try:
     if (os.path.isdir("/etc/rmap/")):
