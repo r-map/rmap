@@ -27,11 +27,15 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import os
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
 from rmap import daemon
 from rmap import __version__
 from rmap import mqtt2graphite
 import rmap.settings
-import os
 
 # TODO port those on config file !
 MQTT_HOST = 'localhost'
