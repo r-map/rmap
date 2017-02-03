@@ -1,4 +1,4 @@
-update=mar 31 gen 2017 21:17:05 CET
+update=mer 01 feb 2017 21:08:55 CET
 version=1
 last_client=kicad
 [pcbnew]
@@ -27,7 +27,7 @@ NetIExt=net
 version=1
 [eeschema]
 version=1
-LibDir=
+LibDir=../../lib
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -58,4 +58,4 @@ LibName26=opto
 LibName27=atmel
 LibName28=contrib
 LibName29=valves
-LibName30=/home/daniele/rmap/kicad/r-map_v2/lib/mics-2714
+LibName30=mics-2714
