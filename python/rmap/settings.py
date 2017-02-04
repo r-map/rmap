@@ -373,6 +373,7 @@ RRD_CF = 'AVERAGE'
 #    'graphite-dballe.finders.standard.StandardFinder',
 #)
 STORAGE_FINDERS = (
+    'graphite-dballe.finders.dballe.DballeFinderSample',
     'graphite-dballe.finders.dballe.DballeFinder',
     'graphite-dballe.finders.dballe.DballeFinderMobile',
 )
@@ -652,16 +653,16 @@ BORINUD = {
             "class": "borinud.utils.source.DballeDB",
             "url": dsnmqtt2dballed,
         }, 
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/meteonetwork",
-            "measurements": measurements
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/rmap",
-            "measurements": measurements
-        }
+         {
+             "class": "borinud.utils.source.ArkimetBufrDB",
+             "dataset": "http://localhost:8090/dataset/meteonetwork",
+             "measurements": measurements
+         },
+         {
+             "class": "borinud.utils.source.ArkimetBufrDB",
+             "dataset": "http://localhost:8090/dataset/rmap",
+             "measurements": measurements
+         }
     ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
