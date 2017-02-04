@@ -65,7 +65,7 @@ class  wssummaries(object):
             #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
             uri=path2uri(self.query.pattern)
 
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.rootpath)
             rj=r.json()
 
             #serialize json in a new json good to build graphite path 
@@ -136,8 +136,13 @@ class  wssummaries(object):
                 
                 if k is None:
                     k="-"
-                
-                self.node=str(k)
+                # here we are in branch and this test is not required
+                #if self.query.pattern[-1] == "*":
+                    # remove the last ".*"
+                self.node=self.query.pattern[:self.query.pattern.rfind(".")]+"."+str(k)
+                #else:
+                #    self.node=self.query.pattern+"."+str(k)
+
                 yield self.branch,self.node
 
         else:
@@ -185,6 +190,15 @@ class DballeFinderMobile(object):
             else:
                 yield LeafNode(node, DballeReader(node,"mobile"))
 
+class DballeFinderSample(object):
+
+    def find_nodes(self, query):
+        # find some paths matching the query, then yield them
+        for branch,node in wssummaries(query,"sample"):
+            if branch:
+                yield BranchNode(node)
+            else:
+                yield LeafNode(node, DballeReader(node,"sample"))
 
 
 class DballeReader(object):
@@ -218,7 +232,7 @@ class DballeReader(object):
             for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year))
+                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath)
                 rj+=r.json()
         elif dt > timedelta(days=20):
             #get  month
@@ -226,7 +240,7 @@ class DballeReader(object):
             for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month))
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath)
                 rj+=r.json()
         elif dt > timedelta(hours=18):
             #get days
@@ -234,7 +248,7 @@ class DballeReader(object):
             for dt in rrule(DAILY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day))
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath)
                 rj+=r.json()
         else:
             #get hours
@@ -243,7 +257,7 @@ class DballeReader(object):
                 #print "loop: ", dt
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
-                               "/{:02d}".format(dt.hour))
+                               "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath)
                 rj+=r.json()
 
         # if starttime.tm_year != endtime.tm_year:
@@ -369,7 +383,7 @@ class DballeReader(object):
 
         uri=path2uri(self.path)
 
-        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries")
+        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.rootpath)
         rj=r.json()
 
         if self.rootpath == "mobile" :

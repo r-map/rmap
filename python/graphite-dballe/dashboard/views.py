@@ -15,6 +15,7 @@ from ..compat import HttpResponse
 from ..dashboard.models import Dashboard, Template
 from ..render.views import renderView
 from send_graph import send_graph_email
+from django.views.decorators.csrf import csrf_exempt
 
 
 fieldRegex = re.compile(r'<([^>]+)>')
@@ -106,7 +107,7 @@ class DashboardConfig:
 
 config = DashboardConfig()
 
-
+@csrf_exempt
 def dashboard(request, name=None):
   dashboard_conf_missing = False
 
@@ -154,6 +155,7 @@ def dashboard(request, name=None):
   return render_to_response("dashboard.html", context)
 
 
+@csrf_exempt
 def template(request, name, val):
   template_conf_missing = False
 
@@ -219,6 +221,7 @@ def getPermissions(user):
   return permissions
 
 
+@csrf_exempt
 def save(request, name):
   if 'change' not in getPermissions(request.user):
     return json_response( dict(error="Must be logged in with appropriate permissions to save") )
@@ -236,6 +239,7 @@ def save(request, name):
   return json_response( dict(success=True) )
 
 
+@csrf_exempt
 def save_template(request, name, key):
   if 'change' not in getPermissions(request.user):
     return json_response( dict(error="Must be logged in with appropriate permissions to save the template") )
@@ -255,6 +259,7 @@ def save_template(request, name, key):
   return json_response( dict(success=True) )
 
 
+@csrf_exempt
 def load(request, name):
   try:
     dashboard = Dashboard.objects.get(name=name)
@@ -264,6 +269,7 @@ def load(request, name):
   return json_response( dict(state=json.loads(dashboard.state)) )
 
 
+@csrf_exempt
 def load_template(request, name, val):
   try:
     template = Template.objects.get(name=name)
@@ -275,6 +281,7 @@ def load_template(request, name, val):
   return json_response( dict(state=state) )
 
 
+@csrf_exempt
 def delete(request, name):
   if 'delete' not in getPermissions(request.user):
     return json_response( dict(error="Must be logged in with appropriate permissions to delete") )
@@ -288,6 +295,7 @@ def delete(request, name):
     return json_response( dict(success=True) )
 
 
+@csrf_exempt
 def delete_template(request, name):
   if 'delete' not in getPermissions(request.user):
     return json_response( dict(error="Must be logged in with appropriate permissions to delete the template") )
@@ -301,6 +309,7 @@ def delete_template(request, name):
     return json_response( dict(success=True) )
 
 
+@csrf_exempt
 def find(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -329,6 +338,7 @@ def find(request):
   return json_response( dict(dashboards=results) )
 
 
+@csrf_exempt
 def find_template(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -355,11 +365,13 @@ def find_template(request):
   return json_response( dict(templates=results) )
 
 
+@csrf_exempt
 def help(request):
   context = {}
   return render_to_response("dashboardHelp.html", context)
 
 
+@csrf_exempt
 def email(request):
     sender = request.POST['sender']
     recipients = request.POST['recipients'].split()
@@ -386,6 +398,7 @@ def email(request):
     return json_response(dict(success=True))
 
 
+@csrf_exempt
 def create_temporary(request):
   state = str( json.dumps( json.loads( request.POST['state'] ) ) )
   i = 0
@@ -402,10 +415,12 @@ def create_temporary(request):
   return json_response( dict(name=dashboard.name) )
 
 
+@csrf_exempt
 def json_response(obj):
   return HttpResponse(content_type='application/json', content=json.dumps(obj))
 
 
+@csrf_exempt
 def user_login(request):
   response = dict(errors={}, text={}, success=False, permissions=[])
   user = authenticate(username=request.POST['username'],
@@ -422,6 +437,7 @@ def user_login(request):
   return json_response(response)
 
 
+@csrf_exempt
 def user_logout(request):
   response = dict(errors={}, text={}, success=True)
   logout(request)
