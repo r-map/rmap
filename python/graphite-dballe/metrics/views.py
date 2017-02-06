@@ -16,6 +16,7 @@ import os
 import urllib
 
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 from ..compat import HttpResponse, HttpResponseBadRequest
 from ..util import getProfile, json
 from ..logger import log
@@ -29,6 +30,7 @@ except ImportError:
   import pickle
 
 
+@csrf_exempt
 def index_json(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -89,6 +91,7 @@ def index_json(request):
   return json_response_for(request, matches, jsonp=jsonp)
 
 
+@csrf_exempt
 def find_view(request):
   "View for finding metrics matching a given pattern"
   profile = getProfile(request)
@@ -180,6 +183,7 @@ def find_view(request):
   return response
 
 
+@csrf_exempt
 def expand_view(request):
   "View for expanding a pattern into matching metric paths"
   queryParams = request.GET.copy()
@@ -214,6 +218,7 @@ def expand_view(request):
   return response
 
 
+@csrf_exempt
 def get_metadata_view(request):
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
@@ -232,6 +237,7 @@ def get_metadata_view(request):
   return json_response_for(request, results, jsonp=jsonp)
 
 
+@csrf_exempt
 def set_metadata_view(request):
   results = {}
 
@@ -267,6 +273,7 @@ def set_metadata_view(request):
   return json_response_for(request, results)
 
 
+@csrf_exempt
 def tree_json(nodes, base_path, wildcards=False):
   results = []
 
@@ -341,6 +348,7 @@ def pickle_nodes(nodes):
   return pickle.dumps(nodes_info, protocol=-1)
 
 
+@csrf_exempt
 def json_response_for(request, data, content_type='application/json',
                       jsonp=False, **kwargs):
   accept = request.META.get('HTTP_ACCEPT', 'application/json')
