@@ -1,0 +1,43 @@
+#crare un fork dal repo originale (interfaccia web)
+
+#clone del fork:
+git clone https://github.com/r-map/django-cookie-law.git
+
+#aggiunger upstream:
+cd django-cookie-law/
+git remote add upstream https://github.com/TyMaszWeb/django-cookie-law.git
+git remote -v
+git fetch upstream
+
+
+#fare un resync con upstream:
+git checkout master
+git merge upstream/master
+git push
+
+
+#rendere disponibile per fare un subtree una subdir del progetto (si crea un barch con subtree)
+# seleziono la dir cookielaw e creo un branch  app_only
+git subtree split -P cookielaw -b app_only
+Created branch 'app_only'
+77e406cd57ea4d9276af2a91d4a225bad6d08f99
+
+#verifico e cambio branch:
+git branch
+git checkout app_only
+
+#push to upstream
+git push --set-upstream origin app_only
+
+#inserire l'app in una dir del nostro progetto
+#andare nella root dir del progetto
+cd ~/git/rmap
+git subtree add --prefix python/cookielaw  https://github.com/r-map/django-cookie-law.git app_only --squash
+
+#MA ATTENZIONE http://stackoverflow.com/questions/21500722/why-am-i-told-that-master-does-not-refer-to-a-commit-when-i-use-git-subtree
+
+#quindi con un git vecchio l'ultimo comando diventa:
+git branch  app_only
+git subtree add --prefix python/cookielaw  https://github.com/r-map/django-cookie-law.git app_only --squash
+git branch -d app_only
+
