@@ -3,6 +3,7 @@
 import os
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
+from . import __version__
 
 android=('ANDROID_ARGUMENT' in os.environ)
 
@@ -355,6 +356,7 @@ mapfilemqtt2graphited              = config['mqtt2graphited']['mapfile']
 
 from os.path import abspath, dirname, join
 
+WEBAPP_VERSION="rmap "+__version__ + " + graphite git 01/01/2017"
 JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%m/%d'
 WEB_DIR = dirname( abspath(__file__) )
