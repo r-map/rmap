@@ -52,7 +52,7 @@ U 1 1 5890F2A0
 P 4400 3700
 F 0 "R3" H 4470 3746 50  0000 L CNN
 F 1 "75R" H 4470 3655 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V -670 1050 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V -670 1050 50  0001 C CNN
 F 3 "" H -600 1050 50  0001 C CNN
 	1    4400 3700
 	1    0    0    -1  
@@ -82,16 +82,14 @@ F 3 "" H -500 850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4400 4550 4400 4900
-Wire Wire Line
-	4400 4900 4400 5000
+	4400 4550 4400 5000
 $Comp
 L R R5
 U 1 1 5890F969
 P 5200 3850
 F 0 "R5" H 5270 3896 50  0000 L CNN
 F 1 "10K" H 5270 3805 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V 430 850 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 430 850 50  0001 C CNN
 F 3 "" H 500 850 50  0001 C CNN
 	1    5200 3850
 	1    0    0    -1  
@@ -110,20 +108,16 @@ F 3 "" H 300 850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5200 4000 5200 4050
+	5200 4000 5200 4100
 Wire Wire Line
-	5200 4050 5200 4100
-Wire Wire Line
-	5200 4400 5200 4500
-Wire Wire Line
-	5200 4500 5200 4550
+	5200 4400 5200 4550
 $Comp
 L R R1
 U 1 1 5890FCDD
 P 3300 4400
 F 0 "R1" V 3093 4400 50  0000 C CNN
 F 1 "330" V 3184 4400 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 30  700 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 30  700 50  0001 C CNN
 F 3 "" H 100 700 50  0001 C CNN
 	1    3300 4400
 	0    1    1    0   
@@ -134,7 +128,7 @@ U 1 1 5890FD1B
 P 3900 4650
 F 0 "R2" H 3970 4696 50  0000 L CNN
 F 1 "10K" H 3970 4605 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V 430 950 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 430 950 50  0001 C CNN
 F 3 "" H 500 950 50  0001 C CNN
 	1    3900 4650
 	1    0    0    -1  
@@ -153,11 +147,7 @@ $EndComp
 Wire Wire Line
 	3050 4400 3150 4400
 Wire Wire Line
-	3450 4400 3600 4400
-Wire Wire Line
-	3600 4400 3900 4400
-Wire Wire Line
-	3900 4400 4100 4400
+	3450 4400 4100 4400
 Wire Wire Line
 	3600 4500 3600 4400
 Connection ~ 3600 4400
@@ -183,9 +173,7 @@ F 3 "" H -1650 550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1350 3400 2500 3400
-Wire Wire Line
-	2500 3400 2550 3400
+	1350 3400 2550 3400
 Wire Wire Line
 	2500 3400 2500 3600
 $Comp
@@ -200,17 +188,9 @@ F 3 "" H -1050 450 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1350 3300 2500 3300
+	1350 3300 2550 3300
 Wire Wire Line
-	2500 3300 2550 3300
-Wire Wire Line
-	9500 2600 9500 2800
-Wire Wire Line
-	9500 2800 9500 3000
-Wire Wire Line
-	9500 3000 9500 3200
-Wire Wire Line
-	9500 3200 9500 3400
+	9500 2600 9500 3400
 Wire Wire Line
 	9200 2800 9500 2800
 $Comp
@@ -225,17 +205,15 @@ F 3 "" H 1450 -50 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3600 4900 3900 4900
-Wire Wire Line
-	3900 4900 4400 4900
+	3600 4900 4400 4900
 Text GLabel 5050 3200 0    60   Input ~ 0
-A0
+NO2
 Text GLabel 3050 4400 0    60   Input ~ 0
-D9
+FET
 Text GLabel 1800 2550 1    60   Input ~ 0
-D9
+CO_SCALE_2
 Text GLabel 1650 2550 1    60   Input ~ 0
-A0
+CO
 Wire Wire Line
 	1650 2550 1650 2700
 Wire Wire Line
@@ -276,7 +254,7 @@ U 1 1 589649E9
 P 7000 3850
 F 0 "R8" H 7070 3896 50  0000 L CNN
 F 1 "R82" H 7070 3805 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V -670 -350 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V -670 -350 50  0001 C CNN
 F 3 "" H -600 -350 50  0001 C CNN
 	1    7000 3850
 	1    0    0    -1  
@@ -291,15 +269,13 @@ U 1 1 58964DF4
 P 8050 3850
 F 0 "R9" H 8120 3896 50  0000 L CNN
 F 1 "10K" H 8120 3805 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V 3280 850 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 3280 850 50  0001 C CNN
 F 3 "" H 3350 850 50  0001 C CNN
 	1    8050 3850
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7900 3600 8050 3600
-Wire Wire Line
-	8050 3600 8200 3600
+	7900 3600 8200 3600
 Wire Wire Line
 	8050 3600 8050 3700
 $Comp
@@ -315,11 +291,11 @@ F 3 "" H 3150 850 50  0001 C CNN
 $EndComp
 Connection ~ 8050 3600
 Text GLabel 7900 3600 0    60   Input ~ 0
-A1
+CO
 Wire Wire Line
 	8050 4850 8050 5000
 Text GLabel 1500 2550 1    60   Input ~ 0
-A1
+NO2
 Wire Wire Line
 	1500 2550 1500 2600
 Wire Wire Line
@@ -349,16 +325,14 @@ F 3 "" H 2100 850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	7000 4550 7000 4900
-Wire Wire Line
-	7000 4900 7000 5000
+	7000 4550 7000 5000
 $Comp
 L R R6
 U 1 1 58976B80
 P 5900 4400
 F 0 "R6" V 5693 4400 50  0000 C CNN
 F 1 "330" V 5784 4400 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 2630 700 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 2630 700 50  0001 C CNN
 F 3 "" H 2700 700 50  0001 C CNN
 	1    5900 4400
 	0    1    1    0   
@@ -369,7 +343,7 @@ U 1 1 58976B86
 P 6500 4650
 F 0 "R7" H 6570 4696 50  0000 L CNN
 F 1 "10K" H 6570 4605 50  0000 L CNN
-F 2 "Resistors_SMD:R_0805" V 3030 950 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 3030 950 50  0001 C CNN
 F 3 "" H 3100 950 50  0001 C CNN
 	1    6500 4650
 	1    0    0    -1  
@@ -388,11 +362,7 @@ $EndComp
 Wire Wire Line
 	5700 4400 5750 4400
 Wire Wire Line
-	6050 4400 6200 4400
-Wire Wire Line
-	6200 4400 6500 4400
-Wire Wire Line
-	6500 4400 6700 4400
+	6050 4400 6700 4400
 Wire Wire Line
 	6200 4500 6200 4400
 Connection ~ 6200 4400
@@ -406,17 +376,13 @@ Wire Wire Line
 	6500 4800 6500 4900
 Connection ~ 6500 4900
 Wire Wire Line
-	6200 4900 6500 4900
-Wire Wire Line
-	6500 4900 7000 4900
+	6200 4900 7000 4900
 Text GLabel 5700 4400 0    60   Input ~ 0
-D9
+FET
 Wire Wire Line
 	4400 3000 4400 3550
 Wire Wire Line
-	5050 3200 5200 3200
-Wire Wire Line
-	5200 3200 8200 3200
+	5050 3200 8200 3200
 Wire Wire Line
 	4400 3000 8200 3000
 Wire Wire Line
@@ -430,7 +396,7 @@ U 1 1 5898F3FA
 P 9100 4650
 F 0 "C3" H 9215 4696 50  0000 L CNN
 F 1 "C" H 9215 4605 50  0000 L CNN
-F 2 "" H 188 0   50  0001 C CNN
+F 2 "Capacitors_SMD:C_0805_HandSoldering" H 188 0   50  0001 C CNN
 F 3 "" H 150 150 50  0001 C CNN
 	1    9100 4650
 	1    0    0    -1  
@@ -472,7 +438,7 @@ U 1 1 589A5E7B
 P 8050 4700
 F 0 "R12" H 8120 4746 50  0000 L CNN
 F 1 "1M" H 8120 4655 50  0000 L CNN
-F 2 "" V -20 -50 50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V -20 -50 50  0001 C CNN
 F 3 "" H 50  -50 50  0001 C CNN
 	1    8050 4700
 	1    0    0    -1  
@@ -483,7 +449,7 @@ U 1 1 589A5F3B
 P 5200 4700
 F 0 "R10" H 5270 4746 50  0000 L CNN
 F 1 "1M" H 5270 4655 50  0000 L CNN
-F 2 "" V -70 50  50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V -70 50  50  0001 C CNN
 F 3 "" H 0   50  50  0001 C CNN
 	1    5200 4700
 	1    0    0    -1  
@@ -494,7 +460,7 @@ U 1 1 589A602E
 P 5200 4250
 F 0 "R4" H 5270 4296 50  0000 L CNN
 F 1 "100K" H 5270 4205 50  0000 L CNN
-F 2 "" V -70 0   50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V -70 0   50  0001 C CNN
 F 3 "" H 0   0   50  0001 C CNN
 	1    5200 4250
 	1    0    0    -1  
@@ -505,47 +471,43 @@ U 1 1 589A61C2
 P 8050 4300
 F 0 "R11" H 8120 4346 50  0000 L CNN
 F 1 "100K" H 8120 4255 50  0000 L CNN
-F 2 "" V 2780 50  50  0001 C CNN
+F 2 "Resistors_SMD:R_0805_HandSoldering" V 2780 50  50  0001 C CNN
 F 3 "" H 2850 50  50  0001 C CNN
 	1    8050 4300
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	8050 4000 8050 4100
+	8050 4000 8050 4150
 Wire Wire Line
-	8050 4100 8050 4150
-Wire Wire Line
-	8050 4450 8050 4500
-Wire Wire Line
-	8050 4500 8050 4550
-Text GLabel 4950 4050 0    60   Input ~ 0
-D1
+	8050 4450 8050 4550
+Text GLabel 4950 4050 1    60   Input ~ 0
+NO2_SCALE_1
 Wire Wire Line
 	4950 4050 5200 4050
 Connection ~ 5200 4050
-Text GLabel 4950 4500 0    60   Input ~ 0
-D2
+Text GLabel 4800 4500 1    60   Input ~ 0
+NO2_SCALE_2
 Wire Wire Line
-	4950 4500 5200 4500
+	4800 4500 5200 4500
 Connection ~ 5200 4500
-Text GLabel 7700 4100 0    60   Input ~ 0
-D3
+Text GLabel 7600 4100 1    60   Input ~ 0
+CO_SCALE_1
 Wire Wire Line
-	7700 4100 8050 4100
+	7600 4100 8050 4100
 Connection ~ 8050 4100
-Text GLabel 7700 4500 0    60   Input ~ 0
-D4
+Text GLabel 7450 4500 1    60   Input ~ 0
+CO_SCALE_2
 Wire Wire Line
-	7700 4500 8050 4500
+	7450 4500 8050 4500
 Connection ~ 8050 4500
 Text GLabel 1950 2550 1    60   Input ~ 0
-D1
+CO_SCALE_1
 Text GLabel 2100 2550 1    60   Input ~ 0
-D2
+NO2_SCALE_2
 Text GLabel 2250 2550 1    60   Input ~ 0
-D3
+NO2_SCALE_1
 Text GLabel 2400 2550 1    60   Input ~ 0
-D4
+FET
 Wire Wire Line
 	1950 2550 1950 2900
 Wire Wire Line
@@ -579,7 +541,7 @@ U 1 1 589A98FF
 P 1150 2800
 F 0 "P1" H 1250 2600 50  0000 C CNN
 F 1 "CONN_01X05" H 1150 2450 50  0000 C CNN
-F 2 "" H 0   -150 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm" H 0   -150 50  0001 C CNN
 F 3 "" H 0   -150 50  0001 C CNN
 	1    1150 2800
 	-1   0    0    1   
@@ -590,7 +552,7 @@ U 1 1 589A99A7
 P 1150 3300
 F 0 "P2" H 1250 3050 50  0000 C CNN
 F 1 "CONN_01X05" H 1100 3650 50  0000 C CNN
-F 2 "" H 0   100 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm" H 0   100 50  0001 C CNN
 F 3 "" H 0   100 50  0001 C CNN
 	1    1150 3300
 	-1   0    0    1   
