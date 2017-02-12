@@ -1,4 +1,4 @@
-update=ven 10 feb 2017 16:46:38 CET
+update=sab 11 feb 2017 20:50:52 CET
 version=1
 last_client=kicad
 [pcbnew]
@@ -25,9 +25,19 @@ version=1
 NetIExt=net
 [general]
 version=1
+[schematic_editor]
+version=1
+PageLayoutDescrFile=
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=Pcbnew
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
 [eeschema]
 version=1
-LibDir=../../../lib
+LibDir=../../lib
 [eeschema/libraries]
 LibName1=power
 LibName2=device
@@ -60,13 +70,3 @@ LibName28=contrib
 LibName29=valves
 LibName30=mics-2714
 LibName31=mics-4514
-[schematic_editor]
-version=1
-PageLayoutDescrFile=
-PlotDirectoryName=
-SubpartIdSeparator=0
-SubpartFirstId=65
-NetFmtName=Pcbnew
-SpiceForceRefPrefix=0
-SpiceUseNetNumbers=0
-LabSize=60
