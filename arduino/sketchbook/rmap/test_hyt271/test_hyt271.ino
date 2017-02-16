@@ -1,42 +1,31 @@
 #include <Wire.h>
 #include <hyt271.h>
 
+void test_read_ht() {
+  float humidity;
+  float temperature;
+
+  // Request 4 bytes at default address 0x28: 2 bytes for Humidity and 2 bytes for Temperature
+  Wire.requestFrom(I2C_HYT271_DEFAULT_ADDRESS, I2C_HYT271_READ_HT_DATA_LENGTH);
+
+  if (Wire.available() == I2C_HYT271_READ_HT_DATA_LENGTH) {
+    HYT271_getHT((unsigned long) Wire.read() << 24 | (unsigned long) Wire.read() << 16 | (unsigned long) Wire.read() << 8 | (unsigned long) Wire.read(), &humidity, &temperature);    
+    Serial.print("Humidity: ");
+    Serial.print(humidity);
+    Serial.print("% - Temperature: ");
+    Serial.print(temperature);
+    Serial.write(0xB0); // °
+    Serial.println("C");
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
+  Wire.setClock(400000L); // 400 KHz
 }
 
 void loop() {
-  double humidity;
-  double temperature;
-
-  Wire.beginTransmission(I2C_HYT271_DEFAULT_ADDRESS);
-  Wire.requestFrom(I2C_HYT271_DEFAULT_ADDRESS, I2C_HYT271_READ_DATA_LENGTH);
-
-  if (Wire.available() == I2C_HYT271_READ_DATA_LENGTH) {
-    uint16_t raw_data;
-
-    // humidity
-    raw_data = Wire.read();
-    raw_data = raw_data << 8 | Wire.read();
-    raw_data = raw_data &= 0x3FFF;
-    humidity = 100.0 / 0x3FFF * raw_data;
-
-    // temperature
-    raw_data = Wire.read();
-    raw_data = raw_data << 6 | Wire.read() >> 2;
-    temperature = 165.0 / 0x3FFF * raw_data - 40;
-    
-    Wire.endTransmission();
-    
-    Serial.print(humidity);
-    Serial.print(" % - Temperature: ");
-    Serial.print(temperature);
-    Serial.print(" C\r\n");
-  }
-  else {
-    Serial.println("Not enough bytes available on wire.");
-  }
-
-  delay(2000);
+  test_read_ht();
+  delay(5000);
 }
