@@ -32,6 +32,11 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	return new SensorDriverHih6100();
       else
 #endif
+#if defined (HYTDRIVER)
+      //if (strcmp(type, "HYT") == 0)
+	//return new SensorDriverHyt271();
+      //else
+#endif
 #if defined (BMPDRIVER)
       if (strcmp(type, "BMP") == 0)
 	return new SensorDriverBmp085();
@@ -754,6 +759,85 @@ aJsonObject* SensorDriverHih6100::getJson()
   return jsonvalues;
 }
 #endif
+#endif
+
+#if defined (HYTDRIVER)
+//#include "hyt271.h"
+//int SensorDriverHyt271::setup(const char* driver, const int address, const int node, const char* type
+             //#if defined (RADIORF24)
+			       //, char* mainbuf, size_t lenbuf, RF24Network* network
+               //#if defined (AES)
+			       //, uint8_t key[] , uint8_t iv[]
+               //#endif
+             //#endif
+			       //)
+//{
+
+  //SensorDriver::setup(driver,address,node,type
+             //#if defined (RADIORF24)
+		      //, mainbuf, lenbuf, network
+               //#if defined (AES)
+		      //, key,iv
+               //#endif
+             //#endif
+		      //);
+
+  //return SD_SUCCESS;
+
+//}
+
+//int SensorDriverHyt271::prepare(unsigned long &waittime) {
+	//Wire.beginTransmission(_address);   	// Open I2C line in write mode
+	
+	//if (Wire.endTransmission())
+		//return SD_INTERNAL_ERROR;			// End Write Transmission 
+	
+	//_timing = millis();
+	//waittime = 100ul;   					// The measurement cycle duration is typically 100 ms max for temperature and humidity readings
+	
+	//return SD_SUCCESS;
+//}
+
+//int SensorDriverHyt271::get(long values[], size_t lenvalues) {
+	//if (millis() - _timing > MAXDELAYFORREAD)
+		//return SD_INTERNAL_ERROR;
+	
+	//float humidity;
+	//float temperature;
+	
+	//Wire.requestFrom(_address, I2C_HYT271_READ_HT_DATA_LENGTH);
+	
+	//if (Wire.available() == I2C_HYT271_READ_HT_DATA_LENGTH)
+		//HYT271_getHT((unsigned long) Wire.read() << 24 | (unsigned long) Wire.read() << 16 | (unsigned long) Wire.read() << 8 | (unsigned long) Wire.read(), &humidity, &temperature);
+	//else return SD_INTERNAL_ERROR;
+
+	//if (lenvalues >= 2) {
+		//values[0] = (long) round(humidity);
+		//values[1] = (long) round(temperature*100 + 27315);
+	//}
+	
+	//_timing = 0;
+	//return SD_SUCCESS;
+//}
+
+//#if defined(USEAJSON)
+//aJsonObject* SensorDriverHyt271::getJson() {
+	//long values[2];
+	//aJsonObject* jsonvalues;
+	//jsonvalues = aJson.createObject();
+	
+	//if (SensorDriverHyt271::get(values,2) == SD_SUCCESS) {
+		//aJson.addNumberToObject(jsonvalues, "B13003", values[0]);
+		//aJson.addNumberToObject(jsonvalues, "B12101", values[1]);
+	//}
+	//else {
+		//aJson.addNullToObject(jsonvalues, "B12101");
+		//aJson.addNullToObject(jsonvalues, "B13003");
+	//}
+	
+	//return jsonvalues;
+//}
+//#endif
 #endif
 
 

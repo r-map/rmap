@@ -1,4 +1,4 @@
-// activate debug on serial port
+﻿// activate debug on serial port
 //#define SDDEBUGONSERIAL
 
 
@@ -33,6 +33,9 @@
 
 // include HIH driver
 #define HIHDRIVER
+
+// include HYT driver
+#define HYTDRIVER
 
 // include BMP driver
 #define BMPDRIVER

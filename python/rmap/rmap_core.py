@@ -35,6 +35,7 @@ from rmap import jsonrpc
 from django.core.files.base import ContentFile
 from datetime import datetime
 import exifutils
+from django.db import connection
 
 #sensortemplates={"stima_t_u":
 #'''
@@ -1090,6 +1091,7 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
             print ("error in deserialize object; skip it",e)
 
         print " [x] Done"
+        connection.close()
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
     credentials=pika.PlainCredentials(user, password)
