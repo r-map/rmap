@@ -1,7 +1,7 @@
 /**********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Paolo Paruno <p.patruno@iperbole.bologna.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -35,3 +35,4 @@ unsigned char HYT271_getHT(unsigned long, float *, float *);
 #endif
 
 #endif
+

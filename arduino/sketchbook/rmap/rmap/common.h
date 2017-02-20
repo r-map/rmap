@@ -95,7 +95,7 @@ https://github.com/arduino/Arduino/wiki/Boards-Manager-FAQ
 #define JSONRPCON
 #define REPEATTASK
 #define SENSORON
-#define GSMAPN "ibox.tim.it"
+#define GSMAPN "web.omnitel.it"
 #define GSMUSER ""
 #define GSMPASSWORD ""
 //#define GSMSERIAL   Serial1
@@ -184,7 +184,7 @@ Mega2560	      	        	   21	   20	   19	   18
 
 #ifdef LCD
 #define IF_LCD(x) ({x;})
-#define LCD_I2CADDRESS 0x27
+#define LCD_I2CADDRESS 0x3F
 #define LCD_CHAR 20
 #define LCD_ROW 4
 #else

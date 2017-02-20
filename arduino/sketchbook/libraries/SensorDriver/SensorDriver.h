@@ -148,24 +148,24 @@ class SensorDriverTmp : public SensorDriver
 #endif
 
 #if defined (HYTDRIVER)
-//#include "hyt271.h"
- //class SensorDriverHyt271 : public SensorDriver
- //{
- //public:
-   //virtual int setup(const char* driver, const int address, const int node, const char* type
-  //#if defined (RADIORF24)
-		     //, char* mainbuf, size_t lenbuf, RF24Network* network
-    //#if defined (AES)
-		     //, uint8_t key[] , uint8_t iv[]
-    //#endif
-  //#endif
-		     //);
-    //virtual int prepare(unsigned long& waittime);
-    //virtual int get(long values[],size_t lenvalues);
-  //#if defined(USEAJSON)
-    //virtual aJsonObject* getJson();
-  //#endif
-//};
+#include "hyt271.h"
+ class SensorDriverHyt271 : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+		     , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+		     , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+		     );
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+};
 #endif
 
 #if defined (BMPDRIVER)

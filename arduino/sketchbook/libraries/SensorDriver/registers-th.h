@@ -1,1 +1,0 @@
-../../rmap/i2c-th/registers-th.h

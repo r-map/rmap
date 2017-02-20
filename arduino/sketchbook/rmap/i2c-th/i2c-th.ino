@@ -60,7 +60,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 char confver[9] = CONFVER; // version of configuration saved on eeprom
 
-#define SENSORS_LEN 2     // number of sensors
+#define SENSORS_LEN 1     // number of sensors
 #define LENVALUES 2
 size_t lenvalues=LENVALUES;       // max of values for sensor
 long int values[LENVALUES];
@@ -504,12 +504,8 @@ void setup() {
   Wire.onReceive(receiveEvent);
 
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"ADT");
+  strcpy(sensors[0].type,"HYT");
   sensors[0].address=i2c_writabledataset1->i2c_temperature_address;
-
-  strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"HIH");
-  sensors[1].address=i2c_writabledataset1->i2c_humidity_address;
 
   for (int i = 0; i < SENSORS_LEN; i++) {
 
@@ -607,6 +603,10 @@ void loop() {
 	  }
 	  if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
 	  if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
+    if (strcmp(sensors[i].type,"HYT") == 0) {
+      h = values[0];
+      t = values[1];
+    }
 	}else{
 	  //IF_SDEBUG(Serial.println(F("Error: RETRY")));
 	  //delay(20);

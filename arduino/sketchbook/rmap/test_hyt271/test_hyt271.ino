@@ -1,7 +1,7 @@
 /**********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
-Paolo Paruno <p.patruno@iperbole.bologna.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -40,8 +40,8 @@ void test_read_ht() {
 
     Serial.print("---> Temperature: ");
     Serial.print(temperature);
-    Serial.print(" °");
-    //Serial.write(0xB0); // °
+    //Serial.print(" °");
+    Serial.write(0xB0); // °
     Serial.print("C \tB12101: ");
     Serial.print(temperature + 273.15);
     Serial.println("");
@@ -59,3 +59,4 @@ void loop() {
   test_read_ht();
   delay(5000);
 }
+
