@@ -1353,6 +1353,9 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
   lsb = Wire.read();
   
   if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) * RAINFORTIP ;
+  
+  IF_SDSDEBUG(SDDBGSERIAL.print("TBR: "));
+  IF_SDSDEBUG(SDDBGSERIAL.println(values[0]));
 
   _timing=0;
 

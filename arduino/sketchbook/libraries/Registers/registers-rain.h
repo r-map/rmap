@@ -23,7 +23,7 @@
 
 #define I2C_RAIN_MAP_WRITABLE          0x1F
 #define I2C_RAIN_ONESHOT               0x1F      // saple mode (bool)
-#define I2C_RAIN_ADDRESS               0x20      // i2c bus address (short unsigned int)
+#define I2C_RAIN_ADDRESS               0x21      // i2c bus address (short unsigned int)
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 

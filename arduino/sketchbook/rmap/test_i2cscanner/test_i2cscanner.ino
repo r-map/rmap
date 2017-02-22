@@ -49,7 +49,7 @@ void setup()
 {
     delay(2000);
     Wire.begin();
-    Serial.begin(9600);
+    Serial.begin(115200);
     Serial.println("\nI2CScanner ready!");
 
     Serial.print("starting scanning of I2C bus from ");

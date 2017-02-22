@@ -14,7 +14,7 @@
 // millisec
 
 // with 200 the maximum rain rate is 1 Kg/m^2/s with a  tipping bucket rain gauge with .2 Kg/m^2 tips
-#define DEBOUNCINGTIME 200
+#define DEBOUNCINGTIME 254
 
 // temporary patch for microduino; see http://forum.microduino.cc/topic/91/digitalpintointerrupt-was-not-declared-in-this-scope
 #define digitalPinToInterrupt(p) ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) >= 18 && (p) <= 21 ? 23 - (p) : NOT_AN_INTERRUPT)))

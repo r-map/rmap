@@ -162,7 +162,7 @@ void receiveEvent( int bytesReceived)
      for (int a = 0; a < bytesReceived; a++) {
           if (a < MAX_SENT_BYTES) {
                receivedCommands[a] = Wire.read();
-	       //Serial.println(receivedCommands[a]);
+         //Serial.println(receivedCommands[a]);
           } else {
                Wire.read();  // if we receive more data then allowed just throw it away
           }
@@ -171,15 +171,15 @@ void receiveEvent( int bytesReceived)
      if (bytesReceived == 2){
        // check for a command
        if (receivedCommands[0] == I2C_RAIN_COMMAND) {
-	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
-	 new_command = receivedCommands[1]; return; }
+   //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
+   new_command = receivedCommands[1]; return; }
      }
 
      if (bytesReceived == 1){
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
        if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
-	 receivedCommands[0]=0;
+   receivedCommands[0]=0;
        }
        //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
        return;
@@ -194,16 +194,16 @@ void receiveEvent( int bytesReceived)
      
      if ((receivedCommands[0]>=I2C_RAIN_MAP_WRITABLE) && (receivedCommands[0] < (I2C_RAIN_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
        if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_RAIN_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
-	 //Writeable registers
-	 // the two buffer should be in sync
-	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_RAIN_MAP_WRITABLE;
-	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_RAIN_MAP_WRITABLE;
-	 for (int a = 1; a < bytesReceived; a++) { 
-	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   *ptr1++ = receivedCommands[a];
-	   *ptr2++ = receivedCommands[a];
-	 }
-	 // new data written
+   //Writeable registers
+   // the two buffer should be in sync
+   ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_RAIN_MAP_WRITABLE;
+   ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_RAIN_MAP_WRITABLE;
+   for (int a = 1; a < bytesReceived; a++) { 
+     //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
+     *ptr1++ = receivedCommands[a];
+     *ptr2++ = receivedCommands[a];
+   }
+   // new data written
        }
     }
 }
@@ -426,7 +426,6 @@ void loop() {
     //IF_SDEBUG(Serial.println(F("oneshot end")));
     stop =false;
     start=false;
-
   }
 
   digitalWrite(LEDPIN,count % 2);  // blink Led
