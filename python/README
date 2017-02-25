@@ -47,10 +47,17 @@ comment wsgiref in
 .buildozer/android/platform/python-for-android/src/blacklist.txt
 
 clean locale files:
-  find .buildozer/applibs/django -name \*.mo -exec rm \{\} \;
-  find .buildozer/applibs/django -name \*.po -exec rm \{\} \;
 
-apply patch as in https://github.com/r-map/rmap/issues/25
+  # old find .buildozer/applibs/django -name \*.mo -exec rm \{\} \;
+  # old find .buildozer/applibs/django -name \*.po -exec rm \{\} \;
+
+  # new find .buildozer/android/platform/build/dists/rmap/private/lib/python2.7/site-packages/django -name \*.mo -exec rm \{\} \;
+  # new find .buildozer/android/platform/build/dists/rmap/private/lib/python2.7/site-packages/django -name \*.po -exec rm \{\} \;
+
+apply patch as in
+  https://github.com/r-map/rmap/issues/25
+to
+  .buildozer/android/platform/build/dists/rmap/private/lib/python2.7/site-packages/django/db/migrations/loader.py
 
 * dump data by natural keys
  python manage.py dumpdata --natural-foreign --natural-primary --format=json auth.user|json_reformat
