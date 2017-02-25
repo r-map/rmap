@@ -6,7 +6,7 @@
   - subscribes to the topic "inTopic"
 */
 
-#define GSMAPN "web.omnitel.it"
+#define GSMAPN "ibox.tim.it"
 #define GSMUSER ""
 #define GSMPASSWORD ""
 

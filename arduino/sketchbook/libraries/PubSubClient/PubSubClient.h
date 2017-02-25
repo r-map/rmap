@@ -10,13 +10,13 @@
 #include <Arduino.h>
 
 // if use sim800 client
-#include "sim800Client.h"
-#define TCPCLIENT sim800Client
+//#include "sim800Client.h"
+//#define TCPCLIENT sim800Client
 
 // if use arduino_uip or etherclient
-//#include "Client.h"
-//#include "Stream.h"
-//#define TCPCLIENT Client
+#include "Client.h"
+#include "Stream.h"
+#define TCPCLIENT Client
 
 
 #include "IPAddress.h"
