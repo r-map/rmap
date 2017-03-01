@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (C) 2016  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2017  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
 
@@ -76,6 +76,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #endif
 
 #include "EEPROMAnything.h"
+#include "Calibration.h"
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
 #define REG_PM_SIZE           sizeof(pm_t)                  //size of register map for pm
@@ -90,6 +91,18 @@ sds011::Sds011 sensor(SERIALSDS011);
 #endif
 #ifdef MICS4514PRESENT
 mics4514::Mics4514 sensormics(COPIN,NO2PIN,HEATERPIN,SCALE1PIN,SCALE2PIN);
+float coconcentrations[]  = { POINT1_PPM_CO, POINT2_PPM_CO, POINT3_PPM_CO };
+float coresistences[]     = { POINT1_RES_CO, POINT2_RES_CO, POINT3_RES_CO };
+
+float no2concentrations[] = {POINT1_PPM_NO2, POINT2_PPM_NO2, POINT3_PPM_NO2};
+float no2resistences[]    = {POINT1_RES_NO2, POINT2_RES_NO2, POINT3_RES_NO2};
+
+// NO2 Sensor calibration
+calibration::Calibration NO2Cal;
+
+// CO Sensor calibration
+calibration::Calibration COCal;
+
 #endif
 
 #ifdef SDS011PRESENT
@@ -373,6 +386,10 @@ void setup() {
 
   minco=LONG_MAX;
   minno2=LONG_MAX;
+
+  NO2Cal.setCalibrationPoints(no2resistences, no2concentrations, no2numPoints);
+  COCal.setCalibrationPoints(coresistences, coconcentrations, conumPoints);
+
 #endif
 
   nsample1=1;
@@ -654,13 +671,22 @@ void loop() {
   wdt_reset();
 
   if (ok){
-    i2c_dataset1->cono2.co=co;
-    i2c_dataset1->cono2.no2=no2;
+
+    float ppm;
+    
+    if (COCal.getConcentration(float(co),&ppm))
+      {
+	i2c_dataset1->cono2.co=round(ppm);
+      }
+    if (NO2Cal.getConcentration(float(no2),&ppm))
+      {
+	i2c_dataset1->cono2.no2=round(ppm);
+      }
     
     IF_SDEBUG(Serial.print("co: "));
-    IF_SDEBUG(Serial.println(co));
+    IF_SDEBUG(Serial.println(i2c_dataset1->cono2.co));
     IF_SDEBUG(Serial.print("no2: "));
-    IF_SDEBUG(Serial.println(no2));
+    IF_SDEBUG(Serial.println(i2c_dataset1->cono2.no2));
   }
 #endif
 
