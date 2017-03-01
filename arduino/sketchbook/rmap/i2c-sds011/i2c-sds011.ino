@@ -58,7 +58,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 01             //Software version for cross checking
+#define VERSION 02             //Software version for cross checking
 
 #include <limits.h>
 #include <avr/wdt.h>
@@ -67,7 +67,13 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "config.h"
 #include "IntBuffer.h"
 #include "FloatBuffer.h"
+
+#ifdef SDS011PRESENT
 #include "Sds011.h"
+#endif
+#ifdef MICS4514PRESENT
+#include "Mics4514.h"
+#endif
 
 #include "EEPROMAnything.h"
 
@@ -79,31 +85,46 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 char confver[9] = CONFVER; // version of configuration saved on eeprom
 
+#ifdef SDS011PRESENT
 sds011::Sds011 sensor(SERIALSDS011);
+#endif
+#ifdef MICS4514PRESENT
+mics4514::Mics4514 sensormics(COPIN,NO2PIN,HEATERPIN,SCALE1PIN,SCALE2PIN);
+#endif
 
-
+#ifdef SDS011PRESENT
 IntBuffer cbpm2560n;
 IntBuffer cbpm1060n;
-
 IntBuffer cbpm2560m;
 IntBuffer cbpm1060m;
-
 IntBuffer cbpm2560x;
 IntBuffer cbpm1060x;
-
 FloatBuffer cbsum2pm25;
-FloatBuffer cbsumpm25;
 FloatBuffer cbsum2pm10;
+FloatBuffer cbsumpm25;
 FloatBuffer cbsumpm10;
+#endif
 
+#ifdef MICS4514PRESENT
+IntBuffer cbco60n;
+IntBuffer cbno260n;
+IntBuffer cbco60m;
+IntBuffer cbno260m;
+IntBuffer cbco60x;
+IntBuffer cbno260x;
+FloatBuffer cbsum2co;
+FloatBuffer cbsumco;
+FloatBuffer cbsum2no2;
+FloatBuffer cbsumno2;
+#endif
 
 typedef struct {
   uint8_t    sw_version;                          // Version of the I2C_SDS011 sw
 } status_t;
 
 typedef struct {
-  uint16_t    pm25;
-  uint16_t    pm10;
+  uint16_t     pm25;
+  uint16_t     pm10;
   uint16_t     minpm25;
   uint16_t     minpm10;
   uint16_t     meanpm25;
@@ -115,12 +136,26 @@ typedef struct {
 } pm_t;
 
 typedef struct {
+  uint16_t     co;
+  uint16_t     no2;
+  uint16_t     minco;
+  uint16_t     minno2;
+  uint16_t     meanco;
+  uint16_t     meanno2;
+  uint16_t     maxco;
+  uint16_t     maxno2;
+  uint16_t     sigmaco;
+  uint16_t     sigmano2;
+} cono2_t;
+
+typedef struct {
 
 //Status registers
   status_t     status;                   // 0x00  status register
 
-//pm data
+//data
   pm_t                pm;                     // 0x01 pm
+  cono2_t             cono2;                  // 0x15 pm
 } I2C_REGISTERS;
 
 
@@ -162,6 +197,7 @@ volatile static I2C_WRITABLE_REGISTERS* i2c_writabledatasettmp;
 volatile static uint8_t         receivedCommands[MAX_SENT_BYTES];
 volatile static uint8_t         new_command;                        //new command received (!=0)
 
+#ifdef SDS011PRESENT
 float meanpm25;
 float meanpm10;
 long int minpm25;
@@ -172,8 +208,21 @@ float sum2pm25;
 float sumpm25;
 float sum2pm10;
 float sumpm10;
-float sum260;
-float sum60;
+#endif
+
+#ifdef MICS4514PRESENT
+float meanco;
+float meanno2;
+long int minco;
+long int minno2;
+long int maxco;
+long int maxno2;
+float sum2co;
+float sumco;
+float sum2no2;
+float sumno2;
+#endif
+
 uint8_t nsample1;
 
 // one shot management
@@ -292,6 +341,7 @@ void setup() {
 #define SAMPLE1 60000/SAMPLERATE
 #define SAMPLE2 60
 
+#ifdef SDS011PRESENT
   meanpm25=0.;
   meanpm10=0.;
 
@@ -306,9 +356,28 @@ void setup() {
 
   sum2pm10=0;
   sumpm10=0;
+#endif
+  
+#ifdef MICS4514PRESENT
+  meanco=0.;
+  meanno2=0.;
+
+  maxco=-1;
+  maxno2=-1;
+
+  sum2co=0;
+  sumco=0;
+
+  sum2no2=0;
+  sumno2=0;
+
+  minco=LONG_MAX;
+  minno2=LONG_MAX;
+#endif
 
   nsample1=1;
 
+#ifdef SDS011PRESENT
   cbpm2560n.init(SAMPLE2);
   cbpm1060n.init(SAMPLE2);
 
@@ -319,10 +388,28 @@ void setup() {
   cbpm1060x.init(SAMPLE2);
 
   cbsum2pm25.init(SAMPLE2);
-  cbsumpm25.init(SAMPLE2);
-
   cbsum2pm10.init(SAMPLE2);
+
+  cbsumpm25.init(SAMPLE2);
   cbsumpm10.init(SAMPLE2);
+#endif
+
+#ifdef MICS4514PRESENT
+  cbco60n.init(SAMPLE2);
+  cbno260n.init(SAMPLE2);
+
+  cbco60m.init(SAMPLE2);
+  cbno260m.init(SAMPLE2);
+
+  cbco60x.init(SAMPLE2);
+  cbno260x.init(SAMPLE2);
+
+  cbsum2co.init(SAMPLE2);
+  cbsumco.init(SAMPLE2);
+
+  cbsum2no2.init(SAMPLE2);
+  cbsumno2.init(SAMPLE2);
+#endif
 
   IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
 
@@ -408,11 +495,20 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
+#ifdef SDS011PRESENT
   SERIALSDS011.begin(9600);
-
   sensor.set_mode(sds011::QUERY);
-  if (oneshot) sensor.set_sleep(true);
-
+#endif
+  
+  if (oneshot){
+#ifdef SDS011PRESENT
+    sensor.set_sleep(true);
+#endif
+#ifdef MICS4514PRESENT
+    sensormics.sleep();
+#endif    
+  }
+  
   starttime = millis()+SAMPLERATE;
 
   IF_SDEBUG(Serial.println(F("end setup")));
@@ -426,7 +522,9 @@ void loop() {
   //unsigned int pm10;
   int pm25;
   int pm10;
-
+  int co;
+  int no2;
+  
   float mean;
   
   uint8_t i;
@@ -521,8 +619,17 @@ void loop() {
   }
 
 
-  if (oneshot) sensor.set_sleep(false);
+  if (oneshot){
+#ifdef SDS011PRESENT
+    sensor.set_sleep(false);
+#endif
+#ifdef MICS4514PRESENT
+    sensormics.blocking_fast_heat();
+#endif
+  }
   delay(1000);
+
+#ifdef SDS011PRESENT
   ok = sensor.query_data_auto(&pm25, &pm10, 3);
   if (oneshot) sensor.set_sleep(true);
 
@@ -538,6 +645,25 @@ void loop() {
     IF_SDEBUG(Serial.print("pm10: "));
     IF_SDEBUG(Serial.println(pm10));
   }
+#endif
+
+#ifdef MICS4514PRESENT
+  ok = sensormics.query_data_auto(&co, &no2, 3);
+  if (oneshot) sensormics.sleep();
+
+  wdt_reset();
+
+  if (ok){
+    i2c_dataset1->cono2.co=co;
+    i2c_dataset1->cono2.no2=no2;
+    
+    IF_SDEBUG(Serial.print("co: "));
+    IF_SDEBUG(Serial.println(co));
+    IF_SDEBUG(Serial.print("no2: "));
+    IF_SDEBUG(Serial.println(no2));
+  }
+#endif
+
   if (oneshot) {
     //if one shot we have finish
     IF_SDEBUG(Serial.println(F("oneshot end")));
@@ -547,12 +673,16 @@ void loop() {
 
   // statistical processing
 
+  float sum260, sum60;
+
   // first level mean
 
   IF_SDEBUG(Serial.print("data in store first: "));
   IF_SDEBUG(Serial.println(nsample1));
 
 
+#ifdef SDS011PRESENT
+  
   // first level min
   if (minpm25 > pm25) minpm25=pm25;
   if (minpm10 > pm10) minpm10=pm10;
@@ -603,7 +733,6 @@ void loop() {
     cbsum2pm10.autoput(sum2pm10);
     cbsumpm10.autoput(sumpm10);
 
-    nsample1=0;
 
     minpm25=LONG_MAX;
     meanpm25=0.;
@@ -622,7 +751,6 @@ void loop() {
   }
 
   // sigma
-  float sum260, sum60;
 
   if (cbsum2pm25.getSize() == cbsum2pm25.getCapacity() && cbsumpm25.getSize() == cbsumpm25.getCapacity()){
     sum260=0;
@@ -665,8 +793,133 @@ void loop() {
   IF_SDEBUG(Serial.print("sigma pm10: "));
   IF_SDEBUG(Serial.println(i2c_dataset1->pm.sigmapm10));
 
+#endif
+
+
+#ifdef MICS4514PRESENT
+  
+  // first level min
+  if (minco > co) minco=co;
+  if (minno2 > no2) minno2=no2;
+
+  // first level mean
+  meanco += (float(co) - meanco) / nsample1;
+  meanno2 += (float(no2) - meanno2) / nsample1;
+
+  // first level max
+  if (maxco < co) maxco=co;
+  if (maxno2 < no2) maxno2=no2;
+
+  // sigma
+  sum2co+=co*co;
+  sumco+=co;
+
+  sum2no2+=no2*no2;
+  sumno2+=no2;
+
+  if (nsample1 == SAMPLE1) {
+    IF_SDEBUG(Serial.print("minco: "));
+    IF_SDEBUG(Serial.println(minco));
+    IF_SDEBUG(Serial.print("minno2: "));
+    IF_SDEBUG(Serial.println(minno2));
+
+    IF_SDEBUG(Serial.print("meanco: "));
+    IF_SDEBUG(Serial.println(meanco));
+    IF_SDEBUG(Serial.print("meanno2: "));
+    IF_SDEBUG(Serial.println(meanno2));
+
+    IF_SDEBUG(Serial.print("maxco: "));
+    IF_SDEBUG(Serial.println(maxco));
+    IF_SDEBUG(Serial.print("maxno2: "));
+    IF_SDEBUG(Serial.println(maxno2));
+
+    cbco60n.autoput(minco);
+    cbno260n.autoput(minno2);
+
+    cbco60m.autoput(meanco);
+    cbno260m.autoput(meanno2);
+
+    cbco60x.autoput(maxco);
+    cbno260x.autoput(maxno2);
+
+    cbsum2co.autoput(sum2co);
+    cbsumco.autoput(sumco);
+
+    cbsum2no2.autoput(sum2no2);
+    cbsumno2.autoput(sumno2);
+
+
+    minco=LONG_MAX;
+    meanco=0.;
+    maxco=0.;
+
+    minno2=LONG_MAX;
+    meanno2=0.;
+    maxno2=0.;
+
+    sum2co=0;
+    sumco=0;
+
+    sum2no2=0;
+    sumno2=0;
+
+  }
+
+  // sigma
+
+  if (cbsum2co.getSize() == cbsum2co.getCapacity() && cbsumco.getSize() == cbsumco.getCapacity()){
+    sum260=0;
+    for (i=0 ; i < cbsum2co.getCapacity() ; i++){
+      sum260 += cbsum2co.peek(i);
+    }
+
+    sum60=0;
+    for (i=0 ; i < cbsumco.getCapacity() ; i++){
+      sum60 += cbsumco.peek(i);
+    }
+	
+    i2c_dataset1->cono2.sigmaco=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)));
+      
+  }else{
+    i2c_dataset1->cono2.sigmaco=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("sigma co: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.sigmaco));
+
+
+  if (cbsum2no2.getSize() == cbsum2no2.getCapacity() && cbsumno2.getSize() == cbsumno2.getCapacity()){
+    sum260=0;
+    for (i=0 ; i < cbsum2no2.getCapacity() ; i++){
+      sum260 += cbsum2no2.peek(i);
+    }
+
+    sum60=0;
+    for (i=0 ; i < cbsumno2.getCapacity() ; i++){
+      sum60 += cbsumno2.peek(i);
+    }
+	
+    i2c_dataset1->cono2.sigmano2=round(sqrt((sum260-(sum60*sum60)/(SAMPLE1*SAMPLE2))/(SAMPLE1*SAMPLE2)));
+      
+  }else{
+    i2c_dataset1->cono2.sigmano2=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("sigma no2: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.sigmano2));
+
+#endif
+
+  
+  if (nsample1 == SAMPLE1) {
+    nsample1=0;
+  }
 
   nsample1++;
+
+
+
+#ifdef SDS011PRESENT
 
   // second level pm25
 
@@ -775,8 +1028,121 @@ void loop() {
   IF_SDEBUG(Serial.print("pm10 second max: "));
   IF_SDEBUG(Serial.println(i2c_dataset1->pm.maxpm10));
 
+#endif
 
 
+#ifdef MICS4514PRESENT
+
+  // second level co
+
+  IF_SDEBUG(Serial.print("data in store second co min: "));
+  IF_SDEBUG(Serial.println(cbco60n.getSize()));
+
+  if (cbco60n.getSize() == cbco60n.getCapacity()){
+    i2c_dataset1->cono2.minco=LONG_MAX;
+
+    for (i=0 ; i < cbco60n.getCapacity() ; i++){
+      i2c_dataset1->cono2.minco = min(cbco60n.peek(i), i2c_dataset1->cono2.minco);
+    }
+
+  }else{
+    i2c_dataset1->cono2.minco=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("co second min: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.minco));
+
+
+  IF_SDEBUG(Serial.print("data in store second co mean: "));
+  IF_SDEBUG(Serial.println(cbco60m.getSize()));
+
+  if (cbco60m.getSize() == cbco60m.getCapacity()){
+    mean=0;
+    for (i=0 ; i < cbco60m.getCapacity() ; i++){
+      mean += (cbco60m.peek(i) - mean) / (i+1);
+    }
+
+    i2c_dataset1->cono2.meanco=round(mean);
+
+  }else{
+    i2c_dataset1->cono2.meanco=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("co second mean: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.meanco));
+
+
+  IF_SDEBUG(Serial.print("data in store second co max: "));
+  IF_SDEBUG(Serial.println(cbco60x.getSize()));
+
+  if (cbco60x.getSize() == cbco60x.getCapacity()){
+    i2c_dataset1->cono2.maxco=0;
+    for (i=0 ; i < cbco60x.getCapacity() ; i++){
+      i2c_dataset1->cono2.maxco = max(cbco60x.peek(i), i2c_dataset1->cono2.maxco);
+    }
+  }else{
+    i2c_dataset1->cono2.maxco=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("co second max: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.maxco));
+
+
+  // second level no2
+
+  IF_SDEBUG(Serial.print("data in store second no2 min: "));
+  IF_SDEBUG(Serial.println(cbno260n.getSize()));
+
+  if (cbno260n.getSize() == cbno260n.getCapacity()){
+    i2c_dataset1->cono2.minno2=LONG_MAX;
+    for (i=0 ; i < cbno260n.getCapacity() ; i++){
+      i2c_dataset1->cono2.minno2 = min(cbno260n.peek(i), i2c_dataset1->cono2.minno2);
+    }
+  }else{
+    i2c_dataset1->cono2.minno2=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("no2 second min: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.minno2));
+
+
+  IF_SDEBUG(Serial.print("data in store second no2 mean: "));
+  IF_SDEBUG(Serial.println(cbno260m.getSize()));
+
+  if (cbno260m.getSize() == cbno260m.getCapacity()){
+    mean=0;
+    for (i=0 ; i < cbno260m.getCapacity() ; i++){
+      mean += (cbno260m.peek(i) - mean) / (i+1);
+    }
+
+    i2c_dataset1->cono2.meanno2=round(mean);
+
+  }else{
+    i2c_dataset1->cono2.meanno2=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("no2 second mean: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.meanno2));
+
+
+  IF_SDEBUG(Serial.print("data in store second no2 max: "));
+  IF_SDEBUG(Serial.println(cbno260x.getSize()));
+
+  if (cbno260x.getSize() == cbno260x.getCapacity()){
+    i2c_dataset1->cono2.maxno2=0;
+    for (i=0 ; i < cbno260x.getCapacity() ; i++){
+      i2c_dataset1->cono2.maxno2 = max(cbno260x.peek(i), i2c_dataset1->cono2.maxno2);
+    }
+  }else{
+    i2c_dataset1->cono2.maxno2=MISSINTVALUE;
+  }
+
+  IF_SDEBUG(Serial.print("no2 second max: "));
+  IF_SDEBUG(Serial.println(i2c_dataset1->cono2.maxno2));
+
+#endif
+
+  
   digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
 }  

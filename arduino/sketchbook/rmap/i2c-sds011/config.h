@@ -22,3 +22,12 @@
 // if you chenge this the board start with default configuration at boot
 #define CONFVER "confsd00"
 
+#define SDS011PRESENT 1
+#define MICS4514PRESENT 1
+
+#define SCALE1PIN 8
+#define SCALE2PIN 9
+
+#define COPIN 4
+#define NO2PIN 5
+#define HEATERPIN 6
