@@ -1,11 +1,11 @@
-(kicad_pcb (version 20170123) (host pcbnew no-vcs-found-7545~57~ubuntu16.04.1)
+(kicad_pcb (version 20170123) (host pcbnew no-vcs-found-7660~57~ubuntu16.04.1)
 
   (general
     (links 17)
-    (no_connects 1)
-    (area 0 0 0 0)
+    (no_connects 0)
+    (area 68.304999 44.675666 94.255001 74.951001)
     (thickness 1.6)
-    (drawings 0)
+    (drawings 9)
     (tracks 43)
     (zones 0)
     (modules 5)
@@ -62,7 +62,7 @@
     (pad_drill 0.762)
     (pad_to_mask_clearance 0.2)
     (aux_axis_origin 0 0)
-    (visible_elements FFFFFF7F)
+    (visible_elements 7FFFFFFF)
     (pcbplotparams
       (layerselection 0x00030_ffffffff)
       (usegerberextensions false)
@@ -167,7 +167,7 @@
     (add_net GND)
   )
 
-  (module Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm (layer F.Cu) (tedit 5862ED52) (tstamp 589CD8E8)
+  (module Pin_Headers:Pin_Header_Straight_1x04_Pitch2.54mm (layer F.Cu) (tedit 58B88119) (tstamp 589CD8E8)
     (at 81.28 66.04 180)
     (descr "Through hole straight pin header, 1x04, 2.54mm pitch, single row")
     (tags "Through hole pin header THT 1x04 2.54mm single row")
@@ -175,7 +175,7 @@
     (fp_text reference P4 (at 0 -2.39 180) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value CONN_01X04 (at 0 10.01 180) (layer F.Fab)
+    (fp_text value CONN_01X04 (at 0 10.01 180) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start 1.6 -1.6) (end -1.6 -1.6) (layer F.CrtYd) (width 0.05))
@@ -207,15 +207,15 @@
     )
   )
 
-  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 5862ED52) (tstamp 589CD8D0)
+  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 58B8811E) (tstamp 589CD8D0)
     (at 86.329999 68.549999 180)
     (descr "Through hole straight pin header, 1x05, 2.54mm pitch, single row")
     (tags "Through hole pin header THT 1x05 2.54mm single row")
     (path /589CCD3F)
-    (fp_text reference P3 (at 0 -2.39 180) (layer F.SilkS)
+    (fp_text reference P3 (at 2.509999 -1.300001 180) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value CONN_01X05 (at 0 12.55 180) (layer F.Fab)
+    (fp_text value CONN_01X05 (at 0 12.55 180) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start 1.6 -1.6) (end -1.6 -1.6) (layer F.CrtYd) (width 0.05))
@@ -249,7 +249,7 @@
     )
   )
 
-  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 5862ED52) (tstamp 589CD8B7)
+  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 58B88110) (tstamp 589CD8B7)
     (at 86.36 49.784 270)
     (descr "Through hole straight pin header, 1x05, 2.54mm pitch, single row")
     (tags "Through hole pin header THT 1x05 2.54mm single row")
@@ -257,7 +257,7 @@
     (fp_text reference P2 (at 0 -2.39 270) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value CONN_01X05 (at 0 12.55 270) (layer F.Fab)
+    (fp_text value CONN_01X05 (at 0 12.55 270) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start -1.27 -1.27) (end -1.27 11.43) (layer F.Fab) (width 0.1))
@@ -291,7 +291,7 @@
     )
   )
 
-  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 5862ED52) (tstamp 589CD89E)
+  (module Pin_Headers:Pin_Header_Straight_1x05_Pitch2.54mm (layer F.Cu) (tedit 58B88124) (tstamp 589CD89E)
     (at 74.93 58.42)
     (descr "Through hole straight pin header, 1x05, 2.54mm pitch, single row")
     (tags "Through hole pin header THT 1x05 2.54mm single row")
@@ -299,7 +299,7 @@
     (fp_text reference P1 (at 0 -2.39) (layer F.SilkS)
       (effects (font (size 1 1) (thickness 0.15)))
     )
-    (fp_text value CONN_01X05 (at 0 12.55) (layer F.Fab)
+    (fp_text value CONN_01X05 (at 0 12.55) (layer F.Fab) hide
       (effects (font (size 1 1) (thickness 0.15)))
     )
     (fp_line (start 1.6 -1.6) (end -1.6 -1.6) (layer F.CrtYd) (width 0.05))
@@ -333,14 +333,14 @@
     )
   )
 
-  (module Rmap:microduino (layer F.Cu) (tedit 550558BD) (tstamp 589CD859)
+  (module Rmap:microduino (layer F.Cu) (tedit 58B8849A) (tstamp 589CD859)
     (at 81.28 61.976)
     (tags "foont print ruotato mettere i comp su F Cu")
     (path /589CCBF6)
-    (fp_text reference U1 (at 0 -7.62) (layer F.SilkS)
+    (fp_text reference U1 (at 0 -7.62) (layer F.SilkS) hide
       (effects (font (size 1.5 1.5) (thickness 0.15)))
     )
-    (fp_text value Microduino (at 0 0 90) (layer F.SilkS)
+    (fp_text value Microduino (at -3.175 0.254 90) (layer F.SilkS) hide
       (effects (font (size 1.5 1.5) (thickness 0.15)))
     )
     (fp_line (start -12.7 -15.24) (end 12.7 -15.24) (layer F.SilkS) (width 0.15))
@@ -402,6 +402,16 @@
     (pad 1 thru_hole circle (at 10.16 -12.7) (size 1.8 1.8) (drill 1.5) (layers *.Cu *.Mask F.SilkS)
       (net 27 GND))
   )
+
+  (gr_line (start 93.98 73.66) (end 93.345 74.295) (angle 90) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 69.215 74.295) (end 68.58 73.66) (angle 90) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 68.58 47.625) (end 69.215 46.99) (angle 90) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 93.345 46.99) (end 93.98 47.625) (angle 90) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 68.58 73.66) (end 68.58 73.66) (layer Edge.Cuts) (width 0.15) (tstamp 58B8842D))
+  (gr_line (start 68.58 47.625) (end 68.58 73.66) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 93.345 46.99) (end 69.215 46.99) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 93.98 73.66) (end 93.98 47.625) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 69.215 74.295) (end 93.345 74.295) (layer Edge.Cuts) (width 0.15))
 
   (segment (start 86.329999 68.549999) (end 85.029998 67.249998) (width 0.5) (layer F.Cu) (net 1))
   (segment (start 85.029998 67.249998) (end 85.029998 62.169998) (width 0.5) (layer F.Cu) (net 1))
