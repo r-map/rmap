@@ -93,6 +93,26 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
       else
 #endif
 
+#if defined (MICS4514_ONESHOT)
+      if (strcmp(type, "SSD") == 0)
+	return new SensorDriverMICS4514oneshot();
+      else
+#endif
+#if defined (MICS4514_REPORT)
+      if (strcmp(type, "ISD") == 0)   // istantaneous
+	return new SensorDriverMICS451460mean();
+      else
+      if (strcmp(type, "MSD") == 0)   // mean
+	return new SensorDriverMICS4514mean();
+      else
+      if (strcmp(type, "NSD") == 0)   // min
+	return new SensorDriverMICS4514min();
+      else
+      if (strcmp(type, "XSD") == 0)   //max
+	return new SensorDriverMICS4514max();
+      else
+#endif
+	
 	return NULL;
     } else {
 
@@ -2332,15 +2352,15 @@ int SensorDriverSDS011oneshot::setup(const char* driver, const int address, cons
 
   bool oneshot=true;
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_ONESHOT);
+  Wire.write(I2C_SDSMICS_ONESHOT);
   Wire.write(oneshot);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   delay(10);
 
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_ONESHOT_STOP);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   return SD_SUCCESS;
@@ -2351,8 +2371,8 @@ int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
 {
 
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_ONESHOT_START);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   _timing=millis();
@@ -2368,8 +2388,8 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
 
   // command STOP
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_ONESHOT_STOP);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   delay(10);
@@ -2469,7 +2489,7 @@ int SensorDriverSDS01160mean::setup(const char* driver, const int address, const
 
   bool oneshot=false;
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_ONESHOT);
+  Wire.write(I2C_SDSMICS_ONESHOT);
   Wire.write(oneshot);
  
   short unsigned int ntry=NTRY;
@@ -2478,15 +2498,15 @@ int SensorDriverSDS01160mean::setup(const char* driver, const int address, const
     ntry--;
     delay(1000);
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDS011_ONESHOT);
+    Wire.write(I2C_SDSMICS_ONESHOT);
     Wire.write(oneshot);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   // command START
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_START);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
   ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2494,8 +2514,8 @@ int SensorDriverSDS01160mean::setup(const char* driver, const int address, const
     delay(1000);
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -2514,16 +2534,16 @@ int SensorDriverSDS01160mean::prepare(unsigned long& waittime)
     // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
     // command STOP
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_STOP_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
       ntry--;
       delay(1000);
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_STOP_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     waittime= 100ul;
@@ -2542,9 +2562,9 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // get temperature
+  // get PM25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MEAN60);
+  Wire.write(I2C_SDS011_MEANPM25);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2564,9 +2584,9 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
   }
 
 
-  // get humidity
+  // get PM10
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MEAN60);
+  Wire.write(I2C_SDS011_MEANPM10);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2590,8 +2610,8 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
     // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2599,8 +2619,8 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
       delay(1000);
       // command START
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
@@ -2670,7 +2690,7 @@ int SensorDriverSDS011mean::setup(const char* driver, const int address, const i
 
   bool oneshot=false;
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_ONESHOT);
+  Wire.write(I2C_SDSMICS_ONESHOT);
   Wire.write(oneshot);
   short unsigned int ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
@@ -2678,15 +2698,15 @@ int SensorDriverSDS011mean::setup(const char* driver, const int address, const i
     ntry--;
     delay(1000);
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDS011_ONESHOT);
+    Wire.write(I2C_SDSMICS_ONESHOT);
     Wire.write(oneshot);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   // command START
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_START);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
   ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2694,8 +2714,8 @@ int SensorDriverSDS011mean::setup(const char* driver, const int address, const i
     delay(1000);
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -2714,16 +2734,16 @@ int SensorDriverSDS011mean::prepare(unsigned long& waittime)
     // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
     // command STOP
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_STOP_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
       ntry--;
       delay(1000);
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_STOP_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     waittime= 100ul;
@@ -2741,9 +2761,9 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // get temperature
+  // get PM25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MEAN);
+  Wire.write(I2C_SDS011_MEANPM25);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2761,9 +2781,9 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
     //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
-  // get humidity
+  // get PM10
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MEAN);
+  Wire.write(I2C_SDS011_MEANPM10);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2786,8 +2806,8 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
     // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2795,8 +2815,8 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
       delay(1000);
       // command START
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
@@ -2867,7 +2887,7 @@ int SensorDriverSDS011min::setup(const char* driver, const int address, const in
 
   bool oneshot=false;
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_ONESHOT);
+  Wire.write(I2C_SDSMICS_ONESHOT);
   Wire.write(oneshot);
  
   short unsigned int ntry=NTRY;
@@ -2876,15 +2896,15 @@ int SensorDriverSDS011min::setup(const char* driver, const int address, const in
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011min setup retry ")));
     delay(1000);
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDS011_ONESHOT);
+    Wire.write(I2C_SDSMICS_ONESHOT);
     Wire.write(oneshot);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   // command START
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_START);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
   ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2892,8 +2912,8 @@ int SensorDriverSDS011min::setup(const char* driver, const int address, const in
     delay(1000);
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -2912,16 +2932,16 @@ int SensorDriverSDS011min::prepare(unsigned long& waittime)
     // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
     // command STOP
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_STOP_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
       ntry--;
       delay(1000);
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_STOP_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     waittime= 100ul;
@@ -2938,9 +2958,9 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // get temperature
+  // get PM25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MIN);
+  Wire.write(I2C_SDS011_MINPM25);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2958,9 +2978,9 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
     //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
-  // get humidity
+  // get PM10
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MIN);
+  Wire.write(I2C_SDS011_MINPM10);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -2983,8 +3003,8 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
     // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -2992,8 +3012,8 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
       delay(1000);
       // command START
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
@@ -3062,7 +3082,7 @@ int SensorDriverSDS011max::setup(const char* driver, const int address, const in
 
   bool oneshot=false;
   Wire.beginTransmission(_address);
-  Wire.write(I2C_SDS011_ONESHOT);
+  Wire.write(I2C_SDSMICS_ONESHOT);
   Wire.write(oneshot);
   short unsigned int ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
@@ -3070,15 +3090,15 @@ int SensorDriverSDS011max::setup(const char* driver, const int address, const in
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011max setup retry ")));
     delay(1000);
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDS011_ONESHOT);
+    Wire.write(I2C_SDSMICS_ONESHOT);
     Wire.write(oneshot);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
   // command START
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_COMMAND);
-  Wire.write(I2C_SDS011_COMMAND_START);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
   ntry=NTRY;
   while  (ntry>0 && Wire.endTransmission() != 0){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -3086,8 +3106,8 @@ int SensorDriverSDS011max::setup(const char* driver, const int address, const in
     delay(1000);
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
   }
   if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
@@ -3105,16 +3125,16 @@ int SensorDriverSDS011max::prepare(unsigned long& waittime)
     // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
     // command STOP
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_STOP_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
       ntry--;
       delay(1000);
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_STOP_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     waittime= 100ul;
@@ -3131,9 +3151,9 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // get temperature
+  // get PM25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MAX);
+  Wire.write(I2C_SDS011_MAXPM25);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -3151,9 +3171,9 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
     //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
   }
 
-  // get humidity
+  // get PM10
   Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MAX);
+  Wire.write(I2C_SDS011_MAXPM10);
 
   if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   delay(10);
@@ -3176,8 +3196,8 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
     // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
     // command START
     Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDS011_COMMAND);
-    Wire.write(I2C_SDS011_COMMAND_START);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
     short unsigned int ntry=NTRY;
     while  (ntry>0 && Wire.endTransmission() != 0){
       IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
@@ -3185,8 +3205,8 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
       delay(1000);
       // command START
       Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDS011_COMMAND);
-      Wire.write(I2C_SDS011_COMMAND_START);
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
     }
     if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
@@ -3236,3 +3256,931 @@ aJsonObject* SensorDriverSDS011max::getJson()
 #endif
 
 #endif
+
+
+#if defined (MICS4514_ONESHOT)
+int SensorDriverMICS4514oneshot::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=true;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_ONESHOT);
+  Wire.write(oneshot);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(10);
+
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
+{
+
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  _timing=millis();
+  waittime= 3500ul;
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
+{
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // command STOP
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  delay(10);
+
+  // get CO
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_CO);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  // get NO2
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_NO2);
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+
+  Wire.requestFrom(_address, 2);
+  if (Wire.available()<2){
+    return SD_INTERNAL_ERROR;
+  }
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverMICS4514oneshot::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverMICS4514oneshot::get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15196");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15193");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15196");
+    aJson.addNullToObject(jsonvalues, "B15193");
+  }
+  return jsonvalues;
+}
+#endif
+#endif
+
+#if defined (MICS4514_REPORT)
+
+
+int SensorDriverMICS451460mean::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_ONESHOT);
+  Wire.write(oneshot);
+ 
+  short unsigned int ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+    ntry--;
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverMICS451460mean::prepare(unsigned long& waittime)
+{
+
+  if (MICS4514counter < 0) MICS4514counter=0;
+  MICS4514counter++;
+  _timing=millis();
+
+  if (MICS4514counter == 1) {
+    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
+
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
+{
+  MICS4514counter--;
+
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // get CO
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MEANCO);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+
+  // get NO2
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MEANNO2);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  /*
+  if (MICS4514counter == 0) {
+    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverMICS451460mean::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverMICS451460mean::get(values,2) != SD_SUCCESS){
+    delay(1000);
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean get retry ")));
+    ntry--;
+  }
+
+  if (ntry > 0){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
+  }
+  return jsonvalues;
+}
+#endif
+
+
+int SensorDriverMICS4514mean::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_ONESHOT);
+  Wire.write(oneshot);
+  short unsigned int ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514mean setup retry ")));
+    ntry--;
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverMICS4514mean::prepare(unsigned long& waittime)
+{
+
+  if (MICS4514counter < 0) MICS4514counter=0;
+  MICS4514counter++;
+  _timing=millis();
+
+  if (MICS4514counter == 1) {
+    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
+{
+  MICS4514counter--;
+
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // get CO
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MEANCO);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  // get NO2
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MEANNO2);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+   if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  /*
+  if (MICS4514counter == 0) {
+    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverMICS4514mean::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverMICS4514mean::get(values,2) != SD_SUCCESS){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514mean get retry ")));
+    delay(1000);
+    ntry--;
+  }
+
+  if (ntry > 0){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15196");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15193");      
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15196");
+    aJson.addNullToObject(jsonvalues, "B15193");
+  }
+  return jsonvalues;
+}
+#endif
+
+
+
+int SensorDriverMICS4514min::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_ONESHOT);
+  Wire.write(oneshot);
+ 
+  short unsigned int ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514min setup retry ")));
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverMICS4514min::prepare(unsigned long& waittime)
+{
+
+  if (MICS4514counter < 0) MICS4514counter=0;
+  MICS4514counter++;
+  _timing=millis();
+
+  if (MICS4514counter == 1) {
+    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
+{
+  MICS4514counter--;
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // get CO
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MINCO);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  // get NO2
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MINNO2);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+  
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  /*
+  if (MICS4514counter == 0) {
+    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverMICS4514min::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverMICS4514min::get(values,2) != SD_SUCCESS){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514min get retry ")));
+    delay(1000);
+    ntry--;
+  }
+
+  if (ntry > 0){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15196");
+    }
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15193");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15196");
+    aJson.addNullToObject(jsonvalues, "B15193");
+  }
+  return jsonvalues;
+}
+#endif
+
+int SensorDriverMICS4514max::setup(const char* driver, const int address, const int node, const char* type
+  #if defined (RADIORF24)
+			   , char* mainbuf, size_t lenbuf, RF24Network* network
+    #if defined (AES)
+			   , uint8_t key[] , uint8_t iv[]
+    #endif
+  #endif
+			   )
+{
+
+  SensorDriver::setup(driver,address,node,type
+  #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+    #if defined (AES)
+		      , key,iv
+    #endif
+  #endif
+		      );
+
+  bool oneshot=false;
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_SDSMICS_ONESHOT);
+  Wire.write(oneshot);
+  short unsigned int ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    ntry--;
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514max setup retry ")));
+    delay(1000);
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_ONESHOT);
+    Wire.write(oneshot);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  // command START
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDSMICS_COMMAND);
+  Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  ntry=NTRY;
+  while  (ntry>0 && Wire.endTransmission() != 0){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+    ntry--;
+    delay(1000);
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+  }
+  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverMICS4514max::prepare(unsigned long& waittime)
+{
+
+  if (MICS4514counter < 0) MICS4514counter=0;
+  MICS4514counter++;
+  _timing=millis();
+  if (MICS4514counter == 1) {
+    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
+      ntry--;
+      delay(1000);
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    waittime= 100ul;
+  }else{
+    waittime= 1ul;
+  }
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
+{
+  MICS4514counter--;
+  unsigned char msb, lsb;
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  // get CO
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_MICS4514_MAXCO);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+
+  if (lenvalues >= 1) {
+    values[0] = ((int) lsb<<8 | msb) ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  // get NO2
+  Wire.beginTransmission(_address);   // Open I2C line in write mode
+  Wire.write(I2C_SDS011_MAXNO2);
+
+  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  delay(10);
+  Wire.requestFrom(_address, 2);
+
+  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
+  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
+
+  if (Wire.available()<2)return SD_INTERNAL_ERROR;
+  msb = Wire.read();
+  lsb = Wire.read();
+
+  if (lenvalues >= 2) {
+    values[1] = ((int) lsb<<8 | msb) ;
+    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+  }
+
+  /*
+  if (MICS4514counter == 0) {
+    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
+    // command START
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_START);
+    short unsigned int ntry=NTRY;
+    while  (ntry>0 && Wire.endTransmission() != 0){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
+      ntry--;
+      delay(1000);
+      // command START
+      Wire.beginTransmission(_address);   // Open I2C line in write mode
+      Wire.write(I2C_SDSMICS_COMMAND);
+      Wire.write(I2C_SDSMICS_COMMAND_START);
+    }
+    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  }
+  */
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverMICS4514max::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+
+  short unsigned int ntry=NTRY;
+
+  while (ntry > 0 && SensorDriverMICS4514max::get(values,2) != SD_SUCCESS){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514max get retry ")));
+    delay(1000);
+    ntry--;
+  }
+
+  if (ntry > 0){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15196");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15193");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15196");
+    aJson.addNullToObject(jsonvalues, "B15193");
+  }
+  return jsonvalues;
+}
+#endif
+#endif
+

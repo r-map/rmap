@@ -282,7 +282,7 @@ void receiveEvent( int bytesReceived)
 
      if (bytesReceived == 2){
        // check for a command
-       if (receivedCommands[0] == I2C_SDS011_COMMAND) {
+       if (receivedCommands[0] == I2C_SDSMICS_COMMAND) {
 	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
 	 new_command = receivedCommands[1]; return; }
      }
@@ -304,12 +304,12 @@ void receiveEvent( int bytesReceived)
      //IF_SDEBUG(Serial.println(receivedCommands[0]));
      //IF_SDEBUG(Serial.println(receivedCommands[1]));
      
-     if ((receivedCommands[0]>=I2C_SDS011_MAP_WRITABLE) && (receivedCommands[0] < (I2C_SDS011_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_SDS011_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+     if ((receivedCommands[0]>=I2C_SDSMICS_MAP_WRITABLE) && (receivedCommands[0] < (I2C_SDSMICS_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
+       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_SDSMICS_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 // the two buffer should be in sync
-	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_SDS011_MAP_WRITABLE;
-	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_SDS011_MAP_WRITABLE;
+	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_SDSMICS_MAP_WRITABLE;
+	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_SDSMICS_MAP_WRITABLE;
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
 	   *ptr1++ = receivedCommands[a];
@@ -564,19 +564,19 @@ void loop() {
     new_command = 0;                                                          //clear it
     //_command = _command & 0x0F;                                               //empty 4MSB bits   
     switch (_command) {
-    case I2C_SDS011_COMMAND_ONESHOT_START:
+    case I2C_SDSMICS_COMMAND_ONESHOT_START:
       IF_SDEBUG(Serial.println(F("COMMAND: oneshot start")));
       start=true;
       break;          
-    case I2C_SDS011_COMMAND_ONESHOT_STOP:
+    case I2C_SDSMICS_COMMAND_ONESHOT_STOP:
       IF_SDEBUG(Serial.println(F("COMMAND: oneshot stop")));
       stop=true;
       break;
-    case I2C_SDS011_COMMAND_STOP:
+    case I2C_SDSMICS_COMMAND_STOP:
       IF_SDEBUG(Serial.println(F("COMMAND: stop")));
       stop=true;
       break;
-    case I2C_SDS011_COMMAND_SAVE:
+    case I2C_SDSMICS_COMMAND_SAVE:
       IF_SDEBUG(Serial.println(F("COMMAND: save")));
 
       // save configuration to eeprom
