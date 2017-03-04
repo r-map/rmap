@@ -19,7 +19,9 @@
  */
 
 #include "Mics4514.h"
+#include "config.h"
 #include <avr/wdt.h>
+//#include <limits.h>
 
 #define FASTHEATTIME 5000    // 30000   time required for het the sensor in fast mode
 #define HEATTIME 5000        // 60000   time required for het the sensor in slow mode
@@ -42,6 +44,8 @@ Mics4514::Mics4514(uint8_t copin,uint8_t no2pin,uint8_t heaterpin,uint8_t scale1
   _state=cold;
   _lastfastheatertime=0;
   _lastheatertime=0;
+  //  _lastfastheatertime=LONG_MAX;
+  //_lastheatertime=LONG_MAX;
 
   pinMode(_heaterpin, OUTPUT);   // sets the pin as output
   pinMode(_scale1pin, OUTPUT);   // sets the pin as output
@@ -53,6 +57,8 @@ Mics4514::Mics4514(uint8_t copin,uint8_t no2pin,uint8_t heaterpin,uint8_t scale1
 
 void Mics4514::sleep()
 {
+  IF_SDEBUG(Serial.println(F("mics4514 sleep")));
+
  analogWrite(_heaterpin,0);
  digitalWrite(_scale1pin, LOW);  
  digitalWrite(_scale2pin, LOW);  
@@ -63,15 +69,19 @@ void Mics4514::sleep()
 void Mics4514::fast_heat()
 {
 
+  IF_SDEBUG(Serial.println(F("mics4514 fast_heat")));
   //do not heat too much; do it only if required 
-  if ((millis()-_lastfastheatertime) < (FASTHEATTIME * 2))
+  if ((_lastfastheatertime != 0 ) && (millis()-_lastfastheatertime) < (FASTHEATTIME * 2))
     {
+      IF_SDEBUG(Serial.println(F("mics4514 disable fast_heat, already done")));
       return;
     }
 
 
   if ( _state != cold)
     {
+      IF_SDEBUG(Serial.println(F("mics4514 disable fast_heat,  not cold")));
+
       return;
     }
   
@@ -85,6 +95,8 @@ void Mics4514::fast_heat()
 
 void Mics4514::blocking_fast_heat()
 {
+
+  IF_SDEBUG(Serial.println(F("mics4514 blocking_fast_heat")));  
 
   wdt_reset();
 
@@ -107,6 +119,7 @@ void Mics4514::blocking_fast_heat()
 void Mics4514::normal_heat()
 {
 
+  IF_SDEBUG(Serial.println(F("mics4514 normal_heat")));
   // switch on heater to normal power
 
   // Rh=66
@@ -125,16 +138,20 @@ void Mics4514::normal_heat()
 bool Mics4514::query_data(int *co, int *no2)
 {
 
+  IF_SDEBUG(Serial.println(F("mics4514 query_data")));
 switch(_state)
   {
   
   case cold:
+      IF_SDEBUG(Serial.println(F("mics4514 disable query_data, I am cold")));
+
       return false;
       break;
 
   case hot:
 	if ((millis()- _lastheatertime) < HEATTIME)
 	{
+	  IF_SDEBUG(Serial.println(F("mics4514 disable query_data, hot but few time")));
 	  return false;
 	}
       break;
@@ -146,6 +163,7 @@ switch(_state)
   case heating:
 	if ((millis()- _lastfastheatertime) < FASTHEATTIME)
 	{
+	  IF_SDEBUG(Serial.println(F("mics4514 disable query_data, I am heating")));
 	  return false;
 	}
       break;
@@ -218,6 +236,7 @@ switch(_state)
 
 bool Mics4514::query_data_auto(int *co, int *no2, int n)
 {
+  IF_SDEBUG(Serial.println(F("mics4514 query_data_auto")));
     int co_table[n];
     int no2_table[n];
     int ok;
@@ -238,6 +257,7 @@ bool Mics4514::query_data_auto(int *co, int *no2, int n)
 
 void Mics4514::_filter_data(int n, int *co_table, int *no2_table, int *co, int *no2)
 {
+  IF_SDEBUG(Serial.println(F("mics4514 filter_data")));  
     int co_min, co_max, no2_min, no2_max, co_sum, no2_sum;
 
     no2_sum = no2_min = no2_max = no2_table[0];

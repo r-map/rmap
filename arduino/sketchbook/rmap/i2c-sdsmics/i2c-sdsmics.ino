@@ -485,8 +485,8 @@ void setup() {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
   // set default to oneshot
-      i2c_writabledataset1->oneshot=true;
-      i2c_writabledataset2->oneshot=true;
+      i2c_writabledataset1->oneshot=false;
+      i2c_writabledataset2->oneshot=false;
       i2c_writabledataset1->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
     }
@@ -524,8 +524,11 @@ void setup() {
 #ifdef MICS4514PRESENT
     sensormics.sleep();
 #endif    
+  }else{
+#ifdef MICS4514PRESENT
+    sensormics.fast_heat();
+#endif    
   }
-  
   starttime = millis()+SAMPLERATE;
 
   IF_SDEBUG(Serial.println(F("end setup")));
@@ -661,6 +664,8 @@ void loop() {
     IF_SDEBUG(Serial.println(pm25));
     IF_SDEBUG(Serial.print("pm10: "));
     IF_SDEBUG(Serial.println(pm10));
+  }  else {
+    IF_SDEBUG(Serial.println(F("ERROR getting sds011 values !")));
   }
 #endif
 
@@ -671,7 +676,7 @@ void loop() {
   wdt_reset();
 
   if (ok){
-
+    
     float ppm;
     
     if (COCal.getConcentration(float(co),&ppm))
@@ -687,6 +692,8 @@ void loop() {
     IF_SDEBUG(Serial.println(i2c_dataset1->cono2.co));
     IF_SDEBUG(Serial.print("no2: "));
     IF_SDEBUG(Serial.println(i2c_dataset1->cono2.no2));
+  }  else {
+    IF_SDEBUG(Serial.println(F("ERROR getting mics4514 values !")));
   }
 #endif
 

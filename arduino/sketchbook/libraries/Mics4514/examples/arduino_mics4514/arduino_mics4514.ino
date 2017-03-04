@@ -6,9 +6,9 @@
 #define SCALE1PIN 8
 #define SCALE2PIN 9
 
-#define COPIN 4
-#define NO2PIN 5
-#define HEATERPIN 6
+#define COPIN A1
+#define NO2PIN A0
+#define HEATERPIN 7
 
 static const int SAMPLES=3;
 
