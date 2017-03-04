@@ -63,7 +63,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include <limits.h>
 #include <avr/wdt.h>
 #include "Wire.h"
-#include "registers-sds011.h"         //Register definitions
+#include "registers-sdsmics.h"         //Register definitions
 #include "config.h"
 #include "IntBuffer.h"
 #include "FloatBuffer.h"
@@ -487,8 +487,8 @@ void setup() {
   // set default to oneshot
       i2c_writabledataset1->oneshot=true;
       i2c_writabledataset2->oneshot=true;
-      i2c_writabledataset1->i2c_address = I2C_SDS011_DEFAULTADDRESS;
-      i2c_writabledataset2->i2c_address = I2C_SDS011_DEFAULTADDRESS;
+      i2c_writabledataset1->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
     }
 
   oneshot=i2c_writabledataset2->oneshot;

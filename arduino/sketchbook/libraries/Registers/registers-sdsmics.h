@@ -2,7 +2,7 @@
 // I2C SDS011 registers
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define I2C_SDS011_DEFAULTADDRESS        36                      //7 bit address
+#define I2C_SDSMICS_DEFAULTADDRESS        36                      //7 bit address
 
 // all bit to 1 => 0xFFFF or 65535 for int 
 #define MISSINTVALUE 0xFFFF

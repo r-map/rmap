@@ -381,7 +381,7 @@ class SensorDriverTmp : public SensorDriver
 
 
 #if defined (SDS011_ONESHOT)
-#include "registers-sds011.h"
+#include "registers-sdsmics.h"
 
  class SensorDriverSDS011oneshot : public SensorDriver
  {
@@ -404,7 +404,7 @@ class SensorDriverTmp : public SensorDriver
 
 
 #if defined (SDS011_REPORT)
-#include "registers-sds011.h"
+#include "registers-sdsmics.h"
 
  class SensorDriverSDS01160mean : public SensorDriver
  {
@@ -484,7 +484,7 @@ class SensorDriverTmp : public SensorDriver
 
 
 #if defined (MICS4514_ONESHOT)
-#include "registers-sds011.h"
+#include "registers-sdsmics.h"
 
  class SensorDriverMICS4514oneshot : public SensorDriver
  {
@@ -507,7 +507,7 @@ class SensorDriverTmp : public SensorDriver
 
 
 #if defined (MICS4514_REPORT)
-#include "registers-sds011.h"
+#include "registers-sdsmics.h"
 
  class SensorDriverMICS451460mean : public SensorDriver
  {

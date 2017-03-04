@@ -94,21 +94,21 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #endif
 
 #if defined (MICS4514_ONESHOT)
-      if (strcmp(type, "SSD") == 0)
+      if (strcmp(type, "SMI") == 0)
 	return new SensorDriverMICS4514oneshot();
       else
 #endif
 #if defined (MICS4514_REPORT)
-      if (strcmp(type, "ISD") == 0)   // istantaneous
+      if (strcmp(type, "IMI") == 0)   // istantaneous
 	return new SensorDriverMICS451460mean();
       else
-      if (strcmp(type, "MSD") == 0)   // mean
+      if (strcmp(type, "MMI") == 0)   // mean
 	return new SensorDriverMICS4514mean();
       else
-      if (strcmp(type, "NSD") == 0)   // min
+      if (strcmp(type, "NMI") == 0)   // min
 	return new SensorDriverMICS4514min();
       else
-      if (strcmp(type, "XSD") == 0)   //max
+      if (strcmp(type, "XMI") == 0)   //max
 	return new SensorDriverMICS4514max();
       else
 #endif

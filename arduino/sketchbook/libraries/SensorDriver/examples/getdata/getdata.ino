@@ -105,7 +105,7 @@ void setup()
 
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"SSD");
-  sensors[0].address=I2C_SDS011_DEFAULTADDRESS;
+  sensors[0].address=I2C_SDSMICS_DEFAULTADDRESS;
 
   // start up the serial interface
   Serial.begin(9600);
