@@ -31,6 +31,8 @@
 #define SCALE1R 100
 #define SCALE2R 10
 
+#define CHANGESCALEVALUE 612
+
 using namespace mics4514;
 
 Mics4514::Mics4514(uint8_t copin,uint8_t no2pin,uint8_t heaterpin,uint8_t scale1pin,uint8_t scale2pin)
@@ -174,48 +176,61 @@ switch(_state)
   int dno2  = analogRead(_no2pin);
   int no2r2 = SCALE0R;
 
-  if (dco > 800)
+  if (dco > CHANGESCALEVALUE)
     {
+      IF_SDEBUG(Serial.println(F("mics4514 co  scale1")));
       digitalWrite(_scale1pin, HIGH);  
       delay(10);
+      IF_SDEBUG(Serial.println(F("mics4514 co  scale1 read")));
       dco  = analogRead(_copin);
       cor2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)));
     }
 
 
-  if (dno2 > 800)
+  if (dno2 > CHANGESCALEVALUE)
     {
       if (!digitalRead(_scale1pin))
 	{
+	  IF_SDEBUG(Serial.println(F("mics4514 no2 scale1")));
 	  digitalWrite(_scale1pin, HIGH);  
 	  delay(10);
 	}
+      IF_SDEBUG(Serial.println(F("mics4514 no2 scale1 read")));
       dno2  = analogRead(_no2pin);
       no2r2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)));
     }
 
   
-    if (dco > 800)
+    if (dco > CHANGESCALEVALUE)
     {
+      IF_SDEBUG(Serial.println(F("mics4514 co  scale2")));
       digitalWrite(_scale1pin, HIGH);  
       digitalWrite(_scale2pin, HIGH);  
       delay(10);
+      IF_SDEBUG(Serial.println(F("mics4514 co  scale2 read")));
       dco  = analogRead(_copin);
       cor2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)+1./float(SCALE2R)));
     }
 
-    if (dno2 > 800)
+    if (dno2 > CHANGESCALEVALUE)
     {
       if (!digitalRead(_scale2pin))
 	{
+	  IF_SDEBUG(Serial.println(F("mics4514 no2 scale2")));
 	  digitalWrite(_scale1pin, HIGH);  
 	  digitalWrite(_scale2pin, HIGH);
 	  delay(10);
 	}
+      IF_SDEBUG(Serial.println(F("mics4514 no2 scale2 read")));
       dno2  = analogRead(_no2pin);
       no2r2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)+1./float(SCALE2R)));
     }    
 
+    IF_SDEBUG(Serial.print(F("mics4514 dco : ")));
+    IF_SDEBUG(Serial.println(dco));
+    IF_SDEBUG(Serial.print(F("mics4514 dno2: ")));
+    IF_SDEBUG(Serial.println(dno2));
+    
     //compute Rs
     *co   = round(1023./float(dco) *cor2  - cor2);
     *no2  = round(1023./float(dno2)*no2r2 - no2r2);

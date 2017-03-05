@@ -1,4 +1,5 @@
 #include "Sds011.h"
+#include "config.h"
 
 using namespace sds011;
 
@@ -81,6 +82,8 @@ bool Sds011::crc_ok(void)
     for (int i=2; i<8; i++) {
         crc+=_buf[i];
     }
+    IF_SDEBUG(Serial.print(F("Sds011 crc: ")));
+    IF_SDEBUG(Serial.println(crc==_buf[8]));
     return crc==_buf[8];
 }
 
@@ -150,15 +153,20 @@ bool Sds011::_read_response(void)
     uint8_t i = 1, b;
 
     while ((b=_read_byte(1000)) != 0xAA) {
-        if (timeout()) {
-            return false;
-        }
+      IF_SDEBUG(Serial.print(F("Sds011 read:")));
+      IF_SDEBUG(Serial.println(b));
+      if (timeout()) {
+	IF_SDEBUG(Serial.println(F("Sds011 timeout")));
+	return false;
+      }
     }
 
     _buf[0] = b;
 
     for(i = 1; i<10; i++) {
         _buf[i] = _read_byte(1000);
+	IF_SDEBUG(Serial.print(F("Sds011 read: ")));
+	IF_SDEBUG(Serial.println(_buf[i]));
     }
 
     return !timeout();
