@@ -63,8 +63,9 @@ bool Calibration::getConcentration(float input,float *concentration)
 		
 		if      ((input >  values[i]) && (input <= values[i + 1]))
 			inRange = true;
-		else if ((input <= values[i]) && (input >  values[i + 1]))
-			inRange = true;
+		// this is in the original code but I think it's wrong
+		//else if ((input <= values[i]) && (input >  values[i + 1]))
+		//	inRange = true;
 		else
 			i++;
 	}
