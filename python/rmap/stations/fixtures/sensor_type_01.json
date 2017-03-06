@@ -1,0 +1,14 @@
+[
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDS011 module, one shot mode",
+            "type": "SSD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    }
+]

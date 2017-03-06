@@ -395,6 +395,20 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
+    if (template == "stima_m"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
+                  type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "stima_sm"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
+                  type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
+        
     if (template == "stima_th"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
@@ -413,6 +427,20 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
+
+    if (template == "stima_thsm"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature",driver="I2C",
+                  type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
+                  type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
+                  type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
+
+        
     if (template == "stima_thw"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)

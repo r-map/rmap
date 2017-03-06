@@ -27,8 +27,6 @@ urlpatterns = [
 #    Uncomment the next line to enable the admin:
     url(r'^admin/', include(admin.site.urls)),
 
-    url(r'^', include('http2mqtt.urls')),
-
     url(r'^', include('rmap.stations.urls')),
 
 #    override default register form
@@ -52,6 +50,12 @@ urlpatterns = [
 ]
 
 if not android  :
+
+    try:
+        urlpatterns.append(url(r'^', include('http2mqtt.urls')))
+    except Exception as e:
+        print "Warnig: http2mqtt disabled"
+        print e
     try:
         urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
     except Exception as e:

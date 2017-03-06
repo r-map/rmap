@@ -706,6 +706,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'showdata',  "apps": ('showdata'  ,)},
         {"import": 'amatyr',    "apps": ('amatyr'    ,)},
         {"import": 'borinud',   "apps": ('borinud'   ,)},
+        {"import": 'http2mqtt', "apps": ('http2mqtt' ,)},
         {"import": 'cookielaw', "apps": ('cookielaw' ,) ,"context_processors": ('django.core.context_processors.request', )},
         {"import": 'graphite-dballe',                "apps": ('graphite-dballe',)},
         {"import": 'graphite-dballe.metrics',        "apps": ('graphite-dballe.metrics',)},
