@@ -46,7 +46,6 @@ urlpatterns = [
     url(r'^accounts/profile/$',      rmap.views.profile),
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
 
-    url(r'^http2mqtt/', include('http2mqtt.urls')),
 ]
 
 if not android  :
