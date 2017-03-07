@@ -26,6 +26,7 @@ from stations.models import TransportMqtt
 from stations.models import TransportBluetooth
 from stations.models import TransportAmqp
 from stations.models import TransportSerial
+from stations.models import TransportTcpip
 from django.contrib.auth.models import User
 from django.core import serializers
 from django.utils.translation import ugettext as _
@@ -167,6 +168,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+              ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
           ):
 
     print "---------------------------"
@@ -235,6 +237,17 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     print "AMQP Transport", myboard.transportamqp                
     myboard.transportamqp.save()
 
+    try:
+        transporttcpip=myboard.transporttcpip
+    except ObjectDoesNotExist :
+        transporttcpip=TransportTcpip()
+    transporttcpip.active=tcpipactivate
+    transporttcpip.name=tcpipname
+    transporttcpip.ntpsever=tcpipntpserver
+    myboard.transporttcpip=transporttcpip
+    print "TCPIP Transport", myboard.transporttcpip                
+    myboard.transporttcpip.save()
+    
 
 def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1
               ,timerange="254,0,0",level="0,1",activate=False

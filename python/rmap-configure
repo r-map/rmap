@@ -118,6 +118,9 @@ parser.add_argument('--amqpactivate', action="store_true", help="activate amqp t
 parser.add_argument('--amqpuser',  default="rmap", help="amqp user")
 parser.add_argument('--amqppassword',  default="", help="amqp password")
 
+parser.add_argument('--tcpipactivate', action="store_true", help="activate tcp/ip transport")
+parser.add_argument('--tcpipname',  default="master", help="tcp/ip name")
+parser.add_argument('--tcpipntpserver',  default="ntpserver", help="tcp/ip ntp server")
 
 args = parser.parse_args()
 
@@ -173,7 +176,8 @@ if args.addboard:
                             ,mqttusername=args.mqttusername, mqttpassword=args.mqttpassword, mqttsamplerate=args.mqttsamplerate
                             ,bluetoothactivate=args.bluetoothactivate, bluetoothname=args.bluetoothname
                             ,amqpactivate=args.amqpactivate, amqpusername=args.amqpuser, amqppassword=args.amqppassword
-                            ,amqpserver="rmap.cc", queue="rmap", exchange="rmap")
+                            ,amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+                            ,tcpipactivate=args.tcpipactivate, tcpipname=args.tcpipname, tcpipntpserver=args.tcpipntpserver)
 
 
 if args.delsensor:
