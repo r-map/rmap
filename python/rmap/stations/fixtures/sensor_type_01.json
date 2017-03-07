@@ -1,13 +1,154 @@
 [
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15198",
+            "description": "PM2.5 Concentration",
+            "unit": "KG/M**3"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15195",
+            "description": "PM10 Concentration",
+            "unit": "KG/M**3"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15196",
+            "description": "CO Concentration",
+            "unit": "KG/M**3"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15193",
+            "description": "NO2 Concentration",
+            "unit": "KG/M**3"
+        }
+    },    
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "I2C SDS011 module, one shot mode",
+            "name": "I2C SDSMICS module, one shot mode, dust",
             "type": "SSD",
             "bcodes": [
                 ["B15195"],
                 ["B15198"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, dust istantaneous",
+            "type": "ISD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, dust mean",
+            "type": "MSD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, dust min",
+            "type": "NSD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, dust max",
+            "type": "XSD",
+            "bcodes": [
+                ["B15195"],
+                ["B15198"]
+            ]
+        }
+    },
+
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, one shot mode, gas",
+            "type": "SMI",
+            "bcodes": [
+                ["B15196"],
+                ["B15193"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, gas istantaneous",
+            "type": "IMI",
+            "bcodes": [
+                ["B15196"],
+                ["B15193"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, gas mean",
+            "type": "MMI",
+            "bcodes": [
+                ["B15196"],
+                ["B15193"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, gas min",
+            "type": "NMI",
+            "bcodes": [
+                ["B15196"],
+                ["B15193"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C SDSMICS module, report mode, gas max",
+            "type": "XMI",
+            "bcodes": [
+                ["B15196"],
+                ["B15193"]
             ]
         }
     }

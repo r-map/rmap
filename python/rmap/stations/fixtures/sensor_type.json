@@ -48,26 +48,6 @@
         }
     },
     {
-        "model": "stations.bcode",
-        "fields": {
-            "bcode": "B15198",
-            "description": "PM2.5 Concentration",
-            "unit": "KG/M**3"
-        }
-    },
-    {
-        "model": "stations.bcode",
-        "fields": {
-            "bcode": "B15195",
-            "description": "PM10 Concentration",
-            "unit": "KG/M**3"
-        }
-    },
-
-
-
-
-    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
@@ -141,18 +121,6 @@
             "name": "RF24 Network jsonrpc",
             "type": "RF24",
             "bcodes": [
-            ]
-        }
-    },
-    {
-        "model": "stations.sensortype",
-        "fields": {
-            "active": true,
-            "name": "I2C SDS011 module, one shot mode",
-            "type": "SSD",
-            "bcodes": [
-                ["B15195"],
-                ["B15198"]
             ]
         }
     },
