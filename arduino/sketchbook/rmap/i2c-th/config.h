@@ -28,3 +28,11 @@
 // if you chenge this the board start with default configuration at boot
 #define CONFVER "confth00"
 
+// 0: sensor disabled
+// 1: sensor enabled
+#define USE_SENSORS_ADT   1
+#define USE_SENSORS_HIH   1
+#define USE_SENSORS_HYT   0
+
+// edit only if new sensor were added, and only after new USE_SENSORS_XXX define for sensor XXX
+#define SENSORS_COUNT     (USE_SENSORS_ADT + USE_SENSORS_HIH + USE_SENSORS_HYT)

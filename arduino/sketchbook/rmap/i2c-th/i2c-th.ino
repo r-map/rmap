@@ -60,7 +60,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 char confver[9] = CONFVER; // version of configuration saved on eeprom
 
-#define SENSORS_LEN 2     // number of sensors
+#define SENSORS_LEN           SENSORS_COUNT     // number of sensors
 #define LENVALUES 2
 size_t lenvalues=LENVALUES;       // max of values for sensor
 long int values[LENVALUES];
@@ -503,13 +503,28 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
-  strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"ADT");
-  sensors[0].address=i2c_writabledataset1->i2c_temperature_address;
+  unsigned char sensors_count = 0;
 
-  strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"HIH");
-  sensors[1].address=i2c_writabledataset1->i2c_humidity_address;
+  #if (USE_SENSORS_ADT == 1)
+    strcpy(sensors[sensors_count].driver,"I2C");
+    strcpy(sensors[sensors_count].type,"ADT");
+    sensors[sensors_count].address=i2c_writabledataset1->i2c_temperature_address;
+    sensors_count++;
+  #endif
+
+  #if (USE_SENSORS_HIH == 1)
+    strcpy(sensors[sensors_count].driver,"I2C");
+    strcpy(sensors[sensors_count].type,"HIH");
+    sensors[sensors_count].address=i2c_writabledataset1->i2c_humidity_address;
+    sensors_count++;
+  #endif
+
+  #if (USE_SENSORS_HYT == 1)
+    strcpy(sensors[sensors_count].driver,"I2C");
+    strcpy(sensors[sensors_count].type,"HYT");
+    sensors[sensors_count].address=i2c_writabledataset1->i2c_temperature_address;
+    sensors_count++;
+  #endif
 
   for (int i = 0; i < SENSORS_LEN; i++) {
 
@@ -607,6 +622,10 @@ void loop() {
 	  }
 	  if (strcmp(sensors[i].type,"ADT") == 0) t=values[0];
 	  if (strcmp(sensors[i].type,"HIH") == 0) h=values[0];
+    if (strcmp(sensors[i].type,"HYT") == 0) {
+      h = values[0];
+      t = values[1];
+    }
 	}else{
 	  //IF_SDEBUG(Serial.println(F("Error: RETRY")));
 	  //delay(20);
