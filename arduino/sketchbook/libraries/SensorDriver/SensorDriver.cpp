@@ -830,10 +830,11 @@ int SensorDriverHyt271::get(long values[], size_t lenvalues) {
 		HYT271_getHT((unsigned long) Wire.read() << 24 | (unsigned long) Wire.read() << 16 | (unsigned long) Wire.read() << 8 | (unsigned long) Wire.read(), &humidity, &temperature);
 	else return SD_INTERNAL_ERROR;
 
-	if (lenvalues >= 2) {
+	if (lenvalues >= 1)
 		values[0] = (long) round(humidity);
+	
+	if (lenvalues >= 2)
 		values[1] = (long) round(temperature*100 + 27315);
-	}
 	
 	_timing = 0;
 	return SD_SUCCESS;
