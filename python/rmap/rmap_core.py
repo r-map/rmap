@@ -888,7 +888,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             print sensor
 
             print "add driver:",rpcproxy.configure(driver=sensor.driver,
-                                type=sensor.type,
+                                type=sensor.type.type,
                                 node=sensor.node,address=sensor.address,
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/")
             #TODO  check id of status (good only > 0)
