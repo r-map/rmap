@@ -62,3 +62,5 @@
 #define conumPoints 3
 
 
+#define NO2PPM2UGM3 1.9125
+#define COPPM2UGM3  1.1642

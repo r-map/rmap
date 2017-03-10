@@ -681,11 +681,11 @@ void loop() {
     
     if (COCal.getConcentration(float(co),&ppm))
       {
-	i2c_dataset1->cono2.co=round(ppm);
+	i2c_dataset1->cono2.co=round(ppm*COPPM2UGM3);
       }
     if (NO2Cal.getConcentration(float(no2),&ppm))
       {
-	i2c_dataset1->cono2.no2=round(ppm);
+	i2c_dataset1->cono2.no2=round(ppm*NO2PPM2UGM3);
       }
     
     IF_SDEBUG(Serial.print("co: "));
