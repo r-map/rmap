@@ -42,7 +42,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef ETHERNETON
   #include <SPI.h>
-  #ifdef ENC28J60
+  #ifdef USE_ENC28J60
     #include <UIPEthernet.h>
     #include <UIPUdp.h>
     #ifdef TCPSERVER
@@ -3232,7 +3232,7 @@ void setup()
 #if defined(ETHERNETON) || defined(RADIORF24) || defined(SDCARD)
 
     //disable all chips
-#if defined(ENC28J60)
+#if defined(USE_ENC28J60)
     //pinMode(ENC28J60_CONTROL_CS, OUTPUT);
     pinMode(8, OUTPUT);
     //digitalWrite(ENC28J60_CONTROL_CS, HIGH);

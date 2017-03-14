@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define I2CGPSPRESENT
 //#define I2C_GPS_ADDRESS 0x20
 // activate if you have ENC28J60 for ethernet
-//#define ENC28J60
+//#define USE_ENC28J60
 // activate if you have the Hobby Components I2C LCD module (HCARDU0023)
 // LCD Version 1 - Marked YwRobot Arduino LCM1602 IIC V1
 #define LCD
