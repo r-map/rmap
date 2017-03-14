@@ -752,10 +752,6 @@ void sendNTPpacket()
   packetBuffer[14]  = 49;
   packetBuffer[15]  = 52;
 
-  //Serial.print("#ntp server: ");
-  //Serial.println(configuration.ntpserver);
-  //strcpy(configuration.ntpserver,"it.pool.ntp.org");
-
   // all NTP fields have been given values, now
   // you can send a packet requesting a timestamp: 		   
   Udp.beginPacket(configuration.ntpserver, 123); //NTP requests are to port 123
