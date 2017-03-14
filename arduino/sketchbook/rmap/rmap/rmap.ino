@@ -48,14 +48,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     #ifdef TCPSERVER
       #include <UIPServer.h>
     #endif
-  #else
-    // comment/uncomment according to ENC28J60 definition
-    //#include <SPI.h>         
-    //#include <Ethernet.h>
-    //#include <EthernetUdp.h>
+  #endif
+  #ifdef USE_W5500
+    #include <Ethernet2.h>
+    #include <EthernetUdp2.h>
     #ifdef TCPSERVER
-      // comment/uncomment according to ENC28J60 definition
-      //#include <EthernetServer.h>
+      #include <EthernetServer.h>
     #endif
   #endif
 #endif
@@ -753,6 +751,10 @@ void sendNTPpacket()
   packetBuffer[13]  = 0x4E;
   packetBuffer[14]  = 49;
   packetBuffer[15]  = 52;
+
+  //Serial.print("#ntp server: ");
+  //Serial.println(configuration.ntpserver);
+  //strcpy(configuration.ntpserver,"it.pool.ntp.org");
 
   // all NTP fields have been given values, now
   // you can send a packet requesting a timestamp: 		   
@@ -3237,6 +3239,8 @@ void setup()
     pinMode(8, OUTPUT);
     //digitalWrite(ENC28J60_CONTROL_CS, HIGH);
     digitalWrite(8, HIGH);
+#elif defined(USE_W5500)
+  Ethernet.w5500_cspin = 8;
 #endif
 #if defined(RADIORF24)
     pinMode(RF24CSPIN, OUTPUT);
@@ -3317,7 +3321,13 @@ void setup()
                                                                     // start Ethernet
 
   uint8_t ntry=0;
-  while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0 && ntry < 5) {
+
+  #if defined(USE_ENC28J60)
+    while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0 && ntry < 5) {
+  #elif defined(USE_W5500)
+    while (Ethernet.begin(configuration.mac) == 0 && ntry < 5) {
+  #endif
+  
     IF_SDEBUG(DBGSERIAL.println(F("#Failed to configure Ethernet using DHCP")));
 
     wdt_reset();
