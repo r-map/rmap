@@ -243,7 +243,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
         transporttcpip=TransportTcpip()
     transporttcpip.active=tcpipactivate
     transporttcpip.name=tcpipname
-    transporttcpip.ntpsever=tcpipntpserver
+    transporttcpip.ntpserver=tcpipntpserver
     myboard.transporttcpip=transporttcpip
     print "TCPIP Transport", myboard.transporttcpip                
     myboard.transporttcpip.save()
