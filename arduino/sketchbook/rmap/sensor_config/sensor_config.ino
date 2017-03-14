@@ -19,11 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Wire.h"
 #include <Arduino.h>
-#include "registers-wind.h"         //Register definitions
-#include "registers-windsonic.h"         //Register definitions
-#include "registers-th.h"         //Register definitions
-#include "registers-rain.h"         //Register definitions
-#include "registers-sds011.h"         //Register definitions
+#include <registers-wind.h>         //Register definitions
+#include <registers-windsonic.h>         //Register definitions
+#include <registers-th.h>         //Register definitions
+#include <registers-rain.h>         //Register definitions
+#include <registers-sdsmics.h>         //Register definitions
 #include <HIH61XXCommander.h>
 
 byte start_address = 1;
@@ -89,7 +89,7 @@ void displayHelp()
   Serial.println(F("\ts = i2c-windsonic"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
-  Serial.println(F("\td = i2c-sds011"));
+  Serial.println(F("\td = i2c-sdsmics"));
   Serial.println(F("\th = hih humidity sensor"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
@@ -377,8 +377,8 @@ void loop() {
 	
 	delay(1000);      
 	
-	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
-	Wire.write(I2C_SDS011_ADDRESS);
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(I2C_SDSMICS_ADDRESS);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
@@ -392,15 +392,15 @@ void loop() {
 	}
 	delay(1000);
 	
-	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
-	Wire.write(I2C_SDS011_ONESHOT);
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(I2C_SDSMICS_ONESHOT);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1000);
-	Wire.beginTransmission(I2C_SDS011_DEFAULTADDRESS);
-	Wire.write(I2C_SDS011_COMMAND);
-	Wire.write(I2C_SDS011_COMMAND_SAVE);
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(I2C_SDSMICS_COMMAND);
+	Wire.write(I2C_SDSMICS_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
       
 	Serial.println(F("Done; switch off"));
