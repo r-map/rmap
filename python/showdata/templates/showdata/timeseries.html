@@ -4,26 +4,7 @@
 
 {% block extra_assets %}
 
-
-<style type="text/css">
-
-.loading {
-  width: 400px;
-  height: 400px;
-  background: url({% static "showdata/loading.gif" %}) 50% no-repeat;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-
-.loaderror {
-  width: 400px;
-  height: 400px;
-  background: url({% static "showdata/access-error-logs.png" %}) 50% no-repeat;
-  border: 1px solid black;
-  border-radius: 5px;
-}
-
-</style>
+<script src= {% static "showdata/jquery.preload.min.js" %}></script>
 
 {% endblock %}
 
@@ -76,31 +57,14 @@
     </div>
   </div>
 
-<p>
-<img  id="graphiteimg" src="{% static "showdata/loading.gif" %}" class="loading">
-</p>
+  <p>
+    <div id="preloadimages">      
 
-<script type="text/javascript">
-    var img = new Image();
-    img.onload = function() {
-      //alert("onload");
-      i = document.getElementById('graphiteimg');
-      i.removeAttribute('class');
-      i.setAttribute('class', 'img-thumbnail');
-      i.setAttribute('alt', 'graphic for {{var}}');
-      //i.setAttribute('height', '400');
-      //i.setAttribute('width', '800');
-      i.src = img.src;
-    };
-    img.onerror = function() {
-      //alert("onerror");
-      i=document.getElementById('graphiteimg');
-      i.removeAttribute('class');
-      i.src="{% static "showdata/access-error-logs.png" %}";
-    };
-    img.src = "/graphite/render/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400";
+      <img  src="/graphite/render/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400">
 
-</script>
+    </div>
+    
+  </p>
 
   <div class="row">
     <div class="col-xs-8">
@@ -142,4 +106,12 @@
     </div>
   </div>
 </div>
+
+  <script>
+    $('#preloadimages img').preload({
+          placeholder:'{% static "showdata/loading.gif" %}',
+          notFound:'{% static "showdata/access-error-logs.png" %}'
+    });
+  </script>
+
 {% endblock %}
