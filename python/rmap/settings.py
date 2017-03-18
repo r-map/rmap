@@ -662,6 +662,16 @@ BORINUD = {
          },
          {
              "class": "borinud.utils.source.ArkimetBufrDB",
+             "dataset": "http://localhost:8090/dataset/arpav",
+             "measurements": measurements
+         },
+         {
+             "class": "borinud.utils.source.ArkimetBufrDB",
+             "dataset": "http://localhost:8090/dataset/opendata-er",
+             "measurements": measurements
+         },        
+         {
+             "class": "borinud.utils.source.ArkimetBufrDB",
              "dataset": "http://localhost:8090/dataset/rmap",
              "measurements": measurements
          }
