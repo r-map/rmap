@@ -112,7 +112,8 @@ var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network tra
 {% endif %}
 
 var coords=[];
-
+var min=Infinity;
+var max=-Infinity;
 
 function null2_(i)
 {
@@ -182,14 +183,56 @@ function oneachfeature(feature, layer)
 
     popup.on('popupopen',function managepreload(e) 
     {
-
-       //alert("Hi!");
        $('#preloadimages img').preload({
             placeholder:'{% static "showdata/loading.gif" %}',
             notFound:'{% static "showdata/access-error-logs.png" %}'
        })
     })
 }
+
+function getColor(d,min,max) {
+    var delta=(max-min)/8.;
+    return d > min+(delta*7)   ? '#DF013A' :
+           d > min+(delta*6)   ? '#B40486' :
+           d > min+(delta*5)   ? '#8904B1' :
+           d > min+(delta*4)   ? '#08298A' :
+           d > min+(delta*3)   ? '#088A68' :
+           d > min+(delta*2)   ? '#088A08' :
+           d > min+(delta*1)   ? '#4B610B' :
+                      '           #868A08' ;
+}
+
+//https://github.com/tonekk/Leaflet-Extended-Div-Icon
+(function(L) {
+  
+  /*
+   * by tonekk. 2014, MIT License
+   */
+  
+  L.ExtendedDivIcon = L.DivIcon.extend({
+    createIcon: function(oldIcon) {
+      var div = L.DivIcon.prototype.createIcon.call(this, oldIcon);
+  
+      if(this.options.id) {
+        div.id = this.options.id;
+      }
+  
+      if(this.options.style) {
+        for(var key in this.options.style) {
+          div.style[key] = this.options.style[key];
+        }
+      }
+  
+      return div;
+    }
+  });
+
+  L.extendedDivIcon = function(options) {
+    return new L.ExtendedDivIcon(options);
+  }
+})(window.L);
+
+
 
 function pointtolayer(feature, latlng) 
 {
@@ -198,13 +241,18 @@ function pointtolayer(feature, latlng)
 	coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
 
 	var vallen= (feature.properties.val).toString().length * 6;
-	
-	var myIcon = L.divIcon({
+
+        //alert(getColor(feature.properties.val,min,max));
+	var myIcon = L.extendedDivIcon({
             iconSize: new L.Point(vallen, 14),
             html: feature.properties.val,
-            className: 'myDivIcon '
+            className: 'myDivIcon',
+            // Set style here (new!)
+            style: {
+              backgroundColor:getColor(feature.properties.val,min,max)
+            }
         });
-	
+
 	return L.marker(latlng, {icon: myIcon,  riseOnHover: true, riseOffset: 10000, title:feature.properties.date });
 	
 	//, zIndexOffset: 1
@@ -226,7 +274,13 @@ function map_init(map, options)
 	    dataType: "json",
 	    beforeSend: beforesend,
 	    success: function(collection)
-	    {	
+            {
+
+                for (i = 0; i < collection['features'].length; i++) {
+                  min=Math.min(min,collection['features'][i].properties.val);
+		  max=Math.max(max,collection['features'][i].properties.val);
+		}
+
 		// Aggiungi il JSON in leaflet
 		L.geoJson
 		(
