@@ -192,14 +192,14 @@ function oneachfeature(feature, layer)
 
 function getColor(d,min,max) {
     var delta=(max-min)/8.;
-    return d > min+(delta*7)   ? '#DF013A' :
-           d > min+(delta*6)   ? '#B40486' :
-           d > min+(delta*5)   ? '#8904B1' :
-           d > min+(delta*4)   ? '#08298A' :
-           d > min+(delta*3)   ? '#088A68' :
-           d > min+(delta*2)   ? '#088A08' :
-           d > min+(delta*1)   ? '#4B610B' :
-                      '           #868A08' ;
+    return d > min+(delta*7)   ? '#850000' :
+           d > min+(delta*6)   ? '#853C00' :
+           d > min+(delta*5)   ? '#788500' :
+           d > min+(delta*4)   ? '#478500' :
+           d > min+(delta*3)   ? '#0D8500' :
+           d > min+(delta*2)   ? '#00855D' :
+           d > min+(delta*1)   ? '#007885' :
+                      '           #090085' ;
 }
 
 //https://github.com/tonekk/Leaflet-Extended-Div-Icon
