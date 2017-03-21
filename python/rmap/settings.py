@@ -164,6 +164,10 @@ configspec['mqtt2dballed']['group']     = "string(default=None)"
 configspec['mqtt2dballed']['dsnrmap']   = "string(default='mysql:///rmap?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnmobile'] = "string(default='mysql:///mobile?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnreport'] = "string(default='mysql:///report?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['topicrmap']   = "string(default='rmap/#')"
+configspec['mqtt2dballed']['topicmobile'] = "string(default='mobile/#')"
+configspec['mqtt2dballed']['topicreport'] = "string(default='report/#')"
+
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='/tmp/composereportd.log')"
@@ -317,6 +321,9 @@ groupmqtt2dballed                = config['mqtt2dballed']['group']
 dsnrmap                          = config['mqtt2dballed']['dsnrmap']
 dsnmobile                        = config['mqtt2dballed']['dsnmobile']
 dsnreport                        = config['mqtt2dballed']['dsnreport']
+topicrmap                          = config['mqtt2dballed']['topicrmap']
+topicmobile                        = config['mqtt2dballed']['topicmobile']
+topicreport                        = config['mqtt2dballed']['topicreport']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']

@@ -27,7 +27,18 @@ from rmap import daemon
 import rmap.settings
 import fcntl
 
-mqtt2dballed = daemon.Daemon(
+
+#add option for topic and dsn
+class  mydaemon(daemon.Daemon):
+
+    def optionparser(self):
+        op = super(mydaemon, self).optionparser()
+	op.add_option("-n", "--name",dest="name", help="name that define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="rmap")
+	#op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
+	#op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
+        return op 	  				 
+
+mqtt2dballed = mydaemon(
         stdin="/dev/null",
         stdout=rmap.settings.logfilemqtt2dballed,
         stderr=rmap.settings.errfilemqtt2dballed,
@@ -36,6 +47,9 @@ mqtt2dballed = daemon.Daemon(
         group=rmap.settings.groupmqtt2dballed
 )
 
+
+# we want to read line from pipe; with bloking file we can wait forever
+# set pipe to a  a non-blocking file
 def nonblockingfile(pipe):
 
     # make a pipe a non-blocking file
@@ -43,6 +57,7 @@ def nonblockingfile(pipe):
     fl = fcntl.fcntl(fd, fcntl.F_GETFL)
     fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
+# catch signal to terminate the process
 class GracefulKiller:
     kill_now = False
     def __init__(self):
@@ -60,10 +75,12 @@ def main(self):
     import subprocess
     import traceback
 
+    #arm the signal handler
     killer = GracefulKiller()
-    
+
+    # configure the logger
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
-    handler = logging.handlers.RotatingFileHandler(rmap.settings.logfilemqtt2dballed, maxBytes=5000000, backupCount=10)
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
     handler.setFormatter(formatter)
     
     # Add the log message handler to the root logger
@@ -72,16 +89,39 @@ def main(self):
 
     logging.info('Starting up mqtt2dballed')
 
+    dsndict={}
+    dsndict["rmap"]=rmap.settings.dsnrmap
+    dsndict["mobile"]=rmap.settings.dsnmobile
+    dsndict["report"]=rmap.settings.dsnreport
+
+    if not (self.options.name in dsndict.keys()):
+        logging.error('Invalid dsn')
+        sys.stdout.write("Invalid dsn\n")
+        return False
+    logging.info('DSN: %s'% dsndict[self.options.name])
+    
+    topicdict={}
+    topicdict["rmap"]=rmap.settings.topicrmap
+    topicdict["mobile"]=rmap.settings.topicmobile
+    topicdict["report"]=rmap.settings.topicreport
+
+    if not (self.options.name in topicdict.keys()):
+        logging.error('Invalid topic')
+        sys.stdout.write("Invalid topic\n")
+        return False
+    logging.info('Topic: %s'% topicdict[self.options.name])
+    
+    # infinite loop: restart p1 or p2 if terminate with error
     while True:
 
         try:
-            p1 = subprocess.Popen(["mqtt2bufr","-t","rmap/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p1 = subprocess.Popen(["mqtt2bufr","-t",topicdict[self.options.name]],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             #p1 = subprocess.Popen(["mqtt2bufr","-h","rmap.cc","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             nonblockingfile(p1.stderr)
 
             while p1.poll() is None:
                 
-                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",rmap.settings.dsnrmap],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",dsndict[self.options.name]],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 
@@ -90,6 +130,7 @@ def main(self):
 
                 while  p2.poll() is None:
 
+                    # write on logging messages from p1 stderr
                     #p1.stderr.flush()
                     while True:
                         try:
@@ -102,6 +143,7 @@ def main(self):
                         else:
                             break
 
+                    # write on logging messages from p2 stderr
                     #p2.stderr.flush()
                     while True:
                         try:
@@ -114,6 +156,7 @@ def main(self):
                         else:
                             break
 
+                    # write on logging messages from p2 stdout
                     #p2.stdout.flush()
                     while True:
                         try:
@@ -126,6 +169,7 @@ def main(self):
                         else:
                             break
 
+                    # check if we have to terminate
                     if killer.kill_now:
                         p1.kill()  
                         p2.kill()  
@@ -135,12 +179,13 @@ def main(self):
                     
                     time.sleep(1)
 
-                    
+        # log and retry on exception 
         except Exception as exception:
             logging.error('Exception occured: ' + str(exception))
             logging.error(traceback.format_exc())
             logging.error('Subprocess failed')
             time.sleep(10)
+        # terminate on keyboard interrupt
         except KeyboardInterrupt:
             sys.stdout.write("keyboard interrupt\n")
             logging.info("keyboard interrupt\n")
@@ -148,10 +193,13 @@ def main(self):
             p2.wait()
             #p2.kill()
             return False
+        # terminate without error
         else:
             # no exception was raised
             logging.info('Subprocess finished')
         finally:
+            
+            # check if we have to terminate together with other exceptions
             if killer.kill_now:
                 try:
                     p1.kill()

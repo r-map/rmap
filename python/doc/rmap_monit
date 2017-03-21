@@ -16,84 +16,96 @@
 #    start program = "/usr/bin/rmapweb restart"
 #    stop program  = "/usr/bin/rmapweb stop"
 
-  check process amqp2arkimetd with pidfile /var/run/rmap/amqp2arkimetd.lock
-    start program = "/usr/bin/amqp2arkimetd restart"
-    stop program  = "/usr/bin/amqp2arkimetd stop"
-    depends on rmap
+#  check process amqp2arkimetd with pidfile /var/run/rmap/amqp2arkimetd.lock
+#    start program = "/usr/bin/amqp2arkimetd restart"
+#    stop program  = "/usr/bin/amqp2arkimetd stop"
+#    depends on rmap
 
-  check process amqp2mqttd with pidfile /var/run/rmap/amqp2mqttd.lock
-    start program = "/usr/bin/amqp2mqttd restart"
-    stop program  = "/usr/bin/amqp2mqttd stop"
-    depends on rmap
+#  check process amqp2mqttd with pidfile /var/run/rmap/amqp2mqttd.lock
+#    start program = "/usr/bin/amqp2mqttd restart"
+#    stop program  = "/usr/bin/amqp2mqttd stop"
+#    depends on rmap
 
-  check process mqtt2graphited with pidfile /var/run/rmap/mqtt2graphited.lock
-    start program = "/usr/bin/mqtt2graphited restart"
-    stop program  = "/usr/bin/mqtt2graphited stop"
-    depends on apache, rmap
+#  check process mqtt2graphited with pidfile /var/run/rmap/mqtt2graphited.lock
+#    start program = "/usr/bin/mqtt2graphited restart"
+#    stop program  = "/usr/bin/mqtt2graphited stop"
+#    depends on apache, rmap
 
   check process amqp2dballed with pidfile /var/run/rmap/amqp2dballed.lock
     start program = "/usr/bin/amqp2dballed restart"
     stop program  = "/usr/bin/amqp2dballed stop"
-    depends on rmap
+#    depends on rmap
 
 #  check process borinudd with pidfile /var/run/rmap/borinudd.lock
 #    start program = "/usr/bin/borinudd restart"
 #    stop program  = "/usr/bin/borinudd stop"
 
-  check process mqtt2dballed with pidfile /var/run/rmap/mqtt2dballed.lock
-    start program = "/usr/bin/mqtt2dballed restart"
-    stop program  = "/usr/bin/mqtt2dballed stop"
-    depends on rmap
+#  check process mqtt2dballed with pidfile /var/run/rmap/mqtt2dballed.lock
+#    start program = "/usr/bin/mqtt2dballed restart"
+#    stop program  = "/usr/bin/mqtt2dballed stop"
+
+  check process mqtt2dballed_rmap with pidfile /var/run/rmap/mqtt2dballed_rmap.lock
+    start program = "/usr/bin/mqtt2dballed --name rmap    --pidfile=/var/run/rmap/mqtt2dballed_rmap.lock    --stderr=/var/log/rmap/mqtt2dballed_rmap.err    --stdout=/var/log/mqtt2dballed_rmap.log restart"
+    stop program  = "/usr/bin/mqtt2dballed --name rmap    --pidfile=/var/run/rmap/mqtt2dballed_rmap.lock    --stderr=/var/log/rmap/mqtt2dballed_rmap.err    --stdout=/var/log/mqtt2dballed_rmap.log stop"
+#    depends on rmap 
+  check process mqtt2dballed_mobile with pidfile /var/run/rmap/mqtt2dballed_mobile.lock
+    start program = "/usr/bin/mqtt2dballed --name mobile  --pidfile=/var/run/rmap/mqtt2dballed_mobile.lock  --stderr=/var/log/rmap/mqtt2dballed_mobile.err  --stdout=/var/log/mqtt2dballed_mobile.log restart"
+    stop program  = "/usr/bin/mqtt2dballed --name mobile  --pidfile=/var/run/rmap/mqtt2dballed_mobile.lock  --stderr=/var/log/rmap/mqtt2dballed_mobile.err  --stdout=/var/log/mqtt2dballed_mobile.log stop"
+#    depends on rmap
+  check process mqtt2dballed_rmap with pidfile /var/run/rmap/mqtt2dballed_rmap.lock
+    start program = "/usr/bin/mqtt2dballed --name report  --pidfile=/var/run/rmap/mqtt2dballed_report.lock  --stderr=/var/log/rmap/mqtt2dballed_report.err  --stdout=/var/log/mqtt2dballed_report.log restart"
+    stop program  = "/usr/bin/mqtt2dballed --name report  --pidfile=/var/run/rmap/mqtt2dballed_report.lock  --stderr=/var/log/rmap/mqtt2dballed_report.err  --stdout=/var/log/mqtt2dballed_report.log stop"
+#    depends on rmap
 
   check process composereportd with pidfile /var/run/rmap/composereportd.lock
     start program = "/usr/bin/composereportd restart"
     stop program  = "/usr/bin/composereportd stop"
-    depends on rmap
+#    depends on rmap
 
   check process amqp2amqp_identvalidationd with pidfile /var/run/rmap/amqp2amqp_identvalidationd.lock
     start program = "/usr/bin/amqp2amqp_identvalidationd restart"
     stop program  = "/usr/bin/amqp2amqp_identvalidationd stop"
-    depends on apache, wsgirmap, rmap
+#    depends on apache, wsgirmap, rmap
 
   check process amqp2amqp_json2bufrd with pidfile /var/run/rmap/amqp2amqp_json2bufrd.lock
     start program = "/usr/bin/amqp2amqp_json2bufrd restart"
     stop program  = "/usr/bin/amqp2amqp_json2bufrd stop"
-    depends on rmap
+#    depends on rmap
 
   check process amqp2djangod with pidfile /var/run/rmap/amqp2djangod.lock
     start program = "/usr/bin/amqp2djangod restart"
     stop program  = "/usr/bin/amqp2djangod stop"
-    depends on apache, rmap
+#    depends on apache, rmap
 
   check process amqp2geoimaged with pidfile /var/run/rmap/amqp2geoimaged.lock
     start program = "/usr/bin/amqp2geoimaged restart"
     stop program  = "/usr/bin/amqp2geoimaged stop"
-    depends on apache, rmap
+#    depends on apache, rmap
 
 
-  check directory wsgirmap path /var/run/wsgirmap
-    if does not exist then exec "/bin/mkdir -p /var/run/wsgirmap || exit 1"
-        as uid root
-    if failed uid rmap then exec "/usr/bin/chown -R rmap:rmap /var/run/wsgirmap"
-        as uid root
-    if does not exist then exec "/usr/bin/systemctl stop httpd.service"
-    depends on apache
+#  check directory wsgirmap path /var/run/wsgirmap
+#    if does not exist then exec "/bin/mkdir -p /var/run/wsgirmap || exit 1"
+#        as uid root
+#    if failed uid rmap then exec "/usr/bin/chown -R rmap:rmap /var/run/wsgirmap"
+#        as uid root
+#    if does not exist then exec "/usr/bin/systemctl stop httpd.service"
+#    depends on apache
 
-  check directory rmap path /var/run/rmap
-    if does not exist then exec "/bin/mkdir -p /var/run/rmap || exit 1"
-        as uid root
-    if failed gid rmap then exec "/usr/bin/chown -R bin:rmap /var/run/rmap"
-        as uid root
-    if failed permission 775 then exec "/usr/bin/chmod 775 /var/run/rmap"
-        as uid root
+#  check directory rmap path /var/run/rmap
+#    if does not exist then exec "/bin/mkdir -p /var/run/rmap || exit 1"
+#        as uid root
+#    if failed gid rmap then exec "/usr/bin/chown -R bin:rmap /var/run/rmap"
+#        as uid root
+#    if failed permission 775 then exec "/usr/bin/chmod 775 /var/run/rmap"
+#        as uid root
 
-  check directory logrmap path /var/log/rmap
-    if does not exist then exec "/bin/mkdir -p /var/log/rmap || exit 1"
-        as uid root
-    if failed uid rmap then exec "/usr/bin/chown -R rmap:rmap /var/log/rmap"
-        as uid root
+#  check directory logrmap path /var/log/rmap
+#    if does not exist then exec "/bin/mkdir -p /var/log/rmap || exit 1"
+#        as uid root
+#    if failed uid rmap then exec "/usr/bin/chown -R rmap:rmap /var/log/rmap"
+#        as uid root
 
-  check process apache with pidfile /var/run/httpd/httpd.pid
-    start program = "/usr/bin/systemctl start httpd.service"
-    stop program  = "/usr/bin/systemctl stop httpd.service"
+#  check process apache with pidfile /var/run/httpd/httpd.pid
+#    start program = "/usr/bin/systemctl start httpd.service"
+#    stop program  = "/usr/bin/systemctl stop httpd.service"
 
