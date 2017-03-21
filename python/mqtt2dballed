@@ -14,8 +14,9 @@
 # You should have received a copy of the GNU General Public License 
 # along with this program; if not, write to the Free Software 
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
-# 
+#
 
+import signal
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 import django
@@ -24,6 +25,7 @@ django.setup()
 
 from rmap import daemon
 import rmap.settings
+import fcntl
 
 mqtt2dballed = daemon.Daemon(
         stdin="/dev/null",
@@ -34,39 +36,150 @@ mqtt2dballed = daemon.Daemon(
         group=rmap.settings.groupmqtt2dballed
 )
 
+def nonblockingfile(pipe):
+
+    # make a pipe a non-blocking file
+    fd = pipe.fileno()
+    fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+    fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
+
+
 def main(self):
 
-    import subprocess,os
+    import os,sys,time
+    import logging,logging.handlers
+    import subprocess
+    import traceback
 
-    #    my_env = os.environ
-    #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
+    killer = GracefulKiller()
+    
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(rmap.settings.logfilemqtt2dballed, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up mqtt2dballed')
 
     while True:
-        p1 = subprocess.Popen(["mqtt2bufr","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE)
-        while True:
-            if not p1.poll() is None:
-                break
 
-            p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",rmap.settings.dsnmqtt2dballed],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE)
-            #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-            stdoutdata, stderrdata = p2.communicate()
-            #,env=my_env
+        try:
+            p1 = subprocess.Popen(["mqtt2bufr","-t","rmap/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            #p1 = subprocess.Popen(["mqtt2bufr","-h","rmap.cc","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            nonblockingfile(p1.stderr)
 
+            while p1.poll() is None:
+                
+                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",rmap.settings.dsnrmap],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
+
+                nonblockingfile(p2.stderr)
+                nonblockingfile(p2.stdout)
+
+                while  p2.poll() is None:
+
+                    #p1.stderr.flush()
+                    while True:
+                        try:
+                            line = p1.stderr.readline()
+                        except:
+                            line=""
+                        if line:
+                            #print 'Got data:', line
+                            logging.error(line.rstrip("\n"))
+                        else:
+                            break
+
+                    #p2.stderr.flush()
+                    while True:
+                        try:
+                            line = p2.stderr.readline()
+                        except:
+                            line=""
+                        if line:
+                            #print 'Got data:', line
+                            logging.error(line.rstrip("\n"))
+                        else:
+                            break
+
+                    #p2.stdout.flush()
+                    while True:
+                        try:
+                            line = p2.stdout.readline()
+                        except:
+                            line=""
+                        if line:
+                            #print 'Got data:', line
+                            logging.info(line.rstrip("\n"))
+                        else:
+                            break
+
+                    if killer.kill_now:
+                        p1.kill()  
+                        p2.kill()  
+                        logging.info("killed by signal\n")
+                        logging.info('Subprocess finished')
+                        return False
+                    
+                    time.sleep(1)
+
+                    
+        except Exception as exception:
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            logging.error('Subprocess failed')
+            time.sleep(10)
+        except KeyboardInterrupt:
+            sys.stdout.write("keyboard interrupt\n")
+            logging.info("keyboard interrupt\n")
+            p1.wait()
+            p2.wait()
+            #p2.kill()
+            return False
+        else:
+            # no exception was raised
+            logging.info('Subprocess finished')
+        finally:
+            if killer.kill_now:
+                try:
+                    p1.kill()
+                except:
+                    pass
+                try:
+                    p2.kill()
+                except:
+                    pass
+                logging.info("killed by signal\n")
+                logging.info('Subprocess finished')
+                return False
+            
 
 if __name__ == '__main__':
 
     import sys, os
+    
     mqtt2dballed.cwd=os.getcwd()
 
     if mqtt2dballed.service():
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
-        sys.stdout.write("Daemon stdout output\n")
-        sys.stderr.write("Daemon stderr output\n")
 
         main(mqtt2dballed)  # (this code was run as script)
-
+            
         for proc in mqtt2dballed.procs:
             proc.wait()
 
+        sys.stdout.write("Daemon stoppped\n")
         sys.exit(0)

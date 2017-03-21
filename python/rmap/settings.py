@@ -108,7 +108,7 @@ configspec['amqp2dballed']['errfile']  = "string(default='/tmp/amqp2dballed.err'
 configspec['amqp2dballed']['lockfile'] = "string(default='/tmp/amqp2dballed.lock')"
 configspec['amqp2dballed']['user']     = "string(default=None)"
 configspec['amqp2dballed']['group']    = "string(default=None)"
-configspec['amqp2dballed']['dsn']      = "string(default='mysql:///rmap?user=rmap&password=rmap')"
+configspec['amqp2dballed']['dsn']      = "string(default='mysql:///report?user=rmap&password=rmap')"
 
 configspec['amqp2amqp_identvalidationd']={}
 configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='/tmp/amqp2amqp_identvalidationd.log')"
@@ -156,12 +156,14 @@ configspec['amqp2mqttd']['user']     = "string(default=None)"
 configspec['amqp2mqttd']['group']    = "string(default=None)"
 
 configspec['mqtt2dballed']={}
-configspec['mqtt2dballed']['logfile']  = "string(default='/tmp/mqtt2dballed.log')"
-configspec['mqtt2dballed']['errfile']  = "string(default='/tmp/mqtt2dballed.err')"
-configspec['mqtt2dballed']['lockfile'] = "string(default='/tmp/mqtt2dballed.lock')"
-configspec['mqtt2dballed']['user']     = "string(default=None)"
-configspec['mqtt2dballed']['group']    = "string(default=None)"
-configspec['mqtt2dballed']['dsn']      = "string(default='mysql:///rmap?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['logfile']   = "string(default='/tmp/mqtt2dballed.log')"
+configspec['mqtt2dballed']['errfile']   = "string(default='/tmp/mqtt2dballed.err')"
+configspec['mqtt2dballed']['lockfile']  = "string(default='/tmp/mqtt2dballed.lock')"
+configspec['mqtt2dballed']['user']      = "string(default=None)"
+configspec['mqtt2dballed']['group']     = "string(default=None)"
+configspec['mqtt2dballed']['dsnrmap']   = "string(default='mysql:///rmap?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['dsnmobile'] = "string(default='mysql:///mobile?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['dsnreport'] = "string(default='mysql:///report?user=rmap&password=rmap')"
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='/tmp/composereportd.log')"
@@ -262,7 +264,7 @@ errfileamqp2dballed              = config['amqp2dballed']['errfile']
 lockfileamqp2dballed             = config['amqp2dballed']['lockfile']
 useramqp2dballed                 = config['amqp2dballed']['user']
 groupamqp2dballed                = config['amqp2dballed']['group']
-dsnamqp2dballed                  = config['amqp2dballed']['dsn']
+dsn                              = config['amqp2dballed']['dsn']
 
 # section amqp2amqp_identvalidationd
 logfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidationd']['logfile']
@@ -312,7 +314,9 @@ errfilemqtt2dballed              = config['mqtt2dballed']['errfile']
 lockfilemqtt2dballed             = config['mqtt2dballed']['lockfile']
 usermqtt2dballed                 = config['mqtt2dballed']['user']
 groupmqtt2dballed                = config['mqtt2dballed']['group']
-dsnmqtt2dballed                  = config['mqtt2dballed']['dsn']
+dsnrmap                          = config['mqtt2dballed']['dsnrmap']
+dsnmobile                        = config['mqtt2dballed']['dsnmobile']
+dsnreport                        = config['mqtt2dballed']['dsnreport']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
@@ -653,28 +657,46 @@ BORINUD = {
     [
         {
             "class": "borinud.utils.source.DballeDB",
-            "url": dsnmqtt2dballed,
+            "url": dsnrmap,
         }, 
-         {
-             "class": "borinud.utils.source.ArkimetBufrDB",
-             "dataset": "http://localhost:8090/dataset/meteonetwork",
-             "measurements": measurements
-         },
-         {
-             "class": "borinud.utils.source.ArkimetBufrDB",
-             "dataset": "http://localhost:8090/dataset/arpav",
-             "measurements": measurements
-         },
-         {
-             "class": "borinud.utils.source.ArkimetBufrDB",
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnmobile,
+        }, 
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/meteonetwork",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/arpav",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
              "dataset": "http://localhost:8090/dataset/opendata-er",
-             "measurements": measurements
-         },        
-         {
-             "class": "borinud.utils.source.ArkimetBufrDB",
-             "dataset": "http://localhost:8090/dataset/rmap",
-             "measurements": measurements
-         }
+            "measurements": measurements
+        },        
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/rmap",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/mobile",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://localhost:8090/dataset/report",
+            "measurements": measurements
+         },
     ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
