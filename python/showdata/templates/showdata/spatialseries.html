@@ -18,6 +18,14 @@
 
  <link rel="stylesheet" href="{% static "rmap/libs/jquery-ui-1.12.1//jquery-ui.css" %}" type="text/css" />
  <script type="text/javascript" src="{% static "/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
+ <script type="text/javascript" src="{% static "showdata/PruneCluster.js" %}" ></script>
+ <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
+<!--
+ <script type="text/javascript" src="{% static "showdata/leaflet.markercluster.js" %}" ></script>
+ <link rel="stylesheet" type="text/css" href="{% static "showdata/MarkerCluster.css" %}" >
+ <link rel="stylesheet" type="text/css" href="{% static "showdata/MarkerCluster.Default.css" %}" >
+-->
+
 <style>
 
 .ui-dialog,.ui-dialog-content {background:green}
@@ -264,6 +272,50 @@ function beforesend(){
 }
 
 
+
+
+function setpopup(feature)
+{
+    var popupText = "<div id='preloadimages'>"
+        + "Ident: " + null2_(feature.properties.ident)
+	+ "<br>Lon: " + feature.properties.lon
+	+ "<br>Lat: " + feature.properties.lat
+	+ "<br>Network: " + feature.properties.network
+	+ "<br>Trange: " + feature.properties.trange
+	+ "<br>Level: " + feature.properties.level
+	+ "<br>Date: " + feature.properties.date
+	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations'>Constant station data</a>"
+{% if hour %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
+
+{% else %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
+{% endif %}
+
+      + "<img src=/graphite/render/?target="
++"fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
++"&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>"
++"</a>";
+
+    if ( feature.properties.ident !== null ) 
+    {
+    popupText +=
+      {% if hour %}
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?type=mobile'>"
+      {% else %}
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?type=mobile'>"
+      {% endif %}
+     +"{% trans "Mobile station data" %}</a>"
+    }
+
+    popupText +="</div>";
+
+    return popupText
+
+}
+
+
 function map_init(map, options) 
 {
     
@@ -280,17 +332,79 @@ function map_init(map, options)
                   min=Math.min(min,collection['features'][i].properties.val);
 		  max=Math.max(max,collection['features'][i].properties.val);
 		}
-
-		// Aggiungi il JSON in leaflet
-		L.geoJson
-		(
-		    collection,
-		    {
-			onEachFeature: oneachfeature,
-			pointToLayer: pointtolayer
-		    }
-		).addTo(map);
 		
+                var pruneCluster = new PruneClusterForLeaflet();
+		pruneCluster.Cluster.Size = 25;
+		pruneCluster.ProcessView(); // looks like it works OK without this line
+
+                $.each(collection.features, function(i,feature) {
+		    
+		    var vallen= (feature.properties.val).toString().length * 6 + 6;
+		    coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
+		    
+		    /*
+		    pruneCluster.PrepareLeafletMarker = function(leafletMarker, data) {
+    
+			//return L.marker(latlng, {icon: myIcon,  riseOnHover: true, riseOffset: 10000, title:feature.properties.date });
+			
+			leafletMarker.on('popupopen',function managepreload(e) 
+					 {
+					     $('#preloadimages img').preload({
+						 placeholder:'{% static "showdata/loading.gif" %}',
+						 notFound:'{% static "showdata/access-error-logs.png" %}'
+					     })
+					 });   
+		    };
+		    */
+
+                    var marker = new PruneCluster.Marker(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+
+                    marker.data.icon = L.extendedDivIcon({
+			iconSize: new L.Point(vallen, 14),
+			html: feature.properties.val,
+			className: 'myDivIcon',
+			// Set style here (new!)
+			style: {backgroundColor:getColor(feature.properties.val,min,max)}
+		    });
+
+		    marker.data.popup = setpopup(feature);
+
+		    /*
+		    var popupOptions = {};
+		    // you have to append the marker on the creation of the popup
+		    // so that the popup element will have the marker source.
+		    var popup = L.popup(popupOptions, marker );
+
+		    popup.setContent(setpopup(feature));
+
+		    marker.bindPopup(popup);
+
+		    marker.on('popupopen',function managepreload(e) 
+			      {
+				  $('#preloadimages img').preload({
+				      placeholder:'{% static "showdata/loading.gif" %}',
+				      notFound:'{% static "showdata/access-error-logs.png" %}'
+				  })
+			      })
+		    */
+
+		    /*
+		      var popup = layer.bindPopup(popupText);
+
+		      popup.on('popupopen',function managepreload(e) 
+		      {
+		      $('#preloadimages img').preload({
+		      placeholder:'{% static "showdata/loading.gif" %}',
+		      notFound:'{% static "showdata/access-error-logs.png" %}'
+		      })
+		      })
+		    */
+
+		    pruneCluster.RegisterMarker(marker);
+                });
+
+                map.addLayer(pruneCluster);
+
 		try{
 		    map.fitBounds(coords);
 		}
