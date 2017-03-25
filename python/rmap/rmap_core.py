@@ -1088,7 +1088,7 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
             print ("error in deserialize object; skip it",e)
 
         print " [x] Done"
-        connection.close()
+        #connection.close()
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
     credentials=pika.PlainCredentials(user, password)
