@@ -32,23 +32,23 @@ except ImportError:
 from ..settings import BORINUD
 
 
-def get_db():
+def get_db(dsn="fixed"):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
             k: v for k, v in i.items() if k != "class"
         })
-        for i in BORINUD["SOURCES"]
+        for i in BORINUD[dsn]["SOURCES"]
     ]
     if len(dbs) == 1:
         db = dbs[0]
     else:
         db = MergeDB(dbs)
 
-    if BORINUD["CACHED_SUMMARY"]:
+    if BORINUD[dsn]["CACHED_SUMMARY"]:
         db = SummaryCacheDB(
-            db, BORINUD["CACHED_SUMMARY"],
-            BORINUD["CACHED_SUMMARY_TIMEOUT"],
+            db, BORINUD[dsn]["CACHED_SUMMARY"],
+            BORINUD[dsn]["CACHED_SUMMARY_TIMEOUT"],
         )
 
     return db
@@ -131,6 +131,7 @@ class DballeDB(DB):
     def __init__(self, url):
         """Create a DB-All.e database from `url` DSN."""
         self.url = url
+        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",self.url
 
     def __open_db(self):
         """Open the database."""

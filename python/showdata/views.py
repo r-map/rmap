@@ -260,7 +260,7 @@ def timeseries(request, **kwargs):
         "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"),
         "datefrom":datefrom,"dateuntil":dateuntil, 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
-        "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'fixed')})
+        "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'report')})
 
 def spatialseries(request, **kwargs):
 

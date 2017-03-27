@@ -294,6 +294,10 @@ for dirpath, dirnames, filenames in os.walk('registration/locale'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
+for dirpath, dirnames, filenames in os.walk('registration/static'):
+    if filenames:
+        for file in filenames:
+            registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
 
 for dirpath, dirnames, filenames in os.walk('showdata/static'):
     if filenames:
@@ -301,9 +305,6 @@ for dirpath, dirnames, filenames in os.walk('showdata/static'):
             showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
             
 
-print "showdata",showdata_package_data
-      
-            
 #package_data.append('rmap_config')
 #package_data.append('settings')
 
@@ -353,7 +354,7 @@ setup(name='rmap',
           'graphite-dballe':['templates/*']+graphite_dballe_package_data,
           'http2mqtt':['templates/*']+http2mqtt_package_data,
           'insertdata':['templates/insertdata/*']+insertdata_package_data,
-          'registration':['templates/registration/*','static/*']+registration_package_data,
+          'registration':['templates/registration/*']+registration_package_data,
           'showdata':['templates/showdata/*']+showdata_package_data,
       },
       scripts=[

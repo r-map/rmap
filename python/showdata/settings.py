@@ -3,7 +3,7 @@ Settings for Borinud.
 
 Example::
     # project/settings.py
-    SHOWDATA["SOURCES"] = [{
+    SHOWDATA["report"]["SOURCES"] = [{
         "class": "borinud.utils.source.DballeDB",
         "url": "odbc://rmap",
     }, {
@@ -19,8 +19,8 @@ Example::
             "trange": (254, 0, 0),
         }],
     }]
-    SHOWDATA["CACHED_SUMMARY"] = "default"
-    SHOWDATA["CACHED_SUMMARY_TIMEOUT"] = 3600
+    SHOWDATA["report"]["CACHED_SUMMARY"] = "default"
+    SHOWDATA["report"]["CACHED_SUMMARY_TIMEOUT"] = 3600
 """
 from django.conf import settings
 
@@ -33,5 +33,6 @@ DEFAULTS = {
 SHOWDATA = getattr(settings, 'SHOWDATA', {})
 
 for name, default in DEFAULTS.items():
-    if name not in SHOWDATA:
-        SHOWDATA[name] = default
+    for dsn in SHOWDATA:
+        if name not in SHOWDATA[dsn]:
+            SHOWDATA[dsn][name] = default

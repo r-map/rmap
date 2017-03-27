@@ -25,7 +25,7 @@ def json_serial(obj):
     
 class dbajson:
 
-    def __init__(self,q,summary=False,stations=False,format="jsonlines"):
+    def __init__(self,q,summary=False,stations=False,format="jsonlines",dsn="report"):
         self.q=q
         self.summary=summary
         self.stations=stations
@@ -34,15 +34,16 @@ class dbajson:
             self.jsondict=self.jsondictstation
         else:    
             self.jsondict=self.jsondictdata
-
+        self.dsn=dsn
+            
 
     def __iter__(self):
         if self.summary:
-            self.handle = get_db().query_summary(self.q)
+            self.handle = get_db(dsn=self.dsn).query_summary(self.q)
         elif self.stations:
-            self.handle = get_db().query_stations(self.q)
+            self.handle = get_db(dsn=self.dsn).query_stations(self.q)
         else:
-            self.handle = get_db().query_data(self.q)
+            self.handle = get_db(dsn=self.dsn).query_data(self.q)
 
         return self.next()
 
@@ -140,10 +141,10 @@ def summaries(request, **kwargs):
     format=kwargs.get('format')
     
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,summary=True,format=format),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,summary=True,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,summary=True,format=format))
+        return StreamingHttpResponse(dbajson(q,summary=True,format=format,dsn=request.GET.get('dsn', 'report')))
 
 def timeseries(request, **kwargs):
     q = params2record(kwargs)
@@ -159,10 +160,10 @@ def timeseries(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')))
 
 
 def spatialseries(request, **kwargs):
@@ -183,10 +184,10 @@ def spatialseries(request, **kwargs):
     format=kwargs.get('format')
     
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')))
 
 
 def stationdata(request, **kwargs):
@@ -195,10 +196,10 @@ def stationdata(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')))
 
 
 def stations(request, **kwargs):
@@ -207,7 +208,7 @@ def stations(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,stations=True,format=format),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,stations=True,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,stations=True,format=format))
+        return StreamingHttpResponse(dbajson(q,stations=True,format=format,dsn=request.GET.get('dsn', 'report')))

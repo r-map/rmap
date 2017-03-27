@@ -659,7 +659,54 @@ measurements=[
 ]
 
 
-BORINUD = {
+BORINUD = {"fixed":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/arpav",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+             "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+            "measurements": measurements
+        },        
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/report",
+            "measurements": measurements
+         },
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+           "mobile":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnmobile,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/mobile",
+            "measurements": measurements
+        },
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+"rmap":{
     "SOURCES": 
     [
         {
@@ -667,46 +714,14 @@ BORINUD = {
             "url": dsnrmap,
         }, 
         {
-            "class": "borinud.utils.source.DballeDB",
-            "url": dsnmobile,
-        }, 
-        {
-            "class": "borinud.utils.source.DballeDB",
-            "url": dsnreport,
-        }, 
-        {
             "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/meteonetwork",
+            "dataset": "http://rmap.cc:8090/dataset/rmap",
             "measurements": measurements
         },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/arpav",
-            "measurements": measurements
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-             "dataset": "http://localhost:8090/dataset/opendata-er",
-            "measurements": measurements
-        },        
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/rmap",
-            "measurements": measurements
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/mobile",
-            "measurements": measurements
-        },
-        {
-            "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://localhost:8090/dataset/report",
-            "measurements": measurements
-         },
     ],
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
+}
 }
 
 

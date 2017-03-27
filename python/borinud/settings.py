@@ -3,7 +3,7 @@ Settings for Borinud.
 
 Example::
     # project/settings.py
-    BORINUD["SOURCES"] = [{
+    BORINUD["report"]["SOURCES"] = [{
         "class": "borinud.utils.source.DballeDB",
         "url": "odbc://rmap",
     }, {
@@ -19,8 +19,8 @@ Example::
             "trange": (254, 0, 0),
         }],
     }]
-    BORINUD["CACHED_SUMMARY"] = "default"
-    BORINUD["CACHED_SUMMARY_TIMEOUT"] = 3600
+    BORINUD["report"]["CACHED_SUMMARY"] = "default"
+    BORINUD["report"]["CACHED_SUMMARY_TIMEOUT"] = 3600
 """
 from django.conf import settings
 
@@ -33,5 +33,6 @@ DEFAULTS = {
 BORINUD = getattr(settings, 'BORINUD', {})
 
 for name, default in DEFAULTS.items():
-    if name not in BORINUD:
-        BORINUD[name] = default
+    for dsn in BORINUD:
+        if name not in BORINUD[dsn]:
+            BORINUD[dsn][name] = default
