@@ -72,6 +72,7 @@
       <p><a class="btn btn-default" href="/graphite/composer/?target=report.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
     </div>
 
+    {% if hour or day %}
     <div class="col-xs-4">
       <p style="text-align:left">
 	<a href='
@@ -84,6 +85,8 @@
 	</a>
       </p>
     </div>
+    {% endif %}
+
   </div>
 
 
