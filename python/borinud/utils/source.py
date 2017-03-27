@@ -32,7 +32,7 @@ except ImportError:
 from ..settings import BORINUD
 
 
-def get_db(dsn="fixed"):
+def get_db(dsn="report"):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
@@ -48,7 +48,7 @@ def get_db(dsn="fixed"):
     if BORINUD[dsn]["CACHED_SUMMARY"]:
         db = SummaryCacheDB(
             db, BORINUD[dsn]["CACHED_SUMMARY"],
-            BORINUD[dsn]["CACHED_SUMMARY_TIMEOUT"],
+            BORINUD[dsn]["CACHED_SUMMARY_TIMEOUT"],dsn,
         )
 
     return db
@@ -153,7 +153,7 @@ class DballeDB(DB):
 
 
 class SummaryCacheDB(DB):
-    def __init__(self, db, cachename, timeout=None):
+    def __init__(self, db, cachename, timeout=None,dsn="report"):
         """Creates a summary cache for the database `db`
 
         The summary cache can be loaded in memory setting the parameter `ttl`
@@ -163,7 +163,8 @@ class SummaryCacheDB(DB):
         self.db = db
         self.cache = caches[cachename]
         self.timeout = timeout
-
+        self.dsn=dsn
+        
     def set_cached_summary(self):
         res = self.db.query_summary(dballe.Record())
         summary = [{
@@ -176,12 +177,12 @@ class SummaryCacheDB(DB):
             "bcode": o.get("var"),
             "date": o.date_extremes(),
         } for o in res]
-        self.cache.set('borinud-summary-cache', summary, self.timeout)
+        self.cache.set('borinud-summary-cache-%s' % self.dsn, summary, self.timeout)
         return summary
 
     def get_cached_summary(self):
         """Get the cached summary."""
-        summary = self.cache.get('borinud-summary-cache')
+        summary = self.cache.get('borinud-summary-cache-%s' % self.dsn)
 
         if summary is None:
             summary = self.set_cached_summary()

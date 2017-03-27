@@ -386,8 +386,8 @@ RRD_CF = 'AVERAGE'
 #    'graphite-dballe.finders.standard.StandardFinder',
 #)
 STORAGE_FINDERS = (
-    'graphite-dballe.finders.dballe.DballeFinderSample',
-    'graphite-dballe.finders.dballe.DballeFinder',
+    'graphite-dballe.finders.dballe.DballeFinderRmap',
+    'graphite-dballe.finders.dballe.DballeFinderReport',
     'graphite-dballe.finders.dballe.DballeFinderMobile',
 )
 
@@ -659,7 +659,7 @@ measurements=[
 ]
 
 
-BORINUD = {"fixed":{
+BORINUD = {"report":{
     "SOURCES": 
     [
         {

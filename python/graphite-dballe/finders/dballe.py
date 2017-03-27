@@ -152,7 +152,7 @@ class  wssummaries(object):
                 yield self.branch,self.node
 
 
-class DballeFinder(object):
+class DballeFinderReport(object):
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
@@ -190,7 +190,7 @@ class DballeFinderMobile(object):
             else:
                 yield LeafNode(node, DballeReader(node,"mobile"))
 
-class DballeFinderSample(object):
+class DballeFinderRmap(object):
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
