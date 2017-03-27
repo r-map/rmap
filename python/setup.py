@@ -192,7 +192,16 @@ class djangocollectstatic(Command):
 
 # Compile the list of files available, because distutils doesn't have
 # an easy way to do this.
+rmap_package_data = []
+amatyr_package_data = []
+borinud_package_data = []
+geoimage_package_data = []
+graphite_dballe_package_data = []
+http2mqtt_package_data = []
+insertdata_package_data = []
 registration_package_data = []
+showdata_package_data = []
+
 data_files = []
 
 for dirpath, dirnames, filenames in os.walk('man'):
@@ -243,6 +252,8 @@ try:
 
     data_files.append(('/etc/rmap',['rmap-site.cfg']))
     data_files.append(('/etc/rmap',['map']))
+    data_files.append(('/etc/rmap',['dashboard.conf']))
+    data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
 except OSError as e:
     if (e[0] == errno.EACCES):
@@ -250,11 +261,49 @@ except OSError as e:
     else:
         print >> sys.stderr, "There are some problems to install files in /etc !"
 
+for dirpath, dirnames, filenames in os.walk('rmap/static'):
+    if filenames:
+        for file in filenames:
+            rmap_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap'))
+for dirpath, dirnames, filenames in os.walk('amatyr/static'):
+    if filenames:
+        for file in filenames:
+            amatyr_package_data.append( os.path.relpath(os.path.join(dirpath, file),'amatyr'))
+for dirpath, dirnames, filenames in os.walk('borinud/static'):
+    if filenames:
+        for file in filenames:
+            borinud_package_data.append( os.path.relpath(os.path.join(dirpath, file),'borinud'))
+for dirpath, dirnames, filenames in os.walk('geoimage/static'):
+    if filenames:
+        for file in filenames:
+            geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
+for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+    if filenames:
+        for file in filenames:
+            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
+for dirpath, dirnames, filenames in os.walk('http2mqtt/static'):
+    if filenames:
+        for file in filenames:
+            http2mqtt_package_data.append( os.path.relpath(os.path.join(dirpath, file),'http2mqtt'))
+for dirpath, dirnames, filenames in os.walk('insertdata/static'):
+    if filenames:
+        for file in filenames:
+            insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
+                    
 for dirpath, dirnames, filenames in os.walk('registration/locale'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
 
+for dirpath, dirnames, filenames in os.walk('showdata/static'):
+    if filenames:
+        for file in filenames:
+            showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
+            
+
+print "showdata",showdata_package_data
+      
+            
 #package_data.append('rmap_config')
 #package_data.append('settings')
 
@@ -293,19 +342,19 @@ setup(name='rmap',
                 'graphite-dballe.version',
                 'graphite-dballe.whitelist',
       ],
-      
+
       package_data={
-          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/stations/*'],
+          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/stations/*']+rmap_package_data,
           'rmap.stations': ['fixtures/*.json'],
           'mapview': ['icons/*.png'],          
-          'amatyr':['templates/amatyr/*'],
-          'borinud':['templates/borinud/*'],
-          'geoimage':['templates/geoimage/*'],
-          'graphite-dballe':['templates/*'],
-          'http2mqtt':['templates/*'],
-          'insertdata':['templates/insertdata/*'],
-          'registration':['templates/registration/*',]+registration_package_data,
-          'showdata':['templates/showdata/*'],
+          'amatyr':['templates/amatyr/*']+amatyr_package_data,
+          'borinud':['templates/borinud/*']+borinud_package_data,
+          'geoimage':['templates/geoimage/*']+geoimage_package_data,
+          'graphite-dballe':['templates/*']+graphite_dballe_package_data,
+          'http2mqtt':['templates/*']+http2mqtt_package_data,
+          'insertdata':['templates/insertdata/*']+insertdata_package_data,
+          'registration':['templates/registration/*','static/*']+registration_package_data,
+          'showdata':['templates/showdata/*']+showdata_package_data,
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
