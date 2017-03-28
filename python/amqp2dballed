@@ -46,7 +46,7 @@ def callback(ch, method, properties, body):
 
 
     try:
-        amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+rmap.settings.dsnamqp2dballed], stdin=subprocess.PIPE)]
+        amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+rmap.settings.dsn], stdin=subprocess.PIPE)]
         amqp2dballed.procs[0].communicate(input=body)
 
         status=amqp2dballed.procs[0].wait()
