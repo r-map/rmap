@@ -332,7 +332,7 @@ def insertDataManualData(request):
 
                     slug=form.cleaned_data['coordinate_slug']
                     if (slug):
-                        prefix="rmap"
+                        prefix="report"
                     else:
                         prefix="mobile"
 
