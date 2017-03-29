@@ -316,6 +316,10 @@ class TransportTcpip(models.Model):
         ('master2',  'master board 2'),
         ('master3',  'master board 3'),
         ('master4',  'master board 4'),
+        ('stima',    'master stima 1'),
+        ('stima2',    'master stima 2'),
+        ('stima3',    'master stima 3'),
+        ('stima4',    'master stima 4'),
     )
 
     mac={
@@ -324,6 +328,10 @@ class TransportTcpip(models.Model):
         'master3':(0,0,0,0,0,3),
         'master4':(0,0,0,0,0,4),
         'master4':(0,0,0,0,0,4),
+        'stima': (0xE2,0x21,0xB6,0x44,0xEB,0x29) ,
+        'stima2':(0x76,0x63,0x6E,0x28,0xDC,0xE5),
+        'stima3':(0x72,0x70,0xD5,0x08,0xC0,0x09),
+        'stima4':(0xC2,0x84,0x73,0xC8,0x3C,0xDF),
     }
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
