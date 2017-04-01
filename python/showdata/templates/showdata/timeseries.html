@@ -69,7 +69,7 @@
   <div class="row">
     <div class="col-xs-8">
 
-      <p><a class="btn btn-default" href="/graphite/composer/?target=report.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
+      <p><a class="btn btn-default" href="/graphite/composer/?target={{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}}" role="button">Graphite composer &raquo;</a></p>
     </div>
 
     {% if hour or day %}

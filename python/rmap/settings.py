@@ -678,6 +678,46 @@ BORINUD = {"report":{
         },
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+            "measurements": measurements
+        },        
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/report",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnmobile,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/mobile",
+            "measurements": measurements
+        },
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,},
+           
+    "fixed":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/arpav",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
              "dataset": "http://rmap.cc:8090/dataset/opendata-er",
             "measurements": measurements
         },        
@@ -706,7 +746,7 @@ BORINUD = {"report":{
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 },
-"rmap":{
+"sample":{
     "SOURCES": 
     [
         {

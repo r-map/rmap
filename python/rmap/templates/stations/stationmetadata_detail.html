@@ -63,20 +63,20 @@
   <h5><span class="bv aig"></span>{% trans 'Observation' %}</h5>
 
   <p>
-    <img src = "/graphite/render/?target=report.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
+    <img src = "/graphite/render/?target=fixed.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
   </p>
 
-  <p><a class="btn btn-default" href="/graphite/composer/?target=report.{{ object.ident }}.{{ object.lon_lat }}.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-12hours" role="button">Graphite composer &raquo;</a></p>
+  <p><a class="btn btn-default" href="/graphite/composer/?target=fixed.{{ object.ident }}.{{ object.lon_lat }}.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-12hours" role="button">Graphite composer &raquo;</a></p>
 </div>
 <div class="col-md-6">
   <h5><span class="bv aig"></span>{% trans 'Sample' %}</h5>
 
   <p>
-    <img src = "/graphite/render/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-3hours">
+    <img src = "/graphite/render/?target=sample.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-3hours">
 
   </p>
 
-  <p><a class="btn btn-default" href="/graphite/composer/?target=rmap.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-3hours" role="button">Graphite composer &raquo;</a></p>
+  <p><a class="btn btn-default" href="/graphite/composer/?target=sample.{{ object.ident }}.{{ object.lon_lat }}.rmap.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-3hours" role="button">Graphite composer &raquo;</a></p>
 </div>
           {% endfor %}
         {% endif %}
