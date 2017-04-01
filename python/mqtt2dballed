@@ -90,9 +90,9 @@ def main(self):
     logging.info('Starting up mqtt2dballed')
 
     dsndict={}
-    dsndict["rmap"]=rmap.settings.dsnrmap
+    dsndict["sample"]=rmap.settings.dsnsample
     dsndict["mobile"]=rmap.settings.dsnmobile
-    dsndict["report"]=rmap.settings.dsnreport
+    dsndict["fixed"]=rmap.settings.dsnfixed
 
     if not (self.options.name in dsndict.keys()):
         logging.error('Invalid dsn')
@@ -101,9 +101,9 @@ def main(self):
     logging.info('DSN: %s'% dsndict[self.options.name])
     
     topicdict={}
-    topicdict["rmap"]=rmap.settings.topicrmap
+    topicdict["sample"]=rmap.settings.topicsample
     topicdict["mobile"]=rmap.settings.topicmobile
-    topicdict["report"]=rmap.settings.topicreport
+    topicdict["fixed"]=rmap.settings.topicfixed
 
     if not (self.options.name in topicdict.keys()):
         logging.error('Invalid topic')
