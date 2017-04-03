@@ -7,6 +7,21 @@ from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
 
+def filtro(request, **kwargs):
+
+    now=datetime.utcnow()
+    showdate=(now-timedelta(minutes=30))
+
+    year='{:04d}'.format(showdate.year)
+    month='{:02d}'.format(showdate.month)
+    day='{:02d}'.format(showdate.day)
+    hour='{:02d}'.format(showdate.hour)
+
+    return render(request, 'showdata/filtro.html',{
+        "year":year,"month":month,"day":day,"hour":hour
+    })
+
+
 def menu(request, **kwargs):
 
     now=datetime.utcnow()

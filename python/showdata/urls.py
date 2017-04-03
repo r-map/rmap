@@ -22,6 +22,7 @@ basepattern = (
 urlpatterns = [
 
     url(r'^$', views.menu,name="menu"),
+    url(r'^filtro$', views.filtro,name="filtro"),
 
 #    url(basepattern + r'/summaries$', views.summaries),
 #    url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})$', views.summaries),
