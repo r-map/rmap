@@ -161,12 +161,12 @@ configspec['mqtt2dballed']['errfile']   = "string(default='/tmp/mqtt2dballed.err
 configspec['mqtt2dballed']['lockfile']  = "string(default='/tmp/mqtt2dballed.lock')"
 configspec['mqtt2dballed']['user']      = "string(default=None)"
 configspec['mqtt2dballed']['group']     = "string(default=None)"
-configspec['mqtt2dballed']['dsnrmap']   = "string(default='mysql:///rmap?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['dsnsample']   = "string(default='mysql:///rmap?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnmobile'] = "string(default='mysql:///mobile?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['dsnreport'] = "string(default='mysql:///report?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['topicrmap']   = "string(default='rmap/#')"
+configspec['mqtt2dballed']['dsnfixed'] = "string(default='mysql:///report?user=rmap&password=rmap')"
+configspec['mqtt2dballed']['topicsample']   = "string(default='rmap/#')"
 configspec['mqtt2dballed']['topicmobile'] = "string(default='mobile/#')"
-configspec['mqtt2dballed']['topicreport'] = "string(default='report/#')"
+configspec['mqtt2dballed']['topicfixed'] = "string(default='report/#')"
 
 
 configspec['composereportd']={}
@@ -318,12 +318,12 @@ errfilemqtt2dballed              = config['mqtt2dballed']['errfile']
 lockfilemqtt2dballed             = config['mqtt2dballed']['lockfile']
 usermqtt2dballed                 = config['mqtt2dballed']['user']
 groupmqtt2dballed                = config['mqtt2dballed']['group']
-dsnrmap                          = config['mqtt2dballed']['dsnrmap']
-dsnmobile                        = config['mqtt2dballed']['dsnmobile']
-dsnreport                        = config['mqtt2dballed']['dsnreport']
-topicrmap                          = config['mqtt2dballed']['topicrmap']
+dsnsample                          = config['mqtt2dballed']['dsnsample']
+dsnmobile                          = config['mqtt2dballed']['dsnmobile']
+dsnfixed                           = config['mqtt2dballed']['dsnfixed']
+topicsample                        = config['mqtt2dballed']['topicsample']
 topicmobile                        = config['mqtt2dballed']['topicmobile']
-topicreport                        = config['mqtt2dballed']['topicreport']
+topicfixed                         = config['mqtt2dballed']['topicfixed']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
@@ -386,8 +386,8 @@ RRD_CF = 'AVERAGE'
 #    'graphite-dballe.finders.standard.StandardFinder',
 #)
 STORAGE_FINDERS = (
-    'graphite-dballe.finders.dballe.DballeFinderRmap',
-    'graphite-dballe.finders.dballe.DballeFinderReport',
+    'graphite-dballe.finders.dballe.DballeFinderSample',
+    'graphite-dballe.finders.dballe.DballeFinderFixed',
     'graphite-dballe.finders.dballe.DballeFinderMobile',
 )
 
@@ -664,7 +664,47 @@ BORINUD = {"report":{
     [
         {
             "class": "borinud.utils.source.DballeDB",
-            "url": dsnreport,
+            "url": dsnfixed,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/arpav",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+            "measurements": measurements
+        },        
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/report",
+            "measurements": measurements
+        },
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnmobile,
+        }, 
+        {
+            "class": "borinud.utils.source.ArkimetBufrDB",
+            "dataset": "http://rmap.cc:8090/dataset/mobile",
+            "measurements": measurements
+        },
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,},
+           
+    "fixed":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnfixed,
         }, 
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
@@ -706,12 +746,12 @@ BORINUD = {"report":{
     "CACHED_SUMMARY": "default",
     "CACHED_SUMMARY_TIMEOUT": 60*15,
 },
-"rmap":{
+"sample":{
     "SOURCES": 
     [
         {
             "class": "borinud.utils.source.DballeDB",
-            "url": dsnrmap,
+            "url": dsnsample,
         }, 
         {
             "class": "borinud.utils.source.ArkimetBufrDB",

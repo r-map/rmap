@@ -44,17 +44,17 @@
 #    start program = "/usr/bin/mqtt2dballed restart"
 #    stop program  = "/usr/bin/mqtt2dballed stop"
 
-  check process mqtt2dballed_rmap with pidfile /var/run/rmap/mqtt2dballed_rmap.lock
-    start program = "/usr/bin/mqtt2dballed --name rmap    --pidfile=/var/run/rmap/mqtt2dballed_rmap.lock    --stderr=/var/log/rmap/mqtt2dballed_rmap.err    --stdout=/var/log/rmap/mqtt2dballed_rmap.log restart"
-    stop program  = "/usr/bin/mqtt2dballed --name rmap    --pidfile=/var/run/rmap/mqtt2dballed_rmap.lock    --stderr=/var/log/rmap/mqtt2dballed_rmap.err    --stdout=/var/log/rmap/mqtt2dballed_rmap.log stop"
+  check process mqtt2dballed_sample with pidfile /var/run/rmap/mqtt2dballed_sample.lock
+    start program = "/usr/bin/mqtt2dballed --name sample    --pidfile=/var/run/rmap/mqtt2dballed_sample.lock    --stderr=/var/log/rmap/mqtt2dballed_sample.err    --stdout=/var/log/rmap/mqtt2dballed_sample.log restart"
+    stop program  = "/usr/bin/mqtt2dballed --name sample    --pidfile=/var/run/rmap/mqtt2dballed_sample.lock    --stderr=/var/log/rmap/mqtt2dballed_sample.err    --stdout=/var/log/rmap/mqtt2dballed_sample.log stop"
 #    depends on rmap 
   check process mqtt2dballed_mobile with pidfile /var/run/rmap/mqtt2dballed_mobile.lock
     start program = "/usr/bin/mqtt2dballed --name mobile  --pidfile=/var/run/rmap/mqtt2dballed_mobile.lock  --stderr=/var/log/rmap/mqtt2dballed_mobile.err  --stdout=/var/log/rmap/mqtt2dballed_mobile.log restart"
     stop program  = "/usr/bin/mqtt2dballed --name mobile  --pidfile=/var/run/rmap/mqtt2dballed_mobile.lock  --stderr=/var/log/rmap/mqtt2dballed_mobile.err  --stdout=/var/log/rmap/mqtt2dballed_mobile.log stop"
 #    depends on rmap
-  check process mqtt2dballed_report with pidfile /var/run/rmap/mqtt2dballed_report.lock
-    start program = "/usr/bin/mqtt2dballed --name report  --pidfile=/var/run/rmap/mqtt2dballed_report.lock  --stderr=/var/log/rmap/mqtt2dballed_report.err  --stdout=/var/log/rmap/mqtt2dballed_report.log restart"
-    stop program  = "/usr/bin/mqtt2dballed --name report  --pidfile=/var/run/rmap/mqtt2dballed_report.lock  --stderr=/var/log/rmap/mqtt2dballed_report.err  --stdout=/var/log/rmap/mqtt2dballed_report.log stop"
+  check process mqtt2dballed_fixed with pidfile /var/run/rmap/mqtt2dballed_fixed.lock
+    start program = "/usr/bin/mqtt2dballed --name fixed  --pidfile=/var/run/rmap/mqtt2dballed_fixed.lock  --stderr=/var/log/rmap/mqtt2dballed_fixed.err  --stdout=/var/log/rmap/mqtt2dballed_fixed.log restart"
+    stop program  = "/usr/bin/mqtt2dballed --name fixed  --pidfile=/var/run/rmap/mqtt2dballed_fixed.lock  --stderr=/var/log/rmap/mqtt2dballed_fixed.err  --stdout=/var/log/rmap/mqtt2dballed_fixed.log stop"
 #    depends on rmap
 
   check process composereportd with pidfile /var/run/rmap/composereportd.lock

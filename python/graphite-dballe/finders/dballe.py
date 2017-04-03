@@ -152,15 +152,15 @@ class  wssummaries(object):
                 yield self.branch,self.node
 
 
-class DballeFinderReport(object):
+class DballeFinderFixed(object):
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query,"report"):
+        for branch,node in wssummaries(query,"fixed"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node,"report"))
+                yield LeafNode(node, DballeReader(node,"fixed"))
             
 #LeafNode is created with a reader, which is the class responsible for
 #fetching the datapoints for the given path. It is a simple class with
@@ -190,15 +190,15 @@ class DballeFinderMobile(object):
             else:
                 yield LeafNode(node, DballeReader(node,"mobile"))
 
-class DballeFinderRmap(object):
+class DballeFinderSample(object):
 
     def find_nodes(self, query):
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query,"rmap"):
+        for branch,node in wssummaries(query,"sample"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node,"rmap"))
+                yield LeafNode(node, DballeReader(node,"sample"))
 
 
 class DballeReader(object):
