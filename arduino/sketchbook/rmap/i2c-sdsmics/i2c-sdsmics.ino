@@ -284,6 +284,7 @@ void receiveEvent( int bytesReceived)
        // check for a command
        if (receivedCommands[0] == I2C_SDSMICS_COMMAND) {
 	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
+	 //if (new_command != 0) IF_SDEBUG(Serial.print("command overflow !"));
 	 new_command = receivedCommands[1]; return; }
      }
 
@@ -644,14 +645,24 @@ void loop() {
     sensor.set_sleep(false);
 #endif
 #ifdef MICS4514PRESENT
+    IF_SDEBUG(Serial.print("start fast heat: "));
+    IF_SDEBUG(Serial.println(millis() - starttime));
     sensormics.blocking_fast_heat();
+    IF_SDEBUG(Serial.print("end fast heat: "));
+    IF_SDEBUG(Serial.println(millis() - starttime));
 #endif
   }
-  delay(1000);
+  delay(10);
 
 #ifdef SDS011PRESENT
+  IF_SDEBUG(Serial.print("start query sds: "));
+  IF_SDEBUG(Serial.println(millis() - starttime));
+
   ok = sensor.query_data_auto(&pm25, &pm10, 3);
   if (oneshot) sensor.set_sleep(true);
+
+  IF_SDEBUG(Serial.print("end query sds: "));
+  IF_SDEBUG(Serial.println(millis() - starttime));
 
   wdt_reset();
 
@@ -670,8 +681,14 @@ void loop() {
 #endif
 
 #ifdef MICS4514PRESENT
+  IF_SDEBUG(Serial.print("start query mics: "));
+  IF_SDEBUG(Serial.println(millis() - starttime));
+
   ok = sensormics.query_data_auto(&co, &no2, 3);
   if (oneshot) sensormics.sleep();
+
+  IF_SDEBUG(Serial.print("end query mics: "));
+  IF_SDEBUG(Serial.println(millis() - starttime));
 
   wdt_reset();
 

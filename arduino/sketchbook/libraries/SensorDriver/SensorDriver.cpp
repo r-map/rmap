@@ -9,6 +9,7 @@
 
 int THcounter=0;
 int SDS011counter=0;
+bool SDSMICSstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -2371,14 +2372,19 @@ int SensorDriverSDS011oneshot::setup(const char* driver, const int address, cons
 int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
 {
 
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  if (! SDSMICSstarted) {
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
+    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+    SDSMICSstarted=true;
+    waittime= 14500ul;
+  }else{
+    waittime= 1ul;
+  }
 
   _timing=millis();
-  waittime= 3500ul;
-
   return SD_SUCCESS;
 }
 
@@ -2387,13 +2393,16 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  if (SDSMICSstarted) {
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
+    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  delay(10);
+    SDSMICSstarted=false;
+    delay(10);
+  }
 
   // get pm25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -3299,14 +3308,18 @@ int SensorDriverMICS4514oneshot::setup(const char* driver, const int address, co
 int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
 {
 
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+  if (! SDSMICSstarted) {
+    Wire.beginTransmission(_address);
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
+    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+    waittime= 14500ul;
+  }else{
+    waittime= 1ul;
+  }
 
   _timing=millis();
-  waittime= 3500ul;
-
   return SD_SUCCESS;
 }
 
@@ -3315,13 +3328,15 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
+  if (SDSMICSstarted) {
+    // command STOP
+    Wire.beginTransmission(_address);   // Open I2C line in write mode
+    Wire.write(I2C_SDSMICS_COMMAND);
+    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
+    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    SDSMICSstarted=false;
+    delay(10);
+  }
 
   // get CO
   Wire.beginTransmission(_address);   // Open I2C line in write mode

@@ -1,5 +1,5 @@
 ﻿// activate debug on serial port
-//#define SDDEBUGONSERIAL
+#define SDDEBUGONSERIAL
 
 
 // add secondary to primary parameters to send in multiparameter sensors 
@@ -54,10 +54,10 @@
 #define TEMPERATUREHUMIDITY_REPORT
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
-//#define SDS011_ONESHOT
+#define SDS011_ONESHOT
 
 // include sds011 pm 2.5 and pm 10 driver REPORT MODE
-#define SDS011_REPORT
+//#define SDS011_REPORT
 
 // include mics4514 CO and NO2pm driver SAMPLE MODE
 #define MICS4514_ONESHOT
