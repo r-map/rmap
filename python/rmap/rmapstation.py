@@ -227,7 +227,7 @@ class station():
                 #name,i2cbus,address,timerange,level
                 #TODO sensor.type ??
                 self.drivers.append({"driver":sensor.driver,
-                                     "type":sensor.type,
+                                     "type":sensor.type.type,
                                      "i2cbus":sensor.i2cbus,
                                      "address":sensor.address,
                                      "node":sensor.node,
@@ -403,7 +403,7 @@ class station():
     def sensorssetup(self):
         """
         Setup of all sensors.
-        This should be done al startup 
+        This should be done at startup 
         """
 
         self.sensors=[]
@@ -497,7 +497,7 @@ class station():
         for sensor in self.sensors:
             try:
               for btable,value in sensor["driver"].get().iteritems():
-                datavar={btable:{"t": now,"v": str(value)}}
+                datavar={btable:{"t": now,"v": value}}
                 datavars.append(datavar)
                 self.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},"timerange":sensor["timerange"],\
                                          "level":sensor["level"],"datavar":datavar})
@@ -564,7 +564,7 @@ class station():
 #        datavar={"B12101":
 #                 {
 #                     "t": datetime.utcnow(),
-#                     "v": str(value),
+#                     "v": value,
 #                     "a": {
 #                         "B33194": "90",           # attributi di qualita' del dato
 #                         "B33195": "85"
@@ -940,7 +940,7 @@ def main():
             datavar={"B12101":
             {
                 "t": reptime,
-                "v": str(value),
+                "v": value,
                 "a": {
                     "B33194": "90",           # attributi di qualita' del dato
                     "B33195": "85"

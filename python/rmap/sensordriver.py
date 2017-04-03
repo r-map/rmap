@@ -30,7 +30,7 @@ except:
     #print "warning bmp085 driver will not be included"
 import jsonrpc
 
-MAXDELAYTIME = 5000
+MAXDELAYTIME = 30000
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):
@@ -96,7 +96,8 @@ class jsonrpcproxy(SensorDriver):
         self.node=node
         self.type=type
         self.address=address
-
+        # not needed: the remote board do the setup at boot when well configured
+        #self.proxy.setup(driver=self.driver,node=self.node,type=self.type,address=self.address)
 
     def prepare(self):
 

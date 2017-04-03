@@ -2027,6 +2027,14 @@ class Rmap(App):
             self.popup(_("ERROR getting\ndata"))
             self.getdataerror+=1
             self.board_status=_("Transport Status: ERROR")+_(" err: ")+ str(self.getdataerror)
+        
+        else:
+            if not datavars:
+                print "ERROR executing getdata: no data returned"
+
+                self.popup(_("ERROR no data\nreturned"))
+                self.getdataerror+=1
+                self.board_status=_("Transport Status: ERROR")+_(" err: ")+ str(self.getdataerror)
 
         self.root.ids["queue"].text=self.queue2str()
 

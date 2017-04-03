@@ -363,7 +363,7 @@ def main():
     value=100
     dt=datetime.utcnow().replace(microsecond=0)
 
-    datavar={"B20003":{"t": dt,"v": str(value)}}
+    datavar={"B20003":{"t": dt,"v": value}}
 
     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="rmap.cc",port=1883,prefix="test",maintprefix="test")
     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
