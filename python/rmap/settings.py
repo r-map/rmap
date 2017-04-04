@@ -683,7 +683,7 @@ BORINUD = {"report":{
         },        
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://rmap.cc:8090/dataset/report",
+            "dataset": "http://rmap.cc:8090/dataset/fixed",
             "measurements": measurements
         },
         {
@@ -723,7 +723,7 @@ BORINUD = {"report":{
         },        
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://rmap.cc:8090/dataset/report",
+            "dataset": "http://rmap.cc:8090/dataset/fixed",
             "measurements": measurements
          },
     ],
@@ -755,7 +755,7 @@ BORINUD = {"report":{
         }, 
         {
             "class": "borinud.utils.source.ArkimetBufrDB",
-            "dataset": "http://rmap.cc:8090/dataset/rmap",
+            "dataset": "http://rmap.cc:8090/dataset/sample",
             "measurements": measurements
         },
     ],
