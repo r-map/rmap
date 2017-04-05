@@ -332,13 +332,15 @@ def insertDataManualData(request):
 
                     slug=form.cleaned_data['coordinate_slug']
                     if (slug):
-                        prefix="report"
+                        prefix="fixed"
+                        network="fixed"
                     else:
                         prefix="mobile"
+                        network="mobile"
 
                     print "<",slug,">","prefix:",prefix
 
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 

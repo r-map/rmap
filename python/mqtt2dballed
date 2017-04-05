@@ -110,12 +110,20 @@ def main(self):
         sys.stdout.write("Invalid topic\n")
         return False
     logging.info('Topic: %s'% topicdict[self.options.name])
+
+    # compatibility with old topic: to be removed !
+    if topicdict[self.options.name] == "sample/#":
+        oldtopic="rmap/#"
+    elif topicdict[self.options.name] == "fixed/#":
+        oldtopic="report/#"
+    else:
+        oldtopic="None"
     
     # infinite loop: restart p1 or p2 if terminate with error
     while True:
 
         try:
-            p1 = subprocess.Popen(["mqtt2bufr","-t",topicdict[self.options.name]],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p1 = subprocess.Popen(["mqtt2bufr","-t",oldtopic,"-t",topicdict[self.options.name]],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             #p1 = subprocess.Popen(["mqtt2bufr","-h","rmap.cc","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             nonblockingfile(p1.stderr)
 

@@ -1178,7 +1178,7 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
 
 
 def configdb(username="rmap",password="rmap",
-             station="home",lat=0,lon=0,constantdata={},
+             station="home",lat=0,lon=0,constantdata={},network="rmap",
              mqttusername="your user",
              mqttpassword="your password",
              mqttserver="rmap.cc",
@@ -1221,7 +1221,8 @@ def configdb(username="rmap",password="rmap",
         mystation.ident=user
         mystation.lat=lat
         mystation.lon=lon
-
+        mystation.network=network
+        
         if not (mqttrootpath is None):
             mystation.mqttrootpath=mqttrootpath
 

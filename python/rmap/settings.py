@@ -164,9 +164,9 @@ configspec['mqtt2dballed']['group']     = "string(default=None)"
 configspec['mqtt2dballed']['dsnsample']   = "string(default='mysql:///rmap?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnmobile'] = "string(default='mysql:///mobile?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnfixed'] = "string(default='mysql:///report?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['topicsample']   = "string(default='rmap/#')"
+configspec['mqtt2dballed']['topicsample']   = "string(default='sample/#')"
 configspec['mqtt2dballed']['topicmobile'] = "string(default='mobile/#')"
-configspec['mqtt2dballed']['topicfixed'] = "string(default='report/#')"
+configspec['mqtt2dballed']['topicfixed'] = "string(default='fixed/#')"
 
 
 configspec['composereportd']={}

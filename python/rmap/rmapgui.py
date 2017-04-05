@@ -1620,11 +1620,13 @@ class Rmap(App):
         try:
 
             if (self.config.get('location','mobile') == '0'):
-                mqttrootpath="rmap"
-                mqttmaintpath="rmap"                
+                mqttrootpath="fixed"
+                mqttmaintpath="fixed"
+                network="fixed"
             else:
                 mqttrootpath="mobile"
                 mqttmaintpath="mobile"                
+                network="mobile"
 
             rmap.rmap_core.configdb(
                 username=self.config.get('rmap','user'),
@@ -1633,6 +1635,7 @@ class Rmap(App):
                 lat=self.config.get('location','lat'),lon=self.config.get('location','lon'),
                 constantdata={"B01019":self.config.get('location','name'),
                               "B07030":self.config.get('location','height')},
+                network=network,
                 mqttusername=self.config.get('rmap','user'),
                 mqttpassword=self.config.get('rmap','password'),
                 mqttserver=self.config.get('rmap','server'),
