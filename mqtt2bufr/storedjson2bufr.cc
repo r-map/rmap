@@ -133,9 +133,14 @@ int main(int argc, char** argv)
             dballe::Messages msgs;
             dballe::msg::BufrExporter exporter;
             mqtt2bufr::Parser parser;
-            std::string topic(buf + 1, buf + 63);
-            std::string payload(buf + 65, buf + 128);
-            try {
+
+	    char *sep = (char*)memchr( buf+1, ';', 127);
+	    
+	    std::string topic(buf + 1, sep - 1);
+            std::string payload(sep + 1, buf + 128);
+
+
+	    try {
                 dballe::Msg msg = parser.parse(topic, payload);
                 msgs.append(msg);
                 std::cout << exporter.to_binary(msgs);

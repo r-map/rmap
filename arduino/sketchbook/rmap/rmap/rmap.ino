@@ -106,12 +106,14 @@ char fileName[BASE_NAME_SIZE+4];
 char fullfileName[BASE_NAME_SIZE+8];
 char newfileName[BASE_NAME_SIZE+8];
 
-#define STRLEN 63
+//total size should be 128 byte; we hope on avr we do not have alignment problems
+#define TOPICLEN 86
+#define PAYLOADLEN 40
 typedef struct Records{
   bool done;
   char topic[STRLEN] ;
   char separator = ';';
-  char payload[STRLEN] ;
+  char payload[PAYLOADLEN] ;
 } Record;
 
 Record record;
