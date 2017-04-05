@@ -394,6 +394,10 @@ class DballeReader(object):
 
         startdate = dateutil.parser.parse(start)  
         enddate   = dateutil.parser.parse(end)
+        
+        #prevent underflow and overflow
+        startdate=startdate.replace(max(startdate.year,1970))
+        enddate  =enddate.replace(min(enddate.year,2037))
 
         return IntervalSet([Interval(int(time.mktime(startdate.timetuple())),int(time.mktime(enddate.timetuple())))])
         

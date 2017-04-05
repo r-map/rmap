@@ -131,7 +131,6 @@ class DballeDB(DB):
     def __init__(self, url):
         """Create a DB-All.e database from `url` DSN."""
         self.url = url
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",self.url
 
     def __open_db(self):
         """Open the database."""
