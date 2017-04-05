@@ -1418,14 +1418,20 @@ class LineGraph(Graph):
       numberOfDataPoints = self.timeRange/series.step
       minXStep = float( self.params.get('minXStep',1.0) )
       divisor = self.timeRange / series.step
-      bestXStep = numberOfPixels / divisor
-      if bestXStep < minXStep:
-        drawableDataPoints = int( numberOfPixels / minXStep )
-        pointsPerPixel = math.ceil( float(numberOfDataPoints) / float(drawableDataPoints) )
-        series.consolidate(pointsPerPixel)
-        series.xStep = (numberOfPixels * pointsPerPixel) / numberOfDataPoints
+      try:
+          bestXStep = numberOfPixels / divisor
+      except:
+          bestXStep = 0
+          series.xStep = bestXStep
       else:
-        series.xStep = bestXStep
+          if bestXStep < minXStep:
+              drawableDataPoints = int( numberOfPixels / minXStep )
+              pointsPerPixel = math.ceil( float(numberOfDataPoints) / float(drawableDataPoints) )
+              series.consolidate(pointsPerPixel)
+              series.xStep = (numberOfPixels * pointsPerPixel) / numberOfDataPoints
+          else:
+              series.xStep = bestXStep
+
 
   def _adjustLimits(self, minValue, maxValue, minName, maxName, limitName):
     if maxName in self.params and self.params[maxName] != 'max':
