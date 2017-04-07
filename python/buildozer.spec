@@ -35,8 +35,9 @@ version = 6.22
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
-requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
+requirements =  kivy,hostpython2,sqlite3,openssl,plyer,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil,django-cookie-law
+#requirements =  kivy,hostpython2,sqlite3,openssl,plyer,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil,django-cookie-law
 
 # (list) Garden requirements
 #garden_requirements =
@@ -73,19 +74,19 @@ android.sdk = 21
 
 # (str) Android NDK version to use
 #android.ndk = 10e
-android.ndk = 9c
+android.ndk = 10.3.2
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
+android.ndk_path = /home/pat1/compilazioni/crystax-ndk-10.3.2
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-#android.p4a_dir =
+android.p4a_dir = /home/pat1/git/python-for-android
 
 # (list) python-for-android whitelist
 #android.p4a_whitelist =

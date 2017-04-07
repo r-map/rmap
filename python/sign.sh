@@ -3,6 +3,7 @@
 set -x
 cd bin
 VERSION="6.22"
+>>>>>>> Stashed changes
 NAME="Rmap"
 
 rm $NAME-$VERSION-release-unaligned.apk  $NAME-$VERSION-release-signed.apk

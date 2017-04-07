@@ -5,6 +5,14 @@
 {% block extra_assets %}
 
 <script src= {% static "showdata/jquery.preload.min.js" %}></script>
+<script>
+  jQuery(function( $ ){
+    $('#preloadimages img').preload({
+          placeholder:'{% static "showdata/loading.gif" %}',
+          notFound:'{% static "showdata/access-error-logs.png" %}'
+    });
+  });
+</script>
 
 {% endblock %}
 
@@ -110,11 +118,5 @@
   </div>
 </div>
 
-  <script>
-    $('#preloadimages img').preload({
-          placeholder:'{% static "showdata/loading.gif" %}',
-          notFound:'{% static "showdata/access-error-logs.png" %}'
-    });
-  </script>
 
 {% endblock %}
