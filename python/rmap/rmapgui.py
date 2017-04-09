@@ -2263,7 +2263,7 @@ class Rmap(App):
 
     def starttrip(self):
         print "prefix: ",self.mystation.prefix
-        if self.mystation.prefix != "mobile":
+        if not self.mystation.ismobile():
             self.popup(_("the station in\nuse is not of\ntype mobile"))
             self.root.ids["trip"].state="normal"
             return
@@ -2424,7 +2424,7 @@ class Rmap(App):
 
     def queuedata(self):
 
-        if self.trip and not self.gps.gpsfix:
+        if self.mystation.ismobile() and ( not self.trip or not self.gps.gpsfix):
             self.popup(_("travel with\nGPS not fixed!\nretry"))
             return
 
