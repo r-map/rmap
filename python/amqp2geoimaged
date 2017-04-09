@@ -18,6 +18,7 @@
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import imagekit
 import django
 django.setup()
 
