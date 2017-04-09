@@ -227,6 +227,8 @@ class DballeReader(object):
         startdt=datetime.utcfromtimestamp(start_time)
         enddt  =datetime.utcfromtimestamp(end_time)
 
+        #print "fetch: ", startdt, enddt
+
         rj=[]
 
 
@@ -236,46 +238,50 @@ class DballeReader(object):
             #have to return none
             dt=timedelta(hours=0)
             
+        #print "deltatime: ", dt
 
         #check which query we have to do
         if dt > timedelta(days=30*6):
             #get  years
             step=3600*24
+            startdt=startdt.replace(month=1,day=1,hour=0,minute=0,second=0)
             for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath)
                 rj+=r.json()
         elif dt > timedelta(days=10):
             #get  month
             step=3600*6
+            startdt=startdt.replace(day=1,hour=0,minute=0,second=0)
             for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath)
                 rj+=r.json()
         elif dt > timedelta(hours=8):
             #get days
             step=3600
+            startdt=startdt.replace(hour=0,minute=0,second=0)
             for dt in rrule(DAILY, dtstart=startdt, until=enddt):
-                #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath)
                 rj+=r.json()
         elif dt > timedelta(hours=0) :
             #get hours
             step=60
+            startdt=startdt.replace(minute=0,second=0)
             for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
-                               "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
+                #               "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
                                "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath)
@@ -348,6 +354,7 @@ class DballeReader(object):
                     #print "endstep:",endstep
                     enddatestep   = dateutil.parser.parse(endstep)
                     endtimestep   = int(time.mktime(enddatestep.timetuple()))
+                    #print "steps: ",endtimestep-starttimestep
                     step=min([step,endtimestep-starttimestep])
                     starttimestep=endtimestep
             #print "found it: ",step
@@ -373,6 +380,8 @@ class DballeReader(object):
             # recompute end time to not have spare
             end_time=start_time+(step*(size-1))
             time_info=(start_time, end_time, step)
+
+            #print "recomputed end time: ",endtime
 
             #print "put data in an equaly time spaced array"
 
