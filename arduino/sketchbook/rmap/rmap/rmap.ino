@@ -1819,7 +1819,14 @@ void Repeats() {
       wdt_reset();
     }
 #else
-  delay(maxwaittime);
+
+//  delay(maxwaittime);
+  time_t starttime=millis();
+  while (starttime + maxwaittime > millis(){ 
+      wdt_reset();
+      delay(10);
+    }
+
 #endif
   
   for (int i = 0; i < SENSORS_LEN; i++) {
