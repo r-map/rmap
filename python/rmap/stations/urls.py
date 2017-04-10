@@ -19,13 +19,13 @@ urlpatterns = [
                            ,name='stationmetadata-list' ),
 
                        url(r'^stations/(?P<ident>[-_\w]+)/$',
-                           mystationmetadata_list),
+                           mystationmetadata_list ,name='mystationmetadata_list'),
 
                        url(r'^stations/(?P<ident>[-_\w]+)/(?P<slug>[-_\w]+)/$',
-                           mystationmetadata_detail),
+                           mystationmetadata_detail ,name='mystationmetadata-detail'),
 
                        url(r'^delstation/(?P<ident>[-_\w]+)/(?P<slug>[-_\w]+)/$',
-                           mystationmetadata_del),
+                           mystationmetadata_del, name='mystationmetadata-del'),
 
                        url(r'^stationsonmap/$', StationsOnMap
                            ,name='stationsonmap' ),
