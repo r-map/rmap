@@ -1081,8 +1081,9 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
 
         if properties.user_id is None:
             print "Ignore anonymous message"
-            print " [x] Done"
+            print " [I] Ignore"
             ch.basic_ack(delivery_tag = method.delivery_tag)
+            print " [x] Done"
             return
   
         #At this point we can check if we trust this authenticated user... 
@@ -1093,23 +1094,45 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
         try:
             for deserialized_object in serializers.deserialize("json",body):
                 if object_auth(deserialized_object.object,ident):
-                    print "save:",deserialized_object.object
-                    deserialized_object.save()
+                    try:
+                        print "save:",deserialized_object.object
+                        deserialized_object.save()
+                    except Exception as e:
+                        print (" [E] Error saving in DB",e)
+                        #close django connection to DB
+                        try:
+                            connection.close()
+                        except:
+                            pass
+                        # we have to put message in error queue to recover it later
+                        # this is more conservative but we can stall
+                        #ch.basic_nack(delivery_tag = method.delivery_tag)
+                        ch.basic_ack(delivery_tag = method.delivery_tag)
+                        return
+
                 else:
                     print "reject:",deserialized_object.object
+                    ch.basic_ack(delivery_tag = method.delivery_tag)
+                    print " [R] Rejected"
 
         except Exception as e:
             print ("error in deserialize object; skip it",e)
 
-        print " [x] Done"
-        #connection.close()
         ch.basic_ack(delivery_tag = method.delivery_tag)
+        print " [x] Done"
+
+        #close django connection to DB
+        try:
+            connection.close()
+        except Exception as e:
+            print ("django connection close error",e)
+
 
     credentials=pika.PlainCredentials(user, password)
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
+    amqpconnection = pika.BlockingConnection(pika.ConnectionParameters(
         host=host,credentials=credentials))
-    channel = connection.channel()
+    channel = amqpconnection.channel()
     #channel.queue_declare(queue=queue)
 
     print ' [*] Waiting for messages. To exit press CTRL+C'
@@ -1121,8 +1144,7 @@ def receivejsonfromamqp(user=u"your user",password="your password",host="rmap.cc
 
     channel.start_consuming()
 
-    connection.close()
-    sendconnection.close()
+    amqpconnection.close()
 
 
 def object_auth(object,user):

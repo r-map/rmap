@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-02-13 21:57+0000\n"
-"PO-Revision-Date: 2017-02-13 23:00+0100\n"
+"POT-Creation-Date: 2017-04-10 17:59+0000\n"
+"PO-Revision-Date: 2017-04-10 20:50+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
+"Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.11\n"
-"Language-Team: \n"
+"X-Generator: Poedit 1.5.4\n"
 
 #: build/lib/geoimage/models.py:53 build/lib/rmap/stations/models.py:66
 #: build/lib/rmap/stations/models.py:147 build/lib/rmap/stations/models.py:242
@@ -25,13 +25,14 @@ msgstr ""
 #: build/lib/rmap/stations/models.py:564 build/lib/rmap/stations/models.py:604
 #: build/lib/rmap/templates/profile_details.html:19
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:13
-#: geoimage/models.py:53 rmap/stations/models.py:66 rmap/stations/models.py:147
-#: rmap/stations/models.py:242 rmap/stations/models.py:279
-#: rmap/stations/models.py:329 rmap/stations/models.py:405
-#: rmap/stations/models.py:437 rmap/stations/models.py:468
-#: rmap/stations/models.py:508 rmap/stations/models.py:564
-#: rmap/stations/models.py:604 rmap/templates/profile_details.html:19
-#: rmap/templates/stations/stationmetadata_detail.html:13
+#: geoimage/models.py:53 rmap/stations/models.py:66
+#: rmap/stations/models.py:147 rmap/stations/models.py:242
+#: rmap/stations/models.py:279 rmap/stations/models.py:337
+#: rmap/stations/models.py:413 rmap/stations/models.py:445
+#: rmap/stations/models.py:476 rmap/stations/models.py:516
+#: rmap/stations/models.py:572 rmap/stations/models.py:612
+#: rmap/templates/profile_details.html:19
+#: rmap/templates/stations/stationmetadata_detail.html:20
 msgid "Active"
 msgstr "Attivo"
 
@@ -119,7 +120,7 @@ msgstr "Sei sicuro di voler cancellare la stazione?"
 #: build/lib/insertdata/templates/insertdata/delstationform.html:30
 #: insertdata/templates/insertdata/delstationform.html:30
 msgid "Cancel"
-msgstr ""
+msgstr "Annulla"
 
 #: build/lib/insertdata/templates/insertdata/delstationform.html:33
 #: insertdata/templates/insertdata/delstationform.html:33
@@ -187,8 +188,8 @@ msgstr "La tua stazione"
 msgid "Select configurated station"
 msgstr "Seleziona una stazione configurata"
 
-#: build/lib/insertdata/views.py:91 build/lib/rmap/rmapgui.py:1199
-#: insertdata/views.py:91 rmap/rmapgui.py:1199
+#: build/lib/insertdata/views.py:91 build/lib/rmap/rmapgui.py:1198
+#: insertdata/views.py:91 rmap/rmapgui.py:1198
 msgid "Present weather"
 msgstr "Tempo presente"
 
@@ -222,8 +223,8 @@ msgstr "Stazione da confgurare"
 msgid "Your username"
 msgstr "Il tuo nome utente"
 
-#: build/lib/rmap/form.py:27 build/lib/rmap/stations/form.py:17 rmap/form.py:27
-#: rmap/stations/form.py:17
+#: build/lib/rmap/form.py:27 build/lib/rmap/stations/form.py:17
+#: rmap/form.py:27 rmap/stations/form.py:17
 msgid "Enter a valid username."
 msgstr "Inserisci un nome utente valido."
 
@@ -237,17 +238,17 @@ msgstr ""
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:8
 #: rmap/form.py:32 rmap/templates/profile.html:31
 #: rmap/templates/profile_details.html:10
-#: rmap/templates/stations/stationmetadata_detail.html:8
+#: rmap/templates/stations/stationmetadata_detail.html:15
 msgid "Station name"
 msgstr "Nome stazione"
 
 #: build/lib/rmap/form.py:34 build/lib/rmap/stations/models.py:612
-#: rmap/form.py:34 rmap/stations/models.py:612
+#: rmap/form.py:34 rmap/stations/models.py:620
 msgid "Latitude"
 msgstr "Latitudine"
 
 #: build/lib/rmap/form.py:35 build/lib/rmap/stations/models.py:613
-#: rmap/form.py:35 rmap/stations/models.py:613
+#: rmap/form.py:35 rmap/stations/models.py:621
 msgid "Longitude"
 msgstr "Longitudine"
 
@@ -301,8 +302,10 @@ msgstr ""
 "L'APP ha due modalità di funzionamento: una interattiva e una in background. "
 "La modalità di esecuzione in background non richiede la presenza o "
 "l'intervento dell'utente, e può essere concorrente all'esecuzione di altre "
-"applicazioni.Manuale d'usoEseguiamo l'applicazione e vediamo come si "
-"presenta:\n"
+"applicazioni.\n"
+"\n"
+"Manuale d'uso\n"
+"Eseguiamo l'applicazione e vediamo come si presenta:\n"
 "in alto abbiamo i bottoni di navigazione tra le pagine e quelli per attivare "
 "alcune funzioni.\n"
 "Al centro le funzioni specifiche di quella pagina.\n"
@@ -314,39 +317,52 @@ msgstr ""
 #: build/lib/rmap/rmapgui.py:1150 rmap/rmapgui.py:1150
 msgid "help manual setup"
 msgstr ""
+"[b]\"Impostazioni\"[/b]\n"
+"\n"
 "Prima di tutto per pubblicare i dati sul server RMAP.cc bisogna registrarsi "
 "al sito; il bottone \"Registrazione\" dovrebbe aprire un browser alla url "
-"della registrazione che comunque è http://rmap.cc/registrazione/register/ "
+"della registrazione che comunque è\n"
+"http://rmap.cc/registrazione/register/\n"
 "Una volta fatta la registrazione sarete in possesso di uno user e di una "
 "password.\n"
 "Dovrete accedere al menu \"Impostazioni\":\n"
 " *  [b]\"General\"[/b] qui potrete cambiare la lingua utilizzata "
 "(disponibile italiano e inglese)\n"
-" *   [b]\"Rmap\"[/b] qui dovrete inserire \"MQTT user\" e \"MQTT password\" "
+" *  [b]\"Rmap\"[/b] qui dovrete inserire \"MQTT user\" e \"MQTT password\" "
 "ottenuti durante la registrazione a rmap.cc; \"MQTT server\" indica il nome "
 "del server rmap da utilizzare e \"Sample Time\" la frequenza di "
 "compionamento dei sensori e quindi la frequenza di invio dei dati al server; "
-"per questi due ultimi parametri vi consigliamo di lasciare il default\n"
-" *   [b]\"Location\"[/b] definisce la posizione in cui siete e state "
-"rilevando i dati; \"Name\" è un mnemonico opzionale per la vostra posizione "
-"poi seguono i valori obbligatori per la \"Latitude\", \"Longitude\", \"Height"
-"\"; le coordinate devono essere precise almeno alla quinta cifra decimale; "
-"se non conoscete le vostre coordinate non preoccupatevi perché "
-"l'applicazione vi aiuterà a trovarle anche se non disponete di un GPS\n"
-" *   [b]\"Sensors\"[/b] definisce quali sono i sensori disponibili nella "
-"vostra installazione; \"Name\" è il nome del dispositivo BlueTooth che "
-"utilizzerete e quindi nel nostro caso il default \"HC-05\" è corretto; "
-"\"Station\" definisce la tipologia della vostra stazione e potete scegliere "
-"tra una stazione fissa (i sensori sono ancorati a una struttura fissa) e una "
-"mobile (i sensori si muovono su un mezzo come una bicicletta/auto ed è "
-"necessario disporre di un GPS per la loro georefereziazione); \"Board\" "
-"definisce il tipo di hardware e quali sensori sono in uso nella vostra "
-"stazione e quali trasporti possono essere utilizzati. Scegliete quella "
-"relativa alla vostra piattaforma (android/linux/windows/osx).\n"
+"per questi due ultimi parametri vi consigliamo di lasciare i valori "
+"preimpostati\n"
+"*   [b]\"Sensors\"[/b] definisce quali sono i sensori disponibili nella "
+"vostra installazione; questa sezione è da utilizzare solo se disponete di "
+"strumentazione STIMA compatibile per fare misure. Vi consigliamo di seguire "
+"il manuale del dispositivo che vorrete utilizzare per impostare i parametri "
+"in questa sezione. \"Name\" è il nome del dispositivo BlueTooth che "
+"utilizzerete e quindi nel nostro caso il default \"HC-06\" solitamente è "
+"corretto; \"Station\" definisce la tipologia della vostra stazione e quindi "
+"all'hardware disponibile; \"Board\" definisce il tipo di hardware e quali "
+"sensori sono in uso nella vostra stazione e quali trasporti possono essere "
+"utilizzati. La scelta dovrà essere fatta anche relativamente alla vostra "
+"piattaforma (android/linux/windows/osx). I \"Template\" sono gruppi di "
+"sensori predefiniti e sono relativi quindi alla sensoristica di cui "
+"disponete; \"Remote Board\" fa riferimento al tipo di hardware a distanza "
+"che volete utilizzare.\n"
 "\n"
 "Per utilizzare il modulo stima-bluetooth il dispositivo va associato col "
 "telefono/pc come qualsiasi altro dispositivo BlueTooth.\n"
 "\n"
+" *  [b]\"Location\"[/b] definisce la posizione in cui siete e state "
+"rilevando i dati; \"Name\" è un mnemonico opzionale per la vostra posizione; "
+"alla voce \"Mobile\" potete scegliere se la vostra postazione sarà una "
+"stazione fissa (i sensori sono ancorati a una struttura inamovibile) o una "
+"mobile (i sensori si muovono su un mezzo come una bicicletta/auto ed è "
+"necessario disporre di un GPS per la loro georefereziazione). Poi seguono i "
+"valori obbligatori per la \"Latitude\", \"Longitude\", \"Height\"; le "
+"coordinate devono essere precise almeno alla quinta cifra decimale; se non "
+"conoscete le vostre coordinate non preoccupatevi perché l'applicazione vi "
+"aiuterà a trovarle anche se non disponete di un GPS\n"
+" \n"
 "                           Continua -->"
 
 #: build/lib/rmap/rmapgui.py:1151 rmap/rmapgui.py:1151
@@ -372,9 +388,9 @@ msgstr ""
 "sulla mappa e \"zoomare\" per portare il mirino precisamente sulla nostra "
 "posizione e una volta trovata la posizione corretta si può salvare col "
 "bottone \"Salva posizione\". Se disponiamo di un GPS (come nell'uso di uno "
-"smarthphone android) possiamo, dopo averlo abilitato nel menu di "
-"impostazioni del telefono, attivarne l'uso nella nostra applicazione col "
-"bottone \"Avvia GPS\".\n"
+"smartphone android) possiamo, dopo averlo abilitato nel menu di impostazioni "
+"del telefono, attivarne l'uso nella nostra applicazione col bottone \"Avvia "
+"GPS\".\n"
 "Nella parte bassa dello schermo vengono presentate alcune importanti "
 "informazioni quali lo stato del GPS; Vengono stampate anche la longitudine, "
 "latitudine e altezza del \"mirino\".\n"
@@ -385,12 +401,13 @@ msgstr ""
 "salvata.\n"
 "Cliccando sul segnaposto vengono visualizzati tutti i dati della \"location"
 "\"; dalla prima pagina dal menu \"Impostazioni\" alla voce \"Location\" è "
-"possibile modificare o integrare tutti i dati compresa l'altezza e il "
-"mnemonico.\n"
+"possibile modificare o integrare tutti i dati compresa l'altezza e il nome "
+"mnemonico della vostra postazione.\n"
 "Se nelle impostazioni è stata selezionata una stazione di tipo mobile allora "
-"è possibile selezionare il successivo gruppo di misure che verranno fatte "
-"come un \"viaggio\" dove la \"location\" viene costantemente aggiornata dal "
-"GPS; il bottone \"Inizia Viaggio\" serve a questo scopo.\n"
+"con il bottone \"Inizia Viaggio\" è possibile determinare che il successivo "
+"gruppo di misure che verranno fatte saranno lungo un percorso, un \"viaggio"
+"\" dove la \"location\" viene costantemente aggiornata dal GPS; il bottone "
+"\"Inizia Viaggio\" serve a questo scopo.\n"
 "\n"
 "                           Continua -->"
 
@@ -400,16 +417,24 @@ msgstr ""
 "[b]Pagina \"Inserisci dati\"[/b]\n"
 "\n"
 "In questa pagina è possibile inserire i dati rilevati con osservazioni a "
-"vista e quindi manuali relativamente alla \"location\" corrente. Per ora è "
-"attiva la sezione Meteo con due sottosezioni: \"Misure manuali\" per "
-"l'inserimento di misure numeriche rilevate seguendo il disciplinare relativo "
-"alle misurazioni manuali Meteo;\n"
+"vista e quindi manuali relativamente alla \"location\" corrente.\n"
+" Per ora è attiva la sezione Meteo con due sottosezioni: \"Misure manuali\" "
+"per l'inserimento di misure numeriche rilevate seguendo il disciplinare "
+"relativo alle misurazioni manuali Meteo;\n"
 "\"Tempo presente\" che descrive il tempo meteorologico al momento "
 "dell'osservazione, va selezionato un solo valore selezionando quello che è "
-"in atto nella nostra \"location\" più in basso nella lista.nNon bisogna a "
-"questo punto dimenticarsi a ogni informazione inserita di selezionare il "
-"bottone \"Accoda i dati per pubblicazione\" per dare effetto al nostro "
-"lavoro.\n"
+"in atto nella nostra \"location\" selezionando quello che è più "
+"significativo ossia più in basso nella lista.\n"
+"\n"
+"E' possibile anche l'invio di foto e di un relativo commento; le foto "
+"ovviamente dovranno descrivere fenomeni meteorologici di interesse e "
+"dovranno essere fatte nelle prossimità della nostra postazione di misura e "
+"anche i ritardi di tempo dovranno essere limitati rispetto a quando "
+"confermeremo con il bottone \"Accoda dati per la pubblicazione\".\n"
+"\n"
+"[b]Non bisogna a questo punto dimenticarsi a ogni informazione inserita di "
+"selezionare il bottone \"Accoda i dati per pubblicazione\" per dare effetto "
+"al nostro lavoro.[/b]\n"
 "\n"
 "                           Continua -->"
 
@@ -418,11 +443,11 @@ msgid "help manual page 4"
 msgstr ""
 "[b]Pagina \"Dati automatici\"[/b]\n"
 "\n"
-"Il bottone \"Configura\" permette di salvare sulla eeprom del modulo Stima-"
-"BlueTooth le configurazioni necessarie al funzionamento del modulo quali la "
-"definizione della sensoristica presente sul modulo; questa operazione va "
-"fatta una tantum dopo il caricamento del firmware sul modulo Stima-"
-"BlueTooth.\n"
+"Il bottone \"Configura\" permette di salvare sulla memoria permanete del "
+"modulo Stima-BlueTooth eventualmente presente le configurazioni necessarie "
+"al funzionamento del modulo quali la definizione della sensoristica presente "
+"sul modulo; questa operazione va fatta una tantum dopo il caricamento del "
+"firmware sul modulo Stima-BlueTooth.\n"
 "Il bottone \"Avvia trasporto\" permette di verificare la possibilità di "
 "creare il link radio tra il nostro pc/smartphone e il modulo stima-bluetooth "
 "e lo stato viene visualizzato in fondo allo schermo.\n"
@@ -432,6 +457,9 @@ msgstr ""
 "sensori alla frequenza impostata nella configurazione. I dati rilevati dai "
 "sensori vengono visualizzati al centro della pagina.\n"
 "\n"
+"Seguono una serie di bottoni che permettono di accendere e spegnere dei "
+"controlli remoti predenti sul modulo Stima-BlueTooth o altri moduli "
+"eventualmente configurati.\n"
 "                           Continua -->"
 
 #: build/lib/rmap/rmapgui.py:1155 rmap/rmapgui.py:1155
@@ -452,10 +480,12 @@ msgstr ""
 "manualmente\n"
 "I Dati in coda sono mostrati con questi campi: descrizione, unità di misura, "
 "latitudine e longitudine -> valore.\n"
-"E' possibile ripulire la coda con il bottone \"Pulisci coda\".\n"
-"Il bottone \"Connetti\" attiva i tentativi di connessione al server per lo "
-"scodamento dei dati; lo stato della connessione viene visualizzato in fondo "
-"allo schermo.\n"
+"Vengono visualizzate alche le immagini pronte per l'invio al server.E' "
+"possibile rimuovere i dati accodati prima che vengano inviati al server con "
+"il bottone \"Pulisci coda\".\n"
+"Il bottone \"Connetti\" attiva i tentativi di connessione al server per "
+"l'invio dei dati accodati; lo stato della connessione viene visualizzato in "
+"fondo allo schermo.\n"
 "\n"
 "Il bottone \"Esegui in background\" è importante in quanto permette di "
 "eseguire l'applicazione RMAP in background ossia liberando lo schermo (in "
@@ -472,7 +502,8 @@ msgstr ""
 "background un web server e lancia un browser; risulta così visibile una "
 "interfaccia di configurazione avanzata dove è possibile modificare tutti i "
 "parametri del modulo Stima-BlueTooth o di altri moduli tra cui i sensori "
-"collegati, trasporti etc. "
+"collegati, trasporti etc. Dimenticatevelo se non sapete esattamente cosa "
+"state facendo..."
 
 #: build/lib/rmap/rmapgui.py:1156 rmap/rmapgui.py:1156
 msgid "Settings"
@@ -482,13 +513,9 @@ msgstr "Impostazioni"
 msgid "Select Location"
 msgstr "Posizione"
 
-#: build/lib/rmap/rmapgui.py:1158 build/lib/rmap/rmapgui.py:1182
-#: build/lib/showdata/templates/showdata/spatialseries.html:78
-#: build/lib/showdata/templates/showdata/timeseries.html:63
-#: rmap/rmapgui.py:1182 showdata/templates/showdata/spatialseries.html:78
-#: showdata/templates/showdata/timeseries.html:63
-msgid "Next"
-msgstr "Dopo"
+#: build/lib/rmap/rmapgui.py:1158 rmap/rmapgui.py:1158
+msgid "Subsequent"
+msgstr "Successivo"
 
 #: build/lib/rmap/rmapgui.py:1159 rmap/rmapgui.py:1159
 msgid "switch ON relay"
@@ -582,76 +609,76 @@ msgstr ""
 msgid "Automatic data"
 msgstr "Dati automatici"
 
-#: build/lib/rmap/rmapgui.py:1183 rmap/rmapgui.py:1183
+#: build/lib/rmap/rmapgui.py:1182 rmap/rmapgui.py:1182
 msgid "Setup"
 msgstr "Configura"
 
-#: build/lib/rmap/rmapgui.py:1184 rmap/rmapgui.py:1184
+#: build/lib/rmap/rmapgui.py:1183 rmap/rmapgui.py:1183
 msgid "Advanced Management"
 msgstr "Gestione Avanzata"
 
-#: build/lib/rmap/rmapgui.py:1185 rmap/rmapgui.py:1185
+#: build/lib/rmap/rmapgui.py:1184 rmap/rmapgui.py:1184
 msgid "Run background"
 msgstr "Esegui in background"
 
-#: build/lib/rmap/rmapgui.py:1186 rmap/rmapgui.py:1186
+#: build/lib/rmap/rmapgui.py:1185 rmap/rmapgui.py:1185
 msgid "Stop background"
 msgstr ""
 
-#: build/lib/rmap/rmapgui.py:1187 rmap/rmapgui.py:1187
+#: build/lib/rmap/rmapgui.py:1186 rmap/rmapgui.py:1186
 msgid "Getdata"
 msgstr "Prendi dati"
 
-#: build/lib/rmap/rmapgui.py:1188 rmap/rmapgui.py:1188
+#: build/lib/rmap/rmapgui.py:1187 rmap/rmapgui.py:1187
 msgid "Start transport"
 msgstr "Avvia il trasporto"
 
-#: build/lib/rmap/rmapgui.py:1189 rmap/rmapgui.py:1189
+#: build/lib/rmap/rmapgui.py:1188 rmap/rmapgui.py:1188
 msgid "Stop transport"
 msgstr "Ferma il trasporto"
 
-#: build/lib/rmap/rmapgui.py:1190 rmap/rmapgui.py:1190
+#: build/lib/rmap/rmapgui.py:1189 rmap/rmapgui.py:1189
 msgid "Sample ON"
 msgstr "Campionamento ON"
 
-#: build/lib/rmap/rmapgui.py:1191 rmap/rmapgui.py:1191
+#: build/lib/rmap/rmapgui.py:1190 rmap/rmapgui.py:1190
 msgid "Sample OFF"
 msgstr "Campionamento OFF"
 
-#: build/lib/rmap/rmapgui.py:1192 build/lib/rmap/rmapgui.py:1203
-#: rmap/rmapgui.py:1192 rmap/rmapgui.py:1203
+#: build/lib/rmap/rmapgui.py:1191 build/lib/rmap/rmapgui.py:1202
+#: rmap/rmapgui.py:1191 rmap/rmapgui.py:1202
 msgid "Publish"
 msgstr "Pubblica"
 
-#: build/lib/rmap/rmapgui.py:1193 rmap/rmapgui.py:1193
+#: build/lib/rmap/rmapgui.py:1192 rmap/rmapgui.py:1192
 msgid "Register"
-msgstr ""
+msgstr "Registrazione"
 
-#: build/lib/rmap/rmapgui.py:1194 rmap/rmapgui.py:1194
+#: build/lib/rmap/rmapgui.py:1193 rmap/rmapgui.py:1193
 msgid "View graph"
 msgstr "Visualizzazione grafici"
 
-#: build/lib/rmap/rmapgui.py:1195 rmap/rmapgui.py:1195
+#: build/lib/rmap/rmapgui.py:1194 rmap/rmapgui.py:1194
 msgid "Connect"
 msgstr "Connetti"
 
-#: build/lib/rmap/rmapgui.py:1196 rmap/rmapgui.py:1196
+#: build/lib/rmap/rmapgui.py:1195 rmap/rmapgui.py:1195
 msgid "Disconnect"
 msgstr "Disconnetti"
 
-#: build/lib/rmap/rmapgui.py:1197 rmap/rmapgui.py:1197
+#: build/lib/rmap/rmapgui.py:1196 rmap/rmapgui.py:1196
 msgid "Clean Queue"
 msgstr "Pulisci Coda"
 
-#: build/lib/rmap/rmapgui.py:1198 rmap/rmapgui.py:1198
+#: build/lib/rmap/rmapgui.py:1197 rmap/rmapgui.py:1197
 msgid "Queue status"
 msgstr "Stato della coda"
 
-#: build/lib/rmap/rmapgui.py:1200 rmap/rmapgui.py:1200
+#: build/lib/rmap/rmapgui.py:1199 rmap/rmapgui.py:1199
 msgid "Manual measurements"
 msgstr "Misure manuali"
 
-#: build/lib/rmap/rmapgui.py:1201 rmap/rmapgui.py:1201
+#: build/lib/rmap/rmapgui.py:1200 rmap/rmapgui.py:1200
 #, python-format
 msgid ""
 "[b]%s\n"
@@ -664,12 +691,12 @@ msgstr ""
 "Lon: %4.5f\n"
 "Altezza: %d[/b]"
 
-#: build/lib/rmap/rmapgui.py:1202 rmap/rmapgui.py:1202
+#: build/lib/rmap/rmapgui.py:1201 rmap/rmapgui.py:1201
 msgid "Location"
 msgstr "Posizione"
 
-#: build/lib/rmap/rmapgui.py:1290 build/lib/rmap/rmapgui.py:1463
-#: rmap/rmapgui.py:1290 rmap/rmapgui.py:1463
+#: build/lib/rmap/rmapgui.py:1289 build/lib/rmap/rmapgui.py:1462
+#: rmap/rmapgui.py:1289 rmap/rmapgui.py:1462
 msgid ""
 "data not\n"
 "synced with server"
@@ -677,7 +704,7 @@ msgstr ""
 "dati non\n"
 "sincronizzati col server"
 
-#: build/lib/rmap/rmapgui.py:1339 rmap/rmapgui.py:1339
+#: build/lib/rmap/rmapgui.py:1338 rmap/rmapgui.py:1338
 msgid ""
 "Station is\n"
 "running in\n"
@@ -687,7 +714,7 @@ msgstr ""
 "è in esecuzione\n"
 "in background"
 
-#: build/lib/rmap/rmapgui.py:1340 rmap/rmapgui.py:1340
+#: build/lib/rmap/rmapgui.py:1339 rmap/rmapgui.py:1339
 msgid ""
 "Stop background\n"
 "station"
@@ -695,7 +722,7 @@ msgstr ""
 "Ferma la stazione\n"
 "in background"
 
-#: build/lib/rmap/rmapgui.py:1341 rmap/rmapgui.py:1341
+#: build/lib/rmap/rmapgui.py:1340 rmap/rmapgui.py:1340
 msgid ""
 "Sorry,\n"
 "I don't want\n"
@@ -705,46 +732,46 @@ msgstr ""
 "non volevo\n"
 "disturbare"
 
-#: build/lib/rmap/rmapgui.py:1347 build/lib/rmap/rmapgui.py:2204
-#: rmap/rmapgui.py:1347 rmap/rmapgui.py:2204
+#: build/lib/rmap/rmapgui.py:1346 build/lib/rmap/rmapgui.py:2203
+#: rmap/rmapgui.py:1346 rmap/rmapgui.py:2214
 msgid "Warning"
 msgstr "Attenzione"
 
-#: build/lib/rmap/rmapgui.py:1392 build/lib/rmap/rmapgui.py:1394
-#: build/lib/rmap/rmapgui.py:1396 build/lib/rmap/rmapgui.py:2076
-#: build/lib/rmap/rmapgui.py:2708 rmap/rmapgui.py:1392 rmap/rmapgui.py:1394
-#: rmap/rmapgui.py:1396 rmap/rmapgui.py:2076 rmap/rmapgui.py:2708
+#: build/lib/rmap/rmapgui.py:1391 build/lib/rmap/rmapgui.py:1393
+#: build/lib/rmap/rmapgui.py:1395 build/lib/rmap/rmapgui.py:2075
+#: build/lib/rmap/rmapgui.py:2707 rmap/rmapgui.py:1391 rmap/rmapgui.py:1393
+#: rmap/rmapgui.py:1395 rmap/rmapgui.py:2086 rmap/rmapgui.py:2718
 msgid "Station"
 msgstr "Stazione"
 
-#: build/lib/rmap/rmapgui.py:1392 rmap/rmapgui.py:1392
+#: build/lib/rmap/rmapgui.py:1391 rmap/rmapgui.py:1391
 msgid " active"
 msgstr "Attiva"
 
-#: build/lib/rmap/rmapgui.py:1394 build/lib/rmap/rmapgui.py:1396
-#: build/lib/rmap/rmapgui.py:2076 build/lib/rmap/rmapgui.py:2708
-#: rmap/rmapgui.py:1394 rmap/rmapgui.py:1396 rmap/rmapgui.py:2076
-#: rmap/rmapgui.py:2708
+#: build/lib/rmap/rmapgui.py:1393 build/lib/rmap/rmapgui.py:1395
+#: build/lib/rmap/rmapgui.py:2075 build/lib/rmap/rmapgui.py:2707
+#: rmap/rmapgui.py:1393 rmap/rmapgui.py:1395 rmap/rmapgui.py:2086
+#: rmap/rmapgui.py:2718
 msgid " disactive"
 msgstr "Disattiva"
 
-#: build/lib/rmap/rmapgui.py:1400 rmap/rmapgui.py:1400
+#: build/lib/rmap/rmapgui.py:1399 rmap/rmapgui.py:1399
 msgid "Activate Station?"
 msgstr "Attiva la Stazione?"
 
-#: build/lib/rmap/rmapgui.py:1401 rmap/rmapgui.py:1401
+#: build/lib/rmap/rmapgui.py:1400 rmap/rmapgui.py:1400
 msgid "Yes"
 msgstr "Si"
 
-#: build/lib/rmap/rmapgui.py:1402 rmap/rmapgui.py:1402
+#: build/lib/rmap/rmapgui.py:1401 rmap/rmapgui.py:1401
 msgid "No"
 msgstr "No"
 
-#: build/lib/rmap/rmapgui.py:1408 rmap/rmapgui.py:1408
+#: build/lib/rmap/rmapgui.py:1407 rmap/rmapgui.py:1407
 msgid "Question"
 msgstr "Domanda"
 
-#: build/lib/rmap/rmapgui.py:1615 rmap/rmapgui.py:1615
+#: build/lib/rmap/rmapgui.py:1614 rmap/rmapgui.py:1614
 msgid ""
 "Restart APP\n"
 "needed"
@@ -752,7 +779,7 @@ msgstr ""
 "E' necessario\n"
 "un riavvio dell'APP"
 
-#: build/lib/rmap/rmapgui.py:1665 rmap/rmapgui.py:1665
+#: build/lib/rmap/rmapgui.py:1664 rmap/rmapgui.py:1667
 msgid ""
 "Error\n"
 "setting station"
@@ -760,15 +787,15 @@ msgstr ""
 "Errore impostazione\n"
 "stazione"
 
-#: build/lib/rmap/rmapgui.py:1691 rmap/rmapgui.py:1691
+#: build/lib/rmap/rmapgui.py:1690 rmap/rmapgui.py:1693
 msgid "your user"
 msgstr "il tuo utente"
 
-#: build/lib/rmap/rmapgui.py:1692 rmap/rmapgui.py:1692
+#: build/lib/rmap/rmapgui.py:1691 rmap/rmapgui.py:1694
 msgid "your password"
 msgstr "la tua password"
 
-#: build/lib/rmap/rmapgui.py:1921 rmap/rmapgui.py:1921
+#: build/lib/rmap/rmapgui.py:1920 rmap/rmapgui.py:1923
 msgid ""
 "toggle\n"
 "relay\n"
@@ -778,15 +805,15 @@ msgstr ""
 "relay\n"
 "fallita!"
 
-#: build/lib/rmap/rmapgui.py:1979 rmap/rmapgui.py:1979
+#: build/lib/rmap/rmapgui.py:1978 rmap/rmapgui.py:1981
 msgid "Transport Status: CONFIG OK"
 msgstr "Stato Trasporto: CONFIGURAZIONE OK"
 
-#: build/lib/rmap/rmapgui.py:1998 rmap/rmapgui.py:1998
+#: build/lib/rmap/rmapgui.py:1997 rmap/rmapgui.py:2000
 msgid "Transport Status: CONFIG ERROR"
 msgstr "Stato Trasporto: ERRORE CONFIGURAZIONE"
 
-#: build/lib/rmap/rmapgui.py:1999 rmap/rmapgui.py:1999
+#: build/lib/rmap/rmapgui.py:1998 rmap/rmapgui.py:2001
 msgid ""
 "ERROR configure\n"
 "board"
@@ -794,16 +821,16 @@ msgstr ""
 "Errore configurazione\n"
 "board "
 
-#: build/lib/rmap/rmapgui.py:2023 rmap/rmapgui.py:2023
+#: build/lib/rmap/rmapgui.py:2022 rmap/rmapgui.py:2025
 msgid "Transport Status: OK"
 msgstr "Stato Trasporto: ATTIVO"
 
-#: build/lib/rmap/rmapgui.py:2023 build/lib/rmap/rmapgui.py:2030
-#: rmap/rmapgui.py:2023 rmap/rmapgui.py:2030
+#: build/lib/rmap/rmapgui.py:2022 build/lib/rmap/rmapgui.py:2029
+#: rmap/rmapgui.py:2025 rmap/rmapgui.py:2032 rmap/rmapgui.py:2040
 msgid " err: "
 msgstr " err:"
 
-#: build/lib/rmap/rmapgui.py:2028 rmap/rmapgui.py:2028
+#: build/lib/rmap/rmapgui.py:2027 rmap/rmapgui.py:2030
 msgid ""
 "ERROR getting\n"
 "data"
@@ -811,11 +838,11 @@ msgstr ""
 "ERRORE prendendo\n"
 "i dati"
 
-#: build/lib/rmap/rmapgui.py:2030 rmap/rmapgui.py:2030
+#: build/lib/rmap/rmapgui.py:2029 rmap/rmapgui.py:2032 rmap/rmapgui.py:2040
 msgid "Transport Status: ERROR"
 msgstr "Stato Trasporto: ERRORE"
 
-#: build/lib/rmap/rmapgui.py:2059 rmap/rmapgui.py:2059
+#: build/lib/rmap/rmapgui.py:2058 rmap/rmapgui.py:2069
 msgid ""
 "Cannot connect.\n"
 "Station disabled!"
@@ -823,8 +850,8 @@ msgstr ""
 "Non posso connetermi.\n"
 "Stazione disabilitata!"
 
-#: build/lib/rmap/rmapgui.py:2122 build/lib/rmap/rmapgui.py:2159
-#: rmap/rmapgui.py:2122 rmap/rmapgui.py:2159
+#: build/lib/rmap/rmapgui.py:2121 build/lib/rmap/rmapgui.py:2158
+#: rmap/rmapgui.py:2132 rmap/rmapgui.py:2169
 msgid ""
 "service\n"
 "already\n"
@@ -834,8 +861,8 @@ msgstr ""
 "già\n"
 "attivi!"
 
-#: build/lib/rmap/rmapgui.py:2139 build/lib/rmap/rmapgui.py:2621
-#: rmap/rmapgui.py:2139 rmap/rmapgui.py:2621
+#: build/lib/rmap/rmapgui.py:2138 build/lib/rmap/rmapgui.py:2620
+#: rmap/rmapgui.py:2149 rmap/rmapgui.py:2631
 msgid ""
 "not supported\n"
 "on this\n"
@@ -845,15 +872,15 @@ msgstr ""
 "su questa\n"
 "piattaforma"
 
-#: build/lib/rmap/rmapgui.py:2198 rmap/rmapgui.py:2198
+#: build/lib/rmap/rmapgui.py:2197 rmap/rmapgui.py:2208
 msgid "Close!"
 msgstr "Chiudi!"
 
-#: build/lib/rmap/rmapgui.py:2222 rmap/rmapgui.py:2222
+#: build/lib/rmap/rmapgui.py:2221 rmap/rmapgui.py:2232
 msgid "Info"
 msgstr ""
 
-#: build/lib/rmap/rmapgui.py:2257 rmap/rmapgui.py:2257
+#: build/lib/rmap/rmapgui.py:2256 rmap/rmapgui.py:2267
 msgid ""
 "the station in\n"
 "use is not of\n"
@@ -863,7 +890,7 @@ msgstr ""
 "uso non è del\n"
 "tipo mobile"
 
-#: build/lib/rmap/rmapgui.py:2279 rmap/rmapgui.py:2279
+#: build/lib/rmap/rmapgui.py:2278 rmap/rmapgui.py:2289
 msgid ""
 "GPS not\n"
 "implemented on\n"
@@ -873,20 +900,20 @@ msgstr ""
 "implementato su\n"
 "questa piattaforma"
 
-#: build/lib/rmap/rmapgui.py:2400 rmap/rmapgui.py:2400
+#: build/lib/rmap/rmapgui.py:2399 rmap/rmapgui.py:2410
 msgid "CONSTANT STATION DATA QUEUED:"
 msgstr "DATI COSTATI STAZIONE IN CODA:"
 
-#: build/lib/rmap/rmapgui.py:2402 build/lib/rmap/rmapgui.py:2409
-#: rmap/rmapgui.py:2402 rmap/rmapgui.py:2409
+#: build/lib/rmap/rmapgui.py:2401 build/lib/rmap/rmapgui.py:2408
+#: rmap/rmapgui.py:2412 rmap/rmapgui.py:2419
 msgid "SHOW ONLY LAST"
 msgstr "Mosra solo l'ultimo"
 
-#: build/lib/rmap/rmapgui.py:2407 rmap/rmapgui.py:2407
+#: build/lib/rmap/rmapgui.py:2406 rmap/rmapgui.py:2417
 msgid "STATION DATA QUEUED:"
 msgstr "DATI STAZIONE IN CODA:"
 
-#: build/lib/rmap/rmapgui.py:2418 rmap/rmapgui.py:2418
+#: build/lib/rmap/rmapgui.py:2417 rmap/rmapgui.py:2428
 msgid ""
 "travel with\n"
 "GPS not fixed!\n"
@@ -896,7 +923,7 @@ msgstr ""
 "GPS non fixed!\n"
 "riprova"
 
-#: build/lib/rmap/rmapgui.py:2544 rmap/rmapgui.py:2544
+#: build/lib/rmap/rmapgui.py:2543 rmap/rmapgui.py:2554
 msgid ""
 "problems with\n"
 "Camera!"
@@ -904,15 +931,15 @@ msgstr ""
 "problemi con\n"
 "la fotocamera"
 
-#: build/lib/rmap/rmapgui.py:2577 rmap/rmapgui.py:2577
+#: build/lib/rmap/rmapgui.py:2576 rmap/rmapgui.py:2587
 msgid "Wait"
 msgstr "Attendi"
 
-#: build/lib/rmap/rmapgui.py:2618 rmap/rmapgui.py:2618
+#: build/lib/rmap/rmapgui.py:2617 rmap/rmapgui.py:2628
 msgid "Start Camera!"
 msgstr "Attiva Fotocamera!"
 
-#: build/lib/rmap/rmapgui.py:2769 rmap/rmapgui.py:2769
+#: build/lib/rmap/rmapgui.py:2768 rmap/rmapgui.py:2779
 msgid ""
 "error sending\n"
 "image to server!"
@@ -920,7 +947,7 @@ msgstr ""
 "errore invio\n"
 "immagine al server!"
 
-#: build/lib/rmap/rmapgui.py:2784 rmap/rmapgui.py:2784
+#: build/lib/rmap/rmapgui.py:2783 rmap/rmapgui.py:2794
 msgid "GPS: new coordinate acquired"
 msgstr "GPS: acquisite nuove coordinate"
 
@@ -1013,8 +1040,8 @@ msgstr "unità di misura"
 #: build/lib/rmap/stations/models.py:329 build/lib/rmap/stations/models.py:405
 #: build/lib/rmap/stations/models.py:437 build/lib/rmap/stations/models.py:468
 #: rmap/stations/models.py:242 rmap/stations/models.py:279
-#: rmap/stations/models.py:329 rmap/stations/models.py:405
-#: rmap/stations/models.py:437 rmap/stations/models.py:468
+#: rmap/stations/models.py:337 rmap/stations/models.py:413
+#: rmap/stations/models.py:445 rmap/stations/models.py:476
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
@@ -1050,105 +1077,105 @@ msgstr ""
 msgid "MQTT password"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:330 rmap/stations/models.py:330
+#: build/lib/rmap/stations/models.py:330 rmap/stations/models.py:338
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: build/lib/rmap/stations/models.py:332 rmap/stations/models.py:332
+#: build/lib/rmap/stations/models.py:332 rmap/stations/models.py:340
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:406 rmap/stations/models.py:406
+#: build/lib/rmap/stations/models.py:406 rmap/stations/models.py:414
 msgid "Baud rate"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:407 rmap/stations/models.py:407
+#: build/lib/rmap/stations/models.py:407 rmap/stations/models.py:415
 msgid "Serial device"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:438 rmap/stations/models.py:438
+#: build/lib/rmap/stations/models.py:438 rmap/stations/models.py:446
 msgid "bluetooth name"
 msgstr "Nome Bluetooth"
 
-#: build/lib/rmap/stations/models.py:470 rmap/stations/models.py:470
+#: build/lib/rmap/stations/models.py:470 rmap/stations/models.py:478
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: build/lib/rmap/stations/models.py:471 rmap/stations/models.py:471
+#: build/lib/rmap/stations/models.py:471 rmap/stations/models.py:479
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: build/lib/rmap/stations/models.py:472 rmap/stations/models.py:472
+#: build/lib/rmap/stations/models.py:472 rmap/stations/models.py:480
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP "
 
-#: build/lib/rmap/stations/models.py:473 rmap/stations/models.py:473
+#: build/lib/rmap/stations/models.py:473 rmap/stations/models.py:481
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: build/lib/rmap/stations/models.py:474 rmap/stations/models.py:474
+#: build/lib/rmap/stations/models.py:474 rmap/stations/models.py:482
 msgid "AMQP password"
 msgstr "Password AMQP"
 
 #: build/lib/rmap/stations/models.py:507 build/lib/rmap/stations/models.py:603
-#: rmap/stations/models.py:507 rmap/stations/models.py:603
+#: rmap/stations/models.py:515 rmap/stations/models.py:611
 msgid "station name"
 msgstr "nome stazione"
 
-#: build/lib/rmap/stations/models.py:508 rmap/stations/models.py:508
+#: build/lib/rmap/stations/models.py:508 rmap/stations/models.py:516
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
 #: build/lib/rmap/stations/models.py:509 build/lib/rmap/stations/models.py:605
-#: rmap/stations/models.py:509 rmap/stations/models.py:605
+#: rmap/stations/models.py:517 rmap/stations/models.py:613
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: build/lib/rmap/stations/models.py:564 rmap/stations/models.py:564
+#: build/lib/rmap/stations/models.py:564 rmap/stations/models.py:572
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: build/lib/rmap/stations/models.py:565 rmap/stations/models.py:565
+#: build/lib/rmap/stations/models.py:565 rmap/stations/models.py:573
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: build/lib/rmap/stations/models.py:566 rmap/stations/models.py:566
+#: build/lib/rmap/stations/models.py:566 rmap/stations/models.py:574
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: build/lib/rmap/stations/models.py:604 rmap/stations/models.py:604
+#: build/lib/rmap/stations/models.py:604 rmap/stations/models.py:612
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: build/lib/rmap/stations/models.py:612 rmap/stations/models.py:612
+#: build/lib/rmap/stations/models.py:612 rmap/stations/models.py:620
 msgid "Precise Latitude of the station"
 msgstr "Latitudine precisa della stazione"
 
-#: build/lib/rmap/stations/models.py:613 rmap/stations/models.py:613
+#: build/lib/rmap/stations/models.py:613 rmap/stations/models.py:621
 msgid "Precise Longitude of the station"
 msgstr "Longitudine precisa della stazione"
 
-#: build/lib/rmap/stations/models.py:615 rmap/stations/models.py:615
+#: build/lib/rmap/stations/models.py:615 rmap/stations/models.py:623
 msgid "station network"
 msgstr "rete stazione"
 
-#: build/lib/rmap/stations/models.py:617 rmap/stations/models.py:617
+#: build/lib/rmap/stations/models.py:617 rmap/stations/models.py:625
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:618 rmap/stations/models.py:618
+#: build/lib/rmap/stations/models.py:618 rmap/stations/models.py:626
 msgid "maint mqtt path for publish"
-msgstr ""
+msgstr "percorso di pubblicazione mqtt per amministrazione"
 
-#: build/lib/rmap/stations/models.py:619 rmap/stations/models.py:619
+#: build/lib/rmap/stations/models.py:619 rmap/stations/models.py:627
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: build/lib/rmap/stations/models.py:688 rmap/stations/models.py:688
+#: build/lib/rmap/stations/models.py:688 rmap/stations/models.py:696
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: build/lib/rmap/stations/models.py:688 rmap/stations/models.py:688
+#: build/lib/rmap/stations/models.py:688 rmap/stations/models.py:696
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
@@ -1185,7 +1212,7 @@ msgstr "Le tue stazioni"
 #: build/lib/rmap/templates/stations/stationmetadata_list.html:10
 #: build/lib/rmap/templates/stations/stationmetadata_list.html:21
 #: rmap/templates/profile.html:15
-#: rmap/templates/stations/stationmetadata_detail.html:18
+#: rmap/templates/stations/stationmetadata_detail.html:25
 #: rmap/templates/stations/stationmetadata_list.html:10
 #: rmap/templates/stations/stationmetadata_list.html:21
 msgid "View on the map"
@@ -1211,21 +1238,21 @@ msgstr "Cancella stazione"
 #: build/lib/rmap/templates/profile_details.html:20
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:14
 #: rmap/templates/profile_details.html:20
-#: rmap/templates/stations/stationmetadata_detail.html:14
+#: rmap/templates/stations/stationmetadata_detail.html:21
 msgid "Ident"
 msgstr ""
 
 #: build/lib/rmap/templates/profile_details.html:21
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:15
 #: rmap/templates/profile_details.html:21
-#: rmap/templates/stations/stationmetadata_detail.html:15
+#: rmap/templates/stations/stationmetadata_detail.html:22
 msgid "Lat"
 msgstr ""
 
 #: build/lib/rmap/templates/profile_details.html:22
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:16
 #: rmap/templates/profile_details.html:22
-#: rmap/templates/stations/stationmetadata_detail.html:16
+#: rmap/templates/stations/stationmetadata_detail.html:23
 msgid "Lon"
 msgstr ""
 
@@ -1237,37 +1264,37 @@ msgstr "Mappa"
 #: build/lib/rmap/templates/profile_details.html:24
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:17
 #: rmap/templates/profile_details.html:24
-#: rmap/templates/stations/stationmetadata_detail.html:17
+#: rmap/templates/stations/stationmetadata_detail.html:24
 msgid "Category"
 msgstr "Categoria"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:38
-#: rmap/templates/stations/stationmetadata_detail.html:38
+#: rmap/templates/stations/stationmetadata_detail.html:45
 msgid "Delete"
 msgstr "Rimuovi"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:40
-#: rmap/templates/stations/stationmetadata_detail.html:40
+#: rmap/templates/stations/stationmetadata_detail.html:47
 msgid "Display graph"
 msgstr "Visualizzazione grafici"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:51
-#: rmap/templates/stations/stationmetadata_detail.html:51
+#: rmap/templates/stations/stationmetadata_detail.html:60
 msgid "Board name"
 msgstr "Nome scheda"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:52
-#: rmap/templates/stations/stationmetadata_detail.html:52
+#: rmap/templates/stations/stationmetadata_detail.html:61
 msgid "Variable"
 msgstr "Variabile"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:54
-#: rmap/templates/stations/stationmetadata_detail.html:54
+#: rmap/templates/stations/stationmetadata_detail.html:63
 msgid "Observation"
 msgstr "Osservazione"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:59
-#: rmap/templates/stations/stationmetadata_detail.html:59
+#: rmap/templates/stations/stationmetadata_detail.html:72
 msgid "Sample"
 msgstr "Campionamento"
 
@@ -1298,65 +1325,73 @@ msgstr ""
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:65
 #: build/lib/showdata/templates/showdata/timeseries.html:50
-#: showdata/templates/showdata/spatialseries.html:65
-#: showdata/templates/showdata/timeseries.html:50
+#: showdata/templates/showdata/spatialseries.html:80
+#: showdata/templates/showdata/timeseries.html:39
 msgid "More"
 msgstr "Di più"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:73
 #: build/lib/showdata/templates/showdata/timeseries.html:58
-#: showdata/templates/showdata/spatialseries.html:73
-#: showdata/templates/showdata/timeseries.html:58
+#: showdata/templates/showdata/spatialseries.html:88
+#: showdata/templates/showdata/timeseries.html:47
 msgid "Prev"
 msgstr "Prima"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:78
+#: build/lib/showdata/templates/showdata/timeseries.html:63
+#: showdata/templates/showdata/spatialseries.html:93
+#: showdata/templates/showdata/timeseries.html:52
+msgid "Next"
+msgstr "Dopo"
+
 #: build/lib/showdata/templates/showdata/spatialseries.html:86
 #: build/lib/showdata/templates/showdata/timeseries.html:71
-#: showdata/templates/showdata/spatialseries.html:86
-#: showdata/templates/showdata/timeseries.html:71
+#: showdata/templates/showdata/spatialseries.html:101
+#: showdata/templates/showdata/timeseries.html:60
 msgid "Less"
 msgstr "Meno"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:94
-#: showdata/templates/showdata/spatialseries.html:94
+#: showdata/templates/showdata/spatialseries.html:109
 msgid "Loading data"
 msgstr "Caricamento dati"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:95
 #: build/lib/showdata/templates/showdata/stations.html:29
-#: showdata/templates/showdata/spatialseries.html:95
+#: showdata/templates/showdata/spatialseries.html:110
 #: showdata/templates/showdata/stations.html:29
 msgid "Please wait ..."
 msgstr "Attendere per favore..."
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:171
-#: showdata/templates/showdata/spatialseries.html:171
+#: showdata/templates/showdata/spatialseries.html:188
+#: showdata/templates/showdata/spatialseries.html:314
 msgid "Mobile station data"
 msgstr "Dati stazione mobile"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:199
 #: build/lib/showdata/templates/showdata/stations.html:99
-#: showdata/templates/showdata/spatialseries.html:199
+#: showdata/templates/showdata/spatialseries.html:276
 #: showdata/templates/showdata/stations.html:99
 msgid "Please Wait..."
 msgstr "Attendere per favore..."
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:258
-#: showdata/templates/showdata/spatialseries.html:258
+#: showdata/templates/showdata/spatialseries.html:448
 msgid "Show all coordinates on a map"
 msgstr "Mostra tutte le coordinate su una mappa"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:271
-#: showdata/templates/showdata/spatialseries.html:271
+#: showdata/templates/showdata/spatialseries.html:461
 msgid "Show all values on a graph"
 msgstr "Mostra tutti i valori in grafico"
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:287
 #: build/lib/showdata/templates/showdata/stations.html:151
 #: build/lib/showdata/templates/showdata/timeseries.html:139
-#: showdata/templates/showdata/spatialseries.html:287
+#: showdata/templates/showdata/spatialseries.html:477
 #: showdata/templates/showdata/stations.html:151
-#: showdata/templates/showdata/timeseries.html:139
+#: showdata/templates/showdata/timeseries.html:114
 msgid "Download data"
 msgstr "Scarica i dati"
 
@@ -1376,10 +1411,17 @@ msgid "All stations"
 msgstr "Tutte le stazioni"
 
 #: build/lib/showdata/templates/showdata/timeseries.html:119
-#: showdata/templates/showdata/timeseries.html:119
+#: showdata/templates/showdata/timeseries.html:92
 msgid "Show last values on a map"
 msgstr "Mostra l'ultimo valore su una mappa"
 
-#: rmap/rmapgui.py:1158
-msgid "Subsequent"
-msgstr "Successivo"
+#: rmap/rmapgui.py:2038
+msgid ""
+"ERROR no data\n"
+"returned"
+msgstr ""
+
+#: rmap/templates/profile_details.html:44
+#| msgid "No station yet."
+msgid "Show station details"
+msgstr "Mostra i dettagli stazione"
