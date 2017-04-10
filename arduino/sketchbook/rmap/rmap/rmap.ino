@@ -1811,7 +1811,7 @@ void Repeats() {
   IF_SDEBUG(DBGSERIAL.println(maxwaittime));
 
 #if defined (RADIORF24)
-  unsigned long starttime=millis();
+  time_t starttime=millis();
   while (millis()-starttime < maxwaittime)
     {
       //IF_SDEBUG(DBGSERIAL.println(F("#RF24Network update")));
@@ -1822,7 +1822,7 @@ void Repeats() {
 
 //  delay(maxwaittime);
   time_t starttime=millis();
-  while (starttime + maxwaittime > millis(){ 
+  while (starttime + maxwaittime > millis()){ 
       wdt_reset();
       delay(10);
     }
