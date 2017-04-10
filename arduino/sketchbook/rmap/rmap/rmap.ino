@@ -91,6 +91,8 @@ void setMillis(unsigned long new_millis){
 #include <PubSubClient.h>
 #endif
 
+#define PAYLOADLEN 40
+
 #ifdef SDCARD
 #include <SPI.h>
 #include <SdFat.h>
@@ -108,10 +110,9 @@ char newfileName[BASE_NAME_SIZE+8];
 
 //total size should be 128 byte; we hope on avr we do not have alignment problems
 #define TOPICLEN 86
-#define PAYLOADLEN 40
 typedef struct Records{
   bool done;
-  char topic[STRLEN] ;
+  char topic[TOPICLEN] ;
   char separator = ';';
   char payload[PAYLOADLEN] ;
 } Record;
@@ -1896,7 +1897,7 @@ void Repeats() {
       //aJson.print(payloadobj,payload, sizeof(payload));
       
       // here I use malloc (aJson.print) 40 will be enought
-      char *payload=aJson.print(payloadobj,40);
+      char *payload=aJson.print(payloadobj,PAYLOADLEN);
       IF_SDEBUG(DBGSERIAL.print("#"));
       IF_SDEBUG(DBGSERIAL.println(payload));
       // send it to mqtt server appendig path to rootpath
