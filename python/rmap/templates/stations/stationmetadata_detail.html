@@ -52,13 +52,16 @@
 
 {% for board in object.board_set.all %}
   {% if board.active  %}
+    <h3>{% trans 'Board name' %}: {{ board.name }}</h3>
     {% for sensor in board.sensor_set.all %}
       {% if sensor.active  %}
         {% if sensor.type.active  %}
           {% for bcode in sensor.type.bcodes.all %}
-
-<h3>{% trans 'Board name' %}: {{ board.name }}</h3>
 <h4>{% trans 'Variable' %}: {{ sensor.name }}</h4>
+
+<h5>{{ sensor.describe_timerange }} ;  {{ sensor.describe_level }}</h5>
+<h5>{{ bcode.describe_var }}</h5>
+
 <div class="col-md-6">
   <h5><span class="bv aig"></span>{% trans 'Observation' %}</h5>
 

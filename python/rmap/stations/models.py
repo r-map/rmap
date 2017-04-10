@@ -10,6 +10,20 @@ from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.contrib.gis.geos import Point
+import dballe
+
+def toint(level):
+    ilevel=[]
+    for ele in level.split(","):
+        print ele
+        try:
+            iele=int(ele)
+        except:
+            iele=None
+        ilevel.append(iele)
+    print ilevel
+    return ilevel
+
 
 if ((djversion[0] == 1 and djversion[1] >= 3) or 
     djversion[0] > 1):
@@ -85,6 +99,12 @@ class Sensor(models.Model):
     def underscored_level(self):
         return self.level.replace(',','_')
 
+    def describe_level(self):
+        return dballe.describe_level(*toint(self.level))
+
+    def describe_timerange(self):
+        return dballe.describe_trange(*toint(self.timerange))
+        
     def natural_key(self):
         #print "natural key sensor"
         #print self,self.name, self.board.natural_key()
@@ -194,6 +214,10 @@ class Bcode(models.Model):
         verbose_name_plural = 'Variable Bcode' 
         #unique_together = (('name', 'type'),)
 
+    def describe_var(self):
+        varinfo=dballe.varinfo(self.bcode)
+        return varinfo.desc.lower()+" "+varinfo.unit
+        
     def __unicode__(self):
         return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
 
