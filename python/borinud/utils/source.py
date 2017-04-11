@@ -432,13 +432,23 @@ class ArkimetBufrDB(DB):
                     for k in ["var", "level", "trange"]
                     if k in rec
                 ]):
+                    if "lon" in i["area"]["va"]:
+                        lon=i["area"]["va"]["lon"]  # fixed station
+                    else:
+                        lon=i["area"]["va"]["x"]    # mobile
+
+                    if "lat" in i["area"]["va"]:
+                        lat=i["area"]["va"]["lat"]  # fixed station
+                    else:
+                        lat=i["area"]["va"]["y"]    # mobile
+                        
                     yield dballe.Record(**{
                         "var": m["var"],
                         "level": m["level"],
                         "trange": m["trange"],
                         "ident": i.get("proddef", {}).get("va", {}).get("id", None),
-                        "lon": i["area"]["va"]["lon"], # i["area"]["va"]["x"]
-                        "lat": i["area"]["va"]["lat"], # i["area"]["va"]["y"]
+                        "lon": lon,
+                        "lat": lat,
                         "rep_memo": i["product"]["va"]["t"],
                         "datemin": datetime(*i["summarystats"]["b"]),
                         "datemax": datetime(*i["summarystats"]["e"]),
@@ -483,7 +493,7 @@ class ArkimetBufrDB(DB):
         for k in ["lon", "lat"]:
             if k in rec:
                 q["area"]["fixed"][k] = int(rec[k] * 10**5)
-                q["area"]["mobile"[{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
+                q["area"]["mobile"][{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
 
         if "rep_memo" in rec:
             q["product"] = "BUFR:t={}".format(rec["rep_memo"])
