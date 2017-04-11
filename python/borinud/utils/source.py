@@ -18,6 +18,7 @@
 #
 # Author: Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
 
+import math
 import dballe
 import json
 from datetime import datetime
@@ -163,7 +164,7 @@ class SummaryCacheDB(DB):
         self.cache = caches[cachename]
         self.timeout = timeout
         self.dsn=dsn
-        
+
     def set_cached_summary(self):
         res = self.db.query_summary(dballe.Record())
         summary = [{
@@ -436,8 +437,8 @@ class ArkimetBufrDB(DB):
                         "level": m["level"],
                         "trange": m["trange"],
                         "ident": i.get("proddef", {}).get("va", {}).get("id", None),
-                        "lon": i["area"]["va"]["lon"],
-                        "lat": i["area"]["va"]["lat"],
+                        "lon": i["area"]["va"]["lon"], # i["area"]["va"]["x"]
+                        "lat": i["area"]["va"]["lat"], # i["area"]["va"]["y"]
                         "rep_memo": i["product"]["va"]["t"],
                         "datemin": datetime(*i["summarystats"]["b"]),
                         "datemax": datetime(*i["summarystats"]["e"]),
@@ -464,7 +465,12 @@ class ArkimetBufrDB(DB):
         # TODO: less verbose implementation
         q = {
             "reftime": [],
-            "area": {},
+            "area": {
+                "fixed": {},
+                "mobile": {
+                    "type": "mob",
+                },
+            }
         }
 
         d1, d2 = rec.date_extremes()
@@ -476,7 +482,8 @@ class ArkimetBufrDB(DB):
 
         for k in ["lon", "lat"]:
             if k in rec:
-                q["area"][k] = int(rec[k] * 10**5)
+                q["area"]["fixed"][k] = int(rec[k] * 10**5)
+                q["area"]["mobile"[{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
 
         if "rep_memo" in rec:
             q["product"] = "BUFR:t={}".format(rec["rep_memo"])
@@ -487,7 +494,9 @@ class ArkimetBufrDB(DB):
         q["reftime"] = ",".join(q["reftime"])
 
         q["area"] = "GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"]["fixed"].iteritems()
+        ])) + " or GRIB:{}".format(",".join([
+            "{}={}".format(k, v) for k, v in q["area"]["mobile"].iteritems()
         ]))
 
         arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
