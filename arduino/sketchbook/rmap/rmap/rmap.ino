@@ -52,6 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   #ifdef USE_W5500
     #include <Ethernet2.h>
     #include <EthernetUdp2.h>
+    #include <utility/w5500.h>
     #ifdef TCPSERVER
       #include <EthernetServer.h>
     #endif
@@ -3355,6 +3356,12 @@ void setup()
   }
 
   wdt_reset();
+
+  #if defined(USE_W5500)
+      // http://forum.arduino.cc/index.php?topic=49401.0
+      w5500.setRetransmissionTime(0x07D0);
+      w5500.setRetransmissionCount(6);
+  #endif
 
 #if defined(DEBUGONSERIAL)
 
