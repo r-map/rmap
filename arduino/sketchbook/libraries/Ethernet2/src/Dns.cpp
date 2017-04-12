@@ -60,7 +60,7 @@ int DNSClient::inet_aton(const char* aIPAddrString, IPAddress& aResult)
     // See if we've been given a valid IP address
     const char* p =aIPAddrString;
     while (*p &&
-           ( (*p == '.') || (*p >= '0') || (*p <= '9') ))
+           ( (*p == '.') || ((*p >= '0') && (*p <= '9')) ))
     {
         p++;
     }
@@ -135,10 +135,10 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
     // Find a socket to use
     if (iUdp.begin(1024+(millis() & 0xF)) == 1)
     {
-        // Try up to three times
-        int retries = 0;
+//        // Try up to three times
+//        int retries = 0;
 //        while ((retries < 3) && (ret <= 0))
-        {
+//        {
             // Send DNS request
             ret = iUdp.beginPacket(iDNSServer, DNS_PORT);
             if (ret != 0)
@@ -152,18 +152,18 @@ int DNSClient::getHostByName(const char* aHostname, IPAddress& aResult)
                     if (ret != 0)
                     {
                         // Now wait for a response
-                        int wait_retries = 0;
-                        ret = TIMED_OUT;
-                        while ((wait_retries < 3) && (ret == TIMED_OUT))
-                        {
+//                        int wait_retries = 0;
+//                      ret = TIMED_OUT;
+//                        while ((wait_retries < 1) && (ret == TIMED_OUT))
+//                        {
                             ret = ProcessResponse(5000, aResult);
-                            wait_retries++;
-                        }
+//                            wait_retries++;
+//                        }
                     }
                 }
             }
-            retries++;
-        }
+//            retries++;
+//        }
 
         // We're done with the socket now
         iUdp.stop();
