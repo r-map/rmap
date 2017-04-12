@@ -128,8 +128,7 @@ def main(self):
             nonblockingfile(p1.stderr)
 
             while p1.poll() is None:
-                
-                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",dsndict[self.options.name]],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",dsndict[self.options.name]],cwd=self.cwd,env={"DBA_FORTRAN_TRANSACTION":"True"}, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 
