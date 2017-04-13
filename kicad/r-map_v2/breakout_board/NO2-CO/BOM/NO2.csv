@@ -13,4 +13,4 @@ Id,Designator,Package,Quantity,Designation,Supplier and ref
 12,"R1,R10",R_0805_HandSoldering,2,47k,http://it.farnell.com/multicomp/mc00625w0402147k/res-film-spesso-47k-1-0-0625w/dp/1358087
 13,U1,MICS-4514,1,MICS-4514,
 14,"R13,R2",R_0805_HandSoldering,2,R,
-15,D1,SOT-23,1,ZENER,
+15,D1,SOT-23,1,ZENER,http://it.farnell.com/microchip/lm4040dym3-4-1-tr/voltage-ref-shunt-4-096v-sot-23/dp/2509866
