@@ -6,7 +6,7 @@ Id,Designator,Package,Quantity,Designation,Supplier and ref
 5,"R5,R11",R_0805_HandSoldering,2,100K,http://it.farnell.com/yageo-phycomp/rc0402fr-07100kl/res-film-spesso-100k-1-0-063w/dp/9239472
 6,R7,R_0805_HandSoldering,1,560,http://it.farnell.com/multicomp/mcwr08x5600ftl/res-film-spesso-560r-1-0-125w/dp/2447686
 7,"R15,R14",R_0805_HandSoldering,2,100,http://it.farnell.com/yageo-phycomp/rc0402fr-07100rl/res-film-spesso-100r-1-0-0625w/dp/9239111
-8,"C3,C1",C_0805_HandSoldering,2,22u,http://it.farnell.com/multicomp/mc0402x224k6r3ct/condens-mlcc-x5r-220nf-6-3v-0402/dp/1759373
+8,"C3,C1",C_0805_HandSoldering,2,22u,http://it.farnell.com/multicomp/mc0805x226m6r3ct/condensatore-mlcc-x5r-22uf-0805/dp/1759415
 9,"R9,R4",R_0805_HandSoldering,2,10K,http://it.farnell.com/yageo-phycomp/rc0402fr-0710kl/res-film-spesso-10k-1-0-0625w/dp/9239359
 10,R3,R_0805_HandSoldering,1,75,http://it.farnell.com/multicomp/mcwr08x75r0ftl/res-film-spesso-75r-1-0-125w-0805/dp/2447721
 11,R8,R_0805_HandSoldering,1,50,http://it.farnell.com/welwyn/asc0805-47rft5/res-film-spesso-47r-1-0-125w-0805/dp/2078945
