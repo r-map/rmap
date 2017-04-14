@@ -1578,6 +1578,13 @@ class Rmap(App):
                 self.lat=float(self.config.get('location','lat'))
                 self.height=float(self.config.get('location','height'))
 
+                self.config2db()
+                self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
+                            slug=self.config.get('sensors','station'),
+                            username=self.config.get('rmap','user'),
+                            boardslug=self.config.get('sensors','board'),
+                            logfunc=jsonrpc.log_stdout)
+
 
             if rmapchanged or locationchanged or sensorschanged:
 
@@ -2330,7 +2337,7 @@ class Rmap(App):
         self.root.ids["height"].text= self.str_Height.format(height)
 
 
-    def savelocation(self,lat=None,lon=None,height=None,location=None):
+    def movelocation(self,lat=None,lon=None,height=None,location=None):
         '''
         set a new location
         '''
@@ -2362,14 +2369,23 @@ class Rmap(App):
 
         self.updatelocation()
 
-        if not self.trip:
+
+    def savelocation(self):
+
+
+        if self.trip:
+            self.popup(_("travel active\ncannot save\nretry"))
+
+        else:
             print "save new location in config"
+
+            self.movelocation()
+
             self.config.set('location', 'name',self.location)
             self.config.set('location', 'lat',self.lat)
             self.config.set('location', 'lon',self.lon)
             self.config.set('location', 'height',self.height)
             self.config.write()
-
 
             #refresh config tabs
             self.destroy_settings()
@@ -2796,7 +2812,7 @@ class Rmap(App):
         self.root.ids["height"].text= self.str_Height.format(height)
 
         if self.trip and kwargs["gpsfix"]:
-            self.savelocation(lat=lat,lon=lon,height=height)
+            self.movelocation(lat=lat,lon=lon,height=height)
 
 
     @mainthread

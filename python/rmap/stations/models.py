@@ -10,7 +10,12 @@ from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.contrib.gis.geos import Point
-import dballe
+try:
+    import dballe
+    dballepresent=True
+except ImportError:
+    print "dballe utilities disabled"
+    dballepresent=False
 
 def toint(level):
     ilevel=[]
@@ -100,11 +105,17 @@ class Sensor(models.Model):
         return self.level.replace(',','_')
 
     def describe_level(self):
-        return dballe.describe_level(*toint(self.level))
+        if dballepresent:
+            return dballe.describe_level(*toint(self.level))
+        else:
+            return self.level
 
     def describe_timerange(self):
-        return dballe.describe_trange(*toint(self.timerange))
-        
+        if dballepresent:
+            return dballe.describe_trange(*toint(self.timerange))
+        else:
+            return self.timerange
+
     def natural_key(self):
         #print "natural key sensor"
         #print self,self.name, self.board.natural_key()
@@ -215,9 +226,12 @@ class Bcode(models.Model):
         #unique_together = (('name', 'type'),)
 
     def describe_var(self):
-        varinfo=dballe.varinfo(self.bcode)
-        return varinfo.desc.lower()+" "+varinfo.unit
-        
+        if dballepresent:
+            varinfo=dballe.varinfo(self.bcode)
+            return varinfo.desc.lower()+" "+varinfo.unit
+        else:
+            return self.bcode
+
     def __unicode__(self):
         return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
 
