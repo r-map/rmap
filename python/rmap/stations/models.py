@@ -85,7 +85,7 @@ class Sensor(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=False,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=50,default="my sensor",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
-    driver = models.CharField(max_length=4,default="TMP",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
+    driver = models.CharField(max_length=4,default="I2C",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
 
     type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
 
