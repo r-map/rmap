@@ -294,6 +294,7 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
     for mysensor in mysensors:
         print "try to save:",mysensor
         try:
+            mysensor.clean()
             mysensor.save()
         except IntegrityError:
             oldsensor=Sensor.objects.get(board=myboard,name=name)
@@ -1187,6 +1188,7 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
 
     if not (activate is None):
         mystation.active=activate
+        mystation.clean()
         mystation.save()
 
     if not (activateboard is None) and not (board is None):
@@ -1252,6 +1254,7 @@ def configdb(username="rmap",password="rmap",
             mystation.mqttmaintpath=mqttmaintpath
 
         if not (activate is None): mystation.active=activate
+        mystation.clean()
         mystation.save()
             
     except:

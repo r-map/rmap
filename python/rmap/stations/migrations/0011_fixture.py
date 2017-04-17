@@ -17,19 +17,6 @@ def load_fixture(apps, schema_editor):
         obj.save()
         fixture.close()
 
-
-    for fixture_filename in os.listdir(fixture_dir):
-        if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print "load fixture from file: ",fixture_file
-
-            fixture = open(fixture_file, 'rb')
-            objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
-            for obj in objects:
-                obj.save()
-            fixture.close()
-
 #def load_fixture(apps, schema_editor):
 #    call_command('loaddata', 'initial_data', app_label='stations') 
 

@@ -10,6 +10,8 @@ from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.contrib.gis.geos import Point
+from django.core.exceptions import ValidationError
+
 try:
     import dballe
     dballepresent=True
@@ -98,6 +100,17 @@ class Sensor(models.Model):
     
     board = models.ForeignKey('Board')
 
+
+    def clean(self):
+        # check sensor datalevel with roothpath
+        if not self.active: return
+        if not self.board.active: return
+        if not self.board.stationmetadata.active: return
+
+        if self.board.stationmetadata.mqttrootpath != self.type.datalevel:
+            raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
+
+    
     def underscored_timerange(self):
         return self.timerange.replace(',','_')
 
@@ -653,6 +666,11 @@ class StationMetadata(models.Model):
         ('unknown','Unknown & Missing'),
     )
 
+    STATION_NETWORK_CHOICES = (
+        ('fixed',  'For station with fixed coordinate'),
+        ('mobile', 'For station with mobile coordinate'),
+    )
+
 
     name = models.CharField(max_length=255,default="My station",help_text=ugettext_lazy("station name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
@@ -666,15 +684,29 @@ class StationMetadata(models.Model):
     lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=False,blank=False, help_text=ugettext_lazy('Precise Latitude of the station'))
     lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=False,blank=False, help_text=ugettext_lazy('Precise Longitude of the station'))
 
-    network = models.CharField(max_length=50,default="rmap",unique=False,null=False,blank=False, help_text=ugettext_lazy("station network"))
+    network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, choices=STATION_NETWORK_CHOICES, help_text=ugettext_lazy("station network"))
 
-    mqttrootpath = models.CharField(max_length=100,default="rmap",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
-    mqttmaintpath = models.CharField(max_length=100,default="rmap",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
+    mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
+    mqttmaintpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
     category = models.CharField(max_length=50, choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
 
     def lon_lat(self):
         return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
+
+    def clean(self):
+        # check sensor datalevel with roothpath
+        if not self.active: return
+
+        for board in self.board_set.all():
+            if not board.active: continue
+
+            for sensor in board.sensor_set.all():
+                if not sensor.active: continue
+
+                if self.mqttrootpath != sensor.type.datalevel:
+                    raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
+    
     @property
     def geom(self):
         #return PointField({'type': 'Point', 'coordinates': [self.lon, self.lat]})

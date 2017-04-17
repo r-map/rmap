@@ -56,11 +56,11 @@ admin.site.register(Sensor, SensorAdmin)
 
 class SensorTypeAdmin(admin.ModelAdmin):
 
-    list_display = ('name','active','type')
-    list_editable = ('active',)
+    list_display = ('name','active','datalevel','type')
+    list_editable = ('active','datalevel')
     search_fields = ['name','type','bcodes']
 
-    list_filter = ('bcodes',)
+    list_filter = ('datalevel','bcodes',)
 
 admin.site.register(SensorType, SensorTypeAdmin)
 
