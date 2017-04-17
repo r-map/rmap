@@ -95,7 +95,7 @@ class Sensor(models.Model):
 
     timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
     level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
-
+    
     board = models.ForeignKey('Board')
 
     def underscored_timerange(self):
@@ -175,11 +175,19 @@ class SensorType(models.Model):
 #        ('SSD',  'I2C SDS011 module, one shot mode'),
 #    )
 
+    SENSOR_DATA_LEVEL = (
+        ('sample',  'Sensor provide data at Level I (sample)'),
+        ('report',  'Sensor provide data at Level II (report)'),
+    )
+
+
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this sensor to take measurements"))
     name = models.CharField(max_length=100,default="my sensor type",blank=False,help_text=ugettext_lazy("Descriptive text"))
 
     type = models.CharField(unique=True,max_length=4,default="TMP",null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
 
+    datalevel = models.CharField(max_length=10,unique=False,default="sample",null=False,choices=SENSOR_DATA_LEVEL,blank=False,help_text=ugettext_lazy("Data Level as defined by WMO (Sensor metadata from rmap RFC)"))
+    
     bcodes = models.ManyToManyField('Bcode',blank=False,help_text=ugettext_lazy("Bcode variable definition"))
     
     def natural_key(self):
