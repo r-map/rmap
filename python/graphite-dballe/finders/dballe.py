@@ -29,9 +29,10 @@ def path2uri(path):
 
 class  wssummaries(object):
 
-    def __init__(self,query,rootpath):
+    def __init__(self,query,datalevel,stationtype):
         self.query=query
-        self.rootpath=rootpath
+        self.datalevel=datalevel
+        self.stationtype=stationtype
 
         #print "query pattern: ",self.query.pattern
         #self.query.startTime
@@ -60,25 +61,25 @@ class  wssummaries(object):
 
         self.summaries=[]
 
-        if self.key != "root" and self.query.pattern.split(".")[0] == self.rootpath:
+        if self.key != "root" and self.query.pattern.split(".")[0] == self.datalevel:
 
             #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
             uri=path2uri(self.query.pattern)
 
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.rootpath)
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"-"+self.stationtype)
             rj=r.json()
 
             #serialize json in a new json good to build graphite path 
             for station in rj:
 
                 #skip fixed station in mobile
-                if self.rootpath == "mobile" and station["ident"] is None:
+                if self.stationtype == "mobile" and station["ident"] is None:
                     continue
 
                 newstation={}
                 newstation["ident"]=station["ident"] if not station["ident"] is None else "-"                 
 
-                if self.rootpath == "mobile" :
+                if self.stationtype == "mobile" :
                     newstation["lonlat"]="*"
                 else:
                     newstation["lonlat"]=str(station["lon"])+"_"+str(station["lat"])
@@ -105,7 +106,7 @@ class  wssummaries(object):
 
                     for key in data["vars"].keys():
                         newstation["var"]=key
-                        if self.rootpath == "mobile" :
+                        if self.stationtype == "mobile" :
                             #compat mobile stations same ident ... and different coordinates 
                             if not newstation in self.summaries:
                                 self.summaries.append(newstation)
@@ -126,7 +127,7 @@ class  wssummaries(object):
 
         if self.key == "root":
             #we are in the root branch
-            yield True,self.rootpath
+            yield True,self.datalevel
 
         elif self.branch:
             for k,g in sortandgroup(self.summaries,self.key):
@@ -148,7 +149,7 @@ class  wssummaries(object):
         else:
             for summary in self.summaries:
                 #print "summary",summary
-                self.node=self.rootpath+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
+                self.node=self.datalevel+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
                 yield self.branch,self.node
 
 
@@ -169,51 +170,67 @@ class  wssummaries(object):
 #available for this given metric in the database.
 #It must return an IntervalSet of one or more Interval objects.
 
-class DballeFinderFixed(object):
+class DballeFinderReportFixed(object):
 
     def find_nodes(self, query):
 
         #print "query and class: ", query.pattern, "fixed"
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query,"fixed"):
+        for branch,node in wssummaries(query,"report","fixed"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node,"fixed"))
+                yield LeafNode(node, DballeReader(node,"report","fixed"))
             
 
-class DballeFinderMobile(object):
+class DballeFinderReportMobile(object):
 
     def find_nodes(self, query):
 
         #print "query and class: ", query.pattern, "mobile"
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query,"mobile"):
+        for branch,node in wssummaries(query,"report","mobile"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node,"mobile"))
+                yield LeafNode(node, DballeReader(node,"report","mobile"))
 
-class DballeFinderSample(object):
+class DballeFinderSampleFixed(object):
 
     def find_nodes(self, query):
 
         #print "query and class: ", query.pattern, "sample"
         # find some paths matching the query, then yield them
-        for branch,node in wssummaries(query,"sample"):
+        for branch,node in wssummaries(query,"sample","fixed"):
             if branch:
                 yield BranchNode(node)
             else:
-                yield LeafNode(node, DballeReader(node,"sample"))
+                yield LeafNode(node, DballeReader(node,"sample","fixed"))
 
 
+class DballeFinderSampleMobile(object):
+
+    def find_nodes(self, query):
+
+        #print "query and class: ", query.pattern, "mobile"
+        # find some paths matching the query, then yield them
+        for branch,node in wssummaries(query,"sample","mobile"):
+            if branch:
+                yield BranchNode(node)
+            else:
+                yield LeafNode(node, DballeReader(node,"sample","mobile"))
+
+
+
+                
 class DballeReader(object):
-    __slots__ = ('path','rootpath')  # __slots__ is recommended to save memory on readers
+    __slots__ = ('path','datalevel','stationtype')  # __slots__ is recommended to save memory on readers
 
-    def __init__(self, path, rootpath):
+    def __init__(self, path, datalevel,stationtype):
         self.path = path
-        self.rootpath = rootpath
-        #print "DBALLEREADER rootpath: ", rootpath," path: ", self.path
+        self.datalevel = datalevel
+        self.stationtype = stationtype
+        #print "DBALLEREADER datalevel: ", datalevel," stationtype: ",stationtype," path: ", self.path
         
     def fetch(self, start_time, end_time):
 
@@ -232,7 +249,7 @@ class DballeReader(object):
         rj=[]
 
 
-        if self.path.split(".")[0] == self.rootpath :
+        if self.path.split(".")[0] == self.datalevel :
             dt=enddt-startdt
         else:
             #have to return none
@@ -248,9 +265,9 @@ class DballeReader(object):
             for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"-"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.rootpath)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"-"+self.stationtype)
                 rj+=r.json()
         elif dt > timedelta(days=10):
             #get  month
@@ -259,9 +276,9 @@ class DballeReader(object):
             for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"-"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.rootpath)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"-"+self.stationtype)
                 rj+=r.json()
         elif dt > timedelta(hours=8):
             #get days
@@ -269,9 +286,9 @@ class DballeReader(object):
             startdt=startdt.replace(hour=0,minute=0,second=0)
             for dt in rrule(DAILY, dtstart=startdt, until=enddt):
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"-"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.rootpath)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"-"+self.stationtype)
                 rj+=r.json()
         elif dt > timedelta(hours=0) :
             #get hours
@@ -281,10 +298,10 @@ class DballeReader(object):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
                 #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
-                #               "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath
+                #               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"-"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
-                               "/{:02d}".format(dt.hour)+"?dsn="+self.rootpath)
+                               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"-"+self.stationtype)
                 rj+=r.json()
 
         # if starttime.tm_year != endtime.tm_year:
@@ -338,7 +355,7 @@ class DballeReader(object):
 
         if len(rj) > 0:
 
-            if self.rootpath == "mobile" :
+            if self.stationtype == "mobile" :
                 rj=sorted(rj, key=lambda staz: staz["date"])
 
             # find minimum step in data
@@ -418,10 +435,10 @@ class DballeReader(object):
 
         uri=path2uri(self.path)
 
-        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.rootpath)
+        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"-"+self.stationtype)
         rj=r.json()
 
-        if self.rootpath == "mobile" :
+        if self.stationtype == "mobile" :
             rj=sorted(rj, key=lambda staz: staz["date"])
 
         start=rj[0]["date"][0]
