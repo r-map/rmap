@@ -796,6 +796,84 @@ BORINUD = {"report":{
 }
 
 
+DEBUGBORINUD = {"report":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport_fixed,
+        }, 
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport_mobile,
+        }, 
+
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,},
+           
+    "report_fixed":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport_fixed,
+        }, 
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+           "report_mobile":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnreport_mobile,
+        }, 
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+"sample":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnsample_fixed,
+        }, 
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnsample_mobile,
+        }, 
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+"sample_fixed":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnsample_fixed,
+        }, 
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+},
+"sample_mobile":{
+    "SOURCES": 
+    [
+        {
+            "class": "borinud.utils.source.DballeDB",
+            "url": dsnsample_mobile,
+        },         
+    ],
+    "CACHED_SUMMARY": "default",
+    "CACHED_SUMMARY_TIMEOUT": 60*15,
+}
+}
+
+
 SHOWDATA = BORINUD
 
 
@@ -845,6 +923,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'graphite-dballe.events',         "apps": ('graphite-dballe.events',)},
         {"import": 'graphite-dballe.url_shortener',  "apps": ('graphite-dballe.url_shortener',)},
         {"import": 'tagging',                        "apps": ('tagging',)},
+        {"import": 'django_extensions',              "apps": ('django_extensions',)},
     )
 
     # Set up each optional app if available.

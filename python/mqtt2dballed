@@ -33,7 +33,8 @@ class  mydaemon(daemon.Daemon):
 
     def optionparser(self):
         op = super(mydaemon, self).optionparser()
-	op.add_option("-n", "--name",dest="name", help="name that define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="rmap")
+	op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
+	op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
 	#op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
 	#op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
         return op 	  				 
@@ -89,46 +90,69 @@ def main(self):
 
     logging.info('Starting up mqtt2dballed')
 
-    dsndict={}
-    dsndict["sample"]=rmap.settings.dsnsample
-    dsndict["mobile"]=rmap.settings.dsnmobile
-    dsndict["fixed"]=rmap.settings.dsnfixed
+    dsndict={"sample":{},"report":{}}
+    dsndict["sample"]["fixed"]=rmap.settings.dsnsample_fixed
+    dsndict["sample"]["mobile"]=rmap.settings.dsnsample_mobile
+    dsndict["report"]["fixed"]=rmap.settings.dsnreport_fixed
+    dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
-    if not (self.options.name in dsndict.keys()):
+    
+    if not (self.options.datalevel in dsndict.keys()):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
-    logging.info('DSN: %s'% dsndict[self.options.name])
-    
-    topicdict={}
-    topicdict["sample"]=rmap.settings.topicsample
-    topicdict["mobile"]=rmap.settings.topicmobile
-    topicdict["fixed"]=rmap.settings.topicfixed
 
-    if not (self.options.name in topicdict.keys()):
+    if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+        logging.error('Invalid dsn')
+        sys.stdout.write("Invalid dsn\n")
+        return False
+
+    
+    topicdict={"sample":{},"report":{}}
+    topicdict["sample"]["fixed"]  = "{}/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
+    topicdict["sample"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
+    topicdict["report"]["fixed"]  = "{}/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
+    topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
+
+
+    if not (self.options.datalevel in topicdict.keys()):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
-    logging.info('Topic: %s'% topicdict[self.options.name])
 
+    if not (self.options.stationtype in topicdict[self.options.datalevel].keys()):
+        logging.error('Invalid topic')
+        sys.stdout.write("Invalid topic\n")
+        return False
+
+
+    dsn   = dsndict[self.options.datalevel][self.options.stationtype]
+    logging.info('DSN: %s'% dsn)
+    topic = topicdict[self.options.datalevel][self.options.stationtype]
+    logging.info('Topic: %s'% topic)
+    
     # compatibility with old topic: to be removed !
-    if topicdict[self.options.name] == "sample/#":
+    if self.options.datalevel == "sample":
         oldtopic="rmap/#"
-    elif topicdict[self.options.name] == "fixed/#":
-        oldtopic="report/#"
+    elif self.options.datalevel == "report":
+        oldtopic="fixed/#"
     else:
         oldtopic="None"
-    
+
+    if self.options.stationtype == "mobile":
+        oldtopic="mobile/#"
+
+        
     # infinite loop: restart p1 or p2 if terminate with error
     while True:
 
         try:
-            p1 = subprocess.Popen(["mqtt2bufr","-t",oldtopic,"-t",topicdict[self.options.name]],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p1 = subprocess.Popen(["mqtt2bufr","-t",oldtopic,"-t",topic],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             #p1 = subprocess.Popen(["mqtt2bufr","-h","rmap.cc","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             nonblockingfile(p1.stderr)
 
             while p1.poll() is None:
-                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",dsndict[self.options.name]],cwd=self.cwd,env={"DBA_FORTRAN_TRANSACTION":"True"}, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p2 = subprocess.Popen(["/usr/local/bin/pipe2dba","-o",dsn],cwd=self.cwd,env={"DBA_FORTRAN_TRANSACTION":"True"}, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 

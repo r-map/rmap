@@ -13,6 +13,9 @@ from django.contrib.sites.models import Site
 from datetime import timedelta, datetime
 from rrule import rrule, YEARLY, MONTHLY, DAILY, HOURLY
 
+
+timeout=(180.,180.)
+
 def sortandgroup(rj,key):
     return groupby(sorted(rj, key=lambda staz: staz[key]),key=lambda staz: staz[key])
 
@@ -61,12 +64,12 @@ class  wssummaries(object):
 
         self.summaries=[]
 
-        if self.key != "root" and self.query.pattern.split(".")[0] == self.datalevel:
+        if self.key != "root" and self.query.pattern.split(".")[0] == self.datalevel+"_"+self.stationtype:
 
             #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
             uri=path2uri(self.query.pattern)
 
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"-"+self.stationtype)
+            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
             rj=r.json()
 
             #serialize json in a new json good to build graphite path 
@@ -127,7 +130,7 @@ class  wssummaries(object):
 
         if self.key == "root":
             #we are in the root branch
-            yield True,self.datalevel
+            yield True,self.datalevel+"_"+self.stationtype
 
         elif self.branch:
             for k,g in sortandgroup(self.summaries,self.key):
@@ -149,7 +152,7 @@ class  wssummaries(object):
         else:
             for summary in self.summaries:
                 #print "summary",summary
-                self.node=self.datalevel+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
+                self.node=self.datalevel+"_"+self.stationtype+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
                 yield self.branch,self.node
 
 
@@ -249,7 +252,7 @@ class DballeReader(object):
         rj=[]
 
 
-        if self.path.split(".")[0] == self.datalevel :
+        if self.path.split(".")[0] == self.datalevel+"_"+self.stationtype :
             dt=enddt-startdt
         else:
             #have to return none
@@ -265,9 +268,9 @@ class DballeReader(object):
             for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"-"+self.stationtype
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"-"+self.stationtype)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                 rj+=r.json()
         elif dt > timedelta(days=10):
             #get  month
@@ -276,9 +279,9 @@ class DballeReader(object):
             for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"-"+self.stationtype
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"-"+self.stationtype)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                 rj+=r.json()
         elif dt > timedelta(hours=8):
             #get days
@@ -286,9 +289,9 @@ class DballeReader(object):
             startdt=startdt.replace(hour=0,minute=0,second=0)
             for dt in rrule(DAILY, dtstart=startdt, until=enddt):
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"-"+self.stationtype
+                #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
-                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"-"+self.stationtype)
+                               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                 rj+=r.json()
         elif dt > timedelta(hours=0) :
             #get hours
@@ -298,10 +301,10 @@ class DballeReader(object):
                 #print "loop: ", dt
                 #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
                 #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
-                #               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"-"+self.stationtype
+                #               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype
                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
-                               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"-"+self.stationtype)
+                               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                 rj+=r.json()
 
         # if starttime.tm_year != endtime.tm_year:
@@ -435,7 +438,7 @@ class DballeReader(object):
 
         uri=path2uri(self.path)
 
-        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"-"+self.stationtype)
+        r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
         rj=r.json()
 
         if self.stationtype == "mobile" :
