@@ -132,22 +132,27 @@ def main(self):
     logging.info('Topic: %s'% topic)
     
     # compatibility with old topic: to be removed !
+
+    oldtopic1="None"
+    oldtopic2="None"
+    oldtopic3="None"
+
     if self.options.datalevel == "sample":
-        oldtopic="rmap/#"
+        oldtopic1="rmap/#"
+        oldtopic2="sample/+/+/rmap/#"
+        oldtopic3="sample/+/+/arpae/#"
     elif self.options.datalevel == "report":
-        oldtopic="fixed/#"
-    else:
-        oldtopic="None"
+        oldtopic1="fixed/#"
 
     if self.options.stationtype == "mobile":
-        oldtopic="mobile/#"
+        oldtopic1="mobile/#"
 
         
     # infinite loop: restart p1 or p2 if terminate with error
     while True:
 
         try:
-            p1 = subprocess.Popen(["mqtt2bufr","-t",oldtopic,"-t",topic],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+            p1 = subprocess.Popen(["mqtt2bufr","-t",oldtopic1,"-t",oldtopic2,"-t",oldtopic3,"-t",topic],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             #p1 = subprocess.Popen(["mqtt2bufr","-h","rmap.cc","-t","rmap/#","-t","mobile/#"],cwd=self.cwd, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
             nonblockingfile(p1.stderr)
 

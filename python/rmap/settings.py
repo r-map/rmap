@@ -165,8 +165,8 @@ configspec['mqtt2dballed']['dsnsample_fixed']    = "string(default='mysql:///rma
 configspec['mqtt2dballed']['dsnsample_mobile']   = "string(default='mysql:///sample_mobile?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnreport_fixed']    = "string(default='mysql:///report?user=rmap&password=rmap')"
 configspec['mqtt2dballed']['dsnreport_mobile']   = "string(default='mysql:///mobile?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['topicsample']   = "string(default='sample/#')"
-configspec['mqtt2dballed']['topicreport']   = "string(default='report/#')"
+configspec['mqtt2dballed']['topicsample']   = "string(default='sample')"
+configspec['mqtt2dballed']['topicreport']   = "string(default='report')"
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='/tmp/composereportd.log')"

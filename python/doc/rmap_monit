@@ -60,7 +60,7 @@ check process mqtt2dballed_report_mobile with pidfile /var/run/rmap/mqtt2dballed
 #    depends on rmap
 
 check process mqtt2dballed_report_fixed with pidfile /var/run/rmap/mqtt2dballed_report_fixed.lock
-    start program = "/usr/bin/mqtt2dballed --datalevel=report --stationtypr=fixed  --pidfile=/var/run/rmap/mqtt2dballed_report_fixed.lock  --stderr=/var/log/rmap/mqtt2dballed_report_fixed.err  --stdout=/var/log/rmap/mqtt2dballed_report_fixed.log restart"
+    start program = "/usr/bin/mqtt2dballed --datalevel=report --stationtype=fixed  --pidfile=/var/run/rmap/mqtt2dballed_report_fixed.lock  --stderr=/var/log/rmap/mqtt2dballed_report_fixed.err  --stdout=/var/log/rmap/mqtt2dballed_report_fixed.log restart"
     stop program  = "/usr/bin/mqtt2dballed --datalevel=report --stationtype=fixed  --pidfile=/var/run/rmap/mqtt2dballed_report_fixed.lock  --stderr=/var/log/rmap/mqtt2dballed_report_fixed.err  --stdout=/var/log/rmap/mqtt2dballed_report_fixed.log stop"
 #    depends on rmap
 
