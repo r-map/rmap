@@ -14,7 +14,7 @@ from datetime import timedelta, datetime
 from rrule import rrule, YEARLY, MONTHLY, DAILY, HOURLY
 
 
-timeout=(180.,180.)
+timeout=180.
 
 def sortandgroup(rj,key):
     return groupby(sorted(rj, key=lambda staz: staz[key]),key=lambda staz: staz[key])
