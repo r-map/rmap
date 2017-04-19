@@ -49,6 +49,9 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
       else
 #endif
 #if defined (TIPPINGBUCKETRAINGAUGE)
+      if (strcmp(type, "TBS") == 0)
+	return new SensorDriverTbr();
+      else
       if (strcmp(type, "TBR") == 0)
 	return new SensorDriverTbr();
       else

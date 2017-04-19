@@ -227,8 +227,20 @@
         "fields": {
             "active": true,
             "name": "I2C Tipping bucket rain gauge adapter",
-            "type": "TBR",
+            "type": "TBS",
 	    "datalevel": "sample",
+            "bcodes": [
+                ["B13011"]
+            ]
+        }
+    },
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "I2C, report mode Tipping bucket rain gauge adapter",
+            "type": "TBR",
+	    "datalevel": "report",
             "bcodes": [
                 ["B13011"]
             ]

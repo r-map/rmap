@@ -12,7 +12,7 @@
 
 <section id="main_content">
 
-<h2>{% trans 'Station name' %}: {{ object.name }}</h2>
+<h2>{% trans 'Station name' %}: {{ object.name }}     {% trans 'Data level:' %} {{ object.mqttrootpath }}</h2>
 
 <div class="table-responsive">
 <table class="table">
@@ -63,24 +63,13 @@
 <h5>{{ bcode.describe_var }}</h5>
 
 <div class="col-md-6">
-  <h5><span class="bv aig"></span>{% trans 'Observation' %}</h5>
-
   <p>
-    <img src = "/graphite/render/?target=report_fixed.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
+    <img src = "/graphite/render/?target={{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
   </p>
 
-  <p><a class="btn btn-default" href="/graphite/composer/?target=report_fixed.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-12hours" role="button">Graphite composer &raquo;</a></p>
+  <p><a class="btn btn-default" href="/graphite/composer/?target={{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-12hours" role="button">Graphite composer &raquo;</a></p>
 </div>
-<div class="col-md-6">
-  <h5><span class="bv aig"></span>{% trans 'Sample' %}</h5>
 
-  <p>
-    <img src = "/graphite/render/?target=sample_fixed.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-1hours">
-
-  </p>
-
-  <p><a class="btn btn-default" href="/graphite/composer/?target=sample_fixed.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-3hours" role="button">Graphite composer &raquo;</a></p>
-</div>
           {% endfor %}
         {% endif %}
       {% endif %}
