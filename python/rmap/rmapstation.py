@@ -597,7 +597,7 @@ class station():
                 for item in self.datavarlist:
                     print "try to publish",item
                     try:
-                        self.rmap.data(item["timerange"],item["level"],item["datavar"],lon=item["coord"]["lon"],lat=item["coord"]["lat"])
+                        self.rmap.data(item["timerange"],item["level"],item["datavar"],lon=item["coord"]["lon"],lat=item["coord"]["lat"],prefix=item.get("prefix",None))
                         self.mqtt_status = _('Connect Status: Published')
                         print "pubblicato", item["datavar"]
                     except:

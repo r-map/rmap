@@ -2452,7 +2452,8 @@ class Rmap(App):
             self.mystation.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},
                                                "timerange":"254,0,0",
                                                "level":"1,-,-,-",
-                                               "datavar":datavar})
+                                               "datavar":datavar,
+                                               "prefix":rmap.settings.topicreport})
         except:
             pass
             
@@ -2463,7 +2464,8 @@ class Rmap(App):
             self.mystation.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},
                                                "timerange":"254,0,0",
                                                "level":"1,-,-,-",
-                                               "datavar":datavar})
+                                               "datavar":datavar,
+                                               "prefix":rmap.settings.topicreport})
         except:
             pass
 
@@ -2475,9 +2477,11 @@ class Rmap(App):
                 datavar={"B20003":{"t": datetime.utcnow(),"v": str(value)}}
                 #self.root.ids["snow"].text=""
                 self.mystation.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},
-                                               "timerange":"254,0,0",
-                                               "level":"1,-,-,-",
-                                               "datavar":datavar})
+                                                   "timerange":"254,0,0",
+                                                   "level":"1,-,-,-",
+                                                   "datavar":datavar,
+                                                   "prefix":rmap.settings.topicreport})
+                                                   
         except:
             pass
 

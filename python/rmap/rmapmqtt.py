@@ -169,7 +169,7 @@ class rmapmqtt:
             self.error(inst)
 
 
-    def data(self,timerange=None,level=None,datavar={},lon=None,lat=None):
+    def data(self,timerange=None,level=None,datavar={},lon=None,lat=None,prefix=None):
 
         try:
 
@@ -180,8 +180,11 @@ class rmapmqtt:
             else:
                 lonlat=self.lonlat
 
+            if prefix is None:
+                prefix=self.prefix
+                
             for key,val in datavar.iteritems():
-                rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
                                       qos=1,
