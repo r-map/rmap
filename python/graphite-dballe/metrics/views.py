@@ -28,7 +28,22 @@ try:
   import cPickle as pickle
 except ImportError:
   import pickle
+try:
+    import dballe
+    dballepresent=True
+except ImportError:
+    print "dballe utilities disabled"
+    dballepresent=False
 
+def toint(level):
+    ilevel=[]
+    for ele in level.split("_"):
+        try:
+            iele=int(ele)
+        except:
+            iele=None
+        ilevel.append(iele)
+    return ilevel
 
 @csrf_exempt
 def index_json(request):
@@ -308,8 +323,32 @@ def tree_json(nodes, base_path, wildcards=False):
       continue
 
     found.add(node.name)
+
+    if dballepresent:
+      position=(base_path + str(node.name)).count(".")
+      if position == 0:
+        text = "Data Level: "+node.name.split("_")[0]+" Station Type: "+node.name.split("_")[1]
+      elif position == 1:
+        text = "Ident: "+node.name
+      elif position == 2:
+        text = "Lon: "+str(int(node.name.split("_")[0])/100000.)+" Lat: "+str(int(node.name.split("_")[1])/100000.)
+      elif position == 3:
+        text = "Network: "+node.name
+      elif position == 4:
+        text = dballe.describe_trange(*toint(node.name))
+      elif position == 5:
+        text = dballe.describe_level(*toint(node.name))
+      elif position == 6:
+        varinfo=dballe.varinfo(node.name)
+        text = varinfo.desc.lower()+" "+varinfo.unit
+      else:
+        text = urllib.unquote_plus(str(node.name))
+
+    else:
+      text = urllib.unquote_plus(str(node.name))
+
     resultNode = {
-      'text' : urllib.unquote_plus(str(node.name)),
+      'text' : text,
       'id' : base_path + str(node.name),
     }
 

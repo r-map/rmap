@@ -22,13 +22,11 @@ except ImportError:
 def toint(level):
     ilevel=[]
     for ele in level.split(","):
-        print ele
         try:
             iele=int(ele)
         except:
             iele=None
         ilevel.append(iele)
-    print ilevel
     return ilevel
 
 
