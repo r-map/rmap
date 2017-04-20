@@ -329,13 +329,12 @@ def insertDataManualData(request):
 
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
+                    prefix=rmap.settings.topicsample
 
                     slug=form.cleaned_data['coordinate_slug']
                     if (slug):
-                        prefix="fixed"
                         network="fixed"
                     else:
-                        prefix="mobile"
                         network="mobile"
 
                     print "<",slug,">","prefix:",prefix
