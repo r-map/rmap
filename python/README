@@ -57,6 +57,7 @@ clean locale files:
 apply patch as in
   https://github.com/r-map/rmap/issues/25
 to
+   # old .buildozer/applibs/django/db/migrations/loader.py
   .buildozer/android/platform/build/dists/rmap/private/lib/python2.7/site-packages/django/db/migrations/loader.py
 
 * dump data by natural keys

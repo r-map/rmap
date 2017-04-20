@@ -23,7 +23,7 @@ source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, Pub
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,poweroffd,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3
+source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,poweroffd,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3,*.sqlite
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
@@ -31,13 +31,12 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #version.filename = %(source.dir)s/main.py
 
 # (str) Application versioning (method 2)
-version = 6.22
+version = 6.25
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
+requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
-requirements =  kivy,hostpython2,sqlite3,openssl,plyer,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil,django-cookie-law
-#requirements =  kivy,hostpython2,sqlite3,openssl,plyer,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil,django-cookie-law
 
 # (list) Garden requirements
 #garden_requirements =
@@ -74,19 +73,19 @@ android.sdk = 21
 
 # (str) Android NDK version to use
 #android.ndk = 10e
-android.ndk = 10.3.2
+android.ndk = 9c
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-android.ndk_path = /home/pat1/compilazioni/crystax-ndk-10.3.2
+#android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-android.p4a_dir = /home/pat1/git/python-for-android
+#android.p4a_dir =
 
 # (list) python-for-android whitelist
 #android.p4a_whitelist =
