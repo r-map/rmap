@@ -67,6 +67,7 @@ from glob import glob
 from utils import nint
 import rmap.rmap_core
 from rmap import exifutils
+import rmap.settings
 
 platform = platform()
 
@@ -1626,13 +1627,12 @@ class Rmap(App):
 
         try:
 
+            mqttrootpath=rmap.settings.topicsample
+            mqttmaintpath=rmap.settings.topicsample
+
             if (self.config.get('location','mobile') == '0'):
-                mqttrootpath="fixed"
-                mqttmaintpath="fixed"
                 network="fixed"
             else:
-                mqttrootpath="mobile"
-                mqttmaintpath="mobile"                
                 network="mobile"
 
             rmap.rmap_core.configdb(
