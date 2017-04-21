@@ -12,9 +12,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
  <link rel="stylesheet" href="{% static "rmap/libs/jquery-ui-1.12.1//jquery-ui.css" %}" type="text/css" />
- <script type="text/javascript" src="{% static "/static/rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
+ <script type="text/javascript" src="{% static "rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
  <script type="text/javascript" src="{% static "showdata/PruneCluster.js" %}" ></script>
  <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
+
+ <script type="text/javascript" src="{% static "showdata/leaflet.label.js" %}" ></script>
+ <link rel="stylesheet" type="text/css" href="{% static "showdata/leaflet.label.css" %}" >
+
 <!--
  <script type="text/javascript" src="{% static "showdata/leaflet.markercluster.js" %}" ></script>
  <link rel="stylesheet" type="text/css" href="{% static "showdata/MarkerCluster.css" %}" >
@@ -341,29 +345,58 @@ function map_init(map, options)
                 var pruneCluster = new PruneClusterForLeaflet();
 		pruneCluster.Cluster.Size = 25;
 		pruneCluster.ProcessView(); // looks like it works OK without this line
+		
+		pruneCluster.PrepareLeafletMarker = function(leafletMarker, data) {
+		    if (leafletMarker.getPopup()) {
+			leafletMarker.setPopupContent(setpopup(data.feature));
+		    } else {
+			//leafletMarker.bindPopup(data.name);
+			leafletMarker.bindPopup(setpopup(data.feature));
+		    }
+
+		    var vallen= (data.feature.properties.val).toString().length * 6 + 6;
+		    leafletMarker.setIcon(
+			L.extendedDivIcon
+			({
+			    iconSize: new L.Point(vallen, 14),
+			    html: data.feature.properties.val,
+			    className: 'myDivIcon',
+			    style: {backgroundColor:getColor(data.feature.properties.val,min,max)}
+			})
+		    );
+
+		    leafletMarker.bindLabel(data.feature.properties.date);
+		    
+		    /*
+		    var popup = L.popup()
+		    
+		    leafletMarker.on('mouseover', function(e) {
+			//open popup;
+			    popup.setContent(data.feature.properties.date).setLatLng(e.latlng).openOn(map);
+		    });
+		    leafletMarker.on('mouseout', function(e) {
+			//close popup;
+			    popup.closePopup();
+		    });
+		    */
+		    leafletMarker.on('popupopen',function managepreload(e) 
+				     {
+					 $('#preloadimages img').preload({
+					     placeholder:'{% static "showdata/loading.gif" %}',
+					     notFound:'{% static "showdata/access-error-logs.png" %}'
+					 })
+				     });
+		};
 
                 $.each(collection.features, function(i,feature) {
 		    
-		    var vallen= (feature.properties.val).toString().length * 6 + 6;
 		    coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
 		    
+		    var marker = new PruneCluster.Marker(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+		    marker.data.feature=feature;
+		    
 		    /*
-		    pruneCluster.PrepareLeafletMarker = function(leafletMarker, data) {
-    
-			//return L.marker(latlng, {icon: myIcon,  riseOnHover: true, riseOffset: 10000, title:feature.properties.date });
-			
-			leafletMarker.on('popupopen',function managepreload(e) 
-					 {
-					     $('#preloadimages img').preload({
-						 placeholder:'{% static "showdata/loading.gif" %}',
-						 notFound:'{% static "showdata/access-error-logs.png" %}'
-					     })
-					 });   
-		    };
-		    */
-
-                    var marker = new PruneCluster.Marker(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
-
+		    var vallen= (feature.properties.val).toString().length * 6 + 6;
                     marker.data.icon = L.extendedDivIcon({
 			iconSize: new L.Point(vallen, 14),
 			html: feature.properties.val,
@@ -373,7 +406,8 @@ function map_init(map, options)
 		    });
 
 		    marker.data.popup = setpopup(feature);
-
+		    */
+		    
 		    /*
 		    var popupOptions = {};
 		    // you have to append the marker on the creation of the popup
