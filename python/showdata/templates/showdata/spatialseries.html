@@ -207,16 +207,16 @@ function oneachfeature(feature, layer)
     })
 }
 
+var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
+
+function getColorIndex(d,min,max) {
+    var delta=(max-min)/colors.length;
+    return Math.floor((d-min)/delta);
+}
+
+
 function getColor(d,min,max) {
-    var delta=(max-min)/8.;
-    return d > min+(delta*7)   ? '#850000' :
-           d > min+(delta*6)   ? '#853C00' :
-           d > min+(delta*5)   ? '#788500' :
-           d > min+(delta*4)   ? '#478500' :
-           d > min+(delta*3)   ? '#0D8500' :
-           d > min+(delta*2)   ? '#00855D' :
-           d > min+(delta*1)   ? '#007885' :
-                      '           #090085' ;
+    return colors[getColorIndex(d,min,max)];
 }
 
 //https://github.com/tonekk/Leaflet-Extended-Div-Icon
@@ -250,7 +250,7 @@ function getColor(d,min,max) {
 })(window.L);
 
 
-
+/*
 function pointtolayer(feature, latlng) 
 {
     
@@ -276,11 +276,11 @@ function pointtolayer(feature, latlng)
     }
 }
 
+*/
+
 function beforesend(){
     $("#loading").dialog('open').html("<p>{% trans "Please Wait..." %}</p>");
 }
-
-
 
 
 function setpopup(feature)
@@ -341,11 +341,86 @@ function map_init(map, options)
                   min=Math.min(min,collection['features'][i].properties.val);
 		  max=Math.max(max,collection['features'][i].properties.val);
 		}
+
+		////////////		
+		    pi2 = Math.PI * 2;
+		L.Icon.MarkerCluster = L.Icon.extend({
+		    options: {
+			iconSize: new L.Point(44, 44),
+			className: 'prunecluster leaflet-markercluster-icon'
+		    },
+		    
+		    createIcon: function() {
+			// based on L.Icon.Canvas from shramov/leaflet-plugins (BSD licence)
+			var e = document.createElement('canvas');
+			this._setIconStyles(e, 'icon');
+			var s = this.options.iconSize;
+			e.width = s.x;
+			e.height = s.y;
+			this.draw(e.getContext('2d'), s.x, s.y);
+			return e;
+		    },
+		    
+		    createShadow: function() {
+			return null;
+		    },
+		    
+		    draw: function(canvas, width, height) {
+			var lol = 0;
+			var start = 0;
+			var prevalent = 0;
+			var prevalentindex = 0;
+			for (var i = 0, l = colors.length; i < l; ++i) {
+			    var size = this.stats[i] / this.population;
+			    if (size > 0) {
+				if (this.stats[i] > prevalent) {
+				    prevalentindex=i;
+				    prevalent=this.stats[i];
+				}
+				canvas.beginPath();
+				canvas.moveTo(22, 22);
+				canvas.fillStyle = colors[i];
+				var from = start,
+				    to = start + size * pi2;
+				if (to < from) {
+				    from = start;
+				}
+				canvas.arc(22, 22, 22, from, to);
+				start = start + size * pi2;
+				canvas.lineTo(22, 22);
+				//canvas.stroke();
+				canvas.fill();
+				canvas.closePath();
+			    }
+			}
+			canvas.beginPath();
+			canvas.fillStyle = colors[prevalentindex];
+			canvas.arc(22, 22, 15, 0, Math.PI * 2);
+			canvas.stroke();
+			canvas.fill();
+			canvas.closePath();
+			canvas.fillStyle = '#111';
+			canvas.textAlign = 'center';
+			canvas.textBaseline = 'middle';
+			canvas.font = 'bold 10px sans-serif';
+			canvas.fillText(this.population, 22, 22, 40);
+		    }
+		});
+		/////////////
 		
                 var pruneCluster = new PruneClusterForLeaflet();
-		pruneCluster.Cluster.Size = 25;
+		pruneCluster.Cluster.Size = 15;
 		pruneCluster.ProcessView(); // looks like it works OK without this line
-		
+
+		////////////
+		pruneCluster.BuildLeafletClusterIcon = function(cluster) {
+		    var e = new L.Icon.MarkerCluster();
+		    e.stats = cluster.stats;
+		    e.population = cluster.population;
+		    return e;
+		};
+		////////////
+
 		pruneCluster.PrepareLeafletMarker = function(leafletMarker, data) {
 		    if (leafletMarker.getPopup()) {
 			leafletMarker.setPopupContent(setpopup(data.feature));
@@ -359,6 +434,7 @@ function map_init(map, options)
 			L.extendedDivIcon
 			({
 			    iconSize: new L.Point(vallen, 14),
+			    labelAnchor: [vallen/2, 0],			    
 			    html: data.feature.properties.val,
 			    className: 'myDivIcon',
 			    style: {backgroundColor:getColor(data.feature.properties.val,min,max)}
@@ -378,7 +454,8 @@ function map_init(map, options)
 			//close popup;
 			    popup.closePopup();
 		    });
-		    */
+
+		    */		   
 		    leafletMarker.on('popupopen',function managepreload(e) 
 				     {
 					 $('#preloadimages img').preload({
@@ -394,6 +471,10 @@ function map_init(map, options)
 		    
 		    var marker = new PruneCluster.Marker(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
 		    marker.data.feature=feature;
+		    marker.category = getColorIndex(feature.properties.val,min,max);
+		    //console.log(marker.category);
+		    //marker.category = Math.floor(Math.random() * Math.random() * colors.length);
+		    
 		    
 		    /*
 		    var vallen= (feature.properties.val).toString().length * 6 + 6;
