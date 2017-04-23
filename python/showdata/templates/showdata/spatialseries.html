@@ -210,8 +210,8 @@ function oneachfeature(feature, layer)
 var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
 
 function getColorIndex(d,min,max) {
-    var delta=(max-min)/colors.length;
-    return Math.floor((d-min)/delta);
+    var delta=(max-min)/(colors.length);
+    return Math.max(0,Math.min(colors.length,Math.floor((d-min)/delta)));
 }
 
 
@@ -342,8 +342,33 @@ function map_init(map, options)
 		  max=Math.max(max,collection['features'][i].properties.val);
 		}
 
+		//  Legend
+		var legend = L.control({position: 'bottomright'});
+		legend.onAdd = function (map) {
+
+		    var div = L.DomUtil.create('div', 'info legend')
+		    // loop through our density intervals and generate a label with a colored square for each interval
+
+		    var halfdelta = ((max-min)/(colors.length*2.));
+
+		    for (var i = 0; i < colors.length; i++) {
+			var grade = min + halfdelta * (i*2+1);
+			div.innerHTML += '<div style="background:white">'+
+			    '<b style="background:' + getColor(grade,min,max) + '">&nbsp;&nbsp;&nbsp;</b>&nbsp;'
+			    + grade.toExponential(3) + '<br></div>';
+		    
+			//div.innerHTML += '<div style="background:white">' +
+			//    '<i style="background:' + getColor(grademin,min,max) + '">&nbsp;&nbsp;&nbsp;</i> ' +
+			//    grademin.toExponential(3) + '&ndash;' + grademax.toExponential(3) + '<br></div>';
+		    }
+		    
+		    return div;
+		};
+		
+		legend.addTo(map);
+
 		////////////		
-		    pi2 = Math.PI * 2;
+		pi2 = Math.PI * 2;
 		L.Icon.MarkerCluster = L.Icon.extend({
 		    options: {
 			iconSize: new L.Point(44, 44),
@@ -386,7 +411,7 @@ function map_init(map, options)
 				    from = start;
 				}
 				canvas.arc(22, 22, 22, from, to);
-				start = start + size * pi2;
+				start = to;
 				canvas.lineTo(22, 22);
 				//canvas.stroke();
 				canvas.fill();
