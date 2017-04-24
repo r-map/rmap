@@ -10,13 +10,6 @@ fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtur
 
 def load_fixture(apps, schema_editor):
 
-    fixture_file=fixture_dir+"/sensor_type.json"
-    fixture = open(fixture_file, 'rb')
-    objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
-    for obj in objects:
-        obj.save()
-        fixture.close()
-
     fixture_file=fixture_dir+"/sensor_type_01.json"
     fixture = open(fixture_file, 'rb')
     objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
@@ -84,6 +77,26 @@ class Migration(migrations.Migration):
             model_name='stationmetadata',
             name='network',
             field=models.CharField(choices=[(b'fixed', b'For station with fixed coordinate'), (b'mobile', b'For station with mobile coordinate')], default=b'fixed', help_text='station network', max_length=50),
+        ),
+        migrations.AddField(
+            model_name='bcode',
+            name='offset',
+            field=models.FloatField(default=0.0, help_text='Offset coeficent to convert units'),
+        ),
+        migrations.AddField(
+            model_name='bcode',
+            name='scale',
+            field=models.FloatField(default=1.0, help_text='Scale coeficent to convert units'),
+        ),
+        migrations.AddField(
+            model_name='bcode',
+            name='userunit',
+            field=models.CharField(default=b'Undefined', help_text='units of measure', max_length=20),
+        ),
+        migrations.AlterField(
+            model_name='bcode',
+            name='unit',
+            field=models.CharField(default=b'Undefined', help_text='Units of measure', max_length=20),
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),
     ]

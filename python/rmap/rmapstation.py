@@ -32,7 +32,6 @@ from sensordriver import SensorDriver
 from gps import *
 from bluetooth import *
 
-from plyer import notification
 from plyer.compat import PY2
 from kivy.lib import osc    ####   osc IPC  ####
 from kivy.utils import platform
@@ -841,8 +840,10 @@ class station():
 
                 do_notify(message,title)
 
-            except:
+            except Exception as e:
+                print e
                 print "ERROR in main loop!"
+                traceback.print_exc()
 
             print "now:",datetime.utcnow()
             nexttime=nexttime+timedelta(seconds=self.mqtt_sampletime)
@@ -858,7 +859,6 @@ class station():
         stop=False
         while (datetime.utcnow() < nexttime):
             osc.readQueue(self.oscid)
-            print ">>>>> ----- rpcin background message: ", self.rpcin_message
             if self.rpcin_message == "stop":
                 stop=True
                 break

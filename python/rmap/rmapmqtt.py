@@ -21,6 +21,12 @@
 # (messaggi retained) dopo un certo lasso di tempo 
 
 import os
+import traceback
+try:
+    from plyer.compat import PY2
+    from plyer import notification
+except:
+    print "plyer not available"
 
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
@@ -353,10 +359,10 @@ def do_notify(message="",title="Notification"):
 
     try:
         notification.notify(**kwargs)
-    except:
+    except exception as e:
+        print e
         print "error on notify message:",title, message
-
-
+        traceback.print_exc()
 
 def main():
 

@@ -1670,7 +1670,9 @@ class Rmap(App):
                 ,board_slug=self.config.get('sensors','remote_board')
                 ,template=self.config.get('sensors','remote_template'))
 
-        except:
+        except Exception as e:
+            print e
+            traceback.print_exc()
             self.popup(_("Error\nsetting station"))
 
         #except Exception as e:
