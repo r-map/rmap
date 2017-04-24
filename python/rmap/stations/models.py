@@ -231,8 +231,11 @@ class Bcode(models.Model):
 
     bcode = models.CharField(unique=True,max_length=6,default="B00000",blank=False,help_text=ugettext_lazy("Bcode as defined in dballe btable"))
     description = models.CharField(max_length=100,default="Undefined",blank=False,help_text=ugettext_lazy("Descriptive text"))
-    unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
-
+    unit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("Units of measure"))
+    offset=models.FloatField(default=0.,null=False,blank=False,help_text=ugettext_lazy("Offset coeficent to convert units"))
+    scale=models.FloatField(default=1.,null=False,blank=False,help_text=ugettext_lazy("Scale coeficent to convert units"))
+    userunit = models.CharField(max_length=20,default="Undefined",blank=False,help_text=ugettext_lazy("units of measure"))
+    
     def natural_key(self):
         #print "natural key bcode"
         #print self,self.bcode
@@ -251,6 +254,13 @@ class Bcode(models.Model):
         else:
             return self.bcode
 
+    def describe_uservar(self):
+        if dballepresent:
+            varinfo=dballe.varinfo(self.bcode)
+            return varinfo.desc.lower()+" "+self.userunit
+        else:
+            return self.bcode
+        
     def __unicode__(self):
         return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
 

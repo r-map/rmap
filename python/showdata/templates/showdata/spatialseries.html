@@ -69,7 +69,7 @@
   <div class="row">
     <div class="col-xs-9">
       <h4>
-	{{vartxt}}<br>
+	{{vartxt}}  {{bcode.userunit}}<br>
 	{{trangetxt}}<br>
 	{{leveltxt}}<br>
 	{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
@@ -256,13 +256,13 @@ function pointtolayer(feature, latlng)
     
     if (feature.geometry && feature.geometry.coordinates) {
 	coords.push( [ feature.geometry.coordinates[1],feature.geometry.coordinates[0] ]);
-
-	var vallen= (feature.properties.val).toString().length * 6;
+        var val=feature.properties.val*{{bcode.scale}}+{{bcode.offset}}
+	var vallen= val.toString().length * 6;
 
         //alert(getColor(feature.properties.val,min,max));
 	var myIcon = L.extendedDivIcon({
             iconSize: new L.Point(vallen, 14),
-            html: feature.properties.val,
+            html: val,
             className: 'myDivIcon',
             // Set style here (new!)
             style: {
@@ -355,8 +355,8 @@ function map_init(map, options)
 			var grade = min + halfdelta * (i*2+1);
 			div.innerHTML += '<div style="background:white">'+
 			    '<b style="background:' + getColor(grade,min,max) + '">&nbsp;&nbsp;&nbsp;</b>&nbsp;'
-			    + grade.toExponential(3) + '<br></div>';
-		    
+			    + (grade*{{bcode.scale}}+{{bcode.offset}}).toPrecision(3) + '<br></div>';
+
 			//div.innerHTML += '<div style="background:white">' +
 			//    '<i style="background:' + getColor(grademin,min,max) + '">&nbsp;&nbsp;&nbsp;</i> ' +
 			//    grademin.toExponential(3) + '&ndash;' + grademax.toExponential(3) + '<br></div>';
@@ -453,14 +453,14 @@ function map_init(map, options)
 			//leafletMarker.bindPopup(data.name);
 			leafletMarker.bindPopup(setpopup(data.feature));
 		    }
-
-		    var vallen= (data.feature.properties.val).toString().length * 6 + 6;
+		    var val=(data.feature.properties.val*{{bcode.scale}}+{{bcode.offset}}).toPrecision(3)
+		    var vallen= val.length * 6 + 6;
 		    leafletMarker.setIcon(
 			L.extendedDivIcon
 			({
 			    iconSize: new L.Point(vallen, 14),
 			    labelAnchor: [vallen/2, 0],			    
-			    html: data.feature.properties.val,
+			    html: val,
 			    className: 'myDivIcon',
 			    style: {backgroundColor:getColor(data.feature.properties.val,min,max)}
 			})

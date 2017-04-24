@@ -60,14 +60,14 @@
 <h4>{% trans 'Variable' %}: {{ sensor.name }}</h4>
 
 <h5>{{ sensor.describe_timerange }} ;  {{ sensor.describe_level }}</h5>
-<h5>{{ bcode.describe_var }}</h5>
+<h5>{{ bcode.describe_uservar }}</h5>
 
 <div class="col-md-6">
   <p>
-    <img src = "/graphite/render/?target={{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
+    <img src = "/graphite/render/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
   </p>
 
-  <p><a class="btn btn-default" href="/graphite/composer/?target={{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}}&from=-12hours" role="button">Graphite composer &raquo;</a></p>
+  <p><a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&from=-12hours" role="button">Graphite composer &raquo;</a></p>
 </div>
 
           {% endfor %}

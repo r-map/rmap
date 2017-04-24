@@ -67,9 +67,9 @@ admin.site.register(SensorType, SensorTypeAdmin)
 
 class BcodeAdmin(admin.ModelAdmin):
 
-    list_display = ('bcode','description','unit')
+    list_display = ('bcode','description','unit','scale','offset','userunit')
     search_fields = ['bcode','description','unit']
-
+    list_editable =('scale','offset','userunit')
     list_filter = ('unit',)
 
 admin.site.register(Bcode, BcodeAdmin)

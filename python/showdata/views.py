@@ -6,6 +6,7 @@ import dballe
 from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
+from rmap.stations.models import Bcode
 
 def filtro(request, **kwargs):
 
@@ -53,7 +54,8 @@ def menu(request, **kwargs):
             meta["vartxt"]="All vars"
         else:
             varinfo=dballe.varinfo(mymeta["var"])
-            meta["vartxt"]=varinfo.desc+" "+varinfo.unit
+            #meta["vartxt"]=varinfo.desc+" "+varinfo.unit
+            meta["vartxt"]=varinfo.desc
 
         meta["var"]=mymeta["var"]
         meta["level"]  = "%s,%s,%s,%s" % tuple(("-" if v is None else str(v) for v in mymeta["level"]))
@@ -263,9 +265,12 @@ def timeseries(request, **kwargs):
 
     if kwargs.get("var")== "*":
         vartxt="All vars"
+        bcode=Bcode(bcode="B00001",description="Undefined",unit="Undefined",userunit="",scale=1.0,offset=0.0)
     else:
         varinfo=dballe.varinfo(kwargs.get("var"))
-        vartxt=varinfo.desc+" "+varinfo.unit
+        #vartxt=varinfo.desc+" "+varinfo.unit
+        vartxt=varinfo.desc
+        bcode=Bcode.objects.get(bcode=kwargs.get("var"))
 
     return render(request, 'showdata/timeseries.html',{
         "ident":kwargs.get("ident"),"coords":kwargs.get("coords"), 
@@ -275,7 +280,7 @@ def timeseries(request, **kwargs):
         "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"),
         "datefrom":datefrom,"dateuntil":dateuntil, 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
-        "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'report_fixed')})
+        "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'report_fixed'),"bcode":bcode})
 
 def spatialseries(request, **kwargs):
 
@@ -402,10 +407,13 @@ def spatialseries(request, **kwargs):
 
     if kwargs.get("var")== "*":
         vartxt="All vars"
+        bcode=Bcode(bcode="B00001",description="Undefined",unit="Undefined",userunit="",scale=1.0,offset=0.0)
     else:
         varinfo=dballe.varinfo(kwargs.get("var"))
-        vartxt=varinfo.desc+" "+varinfo.unit
-    
+        #vartxt=varinfo.desc+" "+varinfo.unit
+        vartxt=varinfo.desc
+        bcode=Bcode.objects.get(bcode=kwargs.get("var"))
+        
     return render(request, 'showdata/spatialseries.html',{
         "ident":kwargs.get("ident"), "coords":kwargs.get("coords"), 
         "network":kwargs.get("network"), "trange":kwargs.get("trange"), 
@@ -414,7 +422,7 @@ def spatialseries(request, **kwargs):
         "hour":kwargs.get("hour"), 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "datefrom":datefrom,"dateuntil":dateuntil,
-        "previous":previous,"next":next,"less":less,"more":more})
+        "previous":previous,"next":next,"less":less,"more":more,"bcode":bcode})
     
 def stations(request, **kwargs):
 
