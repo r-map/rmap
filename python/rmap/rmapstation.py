@@ -49,7 +49,7 @@ import json
 from datetime import datetime, timedelta
 import time
 #import mosquitto
-from rmapmqtt import rmapmqtt
+from rmapmqtt import rmapmqtt,do_notify
 from utils import log_stdout
 from stations.models import StationMetadata
 import rmap_core
