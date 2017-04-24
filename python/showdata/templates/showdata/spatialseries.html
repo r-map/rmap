@@ -211,7 +211,7 @@ var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C
 
 function getColorIndex(d,min,max) {
     var delta=(max-min)/(colors.length);
-    return Math.max(0,Math.min(colors.length,Math.floor((d-min)/delta)));
+    return Math.max(0,Math.min(colors.length-1,Math.floor((d-min)/delta)));
 }
 
 
