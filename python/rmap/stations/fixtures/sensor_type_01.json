@@ -28,7 +28,7 @@
             "description": "PRESSURE",
             "unit": "Pa",
             "offset": 0.0,
-            "scale": 1.0,
+            "scale": 0.01,
             "userunit": "hPa"
         }
     },
@@ -40,7 +40,7 @@
             "unit": "DEGREE TRUE",
             "offset": 0.0,
             "scale": 1.0,
-            "userunit": "DEGREE TRUE"
+            "userunit": "Degree"
         }
     },
     {
@@ -61,8 +61,8 @@
             "description": "TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT",
             "unit": "KG/M**2",
             "offset": 0.0,
-            "scale": 1e-09,
-            "userunit": "ug/m**2"
+            "scale": 1.0,
+            "userunit": "Kg/m**2"
         }
     },
     {
@@ -72,7 +72,7 @@
             "description": "PM2.5 Concentration",
             "unit": "KG/M**3",
             "offset": 0.0,
-            "scale": 1e-09,
+            "scale": 1e9,
             "userunit": "ug/m**3"
         }
     },
@@ -83,7 +83,7 @@
             "description": "PM10 Concentration",
             "unit": "KG/M**3",
             "offset": 0.0,
-            "scale": 1e-09,
+            "scale": 1e9,
             "userunit": "ug/m**3"
         }
     },
@@ -94,7 +94,7 @@
             "description": "CO Concentration",
             "unit": "KG/M**3",
             "offset": 0.0,
-            "scale": 1e-09,
+            "scale": 1e9,
             "userunit": "ug/m**3"
         }
     },
@@ -105,7 +105,7 @@
             "description": "NO2 Concentration",
             "unit": "KG/M**3",
             "offset": 0.0,
-            "scale": 1e-09,
+            "scale": 1e9,
             "userunit": "ug/m**3"
         }
     }

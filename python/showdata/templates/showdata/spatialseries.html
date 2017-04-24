@@ -355,11 +355,11 @@ function map_init(map, options)
 			var grade = min + halfdelta * (i*2+1);
 			div.innerHTML += '<div style="background:white">'+
 			    '<b style="background:' + getColor(grade,min,max) + '">&nbsp;&nbsp;&nbsp;</b>&nbsp;'
-			    + (grade*{{bcode.scale}}+{{bcode.offset}}).toPrecision(3) + '<br></div>';
+			    + (grade*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"") + '<br></div>';
 
 			//div.innerHTML += '<div style="background:white">' +
 			//    '<i style="background:' + getColor(grademin,min,max) + '">&nbsp;&nbsp;&nbsp;</i> ' +
-			//    grademin.toExponential(3) + '&ndash;' + grademax.toExponential(3) + '<br></div>';
+			//    grademin.toExponential(5) + '&ndash;' + grademax.toExponential(5) + '<br></div>';
 		    }
 		    
 		    return div;
@@ -453,7 +453,7 @@ function map_init(map, options)
 			//leafletMarker.bindPopup(data.name);
 			leafletMarker.bindPopup(setpopup(data.feature));
 		    }
-		    var val=(data.feature.properties.val*{{bcode.scale}}+{{bcode.offset}}).toPrecision(3)
+		    var val=(data.feature.properties.val*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"")
 		    var vallen= val.length * 6 + 6;
 		    leafletMarker.setIcon(
 			L.extendedDivIcon
