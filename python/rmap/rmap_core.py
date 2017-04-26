@@ -1214,7 +1214,7 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
 
 
 def configdb(username="rmap",password="rmap",
-             station="home",lat=0,lon=0,constantdata={},network="rmap",
+             station="home",lat=0,lon=0,constantdata={},network="fixed",
              mqttusername="your user",
              mqttpassword="your password",
              mqttserver="rmap.cc",

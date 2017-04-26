@@ -112,6 +112,7 @@ parser.add_argument('--mqttpassword',  default="", help="mqtt password")
 parser.add_argument('--mqttsamplerate',type=int,  default=5, help="mqtt samplerate for sensorsin seconds")
 parser.add_argument('--mqttrootpath',  default="rmap", help="mqtt topic root path")
 parser.add_argument('--mqttmaintpath',  default="rmap", help="mqtt topic maint path for admin RPC")
+parser.add_argument('--network',  default="fixed", help="network (station type)",choices=("fixed","mobile"))
 
 parser.add_argument('--bluetoothactivate', action="store_true", help="activate bluetooth transport")
 parser.add_argument('--amqpactivate', action="store_true", help="activate amqp transport")
@@ -143,6 +144,7 @@ if args.wizard:
 
     rmap.rmap_core.configdb(username=args.username,password=args.password,
                             station=args.station_slug,lat=args.lat,lon=args.lon,constantdata=constantdata,
+                            network=network,
                             mqttusername=args.username,
                             mqttpassword=args.password,
                             mqttserver=args.server,
