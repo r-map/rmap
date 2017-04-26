@@ -38,6 +38,11 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	return new SensorDriverHyt271();
       else
 #endif
+#if defined (HI7021DRIVER)
+      if (strcmp(type, "HI7") == 0)
+	return new SensorDriverSI7021();
+      else
+#endif
 #if defined (BMPDRIVER)
       if (strcmp(type, "BMP") == 0)
 	return new SensorDriverBmp085();
@@ -980,6 +985,27 @@ uint32_t SensorDriverBmp085::readRawPressure(void) {
   return raw;
 }
 
+float SensorDriverBmp085::readTemperature(void) {
+  int32_t UT, B5;     // following ds convention
+  float temp;
+
+  UT = readRawTemperature();
+
+#if BMP085_DEBUG == 1
+  // use datasheet numbers!
+  UT = 27898;
+  ac6 = 23153;
+  ac5 = 32757;
+  mc = -8711;
+  md = 2868;
+#endif
+
+  B5 = computeB5(UT);
+  temp = (B5+8) >> 4;
+  temp /= 10;
+  return temp;
+
+}
 
 int32_t SensorDriverBmp085::readPressure(void) {
   int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
@@ -1140,7 +1166,7 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
   if (lenvalues>=1) values[0] = (long) round(float(readPressure())/10.);
-  //if (lenvalues>=2) values[1] = 0;
+  if (lenvalues>=2) values[1] = (long) round(readTemperature() * 100. + 27315.);
 
   _timing=0;
 
@@ -1158,14 +1184,126 @@ aJsonObject* SensorDriverBmp085::getJson()
   if (SensorDriverBmp085::get(values,2) == SD_SUCCESS){
     // pressure
     aJson.addNumberToObject(jsonvalues, "B10004", values[0]);      
-    // if you have a second value add here
+#if defined(SECONDARYPARAMETER)
     // temperature
-    //aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+#endif
 
   }else{
     aJson.addNullToObject(jsonvalues, "B10004");
+#if defined(SECONDARYPARAMETER)
+    aJson.addNullToObject(jsonvalues, "B12101");
+#endif
+  }
+  return jsonvalues;
+}
+#endif
+#endif
+
+
+#if defined (HI7021DRIVER)
+int SensorDriverSI7021::setup(const char* driver, const int address, const int node, const char* type
+             #if defined (RADIORF24)
+			       , char* mainbuf, size_t lenbuf, RF24Network* network
+               #if defined (AES)
+			       , uint8_t key[] , uint8_t iv[]
+               #endif
+             #endif
+			       )
+{
+
+  SensorDriver::setup(driver,address,node,type
+             #if defined (RADIORF24)
+		      , mainbuf, lenbuf, network
+               #if defined (AES)
+		      , key,iv
+               #endif
+             #endif
+		      );
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverSI7021::prepare(unsigned long& waittime)
+{
+  Wire.begin();
+  Wire.beginTransmission(_address);
+  Wire.endTransmission();
+  delay(300);
+  _timing=millis();
+  waittime= 50ul;
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverSI7021::get(long values[],size_t lenvalues)
+{
+
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  unsigned int data[2];
+  Wire.beginTransmission(_address);
+  Wire.write(0xF5);
+  Wire.endTransmission();
+  delay(500);
+
+  Wire.requestFrom(_address, 2);
+
+  if(Wire.available() == 2)
+  {
+    data[0] = Wire.read();
+    data[1] = Wire.read();
+  }
+
+  float humidity  = ((data[0] * 256.0) + data[1]);
+  humidity = ((125 * humidity) / 65536.0) - 6;
+
+  Wire.beginTransmission(_address);
+  Wire.write(0xF3);
+  Wire.endTransmission();
+
+  delay(500);
+
+  Wire.requestFrom(_address, 2);
+
+  if(Wire.available() == 2)
+  {
+    data[0] = Wire.read();
+    data[1] = Wire.read();
+  }
+
+  long temperature  = ((data[0] * 256.0) + data[1]);
+  temperature =  (((175.72 * float(temperature)) / 65536.0) - 46.85) * 100. + 27315.;
+
+  if (lenvalues >= 1)  values[0] = round (humidity);
+  if (lenvalues >= 2)  values[1] = round(temperature);
+  _timing=0;
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSI7021::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
+  if (SensorDriverSI7021::get(values,2) == SD_SUCCESS){
+    aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
+
+#if defined(SECONDARYPARAMETER)
     // if you have a second value add here
-    //aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+#endif
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+#if defined(SECONDARYPARAMETER)
+    // if you have a second value add here
+    aJson.addNullToObject(jsonvalues, "B13003");
+#endif
   }
   return jsonvalues;
 }

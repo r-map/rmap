@@ -41,6 +41,9 @@
 #define BMPDRIVER
 //#define BMP085_DEBUG 1
 
+//include SI7021
+#define HI7021DRIVER
+
 // include DAVIS WIND driver
 #define DAVISWIND1
 
