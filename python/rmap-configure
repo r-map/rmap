@@ -144,7 +144,7 @@ if args.wizard:
 
     rmap.rmap_core.configdb(username=args.username,password=args.password,
                             station=args.station_slug,lat=args.lat,lon=args.lon,constantdata=constantdata,
-                            network=network,
+                            network=args.network,
                             mqttusername=args.username,
                             mqttpassword=args.password,
                             mqttserver=args.server,
