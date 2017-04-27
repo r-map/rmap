@@ -233,7 +233,7 @@ class station():
                                      "timerange":sensor.timerange,
                                      "level":sensor.level})
     def ismobile(self):
-        return self.prefix == "mobile"
+        return self.network == "mobile"
 
     def display(self):
 

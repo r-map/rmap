@@ -2271,7 +2271,7 @@ class Rmap(App):
             webbrowser.open("http://"+self.config.get('rmap','server')+"/stations/"+self.config.get('rmap','user')+"/"+self.config.get('sensors','station').split("/")[0])
 
     def starttrip(self):
-        print "prefix: ",self.mystation.prefix
+        print "network: ",self.mystation.network
         if not self.mystation.ismobile():
             self.popup(_("the station in\nuse is not of\ntype mobile"))
             self.root.ids["trip"].state="normal"
