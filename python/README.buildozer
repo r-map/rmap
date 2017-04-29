@@ -13,33 +13,27 @@ pip install --target '/home/pat1/git/rmap/buildozer/android/platform/build/build
 
 old:
 
-buildozer-0.31-1.noarch
-
-cd rmap/python
-tar xvf ../buildozer_va.tgz
-
 * how to use the last django in android
 for the last django:
-   rm .buildozer/android/platform/python-for-android/recipes/django/recipe.sh
+   rm python-for-android/recipes/django/recipe.sh
 or if you want 1.9.2
    edit .buildozer/android/platform/python-for-android/recipes/django/recipe.sh
         VERSION_django=${VERSION_django:-1.9.2}
         MD5_django=ee90280973d435a1a6aa01b453b50cd1
 
-comment wsgiref in
-.buildozer/android/platform/python-for-android/src/blacklist.txt
+???
+## comment wsgiref in
+## rmap/buildozer/android/platform/python-for-android/src/blacklist.txt
 
 clean locale files:
 
-  # old find .buildozer/applibs/django -name \*.mo -exec rm \{\} \;
-  # old find .buildozer/applibs/django -name \*.po -exec rm \{\} \;
+  #  find buildozer/applibs/django -name \*.mo -exec rm \{\} \;
+  #  find buildozer/applibs/django -name \*.po -exec rm \{\} \;
 
 apply patch as in
   https://github.com/r-map/rmap/issues/25
 to
-  .buildozer/android/platform/build/dists/rmap/private/lib/python2.7/site-packages/django/db/migrations/loader.py
-
-
+  buildozer/android/app/_applibs/django/db/migrations/loader.py
 
 * to rebuild android package
 buildozer android release
