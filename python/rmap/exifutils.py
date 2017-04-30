@@ -164,7 +164,7 @@ def photo_manage(filename):
         except:
             import Image as PILImage
     except:
-        print "To use this program, you need to install Python Imaging Library - http://www.pythonware.com/products/pil/"
+        print "To use this program, you need to install Python Imaging Library PILLOW"
         sys.exit(1)
 
     im = PILImage.open(filename)
