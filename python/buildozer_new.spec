@@ -38,6 +38,9 @@ version = 6.28
 
 # (list) Application requirements
 # comma seperated e.g. requirements = sqlite3,kivy
+
+# here we have to change pil with Pillow but Pillow need recipe that is missing now
+
 requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
 

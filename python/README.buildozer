@@ -21,9 +21,8 @@ or if you want 1.9.2
         VERSION_django=${VERSION_django:-1.9.2}
         MD5_django=ee90280973d435a1a6aa01b453b50cd1
 
-???
-## comment wsgiref in
-## rmap/buildozer/android/platform/python-for-android/src/blacklist.txt
+comment wsgiref in
+python-for-android/src/blacklist.txt
 
 clean locale files:
 
@@ -33,7 +32,8 @@ clean locale files:
 apply patch as in
   https://github.com/r-map/rmap/issues/25
 to
-  buildozer/android/app/_applibs/django/db/migrations/loader.py
+  src ... migrations/loader.py
+
 
 * to rebuild android package
 buildozer android release
