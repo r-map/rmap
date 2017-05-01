@@ -26,13 +26,13 @@ python-for-android/src/blacklist.txt
 
 clean locale files:
 
-  #  find buildozer/applibs/django -name \*.mo -exec rm \{\} \;
-  #  find buildozer/applibs/django -name \*.po -exec rm \{\} \;
+  #  find ../buildozer/applibs/django -name \*.mo -exec rm \{\} \;
+  #  find ../buildozer/applibs/django -name \*.po -exec rm \{\} \;
 
 apply patch as in
   https://github.com/r-map/rmap/issues/25
 to
-  src ... migrations/loader.py
+  ../buildozer/applibs/django/db/migrations/loader.py
 
 
 * to rebuild android package
