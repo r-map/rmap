@@ -585,6 +585,13 @@ bool rmapconnect()
   IF_SDEBUG(DBGSERIAL.print(F("#try connect mqtt id: ")); DBGSERIAL.println(mqttid));
   strcpy (mainbuf,configuration.mqttrootpath);
   strcat (mainbuf,"-,-,-/-,-,-,-/B01213");
+
+#if defined(USE_W5500)
+  // http://forum.arduino.cc/index.php?topic=49401.0
+  w5500.setRetransmissionTime(4000);
+  w5500.setRetransmissionCount(3);
+#endif
+
   if (mqttclient.connect(mqttid,configuration.mqttuser,configuration.mqttpassword,mainbuf,1,1,"{\"v\":\"error01\"}")){
     wdt_reset();
     IF_SDEBUG(DBGSERIAL.println(F("#mqtt connected")));
@@ -3356,12 +3363,6 @@ void setup()
   }
 
   wdt_reset();
-
-  #if defined(USE_W5500)
-      // http://forum.arduino.cc/index.php?topic=49401.0
-      w5500.setRetransmissionTime(0x07D0);
-      w5500.setRetransmissionCount(6);
-  #endif
 
 #if defined(DEBUGONSERIAL)
 
