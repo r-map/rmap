@@ -24,6 +24,8 @@ void test_read_ht() {
   float humidity;
   float temperature;
 
+  Wire.beginTransmission(I2C_HYT271_DEFAULT_ADDRESS);
+
   // Request 4 bytes at default address 0x28: 2 bytes for Humidity and 2 bytes for Temperature
   Wire.requestFrom(I2C_HYT271_DEFAULT_ADDRESS, I2C_HYT271_READ_HT_DATA_LENGTH);
 
@@ -40,23 +42,27 @@ void test_read_ht() {
 
     Serial.print("---> Temperature: ");
     Serial.print(temperature);
-    //Serial.print(" °");
-    Serial.write(0xB0); // °
+    Serial.print(" °");
+    //Serial.write(0xB0); // °
     Serial.print("C \tB12101: ");
     Serial.print(temperature + 273.15);
     Serial.println("");
     Serial.println("");
   }
+
+  Wire.endTransmission();
+
+  humidity = 0;
+  temperature = 0;
 }
 
 void setup() {
   Serial.begin(115200);
   Wire.begin();
-  Wire.setClock(50000L); // 400 KHz
+  Wire.setClock(50000L);
 }
 
 void loop() {
   test_read_ht();
   delay(5000);
 }
-

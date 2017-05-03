@@ -41,7 +41,7 @@ version = 6.28
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,validate,pika,pil
+requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,pika,pil
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
 
 # (str) Custom source folders for requirements
@@ -97,7 +97,7 @@ android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUET
 android.api = 19
 
 # (int) Minimum API required (8 = Android 2.2 devices)
-android.minapi = 13
+android.minapi = 19
 
 # (int) Android SDK version to use
 android.sdk = 24
@@ -154,7 +154,7 @@ android.p4a_dir = /home/pat1/git/python-for-android
 
 # (str) python-for-android branch to use, if not master, useful to try
 # not yet merged features.
-#android.branch = master
+android.branch = recipe-django
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
