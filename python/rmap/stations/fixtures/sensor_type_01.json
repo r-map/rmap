@@ -110,6 +110,28 @@
         }
     },
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B13013",
+            "description": "TOTAL SNOW DEPTH",
+            "unit": "M",
+            "offset": 0.0,
+            "scale": 1e-1,
+            "userunit": "cm"
+        }
+    },
+    {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "20001",
+            "description": "HORIZONTAL VISIBILITY",
+            "unit": "M",
+            "offset": 0.0,
+            "scale": 1.0,
+            "userunit": "m"
+        }
+    },
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
