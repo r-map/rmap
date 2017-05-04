@@ -161,6 +161,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/rmapctrl.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2djangod.1","./amqp2djangod"])
             subprocess.check_call(["gzip", "-f","man/man1/amqp2djangod.1"])
+            subprocess.check_call(["help2man","-N","-o","man/man1/dballe2arkimet.1","./dballe2arkimet"])
+            subprocess.check_call(["gzip", "-f","man/man1/dballe2arkimet.1"])
 
         except:
             pass
@@ -360,7 +362,7 @@ setup(name='rmap',
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
-          'rmapgui','amqp2djangod','amqp2geoimaged'],
+          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim"],
