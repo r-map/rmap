@@ -315,7 +315,7 @@
             "active": true,
             "name": "I2C Davis/Inspeed/Windsonic wind direction and intensity adapter",
             "type": "DW1",
-	    "datalevel": "report",
+	    "datalevel": "sample",
             "bcodes": [
                 ["B11001"],
                 ["B11002"]
