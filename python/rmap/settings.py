@@ -903,7 +903,7 @@ LEAFLET_CONFIG = {
 }
 
 MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
-
+ALLOWED_HOSTS = ['*']
 
 LOAD_OPTIONAL_APPS = not android
 

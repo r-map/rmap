@@ -6,6 +6,13 @@
 
 <script src= {% static "rmap/libs/jquery-preload/jquery.preload.min.js" %}></script>
 
+<style>
+[class*="col-"] {
+  border: 1px solid #ddd;
+  border: 1px solid rgba(86,61,124,.2);
+}
+</style>
+
 {% endblock %}
 
 {% block content %}
@@ -57,15 +64,13 @@
       {% if sensor.active  %}
         {% if sensor.type.active and sensor.driver == 'I2C' %}
           {% for bcode in sensor.type.bcodes.all %}
-<h4>{% trans 'Variable' %}: {{ sensor.name }}</h4>
-
-<h5>{{ sensor.describe_timerange }} ;  {{ sensor.describe_level }}</h5>
-<h5>{{ bcode.describe_uservar }}</h5>
-
 <div class="col-md-6">
-  <p>
-    <img src = "/graphite/render/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&hideLegend=true&tz=UTC&width=300&height=200&from=-12hours">
-  </p>
+
+  <h4>{% trans 'Variable' %}: {{ sensor.name }}</h4>
+  <h5>{{ sensor.describe_timerange }} ;  {{ sensor.describe_level }}</h5>
+  <h5>{{ bcode.describe_uservar }}</h5>
+
+  <img src = "/graphite/render/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&hideLegend=true&tz=UTC&width=400&height=250&from=-12hours">
 
   <p><a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&from=-12hours" role="button">Graphite composer &raquo;</a></p>
 </div>
