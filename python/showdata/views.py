@@ -278,6 +278,7 @@ def timeseries(request, **kwargs):
         "trange":kwargs.get("trange"), "undescored_trange":kwargs.get("trange").replace(",","_"), 
         "level":kwargs.get("level"), "undescored_level":kwargs.get("level").replace(",","_"), "var":kwargs.get("var"), 
         "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"),
+        "hour":kwargs.get("hour"), 
         "datefrom":datefrom,"dateuntil":dateuntil, 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'report_fixed'),"bcode":bcode})
