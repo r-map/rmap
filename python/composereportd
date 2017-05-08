@@ -76,6 +76,9 @@ def main(self):
         waitsec= (runtime - now).seconds
         logging.info( "startup wait for: %s" % waitsec)
         time.sleep(waitsec)
+    else:
+        logging.info( "startup without waiting")
+
     
     while True:
 
@@ -83,25 +86,38 @@ def main(self):
         logging.info("start/end time: %s %s" % (starttime.isoformat(' '),nexttime.isoformat(' ')))
 
 
-        for mymeta in rmap.settings.measurements:
+        for mymeta in rmap.settings.sample_measurements:
 
             variable_list= mymeta["var"]
             level        = "%s,%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["level"]))
             timerange    = "%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["trange"]))
 
+            logging.info(variable_list)
+            logging.info(level)
+            logging.info(timerange)
 
             try:
                 #(fd, filename) = tempfile.mkstemp()
                 filename="-"
 
-                #print "v7d_transform","--input-format","dba","--output-format","BUFR",\
-                #                              "--variable-list","'"+variable_list+"'","--level ","'"+level+"'","--timerange ","'"+timerange+"'",\
-                #                              "--start-date","'"+starttime.replace(microsecond=0).isoformat(' ')+"'" ,\
-                #                              "--end-date","'"+nexttime.replace(microsecond=0).isoformat(' ')+"'",\
-                #                              "--comp-start","'"+starttime.replace(microsecond=0).isoformat(' ')+"'" ,\
-                #                              "--comp-step","'0000000000 00:15:00.000'","--comp-frac-valid","'.002'",\
-                #                              "--comp-stat-proc","'254:0'","'"+rmap.settings.dsnsample_fixed+"'",\
-                #                              filename
+
+                print "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
+                    " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
+                    " --start-date"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
+                    " --end-date"+" '"+nexttime.replace(microsecond=0).isoformat(' ')+"'"+\
+                    " --comp-start"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
+                    " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
+                    " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
+                    filename
+
+                #logging.info( "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
+                #              " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
+                #              " --start-date"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
+                #              " --end-date"+" '"+nexttime.replace(microsecond=0).isoformat(' ')+"'"+\
+                #              " --comp-start"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
+                #              " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
+                #              " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
+                #              filename)
                 
                 #compute 60s mean with max intervall = 20s as instantaneous values
                 self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",

@@ -599,8 +599,7 @@ if not android :
     }
 
 
-
-measurements=[
+sample_measurements=[
     {
         "var": "B12101",
         "level": (103, 2000, None, None),
@@ -658,6 +657,64 @@ measurements=[
     },
 ]
 
+report_measurements=[
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B10004",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11001",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B11002",
+        "level": (103, 10000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13011",
+        "level": (1, None, None, None),
+        "trange": (1, 0, 3600),
+    },
+    {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B20003",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13013",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B20001",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+]
+
 
 BORINUD =\
           {"report":{
@@ -674,27 +731,27 @@ BORINUD =\
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
-                      "measurements": measurements
+                      "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/arpav",
-                      "measurements": measurements
+                      "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/opendata-er",
-                      "measurements": measurements
+                      "measurements": report_measurements
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/report_fixed",
-                      "measurements": measurements
+                      "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/report_mobile",
-                      "measurements": measurements
+                      "measurements": report_measurements
                   },
               ],
               "CACHED_SUMMARY": "default",
@@ -710,22 +767,22 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
-                       "measurements": measurements
+                       "measurements": report_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/arpav",
-                       "measurements": measurements
+                       "measurements": report_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/opendata-er",
-                       "measurements": measurements
+                       "measurements": report_measurements
                    },        
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/report_fixed",
-                       "measurements": measurements
+                       "measurements": report_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
@@ -741,7 +798,7 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/report_mobile",
-                       "measurements": measurements
+                       "measurements": report_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
@@ -761,12 +818,12 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
-                       "measurements": measurements
+                       "measurements": sample_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
-                       "measurements": measurements
+                       "measurements": sample_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
@@ -782,7 +839,7 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
-                       "measurements": measurements
+                       "measurements": sample_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
@@ -798,7 +855,7 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
-                       "measurements": measurements
+                       "measurements": sample_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
