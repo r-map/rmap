@@ -33,7 +33,7 @@ exchange=rmap.settings.exchangecomposereportd
 routing_key="composereportd"
 
 
-tloop=60*3
+tloop=60*15
 
 composereportd = daemon.Daemon(
         stdin="/dev/null",
@@ -48,104 +48,144 @@ def main(self):
 
     import subprocess,os,time
     import tempfile,datetime
+    import logging,logging.handlers
 
+
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
+
+    logging.info('Starting up mqtt2dballed')
+    
     #    my_env = os.environ
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
 
-    nexttime=(datetime.datetime.utcnow()+datetime.timedelta(seconds=tloop)).replace(second=0)
-    waitsec=min((nexttime - datetime.datetime.utcnow()).seconds,tloop)
-    print "wait for:",waitsec
-    time.sleep(waitsec)
+    now=datetime.datetime.utcnow()
+    newminute = now.minute - (now.minute % (tloop/60))
+    newsecond=0
+    nexttime=(now.replace(minute=newminute,second=newsecond,microsecond=0))
 
-    while True:
-    
-        starttime=nexttime - datetime.timedelta(seconds=(tloop+tloop/3))
-        print "start/end time: ",starttime.replace(microsecond=0).isoformat(' '),nexttime.replace(microsecond=0).isoformat(' ')
+    runtime=nexttime+ datetime.timedelta(seconds=tloop/3)
 
-        try:
-            #(fd, filename) = tempfile.mkstemp()
-            filename="-"
-
-            #        print ["v7d_transform","--input-format=dba","--output-format=BUFR","--network-list=rmap",
-            #               "--start-date",starttime.replace(microsecond=0).isoformat(' ') ,
-            #               "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
-            #               "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
-            #               "--comp-step","0000000000 00:01:00.000","--comp-frac-valid",".002",
-            #               "--comp-stat-proc=254:0","generic","rmap/rmap@rmap",
-            #               filename]
-
-            #compute 60s mean with max intervall = 20s as instantaneous values
-            self.procs=[subprocess.Popen(["v7d_transform","--input-format=dba","--output-format=BUFR","--network-list=rmap",
-                                          "--start-date",starttime.replace(microsecond=0).isoformat(' ') ,
-                                          "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
-                                          "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
-                                          "--comp-step","0000000000 00:01:00.000","--comp-frac-valid",".002",
-                                          "--comp-stat-proc=254:0","rmap/rmap@rmap",
-                                          filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE)]
-                                          #,env=my_env
-
-
-            body,outerr=self.procs[0].communicate()
-
-            status=self.procs[0].wait()
-            if status != 0:
-                print "There were some errors executing v7d_transform: ",status,outerr
-
-        except:
-            print "There were some errors executing dba_transform"
-            raise
-
-        try:
-            # Legge un file.
-            #in_file = open(filename,"r")
-            #in_file = os.fdopen(fd, "r")
-            #body = in_file.read()
-            #in_file.close()
-            
-            credentials=pika.PlainCredentials(user, password)
-            properties=pika.BasicProperties(
-                user_id= user,
-                delivery_mode = 2, # persistent
-            )
-
-            # connection_attempts (int) - Maximum number of retry attempts
-            # retry_delay (int|float) - Time to wait in seconds, before the next
-            # socket_timeout (int|float) - Use for high latency networks
-
-            connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host=host,credentials=credentials,
-                connection_attempts=3,
-                retry_delay=5,
-                socket_timeout=3.))
-
-            channel = connection.channel()
-        
-            #channel.queue_declare(queue=queue)
-
-            # Turn on delivery confirmations
-            channel.confirm_delivery()
-
-            if channel.basic_publish(exchange=exchange,
-                                  routing_key=routing_key,
-                                  body=body,
-                                  properties=properties):
-                print 'Message publish was confirmed'
-            else:
-                print 'Message could not be confirmed'
-            
-            print " [x] message Sent "
-            connection.close()
-
-        except:
-            raise
-
-        #finally:
-            #os.remove(filename)
-
-        nexttime=nexttime+datetime.timedelta(seconds=tloop)
-        waitsec=min((nexttime - datetime.datetime.utcnow()).seconds,tloop)
-        print "wait for:",waitsec
+    if runtime > now:
+        waitsec= (runtime - now).seconds
+        logging.info( "startup wait for: %s" % waitsec)
         time.sleep(waitsec)
+    
+    while True:
+
+        starttime=nexttime - datetime.timedelta(seconds=tloop*3)
+        logging.info("start/end time: %s %s" % (starttime.isoformat(' '),nexttime.isoformat(' ')))
+
+
+        for mymeta in rmap.settings.measurements:
+
+            variable_list= mymeta["var"]
+            level        = "%s,%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["level"]))
+            timerange    = "%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["trange"]))
+
+
+            try:
+                #(fd, filename) = tempfile.mkstemp()
+                filename="-"
+
+                #print "v7d_transform","--input-format","dba","--output-format","BUFR",\
+                #                              "--variable-list","'"+variable_list+"'","--level ","'"+level+"'","--timerange ","'"+timerange+"'",\
+                #                              "--start-date","'"+starttime.replace(microsecond=0).isoformat(' ')+"'" ,\
+                #                              "--end-date","'"+nexttime.replace(microsecond=0).isoformat(' ')+"'",\
+                #                              "--comp-start","'"+starttime.replace(microsecond=0).isoformat(' ')+"'" ,\
+                #                              "--comp-step","'0000000000 00:15:00.000'","--comp-frac-valid","'.002'",\
+                #                              "--comp-stat-proc","'254:0'","'"+rmap.settings.dsnsample_fixed+"'",\
+                #                              filename
+                
+                #compute 60s mean with max intervall = 20s as instantaneous values
+                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                                              "--variable-list",variable_list,"--level",level,"--timerange",timerange,
+                                              "--start-date",starttime.replace(microsecond=0).isoformat(' ') ,
+                                              "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
+                                              "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
+                                              "--comp-step","0000000000 00:15:00.000","--comp-frac-valid",".002",
+                                              "--comp-stat-proc","254:0",rmap.settings.dsnsample_fixed,
+                                              filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                )]
+
+                
+                body,outerr=self.procs[0].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    lopgging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+
+                else:
+
+                    try:
+                        # Legge un file.
+                        #in_file = open(filename,"r")
+                        #in_file = os.fdopen(fd, "r")
+                        #body = in_file.read()
+                        #in_file.close()
+                        
+                        credentials=pika.PlainCredentials(user, password)
+                        properties=pika.BasicProperties(
+                            user_id= user,
+                            delivery_mode = 2, # persistent
+                        )
+
+                        # connection_attempts (int) - Maximum number of retry attempts
+                        # retry_delay (int|float) - Time to wait in seconds, before the next
+                        # socket_timeout (int|float) - Use for high latency networks
+                        
+                        connection = pika.BlockingConnection(pika.ConnectionParameters(
+                            host=host,credentials=credentials,
+                            connection_attempts=3,
+                            retry_delay=5,
+                            socket_timeout=3.))
+
+                        channel = connection.channel()
+
+                        #channel.queue_declare(queue=queue)
+                        
+                        # Turn on delivery confirmations
+                        channel.confirm_delivery()
+
+                        if channel.basic_publish(exchange=exchange,
+                                                 routing_key=routing_key,
+                                                 body=body,
+                                                 properties=properties):
+                            logging.info('Message publish was confirmed')
+                        else:
+                            logging.info('Message could not be confirmed')
+
+                        logging.info(" [x] message Sent ")
+                        connection.close()
+
+                    except:
+                        raise
+
+                    #finally:
+                        #os.remove(filename)
+
+            except:
+                logging.error("There were some errors executing dba_transform")
+                raise
+
+
+        now=datetime.datetime.utcnow()
+        nexttime=nexttime+datetime.timedelta(seconds=tloop)
+        runtime=nexttime+ datetime.timedelta(seconds=tloop/3)
+
+        if runtime > now:
+            waitsec= (runtime - now).seconds
+            logging.info( "wait for: %s" % waitsec)
+            time.sleep(waitsec)
+
+        else:
+            logging.warning("attention; I am late !!")
 
 
 if __name__ == '__main__':
