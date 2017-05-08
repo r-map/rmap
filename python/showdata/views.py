@@ -36,7 +36,7 @@ def menu(request, **kwargs):
 
     metadata=[]
 
-    for mymeta in measurements:
+    for mymeta in report_measurements:
 
         meta={}
 
