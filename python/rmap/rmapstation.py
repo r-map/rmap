@@ -537,6 +537,8 @@ class station():
             self.mqtt_status = _('Connect Status: ERROR, you have to define a location !')
             return
 
+        self.stopmqtt()
+
         self.mqtt_status = _('Connect Status: connecting')
 
         try:
@@ -617,12 +619,16 @@ class station():
         '''
 
         try:
-            if self.rmap.connected:
-                self.rmap.disconnect()
-                self.rmap.loop_stop()
+            #if self.rmap.connected:
+            self.rmap.disconnect()
         except:
             pass
-                
+
+        try:
+            self.rmap.loop_stop()
+        except:
+            pass
+
         #force status and messages because we do not wait ACK
         self.connected=False
         self.mqtt_status = _('Connect Status: disconnected')
