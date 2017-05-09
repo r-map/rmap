@@ -1,4 +1,5 @@
 EESchema Schematic File Version 2
+LIBS:Stima_AirQuality_Connector-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -29,7 +30,8 @@ LIBS:atmel
 LIBS:contrib
 LIBS:valves
 LIBS:microduino
-EELAYER 26 0
+LIBS:Stima_AirQuality_Connector-cache
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -180,16 +182,12 @@ Text GLabel 4650 5050 1    60   Input ~ 0
 NO2
 Text GLabel 4800 5050 1    60   Input ~ 0
 CO
-Text GLabel 4950 5050 1    60   Input ~ 0
-CO_SCALE_2
-Text GLabel 5100 5050 1    60   Input ~ 0
-CO_SCALE_1
 Text GLabel 5250 5050 1    60   Input ~ 0
-NO2_SCALE_2
+SCALE_2
 Text GLabel 5400 5050 1    60   Input ~ 0
-NO2_SCALE_1
+SCALE_1
 Text GLabel 5550 5050 1    60   Input ~ 0
-FET
+PWM
 Wire Wire Line
 	4650 5050 4650 5150
 Wire Wire Line
@@ -198,39 +196,17 @@ Wire Wire Line
 	4300 5250 4800 5250
 Wire Wire Line
 	4800 5250 4800 5050
-Wire Wire Line
-	4950 5050 4950 5350
-Wire Wire Line
-	4950 5350 4300 5350
-Wire Wire Line
-	4300 5450 5100 5450
-Wire Wire Line
-	5100 5450 5100 5050
-Wire Wire Line
-	5250 5050 5250 5550
-Wire Wire Line
-	5250 5550 4300 5550
-Wire Wire Line
-	4300 5650 5400 5650
-Wire Wire Line
-	5400 5650 5400 5050
-Wire Wire Line
-	5550 5050 5550 5750
-Wire Wire Line
-	5550 5750 4300 5750
 $Comp
 L +5V #PWR07
 U 1 1 589CD236
-P 5700 5800
-F 0 "#PWR07" H 5750 5850 50  0001 C CNN
-F 1 "+5V" H 5715 5973 50  0000 C CNN
-F 2 "" H -200 -200 50  0001 C CNN
-F 3 "" H -200 -200 50  0001 C CNN
-	1    5700 5800
+P 5700 5570
+F 0 "#PWR07" H 5750 5620 50  0001 C CNN
+F 1 "+5V" H 5715 5743 50  0000 C CNN
+F 2 "" H -200 -430 50  0001 C CNN
+F 3 "" H -200 -430 50  0001 C CNN
+	1    5700 5570
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5700 5800 5700 5850
 $Comp
 L GND #PWR08
 U 1 1 589CD287
@@ -298,26 +274,18 @@ Wire Wire Line
 	7600 5050 7600 5250
 Wire Wire Line
 	7500 5250 7500 5050
-Text GLabel 6000 3050 2    60   Input ~ 0
-CO_SCALE_1
 Text GLabel 6000 2950 2    60   Input ~ 0
-NO2_SCALE_2
+SCALE_2
 Text GLabel 6000 2850 2    60   Input ~ 0
-NO2_SCALE_1
+SCALE_1
 Text GLabel 6000 2750 2    60   Input ~ 0
-FET
-Text GLabel 6000 3150 2    60   Input ~ 0
-CO_SCALE_2
+PWM
 Wire Wire Line
 	6000 2750 5800 2750
 Wire Wire Line
 	5800 2850 6000 2850
 Wire Wire Line
 	6000 2950 5800 2950
-Wire Wire Line
-	5800 3050 6000 3050
-Wire Wire Line
-	5800 3150 6000 3150
 Text GLabel 5400 3900 3    60   Input ~ 0
 NO2
 Text GLabel 5300 3900 3    60   Input ~ 0
@@ -355,6 +323,35 @@ F 3 "" H -50 100 60  0000 C CNN
 	1    5200 2750
 	1    0    0    -1  
 $EndComp
+Text Label 4450 5450 0    60   ~ 0
+SCALE1
+Text Label 4450 5350 0    60   ~ 0
+SCALE2
+NoConn ~ 5800 3050
+NoConn ~ 5800 3150
+Text GLabel 5500 3900 3    60   Input ~ 0
+VREF
 Wire Wire Line
-	5700 5850 4300 5850
+	5500 3900 5500 3750
+Wire Wire Line
+	4300 5350 5250 5350
+Wire Wire Line
+	5250 5350 5250 5050
+Wire Wire Line
+	5400 5050 5400 5450
+Wire Wire Line
+	5400 5450 4300 5450
+Wire Wire Line
+	4300 5550 5550 5550
+Wire Wire Line
+	5550 5550 5550 5050
+Wire Wire Line
+	4300 5650 5700 5650
+Wire Wire Line
+	5700 5650 5700 5570
+Text GLabel 4510 5850 2    60   Input ~ 0
+VREF
+Wire Wire Line
+	4510 5850 4300 5850
+NoConn ~ 4300 5750
 $EndSCHEMATC
