@@ -95,20 +95,21 @@ def main(self):
             logging.info(variable_list)
             logging.info(level)
             logging.info(timerange)
-
+            totalbody=""
+            
             try:
                 #(fd, filename) = tempfile.mkstemp()
                 filename="-"
 
 
-                print "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
-                    " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
-                    " --start-date"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
-                    " --end-date"+" '"+nexttime.replace(microsecond=0).isoformat(' ')+"'"+\
-                    " --comp-start"+" '"+starttime.replace(microsecond=0).isoformat(' ')+"'" +\
-                    " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
-                    " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
-                    filename
+                #print "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
+                #    " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
+                #    " --start-date"+" '"+starttime.isoformat(' ')+"'" +\
+                #    " --end-date"+" '"+nexttime.isoformat(' ')+"'"+\
+                #    " --comp-start"+" '"+starttime.isoformat(' ')+"'" +\
+                #    " --comp-step"+" '0000000000 00:15:00.000'"," --comp-frac-valid"," '.002'"+\
+                #    " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
+                #    filename
 
                 #logging.info( "v7d_transform"+" --input-format"+" dba"+" --output-format"+" BUFR"+\
                 #              " --variable-list"+" '"+variable_list+"'"," --level "," '"+level+"'"," --timerange "+" '"+timerange+"'",\
@@ -119,25 +120,129 @@ def main(self):
                 #              " --comp-stat-proc"+" '254:0'"+" '"+rmap.settings.dsnsample_fixed+"' "+\
                 #              filename)
                 
-                #compute 60s mean with max intervall = 20s as instantaneous values
+                #compute 15min mean  from instantaneous values
+                #self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                #                              "--variable-list",variable_list,"--level",level,"--timerange",timerange,
+                #                              "--start-date",starttime.isoformat(' ') ,
+                #                              "--end-date",nexttime.isoformat(' '),
+                #                              "--comp-start",starttime.isoformat(' ') ,
+                #                              "--comp-step","0000000000 00:15:00.000","--comp-frac-valid",".002",
+                #                              "--comp-stat-proc","254:0",
+                #                              rmap.settings.dsnsample_fixed,
+                #                              filename],
+                #                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                #)]
+
+                #body,outerr=self.procs[0].communicate()
+
+                #status=self.procs[0].wait()
+                #if status != 0:
+                #    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+
+                #else:
+
+                #    totalbody+=body
+
+
+                #sample-> sample
+                #istantanee a medie 60sec
                 self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",timerange,
-                                              "--start-date",starttime.replace(microsecond=0).isoformat(' ') ,
-                                              "--end-date",nexttime.replace(microsecond=0).isoformat(' '),
-                                              "--comp-start",starttime.replace(microsecond=0).isoformat(' ') ,
-                                              "--comp-step","0000000000 00:15:00.000","--comp-frac-valid",".002",
-                                              "--comp-stat-proc","254:0",rmap.settings.dsnsample_fixed,
-                                              filename],stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                                              "--start-date",starttime.isoformat(' ') ,
+                                              "--end-date",nexttime.isoformat(' '),
+                                              "--comp-start",starttime.isoformat(' ') ,
+                                              "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.002', "--comp-stat-proc", '254:0',
+                                              rmap.settings.dsnsample_fixed,
+                                              rmap.settings.dsnsample_fixed],
+                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
                 )]
 
-                
                 body,outerr=self.procs[0].communicate()
 
                 status=self.procs[0].wait()
                 if status != 0:
-                    lopgging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+                    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+
+
+                #sample-> report
+                #medie 60sec a media 15'
+                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                                              "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
+                                              "--start-date",starttime.isoformat(' ') ,
+                                              "--end-date",nexttime.isoformat(' '),
+                                              "--comp-start",starttime.isoformat(' ') ,
+                                              "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:0',
+                                              rmap.settings.dsnsample_fixed,
+                                              file],
+                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                )]                                             
+                body,outerr=self.procs[0].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
                 else:
+
+                    totalbody+=body
+
+
+                #sample-> report
+                #medie 60sec a massima 15'
+                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                                              "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
+                                              "--start-date",starttime.isoformat(' ') ,
+                                              "--end-date",nexttime.isoformat(' '),
+                                              "--comp-start",starttime.isoformat(' ') ,
+                                              "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:2',
+                                              rmap.settings.dsnsample_fixed,
+                                              file],
+                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                )]
+                body,outerr=self.procs[0].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+
+                else:
+
+                    totalbody+=body
+
+                #sample-> report
+                #medie 60sec a minima 15'
+                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                                              "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
+                                              "--start-date",starttime.isoformat(' ') ,
+                                              "--end-date",nexttime.isoformat(' '),
+                                              "--comp-start",starttime.isoformat(' ') ,
+                                              "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:3',
+                                              rmap.settings.dsnsample_fixed,
+                                              file],
+                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
+                )]
+                body,outerr=self.procs[0].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+
+                else:
+
+                    totalbody+=body
+
+
+
+                #sample-> report
+                # deviazione standard su un minuto dalle istantanee DA AGGIUSTARE!
+                #                             v7d_transform --input-format BUFR --output-format BUFR --variable-list 'B12101' \
+	        #                             --level '103,2000,,' --timerange '254,0,0' \
+	        #                             --start-date '2017-05-07 00:00:00' --end-date '2017-05-08 12:00:00' \
+	        #                             --comp-start '2017-05-07 00:00:00' --comp-step '0000000000 00:01:00.000' \
+	        #                             --comp-frac-valid '.002' --comp-stat-proc '254:6' tutto.bufr stddev.bufr
+
+
+                if totalbody != "":
 
                     try:
                         # Legge un file.
@@ -171,7 +276,7 @@ def main(self):
 
                         if channel.basic_publish(exchange=exchange,
                                                  routing_key=routing_key,
-                                                 body=body,
+                                                 body=totalbody,
                                                  properties=properties):
                             logging.info('Message publish was confirmed')
                         else:
