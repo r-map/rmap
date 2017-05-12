@@ -28,7 +28,7 @@
  #include "WProgram.h"
 #endif
 
-#define MAX_POINTS	10	// MAX calibration points
+#include "config.h"
 
 namespace calibration {
 
@@ -37,7 +37,7 @@ namespace calibration {
         public:
 
       //Calibration();
-      bool setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numPoints);
+      bool setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints);
       bool getConcentration(float input,float *concentration);
 	      
         private:

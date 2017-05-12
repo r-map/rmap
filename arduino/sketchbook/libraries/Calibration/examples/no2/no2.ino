@@ -78,28 +78,31 @@ void setup ()
 
 void loop ()
 {
-  float rs=100.; // Kohm
+  //float rs=3.55; // Kohm
   float ppm;
 
-  if (NO2Cal.getConcentration(rs,&ppm))
-    {
-      Serial.print("NO2 ");
-      Serial.println(ppm);
-    }else
-    {
-      Serial.println("calibration ERROR");
-    }
-
-  if (COCal.getConcentration(rs,&ppm))
-    {
-      Serial.print("CO  ");
-      Serial.println(ppm);
-    }else
-    {
-      Serial.println("calibration ERROR");
-    }
+  for (int i=0; i< no2numPoints;i++) {
+    if (NO2Cal.getConcentration(no2resistences[i],&ppm))
+      {
+	Serial.print("NO2 ");
+	Serial.println(ppm);
+      }else
+      {
+	Serial.println("calibration ERROR");
+      }
+  }
   
-
+    //rs=230.3; // Kohm
+  for (int i=0; i< no2numPoints;i++) {
+    if (COCal.getConcentration(coresistences[i],&ppm))
+      {
+	Serial.print("CO  ");
+	Serial.println(ppm);
+      }else
+      {
+	Serial.println("calibration ERROR");
+      }
+  }
   
-  delay(5000);
+  delay(10000);
 }

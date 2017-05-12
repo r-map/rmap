@@ -681,13 +681,13 @@ void loop() {
 #endif
 
 #ifdef MICS4514PRESENT
-  IF_SDEBUG(Serial.print("start query mics: "));
+  IF_SDEBUG(Serial.print(F("start query mics: ")));
   IF_SDEBUG(Serial.println(millis() - starttime));
 
   ok = sensormics.query_data_auto(&co, &no2, 3);
   if (oneshot) sensormics.sleep();
 
-  IF_SDEBUG(Serial.print("end query mics: "));
+  IF_SDEBUG(Serial.print(F("end query mics: ")));
   IF_SDEBUG(Serial.println(millis() - starttime));
 
   wdt_reset();
@@ -695,13 +695,24 @@ void loop() {
   if (ok){
     
     float ppm;
+
+    IF_SDEBUG(Serial.print(F("co uncalibrated: ")));
+    IF_SDEBUG(Serial.println(co));
     
-    if (COCal.getConcentration(float(co),&ppm))
+    if (COCal.getConcentration(float(co)/1000.,&ppm))
       {
+	IF_SDEBUG(Serial.print("co ppm"));
+	IF_SDEBUG(Serial.println(ppm));
 	i2c_dataset1->cono2.co=round(ppm*COPPM2UGM3);
       }
-    if (NO2Cal.getConcentration(float(no2),&ppm))
+
+    IF_SDEBUG(Serial.print(F("NO2 uncalibrated: ")));
+    IF_SDEBUG(Serial.println(no2));
+	      
+    if (NO2Cal.getConcentration(float(no2)/1000.,&ppm))
       {
+	IF_SDEBUG(Serial.print("no2 ppm"));
+	IF_SDEBUG(Serial.println(ppm));
 	i2c_dataset1->cono2.no2=round(ppm*NO2PPM2UGM3);
       }
     

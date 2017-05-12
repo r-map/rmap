@@ -32,20 +32,22 @@ using namespace calibration;
  */
 
 
-bool Calibration::setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numPoints)
+bool Calibration::setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints)
 { 
 	
   if (numPoints > MAX_POINTS) 
     {
-      // "ERROR: MAX_POINTS allowed = 10 ");
+      IF_CASDEBUG(CADBGSERIAL.print(F("ERROR: MAX_POINTS allowed = ")));
+      IF_CASDEBUG(CADBGSERIAL.println(MAX_POINTS));
       return false;
     }
-	
-  float Ro = calValues[0];
+
+  numPoints= numberPoints;
+  
   // Store the calibration values
   for (int i = 0; i < numPoints; i++)
     {
-      values[i] = calValues[i] / Ro; 
+      values[i] = calValues[i];
       concentrations[i] = calConcentrations[i];
     }
  
@@ -60,16 +62,20 @@ bool Calibration::getConcentration(float input,float *concentration)
 	
 	// This loop is to find the range where the input is located
 	while ((!inRange) && (i < (numPoints-1))) {
-		
+
+	        IF_CASDEBUG(CADBGSERIAL.print(F("interval: ")));
+	        IF_CASDEBUG(CADBGSERIAL.print(values[i]));
+	        IF_CASDEBUG(CADBGSERIAL.print(F(" / ")));
+	        IF_CASDEBUG(CADBGSERIAL.println(values[i+1]));
+	  
 		if      ((input >  values[i]) && (input <= values[i + 1]))
 			inRange = true;
-		// this is in the original code but I think it's wrong
-		//else if ((input <= values[i]) && (input >  values[i + 1]))
-		//	inRange = true;
+		else if ((input <= values[i]) && (input >  values[i + 1]))
+			inRange = true;
 		else
 			i++;
 	}
-	
+
 	float slope;
 	float intersection;
 
@@ -77,6 +83,8 @@ bool Calibration::getConcentration(float input,float *concentration)
 	// and the intersection of the logaritmic function
 	if (inRange) 
 	{
+	        IF_CASDEBUG(CADBGSERIAL.println(F("Value is in range ")));
+
 		// Slope of the logarithmic function 
 		slope = (values[i] - values[i+1]) / (log10(concentrations[i]) - log10(concentrations[i+1]));
 		// Intersection of the logarithmic function
@@ -85,6 +93,7 @@ bool Calibration::getConcentration(float input,float *concentration)
 	// Else, we calculate the logarithmic function with the nearest point
 	else
 	{
+	        IF_CASDEBUG(CADBGSERIAL.println(F("Value is not in range ")));
 		if (fabs(input - values[0]) < fabs(input - values[numPoints-1])) {
 			// Slope of the logarithmic function
 			slope = (values[1] - values[0]) / (log10(concentrations[1]) - log10(concentrations[0]));
@@ -99,6 +108,13 @@ bool Calibration::getConcentration(float input,float *concentration)
 	}
 	
 	// Return the value of the concetration
+	IF_CASDEBUG(CADBGSERIAL.print(F("input: ")));
+	IF_CASDEBUG(CADBGSERIAL.println(input));
+	IF_CASDEBUG(CADBGSERIAL.print(F("intersection: ")));
+	IF_CASDEBUG(CADBGSERIAL.println(intersection));
+	IF_CASDEBUG(CADBGSERIAL.print(F("slope: ")));
+	IF_CASDEBUG(CADBGSERIAL.println(slope));
+	
 	*concentration = pow(10, ((input - intersection) / slope));
 	
 	return true;

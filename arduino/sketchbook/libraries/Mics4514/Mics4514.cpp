@@ -141,7 +141,11 @@ bool Mics4514::query_data(int *co, int *no2)
 {
 
   IF_SDEBUG(Serial.println(F("mics4514 query_data")));
-switch(_state)
+
+  digitalWrite(_scale1pin, LOW);  
+  digitalWrite(_scale2pin, LOW);  
+
+  switch(_state)
   {
   
   case cold:
@@ -171,8 +175,11 @@ switch(_state)
       break;
   }
   
+  IF_SDEBUG(Serial.println(F("mics4514 co  scale0 read")));
   int dco   = analogRead(_copin);
   int cor2  = SCALE0R;
+  
+  IF_SDEBUG(Serial.println(F("mics4514 no2 scale0 read")));
   int dno2  = analogRead(_no2pin);
   int no2r2 = SCALE0R;
 
@@ -201,7 +208,7 @@ switch(_state)
     }
 
   
-    if (dco > CHANGESCALEVALUE)
+  if (dco > CHANGESCALEVALUE)
     {
       IF_SDEBUG(Serial.println(F("mics4514 co  scale2")));
       digitalWrite(_scale1pin, HIGH);  
@@ -212,7 +219,7 @@ switch(_state)
       cor2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)+1./float(SCALE2R)));
     }
 
-    if (dno2 > CHANGESCALEVALUE)
+  if (dno2 > CHANGESCALEVALUE)
     {
       if (!digitalRead(_scale2pin))
 	{
