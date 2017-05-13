@@ -144,18 +144,19 @@ def main(self):
                 #    totalbody+=body
 
 
-                #sample-> sample
-                #istantanee a medie 60sec
-                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                logging.info("sample-> sampl")
+                logging.info("istantanee a medie 60sec")
+
+                command=["v7d_transform","--input-format","dba","--output-format","dba",
                                               "--variable-list",variable_list,"--level",level,"--timerange",timerange,
                                               "--start-date",starttime.isoformat(' ') ,
                                               "--end-date",nexttime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
-                                              "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.002', "--comp-stat-proc", '254:0',
+                                              "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.0002', "--comp-stat-proc", '254:0',
                                               rmap.settings.dsnsample_fixed,
-                                              rmap.settings.dsnsample_fixed],
-                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
-                )]
+                                              rmap.settings.dsnsample_fixed]
+                print str(command).replace("', '","' '").replace("[","").replace("]","")
+                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
 
                 body,outerr=self.procs[0].communicate()
 
@@ -164,18 +165,18 @@ def main(self):
                     logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
 
 
-                #sample-> report
-                #medie 60sec a media 15'
-                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                logging.info("sample-> report")
+                logging.info("medie 60sec a media 15'")
+                command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
                                               "--end-date",nexttime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:0',
                                               rmap.settings.dsnsample_fixed,
-                                              file],
-                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
-                )]                                             
+                                              filename]
+                print str(command).replace("', '","' '").replace("[","").replace("]","")
+                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
                 status=self.procs[0].wait()
@@ -187,18 +188,18 @@ def main(self):
                     totalbody+=body
 
 
-                #sample-> report
-                #medie 60sec a massima 15'
-                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                logging.info("sample-> report")
+                logging.info("medie 60sec a massima 15'")
+                command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
                                               "--end-date",nexttime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:2',
                                               rmap.settings.dsnsample_fixed,
-                                              file],
-                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
-                )]
+                                              filename]
+                print str(command).replace("', '","' '").replace("[","").replace("]","")
+                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
                 status=self.procs[0].wait()
@@ -209,18 +210,18 @@ def main(self):
 
                     totalbody+=body
 
-                #sample-> report
-                #medie 60sec a minima 15'
-                self.procs=[subprocess.Popen(["v7d_transform","--input-format","dba","--output-format","BUFR",
+                logging.info("sample-> report")
+                logging.info("medie 60sec a minima 15'")
+                command=["v7d_transform","--input-format","dba","--output-format","BUFR",
                                               "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
                                               "--start-date",starttime.isoformat(' ') ,
                                               "--end-date",nexttime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:3',
                                               rmap.settings.dsnsample_fixed,
-                                              file],
-                                             stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"}
-                )]
+                                              filename]
+                print str(command).replace("', '","' '").replace("[","").replace("]","")
+                self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
                 status=self.procs[0].wait()
@@ -232,6 +233,41 @@ def main(self):
                     totalbody+=body
 
 
+                logging.info("sample-> report")
+                logging.info("medie 60sec a istantanee a step 15' senza calcoli con selezione del valore piu' prossimo nel tempo nell'intervallo di 60sec")
+
+                command1=["v7d_transform","--input-format","dba","--output-format","BUFR",
+                          "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
+                          "--start-date",starttime.isoformat(' ') ,
+                          "--end-date",nexttime.isoformat(' '),
+                          "--comp-start",starttime.isoformat(' ') ,
+                          "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:254',
+                          rmap.settings.dsnsample_fixed,
+                          filename]
+
+                command2=["v7d_transform","--input-format","BUFR","--output-format","BUFR",
+                          "--comp-start",starttime.isoformat(' ') ,
+                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:01:00.000', '--comp-filter-time',  
+                          filename,
+                          filename]
+
+                print str(command1).replace("', '","' '").replace("[","").replace("]","")
+                print str(command2).replace("', '","' '").replace("[","").replace("]","")
+                p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
+                p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
+                p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+                self.procs=[p1,p2]
+                body,outerr=self.procs[1].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    logging.error("There were some errors executing v7d_transform 1 : %s %s " % (status,outerr))
+                else:
+                    status=self.procs[1].wait()
+                    if status != 0:
+                        logging.error("There were some errors executing v7d_transform 2: %s %s " % (status,outerr))
+                    else:
+                        totalbody+=body
 
                 #sample-> report
                 # deviazione standard su un minuto dalle istantanee DA AGGIUSTARE!
