@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# GPL. (C) 2014 Paolo Patruno.
+# GPL. (C) 2017 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -144,7 +144,7 @@ def main(self):
                 #    totalbody+=body
 
 
-                logging.info("sample-> sampl")
+                logging.info("sample-> sample")
                 logging.info("istantanee a medie 60sec")
 
                 command=["v7d_transform","--input-format","dba","--output-format","dba",
@@ -234,7 +234,7 @@ def main(self):
 
 
                 logging.info("sample-> report")
-                logging.info("medie 60sec a istantanee a step 15' senza calcoli con selezione del valore piu' prossimo nel tempo nell'intervallo di 60sec")
+                logging.info("medie 60sec a istantanee a step 15' senza calcoli con selezione del valore piu' prossimo nel tempo nell'intervallo di 30sec")
 
                 command1=["v7d_transform","--input-format","dba","--output-format","BUFR",
                           "--variable-list",variable_list,"--level",level,"--timerange",'0,0,60',
@@ -247,7 +247,7 @@ def main(self):
 
                 command2=["v7d_transform","--input-format","BUFR","--output-format","BUFR",
                           "--comp-start",starttime.isoformat(' ') ,
-                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:01:00.000', '--comp-filter-time',  
+                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:00:30.000', '--comp-filter-time',  
                           filename,
                           filename]
 
