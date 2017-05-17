@@ -1,0 +1,6 @@
+
+check process mosquitto with pidfile /var/run/mosquitto.pid
+
+    start program = "/etc/init.d/mosquitto restart"
+    stop program = "/etc/init.d/mosquitto stop"
+    if failed host localhost port 1883 timeout 30 seconds retry 3 then restart

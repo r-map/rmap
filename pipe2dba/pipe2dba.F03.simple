@@ -1,0 +1,75 @@
+program dba_qcfilter
+
+USE log4fortran
+use kinds
+use dballe_class
+use modqc
+use optional_values
+USE optionparser_class
+use err_handling
+
+implicit none
+
+type(dbasession) :: sessionfrom,sessionto
+type(dbaconnection) :: connectionfrom,connectionto
+
+type(dbametaanddata),allocatable :: metaanddatav(:)
+type(dbafilter) :: filter,filterd
+integer :: i,j
+logical :: qcsummaryflag,version,preserve
+integer (kind=int_b):: flag0,flag1,flag2,flag3
+TYPE(optionparser) :: opt
+INTEGER :: optind, optstatus
+CHARACTER(len=512):: a_name,input_file,output_file 
+INTEGER :: category,ier
+type(dbadcv) :: starvars
+
+
+!questa chiamata prende dal launcher il nome univoco
+CALL l4f_launcher(a_name,a_name_force="dba_qcfilter")
+!init di log4fortran
+ier = l4f_init()
+!imposta a_name
+category = l4f_category_get(a_name//".main")
+
+opt = optionparser_new(description_msg= &
+ 'Filter data using Quality Control information. &
+ &Flag used are *B33192,*B33193,*B33194,*B33196. &
+ &Station constant data are reported as is')
+
+CALL optionparser_add(opt, 'i', 'input-file', input_file, default="", help='file to read')
+CALL optionparser_add(opt, 'o', 'output-file', output_file, default="", help='file to read')
+CALL optionparser_add(opt, 'p', 'preserve', preserve, help='preserve wrong data, remove attribute, insert B33007=0 for wrong data')
+
+! help options
+CALL optionparser_add_help(opt, 'h', 'help', help='show an help message and exit')
+CALL optionparser_add(opt, ' ', 'version', version, help='show version and exit')
+
+! parse options and check for errors
+CALL optionparser_parse(opt, optind, optstatus)
+
+
+IF (optstatus == optionparser_help) THEN
+  CALL exit(0) ! generate a clean manpage
+ELSE IF (optstatus == optionparser_err) THEN
+  CALL l4f_category_log(category,L4F_ERROR,'in command-line parameters')
+  CALL raise_fatal_error()
+ENDIF
+
+IF (version) THEN
+  WRITE(*,'(A,1X,A)')'dba_qcfilter',VERSION
+  CALL exit(0)
+ENDIF
+
+! connect to dsn type BUFR file for read
+connectionfrom=dbaconnection(dsn=output_file)
+sessionfrom=dbasession(connectionfrom,write=.true.,wipe=.false.)
+call sessionfrom%messages_open_input(filename=input_file,mode="r",format="BUFR",simplified=.true.)
+
+do while (sessionfrom%messages_read_next())
+end do
+
+!close everythings
+call sessionfrom%delete()
+
+end program dba_qcfilter
