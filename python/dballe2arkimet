@@ -25,11 +25,14 @@ import logging
 import argparse
 import datetime
 
+_version=1.0
 
 default_date = (datetime.datetime.utcnow()-datetime.timedelta(days=7)).strftime("%Y-%m-%d")
 
 
 parser = argparse.ArgumentParser(description='Migrate data from dballe to arkimet.')
+parser.add_argument('--version', action='version',
+                    version='%(prog)s {version}'.format(version=_version))
 parser.add_argument('-a', '--arkiconf', dest='arkiconf', action='store',
                     default="/rmap/arkimet/arkimet.conf",
                     help='arkiserver to contact. Default: %(default)s')

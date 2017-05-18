@@ -161,7 +161,7 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/rmapctrl.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2djangod.1","./amqp2djangod"])
             subprocess.check_call(["gzip", "-f","man/man1/amqp2djangod.1"])
-            subprocess.check_call(["help2man","-N","-o","man/man1/dballe2arkimet.1","./dballe2arkimet"])
+            subprocess.check_call(["help2man","--no-discard-stderr","-N","-o","man/man1/dballe2arkimet.1","./dballe2arkimet"])
             subprocess.check_call(["gzip", "-f","man/man1/dballe2arkimet.1"])
 
         except:
