@@ -2016,6 +2016,12 @@ class Rmap(App):
 
         self.root.ids["transport"].state="down"
 
+        if self.mystation.ismobile() and ( not self.trip or not self.gps.gpsfix):
+            self.popup(_("travel with\nGPS not fixed!\nretry"))
+            self.getdataerror+=1
+            self.board_status=_("Transport Status: ERROR")+_(" err: ")+ str(self.getdataerror)
+            return
+        
         try:
             self.mystation.now=datetime.utcnow()
             datavars=self.mystation.getdata_loop(trip=self.trip)
