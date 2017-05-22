@@ -331,16 +331,28 @@ def tree_json(nodes, base_path, wildcards=False):
       elif position == 1:
         text = "Ident: "+node.name
       elif position == 2:
-        text = "Lon: "+str(int(node.name.split("_")[0])/100000.)+" Lat: "+str(int(node.name.split("_")[1])/100000.)
+        if node.name== "*":
+          text=node.name
+        else:
+          text = "Lon: "+str(int(node.name.split("_")[0])/100000.)+" Lat: "+str(int(node.name.split("_")[1])/100000.)
       elif position == 3:
         text = "Network: "+node.name
       elif position == 4:
-        text = dballe.describe_trange(*toint(node.name))
+        if node.name== "*":
+          text=node.name
+        else:
+          text = dballe.describe_trange(*toint(node.name))
       elif position == 5:
-        text = dballe.describe_level(*toint(node.name))
+        if node.name== "*":
+          text=node.name
+        else:
+          text = dballe.describe_level(*toint(node.name))
       elif position == 6:
-        varinfo=dballe.varinfo(node.name)
-        text = varinfo.desc.lower()+" "+varinfo.unit
+        if node.name== "*":
+          text=node.name
+        else:
+          varinfo=dballe.varinfo(node.name)
+          text = varinfo.desc.lower()+" "+varinfo.unit
       else:
         text = urllib.unquote_plus(str(node.name))
 
