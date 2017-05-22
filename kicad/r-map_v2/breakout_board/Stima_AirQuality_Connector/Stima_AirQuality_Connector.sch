@@ -353,16 +353,10 @@ VREF
 Wire Wire Line
 	4510 5850 4300 5850
 NoConn ~ 4300 5750
-Text GLabel 4340 3350 0    60   Input ~ 0
+Text GLabel 4330 3150 0    60   Input ~ 0
 RX
-Wire Wire Line
-	4340 3350 4400 3350
-Text GLabel 4330 3250 0    60   Input ~ 0
+Text GLabel 4320 3050 0    60   Input ~ 0
 TX
-Wire Wire Line
-	4330 3250 4400 3250
-NoConn ~ 4400 3050
-NoConn ~ 4400 3150
 $Comp
 L PWR_FLAG #FLG011
 U 1 1 591608E3
@@ -387,4 +381,10 @@ F 3 "" H 8200 3500 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 Connection ~ 8050 3500
+Wire Wire Line
+	4400 3150 4330 3150
+Wire Wire Line
+	4320 3050 4400 3050
+NoConn ~ 4400 3250
+NoConn ~ 4400 3350
 $EndSCHEMATC
