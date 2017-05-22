@@ -1,11 +1,9 @@
-update=sab 04 mar 2017 12:42:18 CET
+update=ven 12 mag 2017 21:12:51 CEST
 version=1
 last_client=kicad
 [cvpcb]
 version=1
 NetIExt=net
-[general]
-version=1
 [pcbnew]
 version=1
 PageLayoutDescrFile=
@@ -60,3 +58,5 @@ LibName28=atmel
 LibName29=contrib
 LibName30=valves
 LibName31=microduino
+[general]
+version=1

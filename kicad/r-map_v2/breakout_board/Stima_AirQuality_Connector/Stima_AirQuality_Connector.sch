@@ -1,5 +1,4 @@
 EESchema Schematic File Version 2
-LIBS:Stima_AirQuality_Connector-rescue
 LIBS:power
 LIBS:device
 LIBS:transistors
@@ -31,7 +30,7 @@ LIBS:contrib
 LIBS:valves
 LIBS:microduino
 LIBS:Stima_AirQuality_Connector-cache
-EELAYER 25 0
+EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -130,7 +129,7 @@ $EndComp
 Wire Wire Line
 	8050 3350 8050 3500
 Wire Wire Line
-	8050 3500 7850 3500
+	7850 3500 8200 3500
 Wire Wire Line
 	7850 3500 7850 3400
 Wire Wire Line
@@ -153,7 +152,7 @@ $EndComp
 Wire Wire Line
 	7250 3350 7250 3500
 Wire Wire Line
-	7250 3500 7450 3500
+	7170 3500 7450 3500
 Wire Wire Line
 	7450 3500 7450 3400
 $Comp
@@ -354,4 +353,38 @@ VREF
 Wire Wire Line
 	4510 5850 4300 5850
 NoConn ~ 4300 5750
+Text GLabel 4340 3350 0    60   Input ~ 0
+RX
+Wire Wire Line
+	4340 3350 4400 3350
+Text GLabel 4330 3250 0    60   Input ~ 0
+TX
+Wire Wire Line
+	4330 3250 4400 3250
+NoConn ~ 4400 3050
+NoConn ~ 4400 3150
+$Comp
+L PWR_FLAG #FLG011
+U 1 1 591608E3
+P 7170 3500
+F 0 "#FLG011" H 7170 3575 50  0001 C CNN
+F 1 "PWR_FLAG" V 7170 3628 50  0000 L CNN
+F 2 "" H 7170 3500 50  0001 C CNN
+F 3 "" H 7170 3500 50  0001 C CNN
+	1    7170 3500
+	0    -1   -1   0   
+$EndComp
+Connection ~ 7250 3500
+$Comp
+L PWR_FLAG #FLG012
+U 1 1 59160B81
+P 8200 3500
+F 0 "#FLG012" H 8200 3575 50  0001 C CNN
+F 1 "PWR_FLAG" V 8200 3628 50  0000 L CNN
+F 2 "" H 8200 3500 50  0001 C CNN
+F 3 "" H 8200 3500 50  0001 C CNN
+	1    8200 3500
+	0    1    1    0   
+$EndComp
+Connection ~ 8050 3500
 $EndSCHEMATC
