@@ -269,6 +269,33 @@ def main(self):
                     else:
                         totalbody+=body
 
+
+                # I DO NOT use AMQP here, direct copy !
+                logging.info("sample-mobile -> report-mobile")
+                logging.info("copia senza calcoli")
+
+                command1=["dbadb","export","--dsn",rmap.settings.dsnsample_mobile,"varlist",variable_list,
+                          "yearmin",str(starttime.year),"monthmin",str(starttime.month),"daymin",str(starttime.day),"hourmin",str(starttime.hour),"minumin",str(starttime.minute),"secmin",str(starttime.second),
+                          "yearmax",str(nexttime.year),"monthmax",str(nexttime.month),"daymax",str(nexttime.day),"hourmax",str(nexttime.hour),"minumax",str(nexttime.minute),"secmax",str(nexttime.second)]
+                command2=["dbadb","import","--dsn",rmap.settings.dsnreport_mobile]
+
+                print str(command1).replace("', '","' '").replace("[","").replace("]","")
+                print str(command2).replace("', '","' '").replace("[","").replace("]","")
+                p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
+                p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
+                p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+                self.procs=[p1,p2]
+                body,outerr=self.procs[1].communicate()
+
+                status=self.procs[0].wait()
+                if status != 0:
+                    logging.error("There were some errors executing dbadb 1 : %s %s " % (status,outerr))
+                else:
+                    status=self.procs[1].wait()
+                    if status != 0:
+                        logging.error("There were some errors executing dbadb 2: %s %s " % (status,outerr))
+                        
+
                 #sample-> report
                 # deviazione standard su un minuto dalle istantanee DA AGGIUSTARE!
                 #                             v7d_transform --input-format BUFR --output-format BUFR --variable-list 'B12101' \
