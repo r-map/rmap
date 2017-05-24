@@ -37,7 +37,7 @@ $("#loading").dialog({
     autoOpen: false
 });
 
-var url = "{% url 'api:v1:stations' 'geojson' ident coords network trange level var %}"
+var url = "{% url 'api:v1:stations' 'geojson' ident coords network trange level var %}{% if dsn %}?dsn={{dsn}}{% endif %}"
 var coords=[];
 
 
@@ -79,7 +79,7 @@ function oneachfeature(feature, layer)
 				  + "<br><a href='/showdata/*/*/"+null2_(feature.properties.network)+"/*/*/*/stations"
 				  + "'>{% trans "All stations same network" %}</a>"
 			      
-				  + "<br><a href='" + "{% url 'showdata:stations' '*' '*' '*' '*' '*' '*' %}" + "'>{% trans "All stations" %}</a>";
+				  + "<br><a href='" + "{% url 'showdata:stations' '*' '*' '*' '*' '*' '*' %}{% if dsn %}?dsn={{dsn}}{% endif %}" + "'>{% trans "All stations" %}</a>";
 			      layer.bindPopup(popupText);
 			  }
 
@@ -147,7 +147,7 @@ function map_init(map, options)
 
     <p style="text-align:right">
     <a href='
-{% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}
+{% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}{% if dsn %}?dsn={{dsn}}{% endif %}
 '>{% trans "Download data" %}</a></p>
     
 {% endblock %}

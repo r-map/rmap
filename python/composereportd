@@ -144,6 +144,7 @@ def main(self):
                 #    totalbody+=body
 
 
+                # I DO NOT use AMQP here, direct copy !
                 logging.info("sample-> sample")
                 logging.info("istantanee a medie 60sec")
 

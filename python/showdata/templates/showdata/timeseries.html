@@ -69,7 +69,7 @@
   <p>
     <div id="preloadimages">      
 
-      <img  src="/graphite/render/?target=offset(scale({{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}},{{bcode.scale}}),{{bcode.offset}})&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400">
+      <img  src="/graphite/render/?target=offset(scale({{dsn}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}},{{bcode.scale}}),{{bcode.offset}})&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=800&height=400">
 
     </div>
     
@@ -78,7 +78,7 @@
   <div class="row">
     <div class="col-xs-8">
 
-      <p><a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{type}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}},{{bcode.scale}}),{{bcode.offset}})" role="button">Graphite composer &raquo;</a></p>
+      <p><a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{dsn}}.{{ ident }}.{{ undescored_coords }}.{{ network }}.{{ undescored_trange }}.{{ undescored_level }}.{{var}},{{bcode.scale}}),{{bcode.offset}})" role="button">Graphite composer &raquo;</a></p>
     </div>
 
     {% if hour or day %}
@@ -86,11 +86,11 @@
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:spatialserieshourly' ident coords network trange level var year month day hour %}
+	   {% url 'showdata:spatialserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif day %}
-	   {% url 'showdata:spatialseriesdaily'  ident coords network trange level var year month day %}
+	   {% url 'showdata:spatialseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% endif %}
-	   '>{% trans "Show last values on a map" %}
+	   '>{% trans "Show values on a map" %}
 	</a>
       </p>
     </div>
@@ -104,13 +104,13 @@
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
+	   {% url 'api:v1:timeserieshourly' 'dbajson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif day %}
-	   {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}
+	   {% url 'api:v1:timeseriesdaily' 'dbajson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif month %}
-	   {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}
+	   {% url 'api:v1:timeseriesmonthly' 'dbajson' ident coords network trange level var year month %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif year %}
-	   {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}
+	   {% url 'api:v1:timeseriesyearly' 'dbajson' ident coords network trange level var year %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% endif %}
 	   '>{% trans "Download data" %}
 	</a>

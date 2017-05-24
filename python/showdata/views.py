@@ -8,6 +8,10 @@ from rmap.settings import *
 from django.core.urlresolvers import reverse
 from rmap.stations.models import Bcode
 
+defaultdsn="report"
+defaulttimedsn="report_fixed"
+
+
 def filtro(request, **kwargs):
 
     now=datetime.utcnow()
@@ -92,7 +96,7 @@ def timeseries(request, **kwargs):
                         "year" :"{:04d}".format(dtprevious.year),
                         "month":"{:02d}".format(dtprevious.month),
                         "day"  :"{:02d}".format(dtprevious.day),
-                        "hour" :"{:02d}".format(dtprevious.hour)})
+                        "hour" :"{:02d}".format(dtprevious.hour)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     next= reverse('showdata:timeserieshourly', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -103,7 +107,7 @@ def timeseries(request, **kwargs):
                         "year" :"{:04d}".format(dtnext.year),
                         "month":"{:02d}".format(dtnext.month),
                         "day"  :"{:02d}".format(dtnext.day),
-                        "hour" :"{:02d}".format(dtnext.hour)})
+                        "hour" :"{:02d}".format(dtnext.hour)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     more=reverse('showdata:timeseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -113,7 +117,7 @@ def timeseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year":kwargs.get("year"),
                         "month":kwargs.get("month"),
-                        "day":kwargs.get("day")})
+                        "day":kwargs.get("day")})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     less=None
                     datefrom=kwargs.get("hour")+":00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
@@ -132,7 +136,7 @@ def timeseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtprevious.year),
                         "month":"{:02d}".format(dtprevious.month),
-                        "day"  :"{:02d}".format(dtprevious.day)})
+                        "day"  :"{:02d}".format(dtprevious.day)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     next= reverse('showdata:timeseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -142,7 +146,7 @@ def timeseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtnext.year),
                         "month":"{:02d}".format(dtnext.month),
-                        "day"  :"{:02d}".format(dtnext.day)})
+                        "day"  :"{:02d}".format(dtnext.day)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     more=reverse('showdata:timeseriesmonthly', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -151,7 +155,7 @@ def timeseries(request, **kwargs):
                         "level":kwargs.get("level"),
                         "var":kwargs.get("var"),
                         "year":kwargs.get("year"),
-                        "month":kwargs.get("month")})
+                        "month":kwargs.get("month")})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     less=reverse('showdata:timeserieshourly', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -162,7 +166,7 @@ def timeseries(request, **kwargs):
                         "year":kwargs.get("year"),
                         "month":kwargs.get("month"),
                         "day":kwargs.get("day"),
-                        "hour":"12"})
+                        "hour":"12"})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                     datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
             else:
@@ -179,7 +183,7 @@ def timeseries(request, **kwargs):
                     "level":kwargs.get("level"),
                     "var":kwargs.get("var"),
                     "year" :"{:04d}".format(dtprevious.year),
-                    "month":"{:02d}".format(dtprevious.month)})
+                    "month":"{:02d}".format(dtprevious.month)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                 next= reverse('showdata:timeseriesmonthly', kwargs={
                     "ident":kwargs.get("ident"),
                     "coords":kwargs.get("coords"), 
@@ -188,7 +192,7 @@ def timeseries(request, **kwargs):
                     "level":kwargs.get("level"),
                     "var":kwargs.get("var"),
                     "year" :"{:04d}".format(dtnext.year),
-                    "month":"{:02d}".format(dtnext.month)})
+                    "month":"{:02d}".format(dtnext.month)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                 more=reverse('showdata:timeseriesyearly', kwargs={
                     "ident":kwargs.get("ident"),
                     "coords":kwargs.get("coords"), 
@@ -196,7 +200,7 @@ def timeseries(request, **kwargs):
                     "trange":kwargs.get("trange"),
                     "level":kwargs.get("level"),
                     "var":kwargs.get("var"),
-                    "year":kwargs.get("year")})
+                    "year":kwargs.get("year")})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                 less=reverse('showdata:timeseriesdaily', kwargs={
                     "ident":kwargs.get("ident"),
                     "coords":kwargs.get("coords"), 
@@ -206,7 +210,7 @@ def timeseries(request, **kwargs):
                     "var":kwargs.get("var"),
                     "year":kwargs.get("year"),
                     "month":kwargs.get("month"),
-                    "day":"15"})
+                    "day":"15"})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
                 datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+"01"
                 lastdayinmonth="{:02d}".format((dtnext.replace(day=1)-timedelta(days=1)).day)
                 dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+lastdayinmonth
@@ -223,7 +227,7 @@ def timeseries(request, **kwargs):
                 "trange":kwargs.get("trange"),
                 "level":kwargs.get("level"),
                 "var":kwargs.get("var"),
-                "year" :"{:04d}".format(dtprevious.year)})
+                "year" :"{:04d}".format(dtprevious.year)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
             next= reverse('showdata:timeseriesyearly', kwargs={
                 "ident":kwargs.get("ident"),
                 "coords":kwargs.get("coords"), 
@@ -231,7 +235,7 @@ def timeseries(request, **kwargs):
                 "trange":kwargs.get("trange"),
                 "level":kwargs.get("level"),
                 "var":kwargs.get("var"),
-                "year" :"{:04d}".format(dtnext.year)})
+                "year" :"{:04d}".format(dtnext.year)})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
             more=None
             less=reverse('showdata:timeseriesmonthly', kwargs={
                 "ident":kwargs.get("ident"),
@@ -241,7 +245,7 @@ def timeseries(request, **kwargs):
                 "level":kwargs.get("level"),
                 "var":kwargs.get("var"),
                 "year":kwargs.get("year"),
-                "month":"06"})
+                "month":"06"})+"?dsn="+request.GET.get('dsn', defaulttimedsn)
             datefrom="00:00_"+kwargs.get("year")+"0101"
             dateuntil="23:59_"+kwargs.get("year")+"1231"
     else:
@@ -281,7 +285,7 @@ def timeseries(request, **kwargs):
         "hour":kwargs.get("hour"), 
         "datefrom":datefrom,"dateuntil":dateuntil, 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
-        "previous":previous,"next":next,"less":less,"more":more,"type":request.GET.get('type', 'report_fixed'),"bcode":bcode})
+        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaulttimedsn),"bcode":bcode})
 
 def spatialseries(request, **kwargs):
 
@@ -304,7 +308,7 @@ def spatialseries(request, **kwargs):
                         "year" :"{:04d}".format(dtprevious.year),
                         "month":"{:02d}".format(dtprevious.month),
                         "day"  :"{:02d}".format(dtprevious.day),
-                        "hour" :"{:02d}".format(dtprevious.hour)})
+                        "hour" :"{:02d}".format(dtprevious.hour)})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     next= reverse('showdata:spatialserieshourly', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -315,7 +319,7 @@ def spatialseries(request, **kwargs):
                         "year" :"{:04d}".format(dtnext.year),
                         "month":"{:02d}".format(dtnext.month),
                         "day"  :"{:02d}".format(dtnext.day),
-                        "hour" :"{:02d}".format(dtnext.hour)})
+                        "hour" :"{:02d}".format(dtnext.hour)})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     more=reverse('showdata:spatialseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -325,7 +329,7 @@ def spatialseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year":kwargs.get("year"),
                         "month":kwargs.get("month"),
-                        "day":kwargs.get("day")})
+                        "day":kwargs.get("day")})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     less=None
                     datefrom=kwargs.get("hour")+":00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
@@ -344,7 +348,7 @@ def spatialseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtprevious.year),
                         "month":"{:02d}".format(dtprevious.month),
-                        "day"  :"{:02d}".format(dtprevious.day)})
+                        "day"  :"{:02d}".format(dtprevious.day)})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     next= reverse('showdata:spatialseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"), 
@@ -354,7 +358,7 @@ def spatialseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtnext.year),
                         "month":"{:02d}".format(dtnext.month),
-                        "day"  :"{:02d}".format(dtnext.day)})
+                        "day"  :"{:02d}".format(dtnext.day)})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     more=None
                     less=reverse('showdata:spatialserieshourly', kwargs={
                         "ident":kwargs.get("ident"),
@@ -366,7 +370,7 @@ def spatialseries(request, **kwargs):
                         "year":kwargs.get("year"),
                         "month":kwargs.get("month"),
                         "day":kwargs.get("day"),
-                        "hour":"12"})
+                        "hour":"12"})+"?dsn="+request.GET.get('dsn', defaultdsn)
                     datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
             else:
@@ -423,9 +427,9 @@ def spatialseries(request, **kwargs):
         "hour":kwargs.get("hour"), 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "datefrom":datefrom,"dateuntil":dateuntil,
-        "previous":previous,"next":next,"less":less,"more":more,"bcode":bcode})
+        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode})
     
 def stations(request, **kwargs):
 
-    return render(request, 'showdata/stations.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var")})
+    return render(request, 'showdata/stations.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var"),"dsn":request.GET.get('dsn', defaultdsn)})
 

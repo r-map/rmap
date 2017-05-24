@@ -79,7 +79,7 @@
 	{{vartxt}}  {{bcode.userunit}}<br>
 	{{trangetxt}}<br>
 	{{leveltxt}}<br>
-	{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} last value in the day{% endif %} GMT
+	{{day}}/{{month}}/{{year}}{% if hour %}  {{hour}}:00 +/- 30 min{% else %} values in the day{% endif %} GMT
       </h4>
     </div>
 
@@ -130,9 +130,9 @@ $("#loading").dialog({
 });
 
 {% if hour %}
-var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}"
+var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}"
 {% else %}
-var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}"
+var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}"
 {% endif %}
 
 var coords=[];
@@ -164,55 +164,6 @@ function  null2_( target )
 */
 
 
-function oneachfeature(feature, layer)
-{
-    var popupText = "<div id='preloadimages'>"
-        + "Ident: " + null2_(feature.properties.ident)
-	+ "<br>Lon: " + feature.properties.lon
-	+ "<br>Lat: " + feature.properties.lat
-	+ "<br>Network: " + feature.properties.network
-	+ "<br>Trange: " + feature.properties.trange
-	+ "<br>Level: " + feature.properties.level
-	+ "<br>Date: " + feature.properties.date
-	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations'>Constant station data</a>"
-{% if hour %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
-
-{% else %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
-{% endif %}
-
-      + "<img src=/graphite/render/?target="
-+"report_fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
-+"&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>"
-+"</a>";
-
-    if ( feature.properties.ident !== null ) 
-    {
-    popupText +=
-      {% if hour %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?type=report_mobile'>"
-      {% else %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?type=report_mobile'>"
-      {% endif %}
-     +"{% trans "Mobile station data" %}</a>"
-    }
-
-    popupText +="</div>";
-
-    //var popup = L.popup().setContent(popupText);
-
-    var popup = layer.bindPopup(popupText);
-
-    popup.on('popupopen',function managepreload(e) 
-    {
-       $('#preloadimages img').preload({
-            placeholder:'{% static "showdata/loading.gif" %}',
-            notFound:'{% static "showdata/access-error-logs.png" %}'
-       })
-    })
-}
 
 var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
 
@@ -301,29 +252,42 @@ function setpopup(feature)
 	+ "<br>Level: " + feature.properties.level
 	+ "<br>Date: " + feature.properties.date
 	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations'>Constant station data</a>"
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>Constant station data</a>"
+
+{% if dsn == 'sample' or dsn == 'report' %}
+
 {% if hour %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}'>"
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>"
 
 {% else %}
-	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}'>"
-{% endif %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}'>"
+{% endif %};
 
-      + "<img src=/graphite/render/?target="
-+"report_fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
-+"&from={{ datefrom }}&until={{ dateuntil }}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>"
-+"</a>";
+  popupText += "<img src=/graphite/render/?target="
++"{{dsn}}_fixed."+null2_(feature.properties.ident)+"."+feature.properties.lon+"_"+feature.properties.lat+"."+null2_(feature.properties.network)+"."+feature.properties.trange[0]+"_"+feature.properties.trange[1]+"_"+feature.properties.trange[2]+"."+null2_(feature.properties.level[0])+"_"+null2_(feature.properties.level[1])+"_"+null2_(feature.properties.level[2])+"_"+null2_(feature.properties.level[3])+"."+null2_(feature.properties.var)
++"&from={{ datefrom }}&until={{ dateuntil}}&hideLegend=true&tz=UTC&lineMode=connected&lineWidth=3&width=150&height=100&graphOnly=true' alt='graphic for {{var}}' class='img-thumbnail'>";
 
     if ( feature.properties.ident !== null ) 
     {
     popupText +=
       {% if hour %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?type=report_mobile'>"
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}?dsn={{dsn}}_mobile'>";
       {% else %}
-        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?type=report_mobile'>"
+        "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}?dsn={{dsn}}_mobile'>";
       {% endif %}
-     +"{% trans "Mobile station data" %}</a>"
+     popupText +="{% trans "Graph for mobile station" %}</a>";
     }
+
+{% else %}
+{% if hour %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}/{{hour}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
+
+{% else %}
+	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
+{% endif %};
+    popupText += "{% trans "Graph for fixed station" %}";
+    popupText +="</a>";	  
+{% endif %}
 
     popupText +="</div>";
 
@@ -588,9 +552,9 @@ function map_init(map, options)
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:spatialserieshourly' ident "*" network trange level var year month day hour %}
+	   {% url 'showdata:spatialserieshourly' ident "*" network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif day %}
-	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}
+	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% endif %}
 	   '>{% trans "Show all coordinates on a map" %}
 	</a>
@@ -601,9 +565,9 @@ function map_init(map, options)
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}
+	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% elif day %}
-	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}
+	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% endif %}
 	   '>{% trans "Show all values on a graph" %}
 	</a>
@@ -617,9 +581,9 @@ function map_init(map, options)
 
 	<a href='
 	   {% if hour %}
-	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}
+	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% else %}
-	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}
+	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
 	   {% endif %}
 	   '>{% trans "Download data" %}
 	</a>
