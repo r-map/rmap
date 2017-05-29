@@ -22,11 +22,12 @@ struct FuncMap
 class JsonRPC
 {
     public:
-	JsonRPC(int capacity);
+  JsonRPC(int capacity, bool radio=false);
 	void registerMethod(String methodname, int(*callback)(aJsonObject*));
 	int processMessage(aJsonObject *msg);
     private:
 	FuncMap* mymap;
+	bool myradio;
 };
 
 #endif

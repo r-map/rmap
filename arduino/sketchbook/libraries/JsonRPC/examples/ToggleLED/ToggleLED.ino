@@ -25,6 +25,14 @@
  time.sleep(2)
  ser.close()
 
+
+use those for radio mode:
+
+ ser.write('{"m":"toggle","p": {"status": true}}')
+ time.sleep(5)
+ ser.write('{"m": "toggle", "p": {"status": false}}')
+
+
  */
 
 // include the aJSON library
@@ -34,7 +42,8 @@
 
 // initialize an instance of the JsonRPC library for registering 
 // exactly 1 local method
-JsonRPC rpc(1);
+bool radio=false;         //radio mode is for compact protocoll
+JsonRPC rpc(1,radio);
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
 aJsonStream stream(&Serial);
@@ -49,16 +58,18 @@ void setup()
   
   // start up the serial interface
   Serial.begin(9600);
+
+  Serial.println("Started");
   
   // and register the local toggleLED method
   rpc.registerMethod("toggle", &toggleLED);
 }
 
-void toggleLED(aJsonObject* params)
+int toggleLED(aJsonObject* params)
 {
   aJsonObject* statusParam = aJson.getObjectItem(params, "status");
   boolean requestedStatus = statusParam -> valuebool;
-  
+
   if (requestedStatus)
   {
     digitalWrite(led, HIGH);
@@ -67,8 +78,12 @@ void toggleLED(aJsonObject* params)
   {
     digitalWrite(led, LOW);
   }
-  Serial.println('{"result": "Eccote", "error": null, "id": 0}')
-  
+  if (radio){
+    Serial.println("{\"r\":\"fatto\",\"id\":0}");
+  }else{
+    Serial.println("{\"jsonrpc\": \"2.0\", \"result\": \"fatto\", \"id\": 0}");
+  }
+  return 0;
 }
 
 void loop()
@@ -80,8 +95,17 @@ void loop()
 
   if (stream.available()) {
     aJsonObject *msg = aJson.parse(&stream);
-    rpc.processMessage(msg);
+    int err=rpc.processMessage(msg);
+
+    Serial.print(F("#rpc.processMessage return status:"));
+    Serial.println(err);
+    
     aJson.deleteItem(msg);
+
+    if (stream.available()) {
+      stream.flush();
+    }
+    
   }
 }
 
