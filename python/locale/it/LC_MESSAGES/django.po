@@ -907,7 +907,7 @@ msgstr "DATI COSTATI STAZIONE IN CODA:"
 #: build/lib/rmap/rmapgui.py:2401 build/lib/rmap/rmapgui.py:2408
 #: rmap/rmapgui.py:2412 rmap/rmapgui.py:2419
 msgid "SHOW ONLY LAST"
-msgstr "Mosra solo l'ultimo"
+msgstr "Mostra solo l'ultimo"
 
 #: build/lib/rmap/rmapgui.py:2406 rmap/rmapgui.py:2417
 msgid "STATION DATA QUEUED:"
