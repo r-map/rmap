@@ -13,7 +13,6 @@ build
 dist
 rmap.egg-info
 rmap.ini
-test
 AndroidManifest.xml
 logrpc.txt
 media

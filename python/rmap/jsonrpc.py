@@ -459,18 +459,22 @@ class JsonRpc20:
     :SeeAlso:   JSON-RPC 2.0 specification
     :TODO:      catch simplejson.dumps not-serializable-exceptions
     """
-    def __init__(self, dumps=simplejson.dumps, loads=simplejson.loads):
+    def __init__(self, dumps=simplejson.dumps, loads=simplejson.loads,radio=False,notification=False):
         """init: set serializer to use
 
         :Parameters:
             - dumps: json-encoder-function
             - loads: json-decoder-function
+            - radio: True for short protocol for radio
+            - notification: True for send notification
         :Note: The dumps_* functions of this class already directly create
                the invariant parts of the resulting json-object themselves,
                without using the given json-encoder-function.
         """
         self.dumps = dumps
         self.loads = loads
+        self.radio = radio
+        self.notification=notification
 
     def dumps_request( self, method, params=(), id=0 ):
         """serialize JSON-RPC-Request
@@ -491,10 +495,18 @@ class JsonRpc20:
             raise TypeError("params must be a tuple/list/dict or None.")
 
         if params:
-            return '{"jsonrpc": "2.0", "method": %s, "params": %s, "id": %s}' % \
+            if self.radio:
+                return '{"m":%s,"p":%s,"i":%s}' % \
+                    (self.dumps(method), self.dumps(params), self.dumps(id))
+            else:
+                return '{"jsonrpc": "2.0", "method": %s, "params": %s, "id": %s}' % \
                     (self.dumps(method), self.dumps(params), self.dumps(id))
         else:
-            return '{"jsonrpc": "2.0", "method": %s, "id": %s}' % \
+            if self.radio:
+                return '{"m":%s,"i":%s}' % \
+                    (self.dumps(method), self.dumps(id))
+            else:
+                return '{"jsonrpc": "2.0", "method": %s, "id": %s}' % \
                     (self.dumps(method), self.dumps(id))
 
     def dumps_notification( self, method, params=() ):
@@ -511,10 +523,18 @@ class JsonRpc20:
             raise TypeError("params must be a tuple/list/dict or None.")
 
         if params:
-            return '{"jsonrpc": "2.0", "method": %s, "params": %s}' % \
+            if self.radio:
+                return '{"m":%s,"p":%s}' % \
+                    (self.dumps(method), self.dumps(params))
+            else:
+                return '{"jsonrpc": "2.0", "method": %s, "params": %s}' % \
                     (self.dumps(method), self.dumps(params))
         else:
-            return '{"jsonrpc": "2.0", "method": %s}' % \
+            if self.radio:
+                return '{"m":%s}' % \
+                    (self.dumps(method))
+            else:
+                return '{"jsonrpc": "2.0", "method": %s}' % \
                     (self.dumps(method))
 
     def dumps_response( self, result, id=None ):
@@ -524,7 +544,11 @@ class JsonRpc20:
                     | "jsonrpc", "result", and "id" are always in this order.
         :Raises:    TypeError if not JSON-serializable
         """
-        return '{"jsonrpc": "2.0", "result": %s, "id": %s}' % \
+        if self.radio:
+            return '{"r":%s,"i":%s}' % \
+                (self.dumps(result), self.dumps(id))
+        else:
+            return '{"jsonrpc": "2.0", "result": %s, "id": %s}' % \
                 (self.dumps(result), self.dumps(id))
 
     def dumps_error( self, error, id=None ):
@@ -540,10 +564,18 @@ class JsonRpc20:
         if not isinstance(error, RPCFault):
             raise ValueError("""error must be a RPCFault-instance.""")
         if error.error_data is None:
-            return '{"jsonrpc": "2.0", "error": {"code":%s, "message": %s}, "id": %s}' % \
+            if self.radio:
+                return '{"e":{"c":%s,"m":%s},"i":%s}' % \
+                    (self.dumps(error.error_code), self.dumps(error.error_message), self.dumps(id))
+            else:
+                return '{"jsonrpc": "2.0", "error": {"code":%s, "message": %s}, "id": %s}' % \
                     (self.dumps(error.error_code), self.dumps(error.error_message), self.dumps(id))
         else:
-            return '{"jsonrpc": "2.0", "error": {"code":%s, "message": %s, "data": %s}, "id": %s}' % \
+            if self.radio:
+                return '{"c":%s,"m":%s,"d":%s},"i":%s}' % \
+                    (self.dumps(error.error_code), self.dumps(error.error_message), self.dumps(error.error_data), self.dumps(id))
+            else:
+                return '{"jsonrpc": "2.0", "error": {"code":%s, "message": %s, "data": %s}, "id": %s}' % \
                     (self.dumps(error.error_code), self.dumps(error.error_message), self.dumps(error.error_data), self.dumps(id))
 
     def loads_request( self, string ):
@@ -559,30 +591,45 @@ class JsonRpc20:
         except ValueError, err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
-        if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
-        if not isinstance(data["jsonrpc"], (str, unicode)):
-            raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
-        if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
-        if "method" not in data:        raise RPCInvalidRPC("""Invalid Request, "method" is missing.""")
-        if not isinstance(data["method"], (str, unicode)):
-            raise RPCInvalidRPC("""Invalid Request, "method" must be a string.""")
-        if "params" not in data:        data["params"] = ()
+
+        if not self.radio:
+            if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
+            if not isinstance(data["jsonrpc"], (str, unicode)):
+                raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
+            if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
+
+        if self.radio:
+            methodkey="m"
+            paramskey="p"
+            idkey="i"
+            numfield=2
+        else:
+            methodkey="method"
+            paramskey="params"
+            idkey="id"
+            numfield=3
+            
+        if methodkey not in data:        raise RPCInvalidRPC("Invalid Request, '"+methodkey+"' is missing.")
+        if not isinstance(data[methodkey], (str, unicode)):
+            raise RPCInvalidRPC("Invalid Request, '"+methodkey+"' must be a string.")
+
+        if paramskey not in data:        data["params"] = ()
         #convert params-keys from unicode to str
-        elif isinstance(data["params"], dict):
+        elif isinstance(data[paramskey], dict):
             try:
-                data["params"] = dictkeyclean(data["params"])
+                data[paramskey] = dictkeyclean(data[paramskey])
             except UnicodeEncodeError:
                 raise RPCInvalidMethodParams("Parameter-names must be in ascii.")
-        elif not isinstance(data["params"], (list, tuple)):
-            raise RPCInvalidRPC("""Invalid Request, "params" must be an array or object.""")
-        if not( len(data)==3 or ("id" in data and len(data)==4) ):
+        elif not isinstance(data[paramskey], (list, tuple)):
+            raise RPCInvalidRPC("Invalid Request, '"+paramskey+"' must be an array or object.")
+        if not( len(data)==numfield or (idkey in data and len(data)==(numfield+1)) ):
             raise RPCInvalidRPC("""Invalid Request, additional fields found.""")
 
         # notification / request
-        if "id" not in data:
-            return data["method"], data["params"]               #notification
+        if idkey not in data:
+            return data[methodkey], data[paramskey]               #notification
         else:
-            return data["method"], data["params"], data["id"]   #request
+            return data[methodkey], data[paramskey], data[idkey]   #request
 
     def loads_response( self, string ):
         """de-serialize a JSON-RPC Response/error
@@ -590,55 +637,80 @@ class JsonRpc20:
         :Returns: | [result, id] for Responses
         :Raises:  | RPCFault+derivates for error-packages/faults, RPCParseError, RPCInvalidRPC
         """
+        if self.notification:
+            return None
+        
         try:
             data = self.loads(string)
         except ValueError, err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
-        if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
-        if not isinstance(data["jsonrpc"], (str, unicode)):
-            raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
-        if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
-        if "id" not in data:            raise RPCInvalidRPC("""Invalid Response, "id" missing.""")
-        if "result" not in data:        data["result"] = None
-        if "error"  not in data:        data["error"]  = None
-        if len(data) != 4:              raise RPCInvalidRPC("""Invalid Response, additional or missing fields.""")
+
+        if not self.radio:
+            if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
+            if not isinstance(data["jsonrpc"], (str, unicode)):
+                raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
+            if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
+
+        if self.radio:
+            idkey="i"
+            resultkey="m"
+            errorkey="p"
+            codekey="c"
+            messagekey="m"
+            datakey="d"
+            resultkey="r"
+            numfield=3
+        else:
+            idkey="id"
+            methodkey="method"
+            errorkey="params"
+            codekey="code"
+            messagekey="message"
+            datakey="data"
+            resultkey="result"
+            numfield=4
+            
+	if idkey not in data:            raise RPCInvalidRPC("Invalid Response, '"+idkey+"' missing.")
+        if resultkey not in data:        data[resultkey] = None
+        if errorkey  not in data:        data[errorkey]  = None
+        if len(data) != numfield:              raise RPCInvalidRPC("""Invalid Response, additional or missing fields.""")
 
         #error
-        if data["error"] is not None:
-            if data["result"] is not None:
+        if data[errorkey] is not None:
+            if data[resultkey] is not None:
                 raise RPCInvalidRPC("""Invalid Response, only "result" OR "error" allowed.""")
-            if not isinstance(data["error"], dict): raise RPCInvalidRPC("Invalid Response, invalid error-object.")
-            if "code" not in data["error"]  or  "message" not in data["error"]:
+            if not isinstance(data[errorkey], dict): raise RPCInvalidRPC("Invalid Response, invalid error-object.")
+            if codekey not in data[errorkey]  or  messagekey not in data[errorkey]:
                 raise RPCInvalidRPC("Invalid Response, invalid error-object.")
-            if "data" not in data["error"]:  data["error"]["data"] = None
-            if len(data["error"]) != 3:
+            if datakey not in data[errorkey]:  data[errorkey][datakey] = None
+            if len(data[errorkey]) != 3:
                 raise RPCInvalidRPC("Invalid Response, invalid error-object.")
 
-            error_data = data["error"]["data"]
-            if   data["error"]["code"] == PARSE_ERROR:
+            error_data = data[errorkey][datakey]
+            if   data[errorkey][codekey] == PARSE_ERROR:
                 raise RPCParseError(error_data)
-            elif data["error"]["code"] == INVALID_REQUEST:
+            elif data[errorkey][codekey] == INVALID_REQUEST:
                 raise RPCInvalidRPC(error_data)
-            elif data["error"]["code"] == METHOD_NOT_FOUND:
+            elif data[errorkey][codekey] == METHOD_NOT_FOUND:
                 raise RPCMethodNotFound(error_data)
-            elif data["error"]["code"] == INVALID_METHOD_PARAMS:
+            elif data[errorkey][codekey] == INVALID_METHOD_PARAMS:
                 raise RPCInvalidMethodParams(error_data)
-            elif data["error"]["code"] == INTERNAL_ERROR:
+            elif data[errorkey][codekey] == INTERNAL_ERROR:
                 raise RPCInternalError(error_data)
-            elif data["error"]["code"] == PROCEDURE_EXCEPTION:
+            elif data[errorkey][codekey] == PROCEDURE_EXCEPTION:
                 raise RPCProcedureException(error_data)
-            elif data["error"]["code"] == AUTHENTIFICATION_ERROR:
+            elif data[errorkey][codekey] == AUTHENTIFICATION_ERROR:
                 raise RPCAuthentificationError(error_data)
-            elif data["error"]["code"] == PERMISSION_DENIED:
+            elif data[errorkey][codekey] == PERMISSION_DENIED:
                 raise RPCPermissionDenied(error_data)
-            elif data["error"]["code"] == INVALID_PARAM_VALUES:
+            elif data[errorkey][codekey] == INVALID_PARAM_VALUES:
                 raise RPCInvalidParamValues(error_data)
             else:
-                raise RPCFault(data["error"]["code"], data["error"]["message"], error_data)
+                raise RPCFault(data[errorkey][codekey], data[errorkey][messagekey], error_data)
         #result
         else:
-            return data["result"], data["id"]
+            return data[resultkey], data[idkey]
 
 
 #=========================================
@@ -1100,7 +1172,7 @@ class TransportSocket(Transport):
                 data = conn.recv(self.limit)
                 self.log( "%s --> %s" % (repr(addr), repr(data)) )
                 result = handler(data)
-                if data is not None:
+                if result is not None:
                     self.log( "%s <-- %s" % (repr(addr), repr(result)) )
                     conn.send( result )
                 self.log( "%s close" % repr(addr) )
@@ -1180,16 +1252,27 @@ class ServerProxy:
         if len(args) > 0 and len(kwargs) > 0:
             raise ValueError("Only positional or named parameters are allowed!")
         if len(kwargs) == 0:
-            req_str  = self.__data_serializer.dumps_request( methodname, args, id )
+            if self.__data_serializer.notification:
+                req_str  = self.__data_serializer.dumps_notification( methodname, args )
+            else:
+                req_str  = self.__data_serializer.dumps_request( methodname, args, id )
+            
         else:
-            req_str  = self.__data_serializer.dumps_request( methodname, kwargs, id )
+            if self.__data_serializer.notification:
+                req_str  = self.__data_serializer.dumps_notification( methodname, kwargs)
+            else:
+                req_str  = self.__data_serializer.dumps_request( methodname, kwargs, id )
 
         try:
             resp_str = self.__transport.sendrecv( req_str )
         except Exception,err:
             raise RPCTransportError()
         resp = self.__data_serializer.loads_response( resp_str )
-        return resp[0]
+
+        if self.__data_serializer.notification:
+            return None
+        else:
+            return resp[0]
 
     def __getattr__(self, name):
         # magic method dispatcher
