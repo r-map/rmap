@@ -14,6 +14,11 @@
  <link rel="stylesheet" href="{% static "rmap/libs/jquery-ui-1.12.1//jquery-ui.css" %}" type="text/css" />
  <script type="text/javascript" src="{% static "rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
  <script type="text/javascript" src="{% static "showdata/PruneCluster.js" %}" ></script>
+
+ <script type="text/javascript" src="{% static "showdata/borinud.trange.js" %}" ></script>
+ <script type="text/javascript" src="{% static "showdata/borinud.level.js" %}" ></script>
+ <script type="text/javascript" src="{% static "showdata/borinud.B.js" %}" ></script>
+
  <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
 
  <script type="text/javascript" src="{% static "showdata/leaflet.label.js" %}" ></script>
@@ -243,15 +248,18 @@ function beforesend(){
 
 function setpopup(feature)
 {
+
+    var b = borinud.config.B[feature.properties.var];
+
     var popupText = "<div id='preloadimages'>"
         + "Ident: " + null2_(feature.properties.ident)
-	+ "<br>Lon: " + feature.properties.lon
-	+ "<br>Lat: " + feature.properties.lat
+	+ "<br>Lon: " + feature.properties.lon/100000
+	+ "<br>Lat: " + feature.properties.lat/100000
 	+ "<br>Network: " + feature.properties.network
-	+ "<br>Trange: " + feature.properties.trange
-	+ "<br>Level: " + feature.properties.level
+        + "<br>Trange: " + borinud.config.trange.describe(feature.properties.trange[0],feature.properties.trange[1],feature.properties.trange[2])
+        + "<br>Level: " + borinud.config.level.describe(feature.properties.level[0],feature.properties.level[1],feature.properties.level[2],feature.properties.level[3])
 	+ "<br>Date: " + feature.properties.date
-	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
+	+ "<br>Var: " + b.description + " " + feature.properties.val + " (" + b.unit + ")"
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>Constant station data</a>"
 
 {% if dsn == 'sample' or dsn == 'report' %}
