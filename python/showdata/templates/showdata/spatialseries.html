@@ -569,20 +569,22 @@ function map_init(map, options)
       </p>
     </div>
 
+{% if dsn == 'sample' or dsn == 'report' %}
     <div class="col-xs-4">
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}
 	   {% elif day %}
-	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}
 	   {% endif %}
 	   '>{% trans "Show all values on a graph" %}
 	</a>
       </p>
     </div>
   </div>
-
+{% endif %}
+  
   <div class="row">
     <div class="col-xs-4 col-xs-offset-8">
       <p style="text-align:left">
