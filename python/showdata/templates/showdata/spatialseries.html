@@ -170,7 +170,7 @@ function  null2_( target )
 
 
 
-var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
+var colors = ['#3030ff','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
 
 function getColorIndex(d,min,max) {
     var delta=(max-min)/(colors.length);
@@ -406,8 +406,12 @@ function map_init(map, options)
 			canvas.fillStyle = '#111';
 			canvas.textAlign = 'center';
 			canvas.textBaseline = 'middle';
-			canvas.font = 'bold 10px sans-serif';
-			canvas.fillText(this.population, 22, 22, 40);
+			canvas.font = 'bold 8px sans-serif';
+			//canvas.fillText(this.population, 22, 22,28);
+			var halfdelta = ((max-min)/(colors.length*2.));
+			var grade = min + halfdelta * (prevalentindex*2+1);
+			grade = (grade*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"");
+			canvas.fillText(grade , 22, 22, 28);
 		    }
 		});
 		/////////////
