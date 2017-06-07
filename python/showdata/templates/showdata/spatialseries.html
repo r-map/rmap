@@ -135,10 +135,11 @@ $("#loading").dialog({
 });
 
 {% if hour %}
-var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}";
 {% else %}
-var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}";
 {% endif %}
+
 
 var coords=[];
 var min=Infinity;
@@ -293,7 +294,7 @@ function setpopup(feature)
 {% else %}
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
 {% endif %};
-    popupText += "{% trans "Graph for fixed station" %}";
+    popupText += "{% trans "Graph data for station" %}";
     popupText +="</a>";	  
 {% endif %}
 
@@ -563,11 +564,7 @@ function map_init(map, options)
     <div class="col-xs-8">
       <p style="text-align:left">
 	<a href='
-	   {% if hour %}
-	   {% url 'showdata:spatialserieshourly' ident "*" network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
-	   {% elif day %}
-	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
-	   {% endif %}
+	   {% url 'showdata:stations' ident coords network trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   '>{% trans "Show all coordinates on a map" %}
 	</a>
       </p>
@@ -578,9 +575,9 @@ function map_init(map, options)
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}
+	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% elif day %}
-	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}_fixed{% endif %}
+	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% endif %}
 	   '>{% trans "Show all values on a graph" %}
 	</a>
@@ -595,9 +592,9 @@ function map_init(map, options)
 
 	<a href='
 	   {% if hour %}
-	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% else %}
-	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% endif %}
 	   '>{% trans "Download data" %}
 	</a>
