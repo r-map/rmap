@@ -7,6 +7,7 @@ from views import home,wizard,wizard2,wizard_done,wizard_error
 import rmap.views
 import django.views
 from django.conf.urls.static import static
+from django.views.generic import TemplateView
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -45,7 +46,7 @@ urlpatterns = [
 
     url(r'^accounts/profile/$',      rmap.views.profile),
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
-
+    url(r'^robots.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots_file")
 ]
 
 if not android  :
