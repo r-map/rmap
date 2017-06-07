@@ -215,9 +215,6 @@ def spatialseries(request, **kwargs):
     q["lonmin"] = request.GET.get("lonmin")
     q["lonmax"] = request.GET.get("lonmax")
 
-    print "query:"
-    for k in q.keys():
-        print k,q[k]
     
     format=kwargs.get('format')
     

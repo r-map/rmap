@@ -246,7 +246,6 @@ class SummaryCacheDB(DB):
         )
 
     def query_data(self, rec):
-        print "dballerec: ", rec
         return self.db.query_data(rec)
 
 
@@ -516,5 +515,4 @@ class ArkimetBufrDB(DB):
             )
 
         arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
-        print arkiquery
         return arkiquery
