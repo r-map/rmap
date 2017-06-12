@@ -14,6 +14,11 @@
  <link rel="stylesheet" href="{% static "rmap/libs/jquery-ui-1.12.1//jquery-ui.css" %}" type="text/css" />
  <script type="text/javascript" src="{% static "rmap/libs/jquery-ui-1.12.1/jquery-ui.min.js" %}" ></script>
  <script type="text/javascript" src="{% static "showdata/PruneCluster.js" %}" ></script>
+
+ <script type="text/javascript" src="{% static "showdata/borinud.trange.js" %}" ></script>
+ <script type="text/javascript" src="{% static "showdata/borinud.level.js" %}" ></script>
+ <script type="text/javascript" src="{% static "showdata/borinud.B.js" %}" ></script>
+
  <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
 
  <script type="text/javascript" src="{% static "showdata/leaflet.label.js" %}" ></script>
@@ -130,10 +135,11 @@ $("#loading").dialog({
 });
 
 {% if hour %}
-var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}";
 {% else %}
-var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}";
 {% endif %}
+
 
 var coords=[];
 var min=Infinity;
@@ -165,7 +171,7 @@ function  null2_( target )
 
 
 
-var colors = ['#090085','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
+var colors = ['#3030ff','#007885','#00855D','#0D8500','#478500','#788500','#853C00','#850000' ];    
 
 function getColorIndex(d,min,max) {
     var delta=(max-min)/(colors.length);
@@ -243,15 +249,18 @@ function beforesend(){
 
 function setpopup(feature)
 {
+
+    var b = borinud.config.B[feature.properties.var];
+
     var popupText = "<div id='preloadimages'>"
         + "Ident: " + null2_(feature.properties.ident)
-	+ "<br>Lon: " + feature.properties.lon
-	+ "<br>Lat: " + feature.properties.lat
+	+ "<br>Lon: " + feature.properties.lon/100000
+	+ "<br>Lat: " + feature.properties.lat/100000
 	+ "<br>Network: " + feature.properties.network
-	+ "<br>Trange: " + feature.properties.trange
-	+ "<br>Level: " + feature.properties.level
+        + "<br>Trange: " + borinud.config.trange.describe(feature.properties.trange[0],feature.properties.trange[1],feature.properties.trange[2])
+        + "<br>Level: " + borinud.config.level.describe(feature.properties.level[0],feature.properties.level[1],feature.properties.level[2],feature.properties.level[3])
 	+ "<br>Date: " + feature.properties.date
-	+ "<br>Var: " + feature.properties.var + " " + feature.properties.val
+	+ "<br>Var: " + b.description + " " + feature.properties.val + " (" + b.unit + ")"
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>Constant station data</a>"
 
 {% if dsn == 'sample' or dsn == 'report' %}
@@ -285,7 +294,7 @@ function setpopup(feature)
 {% else %}
 	+ "<br><a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/"+feature.properties.trange+"/"+null2_(feature.properties.level[0])+","+null2_(feature.properties.level[1])+","+null2_(feature.properties.level[2])+","+null2_(feature.properties.level[3])+"/"+null2_(feature.properties.var)+"/timeseries/{{year}}/{{month}}/{{day}}{% if dsn %}?dsn={{dsn}}{% endif %}'>"
 {% endif %};
-    popupText += "{% trans "Graph for fixed station" %}";
+    popupText += "{% trans "Graph data for station" %}";
     popupText +="</a>";	  
 {% endif %}
 
@@ -398,8 +407,12 @@ function map_init(map, options)
 			canvas.fillStyle = '#111';
 			canvas.textAlign = 'center';
 			canvas.textBaseline = 'middle';
-			canvas.font = 'bold 10px sans-serif';
-			canvas.fillText(this.population, 22, 22, 40);
+			canvas.font = 'bold 8px sans-serif';
+			//canvas.fillText(this.population, 22, 22,28);
+			var halfdelta = ((max-min)/(colors.length*2.));
+			var grade = min + halfdelta * (prevalentindex*2+1);
+			grade = (grade*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"");
+			canvas.fillText(grade , 22, 22, 28);
 		    }
 		});
 		/////////////
@@ -551,39 +564,37 @@ function map_init(map, options)
     <div class="col-xs-8">
       <p style="text-align:left">
 	<a href='
-	   {% if hour %}
-	   {% url 'showdata:spatialserieshourly' ident "*" network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
-	   {% elif day %}
-	   {% url 'showdata:spatialseriesdaily'  ident "*" network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
-	   {% endif %}
+	   {% url 'showdata:stations' ident coords network trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   '>{% trans "Show all coordinates on a map" %}
 	</a>
       </p>
     </div>
 
+{% if dsn == 'sample' or dsn == 'report' %}
     <div class="col-xs-4">
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'showdata:timeserieshourly' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% elif day %}
-	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'showdata:timeseriesdaily'  ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% endif %}
 	   '>{% trans "Show all values on a graph" %}
 	</a>
       </p>
     </div>
   </div>
-
+{% endif %}
+  
   <div class="row">
     <div class="col-xs-4 col-xs-offset-8">
       <p style="text-align:left">
 
 	<a href='
 	   {% if hour %}
-	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'api:v1:spatialserieshourly' 'dbajson' ident coords network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% else %}
-	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}
+	   {% url 'api:v1:spatialseriesdaily' 'dbajson' ident coords network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% endif %}
 	   '>{% trans "Download data" %}
 	</a>

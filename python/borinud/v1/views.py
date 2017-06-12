@@ -137,6 +137,21 @@ def summaries(request, **kwargs):
     q['year'] = kwargs.get('year')
     q['month'] = kwargs.get('month')
     q['day'] = kwargs.get('day')
+    q["hour"] = kwargs.get("hour")
+
+    q["yearmin"] = request.GET.get("yearmin")
+    q["yearmax"] = request.GET.get("yearmax")
+    q["monthmin"] = request.GET.get("monthmin")
+    q["monthmax"] = request.GET.get("monthmax")
+    q["daymin"] = request.GET.get("daymin")
+    q["daymax"] = request.GET.get("daymax")
+    q["hourmin"] = request.GET.get("hourmin")
+    q["hourmax"] = request.GET.get("hourmax")
+    q["minumin"] = request.GET.get("minumin")
+    q["minumax"] = request.GET.get("minumax")
+    q["secmin"] = request.GET.get("secmin")
+    q["secmax"] = request.GET.get("secmax")
+
 
     format=kwargs.get('format')
     
@@ -152,6 +167,20 @@ def timeseries(request, **kwargs):
     q["month"] = kwargs.get("month")
     q["day"] = kwargs.get("day")
     q["hour"] = kwargs.get("hour")
+
+    q["yearmin"] = request.GET.get("yearmin")
+    q["yearmax"] = request.GET.get("yearmax")
+    q["monthmin"] = request.GET.get("monthmin")
+    q["monthmax"] = request.GET.get("monthmax")
+    q["daymin"] = request.GET.get("daymin")
+    q["daymax"] = request.GET.get("daymax")
+    q["hourmin"] = request.GET.get("hourmin")
+    q["hourmax"] = request.GET.get("hourmax")
+    q["minumin"] = request.GET.get("minumin")
+    q["minumax"] = request.GET.get("minumax")
+    q["secmin"] = request.GET.get("secmin")
+    q["secmax"] = request.GET.get("secmax")
+
 
     #https://codefisher.org/catch/blog/2015/04/22/python-how-group-and-count-dictionaries/
     #from collections import defaultdict
@@ -181,6 +210,12 @@ def spatialseries(request, **kwargs):
     q["datemin"] = b
     q["datemax"] = e
 
+    q["latmin"] = request.GET.get("latmin")
+    q["latmax"] = request.GET.get("latmax")
+    q["lonmin"] = request.GET.get("lonmin")
+    q["lonmax"] = request.GET.get("lonmax")
+
+    
     format=kwargs.get('format')
     
     if format == "geojson" or format == "dbajson" :

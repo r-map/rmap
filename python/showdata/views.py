@@ -1,6 +1,8 @@
 # encoding: utf-8
 # Author: Paolo Patruno <p.patruno@iperbole.bologna.it>
 
+#TODO: make datefrom and dateuntil using GET parametere *min *max
+
 from django.shortcuts import render
 import dballe
 from datetime import date,datetime,timedelta,time
@@ -276,6 +278,16 @@ def timeseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
 
+    spatialbox={}
+    for k in ('lonmin','latmin','lonmax','latmax'):
+        if not request.GET.get(k, None) is None:
+            spatialbox[k]=request.GET.get(k)
+
+    timebox={}
+    for k in ('yearmin','monthmin','daymin','hourmin','minumin','secmin','yearmax','monthmax','daymax','hourmax','minumax','secmax'):
+        if not request.GET.get(k, None) is None:
+            timebox[k]=request.GET.get(k)
+            
     return render(request, 'showdata/timeseries.html',{
         "ident":kwargs.get("ident"),"coords":kwargs.get("coords"), 
         "undescored_coords":kwargs.get("coords").replace(",","_"), "network":kwargs.get("network"), 
@@ -285,7 +297,7 @@ def timeseries(request, **kwargs):
         "hour":kwargs.get("hour"), 
         "datefrom":datefrom,"dateuntil":dateuntil, 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
-        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaulttimedsn),"bcode":bcode})
+        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaulttimedsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox})
 
 def spatialseries(request, **kwargs):
 
@@ -419,6 +431,17 @@ def spatialseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
         
+
+    spatialbox={}
+    for k in ('lonmin','latmin','lonmax','latmax'):
+        if not request.GET.get(k, None) is None:
+            spatialbox[k]=request.GET.get(k)
+
+    timebox={}
+    for k in ('yearmin','monthmin','daymin','hourmin','minumin','secmin','yearmax','monthmax','daymax','hourmax','minumax','secmax'):
+        if not request.GET.get(k, None) is None:
+            timebox[k]=request.GET.get(k)
+
     return render(request, 'showdata/spatialseries.html',{
         "ident":kwargs.get("ident"), "coords":kwargs.get("coords"), 
         "network":kwargs.get("network"), "trange":kwargs.get("trange"), 
@@ -427,9 +450,19 @@ def spatialseries(request, **kwargs):
         "hour":kwargs.get("hour"), 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "datefrom":datefrom,"dateuntil":dateuntil,
-        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode})
+        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox})
     
 def stations(request, **kwargs):
 
-    return render(request, 'showdata/stations.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var"),"dsn":request.GET.get('dsn', defaultdsn)})
+    spatialbox={}
+    for k in ('lonmin','latmin','lonmax','latmax'):
+        if not request.GET.get(k, None) is None:
+            spatialbox[k]=request.GET.get(k)
+
+    timebox={}
+    for k in ('yearmin','monthmin','daymin','hourmin','minumin','secmin','yearmax','monthmax','daymax','hourmax','minumax','secmax'):
+        if not request.GET.get(k, None) is None:
+            timebox[k]=request.GET.get(k)
+
+    return render(request, 'showdata/stations.html',{"ident":kwargs.get("ident"), "coords":kwargs.get("coords"), "network":kwargs.get("network"), "trange":kwargs.get("trange"), "level":kwargs.get("level"), "var":kwargs.get("var"),"dsn":request.GET.get('dsn', defaultdsn),"spatialbox":spatialbox,"timebox":timebox})
 

@@ -502,13 +502,17 @@ class ArkimetBufrDB(DB):
             q["proddef"] = "GRIB:id={}".format(rec["ident"])
 
         q["reftime"] = ",".join(q["reftime"])
-
+        
         q["area"] = "GRIB:{}".format(",".join([
             "{}={}".format(k, v) for k, v in q["area"]["fixed"].iteritems()
         ])) + " or GRIB:{}".format(",".join([
             "{}={}".format(k, v) for k, v in q["area"]["mobile"].iteritems()
         ]))
 
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+        if "lonmin" in rec and "latmin" in rec and "lonmax" in rec and "latmax" in rec:
+            q["area"] +="; area:bbox coveredby POLYGON(({} {},{} {},{} {},{} {}))".format(
+                rec["lonmin"],rec["latmin"],rec["lonmin"],rec["latmax"],rec["lonmax"],rec["latmax"],rec["lonmin"],rec["latmin"]
+            )
 
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
         return arkiquery

@@ -347,7 +347,7 @@ setup(name='rmap',
       ],
 
       package_data={
-          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/stations/*']+rmap_package_data,
+          'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/*.txt','templates/stations/*']+rmap_package_data,
           'rmap.stations': ['fixtures/*.json'],
           'mapview': ['icons/*.png'],          
           'amatyr':['templates/amatyr/*']+amatyr_package_data,
