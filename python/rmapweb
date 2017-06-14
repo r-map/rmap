@@ -19,6 +19,10 @@
 
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+
+import django
+django.setup()
+
 from django.conf import settings
 
 #from rmap import daemon
@@ -47,9 +51,6 @@ import rmap.settings
 def main():
 
     import os,logging,logging.handlers
-
-    import django
-    django.setup()
 
     handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileweb, maxBytes=5000000, backupCount=10)
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
