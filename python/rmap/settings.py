@@ -1012,3 +1012,31 @@ if LOAD_OPTIONAL_APPS:
                 MIDDLEWARE_CLASSES += app.get("middleware", ())
                 TEMPLATES[0]['OPTIONS']['context_processors']+= app.get("context_processors", ())
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'rot_file':{
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': '/tmp/django_rot.log',
+            'maxBytes': '16777216', # 16megabytes
+            'formatter': 'verbose'
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'style': '{',
+            'format': '%(levelname)s %(asctime)s %(name)s.%(funcName)s:%(lineno)s- %(message)s'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['rot_file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}
+
