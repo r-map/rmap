@@ -75,6 +75,10 @@ class DB(object):
         """Query data. Return a dballe.Record."""
         raise NotImplementedError()
 
+    def fill_db(self, memdb):
+        """Query data and fill a memdb."""
+        raise NotImplementedError()
+    
 
 class MergeDB(DB):
     """Container for DB."""
@@ -118,10 +122,7 @@ class MergeDB(DB):
     def query_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
-            for r in db.query_data(rec):
-                del r["ana_id"]
-                del r["data_id"]
-                memdb.insert_data(r, True, True)
+            db.fill_db(rec,memdb)
 
         for r in memdb.query_data(rec):
             yield r.copy()
@@ -151,6 +152,11 @@ class DballeDB(DB):
         db = self.__open_db()
         return db.query_data(rec)
 
+    def fill_db(self, rec, memdb):
+        for r in self.query_data(rec):
+            del r["ana_id"]
+            del r["data_id"]
+            memdb.insert_data(r, True, True)
 
 class SummaryCacheDB(DB):
     def __init__(self, db, cachename, timeout=None,dsn="report"):
@@ -246,7 +252,14 @@ class SummaryCacheDB(DB):
         )
 
     def query_data(self, rec):
-        return self.db.query_data(rec)
+            return self.db.query_data(rec)
+
+
+    def fill_db(self, rec, memdb):
+        for r in self.db.query_data(rec):
+            del r["ana_id"]
+            del r["data_id"]
+            memdb.insert_data(r, True, True)
 
 
 class ArkimetVm2DB(DB):
@@ -324,7 +337,7 @@ class ArkimetVm2DB(DB):
         r = urlopen(url)
         for f in json.load(r)["features"]:
             p = f["properties"]
-            yield dballe.Record(**{
+            r = dballe.Record(**{
                 "lon": p["lon"],
                 "lat": p["lat"],
                 "rep_memo": str(p["network"]),
@@ -335,6 +348,11 @@ class ArkimetVm2DB(DB):
                 "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
                 str(p["bcode"]): float(p["value"]),
             })
+            yield r
+
+    def fill_db(self,rec,memedb):
+        for r in self.query_data(rec):
+            memdb.insert_data(r, True, True)
 
     def query_summary(self, rec):
         query = self.record_to_arkiquery(rec)
@@ -428,9 +446,9 @@ class ArkimetBufrDB(DB):
         for i in json.load(r)["items"]:
             for m in self.measurements:
                 if all([
-                    rec.get(k) == item.get(k)
-                    for k in ["var", "level", "trange"]
-                    if k in rec
+                        rec.get(k) == i.get(k)
+                        for k in ["var", "level", "trange"]
+                        if k in rec
                 ]):
                     if "lon" in i["area"]["va"]:
                         lon=i["area"]["va"]["lon"]  # fixed station
@@ -454,21 +472,56 @@ class ArkimetBufrDB(DB):
                         "datemax": datetime(*i["summarystats"]["e"]),
                     })
 
-    def query_data(self, rec):
-        db = dballe.DB.connect_from_url("mem:")
-        self.load_arkiquery_to_dbadb(rec, db)
-        for r in db.query_data(rec):
-            yield r.copy()
+    #def query_data(self, rec):
+    #    db = dballe.DB.connect_from_url("mem:")
+    #    self.load_arkiquery_to_dbadb(rec, db)
+    #    for r in db.query_data(rec):
+    #        yield r.copy()
 
-    def load_arkiquery_to_dbadb(self, rec, db):
+
+    def get_datastream(self, rec):
+
         query = self.record_to_arkiquery(rec)
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
-                "style": "data",
+                "style": "postprocess",
+                "command": "bufr-filter "+" ".join([
+                    "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
+                                                          "leveltype2", "l2",
+                                                          "pindicator", "p1", "p2",
+                                                          "var"]]),
                 "query": query,
             }.iteritems()]))
-        r = urlopen(url)
-        db.load(r, "BUFR")
+
+        return urlopen(url)
+        
+
+    def query_data(self, rec):
+
+        fo=self.get_datastream(rec)
+        memdb = dballe.DB.connect_from_url("mem:")
+        memdb.load(fo, "BUFR")
+        for r in memdb.query_data(rec):
+            del r["ana_id"]
+            del r["data_id"]
+            yield r.copy()
+
+
+    def fill_db(self, rec,memdb):
+    
+        fo=self.get_datastream(rec)
+        memdb.load(fo, "BUFR")
+            
+            
+    #def load_arkiquery_to_dbadb(self, rec, db):
+    #    query = self.record_to_arkiquery(rec)
+    #    url = "{}/query?{}".format(self.dataset, "&".join([
+    #        "{}={}".format(k, quote(v)) for k, v in {
+    #            "style": "data",
+    #            "query": query,
+    #        }.iteritems()]))        
+    #    r = urlopen(url)
+    #    db.load(r, "BUFR")
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
