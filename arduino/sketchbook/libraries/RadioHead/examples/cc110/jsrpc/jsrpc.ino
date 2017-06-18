@@ -25,8 +25,8 @@ RH_CC110 cc110;
 // initialize an instance of the JsonRPC library for registering 
 // exactly 3 method
 
-JsonRPC rpcclient(5,false); //radio mode is for compact protocoll
-JsonRPC rpcserver(3,true ); //radio mode is for compact protocoll
+JsonRPC rpcclient(5,false); //serial port
+JsonRPC rpcserver(3,true ); //radio port with compact protocoll
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
@@ -161,26 +161,19 @@ int save(aJsonObject* params)
   aJson.deleteItemFromObject(serialmsg, "method");
 
   aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
-
-  aJsonObject* didParam = aJson.getObjectItem(params, "did");
-  if (didParam){
-    int did = didParam -> valueint;
-    if (did == configuration.did || did == 0 ){     //my did or broadcast
-
-      aJsonObject* saveParam = aJson.getObjectItem(myparams, "eeprom");
-      if (saveParam){
-	bool eeprom = saveParam -> valuebool;
-	
-	if (eeprom) configuration.save();
-	
-	aJson.addTrueToObject(serialmsg, "result");
-	char buf[120];
-	aJson.print(serialmsg,buf, sizeof(buf));
-	Serial.println(buf);
+  
+  aJsonObject* saveParam = aJson.getObjectItem(myparams, "eeprom");
+  if (saveParam){
+    bool eeprom = saveParam -> valuebool;
     
-	status = 0;
-      }
-    }
+    if (eeprom) configuration.save();
+    
+    aJson.addTrueToObject(serialmsg, "result");
+    char buf[120];
+    aJson.print(serialmsg,buf, sizeof(buf));
+    Serial.println(buf);
+    
+    status = 0;
   }
 
   aJson.deleteItem(params);
@@ -208,13 +201,20 @@ int changedidserver(aJsonObject* params)
 }
 
 int saveserver(aJsonObject* params)
-{    
-  aJsonObject* saveParam = aJson.getObjectItem(params, "eeprom");
-  if (saveParam){
-    boolean eeprom = saveParam -> valuebool;
+{
 
-    if (eeprom) configuration.save();
-    
+  aJsonObject* didParam = aJson.getObjectItem(params, "did");
+  if (didParam){
+    int did = didParam -> valueint;
+    if (did == configuration.did || did == 0 ){     //my did or broadcast
+  
+      aJsonObject* saveParam = aJson.getObjectItem(params, "eeprom");
+      if (saveParam){
+	boolean eeprom = saveParam -> valuebool;
+	
+	if (eeprom) configuration.save();
+      }
+    }
   }
   //aJson.deleteItem(params);
   return 0;
