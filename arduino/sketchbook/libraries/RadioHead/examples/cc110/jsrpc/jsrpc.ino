@@ -3,9 +3,12 @@
 // reliability, so you should only use RH_CC110 if you do not need the higher
 // level messaging abilities.
 
+#include <avr/wdt.h>
+
 #define CONFVER "conf00"
 
 
+#include "config.h"
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
 
@@ -32,7 +35,7 @@ JsonRPC rpcserver(3,true ); //radio port with compact protocoll
 // through a serial/USB connection
 aJsonStream stream(&Serial);
 aJsonObject *serialmsg = NULL;
-
+aJsonObject *radiomsg = NULL;
 
 char confver[7] = CONFVER; // version of configuration saved on eeprom
 
@@ -60,7 +63,7 @@ bool load () {                // load from eeprom
 
 //-------------
 
-const uint8_t pins [] = {4,5,A6,A7};
+const uint8_t pins [] = {PINS};
 
 //-------------
 
@@ -72,18 +75,26 @@ void Reboot() {
 
 int client(aJsonObject* params)
 {
-  
+
+  uint8_t status=0;
   aJsonObject *newrpc=NULL ;
   newrpc = aJson.createObject();
   //aJson.addStringToObject(newrpc, "m", method);
 
+#ifdef TWOWAY
+  aJsonObject* id = aJson.getObjectItem(serialmsg, "id");
+  if(id){
+    aJson.addNumberToObject(newrpc, "i",id -> valueint );
+  }
+#endif
+  
   aJsonObject* mymethod = aJson.detachItemFromObject(serialmsg, "method");
   aJson.addItemToObject(newrpc, "m",mymethod );
 
   aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
   aJson.addItemToObject(newrpc, "p",myparams );
 
-  char buf[120];
+  char buf[RH_CC110_MAX_MESSAGE_LEN];
   aJson.print(newrpc,buf, sizeof(buf));
   aJson.deleteItem(newrpc);
   
@@ -93,49 +104,53 @@ int client(aJsonObject* params)
   cc110.send((uint8_t*)buf, strlen(buf));
   cc110.waitPacketSent();
 
-  /*
+#ifdef TWOWAY
+  
   // Now wait for a reply
-  uint8_t buf[RH_CC110_MAX_MESSAGE_LEN];
   uint8_t len = sizeof(buf);
 
   if (cc110.waitAvailableTimeout(3000))
   { 
-  // Should be a reply message for us now   
-  if (cc110.recv(buf, &len))
-   {
-   Serial.print("got reply: ");
-   Serial.println((char*)buf);
-   //      Serial.print("RSSI: ");
-   //      Serial.println(cc110.lastRssi(), DEC);    
+    // Should be a reply message for us now   
+    if (cc110.recv((uint8_t*)buf, &len))
+      {
+	Serial.print(F("#got reply: "));
+	Serial.println((char*)buf);
+	Serial.print(F("#RSSI: "));
+	Serial.println(cc110.lastRssi(), DEC);    
 
-   //      aJson.addTrueToObject(serialmsg, "result");
+#endif  
+	
+	//Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");	
+	aJson.addTrueToObject(serialmsg, "result");
 
+#ifdef TWOWAY
+	
+      } else {
+      Serial.println(F("#recv failed"));
+      aJson.addFalseToObject(serialmsg, "result");
+      status = 1;
     }
-    else
-    {
-    Serial.println("recv failed");
-    //      aJson.addFalseToObject(serialmsg, "result");
-    }
+  } else {
+    Serial.println(F("#No reply, is cc110_server running?"));
+    aJson.addFalseToObject(serialmsg, "result");
+    status = 1;
   }
-  else
-  {
-  Serial.println("No reply, is cc110_server running?");
-  //      aJson.addFalseToObject(serialmsg, "result");
-  }
-  */
+  
+#endif  
+  char serialbuf[SERIALBUFFERSIZE];
 
-  //Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");
+  aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
+  Serial.println(serialbuf);
 
-  aJson.addTrueToObject(serialmsg, "result");
-  aJson.print(serialmsg,buf, sizeof(buf));
-  Serial.println(buf);
-  return 0;
+  return status;
+
 }
 
 
 int setdid(aJsonObject* params)
 {    
-  int status=1; 
+  uint8_t status=1; 
   aJson.deleteItemFromObject(serialmsg, "method");
   
   aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
@@ -145,7 +160,7 @@ int setdid(aJsonObject* params)
     configuration.did=did;
 
     aJson.addTrueToObject(serialmsg, "result");
-    char buf[120];
+    char buf[SERIALBUFFERSIZE];
     aJson.print(serialmsg,buf, sizeof(buf));
     Serial.println(buf);
     
@@ -157,7 +172,7 @@ int setdid(aJsonObject* params)
 
 int save(aJsonObject* params)
 {    
-  int status=1; 
+  uint8_t status=1; 
   aJson.deleteItemFromObject(serialmsg, "method");
 
   aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
@@ -169,7 +184,7 @@ int save(aJsonObject* params)
     if (eeprom) configuration.save();
     
     aJson.addTrueToObject(serialmsg, "result");
-    char buf[120];
+    char buf[SERIALBUFFERSIZE];
     aJson.print(serialmsg,buf, sizeof(buf));
     Serial.println(buf);
     
@@ -193,6 +208,11 @@ int changedidserver(aJsonObject* params)
       if (didParam){
 	int did = didParam -> valueint;
 	configuration.did=did;
+
+	aJson.deleteItemFromObject(radiomsg, "m");
+	aJson.deleteItemFromObject(radiomsg, "p");
+	aJson.addTrueToObject(radiomsg, "r");
+
       }
     }
   }
@@ -213,6 +233,10 @@ int saveserver(aJsonObject* params)
 	boolean eeprom = saveParam -> valuebool;
 	
 	if (eeprom) configuration.save();
+	aJson.deleteItemFromObject(radiomsg, "m");
+	aJson.deleteItemFromObject(radiomsg, "p");
+	aJson.addTrueToObject(radiomsg, "r");
+
       }
     }
   }
@@ -237,7 +261,7 @@ int singleserver(aJsonObject* params)
 	  aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
 	  if (onoffParam){
 	    boolean onoff = onoffParam -> valuebool;
-	    Serial.print(F("# did: "));
+	    Serial.print(F("#did: "));
 	    Serial.print(did);
 	    Serial.print(F(" dstunit: "));
 	    Serial.print(dstunit);
@@ -245,6 +269,10 @@ int singleserver(aJsonObject* params)
 	    Serial.println(onoff);
 
 	    digitalWrite(pins[dstunit], onoff);
+
+	    aJson.deleteItemFromObject(radiomsg, "m");
+	    aJson.deleteItemFromObject(radiomsg, "p");
+	    aJson.addTrueToObject(radiomsg, "r");
 
 	  }else{
 	    Serial.println(F("#no onoff"));
@@ -261,13 +289,23 @@ int singleserver(aJsonObject* params)
   }else{
     Serial.println(F("#no did"));
   }
-  Serial.println(F("{\"result\": \"OK\"}"));
+  //Serial.println(F("{\"result\": \"OK\"}"));
   //aJson.deleteItem(params);
   return 0;
 }
 
 void setup() 
 {
+
+  /*
+    Nel caso di un chip in standalone senza bootloader, la prima
+    istruzione che è bene mettere nel setup() è sempre la disattivazione
+    del Watchdog stesso: il Watchdog, infatti, resta attivo dopo il
+    reset e, se non disabilitato, esso può provare il reset perpetuo del
+    microcontrollore
+  */
+  wdt_disable();
+  
   Serial.begin(115200);
   while (!Serial); // wait for serial port to connect. Needed for native USB
   Serial.println(F("#Started"));
@@ -349,11 +387,9 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 
 }
 
-void loop()
-{
-
-  aJsonObject *radiomsg = NULL;
-
+void mgr_serial(){
+  uint8_t err;
+    
   if (stream.available()) {
     // skip any accidental whitespace like newlines
     stream.skip();
@@ -364,24 +400,56 @@ void loop()
     serialmsg = aJson.parse(&stream);
     if (serialmsg){
       Serial.print(F("#rpc.processMessage:"));
-      char buf[120];
-      aJson.print(serialmsg, buf, sizeof(buf));
-      Serial.println(buf);
+      char serialbuf[SERIALBUFFERSIZE];
+      aJson.print(serialmsg, serialbuf, sizeof(serialbuf));
+      Serial.println(serialbuf);
     
-      int err=rpcclient.processMessage(serialmsg);
-      aJson.deleteItem(serialmsg);
-      
-      Serial.print(F("#rpcclient.processMessage return status:"));
-      Serial.println(err);
+      err=rpcclient.processMessage(serialmsg);
+      Serial.print(F("#rpcserver.processMessage return status:"));
+      Serial.print(err);
+      if (!err){
+	aJson.deleteItem(serialmsg);      
+      }else{
+	err = 1;
+      }
       
     }else{
       Serial.println(F("#skip wrong message"));	
+      err = 2;
     }
     if (stream.available()) {
       stream.flush();
     }
-  }
 
+    if (err == 1){
+      aJsonObject *result = aJson.createObject();
+      aJson.addItemToObject(serialmsg, "error", result);
+      aJson.addNumberToObject(result, "code", E_INTERNAL_ERROR);
+      aJson.addStringToObject(result,"message", strerror(E_INTERNAL_ERROR));   
+      
+      /*
+      if (!rpcid || !msg){
+	IF_SDEBUG(DBGSERIAL.println(F("#add null id in response")));
+	aJson.addNullToObject(serialmsg, "id");
+      } else {
+	IF_SDEBUG(DBGSERIAL.println(F("#add id in response")));
+        aJson.addNumberToObject(serialmsg, "id", rpcid->valueint);
+      }
+      */
+
+      char serialbuf[SERIALBUFFERSIZE];
+
+      aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
+      Serial.println(serialbuf);
+      aJson.deleteItem(serialmsg);
+
+    }
+  }
+}
+
+
+void mgr_radio(){
+  uint8_t err;
   if (cc110.available())
   {
     // Should be a message for us now   
@@ -399,22 +467,68 @@ void loop()
       radiomsg = aJson.parse((char*)buf);
 
       if (radiomsg){
-	int err=rpcserver.processMessage(radiomsg);
-	aJson.deleteItem(radiomsg);
-
+	err=rpcserver.processMessage(radiomsg);
 	Serial.print(F("#rpcserver.processMessage return status:"));
-	Serial.println(err);
+	Serial.print(err);
+	     if (!err) {
+#ifdef TWOWAY
 
-      // Send a reply
-      // uint8_t data[] = "And hello back to you";
-      // cc110.send(data, sizeof(data));
-      // cc110.waitPacketSent();
-      // Serial.println("Sent a reply");
+	  // Send a reply
+	  // "{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}"
+	  
+	  aJson.print(radiomsg, (char*)buf, sizeof(buf));
+	  Serial.print(F("#Send: "));
+	  Serial.println((char*)buf);
+	  cc110.send(buf, len);
+	  cc110.waitPacketSent();
+	  Serial.println(F("#Sent a reply"));
+#endif
+	  
+	  aJson.deleteItem(radiomsg);
+	}else{
+	  err = 1;
+	}
       }else{
 	Serial.println(F("#skip wrong message"));	
+	err = 2;
       }	
     } else {
       Serial.println(F("recv failed"));
+      err = 3;
+    }
+
+    if (err == 1){
+      aJsonObject *result = aJson.createObject();
+      aJson.addItemToObject(radiomsg, "error", result);
+      aJson.addNumberToObject(result, "code", E_INTERNAL_ERROR);
+      aJson.addStringToObject(result,"message", strerror(E_INTERNAL_ERROR));   
+
+      /*
+      if (!rpcid || !msg){
+	IF_SDEBUG(DBGSERIAL.println(F("#add null id in response")));
+	aJson.addNullToObject(serialmsg, "id");
+      } else {
+	IF_SDEBUG(DBGSERIAL.println(F("#add id in response")));
+        aJson.addNumberToObject(serialmsg, "id", rpcid->valueint);
+      }
+      */
+
+      aJson.print(radiomsg, (char*)buf, sizeof(buf));
+      Serial.print(F("#Send: "));
+      Serial.println((char*)buf);
+      cc110.send(buf, len);
+      cc110.waitPacketSent();
+      Serial.println(F("#Sent a errorreply"));
+      aJson.deleteItem(radiomsg);
+
     }
   }
+}
+
+void loop()
+{
+  wdt_reset();
+  mgr_serial();
+  wdt_reset();
+  mgr_radio(); 
 }
