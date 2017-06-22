@@ -62,5 +62,6 @@
 #define conumPoints 3
 
 
-#define NO2PPM2UGM3 1.9125
+//https://uk-air.defra.gov.uk/assets/documents/reports/cat06/0502160851_Conversion_Factors_Between_ppb_and.pdf
+#define NO2PPM2UGM3 1912.5
 #define COPPM2UGM3  1.1642
