@@ -23,6 +23,18 @@
 #include <avr/wdt.h>
 //#include <limits.h>
 
+/*
+WARM–UPTIME
+The sensor needs a period of time in order for its chemical equilibrium
+to be set up. This is due to chemical compounds being desorbed or absorbed on the sensing surface after which point the 
+resistance will stabilise. 
+The rate of stabilisation is faster when the sensor is operated at higher temperature
+consequently pre-heating at a higher voltage then normal operating voltage is 
+initially used to achieve stability before the voltage is subsequently reduced. For example,
+the NO2 sensor is preheated (normally operated at 40mW) at 80 mW for 30 seconds before use. 
+Generally speaking, the longer the warm up phase, the better the precision will be.
+*/
+
 #define FASTHEATTIME 5000    // 30000   time required for het the sensor in fast mode
 #define HEATTIME 5000        // 60000   time required for het the sensor in slow mode
 #define WDTTIMESTEP 5000     // safe time fot atomic operation before all will be restarted by watchdog
@@ -140,10 +152,13 @@ void Mics4514::normal_heat()
 bool Mics4514::query_data(int *co, int *no2)
 {
 
+  int dno2, dco;
+    
   IF_SDEBUG(Serial.println(F("mics4514 query_data")));
 
   digitalWrite(_scale1pin, LOW);  
   digitalWrite(_scale2pin, LOW);  
+  delay(10);
 
   switch(_state)
   {
@@ -176,11 +191,15 @@ bool Mics4514::query_data(int *co, int *no2)
   }
   
   IF_SDEBUG(Serial.println(F("mics4514 co  scale0 read")));
-  int dco   = analogRead(_copin);
+  dco   = analogRead(_copin);
+  delay(10);
+  dco   = analogRead(_copin);
   int cor2  = SCALE0R;
   
   IF_SDEBUG(Serial.println(F("mics4514 no2 scale0 read")));
-  int dno2  = analogRead(_no2pin);
+  dno2  = analogRead(_no2pin);
+  delay(10);
+  dno2  = analogRead(_no2pin);
   int no2r2 = SCALE0R;
 
   if (dco > CHANGESCALEVALUE)
@@ -189,6 +208,8 @@ bool Mics4514::query_data(int *co, int *no2)
       digitalWrite(_scale1pin, HIGH);  
       delay(10);
       IF_SDEBUG(Serial.println(F("mics4514 co  scale1 read")));
+      dco  = analogRead(_copin);
+      delay(10);
       dco  = analogRead(_copin);
       cor2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)));
     }
@@ -204,6 +225,8 @@ bool Mics4514::query_data(int *co, int *no2)
 	}
       IF_SDEBUG(Serial.println(F("mics4514 no2 scale1 read")));
       dno2  = analogRead(_no2pin);
+      delay(10);
+      dno2  = analogRead(_no2pin);
       no2r2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)));
     }
 
@@ -215,6 +238,8 @@ bool Mics4514::query_data(int *co, int *no2)
       digitalWrite(_scale2pin, HIGH);  
       delay(10);
       IF_SDEBUG(Serial.println(F("mics4514 co  scale2 read")));
+      dco  = analogRead(_copin);
+      delay(10);
       dco  = analogRead(_copin);
       cor2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)+1./float(SCALE2R)));
     }
@@ -230,22 +255,31 @@ bool Mics4514::query_data(int *co, int *no2)
 	}
       IF_SDEBUG(Serial.println(F("mics4514 no2 scale2 read")));
       dno2  = analogRead(_no2pin);
+      delay(10);
+      dno2  = analogRead(_no2pin);
       no2r2  = round(1./(1./float(SCALE0R)+1./float(SCALE1R)+1./float(SCALE2R)));
     }    
 
-    IF_SDEBUG(Serial.print(F("mics4514 dco : ")));
-    IF_SDEBUG(Serial.println(dco));
-    IF_SDEBUG(Serial.print(F("mics4514 dno2: ")));
-    IF_SDEBUG(Serial.println(dno2));
+  IF_SDEBUG(Serial.print(F("mics4514 copin : ")));
+  IF_SDEBUG(Serial.println(_copin));
+  
+  IF_SDEBUG(Serial.print(F("mics4514 no2pin : ")));
+  IF_SDEBUG(Serial.println(_no2pin));
+  
     
-    //compute Rs
-    *co   = round(1023./float(dco) *cor2  - cor2);
-    *no2  = round(1023./float(dno2)*no2r2 - no2r2);
+  IF_SDEBUG(Serial.print(F("mics4514 dco : ")));
+  IF_SDEBUG(Serial.println(dco));
+  IF_SDEBUG(Serial.print(F("mics4514 dno2: ")));
+  IF_SDEBUG(Serial.println(dno2));
     
-    digitalWrite(_scale1pin, LOW);  
-    digitalWrite(_scale2pin, LOW);  
+  //compute Rs
+  *co   = round(1023./float(dco) *cor2  - cor2);
+  *no2  = round(1023./float(dno2)*no2r2 - no2r2);
+    
+  digitalWrite(_scale1pin, LOW);  
+  digitalWrite(_scale2pin, LOW);  
 
-    return true;
+  return true;
 
   //  bool ok;
 
