@@ -28,8 +28,8 @@
 #define SCALE1PIN 8
 #define SCALE2PIN 9
 
-#define COPIN A1
-#define NO2PIN A0
+#define COPIN 1
+#define NO2PIN 0
 #define HEATERPIN 7
 
 
@@ -63,5 +63,5 @@
 
 
 //https://uk-air.defra.gov.uk/assets/documents/reports/cat06/0502160851_Conversion_Factors_Between_ppb_and.pdf
-#define NO2PPM2UGM3 1912.5
+#define NO2PPM2UGM3 1.9125
 #define COPPM2UGM3  1.1642
