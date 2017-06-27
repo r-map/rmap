@@ -4,6 +4,7 @@ import os
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
 from . import __version__
+import imp
 
 android=('ANDROID_ARGUMENT' in os.environ)
 
@@ -1002,7 +1003,12 @@ if LOAD_OPTIONAL_APPS:
     for app in OPTIONAL_APPS:
         if app.get("condition", True):
             try:
-                __import__(app["import"])
+                moduletree= app["import"].split(".")
+                module_info=imp.find_module(moduletree[0])
+                if len(moduletree) >1:
+                    module = imp.load_module(moduletree[0], *module_info)
+                    imp.find_module(moduletree[1], module.__path__) # __path__ is already a list
+
             except ImportError:
                 print "import error: ", app["import"]
                 print "disable     : ", app.get("apps", ())
