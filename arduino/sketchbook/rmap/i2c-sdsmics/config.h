@@ -20,7 +20,7 @@
 
 // define the version of the configuration saved on eeprom
 // if you chenge this the board start with default configuration at boot
-#define CONFVER "confsd00"
+#define CONFVER "confsd01"
 
 #define SDS011PRESENT 1
 #define MICS4514PRESENT 1
@@ -33,7 +33,7 @@
 #define HEATERPIN 7
 
 
-// calibration data
+// default calibration data
 
 // Concentrations used in calibration process
 #define POINT1_PPM_NO2 10.0   // <-- Normal concentration in air
@@ -46,7 +46,7 @@
 #define POINT3_RES_NO2 3.55
 
 // Define the number of calibration points
-#define no2numPoints 3
+#define NO2NUMPOINTS 3
 
 // Concentratios used in calibration process
 #define POINT1_PPM_CO 100.0   // <--- Ro value at this concentration
@@ -59,7 +59,7 @@
 #define POINT3_RES_CO 20.300 //
 
 // Define the number of calibration points
-#define conumPoints 3
+#define CONUMPOINTS 3
 
 
 //https://uk-air.defra.gov.uk/assets/documents/reports/cat06/0502160851_Conversion_Factors_Between_ppb_and.pdf

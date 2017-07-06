@@ -58,7 +58,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 02             //Software version for cross checking
+#define VERSION 03             //Software version for cross checking
 
 #include <limits.h>
 #include <avr/wdt.h>
@@ -91,11 +91,6 @@ sds011::Sds011 sensor(SERIALSDS011);
 #endif
 #ifdef MICS4514PRESENT
 mics4514::Mics4514 sensormics(COPIN,NO2PIN,HEATERPIN,SCALE1PIN,SCALE2PIN);
-float coconcentrations[]  = { POINT1_PPM_CO, POINT2_PPM_CO, POINT3_PPM_CO };
-float coresistences[]     = { POINT1_RES_CO, POINT2_RES_CO, POINT3_RES_CO };
-
-float no2concentrations[] = {POINT1_PPM_NO2, POINT2_PPM_NO2, POINT3_PPM_NO2};
-float no2resistences[]    = {POINT1_RES_NO2, POINT2_RES_NO2, POINT3_RES_NO2};
 
 // NO2 Sensor calibration
 calibration::Calibration NO2Cal;
@@ -159,6 +154,8 @@ typedef struct {
   uint16_t     maxno2;
   uint16_t     sigmaco;
   uint16_t     sigmano2;
+  uint16_t     coresistance;
+  uint16_t     no2resistance;
 } cono2_t;
 
 typedef struct {
@@ -174,9 +171,27 @@ typedef struct {
 
 typedef struct {
 
-//sample mode
+  //sample mode
   bool                  oneshot;                  // one shot active
   uint8_t               i2c_address;              // i2c bus address (short unsigned int)
+
+#ifdef MICS4514PRESENT
+  // calibration data
+  // Concentratios used in calibration process
+  float no2concentrations[MAX_POINTS];
+  // Calibration resistances obtained during calibration process
+  float no2resistences[MAX_POINTS];
+  // Define the number of calibration points
+  uint8_t no2numPoints;
+  
+  // Concentrations used in calibration process
+  float coconcentrations[MAX_POINTS];
+  // Calibration resistences obtained during calibration process (in KOHMs)
+  float coresistences[MAX_POINTS];
+  // Define the number of calibration points
+  uint8_t conumPoints;
+#endif
+  
   void save (int* p) volatile {                            // save to eeprom
 
     IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
@@ -184,11 +199,27 @@ typedef struct {
 
     *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
+#ifdef MICS4514PRESENT
+    *p+=EEPROM_writeAnything(*p, no2numPoints);    
+    *p+=EEPROM_writeAnything(*p, no2concentrations);
+    *p+=EEPROM_writeAnything(*p, no2resistences);
+    *p+=EEPROM_writeAnything(*p, conumPoints);
+    *p+=EEPROM_writeAnything(*p, coconcentrations);
+    *p+=EEPROM_writeAnything(*p, coresistences);
+#endif
   }
   
   void load (int* p) volatile {                            // load from eeprom
     *p+=EEPROM_readAnything(*p, oneshot);
     *p+=EEPROM_readAnything(*p, i2c_address);
+#ifdef MICS4514PRESENT
+    *p+=EEPROM_readAnything(*p, no2numPoints);
+    *p+=EEPROM_readAnything(*p, no2concentrations);
+    *p+=EEPROM_readAnything(*p, no2resistences);
+    *p+=EEPROM_readAnything(*p, conumPoints);
+    *p+=EEPROM_readAnything(*p, coconcentrations);
+    *p+=EEPROM_readAnything(*p, coresistences);
+#endif
   }
 } I2C_WRITABLE_REGISTERS;
 
@@ -196,9 +227,9 @@ typedef struct {
 volatile static I2C_REGISTERS    i2c_buffer1;
 volatile static I2C_REGISTERS    i2c_buffer2;
 
-volatile static I2C_REGISTERS*   i2c_dataset1;
-volatile static I2C_REGISTERS*   i2c_dataset2;
-volatile static I2C_REGISTERS*   i2c_datasettmp;
+volatile static I2C_REGISTERS* i2c_dataset1;
+volatile static I2C_REGISTERS* i2c_dataset2;
+volatile static I2C_REGISTERS* i2c_datasettmp;
 
 volatile static I2C_WRITABLE_REGISTERS  i2c_writablebuffer1;
 volatile static I2C_WRITABLE_REGISTERS  i2c_writablebuffer2;
@@ -387,10 +418,6 @@ void setup() {
 
   minco=LONG_MAX;
   minno2=LONG_MAX;
-
-  NO2Cal.setCalibrationPoints(no2resistences, no2concentrations, no2numPoints);
-  COCal.setCalibrationPoints(coresistences, coconcentrations, conumPoints);
-
 #endif
 
   nsample1=1;
@@ -480,16 +507,64 @@ void setup() {
       i2c_writabledataset1->load(&p);
       i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
       i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
+#ifdef MICS4514PRESENT
+      //calibration
+      i2c_writabledataset2->no2numPoints=i2c_writabledataset1->no2numPoints;
+      memcpy(const_cast<float*>(i2c_writabledataset2->no2concentrations), const_cast<float*>(i2c_writabledataset1->no2concentrations), sizeof i2c_writabledataset1->no2concentrations);
+      memcpy(const_cast<float*>(i2c_writabledataset2->no2resistences), const_cast<float*>(i2c_writabledataset1->no2resistences), sizeof i2c_writabledataset1->no2resistences); 
+      i2c_writabledataset2->conumPoints=i2c_writabledataset1->conumPoints;
+      memcpy(const_cast<float*>(i2c_writabledataset2->coconcentrations), const_cast<float*>(i2c_writabledataset1->coconcentrations), sizeof i2c_writabledataset1->coconcentrations);
+      memcpy(const_cast<float*>(i2c_writabledataset2->coresistences), const_cast<float*>(i2c_writabledataset1->coresistences), sizeof i2c_writabledataset1->coresistences);
+#endif
     }
   else
     {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
-  // set default to oneshot
+      // set default to oneshot
       i2c_writabledataset1->oneshot=true;
       i2c_writabledataset2->oneshot=true;
       i2c_writabledataset1->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_SDSMICS_DEFAULTADDRESS;
+
+#ifdef MICS4514PRESENT
+      //calibration
+      i2c_writabledataset1->no2numPoints=NO2NUMPOINTS;
+      i2c_writabledataset2->no2numPoints=NO2NUMPOINTS;
+      
+      i2c_writabledataset1->no2concentrations[0]= POINT1_PPM_NO2;
+      i2c_writabledataset1->no2concentrations[1]= POINT2_PPM_NO2;
+      i2c_writabledataset1->no2concentrations[2]= POINT3_PPM_NO2;
+      i2c_writabledataset2->no2concentrations[0]= POINT1_PPM_NO2;
+      i2c_writabledataset2->no2concentrations[1]= POINT2_PPM_NO2;
+      i2c_writabledataset2->no2concentrations[2]= POINT3_PPM_NO2;
+      
+      i2c_writabledataset1->no2resistences[0]= POINT1_RES_NO2;
+      i2c_writabledataset1->no2resistences[1]= POINT2_RES_NO2;
+      i2c_writabledataset1->no2resistences[2]= POINT3_RES_NO2;
+      i2c_writabledataset2->no2resistences[0]= POINT1_RES_NO2;
+      i2c_writabledataset2->no2resistences[1]= POINT2_RES_NO2;
+      i2c_writabledataset2->no2resistences[2]= POINT3_RES_NO2;
+      
+      i2c_writabledataset1->conumPoints=CONUMPOINTS;
+      i2c_writabledataset2->conumPoints=CONUMPOINTS;
+      
+      i2c_writabledataset1->coconcentrations[0]= POINT1_PPM_CO;
+      i2c_writabledataset1->coconcentrations[1]= POINT2_PPM_CO;
+      i2c_writabledataset1->coconcentrations[2]= POINT3_PPM_CO;
+      i2c_writabledataset2->coconcentrations[0]= POINT1_PPM_CO;
+      i2c_writabledataset2->coconcentrations[1]= POINT2_PPM_CO;
+      i2c_writabledataset2->coconcentrations[2]= POINT3_PPM_CO;
+      
+      i2c_writabledataset1->coresistences[0]= POINT1_RES_CO;
+      i2c_writabledataset1->coresistences[1]= POINT2_RES_CO;
+      i2c_writabledataset1->coresistences[2]= POINT3_RES_CO;
+	
+      i2c_writabledataset2->coresistences[0]= POINT1_RES_CO;
+      i2c_writabledataset2->coresistences[1]= POINT2_RES_CO;
+      i2c_writabledataset2->coresistences[2]= POINT3_RES_CO;
+#endif
+      
     }
 
   oneshot=i2c_writabledataset2->oneshot;
@@ -499,6 +574,12 @@ void setup() {
   IF_SDEBUG(Serial.print(F("oneshot: ")));
   IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
 
+
+#ifdef MICS4514PRESENT
+  NO2Cal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->no2resistences), const_cast<float*>(i2c_writabledataset1->no2concentrations), i2c_writabledataset1->no2numPoints);
+  COCal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->coresistences), const_cast<float*>(i2c_writabledataset1->coconcentrations), i2c_writabledataset1->conumPoints);
+#endif
+  
   //Start I2C communication routines
   Wire.begin(i2c_writabledataset1->i2c_address);
 
@@ -698,6 +779,8 @@ void loop() {
 
     IF_SDEBUG(Serial.print(F("co uncalibrated: ")));
     IF_SDEBUG(Serial.println(co));
+
+    i2c_dataset1->cono2.coresistance=co;
     
     if (COCal.getConcentration(float(co)/1000.,&ppm))
       {
@@ -708,7 +791,9 @@ void loop() {
 
     IF_SDEBUG(Serial.print(F("NO2 uncalibrated: ")));
     IF_SDEBUG(Serial.println(no2));
-	      
+
+    i2c_dataset1->cono2.no2resistance=no2;
+    
     if (NO2Cal.getConcentration(float(no2)/1000.,&ppm))
       {
 	IF_SDEBUG(Serial.print("no2 ppm"));
