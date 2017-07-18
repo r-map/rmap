@@ -25,6 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <registers-rain.h>         //Register definitions
 #include <registers-sdsmics.h>         //Register definitions
 #include <HIH61XXCommander.h>
+#include "Calibration.h"
 
 byte start_address = 1;
 byte end_address = 127;
@@ -384,7 +385,7 @@ void loop() {
 	
 	delay(1000);
 
-	oneshot=-1;
+ 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
 	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-sds011 (0/1)"));
 	  oneshot=Serial.parseInt();
@@ -396,7 +397,78 @@ void loop() {
 	Wire.write(I2C_SDSMICS_ONESHOT);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+ 	int8_t calibration=-1;
+	while (true){
+	  while (calibration < 0 || calibration >= MAX_POINTS){
+	    Serial.println(F("Select calibration point (0/MAX_POINT-1)"));
+	    Serial.println(F("digit 0 - MAX_POINTS-1 for calibration; MAX_POINTS to continue without calibration or terminate calibration for i2c-sds011"));
+	    calibration=Serial.parseInt();
+	    Serial.println(calibration);
+	  }
+	  if (calibration == MAX_POINTS) break;
+
+	  delay(1000);
+	  
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);   // Open I2C line in write mode
+	  Wire.write(I2C_MICS4514_NO2RESISTANCE);             // Set the register pointer to I2C_MICS4514_NO2RESISTANCE
+	  if (Wire.endTransmission() != 0){
+	    Serial.println(F("ERROR writing on I2C BUS"));
+	    return;
+	  }
+	  
+	  Wire.requestFrom(I2C_SDSMICS_DEFAULTADDRESS,2);
+	  if (Wire.available() < 2){    // slave may send less than requested
+	    Serial.println(F("ERROR reading on I2C BUS"));
+	    return;
+	  }
+	  
+	  byte MSB = Wire.read();
+	  byte LSB = Wire.read();
+	  
+	  if ((MSB == 255) & (LSB ==255)){ 
+	    Serial.println(F("Missing value reading resistance"));
+	    return;
+	  }
+	  
+	  float resistance = float((MSB << 8) | LSB); 
+	  
+	  float concentration=0.;
+	  while (concentration == 0.){
+	    Serial.println(F("digit concentration for calibration"));
+	    concentration=Serial.parseFloat();
+	    Serial.println(concentration);
+	  }
+	    
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(NO2CONCENTRATIONS+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&resistance,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(NO2RESISTENCES+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&concentration,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	  	  
+	}
+
+	while (calibration < 0 || calibration >= MAX_POINTS){
+	  Serial.println(F("digit number of calibration points for i2c-sds011"));
+	  calibration=Serial.parseInt();
+	  Serial.println(calibration);
+	}
+
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(NO2NUMPOINTS);
+	Wire.write(calibration);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
 	
+	// TODO the same for I2C_MICS4514_CORESISTANCE
+
+
+	// Save !
 	delay(1000);
 	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
 	Wire.write(I2C_SDSMICS_COMMAND);
