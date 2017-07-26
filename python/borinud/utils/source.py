@@ -78,7 +78,7 @@ class DB(object):
     def fill_db(self, memdb):
         """Query data and fill a memdb."""
         raise NotImplementedError()
-    
+
 
 class MergeDB(DB):
     """Container for DB."""
@@ -141,7 +141,7 @@ class DballeDB(DB):
     def query_stations(self, rec):
         db = self.__open_db()
         rec.set_station_context()
-        return db.query_data(rec)
+        return db.query_station_data(rec)
 
     def query_summary(self, rec):
         db = self.__open_db()
@@ -459,7 +459,7 @@ class ArkimetBufrDB(DB):
                         lat=i["area"]["va"]["lat"]  # fixed station
                     else:
                         lat=i["area"]["va"]["y"]    # mobile
-                        
+
                     yield dballe.Record(**{
                         "var": m["var"],
                         "level": m["level"],
@@ -494,7 +494,7 @@ class ArkimetBufrDB(DB):
             }.iteritems()]))
 
         return urlopen(url)
-        
+
 
     def query_data(self, rec):
 
@@ -508,18 +508,18 @@ class ArkimetBufrDB(DB):
 
 
     def fill_db(self, rec,memdb):
-    
+
         fo=self.get_datastream(rec)
         memdb.load(fo, "BUFR")
-            
-            
+
+
     #def load_arkiquery_to_dbadb(self, rec, db):
     #    query = self.record_to_arkiquery(rec)
     #    url = "{}/query?{}".format(self.dataset, "&".join([
     #        "{}={}".format(k, quote(v)) for k, v in {
     #            "style": "data",
     #            "query": query,
-    #        }.iteritems()]))        
+    #        }.iteritems()]))
     #    r = urlopen(url)
     #    db.load(r, "BUFR")
 
@@ -555,7 +555,7 @@ class ArkimetBufrDB(DB):
             q["proddef"] = "GRIB:id={}".format(rec["ident"])
 
         q["reftime"] = ",".join(q["reftime"])
-        
+
         q["area"] = "GRIB:{}".format(",".join([
             "{}={}".format(k, v) for k, v in q["area"]["fixed"].iteritems()
         ])) + " or GRIB:{}".format(",".join([
