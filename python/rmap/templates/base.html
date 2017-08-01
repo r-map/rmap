@@ -72,9 +72,11 @@
 		  <li class="dropdown">
                     <a href="http://{{site.domain}}/stations" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-tachometer"></i> {% trans "Stations" %} <span class="caret"></span></a>
                     <ul class="dropdown-menu">
-		      <li><a href="http://{{site.domain}}/stations">{% trans "Show stations" %}</a></li>
+		      <li><a href="http://{{site.domain}}/stations">{% trans "Show RMAP stations" %}</a></li>
+		      <li><a href="http://{{site.domain}}/showdata/-/*/*/*/*/*/stations">{% trans "Show all stations" %}</a></li>
 		      {% if user.is_authenticated %}
-		      <li><a href="http://{{site.domain}}/accounts/profile">{% trans "Your personal page" %} {{ user.username }}</a></li>
+		      <li><a href="http://{{site.domain}}/stationsonmap/{{ user.username }}">{% trans "Your RMAP stations" %} {{ user.username }}</a></li>
+		      <li><a href="http://{{site.domain}}/showdata/{{ user.username }}/*/*/*/*/*/stations">{% trans "All your stations" %} {{ user.username }}</a></li>
 		      {% endif %}
 		    </ul>
 		  </li>
@@ -109,6 +111,10 @@
 		      <li><a href="http://rmapv.rmap.cc/repo/rmap/fedora/20/RPMS/arm/repoview/">Repository software Pidora (raspberry)</a></li>
 		      <li><a href="http://{{site.domain}}/repo/rmap/fedora/20/SRPMS/repoview/">Repository software sorgenti</a></li>
 		      <li><a href="http://{{site.domain}}/repo/rmap/fedora/20/RPMS/i386/repoview/">Repository software Fedora 20 i386</a></li>
+                      <li class="dropdown-header">{% trans "Admin" %}</li>
+                      <li><a href="http://{{site.domain}}:443/">{% trans "Manage processes" %}</a></li>
+		      <li><a href="http://{{site.domain}}/admin">{% trans "Django admin" %}</a></li>
+                      <li><a href="http://{{site.domain}}:15672/">{% trans "Rabbitmq admin" %}</a></li>
 		    </ul>
 		  </li>
 		  <li class="dropdown">
@@ -122,15 +128,12 @@
 		    </a>
                     <ul class="dropdown-menu">
 		      {% if user.is_authenticated %}
-		      <li><a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a></li>
+		      <li><a href="http://{{site.domain}}/accounts/profile">{% trans "Your personal page" %} {{ user.username }}</a></li>
 		      <li><a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a></li>
+		      <li><a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a></li>
 		      {% else %}
 		      <li><a href="{% url 'auth_login' %}">{% trans "Log in" %}</a></li>
 	              {% endif %}
-                      <li class="dropdown-header">{% trans "Admin" %}</li>
-                      <li><a href="http://{{site.domain}}:443/">{% trans "Manage processes" %}</a></li>
-		      <li><a href="http://{{site.domain}}/admin">{% trans "Django admin" %}</a></li>
-                      <li><a href="http://{{site.domain}}:15672/">{% trans "Rabbitmq admin" %}</a></li>
 		    </ul>
 		  </li>
 		</ul>
