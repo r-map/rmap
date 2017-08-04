@@ -43,8 +43,8 @@ def get_capabilities_1_0(request):
 
     This implementation has some limitations:
     1. It reads the default db only.
-    2. The stations are considered as fixed (mobile stations should be grouped
-       by position).
+    2. The stations are considered fixed (mobile stations should be grouped
+       by ident and rep_memo and coordinates should be collapsed in a bbox).
     3. Each observation offerings has one procedure only (the sensor) and the
        feature of interest is the station.
     4. The offering description is static (could be the station name).
