@@ -121,7 +121,7 @@
                 </sos:time>
                 <sos:procedure xlink:href="{{ o.id }}"/>
                 <sos:observedProperty xlink:href="{{ o.observed_property }}"/>
-                <sos:featureOfInterest xlink:href="{{ o.id }}"/>
+                <sos:featureOfInterest xlink:href="{{ o.feature_of_interest }}"/>
                 <sos:responseFormat>text/xml;subtype="om/1.0.0"</sos:responseFormat>
                 <sos:responseFormat>text/csv</sos:responseFormat>
                 <sos:responseFormat>text/tab-separated-values</sos:responseFormat>

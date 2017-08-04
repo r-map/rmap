@@ -28,9 +28,27 @@ def summary_to_observed_property(summ):
     )
 
 
+def summary_to_station(summ):
+    ident = summ["ident"] if summ["ident"] is not None else "-"
+    lon = summ.get("lon").enqd()
+    lat = summ.get("lat").enqd()
+    rep = summ["rep_memo"]
+    return "urn:rmap:station:{ident}/{lon},{lat}/{rep}".format(
+        ident=ident, lon=lon, lat=lat, rep=rep,
+    )
+
+
 def get_capabilities_1_0(request):
-    """GetCapabilities for SOS 1.0"""
-    # TODO: all dbs should merged in one
+    """GetCapabilities for SOS 1.0.
+
+    This implementation has some limitations:
+    1. It reads the default db only.
+    2. The stations are considered as fixed (mobile stations should be grouped
+       by position).
+    3. Each observation offerings has one procedure only (the sensor) and the
+       feature of interest is the station.
+    4. The offering description is static (could be the station name).
+    """
     db = get_db()
     summaries = list(db.query_summaries(dballe.Record()))
     observed_properties = set(summary_to_observed_property(s) for s in summaries)
@@ -39,11 +57,10 @@ def get_capabilities_1_0(request):
         "observed_properties": observed_properties,
         "offerings": [{
             "id": summary_to_procedure(s),
-            "description": "",
-            # TODO: mobile stations should be merged and bbox should be
-            # calculated.
+            "description": "Sensor offering",
             "bbox": [[s["lon"], s["lat"]], [s["lon"], s["lat"]]],
             "date": s.date_extremes(),
             "observed_property": summary_to_observed_property(s),
+            "feature_of_interest": summary_to_station(s),
         } for s in summaries]
     })
