@@ -22,7 +22,7 @@ def json_serial(obj):
         raise TypeError("Type not serializable")
 
 
-    
+
 class dbajson:
 
     def __init__(self,q,summary=False,stations=False,format="jsonlines",dsn="report"):
@@ -32,10 +32,10 @@ class dbajson:
         self.format=format
         if self.stations:
             self.jsondict=self.jsondictstation
-        else:    
+        else:
             self.jsondict=self.jsondictdata
         self.dsn=dsn
-            
+
 
     def __iter__(self):
         if self.summary:
@@ -54,7 +54,7 @@ class dbajson:
 
         if self.format == "dbajson" :
             jsondicts=[]
-        
+
         for self.s in self.handle:
 
             if self.format == "geojson" :
@@ -65,6 +65,8 @@ class dbajson:
                         "lon": self.s.key("lon").enqi(),
                         "lat": self.s.key("lat").enqi(),
                         "network": self.s["rep_memo"],
+                        "var": self.s["var"],
+                        "val": self.s[self.s["var"]]
                     }
 
                 else:
@@ -79,7 +81,7 @@ class dbajson:
                         "var": self.s["var"],
                         "val": self.s[self.s["var"]],
                     }
-                
+
                 features.append({
                     "type": "Feature",
                         "geometry": {
@@ -89,7 +91,7 @@ class dbajson:
                         "properties": properties
                     })
 
-                    
+
             if self.format == "jsonline" :
                 yield json.dumps(self.jsondict(),default=json_serial)+"\n"
 
@@ -102,7 +104,7 @@ class dbajson:
 
         if self.format == "geojson" :
             yield {"type": "FeatureCollection", "features": features}
-            
+
     def jsondictdata (self):
 
         return {
@@ -154,7 +156,7 @@ def summaries(request, **kwargs):
 
 
     format=kwargs.get('format')
-    
+
     if format == "geojson" or format == "dbajson" :
         return JsonResponse(next(itertools.islice(dbajson(q,summary=True,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
@@ -215,9 +217,9 @@ def spatialseries(request, **kwargs):
     q["lonmin"] = request.GET.get("lonmin")
     q["lonmax"] = request.GET.get("lonmax")
 
-    
+
     format=kwargs.get('format')
-    
+
     if format == "geojson" or format == "dbajson" :
         return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report')),0,None)),safe=False)
 
