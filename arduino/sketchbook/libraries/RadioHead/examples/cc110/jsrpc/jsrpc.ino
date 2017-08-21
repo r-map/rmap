@@ -268,7 +268,7 @@ int singleserver(aJsonObject* params)
 	    Serial.print(F(" onoff: "));
 	    Serial.println(onoff);
 
-	    digitalWrite(pins[dstunit], onoff);
+	    digitalWrite(pins[dstunit], ! onoff);
 
 	    aJson.deleteItemFromObject(radiomsg, "m");
 	    aJson.deleteItemFromObject(radiomsg, "p");
@@ -335,7 +335,7 @@ void setup()
   // tell the driver if a 27MHz crystal is installed for the correct configuration to
   // occur. Failure to correctly set this flag will cause incorrect frequency and modulation
   // characteristics to be used. You can call this function, or pass it to the constructor
-  cc110.setIs27MHz(true); // Anaren 430BOOST-CC110L Air BoosterPack test boards have 27MHz
+  //cc110.setIs27MHz(true); // Anaren 430BOOST-CC110L Air BoosterPack test boards have 27MHz
 
   if (!cc110.init()){
     Serial.println(F("init failed"));
@@ -380,11 +380,18 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 
   cc110.setTxPower(RH_CC110::TransmitPower10dBm);
   cc110.setModemConfig(RH_CC110::GFSK_Rb1_2Fd5_2);
-  cc110.setFrequency(434.550);
+  cc110.setFrequency(433.300);
 
   // initialize the digital pin as an output
   pinMode(13, OUTPUT);
 
+
+
+  for (int dstunit=0 ;dstunit  < sizeof(pins)/sizeof(*pins); dstunit++)
+    {
+      pinMode(pins[dstunit], OUTPUT);
+      digitalWrite(pins[dstunit], 1);
+    }
 }
 
 void mgr_serial(){
