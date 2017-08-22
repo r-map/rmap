@@ -248,7 +248,7 @@ def main(self):
 
                 command2=["v7d_transform","--input-format","BUFR","--output-format","BUFR",
                           "--comp-start",starttime.isoformat(' ') ,
-                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:00:30.000', '--comp-filter-time',  
+                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:00:60.000', '--comp-filter-time',  
                           filename,
                           filename]
 
