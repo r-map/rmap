@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # GPL. (C) 2017 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -88,6 +88,9 @@ def main(self):
 
         for mymeta in rmap.settings.sample_measurements:
 
+            # work on parameter requested for 60 sec mean 
+            if mymeta["trange"][0] != 0 or mymeta["trange"][1] != 0 or mymeta["trange"][2] != 60 : continue
+            
             variable_list= mymeta["var"]
             level        = "%s,%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["level"]))
             timerange    = "%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["trange"]))
@@ -149,7 +152,7 @@ def main(self):
                 logging.info("istantanee a medie 60sec")
 
                 command=["v7d_transform","--input-format","dba","--output-format","dba",
-                                              "--variable-list",variable_list,"--level",level,"--timerange",timerange,
+                                              "--variable-list",variable_list,"--level",level,"--timerange",'254,0,0',
                                               "--start-date",starttime.isoformat(' ') ,
                                               "--end-date",nexttime.isoformat(' '),
                                               "--comp-start",starttime.isoformat(' ') ,
@@ -248,7 +251,7 @@ def main(self):
 
                 command2=["v7d_transform","--input-format","BUFR","--output-format","BUFR",
                           "--comp-start",starttime.isoformat(' ') ,
-                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:00:30.000', '--comp-filter-time',  
+                          "--comp-step", '0000000000 00:15:00.000','--comp-fill-data', '--comp-fill-tolerance', '0000000000 00:00:60.000', '--comp-filter-time',  
                           filename,
                           filename]
 
