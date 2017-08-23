@@ -31,45 +31,61 @@
 
 {% block content %}
 
+<table class="table table-striped">
+  <tbody>
 
-{% for meta in metadata %}
-{% with trange=meta.trange %}
-{% with level=meta.level %}
-{% with var=meta.var %}
+    {% for meta in metadata %}
+    {% with trange=meta.trange %}
+    {% with level=meta.level %}
+    {% with var=meta.var %}
+    
+    {% if coords != "*" %}
+    
+    <p><a href='
+	  {% if hour %}
+	  {% url 'showdata:timeserieshourly' ident coords network meta.trange meta.level meta.var year month day hour %}
+	  {% elif day %}
+	  {% url 'showdata:timeseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
+	  {% elif month %}
+	  {% url 'showdata:timeseriesmonthly' ident coords network meta.trange meta.level meta.var year month %}
+	  {% elif year %}
+	  {% url 'showdata:timeseriesyearly' ident coords network meta.trange meta.level meta.var year %}
+	  {% endif %}
+	  '>Timeseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}} {{hour}} </a></p>
+    
+    {% endif %}
 
-{% if coords != "*" %}
+    {% if year %}
+    {% if month %}
+    {% if day %}
 
-<p><a href='
-{% if hour %}
-  {% url 'showdata:timeserieshourly' ident coords network meta.trange meta.level meta.var year month day hour %}
-{% elif day %}
-  {% url 'showdata:timeseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}
-{% elif month %}
-  {% url 'showdata:timeseriesmonthly' ident coords network meta.trange meta.level meta.var year month %}
-{% elif year %}
-  {% url 'showdata:timeseriesyearly' ident coords network meta.trange meta.level meta.var year %}
-{% endif %}
-  '>Timeseries {{ident}} {{coords}} {{network}} {{meta.trangetxt}} {{meta.leveltxt}} {{meta.vartxt}} {{year}} {{month}} {{day}} {{hour}} </a></p>
-
-{% endif %}
-
-{% if year %}
-{% if month %}
-{% if day %}
-<div class="row">
-  <a href='
-     {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}'>
-  <div class="col-md-1">
-    <script>document.write(icon.{{meta.var}})</script>
-  </div>
-  <div class="col-md-5">
-    {{meta.vartxt}}<br>
-  </div>
-  </a>
-  <div class="col-md-6">
-  </div>
-</div>
-  
+    <tr>
+      <td>
+	<a href='
+	   {% url 'showdata:spatialseriesdaily' ident coords network meta.trange meta.level meta.var year month day %}'>
+	  <script>document.write(icon.{{meta.var}})</script>
+	</a>
+      </td>
+      <td>
+	{{meta.vartxt}}
+      </td>
+      <td>
+	<table>
+	  <tbody>
+	    <tr>
+	      <td>
+		{{meta.leveltxt}}
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>
+		{{meta.trangetxt}}
+	      </td>
+	    </tr>
+	  </tbody>
+	</table>
+      </td>
+    </tr>
 
 {% endif %}
 {% endif %}
@@ -79,6 +95,8 @@
 {% endwith %}
 {% endwith %}
 {% endfor %}
+</tbody>
+</table>
 
 {% endblock %}
 
