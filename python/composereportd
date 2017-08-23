@@ -88,6 +88,9 @@ def main(self):
 
         for mymeta in rmap.settings.sample_measurements:
 
+            # work on parameter requested for 60 sec mean 
+            if mymeta["trange"][0] != 0 or mymeta["trange"][1] != 0 or mymeta["trange"][0] != 60 : continue
+            
             variable_list= mymeta["var"]
             level        = "%s,%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["level"]))
             timerange    = "%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["trange"]))
