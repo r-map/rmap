@@ -57,7 +57,7 @@ def procedure_to_record(procedure):
         return None
 
 
-def get_capabilities_1_0(request):
+def get_capabilities_1_0_0(request):
     """GetCapabilities for SOS 1.0.
 
     This implementation has some limitations:
@@ -85,7 +85,7 @@ def get_capabilities_1_0(request):
     })
 
 
-def describe_sensor_1_0(request):
+def describe_sensor_1_0_0(request):
     """DescribeSensor for SOS 1.0."""
     db = get_db()
     procedure = request.GET['procedure']
