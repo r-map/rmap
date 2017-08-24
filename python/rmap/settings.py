@@ -656,6 +656,17 @@ sample_measurements=[
         "level": (1, None, None, None),
         "trange": (254, 0, 0),
     },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+
 ]
 
 report_measurements=[
@@ -668,6 +679,96 @@ report_measurements=[
         "var": "B13003",
         "level": (103, 2000, None, None),
         "trange": (254, 0, 0),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 900),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 900),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 900),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 900),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 900),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 1800),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 1800),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 1800),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 1800),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 1800),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 1800),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 3600),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 3600),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 3600),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (2, 0, 3600),
+    },
+    {
+        "var": "B12101",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 3600),
+    },
+    {
+        "var": "B13003",
+        "level": (103, 2000, None, None),
+        "trange": (3, 0, 3600),
     },
     {
         "var": "B10004",

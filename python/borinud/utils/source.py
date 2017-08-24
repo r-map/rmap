@@ -513,15 +513,15 @@ class ArkimetBufrDB(DB):
         memdb.load(fo, "BUFR")
 
 
-    #def load_arkiquery_to_dbadb(self, rec, db):
-    #    query = self.record_to_arkiquery(rec)
-    #    url = "{}/query?{}".format(self.dataset, "&".join([
-    #        "{}={}".format(k, quote(v)) for k, v in {
-    #            "style": "data",
-    #            "query": query,
-    #        }.iteritems()]))
-    #    r = urlopen(url)
-    #    db.load(r, "BUFR")
+    def load_arkiquery_to_dbadb(self, rec, db):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/query?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "data",
+                "query": query,
+            }.iteritems()]))
+        r = urlopen(url)
+        db.load(r, "BUFR")
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
