@@ -57,6 +57,19 @@ def procedure_to_record(procedure):
         return None
 
 
+def sos(request):
+    service = request.GET["service"].lower()
+    version = request.GET["version"].lower()
+    request = request.GET["request"].lower()
+
+    view = {
+        ("sos", "1.0.0", "getcapabilities"): get_capabilities_1_0_0,
+        ("sos", "1.0.0", "describesensor"): describe_sensor_1_0_0,
+    }.get((service, version, request))
+
+    return view(request)
+
+
 def get_capabilities_1_0_0(request):
     """GetCapabilities for SOS 1.0.
 
