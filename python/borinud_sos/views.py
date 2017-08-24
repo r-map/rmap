@@ -38,6 +38,25 @@ def summary_to_station(summ):
     )
 
 
+def procedure_to_record(procedure):
+    import re
+    reg = re.compile((
+        r'urn:rmap:procedure:'
+        r'(?P<ident>.*)/'
+        r'(?P<lon>[0-9]+),(?P<lat>[0-9]+)/'
+        r'(?P<rep>.*)/'
+        r'(?P<pind>[0-9]+),(?P<p1>[0-9]+),(?P<p2>[0-9]+)/'
+        r'(?P<leveltype1>[0-9]+|-),(?P<l1>[0-9]+|-)/'
+        r'(?P<leveltype2>[0-9]+|-),(?P<l2>[0-9]+|-)/'
+        r'(?P<var>B[0-9]{5})'
+    ))
+    res = reg.match(procedure)
+    if res is not None:
+        return dballe.Record(**res.groupdict())
+    else:
+        return None
+
+
 def get_capabilities_1_0(request):
     """GetCapabilities for SOS 1.0.
 
@@ -63,4 +82,18 @@ def get_capabilities_1_0(request):
             "observed_property": summary_to_observed_property(s),
             "feature_of_interest": summary_to_station(s),
         } for s in summaries]
+    })
+
+
+def describe_sensor_1_0(request):
+    """DescribeSensor for SOS 1.0."""
+    db = get_db()
+    procedure = request.GET['procedure']
+    rec = procedure_to_record(procedure)
+    cur = db.query_stations(rec)
+    sensor = next(db.query_summaries(rec))
+    return render(request, "borinud_sos/xml/1.0/DescribeSensor.xml", {
+        "name": procedure,
+        "lon": sensor["lon"],
+        "lat": sensor["lat"],
     })
