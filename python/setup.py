@@ -365,7 +365,7 @@ setup(name='rmap',
           'insertdata':['templates/insertdata/*']+insertdata_package_data,
           'registration':['templates/registration/*']+registration_package_data,
           'showdata':['templates/showdata/*']+showdata_package_data,
-          'rainbo':['templates/*.html','templates/base_service/*.html']+rainbo_package_data,          
+          'rainbo':['templates/rainbo/*.html','templates/rainbo/base_service/*.html']+rainbo_package_data,          
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
