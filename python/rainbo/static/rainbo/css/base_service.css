@@ -561,100 +561,100 @@ table.dataTable thead .sorting:after {
 label[for=id_visibility_intensity_0],
 .myDivIcon110 {
     color: transparent;	
-    background-image: url(/static/img/icons/110.png);
+    background-image: url(/static/rainbo/img/icons/110.png);
 }
 
 label[for=id_visibility_intensity_1],
 .myDivIcon130{
     color: transparent;	
-    background-image: url(/static/img/icons/130.png);
+    background-image: url(/static/rainbo/img/icons/130.png);
 }
 
 label[for=id_snow_intensity_0],
 .myDivIcon185 {
     color: transparent;	
-    background-image: url(/static/img/icons/185.png);
+    background-image: url(/static/rainbo/img/icons/185.png);
 }
 
 label[for=id_snow_intensity_1],
 .myDivIcon186 {
     color: transparent;	
-    background-image: url(/static/img/icons/186.png);
+    background-image: url(/static/rainbo/img/icons/186.png);
 }
 
 label[for=id_snow_intensity_2],
 .myDivIcon187 {
     color: transparent;
-    background-image: url(/static/img/icons/187.png);
+    background-image: url(/static/rainbo/img/icons/187.png);
 }
 
 label[for=id_rain_intensity_0],
 .myDivIcon150 {
     color: transparent;	
-    background-image: url(/static/img/icons/150.png);
+    background-image: url(/static/rainbo/img/icons/150.png);
 }
 
 label[for=id_rain_intensity_1],
 .myDivIcon160 {
     color: transparent;
-    background-image: url(/static/img/icons/160.png);
+    background-image: url(/static/rainbo/img/icons/160.png);
 }
 
 label[for=id_rain_intensity_2],
 .myDivIcon165 {
     color: transparent;
-    background-image: url(/static/img/icons/165.png);
+    background-image: url(/static/rainbo/img/icons/165.png);
 }
 
 label[for=id_rain_intensity_3],
 .myDivIcon184 {
     color: transparent;
-    background-image: url(/static/img/icons/184.png);
+    background-image: url(/static/rainbo/img/icons/184.png);
 }
 
 label[for=id_thunderstorm_intensity_0],
 .myDivIcon192 {
     color: transparent;	
-    background-image: url(/static/img/icons/192.png);
+    background-image: url(/static/rainbo/img/icons/192.png);
 }
 
 label[for=id_thunderstorm_intensity_1],
 .myDivIcon193 {
     color: transparent;
-    background-image: url(/static/img/icons/193.png);
+    background-image: url(/static/rainbo/img/icons/193.png);
 }
 
 label[for=id_thunderstorm_intensity_2],
 .myDivIcon195 {
     color: transparent;
-    background-image: url(/static/img/icons/195.png);
+    background-image: url(/static/rainbo/img/icons/195.png);
 }
 
 label[for=id_thunderstorm_intensity_3],
 .myDivIcon196 {
     color: transparent;
-    background-image: url(/static/img/icons/196.png);
+    background-image: url(/static/rainbo/img/icons/196.png);
 }
 
 label[for=id_tornado_0],
 .myDivIcon199 {
     color: transparent;
-    background-image: url(/static/img/icons/199.png);
+    background-image: url(/static/rainbo/img/icons/199.png);
 }
 
 label[for=id_impact_detected_0] {
     color: transparent;
-    background-image: url(/static/img/icons/impact_floading.png);
+    background-image: url(/static/rainbo/img/icons/impact_floading.png);
 }
 
 label[for=id_impact_detected_1] {
     color: transparent;
-    background-image: url(/static/img/icons/impact_ice_on_road.png);
+    background-image: url(/static/rainbo/img/icons/impact_ice_on_road.png);
 }
 
 label[for=id_impact_detected_2] {
     color: transparent;
-    background-image: url(/static/img/icons/impact_tree.png);
+    background-image: url(/static/rainbo/img/icons/impact_tree.png);
 }
 
 .insertdata-selector input{

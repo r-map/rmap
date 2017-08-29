@@ -22,7 +22,7 @@ import rmap.settings
 from nominatim import Nominatim
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.text import slugify
-from rmap.core import isRainboInstance
+from rmap.rmap_core import isRainboInstance
 
 lang="it"
 
@@ -367,7 +367,7 @@ def insertDataRainboWeatherData(request):
 @login_required
 def insertDataManualData(request):
 
-    if isRainboInstance():
+    if isRainboInstance(request):
         return insertDataRainboWeatherData(request)
 
     if request.method == 'POST': # If the form has been submitted...

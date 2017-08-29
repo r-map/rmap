@@ -203,6 +203,7 @@ http2mqtt_package_data = []
 insertdata_package_data = []
 registration_package_data = []
 showdata_package_data = []
+rainbo_package_data = []
 
 data_files = []
 
@@ -305,6 +306,11 @@ for dirpath, dirnames, filenames in os.walk('showdata/static'):
     if filenames:
         for file in filenames:
             showdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'showdata'))
+
+for dirpath, dirnames, filenames in os.walk('rainbo/static'):
+    if filenames:
+        for file in filenames:
+            rainbo_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rainbo'))
             
 
 #package_data.append('rmap_config')
@@ -332,6 +338,7 @@ setup(name='rmap',
                 'rmap.piexif',
                 'amatyr',
                 'showdata','showdata.migrations',
+                'rainbo',
                 'graphite-dballe','graphite-dballe.migrations',
                 'graphite-dballe.account','graphite-dballe.account.migrations',
                 'graphite-dballe.browser',
@@ -358,6 +365,7 @@ setup(name='rmap',
           'insertdata':['templates/insertdata/*']+insertdata_package_data,
           'registration':['templates/registration/*']+registration_package_data,
           'showdata':['templates/showdata/*']+showdata_package_data,
+          'rainbo':['templates/*.html','templates/base_service/*.html']+rainbo_package_data,          
       },
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',

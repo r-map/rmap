@@ -5,5 +5,5 @@ from django.shortcuts import render
 
 def home(request):
     #current_site = get_current_site(request)
-    return render(request, 'landing_page.html')
+    return render(request, 'rainbo/landing_page.html')
 

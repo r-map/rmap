@@ -12,9 +12,9 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    {% include 'home_title.html' %}
+    {% include 'rainbo/home_title.html' %}
 
-    {% include 'base_service_css.html' %}
+    {% include 'rainbo/base_service/base_service_css.html' %}
     
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -33,11 +33,11 @@
     <div id="wrapper" class="text-muted">
 
         <!-- Navigation -->
-        {% include 'section_service_nav.html' %}
+        {% include 'rainbo/base_service/section_service_nav.html' %}
         
         <!-- Sidebar left -->
         {% comment %} 
-        {% include 'section_service_sidebar.html' %}
+        {% include 'rainbo/base_service/section_service_sidebar.html' %}
         {% endcomment %}
     
 
@@ -51,7 +51,7 @@
     </div>
     <!-- /#wrapper -->
 
-    {% include 'base_service_js.html' %}
+    {% include 'rainbo/base_service/base_service_js.html' %}
     
     {% block service_js_container %}
     {% endblock %}

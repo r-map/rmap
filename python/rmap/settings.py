@@ -1098,6 +1098,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'graphite-dballe.url_shortener',  "apps": ('graphite-dballe.url_shortener',)},
         {"import": 'tagging',                        "apps": ('tagging',)},
         {"import": 'django_extensions',              "apps": ('django_extensions',)},
+        {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
     )
 
     # Set up each optional app if available.

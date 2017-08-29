@@ -9,9 +9,9 @@
     <meta name="description" content="">
     <meta name="author" content="">
     
-    {% include 'home_title.html' %}
+    {% include 'rainbo/home_title.html' %}
 
-    {% include 'home_css.html' %}
+    {% include 'rainbo/home_css.html' %}
     
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -33,7 +33,7 @@
                 <span class="icon-bar"></span>
             </button>
             <a class="" style="display: block; float:left" href="http://www.rainbolife.eu/">
-            <img class="img-responsive center-block" alt="" src="{% static "img/partners/rainbo.png" %}">
+            <img class="img-responsive center-block" alt="" src="{% static "rainbo/img/partners/rainbo.png" %}">
             </a>
             <a class="navbar-brand" href="#page-top">RainBo</a>
         </div>
@@ -56,7 +56,7 @@
                 <li class="page-scroll">
                     <a href="#contact">Contacts</a>
                 </li>
-                {% include 'section_service_nav_users.html' %}
+                {% include 'rainbo/base_service/section_service_nav_users.html' %}
             </ul>
             <!-- /.navbar-collapse -->
             <!-- Navigation -->
@@ -66,22 +66,22 @@
     </nav>
 
     <!-- Header -->
-    {% include 'section_header.html' %}
+    {% include 'rainbo/section_header.html' %}
 
     <!-- Query data Section -->
-    {% include 'section_dati.html' %}
+    {% include 'rainbo/section_dati.html' %}
     
     <!-- Services Grid Section -->
-    {% include 'section_partecipa.html' %}
+    {% include 'rainbo/section_partecipa.html' %}
 
     <!-- Partners Section -->
-    {% include 'section_partners.html' %}
+    {% include 'rainbo/section_partners.html' %}
 
     <!-- Contact Section -->
-    {% include 'section_contacts.html' %}
+    {% include 'rainbo/section_contacts.html' %}
 
     <!-- Footer -->
-    {% include 'section_footer.html' %}
+    {% include 'rainbo/section_footer.html' %}
     
     
 
@@ -94,15 +94,15 @@
 
 
     <!-- services Modals -->
-    {% include 'service_detail_1.html' %}
-    {% include 'service_detail_2.html' %}
-    {% include 'service_detail_3.html' %}
-    {% include 'service_detail_4.html' %}
-    {% include 'service_detail_5.html' %}
+    {% include 'rainbo/service_detail_1.html' %}
+    {% include 'rainbo/service_detail_2.html' %}
+    {% include 'rainbo/service_detail_3.html' %}
+    {% include 'rainbo/service_detail_4.html' %}
+    {% include 'rainbo/service_detail_5.html' %}
 
-    {% include 'service_push_data.html' %}
+    {% include 'rainbo/service_push_data.html' %}
     
-    {% include 'home_js.html' %}
+    {% include 'rainbo/home_js.html' %}
     
 
 </body>

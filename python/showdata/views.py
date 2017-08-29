@@ -9,7 +9,7 @@ from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
 from rmap.stations.models import Bcode
-from rmap.core import isRainboInstance
+from rmap.rmap_core import isRainboInstance
 
 defaultdsn="report"
 defaulttimedsn="report_fixed"
@@ -278,7 +278,7 @@ def timeseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
 
-    if isRainboInstance():
+    if isRainboInstance(request):
         html_template="showdata/rainbotimeseries.html"
     else:
         html_template="showdata/timeseries.html"
@@ -365,7 +365,7 @@ def spatialseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtprevious.year),
                         "month":"{:02d}".format(dtprevious.month),
-                        "day"  :"{:02d}".format(dtprevious.day)})
+                        "day"  :"{:02d}".format(dtprevious.day)})\
                         +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
                     next= reverse('showdata:spatialseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
@@ -376,7 +376,7 @@ def spatialseries(request, **kwargs):
                         "var":kwargs.get("var"),
                         "year" :"{:04d}".format(dtnext.year),
                         "month":"{:02d}".format(dtnext.month),
-                        "day"  :"{:02d}".format(dtnext.day)})
+                        "day"  :"{:02d}".format(dtnext.day)})\
                         +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
                     datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
@@ -469,7 +469,7 @@ def spatialseries(request, **kwargs):
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
         
 
-    if isRainboInstance():
+    if isRainboInstance(request):
         html_template="showdata/rainbospatialseries.html"
     else:
         html_template="showdata/spatialseries.html"

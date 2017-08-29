@@ -10,7 +10,7 @@
             <span class="icon-bar"></span>
         </button>
         <a class="navbar-brand" href="http://www.rainbolife.eu/">
-             <img alt="RAINBO Homepage" src="{% static "img/partners/rainbo.svg" %}"height = "100%">
+             <img alt="RAINBO Homepage" src="{% static "rainbo/img/partners/rainbo.svg" %}"height = "100%">
         </a> 	
     </div>
     <div class="collapse navbar-collapse" id="navi">
@@ -18,10 +18,10 @@
             <li class="hidden">
                 <a href="#page-top"></a>
             </li>
-           {% include 'section_service_nav_home.html' %}
-           {% include 'section_service_nav_partecipa.html' %}
-           {% include 'section_service_nav_visualizza.html' %}
-           {% include 'section_service_nav_users.html' %}
+           {% include 'rainbo/base_service/section_service_nav_home.html' %}
+           {% include 'rainbo/base_service/section_service_nav_partecipa.html' %}
+           {% include 'rainbo/base_service/section_service_nav_visualizza.html' %}
+           {% include 'rainbo/base_service/section_service_nav_users.html' %}
         </ul>
     <!-- /.navbar-top-links -->
     </div>    
