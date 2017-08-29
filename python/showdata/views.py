@@ -9,13 +9,10 @@ from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
 from rmap.stations.models import Bcode
+from rmap.core import isRainboInstance
 
 defaultdsn="report"
 defaulttimedsn="report_fixed"
-
-def isRainboInstance():
-    return False
-
 
 def filtro(request, **kwargs):
 

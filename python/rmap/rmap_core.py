@@ -37,6 +37,7 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 import exifutils
 from django.db import connection
+from django.contrib.sites.shortcuts import get_current_site
 
 #sensortemplates={"stima_t_u":
 #'''
@@ -148,6 +149,10 @@ from django.db import connection
 #]
 #'''
 #}
+
+
+def isRainboInstance():
+    return get_current_site(request).name == "rainbo"
 
 
 def delsensor(station_slug=None,username=None,board_slug=None,name=None):

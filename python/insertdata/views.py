@@ -22,6 +22,7 @@ import rmap.settings
 from nominatim import Nominatim
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.text import slugify
+from rmap.core import isRainboInstance
 
 lang="it"
 
@@ -269,11 +270,6 @@ def insertDataImage(request):
             nominatimform = NominatimForm() # An unbound form
             form = ImageForm() # An unbound form
             return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
-
-
-def isRainboInstance():
-    return False
-
 
 @login_required
 def insertDataRainboImpactData(request):
