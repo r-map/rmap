@@ -99,6 +99,31 @@ class ManualForm(forms.ModelForm):
         widgets = {'geom': LeafletWidget()}
 
 
+class RainboWeatherForm(forms.ModelForm):
+    coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
+    #fixed standard values from ~/rmap/python/rmap/tables/present_weather.txt  
+    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,'110'),(130,'130')],required=False,label=_("Visibility"),help_text='')
+    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,'185'),(186,'186'),(187,'187')],required=False,label=_("Snow"),help_text='')    
+    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,'192'),(193,'193'),(195,'195'),(196,'196')],required=False,label=_("Thunderstorm"),help_text='') 
+    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,'150'),(160,'160'),(165,'165'),(184,'184')],required=False,label=_("Rain"),help_text='')
+    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,'199')],required=False,label=_("Tornado"),help_text='')
+
+    class Meta:
+        model = GeorefencedImage
+        fields = ('geom',)
+        widgets = {'geom': LeafletWidget()}
+
+
+class RainboImpactForm(forms.ModelForm):
+    coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(1,'1'),(2,'2'),(3,'3')],required=False,label=_("Impact detected"),help_text='') 
+
+    class Meta:
+        model = GeorefencedImage
+        fields = ('geom',)
+        widgets = {'geom': LeafletWidget()}
+
+
 class NominatimForm(forms.Form):
     address= forms.CharField(required=False,label=_("Search address"),help_text='')
 
@@ -246,9 +271,108 @@ def insertDataImage(request):
             return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
 
 
+def isRainboInstance():
+    return False
+
+
+@login_required
+def insertDataRainboImpactData(request):
+    html_template = 'insertdata/rainbodataform.html'
+    form = RainboImpactForm(request.POST) # A form bound to the POST data
+    if request.method == 'POST': # If the form has been submitted...
+        if form.is_valid(): # All validation rules pass
+            geom=form.cleaned_data['geom']
+            lon=geom['coordinates'][0]
+            lat=geom['coordinates'][1]
+            dt=datetime.utcnow().replace(microsecond=0)
+            ident=request.user.username
+            datavar={}
+
+            value = form.cleaned_data['impact_detected'] if form.cleaned_data['impact_detected'] != "" else ""
+
+            if (value != ""):
+                #TODO: code to define 
+                datavar["??????"]={"t": dt,"v": str(value)}
+            if (len(datavar)>0):
+                try:
+                    user=rmap.settings.mqttuser
+                    password=rmap.settings.mqttpassword
+                    prefix=rmap.settings.topicsample
+                    network="mobile"
+                    slug=form.cleaned_data['coordinate_slug']
+
+                    print "<",slug,">","prefix:",prefix
+
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
+                    mqtt.disconnect()
+                    form = RainboImpactForm() # An unbound Rainbo form
+                except Exception as e:
+                    return render(request, html_template,{'form': form,"error":True})
+
+            return render(request, html_template,{'form': form})
+
+        else:
+            return render(request, html_template,{'form': form,"invalid":True})
+                
+    else:
+        return render(request, html_template,{'form': form})
+
+
+def insertDataRainboWeatherData(request):
+
+    html_template = 'insertdata/rainbodataform.html'
+    form = RainboWeatherForm(request.POST) # A form bound to the POST data
+    if request.method == 'POST': # If the form has been submitted...
+        if form.is_valid(): # All validation rules pass
+            geom=form.cleaned_data['geom']
+            lon=geom['coordinates'][0]
+            lat=geom['coordinates'][1]
+            dt=datetime.utcnow().replace(microsecond=0)
+            ident=request.user.username
+            datavar={}
+
+            #Ascending importance order
+            value = form.cleaned_data['visibility_intensity'] if form.cleaned_data['visibility_intensity'] != "" else ""
+            value = form.cleaned_data['rain_intensity'] if form.cleaned_data['rain_intensity'] != ""  else value
+            value = form.cleaned_data['snow_intensity'] if form.cleaned_data['snow_intensity'] != "" else value
+            value = form.cleaned_data['thunderstorm_intensity'] if form.cleaned_data['thunderstorm_intensity'] != "" else value
+            value = form.cleaned_data['tornado'] if form.cleaned_data['tornado'] != "" else value
+
+            if (value != ""):
+                datavar["B20003"]={"t": dt,"v": str(value)}
+            if (len(datavar)>0):
+                try:
+                    user=rmap.settings.mqttuser
+                    password=rmap.settings.mqttpassword
+                    prefix=rmap.settings.topicsample
+                    network="mobile"
+                    slug=form.cleaned_data['coordinate_slug']
+                    print user,password,network,prefix
+                    print "<",slug,">","prefix:",prefix
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="rmap.cc",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    #mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
+                    mqtt.disconnect()
+                    form = RainboWeatherForm() # An unbound Rainbo form
+                except Exception as e:
+                    print e
+                    return render(request, html_template,{'form': form,"error":True})
+
+            return render(request, html_template,{'form': form})
+
+        else:
+            return render(request, html_template,{'form': form,"invalid":True})
+                
+    else:
+        return render(request, html_template,{'form': form})
+
 
 @login_required
 def insertDataManualData(request):
+
+    if isRainboInstance():
+        return insertDataRainboWeatherData(request)
 
     if request.method == 'POST': # If the form has been submitted...
 

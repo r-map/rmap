@@ -13,6 +13,9 @@ from rmap.stations.models import Bcode
 defaultdsn="report"
 defaulttimedsn="report_fixed"
 
+def isRainboInstance():
+    return False
+
 
 def filtro(request, **kwargs):
 
@@ -278,6 +281,11 @@ def timeseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
 
+    if isRainboInstance():
+        html_template="showdata/rainbotimeseries.html"
+    else:
+        html_template="showdata/timeseries.html"
+
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
         if not request.GET.get(k, None) is None:
@@ -288,7 +296,7 @@ def timeseries(request, **kwargs):
         if not request.GET.get(k, None) is None:
             timebox[k]=request.GET.get(k)
             
-    return render(request, 'showdata/timeseries.html',{
+    return render(request, html_template,{
         "ident":kwargs.get("ident"),"coords":kwargs.get("coords"), 
         "undescored_coords":kwargs.get("coords").replace(",","_"), "network":kwargs.get("network"), 
         "trange":kwargs.get("trange"), "undescored_trange":kwargs.get("trange").replace(",","_"), 
@@ -345,6 +353,38 @@ def spatialseries(request, **kwargs):
                     less=None
                     datefrom=kwargs.get("hour")+":00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
                     dateuntil=kwargs.get("hour")+":59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
+                elif not request.GET.get('type') is None:
+                    #DAILY RAINBO FILTER
+                    timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")), day=int(kwargs.get("day")))
+                    delta=timedelta(days=1)
+                    dtprevious = timerequested - delta
+                    dtnext     = timerequested + delta
+                    previous = reverse('showdata:spatialseriesdaily', kwargs={
+                        "ident":kwargs.get("ident"),
+                        "coords":kwargs.get("coords"),
+                        "network":kwargs.get("network"),
+                        "trange":kwargs.get("trange"),
+                        "level":kwargs.get("level"),
+                        "var":kwargs.get("var"),
+                        "year" :"{:04d}".format(dtprevious.year),
+                        "month":"{:02d}".format(dtprevious.month),
+                        "day"  :"{:02d}".format(dtprevious.day)})
+                        +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
+                    next= reverse('showdata:spatialseriesdaily', kwargs={
+                        "ident":kwargs.get("ident"),
+                        "coords":kwargs.get("coords"),
+                        "network":kwargs.get("network"),
+                        "trange":kwargs.get("trange"),
+                        "level":kwargs.get("level"),
+                        "var":kwargs.get("var"),
+                        "year" :"{:04d}".format(dtnext.year),
+                        "month":"{:02d}".format(dtnext.month),
+                        "day"  :"{:02d}".format(dtnext.day)})
+                        +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
+                    datefrom="00:00_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
+                    dateuntil="23:59_"+kwargs.get("year")+kwargs.get("month")+kwargs.get("day")
+                    less=None
+                    more=None
                 else:
                     #DAILY
                     timerequested=datetime(year=int(kwargs.get("year")), month=int(kwargs.get("month")), day=int(kwargs.get("day")))
@@ -432,6 +472,11 @@ def spatialseries(request, **kwargs):
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
         
 
+    if isRainboInstance():
+        html_template="showdata/rainbospatialseries.html"
+    else:
+        html_template="showdata/spatialseries.html"
+
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
         if not request.GET.get(k, None) is None:
@@ -442,7 +487,7 @@ def spatialseries(request, **kwargs):
         if not request.GET.get(k, None) is None:
             timebox[k]=request.GET.get(k)
 
-    return render(request, 'showdata/spatialseries.html',{
+    return render(request, html_template,{
         "ident":kwargs.get("ident"), "coords":kwargs.get("coords"), 
         "network":kwargs.get("network"), "trange":kwargs.get("trange"), 
         "level":kwargs.get("level"), "var":kwargs.get("var"), 

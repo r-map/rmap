@@ -1,0 +1,14 @@
+{% if user.is_authenticated %}
+<li class="page-scroll">
+    <a href="/registrazione/logout/">
+        <i class="fa fa-sign-out"></i>  Logout
+    </a>
+</li>
+{% else %}
+<li class="page-scroll">
+    <a href="/registrazione/login/">
+        <i class="fa fa-bar-chart"></i>  Login
+    </a>
+</li>
+{% endif %}
+
