@@ -493,6 +493,7 @@ STATICFILES_FINDERS = [
 
 
 MIDDLEWARE_CLASSES = [
+    'django_hosts.middleware.HostsRequestMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -502,6 +503,7 @@ MIDDLEWARE_CLASSES = [
 #    'django.middleware.doc.XViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
+    'django_hosts.middleware.HostsResponseMiddleware',
 ]
 
 TEMPLATES= [
@@ -542,6 +544,7 @@ INSTALLED_APPS = [
     'rmap',
     'rmap.stations',
     'registration',
+    'django_hosts'
 ]
 
 # if not android :
@@ -1063,6 +1066,11 @@ LEAFLET_CONFIG = {
 
 MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
 ALLOWED_HOSTS = ['*']
+
+#django-hosts configuration
+ROOT_HOSTCONF = 'rmap.hosts'
+DEFAULT_HOST = 'rmapv'  # Name of the default host
+
 
 LOAD_OPTIONAL_APPS = not android
 

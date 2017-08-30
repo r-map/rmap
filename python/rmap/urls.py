@@ -50,12 +50,12 @@ urlpatterns = [
 ]
 
 if not android  :
-    try:
-        urlpatterns.append(url(r'^rainbo/', include('rainbo.urls')))
-        #del urlpatterns[0]
-    except Exception as e:
-        print "Warnig: rainbo disabled"
-        print e        
+    #try:
+    #    urlpatterns.append(url(r'^rainbo/', include('rainbo.urls')))
+    #    #del urlpatterns[0]
+    #except Exception as e:
+    #    print "Warnig: rainbo disabled"
+    #    print e        
     try:
         urlpatterns.append(url(r'^', include('http2mqtt.urls')))
     except Exception as e:
