@@ -9,6 +9,15 @@ import showdata.views
 
 app_name = 'rainbo'
 
+basepattern = (
+    r'^showdata/(?P<ident>\w+|\*|-)'
+    r'/(?P<coords>(?P<lon>\-?\+?\d+|-),(?P<lat>\-?\+?\d+|-)|\*)'
+    r'/(?P<network>[-\w]+|\*)'
+    r'/(?P<trange>(?P<tr>\d+|-|\*),(?P<p1>\d+|-|\*),(?P<p2>\d+|-|\*)|\*)'
+    r'/(?P<level>(?P<lt1>\d+|-|\*),(?P<lv1>\d+|-|\*),(?P<lt2>\d+|-|\*),(?P<lv2>\d+|-|\*)|\*)'
+    r'/(?P<var>B\d{5}|\*)'
+)
+
 
 urlpatterns = [
     url( r'^$',  rainbo.views.home ,name='home' ),
@@ -18,12 +27,12 @@ urlpatterns = [
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
 
-    url("showdata/"+showdata.views.basepattern + r'/timeseries/(?P<year>\d{4})$', views.rainbotimeseries,name="timeseriesyearly"),
-    url("showdata/"+showdata.views.basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', views.rainbotimeseries,name="timeseriesmonthly"),
-    url("showdata/"+showdata.views.basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.rainbotimeseries,name="timeseriesdaily"),
-    url("showdata/"+showdata.views.basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.rainbotimeseries,name="timeserieshourly"),
+    url(basepattern + r'/timeseries/(?P<year>\d{4})$', showdata.views.rainbotimeseries,name="timeseriesyearly"),
+    url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesmonthly"),
+    url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesdaily"),
+    url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', showdata.views.rainbotimeseries,name="timeserieshourly"),
 
-    url("showdata/"+showdata.views.basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.rainbospatialseries,name="spatialserieshourly"),
-    url("showdata/"+showdata.views.basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.rainbospatialseries,name="spatialseriesdaily"),
+    url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', showdata.views.rainbospatialseries,name="spatialserieshourly"),
+    url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbospatialseries,name="spatialseriesdaily"),
 ]
 

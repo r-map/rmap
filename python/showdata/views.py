@@ -362,7 +362,7 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
                     delta=timedelta(days=1)
                     dtprevious = timerequested - delta
                     dtnext     = timerequested + delta
-                    previous = reverse('showdata:spatialseriesdaily', kwargs={
+                    previous = reverse('rainbo:spatialseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"),
                         "network":kwargs.get("network"),
@@ -373,7 +373,7 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
                         "month":"{:02d}".format(dtprevious.month),
                         "day"  :"{:02d}".format(dtprevious.day)})\
                         +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
-                    next= reverse('showdata:spatialseriesdaily', kwargs={
+                    next= reverse('rainbo:spatialseriesdaily', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"),
                         "network":kwargs.get("network"),
