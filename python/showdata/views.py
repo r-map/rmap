@@ -9,7 +9,7 @@ from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
 from rmap.stations.models import Bcode
-from rmap.rmap_core import isRainboInstance
+#from rmap.rmap_core import isRainboInstance
 
 defaultdsn="report"
 defaulttimedsn="report_fixed"
@@ -77,7 +77,12 @@ def menu(request, **kwargs):
     })
 
 
-def timeseries(request, **kwargs):
+def rainbotimeseries(request, **kwargs):
+
+    timeseries(request,html_template="showdata/rainbotimeseries.html",**kwargs)
+
+
+def timeseries(request,html_template="showdata/timeseries.html", **kwargs):
 
     if kwargs.get("year"):
         if kwargs.get("month"):
@@ -278,11 +283,6 @@ def timeseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
 
-    if isRainboInstance(request):
-        html_template="showdata/rainbotimeseries.html"
-    else:
-        html_template="showdata/timeseries.html"
-
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
         if not request.GET.get(k, None) is None:
@@ -304,7 +304,13 @@ def timeseries(request, **kwargs):
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaulttimedsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox})
 
-def spatialseries(request, **kwargs):
+
+def rainbospatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
+
+    spatialseries(request,html_template="showdata/rainbospatialseries.html",**kwargs)
+
+
+def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
 
     if kwargs.get("year"):
         if kwargs.get("month"):
@@ -468,12 +474,6 @@ def spatialseries(request, **kwargs):
         vartxt=varinfo.desc
         bcode=Bcode.objects.get(bcode=kwargs.get("var"))
         
-
-    if isRainboInstance(request):
-        html_template="showdata/rainbospatialseries.html"
-    else:
-        html_template="showdata/spatialseries.html"
-
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
         if not request.GET.get(k, None) is None:
