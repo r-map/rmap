@@ -124,6 +124,7 @@
                 <sos:observedProperty xlink:href="{{ o.observed_property }}"/>
                 <sos:featureOfInterest xlink:href="{{ o.feature_of_interest }}"/>
                 <sos:responseFormat>text/xml;subtype="om/1.0.0"</sos:responseFormat>
+                <!--
                 <sos:responseFormat>text/csv</sos:responseFormat>
                 <sos:responseFormat>text/tab-separated-values</sos:responseFormat>
                 <sos:responseFormat>application/vnd.google-earth.kml+xml</sos:responseFormat>
@@ -131,6 +132,7 @@
                 <sos:responseFormat>application/ioos+xml;version=0.6.1</sos:responseFormat>
                 <sos:resultModel>om:ObservationCollection</sos:resultModel>
                 <sos:responseMode>inline</sos:responseMode>
+                -->
             </sos:ObservationOffering>
             {% endfor %}
         </sos:ObservationOfferingList>
