@@ -99,8 +99,7 @@
                         <swe2:TextEncoding decimalSeparator="." tokenSeparator="," blockSeparator="&amp;#10;"/>
                     </swe2:encoding>
                     <swe2:values>
-                        {% for v in values %}
-                        {{ v.date }},{{ procedure }},{{ v.value }}
+                        {% for v in values %}{{ v.date }},{{ procedure }},{{ v.value }}
                         {% endfor %}
                     </swe2:values>
                 </swe2:DataStream>

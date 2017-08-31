@@ -45,15 +45,33 @@ def procedure_to_record(procedure):
         r'urn:rmap:procedure:'
         r'(?P<ident>.*)/'
         r'(?P<lon>[0-9]+),(?P<lat>[0-9]+)/'
-        r'(?P<rep>.*)/'
-        r'(?P<pind>[0-9]+),(?P<p1>[0-9]+),(?P<p2>[0-9]+)/'
-        r'(?P<leveltype1>[0-9]+|-),(?P<l1>[0-9]+|-)/'
+        r'(?P<rep_memo>.*)/'
+        r'(?P<pindicator>[0-9]+),(?P<p1>[0-9]+),(?P<p2>[0-9]+)/'
+        r'(?P<leveltype1>[0-9]+|-),(?P<l1>[0-9]+|-),'
         r'(?P<leveltype2>[0-9]+|-),(?P<l2>[0-9]+|-)/'
         r'(?P<var>B[0-9]{5})'
     ))
     res = reg.match(procedure)
     if res is not None:
-        return dballe.Record(**res.groupdict())
+        r = res.groupdict()
+        rec = dballe.Record()
+        if r["ident"] == "-":
+            rec["ident"] = None
+        else:
+            rec["ident"] = r["ident"]
+
+        rec["rep_memo"] = r["rep_memo"]
+
+        for k in ("lon", "lat", "pindicator", "p1", "p2", "leveltype1", "l1",
+                  "leveltype2", "l2"):
+            if r[k] == "-":
+                rec[k] = None
+            else:
+                rec[k] = int(r[k])
+
+        rec["var"] = r["var"]
+
+        return rec
     else:
         return None
 
@@ -105,8 +123,8 @@ def describe_sensor_1_0_0(request):
     db = get_db()
     procedure = request.GET['procedure']
     rec = procedure_to_record(procedure)
-    cur = db.query_stations(rec)
-    sensor = next(db.query_summary(rec))
+    cur = db.query_summary(rec)
+    sensor = cur[0]
     return render(request, "borinud_sos/xml/1.0/DescribeSensor.xml", {
         "name": procedure,
         "lon": sensor["lon"],
@@ -123,8 +141,9 @@ def get_observation_1_0_0(request):
     - responseMode inline only
     - SRS is ignored
     - It supports the specific case of a single sensor offering (i.e. the
-      procedure) for a fixed station (the observed property). Then, the
-      offering has the same name of the procedure
+      procedure) for a fixed station. Then, the offering has the same name of
+      the procedure, there's only one observed property and only one feature of
+      interest (i.e. the station).
     """
     db = get_db()
     # text/xml;subtype="om/1.0.0" only
@@ -180,4 +199,5 @@ def get_observation_1_0_0(request):
         "feature_of_interest": feature_of_interest,
         "datemin": values[0]["date"] if len(values) == 0 else "",
         "datemax": values[-1]["date"] if len(values) == 0 else "",
+        "values": values,
     })
