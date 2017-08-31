@@ -110,8 +110,8 @@
                 <gml:srsName>http://www.opengis.net/def/crs/EPSG/0/4326</gml:srsName>
                 <gml:boundedBy>
                     <gml:Envelope srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
-                        <gml:lowerCorner>{{ o.bbox.0.0 o.bbox.0.1 }}</gml:lowerCorner>
-                        <gml:upperCorner>{{ o.bbox.1.0 o.bbox.1.1 }}</gml:upperCorner>
+                        <gml:lowerCorner>{{ o.bbox.0.0 }} {{ o.bbox.0.1 }}</gml:lowerCorner>
+                        <gml:upperCorner>{{ o.bbox.1.0 }} {{ o.bbox.1.1 }}</gml:upperCorner>
                     </gml:Envelope>
                 </gml:boundedBy>
                 <sos:time>

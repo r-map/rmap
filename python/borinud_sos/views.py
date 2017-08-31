@@ -8,11 +8,11 @@ from borinud.utils.source import get_db
 
 def summary_to_procedure(summ):
     ident = summ["ident"] if summ["ident"] is not None else "-"
-    lon = summ.get("lon").enqd()
-    lat = summ.get("lat").enqd()
+    lon = summ.key("lon").enqi()
+    lat = summ.key("lat").enqi()
     rep = summ["rep_memo"]
-    trange = [v if v is not None else "-" for v in summ["trange"]]
-    level = [v if v is not None else "-" for v in summ["level"]]
+    trange = [str(v) if v is not None else "-" for v in summ["trange"]]
+    level = [str(v) if v is not None else "-" for v in summ["level"]]
     var = summ["var"]
     return "urn:rmap:procedure:{ident}/{lon},{lat}/{rep}/{trange}/{level}/{var}".format(
         ident=ident, lon=lon, lat=lat, rep=rep,
@@ -21,18 +21,20 @@ def summary_to_procedure(summ):
 
 
 def summary_to_observed_property(summ):
-    trange = [v if v is not None else "-" for v in summ["trange"]]
-    level = [v if v is not None else "-" for v in summ["level"]]
+    trange = [str(v) if v is not None else "-" for v in summ["trange"]]
+    level = [str(v) if v is not None else "-" for v in summ["level"]]
     var = summ["var"]
     return "urn:rmap:property:{trange}/{level}/{var}".format(
-        trange = [v if v is not None else "-" for v in summ["trange"]]
+        trange=trange,
+        level=level,
+        var=var,
     )
 
 
 def summary_to_station(summ):
     ident = summ["ident"] if summ["ident"] is not None else "-"
-    lon = summ.get("lon").enqd()
-    lat = summ.get("lat").enqd()
+    lon = summ.key("lon").enqi()
+    lat = summ.key("lat").enqi()
     rep = summ["rep_memo"]
     return "urn:rmap:station:{ident}/{lon},{lat}/{rep}".format(
         ident=ident, lon=lon, lat=lat, rep=rep,
@@ -59,15 +61,15 @@ def procedure_to_record(procedure):
 
 
 def sos(request):
-    service = request.GET["service"].lower()
-    version = request.GET["version"].lower()
-    request = request.GET["request"].lower()
+    service_param = request.GET["service"].lower()
+    version_param = request.GET["version"].lower()
+    request_param = request.GET["request"].lower()
 
     view = {
         ("sos", "1.0.0", "getcapabilities"): get_capabilities_1_0_0,
         ("sos", "1.0.0", "describesensor"): describe_sensor_1_0_0,
         ("sos", "1.0.0", "getobservation"): get_observation_1_0_0,
-    }.get((service, version, request))
+    }.get((service_param, version_param, request_param))
 
     return view(request)
 
@@ -84,7 +86,7 @@ def get_capabilities_1_0_0(request):
     4. The offering description is static (could be the station name).
     """
     db = get_db()
-    summaries = list(db.query_summaries(dballe.Record()))
+    summaries = list(db.query_summary(dballe.Record()))
     observed_properties = set(summary_to_observed_property(s) for s in summaries)
     return render(request, "borinud_sos/xml/1.0/GetCapabilities.xml", {
         "sos_full_url": request.build_absolute_uri(),
@@ -106,7 +108,7 @@ def describe_sensor_1_0_0(request):
     procedure = request.GET['procedure']
     rec = procedure_to_record(procedure)
     cur = db.query_stations(rec)
-    sensor = next(db.query_summaries(rec))
+    sensor = next(db.query_summary(rec))
     return render(request, "borinud_sos/xml/1.0/DescribeSensor.xml", {
         "name": procedure,
         "lon": sensor["lon"],
