@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.http import HttpResponseBadRequest
 
 import dballe
 import iso8601
@@ -77,17 +78,31 @@ def procedure_to_record(procedure):
 
 
 def sos(request):
-    service_param = request.GET["service"].lower()
-    version_param = request.GET["version"].lower()
-    request_param = request.GET["request"].lower()
+    if request.GET.get("service", "").lower() != "sos":
+        return HttpResponseBadRequest("Missing service=SOS parameter")
 
-    view = {
-        ("sos", "1.0.0", "getcapabilities"): get_capabilities_1_0_0,
-        ("sos", "1.0.0", "describesensor"): describe_sensor_1_0_0,
-        ("sos", "1.0.0", "getobservation"): get_observation_1_0_0,
-    }.get((service_param, version_param, request_param))
+    req = request.GET.get("request", "").lower()
 
-    return view(request)
+    if req == "getcapabilities":
+        a = request.GET.getlist("acceptVersions")
+        if "1.0.0" in a:
+            return get_capabilities_1_0_0(request)
+        else:
+            return HttpResponseBadRequest("Versions not supported: {}".format(",".join(a)))
+    elif req == "describesensor":
+        v = request.GET.get("version")
+        if v == "1.0.0":
+            return describe_sensor_1_0_0(request)
+        else:
+            return HttpResponseBadRequest("Version not supported")
+    elif req == "getobservation":
+        v = request.GET.get("version")
+        if v == "1.0.0":
+            return get_observation_1_0_0(request)
+        else:
+            return HttpResponseBadRequest("Version not supported")
+    else:
+        return HttpResponseBadRequest("Invalid request parameter: '{}'".format(req))
 
 
 def get_capabilities_1_0_0(request):
