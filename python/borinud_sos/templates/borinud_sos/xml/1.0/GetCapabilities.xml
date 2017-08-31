@@ -116,8 +116,8 @@
                 </gml:boundedBy>
                 <sos:time>
                     <gml:TimePeriod>
-                        <gml:beginPosition>{{ o.date.0 }}</gml:beginPosition>
-                        <gml:endPosition>{{ o.date.1 }}</gml:endPosition>
+                        <gml:beginPosition>{{ o.date.0|date:"c" }}</gml:beginPosition>
+                        <gml:endPosition>{{ o.date.1|date:"c" }}</gml:endPosition>
                     </gml:TimePeriod>
                 </sos:time>
                 <sos:procedure xlink:href="{{ o.id }}"/>
