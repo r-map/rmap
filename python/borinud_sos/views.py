@@ -1,6 +1,7 @@
 from django.shortcuts import render
 
 import dballe
+import iso8601
 
 from borinud.utils.source import get_db
 
@@ -65,6 +66,7 @@ def sos(request):
     view = {
         ("sos", "1.0.0", "getcapabilities"): get_capabilities_1_0_0,
         ("sos", "1.0.0", "describesensor"): describe_sensor_1_0_0,
+        ("sos", "1.0.0", "getobservation"): get_observation_1_0_0,
     }.get((service, version, request))
 
     return view(request)
@@ -109,4 +111,73 @@ def describe_sensor_1_0_0(request):
         "name": procedure,
         "lon": sensor["lon"],
         "lat": sensor["lat"],
+    })
+
+
+def get_observation_1_0_0(request):
+    """GetObservation for SOS 1.0.
+
+    This implementation has some limitations:
+    - responseFormat text/xml;subtype="om/1.0.0" only
+    - resultModel om:Observation only
+    - responseMode inline only
+    - SRS is ignored
+    - It supports the specific case of a single sensor offering (i.e. the
+      procedure) for a fixed station (the observed property). Then, the
+      offering has the same name of the procedure
+    """
+    db = get_db()
+    # text/xml;subtype="om/1.0.0" only
+    response_format = request.GET['responseFormat']
+    # om:Observation only
+    result_model = request.GET.get('resultModel')
+    # inline response mode only
+    response_mode = request.GET.get('responseMode')
+    # SRS is ignored
+    srs_name = request.GET.get("srsName")
+    offering = request.GET['offering']
+    # Procedure is ignored because the offering is the single sensor, i.e. the
+    # procedure itself (so we overwrite it)
+    procedure = request.GET.get("procedure")
+    procedure = offering
+
+    # observedProperty is mandatory, but it is ignored because there's only one
+    # property for each offering/procedure
+    observed_property = request.GET['observedProperty']
+
+    # featureOfInterest is optional, but it is ignored because there's only
+    # one feature for each offering/procedure, i.e. the station
+    feature_of_interest = request.GET.get("featureOfInterest")
+
+    # TODO: eventTime is optional and can be and instant (e.g.
+    # 2009-06-26T10:00:00+01) or a period (e.g.
+    # 2009-06-26T10:00:00+01/2009-06-26T11:00:00+01).
+    event_time = request.GET.get("eventTime", None)
+
+    rec = procedure_to_record(offering)
+
+    if event_time is not None:
+        if "/" in event_time:
+            rec["datemin"] = iso8601.parse_date(event_time.split("/")[0])
+            rec["datemax"] = iso8601.parse_date(event_time.split("/")[1])
+        else:
+            rec["date"] = iso8601.parse_date(event_time)
+
+    feature_of_interest = summary_to_station(rec)
+
+    cur = db.query_data(rec)
+
+    values = [{
+        "date": rec["date"].isoformat(),
+        "value": rec[rec["var"]]],
+    } for rec in cur]
+
+    return render(request, "borinud_sos/xml/1.0/GetObservation.xml", {
+        "lon": rec["lon"],
+        "lat": rec["lat"],
+        "procedure": procedure,
+        "observed_property": observed_property,
+        "feature_of_interest": feature_of_interest,
+        "datemin": values[0]["date"] or "" if len(values) == 0,
+        "datemax": values[-1]["date"] or "" len(values) == 0,
     })
