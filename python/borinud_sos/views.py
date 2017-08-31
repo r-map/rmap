@@ -16,7 +16,7 @@ def summary_to_procedure(summ):
     var = summ["var"]
     return "urn:rmap:procedure:{ident}/{lon},{lat}/{rep}/{trange}/{level}/{var}".format(
         ident=ident, lon=lon, lat=lat, rep=rep,
-        trange=",".join(trange), level=",".join(level), var=var
+        trange=",".join(trange), level=",".join(level), var=var,
     )
 
 
@@ -25,9 +25,7 @@ def summary_to_observed_property(summ):
     level = [str(v) if v is not None else "-" for v in summ["level"]]
     var = summ["var"]
     return "urn:rmap:property:{trange}/{level}/{var}".format(
-        trange=trange,
-        level=level,
-        var=var,
+        trange=",".join(trange), level=",".join(level), var=var,
     )
 
 
