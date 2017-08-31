@@ -1107,6 +1107,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'tagging',                        "apps": ('tagging',)},
         {"import": 'django_extensions',              "apps": ('django_extensions',)},
         {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
+        {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
     )
 
     # Set up each optional app if available.

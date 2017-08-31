@@ -169,7 +169,7 @@ def get_observation_1_0_0(request):
 
     values = [{
         "date": rec["date"].isoformat(),
-        "value": rec[rec["var"]]],
+        "value": rec[rec["var"]],
     } for rec in cur]
 
     return render(request, "borinud_sos/xml/1.0/GetObservation.xml", {
@@ -178,6 +178,6 @@ def get_observation_1_0_0(request):
         "procedure": procedure,
         "observed_property": observed_property,
         "feature_of_interest": feature_of_interest,
-        "datemin": values[0]["date"] or "" if len(values) == 0,
-        "datemax": values[-1]["date"] or "" len(values) == 0,
+        "datemin": values[0]["date"] if len(values) == 0 else "",
+        "datemax": values[-1]["date"] if len(values) == 0 else "",
     })

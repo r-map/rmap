@@ -95,6 +95,13 @@ if not android  :
         print "Warnig: graphite disabled"
         print e
 
+    try:
+        #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
+        urlpatterns.append(url(r'^sos/', include('borinud_sos.urls')))
+    except Exception as e:
+        print "Warnig: sos disabled"
+        print e
+        
   
         
 if ( settings.SERVE_STATIC ):
