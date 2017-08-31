@@ -8,6 +8,7 @@ import dballe
 from datetime import date,datetime,timedelta,time
 from rmap.settings import *
 from django.core.urlresolvers import reverse
+from django_hosts.resolvers import reverse as hreverse
 from rmap.stations.models import Bcode
 #from rmap.rmap_core import isRainboInstance
 
@@ -79,7 +80,7 @@ def menu(request, **kwargs):
 
 def rainbotimeseries(request, **kwargs):
 
-    timeseries(request,html_template="showdata/rainbotimeseries.html",**kwargs)
+    return timeseries(request,html_template="showdata/rainbotimeseries.html",**kwargs)
 
 
 def timeseries(request,html_template="showdata/timeseries.html", **kwargs):
@@ -307,7 +308,7 @@ def timeseries(request,html_template="showdata/timeseries.html", **kwargs):
 
 def rainbospatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
 
-    spatialseries(request,html_template="showdata/rainbospatialseries.html",**kwargs)
+    return spatialseries(request,html_template="showdata/rainbospatialseries.html",**kwargs)
 
 
 def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
@@ -362,7 +363,7 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
                     delta=timedelta(days=1)
                     dtprevious = timerequested - delta
                     dtnext     = timerequested + delta
-                    previous = reverse('rainbo:spatialseriesdaily', kwargs={
+                    previous = hreverse('spatialseriesdaily', host='rainbo',kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"),
                         "network":kwargs.get("network"),
@@ -373,7 +374,7 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
                         "month":"{:02d}".format(dtprevious.month),
                         "day"  :"{:02d}".format(dtprevious.day)})\
                         +"?dsn="+request.GET.get('dsn', defaultdsn)+"&type="+request.GET.get('type')                        
-                    next= reverse('rainbo:spatialseriesdaily', kwargs={
+                    next= hreverse('spatialseriesdaily', host='rainbo', kwargs={
                         "ident":kwargs.get("ident"),
                         "coords":kwargs.get("coords"),
                         "network":kwargs.get("network"),

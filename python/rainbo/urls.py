@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.conf.urls import url
+from django.conf.urls import url,include
 import rainbo.views
 import insertdata.views
 import showdata.views
@@ -34,5 +34,8 @@ urlpatterns = [
 
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', showdata.views.rainbospatialseries,name="spatialserieshourly"),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbospatialseries,name="spatialseriesdaily"),
+
+    url(r'^borinud/', include('borinud.urls'))
+
 ]
 

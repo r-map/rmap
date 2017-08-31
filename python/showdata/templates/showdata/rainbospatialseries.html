@@ -116,9 +116,9 @@
   
 // var definition
 {% if hour %}
-var url = "http://rmap.cc{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialserieshourly' 'geojson' ident coords network trange level var year month day hour %}{% if dsn %}?dsn={{dsn}}{% endif %}"
 {% else %}
-var url = "http://rmap.cc{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}"
+var url = "{% url 'api:v1:spatialseriesdaily' 'geojson' ident coords network trange level var year month day %}{% if dsn %}?dsn={{dsn}}{% endif %}"
 {% endif %}
 
 var type = "";
@@ -413,8 +413,7 @@ function map_init(map, options){
 
         error: function(jqXHR,textStatus,errorThrown )
         {    
-        //$('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
-        $('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p> <p>A CORS Plug-in is temporary required in this project phase</p>");
+        $('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
         }
     })
 }
