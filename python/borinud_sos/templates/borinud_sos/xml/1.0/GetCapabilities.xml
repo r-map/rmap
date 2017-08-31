@@ -68,11 +68,12 @@
             <ows:Parameter name="responseFormat">
                 <ows:AllowedValues>
                     <ows:Value>text/xml;subtype="om/1.0.0"</ows:Value>
+                    <!--
                     <ows:Value>text/csv</ows:Value>
                     <ows:Value>text/tab-separated-values</ows:Value>
                     <ows:Value>application/vnd.google-earth.kml+xml</ows:Value>
                     <ows:Value>text/xml;schema="ioos/0.6.1"</ows:Value>
-                    <ows:Value>application/ioos+xml;version=0.6.1</ows:Value>
+                    -->
                 </ows:AllowedValues>
             </ows:Parameter>
         </ows:Operation>
