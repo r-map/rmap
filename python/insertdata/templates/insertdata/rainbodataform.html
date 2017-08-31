@@ -1,0 +1,136 @@
+{% extends "rainbo/base_service/base_service_content.html" %}
+
+{% load leaflet_tags %}
+{% load geojson_tags %}
+{% load i18n %}
+{% load staticfiles %}
+
+{% block extra_assets %}
+  {% leaflet_js plugins="forms" %}
+  {% leaflet_css plugins="forms" %}
+{% endblock %}
+
+{% block container %}
+
+{% if invalid  %}
+<div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
+{% endif %}
+
+{% if error  %}
+<div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
+{% endif %}
+
+
+
+<div class="container-fluid">
+    <div class="row"> 
+        <h3 class="text-center"  id="striped-rows">{% trans 'Select coordinate from map and insert your actual data' %}</h3>
+    </div>
+    <div class="row">
+
+       <form enctype="multipart/form-data" method="POST" id="MyForm">{% csrf_token %}
+            <div class="col-md-9">
+
+                <style type="text/css">    
+                    #id_geom { display: none; }
+                </style>                  
+
+                <textarea id="id_geom" class="required form-control" cols="150" rows="10" name="geom"></textarea>
+                {% leaflet_map "map_coordinate" callback="main_map_init" %}    
+                <script type="text/javascript">
+
+                    var geodjango_id_geom = {};
+                        geodjango_id_geom.fieldid = 'id_geom';
+                        geodjango_id_geom.modifiable = true;
+                        geodjango_id_geom.geom_type = 'Point';
+                        geodjango_id_geom.srid = 4326;
+                        geodjango_id_geom.is_generic = false;
+                 
+                    function main_map_init (map, options) {
+                        geodjango_id_geom.store_class = L.FieldStore();
+                        console.log(L.FieldStore);
+                        positionField = (new L.GeometryField(geodjango_id_geom)).addTo(map);
+
+                        var marker;
+                        var mark_active = false;
+
+                        map.setView([44.5, 11,1], 10);
+
+                        // Added Geolocation function
+                        function showPosition(position) {
+                            marker = new L.marker([position.coords.latitude, position.coords.longitude]);
+                            positionField.onCreated({layer:marker});
+                            map.setView([position.coords.latitude, position.coords.longitude], 10);  
+                        }
+                        L.easyButton({
+                            states: [{
+                                stateName: 'geolocation-marker',
+                                icon: 'fa-location-arrow', 
+                                title: 'Get user position',
+                                onClick: function(control) {
+                                    if (navigator.geolocation) {
+                                        alert('It runs only in https! (Or with Firefox Desktop)');
+                                        navigator.geolocation.getCurrentPosition(showPosition);
+                                    } else {
+                                        alert( "Geolocation is not supported by this browser.");
+                                    }
+                                },
+                            }]
+                        }).addTo(map);
+                    }
+                </script>
+            
+            </div>  
+            <div class="col-md-3 insertdata-selector" id="right-side-panel">
+                {% if form.visibility_intensity %}
+                <div class="form-group pl-md row">
+                   {% trans 'Visibility' %} 
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.visibility_intensity }}
+                </div>
+
+                <div class="form-group pl-md row">
+                   {% trans 'Snow' %}
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.snow_intensity }}
+                </div>
+
+                <div class="form-group pl-md row">
+                   {% trans 'Thunderstorm' %}
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.thunderstorm_intensity }}
+                </div>
+
+                <div class="form-group pl-md row">
+                   {% trans 'Rain' %}
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.rain_intensity }}
+                </div>
+
+                <div class="form-group pl-md row">
+                   {% trans 'Tornado' %}
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.tornado }}
+                </div>
+                {% endif %}
+
+		{% if form.impact_detected %}
+                <div class="form-group pl-md row">
+                   {% trans 'Impact Type' %}
+                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   {{ form.impact_detected }}
+                </div>
+		{% endif %}
+
+                <br>
+                <div id='submit-container'>
+                    <div class="form-group form-pad row" >
+                        <input type="submit" value={%trans "Submit" %} class="btn col-xs-10 col-xs-offset-1">
+                    </div>
+                </div>
+
+            </div>
+       </form>
+    </div>
+</div>
+{% endblock %}

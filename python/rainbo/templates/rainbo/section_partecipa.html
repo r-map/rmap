@@ -1,0 +1,42 @@
+{% load static %}
+<section id="partecipa">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-12 text-center">
+                <h2>Partecipa</h2>
+                <hr class="star-primary">
+            </div>
+        </div>
+        <div class="container">
+            <div class="text-center danger">Cosa stai osservando?</div>
+            <div class="col-md-2 col-md-offset-4 services-item user-item">
+                <a href="#servicesModal1" class="services-link" data-toggle="modal">
+                    {% include 'rainbo/service_info.html' %}
+                    <img src="{% static 'rainbo/img/landing_page/partecipa_weather.png' %}" class="img-responsive center-block landing-img" alt="">
+                    <div class="caption">
+                        <div class="caption-content">
+                            <p>Tempo Presente</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="caption">
+                    {% include 'rainbo/button_insert_weather.html' %}
+                </div>
+            </div>
+            <div class="col-md-2 services-item user-item">
+                <a href="#servicesModal1" class="services-link" data-toggle="modal">
+                    {% include 'rainbo/service_info.html' %}
+                    <img src="{% static 'rainbo/img/landing_page/partecipa_impact.png' %}" class="img-responsive center-block landing-img" alt="">
+                    <div class="caption">
+                        <div class="caption-content">
+                            <p>Impatto</p>
+                        </div>
+                    </div>
+                </a>
+                <div class="caption">
+                    {% include 'rainbo/button_insert_impact.html' %}
+                </div>
+            </div>
+       </div>
+   </div>
+</section>

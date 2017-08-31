@@ -1,0 +1,20 @@
+<!-- commmon chart header element -->
+<div class="pull-right">
+    <div class="btn-group">
+        <button type="button" class="btn btn-default btn-xs btn-window" title="minimize" data-action="minimize" data-ref-element="cc">
+            <i class="fa fa-minus" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-default btn-xs btn-window" title="maximize" data-action="maximize" data-ref-element="cc">
+            <i class="fa fa-plus" aria-hidden="true"></i>
+        </button>
+        <button type="button" class="btn btn-default btn-xs dropdown-toggle" data-toggle="dropdown">
+            <i class="fa fa-chevron-down"></i>
+        </button>
+        <ul class="dropdown-menu pull-right" role="menu">
+            <li><a class="wec-checkbox wec-checkbox-zoom" data-selected="true" data-parent=".wec-checkbox-zoom" data-callback="wec.graph.toggleZoom"><i class="fa fa-search-plus"></i> Sync zoom</a>
+            </li>
+            <li><a class="wec-checkbox wec-checkbox-selection" data-selected="true" data-parent=".wec-checkbox-selection" data-callback="wec.graph.toggleSelection"><i class="fa fa-mouse-pointer"></i> Sync Selection</a>
+            </li>
+        </ul>
+    </div>
+</div>

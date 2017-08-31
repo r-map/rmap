@@ -1,0 +1,43 @@
+{% load staticfiles %}
+
+<!--Details for service 1-->
+<div class="services-modal modal fade" id="servicesModal4" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-content">
+        <div class="close-modal" data-dismiss="modal">
+            <div class="lr">
+                <div class="rl">
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2">
+                    <div class="modal-body">
+                        <h2>Ghiaccio</h2>
+                        <hr class="star-primary">
+                        <img src="{% static "rainbo/img/landing_page/ice_service.png" %}" class="img-responsive img-centered" alt="">
+                        <ul class="list-inline item-details">
+                            <!--li>Data Provider:
+                                <strong><a href="http://www.meeo.it/wp/">MEEO</a>
+                                </strong>
+                            </li>
+                            <li>Web service:
+                                <strong><a href="http://www.meeo.it/wp/">MEEO</a>
+                                </strong>
+                            </li>
+                            <li>Status:
+                                <strong>Released on April 2016 ( Last update 2016-09-29 )
+                                </strong>
+                            </li-->
+			    <li>
+				Fusce placerat diam sit amet quam condimentum ornare id non eros. Cras eget ex at massa porta mollis sit amet vitae nulla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris placerat nisl sapien, at mattis nunc laoreet vitae. In vitae nisi eu lectus cursus iaculis non ac odio. Duis porttitor congue enim. Donec eu sapien in orci molestie lacinia. Nunc in mi a nisl iaculis dictum nec ut nunc. Proin ac condimentum turpis, eu molestie nibh. Ut tempor purus ut blandit sagittis.
+			    </li>
+                        </ul>
+                        {% include 'rainbo/button_template_enable.html' %}
+                        {% include 'rainbo/button_close.html' %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
