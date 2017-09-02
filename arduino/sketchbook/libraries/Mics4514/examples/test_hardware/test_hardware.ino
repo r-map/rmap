@@ -26,14 +26,14 @@ void setup()
 void loop()
 {
 
-  Serial.println("normal heat");  
-  sensor.normal_heat();
-  delay(5000);
-
   Serial.println("fast heat");  
   sensor.blocking_fast_heat();
   delay(5000);
-
+ 
+  Serial.println("normal heat");  
+  sensor.normal_heat();
+  delay(5000);
+ 
   Serial.println("scale 1");  
   digitalWrite(SCALE1PIN, HIGH);  
   delay(5000);
@@ -43,7 +43,7 @@ void loop()
   digitalWrite(SCALE2PIN, HIGH);  
   delay(5000);
   digitalWrite(SCALE2PIN, LOW);  
-  
+
   int co, no2;
   bool ok;
   ok = sensor.query_data_auto(&co, &no2, SAMPLES);
@@ -57,5 +57,5 @@ void loop()
     Serial.println(F("Error getting data from SENSOR!"));
   }
   
-  delay(5000);
+  delay(1000);
 }
