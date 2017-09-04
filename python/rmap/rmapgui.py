@@ -69,7 +69,7 @@ import rmap.rmap_core
 from rmap import exifutils
 import rmap.settings
 
-platform = platform()
+#platform = platform()
 
 PHOTOIMAGE="photo.jpg"
 QUEUEDIMAGES="queuedphoto_*.jpg"
