@@ -11,10 +11,12 @@
     <input type="hidden" name="next" value="{{ next }}" />
 </form>
 <div  class="row">
-<div class="col-md-6 text-right">
+<div class="col-md-12 text-center">
 {% trans "Forgot your password?" %} <a href="{% url 'auth_password_reset' %}"><span class="label label-info">{% trans "Reset it" %}</span></a> 
 </div>
-<div class="col-md-6 text-left">
+</div>
+<div  class="row">
+<div class="col-md-12 text-center">
 {% trans "Not a member?" %} <a href="{% url 'registration_register' %}"><span class="label label-primary">{% trans "Register" %}</span></a>
 </div>
 </div>

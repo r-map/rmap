@@ -103,11 +103,11 @@ class ManualForm(forms.ModelForm):
 class RainboWeatherForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     #fixed standard values from ~/rmap/python/rmap/tables/present_weather.txt  
-    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,'110'),(130,'130')],required=False,label=_("Visibility"),help_text='')
-    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,'185'),(186,'186'),(187,'187')],required=False,label=_("Snow"),help_text='')    
-    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,'192'),(193,'193'),(195,'195'),(196,'196')],required=False,label=_("Thunderstorm"),help_text='') 
-    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,'150'),(160,'160'),(165,'165'),(184,'184')],required=False,label=_("Rain"),help_text='')
-    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,'199')],required=False,label=_("Tornado"),help_text='')
+    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,'foschia'),(130,'nebbia')],required=False,label=_("Visibility"),help_text='')
+    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,'debole'),(186,'moderata'),(187,'forte')],required=False,label=_("Snow"),help_text='')    
+    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,'moderato con pioggia'),(193,'moderato con grandine'),(195,'forte con pioggia'),(196,'forte con grandine')],required=False,label=_("Thunderstorm"),help_text='') 
+    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,'pioviggine'),(160,'pioggia'),(165,'congelantesi al suolo'),(184,'violenta')],required=False,label=_("Rain"),help_text='')
+    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,'tromba d\'aria')],required=False,label=_("Tornado"),help_text='')
 
     class Meta:
         model = GeorefencedImage
@@ -117,7 +117,7 @@ class RainboWeatherForm(forms.ModelForm):
 
 class RainboImpactForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(1,'1'),(2,'2'),(3,'3')],required=False,label=_("Impact detected"),help_text='') 
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(1,'allagamento'),(2,'strada ghiacciata'),(3,'albero caduto')],required=False,label=_("Impact detected"),help_text='') 
 
     class Meta:
         model = GeorefencedImage
@@ -314,7 +314,7 @@ def insertDataRainboImpactData(request):
     else:
         return render(request, html_template,{'form': form})
 
-
+@login_required
 def insertDataRainboWeatherData(request):
 
     html_template = 'insertdata/rainbodataform.html'

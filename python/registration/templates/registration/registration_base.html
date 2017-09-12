@@ -1,1 +1,4 @@
-{% extends "base.html" %}
+<!-- request.get_host|length_is:23|yesno True if is RainboIstance 
+     Used to define base template dinamically   23 = length(partecipa.rainbolife.eu)
+-->
+{% extends request.get_host|length_is:23|yesno:"rainbo/base_service/base_service_content.html,base.html" %} 
