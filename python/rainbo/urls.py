@@ -39,7 +39,9 @@ urlpatterns = [
 
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
     url(r'^registrazione/', include('registration.backends.default.urls')),
-    
+    url(r'^accounts/profile/$',
+        insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
+
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', showdata.views.rainbotimeseries,name="timeseriesyearly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesmonthly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesdaily"),
