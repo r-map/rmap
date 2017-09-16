@@ -3,6 +3,17 @@ from django.conf.urls import url,include
 import rainbo.views
 import insertdata.views
 import showdata.views
+from rmap.stations.form import RmapRegistrationForm
+from registration.backends.default.views import RegistrationView
+
+
+from rmap.stations.form import RmapRegistrationForm
+#from registration.forms import RegistrationFormTermsOfService
+from registration.backends.default.views import RegistrationView
+
+# Uncomment the next two lines to enable the admin:
+from django.contrib import admin
+admin.autodiscover()
 
 #from rainbo_insertdata import views as r_insert
 ##from rainbo_showdata import views as r_show
@@ -26,6 +37,10 @@ urlpatterns = [
     url(r'^insertdata/manualdata$',
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
+    url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
+    url(r'^registrazione/', include('registration.backends.default.urls')),
+    url(r'^accounts/profile/$',
+        insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', showdata.views.rainbotimeseries,name="timeseriesyearly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesmonthly"),

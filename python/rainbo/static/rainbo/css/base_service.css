@@ -19,15 +19,23 @@ a{
 }
 
 #page-wrapper {
-    padding: 15px 15px;
-    min-height: 568px;
+    /*padding: 15px 15px;*/
+    min-height: 750px;
     background-color: #fff;
 }
 
 @media(min-width:768px) {
     #page-wrapper {
         position: inherit;
-        padding:10px 30px 0 30px;
+        /*padding:10px 30px 0 30px;*/
+    }
+}
+
+@media(max-width:991px) {
+    #page-wrapper {
+        position: inherit;
+        min-height: 950px;
+        /*padding:10px 30px 0 30px;*/
     }
 }
 
@@ -555,105 +563,123 @@ table.dataTable thead .sorting:after {
 #id_rain_intensity,
 #id_tornado,
 #id_impact_detected{
+    text-align: center;
     padding-left: 0px;
 }
 
 label[for=id_visibility_intensity_0],
 .myDivIcon110 {
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/110.png);
 }
 
 label[for=id_visibility_intensity_1],
 .myDivIcon130{
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/130.png);
 }
 
 label[for=id_snow_intensity_0],
 .myDivIcon185 {
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/185.png);
 }
 
 label[for=id_snow_intensity_1],
 .myDivIcon186 {
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/186.png);
 }
 
 label[for=id_snow_intensity_2],
 .myDivIcon187 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/187.png);
 }
 
 label[for=id_rain_intensity_0],
 .myDivIcon150 {
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/150.png);
 }
 
 label[for=id_rain_intensity_1],
 .myDivIcon160 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/160.png);
 }
 
 label[for=id_rain_intensity_2],
 .myDivIcon165 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/165.png);
 }
 
 label[for=id_rain_intensity_3],
 .myDivIcon184 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/184.png);
 }
 
 label[for=id_thunderstorm_intensity_0],
 .myDivIcon192 {
-    color: transparent;	
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/192.png);
 }
 
 label[for=id_thunderstorm_intensity_1],
 .myDivIcon193 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/193.png);
 }
 
 label[for=id_thunderstorm_intensity_2],
 .myDivIcon195 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/195.png);
 }
 
 label[for=id_thunderstorm_intensity_3],
 .myDivIcon196 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/196.png);
 }
 
 label[for=id_tornado_0],
 .myDivIcon199 {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/199.png);
 }
 
 label[for=id_impact_detected_0] {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/impact_floading.png);
 }
 
 label[for=id_impact_detected_1] {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/impact_ice_on_road.png);
 }
 
 label[for=id_impact_detected_2] {
-    color: transparent;
+    vertical-align: bottom;
+    padding-top: 45px;    
     background-image: url(/static/rainbo/img/icons/impact_tree.png);
 }
 
@@ -685,6 +711,9 @@ label[for=id_impact_detected_2] {
 }
 
 .insertdata-selector label{
+    padding-top: 55px;
+    text-align: center;
+    font-size: 9px;
     cursor:pointer;
     background-size:contain;
     background-repeat:no-repeat;
@@ -714,4 +743,25 @@ label[for=id_impact_detected_2] {
     left: 0;
     width: 100%;
     bottom: 0;
+}
+
+form {
+    /*border: 2px solid silver;
+    border-radius: 25px;*/
+    /* border: 1px solid silver; */
+    /* max-width: 260px; */
+    width: 95%;
+    margin: 0 auto;
+    /*background-color: #ffffff;*/
+    color: #000000;
+    /*box-shadow: 2px 2px 4px #dedede; */
+    /*position: absolute;*/
+    padding-top: 25px;
+    padding-bottom: 25px;
+    text-align: center;
+}
+
+.login-form {
+    text-align:center;
+    padding-top:100px;
 }
