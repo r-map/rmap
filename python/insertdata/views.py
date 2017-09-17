@@ -293,7 +293,7 @@ def insertDataRainboImpactData(request):
                 try:
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
-                    prefix=rmap.settings.topicsample
+                    prefix=rmap.settings.topicreport
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
 
@@ -341,7 +341,7 @@ def insertDataRainboWeatherData(request):
                 try:
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
-                    prefix=rmap.settings.topicsample
+                    prefix=rmap.settings.topicreport
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
                     print user,password,network,prefix
@@ -446,7 +446,7 @@ def insertDataManualData(request):
 
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
-                    prefix=rmap.settings.topicsample
+                    prefix=rmap.settings.topicreport
 
                     slug=form.cleaned_data['coordinate_slug']
                     if (slug):
