@@ -9,7 +9,6 @@ from django.db.models import Q
 from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
-from django.contrib.gis.geos import Point
 from django.core.exceptions import ValidationError
 
 try:
@@ -19,6 +18,14 @@ except ImportError:
     print "dballe utilities disabled"
     dballepresent=False
 
+try:
+    from django.contrib.gis.geos import Point
+    gdalpresent=True
+except:
+    print "gdal utilities disabled"
+    gdalpresent=False
+
+    
 def toint(level):
     ilevel=[]
     for ele in level.split(","):
@@ -718,8 +725,10 @@ class StationMetadata(models.Model):
     @property
     def geom(self):
         #return PointField({'type': 'Point', 'coordinates': [self.lon, self.lat]})
-        return Point(self.lon, self.lat)
-
+        if gdalpresent:
+            return Point(self.lon, self.lat)
+        else:
+            return None
 
     @property
     def popupContent(self):

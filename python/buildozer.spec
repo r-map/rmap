@@ -22,15 +22,15 @@ source.dir = .
 source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient, test, global_static, amatyr, graphite-dballe, borinud, geoimage, http2mqtt, insertdata, showdata, static, testdata
+source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient, test, global_static, amatyr, graphite-dballe, borinud, geoimage, http2mqtt, insertdata, showdata, static, testdata, rainbo
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,poweroffd,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3
+source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3,amqp2amqp_identvalidationd,amqp2amqp_json2bufrd,amqp2arkimetd,amqp2dballed,amqp2djangod,amqp2geoimaged,amqp2mqttd,buildozer_new.spec,buildozer.spec,composereportd,dballe2arkimet,dumpstation.py,manage.py,mqtt2dballed,mqtt2graphited,poweroffd,README*,rmap-configure,rmapctrl,rmapgui,rmapweb,rmap.wsgi,setup.py,sign.sh,stationd,station_jsonrpc.py
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
-version = 6.28
+version = 7.4
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]

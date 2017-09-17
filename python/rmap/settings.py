@@ -493,7 +493,6 @@ STATICFILES_FINDERS = [
 
 
 MIDDLEWARE_CLASSES = [
-    'django_hosts.middleware.HostsRequestMiddleware',
     'django.middleware.cache.UpdateCacheMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
@@ -503,7 +502,6 @@ MIDDLEWARE_CLASSES = [
 #    'django.middleware.doc.XViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.cache.FetchFromCacheMiddleware',
-    'django_hosts.middleware.HostsResponseMiddleware',
 ]
 
 TEMPLATES= [
@@ -544,7 +542,6 @@ INSTALLED_APPS = [
     'rmap',
     'rmap.stations',
     'registration',
-    'django_hosts'
 ]
 
 # if not android :
@@ -1081,8 +1078,8 @@ if LOAD_OPTIONAL_APPS:
     # Sequence for each optional app as a dict containing info about the app.
     OPTIONAL_APPS = (
 
-        #{"import": module, "apps":(app,), "condition": bool, "middleware":(middle,), "context_processors": (processor,) }
-
+        #{"import": module, "apps":(app,), "condition": bool, "middleware":(index,middle,), "context_processors": (processor,) }
+        {"import": 'django_hosts', "apps":('django_hosts',), "middleware":((0,'django_hosts.middleware.HostsRequestMiddleware'),(90,'django_hosts.middleware.HostsResponseMiddleware'))},
         {"import": 'leaflet',   "apps": ('leaflet',)},
         {"import": 'djgeojson', "apps": ('djgeojson' ,)},
         {"import": 'geoimage',  "apps": ('geoimage'  ,)},
@@ -1126,34 +1123,37 @@ if LOAD_OPTIONAL_APPS:
             else:
                 print "enable      : ", app.get("apps", ())
                 INSTALLED_APPS += app.get("apps", ())
-                MIDDLEWARE_CLASSES += app.get("middleware", ())
+                for ind,middleware in app.get("middleware", ()):
+                    MIDDLEWARE_CLASSES.insert(ind,middleware)
                 TEMPLATES[0]['OPTIONS']['context_processors']+= app.get("context_processors", ())
 
 
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'rot_file':{
-            'level': 'DEBUG',
-            'class': 'logging.handlers.RotatingFileHandler',
-            'filename': '/tmp/django_rot.log',
-            'maxBytes': '16777216', # 16megabytes
-            'formatter': 'verbose'
+if not android :
+
+    LOGGING = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'handlers': {
+            'rot_file':{
+                'level': 'DEBUG',
+                'class': 'logging.handlers.RotatingFileHandler',
+                'filename': '/tmp/django_rot.log',
+                'maxBytes': '16777216', # 16megabytes
+                'formatter': 'verbose'
+            },
         },
-    },
-    'formatters': {
-        'verbose': {
-            'style': '{',
-            'format': '%(levelname)s %(asctime)s %(name)s.%(funcName)s:%(lineno)s- %(message)s'
+        'formatters': {
+            'verbose': {
+                'style': '{',
+                'format': '%(levelname)s %(asctime)s %(name)s.%(funcName)s:%(lineno)s- %(message)s'
+            },
         },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['rot_file'],
-            'level': 'ERROR',
-            'propagate': True,
+        'loggers': {
+            'django': {
+                'handlers': ['rot_file'],
+                'level': 'ERROR',
+                'propagate': True,
+            },
         },
-    },
-}
+    }
 
