@@ -492,7 +492,8 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
         "hour":kwargs.get("hour"), 
         "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
         "datefrom":datefrom,"dateuntil":dateuntil,
-        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox})
+        "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox,
+        "type":request.GET.get('type')})
     
 def stations(request, **kwargs):
 
