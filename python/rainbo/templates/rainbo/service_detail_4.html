@@ -1,40 +1,48 @@
 {% load staticfiles %}
-
-<!--Details for service 1-->
+<!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal4" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-content">
-        <div class="close-modal" data-dismiss="modal">
+    <div class="modal-content modal-dialog modal-lg" data-dismiss="modal">
+        <div>
             <div class="lr">
                 <div class="rl">
                 </div>
             </div>
         </div>
-        <div class="container">
+        <div class="">
             <div class="row">
-                <div class="col-lg-8 col-lg-offset-2">
-                    <div class="modal-body">
-                        <h2>Ghiaccio</h2>
+                <div class="col-lg-10 col-lg-offset-1">
+                    <div class="modal-body text-justify">
+                        <h2 class="text-center">Temporali</h2>
                         <hr class="star-primary">
-                        <img src="{% static "rainbo/img/landing_page/ice_service.png" %}" class="img-responsive img-centered" alt="">
-                        <ul class="list-inline item-details">
-                            <!--li>Data Provider:
-                                <strong><a href="http://www.meeo.it/wp/">MEEO</a>
-                                </strong>
-                            </li>
-                            <li>Web service:
-                                <strong><a href="http://www.meeo.it/wp/">MEEO</a>
-                                </strong>
-                            </li>
-                            <li>Status:
-                                <strong>Released on April 2016 ( Last update 2016-09-29 )
-                                </strong>
-                            </li-->
-			    <li>
-				Fusce placerat diam sit amet quam condimentum ornare id non eros. Cras eget ex at massa porta mollis sit amet vitae nulla. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Mauris placerat nisl sapien, at mattis nunc laoreet vitae. In vitae nisi eu lectus cursus iaculis non ac odio. Duis porttitor congue enim. Donec eu sapien in orci molestie lacinia. Nunc in mi a nisl iaculis dictum nec ut nunc. Proin ac condimentum turpis, eu molestie nibh. Ut tempor purus ut blandit sagittis.
-			    </li>
-                        </ul>
-                        {% include 'rainbo/button_template_enable.html' %}
-                        {% include 'rainbo/button_close.html' %}
+                        I temporali sono fenomeni intensi, spesso rapidi e improvvisi, accompagnati in genere da forte vento, tuoni e lampi, che si sviluppano con più frequenza tra i mesi di aprile e ottobre.
+                        <br><br>
+                        Il temporale osservato può essere:
+                        <br><br>
+                        <div class="row description">
+                            <div class="col-lg-2 col-lg-offset-1 col-xs-4">
+                                    <img src="{% static 'rainbo/img/icons/192.png' %}" class="img-responsive center-block landing-img" alt="">
+                            </div>            
+                            <div class="col-lg-9 col-xs-8"> <b>debole o moderato con pioggia</b>, se poco intenso e senza grandine, con tuoni in lontananza</div>
+                        </div>
+                        <div class="row description">
+                            <div class="col-lg-2 col-lg-offset-1 col-xs-4">
+                                    <img src="{% static 'rainbo/img/icons/193.png' %}" class="img-responsive center-block landing-img" alt="">
+                            </div>          
+                            <div class="col-lg-9 col-xs-8"> <b>debole o moderato con grandone</b>, se poco intenso ma accompagnato da grandine, di bassa intensità e con tuoni non bene udibili</div>
+                        </div>
+                        <div class="row description">
+                            <div class="col-lg-2 col-lg-offset-1 col-xs-4">
+                                    <img src="{% static 'rainbo/img/icons/195.png' %}" class="img-responsive center-block landing-img" alt="">
+                            </div>          
+                            <div class="col-lg-9 col-xs-8"> <b>forte con pioggia</b>, se con precipitazioni intense, accompagnate da forte vento in genere, lampi e tuoni ben udibili e ad alta intensità</div>
+                        </div>
+                        <div class="row description">
+                            <div class="col-lg-2 col-lg-offset-1 col-xs-4">
+                                    <img src="{% static 'rainbo/img/icons/196.png' %}" class="img-responsive center-block landing-img" alt="">
+                            </div>          
+                            <div class="col-lg-9 col-xs-8"> <b>forte con grandine</b>, come descritto sopra, ma con grandine al posto della pioggia</div>
+                        </div>
+
                     </div>
                 </div>
             </div>

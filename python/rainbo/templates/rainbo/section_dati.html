@@ -13,7 +13,19 @@
                 <div class="col-md-2 col-md-offset-1 services-item">
                     <a href="#servicesModal1" class="services-link" data-toggle="modal">
                         {% include 'rainbo/service_info.html' %}
-                       <img src="{% static 'rainbo/img/landing_page/view_rain.png' %}" class="img-responsive center-block landing-img" alt="">
+                        <img src="{% static 'rainbo/img/landing_page/view_visibility.png' %}" class="img-responsive center-block landing-img" alt="">
+                        <div class="caption">
+                            <div class="caption-content">
+                                <p>Visibilt&agrave</p>
+                            </div>
+                        </div>
+                    </a>
+                    {% include 'rainbo/button_get_visibility.html' %}            
+                </div>            
+                <div class="col-md-2 services-item">    
+                    <a href="#servicesModal2" class="services-link" data-toggle="modal">
+                        {% include 'rainbo/service_info.html' %}
+                        <img src="{% static 'rainbo/img/landing_page/view_rain.png' %}" class="img-responsive center-block landing-img" alt="">
                         <div class="caption">
                             <div class="caption-content">
                                 <p>Pioggia</p>
@@ -21,19 +33,6 @@
                         </div>
                     </a>
                     {% include 'rainbo/button_get_rain.html' %}
-                </div>
-                
-                <div class="col-md-2 services-item">
-                    <a href="#servicesModal2" class="services-link" data-toggle="modal">
-                        {% include 'rainbo/service_info.html' %}
-                        <img src="{% static 'rainbo/img/landing_page/view_thunderstorm.png' %}" class="img-responsive center-block landing-img" alt="">
-                        <div class="caption">
-                            <div class="caption-content">
-                                <p>Temporale</p>
-                            </div>
-                        </div>
-                    </a>
-                    {% include 'rainbo/button_get_thunderstorm.html' %}
                 </div>
                 
                 <div class="col-md-2 services-item">
@@ -52,16 +51,16 @@
                 <div class="col-md-2 services-item">
                     <a href="#servicesModal4" class="services-link" data-toggle="modal">
                         {% include 'rainbo/service_info.html' %}
-                        <img src="{% static 'rainbo/img/landing_page/view_visibility.png' %}" class="img-responsive center-block landing-img" alt="">
+                        <img src="{% static 'rainbo/img/landing_page/view_thunderstorm.png' %}" class="img-responsive center-block landing-img" alt="">
                         <div class="caption">
                             <div class="caption-content">
-                                <p>Visibilt&agrave</p>
+                                <p>Temporale</p>
                             </div>
                         </div>
                     </a>
-                    {% include 'rainbo/button_get_visibility.html' %}
+                    {% include 'rainbo/button_get_thunderstorm.html' %}
                 </div>
-
+                
                 <div class="col-md-2 services-item">
                     <a href="#servicesModal5" class="services-link" data-toggle="modal">
                         {% include 'rainbo/service_info.html' %}
@@ -77,7 +76,7 @@
 
            </div>
         </div>
-	<br><br>
+        <br><br>
         <div class="row">
             <div class="col-lg-12 text-center">
                 <h2>Visualizza Impatto</h2>

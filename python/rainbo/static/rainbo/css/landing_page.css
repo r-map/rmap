@@ -568,8 +568,8 @@ footer .footer-below {
 }
 
 .services-modal .modal-content {
-    padding: 100px 0;
-    min-height: 100%;
+    padding: 50px 0;
+    /*min-height: 100%;*/
     border: 0;
     border-radius: 0;
     text-align: center;
@@ -635,4 +635,8 @@ footer .footer-below {
     height: 75%;
     margin-bottom: 5px;
     width: 75%;
+}
+
+.description {
+    padding-top: 20px;
 }
