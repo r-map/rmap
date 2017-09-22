@@ -3308,6 +3308,8 @@ void setup()
 	DBGSERIAL.print(F("#mqttpath:"));
 	DBGSERIAL.println(configuration.sensors[id].mqttpath);
 #endif
+	wdt_reset();
+    
 	if (!drivers[id].setup(configuration.sensors[id].driver,
 			       configuration.sensors[id].node,
 			       configuration.sensors[id].type,
