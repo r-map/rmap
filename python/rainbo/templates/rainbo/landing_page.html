@@ -32,9 +32,13 @@
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
             </button>
-            <a class="" style="display: block; float:left" href="http://www.rainbolife.eu/">
-            <img class="img-responsive center-block" alt="" src="{% static "rainbo/img/partners/rainbo.png" %}">
+            <a class="" style="display: block; float:left;" href="http://ec.europa.eu/environment/life/">
+            <img class="img-responsive center-block" style=" height: 50px;" alt="" src="{% static "rainbo/img/partners/life.png" %}">
             </a>
+            <a class="" style="display: block; float:left;" href="http://www.rainbolife.eu/">
+            <img class="img-responsive center-block" style=" height: 50px;" alt="" src="{% static "rainbo/img/partners/rainbo.png" %}">
+            </a>
+
             <a class="navbar-brand" href="#page-top">RainBo</a>
         </div>
         
@@ -43,6 +47,9 @@
             <ul class="nav navbar-nav navbar-right">
                 <li class="hidden">
                     <a href="#page-top"></a>
+                </li>
+                <li class="page-scroll">
+                    <a href="#benvenuto">Benvenuto</a>
                 </li>
                 <li class="page-scroll">
                     <a href="#dati">Visualizza</a>
@@ -67,6 +74,9 @@
 
     <!-- Header -->
     {% include 'rainbo/section_header.html' %}
+
+    <!-- welcome -->
+    {% include 'rainbo/section_welcome.html' %}
 
     <!-- Query data Section -->
     {% include 'rainbo/section_dati.html' %}

@@ -82,6 +82,15 @@
             
             </div>  
             <div class="col-md-4 insertdata-selector" id="right-side-panel">
+
+                {% if form.not_significant %}
+                <div class="form-group pl-md row">
+                   Nessun fenomeno in atto
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal0"></i>
+                   {{ form.not_significant }}
+                </div>
+                {% endif %}
+
                 {% if form.visibility_intensity %}
                 <div class="form-group pl-md row">
                    Visibilit&agrave;
@@ -136,6 +145,7 @@
     </div>
 </div>
 
+{% include 'rainbo/service_detail_0.html' %}
 {% include 'rainbo/service_detail_1.html' %}
 {% include 'rainbo/service_detail_2.html' %}
 {% include 'rainbo/service_detail_3.html' %}

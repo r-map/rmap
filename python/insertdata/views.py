@@ -103,6 +103,7 @@ class ManualForm(forms.ModelForm):
 class RainboWeatherForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     #fixed standard values from ~/rmap/python/rmap/tables/present_weather.txt  
+    not_significant = forms.ChoiceField(widget=forms.RadioSelect(),choices=[(100,'nessun fenomeno')],required=False,label=_("Not_significant"),help_text='')
     visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,'foschia'),(130,'nebbia')],required=False,label=_("Visibility"),help_text='')
     snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,'debole'),(186,'moderata'),(187,'forte')],required=False,label=_("Snow"),help_text='')    
     thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,'moderato con pioggia'),(193,'moderato con grandine'),(195,'forte con pioggia'),(196,'forte con grandine')],required=False,label=_("Thunderstorm"),help_text='') 
@@ -117,7 +118,7 @@ class RainboWeatherForm(forms.ModelForm):
 
 class RainboImpactForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(1,'allagamento'),(2,'strada ghiacciata'),(3,'albero caduto')],required=False,label=_("Impact detected"),help_text='') 
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,'albero caduto'),(20,'strada ghiacciata'),(30,'allagamento')],required=False,label=_("Impact detected"),help_text='') 
 
     class Meta:
         model = GeorefencedImage
@@ -288,7 +289,7 @@ def insertDataRainboImpactData(request):
 
             if (value != ""):
                 #TODO: code to define 
-                datavar["??????"]={"t": dt,"v": str(value)}
+                datavar["B20192"]={"t": dt,"v": str(value)}
             if (len(datavar)>0):
                 try:
                     user=rmap.settings.mqttuser
