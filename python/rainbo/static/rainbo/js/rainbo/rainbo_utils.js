@@ -17,6 +17,6 @@ $('#rain_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/s
 $('#thunderstorm_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=190');
 $('#tornado_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=199');
 $('#visibility_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=110');
-$('#damage_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/------/spatialseries/'+today);
+$('#damage_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20192/spatialseries/'+today+'?type=all');
 $('#snow_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=180');
 

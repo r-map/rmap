@@ -82,49 +82,68 @@
             
             </div>  
             <div class="col-md-4 insertdata-selector" id="right-side-panel">
+
+                {% if form.not_significant %}
+                <div class="form-group pl-md row">
+                   Nessun fenomeno in atto
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal0"></i>
+                   {{ form.not_significant }}
+                </div>
+
+               {% endif %}
+
                 {% if form.visibility_intensity %}
                 <div class="form-group pl-md row">
                    Visibilit&agrave;
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal1"></i>
                    {{ form.visibility_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
+                   Pioggia
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal2"></i>
+                   {{ form.rain_intensity }}
+                </div>
+
+               <div class="form-group pl-md row">
                    Neve
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal3"></i>
                    {{ form.snow_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
                    Temporale
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal4"></i>
                    {{ form.thunderstorm_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
-                   Pioggia
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
-                   {{ form.rain_intensity }}
-                </div>
-
-                <div class="form-group pl-md row">
                    Tromba d'aria
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal5"></i>
                    {{ form.tornado }}
                 </div>
                 {% endif %}
 
-		{% if form.impact_detected %}
+                {% if form.impact_detected %}
+
                 <div class="form-group pl-md row">
+			    <div class="panel panel-danger">
+                                <div class="panel-heading">Attenzione</div>
+                                <div class="panel-body">La procedura di inserimento di osservazioni relative ad impatti &egrave; ancora in fase di sviluppo, pertanto l'informazione inserita da parte dell'utente portrebbe non essere acquisita dal sistema</div>
+                            </div>
+                </div>
+
+		<div class="form-group pl-md row">
                    Tipo d'impatto
-                   <i class="fa fa-info-circle" aria-hidden="true"></i>
+                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal6"></i>
                    {{ form.impact_detected }}
                 </div>
-		{% endif %}
+ 
+                {% endif %}
 
                 <br>
-		<br>  
-		<br>
+                <br>  
+                 <br>
                 <div id='submit-container'>
                     <div class="form-group form-pad row" >
                         <input type="submit" value="Inserisci"  class="btn col-xs-10 col-xs-offset-1">
@@ -135,4 +154,13 @@
        </form>
     </div>
 </div>
+
+{% include 'rainbo/service_detail_0.html' %}
+{% include 'rainbo/service_detail_1.html' %}
+{% include 'rainbo/service_detail_2.html' %}
+{% include 'rainbo/service_detail_3.html' %}
+{% include 'rainbo/service_detail_4.html' %}
+{% include 'rainbo/service_detail_5.html' %}
+{% include 'rainbo/service_detail_6.html' %}
+
 {% endblock %}

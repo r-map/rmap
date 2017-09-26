@@ -161,11 +161,11 @@ a{
 
 @media(min-width:992px) {
     #right-side-panel{
-	height: 600px;
-        min-height: 600px;
+	height: 750px;
+        min-height: 750px;
     }	    
     .leaflet-container-default {
-        height: 600px;
+        height: 750px;
     }
 }
 
@@ -557,6 +557,7 @@ table.dataTable thead .sorting:after {
     margin-bottom: 20px;
 }
 
+#id_not_significant,
 #id_visibility_intensity,
 #id_snow_intensity,
 #id_thunderstorm_intensity,
@@ -565,6 +566,13 @@ table.dataTable thead .sorting:after {
 #id_impact_detected{
     text-align: center;
     padding-left: 0px;
+}
+
+label[for=id_not_significant_0],
+.myDivIcon110 {
+    vertical-align: bottom;
+    padding-top: 45px;
+    background-image: url(/static/rainbo/img/icons/100.png);
 }
 
 label[for=id_visibility_intensity_0],
@@ -665,7 +673,7 @@ label[for=id_tornado_0],
     background-image: url(/static/rainbo/img/icons/199.png);
 }
 
-label[for=id_impact_detected_0] {
+label[for=id_impact_detected_2] {
     vertical-align: bottom;
     padding-top: 45px;
     background-image: url(/static/rainbo/img/icons/impact_floading.png);
@@ -677,11 +685,13 @@ label[for=id_impact_detected_1] {
     background-image: url(/static/rainbo/img/icons/impact_ice_on_road.png);
 }
 
-label[for=id_impact_detected_2] {
+label[for=id_impact_detected_0] {
     vertical-align: bottom;
     padding-top: 45px;    
     background-image: url(/static/rainbo/img/icons/impact_tree.png);
 }
+
+
 
 .insertdata-selector input{
     /*margin:0;padding:0;*/
