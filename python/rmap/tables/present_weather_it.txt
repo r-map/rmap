@@ -1,4 +1,4 @@
-100 Cielo sereno, nessun fenomeno significativo
+100 Nessun fenomeno significativo osservato
 101 Nubi generalmente in dissolvimento o\ncon sviluppo in riduzione\n durante l'ultima ora
 102 Stato del cielo generalmente invariato\n durante l'ultima ora
 103 Nubi generalmente in formazione o sviluppo\n durante l'ultima ora
