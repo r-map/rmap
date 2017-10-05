@@ -462,8 +462,8 @@ if __name__ == '__main__':
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
 
-        main(mqtt2dballed)  # (this code was run as script)
-        #maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
+        #main(mqtt2dballed)  # (this code was run as script)
+        maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
             
         for proc in mqtt2dballed.procs:
             proc.wait()
