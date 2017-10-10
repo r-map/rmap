@@ -20,9 +20,6 @@
 import os,sys
 import pika
 import logging
-os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
-import django
-django.setup()
 
 import rmap.settings
 
@@ -39,58 +36,66 @@ def main():
     # configure the logger
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
     handler = logging.StreamHandler(sys.stdout)
+    #handler = logging.handlers.RotatingFileHandler("/tmp/toamqp.log", maxBytes=5000000, backupCount=10)
     handler.setFormatter(formatter)
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.ERROR)
+
+    logging.debug('started new process: %s' % sys.argv[0])
     
     try:
         # Legge un file.
+        logging.debug('Read file: %s' % sys.argv[1])
+
         with open (sys.argv[1]) as infile:
             totalbody = infile.read()
-                        
-            credentials=pika.PlainCredentials(user, password)
-            properties=pika.BasicProperties(
-                user_id= user,
-                delivery_mode = 2, # persistent
-            )
 
-            # connection_attempts (int) - Maximum number of retry attempts
-            # retry_delay (int|float) - Time to wait in seconds, before the next
-            # socket_timeout (int|float) - Use for high latency networks
+        logging.debug('message: %s' % totalbody)
                         
-            connection = pika.BlockingConnection(pika.ConnectionParameters(
-                host=host,credentials=credentials,
-                connection_attempts=3,
-                retry_delay=5,
-                socket_timeout=3.))
+        credentials=pika.PlainCredentials(user, password)
+        properties=pika.BasicProperties(
+            user_id= user,
+            delivery_mode = 2, # persistent
+        )
 
-            channel = connection.channel()
+        # connection_attempts (int) - Maximum number of retry attempts
+        # retry_delay (int|float) - Time to wait in seconds, before the next
+        # socket_timeout (int|float) - Use for high latency networks
+                        
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=host,credentials=credentials,
+            connection_attempts=3,
+            retry_delay=5,
+            socket_timeout=3.))
+
+        channel = connection.channel()
             
-            #channel.queue_declare(queue=queue)
+        #channel.queue_declare(queue=queue)
             
-            # Turn on delivery confirmations
-            channel.confirm_delivery()
+        # Turn on delivery confirmations
+        channel.confirm_delivery()
             
-            if channel.basic_publish(exchange=exchange,
-                                     routing_key=routing_key,
-                                     body=totalbody,
-                                     properties=properties):
-                logging.info('Message publish was confirmed')
-            else:
-                logging.info('Message could not be confirmed')
-                
-                logging.info(" [x] message Sent ")
-                connection.close()
-                
+        if channel.basic_publish(exchange=exchange,
+                                 routing_key=routing_key,
+                                 body=totalbody,
+                                 properties=properties):
+            logging.info('Message publish was confirmed')
+        else:
+            logging.info('Message could not be confirmed')
+            
+        logging.info(" [x] message Sent")
+        connection.close()
+        logging.info("Connection closed")
+        return 0
 
     except:
-        logging.error("There were some errors executing toamqp")
-
+        logging.warning("There were some errors executing toamqp")
+        return 1
 
 if __name__ == '__main__':
 
-    main()  # (this code was run as script)
+    # (this code was run as script)
     
-    sys.exit(0)
+    sys.exit(main())
