@@ -329,6 +329,9 @@ def main(self):
     if self.options.stationtype == "mobile":
         oldtopic1="mobile/#"
 
+
+    exchange=self.options.datalevel+"_"+self.options.stationtype
+        
         
     # infinite loop: restart p1 or p2 if terminate with error
     while True:
@@ -347,7 +350,7 @@ def main(self):
                 nonblockingfile(p2.stdout)
 
                 while  p2.poll() is None:
-                    p3 = subprocess.Popen(["arki-xargs", "-n", "1", "toamqp"],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    p3 = subprocess.Popen(["arki-xargs", "-n", "1", "toamqp", exchange],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     nonblockingfile(p3.stderr)
                     nonblockingfile(p3.stdout)
                     
@@ -466,8 +469,8 @@ if __name__ == '__main__':
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
 
-        #main(mqtt2dballed)  # (this code was run as script)
-        maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
+        main(mqtt2dballed)  # (this code was run as script)
+        #maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
             
         for proc in mqtt2dballed.procs:
             proc.wait()

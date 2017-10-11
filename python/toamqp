@@ -26,8 +26,10 @@ import rmap.settings
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-exchange=rmap.settings.exchangecomposereportd
-routing_key="composereportd"
+#exchange=rmap.settings.exchangecomposereportd
+exchange=sys.argv[1]
+inputfile=sys.argv[2]
+routing_key=exchange
 
 def main():
 
@@ -44,12 +46,13 @@ def main():
     logging.getLogger().setLevel(logging.ERROR)
 
     logging.debug('started new process: %s' % sys.argv[0])
+    logging.debug('send to exchange: %s' % exchange)
     
     try:
         # Legge un file.
-        logging.debug('Read file: %s' % sys.argv[1])
+        logging.debug('Read file: %s' % inputfile)
 
-        with open (sys.argv[1]) as infile:
+        with open (inputfile) as infile:
             totalbody = infile.read()
 
         logging.debug('message: %s' % totalbody)
