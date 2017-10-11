@@ -288,8 +288,7 @@ def insertDataRainboImpactData(request):
             value = form.cleaned_data['impact_detected'] if form.cleaned_data['impact_detected'] != "" else ""
 
             if (value != ""):
-                #TODO: code to define 
-                datavar["B20192"]={"t": dt,"v": str(value)}
+                datavar["B20203"]={"t": dt,"v": str(value)}
             if (len(datavar)>0):
                 try:
                     user=rmap.settings.mqttuser
