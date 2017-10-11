@@ -267,7 +267,7 @@ def main(self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.ERROR)
+    logging.getLogger().setLevel(logging.INFO)
 
     logging.info('Starting up mqtt2dballed')
 
@@ -350,7 +350,7 @@ def main(self):
                 nonblockingfile(p2.stdout)
 
                 while  p2.poll() is None:
-                    p3 = subprocess.Popen(["arki-xargs", "-n", "1", "toamqp", exchange],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    p3 = subprocess.Popen(["arki-xargs", "-n","1", "toamqp", exchange],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                     nonblockingfile(p3.stderr)
                     nonblockingfile(p3.stdout)
                     
@@ -364,7 +364,7 @@ def main(self):
                                 line=""
                             if line:
                                 #print 'Got data:', line
-                                logging.error(line.rstrip("\n"))
+                                logging.error("mqtt2bufr: "+line.rstrip("\n"))
                             else:
                                 break
 
@@ -377,7 +377,7 @@ def main(self):
                                 line=""
                             if line:
                                 #print 'Got data:', line
-                                logging.error(line.rstrip("\n"))
+                                logging.error("arki-scan: "+line.rstrip("\n"))
                             else:
                                 break
 
@@ -390,7 +390,7 @@ def main(self):
                                 line=""
                             if line:
                                 #print 'Got data:', line
-                                logging.error(line.rstrip("\n"))
+                                logging.error("arki-xargs: "+line.rstrip("\n"))
                             else:
                                 break
 
