@@ -267,7 +267,7 @@ def main(self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.ERROR)
 
     logging.info('Starting up mqtt2dballed')
 
@@ -348,6 +348,8 @@ def main(self):
 
                 while  p2.poll() is None:
                     p3 = subprocess.Popen(["arki-xargs", "-n", "1", "toamqp"],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                    nonblockingfile(p3.stderr)
+                    nonblockingfile(p3.stdout)
                     
                     while  p3.poll() is None:
                         # write on logging messages from p1 stderr
@@ -389,11 +391,11 @@ def main(self):
                             else:
                                 break
 
-                        # write on logging messages from p2 stdout
-                        #p2.stdout.flush()
+                        # write on logging messages from p3 stdout
+                        #p3.stdout.flush()
                         while True:
                             try:
-                                line = p2.stdout.readline()
+                                line = p3.stdout.readline()
                             except:
                                 line=""
                             if line:
@@ -406,6 +408,7 @@ def main(self):
                         if killer.kill_now:
                             p1.kill()  
                             p2.kill()  
+                            p3.kill()  
                             logging.info("killed by signal\n")
                             logging.info('Subprocess finished')
                             return False
@@ -424,6 +427,7 @@ def main(self):
             logging.info("keyboard interrupt\n")
             p1.wait()
             p2.wait()
+            p3.wait()
             #p2.kill()
             return False
         # terminate without error
@@ -462,8 +466,8 @@ if __name__ == '__main__':
 
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
 
-        main(mqtt2dballed)  # (this code was run as script)
-        #maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
+        #main(mqtt2dballed)  # (this code was run as script)
+        maindirecttodballe(mqtt2dballed) # use this if you do not have arkimet and rabbitmq
             
         for proc in mqtt2dballed.procs:
             proc.wait()

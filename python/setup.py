@@ -370,7 +370,7 @@ setup(name='rmap',
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
       },
       scripts=[
-          'stationd','mqtt2graphited','mqtt2dballed','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
+          'stationd','mqtt2graphited','mqtt2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,
