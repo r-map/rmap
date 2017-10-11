@@ -29,8 +29,8 @@
  002012 RADIOSONDE COMPUTATIONAL METHOD                                  CODE TABLE 2012            0            0   4 CODE TABLE 2012           0          2
  002013 SOLAR AND INFRARED RADIATION CORRECTION                          CODE TABLE 2013            0            0   4 CODE TABLE 2013           0          2
  002014 TRACKING TECHNIQUE/STATUS OF SYSTEM USED                         CODE TABLE 2014            0            0   7 CODE TABLE 2014           0          3
- 002038 METHOD OF WATER TEMPERATURE AND/OR SALINITY MEASUREMENT          CODE TABLE 2038            0            0   4 CODE TABLE 2038           0         2              
- 002039 METHOD OF WET-BULB TEMPERATURE MEASUREMENT                       CODE TABLE 2039            0            0   3 CODE TABLE 2039           0         1              
+ 002038 METHOD OF WATER TEMPERATURE AND/OR SALINITY MEASUREMENT          CODE TABLE 2038            0            0   4 CODE TABLE 2038           0          2
+ 002039 METHOD OF WET-BULB TEMPERATURE MEASUREMENT                       CODE TABLE 2039            0            0   3 CODE TABLE 2039           0          1
  002048 SATELLITE SENSOR INDICATOR                                       CODE TABLE 2048            0            0   4 CODE TABLE 2048           0          2
  002061 AIRCRAFT NAVIGATIONAL SYSTEM                                     CODE TABLE 2061            0            0   3 CODE TABLE 2061           0          1
  002062 TYPE OF AIRCRAFT DATA RELAY SYSTEM                               CODE TABLE 2062            0            0   4 CODE TABLE 2062           0          2
@@ -69,7 +69,7 @@
  007024 SATELLITE ZENITH ANGLE                                           DEGREE                     2        -9000  15 DEGREE                    2          5
  007025 SOLAR ZENITH ANGLE                                               DEGREE                     2        -9000  15 DEGREE                    2          5
  007030 HEIGHT OF STATION GROUND ABOVE MEAN SEA LEVEL (SEE NOTE 3)       M                          1        -4000  17 M                         1          5
- 007031 HEIGHT OF BAROMETER ABOVE MEAN SEA LEVEL (SEE NOTE 4)            M                          1       - 4000  17 M                         1          5
+ 007031 HEIGHT OF BAROMETER ABOVE MEAN SEA LEVEL (SEE NOTE 4)            M                          1        -4000  17 M                         1          5
  007032 HEIGHT OF SENSOR ABOVE LOCAL GROUND (OR DECK OF MARINE PLATFORM) M                          2            0  16 M                         2          5
  007192 [SIM] First level type                                           NUMERIC                    0            0  10 NUMERIC                   0          4
  007193 [SIM] Level L1                                                   NUMERIC                    0   -536870912  31 NUMERIC                   0         10
@@ -80,7 +80,7 @@
  008009 DETAILED PHASE OF FLIGHT                                         CODE TABLE 8009            0            0   4 CODE TABLE 8009           0          2
  008021 TIME SIGNIFICANCE                                                CODE TABLE 8021            0            0   5 CODE TABLE 8021           0          2
  008042 EXTENDED VERTICAL SOUNDING SIGNIFICANCE                          FLAG TABLE 8042            0            0  18 FLAG TABLE 8042           0          6
- 008044 (VAL) CAS REGISTRY NUMBER                                        CCITTIA5                   0            0  88 CHARACTER                 0         11 
+ 008044 (VAL) CAS REGISTRY NUMBER                                        CCITTIA5                   0            0  88 CHARACTER                 0         11
  008192 [SIM] Number of wind velocity mean values present                NUMERIC                    0            0   5 NUMERIC                   0          2
  008193 [SIM] Number of wind velocity minimum values present             NUMERIC                    0            0   5 NUMERIC                   0          2
  008194 [SIM] Number of wind velocity maximum values present             NUMERIC                    0            0   5 NUMERIC                   0          2
@@ -106,7 +106,7 @@
  010009 GEOPOTENTIAL HEIGHT                                              GPM                        0        -1000  17 GPM                       0          5
  010051 PRESSURE REDUCED TO MEAN SEA LEVEL                               PA                        -1            0  14 PA                       -1          5
  010052 ALTIMETER SETTING (QNH)                                          PA                        -1            0  14 PA                       -1          5
- 010060 PRESSURE CHANGE                                                  PA                        -1        -1024  11 PA                       -1          4              
+ 010060 PRESSURE CHANGE                                                  PA                        -1        -1024  11 PA                       -1          4
  010063 CHARACTERISTIC OF PRESSURE TENDENCY                              CODE TABLE 10063           0            0   4 CODE TABLE 10063          0          2
  010197 ANEMOMETER HEIGHT                                                M                          0            0   9 M                         0          3
  011001 WIND DIRECTION                                                   DEGREE TRUE                0            0   9 DEGREE TRUE               0          3
@@ -149,26 +149,29 @@
  012001 TEMPERATURE/AIR TEMPERATURE                                      K                          1            0  12 C                         1          3
  012003 DEW-POINT TEMPERATURE                                            K                          1            0  12 C                         1          3
  012030 SOIL TEMPERATURE                                                 K                          1            0  12 C                         1          3
+ 012049 Temperature change over specified period                         K                          0          -30   6 C                         0          2
  012061 SKIN TEMPERATURE                                                 K                          1            0  12 K                         1          4
  012063 BRIGHTNESS TEMPERATURE                                           K                          1            0  12 K                         1          4
- 012101 TEMPERATURE/DRY-BULB TEMPERATURE                                 K                          2            0  16 K                         2          5             
- 012102 WET-BULB TEMPERATURE                                             K                          2            0  16 C                         2          4              
- 012103 DEW-POINT TEMPERATURE                                            K                          2            0  16 K                         2          5              
- 012121 GROUND MINIMUM TEMPERATURE                                       K                          2            0  16 C                         2          4 
- 012131 SNOW TEMPERATURE                                                 K                          2            0  16 C                         2          4 
- 012192 POTENTIAL TEMPERATURE                                            K                          2            0  16 K                         2          5             
- 012193 PSEUDO-EQUIVALENT POTENTIAL TEMPERATURE                          K                          2            0  16 K                         2          5             
+ 012101 TEMPERATURE/DRY-BULB TEMPERATURE                                 K                          2            0  16 K                         2          5
+ 012102 WET-BULB TEMPERATURE                                             K                          2            0  16 C                         2          4
+ 012103 DEW-POINT TEMPERATURE                                            K                          2            0  16 K                         2          5
+ 012121 GROUND MINIMUM TEMPERATURE                                       K                          2            0  16 C                         2          4
+ 012131 SNOW TEMPERATURE                                                 K                          2            0  16 C                         2          4
+ 012192 POTENTIAL TEMPERATURE                                            K                          2            0  16 K                         2          5
+ 012193 PSEUDO-EQUIVALENT POTENTIAL TEMPERATURE                          K                          2            0  16 K                         2          5
  012194 [SIM] Air density                                                KG/M**3                    6            0  20 KG/M**3                   6          6
  013001 SPECIFIC HUMIDITY                                                KG/KG                      5            0  14 KG/KG                     5          5
- 013002 MIXING RATIO                                                     KG/KG                      5            0  14 KG/KG                     5          5              
+ 013002 MIXING RATIO                                                     KG/KG                      5            0  14 KG/KG                     5          5
  013003 RELATIVE HUMIDITY                                                %                          0            0   7 %                         0          3
  013011 TOTAL PRECIPITATION / TOTAL WATER EQUIVALENT                     KG/M**2                    1           -1  14 KG/M**2                   1          5
  013012 DEPTH OF FRESH SNOW                                              M                          2           -2  12 M                         2          4
  013013 TOTAL SNOW DEPTH                                                 M                          3          -20  20 M                         3          6
  013031 EVAPOTRANSPIRATION                                               KG/M**2                    1            0   7 KG/M**2                   0          3
  013033 EVAPORATION/EVAPOTRANSPIRATION                                   KG/M**2                    1            0  10 KG/M**2                   1          4
+ 013080 WATER PH                                                         pH                         1            0  10 pH                        1          3
  013081 WATER CONDUCTIVITY                                               S/M                        3            0  14 S/M                       3          4
  013082 WATER TEMPERATURE                                                K                          1            0  12 K                         1          4
+ 013083 DISSOLVED OXYGEN                                                 KG/M**3                    6            0  15 KG/M**3                   6          5
  013192 [SIM] Cloud liquid water content                                 KG/KG                      8            0  27 KG/KG                     8          8
  013193 [SIM] Cloud ice content                                          KG/KG                      8            0  27 KG/KG                     8          8
  013194 [SIM] Water table depth                                          M                          3            0  18 M                         3          6
@@ -185,6 +188,7 @@
  013205 [SIM] Snowfall (grid-scale + convective)                         KG/M**2                    1           -1  14 KG/M**2                   1          5
  013206 [SIM] Soil water content                                         KG/M**2                    1            0  14 KG/M**2                   1          5
  013210 [SIM] Penetration of the probe in the snow                       M                          2            0   9 M                         2          3
+ 013211 Volume of basin                                                  M**3                       0            0  37 M**3                      0         12
  013212 [SIM] Leaf wetness duration                                      S                         -1            0  24 S                        -1          7
  013215 [SIM] River level                                                M                          2      -100000  18 M                         2          6
  013216 [SIM] Hourly precipitation                                       KG/M**2                    1           -1  14 KG/M**2                   1          5
@@ -202,11 +206,17 @@
  013228 [SIM] Piezometric level                                          M                          3            0  18 M                         3          6
  013229 [SIM] Density of snow                                            KG/M**3                    1            0  14 KG/M**3                   1          5
  013230 [SIM] Convective Available Potential Energy (CAPE)               J/KG                       1            0  17 J/KG                      1          5
+ 013231 [SIM] Ossigeno disciolto sat                                     %                          1            0  13 %                         1          4
+ 014002 Long-wave radiation, integrated over period specified            J M-2                     -3       -65536  17 J M-2                    -3          5
+ 014004 Short-wave radiation, integrated over period specified           J M-2                     -3       -65536  17 J M-2                    -3          5
  014016 NET RADIATION                                                    J/M**2                    -4       -16384  15 J/M**2                   -4          5
  014017 INSTANTANEOUS LONG-WAVE RADIATION (incoming)                     W/M**2                     0        -2048  12 W/M**2                    0          4
  014018 INSTANTANEOUS SHORT-WAVE RADIATION (incoming)                    W/M**2                     0        -2048  12 W/M**2                   -3          4
  014019 SURFACE ALBEDO                                                   %                          0            0   7 %                         0          3
  014021 GLOBAL SOLAR RADIATION, INTEGRATED OVER PERIOD SPECIFIED         J/M**2                    -4            0  15 J/M**2                   -4          5
+ 014028 Global solar radiation (high accuracy), integrated over period s J M-2                     -2            0  20 J M-2                    -2          6
+ 014029 Diffuse solar radiation (high accuracy), integrated over period  J M-2                     -2            0  20 J M-2                    -2          6
+ 014030 Direct solar radiation (high accuracy), integrated over period s J M-2                     -2            0  20 J M-2                    -2          6
  014031 TOTAL SUNSHINE                                                   MINUTE                     0            0  11 MINUTE                    0          4
  014192 [SIM] Instantenous sensible heat flux                            W/m**2                     0        -1024  11 W/M**2                    0          4
  014193 [SIM] Instantenous latent heat flux                              W/m**2                     0        -1024  11 W/M**2                    0          4
@@ -277,17 +287,17 @@
  020011 CLOUD AMOUNT                                                     CODE TABLE 20011           0            0   4 CODE TABLE 20011          0          2
  020012 CLOUD TYPE                                                       CODE TABLE 20012           0            0   6 CODE TABLE 20012          0          2
  020013 HEIGHT OF BASE OF CLOUD                                          M                          0         -400  17 M                         0          5
- 020017 CLOUD TOP DESCRIPTION                                            CODE TABLE 20017           0            0   4 CODE TABLE 20017          0          2 
+ 020017 CLOUD TOP DESCRIPTION                                            CODE TABLE 20017           0            0   4 CODE TABLE 20017          0          2
  020019 SIGNIFICANT PRESENT OR FORECAST WEATHER                          CCITTIA5                   0            0  72 CHARACTER                 0          9
  020021 TYPE OF PRECIPITATION                                            FLAG TABLE 20021           0            0  30 FLAG TABLE 20021          0         10
- 020031 ICE DEPOSIT (THICKNESS)                                          M                          2            0   7 M                         2         3              
- 020032 RATE OF ICE ACCRETION                                            CODE TABLE 20032           0            0   3 CODE TABLE 20032          0         1              
- 020033 CAUSE OF ICE ACCRETION                                           FLAG TABLE 20033           0            0   4 FLAG TABLE 20033          0         2              
- 020034 SEA ICE CONCENTRATION                                            CODE TABLE 20034           0            0   5 CODE TABLE 20034          0         2              
- 020035 AMOUNT AND TYPE OF ICE                                           CODE TABLE 20035           0            0   4 CODE TABLE 20035          0         2              
- 020036 ICE SITUATION                                                    CODE TABLE 20036           0            0   5 CODE TABLE 20036          0         2              
- 020037 ICE DEVELOPMENT                                                  CODE TABLE 20037           0            0   5 CODE TABLE 20037          0         2              
- 020038 BEARING OF ICE EDGE (SEE NOTE 3)                                 DEGREE TRUE                0            0  12 DEGREE TRUE               0         3              
+ 020031 ICE DEPOSIT (THICKNESS)                                          M                          2            0   7 M                         2          3
+ 020032 RATE OF ICE ACCRETION                                            CODE TABLE 20032           0            0   3 CODE TABLE 20032          0          1
+ 020033 CAUSE OF ICE ACCRETION                                           FLAG TABLE 20033           0            0   4 FLAG TABLE 20033          0          2
+ 020034 SEA ICE CONCENTRATION                                            CODE TABLE 20034           0            0   5 CODE TABLE 20034          0          2
+ 020035 AMOUNT AND TYPE OF ICE                                           CODE TABLE 20035           0            0   4 CODE TABLE 20035          0          2
+ 020036 ICE SITUATION                                                    CODE TABLE 20036           0            0   5 CODE TABLE 20036          0          2
+ 020037 ICE DEVELOPMENT                                                  CODE TABLE 20037           0            0   5 CODE TABLE 20037          0          2
+ 020038 BEARING OF ICE EDGE (SEE NOTE 3)                                 DEGREE TRUE                0            0  12 DEGREE TRUE               0          3
  020042 AIRFRAME ICING PRESENT                                           CODE TABLE 20042           0            0   2 CODE TABLE 20042          0          1
  020043 PEAK LIQUID WATER CONTENT                                        KG/M**3                    4            0   7 KG/M**3                   4          2
  020044 AVERAGE LIQUID WATER CONTENT                                     KG/M**3                    4            0   7 KG/M**3                   4          2
@@ -304,28 +314,33 @@
  020200 [SIM] Presence of fog                                            BOOLEAN                    0            0   1 BOOLEAN                   0          1
  020201 [SIM] Presence of water-spout                                    BOOLEAN                    0            0   1 BOOLEAN                   0          1
  020202 [SIM] State of the ground with snow                              CODE TABLE                 0            0   5 CODE TABLE                0          2
+ 020203 [SIM] Weather impact                                             CODE TABLE 20203           0            0   9 CODE TABLE 20203          0          3
  022001 DIRECTION OF WAVES                                               DEGREE TRUE                0            0   9 DEGREE TRUE               0          3
- 022002 DIRECTION OF WIND WAVES                                          DEGREE TRUE                0            0   9 DEGREE TRUE               0         3              
- 022003 DIRECTION OF SWELL WAVES                                         DEGREE TRUE                0            0   9 DEGREE TRUE               0         3              
- 022004 DIRECTION OF CURRENT                                             DEGREE TRUE                0            0   9 DEGREE TRUE               0         3
+ 022002 DIRECTION OF WIND WAVES                                          DEGREE TRUE                0            0   9 DEGREE TRUE               0          3
+ 022003 DIRECTION OF SWELL WAVES                                         DEGREE TRUE                0            0   9 DEGREE TRUE               0          3
+ 022004 DIRECTION OF CURRENT                                             DEGREE TRUE                0            0   9 DEGREE TRUE               0          3
  022011 PERIOD OF WAVES                                                  S                          0            0   6 S                         0          2
  022012 PERIOD OF WIND WAVES                                             S                          0            0   6 S                         0          2
- 022013 PERIOD OF SWELL WAVES                                            S                          0            0   6 S                         0         2              
+ 022013 PERIOD OF SWELL WAVES                                            S                          0            0   6 S                         0          2
  022021 HEIGHT OF WAVES                                                  M                          1            0  10 M                         1          4
  022022 HEIGHT OF WIND WAVES                                             M                          1            0  10 M                         1          4
- 022023 HEIGHT OF SWELL WAVES                                            M                          1            0  10 M                         1         4              
+ 022023 HEIGHT OF SWELL WAVES                                            M                          1            0  10 M                         1          4
  022031 SPEED OF CURRENT                                                 M/S                        2            0  13 M/S                       2          4
- 022032 SPEED OF SEA SURFACE CURRENT                                     M/S                        2            0  13 M/S                       2         4              
+ 022032 SPEED OF SEA SURFACE CURRENT                                     M/S                        2            0  13 M/S                       2          4
  022037 Tidal elevation with respect to national land datum              M                          3       -10000  15 M                         3          5
  022038 Tidal elevation with respect to local chart datum                M                          3       -10000  15 M                         3          5
- 022042 SEA/WATER TEMPERATURE                                            K                          1            0  12 K                         1          4
  022043 SEA/WATER TEMPERATURE                                            K                          2            0  15 K                         2          5
  022049 SEA-SURFACE TEMPERATURE                                          K                          2            0  15 K                         2          5
+ 022062 SALINITY                                                         PART PER THOUSAND          2            0  14 PART PER THOUSAND         2          5
+ 022063 TOTAL WATER DEPTH                                                M                          0            0  14 M                         0          5
+ 022066 WATER CONDUCTIVITY                                               S M-1                      6            0  26 S M-1                     6          8
  022070 SIGNIFICANT WAVE HEIGHT                                          M                          2            0  13 M                         2          4
  022071 SPECTRAL PEAK WAVE PERIOD                                        S                          1            0   9 S                         1          3
+ 022073 MAXIMUM WAVE HEIGHT                                              M                          2            0  13 M                         2          4
  022074 AVERAGE WAVE PERIOD                                              S                          1            0   9 S                         1          3
  022192 [SIM] Current X component                                        M/S                        2            0  13 M/S                       2          4
  022193 [SIM] Current Y component                                        M/S                        2            0  13 M/S                       2          4
+ 022194 [SIM] Concentrazione clorofilla a                                microg/l                   2            0  17 microg/l                  2          6
  023192 [SIM] Dry deposition of H2SO4                                    MOL/M**2                   5            0  20 MOL/M**3                  5          6
  023193 [SIM] Wet deposition of H2SO4                                    MOL/M**2                   5            0  20 MOL/M**3                  5          6
  023194 [SIM] Dry deposition of NH4                                      MOL/M**2                   5            0  20 MOL/M**3                  5          6
@@ -443,6 +458,24 @@
  048058 [SIM] Juglandacee_Juglandacee indistinte 1                       POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
  048059 [SIM] Ippocastanacee_Ippocastanacee indistinte 1                 POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
  048060 [SIM] Oleacee_Ligustro                                           POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048061 [SIM] Anacardiacee                                               POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048062 [SIM] Apocinacee                                                 POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048063 [SIM] Araliacee                                                  POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048064 [SIM] Boraginacee                                                POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048065 [SIM] Brassicacee                                                POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048066 [SIM] Cannabacee                                                 POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048067 [SIM] Caprifoliacee                                              POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048068 [SIM] Cariofillacee                                              POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048069 [SIM] Cornacee                                                   POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048070 [SIM] Elaegnacee                                                 POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048071 [SIM] Lauracee                                                   POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048072 [SIM] Moracee                                                    POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048073 [SIM] Ramnacee                                                   POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048074 [SIM] Rosacee                                                    POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048075 [SIM] Rubiacee                                                   POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048076 [SIM] Simaroubacee                                               POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048077 [SIM] Umbellifere                                                POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
+ 048078 [SIM] Vitacee                                                    POLLEN/M**3                1            0  24 POLLEN/M**3               1          8
  048128 [SIM] Conta Graminacee_Graminacee indistinte                     NUMERIC                    0            0  20 NUMERIC                   0          7
  048129 [SIM] Conta Betulacee_Ontano nero                                NUMERIC                    0            0  20 NUMERIC                   0          7
  048130 [SIM] Conta Betulacee_Betulla                                    NUMERIC                    0            0  20 NUMERIC                   0          7
@@ -503,3 +536,21 @@
  048185 [SIM] Conta Juglandacee_Juglandacee indistinte 1                 NUMERIC                    0            0  20 NUMERIC                   0          7
  048186 [SIM] Conta Ippocastanacee_Ippocastanacee indistinte 1           NUMERIC                    0            0  20 NUMERIC                   0          7
  048187 [SIM] Conta Oleacee_Ligustro                                     NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048188 [SIM] Conta Anacardiacee                                         NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048189 [SIM] Conta Apocinacee                                           NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048190 [SIM] Conta Araliacee                                            NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048191 [SIM] Conta Boraginacee                                          NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048192 [SIM] Conta Brassicacee                                          NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048193 [SIM] Conta Cannabacee                                           NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048194 [SIM] Conta Caprifoliacee                                        NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048195 [SIM] Conta Cariofillacee                                        NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048196 [SIM] Conta Cornacee                                             NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048197 [SIM] Conta Elaegnacee                                           NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048198 [SIM] Conta Lauracee                                             NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048199 [SIM] Conta Moracee                                              NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048200 [SIM] Conta Ramnacee                                             NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048201 [SIM] Conta Rosacee                                              NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048202 [SIM] Conta Rubiacee                                             NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048203 [SIM] Conta Simaroubacee                                         NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048204 [SIM] Conta Umbellifere                                          NUMERIC                    0            0  20 NUMERIC                   0          7
+ 048205 [SIM] Conta Vitacee                                              NUMERIC                    0            0  20 NUMERIC                   0          7
