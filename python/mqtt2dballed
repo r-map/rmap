@@ -347,7 +347,7 @@ def main(self):
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 
                 nonblockingfile(p2.stderr)
-                nonblockingfile(p2.stdout)
+                #nonblockingfile(p2.stdout)
 
                 while  p2.poll() is None:
                     p3 = subprocess.Popen(["arki-xargs", "-n","1", "toamqp", exchange],cwd=self.cwd, stdin=p2.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
@@ -403,7 +403,7 @@ def main(self):
                                 line=""
                             if line:
                                 #print 'Got data:', line
-                                logging.info(line.rstrip("\n"))
+                                logging.info("arki-xargs stdout: "+line.rstrip("\n"))
                             else:
                                 break
 
