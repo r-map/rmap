@@ -21,8 +21,8 @@
 #include <JsonRPC.h>
 
 // initialize an instance of the JsonRPC library for registering 
-// exactly 3 method
-JsonRPC rpcserver(3,false ); //serial port with standard protocoll
+// exactly 4 method
+JsonRPC rpcserver(4,false ); //serial port with standard protocol
 
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
@@ -55,129 +55,154 @@ bool load () {                // load from eeprom
 
 //-------------
 
-const uint8_t pins [] = {PINS};
+const uint8_t outpins [] = {OUTPINS};
+const uint8_t inpins  [] = {INPINS};
 
 //-------------
 
-
+// {"jsonrpc": "2.0","method":"pulse","params":{"pin":0},"id":0}	
 int pulse(aJsonObject* params)
 {
+  aJsonObject* dstunitParam = aJson.getObjectItem(params, "pin");
+  if (dstunitParam){
+    int dstunit = dstunitParam -> valueint;
 
-  uint8_t status=0;
+    if (dstunit >= 0 && dstunit < sizeof(outpins)/sizeof(*outpins)){
+        //aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
+        //if (onoffParam){
+        //boolean onoff = onoffParam -> valuebool;
+	Serial.print(F("#dstunit: "));
+	Serial.println(dstunit);
+	//Serial.print(F("#onoff: "));
+	//Serial.println(onoff);
 
-  aJsonObject* didParam = aJson.getObjectItem(params, "did");
-  if (didParam){
-    int did = didParam -> valueint;
-    if (did == configuration.did || did == 0 ){     //my did or broadcast
-    
-      aJsonObject* dstunitParam = aJson.getObjectItem(params, "dstunit");
-      if (dstunitParam){
-	int dstunit = dstunitParam -> valueint;
-
-	if (dstunit >= 0 && dstunit < sizeof(pins)/sizeof(*pins)){
-	  aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
-	  if (onoffParam){
-	    boolean onoff = onoffParam -> valuebool;
-	    Serial.print(F("#did: "));
-	    Serial.print(did);
-	    Serial.print(F(" dstunit: "));
-	    Serial.print(dstunit);
-	    Serial.print(F(" onoff: "));
-	    Serial.println(onoff);
-
-	    digitalWrite(pins[dstunit], ! onoff);
-
-	  }else{
-	    Serial.println(F("#no onoff"));
-	    status=1;
-	  }
-	}else{
-	  Serial.println(F("#wrong dstunit"));
-	  status=2;
-	}
-      }else{
-	Serial.println(F("#no dstunit"));
-	status=3;
-      }
+	digitalWrite(outpins[dstunit], 1);
+	delay(PULSEDURATION);
+	digitalWrite(outpins[dstunit], 0);
+	
+	//}else{
+	//Serial.println(F("#no onoff"));
+	//return 1;
+	//}
     }else{
-      Serial.println(F("#not for me"));
-      status=4;
+      Serial.println(F("#wrong dstunit"));
+      return 2;
     }
   }else{
-    Serial.println(F("#no did"));
-    status=5;
+    Serial.println(F("#no dstunit"));
+    return 3;
   }
 
-
-  aJsonObject* mymethod = aJson.detachItemFromObject(serialmsg, "method");
-  aJson.addItemToObject(newrpc, "m",mymethod );
-
-  aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
-  aJson.addItemToObject(newrpc, "p",myparams );
+  aJson.deleteItemFromObject(serialmsg, "method");
+  aJson.deleteItemFromObject(serialmsg, "params");
 
   //Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");	
-  if (status) {
-    //Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");	
-    aJson.addTrueToObject(serialmsg, "result");
+  aJson.addTrueToObject(serialmsg, "result");
+  
+  char serialbuf[SERIALBUFFERSIZE];
+  aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
+  Serial.println(serialbuf);
+
+  return 0;
+
+}
+
+// {"jsonrpc": "2.0","method":"getstatus","params":{"pin":0},"id":0}	
+int getstatus(aJsonObject* params)
+{
+  int val;
+  
+  aJsonObject* dstunitParam = aJson.getObjectItem(params, "pin");
+  if (dstunitParam){
+    int dstunit = dstunitParam -> valueint;
+
+    if (dstunit >= 0 && dstunit < sizeof(inpins)/sizeof(*inpins)){
+        //aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
+        //if (onoffParam){
+        //boolean onoff = onoffParam -> valuebool;
+	Serial.print(F("#dstunit: "));
+	Serial.println(dstunit);
+	//Serial.print(F("#onoff: "));
+	//Serial.println(onoff);
+
+	val = digitalRead(inpins[dstunit]);
+	
+	//}else{
+	//Serial.println(F("#no onoff"));
+	//return 1;
+	//}
+    }else{
+      Serial.println(F("#wrong dstunit"));
+      return 2;
+    }
   }else{
+    Serial.println(F("#no dstunit"));
+    return 3;
+  }
+
+  aJson.deleteItemFromObject(serialmsg, "method");
+  aJson.deleteItemFromObject(serialmsg, "params");
+
+  //Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");	
+  if (val == HIGH) {
     aJson.addFalseToObject(serialmsg, "result");
+  }else{
+    aJson.addTrueToObject(serialmsg, "result");
   }
   
   char serialbuf[SERIALBUFFERSIZE];
   aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
   Serial.println(serialbuf);
 
-  return status;
+  return 0;
 
 }
 
 
 int setdid(aJsonObject* params)
 {    
-  uint8_t status=1; 
-  aJson.deleteItemFromObject(serialmsg, "method");
+  uint8_t status=0; 
   
-  aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
-  aJsonObject* didParam = aJson.getObjectItem(myparams, "did");
+  aJsonObject* didParam = aJson.getObjectItem(params, "did");
   if (didParam){
     int did = didParam -> valueint;
     configuration.did=did;
-
     aJson.addTrueToObject(serialmsg, "result");
-    char buf[SERIALBUFFERSIZE];
-    aJson.print(serialmsg,buf, sizeof(buf));
-    Serial.println(buf);
-    
-    status= 0;
+  }else{
+    return  1;
   }
-  aJson.deleteItem(params);
-  return status;
+
+  aJson.deleteItemFromObject(serialmsg, "method");
+  aJson.deleteItemFromObject(serialmsg, "params");
+
+  char buf[SERIALBUFFERSIZE];
+  aJson.print(serialmsg,buf, sizeof(buf));
+  Serial.println(buf);
+  
+  return 0;
 }
 
 int save(aJsonObject* params)
 {    
-  uint8_t status=1; 
   aJson.deleteItemFromObject(serialmsg, "method");
 
-  aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
-  
-  aJsonObject* saveParam = aJson.getObjectItem(myparams, "eeprom");
+  aJsonObject* saveParam = aJson.getObjectItem(params, "eeprom");
   if (saveParam){
-    bool eeprom = saveParam -> valuebool;
-    
+    bool eeprom = saveParam -> valuebool;    
     if (eeprom) configuration.save();
-    
     aJson.addTrueToObject(serialmsg, "result");
-    char buf[SERIALBUFFERSIZE];
-    aJson.print(serialmsg,buf, sizeof(buf));
-    Serial.println(buf);
-    
-    status = 0;
+  }else{
+    return 1;
   }
 
-  aJson.deleteItem(params);
-  return status;
+  aJson.deleteItemFromObject(serialmsg, "method");
+  aJson.deleteItemFromObject(serialmsg, "params");
 
+  char buf[SERIALBUFFERSIZE];
+  aJson.print(serialmsg,buf, sizeof(buf));
+  Serial.println(buf);
+
+  return 0;
 }
 
 
@@ -208,21 +233,28 @@ void setup()
   // register the local method
   // Serial port
   rpcserver.registerMethod("pulse",     &pulse);
+  rpcserver.registerMethod("getstatus", &getstatus);
   rpcserver.registerMethod("setdid",    &setdid);
   rpcserver.registerMethod("save",      &save);
   
   // initialize the digital pin as an output
-  pinMode(13, OUTPUT);
+  //pinMode(13, OUTPUT);
 
-  for (int dstunit=0 ;dstunit  < sizeof(pins)/sizeof(*pins); dstunit++)
+  for (int dstunit=0 ;dstunit  < sizeof(outpins)/sizeof(*outpins); dstunit++)
     {
-      pinMode(pins[dstunit], OUTPUT);
-      digitalWrite(pins[dstunit], 1);
+      pinMode(outpins[dstunit], OUTPUT);
+      //digitalWrite(outpins[dstunit], 1);
+    }
+
+  for (int dstunit=0 ;dstunit  < sizeof(inpins)/sizeof(*inpins); dstunit++)
+    {
+      pinMode(inpins[dstunit], INPUT);
+      //digitalWrite(outpins[dstunit], 1);
     }
 }
 
 void mgr_serial(){
-  uint8_t err;
+  int err;
     
   if (stream.available()) {
     // skip any accidental whitespace like newlines
@@ -233,14 +265,14 @@ void mgr_serial(){
 
     serialmsg = aJson.parse(&stream);
     if (serialmsg){
-      Serial.print(F("#rpc.processMessage:"));
+      Serial.println(F("#rpc.processMessage"));
       char serialbuf[SERIALBUFFERSIZE];
       aJson.print(serialmsg, serialbuf, sizeof(serialbuf));
       Serial.println(serialbuf);
     
-      err=rpcclient.processMessage(serialmsg);
+      err=rpcserver.processMessage(serialmsg);
       Serial.print(F("#rpcserver.processMessage return status:"));
-      Serial.print(err);
+      Serial.println(err);
       if (!err){
 	aJson.deleteItem(serialmsg);      
       }else{
@@ -256,6 +288,8 @@ void mgr_serial(){
     }
 
     if (err == 1){
+      aJson.deleteItemFromObject(serialmsg, "method");
+      aJson.deleteItemFromObject(serialmsg, "params");
       aJsonObject *result = aJson.createObject();
       aJson.addItemToObject(serialmsg, "error", result);
       aJson.addNumberToObject(result, "code", E_INTERNAL_ERROR);
