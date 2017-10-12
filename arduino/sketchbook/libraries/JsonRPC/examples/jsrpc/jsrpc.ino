@@ -265,7 +265,7 @@ void mgr_serial(){
 
     serialmsg = aJson.parse(&stream);
     if (serialmsg){
-      Serial.println(F("#rpc.processMessage"));
+      Serial.print(F("#rpc.processMessage"));
       char serialbuf[SERIALBUFFERSIZE];
       aJson.print(serialmsg, serialbuf, sizeof(serialbuf));
       Serial.println(serialbuf);
