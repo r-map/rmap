@@ -1,17 +1,9 @@
-// create a simple messageing
-// with the RH_CC110 class. RH_CC110 class does not provide for addressing or
-// reliability, so you should only use RH_CC110 if you do not need the higher
-// level messaging abilities.
+// create a simple jsonrpc server with configuration saved on eeprom and watchdog
 
 #include <avr/wdt.h>
-
-#define CONFVER "conf00"
-
-
 #include "config.h"
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
-
 #include <avr/wdt.h>
 
 // include the aJSON library
@@ -33,18 +25,18 @@ char confver[7] = CONFVER; // version of configuration saved on eeprom
 
 struct config_t               // configuration to save and load fron eeprom
 {
-  int did;
+  int pd;
   void save () {
     int p=0;                  // save to eeprom
     p+=EEPROM_writeAnything(p, confver);
-    p+=EEPROM_writeAnything(p, did);
+    p+=EEPROM_writeAnything(p, pd);
   }
-bool load () {                // load from eeprom
+  bool load () {                // load from eeprom
     int p=0;
     char ver[7];
     p+=EEPROM_readAnything(p, ver);
     if (strcmp(ver,confver ) == 0){ 
-      p+=EEPROM_readAnything(p, did);
+      p+=EEPROM_readAnything(p, pd);
       return true;
     }
     else{
@@ -77,7 +69,7 @@ int pulse(aJsonObject* params)
 	//Serial.println(onoff);
 
 	digitalWrite(outpins[dstunit], 1);
-	delay(PULSEDURATION);
+	delay(configuration.pd);
 	digitalWrite(outpins[dstunit], 0);
 	
 	//}else{
@@ -159,14 +151,12 @@ int getstatus(aJsonObject* params)
 }
 
 
-int setdid(aJsonObject* params)
+int setpd(aJsonObject* params)
 {    
-  uint8_t status=0; 
-  
-  aJsonObject* didParam = aJson.getObjectItem(params, "did");
-  if (didParam){
-    int did = didParam -> valueint;
-    configuration.did=did;
+  aJsonObject* pdParam = aJson.getObjectItem(params, "pd");
+  if (pdParam){
+    int pd = pdParam -> valueint;
+    configuration.pd=pd;
     aJson.addTrueToObject(serialmsg, "result");
   }else{
     return  1;
@@ -184,8 +174,6 @@ int setdid(aJsonObject* params)
 
 int save(aJsonObject* params)
 {    
-  aJson.deleteItemFromObject(serialmsg, "method");
-
   aJsonObject* saveParam = aJson.getObjectItem(params, "eeprom");
   if (saveParam){
     bool eeprom = saveParam -> valuebool;    
@@ -224,17 +212,18 @@ void setup()
 
   if (configuration.load()){
     Serial.println(F("#Configuration loaded"));
-    Serial.print(F("#did:"));
-    Serial.println(configuration.did);
-  } else {     
+  } else {
     Serial.println(F("#Configuration not loaded"));
+    configuration.pd=PULSEDURATION;
   }
+  Serial.print(F("#pd:"));
+  Serial.println(configuration.pd);
 
   // register the local method
   // Serial port
   rpcserver.registerMethod("pulse",     &pulse);
   rpcserver.registerMethod("getstatus", &getstatus);
-  rpcserver.registerMethod("setdid",    &setdid);
+  rpcserver.registerMethod("setpd",     &setpd);
   rpcserver.registerMethod("save",      &save);
   
   // initialize the digital pin as an output
