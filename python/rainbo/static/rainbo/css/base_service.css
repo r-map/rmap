@@ -572,129 +572,272 @@ label[for=id_not_significant_0],
 .myDivIcon110 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/100.png);
+    background-image: url(/static/rainbo/img/icons/100_grey.png);
+}
+
+label[for=id_not_significant_0] > input{
+    display: none;
+}
+
+.id_not_significant_0_selected{
+    background-image: url(/static/rainbo/img/icons/100.png) !important;
 }
 
 label[for=id_visibility_intensity_0],
 .myDivIcon110 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/110.png);
+    background-image: url(/static/rainbo/img/icons/110_grey.png);
+}
+
+label[for=id_visibility_intensity_0] > input{
+    display: none;
+}
+
+.id_visibility_intensity_0_selected{
+    background-image: url(/static/rainbo/img/icons/110.png) !important;
 }
 
 label[for=id_visibility_intensity_1],
 .myDivIcon130{
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/130.png);
+    background-image: url(/static/rainbo/img/icons/130_grey.png);
+}
+
+label[for=id_visibility_intensity_1] > input{
+    display: none;
+}
+
+.id_visibility_intensity_1_selected{
+    background-image: url(/static/rainbo/img/icons/130.png) !important;
 }
 
 label[for=id_snow_intensity_0],
 .myDivIcon185 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/185.png);
+    background-image: url(/static/rainbo/img/icons/185_grey.png);
+}
+
+label[for=id_snow_intensity_0] > input{
+    display: none;
+}
+
+.id_snow_intensity_0_selected{
+    background-image: url(/static/rainbo/img/icons/185.png) !important;
 }
 
 label[for=id_snow_intensity_1],
 .myDivIcon186 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/186.png);
+    background-image: url(/static/rainbo/img/icons/186_grey.png);
+}
+
+label[for=id_snow_intensity_1] > input{
+    display: none;
+}
+
+.id_snow_intensity_1_selected{
+    background-image: url(/static/rainbo/img/icons/186.png) !important;
 }
 
 label[for=id_snow_intensity_2],
 .myDivIcon187 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/187.png);
+    background-image: url(/static/rainbo/img/icons/187_grey.png);
+}
+
+label[for=id_snow_intensity_2] > input{
+    display: none;
+}
+
+.id_snow_intensity_2_selected{
+    background-image: url(/static/rainbo/img/icons/187.png) !important;
 }
 
 label[for=id_rain_intensity_0],
 .myDivIcon150 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/150.png);
+    background-image: url(/static/rainbo/img/icons/150_grey.png);
+}
+
+label[for=id_rain_intensity_0] > input{
+    display: none;
+}
+
+.id_rain_intensity_0_selected{
+    background-image: url(/static/rainbo/img/icons/150.png) !important;
 }
 
 label[for=id_rain_intensity_1],
 .myDivIcon160 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/160.png);
+    background-image: url(/static/rainbo/img/icons/160_grey.png);
+}
+
+label[for=id_rain_intensity_1] > input{
+    display: none;
+}
+
+.id_rain_intensity_1_selected{
+    background-image: url(/static/rainbo/img/icons/160.png) !important;
 }
 
 label[for=id_rain_intensity_2],
 .myDivIcon165 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/165.png);
+    background-image: url(/static/rainbo/img/icons/165_grey.png);
+}
+
+label[for=id_rain_intensity_2] > input{
+    display: none;
+}
+
+.id_rain_intensity_2_selected{
+    background-image: url(/static/rainbo/img/icons/165.png) !important;
 }
 
 label[for=id_rain_intensity_3],
 .myDivIcon184 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/184.png);
+    background-image: url(/static/rainbo/img/icons/184_grey.png);
+}
+
+label[for=id_rain_intensity_3] > input{
+    display: none;
+}
+
+.id_rain_intensity_3_selected{
+    background-image: url(/static/rainbo/img/icons/184.png) !important;
 }
 
 label[for=id_thunderstorm_intensity_0],
 .myDivIcon192 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/192.png);
+    background-image: url(/static/rainbo/img/icons/192_grey.png);
+}
+
+label[for=id_thunderstorm_intensity_0] > input{
+    display: none;
+}
+
+.id_thunderstorm_intensity_0_selected{
+    background-image: url(/static/rainbo/img/icons/192.png) !important;
 }
 
 label[for=id_thunderstorm_intensity_1],
 .myDivIcon193 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/193.png);
+    background-image: url(/static/rainbo/img/icons/193_grey.png);
+}
+
+label[for=id_thunderstorm_intensity_1] > input{
+    display: none;
+}
+
+.id_thunderstorm_intensity_1_selected{
+    background-image: url(/static/rainbo/img/icons/193.png) !important;
 }
 
 label[for=id_thunderstorm_intensity_2],
 .myDivIcon195 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/195.png);
+    background-image: url(/static/rainbo/img/icons/195_grey.png);
+}
+
+label[for=id_thunderstorm_intensity_2] > input{
+    display: none;
+}
+
+.id_thunderstorm_intensity_2_selected{
+    background-image: url(/static/rainbo/img/icons/195.png) !important;
 }
 
 label[for=id_thunderstorm_intensity_3],
 .myDivIcon196 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/196.png);
+    background-image: url(/static/rainbo/img/icons/196_grey.png);
+}
+
+label[for=id_thunderstorm_intensity_3] > input{
+    display: none;
+}
+
+.id_thunderstorm_intensity_3_selected{
+    background-image: url(/static/rainbo/img/icons/196.png) !important;
 }
 
 label[for=id_tornado_0],
 .myDivIcon199 {
     vertical-align: bottom;
     padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/199.png);
+    background-image: url(/static/rainbo/img/icons/199_grey.png);
 }
 
-label[for=id_impact_detected_2] {
-    vertical-align: bottom;
-    padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/impact_floading.png);
+label[for=id_tornado_0] > input{
+    display: none;
 }
 
-label[for=id_impact_detected_1] {
-    vertical-align: bottom;
-    padding-top: 45px;
-    background-image: url(/static/rainbo/img/icons/impact_ice_on_road.png);
+.id_tornado_0_selected{
+    background-image: url(/static/rainbo/img/icons/199.png) !important;
 }
 
 label[for=id_impact_detected_0] {
     vertical-align: bottom;
     padding-top: 45px;    
-    background-image: url(/static/rainbo/img/icons/impact_tree.png);
+    background-image: url(/static/rainbo/img/icons/impact_tree_grey.png);
+}
+
+label[for=id_impact_detected_0] > input{
+    display: none;
+}
+
+.id_impact_detected_0_selected{
+    background-image: url(/static/rainbo/img/icons/impact_tree.png) !important;
+}
+
+label[for=id_impact_detected_1] {
+    vertical-align: bottom;
+    padding-top: 45px;
+    background-image: url(/static/rainbo/img/icons/impact_ice_on_road_grey.png);
+}
+
+label[for=id_impact_detected_1] > input{
+    display: none;
+}
+
+.id_impact_detected_1_selected{
+    background-image: url(/static/rainbo/img/icons/impact_ice_on_road.png) !important;
+}
+
+label[for=id_impact_detected_2] {
+    vertical-align: bottom;
+    padding-top: 45px;
+    background-image: url(/static/rainbo/img/icons/impact_floading_grey.png);
+}
+
+label[for=id_impact_detected_2] > input{
+    display: none;
+}
+
+.id_impact_detected_2_selected{
+    background-image: url(/static/rainbo/img/icons/impact_floading.png) !important;
 }
 
 
 
 .insertdata-selector input{
-    /*margin:0;padding:0;*/
     background-color: orange;
     -webkit-appearance:none;
        -moz-appearance:none;
@@ -703,24 +846,14 @@ label[for=id_impact_detected_0] {
 
 .insertdata-selector ul {
     list-style-type: none;
-    /*padding: 10px;
-    text-align: center;
-    border: groove;*/
-
 }
 
 .insertdata-selector ul li{
     display: inline;
 }
 
-.selected
-{
-    -webkit-filter: none !important;
-       -moz-filter: none !important;
-            filter: none !important;
-}
-
 .insertdata-selector label{
+    margin-right: 10px;
     padding-top: 55px;
     text-align: center;
     font-size: 9px;
@@ -729,26 +862,17 @@ label[for=id_impact_detected_0] {
     background-repeat:no-repeat;
     display:inline-block;
     width:60px;height:60px;
-    -webkit-transition: all 100ms ease-in;
-       -moz-transition: all 100ms ease-in;
-            transition: all 100ms ease-in;
-    -webkit-filter: brightness(1.8) grayscale(1) opacity(.7);
-       -moz-filter: brightness(1.8) grayscale(1) opacity(.7);
-            filter: brightness(1.8) grayscale(1) opacity(.7);
 }
 
-
+@media(max-width:991px) {
+    .form-group.pl-md.row {
+      padding-bottom: 30px;
+    }
+}
 .insertdata-selector input:active + .insertdata-selector label{opacity: .9;}
 
-
-
-.insertdata-selector label:hover{
-    -webkit-filter: brightness(1.2) grayscale(.5) opacity(.9);
-       -moz-filter: brightness(1.2) grayscale(.5) opacity(.9);
-            filter: brightness(1.2) grayscale(.5) opacity(.9);
-}
-
 #submit-container{
+    visibility:visible;
     position: absolute;
     left: 0;
     width: 100%;
@@ -756,15 +880,9 @@ label[for=id_impact_detected_0] {
 }
 
 form {
-    /*border: 2px solid silver;
-    border-radius: 25px;*/
-    /* border: 1px solid silver; */
-    /* max-width: 260px; */
     width: 95%;
     margin: 0 auto;
-    /*background-color: #ffffff;*/
     color: #000000;
-    /*box-shadow: 2px 2px 4px #dedede; */
     /*position: absolute;*/
     padding-top: 25px;
     padding-bottom: 25px;
@@ -775,3 +893,4 @@ form {
     text-align:center;
     padding-top:100px;
 }
+
