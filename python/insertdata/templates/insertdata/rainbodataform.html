@@ -64,10 +64,9 @@
 
 			function onLocationFound(e) {
                                 var radius = e.accuracy / 2;
-                
-                                L.marker(e.latlng).addTo(map)
+                                marker = new L.marker(e.latlng).addTo(map)
                                         .bindPopup("Ti trovi in un raggio di " + radius + " metri da questo punto.").openPopup();
-                
+                                positionField.onCreated({layer:marker});
                                 L.circle(e.latlng, radius).addTo(map);
                         }
                 
