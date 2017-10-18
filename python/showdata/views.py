@@ -275,14 +275,16 @@ def timeseries(request,html_template="showdata/timeseries.html", **kwargs):
         trangetxt=dballe.describe_trange(*[None if v == "-" else int(v) for v in kwargs.get("trange").split(",")])
 
     if kwargs.get("var")== "*":
-        vartxt="All vars"
         bcode=Bcode(bcode="B00001",description="Undefined",unit="Undefined",userunit="",scale=1.0,offset=0.0)
     else:
         varinfo=dballe.varinfo(kwargs.get("var"))
         #vartxt=varinfo.desc+" "+varinfo.unit
-        vartxt=varinfo.desc
-        bcode=Bcode.objects.get(bcode=kwargs.get("var"))
-
+        try:
+            bcode=Bcode.objects.get(bcode=kwargs.get("var"))
+        except:
+            bcode=Bcode(bcode=kwargs.get("var"),description=varinfo.desc,unit=varinfo.unit,userunit=varinfo.unit,scale=1.0,offset=0.0)
+            
+            
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
         if not request.GET.get(k, None) is None:
@@ -301,7 +303,7 @@ def timeseries(request,html_template="showdata/timeseries.html", **kwargs):
         "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"),
         "hour":kwargs.get("hour"), 
         "datefrom":datefrom,"dateuntil":dateuntil, 
-        "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
+        "trangetxt":trangetxt, "leveltxt":leveltxt,
         "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaulttimedsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox})
 
 
@@ -466,13 +468,13 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
         trangetxt=dballe.describe_trange(*[None if v == "-" else int(v) for v in kwargs.get("trange").split(",")])
 
     if kwargs.get("var")== "*":
-        vartxt="All vars"
         bcode=Bcode(bcode="B00001",description="Undefined",unit="Undefined",userunit="",scale=1.0,offset=0.0)
     else:
         varinfo=dballe.varinfo(kwargs.get("var"))
-        #vartxt=varinfo.desc+" "+varinfo.unit
-        vartxt=varinfo.desc
-        bcode=Bcode.objects.get(bcode=kwargs.get("var"))
+        try:
+            bcode=Bcode.objects.get(bcode=kwargs.get("var"))
+        except:
+            bcode=Bcode(bcode=kwargs.get("var"),description=varinfo.desc,unit=varinfo.unit,userunit=varinfo.unit,scale=1.0,offset=0.0)
         
     spatialbox={}
     for k in ('lonmin','latmin','lonmax','latmax'):
@@ -490,7 +492,7 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
         "level":kwargs.get("level"), "var":kwargs.get("var"), 
         "year":kwargs.get("year"), "month":kwargs.get("month"), "day":kwargs.get("day"), 
         "hour":kwargs.get("hour"), 
-        "vartxt":vartxt, "trangetxt":trangetxt, "leveltxt":leveltxt,
+        "trangetxt":trangetxt, "leveltxt":leveltxt,
         "datefrom":datefrom,"dateuntil":dateuntil,
         "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox,
         "type":request.GET.get('type')})
