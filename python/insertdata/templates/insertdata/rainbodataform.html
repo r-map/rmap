@@ -72,13 +72,13 @@
                         }
                 
                         function onLocationError(e) {
-                                alert(e.message);
+                                alert('Per utilizzare l\'applicazione da mobile è necessario attivare la funzione di geolocalizzazione');
                         }
                 
                         map.removeControl(map.resetviewControl)
                         if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
                             if(!(navigator.geolocation)){
-                                alert('Per utilizzare l\'applicazione da mobile è neccessario attivare la funzione di geolocalizzazione');
+                                alert('Per utilizzare l\'applicazione da mobile è necessario attivare la funzione di geolocalizzazione');
                             }else{
                                 map.on('locationfound', onLocationFound);
                                 map.on('locationerror', onLocationError);
