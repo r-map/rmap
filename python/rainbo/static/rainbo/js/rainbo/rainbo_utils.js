@@ -13,10 +13,10 @@ if(mm<10) {
 
 today = yyyy + '/' + mm + '/' + dd;
 
-$('#rain_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=180');
+$('#rain_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=150');
 $('#thunderstorm_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=190');
 $('#tornado_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=199');
 $('#visibility_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=110');
-$('#damage_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20203/spatialseries/'+today+'?type=all');
+$('#damage_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20203/spatialseries/'+today+'?type=dam');
 $('#snow_spatial_series').attr('href', '/showdata/*/*/*/254,0,0/1,-,-,-/B20003/spatialseries/'+today+'?type=180');
 
