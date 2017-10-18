@@ -329,6 +329,7 @@ def insertDataRainboWeatherData(request):
             datavar={}
 
             #Ascending importance order
+            value = form.cleaned_data['not_significant'] if form.cleaned_data['not_significant'] != "" else ""
             value = form.cleaned_data['visibility_intensity'] if form.cleaned_data['visibility_intensity'] != "" else ""
             value = form.cleaned_data['rain_intensity'] if form.cleaned_data['rain_intensity'] != ""  else value
             value = form.cleaned_data['snow_intensity'] if form.cleaned_data['snow_intensity'] != "" else value

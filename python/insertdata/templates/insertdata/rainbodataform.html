@@ -48,7 +48,6 @@
                  
                     function main_map_init (map, options) {
                         geodjango_id_geom.store_class = L.FieldStore();
-                        console.log(L.FieldStore);
                         positionField = (new L.GeometryField(geodjango_id_geom)).addTo(map);
 
                         var marker;
@@ -62,21 +61,49 @@
                             positionField.onCreated({layer:marker});
                             map.setView([position.coords.latitude, position.coords.longitude], 10);  
                         }
-                        L.easyButton({
-                            states: [{
-                                stateName: 'geolocation-marker',
-                                icon: 'fa-location-arrow', 
-                                title: 'Get user position',
-                                onClick: function(control) {
-                                    if (navigator.geolocation) {
-                                        alert('It runs only in https! (Or with Firefox Desktop)');
-                                        navigator.geolocation.getCurrentPosition(showPosition);
-                                    } else {
-                                        alert( "Geolocation is not supported by this browser.");
-                                    }
-                                },
-                            }]
-                        }).addTo(map);
+
+			function onLocationFound(e) {
+                                var radius = e.accuracy / 2;
+                
+                                L.marker(e.latlng).addTo(map)
+                                        .bindPopup("Ti trovi in un raggio di " + radius + " metri da questo punto.").openPopup();
+                
+                                L.circle(e.latlng, radius).addTo(map);
+                        }
+                
+                        function onLocationError(e) {
+                                alert('Per utilizzare l\'applicazione da mobile è necessario attivare la funzione di geolocalizzazione');
+                        }
+                
+                        map.removeControl(map.resetviewControl)
+                        if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)){
+                            if(!(navigator.geolocation)){
+                                alert('Per utilizzare l\'applicazione da mobile è necessario attivare la funzione di geolocalizzazione');
+                            }else{
+                                map.on('locationfound', onLocationFound);
+                                map.on('locationerror', onLocationError);
+                                map.locate({setView: true, maxZoom: 16});
+                                window.jQuery('.leaflet-draw').remove();
+				    window.jQuery('#striped-rows').text("Inserisci il fenomento osservato. Se la posizione non è abbastanza precisa, attendi qualche istante e aggiorna la pagina");
+                            }
+                        }else{
+                            L.easyButton({
+                                states: [{
+                                    stateName: 'geolocation-marker',
+                                    icon: 'fa-location-arrow',
+                                    title: 'Get user position',
+                                    onClick: function(control) {
+                                        if (navigator.geolocation) {
+                                            navigator.geolocation.getCurrentPosition(showPosition);
+                                        } else {
+                                            alert( "La funzione di geolocalizzazione non è supportata dal tuo browser.");
+                                        }
+                                    },
+                                }]
+                            }).addTo(map);
+
+			}
+
                     }
                 </script>
             
@@ -85,8 +112,9 @@
 
                 {% if form.not_significant %}
                 <div class="form-group pl-md row">
-                   Nessun fenomeno in atto
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal0"></i>
+                   <a href="#servicesModal0" data-toggle="modal">Nessun fenomeno in atto
+                       <i class="fa fa-info-circle"></i>
+		   </a>
                    {{ form.not_significant }}
                 </div>
 
@@ -94,32 +122,37 @@
 
                 {% if form.visibility_intensity %}
                 <div class="form-group pl-md row">
-                   Visibilit&agrave;
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal1"></i>
+		   <a href="#servicesModal1" data-toggle="modal">Visibilit&agrave;
+                       <i class="fa fa-info-circle"></i>
+		   </a>
                    {{ form.visibility_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
-                   Pioggia
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal2"></i>
+                   <a href="#servicesModal2" data-toggle="modal">Pioggia
+                       <i class="fa fa-info-circle"></i>
+		   </a>
                    {{ form.rain_intensity }}
                 </div>
 
                <div class="form-group pl-md row">
-                   Neve
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal3"></i>
+                   <a href="#servicesModal3" data-toggle="modal">Neve
+                       <i class="fa fa-info-circle"></i>
+                   </a>
                    {{ form.snow_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
-                   Temporale
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal4"></i>
+                   <a href="#servicesModal4" data-toggle="modal">Temporale
+                       <i class="fa fa-info-circle"></i>
+                   </a>
                    {{ form.thunderstorm_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
-                   Tromba d'aria
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal5"></i>
+                   <a href="#servicesModal5" data-toggle="modal">Tromba d'aria
+                       <i class="fa fa-info-circle"></i>
+                   </a>
                    {{ form.tornado }}
                 </div>
                 {% endif %}
@@ -127,15 +160,16 @@
                 {% if form.impact_detected %}
 
                 <div class="form-group pl-md row">
-			    <div class="panel panel-danger">
-                                <div class="panel-heading">Attenzione</div>
-                                <div class="panel-body">La procedura di inserimento di osservazioni relative ad impatti &egrave; ancora in fase di sviluppo, pertanto l'informazione inserita da parte dell'utente portrebbe non essere acquisita dal sistema</div>
-                            </div>
+                   <div class="panel panel-danger">
+                       <div class="panel-heading">Attenzione</div>
+                       <div class="panel-body">La procedura di inserimento di osservazioni relative ad impatti &egrave; ancora in fase di sviluppo, pertanto l'informazione inserita da parte dell'utente portrebbe non essere acquisita dal sistema</div>
+                   </div>
                 </div>
 
-		<div class="form-group pl-md row">
-                   Tipo d'impatto
-                   <i class="fa fa-info-circle" aria-hidden="true" data-toggle="modal" data-target="#servicesModal6"></i>
+                <div class="form-group pl-md row">
+                   <a href="#servicesModal6" data-toggle="modal">Tipo d'impatto
+                       <i class="fa fa-info-circle"></i>
+                   </a>
                    {{ form.impact_detected }}
                 </div>
  
