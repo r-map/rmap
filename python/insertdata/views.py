@@ -327,7 +327,8 @@ def insertDataRainboWeatherData(request):
             dt=datetime.utcnow().replace(microsecond=0)
             ident=request.user.username
             datavar={}
-            print form
+
+            #Ascending importance order
             value = form.cleaned_data['not_significant'] if form.cleaned_data['not_significant'] != "" else ""
             value = form.cleaned_data['visibility_intensity'] if form.cleaned_data['visibility_intensity'] != "" else value
             value = form.cleaned_data['rain_intensity'] if form.cleaned_data['rain_intensity'] != ""  else value
