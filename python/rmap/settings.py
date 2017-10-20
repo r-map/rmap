@@ -666,7 +666,16 @@ sample_measurements=[
         "level": (103, 2000, None, None),
         "trange": (0, 0, 60),
     },
-
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
+    {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 60),
+    },
 ]
 
 report_measurements=[
