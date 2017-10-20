@@ -62,12 +62,11 @@
                             map.setView([position.coords.latitude, position.coords.longitude], 10);  
                         }
 
-			function onLocationFound(e) {
+                        function onLocationFound(e) {
                                 var radius = e.accuracy / 2;
-                
-                                L.marker(e.latlng).addTo(map)
+                                marker = new L.marker(e.latlng).addTo(map)
                                         .bindPopup("Ti trovi in un raggio di " + radius + " metri da questo punto.").openPopup();
-                
+                                positionField.onCreated({layer:marker});
                                 L.circle(e.latlng, radius).addTo(map);
                         }
                 
@@ -84,7 +83,7 @@
                                 map.on('locationerror', onLocationError);
                                 map.locate({setView: true, maxZoom: 16});
                                 window.jQuery('.leaflet-draw').remove();
-				    window.jQuery('#striped-rows').text("Inserisci il fenomento osservato. Se la posizione non è abbastanza precisa, attendi qualche istante e aggiorna la pagina");
+                                window.jQuery('#striped-rows').text("Inserisci il fenomento osservato. Se la posizione non è abbastanza precisa, attendi qualche istante e aggiorna la pagina");
                             }
                         }else{
                             L.easyButton({
@@ -102,7 +101,7 @@
                                 }]
                             }).addTo(map);
 
-			}
+                        }
 
                     }
                 </script>
@@ -110,28 +109,25 @@
             </div>  
             <div class="col-md-4 insertdata-selector" id="right-side-panel">
 
-                {% if form.not_significant %}
+                {% if form.visibility_intensity %}
                 <div class="form-group pl-md row">
                    <a href="#servicesModal0" data-toggle="modal">Nessun fenomeno in atto
                        <i class="fa fa-info-circle"></i>
-		   </a>
+                   </a>
                    {{ form.not_significant }}
                 </div>
 
-               {% endif %}
-
-                {% if form.visibility_intensity %}
                 <div class="form-group pl-md row">
-		   <a href="#servicesModal1" data-toggle="modal">Visibilit&agrave;
+                   <a href="#servicesModal1" data-toggle="modal">Visibilit&agrave;
                        <i class="fa fa-info-circle"></i>
-		   </a>
+                   </a>
                    {{ form.visibility_intensity }}
                 </div>
 
                 <div class="form-group pl-md row">
                    <a href="#servicesModal2" data-toggle="modal">Pioggia
                        <i class="fa fa-info-circle"></i>
-		   </a>
+                   </a>
                    {{ form.rain_intensity }}
                 </div>
 
