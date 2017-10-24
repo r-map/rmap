@@ -27,11 +27,15 @@ from rmap import daemon
 import pika, subprocess
 import traceback
 import rmap.settings
-import threading,Queue
+import threading,Queue,time
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
+user="rmap"
+
+MAXMESSAGEFORSECOND=10  # max number of messages to elaborate in one second
+TIMESTEP=15             # execute dbadb import everi TIMESTEP seconds
 
 #add option for topic and dsn
 class  mydaemon(daemon.Daemon):
@@ -60,47 +64,85 @@ send_queue = Queue.Queue()
 receive_queue = Queue.Queue()
 
 
-class Threaded_bufr2dballe(threading.Thread):
-    def __init__(self,delivery_tag,dsn):
-        threading.Thread.__init__(self)
+class Message(object):
+    def __init__(self,body,delivery_tag):
         self.delivery_tag=delivery_tag
+        self.body=body
+
+
+
+class Threaded_bufr2dballe(threading.Thread):
+
+    #def __init__(self,delivery_tag,dsn):
+    def __init__(self,dsn):
+        threading.Thread.__init__(self)
+        #self.delivery_tag=delivery_tag
         self.dsn=dsn
         
     def run(self):
 
-        body = send_queue.get()
+        timestart=time.time()
+        while True:
+            # buffer messages for TIMESTEP sec
+            now=time.time()
+            timetosleep=TIMESTEP-(now-timestart)
+            if timetosleep >0:
+                logging.debug("sleep for: %s" % timetosleep)
+                time.sleep(timetosleep)
+            timestart=now
+            
+            messages=[]
+            while not send_queue.empty():
+                messages.append(send_queue.get())
 
-        try:
-            amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+self.dsn], stdin=subprocess.PIPE)]
-            outstdout,outstderr=amqp2dballed.procs[0].communicate(input=body)
+            if len(messages) > 0:
+                logging.debug("elaborate %s messages" % len(messages))
+                totalbody=""
+                for message in messages:
+                    totalbody += message.body
+            
+                try:
+                    amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+self.dsn], stdin=subprocess.PIPE)]
+                    outstdout,outstderr=amqp2dballed.procs[0].communicate(input=totalbody)
 
-            if (outstdout): logging.debug(outstdout)
-            if (outstderr): logging.error(outstderr)
+                    if (outstdout): logging.debug(outstdout)
+                    if (outstderr): logging.error(outstderr)
 
-            status=amqp2dballed.procs[0].wait()
-            if status != 0:
-                logging.error("There were some errors executing dbadb import error: %s" % status)
-                logging.debug("skip message: ")
-                logging.debug(body)
-                logging.debug("---------------------")
+                    status=amqp2dballed.procs[0].wait()
+                    if status != 0:
+                        logging.error("There were some errors executing dbadb import error: %s" % status)
+                        logging.debug("skip message: ")
+                        logging.debug(totalbody)
+                        logging.debug("---------------------")
 
-        except Exception as exception:
-            logging.error("There were some errors executing dbadb import")
-            logging.error('Exception occured: ' + str(exception))
-            logging.error(traceback.format_exc())
-            #raise
-            # raise TODO: enqueue in error
-            receive_queue.put_nowait(("nook",self.delivery_tag))
+                except Exception as exception:
+                    logging.error("There were some errors executing dbadb import")
+                    logging.error('Exception occured: ' + str(exception))
+                    logging.error(traceback.format_exc())
+                    status=100
+                    #raise
+                    # TODO: enqueue in error
+                else:
 
-        else:
+                    logging.info("Task done: dbadb terminated")
+                    # error or not error we skip the messages
+                    status=0
 
-            logging.info("Task done: thread terminated")
-            receive_queue.put_nowait(("ok",self.delivery_tag))
+                finally:
+                    send_queue.task_done()
 
+                if status == 0:
+                    for message in messages:
+                        receive_queue.put_nowait(("ok",message.delivery_tag))
+                else:
+                    for message in messages:
+                        receive_queue.put_nowait(("nook",message.delivery_tag))
 
+                    
+                
 class amqpConsumer(object):
 
-    def __init__(self,dsn):
+    def __init__(self,dsn,queue):
         """Create a new instance of the consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -112,6 +154,13 @@ class amqpConsumer(object):
         self._closing = False
         self._consumer_tag = None
         self.dsn=dsn
+        self.queue=queue
+
+        #self.td = Threaded_bufr2dballe(basic_deliver.delivery_tag,dsn)
+        self.td = Threaded_bufr2dballe(dsn)
+        self.td.setDaemon(True)
+        self.td.start()
+
         
     def connect(self):
         """This method connects to RabbitMQ, returning the connection handle.
@@ -240,8 +289,8 @@ class amqpConsumer(object):
         """
         logging.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
-        self._channel.basic_qos(prefetch_count=3)
-        self._consumer_tag = self._channel.basic_consume(self.on_message,queue)
+        self._channel.basic_qos(prefetch_count=MAXMESSAGEFORSECOND*TIMESTEP)
+        self._consumer_tag = self._channel.basic_consume(self.on_message,self.queue)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
@@ -282,10 +331,13 @@ class amqpConsumer(object):
                     basic_deliver.delivery_tag, properties.app_id)
 
 
-        td = Threaded_bufr2dballe(basic_deliver.delivery_tag,dsn)
-        td.setDaemon(True)
-        td.start()
-        send_queue.put(body)
+        #td = Threaded_bufr2dballe(basic_deliver.delivery_tag,dsn)
+        #td.setDaemon(True)
+        #td.start()
+        #send_queue.put(basic_deliver.delivery_tag)
+        #send_queue.put(body)
+        message=Message(body,basic_deliver.delivery_tag)
+        send_queue.put(message)
 
         ##self._connection.ioloop.stop()
         #while (td.isAlive()):
@@ -359,23 +411,21 @@ class amqpConsumer(object):
         """
         """
 
-        try:
-            response=receive_queue.get_nowait()
-        except Queue.Empty:
-            response=("",0)
+        while not receive_queue.empty():
+            response=receive_queue.get()
 
-        #try:
-        #    logging.info('RESPONSE %s %s' % response)
-        #except:
-        #    logging.info('STRANGE RESPONSE')
-        #    print response
+            #try:
+            #    logging.info('RESPONSE %s %s' % response)
+            #except:
+            #    logging.info('STRANGE RESPONSE')
+            #    print response
 
-        if (response[0] == "ok"):
-            logging.info('ACK %s' % response[1])
-            self.acknowledge_message(response[1])
-        elif (response[0] == "nook"):
-            logging.info('NOT ACK %s' % response[1])
-            self.not_acknowledge_message(response[1])
+            if (response[0] == "ok"):
+                logging.info('ACK %s' % response[1])
+                self.acknowledge_message(response[1])
+            elif (response[0] == "nook"):
+                logging.info('NOT ACK %s' % response[1])
+                self.not_acknowledge_message(response[1])
 
         self._connection.add_timeout(3, self.mgrack)
 
@@ -404,7 +454,7 @@ class amqpConsumer(object):
 
 
 
-def newmain(self):
+def main(self):
 
     # configure the logger
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
@@ -413,7 +463,7 @@ def newmain(self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     logging.info('Starting up amqp2dballed')
     
@@ -453,7 +503,7 @@ def newmain(self):
 
     print ' [*] Waiting for messages. To exit press CTRL+C'
 
-    consumer = amqpConsumer(dsn=dsn)
+    consumer = amqpConsumer(dsn=dsn,queue=queue)
 
     try:
         consumer.run()
@@ -496,7 +546,7 @@ def callback(ch, method, properties, body):
 
     # TODO how we can pass procs to daemon ? 
 
-def main(self):
+def oldmain(self):
 
     # configure the logger
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
