@@ -1,7 +1,7 @@
 import csv
 import json
 import codecs
-from datetime import datetime
+from datetime import datetime,timedelta
 import logging
 try:
     from urllib.request import urlopen
@@ -158,6 +158,8 @@ def main():
 
     parser.add_argument("--hourmin",default=0,type=int,help='hour min to extract')
     parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
+
+    parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
     
     args = parser.parse_args()
 
@@ -178,7 +180,12 @@ def main():
     else:
         datetimemin=datetime(args.yearmin, args.monthmin, args.daymin, args.hourmin, args.minmin)
 
-    
+    if not args.nlastdays is None:
+        datetimemin=(datetime.now()-timedelta(days=args.nlastdays)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    logging.info("extract data starting from: "+str(datetimemin))
+
+        
     try:
         last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
         print last
