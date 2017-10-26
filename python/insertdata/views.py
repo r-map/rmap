@@ -312,7 +312,7 @@ def insertDataRainboImpactData(request):
             return render(request, html_template,{'form': form,"invalid":True})
                 
     else:
-        return render(request, html_template,{'form': form})
+        return render(request, html_template,{'form': form,"success":True})
 
 @login_required
 def insertDataRainboWeatherData(request):
@@ -361,7 +361,7 @@ def insertDataRainboWeatherData(request):
             return render(request, html_template,{'form': form,"invalid":True})
                 
     else:
-        return render(request, html_template,{'form': form})
+        return render(request, html_template,{'form': form,"success":True})
 
 
 @login_required
