@@ -34,6 +34,8 @@ VARIABLE_BCODES = {
     82: None,
 }
 
+current=0
+
 STATIONS_URL = "https://docs.google.com/spreadsheets/d/1GlY3Pu9GDpLDk8Spl9yV1wjCRPvOI1m7BFxumfcuGcE/export?format=csv"
 VARIABLES_URL = "https://docs.google.com/spreadsheets/d/13QcqldwA3EQ_4E17Hqggd2ZcMgUA5UwACttAWEkaU28/export?format=csv"
 DATASTORE_URL = "https://dati.arpae.it/api/action/datastore_search?resource_id=a1c46cfe-46e5-44b4-9231-7d9260a38e68"
@@ -102,15 +104,18 @@ def load_variables():
     return variables
 
 
-def export_data(outfile):
+def export_data(outfile,low=0,high=None):
     db = dballe.DB.connect_from_url("sqlite://:memory:")
     db.reset()
+    last=low
     stations = load_stations()
     variables = load_variables()
     for rec in stations.values():
         db.insert_station_data(rec, can_add_stations=True)
 
-    for row in iter_datastore():
+    for row in iter_datastore(low=low,high=high):
+        last+=1
+        #last=row["_id"]
         variable = variables.get(row["variable_id"])
         station = stations.get(row["station_id"])
         reftime = datetime.strptime(row["reftime"], "%Y-%m-%dT%H:%M:%S")
@@ -128,10 +133,11 @@ def export_data(outfile):
             rec["level"] = variable["level"]
             rec["trange"] = variable["trange"]
             db.insert_data(rec)
-
+            
     db.export_to_file(dballe.Record(), filename=outfile,
                       format="BUFR", generic=True)
 
+    return last+1
 
 
 def main():
@@ -140,6 +146,7 @@ def main():
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("outfile")
+    parser.add_argument("--low", type=int,help='start download data from this record')
 
     args = parser.parse_args()
 
@@ -156,7 +163,8 @@ def main():
     logging.basicConfig(level=loglevel, format=logformat)
 
     try:
-        export_data(args.outfile)
+        last = export_data(args.outfile,low=args.low)
+        print last
     except Exception as e:
         logging.exception(e)
 
