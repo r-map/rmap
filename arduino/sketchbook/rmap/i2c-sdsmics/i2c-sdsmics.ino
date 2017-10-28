@@ -58,7 +58,7 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 03             //Software version for cross checking
+#define VERSION 04             //Software version for cross checking
 
 #include <limits.h>
 #include <avr/wdt.h>
@@ -97,6 +97,12 @@ calibration::Calibration NO2Cal;
 
 // CO Sensor calibration
 calibration::Calibration COCal;
+
+// PM2 Sensor calibration
+calibration::Calibration PM25Cal;
+
+// PM10 Sensor calibration
+calibration::Calibration PM10Cal;
 
 #endif
 
@@ -141,6 +147,8 @@ typedef struct {
   uint16_t     maxpm10;
   uint16_t     sigmapm25;
   uint16_t     sigmapm10;
+  uint16_t     pm25sample;
+  uint16_t     pm10sample;
 } pm_t;
 
 typedef struct {
@@ -191,6 +199,26 @@ typedef struct {
   // Define the number of calibration points
   uint8_t conumPoints;
 #endif
+
+#ifdef SDS011PRESENT
+  // calibration data
+  // Concentratios used in calibration process
+  float pm25concentrations[MAX_POINTS];
+  // Calibration samples obtained during calibration process
+  float pm25samples[MAX_POINTS];
+  // Define the number of calibration points
+  uint8_t pm25numPoints;
+  
+  // Concentrations used in calibration process
+  float pm10concentrations[MAX_POINTS];
+  // Calibration samples obtained during calibration process
+  float pm10samples[MAX_POINTS];
+  // Define the number of calibration points
+  uint8_t pm10numPoints;
+#endif
+
+
+
   
   void save (int* p) volatile {                            // save to eeprom
 
@@ -204,9 +232,18 @@ typedef struct {
     *p+=EEPROM_writeAnything(*p, no2concentrations);
     *p+=EEPROM_writeAnything(*p, no2resistences);
     *p+=EEPROM_writeAnything(*p, conumPoints);
-    *p+=EEPROM_writeAnything(*p, coconcentrations);
     *p+=EEPROM_writeAnything(*p, coresistences);
+    *p+=EEPROM_writeAnything(*p, coconcentrations);
 #endif
+#ifdef SDS011PRESENT
+    *p+=EEPROM_writeAnything(*p, pm25numPoints);    
+    *p+=EEPROM_writeAnything(*p, pm25concentrations);
+    *p+=EEPROM_writeAnything(*p, pm25samples);
+    *p+=EEPROM_writeAnything(*p, pm10numPoints);
+    *p+=EEPROM_writeAnything(*p, pm10samples);
+    *p+=EEPROM_writeAnything(*p, pm10concentrations);
+#endif
+
   }
   
   void load (int* p) volatile {                            // load from eeprom
@@ -217,8 +254,16 @@ typedef struct {
     *p+=EEPROM_readAnything(*p, no2concentrations);
     *p+=EEPROM_readAnything(*p, no2resistences);
     *p+=EEPROM_readAnything(*p, conumPoints);
-    *p+=EEPROM_readAnything(*p, coconcentrations);
     *p+=EEPROM_readAnything(*p, coresistences);
+    *p+=EEPROM_readAnything(*p, coconcentrations);
+#endif
+#ifdef SDS011PRESENT
+    *p+=EEPROM_readAnything(*p, pm25numPoints);    
+    *p+=EEPROM_readAnything(*p, pm25concentrations);
+    *p+=EEPROM_readAnything(*p, pm25samples);
+    *p+=EEPROM_readAnything(*p, pm10numPoints);
+    *p+=EEPROM_readAnything(*p, pm10samples);
+    *p+=EEPROM_readAnything(*p, pm10concentrations);
 #endif
   }
 } I2C_WRITABLE_REGISTERS;
@@ -516,6 +561,16 @@ void setup() {
       memcpy(const_cast<float*>(i2c_writabledataset2->coconcentrations), const_cast<float*>(i2c_writabledataset1->coconcentrations), sizeof i2c_writabledataset1->coconcentrations);
       memcpy(const_cast<float*>(i2c_writabledataset2->coresistences), const_cast<float*>(i2c_writabledataset1->coresistences), sizeof i2c_writabledataset1->coresistences);
 #endif
+#ifdef SDS011PRESENT
+      //calibration
+      i2c_writabledataset2->pm25numPoints=i2c_writabledataset1->pm25numPoints;
+      memcpy(const_cast<float*>(i2c_writabledataset2->pm25concentrations), const_cast<float*>(i2c_writabledataset1->pm25concentrations), sizeof i2c_writabledataset1->pm25concentrations);
+      memcpy(const_cast<float*>(i2c_writabledataset2->pm25samples), const_cast<float*>(i2c_writabledataset1->pm25samples), sizeof i2c_writabledataset1->pm25samples); 
+      i2c_writabledataset2->pm10numPoints=i2c_writabledataset1->pm10numPoints;
+      memcpy(const_cast<float*>(i2c_writabledataset2->pm10concentrations), const_cast<float*>(i2c_writabledataset1->pm10concentrations), sizeof i2c_writabledataset1->pm10concentrations);
+      memcpy(const_cast<float*>(i2c_writabledataset2->pm10samples), const_cast<float*>(i2c_writabledataset1->pm10samples), sizeof i2c_writabledataset1->pm10samples); 
+#endif
+
     }
   else
     {
@@ -564,7 +619,16 @@ void setup() {
       i2c_writabledataset2->coresistences[1]= POINT2_RES_CO;
       i2c_writabledataset2->coresistences[2]= POINT3_RES_CO;
 #endif
+
+#ifdef SDS011PRESENT
+      //calibration
+      i2c_writabledataset1->pm25numPoints=0;
+      i2c_writabledataset2->pm25numPoints=0;
       
+      i2c_writabledataset1->pm10numPoints=0;
+      i2c_writabledataset2->pm10numPoints=0;
+      
+#endif      
     }
 
   oneshot=i2c_writabledataset2->oneshot;
@@ -578,6 +642,11 @@ void setup() {
 #ifdef MICS4514PRESENT
   NO2Cal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->no2resistences), const_cast<float*>(i2c_writabledataset1->no2concentrations), i2c_writabledataset1->no2numPoints);
   COCal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->coresistences), const_cast<float*>(i2c_writabledataset1->coconcentrations), i2c_writabledataset1->conumPoints);
+#endif
+
+#ifdef SDS011PRESENT
+  PM25Cal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->pm25samples), const_cast<float*>(i2c_writabledataset1->pm25concentrations), i2c_writabledataset1->pm25numPoints);
+  PM10Cal.setCalibrationPoints(const_cast<float*>(i2c_writabledataset1->pm10samples), const_cast<float*>(i2c_writabledataset1->pm10concentrations), i2c_writabledataset1->pm10numPoints);
 #endif
   
   //Start I2C communication routines
@@ -744,18 +813,41 @@ void loop() {
 
   IF_SDEBUG(Serial.print("end query sds: "));
   IF_SDEBUG(Serial.println(millis() - starttime));
-
+  
   wdt_reset();
 
   if (ok){
 
-    i2c_dataset1->pm.pm25=pm25;
-    i2c_dataset1->pm.pm10=pm10;
-    
-    IF_SDEBUG(Serial.print("pm25: "));
+    float ppm;
+
+    IF_SDEBUG(Serial.print(F("pm25 uncalibrated: ")));
     IF_SDEBUG(Serial.println(pm25));
-    IF_SDEBUG(Serial.print("pm10: "));
-    IF_SDEBUG(Serial.println(pm10));
+
+    i2c_dataset1->pm.pm25sample=pm25;
+  
+    if (PM25Cal.getConcentration(float(pm25),&ppm)){
+      IF_SDEBUG(Serial.print("pm25 calibrated"));
+    } else {
+      IF_SDEBUG(Serial.print("pm25 not calibrated"));
+    }
+    IF_SDEBUG(Serial.println(ppm));
+    i2c_dataset1->pm.pm25=round(ppm);
+
+    
+    IF_SDEBUG(Serial.print(F("pm25 uncalibrated: ")));
+    IF_SDEBUG(Serial.println(pm25));
+
+    i2c_dataset1->pm.pm10sample=pm10;
+  
+    if (PM10Cal.getConcentration(float(pm10),&ppm))  {
+      IF_SDEBUG(Serial.print("pm10 calibrated"));
+    }else{
+      IF_SDEBUG(Serial.print("pm10 uncalibrated"));
+    }
+    IF_SDEBUG(Serial.println(ppm));
+    i2c_dataset1->pm.pm10=round(ppm);
+
+    
   }  else {
     IF_SDEBUG(Serial.println(F("ERROR getting sds011 values !")));
   }

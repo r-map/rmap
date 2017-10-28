@@ -59,6 +59,11 @@ bool Calibration::getConcentration(float input,float *concentration)
 {
 	bool inRange = false; 
 	int i = 0;
+
+	if (numPoints == 0) {
+	  *concentration = input;
+	  return false;
+	}
 	
 	// This loop is to find the range where the input is located
 	while ((!inRange) && (i < (numPoints-1))) {
