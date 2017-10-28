@@ -2,6 +2,6 @@ index = reftime, area, product, origin, proddef
 step = daily
 type = ondisk2
 unique = reftime, area, product, origin, proddef
-filter = product: BUFR:t=mnw
+filter = product: BUFR:t=arpae-aq
 replace = yes
 postprocess = json, bufr, bufr-filter

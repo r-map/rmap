@@ -3,6 +3,13 @@
 MAILTO=root
 
 15 3 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///sample_fixed?user=rmap&password=rmap"  --arkiconf=/rmap/arkimet/sample_fixed.conf   > /dev/null
+40 3 * * *   arkimet /usr/bin/dbadb cleanup --url="mysql:///sample_fixed?user=rmap&password=rmap"
+
 45 3 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///sample_mobile?user=rmap&password=rmap" --arkiconf=/rmap/arkimet/sample_mobile.conf  > /dev/null
+10 4 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///sample_mobile?user=rmap&password=rmap"
+
 15 4 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///report_fixed?user=rmap&password=rmap"  --arkiconf=/rmap/arkimet/report_fixed.conf   > /dev/null
+40 4 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///report_fixed?user=rmap&password=rmap"
+
 45 4 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///report_mobile?user=rmap&password=rmap" --arkiconf=/rmap/arkimet/report_mobile.conf  > /dev/null
+10 5 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///report_mobile?user=rmap&password=rmap"
