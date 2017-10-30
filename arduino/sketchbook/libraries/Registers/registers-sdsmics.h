@@ -43,7 +43,7 @@
 #define I2C_MICS4514_SIGMANO2             0x27      // NO2 sigma
 #define I2C_MICS4514_CORESISTANCE         0x29      // CO mics resistance (for calibration)
 #define I2C_MICS4514_NO2RESISTANCE        0x2B      // NO2 mics resistance (for calibration)
-#define I2C_MICS4514_PM25SAMPLE            0x2D     // PM2.5 sds011 sample (for calibration)
+#define I2C_MICS4514_PM25SAMPLE           0x2D      // PM2.5 sds011 sample (for calibration)
 #define I2C_MICS4514_PM10SAMPLE           0x2F      // PM10 sds011 sample (for calibration)
 
 #define I2C_SDSMICS_MAP_WRITABLE          0x40
@@ -52,19 +52,19 @@
 
 #define NO2NUMPOINTS                      0X42      // num of points for NO2 calibration (MAX 5) (short unsigned int)
 #define NO2CONCENTRATIONS                 0x43      // NO2 calibration concentrations (MAX 5) (float)
-#define NO2RESISTENCES                    0x6B      // NO2 calibration resistances (MAX 5) (float)
+#define NO2RESISTENCES                    0x57      // NO2 calibration resistances (MAX 5) (float)
 
-#define CONUMPOINTS                       0x7F      // num of points for CO calibration (MAX 5) (short unsigned int)
-#define COCONCENTRATIONS                  0x80      // CO calibration concentrations (MAX 5) (float)
-#define CORESISTENCES                     0x94      // CO calibration resistances (MAX 5) (float)
+#define CONUMPOINTS                       0x6B      // num of points for CO calibration (MAX 5) (short unsigned int)
+#define COCONCENTRATIONS                  0x6C      // CO calibration concentrations (MAX 5) (float)
+#define CORESISTENCES                     0x80      // CO calibration resistances (MAX 5) (float)
 
-#define PM25NUMPOINTS                     0xA8      // num of points for PM 2.5 calibration (MAX 5) (short unsigned int)
-#define PM25CONCENTRATIONS                0xA9      // PM 2.5 calibration concentrations (MAX 5) (float)
-#define PM25SAMPLES                       0xBD      // PM 2.5 calibration resistances (MAX 5) (float)
+#define PM25NUMPOINTS                     0x94      // num of points for PM 2.5 calibration (MAX 5) (short unsigned int)
+#define PM25CONCENTRATIONS                0x95      // PM 2.5 calibration concentrations (MAX 5) (float)
+#define PM25SAMPLES                       0xA9      // PM 2.5 calibration resistances (MAX 5) (float)
 
-#define PM10NUMPOINTS                     0xD1      // num of points for PM10 calibration (MAX 5) (short unsigned int)
-#define PM10CONCENTRATIONS                0xD2      // PM10 calibration concentrations (MAX 5) (float)
-#define PM10SAMPLES                       0xE5      // PM10 calibration resistances (MAX 5) (float)
+#define PM10NUMPOINTS                     0xBD      // num of points for PM10 calibration (MAX 5) (short unsigned int)
+#define PM10CONCENTRATIONS                0xBE      // PM10 calibration concentrations (MAX 5) (float)
+#define PM10SAMPLES                       0xD2      // PM10 calibration resistances (MAX 5) (float)
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

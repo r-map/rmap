@@ -71,6 +71,9 @@ void setup()
 
     Serial.println("Hello");
 
+    Serial.print("Sds011 firmware version: ");
+    Serial.println(sensor.firmware_version());
+
     sensor.set_sleep(false);
     sensor.set_mode(sds011::QUERY);
 }

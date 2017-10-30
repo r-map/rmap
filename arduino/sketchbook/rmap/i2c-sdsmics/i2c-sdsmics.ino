@@ -185,36 +185,36 @@ typedef struct {
 
 #ifdef MICS4514PRESENT
   // calibration data
+  // Define the number of calibration points
+  uint8_t no2numPoints;
   // Concentratios used in calibration process
   float no2concentrations[MAX_POINTS];
   // Calibration resistances obtained during calibration process
   float no2resistences[MAX_POINTS];
-  // Define the number of calibration points
-  uint8_t no2numPoints;
   
+  // Define the number of calibration points
+  uint8_t conumPoints;
   // Concentrations used in calibration process
   float coconcentrations[MAX_POINTS];
   // Calibration resistences obtained during calibration process (in KOHMs)
   float coresistences[MAX_POINTS];
-  // Define the number of calibration points
-  uint8_t conumPoints;
 #endif
 
 #ifdef SDS011PRESENT
   // calibration data
+  // Define the number of calibration points
+  uint8_t pm25numPoints;
   // Concentratios used in calibration process
   float pm25concentrations[MAX_POINTS];
   // Calibration samples obtained during calibration process
   float pm25samples[MAX_POINTS];
-  // Define the number of calibration points
-  uint8_t pm25numPoints;
   
+  // Define the number of calibration points
+  uint8_t pm10numPoints;
   // Concentrations used in calibration process
   float pm10concentrations[MAX_POINTS];
   // Calibration samples obtained during calibration process
   float pm10samples[MAX_POINTS];
-  // Define the number of calibration points
-  uint8_t pm10numPoints;
 #endif
 
 
@@ -232,16 +232,16 @@ typedef struct {
     *p+=EEPROM_writeAnything(*p, no2concentrations);
     *p+=EEPROM_writeAnything(*p, no2resistences);
     *p+=EEPROM_writeAnything(*p, conumPoints);
-    *p+=EEPROM_writeAnything(*p, coresistences);
     *p+=EEPROM_writeAnything(*p, coconcentrations);
+    *p+=EEPROM_writeAnything(*p, coresistences);
 #endif
 #ifdef SDS011PRESENT
     *p+=EEPROM_writeAnything(*p, pm25numPoints);    
     *p+=EEPROM_writeAnything(*p, pm25concentrations);
     *p+=EEPROM_writeAnything(*p, pm25samples);
     *p+=EEPROM_writeAnything(*p, pm10numPoints);
-    *p+=EEPROM_writeAnything(*p, pm10samples);
     *p+=EEPROM_writeAnything(*p, pm10concentrations);
+    *p+=EEPROM_writeAnything(*p, pm10samples);
 #endif
 
   }
@@ -254,16 +254,16 @@ typedef struct {
     *p+=EEPROM_readAnything(*p, no2concentrations);
     *p+=EEPROM_readAnything(*p, no2resistences);
     *p+=EEPROM_readAnything(*p, conumPoints);
-    *p+=EEPROM_readAnything(*p, coresistences);
     *p+=EEPROM_readAnything(*p, coconcentrations);
+    *p+=EEPROM_readAnything(*p, coresistences);
 #endif
 #ifdef SDS011PRESENT
     *p+=EEPROM_readAnything(*p, pm25numPoints);    
     *p+=EEPROM_readAnything(*p, pm25concentrations);
     *p+=EEPROM_readAnything(*p, pm25samples);
     *p+=EEPROM_readAnything(*p, pm10numPoints);
-    *p+=EEPROM_readAnything(*p, pm10samples);
     *p+=EEPROM_readAnything(*p, pm10concentrations);
+    *p+=EEPROM_readAnything(*p, pm10samples);
 #endif
   }
 } I2C_WRITABLE_REGISTERS;
@@ -828,21 +828,21 @@ void loop() {
     if (PM25Cal.getConcentration(float(pm25),&ppm)){
       IF_SDEBUG(Serial.print("pm25 calibrated"));
     } else {
-      IF_SDEBUG(Serial.print("pm25 not calibrated"));
+      IF_SDEBUG(Serial.print("pm25 default calibrated: "));
     }
     IF_SDEBUG(Serial.println(ppm));
     i2c_dataset1->pm.pm25=round(ppm);
 
     
-    IF_SDEBUG(Serial.print(F("pm25 uncalibrated: ")));
-    IF_SDEBUG(Serial.println(pm25));
+    IF_SDEBUG(Serial.print(F("pm10 uncalibrated: ")));
+    IF_SDEBUG(Serial.println(pm10));
 
     i2c_dataset1->pm.pm10sample=pm10;
   
     if (PM10Cal.getConcentration(float(pm10),&ppm))  {
       IF_SDEBUG(Serial.print("pm10 calibrated"));
     }else{
-      IF_SDEBUG(Serial.print("pm10 uncalibrated"));
+      IF_SDEBUG(Serial.print("pm10 default calibrated: "));
     }
     IF_SDEBUG(Serial.println(ppm));
     i2c_dataset1->pm.pm10=round(ppm);
@@ -876,7 +876,7 @@ void loop() {
     
     if (COCal.getConcentration(float(co)/1000.,&ppm))
       {
-	IF_SDEBUG(Serial.print("co ppm"));
+	IF_SDEBUG(Serial.print("co ppm: "));
 	IF_SDEBUG(Serial.println(ppm));
 	i2c_dataset1->cono2.co=round(ppm*COPPM2UGM3);
       }
@@ -888,7 +888,7 @@ void loop() {
     
     if (NO2Cal.getConcentration(float(no2)/1000.,&ppm))
       {
-	IF_SDEBUG(Serial.print("no2 ppm"));
+	IF_SDEBUG(Serial.print("no2 ppm: "));
 	IF_SDEBUG(Serial.println(ppm));
 	i2c_dataset1->cono2.no2=round(ppm*NO2PPM2UGM3);
       }
