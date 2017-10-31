@@ -14,6 +14,7 @@ except ImportError:
     from urlparse import urlsplit, urlunsplit, parse_qsl
 
 import dballe
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ def iter_datastore(url):
         for r in records:
             yield r
 
-def export_data(outfile,datetimemin=None):
+def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,latmax=None):
     db = dballe.DB.connect_from_url("sqlite://:memory:")
     db.reset()
 
@@ -91,7 +92,7 @@ def export_data(outfile,datetimemin=None):
                 logging.exception(e)
                 print rec
 
-    db.export_to_file(dballe.Record(datemin=datetimemin), filename=outfile,
+    db.export_to_file(dballe.Record(datemin=datetimemin,lonmin=lonmin,latmin=latmin,lonmax=lonmax,latmax=latmax), filename=outfile,
                       format="BUFR", generic=True)
 
 
@@ -113,6 +114,13 @@ def main():
     parser.add_argument("--hourmin",default=0,type=int,help='hour min to extract')
     parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
 
+
+    parser.add_argument("--lonmin",default=6.,type=int,help='lon min for data to extract')
+    parser.add_argument("--latmin",default=43.,type=int,help='lat min for data to extract')
+    parser.add_argument("--lonmax",default=14.,type=int,help='lon max for data to extract')
+    parser.add_argument("--latmax",default=47.,type=int,help='lat max for data to extract')
+
+    
     parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
 
     args = parser.parse_args()
@@ -139,12 +147,17 @@ def main():
 
     logging.info("extract data starting from: "+str(datetimemin))
 
-
-    try:
-        export_data(args.outfile,datetimemin=datetimemin)
-    except Exception as e:
-        logging.exception(e)
-
-
+    # in crontab we execute this every 3 minutes no we do not want to excede this
+    # retry is due to poor web API of luftdaten; a lot of time the downloaded file is corrupted
+    retry=0
+    while retry<6:
+        try:
+            export_data(args.outfile,datetimemin,args.lonmin,args.latmin,args.lonmax,args.latmax)
+            break
+        except Exception as e:
+            logging.exception(e)
+            time.sleep(30)
+            retry+=1
+            
 if __name__ == '__main__':
     main()
