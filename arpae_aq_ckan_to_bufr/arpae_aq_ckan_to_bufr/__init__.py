@@ -147,7 +147,7 @@ def main():
 
     """
     example: python arpae_aq_ckan_to_bufr/__init__.py --verbose --low=190388 --yearmin=2017 --monthmin=01 --daymin=01 tmp.bufr
-    """ 
+    """
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("--verbose", action="store_true")
@@ -163,7 +163,7 @@ def main():
     parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
 
     parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
-    
+
     args = parser.parse_args()
 
     logformat = '%(levelname)s: %(message)s'
@@ -188,7 +188,7 @@ def main():
 
     logging.info("extract data starting from: "+str(datetimemin))
 
-        
+
     try:
         last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
         print last

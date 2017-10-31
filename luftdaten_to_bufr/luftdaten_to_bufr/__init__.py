@@ -47,14 +47,14 @@ def export_data(outfile,datetimemin=None):
 
     for data in iter_datastore(DATASTORE_URL):
 
-        
+
         constantdata = dballe.Record(B01019=str(data["location"]["id"]),
                                      #B07030=float(data["Altezza"].replace(",", ".")),
                                      lon=float(data["location"]["longitude"]), lat=float(data["location"]["latitude"]),
                                      rep_memo="luftdaten")
 
         try:
-            db.insert_station_data(constantdata, can_add_stations=True)
+            db.insert_station_data(constantdata, can_add_stations=True, can_replace=True)
         except Exception as e:
             logging.exception(e)
             print constantdata
@@ -81,11 +81,11 @@ def export_data(outfile,datetimemin=None):
         rec["date"] = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
 
         try:
-            db.insert_data(rec)
+            db.insert_data(rec, can_replace=True)
         except Exception as e:
             logging.exception(e)
             print rec
-            
+
     db.export_to_file(dballe.Record(datemin=datetimemin), filename=outfile,
                       format="BUFR", generic=True)
 
@@ -94,7 +94,7 @@ def main():
 
     """
     example: python arpae_aq_ckan_to_bufr/__init__.py --verbose --low=190388 --yearmin=2017 --monthmin=01 --daymin=01 tmp.bufr
-    """ 
+    """
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("--verbose", action="store_true")
@@ -109,7 +109,7 @@ def main():
     parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
 
     parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
-    
+
     args = parser.parse_args()
 
     logformat = '%(levelname)s: %(message)s'
@@ -134,7 +134,7 @@ def main():
 
     logging.info("extract data starting from: "+str(datetimemin))
 
-        
+
     try:
         export_data(args.outfile,datetimemin=datetimemin)
     except Exception as e:
