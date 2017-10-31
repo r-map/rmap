@@ -53,4 +53,4 @@ urlpatterns = [
     url(r'^{0}'.format(url_prefix), include(graphite_urls)),
 ]
 
-handler500 = 'views.server_error'
+#handler500 = 'views.server_error'
