@@ -58,10 +58,13 @@ def export_data(outfile,datetimemin=None):
         except Exception as e:
             logging.exception(e)
             print constantdata
-            
-        rec = constantdata.copy()
-        
-        for sensordatavalues in data["sensordatavalues"]:                 
+
+        rec = dballe.Record(**{
+            k: constantdata.get(k)
+            for k in ("ident", "lon", "lat", "rep_memo")
+        })
+
+        for sensordatavalues in data["sensordatavalues"]:
             key=sensordatavalues["value_type"]
             bcode = VARIABLE_BCODES.get(key)
             if bcode is None:
