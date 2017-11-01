@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2017-11-01 20:01+0000\n"
-"PO-Revision-Date: 2017-11-01 21:04+0100\n"
+"PO-Revision-Date: 2017-11-01 21:08+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -316,30 +316,30 @@ msgstr "Nome della rete"
 
 #: build/lib/rmap/network/models.py:7 rmap/network/models.py:7
 msgid "Network description"
-msgstr ""
+msgstr "Descrizione della rete"
 
 #: build/lib/rmap/network/models.py:8 rmap/network/models.py:8
 msgid "Data provider"
-msgstr ""
+msgstr "Fornitore dati"
 
 #: build/lib/rmap/network/models.py:9 rmap/network/models.py:9
 msgid "Main site of the data provider"
-msgstr ""
+msgstr "Sito principale del fornitore"
 
 #: build/lib/rmap/network/models.py:10 rmap/network/models.py:10
 msgid "Data licenze"
-msgstr ""
+msgstr "Licenza dati"
 
 #: build/lib/rmap/network/models.py:11 rmap/network/models.py:11
 msgid "Data licenze url"
-msgstr ""
+msgstr "url licenza dati"
 
 #: build/lib/rmap/network/templates/network/networkmetadata_detail.html:8
 #: build/lib/rmap/network/templates/network/networkmetadata_list.html:8
 #: rmap/network/templates/network/networkmetadata_detail.html:8
 #: rmap/network/templates/network/networkmetadata_list.html:8
 msgid "Network"
-msgstr ""
+msgstr "Rete"
 
 #: build/lib/rmap/network/templates/network/networkmetadata_detail.html:14
 #: build/lib/rmap/network/templates/network/networkmetadata_list.html:14
@@ -360,14 +360,14 @@ msgstr "Descrizione"
 #: rmap/network/templates/network/networkmetadata_detail.html:16
 #: rmap/network/templates/network/networkmetadata_list.html:16
 msgid "Provider"
-msgstr ""
+msgstr "Fornitore"
 
 #: build/lib/rmap/network/templates/network/networkmetadata_detail.html:17
 #: build/lib/rmap/network/templates/network/networkmetadata_list.html:17
 #: rmap/network/templates/network/networkmetadata_detail.html:17
 #: rmap/network/templates/network/networkmetadata_list.html:17
 msgid "Licenze"
-msgstr ""
+msgstr "licenza"
 
 #: build/lib/rmap/network/templates/network/networkmetadata_list.html:29
 #: rmap/network/templates/network/networkmetadata_list.html:29
