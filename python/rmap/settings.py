@@ -541,6 +541,7 @@ INSTALLED_APPS = [
     'rmap.doc',
     'rmap',
     'rmap.stations',
+    'rmap.network',
     'registration',
 ]
 

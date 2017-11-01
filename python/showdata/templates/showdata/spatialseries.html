@@ -256,7 +256,7 @@ function setpopup(feature)
         + "Ident: " + null2_(feature.properties.ident)
 	+ "<br>Lon: " + feature.properties.lon/100000
 	+ "<br>Lat: " + feature.properties.lat/100000
-	+ "<br>Network: " + feature.properties.network
+	+ "<br>Network: " + "<a href=/network/"+feature.properties.network+">"+feature.properties.network+"</a>"
         + "<br>Trange: " + borinud.config.trange.describe(feature.properties.trange[0],feature.properties.trange[1],feature.properties.trange[2])
         + "<br>Level: " + borinud.config.level.describe(feature.properties.level[0],feature.properties.level[1],feature.properties.level[2],feature.properties.level[3])
 	+ "<br>Date: " + feature.properties.date
