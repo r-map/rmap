@@ -7,30 +7,30 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-01 16:57+0000\n"
-"PO-Revision-Date: 2017-08-01 18:58+0200\n"
+"POT-Creation-Date: 2017-11-01 20:01+0000\n"
+"PO-Revision-Date: 2017-11-01 21:08+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.8\n"
+"X-Generator: Poedit 1.8.12\n"
 
-#: build/lib/geoimage/models.py:53 build/lib/rmap/stations/models.py:85
-#: build/lib/rmap/stations/models.py:195 build/lib/rmap/stations/models.py:309
-#: build/lib/rmap/stations/models.py:346 build/lib/rmap/stations/models.py:404
-#: build/lib/rmap/stations/models.py:480 build/lib/rmap/stations/models.py:512
-#: build/lib/rmap/stations/models.py:543 build/lib/rmap/stations/models.py:583
-#: build/lib/rmap/stations/models.py:639 build/lib/rmap/stations/models.py:684
+#: build/lib/geoimage/models.py:53 build/lib/rmap/stations/models.py:92
+#: build/lib/rmap/stations/models.py:202 build/lib/rmap/stations/models.py:316
+#: build/lib/rmap/stations/models.py:353 build/lib/rmap/stations/models.py:411
+#: build/lib/rmap/stations/models.py:487 build/lib/rmap/stations/models.py:519
+#: build/lib/rmap/stations/models.py:550 build/lib/rmap/stations/models.py:590
+#: build/lib/rmap/stations/models.py:646 build/lib/rmap/stations/models.py:691
 #: build/lib/rmap/templates/profile_details.html:19
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:27
-#: geoimage/models.py:53 rmap/stations/models.py:85 rmap/stations/models.py:195
-#: rmap/stations/models.py:309 rmap/stations/models.py:346
-#: rmap/stations/models.py:404 rmap/stations/models.py:480
-#: rmap/stations/models.py:512 rmap/stations/models.py:543
-#: rmap/stations/models.py:583 rmap/stations/models.py:639
-#: rmap/stations/models.py:684 rmap/templates/profile_details.html:19
+#: geoimage/models.py:53 rmap/stations/models.py:92 rmap/stations/models.py:202
+#: rmap/stations/models.py:316 rmap/stations/models.py:353
+#: rmap/stations/models.py:411 rmap/stations/models.py:487
+#: rmap/stations/models.py:519 rmap/stations/models.py:550
+#: rmap/stations/models.py:590 rmap/stations/models.py:646
+#: rmap/stations/models.py:691 rmap/templates/profile_details.html:19
 #: rmap/templates/stations/stationmetadata_detail.html:27
 msgid "Active"
 msgstr "Attivo"
@@ -82,10 +82,12 @@ msgstr "Data finale elaborazione"
 #: build/lib/insertdata/templates/insertdata/form.html:13
 #: build/lib/insertdata/templates/insertdata/manualdataform.html:14
 #: build/lib/insertdata/templates/insertdata/newstationform.html:14
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:16
 #: insertdata/templates/insertdata/delstationform.html:7
 #: insertdata/templates/insertdata/form.html:13
 #: insertdata/templates/insertdata/manualdataform.html:14
 #: insertdata/templates/insertdata/newstationform.html:14
+#: insertdata/templates/insertdata/rainbodataform.html:16
 msgid "Invalid data; retry"
 msgstr "Dati invalidi; riprova"
 
@@ -129,9 +131,11 @@ msgstr "Rimuovere"
 #: build/lib/insertdata/templates/insertdata/form.html:17
 #: build/lib/insertdata/templates/insertdata/manualdataform.html:18
 #: build/lib/insertdata/templates/insertdata/newstationform.html:18
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:20
 #: insertdata/templates/insertdata/form.html:17
 #: insertdata/templates/insertdata/manualdataform.html:18
 #: insertdata/templates/insertdata/newstationform.html:18
+#: insertdata/templates/insertdata/rainbodataform.html:20
 msgid "Error on publish data; retry"
 msgstr "Errore pubblicando i dati; riprova"
 
@@ -179,40 +183,87 @@ msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 msgid "Select coordinate from map and insert your new station"
 msgstr "Seleziona le coordinate dalla mappa e inserisci la tua nuova stazione"
 
-#: build/lib/insertdata/views.py:83 insertdata/views.py:83
+#: build/lib/insertdata/views.py:84 insertdata/views.py:84
 msgid "Your station"
 msgstr "La tua stazione"
 
-#: build/lib/insertdata/views.py:83 insertdata/views.py:83
+#: build/lib/insertdata/views.py:84 insertdata/views.py:84
 msgid "Select configurated station"
 msgstr "Seleziona una stazione configurata"
 
-#: build/lib/insertdata/views.py:91 build/lib/rmap/rmapgui.py:1199
-#: insertdata/views.py:91 rmap/rmapgui.py:1199
+#: build/lib/insertdata/views.py:92 build/lib/rmap/rmapgui.py:1199
+#: insertdata/views.py:92 rmap/rmapgui.py:1199
 msgid "Present weather"
 msgstr "Tempo presente"
 
-#: build/lib/insertdata/views.py:93 build/lib/rmap/rmapgui.py:1177
-#: insertdata/views.py:93 rmap/rmapgui.py:1177
+#: build/lib/insertdata/views.py:94 build/lib/rmap/rmapgui.py:1177
+#: insertdata/views.py:94 rmap/rmapgui.py:1177
 msgid "Visibility(m.)"
 msgstr "Visibilità (m)"
 
-#: build/lib/insertdata/views.py:94 build/lib/rmap/rmapgui.py:1176
-#: insertdata/views.py:94 rmap/rmapgui.py:1176
+#: build/lib/insertdata/views.py:95 build/lib/rmap/rmapgui.py:1176
+#: insertdata/views.py:95 rmap/rmapgui.py:1176
 msgid "Snow height(cm.)"
 msgstr "Altezza neve (cm)"
 
-#: build/lib/insertdata/views.py:103 insertdata/views.py:103
+#: build/lib/insertdata/views.py:106 insertdata/views.py:106
+msgid "Not_significant"
+msgstr ""
+
+#: build/lib/insertdata/views.py:107 insertdata/views.py:107
+msgid "Visibility"
+msgstr "Visibilità"
+
+#: build/lib/insertdata/views.py:108 insertdata/views.py:108
+msgid "Snow"
+msgstr ""
+
+#: build/lib/insertdata/views.py:109 insertdata/views.py:109
+msgid "Thunderstorm"
+msgstr ""
+
+#: build/lib/insertdata/views.py:110 insertdata/views.py:110
+msgid "Rain"
+msgstr ""
+
+#: build/lib/insertdata/views.py:111 insertdata/views.py:111
+msgid "Tornado"
+msgstr ""
+
+#: build/lib/insertdata/views.py:121 insertdata/views.py:121
+msgid "Impact detected"
+msgstr ""
+
+#: build/lib/insertdata/views.py:130 insertdata/views.py:130
 msgid "Search address"
 msgstr "Indirizzo di ricerca"
 
-#: build/lib/insertdata/views.py:112 insertdata/views.py:112
+#: build/lib/insertdata/views.py:139 insertdata/views.py:139
 msgid "New station name"
 msgstr "Nome nuova stazione"
 
-#: build/lib/insertdata/views.py:112 insertdata/views.py:112
+#: build/lib/insertdata/views.py:139 insertdata/views.py:139
 msgid "The name of the station to insert"
 msgstr "Il nome della stazione da inserire"
+
+#: build/lib/rainbo/templates/rainbo/base.html:82
+#: build/lib/rainbo/templates/rainbo/base.html:90
+#: build/lib/rmap/templates/base.html:136 rainbo/templates/rainbo/base.html:82
+#: rainbo/templates/rainbo/base.html:90 rmap/templates/base.html:136
+msgid "Log in"
+msgstr "Entra"
+
+#: build/lib/rainbo/templates/rainbo/base.html:87
+#: build/lib/rmap/templates/base.html:134 rainbo/templates/rainbo/base.html:87
+#: rmap/templates/base.html:134
+msgid "Log out"
+msgstr "Esci"
+
+#: build/lib/rainbo/templates/rainbo/base.html:88
+#: build/lib/rmap/templates/base.html:133 rainbo/templates/rainbo/base.html:88
+#: rmap/templates/base.html:133
+msgid "Change password"
+msgstr "Cambia password"
 
 #: build/lib/rmap/form.py:22 rmap/form.py:22
 msgid "station to configure"
@@ -241,13 +292,13 @@ msgstr ""
 msgid "Station name"
 msgstr "Nome stazione"
 
-#: build/lib/rmap/form.py:34 build/lib/rmap/stations/models.py:692
-#: rmap/form.py:34 rmap/stations/models.py:692
+#: build/lib/rmap/form.py:34 build/lib/rmap/stations/models.py:699
+#: rmap/form.py:34 rmap/stations/models.py:699
 msgid "Latitude"
 msgstr "Latitudine"
 
-#: build/lib/rmap/form.py:35 build/lib/rmap/stations/models.py:693
-#: rmap/form.py:35 rmap/stations/models.py:693
+#: build/lib/rmap/form.py:35 build/lib/rmap/stations/models.py:700
+#: rmap/form.py:35 rmap/stations/models.py:700
 msgid "Longitude"
 msgstr "Longitudine"
 
@@ -258,6 +309,70 @@ msgstr "Altezza stazione (m)"
 #: build/lib/rmap/form.py:42 rmap/form.py:42
 msgid "SSID of your wifi network"
 msgstr "SSID della tua rete wifi"
+
+#: build/lib/rmap/network/models.py:6 rmap/network/models.py:6
+msgid "Network name"
+msgstr "Nome della rete"
+
+#: build/lib/rmap/network/models.py:7 rmap/network/models.py:7
+msgid "Network description"
+msgstr "Descrizione della rete"
+
+#: build/lib/rmap/network/models.py:8 rmap/network/models.py:8
+msgid "Data provider"
+msgstr "Fornitore dati"
+
+#: build/lib/rmap/network/models.py:9 rmap/network/models.py:9
+msgid "Main site of the data provider"
+msgstr "Sito principale del fornitore"
+
+#: build/lib/rmap/network/models.py:10 rmap/network/models.py:10
+msgid "Data licenze"
+msgstr "Licenza dati"
+
+#: build/lib/rmap/network/models.py:11 rmap/network/models.py:11
+msgid "Data licenze url"
+msgstr "url licenza dati"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:8
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:8
+#: rmap/network/templates/network/networkmetadata_detail.html:8
+#: rmap/network/templates/network/networkmetadata_list.html:8
+msgid "Network"
+msgstr "Rete"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:14
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:14
+#: rmap/network/templates/network/networkmetadata_detail.html:14
+#: rmap/network/templates/network/networkmetadata_list.html:14
+msgid "Short name"
+msgstr "Nome abbreviato"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:15
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:15
+#: rmap/network/templates/network/networkmetadata_detail.html:15
+#: rmap/network/templates/network/networkmetadata_list.html:15
+msgid "Description"
+msgstr "Descrizione"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:16
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:16
+#: rmap/network/templates/network/networkmetadata_detail.html:16
+#: rmap/network/templates/network/networkmetadata_list.html:16
+msgid "Provider"
+msgstr "Fornitore"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:17
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:17
+#: rmap/network/templates/network/networkmetadata_detail.html:17
+#: rmap/network/templates/network/networkmetadata_list.html:17
+msgid "Licenze"
+msgstr "licenza"
+
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:29
+#: rmap/network/templates/network/networkmetadata_list.html:29
+msgid "No network yet."
+msgstr "Non ci sono ancora reti"
 
 #: build/lib/rmap/rmapgui.py:1088 rmap/rmapgui.py:1088
 msgid "Start GPS to get location updates"
@@ -1009,218 +1124,218 @@ msgstr "Stato connessione: OK connesso"
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 
-#: build/lib/rmap/stations/models.py:85 build/lib/rmap/stations/models.py:195
-#: rmap/stations/models.py:85 rmap/stations/models.py:195
+#: build/lib/rmap/stations/models.py:92 build/lib/rmap/stations/models.py:202
+#: rmap/stations/models.py:92 rmap/stations/models.py:202
 msgid "Activate this sensor to take measurements"
 msgstr "Attiva questo sensore per rilevare le misure"
 
-#: build/lib/rmap/stations/models.py:86 build/lib/rmap/stations/models.py:196
-#: build/lib/rmap/stations/models.py:233 rmap/stations/models.py:86
-#: rmap/stations/models.py:196 rmap/stations/models.py:233
+#: build/lib/rmap/stations/models.py:93 build/lib/rmap/stations/models.py:203
+#: build/lib/rmap/stations/models.py:240 rmap/stations/models.py:93
+#: rmap/stations/models.py:203 rmap/stations/models.py:240
 msgid "Descriptive text"
 msgstr "Testo descrittivo"
 
-#: build/lib/rmap/stations/models.py:88 rmap/stations/models.py:88
+#: build/lib/rmap/stations/models.py:95 rmap/stations/models.py:95
 msgid "Driver to use"
 msgstr "Driver da usare"
 
-#: build/lib/rmap/stations/models.py:90 build/lib/rmap/stations/models.py:198
-#: rmap/stations/models.py:90 rmap/stations/models.py:198
+#: build/lib/rmap/stations/models.py:97 build/lib/rmap/stations/models.py:205
+#: rmap/stations/models.py:97 rmap/stations/models.py:205
 msgid "Type of sensor"
 msgstr "Tipo del sensore"
 
-#: build/lib/rmap/stations/models.py:92 rmap/stations/models.py:92
+#: build/lib/rmap/stations/models.py:99 rmap/stations/models.py:99
 msgid "I2C bus number (for raspberry only)"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:93 rmap/stations/models.py:93
+#: build/lib/rmap/stations/models.py:100 rmap/stations/models.py:100
 msgid "I2C ddress (decimal)"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:94 rmap/stations/models.py:94
+#: build/lib/rmap/stations/models.py:101 rmap/stations/models.py:101
 msgid "RF24Network node ddress"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:96 build/lib/rmap/stations/models.py:97
-#: rmap/stations/models.py:96 rmap/stations/models.py:97
+#: build/lib/rmap/stations/models.py:103 build/lib/rmap/stations/models.py:104
+#: rmap/stations/models.py:103 rmap/stations/models.py:104
 msgid "Sensor metadata from rmap RFC"
 msgstr "Metadati del sensore dal RFC rmap"
 
-#: build/lib/rmap/stations/models.py:109 build/lib/rmap/stations/models.py:716
-#: rmap/stations/models.py:109 rmap/stations/models.py:716
+#: build/lib/rmap/stations/models.py:116 build/lib/rmap/stations/models.py:723
+#: rmap/stations/models.py:116 rmap/stations/models.py:723
 msgid ""
 "Station and sensor have different data level; change mqttrootpath or active "
 "sensors."
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:200 rmap/stations/models.py:200
+#: build/lib/rmap/stations/models.py:207 rmap/stations/models.py:207
 msgid "Data Level as defined by WMO (Sensor metadata from rmap RFC)"
 msgstr "Data Level come dfinito dal WMO (Sensor metadata come da RMAP RFC)"
 
-#: build/lib/rmap/stations/models.py:202 rmap/stations/models.py:202
+#: build/lib/rmap/stations/models.py:209 rmap/stations/models.py:209
 msgid "Bcode variable definition"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:232 rmap/stations/models.py:232
+#: build/lib/rmap/stations/models.py:239 rmap/stations/models.py:239
 msgid "Bcode as defined in dballe btable"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:234 rmap/stations/models.py:234
+#: build/lib/rmap/stations/models.py:241 rmap/stations/models.py:241
 msgid "Units of measure"
 msgstr "Unità di misura"
 
-#: build/lib/rmap/stations/models.py:235 rmap/stations/models.py:235
+#: build/lib/rmap/stations/models.py:242 rmap/stations/models.py:242
 msgid "Offset coeficent to convert units"
 msgstr "Coefficiente offset di conversione delle unità di misura"
 
-#: build/lib/rmap/stations/models.py:236 rmap/stations/models.py:236
+#: build/lib/rmap/stations/models.py:243 rmap/stations/models.py:243
 msgid "Scale coeficent to convert units"
 msgstr "Fattore di scala di conversione delle unità di misura"
 
-#: build/lib/rmap/stations/models.py:237 rmap/stations/models.py:237
+#: build/lib/rmap/stations/models.py:244 rmap/stations/models.py:244
 msgid "units of measure"
 msgstr "unità di misura"
 
-#: build/lib/rmap/stations/models.py:309 build/lib/rmap/stations/models.py:346
-#: build/lib/rmap/stations/models.py:404 build/lib/rmap/stations/models.py:480
-#: build/lib/rmap/stations/models.py:512 build/lib/rmap/stations/models.py:543
-#: rmap/stations/models.py:309 rmap/stations/models.py:346
-#: rmap/stations/models.py:404 rmap/stations/models.py:480
-#: rmap/stations/models.py:512 rmap/stations/models.py:543
+#: build/lib/rmap/stations/models.py:316 build/lib/rmap/stations/models.py:353
+#: build/lib/rmap/stations/models.py:411 build/lib/rmap/stations/models.py:487
+#: build/lib/rmap/stations/models.py:519 build/lib/rmap/stations/models.py:550
+#: rmap/stations/models.py:316 rmap/stations/models.py:353
+#: rmap/stations/models.py:411 rmap/stations/models.py:487
+#: rmap/stations/models.py:519 rmap/stations/models.py:550
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
-#: build/lib/rmap/stations/models.py:310 rmap/stations/models.py:310
+#: build/lib/rmap/stations/models.py:317 rmap/stations/models.py:317
 msgid "Node ID for RF24 Network"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:311 rmap/stations/models.py:311
+#: build/lib/rmap/stations/models.py:318 rmap/stations/models.py:318
 msgid "Channel number for RF24"
 msgstr "Numero canale per RF24"
 
-#: build/lib/rmap/stations/models.py:314 rmap/stations/models.py:314
+#: build/lib/rmap/stations/models.py:321 rmap/stations/models.py:321
 msgid "AES key"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:315 rmap/stations/models.py:315
+#: build/lib/rmap/stations/models.py:322 rmap/stations/models.py:322
 msgid "AES cbc iv"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:348 rmap/stations/models.py:348
+#: build/lib/rmap/stations/models.py:355 rmap/stations/models.py:355
 msgid "interval in seconds for publish"
 msgstr "intervallo in secondi per la pubblicazione"
 
-#: build/lib/rmap/stations/models.py:349 rmap/stations/models.py:349
+#: build/lib/rmap/stations/models.py:356 rmap/stations/models.py:356
 msgid "MQTT server"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:350 rmap/stations/models.py:350
+#: build/lib/rmap/stations/models.py:357 rmap/stations/models.py:357
 msgid "MQTT user"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:351 rmap/stations/models.py:351
+#: build/lib/rmap/stations/models.py:358 rmap/stations/models.py:358
 msgid "MQTT password"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:405 rmap/stations/models.py:405
+#: build/lib/rmap/stations/models.py:412 rmap/stations/models.py:412
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: build/lib/rmap/stations/models.py:407 rmap/stations/models.py:407
+#: build/lib/rmap/stations/models.py:414 rmap/stations/models.py:414
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:481 rmap/stations/models.py:481
+#: build/lib/rmap/stations/models.py:488 rmap/stations/models.py:488
 msgid "Baud rate"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:482 rmap/stations/models.py:482
+#: build/lib/rmap/stations/models.py:489 rmap/stations/models.py:489
 msgid "Serial device"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:513 rmap/stations/models.py:513
+#: build/lib/rmap/stations/models.py:520 rmap/stations/models.py:520
 msgid "bluetooth name"
 msgstr "Nome Bluetooth"
 
-#: build/lib/rmap/stations/models.py:545 rmap/stations/models.py:545
+#: build/lib/rmap/stations/models.py:552 rmap/stations/models.py:552
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: build/lib/rmap/stations/models.py:546 rmap/stations/models.py:546
+#: build/lib/rmap/stations/models.py:553 rmap/stations/models.py:553
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: build/lib/rmap/stations/models.py:547 rmap/stations/models.py:547
+#: build/lib/rmap/stations/models.py:554 rmap/stations/models.py:554
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP "
 
-#: build/lib/rmap/stations/models.py:548 rmap/stations/models.py:548
+#: build/lib/rmap/stations/models.py:555 rmap/stations/models.py:555
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: build/lib/rmap/stations/models.py:549 rmap/stations/models.py:549
+#: build/lib/rmap/stations/models.py:556 rmap/stations/models.py:556
 msgid "AMQP password"
 msgstr "Password AMQP"
 
-#: build/lib/rmap/stations/models.py:582 build/lib/rmap/stations/models.py:683
-#: rmap/stations/models.py:582 rmap/stations/models.py:683
+#: build/lib/rmap/stations/models.py:589 build/lib/rmap/stations/models.py:690
+#: rmap/stations/models.py:589 rmap/stations/models.py:690
 msgid "station name"
 msgstr "nome stazione"
 
-#: build/lib/rmap/stations/models.py:583 rmap/stations/models.py:583
+#: build/lib/rmap/stations/models.py:590 rmap/stations/models.py:590
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
-#: build/lib/rmap/stations/models.py:584 build/lib/rmap/stations/models.py:685
-#: rmap/stations/models.py:584 rmap/stations/models.py:685
+#: build/lib/rmap/stations/models.py:591 build/lib/rmap/stations/models.py:692
+#: rmap/stations/models.py:591 rmap/stations/models.py:692
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: build/lib/rmap/stations/models.py:639 rmap/stations/models.py:639
+#: build/lib/rmap/stations/models.py:646 rmap/stations/models.py:646
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: build/lib/rmap/stations/models.py:640 rmap/stations/models.py:640
+#: build/lib/rmap/stations/models.py:647 rmap/stations/models.py:647
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: build/lib/rmap/stations/models.py:641 rmap/stations/models.py:641
+#: build/lib/rmap/stations/models.py:648 rmap/stations/models.py:648
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: build/lib/rmap/stations/models.py:684 rmap/stations/models.py:684
+#: build/lib/rmap/stations/models.py:691 rmap/stations/models.py:691
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: build/lib/rmap/stations/models.py:692 rmap/stations/models.py:692
+#: build/lib/rmap/stations/models.py:699 rmap/stations/models.py:699
 msgid "Precise Latitude of the station"
 msgstr "Latitudine precisa della stazione"
 
-#: build/lib/rmap/stations/models.py:693 rmap/stations/models.py:693
+#: build/lib/rmap/stations/models.py:700 rmap/stations/models.py:700
 msgid "Precise Longitude of the station"
 msgstr "Longitudine precisa della stazione"
 
-#: build/lib/rmap/stations/models.py:695 rmap/stations/models.py:695
+#: build/lib/rmap/stations/models.py:702 rmap/stations/models.py:702
 msgid "station network"
 msgstr "rete stazione"
 
-#: build/lib/rmap/stations/models.py:697 rmap/stations/models.py:697
+#: build/lib/rmap/stations/models.py:704 rmap/stations/models.py:704
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: build/lib/rmap/stations/models.py:698 rmap/stations/models.py:698
+#: build/lib/rmap/stations/models.py:705 rmap/stations/models.py:705
 msgid "maint mqtt path for publish"
 msgstr "percorso di pubblicazione mqtt per amministrazione"
 
-#: build/lib/rmap/stations/models.py:699 rmap/stations/models.py:699
+#: build/lib/rmap/stations/models.py:706 rmap/stations/models.py:706
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: build/lib/rmap/stations/models.py:782 rmap/stations/models.py:782
+#: build/lib/rmap/stations/models.py:791 rmap/stations/models.py:791
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: build/lib/rmap/stations/models.py:782 rmap/stations/models.py:782
+#: build/lib/rmap/stations/models.py:791 rmap/stations/models.py:791
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
@@ -1252,6 +1367,10 @@ msgstr "Lavagna di esempio"
 msgid "Extract historical data"
 msgstr "Estrazione dati storici"
 
+#: build/lib/rmap/templates/base.html:69 rmap/templates/base.html:69
+msgid "Data providers"
+msgstr "Fornitori dati"
+
 #: build/lib/rmap/templates/base.html:73
 #: build/lib/rmap/templates/stations/stationmetadata_list.html:8
 #: rmap/templates/base.html:73
@@ -1259,93 +1378,93 @@ msgstr "Estrazione dati storici"
 msgid "Stations"
 msgstr "Stazioni"
 
-#: build/lib/rmap/templates/base.html:75
-msgid "Show stations"
-msgstr "Mostra le stazioni"
+#: build/lib/rmap/templates/base.html:75 rmap/templates/base.html:75
+msgid "Show RMAP stations"
+msgstr "Mostra le stazioni RMAP"
 
-#: build/lib/rmap/templates/base.html:77 rmap/templates/base.html:131
-msgid "Your personal page"
-msgstr "La tua pagina personale"
+#: build/lib/rmap/templates/base.html:76 rmap/templates/base.html:76
+msgid "Show all stations"
+msgstr "Mostra tutte le stazioni"
 
-#: build/lib/rmap/templates/base.html:82 rmap/templates/base.html:84
+#: build/lib/rmap/templates/base.html:78 rmap/templates/base.html:78
+msgid "Your RMAP stations"
+msgstr "Le tue stazioni RMAP"
+
+#: build/lib/rmap/templates/base.html:79 rmap/templates/base.html:79
+msgid "All your stations"
+msgstr "Tutte le tue stazioni"
+
+#: build/lib/rmap/templates/base.html:84 rmap/templates/base.html:84
 msgid "Join us"
 msgstr "Partecipa"
 
-#: build/lib/rmap/templates/base.html:84 rmap/templates/base.html:86
+#: build/lib/rmap/templates/base.html:86 rmap/templates/base.html:86
 msgid "Register a new sation"
 msgstr "Registra una nuova stazione"
 
-#: build/lib/rmap/templates/base.html:85 rmap/templates/base.html:87
+#: build/lib/rmap/templates/base.html:87 rmap/templates/base.html:87
 msgid "Add manual data observations"
 msgstr "aggiungi osservazioni manuali"
 
-#: build/lib/rmap/templates/base.html:86 rmap/templates/base.html:88
+#: build/lib/rmap/templates/base.html:88 rmap/templates/base.html:88
 msgid "Add georeferenced image"
 msgstr "Aggiungi immagini georeferenziate"
 
-#: build/lib/rmap/templates/base.html:87 rmap/templates/base.html:89
+#: build/lib/rmap/templates/base.html:89 rmap/templates/base.html:89
 msgid "Dowload RMAP App for Android"
 msgstr "Scarica lApp RMAP per Android"
 
-#: build/lib/rmap/templates/base.html:88 rmap/templates/base.html:90
+#: build/lib/rmap/templates/base.html:90 rmap/templates/base.html:90
 msgid "Install RMAP App son other operative systems"
 msgstr "Installa l'App RMAPper altri sistemi operativi"
 
-#: build/lib/rmap/templates/base.html:89 rmap/templates/base.html:91
+#: build/lib/rmap/templates/base.html:91 rmap/templates/base.html:91
 msgid "Publish data on http for MQTT broker"
 msgstr "Publica i dati in http sul broker MQTT"
 
-#: build/lib/rmap/templates/base.html:95 rmap/templates/base.html:97
+#: build/lib/rmap/templates/base.html:97 rmap/templates/base.html:97
 msgid "Documentation"
 msgstr "Documentazione"
 
-#: build/lib/rmap/templates/base.html:97 rmap/templates/base.html:99
+#: build/lib/rmap/templates/base.html:99 rmap/templates/base.html:99
 msgid "The project on RaspiBO site"
 msgstr "Il progetto sul sito di RaspiBO"
 
-#: build/lib/rmap/templates/base.html:103 rmap/templates/base.html:105
+#: build/lib/rmap/templates/base.html:105 rmap/templates/base.html:105
 msgid "Develop"
 msgstr "Sviluppo"
 
-#: build/lib/rmap/templates/base.html:105 rmap/templates/base.html:107
+#: build/lib/rmap/templates/base.html:107 rmap/templates/base.html:107
 msgid "Overview"
 msgstr "Panoramica"
 
-#: build/lib/rmap/templates/base.html:108 rmap/templates/base.html:110
+#: build/lib/rmap/templates/base.html:110 rmap/templates/base.html:110
 msgid "Become beta tester for RMAP App for Android"
 msgstr "Diventa beta tester per l'App RMAP per Android"
 
-#: build/lib/rmap/templates/base.html:119 rmap/templates/base.html:125
-msgid "My RMAP"
-msgstr "Il mio RMAP"
-
-#: build/lib/rmap/templates/base.html:125 rmap/templates/base.html:132
-msgid "Log out"
-msgstr "Esci"
-
-#: build/lib/rmap/templates/base.html:126 rmap/templates/base.html:133
-msgid "Change password"
-msgstr "Cambia password"
-
-#: build/lib/rmap/templates/base.html:128 rmap/templates/base.html:135
-msgid "Log in"
-msgstr "Entra"
-
-#: build/lib/rmap/templates/base.html:130 rmap/templates/base.html:114
+#: build/lib/rmap/templates/base.html:115 rmap/templates/base.html:115
 msgid "Admin"
 msgstr "Amministrazione"
 
-#: build/lib/rmap/templates/base.html:131 rmap/templates/base.html:115
+#: build/lib/rmap/templates/base.html:116 rmap/templates/base.html:116
 msgid "Manage processes"
 msgstr "Gestisci i processi"
 
-#: build/lib/rmap/templates/base.html:132 rmap/templates/base.html:116
+#: build/lib/rmap/templates/base.html:117 rmap/templates/base.html:117
 msgid "Django admin"
 msgstr "Amministrazione Django"
 
-#: build/lib/rmap/templates/base.html:133 rmap/templates/base.html:117
+#: build/lib/rmap/templates/base.html:118 rmap/templates/base.html:118
 msgid "Rabbitmq admin"
 msgstr "Amministrazione RabbitMQ"
+
+#: build/lib/rmap/templates/base.html:126 rmap/templates/base.html:126
+msgid "My RMAP"
+msgstr "Il mio RMAP"
+
+#: build/lib/rmap/templates/base.html:132 rmap/templates/base.html:132
+msgid "Your personal page"
+msgstr "La tua pagina personale"
 
 #: build/lib/rmap/templates/profile.html:8 rmap/templates/profile.html:8
 msgid "Here your personal data"
@@ -1394,7 +1513,7 @@ msgstr "Cancella stazione"
 #: rmap/templates/profile_details.html:20
 #: rmap/templates/stations/stationmetadata_detail.html:28
 msgid "Ident"
-msgstr ""
+msgstr "identificativo"
 
 #: build/lib/rmap/templates/profile_details.html:21
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:29
@@ -1430,7 +1549,7 @@ msgstr "Mostra i dettagli stazione"
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:22
 #: rmap/templates/stations/stationmetadata_detail.html:22
 msgid "Data level:"
-msgstr ""
+msgstr "livello dati:"
 
 #: build/lib/rmap/templates/stations/stationmetadata_detail.html:52
 #: rmap/templates/stations/stationmetadata_detail.html:52
@@ -1472,6 +1591,49 @@ msgstr "Annulla filtro su SLUG"
 msgid "Profile"
 msgstr ""
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:166
+#: build/lib/showdata/templates/showdata/spatialseries.html:104
+#: build/lib/showdata/templates/showdata/timeseries.html:48
+#: showdata/templates/showdata/rainbospatialseries.html:166
+#: showdata/templates/showdata/spatialseries.html:104
+#: showdata/templates/showdata/timeseries.html:48
+msgid "Prev"
+msgstr "Prima"
+
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:171
+#: build/lib/showdata/templates/showdata/spatialseries.html:109
+#: build/lib/showdata/templates/showdata/timeseries.html:53
+#: showdata/templates/showdata/rainbospatialseries.html:171
+#: showdata/templates/showdata/spatialseries.html:109
+#: showdata/templates/showdata/timeseries.html:53
+msgid "Next"
+msgstr "Dopo"
+
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:178
+#: build/lib/showdata/templates/showdata/spatialseries.html:125
+#: showdata/templates/showdata/rainbospatialseries.html:178
+#: showdata/templates/showdata/spatialseries.html:125
+msgid "Loading data"
+msgstr "Caricamento dati"
+
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:179
+#: build/lib/showdata/templates/showdata/spatialseries.html:126
+#: build/lib/showdata/templates/showdata/stations.html:72
+#: showdata/templates/showdata/rainbospatialseries.html:179
+#: showdata/templates/showdata/spatialseries.html:126
+#: showdata/templates/showdata/stations.html:72
+msgid "Please wait ..."
+msgstr "Attendere per favore..."
+
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:232
+#: build/lib/showdata/templates/showdata/spatialseries.html:246
+#: build/lib/showdata/templates/showdata/stations.html:126
+#: showdata/templates/showdata/rainbospatialseries.html:232
+#: showdata/templates/showdata/spatialseries.html:246
+#: showdata/templates/showdata/stations.html:126
+msgid "Please Wait..."
+msgstr "Attendere per favore..."
+
 #: build/lib/showdata/templates/showdata/spatialseries.html:96
 #: build/lib/showdata/templates/showdata/timeseries.html:40
 #: showdata/templates/showdata/spatialseries.html:96
@@ -1479,45 +1641,12 @@ msgstr ""
 msgid "More"
 msgstr "Di più"
 
-#: build/lib/showdata/templates/showdata/spatialseries.html:104
-#: build/lib/showdata/templates/showdata/timeseries.html:48
-#: showdata/templates/showdata/spatialseries.html:104
-#: showdata/templates/showdata/timeseries.html:48
-msgid "Prev"
-msgstr "Prima"
-
-#: build/lib/showdata/templates/showdata/spatialseries.html:109
-#: build/lib/showdata/templates/showdata/timeseries.html:53
-#: showdata/templates/showdata/spatialseries.html:109
-#: showdata/templates/showdata/timeseries.html:53
-msgid "Next"
-msgstr "Dopo"
-
 #: build/lib/showdata/templates/showdata/spatialseries.html:117
 #: build/lib/showdata/templates/showdata/timeseries.html:61
 #: showdata/templates/showdata/spatialseries.html:117
 #: showdata/templates/showdata/timeseries.html:61
 msgid "Less"
 msgstr "Meno"
-
-#: build/lib/showdata/templates/showdata/spatialseries.html:125
-#: showdata/templates/showdata/spatialseries.html:125
-msgid "Loading data"
-msgstr "Caricamento dati"
-
-#: build/lib/showdata/templates/showdata/spatialseries.html:126
-#: build/lib/showdata/templates/showdata/stations.html:72
-#: showdata/templates/showdata/spatialseries.html:126
-#: showdata/templates/showdata/stations.html:72
-msgid "Please wait ..."
-msgstr "Attendere per favore..."
-
-#: build/lib/showdata/templates/showdata/spatialseries.html:246
-#: build/lib/showdata/templates/showdata/stations.html:126
-#: showdata/templates/showdata/spatialseries.html:246
-#: showdata/templates/showdata/stations.html:126
-msgid "Please Wait..."
-msgstr "Attendere per favore..."
 
 #: build/lib/showdata/templates/showdata/spatialseries.html:287
 #: showdata/templates/showdata/spatialseries.html:287
@@ -1553,21 +1682,8 @@ msgstr "Scarica i dati"
 msgid "Show values on a map"
 msgstr "Mostra valori sulla mappa"
 
-#: rmap/templates/base.html:75
-msgid "Show RMAP stations"
-msgstr "Mostra le stazioni RMAP"
-
-#: rmap/templates/base.html:76
-msgid "Show all stations"
-msgstr "Mostra tutte le stazioni"
-
-#: rmap/templates/base.html:78
-msgid "Your RMAP stations"
-msgstr "Le tue stazioni RMAP"
-
-#: rmap/templates/base.html:79
-msgid "All your stations"
-msgstr "Tutte le tue stazioni"
+#~ msgid "Show stations"
+#~ msgstr "Mostra le stazioni"
 
 #~ msgid "Observation"
 #~ msgstr "Osservazione"

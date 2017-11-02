@@ -80,6 +80,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
 #define REG_PM_SIZE           sizeof(pm_t)                  //size of register map for pm
+#define REG_CONO2_SIZE           sizeof(cono2_t)                  //size of register map for cono2
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
 
 #define MAX_SENT_BYTES     0x0F                      //maximum amount of data that I could receive from a master device (register, plus 15 byte)
@@ -767,13 +768,18 @@ void loop() {
     uint8_t *ptr;
     //Init to FF i2c_dataset1;
     ptr = (uint8_t *)&i2c_dataset1->pm;
-    for (i=0;i<REG_PM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+    for (i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
     stop=false;
   }
   
   if (oneshot) {
     if (!start) return;
+    IF_SDEBUG(Serial.println(F("reset everythink to missing")));
+    uint8_t *ptr;
+    //Init to FF i2c_dataset2;
+    ptr = (uint8_t *)&i2c_dataset2->pm;
+    for (i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
   } else  {
     // comment this if you manage continous mode
     // in this case timing is getted from sensor that send valuer every SAMPLERATE us

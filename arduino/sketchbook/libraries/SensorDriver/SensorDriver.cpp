@@ -2542,7 +2542,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
     SDSMICSstarted=false;
-    delay(10);
+    delay(100);
   }
 
   // get pm25
@@ -3476,7 +3476,7 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
     Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     SDSMICSstarted=false;
-    delay(10);
+    delay(100);
   }
 
   // get CO
