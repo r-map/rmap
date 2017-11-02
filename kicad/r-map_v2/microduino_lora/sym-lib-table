@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name rmap)(type "Unknown SCH_FILE_T value: 1")(uri "$(KIPRJMOD)/../lib/")(options "")(descr ""))
+)
