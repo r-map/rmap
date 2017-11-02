@@ -30,21 +30,22 @@
 #define I2C_SDS011_MAXPM10                0x0F      // pm 10  max
 #define I2C_SDS011_SIGMAPM25              0x11      // pm 2.5 sigma
 #define I2C_SDS011_SIGMAPM10              0x13      // pm 10  sigma
+#define I2C_MICS4514_PM25SAMPLE           0x15      // PM2.5 sds011 sample (for calibration)
+#define I2C_MICS4514_PM10SAMPLE           0x17      // PM10 sds011 sample (for calibration)
 
-#define I2C_MICS4514_CO                   0x15      // CO
-#define I2C_MICS4514_NO2                  0x17      // NO2
-#define I2C_MICS4514_MINCO                0x19      // CO  mean 
-#define I2C_MICS4514_MINNO2               0x1B      // NO2 mean
-#define I2C_MICS4514_MEANCO               0x1D      // CO  min
-#define I2C_MICS4514_MEANNO2              0x1F      // NO2 min
-#define I2C_MICS4514_MAXCO                0x21      // CO  max
-#define I2C_MICS4514_MAXNO2               0x23      // NO2 max
-#define I2C_MICS4514_SIGMACO              0x25      // CO  sigma
-#define I2C_MICS4514_SIGMANO2             0x27      // NO2 sigma
-#define I2C_MICS4514_CORESISTANCE         0x29      // CO mics resistance (for calibration)
-#define I2C_MICS4514_NO2RESISTANCE        0x2B      // NO2 mics resistance (for calibration)
-#define I2C_MICS4514_PM25SAMPLE           0x2D      // PM2.5 sds011 sample (for calibration)
-#define I2C_MICS4514_PM10SAMPLE           0x2F      // PM10 sds011 sample (for calibration)
+
+#define I2C_MICS4514_CO                   0x19      // CO
+#define I2C_MICS4514_NO2                  0x1B      // NO2
+#define I2C_MICS4514_MINCO                0x1D      // CO  mean 
+#define I2C_MICS4514_MINNO2               0x1F      // NO2 mean
+#define I2C_MICS4514_MEANCO               0x21      // CO  min
+#define I2C_MICS4514_MEANNO2              0x23      // NO2 min
+#define I2C_MICS4514_MAXCO                0x25      // CO  max
+#define I2C_MICS4514_MAXNO2               0x27      // NO2 max
+#define I2C_MICS4514_SIGMACO              0x29      // CO  sigma
+#define I2C_MICS4514_SIGMANO2             0x2B      // NO2 sigma
+#define I2C_MICS4514_CORESISTANCE         0x2D      // CO mics resistance (for calibration)
+#define I2C_MICS4514_NO2RESISTANCE        0x2F      // NO2 mics resistance (for calibration)
 
 #define I2C_SDSMICS_MAP_WRITABLE          0x40
 #define I2C_SDSMICS_ONESHOT               0x40      // saple mode (bool)
