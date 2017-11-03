@@ -857,6 +857,11 @@ BORINUD =\
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
+                      "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
+                      "measurements": report_measurements
+                  },        
+                  {
+                      "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/report_fixed",
                       "measurements": report_measurements
                   },
@@ -889,6 +894,11 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+                       "measurements": report_measurements
+                   },        
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
                        "measurements": report_measurements
                    },        
                    {
@@ -937,6 +947,11 @@ BORINUD =\
                        "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
                        "measurements": sample_measurements
                    },
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
+                       "measurements": sample_measurements
+                   },
                ],
                "CACHED_SUMMARY": "default",
                "CACHED_SUMMARY_TIMEOUT": 60*15,
@@ -951,6 +966,11 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
+                       "measurements": sample_measurements
+                   },
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
                        "measurements": sample_measurements
                    },
                ],
