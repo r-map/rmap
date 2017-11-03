@@ -39,8 +39,8 @@ namespace mics4514 {
       void blocking_fast_heat();
       void fast_heat();
       void normal_heat();
-      bool query_data(int *co, int *no2);
-      bool query_data_auto(int *co, int *no2, int n);
+      bool query_data(unsigned int *co, unsigned int *no2);
+      bool query_data_auto(unsigned int *co, unsigned int *no2, int n);
 	      
         private:
 
@@ -55,7 +55,7 @@ namespace mics4514 {
       uint8_t _lastfastheatertime;
       uint8_t _lastheatertime=0;
 
-      void _filter_data(int n, int *co_table, int *no2_table, int *co, int *no2);
+      void _filter_data(int n, unsigned int *co_table, unsigned int *no2_table, unsigned int *co, unsigned int *no2);
       
     };
 }

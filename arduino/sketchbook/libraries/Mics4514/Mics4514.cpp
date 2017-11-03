@@ -47,7 +47,9 @@ Generally speaking, the longer the warm up phase, the better the precision will 
 
 using namespace mics4514;
 
-Mics4514::Mics4514(uint8_t copin,uint8_t no2pin,uint8_t heaterpin,uint8_t scale1pin,uint8_t scale2pin)
+Mics4514::Mics4514(uint8_t copin, uint8_t no2pin,	\
+		   uint8_t heaterpin, uint8_t scale1pin,\
+		   uint8_t scale2pin)
 {
   _copin=copin;
   _no2pin=no2pin;
@@ -149,7 +151,7 @@ void Mics4514::normal_heat()
 
 }
 
-bool Mics4514::query_data(int *co, int *no2)
+bool Mics4514::query_data(unsigned int *co, unsigned int *no2)
 {
 
   int dno2, dco;
@@ -204,7 +206,6 @@ bool Mics4514::query_data(int *co, int *no2)
 
   if (dco > CHANGESCALEVALUE)
     {
-      IF_SDEBUG(Serial.println(F("mics4514 co  scale1")));
       digitalWrite(_scale1pin, HIGH);  
       delay(10);
       IF_SDEBUG(Serial.println(F("mics4514 co  scale1 read")));
@@ -233,8 +234,10 @@ bool Mics4514::query_data(int *co, int *no2)
   
   if (dco > CHANGESCALEVALUE)
     {
-      IF_SDEBUG(Serial.println(F("mics4514 co  scale2")));
-      digitalWrite(_scale1pin, HIGH);  
+      if (!digitalRead(_scale1pin))
+	{
+	  digitalWrite(_scale1pin, HIGH);
+	}
       digitalWrite(_scale2pin, HIGH);  
       delay(10);
       IF_SDEBUG(Serial.println(F("mics4514 co  scale2 read")));
@@ -246,6 +249,10 @@ bool Mics4514::query_data(int *co, int *no2)
 
   if (dno2 > CHANGESCALEVALUE)
     {
+      if (!digitalRead(_scale1pin))
+	{
+	  digitalWrite(_scale1pin, HIGH);
+	}
       if (!digitalRead(_scale2pin))
 	{
 	  IF_SDEBUG(Serial.println(F("mics4514 no2 scale2")));
@@ -266,6 +273,10 @@ bool Mics4514::query_data(int *co, int *no2)
   IF_SDEBUG(Serial.print(F("mics4514 no2pin : ")));
   IF_SDEBUG(Serial.println(_no2pin));
   
+  IF_SDEBUG(Serial.print(F("mics4514 cor2 : ")));
+  IF_SDEBUG(Serial.println(cor2));
+  IF_SDEBUG(Serial.print(F("mics4514 no2r2: ")));
+  IF_SDEBUG(Serial.println(no2r2));
     
   IF_SDEBUG(Serial.print(F("mics4514 dco : ")));
   IF_SDEBUG(Serial.println(dco));
@@ -273,9 +284,20 @@ bool Mics4514::query_data(int *co, int *no2)
   IF_SDEBUG(Serial.println(dno2));
     
   //compute Rs
-  *co   = round(1023./float(dco) *cor2  - cor2);
-  *no2  = round(1023./float(dno2)*no2r2 - no2r2);
-    
+  // R1 = ((R2 * Vin) / Vout ) - R2
+  // R2 = R1 / (( Vin / Vout) -1)
+  
+  *co   = round( ((float(cor2)*1023.)/float(dco)) - float(cor2));
+  *no2  = round( ((float(no2r2)*1023.)/float(dno2)) - float(no2r2));
+
+  //*co   = round(float(cor2) / ((1023./float(dco)) -1));
+  //*no2  = round(float(no2r2) / ((1023./float(dno2)) -1));
+
+  IF_SDEBUG(Serial.print(F("mics4514 co : ")));
+  IF_SDEBUG(Serial.println(*co));
+  IF_SDEBUG(Serial.print(F("mics4514 no2: ")));
+  IF_SDEBUG(Serial.println(*no2));
+  
   digitalWrite(_scale1pin, LOW);  
   digitalWrite(_scale2pin, LOW);  
 
@@ -290,11 +312,11 @@ bool Mics4514::query_data(int *co, int *no2)
 
 }
 
-bool Mics4514::query_data_auto(int *co, int *no2, int n)
+bool Mics4514::query_data_auto(unsigned int *co, unsigned int *no2, int n)
 {
   IF_SDEBUG(Serial.println(F("mics4514 query_data_auto")));
-    int co_table[n];
-    int no2_table[n];
+    unsigned int co_table[n];
+    unsigned int no2_table[n];
     int ok;
 
     for (int i = 0; i<n; i++) {
@@ -311,10 +333,10 @@ bool Mics4514::query_data_auto(int *co, int *no2, int n)
     return true;
 }
 
-void Mics4514::_filter_data(int n, int *co_table, int *no2_table, int *co, int *no2)
+void Mics4514::_filter_data(int n, unsigned int *co_table, unsigned int *no2_table, unsigned int *co, unsigned int *no2)
 {
   IF_SDEBUG(Serial.println(F("mics4514 filter_data")));  
-    int co_min, co_max, no2_min, no2_max, co_sum, no2_sum;
+    unsigned int co_min, co_max, no2_min, no2_max, co_sum, no2_sum;
 
     no2_sum = no2_min = no2_max = no2_table[0];
     co_sum = co_min = co_max = co_table[0];
