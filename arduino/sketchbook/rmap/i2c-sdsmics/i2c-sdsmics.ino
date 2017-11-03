@@ -694,8 +694,8 @@ void loop() {
   //unsigned int pm10;
   int pm25;
   int pm10;
-  int co;
-  int no2;
+  unsigned int co;
+  unsigned int no2;
   
   float mean;
   
