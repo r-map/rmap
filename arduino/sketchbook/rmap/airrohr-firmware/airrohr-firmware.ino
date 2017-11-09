@@ -2852,6 +2852,29 @@ bool initBME280(char addr) {
 	}
 }
 
+int coordStringToInt(String lat){
+  String mylat=lat;
+  mylat=mylat.substring(0,mylat.indexOf("."));
+  mylat.trim();
+  int latdegree =mylat.toInt();
+
+  mylat=lat;  
+  mylat=mylat.substring(mylat.indexOf(".")+1);
+  mylat.trim();
+  mylat=mylat.substring(0,4);
+  for (int i = 0; i < (5-mylat.length()); i++){
+    mylat+= String("0");
+  }
+  return latdegree*100000+mylat.toInt();
+}
+
+String coordIntToString(int lat){
+  String mylat=String(lat/100000);
+  mylat+=".";
+  mylat+=String(lat-(lat/100000));
+  return mylat;
+}
+
 
 void readRmapRemoteConfig(){
 
@@ -2878,21 +2901,24 @@ void readRmapRemoteConfig(){
     for (int i = 0; i < array.size(); i++) {
       
       if  (array[i]["model"] == "stations.stationmetadata"){
+	
 	const char* lon = array[i]["fields"]["lon"];
 	const char* lat = array[i]["fields"]["lat"];
 	debug_out(F("lon: "), DEBUG_MIN_INFO, 0);
 	debug_out(lon, DEBUG_MIN_INFO, 1);
 	debug_out(F("lat: "), DEBUG_MIN_INFO, 0);
 	debug_out(lat, DEBUG_MIN_INFO, 1);
-
 	longitude_rmap=atof(lon);
 	latitude_rmap=atof(lat);	  
-
+	
+	/*
+	longitude_rmap = coordStringToInt(array[i]["fields"]["lon"]);
+	latitude_rmap  = coordStringToInt(array[i]["fields"]["lat"]);
+	*/
+	
 	debug_out(F("lon: "), DEBUG_MIN_INFO, 0);
-	debug_out(lon, DEBUG_MIN_INFO, 1);
 	debug_out(String(longitude_rmap), DEBUG_MIN_INFO, 1);
 	debug_out(F("lat: "), DEBUG_MIN_INFO, 0);
-	debug_out(lat, DEBUG_MIN_INFO, 1);
 	debug_out(String(latitude_rmap), DEBUG_MIN_INFO, 1);
 	
       }
