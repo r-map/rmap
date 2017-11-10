@@ -12,15 +12,15 @@
 #define WWW_BASICAUTH_ENABLED 0
 
 // Wohin gehen die Daten?
-#define SEND2DUSTI 1
-#define SEND2MADAVI 1
+#define SEND2DUSTI 0
+#define SEND2MADAVI 0
 #define SEND2SENSEMAP 0
 #define SEND2MQTT 0
 #define SEND2INFLUX 0
 #define SEND2LORA 0
 #define SEND2CSV 0
 #define SEND2CUSTOM 0
-#define SEND2RMAP 0
+#define SEND2RMAP 1
 
 // NTP Server
 #define NTP_SERVER "0.europe.pool.ntp.org"
@@ -28,6 +28,9 @@
 // OpenSenseMap
 #define SENSEBOXID ""
 
+// RMAP
+#define SERVERRMAP "rmap.cc"
+#define STATIONRMAP "luftdaten"
 
 // IMPORTANT: NO MORE CHANGES TO VARIABLE NAMES NEEDED FOR EXTERNAL APIS
 
@@ -46,7 +49,7 @@
 #define PWD_INFLUX "info"
 
 // DHT22, Sensor Temperatur und Luftfeuchte
-#define DHT_READ 1
+#define DHT_READ 0
 #define DHT_TYPE DHT22
 #define DHT_API_PIN 7
 #if defined(ESP8266)
