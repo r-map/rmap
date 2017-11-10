@@ -22,9 +22,10 @@ import rmap.settings
 from nominatim import Nominatim
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.text import slugify
-#from rmap.rmap_core import isRainboInstance
+from rmap.rmap_core import truncate
 
 lang="it"
+
 
 
 class scelta_present_weather(object):
@@ -521,8 +522,8 @@ def insertNewStation(request):
                     mystation=StationMetadata(slug=slugify(name),name=name)
                     user=User.objects.get(username=ident)
                     mystation.ident=user
-                    mystation.lat=lat
-                    mystation.lon=lon
+                    mystation.lat=truncate(lat,5)
+                    mystation.lon=truncate(lon,5)
                     mystation.active=True
 
                     mystation.save()
