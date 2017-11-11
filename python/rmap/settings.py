@@ -806,9 +806,24 @@ report_measurements=[
         "trange": (0, 0, 900),
     },
     {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 86400),
+    },
+    {
         "var": "B15195",
         "level": (103, 2000, None, None),
         "trange": (0, 0, 900),
+    },
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 86400),
+    },
+    {
+        "var": "B15193",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 3600),
     },
     {
         "var": "B20003",
