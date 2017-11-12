@@ -203,6 +203,7 @@ char latitude_rmap[10] = "";
 char server_rmap[50] = "rmap.cc";
 char station_rmap[50] = "luftdaten";
 char mqttrootpath_rmap[50] = "sample";
+char mqttmaintpath_rmap[50] = "maint";
 
 const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/luftdaten";
@@ -785,6 +786,7 @@ void readConfig() {
 					strcpyFromJSON(server_rmap);
 					strcpyFromJSON(station_rmap);
 					strcpyFromJSON(mqttrootpath_rmap);
+					strcpyFromJSON(mqttmaintpath_rmap);
 					
 					setFromJSON(send2influx);
 					strcpyFromJSON(host_influx);
@@ -866,6 +868,7 @@ void writeConfig() {
 	copyToJSON_String(server_rmap);
 	copyToJSON_String(station_rmap);
 	copyToJSON_String(mqttrootpath_rmap);
+	copyToJSON_String(mqttmaintpath_rmap);
 	
 	copyToJSON_Bool(send2influx);
 	copyToJSON_String(host_influx);
@@ -1640,7 +1643,7 @@ void wifiConfig() {
 	wificonfig_loop = true;
 
 	WiFi.softAPConfig(apIP, apIP, netMsk);
-	WiFi.softAP(server_name.c_str());
+	WiFi.softAP(server_name.c_str(), "");
 
 	dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
 	dnsServer.start(DNS_PORT, "*", apIP);
@@ -1941,10 +1944,35 @@ void send_rmap(const String& data) {
     //String clientId = "ESP8266Client-";
     //clientId += String(random(0xffff), HEX);
     mqttclient.setServer(server_rmap, 1883);
+
+    char mainttopic[100]="";
+    strcpy (mainttopic,mqttmaintpath_rmap);
+    strcat(mainttopic,"/");
+    strcat(mainttopic,user_rmap);
+    strcat(mainttopic,"/");
+    char longitude [10];
+    char latitude [10];
+    itoa (coordCharToInt(longitude_rmap),longitude,10);
+    itoa (coordCharToInt(latitude_rmap),latitude,10);
+
+    strcat(mainttopic,longitude);
+    strcat(mainttopic,",");
+    strcat(mainttopic,latitude);
+    strcat (mainttopic,"/fixed/-,-,-/-,-,-,-/B01213");
+    debug_out(F("MQTT maint topic: "), DEBUG_MAX_INFO, 0);
+    debug_out(mainttopic, DEBUG_MAX_INFO, 1);
     
     debug_out(F("Connet to mqtt broker"), DEBUG_MIN_INFO, 1);
-    mqttclient.connect(esp_chipid.c_str(),user_rmap,pwd_rmap);
     //mqttclient.connect(esp_chipid.c_str());
+    if (mqttclient.connect(esp_chipid.c_str(),user_rmap,pwd_rmap,mainttopic,1,1,"{\"v\":\"error01\"}")){
+      debug_out(F("MQTT connected"), DEBUG_MAX_INFO, 1);
+
+      if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
+	debug_out(F("MQTT maint published"), DEBUG_MAX_INFO, 1);
+      }
+    }else{
+      debug_out(F("Error connecting MQTT"), DEBUG_MAX_INFO, 1);
+    }
   }
 
   StaticJsonBuffer<200> jsonBuffer;
@@ -2961,6 +2989,8 @@ void readRmapRemoteConfig(){
 	if (array[i]["fields"]["active"]){
 	  strncpy (mqttrootpath_rmap, array[i]["fields"]["mqttrootpath"].as< const char*>(),49);
 	  mqttrootpath_rmap[49]='\0';
+	  strncpy (mqttmaintpath_rmap, array[i]["fields"]["mqttmaintpath"].as< const char*>(),49);
+	  mqttmaintpath_rmap[49]='\0';
 	  strncpy (longitude_rmap, array[i]["fields"]["lon"].as< const char*>(),9);
 	  longitude_rmap[9]='\0';
 	  strncpy (latitude_rmap , array[i]["fields"]["lat"].as< const char*>(),9);
