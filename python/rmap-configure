@@ -110,8 +110,8 @@ parser.add_argument('--mqttactivate',action="store_true", help="activate mqtt tr
 parser.add_argument('--mqttusername',  default="", help="mqtt username")
 parser.add_argument('--mqttpassword',  default="", help="mqtt password")
 parser.add_argument('--mqttsamplerate',type=int,  default=5, help="mqtt samplerate for sensorsin seconds")
-parser.add_argument('--mqttrootpath',  default="rmap", help="mqtt topic root path")
-parser.add_argument('--mqttmaintpath',  default="rmap", help="mqtt topic maint path for admin RPC")
+parser.add_argument('--mqttrootpath',  default="sample", help="mqtt topic root path")
+parser.add_argument('--mqttmaintpath',  default="maint", help="mqtt topic maint path for admin RPC")
 parser.add_argument('--network',  default="fixed", help="network (station type)",choices=("fixed","mobile"))
 
 parser.add_argument('--bluetoothactivate', action="store_true", help="activate bluetooth transport")
