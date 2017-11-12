@@ -47,6 +47,7 @@ configspec['django']['STATIC_ROOT'] = "string(default='%s/static/')" % os.getcwd
 configspec['django']['MEDIA_PREFIX']="string(default='/media/')"
 configspec['django']['MEDIA_SITE_PREFIX']="string(default='/media/sito/')"
 configspec['django']['SERVE_STATIC']="boolean(default=True)"
+configspec['django']['CACHE_LOCATION']="string(default='%s/cache/')" % os.getcwd()
 
 
 configspec['daemon']={}
@@ -79,6 +80,7 @@ configspec['database']['DATABASE_HOST']="string(default='localhost')"
 configspec['database']['DATABASE_PORT']="integer(default=3306)"
 configspec['database']['DATABASE_ENGINE']="string(default='sqlite3')"
 configspec['database']['DATABASE_NAME']="string(default='%s/rmap.sqlite3')" % os.getcwd()
+configspec['database']['DEBUG_BORINUD_SOURCES']="boolean(default=True)"
 
 
 configspec['stationd']={}
@@ -242,6 +244,7 @@ MEDIA_SITE_PREFIX       = config['django']['MEDIA_SITE_PREFIX']
 SERVE_STATIC            = config['django']['SERVE_STATIC']
 MEDIA_URL               = "media/"
 SITE_MEDIA_URL          = BASE_URL+MEDIA_SITE_PREFIX
+CACHE_LOCATION          = config['django']['CACHE_LOCATION']
 
 
 # section daemon
@@ -335,6 +338,7 @@ exchangecomposereportd             = config['composereportd']['exchange']
 
 
 # section database
+DEBUG_BORINUD_SOURCES   = config['database']['DEBUG_BORINUD_SOURCES']
 DATABASE_USER     = config['database']['DATABASE_USER']
 DATABASE_PASSWORD = config['database']['DATABASE_PASSWORD']
 DATABASE_HOST     = config['database']['DATABASE_HOST']
@@ -497,6 +501,14 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+]
+
+if DEBUG:
+    MIDDLEWARE_CLASSES += [
+        'rmap.stations.middleware.ProfileMiddleware',
+    ]
+
+MIDDLEWARE_CLASSES += [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'django.middleware.doc.XViewMiddleware',
@@ -593,12 +605,13 @@ SERIALIZATION_MODULES = {
 #}
 
 if not android :
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-            'LOCATION': '/var/tmp/django_cache',
+    if not DEBUG:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+                'LOCATION': CACHE_LOCATION,
+            }
         }
-    }
 
 
 sample_measurements=[
@@ -1011,7 +1024,7 @@ BORINUD =\
           }
 
 
-if DEBUG:
+if DEBUG_BORINUD_SOURCES:
     BORINUD =\
               {
                   "report":
@@ -1166,7 +1179,7 @@ if LOAD_OPTIONAL_APPS:
                 print "import error: ", app["import"]
                 print "disable     : ", app.get("apps", ())
             else:
-                print "enable      : ", app.get("apps", ())
+                #print "enable      : ", app.get("apps", ())
                 INSTALLED_APPS += app.get("apps", ())
                 for ind,middleware in app.get("middleware", ()):
                     MIDDLEWARE_CLASSES.insert(ind,middleware)
