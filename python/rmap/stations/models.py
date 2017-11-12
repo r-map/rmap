@@ -702,7 +702,7 @@ class StationMetadata(models.Model):
     network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, choices=STATION_NETWORK_CHOICES, help_text=ugettext_lazy("station network"))
 
     mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
-    mqttmaintpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
+    mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
     category = models.CharField(max_length=50, choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
 
     def lon_lat(self):
