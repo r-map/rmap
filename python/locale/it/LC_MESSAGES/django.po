@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-11-01 20:01+0000\n"
-"PO-Revision-Date: 2017-11-01 21:08+0100\n"
+"POT-Creation-Date: 2017-11-13 14:23+0000\n"
+"PO-Revision-Date: 2017-11-13 15:29+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -58,7 +58,7 @@ msgstr "Reimposta filtro"
 #: geoimage/templates/geoimage/georefencedimage_list.html:45
 #: insertdata/templates/insertdata/form.html:51
 #: insertdata/templates/insertdata/manualdataform.html:47
-#: insertdata/templates/insertdata/newstationform.html:37
+#: insertdata/templates/insertdata/newstationform.html:50
 msgid "Submit"
 msgstr "Invia"
 
@@ -155,7 +155,7 @@ msgstr "Seleziona le coordinate dalle tue stazioni"
 #: insertdata/templates/insertdata/form.html:40
 #: insertdata/templates/insertdata/manualdataform.html:27
 #: insertdata/templates/insertdata/manualdataform.html:37
-#: insertdata/templates/insertdata/newstationform.html:27
+#: insertdata/templates/insertdata/newstationform.html:40
 msgid "Select"
 msgstr "Seleziona"
 
@@ -164,7 +164,7 @@ msgstr "Seleziona"
 #: build/lib/insertdata/templates/insertdata/newstationform.html:21
 #: insertdata/templates/insertdata/form.html:32
 #: insertdata/templates/insertdata/manualdataform.html:31
-#: insertdata/templates/insertdata/newstationform.html:21
+#: insertdata/templates/insertdata/newstationform.html:34
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
 
@@ -179,70 +179,70 @@ msgid "Select coordinate from map and insert your actual data"
 msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 
 #: build/lib/insertdata/templates/insertdata/newstationform.html:33
-#: insertdata/templates/insertdata/newstationform.html:33
+#: insertdata/templates/insertdata/newstationform.html:46
 msgid "Select coordinate from map and insert your new station"
 msgstr "Seleziona le coordinate dalla mappa e inserisci la tua nuova stazione"
 
-#: build/lib/insertdata/views.py:84 insertdata/views.py:84
+#: build/lib/insertdata/views.py:84 insertdata/views.py:85
 msgid "Your station"
 msgstr "La tua stazione"
 
-#: build/lib/insertdata/views.py:84 insertdata/views.py:84
+#: build/lib/insertdata/views.py:84 insertdata/views.py:85
 msgid "Select configurated station"
 msgstr "Seleziona una stazione configurata"
 
 #: build/lib/insertdata/views.py:92 build/lib/rmap/rmapgui.py:1199
-#: insertdata/views.py:92 rmap/rmapgui.py:1199
+#: insertdata/views.py:93 rmap/rmapgui.py:1199
 msgid "Present weather"
 msgstr "Tempo presente"
 
 #: build/lib/insertdata/views.py:94 build/lib/rmap/rmapgui.py:1177
-#: insertdata/views.py:94 rmap/rmapgui.py:1177
+#: insertdata/views.py:95 rmap/rmapgui.py:1177
 msgid "Visibility(m.)"
 msgstr "Visibilità (m)"
 
 #: build/lib/insertdata/views.py:95 build/lib/rmap/rmapgui.py:1176
-#: insertdata/views.py:95 rmap/rmapgui.py:1176
+#: insertdata/views.py:96 rmap/rmapgui.py:1176
 msgid "Snow height(cm.)"
 msgstr "Altezza neve (cm)"
 
-#: build/lib/insertdata/views.py:106 insertdata/views.py:106
+#: build/lib/insertdata/views.py:106 insertdata/views.py:107
 msgid "Not_significant"
-msgstr ""
+msgstr "Niente di significativo"
 
-#: build/lib/insertdata/views.py:107 insertdata/views.py:107
+#: build/lib/insertdata/views.py:107 insertdata/views.py:108
 msgid "Visibility"
 msgstr "Visibilità"
 
-#: build/lib/insertdata/views.py:108 insertdata/views.py:108
+#: build/lib/insertdata/views.py:108 insertdata/views.py:109
 msgid "Snow"
-msgstr ""
+msgstr "Neve"
 
-#: build/lib/insertdata/views.py:109 insertdata/views.py:109
+#: build/lib/insertdata/views.py:109 insertdata/views.py:110
 msgid "Thunderstorm"
-msgstr ""
+msgstr "Temporale"
 
-#: build/lib/insertdata/views.py:110 insertdata/views.py:110
+#: build/lib/insertdata/views.py:110 insertdata/views.py:111
 msgid "Rain"
-msgstr ""
+msgstr "Pioggia"
 
-#: build/lib/insertdata/views.py:111 insertdata/views.py:111
+#: build/lib/insertdata/views.py:111 insertdata/views.py:112
 msgid "Tornado"
-msgstr ""
+msgstr "Tromba d'aria"
 
-#: build/lib/insertdata/views.py:121 insertdata/views.py:121
+#: build/lib/insertdata/views.py:121 insertdata/views.py:122
 msgid "Impact detected"
 msgstr ""
 
-#: build/lib/insertdata/views.py:130 insertdata/views.py:130
+#: build/lib/insertdata/views.py:130 insertdata/views.py:131
 msgid "Search address"
 msgstr "Indirizzo di ricerca"
 
-#: build/lib/insertdata/views.py:139 insertdata/views.py:139
+#: build/lib/insertdata/views.py:139 insertdata/views.py:144
 msgid "New station name"
 msgstr "Nome nuova stazione"
 
-#: build/lib/insertdata/views.py:139 insertdata/views.py:139
+#: build/lib/insertdata/views.py:139 insertdata/views.py:144
 msgid "The name of the station to insert"
 msgstr "Il nome della stazione da inserire"
 
@@ -293,12 +293,14 @@ msgid "Station name"
 msgstr "Nome stazione"
 
 #: build/lib/rmap/form.py:34 build/lib/rmap/stations/models.py:699
-#: rmap/form.py:34 rmap/stations/models.py:699
+#: insertdata/templates/insertdata/newstationform.html:27 rmap/form.py:34
+#: rmap/stations/models.py:699
 msgid "Latitude"
 msgstr "Latitudine"
 
 #: build/lib/rmap/form.py:35 build/lib/rmap/stations/models.py:700
-#: rmap/form.py:35 rmap/stations/models.py:700
+#: insertdata/templates/insertdata/newstationform.html:26 rmap/form.py:35
+#: rmap/stations/models.py:700
 msgid "Longitude"
 msgstr "Longitudine"
 
@@ -1167,6 +1169,8 @@ msgid ""
 "Station and sensor have different data level; change mqttrootpath or active "
 "sensors."
 msgstr ""
+"Statione e sensore hanno data level differente; cambia mqttrootpath o i "
+"sensori attivi."
 
 #: build/lib/rmap/stations/models.py:207 rmap/stations/models.py:207
 msgid "Data Level as defined by WMO (Sensor metadata from rmap RFC)"
@@ -1681,6 +1685,26 @@ msgstr "Scarica i dati"
 #: showdata/templates/showdata/timeseries.html:93
 msgid "Show values on a map"
 msgstr "Mostra valori sulla mappa"
+
+#: insertdata/templates/insertdata/newstationform.html:23
+msgid "Station insert completed successfully"
+msgstr "Inserimento della stazione completato con successo"
+
+#: insertdata/templates/insertdata/newstationform.html:24
+msgid "Name"
+msgstr "Nome"
+
+#: insertdata/templates/insertdata/newstationform.html:25
+msgid "Slug"
+msgstr "Slug (nome della risorsa)"
+
+#: insertdata/views.py:145
+msgid "station model"
+msgstr "modello stazione"
+
+#: insertdata/views.py:145
+msgid "The model of the station to insert"
+msgstr "Il modello della stazione da inserire"
 
 #~ msgid "Show stations"
 #~ msgstr "Mostra le stazioni"

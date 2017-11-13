@@ -18,6 +18,19 @@
 <div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}
 
+{% if station  %}
+<div class="alert alert-warning" role="alert">
+  {% trans 'Station insert completed successfully' %}:<br>
+  {% trans 'Name' %}: {{station.name }}<br>
+  {% trans 'Slug' %}: {{ station.slug }}<br>
+  {% trans 'Longitude' %}: {{ station.lon }}<br>
+  {% trans 'Latitude' %}: {{ station.lat }}<br>
+</div>
+
+
+{% endif %}
+
+
 <h3 id="striped-rows">{% trans 'Select coordinate from address' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}

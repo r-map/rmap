@@ -535,8 +535,8 @@ def insertNewStation(request):
                     mystation=StationMetadata(slug=slug,name=name)
                     user=User.objects.get(username=ident)
                     mystation.ident=user
-                    mystation.lat=lat
-                    mystation.lon=lon
+                    mystation.lat=rmap.rmap_core.truncate(lat,5)
+                    mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
 
                     mystation.clean()
@@ -560,7 +560,7 @@ def insertNewStation(request):
                     print e
                     return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True})
 
-            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"station":mystation})
 
         else:
 
