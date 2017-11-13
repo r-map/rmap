@@ -45,6 +45,8 @@ import rmap.settings
 import argparse
 
 import django
+from django.core import serializers
+import urllib2
 
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
@@ -56,6 +58,8 @@ django.setup()
 from rmap.stations.models import StationMetadata
 from rmap.stations.models import Sensor, SensorType
 import rmap.rmap_core
+from django.db import IntegrityError
+from django.contrib.auth.models import User
 
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
@@ -70,8 +74,7 @@ parser.add_argument('--addsensors_by_template',  default=None, choices=rmap.rmap
 parser.add_argument('--config_station',action="store_true", help="configure board connected to station")
 parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
-
-
+parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -335,3 +338,34 @@ if args.upload_to_server:
     rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,password=args.password)
 
     print "END of upload_to_server configuration"
+
+if args.download_from_server:
+
+    if (args.username is None or
+        args.station_slug is None):
+        print " selected download_from_server without username or station_slug"
+        raise SystemExit(1)
+
+    body=urllib2.urlopen("http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json").read()
+    print body
+
+    try:
+        user = User.objects.create_user(args.username, args.username+'@rmap.cc', None)            
+        #trap IntegrityError for user that already exist
+    except IntegrityError:
+        print "user already exist"
+        pass
+    except:
+        raise
+    else:
+        print "user:", args.username, "created without password"
+    try:
+        for deserialized_object in serializers.deserialize("json",body):
+            try:
+                print "save:",deserialized_object.object
+                deserialized_object.save()
+            except Exception as e:
+                print (" [E] Error saving in DB",e)
+
+    except Exception as e:
+        print ("error in deserialize object; skip it",e)
