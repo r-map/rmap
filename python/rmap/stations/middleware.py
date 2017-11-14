@@ -105,9 +105,13 @@ class ProfileMiddleware(object):
             if response and response.content and stats_str:
                 response.content = "<pre>" + stats_str + "</pre>"
 
+            response['Content-Type'] = 'text/html;'
+
             response.content = "\n".join(response.content.split("\n")[:40])
 
             response.content += self.summary_for_files(stats_str)
+
+            response['Content-Length'] = len(response.content)
 
             os.unlink(self.tmpfile)
 
