@@ -129,6 +129,10 @@ parser.add_argument('--tcpipntpserver',  default="ntpserver", help="tcp/ip ntp s
 args = parser.parse_args()
 
 
+#truncate lon and lat to have coordinate as RMAP specification
+args.lon=rmap.rmap_core.truncate(args.lon,5)
+args.lat=rmap.rmap_core.truncate(args.lat,5)
+
 if args.wizard:
 
     if (args.username is None or
@@ -346,6 +350,8 @@ if args.download_from_server:
         print " selected download_from_server without username or station_slug"
         raise SystemExit(1)
 
+    print "get configuration from:"
+    print "http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json"
     body=urllib2.urlopen("http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json").read()
     print body
 
