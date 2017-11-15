@@ -425,7 +425,10 @@ STANDARD_DIRS = []
 # Cluster settings
 CLUSTER_SERVERS = []
 URL_PREFIX = ''
-DEFAULT_CACHE_POLICY = []
+DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+                        (86400, 900), # >= 1 day queries are cached 15 minutes
+                        (86400*3, 3600)] # >= 3 day queries are cached 60 minutes
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
@@ -603,6 +606,13 @@ SERIALIZATION_MODULES = {
 #        'LOCATION': '127.0.0.1:11211',
 #    }
 #}
+
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    }
+}
 
 if not android :
     if not DEBUG:
