@@ -69,7 +69,7 @@
 /*                                                               *
 /*****************************************************************/
 // increment on change
-#define SOFTWARE_VERSION "NRZ-2017-100"
+#define SOFTWARE_VERSION "{\"type\":\"ESP\",\"ver\":\"2017-11-16T00:00\"}"
 
 /*****************************************************************
 /* Includes                                                      *
@@ -2738,7 +2738,8 @@ void autoUpdate() {
 		//SDS_version = "999";
 		display_debug(F("Looking for OTA update"));
 		last_update_attempt = millis();
-		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
+		//		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
+		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION));
 		switch(ret) {
 		case HTTP_UPDATE_FAILED:
 			debug_out(F("[update] Update failed."), DEBUG_ERROR, 0);
