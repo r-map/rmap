@@ -1173,6 +1173,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'django_extensions',              "apps": ('django_extensions',)},
         {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
+        {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
     )
 
     # Set up each optional app if available.

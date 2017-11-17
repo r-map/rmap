@@ -106,6 +106,12 @@ if not android  :
         print "Warnig: sos disabled"
         print e
         
+    try:
+        urlpatterns.append(url(r'^firmware/', include('firmware_updater.urls')))
+    except Exception as e:
+        print "Warnig: firmware_updater disabled"
+        print e
+
   
         
 if ( settings.SERVE_STATIC ):
