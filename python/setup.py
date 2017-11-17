@@ -204,6 +204,7 @@ insertdata_package_data = []
 registration_package_data = []
 showdata_package_data = []
 rainbo_package_data = []
+firmware_updater = []
 
 data_files = []
 
@@ -353,6 +354,7 @@ setup(name='rmap',
                 'graphite-dballe.url_shortener','graphite-dballe.url_shortener.migrations',
                 'graphite-dballe.version',
                 'graphite-dballe.whitelist',
+                'firmware_updater','firmware_updater.migrations',
       ],
 
       package_data={
