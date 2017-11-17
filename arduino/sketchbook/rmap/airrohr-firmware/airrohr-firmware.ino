@@ -69,7 +69,7 @@
 /*                                                               *
 /*****************************************************************/
 // increment on change
-#define SOFTWARE_VERSION "{\"type\":\"ESP\",\"ver\":\"2017-11-16T00:00\"}"
+#define SOFTWARE_VERSION "2017-11-17T00:00"
 
 /*****************************************************************
 /* Includes                                                      *
@@ -206,7 +206,7 @@ char mqttrootpath_rmap[50] = "sample";
 char mqttmaintpath_rmap[50] = "maint";
 
 const char* update_host = "rmap.cc";
-const char* update_url = "/firmware/update/luftdaten";
+const char* update_url = "/firmware/update/luftdaten/";
 const int update_port = 80;
 
 #if defined(ESP8266)
@@ -2738,8 +2738,20 @@ void autoUpdate() {
 		//SDS_version = "999";
 		display_debug(F("Looking for OTA update"));
 		last_update_attempt = millis();
+
+
+		StaticJsonBuffer<200> jsonBuffer; 
+		JsonObject& root = jsonBuffer.createObject();
+		root["ver"] = SOFTWARE_VERSION;
+		root["user"] = user_rmap;
+		root["slug"] = station_rmap;
+		char buffer[256];
+		root.printTo(buffer, sizeof(buffer));
+		debug_out(F("version for firmware upgrade"), DEBUG_MED_INFO, 0);
+		debug_out(buffer, DEBUG_MED_INFO, 1);
+		
 		//		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION));
+		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
 		switch(ret) {
 		case HTTP_UPDATE_FAILED:
 			debug_out(F("[update] Update failed."), DEBUG_ERROR, 0);
