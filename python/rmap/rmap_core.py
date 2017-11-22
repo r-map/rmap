@@ -330,7 +330,7 @@ template_choices = [
     "stima_thwr",    "stima_thwrp",
     "stima_rf24_t",    "stima_rf24_h",    "stima_rf24_w",    "stima_rf24_r",    "stima_rf24_p",    "stima_rf24_th",    "stima_rf24_y",
     "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp", "luftdaten",
-    "stima_report_thp","stima_report_p",
+    "stima_report_thp","stima_report_thpb", "stima_report_p",
     "stima_indirect_t",    "stima_indirect_h",    "stima_indirect_r",    "stima_indirect_p",    "stima_indirect_s", "stima_indirect_m",
     "stima_indirect_sm", "stima_indirect_th",    "stima_indirect_y",    "stima_indirect_thw",    "stima_indirect_thp",    "stima_indirect_yp",    "stima_indirect_ths",    "stima_indirect_thsm",
     "stima_indirect_thwr",    "stima_indirect_thwrp",    "stima_indirect_report_thp",
@@ -663,6 +663,28 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Precipitation report",driver="I2C",
                   type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
 
+
+    if (template == "stima_report_thpb"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="I2C",
+                  type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="I2C",
+                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="I2C",
+                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max malues",driver="I2C",
+                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="I2C",
+                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Battery charge monitor",driver="I2C",
+                  type="DEP",address=100,timerange="254,0,0",level="103,1,-,-")
 
 
     if (template == "stima_indirect_t"):
