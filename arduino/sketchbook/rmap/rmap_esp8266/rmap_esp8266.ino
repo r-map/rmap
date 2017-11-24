@@ -24,7 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SOFTWARE_VERSION "2017-11-20T12:00"
 #define SDS_PIN_RX D1
 #define SDS_PIN_TX D2
-#define SAMPLES 3
+#define SAMPLETIME 20
+
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -38,6 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ESP8266httpUpdate.h>
 #include "Sds011.h"
 #include <SoftwareSerial.h>
+#include <TimeAlarms.h>
 
 SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
 sds011::Sds011 sensor(mySerial);
@@ -46,7 +48,6 @@ const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/luftdaten/";
 const int update_port = 80;
 
-bool will_check_for_update = true;
 bool config_needs_write = false;
 
 WiFiClient espClient;
@@ -267,8 +268,6 @@ void publish_pm(const char* sensor, const int pm) {
 
 void firmware_upgrade() {
 
-  if (!will_check_for_update) return;
-
   StaticJsonBuffer<200> jsonBuffer; 
   JsonObject& root = jsonBuffer.createObject();
   root["ver"] = SOFTWARE_VERSION;
@@ -294,7 +293,6 @@ void firmware_upgrade() {
       Serial.println(F("[update] Update ok.")); // may not called we reboot the ESP
       break;
     }
-  will_check_for_update = false;
 }
 
 void readconfig() {
@@ -376,7 +374,36 @@ void writeconfig() {;
   }
 }
 
+void repeats() {
 
+#define SDS_SAMPLES 3
+  
+  int pm2, pm10;
+  bool ok;
+
+  //firmware_upgrade();
+
+  sensor.set_sleep(false);
+  delay(3000);
+  ok = sensor.query_data_auto(&pm2, &pm10, SDS_SAMPLES);
+  sensor.set_sleep(true);
+
+  if (ok) {
+    publish_maint();
+    publish_pm( "SDS_PM2", pm2);
+    publish_pm( "SDS_PM10", pm10);
+  } else {
+    Serial.println(F("error getting sds011 data"));
+  }
+
+  sensor.set_sleep(true);
+}
+
+void reboot() {
+  //reset and try again, or maybe put it to deep sleep
+  ESP.restart();
+  delay(5000);
+}
 
 void setup() {
   // put your setup code here, to run once:
@@ -442,9 +469,7 @@ void setup() {
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     Serial.println(F("failed to connect and hit timeout"));
     delay(3000);
-    //reset and try again, or maybe put it to deep sleep
-    ESP.restart();
-    delay(5000);
+    reboot();
   }
   
   //if you get here you have connected to the WiFi
@@ -476,41 +501,26 @@ void setup() {
     Serial.println(F("Reset wifi configuration"));
     wifiManager.resetSettings();
     delay(1000);
-    ESP.restart();
-    delay(5000);
+    reboot();
   }
-
-  /*
   
   Serial.print(F("Sds011 firmware version: "));
   Serial.println(sensor.firmware_version());
 
   sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
-  */
-  
+
+  Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every tr seconds
+
+  // millis() and other can have overflow problem
+  // so we reset everythings one time a week
+  Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
+
+  // upgrade firmware
+  Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
 }
 
+
 void loop() {
-
-  int pm2, pm10;
-  bool ok;
-
-  //firmware_upgrade();
-
-  sensor.set_sleep(false);
-  delay(3000);
-  ok = sensor.query_data_auto(&pm2, &pm10, SAMPLES);
-  sensor.set_sleep(true);
-
-  if (ok) {
-    publish_maint();
-    publish_pm( "SDS_PM2", pm2);
-    publish_pm( "SDS_PM10", pm10);
-  } else {
-    Serial.println(F("error getting sds011 data"));
-  }
-
-  sensor.set_sleep(true);
-  delay(10000);
+  Alarm.delay(0);
 }
