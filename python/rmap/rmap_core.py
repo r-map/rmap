@@ -684,7 +684,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Battery charge monitor",driver="I2C",
-                  type="DEP",address=100,timerange="254,0,0",level="103,1,-,-")
+                  type="DEP",address=48,timerange="254,0,0",level="103,1,-,-")
 
 
     if (template == "stima_indirect_t"):
