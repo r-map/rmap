@@ -18,7 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2017-11-20T12:00"
+#define SOFTWARE_VERSION "2017-11-24T12:00"
+#define FIRMWARE_TYPE "stima_wemosd1mini"
 
 #define RESET_PIN D0    // pin to connect to ground for reset wifi configuration
 #define WIFI_SSED "STIMA-configuration"
@@ -45,11 +46,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <TimeAlarms.h>
 #include <ArduinoLog.h>
 
+// watchdog is enabled by default on ESP
+// https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
+
 SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
 sds011::Sds011 sensor(mySerial);
   
 const char* update_host = "rmap.cc";
-const char* update_url = "/firmware/update/luftdaten/";
+const char* update_url = "/firmware/update/"FIRMWARE_TYPE"/";
 const int update_port = 80;
 
 bool config_needs_write = false;
@@ -63,14 +67,73 @@ char rmap_latitude[11] = "";
 char rmap_server[40]= "rmap.cc";
 char rmap_user[10]="";
 char rmap_password[30]="";
-char rmap_slug[50]="stimaesp";
-char rmap_mqttrootpath[50] = "sample";
-char rmap_mqttmaintpath[50] = "maint";
+char rmap_slug[30]="stimaesp";
+char rmap_mqttrootpath[10] = "sample";
+char rmap_mqttmaintpath[10] = "maint";
 
 char esp_chipid[11];
 
 //flag for saving data
 bool shouldSaveConfig = false;
+
+
+/*
+
+// for sensoron
+#define SENSORS_LEN 5
+#define SENSORDRIVER_DRIVER_LEN 5
+#define SENSORDRIVER_TYPE_LEN 5
+#define SENSORDRIVER_MQTTPATH_LEN 30
+#define MAX_VALUES_FOR_SENSOR 5
+
+#include <SensorDriver.h>
+
+// sensor information
+struct sensor_t
+{
+  char driver[SENSORDRIVER_DRIVER_LEN];         // driver name
+  int node;                                 // RF24Nework node id
+  char type[SENSORDRIVER_TYPE_LEN];         // sensor type name
+  int address;                              // i2c address
+  char mqttpath[SENSORDRIVER_MQTTPATH_LEN]; // path for mqtt pubblish
+  sensor_t() : address(-1) {
+       driver[0]='\0';
+       node = -1;
+       type[0]='\0';
+       mqttpath[0]='\0';
+  }
+};
+
+struct driver_t   // use this to instantiate a driver
+{
+  SensorDriver* manager;
+  driver_t() : manager(NULL) {}
+
+  int setup(const char* driver, int node, const char* type, int address
+    #if defined (AES)
+		       , uint8_t* key, uint8_t* iv
+    #endif
+	      )
+  {
+    if (manager != NULL)
+      delete manager;
+    manager = SensorDriver::create(driver,type);
+    if (manager == NULL)
+      return -2;
+
+    if (manager->setup(driver, address, node, type
+      #if defined (RADIORF24)
+		       , mainbuf,sizeof(mainbuf), &network
+        #if defined (AES)
+		       , key, iv
+        #endif
+      #endif
+		       ) != 0) return -1;
+    return 0;
+  }
+} drivers[SENSORS_LEN];
+*/
+
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
