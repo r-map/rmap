@@ -17,15 +17,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#define RESET_PIN D0
-#define WIFI_SSED "STIMA-configuration"
-#define WIFI_PASSWORD  "bellastima"
 // increment on change
 #define SOFTWARE_VERSION "2017-11-20T12:00"
-#define SDS_PIN_RX D1
-#define SDS_PIN_TX D2
+
+#define RESET_PIN D0    // pin to connect to ground for reset wifi configuration
+#define WIFI_SSED "STIMA-configuration"
+#define WIFI_PASSWORD  "bellastima"
 #define SAMPLETIME 20
 
+#define SDS_PIN_RX D1
+#define SDS_PIN_TX D2
+
+//#define DISABLE_LOGGING disable
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -40,6 +43,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Sds011.h"
 #include <SoftwareSerial.h>
 #include <TimeAlarms.h>
+#include <ArduinoLog.h>
 
 SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
 sds011::Sds011 sensor(mySerial);
@@ -70,7 +74,7 @@ bool shouldSaveConfig = false;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  Serial.println(F("Should save config"));
+  Log.notice(F("Should save config"CR));
   shouldSaveConfig = true;
 }
 
@@ -126,19 +130,19 @@ int  rmap_remote_config(){
   url+=rmap_slug;
   url+="/json/";
 
-  Serial.println(F("readRmapRemoteConfig url: "));  
-  Serial.println(url);  
+  Log.notice(F("readRmapRemoteConfig url: "CR));  
+  Log.notice(url.c_str());  
   //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
   http.begin(url.c_str());
 
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
     payload = http.getString();
-    Serial.println(payload);
+    Log.notice(payload.c_str());
   }else{
-    Serial.println(F("Error http: "));
-    Serial.println(String(httpCode));
-    Serial.println(http.errorToString(httpCode));
+    Log.error(F("Error http: "CR));
+    Log.error(String(httpCode).c_str());
+    Log.error(http.errorToString(httpCode).c_str());
     status= 1;
   }
   http.end();					\
@@ -159,18 +163,19 @@ int  rmap_remote_config(){
 	    rmap_longitude[10]='\0';
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
 	    rmap_latitude[10]='\0';
-	    Serial.println(F("lon: "));
-	    Serial.println(rmap_longitude);
-	    Serial.println(F("lat: "));
-	    Serial.println(rmap_latitude);
+	    Log.notice(F("lon: "));
+	    Log.notice(rmap_longitude);
+	    Log.notice(F("lat: "));
+	    Log.notice(rmap_latitude);
+	    Log.notice(CR);
 	    config_needs_write = true;
-	    Serial.println(F("station metadata found!"));
+	    Log.notice(F("station metadata found!"CR));
 	    status = 0;
 	  }
 	}
       }
     } else {
-      Serial.println(F("error decoding array"));
+      Log.error(F("error decoding array"CR));
       status = 2;
     }
     return status;
@@ -201,18 +206,19 @@ void publish_maint() {
     strcat(mainttopic,",");
     strcat(mainttopic,latitude);
     strcat (mainttopic,"/fixed/-,-,-/-,-,-,-/B01213");
-    Serial.println(F("MQTT maint topic: "));
-    Serial.println(mainttopic);
+    Log.notice(F("MQTT maint topic: "));
+    Log.notice(mainttopic);
+    Log.notice(CR);
     
-    Serial.println(F("Connet to mqtt broker"));
+    Log.notice(F("Connet to mqtt broker"CR));
     if (mqttclient.connect(esp_chipid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
-      Serial.println(F("MQTT connected"));
+      Log.notice(F("MQTT connected"CR));
 
       if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-	Serial.println(F("MQTT maint published"));
+	Log.notice(F("MQTT maint published"CR));
       }
     }else{
-      Serial.println(F("Error connecting MQTT"));
+      Log.error(F("Error connecting MQTT"CR));
     }
   }
 }
@@ -237,16 +243,16 @@ void publish_pm(const char* sensor, const int pm) {
   strcat(topic,latitude);
   strcat(topic,"/fixed/254,0,0/103,2000,-,-/");
   
-  Serial.println(sensor);
+  Log.notice(sensor);
   if (strcmp(sensor,"SDS_PM10")== 0)
     {
-      Serial.println(F("SDS_PM10 found"));
+      Log.notice(F("SDS_PM10 found"CR));
       strcat(topic,"B15195");
       havetopublish=true;
     }
   if (strcmp(sensor,"SDS_PM2")== 0)
     {
-      Serial.println(F("SDS_PM2 found"));
+      Log.notice(F("SDS_PM2 found"CR));
       strcat(topic,"B15198");
       havetopublish=true;
     }
@@ -258,9 +264,10 @@ void publish_pm(const char* sensor, const int pm) {
       itoa (pm,value,10);
       strcat(payload,value);
       strcat(payload,"}");
-      Serial.println(F("mqtt publish: "));
-      Serial.println(topic);
-      Serial.println(payload);
+      Log.notice(F("mqtt publish: "));
+      Log.notice(topic);
+      Log.notice(payload);
+      Log.notice(CR);
       mqttclient.publish(topic, payload);
     }
 }
@@ -275,35 +282,37 @@ void firmware_upgrade() {
   root["slug"] = rmap_slug;
   char buffer[256];
   root.printTo(buffer, sizeof(buffer));
-  Serial.println(F("version for firmware upgrade"));
-  Serial.println(buffer);
+  Log.notice(F("version for firmware upgrade"CR));
+  Log.notice(buffer);
+  Log.notice(CR);
 		
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
-      Serial.println(F("[update] Update failed."));
-      Serial.println(ESPhttpUpdate.getLastErrorString().c_str());
-      break;
+      Log.error(F("[update] Update failed."CR));
+      Log.error(ESPhttpUpdate.getLastErrorString().c_str());
+      Log.notice(CR);
+    break;
     case HTTP_UPDATE_NO_UPDATES:
-      Serial.println(F("[update] No Update."));
+      Log.notice(F("[update] No Update."CR));
       break;
     case HTTP_UPDATE_OK:
-      Serial.println(F("[update] Update ok.")); // may not called we reboot the ESP
+      Log.notice(F("[update] Update ok."CR)); // may not called we reboot the ESP
       break;
     }
 }
 
 void readconfig() {
 
-  Serial.println(F("mounted file system"));
+  Log.notice(F("mounted file system"CR));
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
-      Serial.println(F("reading config file"));
+      Log.notice(F("reading config file"CR));
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Serial.println(F("opened config file"));
+        Log.notice(F("opened config file"CR));
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
@@ -313,7 +322,7 @@ void readconfig() {
         JsonObject& json = jsonBuffer.parseObject(buf.get());
         json.printTo(Serial);
         if (json.success()) {
-          Serial.println(F("\nparsed json"));
+          Log.notice(F("\nparsed json"CR));
 
           strcpy(rmap_longitude, json["rmap_longitude"]);
           strcpy(rmap_latitude, json["rmap_latitude"]);
@@ -324,22 +333,28 @@ void readconfig() {
 	  strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
 	  strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
 
-	  Serial.println(F("loaded config parameter"));
-	  Serial.println(rmap_server);
-	  Serial.println(rmap_user);
-	  Serial.println(rmap_password);
-	  Serial.println(rmap_slug);
-	  Serial.println(rmap_mqttrootpath);
-	  Serial.println(rmap_mqttmaintpath);
+	  Log.notice(F("loaded config parameter"CR));
+	  Log.notice(rmap_server);
+	  Log.notice(CR);
+	  Log.notice(rmap_user);
+	  Log.notice(CR);
+	  Log.notice(rmap_password);
+	  Log.notice(CR);
+	  Log.notice(rmap_slug);
+	  Log.notice(CR);
+	  Log.notice(rmap_mqttrootpath);
+	  Log.notice(CR);
+	  Log.notice(rmap_mqttmaintpath);
+	  Log.notice(CR);
 	  
         } else {
-          Serial.println(F("failed to load json config"));
+          Log.notice(F("failed to load json config"CR));
         }
       } else {
-	Serial.println(F("erro reading config file"));	
+	Log.notice(F("erro reading config file"CR));	
       }
     } else {
-      Serial.println(F("config file do not exist"));
+      Log.notice(F("config file do not exist"CR));
     }
   //end read
 }
@@ -348,7 +363,7 @@ void writeconfig() {;
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
-    Serial.println(F("saving config"));
+    Log.notice(F("saving config"CR));
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
     
@@ -363,13 +378,13 @@ void writeconfig() {;
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
-      Serial.println(F("failed to open config file for writing"));
+      Log.notice(F("failed to open config file for writing"CR));
     }
 
     json.printTo(Serial);
     json.printTo(configFile);
     configFile.close();
-    Serial.println(F("saved config parameter"));
+    Log.notice(F("saved config parameter"CR));
     //end save
   }
 }
@@ -393,7 +408,7 @@ void repeats() {
     publish_pm( "SDS_PM2", pm2);
     publish_pm( "SDS_PM10", pm10);
   } else {
-    Serial.println(F("error getting sds011 data"));
+    Log.error(F("error getting sds011 data"CR));
   }
 
   sensor.set_sleep(true);
@@ -409,6 +424,18 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
   Serial.println();
+
+  // Pass log level, whether to show log level, and print interface.
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, uncomment #define DISABLE_LOGGING in Logging.h
+  //       this will significantly reduce your project size
+  
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+
+
+
+  
   pinMode(RESET_PIN, INPUT_PULLUP);
 
   itoa(ESP.getChipId(),esp_chipid,10);
@@ -417,11 +444,11 @@ void setup() {
   //SPIFFS.format();
 
   //read configuration from FS json
-  Serial.println(F("mounting FS..."));
+  Log.notice(F("mounting FS..."CR));
   if (SPIFFS.begin()) {
     readconfig();
   } else {
-    Serial.println(F("failed to mount FS"));
+    Log.notice(F("failed to mount FS"CR));
   }
   
   // The extra parameters to be configured (can be either global or just in the setup)
@@ -450,7 +477,7 @@ void setup() {
 
   if (digitalRead(RESET_PIN) == LOW) {
     //reset settings
-    Serial.println(F("Reset wifi configuration"));
+    Log.notice(F("Reset wifi configuration"CR));
     wifiManager.resetSettings();
   }
   //set minimu quality of signal so it ignores AP's under that quality
@@ -467,13 +494,13 @@ void setup() {
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-    Serial.println(F("failed to connect and hit timeout"));
+    Log.notice(F("failed to connect and hit timeout"CR));
     delay(3000);
     reboot();
   }
   
   //if you get here you have connected to the WiFi
-  Serial.println(F("connected...yeey :)"));
+  Log.notice(F("connected...yeey :)"CR));
 
   //read updated parameters
   strcpy(rmap_server, custom_rmap_server.getValue());
@@ -483,29 +510,28 @@ void setup() {
 
   writeconfig();
   
-  Serial.println(F("local ip"));
-  Serial.println(WiFi.localIP());
+  Log.notice(F("local ip"));
+  Log.notice(WiFi.localIP().toString().c_str());
+  Log.notice(CR);
 
   firmware_upgrade();
 
   if (!(rmap_remote_config() == 0)) {
-    Serial.println(F("remote configuration failed"));
+    Log.notice(F("remote configuration failed"CR));
   }
 
-  //strcpy(rmap_longitude,"11.36987");
-  //strcpy(rmap_latitude,"44.48896");
-    
   if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
-    Serial.println(F("station not configurated ! restart"));
+    Log.notice(F("station not configurated ! restart"CR));
     //reset settings
-    Serial.println(F("Reset wifi configuration"));
+    Log.notice(F("Reset wifi configuration"CR));
     wifiManager.resetSettings();
     delay(1000);
     reboot();
   }
   
   Serial.print(F("Sds011 firmware version: "));
-  Serial.println(sensor.firmware_version());
+  Log.notice(sensor.firmware_version().c_str());
+  Log.notice(CR);
 
   sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
