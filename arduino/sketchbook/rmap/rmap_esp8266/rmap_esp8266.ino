@@ -71,7 +71,6 @@ char rmap_slug[30]="stimaesp";
 char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
-char esp_chipid[11];
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -246,7 +245,7 @@ int  rmap_remote_config(){
 }
 
 
-void publish_maint() {
+bool publish_maint() {
 
   const String data;  
   
@@ -254,35 +253,43 @@ void publish_maint() {
     //String clientId = "ESP8266Client-";
     //clientId += String(random(0xffff), HEX);
     mqttclient.setServer(rmap_server, 1883);
+    
+    Log.notice(F("Connet to mqtt broker"CR));
 
-    char mainttopic[100]="";
-    strcpy (mainttopic,rmap_mqttmaintpath);
-    strcat(mainttopic,"/");
-    strcat(mainttopic,rmap_user);
-    strcat(mainttopic,"/");
     char longitude [10];
     char latitude [10];
     itoa (coordCharToInt(rmap_longitude),longitude,10);
     itoa (coordCharToInt(rmap_latitude),latitude,10);
-
-    strcat(mainttopic,longitude);
-    strcat(mainttopic,",");
-    strcat(mainttopic,latitude);
-    strcat (mainttopic,"/fixed/-,-,-/-,-,-,-/B01213");
-    Log.notice(F("MQTT maint topic: "));
-    Log.notice(mainttopic);
-    Log.notice(CR);
+    char mqttid[100]="";
+    strcat(mqttid,rmap_user);
+    strcat(mqttid,"/");
+    strcat(mqttid,longitude);
+    strcat(mqttid,",");
+    strcat(mqttid,latitude);
+    strcat(mqttid,"/fixed");
     
-    Log.notice(F("Connet to mqtt broker"CR));
-    if (mqttclient.connect(esp_chipid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
+    Log.notice(F("mqttid: %s"CR),mqttid);
+
+    char mainttopic[100]="";
+    strcpy (mainttopic,rmap_mqttmaintpath);
+    strcat(mainttopic,"/");
+    strcat(mainttopic,mqttid);
+    strcat (mainttopic,"/-,-,-/-,-,-,-/B01213");
+    Log.notice(F("MQTT maint topic: %s"CR),mainttopic);
+    
+    if (mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
       Log.notice(F("MQTT connected"CR));
 
       if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
 	Log.notice(F("MQTT maint published"CR));
       }
+      return true;
     }else{
       Log.error(F("Error connecting MQTT"CR));
+      return false;
     }
+  } else {
+    return true;
   }
 }
 
@@ -465,16 +472,15 @@ void repeats() {
   delay(3000);
   ok = sensor.query_data_auto(&pm2, &pm10, SDS_SAMPLES);
   sensor.set_sleep(true);
-
-  if (ok) {
-    publish_maint();
-    publish_pm( "SDS_PM2", pm2);
-    publish_pm( "SDS_PM10", pm10);
-  } else {
+  if (!ok) {
     Log.error(F("error getting sds011 data"CR));
   }
-
-  sensor.set_sleep(true);
+  if (publish_maint()) {
+    if (ok) {
+      publish_pm( "SDS_PM2", pm2);
+      publish_pm( "SDS_PM10", pm10);
+    }
+  }
 }
 
 void reboot() {
@@ -496,12 +502,13 @@ void setup() {
   
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
-
-
-  
   pinMode(RESET_PIN, INPUT_PULLUP);
 
+  /*
+  char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
+  Log.notice(F("esp_chipid: %s "CR),esp_chipid );
+  */
   
   //clean FS, for testing
   //SPIFFS.format();
