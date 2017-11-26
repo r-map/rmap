@@ -504,6 +504,7 @@ void mgr_radio(){
       err = 3;
     }
 
+#ifdef TWOWAY
     if (err == 1){
       aJsonObject *result = aJson.createObject();
       aJson.addItemToObject(radiomsg, "error", result);
@@ -526,6 +527,7 @@ void mgr_radio(){
       cc110.send(buf, len);
       cc110.waitPacketSent();
       Serial.println(F("#Sent a errorreply"));
+#endif
       aJson.deleteItem(radiomsg);
 
     }
