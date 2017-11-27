@@ -18,8 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2017-11-24T12:00"
+#define SOFTWARE_VERSION "2017-11-26T12:00"
 #define FIRMWARE_TYPE "stima_wemosd1mini"
+//#define FIRMWARE_TYPE "stima_nodemcu"
 
 #define RESET_PIN D0    // pin to connect to ground for reset wifi configuration
 #define WIFI_SSED "STIMA-configuration"
@@ -64,10 +65,10 @@ PubSubClient mqttclient(espClient);
 //define your default values here, if there are different values in config.json, they are overwritten.
 char rmap_longitude[11] = "";
 char rmap_latitude[11] = "";
-char rmap_server[40]= "rmap.cc";
+char rmap_server[41]= "rmap.cc";
 char rmap_user[10]="";
-char rmap_password[30]="";
-char rmap_slug[30]="stimaesp";
+char rmap_password[31]="";
+char rmap_slug[31]="stimaesp";
 char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
@@ -202,9 +203,8 @@ int  rmap_remote_config(){
     payload = http.getString();
     Log.notice(payload.c_str());
   }else{
-    Log.error(F("Error http: "CR));
-    Log.error(String(httpCode).c_str());
-    Log.error(http.errorToString(httpCode).c_str());
+    Log.error(F("Error http: %s"CR),String(httpCode).c_str());
+    Log.error(F("Error http: %s"CR),http.errorToString(httpCode).c_str());
     status= 1;
   }
   http.end();					\
@@ -217,10 +217,10 @@ int  rmap_remote_config(){
       for (int i = 0; i < array.size(); i++) {
 	if  (array[i]["model"] == "stations.stationmetadata"){
 	  if (array[i]["fields"]["active"]){
-	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),49);
-	    rmap_mqttrootpath[49]='\0';
-	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),49);
-	    rmap_mqttmaintpath[49]='\0';
+	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),10);
+	    rmap_mqttrootpath[9]='\0';
+	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),10);
+	    rmap_mqttmaintpath[9]='\0';
 	    strncpy (rmap_longitude, array[i]["fields"]["lon"].as< const char*>(),10);
 	    rmap_longitude[10]='\0';
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
@@ -252,7 +252,6 @@ bool publish_maint() {
   if (!mqttclient.connected()) {
     //String clientId = "ESP8266Client-";
     //clientId += String(random(0xffff), HEX);
-    mqttclient.setServer(rmap_server, 1883);
     
     Log.notice(F("Connet to mqtt broker"CR));
 
@@ -404,18 +403,12 @@ void readconfig() {
 	  strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
 
 	  Log.notice(F("loaded config parameter"CR));
-	  Log.notice(rmap_server);
-	  Log.notice(CR);
-	  Log.notice(rmap_user);
-	  Log.notice(CR);
-	  Log.notice(rmap_password);
-	  Log.notice(CR);
-	  Log.notice(rmap_slug);
-	  Log.notice(CR);
-	  Log.notice(rmap_mqttrootpath);
-	  Log.notice(CR);
-	  Log.notice(rmap_mqttmaintpath);
-	  Log.notice(CR);
+	  Log.notice(F("%s"CR),rmap_server);
+	  Log.notice(F("%s"CR),rmap_user);
+	  Log.notice(F("%s"CR),rmap_password);
+	  Log.notice(F("%s"CR),rmap_slug);
+	  Log.notice(F("%s"CR),rmap_mqttrootpath);
+	  Log.notice(F("%s"CR),rmap_mqttmaintpath);
 	  
         } else {
           Log.notice(F("failed to load json config"CR));
@@ -527,7 +520,7 @@ void setup() {
   WiFiManagerParameter custom_rmap_server("server", "rmap server", rmap_server, 40);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", rmap_user, 10);
   WiFiManagerParameter custom_rmap_password("password", "rmap password", rmap_password, 30, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 50);
+  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 30);
 
   //WiFiManager
   //Local intialization. Once its business is done, there is no need to keep it around
@@ -605,6 +598,9 @@ void setup() {
 
   sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
+
+  Log.notice(F("mqtt server: %s"CR),rmap_server);
+  mqttclient.setServer(rmap_server, 1883);
 
   Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every tr seconds
 
