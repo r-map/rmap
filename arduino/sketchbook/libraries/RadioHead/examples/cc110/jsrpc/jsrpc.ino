@@ -395,7 +395,7 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 }
 
 void mgr_serial(){
-  uint8_t err;
+  unsigned int err;
     
   if (stream.available()) {
     // skip any accidental whitespace like newlines
@@ -412,8 +412,8 @@ void mgr_serial(){
       Serial.println(serialbuf);
     
       err=rpcclient.processMessage(serialmsg);
-      Serial.print(F("#rpcserver.processMessage return status:"));
-      Serial.print(err);
+      Serial.print(F("#rpcclient.processMessage return status:"));
+      Serial.println(err);
       if (!err){
 	aJson.deleteItem(serialmsg);      
       }else{
@@ -456,7 +456,7 @@ void mgr_serial(){
 
 
 void mgr_radio(){
-  uint8_t err;
+  unsigned int err;
   if (cc110.available())
   {
     // Should be a message for us now   
@@ -476,7 +476,7 @@ void mgr_radio(){
       if (radiomsg){
 	err=rpcserver.processMessage(radiomsg);
 	Serial.print(F("#rpcserver.processMessage return status:"));
-	Serial.print(err);
+	Serial.println(err);
 	     if (!err) {
 #ifdef TWOWAY
 
@@ -494,6 +494,7 @@ void mgr_radio(){
 	  aJson.deleteItem(radiomsg);
 	}else{
 	  err = 1;
+	  aJson.deleteItem(radiomsg);
 	}
       }else{
 	Serial.println(F("#skip wrong message"));	
@@ -502,34 +503,6 @@ void mgr_radio(){
     } else {
       Serial.println(F("recv failed"));
       err = 3;
-    }
-
-#ifdef TWOWAY
-    if (err == 1){
-      aJsonObject *result = aJson.createObject();
-      aJson.addItemToObject(radiomsg, "error", result);
-      aJson.addNumberToObject(result, "code", E_INTERNAL_ERROR);
-      aJson.addStringToObject(result,"message", strerror(E_INTERNAL_ERROR));   
-
-      /*
-      if (!rpcid || !msg){
-	IF_SDEBUG(DBGSERIAL.println(F("#add null id in response")));
-	aJson.addNullToObject(serialmsg, "id");
-      } else {
-	IF_SDEBUG(DBGSERIAL.println(F("#add id in response")));
-        aJson.addNumberToObject(serialmsg, "id", rpcid->valueint);
-      }
-      */
-
-      aJson.print(radiomsg, (char*)buf, sizeof(buf));
-      Serial.print(F("#Send: "));
-      Serial.println((char*)buf);
-      cc110.send(buf, len);
-      cc110.waitPacketSent();
-      Serial.println(F("#Sent a errorreply"));
-#endif
-      aJson.deleteItem(radiomsg);
-
     }
   }
 }
