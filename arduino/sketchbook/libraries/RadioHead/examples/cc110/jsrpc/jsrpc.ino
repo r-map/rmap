@@ -28,14 +28,24 @@ RH_CC110 cc110;
 // initialize an instance of the JsonRPC library for registering 
 // exactly 3 method
 
-JsonRPC rpcclient(5,false); //serial port
-JsonRPC rpcserver(3,true ); //radio port with compact protocoll
 
+#ifdef CLIENT
+JsonRPC rpcclient(5,false); //serial port
+#endif
+#ifdef SERVER
+JsonRPC rpcserver(3,true ); //radio port with compact protocoll
+#endif
+
+#ifdef CLIENT
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
 aJsonStream stream(&Serial);
 aJsonObject *serialmsg = NULL;
+#endif
+
+#ifdef SERVER
 aJsonObject *radiomsg = NULL;
+#endif
 
 char confver[7] = CONFVER; // version of configuration saved on eeprom
 
@@ -68,11 +78,11 @@ const uint8_t pins [] = {PINS};
 //-------------
 
 void Reboot() {
-  Serial.println(F("#Reboot"));
+  IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
   wdt_enable(WDTO_30MS); while(1) {} 
 }
 
-
+#ifdef CLIENT
 int client(aJsonObject* params)
 {
 
@@ -98,8 +108,8 @@ int client(aJsonObject* params)
   aJson.print(newrpc,buf, sizeof(buf));
   aJson.deleteItem(newrpc);
   
-  Serial.print(F("#send: "));
-  Serial.println(buf);
+  IF_SDEBUG(DBGSERIAL.print(F("#send: ")));
+  IF_SDEBUG(DBGSERIAL.println(buf));
   
   cc110.send((uint8_t*)buf, strlen(buf));
   cc110.waitPacketSent();
@@ -114,25 +124,25 @@ int client(aJsonObject* params)
     // Should be a reply message for us now   
     if (cc110.recv((uint8_t*)buf, &len))
       {
-	Serial.print(F("#got reply: "));
-	Serial.println((char*)buf);
-	Serial.print(F("#RSSI: "));
-	Serial.println(cc110.lastRssi(), DEC);    
+	IF_SDEBUG(DBGSERIAL.print(F("#got reply: ")));
+	IF_SDEBUG(DBGSERIAL.println((char*)buf));
+	IF_SDEBUG(DBGSERIAL.print(F("#RSSI: ")));
+	IF_SDEBUG(DBGSERIAL.println(cc110.lastRssi(), DEC));
 
 #endif  
 	
-	//Serial.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}");	
+	//IF_SDEBUG(DBGSERIAL.println("{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}"));	
 	aJson.addTrueToObject(serialmsg, "result");
 
 #ifdef TWOWAY
 	
       } else {
-      Serial.println(F("#recv failed"));
+      IF_SDEBUG(DBGSERIAL.println(F("#recv failed")));
       aJson.addFalseToObject(serialmsg, "result");
       status = 1;
     }
   } else {
-    Serial.println(F("#No reply, is cc110_server running?"));
+    IF_SDEBUG(DBGSERIAL.println(F("#No reply, is cc110_server running?")));
     aJson.addFalseToObject(serialmsg, "result");
     status = 1;
   }
@@ -146,8 +156,9 @@ int client(aJsonObject* params)
   return status;
 
 }
+#endif
 
-
+#ifdef CLIENT
 int setdid(aJsonObject* params)
 {    
   uint8_t status=1; 
@@ -195,8 +206,8 @@ int save(aJsonObject* params)
   return status;
 
 }
-
-
+#endif
+#ifdef SERVER
 int changedidserver(aJsonObject* params)
 {    
   aJsonObject* olddidParam = aJson.getObjectItem(params, "olddid");
@@ -261,12 +272,12 @@ int singleserver(aJsonObject* params)
 	  aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
 	  if (onoffParam){
 	    boolean onoff = onoffParam -> valuebool;
-	    Serial.print(F("#did: "));
-	    Serial.print(did);
-	    Serial.print(F(" dstunit: "));
-	    Serial.print(dstunit);
-	    Serial.print(F(" onoff: "));
-	    Serial.println(onoff);
+	    IF_SDEBUG(DBGSERIAL.print(F("#did: ")));
+	    IF_SDEBUG(DBGSERIAL.print(did));
+	    IF_SDEBUG(DBGSERIAL.print(F(" dstunit: ")));
+	    IF_SDEBUG(DBGSERIAL.print(dstunit));
+	    IF_SDEBUG(DBGSERIAL.print(F(" onoff: ")));
+	    IF_SDEBUG(DBGSERIAL.println(onoff));
 
 	    digitalWrite(pins[dstunit], ! onoff);
 
@@ -275,25 +286,25 @@ int singleserver(aJsonObject* params)
 	    aJson.addTrueToObject(radiomsg, "r");
 
 	  }else{
-	    Serial.println(F("#no onoff"));
+	    IF_SDEBUG(DBGSERIAL.println(F("#no onoff")));
 	  }
 	}else{
-	  Serial.println(F("#wrong dstunit"));
+	  IF_SDEBUG(DBGSERIAL.println(F("#wrong dstunit")));
 	}
       }else{
-	Serial.println(F("#no dstunit"));
+	IF_SDEBUG(DBGSERIAL.println(F("#no dstunit")));
       }
     }else{
-      Serial.println(F("#not for me"));
+      IF_SDEBUG(DBGSERIAL.println(F("#not for me")));
     }
   }else{
-    Serial.println(F("#no did"));
+    IF_SDEBUG(DBGSERIAL.println(F("#no did")));
   }
-  //Serial.println(F("{\"result\": \"OK\"}"));
+  //IF_SDEBUG(DBGSERIAL.println(F("{\"result\": \"OK\"}"));
   //aJson.deleteItem(params);
   return 0;
 }
-
+#endif
 void setup() 
 {
 
@@ -305,31 +316,47 @@ void setup()
     microcontrollore
   */
   wdt_disable();
+
+  wdt_enable(WDTO_8S);
   
-  Serial.begin(115200);
+  IF_SDEBUG(DBGSERIAL.begin(SERIALBAUDRATE));
+  Serial.begin(SERIALBAUDRATE);
   while (!Serial); // wait for serial port to connect. Needed for native USB
-  Serial.println(F("#Started"));
+  Serial.println(F("#Started: "VERSION));
+#ifdef TWOWAY
+  Serial.println(F("#Twovay: "TWOWAY));
+#endif
+#ifdef CLIENT
+  Serial.println(F("#Client: "CLIENT));
+#endif
+#ifdef SERVER
+  Serial.println(F("#Server: "SERVER));
+#endif
 
   if (configuration.load()){
-    Serial.println(F("#Configuration loaded"));
-    Serial.print(F("#did:"));
-    Serial.println(configuration.did);
+    IF_SDEBUG(DBGSERIAL.println(F("#Configuration loaded")));
+    IF_SDEBUG(DBGSERIAL.print(F("#did:")));
+    IF_SDEBUG(DBGSERIAL.println(configuration.did));
   } else {     
-    Serial.println(F("#Configuration not loaded"));
+    IF_SDEBUG(DBGSERIAL.println(F("#Configuration not loaded")));
   }
 
   // register the local single method
+#ifdef SERVER
   // Radio port
   rpcserver.registerMethod("single",    &singleserver);
   rpcserver.registerMethod("changedid", &changedidserver);
   rpcserver.registerMethod("remotesave",&saveserver);
-  
+#endif
+
+#ifdef CLIENT  
   // Serial port
   rpcclient.registerMethod("single",    &client);
   rpcclient.registerMethod("changedid", &client);
   rpcclient.registerMethod("remotesave",&client);
   rpcclient.registerMethod("setdid",    &setdid);
   rpcclient.registerMethod("save",      &save);
+#endif
   
   // CC110L may be equipped with either 26 or 27MHz crystals. You MUST
   // tell the driver if a 27MHz crystal is installed for the correct configuration to
@@ -338,7 +365,7 @@ void setup()
   //cc110.setIs27MHz(true); // Anaren 430BOOST-CC110L Air BoosterPack test boards have 27MHz
 
   if (!cc110.init()){
-    Serial.println(F("init failed"));
+    IF_SDEBUG(DBGSERIAL.println(F("init failed")));
     Reboot();
   }
   // After init(), the following default values apply:
@@ -392,28 +419,31 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
       pinMode(pins[dstunit], OUTPUT);
       digitalWrite(pins[dstunit], 1);
     }
-}
 
-void mgr_serial(){
-  unsigned int err;
-    
+#ifdef CLIENT
   if (stream.available()) {
     // skip any accidental whitespace like newlines
     stream.skip();
   }
+#endif
+}
 
+#ifdef CLIENT
+void mgr_serial(){
+  unsigned int err;
+    
   if (stream.available()) {
 
     serialmsg = aJson.parse(&stream);
     if (serialmsg){
-      Serial.print(F("#rpc.processMessage:"));
+      IF_SDEBUG(DBGSERIAL.print(F("#rpc.processMessage:")));
       char serialbuf[SERIALBUFFERSIZE];
       aJson.print(serialmsg, serialbuf, sizeof(serialbuf));
-      Serial.println(serialbuf);
+      IF_SDEBUG(DBGSERIAL.println(serialbuf));
     
       err=rpcclient.processMessage(serialmsg);
-      Serial.print(F("#rpcclient.processMessage return status:"));
-      Serial.println(err);
+      IF_SDEBUG(DBGSERIAL.print(F("#rpcclient.processMessage return status:")));
+      IF_SDEBUG(DBGSERIAL.println(err));
       if (!err){
 	aJson.deleteItem(serialmsg);      
       }else{
@@ -421,11 +451,11 @@ void mgr_serial(){
       }
       
     }else{
-      Serial.println(F("#skip wrong message"));	
+      IF_SDEBUG(DBGSERIAL.println(F("#skip wrong message")));
       err = 2;
-    }
-    if (stream.available()) {
-      stream.flush();
+      if (stream.available()) {
+	stream.flush();
+      }
     }
 
     if (err == 1){
@@ -436,10 +466,10 @@ void mgr_serial(){
       
       /*
       if (!rpcid || !msg){
-	IF_SDEBUG(DBGSERIAL.println(F("#add null id in response")));
+	IF_SDEBUG(IF_SDEBUG(DBGSERIAL.println(F("#add null id in response"))));
 	aJson.addNullToObject(serialmsg, "id");
       } else {
-	IF_SDEBUG(DBGSERIAL.println(F("#add id in response")));
+	IF_SDEBUG(IF_SDEBUG(DBGSERIAL.println(F("#add id in response"))));
         aJson.addNumberToObject(serialmsg, "id", rpcid->valueint);
       }
       */
@@ -453,8 +483,9 @@ void mgr_serial(){
     }
   }
 }
+#endif
 
-
+#ifdef SERVER
 void mgr_radio(){
   unsigned int err;
   if (cc110.available())
@@ -466,17 +497,17 @@ void mgr_radio(){
     {
       buf[len]=NULL; // terminate the string
       //RH_CC110::printBuffer("#request: ", buf, len);
-      Serial.print(F("#got request: "));
-      Serial.println((char*)buf);
-//      Serial.print(F("RSSI: "));
-//      Serial.println(cc110.lastRssi(), DEC);
+      IF_SDEBUG(DBGSERIAL.print(F("#got request: ")));
+      IF_SDEBUG(DBGSERIAL.println((char*)buf));
+//      IF_SDEBUG(DBGSERIAL.print(F("RSSI: ")));
+//      IF_SDEBUG(DBGSERIAL.println(cc110.lastRssi(), DEC));
 
       radiomsg = aJson.parse((char*)buf);
 
       if (radiomsg){
 	err=rpcserver.processMessage(radiomsg);
-	Serial.print(F("#rpcserver.processMessage return status:"));
-	Serial.println(err);
+	IF_SDEBUG(DBGSERIAL.print(F("#rpcserver.processMessage return status:")));
+	IF_SDEBUG(DBGSERIAL.println(err));
 	     if (!err) {
 #ifdef TWOWAY
 
@@ -484,11 +515,11 @@ void mgr_radio(){
 	  // "{\"jsonrpc\": \"2.0\", \"result\":true, \"id\": 0}"
 	  
 	  aJson.print(radiomsg, (char*)buf, sizeof(buf));
-	  Serial.print(F("#Send: "));
-	  Serial.println((char*)buf);
+	  IF_SDEBUG(DBGSERIAL.print(F("#Send: ")));
+	  IF_SDEBUG(DBGSERIAL.println((char*)buf));
 	  cc110.send(buf, len);
 	  cc110.waitPacketSent();
-	  Serial.println(F("#Sent a reply"));
+	  IF_SDEBUG(DBGSERIAL.println(F("#Sent a reply")));
 #endif
 	  
 	  aJson.deleteItem(radiomsg);
@@ -497,20 +528,25 @@ void mgr_radio(){
 	  aJson.deleteItem(radiomsg);
 	}
       }else{
-	Serial.println(F("#skip wrong message"));	
+	IF_SDEBUG(DBGSERIAL.println(F("#skip wrong message")));
 	err = 2;
       }	
     } else {
-      Serial.println(F("recv failed"));
+      IF_SDEBUG(DBGSERIAL.println(F("recv failed")));
       err = 3;
     }
   }
 }
+#endif
 
 void loop()
 {
   wdt_reset();
+#ifdef CLIENT
   mgr_serial();
+#endif
+#ifdef SERVER
   wdt_reset();
-  mgr_radio(); 
+  mgr_radio();
+#endif  
 }
