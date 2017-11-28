@@ -130,8 +130,8 @@ args = parser.parse_args()
 
 
 #truncate lon and lat to have coordinate as RMAP specification
-args.lon=rmap.rmap_core.truncate(args.lon,5)
-args.lat=rmap.rmap_core.truncate(args.lat,5)
+if not (args.lon is None): args.lon=rmap.rmap_core.truncate(args.lon,5)
+if not (args.lat is None): args.lat=rmap.rmap_core.truncate(args.lat,5)
 
 if args.wizard:
 
