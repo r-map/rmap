@@ -61,6 +61,19 @@ struct RAIIJson {
 
 namespace mqtt2bufr {
 
+dballe::Datetime datetime_now()
+{
+    dballe::Datetime datetime;
+    time_t t = time(nullptr);
+    struct tm* tm = gmtime(&t);
+    return dballe::Datetime(tm->tm_year + 1900,
+                            tm->tm_mon + 1,
+                            tm->tm_mday,
+                            tm->tm_hour,
+                            tm->tm_min,
+                            tm->tm_sec);
+}
+
 static std::vector<std::string> split_topic(const std::string& topic) {
     int r;
     char errmsg[1024];
@@ -79,39 +92,6 @@ static std::vector<std::string> split_topic(const std::string& topic) {
         items.push_back(topic.substr(matches[i].rm_so, matches[i].rm_eo - matches[i].rm_so));
     }
     return items;
-}
-
-static void datetime_now(int* values)
-{
-    time_t t = time(nullptr);
-    struct tm* tm = gmtime(&t);
-    values[0] = tm->tm_year + 1900;
-    values[1] = tm->tm_mon + 1;
-    values[2] = tm->tm_mday;
-    values[3] = tm->tm_hour;
-    values[4] = tm->tm_min;
-    values[5] = tm->tm_sec;
-}
-
-static void parse_datetime(const std::string str, int* values)
-{
-    int r;
-    char errmsg[1024];
-    int nmatches = 7;
-    regex_t re;
-    regmatch_t matches[nmatches];
-
-    r = regcomp(&re,
-                "^([0-9]{4})-([0-9]{2})-([0-9]{2})[T ]([0-9]{2}):([0-9]{2}):([0-9]{2})$",
-                REG_EXTENDED);
-    RAIIRegexp raiiregexp(&re);
-    if (r != 0) throw_regexception(r, &re, errmsg, "While compiling datetime regexp: ");
-    r = regexec(&re, str.c_str(), nmatches, matches, 0);
-    if (r != 0) throw_regexception(r, &re, errmsg, "While parsing datetime: ");
-
-    for (int i = 1; i < nmatches; ++i) { 
-        values[i-1] = atoi(str.substr(matches[i].rm_so, matches[i].rm_eo - matches[i].rm_so).c_str());
-    }
 }
 
 void Parser::parse_topic(const std::string& topic) {
@@ -158,21 +138,16 @@ void Parser::parse_payload(const std::string& payload) {
     if (variable_rec.get_level() != dballe::Level() &&
         variable_rec.get_trange() != dballe::Trange()) {
         json_t* t = json_object_get(root, "t");
-        int date[6];
+        dballe::Datetime datetime;
         // A datetime missing or null means "now"
         if (!t || json_is_null(t))
-            datetime_now(date);
+            datetime = datetime_now();
         else if (json_is_string(t))
-            parse_datetime(json_string_value(t), date);
+            datetime = dballe::Datetime::from_iso8601(json_string_value(t));
         else
             throw std::runtime_error("Payload is not a valid JSON object (value associated to key \"t\" is not a string)");
 
-        variable_rec.seti("year", date[0]);
-        variable_rec.seti("month", date[1]);
-        variable_rec.seti("day", date[2]);
-        variable_rec.seti("hour", date[3]);
-        variable_rec.seti("min", date[4]);
-        variable_rec.seti("sec", date[5]);
+        variable_rec.set_datetime(datetime);
     }
     // Parse attributes (if any)
     if (json_object_iter_at(root, "a")) {
@@ -190,6 +165,7 @@ void Parser::parse_payload(const std::string& payload) {
     }
     variable_rec.set(var);
 }
+
 dballe::Msg Parser::parse(const std::string& topic, const std::string& payload) {
     // clear records
     station_rec.clear();

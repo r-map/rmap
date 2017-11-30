@@ -41,8 +41,9 @@
 struct mosq : public mosqpp::mosquittopp {
     mqtt2bufr::Parser parser;
     bool debug;
+    bool overwrite_date;
 
-    mosq(bool debug=false) : debug(debug) {}
+    mosq(bool debug=false, bool overwrite_date=false) : debug(debug), overwrite_date(overwrite_date) {}
 
     virtual void on_message(const struct mosquitto_message *message) {
         dballe::Msg msg;
@@ -50,6 +51,12 @@ struct mosq : public mosqpp::mosquittopp {
             msg = parser.parse(message->topic,
                                std::string((const char*)message->payload,
                                            message->payloadlen));
+
+            // One context means station context only: in that case, there's no
+            // need to overwrite the datetime.
+            if (overwrite_date && msg.data.size() > 1)
+                msg.set_datetime(mqtt2bufr::datetime_now());
+
             dballe::Messages msgs;
             dballe::msg::BufrExporter exporter;
             msgs.append(msg);
@@ -79,6 +86,7 @@ void print_help(std::ostream& out)
         << " -u,--username NAME username for authenticating with the broker" << std::endl
         << " -P,--pw PASSWORD   password for authenticating with the broker" << std::endl
         << " -d,--debug         enable debug messages" << std::endl
+        << " --overwrite-date   date is ignored and is overwritten with current date" << std::endl
         << std::endl
         << "Report bugs to: " << PACKAGE_BUGREPORT << std::endl;
         ;
@@ -93,6 +101,7 @@ int main(int argc, char** argv)
 {
     static int show_help = 0;
     static int show_version = 0;
+    static int overwrite_date = 0;
     int keepalive = 60;
     int port = 1883;
     std::string hostname = "localhost";
@@ -114,6 +123,7 @@ int main(int argc, char** argv)
             { "username", required_argument, 0, 'u' },
             { "pw", required_argument, 0, 'P' },
             { "debug", no_argument, 0, 'd' },
+            { "overwrite-date", no_argument, &overwrite_date, 1 },
             { 0, 0, 0, 0 }
         };
 
@@ -162,7 +172,7 @@ int main(int argc, char** argv)
     }
 
     mosqpp::lib_init();
-    mosq m(debug);
+    mosq m(debug, overwrite_date);
 
     if (m.username_pw_set(username, password) != 0) {
         std::cerr << "Error while setting username and password" << std::endl;

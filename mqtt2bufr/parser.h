@@ -28,6 +28,9 @@
 #include <dballe/msg/msg.h>
 
 namespace mqtt2bufr {
+
+dballe::Datetime datetime_now();
+
 /**
  * This class convert a MQTT message in a dballe::Msg.
  *
