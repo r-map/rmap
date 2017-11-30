@@ -75,7 +75,7 @@ void print_help(std::ostream& out)
         << " -h,--host NAME     host to connect to (default: localhost)" << std::endl
         << " -k,--keepalive SEC seconds between sending PING commands to the broker (default: 60s)" << std::endl
         << " -p,--port PORT     connect to the port specified (default: 1883)" << std::endl
-        << " -t,--topic TOPIC   MQTT topic to subscribe to (my be repeated multiple times)" << std::endl
+        << " -t,--topic TOPIC   MQTT topic to subscribe to (may be repeated multiple times)" << std::endl
         << " -u,--username NAME username for authenticating with the broker" << std::endl
         << " -P,--pw PASSWORD   password for authenticating with the broker" << std::endl
         << " -d,--debug         enable debug messages" << std::endl
