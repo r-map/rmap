@@ -78,6 +78,57 @@ typedef void (*printfunction)(Print*);
 * 6 - LOG_LEVEL_VERBOSE    all
 */
 
+
+// default log level
+#define LOG_LEVEL LOG_WARNING
+
+// macro definitions for compile time
+// LOGF, LOGE, LOGW, LOGN, LOGT, LOGV/LOGD
+
+#if (LOG_LEVEL >= LOG_FATAL)
+#define LOGF(x, ...) ({Log.fatal(x, ##__VA_ARGS__);})
+#else
+#define LOGF(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_ERROR)
+#define LOGE(x, ...) ({Log.error(x, ##__VA_ARGS__);})
+#else
+#define LOGE(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_WARNING)
+#define LOGW(x, ...) ({Log.warning(x, ##__VA_ARGS__);})
+#else
+#define LOGW(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_INFO)
+#define LOGI(x, ...) ({Log.info(x, ##__VA_ARGS__);})
+#else
+#define LOGI(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_NOTICE)
+#define LOGN(x, ...) ({Log.notice(x, ##__VA_ARGS__);})
+#else
+#define LOGN(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_TRACE)
+#define LOGT(x, ...) ({Log.trace(x, ##__VA_ARGS__);})
+#else
+#define LOGT(x)
+#endif
+
+#if (LOG_LEVEL >= LOG_VERBOSE)
+#define LOGV(x, ...) ({Log.verbose(x, ##__VA_ARGS__);})
+#define LOGD(x, ...) ({Log.verbose(x, ##__VA_ARGS__);})
+#else
+#define LOGV(x)
+#define LOGD(x)
+#endif
+
 class Logging {
 private:
     int _level;

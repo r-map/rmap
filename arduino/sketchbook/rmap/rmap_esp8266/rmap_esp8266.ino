@@ -30,6 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SDS_PIN_RX D1
 #define SDS_PIN_TX D2
 
+//disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
@@ -137,7 +138,7 @@ struct driver_t   // use this to instantiate a driver
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  Log.notice(F("Should save config"CR));
+  LOGN(F("Should save config"CR));
   shouldSaveConfig = true;
 }
 
@@ -193,18 +194,17 @@ int  rmap_remote_config(){
   url+=rmap_slug;
   url+="/json/";
 
-  Log.notice(F("readRmapRemoteConfig url: "CR));  
-  Log.notice(url.c_str());  
+  LOGN(F("readRmapRemoteConfig url: %s"CR),url.c_str());  
   //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
   http.begin(url.c_str());
 
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
     payload = http.getString();
-    Log.notice(payload.c_str());
+    LOGN(payload.c_str());
   }else{
-    Log.error(F("Error http: %s"CR),String(httpCode).c_str());
-    Log.error(F("Error http: %s"CR),http.errorToString(httpCode).c_str());
+    LOGE(F("Error http: %s"CR),String(httpCode).c_str());
+    LOGE(F("Error http: %s"CR),http.errorToString(httpCode).c_str());
     status= 1;
   }
   http.end();					\
@@ -225,19 +225,19 @@ int  rmap_remote_config(){
 	    rmap_longitude[10]='\0';
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
 	    rmap_latitude[10]='\0';
-	    Log.notice(F("lon: "));
-	    Log.notice(rmap_longitude);
-	    Log.notice(F("lat: "));
-	    Log.notice(rmap_latitude);
-	    Log.notice(CR);
+	    LOGN(F("lon: "));
+	    LOGN(rmap_longitude);
+	    LOGN(F("lat: "));
+	    LOGN(rmap_latitude);
+	    LOGN(CR);
 	    config_needs_write = true;
-	    Log.notice(F("station metadata found!"CR));
+	    LOGN(F("station metadata found!"CR));
 	    status = 0;
 	  }
 	}
       }
     } else {
-      Log.error(F("error decoding array"CR));
+      LOGE(F("error decoding array"CR));
       status = 2;
     }
     return status;
@@ -253,7 +253,7 @@ bool publish_maint() {
     //String clientId = "ESP8266Client-";
     //clientId += String(random(0xffff), HEX);
     
-    Log.notice(F("Connet to mqtt broker"CR));
+    LOGN(F("Connet to mqtt broker"CR));
 
     char longitude [10];
     char latitude [10];
@@ -267,24 +267,24 @@ bool publish_maint() {
     strcat(mqttid,latitude);
     strcat(mqttid,"/fixed");
     
-    Log.notice(F("mqttid: %s"CR),mqttid);
+    LOGN(F("mqttid: %s"CR),mqttid);
 
     char mainttopic[100]="";
     strcpy (mainttopic,rmap_mqttmaintpath);
     strcat(mainttopic,"/");
     strcat(mainttopic,mqttid);
     strcat (mainttopic,"/-,-,-/-,-,-,-/B01213");
-    Log.notice(F("MQTT maint topic: %s"CR),mainttopic);
+    LOGN(F("MQTT maint topic: %s"CR),mainttopic);
     
     if (mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
-      Log.notice(F("MQTT connected"CR));
+      LOGN(F("MQTT connected"CR));
 
       if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-	Log.notice(F("MQTT maint published"CR));
+	LOGN(F("MQTT maint published"CR));
       }
       return true;
     }else{
-      Log.error(F("Error connecting MQTT"CR));
+      LOGE(F("Error connecting MQTT"CR));
       return false;
     }
   } else {
@@ -312,16 +312,16 @@ void publish_pm(const char* sensor, const int pm) {
   strcat(topic,latitude);
   strcat(topic,"/fixed/254,0,0/103,2000,-,-/");
   
-  Log.notice(sensor);
+  LOGN(sensor);
   if (strcmp(sensor,"SDS_PM10")== 0)
     {
-      Log.notice(F("SDS_PM10 found"CR));
+      LOGN(F("SDS_PM10 found"CR));
       strcat(topic,"B15195");
       havetopublish=true;
     }
   if (strcmp(sensor,"SDS_PM2")== 0)
     {
-      Log.notice(F("SDS_PM2 found"CR));
+      LOGN(F("SDS_PM2 found"CR));
       strcat(topic,"B15198");
       havetopublish=true;
     }
@@ -333,10 +333,10 @@ void publish_pm(const char* sensor, const int pm) {
       itoa (pm,value,10);
       strcat(payload,value);
       strcat(payload,"}");
-      Log.notice(F("mqtt publish: "));
-      Log.notice(topic);
-      Log.notice(payload);
-      Log.notice(CR);
+      LOGN(F("mqtt publish: "));
+      LOGN(topic);
+      LOGN(payload);
+      LOGN(CR);
       mqttclient.publish(topic, payload);
     }
 }
@@ -351,37 +351,37 @@ void firmware_upgrade() {
   root["slug"] = rmap_slug;
   char buffer[256];
   root.printTo(buffer, sizeof(buffer));
-  Log.notice(F("version for firmware upgrade"CR));
-  Log.notice(buffer);
-  Log.notice(CR);
+  LOGN(F("version for firmware upgrade"CR));
+  LOGN(buffer);
+  LOGN(CR);
 		
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
-      Log.error(F("[update] Update failed."CR));
-      Log.error(ESPhttpUpdate.getLastErrorString().c_str());
-      Log.notice(CR);
+      LOGE(F("[update] Update failed."CR));
+      LOGE(ESPhttpUpdate.getLastErrorString().c_str());
+      LOGN(CR);
     break;
     case HTTP_UPDATE_NO_UPDATES:
-      Log.notice(F("[update] No Update."CR));
+      LOGN(F("[update] No Update."CR));
       break;
     case HTTP_UPDATE_OK:
-      Log.notice(F("[update] Update ok."CR)); // may not called we reboot the ESP
+      LOGN(F("[update] Update ok."CR)); // may not called we reboot the ESP
       break;
     }
 }
 
 void readconfig() {
 
-  Log.notice(F("mounted file system"CR));
+  LOGN(F("mounted file system"CR));
     if (SPIFFS.exists("/config.json")) {
       //file exists, reading and loading
-      Log.notice(F("reading config file"CR));
+      LOGN(F("reading config file"CR));
       File configFile = SPIFFS.open("/config.json", "r");
       if (configFile) {
-        Log.notice(F("opened config file"CR));
+        LOGN(F("opened config file"CR));
         size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
         std::unique_ptr<char[]> buf(new char[size]);
@@ -391,7 +391,7 @@ void readconfig() {
         JsonObject& json = jsonBuffer.parseObject(buf.get());
         json.printTo(Serial);
         if (json.success()) {
-          Log.notice(F("\nparsed json"CR));
+          LOGN(F("\nparsed json"CR));
 
           strcpy(rmap_longitude, json["rmap_longitude"]);
           strcpy(rmap_latitude, json["rmap_latitude"]);
@@ -402,22 +402,22 @@ void readconfig() {
 	  strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
 	  strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
 
-	  Log.notice(F("loaded config parameter"CR));
-	  Log.notice(F("%s"CR),rmap_server);
-	  Log.notice(F("%s"CR),rmap_user);
-	  Log.notice(F("%s"CR),rmap_password);
-	  Log.notice(F("%s"CR),rmap_slug);
-	  Log.notice(F("%s"CR),rmap_mqttrootpath);
-	  Log.notice(F("%s"CR),rmap_mqttmaintpath);
+	  LOGN(F("loaded config parameter"CR));
+	  LOGN(F("%s"CR),rmap_server);
+	  LOGN(F("%s"CR),rmap_user);
+	  LOGN(F("%s"CR),rmap_password);
+	  LOGN(F("%s"CR),rmap_slug);
+	  LOGN(F("%s"CR),rmap_mqttrootpath);
+	  LOGN(F("%s"CR),rmap_mqttmaintpath);
 	  
         } else {
-          Log.notice(F("failed to load json config"CR));
+          LOGN(F("failed to load json config"CR));
         }
       } else {
-	Log.notice(F("erro reading config file"CR));	
+	LOGN(F("erro reading config file"CR));	
       }
     } else {
-      Log.notice(F("config file do not exist"CR));
+      LOGN(F("config file do not exist"CR));
     }
   //end read
 }
@@ -426,7 +426,7 @@ void writeconfig() {;
 
   //save the custom parameters to FS
   if (shouldSaveConfig) {
-    Log.notice(F("saving config"CR));
+    LOGN(F("saving config"CR));
     DynamicJsonBuffer jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
     
@@ -441,13 +441,13 @@ void writeconfig() {;
 
     File configFile = SPIFFS.open("/config.json", "w");
     if (!configFile) {
-      Log.notice(F("failed to open config file for writing"CR));
+      LOGN(F("failed to open config file for writing"CR));
     }
 
     json.printTo(Serial);
     json.printTo(configFile);
     configFile.close();
-    Log.notice(F("saved config parameter"CR));
+    LOGN(F("saved config parameter"CR));
     //end save
   }
 }
@@ -466,7 +466,7 @@ void repeats() {
   ok = sensor.query_data_auto(&pm2, &pm10, SDS_SAMPLES);
   sensor.set_sleep(true);
   if (!ok) {
-    Log.error(F("error getting sds011 data"CR));
+    LOGE(F("error getting sds011 data"CR));
   }
   if (publish_maint()) {
     if (ok) {
@@ -500,18 +500,18 @@ void setup() {
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
-  Log.notice(F("esp_chipid: %s "CR),esp_chipid );
+  LOGN(F("esp_chipid: %s "CR),esp_chipid );
   */
   
   //clean FS, for testing
   //SPIFFS.format();
 
   //read configuration from FS json
-  Log.notice(F("mounting FS..."CR));
+  LOGN(F("mounting FS..."CR));
   if (SPIFFS.begin()) {
     readconfig();
   } else {
-    Log.notice(F("failed to mount FS"CR));
+    LOGN(F("failed to mount FS"CR));
   }
   
   // The extra parameters to be configured (can be either global or just in the setup)
@@ -540,7 +540,7 @@ void setup() {
 
   if (digitalRead(RESET_PIN) == LOW) {
     //reset settings
-    Log.notice(F("Reset wifi configuration"CR));
+    LOGN(F("Reset wifi configuration"CR));
     wifiManager.resetSettings();
   }
   //set minimu quality of signal so it ignores AP's under that quality
@@ -557,13 +557,13 @@ void setup() {
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-    Log.notice(F("failed to connect and hit timeout"CR));
+    LOGN(F("failed to connect and hit timeout"CR));
     delay(3000);
     reboot();
   }
   
   //if you get here you have connected to the WiFi
-  Log.notice(F("connected...yeey :)"CR));
+  LOGN(F("connected...yeey :)"CR));
 
   //read updated parameters
   strcpy(rmap_server, custom_rmap_server.getValue());
@@ -573,33 +573,33 @@ void setup() {
 
   writeconfig();
   
-  Log.notice(F("local ip"));
-  Log.notice(WiFi.localIP().toString().c_str());
-  Log.notice(CR);
+  LOGN(F("local ip"));
+  LOGN(WiFi.localIP().toString().c_str());
+  LOGN(CR);
 
   firmware_upgrade();
 
   if (!(rmap_remote_config() == 0)) {
-    Log.notice(F("remote configuration failed"CR));
+    LOGN(F("remote configuration failed"CR));
   }
 
   if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
-    Log.notice(F("station not configurated ! restart"CR));
+    LOGN(F("station not configurated ! restart"CR));
     //reset settings
-    Log.notice(F("Reset wifi configuration"CR));
+    LOGN(F("Reset wifi configuration"CR));
     wifiManager.resetSettings();
     delay(1000);
     reboot();
   }
   
   Serial.print(F("Sds011 firmware version: "));
-  Log.notice(sensor.firmware_version().c_str());
-  Log.notice(CR);
+  LOGN(sensor.firmware_version().c_str());
+  LOGN(CR);
 
   sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
 
-  Log.notice(F("mqtt server: %s"CR),rmap_server);
+  LOGN(F("mqtt server: %s"CR),rmap_server);
   mqttclient.setServer(rmap_server, 1883);
 
   Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every tr seconds
