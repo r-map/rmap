@@ -48,6 +48,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <TimeAlarms.h>
 #include <ArduinoLog.h>
 
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
+
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
 
@@ -78,7 +83,6 @@ char rmap_mqttmaintpath[10] = "maint";
 bool shouldSaveConfig = false;
 
 
-/*
 
 // for sensoron
 #define SENSORS_LEN 5
@@ -133,7 +137,7 @@ struct driver_t   // use this to instantiate a driver
     return 0;
   }
 } drivers[SENSORS_LEN];
-*/
+
 
 
 //callback notifying us of the need to save config
@@ -178,10 +182,9 @@ const char* coordIntToChar(int lat){
 }
 
 
-int  rmap_remote_config(){
+String  rmap_get_remote_config(){
   
   String payload;
-  int status =0;
   
   HTTPClient http;
   // Make a HTTP request:
@@ -205,11 +208,17 @@ int  rmap_remote_config(){
   }else{
     LOGE(F("Error http: %s"CR),String(httpCode).c_str());
     LOGE(F("Error http: %s"CR),http.errorToString(httpCode).c_str());
-    status= 1;
+    payload=String();
   }
-  http.end();					\
+  http.end();
+  return payload;
+}
 
-  if (status == 0) {
+int  rmap_remote_config(String payload){
+
+  int status =0;
+
+  if (! (payload == String())) {
     StaticJsonBuffer<1500> jsonBuffer;
     status = 3;
     JsonArray& array = jsonBuffer.parseArray(payload);
@@ -225,11 +234,8 @@ int  rmap_remote_config(){
 	    rmap_longitude[10]='\0';
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
 	    rmap_latitude[10]='\0';
-	    LOGN(F("lon: "));
-	    LOGN(rmap_longitude);
-	    LOGN(F("lat: "));
-	    LOGN(rmap_latitude);
-	    LOGN(CR);
+	    LOGN(F("lon: %s"CR),rmap_longitude);
+	    LOGN(F("lat: %s"CR),rmap_latitude);
 	    config_needs_write = true;
 	    LOGN(F("station metadata found!"CR));
 	    status = 0;
@@ -373,6 +379,89 @@ void firmware_upgrade() {
     }
 }
 
+
+void readconfig_rmap() {
+
+  LOGN(F("mounted file system"CR));
+    if (SPIFFS.exists("/rmap.json")) {
+      //file exists, reading and loading
+      LOGN(F("reading config file"CR));
+      File configFile = SPIFFS.open("/rmap.json", "r");
+      if (configFile) {
+        LOGN(F("opened config file"CR));
+        size_t size = configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+
+        configFile.readBytes(buf.get(), size);
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        if (json.success()) {
+          LOGN(F("\nparsed json"CR));
+	  json.printTo(Serial);
+
+	  /*
+	  char* driver;
+	  char* type;
+	  char* address;
+	  char* node;
+	  char* mqttpath;
+	  
+	  strcpy(driver, json["driver"]);
+	  strcpy(type, json["type"]);
+	  strcpy(address, json["address"]);
+	  strcpy(node, json["node"]);
+	  strcpy(mqttpath, json["mqttpath"]);
+
+	  int id = configuration.add_device(driver,node,type,address,mqttpath);
+
+	  if (!drivers[id].setup(driver, node, type, address
+#if defined (AES)
+				 , configuration.key, configuration.iv
+#endif
+				 ) == SD_SUCCESS) {			   
+	    IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
+	    // comment the next line to be less restrictive
+	    //return E_INTERNAL_ERROR;
+	  }
+	  */
+
+        } else {
+          LOGN(F("failed to load json rmap"CR));
+        }
+      } else {
+	LOGN(F("erro reading rmap file"CR));	
+      }
+    } else {
+      LOGN(F("rmap file do not exist"CR));
+    }
+  //end read
+}
+
+void writeconfig_rmap(String payload) {;
+
+  //save the custom parameters to FS
+  LOGN(F("saving config"CR));
+  //DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<500> jsonBuffer;
+  JsonObject& json = jsonBuffer.parseObject(payload);
+
+  // set json
+  
+  File configFile = SPIFFS.open("/rmap.json", "w");
+  if (!configFile) {
+    LOGN(F("failed to open config file for writing"CR));
+  }
+
+  json.printTo(Serial);
+  json.printTo(configFile);
+  configFile.close();
+  LOGN(F("saved config parameter"CR));
+  //end save
+}
+
+
+
 void readconfig() {
 
   LOGN(F("mounted file system"CR));
@@ -389,9 +478,9 @@ void readconfig() {
         configFile.readBytes(buf.get(), size);
         StaticJsonBuffer<500> jsonBuffer;
         JsonObject& json = jsonBuffer.parseObject(buf.get());
-        json.printTo(Serial);
         if (json.success()) {
           LOGN(F("\nparsed json"CR));
+	  json.printTo(Serial);
 
           strcpy(rmap_longitude, json["rmap_longitude"]);
           strcpy(rmap_latitude, json["rmap_latitude"]);
@@ -401,7 +490,7 @@ void readconfig() {
           strcpy(rmap_slug, json["rmap_slug"]);
 	  strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
 	  strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
-
+	  
 	  LOGN(F("loaded config parameter"CR));
 	  LOGN(F("%s"CR),rmap_server);
 	  LOGN(F("%s"CR),rmap_user);
@@ -427,7 +516,8 @@ void writeconfig() {;
   //save the custom parameters to FS
   if (shouldSaveConfig) {
     LOGN(F("saving config"CR));
-    DynamicJsonBuffer jsonBuffer;
+    //DynamicJsonBuffer jsonBuffer;
+    StaticJsonBuffer<100> jsonBuffer;
     JsonObject& json = jsonBuffer.createObject();
     
     json["rmap_longitude"] = rmap_longitude;
@@ -490,10 +580,11 @@ void setup() {
   // Pass log level, whether to show log level, and print interface.
   // Available levels are:
   // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-  // Note: if you want to fully remove all logging code, uncomment #define DISABLE_LOGGING in Logging.h
+  // Note: if you want to fully remove all logging code, change #define LOG_LEVEL ....
   //       this will significantly reduce your project size
-  
-  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+
+  // set runtime log level to the same of compile time
+  Log.begin(LOG_LEVEL, &Serial);
 
   pinMode(RESET_PIN, INPUT_PULLUP);
 
@@ -579,7 +670,7 @@ void setup() {
 
   firmware_upgrade();
 
-  if (!(rmap_remote_config() == 0)) {
+  if (!(rmap_remote_config(rmap_get_remote_config()) == 0)) {
     LOGN(F("remote configuration failed"CR));
   }
 
