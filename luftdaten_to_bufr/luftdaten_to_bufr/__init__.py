@@ -48,10 +48,22 @@ def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,lat
 
     for data in iter_datastore(DATASTORE_URL):
 
+        try:
+            lon=float(data["location"]["longitude"])
+        except Exception as e:
+            logging.warning(str(data["location"]))
+            #logging.exception(e)
+            continue
+        try:
+            lat=float(data["location"]["latitude"])
+        except Exception as e:
+            logging.warning(str(data["location"]))
+            #logging.exception(e)
+            continue
 
         constantdata = dballe.Record(B01019=str(data["location"]["id"]),
                                      #B07030=float(data["Altezza"].replace(",", ".")),
-                                     lon=float(data["location"]["longitude"]), lat=float(data["location"]["latitude"]),
+                                     lon=lon, lat=lat,
                                      rep_memo="luftdaten")
 
         try:
