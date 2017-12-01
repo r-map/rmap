@@ -75,3 +75,6 @@ else:
                             {'post_reset_redirect': reverse_lazy('auth_password_reset_complete')},
                                 name='auth_password_reset_confirm')
                         ]
+
+# without this the last view in reset password terminate with error
+urlpatterns += [ url(r'^', include('django.contrib.auth.urls'))]
