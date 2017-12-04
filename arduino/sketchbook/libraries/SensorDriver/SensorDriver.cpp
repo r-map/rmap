@@ -11,6 +11,10 @@ int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
 
+
+SoftwareSerial sdsSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
+sds011::Sds011 _sds011(sdsSerial);  
+  
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
@@ -123,15 +127,24 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #endif
 	
 	return NULL;
-    } else {
+    } else
 
 #if defined (RADIORF24)
-  if (strcmp(driver, "RF24") == 0)
-    return new SensorDriverRF24();
-  else 
+    if (strcmp(driver, "RF24") == 0){
+      return new SensorDriverRF24();
+    } else
 #endif
-    return NULL;
-  }
+
+#if defined (SDS011_ONESHOT)
+    if (strcmp(driver, "SERI") == 0){
+      if (strcmp(type, "SSD") == 0) {
+	return new SensorDriverSDS011oneshotSerial();
+      }
+    } else
+#endif
+    {
+      return NULL;
+    }
 }
 SensorDriver::~SensorDriver() {}
 
@@ -2595,6 +2608,129 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSDS011oneshot::get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+
+    if (values[1] >= 0){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
+  }
+  return jsonvalues;
+}
+#endif
+
+
+// serial driver for SDS011
+
+
+int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  bool oneshot=true;
+
+  /*
+  switch (address)
+    {
+    case 0:                  // Serial 0
+      Serial.begin(9600);
+      _sds011 = sds011::Sds011(Serial); 
+      break;
+    case 1:                  // Serial 1
+      Serial1.begin(9600);
+      _sds011 = sds011::Sds011(Serial1);   
+      break;
+    case default:                 // software serial with pins defined by address
+      if (address > 10){
+	SoftwareSerial mySerial(address/10,address%10);
+	mySerial.begin(9600);
+	_sds011 = sds011::Sds011(myserial);   
+      }else{
+	return SD_INTERNAL_ERROR;
+      }
+      break;
+    }
+  
+  */
+
+  sdsSerial.begin(9600);
+
+  _sds011.set_sleep(false);
+  IF_SDSDEBUG(SDDBGSERIAL.print(F("Sds011 firmware version: ")));
+  IF_SDSDEBUG(SDDBGSERIAL.println(_sds011.firmware_version()));
+
+  _sds011.set_sleep(true);
+  _sds011.set_mode(sds011::QUERY);
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
+{
+
+    SDSMICSstarted=true;
+    _sds011.set_sleep(false);
+    waittime= 14500ul;
+    //}else{
+    //waittime= 1ul;
+    //}
+
+  _timing=millis();
+  return SD_SUCCESS;
+}
+
+int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
+{
+  int pm25, pm10;
+  bool ok;
+  
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  if (SDSMICSstarted) {
+
+    ok = _sds011.query_data_auto(&pm25, &pm10, SDSSAMPLES);
+    _sds011.set_sleep(true);
+
+    SDSMICSstarted=false;
+  }
+
+  if (ok) {
+    // get pm25
+    if (lenvalues >= 1) {
+      values[0] = pm25 ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    }
+    
+    // get pm10
+    if (lenvalues >= 2) {
+      values[1] = pm10 ;
+      //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    }
+  }
+
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverSDS011oneshotSerial::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
       aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{

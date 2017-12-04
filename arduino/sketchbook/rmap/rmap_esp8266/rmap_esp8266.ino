@@ -56,17 +56,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
 
-SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
-sds011::Sds011 sensor(mySerial);
   
 const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/"FIRMWARE_TYPE"/";
 const int update_port = 80;
 
-bool config_needs_write = false;
-
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
+
+//flag for saving data
+bool shouldSaveConfig = false;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char rmap_longitude[11] = "";
@@ -79,19 +78,17 @@ char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
 
-//flag for saving data
-bool shouldSaveConfig = false;
-
-
-
 // for sensoron
 #define SENSORS_LEN 5
 #define SENSORDRIVER_DRIVER_LEN 5
 #define SENSORDRIVER_TYPE_LEN 5
 #define SENSORDRIVER_MQTTPATH_LEN 30
-#define MAX_VALUES_FOR_SENSOR 5
+#define MAX_VALUES_FOR_SENSOR 3
 
 #include <SensorDriver.h>
+
+SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
+sds011::Sds011 sensor(mySerial);
 
 // sensor information
 struct sensor_t
@@ -107,45 +104,17 @@ struct sensor_t
        type[0]='\0';
        mqttpath[0]='\0';
   }
-};
+} sensors[SENSORS_LEN];;
 
-struct driver_t   // use this to instantiate a driver
-{
-  SensorDriver* manager;
-  driver_t() : manager(NULL) {}
-
-  int setup(const char* driver, int node, const char* type, int address
-    #if defined (AES)
-		       , uint8_t* key, uint8_t* iv
-    #endif
-	      )
-  {
-    if (manager != NULL)
-      delete manager;
-    manager = SensorDriver::create(driver,type);
-    if (manager == NULL)
-      return -2;
-
-    if (manager->setup(driver, address, node, type
-      #if defined (RADIORF24)
-		       , mainbuf,sizeof(mainbuf), &network
-        #if defined (AES)
-		       , key, iv
-        #endif
-      #endif
-		       ) != 0) return -1;
-    return 0;
-  }
-} drivers[SENSORS_LEN];
+SensorDriver* sd[SENSORS_LEN];
 
 
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  LOGN(F("Should save config"CR));
+  Serial.println("Should save config");
   shouldSaveConfig = true;
 }
-
 
 unsigned int coordCharToInt(char* lat){
   String mylat(lat);
@@ -212,42 +181,6 @@ String  rmap_get_remote_config(){
   }
   http.end();
   return payload;
-}
-
-int  rmap_remote_config(String payload){
-
-  int status =0;
-
-  if (! (payload == String())) {
-    StaticJsonBuffer<1500> jsonBuffer;
-    status = 3;
-    JsonArray& array = jsonBuffer.parseArray(payload);
-    if (array.success()){
-      for (int i = 0; i < array.size(); i++) {
-	if  (array[i]["model"] == "stations.stationmetadata"){
-	  if (array[i]["fields"]["active"]){
-	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),10);
-	    rmap_mqttrootpath[9]='\0';
-	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),10);
-	    rmap_mqttmaintpath[9]='\0';
-	    strncpy (rmap_longitude, array[i]["fields"]["lon"].as< const char*>(),10);
-	    rmap_longitude[10]='\0';
-	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
-	    rmap_latitude[10]='\0';
-	    LOGN(F("lon: %s"CR),rmap_longitude);
-	    LOGN(F("lat: %s"CR),rmap_latitude);
-	    config_needs_write = true;
-	    LOGN(F("station metadata found!"CR));
-	    status = 0;
-	  }
-	}
-      }
-    } else {
-      LOGE(F("error decoding array"CR));
-      status = 2;
-    }
-    return status;
-  }
 }
 
 
@@ -339,10 +272,7 @@ void publish_pm(const char* sensor, const int pm) {
       itoa (pm,value,10);
       strcat(payload,value);
       strcat(payload,"}");
-      LOGN(F("mqtt publish: "));
-      LOGN(topic);
-      LOGN(payload);
-      LOGN(CR);
+      LOGN(F("mqtt publish: %s %s"CR),topic,payload);
       mqttclient.publish(topic, payload);
     }
 }
@@ -357,9 +287,7 @@ void firmware_upgrade() {
   root["slug"] = rmap_slug;
   char buffer[256];
   root.printTo(buffer, sizeof(buffer));
-  LOGN(F("version for firmware upgrade"CR));
-  LOGN(buffer);
-  LOGN(CR);
+  LOGN(F("version for firmware upgrade %s"CR),buffer);
 		
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
@@ -367,8 +295,7 @@ void firmware_upgrade() {
     {
     case HTTP_UPDATE_FAILED:
       LOGE(F("[update] Update failed."CR));
-      LOGE(ESPhttpUpdate.getLastErrorString().c_str());
-      LOGN(CR);
+      LOGE(F("%s"CR),ESPhttpUpdate.getLastErrorString().c_str());
     break;
     case HTTP_UPDATE_NO_UPDATES:
       LOGN(F("[update] No Update."CR));
@@ -380,84 +307,118 @@ void firmware_upgrade() {
 }
 
 
-void readconfig_rmap() {
+String readconfig_rmap() {
 
   LOGN(F("mounted file system"CR));
-    if (SPIFFS.exists("/rmap.json")) {
-      //file exists, reading and loading
-      LOGN(F("reading config file"CR));
-      File configFile = SPIFFS.open("/rmap.json", "r");
-      if (configFile) {
-        LOGN(F("opened config file"CR));
-        size_t size = configFile.size();
-        // Allocate a buffer to store contents of the file.
-        std::unique_ptr<char[]> buf(new char[size]);
+  if (SPIFFS.exists("/rmap.json")) {
+    //file exists, reading and loading
+    LOGN(F("reading config file"CR));
+    File configFile = SPIFFS.open("/rmap.json", "r");
+    if (configFile) {
+      LOGN(F("opened config file"CR));
 
-        configFile.readBytes(buf.get(), size);
-        StaticJsonBuffer<500> jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        if (json.success()) {
-          LOGN(F("\nparsed json"CR));
-	  json.printTo(Serial);
+      //size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      //std::unique_ptr<char[]> buf(new char[size]);
+      //configfile.readBytes(buf.get(), size);
 
-	  /*
-	  char* driver;
-	  char* type;
-	  char* address;
-	  char* node;
-	  char* mqttpath;
-	  
-	  strcpy(driver, json["driver"]);
-	  strcpy(type, json["type"]);
-	  strcpy(address, json["address"]);
-	  strcpy(node, json["node"]);
-	  strcpy(mqttpath, json["mqttpath"]);
-
-	  int id = configuration.add_device(driver,node,type,address,mqttpath);
-
-	  if (!drivers[id].setup(driver, node, type, address
-#if defined (AES)
-				 , configuration.key, configuration.iv
-#endif
-				 ) == SD_SUCCESS) {			   
-	    IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
-	    // comment the next line to be less restrictive
-	    //return E_INTERNAL_ERROR;
-	  }
-	  */
-
-        } else {
-          LOGN(F("failed to load json rmap"CR));
-        }
-      } else {
-	LOGN(F("erro reading rmap file"CR));	
-      }
+      return configFile.readString();
+      
     } else {
-      LOGN(F("rmap file do not exist"CR));
+      LOGN(F("erro reading rmap file"CR));	
     }
+  } else {
+    LOGN(F("rmap file do not exist"CR));
+  }
   //end read
+  return String();  
 }
 
 void writeconfig_rmap(String payload) {;
 
   //save the custom parameters to FS
   LOGN(F("saving config"CR));
-  //DynamicJsonBuffer jsonBuffer;
-  StaticJsonBuffer<500> jsonBuffer;
-  JsonObject& json = jsonBuffer.parseObject(payload);
-
-  // set json
   
   File configFile = SPIFFS.open("/rmap.json", "w");
   if (!configFile) {
     LOGN(F("failed to open config file for writing"CR));
   }
 
-  json.printTo(Serial);
-  json.printTo(configFile);
+  //DynamicJsonBuffer jsonBuffer;
+  //StaticJsonBuffer<500> jsonBuffer;
+  //JsonObject& json = jsonBuffer.parseObject(payload);
+  // set json
+  //json.printTo(Serial);
+  //json.printTo(configFile);
+
+  configFile.print(payload);
   configFile.close();
   LOGN(F("saved config parameter"CR));
   //end save
+}
+
+int  rmap_config(String payload){
+
+  int status =0;
+
+  if (! (payload == String())) {
+    StaticJsonBuffer<1500> jsonBuffer;
+    status = 3;
+    JsonArray& array = jsonBuffer.parseArray(payload);
+    if (array.success()){
+      for (int i = 0; i < array.size(); i++) {
+	if  (array[i]["model"] == "stations.stationmetadata"){
+	  if (array[i]["fields"]["active"]){
+	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),10);
+	    rmap_mqttrootpath[9]='\0';
+	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),10);
+	    rmap_mqttmaintpath[9]='\0';
+	    strncpy (rmap_longitude, array[i]["fields"]["lon"].as< const char*>(),10);
+	    rmap_longitude[10]='\0';
+	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
+	    rmap_latitude[10]='\0';
+	    LOGN(F("lon: %s"CR),rmap_longitude);
+	    LOGN(F("lat: %s"CR),rmap_latitude);
+	    LOGN(F("station metadata found!"CR));
+	    status = 0;
+	  }
+	}
+      }
+    } else {
+      LOGE(F("error parsing array"CR));
+      status = 2;
+    }
+
+    /*
+      char* driver;
+      char* type;
+      char* address;
+      char* node;
+      char* mqttpath;
+      
+      strcpy(driver, json["driver"]);
+      strcpy(type, json["type"]);
+      strcpy(address, json["address"]);
+      strcpy(node, json["node"]);
+      strcpy(mqttpath, json["mqttpath"]);
+      
+      int id = configuration.add_device(driver,node,type,address,mqttpath);
+      
+      if (!drivers[id].setup(driver, node, type, address
+      #if defined (AES)
+      , configuration.key, configuration.iv
+      #endif
+      ) == SD_SUCCESS) {			   
+      IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
+      // comment the next line to be less restrictive
+      //return E_INTERNAL_ERROR;
+      }
+    */
+
+  }else{
+    status=1;
+  }
+  return status;
 }
 
 
@@ -465,39 +426,41 @@ void writeconfig_rmap(String payload) {;
 void readconfig() {
 
   LOGN(F("mounted file system"CR));
-    if (SPIFFS.exists("/config.json")) {
-      //file exists, reading and loading
-      LOGN(F("reading config file"CR));
-      File configFile = SPIFFS.open("/config.json", "r");
-      if (configFile) {
-        LOGN(F("opened config file"CR));
-        size_t size = configFile.size();
-        // Allocate a buffer to store contents of the file.
-        std::unique_ptr<char[]> buf(new char[size]);
+  if (SPIFFS.exists("/config.json")) {
+    //file exists, reading and loading
+    LOGN(F("reading config file"CR));
+    File configFile = SPIFFS.open("/config.json", "r");
+    if (configFile) {
+      LOGN(F("opened config file"CR));
+      size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
         StaticJsonBuffer<500> jsonBuffer;
         JsonObject& json = jsonBuffer.parseObject(buf.get());
         if (json.success()) {
-          LOGN(F("\nparsed json"CR));
+          LOGN(F("parsed json"CR));
 	  json.printTo(Serial);
 
-          strcpy(rmap_longitude, json["rmap_longitude"]);
-          strcpy(rmap_latitude, json["rmap_latitude"]);
-          strcpy(rmap_server, json["rmap_server"]);
-          strcpy(rmap_user, json["rmap_user"]);
-          strcpy(rmap_password, json["rmap_password"]);
-          strcpy(rmap_slug, json["rmap_slug"]);
-	  strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
-	  strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
+	  if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
+	  if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
+          if (json.containsKey("rmap_server")) strcpy(rmap_server, json["rmap_server"]);
+          if (json.containsKey("rmap_user")) strcpy(rmap_user, json["rmap_user"]);
+          if (json.containsKey("rmap_password")) strcpy(rmap_password, json["rmap_password"]);
+          if (json.containsKey("rmap_slug")) strcpy(rmap_slug, json["rmap_slug"]);
+	  if (json.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
+	  if (json.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
 	  
-	  LOGN(F("loaded config parameter"CR));
-	  LOGN(F("%s"CR),rmap_server);
-	  LOGN(F("%s"CR),rmap_user);
-	  LOGN(F("%s"CR),rmap_password);
-	  LOGN(F("%s"CR),rmap_slug);
-	  LOGN(F("%s"CR),rmap_mqttrootpath);
-	  LOGN(F("%s"CR),rmap_mqttmaintpath);
+	  LOGN(F("loaded config parameter:"CR));
+	  LOGN(F("longitude: %s"CR),rmap_longitude);
+	  LOGN(F("latitude: %s"CR),rmap_latitude);
+	  LOGN(F("server: %s"CR),rmap_server);
+	  LOGN(F("user: %s"CR),rmap_user);
+	  LOGN(F("password: %s"CR),rmap_password);
+	  LOGN(F("slug: %s"CR),rmap_slug);
+	  LOGN(F("mqttrootpath: %s"CR),rmap_mqttrootpath);
+	  LOGN(F("mqttmaintpath: %s"CR),rmap_mqttmaintpath);
 	  
         } else {
           LOGN(F("failed to load json config"CR));
@@ -514,42 +477,37 @@ void readconfig() {
 void writeconfig() {;
 
   //save the custom parameters to FS
-  if (shouldSaveConfig) {
-    LOGN(F("saving config"CR));
-    //DynamicJsonBuffer jsonBuffer;
-    StaticJsonBuffer<100> jsonBuffer;
-    JsonObject& json = jsonBuffer.createObject();
+  LOGN(F("saving config"CR));
+  //DynamicJsonBuffer jsonBuffer;
+  StaticJsonBuffer<500> jsonBuffer;
+  JsonObject& json = jsonBuffer.createObject();
     
-    json["rmap_longitude"] = rmap_longitude;
-    json["rmap_latitude"] = rmap_latitude;
-    json["rmap_server"] = rmap_server;
-    json["rmap_user"] = rmap_user;
-    json["rmap_password"] = rmap_password;
-    json["rmap_slug"] = rmap_slug;
-    json["rmap_mqttrootpath"] = rmap_mqttrootpath;
-    json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
-
-    File configFile = SPIFFS.open("/config.json", "w");
-    if (!configFile) {
-      LOGN(F("failed to open config file for writing"CR));
-    }
-
-    json.printTo(Serial);
-    json.printTo(configFile);
-    configFile.close();
-    LOGN(F("saved config parameter"CR));
-    //end save
+  json["rmap_longitude"] = rmap_longitude;
+  json["rmap_latitude"] = rmap_latitude;
+  json["rmap_server"] = rmap_server;
+  json["rmap_user"] = rmap_user;
+  json["rmap_password"] = rmap_password;
+  json["rmap_slug"] = rmap_slug;
+  json["rmap_mqttrootpath"] = rmap_mqttrootpath;
+  json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
+  
+  File configFile = SPIFFS.open("/config.json", "w");
+  if (!configFile) {
+    LOGN(F("failed to open config file for writing"CR));
   }
+
+  json.printTo(Serial);
+  json.printTo(configFile);
+  configFile.close();
+  LOGN(F("saved config parameter"CR));
 }
 
-void repeats() {
+void repeatsold() {
 
 #define SDS_SAMPLES 3
   
   int pm2, pm10;
   bool ok;
-
-  //firmware_upgrade();
 
   sensor.set_sleep(false);
   delay(3000);
@@ -565,6 +523,64 @@ void repeats() {
     }
   }
 }
+
+
+void repeats() {
+
+
+  long unsigned int waittime,maxwaittime=0;
+  long values[MAX_VALUES_FOR_SENSOR];
+  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
+  
+  // prepare sensors to measure
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == NULL){
+      LOGN(F("prepare sd %d"CR),i);
+      if (sd[i]->prepare(waittime) == SD_SUCCESS){
+	maxwaittime=_max(maxwaittime,waittime);
+      }else{
+	LOGN(F("%s: prepare failed !"CR),sensors[i].driver);
+      }
+    }
+  }
+
+  //wait sensors to go ready
+  LOGN(F("wait sensors for ms: %d"CR),maxwaittime);
+  delay(maxwaittime);
+
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == NULL){
+
+      for (int ii = 0; ii < lenvalues; ii++) {
+	values[ii]=4294967296;
+      }
+
+      LOGN(F("getvalues sd %d"CR),i);
+      if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
+	for (int ii = 0; ii < lenvalues; ii++) {
+	  if (!values[ii] == 4294967296)LOGN(F("%d: %d"CR),ii,values[ii]);
+	}
+	if (!values[0] == 4294967296) publish_pm( "SDS_PM2", values[0]);
+	if (!values[1] == 4294967296) publish_pm( "SDS_PM10", values[1]);
+	
+      }else{
+	LOGN(F("Error"));
+      }
+      
+      /*
+      // get values in json format
+      aj=sd[i]->get(&values));
+      json=aJson.print(aj,50);
+      Serial.print(sensors[i].type);
+      Serial.print(" : ");
+      Serial.println(json);
+      free(json);
+      aJson.deleteItem(aj);
+      */
+    }
+  }
+}
+
 
 void reboot() {
   //reset and try again, or maybe put it to deep sleep
@@ -593,10 +609,18 @@ void setup() {
   itoa(ESP.getChipId(),esp_chipid,10);
   LOGN(F("esp_chipid: %s "CR),esp_chipid );
   */
-  
-  //clean FS, for testing
-  //SPIFFS.format();
 
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wifiManager;
+
+  if (digitalRead(RESET_PIN) == LOW) {
+    LOGN(F("clean FS"));
+    SPIFFS.format();
+    LOGN(F("Reset wifi configuration"CR));
+    wifiManager.resetSettings();
+  }
+  
   //read configuration from FS json
   LOGN(F("mounting FS..."CR));
   if (SPIFFS.begin()) {
@@ -613,10 +637,6 @@ void setup() {
   WiFiManagerParameter custom_rmap_password("password", "rmap password", rmap_password, 30, "type = \"password\"");
   WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 30);
 
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
-  WiFiManager wifiManager;
-
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
 
@@ -629,11 +649,6 @@ void setup() {
   wifiManager.addParameter(&custom_rmap_password);
   wifiManager.addParameter(&custom_rmap_slug);
 
-  if (digitalRead(RESET_PIN) == LOW) {
-    //reset settings
-    LOGN(F("Reset wifi configuration"CR));
-    wifiManager.resetSettings();
-  }
   //set minimu quality of signal so it ignores AP's under that quality
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
@@ -656,39 +671,64 @@ void setup() {
   //if you get here you have connected to the WiFi
   LOGN(F("connected...yeey :)"CR));
 
-  //read updated parameters
-  strcpy(rmap_server, custom_rmap_server.getValue());
-  strcpy(rmap_user, custom_rmap_user.getValue());
-  strcpy(rmap_password, custom_rmap_password.getValue());
-  strcpy(rmap_slug, custom_rmap_slug.getValue());
 
-  writeconfig();
-  
-  LOGN(F("local ip"));
-  LOGN(WiFi.localIP().toString().c_str());
-  LOGN(CR);
+  if (shouldSaveConfig){
+    //read updated parameters
+    strcpy(rmap_server, custom_rmap_server.getValue());
+    strcpy(rmap_user, custom_rmap_user.getValue());
+    strcpy(rmap_password, custom_rmap_password.getValue());
+    strcpy(rmap_slug, custom_rmap_slug.getValue());
+
+    writeconfig();
+  }
+
+  LOGN(F("local ip: %s"CR),WiFi.localIP().toString().c_str());
 
   firmware_upgrade();
 
-  if (!(rmap_remote_config(rmap_get_remote_config()) == 0)) {
+  String remote_config= rmap_get_remote_config();
+
+  if ( remote_config == String() ) {
     LOGN(F("remote configuration failed"CR));
+    remote_config=readconfig_rmap();
+  }else{
+    LOGN(F("write configuration"CR));
+    writeconfig_rmap(remote_config);
   }
 
-  if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
+  //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
+  if (!rmap_config(remote_config) == 0) {
     LOGN(F("station not configurated ! restart"CR));
-    //reset settings
-    LOGN(F("Reset wifi configuration"CR));
-    wifiManager.resetSettings();
+    //LOGN(F("Reset wifi configuration"CR));
+    //wifiManager.resetSettings();
     delay(1000);
     reboot();
   }
-  
+
+  //SDS011
+
+  strcpy(sensors[0].driver,"SERI");
+  strcpy(sensors[0].type,"SSD");
+  sensors[0].address=1;
+
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
+    if (sd[i] == NULL){
+      LOGN(F("%s: driver not created !"CR),sensors[i].driver);
+    }else{
+      LOGN(F("%s: driver created"CR),sensors[i].driver);
+      sd[i]->setup(sensors[i].driver,sensors[i].address);
+    }
+  }
+
+  /*
   Serial.print(F("Sds011 firmware version: "));
   LOGN(sensor.firmware_version().c_str());
   LOGN(CR);
-
+    
   sensor.set_sleep(true);
   sensor.set_mode(sds011::QUERY);
+  */
 
   LOGN(F("mqtt server: %s"CR),rmap_server);
   mqttclient.setServer(rmap_server, 1883);

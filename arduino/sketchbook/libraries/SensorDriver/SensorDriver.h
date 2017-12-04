@@ -22,6 +22,11 @@
 #endif
 #endif
 
+#if defined (SDS011_ONESHOT)
+#include "Sds011.h"
+#include <SoftwareSerial.h>
+#endif
+
 // initialize the I2C interface
 //void SensorDriverInit();
 
@@ -400,6 +405,21 @@ class SensorDriverTmp : public SensorDriver
     virtual aJsonObject* getJson();
   #endif
 };
+
+ class SensorDriverSDS011oneshotSerial : public SensorDriver
+ {
+ public:
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+    
+    // protected:
+    //sds011::Sds011 _sds011;
+};
+
 #endif
 
 

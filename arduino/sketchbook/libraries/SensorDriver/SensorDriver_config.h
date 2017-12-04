@@ -58,6 +58,9 @@
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
 #define SDS011_ONESHOT
+#define SDS_PIN_RX D1
+#define SDS_PIN_TX D2
+#define SDSSAMPLES 3
 
 // include sds011 pm 2.5 and pm 10 driver REPORT MODE
 //#define SDS011_REPORT
