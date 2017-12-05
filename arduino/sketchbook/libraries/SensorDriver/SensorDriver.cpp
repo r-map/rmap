@@ -2756,6 +2756,15 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
   return jsonvalues;
 }
 #endif
+
+//destructor
+SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
+
+  delete _sds011;
+  
+}
+
+
 #endif
 
 #if defined (SDS011_REPORT)

@@ -416,16 +416,15 @@ class SensorDriverTmp : public SensorDriver
    virtual int setup(const char* driver, const int address, const int node, const char* type, SoftwareSerial* sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128));
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-  #if defined(USEAJSON)
+    virtual ~SensorDriverSDS011oneshotSerial();
+
+#if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
 
-
-    //SoftwareSerial* sdsSerial;
-    sds011::Sds011* _sds011;  
-     
-    // protected:
-    //sds011::Sds011 _sds011;
+    
+   protected:
+    sds011::Sds011* _sds011=NULL;  
 };
 
 #endif
