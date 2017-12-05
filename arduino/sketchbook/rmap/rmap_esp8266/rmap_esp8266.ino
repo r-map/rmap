@@ -108,8 +108,6 @@ struct sensor_t
 
 SensorDriver* sd[SENSORS_LEN];
 
-
-
 //callback notifying us of the need to save config
 void saveConfigCallback () {
   Serial.println("Should save config");
@@ -360,6 +358,7 @@ void writeconfig_rmap(String payload) {;
 int  rmap_config(String payload){
 
   int status =0;
+  int ii = 0;
 
   if (! (payload == String())) {
     StaticJsonBuffer<1500> jsonBuffer;
@@ -369,52 +368,137 @@ int  rmap_config(String payload){
       for (int i = 0; i < array.size(); i++) {
 	if  (array[i]["model"] == "stations.stationmetadata"){
 	  if (array[i]["fields"]["active"]){
+	    LOGN(F("station metadata found!"CR));
 	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),10);
 	    rmap_mqttrootpath[9]='\0';
+	    LOGN(F("mqttrootpath: %s"CR),rmap_mqttrootpath);
 	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),10);
 	    rmap_mqttmaintpath[9]='\0';
+	    LOGN(F("mqttmaintpath: %s"CR),rmap_mqttmaintpath);
 	    strncpy (rmap_longitude, array[i]["fields"]["lon"].as< const char*>(),10);
 	    rmap_longitude[10]='\0';
+	    LOGN(F("lon: %s"CR),rmap_longitude);
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
 	    rmap_latitude[10]='\0';
-	    LOGN(F("lon: %s"CR),rmap_longitude);
 	    LOGN(F("lat: %s"CR),rmap_latitude);
-	    LOGN(F("station metadata found!"CR));
 	    status = 0;
 	  }
 	}
+
+	/*
+[
+{
+  "model": "stations.stationmetadata",
+  "fields": {
+    "name": "luftdaten",
+    "active": true,
+    "slug": "luftdaten",
+    "ident": [
+      "pat1"
+    ],
+    "lat": 44.48896,
+    "lon": 11.36987,
+    "network": "fixed",
+    "mqttrootpath": "sample",
+    "mqttmaintpath": "sample",
+    "category": "test"
+  }
+},
+{
+  "model": "stations.board",
+  "fields": {
+    "name": "luftdaten",
+    "active": true,
+    "slug": "luftdaten",
+    "category": "base",
+    "stationmetadata": [
+      "luftdaten",
+      [
+        "pat1"
+      ]
+    ]
+  }
+},
+{
+  "model": "stations.sensor",
+  "fields": {
+    "active": true,
+    "name": "SDS011 particolato",
+    "driver": "I2C",
+    "type": [
+      "SSD"
+    ],
+    "i2cbus": 1,
+    "address": 72,
+    "node": 1,
+    "timerange": "254,0,0",
+    "level": "103,2000,-,-",
+    "board": [
+      "luftdaten",
+      [
+        "luftdaten",
+        [
+          "pat1"
+        ]
+      ]
+    ]
+  }
+ }
+ ]
+	*/
+	   
+	char driver[5];
+	char type[4];
+	char timerange[10];
+	char level[10];
+	
+	if  (array[i]["model"] == "stations.sensor"){
+	  if (array[i]["fields"]["active"]){
+	    LOGN(F("station sensor found!"CR));
+	    strncpy (driver , array[i]["fields"]["driver"].as< const char*>(),5);
+	    driver[4]='\0';
+	    LOGN(F("driver: %s"CR),driver);
+	    strncpy (type , array[i]["fields"]["type"][0].as< const char*>(),4);
+	    type[3]='\0';
+	    LOGN(F("type: %s"CR),type);
+	    strncpy (timerange, array[i]["fields"]["timerange"].as< const char*>(),10);
+	    timerange[9]='\0';
+	    LOGN(F("timerange: %s"CR),timerange);
+	    strncpy (level, array[i]["fields"]["level"].as< const char*>(),10);
+	    level[9]='\0';
+	    LOGN(F("level: %s"CR),level);
+	    unsigned int address = array[i]["fields"]["address"];	    
+	    LOGN(F("address: %d"CR),address);
+
+	    if (ii < SENSORS_LEN) {
+	      
+	      sd[ii]=SensorDriver::create(driver,type);
+	      if (sd[ii] == NULL){
+		LOGN(F("%s: driver not created !"CR),driver);
+		
+	      }else{
+		
+		if (!sd[ii]->setup(driver, address, -1, type) == SD_SUCCESS) {			   
+		  IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
+		  // comment the next line to be less restrictive
+		  //return E_INTERNAL_ERROR;
+		}
+
+		ii++;
+		
+	      }
+	    }
+	    
+	    status = 0;
+	  }
+	}
+
       }
     } else {
       LOGE(F("error parsing array"CR));
       status = 2;
     }
-
-    /*
-      char* driver;
-      char* type;
-      char* address;
-      char* node;
-      char* mqttpath;
-      
-      strcpy(driver, json["driver"]);
-      strcpy(type, json["type"]);
-      strcpy(address, json["address"]);
-      strcpy(node, json["node"]);
-      strcpy(mqttpath, json["mqttpath"]);
-      
-      int id = configuration.add_device(driver,node,type,address,mqttpath);
-      
-      if (!drivers[id].setup(driver, node, type, address
-      #if defined (AES)
-      , configuration.key, configuration.iv
-      #endif
-      ) == SD_SUCCESS) {			   
-      IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
-      // comment the next line to be less restrictive
-      //return E_INTERNAL_ERROR;
-      }
-    */
-
+    
   }else{
     status=1;
   }
@@ -705,6 +789,8 @@ void setup() {
     reboot();
   }
 
+
+  /*
   //SDS011
 
   strcpy(sensors[0].driver,"SERI");
@@ -720,7 +806,8 @@ void setup() {
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
-
+  */
+  
   /*
   Serial.print(F("Sds011 firmware version: "));
   LOGN(sensor.firmware_version().c_str());
