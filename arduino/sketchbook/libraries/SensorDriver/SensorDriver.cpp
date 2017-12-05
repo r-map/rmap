@@ -1,4 +1,3 @@
-#include "Wire.h"      // Wire (I2C) defines
 #include "SensorDriver.h"
 
 //void SensorDriverInit()
@@ -11,9 +10,6 @@ int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
 
-
-SoftwareSerial sdsSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
-sds011::Sds011 _sds011(sdsSerial);  
   
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -2631,13 +2627,23 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
 
 // serial driver for SDS011
 
+/*
+SensorDriverSDS011oneshotSerial::SensorDriverSDS011oneshotSerial(){
+  //sdsSerial= new SoftwareSerial(2,3, false, 128);
+  _sds011 = new sds011::Sds011(*sdsSerial);
+  }
+*/
 
-int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type, SoftwareSerial* sdsSerial)
 {
 
   SensorDriver::setup(driver,address,node,type);
   bool oneshot=true;
 
+  sdsSerial->begin(9600);
+  _sds011 = new sds011::Sds011(*sdsSerial);
+
+   
   /*
   switch (address)
     {
@@ -2662,14 +2668,14 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
   
   */
 
-  sdsSerial.begin(9600);
+  //sdsSerial->begin(9600);
 
-  _sds011.set_sleep(false);
+  _sds011->set_sleep(false);
   IF_SDSDEBUG(SDDBGSERIAL.print(F("Sds011 firmware version: ")));
-  IF_SDSDEBUG(SDDBGSERIAL.println(_sds011.firmware_version()));
+  IF_SDSDEBUG(SDDBGSERIAL.println(_sds011->firmware_version()));
 
-  _sds011.set_sleep(true);
-  _sds011.set_mode(sds011::QUERY);
+  _sds011->set_sleep(true);
+  _sds011->set_mode(sds011::QUERY);
 
   return SD_SUCCESS;
 }
@@ -2678,7 +2684,7 @@ int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
 {
 
     SDSMICSstarted=true;
-    _sds011.set_sleep(false);
+    _sds011->set_sleep(false);
     waittime= 14500ul;
     //}else{
     //waittime= 1ul;
@@ -2697,8 +2703,8 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 
   if (SDSMICSstarted) {
 
-    ok = _sds011.query_data_auto(&pm25, &pm10, SDSSAMPLES);
-    _sds011.set_sleep(true);
+    ok = _sds011->query_data_auto(&pm25, &pm10, SDSSAMPLES);
+    _sds011->set_sleep(true);
 
     SDSMICSstarted=false;
   }

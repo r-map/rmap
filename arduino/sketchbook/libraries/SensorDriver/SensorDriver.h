@@ -6,8 +6,9 @@
 
 #ifndef SensorDriver_h
 #define SensorDriver_h
-#include "SensorDriver_config.h"
+#include "Wire.h"      // Wire (I2C) defines
 #include "Arduino.h"
+#include "SensorDriver_config.h"
 
 #if defined(USEAJSON)
 #include "aJSON.h"
@@ -29,6 +30,8 @@
 
 // initialize the I2C interface
 //void SensorDriverInit();
+
+
 
 class SensorDriver
 {
@@ -409,13 +412,18 @@ class SensorDriverTmp : public SensorDriver
  class SensorDriverSDS011oneshotSerial : public SensorDriver
  {
  public:
-   virtual int setup(const char* driver, const int address, const int node, const char* type);
+   //SensorDriverSDS011oneshotSerial();
+   virtual int setup(const char* driver, const int address, const int node, const char* type, SoftwareSerial* sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128));
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
-    
+
+
+    //SoftwareSerial* sdsSerial;
+    sds011::Sds011* _sds011;  
+     
     // protected:
     //sds011::Sds011 _sds011;
 };
