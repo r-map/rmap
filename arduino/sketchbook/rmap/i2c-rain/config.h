@@ -19,8 +19,9 @@
 // For ETG raingauge
 //#define ETGRAINGAUGE
 #ifdef ETGRAINGAUGE
+#define DEBOUNCINGTIME 1000
 #define MIN_COMMUTATION_TIME 20
-#define MAX_COMMUTATION_TIME 100
+#define MAX_COMMUTATION_TIME 500
 #endif
 
 // temporary patch for microduino; see http://forum.microduino.cc/topic/91/digitalpintointerrupt-was-not-declared-in-this-scope
