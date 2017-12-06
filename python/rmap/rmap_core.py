@@ -634,7 +634,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
     if (template == "luftdaten"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
         
     if (template == "stima_report_p"):

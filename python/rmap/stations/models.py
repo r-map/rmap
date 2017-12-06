@@ -86,6 +86,7 @@ class Sensor(models.Model):
     SENSOR_DRIVER_CHOICES = (
         ('I2C',  'I2C drivers'),
         ('RF24',  'RF24 Network jsonrpc'),
+        ('SERI',  'SERIAL drivers over serial port'),
         ('JRPC',  'INDIRECT jsonrpc over some transport'),
     )
 
