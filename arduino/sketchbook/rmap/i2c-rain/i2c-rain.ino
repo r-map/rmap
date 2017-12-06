@@ -122,19 +122,27 @@ static bool stop =false;
 volatile unsigned int count;
 volatile unsigned long antirimb=0;
 
+volatile unsigned long fallingtime=0;
+volatile unsigned long risingtime=0;
+
 boolean forcedefault=false;
 
-void countadd()
+void change()
 {
   unsigned long now=millis();
-
-  if ((now-antirimb) > DEBOUNCINGTIME){
-    count ++;
-    antirimb=now;
-    //IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
+  
+  if (digitalRead(RAINGAUGEPIN)==LOW) fallingtime=now;
+  else risingtime=now; 
+  if(risingtime>fallingtime){
+  if (((risingtime-fallingtime) > MIN_COMMUTATION_TIME)&&((risingtime-fallingtime) < MAX_COMMUTATION_TIME)){
+      if ((now-antirimb) > DEBOUNCINGTIME){
+        count ++;
+        //digitalWrite(LEDPIN,count % 2);
+        antirimb=now;
+      }
+    } 
   }
 }
-
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -328,8 +336,8 @@ void setup() {
   // initialize counter and fuffer for read
   count=0;
   i2c_dataset2->rain.tips=count;
-
-  attachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN), countadd, RISING);
+  IF_SDEBUG(Serial.print(F("interrupt...init")));
+  attachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN),change  , CHANGE);
   //detachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN));
 
   IF_SDEBUG(Serial.println(F("end setup")));
@@ -393,7 +401,10 @@ void loop() {
 
 
 
-  //IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
+  // IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
+  // IF_SDEBUG(Serial.print(F("rising: ")));IF_SDEBUG(Serial.println(risingtime));
+  //if(risingtime>fallingtime) IF_SDEBUG(Serial.print(F("time: ")));IF_SDEBUG(Serial.println(risingtime-fallingtime));
+
 
   if (oneshot) {
 
