@@ -127,14 +127,16 @@ volatile unsigned long risingtime=0;
 
 boolean forcedefault=false;
 
-void change()
+#ifdef ETGRAINGAUGE
+#define INTERRUPTEVENT CHANGE
+void countadd()
 {
   unsigned long now=millis();
   
   if (digitalRead(RAINGAUGEPIN)==LOW) fallingtime=now;
   else risingtime=now; 
   if(risingtime>fallingtime){
-  if (((risingtime-fallingtime) > MIN_COMMUTATION_TIME)&&((risingtime-fallingtime) < MAX_COMMUTATION_TIME)){
+    if (((risingtime-fallingtime) > MIN_COMMUTATION_TIME)&&((risingtime-fallingtime) < MAX_COMMUTATION_TIME)){
       if ((now-antirimb) > DEBOUNCINGTIME){
         count ++;
         //digitalWrite(LEDPIN,count % 2);
@@ -143,6 +145,22 @@ void change()
     } 
   }
 }
+#else
+#define INTERRUPTEVENT RISING
+void countadd()
+{
+  unsigned long now=millis();
+  
+  if ((now-antirimb) > DEBOUNCINGTIME){
+    
+    count ++;
+    antirimb=now;
+    //IF_SDEBUG(Serial.print(F("count: ")));IF_SDEBUG(Serial.println(count));
+  }
+}
+
+#endif
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -337,7 +355,7 @@ void setup() {
   count=0;
   i2c_dataset2->rain.tips=count;
   IF_SDEBUG(Serial.print(F("interrupt...init")));
-  attachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN),change  , CHANGE);
+  attachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN), countadd, INTERRUPTEVENT);
   //detachInterrupt(digitalPinToInterrupt(RAINGAUGEPIN));
 
   IF_SDEBUG(Serial.println(F("end setup")));
