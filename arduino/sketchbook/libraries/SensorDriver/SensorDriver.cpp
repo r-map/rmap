@@ -2634,14 +2634,15 @@ SensorDriverSDS011oneshotSerial::SensorDriverSDS011oneshotSerial(){
   }
 */
 
-int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type, SoftwareSerial* sdsSerial)
+int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
 {
 
   SensorDriver::setup(driver,address,node,type);
   bool oneshot=true;
 
-  sdsSerial->begin(9600);
-  _sds011 = new sds011::Sds011(*sdsSerial);
+  _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
+  _sdsSerial->begin(9600);
+  _sds011 = new sds011::Sds011(*_sdsSerial);
 
    
   /*
@@ -2761,7 +2762,7 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
 SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
 
   delete _sds011;
-  
+  delete _sdsSerial;
 }
 
 

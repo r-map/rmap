@@ -413,7 +413,7 @@ class SensorDriverTmp : public SensorDriver
  {
  public:
    //SensorDriverSDS011oneshotSerial();
-   virtual int setup(const char* driver, const int address, const int node, const char* type, SoftwareSerial* sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128));
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
     virtual ~SensorDriverSDS011oneshotSerial();
@@ -424,6 +424,7 @@ class SensorDriverTmp : public SensorDriver
 
     
    protected:
+    SoftwareSerial* _sdsSerial=NULL;
     sds011::Sds011* _sds011=NULL;  
 };
 

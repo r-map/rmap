@@ -478,8 +478,8 @@ int  rmap_config(String payload){
 		
 	      }else{
 		
-		if (!sd[ii]->setup(driver, address, -1, type) == SD_SUCCESS) {			   
-		  IF_SDEBUG(DBGSERIAL.println(F("#sensor not present or broken")));
+		if (!(sd[ii]->setup(driver, address, -1, type) == SD_SUCCESS)) {			   
+		  LOGE(F("sensor not present or broken"CR));
 		  // comment the next line to be less restrictive
 		  //return E_INTERNAL_ERROR;
 		}
@@ -527,8 +527,8 @@ void readconfig() {
           LOGN(F("parsed json"CR));
 	  json.printTo(Serial);
 
-	  if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
-	  if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
+	  //if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
+	  //if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
           if (json.containsKey("rmap_server")) strcpy(rmap_server, json["rmap_server"]);
           if (json.containsKey("rmap_user")) strcpy(rmap_user, json["rmap_user"]);
           if (json.containsKey("rmap_password")) strcpy(rmap_password, json["rmap_password"]);
@@ -537,8 +537,8 @@ void readconfig() {
 	  if (json.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
 	  
 	  LOGN(F("loaded config parameter:"CR));
-	  LOGN(F("longitude: %s"CR),rmap_longitude);
-	  LOGN(F("latitude: %s"CR),rmap_latitude);
+	  //LOGN(F("longitude: %s"CR),rmap_longitude);
+	  //LOGN(F("latitude: %s"CR),rmap_latitude);
 	  LOGN(F("server: %s"CR),rmap_server);
 	  LOGN(F("user: %s"CR),rmap_user);
 	  LOGN(F("password: %s"CR),rmap_password);
@@ -566,8 +566,8 @@ void writeconfig() {;
   StaticJsonBuffer<500> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
     
-  json["rmap_longitude"] = rmap_longitude;
-  json["rmap_latitude"] = rmap_latitude;
+  //json["rmap_longitude"] = rmap_longitude;
+  //json["rmap_latitude"] = rmap_latitude;
   json["rmap_server"] = rmap_server;
   json["rmap_user"] = rmap_user;
   json["rmap_password"] = rmap_password;
@@ -642,10 +642,10 @@ void repeats() {
       LOGN(F("getvalues sd %d"CR),i);
       if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
 	for (int ii = 0; ii < lenvalues; ii++) {
-	  if (!values[ii] == 4294967296)LOGN(F("%d: %d"CR),ii,values[ii]);
+	  if (!(values[ii] == 4294967296))LOGN(F("value: %d: %d"CR),ii,values[ii]);
 	}
-	if (!values[0] == 4294967296) publish_pm( "SDS_PM2", values[0]);
-	if (!values[1] == 4294967296) publish_pm( "SDS_PM10", values[1]);
+	if (!(values[0] == 4294967296)) publish_pm( "SDS_PM2", values[0]);
+	if (!(values[1] == 4294967296)) publish_pm( "SDS_PM10", values[1]);
 	
       }else{
 	LOGN(F("Error"));
