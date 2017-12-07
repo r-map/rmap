@@ -14,6 +14,10 @@
 #include "aJSON.h"
 #endif
 
+#if defined(USEARDUINOJSON)
+#include <ArduinoJson.h>
+#endif
+
 #if defined (RADIORF24)
 #include <RF24Network.h>
 #include <RF24.h>
@@ -50,6 +54,9 @@ class SensorDriver
 #if defined(USEAJSON)
    virtual aJsonObject* getJson() = 0;
 #endif
+#if defined(USEARDUINOJSON)
+   virtual int getJson(char *json_buffer, size_t json_buffer_length) = 0;
+#endif  
     virtual ~SensorDriver();
     // Factory method
     //   SensorDriver* sd = SensorDriver::create("I2C","TMP");
@@ -93,6 +100,9 @@ class SensorDriverTmp : public SensorDriver
     #if defined(USEAJSON)
     virtual aJsonObject* getJson();
     #endif
+    #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+    #endif
 };
 #endif
 
@@ -114,6 +124,10 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+   
 		     };
 #endif
 
@@ -131,6 +145,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif   
 };
 #endif
 
@@ -152,6 +169,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif   
 };
 #endif
 
@@ -172,6 +192,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 #endif
@@ -258,6 +281,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 #endif
 
@@ -280,6 +306,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 #endif
@@ -304,6 +333,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 #endif
 
@@ -327,6 +359,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
 
@@ -345,6 +380,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -365,6 +403,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
  class SensorDriverTHmax : public SensorDriver
@@ -382,6 +423,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -407,6 +451,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
  class SensorDriverSDS011oneshotSerial : public SensorDriver
@@ -421,7 +468,9 @@ class SensorDriverTmp : public SensorDriver
 #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
-
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
     
    protected:
     SoftwareSerial* _sdsSerial=NULL;
@@ -450,6 +499,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
 
@@ -468,6 +520,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -488,6 +543,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
  class SensorDriverSDS011max : public SensorDriver
@@ -505,6 +563,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -530,6 +591,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 #endif
 
@@ -553,6 +617,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
 
@@ -571,6 +638,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -591,6 +661,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 
  class SensorDriverMICS4514max : public SensorDriver
@@ -608,6 +681,9 @@ class SensorDriverTmp : public SensorDriver
     virtual int get(long values[],size_t lenvalues);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
 };
 
@@ -648,11 +724,14 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 };
 #endif
 
-#define SD_INTERNAL_ERROR 0
-#define SD_SUCCESS 1
+#define SD_INTERNAL_ERROR 1
+#define SD_SUCCESS 0
 
 #endif
 

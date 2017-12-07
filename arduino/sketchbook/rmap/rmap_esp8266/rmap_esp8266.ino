@@ -70,6 +70,7 @@ bool shouldSaveConfig = false;
 //define your default values here, if there are different values in config.json, they are overwritten.
 char rmap_longitude[11] = "";
 char rmap_latitude[11] = "";
+char rmap_network[31] = "";
 char rmap_server[41]= "rmap.cc";
 char rmap_user[10]="";
 char rmap_password[31]="";
@@ -196,13 +197,15 @@ bool publish_maint() {
     char latitude [10];
     itoa (coordCharToInt(rmap_longitude),longitude,10);
     itoa (coordCharToInt(rmap_latitude),latitude,10);
+    
     char mqttid[100]="";
     strcat(mqttid,rmap_user);
     strcat(mqttid,"/");
     strcat(mqttid,longitude);
     strcat(mqttid,",");
     strcat(mqttid,latitude);
-    strcat(mqttid,"/fixed");
+    strcat(mqttid,"/");
+    strcat(mqttid,rmap_network);
     
     LOGN(F("mqttid: %s"CR),mqttid);
 
@@ -229,6 +232,7 @@ bool publish_maint() {
   }
 }
 
+/*
 void publish_pm(const char* sensor, const int pm) {
   
   bool havetopublish=false;
@@ -274,7 +278,63 @@ void publish_pm(const char* sensor, const int pm) {
       mqttclient.publish(topic, payload);
     }
 }
+*/
 
+
+void publish_data(const char* values) {
+  
+  bool havetopublish=false;
+  char topic[100]="";
+  StaticJsonBuffer<200> jsonBuffer;
+
+  char longitude [10];
+  char latitude [10];
+  itoa (coordCharToInt(rmap_longitude),longitude,10);
+  itoa (coordCharToInt(rmap_latitude),latitude,10);
+
+  LOGN(F("have to publish: %s"CR),values);
+
+  JsonObject& json =jsonBuffer.parseObject(values);
+  if (json.success()){
+    for (JsonPair& pair : json) {
+
+      strcpy(topic,rmap_mqttrootpath);
+      strcat(topic,"/");
+      strcat(topic,rmap_user);
+      strcat(topic,"/");  
+      strcat(topic,longitude);
+      strcat(topic,",");
+      strcat(topic,latitude);
+      strcat(topic,"/");
+      strcat(topic,rmap_network);
+      strcat(topic,"/");
+      strcat(topic,"254,0,0");
+      strcat(topic,"/");
+      strcat(topic,"103,2000,-,-");
+      strcat(topic,"/");
+      strcat(topic,pair.key);
+
+      char payload[100]="{\"v\":";
+      strcat(payload,pair.value.as<char*>());
+      strcat(payload,"}");
+      LOGN(F("mqtt publish: %s %s"CR),topic,payload);
+      mqttclient.publish(topic, payload);
+    }
+  }
+  /*
+  while(){
+  
+    // itoa str should be an array long enough to contain any possible value: (sizeof(int)*8+1) for radix=2, i.e. 17 bytes in 16-bits platforms 
+    char value[17];
+    itoa (pm,value,10);
+    strcat(payload,value);
+    strcat(payload,"}");
+    LOGN(F("mqtt publish: %s %s"CR),topic,payload);
+    mqttclient.publish(topic, payload);
+  }
+  */
+
+}
 
 void firmware_upgrade() {
 
@@ -381,6 +441,10 @@ int  rmap_config(String payload){
 	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
 	    rmap_latitude[10]='\0';
 	    LOGN(F("lat: %s"CR),rmap_latitude);
+	    strncpy (rmap_network , array[i]["fields"]["network"].as< const char*>(),30);
+	    rmap_network[30]='\0';
+	    LOGN(F("network: %s"CR),rmap_network);
+	    
 	    status = 0;
 	  }
 	}
@@ -449,8 +513,8 @@ int  rmap_config(String payload){
 	   
 	char driver[5];
 	char type[4];
-	char timerange[10];
-	char level[10];
+	char timerange[30];
+	char level[30];
 	
 	if  (array[i]["model"] == "stations.sensor"){
 	  if (array[i]["fields"]["active"]){
@@ -461,11 +525,11 @@ int  rmap_config(String payload){
 	    strncpy (type , array[i]["fields"]["type"][0].as< const char*>(),4);
 	    type[3]='\0';
 	    LOGN(F("type: %s"CR),type);
-	    strncpy (timerange, array[i]["fields"]["timerange"].as< const char*>(),10);
-	    timerange[9]='\0';
+	    strncpy (timerange, array[i]["fields"]["timerange"].as< const char*>(),30);
+	    timerange[29]='\0';
 	    LOGN(F("timerange: %s"CR),timerange);
-	    strncpy (level, array[i]["fields"]["level"].as< const char*>(),10);
-	    level[9]='\0';
+	    strncpy (level, array[i]["fields"]["level"].as< const char*>(),30);
+	    level[29]='\0';
 	    LOGN(F("level: %s"CR),level);
 	    unsigned int address = array[i]["fields"]["address"];	    
 	    LOGN(F("address: %d"CR),address);
@@ -586,7 +650,8 @@ void writeconfig() {;
   LOGN(F("saved config parameter"CR));
 }
 
-void repeatsold() {
+/*
+void repeat() {
 
 #define SDS_SAMPLES 3
   
@@ -607,14 +672,17 @@ void repeatsold() {
     }
   }
 }
-
+*/
 
 void repeats() {
 
 
   long unsigned int waittime,maxwaittime=0;
-  long values[MAX_VALUES_FOR_SENSOR];
-  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
+
+  char values[MAX_VALUES_FOR_SENSOR*20];
+  size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
+  //  long values[MAX_VALUES_FOR_SENSOR];
+  //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -635,20 +703,23 @@ void repeats() {
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
 
-      for (int ii = 0; ii < lenvalues; ii++) {
-	values[ii]=4294967296;
-      }
+      //      for (int ii = 0; ii < lenvalues; ii++) {
+      //	values[ii]=4294967296;
+      //      }
 
-      LOGN(F("getvalues sd %d"CR),i);
-      if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
-	for (int ii = 0; ii < lenvalues; ii++) {
-	  if (!(values[ii] == 4294967296))LOGN(F("value: %d: %d"CR),ii,values[ii]);
-	}
-	if (!(values[0] == 4294967296)) publish_pm( "SDS_PM2", values[0]);
-	if (!(values[1] == 4294967296)) publish_pm( "SDS_PM10", values[1]);
+      LOGN(F("getJson sd %d"CR),i);
+      if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
+	//for (int ii = 0; ii < lenvalues; ii++) {
+	//  if (!(values[ii] == 4294967296))LOGN(F("value: %d: %d"CR),ii,values[ii]);
+	//}
+
+	publish_data(values);
+
+	//if (!(values[0] == 4294967296)) publish_pm( "SDS_PM2", values[0]);
+	//if (!(values[1] == 4294967296)) publish_pm( "SDS_PM10", values[1]);
 	
       }else{
-	LOGN(F("Error"));
+	LOGN(F("Error"CR));
       }
       
       /*

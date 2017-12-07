@@ -10,7 +10,6 @@ int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
 
-  
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
@@ -573,7 +572,7 @@ aJsonObject* SensorDriverRF24::getJson()
     return jsonvalues; 
   }
   
-  IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... getjson")));
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... getJson")));
   
   // example calling rpc:
   // {"jsonrpc": "2.0", "method": "getjson", "params": {"driver":"TMP","type":"TMP","address": 72}, "id": 0}
@@ -2623,6 +2622,35 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
   return jsonvalues;
 }
 #endif
+#if defined(USEARDUINOJSON)
+int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if (values[1] >= 0){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
 
 
 // serial driver for SDS011
@@ -2697,7 +2725,8 @@ int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
 
 int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 {
-  int pm25, pm10;
+  int pm25=0xFFFFFFFF;
+  int pm10=0xFFFFFFFF;
   bool ok;
   
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -2722,8 +2751,12 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
       values[1] = pm10 ;
       //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
     }
+  }else{
+    values[0]=0xFFFFFFFF;
+    values[1]=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
   }
-
+  
   _timing=0;
 
   return SD_SUCCESS;
@@ -2738,13 +2771,13 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSDS011oneshotSerial::get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
+    if (values[0] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
-    if (values[1] >= 0){
+    if (values[1] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
@@ -2755,6 +2788,36 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
     aJson.addNullToObject(jsonvalues, "B15195");
   }
   return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
 }
 #endif
 
@@ -3698,6 +3761,36 @@ aJsonObject* SensorDriverMICS4514oneshot::getJson()
     aJson.addNullToObject(jsonvalues, "B15193");
   }
   return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverMICS4514oneshot::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B15196"]= values[0];      
+    }else{
+      jsonvalues["B15196"]=RawJson("null");
+    }
+
+    if (values[1] >= 0){
+      jsonvalues["B15193"]= values[1];
+    }else{
+      jsonvalues["B15193"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15196"]=RawJson("null");
+    jsonvalues["B15193"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
 }
 #endif
 #endif
