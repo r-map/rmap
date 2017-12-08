@@ -693,38 +693,19 @@ void repeats() {
   LOGN(F("wait sensors for ms: %d"CR),maxwaittime);
   delay(maxwaittime);
 
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == NULL){
+  if (publish_maint()) {
+    for (int i = 0; i < SENSORS_LEN; i++) {
+      if (!sd[i] == NULL){
 
-      //      for (int ii = 0; ii < lenvalues; ii++) {
-      //	values[ii]=4294967296;
-      //      }
+	LOGN(F("getJson sd %d"CR),i);
+	if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 
-      LOGN(F("getJson sd %d"CR),i);
-      if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
-	//for (int ii = 0; ii < lenvalues; ii++) {
-	//  if (!(values[ii] == 4294967296))LOGN(F("value: %d: %d"CR),ii,values[ii]);
-	//}
-
-	publish_data(values,sensors[i].timerange,sensors[i].level);
-
-	//if (!(values[0] == 4294967296)) publish_pm( "SDS_PM2", values[0]);
-	//if (!(values[1] == 4294967296)) publish_pm( "SDS_PM10", values[1]);
-	
-      }else{
-	LOGN(F("Error"CR));
+	  publish_data(values,sensors[i].timerange,sensors[i].level);
+	  
+	}else{
+	  LOGN(F("Error"CR));
+	}
       }
-      
-      /*
-      // get values in json format
-      aj=sd[i]->get(&values));
-      json=aJson.print(aj,50);
-      Serial.print(sensors[i].type);
-      Serial.print(" : ");
-      Serial.println(json);
-      free(json);
-      aJson.deleteItem(aj);
-      */
     }
   }
 }
