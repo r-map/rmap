@@ -54,7 +54,7 @@ def mystationmetadata_del(request,ident,slug):
 
 def mystationmetadata_list(request,ident):
     mystations=StationMetadata.objects.filter(ident__username=ident)
-    return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations})
+    return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations,"ident":ident})
 
 def mystationmetadata_detail(request,ident,slug):
     mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)

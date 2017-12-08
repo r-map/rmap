@@ -44,12 +44,12 @@
 <td> {{ object.lat }}     </td>
 <td> {{ object.lon }}     </td>
 <td> {{ object.category }}</td>
-<td> <a href="/stationsonmap/{{ object.ident }}/{{ object.slug }}">{{ object.slug }}</a></td>
+<td> <a href="{% url 'stationsonmap' object.ident object.slug %}">{{ object.slug }}</a></td>
 </tr>
 </table>
 </div>
 
-<p><h3> <a href="/delstation/{{ object.ident }}/{{ object.slug }}">{% trans 'Delete' %} {{ object.slug }}</a></h3></p>
+<p><h3> <a href="{% url 'mystationmetadata-del' object.ident object.slug %}">{% trans 'Delete' %} {{ object.slug }}</a></h3></p>
 
 <h2 id="striped-rows">{% trans 'Display graph' %}</h2>
 
@@ -62,7 +62,7 @@
     <h3>{% trans 'Board name' %}: {{ board.name }}</h3>
     {% for sensor in board.sensor_set.all %}
       {% if sensor.active  %}
-        {% if sensor.type.active and sensor.driver == 'I2C' %}
+        {% if sensor.type.active and sensor.driver != 'JRPC' %}
           {% for bcode in sensor.type.bcodes.all %}
 <div class="col-md-6">
 
