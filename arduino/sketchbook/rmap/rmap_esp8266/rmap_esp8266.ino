@@ -33,6 +33,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SDS_PIN_RX D1
 #define SDS_PIN_TX D2
 
+#define SDA D4
+#define SCL D5
+
 // set the frequency
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
 #define I2C_CLOCK 30418
