@@ -19,7 +19,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // increment on change
 #define SOFTWARE_VERSION "2017-11-26T12:00"
-#define FIRMWARE_TYPE "stima_wemosd1mini"
+#define FIRMWARE_TYPE ARDUINO_BOARD
+// "ESP8266_NODEMCU"
+
+//#define FIRMWARE_TYPE "stima_wemosd1mini"
 //#define FIRMWARE_TYPE "stima_nodemcu"
 
 #define RESET_PIN D0    // pin to connect to ground for reset wifi configuration
@@ -29,6 +32,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SDS_PIN_RX D1
 #define SDS_PIN_TX D2
+
+// set the frequency
+// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
+#define I2C_CLOCK 30418
+// #define I2CPULLUP define this if you want software pullup on I2C
 
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
@@ -43,10 +51,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <PubSubClient.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266httpUpdate.h>
-#include "Sds011.h"
 #include <SoftwareSerial.h>
 #include <TimeAlarms.h>
 #include <ArduinoLog.h>
+#include <Wire.h>
+#include <SensorDriver.h>
+
 
 // logging level at compile time
 // Available levels are:
@@ -78,32 +88,29 @@ char rmap_slug[31]="stimaesp";
 char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
-
-// for sensoron
+// for sensor_t
 #define SENSORS_LEN 5
 #define SENSORDRIVER_DRIVER_LEN 5
 #define SENSORDRIVER_TYPE_LEN 5
-#define SENSORDRIVER_MQTTPATH_LEN 30
+#define SENSORDRIVER_META_LEN 30
 #define MAX_VALUES_FOR_SENSOR 3
-
-#include <SensorDriver.h>
-
-SoftwareSerial mySerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
-sds011::Sds011 sensor(mySerial);
 
 // sensor information
 struct sensor_t
 {
-  char driver[SENSORDRIVER_DRIVER_LEN];         // driver name
+  char driver[SENSORDRIVER_DRIVER_LEN];     // driver name
   int node;                                 // RF24Nework node id
   char type[SENSORDRIVER_TYPE_LEN];         // sensor type name
   int address;                              // i2c address
-  char mqttpath[SENSORDRIVER_MQTTPATH_LEN]; // path for mqtt pubblish
+  char timerange[SENSORDRIVER_META_LEN];    // timerange for mqtt pubblish
+  char level [SENSORDRIVER_META_LEN];       // level for mqtt pubblish
+
   sensor_t() : address(-1) {
        driver[0]='\0';
        node = -1;
        type[0]='\0';
-       mqttpath[0]='\0';
+       timerange[0]='\0';
+       level[0]='\0';
   }
 } sensors[SENSORS_LEN];;
 
@@ -281,7 +288,7 @@ void publish_pm(const char* sensor, const int pm) {
 */
 
 
-void publish_data(const char* values) {
+void publish_data(const char* values, const char* timerange, const char* level) {
   
   bool havetopublish=false;
   char topic[100]="";
@@ -298,6 +305,11 @@ void publish_data(const char* values) {
   if (json.success()){
     for (JsonPair& pair : json) {
 
+      if (pair.value.as<char*>() == NULL) continue;
+      char payload[100]="{\"v\":";
+      strcat(payload,pair.value.as<char*>());
+      strcat(payload,"}");
+      
       strcpy(topic,rmap_mqttrootpath);
       strcat(topic,"/");
       strcat(topic,rmap_user);
@@ -308,15 +320,12 @@ void publish_data(const char* values) {
       strcat(topic,"/");
       strcat(topic,rmap_network);
       strcat(topic,"/");
-      strcat(topic,"254,0,0");
+      strcat(topic,timerange);
       strcat(topic,"/");
-      strcat(topic,"103,2000,-,-");
+      strcat(topic,level);
       strcat(topic,"/");
       strcat(topic,pair.key);
 
-      char payload[100]="{\"v\":";
-      strcat(payload,pair.value.as<char*>());
-      strcat(payload,"}");
       LOGN(F("mqtt publish: %s %s"CR),topic,payload);
       mqttclient.publish(topic, payload);
     }
@@ -421,7 +430,7 @@ int  rmap_config(String payload){
   int ii = 0;
 
   if (! (payload == String())) {
-    StaticJsonBuffer<1500> jsonBuffer;
+    StaticJsonBuffer<2500> jsonBuffer;
     status = 3;
     JsonArray& array = jsonBuffer.parseArray(payload);
     if (array.success()){
@@ -510,47 +519,31 @@ int  rmap_config(String payload){
  }
  ]
 	*/
-	   
-	char driver[5];
-	char type[4];
-	char timerange[30];
-	char level[30];
-	
+
 	if  (array[i]["model"] == "stations.sensor"){
 	  if (array[i]["fields"]["active"]){
-	    LOGN(F("station sensor found!"CR));
-	    strncpy (driver , array[i]["fields"]["driver"].as< const char*>(),5);
-	    driver[4]='\0';
-	    LOGN(F("driver: %s"CR),driver);
-	    strncpy (type , array[i]["fields"]["type"][0].as< const char*>(),4);
-	    type[3]='\0';
-	    LOGN(F("type: %s"CR),type);
-	    strncpy (timerange, array[i]["fields"]["timerange"].as< const char*>(),30);
-	    timerange[29]='\0';
-	    LOGN(F("timerange: %s"CR),timerange);
-	    strncpy (level, array[i]["fields"]["level"].as< const char*>(),30);
-	    level[29]='\0';
-	    LOGN(F("level: %s"CR),level);
-	    unsigned int address = array[i]["fields"]["address"];	    
-	    LOGN(F("address: %d"CR),address);
-
 	    if (ii < SENSORS_LEN) {
+	      LOGN(F("station sensor found!"CR));
+	      strncpy (sensors[ii].driver , array[i]["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN-1);
+	      LOGN(F("driver: %s"CR),sensors[ii].driver);
+	      strncpy (sensors[ii].type , array[i]["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN-1);
+	      LOGN(F("type: %s"CR),sensors[ii].type);
+	      strncpy (sensors[ii].timerange, array[i]["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN-1);
+	      LOGN(F("timerange: %s"CR),sensors[ii].timerange);
+	      strncpy (sensors[ii].level, array[i]["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN-1);
+	      LOGN(F("level: %s"CR),sensors[ii].level);
+	      sensors[ii].address = array[i]["fields"]["address"];	    
+	      LOGN(F("address: %d"CR),sensors[ii].address);
 	      
-	      sd[ii]=SensorDriver::create(driver,type);
+	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
 	      if (sd[ii] == NULL){
-		LOGN(F("%s: driver not created !"CR),driver);
-		
-	      }else{
-		
-		if (!(sd[ii]->setup(driver, address, -1, type) == SD_SUCCESS)) {			   
+		LOGN(F("%s:%s driver not created !"CR),sensors[ii].driver,sensors[ii].type);
+	      }else{		
+		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
 		  LOGE(F("sensor not present or broken"CR));
-		  // comment the next line to be less restrictive
-		  //return E_INTERNAL_ERROR;
-		}
-
-		ii++;
-		
+		}		
 	      }
+	      ii++;
 	    }
 	    
 	    status = 0;
@@ -713,7 +706,7 @@ void repeats() {
 	//  if (!(values[ii] == 4294967296))LOGN(F("value: %d: %d"CR),ii,values[ii]);
 	//}
 
-	publish_data(values);
+	publish_data(values,sensors[i].timerange,sensors[i].level);
 
 	//if (!(values[0] == 4294967296)) publish_pm( "SDS_PM2", values[0]);
 	//if (!(values[1] == 4294967296)) publish_pm( "SDS_PM10", values[1]);
@@ -850,6 +843,19 @@ void setup() {
     LOGN(F("write configuration"CR));
     writeconfig_rmap(remote_config);
   }
+
+#ifdef I2CPULLUP
+  //if you want to set the internal pullup
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
+#else
+  // here we enforce we do not want pullup
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+#endif
+
+  Wire.begin(SDA,SCL);
+  Wire.setClock(I2C_CLOCK);
 
   //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
   if (!rmap_config(remote_config) == 0) {

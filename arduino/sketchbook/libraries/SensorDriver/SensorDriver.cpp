@@ -413,6 +413,29 @@ aJsonObject* SensorDriverAdt7420::getJson()
   return jsonvalues;
 }
   #endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverAdt7420::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[1];
+  StaticJsonBuffer<100> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,1) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B12101"]= values[0];      
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B12101"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
 #endif
 
 #if defined (RADIORF24)
@@ -794,6 +817,39 @@ aJsonObject* SensorDriverHih6100::getJson()
 #endif
   }
   return jsonvalues;
+}
+#endif
+#if defined(USEARDUINOJSON)
+int SensorDriverHih6100::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[1];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,1) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B13003"]= values[0];      
+    }else{
+      jsonvalues["B13003"]=RawJson("null");
+    }
+#if defined(SECONDARYPARAMETER)
+    // if you have a second value add here
+    if (values[1] >= 0){
+      jsonvalues["B12101"]= values[1];      
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+#endif    
+  }else{
+    jsonvalues["B13003"]=RawJson("null");
+#if defined(SECONDARYPARAMETER)
+    // if you have a second value add here
+    jsonvalues["B12101"]=RawJson("null");
+#endif
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
 }
 #endif
 #endif

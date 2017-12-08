@@ -32,10 +32,10 @@
 //#define TMPDRIVER
 
 // include ADT driver
-//#define ADTDRIVER
+#define ADTDRIVER
 
 // include HIH driver
-//#define HIHDRIVER
+#define HIHDRIVER
 
 // include HYT driver
 //#define HYTDRIVER
