@@ -18,12 +18,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2017-11-26T12:00"
+#define SOFTWARE_VERSION "2017-12-09T12:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
-// "ESP8266_NODEMCU"
-
-//#define FIRMWARE_TYPE "stima_wemosd1mini"
-//#define FIRMWARE_TYPE "stima_nodemcu"
+// firmware type for nodemcu is "ESP8266_NODEMCU"
+// firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
 
 #define RESET_PIN D0    // pin to connect to ground for reset wifi configuration
 #define WIFI_SSED "STIMA-configuration"
@@ -242,54 +240,6 @@ bool publish_maint() {
   }
 }
 
-/*
-void publish_pm(const char* sensor, const int pm) {
-  
-  bool havetopublish=false;
-  char topic[100]="";
-  char payload[100]="{\"v\":";
-
-  strcpy(topic,rmap_mqttrootpath);
-  strcat(topic,"/");
-  strcat(topic,rmap_user);
-  strcat(topic,"/");
-  char longitude [10];
-  char latitude [10];
-  itoa (coordCharToInt(rmap_longitude),longitude,10);
-  itoa (coordCharToInt(rmap_latitude),latitude,10);
-  
-  strcat(topic,longitude);
-  strcat(topic,",");
-  strcat(topic,latitude);
-  strcat(topic,"/fixed/254,0,0/103,2000,-,-/");
-  
-  LOGN(sensor);
-  if (strcmp(sensor,"SDS_PM10")== 0)
-    {
-      LOGN(F("SDS_PM10 found"CR));
-      strcat(topic,"B15195");
-      havetopublish=true;
-    }
-  if (strcmp(sensor,"SDS_PM2")== 0)
-    {
-      LOGN(F("SDS_PM2 found"CR));
-      strcat(topic,"B15198");
-      havetopublish=true;
-    }
-
-  if (havetopublish)
-    {
-      // itoa str should be an array long enough to contain any possible value: (sizeof(int)*8+1) for radix=2, i.e. 17 bytes in 16-bits platforms 
-      char value[17];
-      itoa (pm,value,10);
-      strcat(payload,value);
-      strcat(payload,"}");
-      LOGN(F("mqtt publish: %s %s"CR),topic,payload);
-      mqttclient.publish(topic, payload);
-    }
-}
-*/
-
 
 void publish_data(const char* values, const char* timerange, const char* level) {
   
@@ -333,19 +283,6 @@ void publish_data(const char* values, const char* timerange, const char* level) 
       mqttclient.publish(topic, payload);
     }
   }
-  /*
-  while(){
-  
-    // itoa str should be an array long enough to contain any possible value: (sizeof(int)*8+1) for radix=2, i.e. 17 bytes in 16-bits platforms 
-    char value[17];
-    itoa (pm,value,10);
-    strcat(payload,value);
-    strcat(payload,"}");
-    LOGN(F("mqtt publish: %s %s"CR),topic,payload);
-    mqttclient.publish(topic, payload);
-  }
-  */
-
 }
 
 void firmware_upgrade() {
@@ -357,7 +294,8 @@ void firmware_upgrade() {
   root["slug"] = rmap_slug;
   char buffer[256];
   root.printTo(buffer, sizeof(buffer));
-  LOGN(F("version for firmware upgrade %s"CR),buffer);
+  LOGN(F("url for firmware update: %s"CR),update_url);
+  LOGN(F("version for firmware update: %s"CR),buffer);
 		
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
@@ -414,13 +352,6 @@ void writeconfig_rmap(String payload) {;
     LOGN(F("failed to open config file for writing"CR));
   }
 
-  //DynamicJsonBuffer jsonBuffer;
-  //StaticJsonBuffer<500> jsonBuffer;
-  //JsonObject& json = jsonBuffer.parseObject(payload);
-  // set json
-  //json.printTo(Serial);
-  //json.printTo(configFile);
-
   configFile.print(payload);
   configFile.close();
   LOGN(F("saved config parameter"CR));
@@ -460,68 +391,6 @@ int  rmap_config(String payload){
 	    status = 0;
 	  }
 	}
-
-	/*
-[
-{
-  "model": "stations.stationmetadata",
-  "fields": {
-    "name": "luftdaten",
-    "active": true,
-    "slug": "luftdaten",
-    "ident": [
-      "pat1"
-    ],
-    "lat": 44.48896,
-    "lon": 11.36987,
-    "network": "fixed",
-    "mqttrootpath": "sample",
-    "mqttmaintpath": "sample",
-    "category": "test"
-  }
-},
-{
-  "model": "stations.board",
-  "fields": {
-    "name": "luftdaten",
-    "active": true,
-    "slug": "luftdaten",
-    "category": "base",
-    "stationmetadata": [
-      "luftdaten",
-      [
-        "pat1"
-      ]
-    ]
-  }
-},
-{
-  "model": "stations.sensor",
-  "fields": {
-    "active": true,
-    "name": "SDS011 particolato",
-    "driver": "I2C",
-    "type": [
-      "SSD"
-    ],
-    "i2cbus": 1,
-    "address": 72,
-    "node": 1,
-    "timerange": "254,0,0",
-    "level": "103,2000,-,-",
-    "board": [
-      "luftdaten",
-      [
-        "luftdaten",
-        [
-          "pat1"
-        ]
-      ]
-    ]
-  }
- }
- ]
-	*/
 
 	if  (array[i]["model"] == "stations.sensor"){
 	  if (array[i]["fields"]["active"]){
@@ -585,7 +454,7 @@ void readconfig() {
         JsonObject& json = jsonBuffer.parseObject(buf.get());
         if (json.success()) {
           LOGN(F("parsed json"CR));
-	  json.printTo(Serial);
+	  //json.printTo(Serial);
 
 	  //if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
 	  //if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
@@ -601,7 +470,7 @@ void readconfig() {
 	  //LOGN(F("latitude: %s"CR),rmap_latitude);
 	  LOGN(F("server: %s"CR),rmap_server);
 	  LOGN(F("user: %s"CR),rmap_user);
-	  LOGN(F("password: %s"CR),rmap_password);
+	  //LOGN(F("password: %s"CR),rmap_password);
 	  LOGN(F("slug: %s"CR),rmap_slug);
 	  LOGN(F("mqttrootpath: %s"CR),rmap_mqttrootpath);
 	  LOGN(F("mqttmaintpath: %s"CR),rmap_mqttmaintpath);
@@ -640,35 +509,11 @@ void writeconfig() {;
     LOGN(F("failed to open config file for writing"CR));
   }
 
-  json.printTo(Serial);
+  //json.printTo(Serial);
   json.printTo(configFile);
   configFile.close();
   LOGN(F("saved config parameter"CR));
 }
-
-/*
-void repeat() {
-
-#define SDS_SAMPLES 3
-  
-  int pm2, pm10;
-  bool ok;
-
-  sensor.set_sleep(false);
-  delay(3000);
-  ok = sensor.query_data_auto(&pm2, &pm10, SDS_SAMPLES);
-  sensor.set_sleep(true);
-  if (!ok) {
-    LOGE(F("error getting sds011 data"CR));
-  }
-  if (publish_maint()) {
-    if (ok) {
-      publish_pm( "SDS_PM2", pm2);
-      publish_pm( "SDS_PM10", pm10);
-    }
-  }
-}
-*/
 
 void repeats() {
 
@@ -849,34 +694,6 @@ void setup() {
     delay(1000);
     reboot();
   }
-
-
-  /*
-  //SDS011
-
-  strcpy(sensors[0].driver,"SERI");
-  strcpy(sensors[0].type,"SSD");
-  sensors[0].address=1;
-
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
-    if (sd[i] == NULL){
-      LOGN(F("%s: driver not created !"CR),sensors[i].driver);
-    }else{
-      LOGN(F("%s: driver created"CR),sensors[i].driver);
-      sd[i]->setup(sensors[i].driver,sensors[i].address);
-    }
-  }
-  */
-  
-  /*
-  Serial.print(F("Sds011 firmware version: "));
-  LOGN(sensor.firmware_version().c_str());
-  LOGN(CR);
-    
-  sensor.set_sleep(true);
-  sensor.set_mode(sds011::QUERY);
-  */
 
   LOGN(F("mqtt server: %s"CR),rmap_server);
   mqttclient.setServer(rmap_server, 1883);
