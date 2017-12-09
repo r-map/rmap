@@ -1,5 +1,4 @@
 With this firmware is possible to publish data on an RMAP server.
-For now only SDS011 data are published.
 Short instructions:
 
     register on RMAP to get username and password:

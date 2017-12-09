@@ -1,5 +1,4 @@
 Con questo firmware è possibile pubblicare i dati su un server RMAP.
-Al momento solo i dati del sensore SDS011 sono pubblicati.
 Istruzioni in breve:
 
     registratevi sul server RMAP per ottenere username e password:
