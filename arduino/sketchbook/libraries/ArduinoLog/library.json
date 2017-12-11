@@ -1,0 +1,19 @@
+{
+	"name": "ArduinoLog",
+	"keywords": "logging, debug, log, log levels, AVR, ESP8266",
+	"description": "ArduinoLog is a minimalistic logging framework to help the programmer output log statements to a chosen output target. ArduinoLog is designed so that log statements can remain in the code with minimal performance cost. In order to facilitate this the loglevel can be adjusted, and if the code is completely tested all logging code can be compiled out. Tested for AVR and ESP8266 boards.",
+	"version": "1.0.2",
+	"authors": {
+		"name": "Thijs Elenbaas",
+		"url": "https://github.com/thijse",
+		"maintainer": true
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/thijse/Arduino-Log"
+	},
+	"homepage": "https://github.com/thijse/Arduino-Log/",
+	"frameworks": ["arduino"],
+	"platforms": "*",
+	"examples": "examples/*/*.ino"
+}

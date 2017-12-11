@@ -1,5 +1,5 @@
 #ifndef _SDS011_H
-#define _ASDS011_H
+#define _SDS011_H
 
 #if ARDUINO >= 100
  #include "Arduino.h"

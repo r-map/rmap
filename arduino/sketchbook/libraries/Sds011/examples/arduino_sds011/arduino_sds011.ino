@@ -1,23 +1,15 @@
-//#include <SoftwareSerial.h>
+#include <SoftwareSerial.h>
 #include "Sds011.h"
 
-#ifdef ESP8266
-#include <ESP8266WiFi.h>
-#endif
 
 static const int PM25_NORM=25;
 static const int PM10_NORM=40;
 static const int SAMPLES=3;
 
-#ifdef ESP8266
-sds011::Sds011 sensor(Serial);
-pcd8544::Pcd8544 display(13, 12, 14);
-#else
 // RX, TX
-//SoftwareSerial mySerial(8,9);
-//sds011::Sds011 sensor(mySerial);
-sds011::Sds011 sensor(Serial1);
-#endif
+SoftwareSerial mySerial(D1,D2);
+sds011::Sds011 sensor(mySerial);
+//sds011::Sds011 sensor(Serial1);
 
 String val_to_str(uint16_t v)
 {
@@ -56,21 +48,10 @@ void display_data(uint16_t pm25, uint16_t pm10)
 void setup()
 {
 
-#ifndef ESP8266
-    //mySerial.begin(9600);
-    Serial1.begin(9600);
-#endif
     Serial.begin(9600);
-
-#ifdef ESP8266
-    WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
-    delay(100);
-    WiFi.forceSleepBegin(); // Use WiFi.forceSleepWake() to enable wifi
-#endif
-
     Serial.println("Hello");
-
+    mySerial.begin(9600);
+    
     Serial.print("Sds011 firmware version: ");
     Serial.println(sensor.firmware_version());
 
@@ -94,9 +75,5 @@ void loop()
       Serial.println(F("NO SENSOR!"));
     }
 
-#ifdef ESP8266
-    ESP.deepSleep(1000*1000*10, WAKE_RF_DEFAULT);
-#else
-    delay(10000);
-#endif
+    delay(3000);
 }

@@ -37,8 +37,11 @@
 #include <stdlib.h>
 #include <float.h>
 #include <ctype.h>
+#ifdef __AVR__
 #include <avr/pgmspace.h>
-
+#else
+#include <pgmspace.h>
+#endif
 #include "aJSON.h"
 #include "utility/stringbuffer.h"
 
