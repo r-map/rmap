@@ -1,24 +1,23 @@
 #include "Arduino.h"
 #include "arduinoJsonRPC.h"
 
-JsonRPC::JsonRPC(int capacity,bool radio)
-{
-    myradio=radio;
-    mymap = (FuncMap *)malloc(sizeof(FuncMap));
-    mymap->capacity = capacity;
-    mymap->used = 0;
-    mymap->mappings = (Mapping*)malloc(capacity * sizeof(Mapping));
-    memset(mymap->mappings, 0, capacity * sizeof(Mapping));
+Mapping::Mapping() : callback(nullptr) {
+    name[0] = '\0';
 }
 
-void JsonRPC::registerMethod(String methodName, int(*callback)(JsonObject&,JsonObject&))
+FuncMap::FuncMap() : used(0) {}
+
+JsonRPC::JsonRPC(bool radio) : myradio(radio) {}
+
+void JsonRPC::registerMethod(const char* methodName, int(*callback)(JsonObject&,JsonObject&))
 {
     // only write keyvalue pair if we allocated enough memory for it
-    if (mymap->used < mymap->capacity)
+    if (mymap.used < 5)
     {
-	Mapping* mapping = &(mymap->mappings[mymap->used++]);
-	mapping->name = methodName;
-	mapping->callback = callback;
+        Mapping& m = &mymap.mappings[mymap.used];
+        strcpy(m.name, methodName);
+        mapping.callback = callback;
+        mymap.used++;
     }
 }
 
@@ -39,13 +38,13 @@ int JsonRPC::processMessage(JsonObject& msg) {
     status=  E_METHOD_NOT_FOUND;
     JsonObject& params = msg[myradio? "p" : "params"];
     
-    String method = msg[myradio? "m" : "method"].asString();
+    const char* method = msg[myradio? "m" : "method"];
       
-    for (int i=0; i<mymap->used; i++) {
-      Mapping* mapping = &(mymap->mappings[i]);
-      if (method.equals(mapping->name)) {	      
+    for (int i=0; i<mymap.used; i++) {
+        Mapping& mapping = &mymap.mappings[i];
+      if (strcmp(method, mapping.name)==0) {	      
 	JsonObject& result = msg.createNestedObject(myradio? "r" : "result");
-	status = mapping->callback(params,result);	
+	status = mapping.callback(params,result);	
       }
     }	
   }

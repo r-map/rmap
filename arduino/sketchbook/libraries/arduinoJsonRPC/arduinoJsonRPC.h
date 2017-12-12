@@ -8,25 +8,24 @@
 
 struct Mapping
 {
-    String name;
-  int (*callback)(JsonObject&,JsonObject&);
+    char name[24];
+    int (*callback)(JsonObject&,JsonObject&);
 };
 
 struct FuncMap
 {
-    Mapping* mappings;
-    unsigned int capacity;
+    Mapping mappings[5];
     unsigned int used;
 };
 
 class JsonRPC
 {
     public:
-  JsonRPC(int capacity, bool radio=false);
+  JsonRPC(bool radio=false);
   void registerMethod(String methodname, int(*callback)(JsonObject&,JsonObject&));
   int processMessage(JsonObject& params);
     private:
-	FuncMap* mymap;
+	FuncMap mymap;
 	bool myradio;
 };
 
