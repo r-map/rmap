@@ -12,10 +12,11 @@ JsonRPC::JsonRPC(bool radio) : myradio(radio) {}
 void JsonRPC::registerMethod(const char* methodName, int(*callback)(JsonObject&,JsonObject&))
 {
     // only write keyvalue pair if we allocated enough memory for it
-    if (mymap.used < 5)
+    if (mymap.used < MAXRPC)
     {
-        Mapping& m = &mymap.mappings[mymap.used];
-        strcpy(m.name, methodName);
+        Mapping& mapping = mymap.mappings[mymap.used];
+        strncpy(mapping.name, methodName,sizeof(mapping.name)-1);
+	mapping.name[sizeof(mapping.name)-1]='\0';
         mapping.callback = callback;
         mymap.used++;
     }
@@ -41,7 +42,7 @@ int JsonRPC::processMessage(JsonObject& msg) {
     const char* method = msg[myradio? "m" : "method"];
       
     for (int i=0; i<mymap.used; i++) {
-        Mapping& mapping = &mymap.mappings[i];
+        Mapping& mapping = mymap.mappings[i];
       if (strcmp(method, mapping.name)==0) {	      
 	JsonObject& result = msg.createNestedObject(myradio? "r" : "result");
 	status = mapping.callback(params,result);	

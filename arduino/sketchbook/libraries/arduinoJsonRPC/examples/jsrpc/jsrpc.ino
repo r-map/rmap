@@ -11,7 +11,7 @@
 
 // initialize an instance of the JsonRPC library for registering 
 // exactly 4 method
-JsonRPC rpcserver(4,false ); //serial port with standard protocol
+JsonRPC rpcserver(false ); //serial port with standard protocol
 
 char confver[7] = CONFVER; // version of configuration saved on eeprom
 

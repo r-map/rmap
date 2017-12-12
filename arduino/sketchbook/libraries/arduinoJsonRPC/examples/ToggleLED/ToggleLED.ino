@@ -41,7 +41,7 @@ use those for radio mode:
 // initialize an instance of the JsonRPC library for registering 
 // exactly 1 local method
 //radio mode is false; do not use compact protocoll
-JsonRPC rpc(1,false);
+JsonRPC rpc(false);
 
 // on most arduino boards, pin 13 is connected to a LED
 int led = 13;
