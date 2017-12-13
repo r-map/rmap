@@ -5,12 +5,19 @@
 #include <ArduinoJson.h>
 #include "JsonRPCerror.h"
 
-#define MAXRPC 5
-#define MAXRPCNAMELEN 24
+#ifndef JRPC_MAXRPC
+// initialize an instance of the JsonRPC library for registering 
+// JRPC_MAXRPC local method
+#define JRPC_MAXRPC 5
+#endif
+#ifndef JRPC_MAXRPCNAMELEN
+// define the max len in char for rpc name
+#define JRPC_MAXRPCNAMELEN 10
+#endif
 
 struct Mapping
 {
-  char name[MAXRPCNAMELEN];
+  char name[JRPC_MAXRPCNAMELEN];
   int (*callback)(JsonObject&,JsonObject&);
 
 public:
@@ -19,7 +26,7 @@ public:
 
 struct FuncMap
 {
-    Mapping mappings[MAXRPC];
+    Mapping mappings[JRPC_MAXRPC];
     unsigned int used;
 public:
     FuncMap();

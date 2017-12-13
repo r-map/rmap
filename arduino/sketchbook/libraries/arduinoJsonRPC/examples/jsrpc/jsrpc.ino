@@ -4,7 +4,6 @@
 #include "config.h"
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
-#include <avr/wdt.h>
 
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
