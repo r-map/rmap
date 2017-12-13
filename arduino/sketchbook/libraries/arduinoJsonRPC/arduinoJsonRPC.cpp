@@ -25,31 +25,29 @@ void JsonRPC::registerMethod(const char* methodName, int(*callback)(JsonObject&,
 int JsonRPC::processMessage(JsonObject& msg) {
 
   int status = E_SUCCESS;
-  if (myradio == 0){
-    if (!msg.containsKey(F("jsonrpc")) || !msg.containsKey(F("id")) || !msg.containsKey(F("method"))){
-      status = E_PARSE_ERROR;
-    }
-  }else{
-    if (!msg.containsKey("i") || !msg.containsKey("m")){
-      status = E_PARSE_ERROR;
-    }
-  }
 
-  if (status == E_SUCCESS){
-    status=  E_METHOD_NOT_FOUND;
-    JsonObject& params = msg[myradio? F("p") : F("params")];
+  if (!msg.containsKey(myradio? F("i") : F("id"))) {
+    status = E_PARSE_ERROR;
+  }
     
-    const char* method = msg[myradio? F("m") : F("method")];
-      
+  const char* method = msg[myradio? F("m") : F("method")];
+
+  if (method == NULL){
+    status = E_PARSE_ERROR;
+  }
+    
+  if (status == E_SUCCESS){
+    status=  E_METHOD_NOT_FOUND;  
     for (int i=0; i<mymap.used; i++) {
-        Mapping& mapping = mymap.mappings[i];
+      Mapping& mapping = mymap.mappings[i];
       if (strcmp(method, mapping.name)==0) {	      
+	JsonObject& params = msg[myradio? F("p") : F("params")];    
 	JsonObject& result = msg.createNestedObject(myradio? F("r") : F("result"));
 	status = mapping.callback(params,result);	
       }
     }	
   }
-
+  
   msg.remove(myradio? F("m") : F("method"));
   msg.remove(myradio? F("p") : F("params"));
   if (! (status == E_SUCCESS)){
