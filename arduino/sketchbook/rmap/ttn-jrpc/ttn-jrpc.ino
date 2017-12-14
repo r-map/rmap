@@ -126,9 +126,9 @@ int send(JsonObject& params, JsonObject& result)
     return 1;
   }
  
-  char payload[51];
-  strncpy(payload,mydata,51);
-  do_send((uint8_t*)payload);
+  uint8_t payload[51];
+  memcpy(payload, mydata, 51*sizeof(uint8_t));
+  do_send(payload);
   result["ok"]= true;  
   return 0;
 }
@@ -136,15 +136,39 @@ int send(JsonObject& params, JsonObject& result)
 
 int set(JsonObject& params, JsonObject& result)
 {    
-  if (params.containsKey("ack")){
-    int ack = params["ack"];
-
+  int ack = params["ack"];
+  if (!(ack == NULL)){
     configuration.ack=ack;
-    result["ok"]= true;  
-  }else{
-    return  1;
+    //}else{
+    //return  1;
   }
 
+  JsonArray& arrayappeui = params["appeui"];
+  for(JsonArray::iterator it=arrayappeui.begin(); it!=arrayappeui.end(); ++it) {
+    int i=0;
+    // *it contains the JsonVariant which can be casted as usuals
+    configuration.appeui[i] = it->as<uint8_t>();    
+    //}else{
+    //return  2;
+  }
+  JsonArray& arraydeveui = params["deveui"];
+  for(JsonArray::iterator it=arraydeveui.begin(); it!=arraydeveui.end(); ++it) {
+    int i=0;
+    // *it contains the JsonVariant which can be casted as usuals
+    configuration.deveui[i] = it->as<uint8_t>();    
+    //}else{
+    //return  3;
+  }
+  JsonArray& arrayappkey = params["appkey"];
+  for(JsonArray::iterator it=arrayappkey.begin(); it!=arrayappkey.end(); ++it) {
+    int i=0;
+    // *it contains the JsonVariant which can be casted as usuals
+    configuration.appkey[i] = it->as<uint8_t>();    
+    //}else{
+    //return  4;
+  }
+
+  result["ok"]= true;  
   return 0;
 }
 
@@ -154,15 +178,15 @@ int save(JsonObject& params, JsonObject& result)
   if (params.containsKey("eeprom")){
     bool eeprom = params["eeprom"];
     
-    if (eeprom) configuration.save();
-    result["ok"]= true;  
-  }else{
-    return 1;
+    if (eeprom){
+      configuration.save();
+      result["ok"]= true;  
+    }else{
+      return 1;
+    }
+    return 0;
   }
-
-  return 0;
 }
-
 
 
 void onEvent (ev_t ev) {
