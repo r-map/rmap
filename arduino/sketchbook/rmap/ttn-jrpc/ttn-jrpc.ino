@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "config.h"
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
+#include <ArduinoLog.h>
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
 
@@ -122,7 +123,7 @@ int send(JsonObject& params, JsonObject& result)
 {
   const char* mydata=params["payload"];
   if (mydata == NULL ){
-    Serial.println(F("#no payload present"));
+    LOGN(F("#no payload present"CR));
     return 1;
   }
  
@@ -175,7 +176,7 @@ int set(JsonObject& params, JsonObject& result)
 
 int save(JsonObject& params, JsonObject& result)
 {    
-  if (params.containsKey("eeprom")){
+  if (params.containsKey("eeprom"CR)){
     bool eeprom = params["eeprom"];
     
     if (eeprom){
@@ -190,71 +191,68 @@ int save(JsonObject& params, JsonObject& result)
 
 
 void onEvent (ev_t ev) {
-    Serial.print(os_getTime());
-    Serial.print(": ");
+  LOGN(F("%l : "),os_getTime());
     switch(ev) {
         case EV_SCAN_TIMEOUT:
-            Serial.println(F("EV_SCAN_TIMEOUT"));
+            LOGN(F("EV_SCAN_TIMEOUT"CR));
             break;
         case EV_BEACON_FOUND:
-            Serial.println(F("EV_BEACON_FOUND"));
+            LOGN(F("EV_BEACON_FOUND"CR));
             break;
         case EV_BEACON_MISSED:
-            Serial.println(F("EV_BEACON_MISSED"));
+            LOGN(F("EV_BEACON_MISSED"CR));
             break;
         case EV_BEACON_TRACKED:
-            Serial.println(F("EV_BEACON_TRACKED"));
+            LOGN(F("EV_BEACON_TRACKED"CR));
             break;
         case EV_JOINING:
-            Serial.println(F("EV_JOINING"));
+            LOGN(F("EV_JOINING"CR));
             break;
         case EV_JOINED:
-            Serial.println(F("EV_JOINED"));
+            LOGN(F("EV_JOINED"CR));
 
             // Disable link check validation (automatically enabled
             // during join, but not supported by TTN at this time).
             LMIC_setLinkCheckMode(0);
             break;
         case EV_RFU1:
-            Serial.println(F("EV_RFU1"));
+            LOGN(F("EV_RFU1"CR));
             break;
         case EV_JOIN_FAILED:
-            Serial.println(F("EV_JOIN_FAILED"));
+            LOGN(F("EV_JOIN_FAILED"CR));
             break;
         case EV_REJOIN_FAILED:
-            Serial.println(F("EV_REJOIN_FAILED"));
+            LOGN(F("EV_REJOIN_FAILED"CR));
             break;
             break;
         case EV_TXCOMPLETE:
-            Serial.println(F("EV_TXCOMPLETE (includes waiting for RX windows)"));
+            LOGN(F("EV_TXCOMPLETE (includes waiting for RX windows)"CR));
             if (LMIC.txrxFlags & TXRX_ACK)
-              Serial.println(F("Received ack"));
+              LOGN(F("Received ack"CR));
             if (LMIC.dataLen) {
-              Serial.println(F("Received "));
-              Serial.println(LMIC.dataLen);
-              Serial.println(F(" bytes of payload"));
+              LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
             }
             // Schedule next transmission
             //os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
             break;
         case EV_LOST_TSYNC:
-            Serial.println(F("EV_LOST_TSYNC"));
+            LOGN(F("EV_LOST_TSYNC"CR));
             break;
         case EV_RESET:
-            Serial.println(F("EV_RESET"));
+            LOGN(F("EV_RESET"CR));
             break;
         case EV_RXCOMPLETE:
             // data received in ping slot
-            Serial.println(F("EV_RXCOMPLETE"));
+            LOGN(F("EV_RXCOMPLETE"CR));
             break;
         case EV_LINK_DEAD:
-            Serial.println(F("EV_LINK_DEAD"));
+            LOGN(F("EV_LINK_DEAD"CR));
             break;
         case EV_LINK_ALIVE:
-            Serial.println(F("EV_LINK_ALIVE"));
+            LOGN(F("EV_LINK_ALIVE"CR));
             break;
          default:
-            Serial.println(F("Unknown event"));
+            LOGN(F("Unknown event"CR));
             break;
     }
 }
@@ -262,11 +260,11 @@ void onEvent (ev_t ev) {
 void do_send(uint8_t mydata[]){
     // Check if there is not a current TX/RX job running
     if (LMIC.opmode & OP_TXRXPEND) {
-        Serial.println(F("OP_TXRXPEND, not sending"));
+        LOGN(F("OP_TXRXPEND, not sending"CR));
     } else {
         // Prepare upstream data transmission at the next possible time.
         LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-        Serial.println(F("Packet queued"));
+        LOGN(F("Packet queued"CR));
     }
 }
 
@@ -277,11 +275,10 @@ void mgr_serial(){
     JsonObject& msg = jsonBuffer.parse(Serial);
       if (msg.success()){
 	int err=rpcserver.processMessage(msg);
-	Serial.print(F("#rpc processMessage return status:"));
-	Serial.println(err);
+	LOGN(F("#rpc processMessage return status: %d"CR),err);
 	msg.printTo(Serial);
     }else{
-      Serial.println("#error decoding msg");      
+      LOGN("#error decoding msg"CR);      
     }
   }
 }
@@ -297,21 +294,22 @@ void setup()
     microcontrollore
   */
   wdt_disable();
-  
   wdt_enable(WDTO_8S);
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
-  Serial.println(F("#Started"));
+
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+
+  LOGN(F("#Started"CR));
   
   if (configuration.load()){
-    Serial.println(F("#Configuration loaded"));
+    LOGN(F("#Configuration loaded"CR));
   } else {
-    Serial.println(F("#Configuration not loaded"));
+    LOGN(F("#Configuration not loaded"CR));
     configuration.ack=0;
   }
-  Serial.print(F("#ack:"));
-  Serial.println(configuration.ack);
+  LOGN(F("#ack: %d"CR),configuration.ack);
   
   // register the local method
   rpcserver.registerMethod("send",      &send);
