@@ -2,8 +2,8 @@
 
 // radio bidirectional comunication
 //#define TWOWAY "Yes"
-//#define CLIENT "Yes"
-#define SERVER "Yes"
+#define CLIENT "Yes"
+//#define SERVER "Yes"
 
 
 // define the  pins used

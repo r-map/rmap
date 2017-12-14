@@ -1,7 +1,7 @@
 // RH_RF95.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF95.cpp,v 1.14 2017/03/04 00:59:41 mikem Exp $
+// $Id: RH_RF95.cpp,v 1.17 2017/11/06 00:04:08 mikem Exp mikem $
 
 #include <RH_RF95.h>
 
@@ -16,10 +16,10 @@ uint8_t RH_RF95::_interruptCount = 0; // Index into _deviceForInterrupt for next
 PROGMEM static const RH_RF95::ModemConfig MODEM_CONFIG_TABLE[] =
 {
     //  1d,     1e,      26
-    { 0x72,   0x74,    0x00}, // Bw125Cr45Sf128 (the chip default)
-    { 0x92,   0x74,    0x00}, // Bw500Cr45Sf128
-    { 0x48,   0x94,    0x00}, // Bw31_25Cr48Sf512
-    { 0x78,   0xc4,    0x00}, // Bw125Cr48Sf4096
+    { 0x72,   0x74,    0x04}, // Bw125Cr45Sf128 (the chip default), AGC enabled
+    { 0x92,   0x74,    0x04}, // Bw500Cr45Sf128, AGC enabled
+    { 0x48,   0x94,    0x04}, // Bw31_25Cr48Sf512, AGC enabled
+    { 0x78,   0xc4,    0x04}, // Bw125Cr48Sf4096, AGC enabled
     
 };
 
@@ -44,6 +44,9 @@ bool RH_RF95::init()
 #ifdef RH_ATTACHINTERRUPT_TAKES_PIN_NUMBER
     interruptNumber = _interruptPin;
 #endif
+
+    // Tell the low level SPI interface we will use SPI within this interrupt
+    spiUsingInterrupt(interruptNumber);
 
     // No way to check the device type :-(
     
@@ -170,7 +173,9 @@ void RH_RF95::handleInterrupt()
         _cad = irq_flags & RH_RF95_CAD_DETECTED;
         setModeIdle();
     }
-    
+    // Sigh: on some processors, for some unknown reason, doing this only once does not actually
+    // clear the radio's interrupt flag. So we do it twice. Why?
+    spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
     spiWrite(RH_RF95_REG_12_IRQ_FLAGS, 0xff); // Clear all IRQ flags
 }
 
@@ -446,8 +451,13 @@ int RH_RF95::frequencyError()
     int32_t freqerror = 0;
 
     // Convert 2.5 bytes (5 nibbles, 20 bits) to 32 bit signed int
-    freqerror = spiRead(RH_RF95_REG_28_FEI_MSB) << 16;
-    freqerror |= spiRead(RH_RF95_REG_29_FEI_MID) << 8;
+    // Caution: some C compilers make errors with eg:
+    // freqerror = spiRead(RH_RF95_REG_28_FEI_MSB) << 16
+    // so we go more carefully.
+    freqerror = spiRead(RH_RF95_REG_28_FEI_MSB);
+    freqerror <<= 8;
+    freqerror |= spiRead(RH_RF95_REG_29_FEI_MID);
+    freqerror <<= 8;
     freqerror |= spiRead(RH_RF95_REG_2A_FEI_LSB);
     // Sign extension into top 3 nibbles
     if (freqerror & 0x80000)

@@ -1,7 +1,7 @@
 // RHGenericDriver.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.cpp,v 1.21 2017/03/04 00:59:41 mikem Exp $
+// $Id: RHGenericDriver.cpp,v 1.22 2017/06/24 20:36:15 mikem Exp $
 
 #include <RHGenericDriver.h>
 
@@ -151,7 +151,7 @@ uint8_t RHGenericDriver::headerFlags()
     return _rxHeaderFlags;
 }
 
-int8_t RHGenericDriver::lastRssi()
+int16_t RHGenericDriver::lastRssi()
 {
     return _lastRssi;
 }
