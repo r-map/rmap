@@ -123,7 +123,7 @@ int send(JsonObject& params, JsonObject& result)
 {
   const char* mydata=params["payload"];
   if (mydata == NULL ){
-    LOGN(F("#no payload present"CR));
+    LOGN(F("no payload present"CR));
     return 1;
   }
  
@@ -143,28 +143,31 @@ int set(JsonObject& params, JsonObject& result)
     //}else{
     //return  1;
   }
-
+  int i=0;
   JsonArray& arrayappeui = params["appeui"];
+  i=0;
   for(JsonArray::iterator it=arrayappeui.begin(); it!=arrayappeui.end(); ++it) {
-    int i=0;
     // *it contains the JsonVariant which can be casted as usuals
     configuration.appeui[i] = it->as<uint8_t>();    
+    i++;
     //}else{
     //return  2;
   }
   JsonArray& arraydeveui = params["deveui"];
+  i=0;
   for(JsonArray::iterator it=arraydeveui.begin(); it!=arraydeveui.end(); ++it) {
-    int i=0;
     // *it contains the JsonVariant which can be casted as usuals
     configuration.deveui[i] = it->as<uint8_t>();    
+    i++;
     //}else{
     //return  3;
   }
   JsonArray& arrayappkey = params["appkey"];
+  i=0;
   for(JsonArray::iterator it=arrayappkey.begin(); it!=arrayappkey.end(); ++it) {
-    int i=0;
     // *it contains the JsonVariant which can be casted as usuals
     configuration.appkey[i] = it->as<uint8_t>();    
+    i++;
     //}else{
     //return  4;
   }
@@ -176,17 +179,15 @@ int set(JsonObject& params, JsonObject& result)
 
 int save(JsonObject& params, JsonObject& result)
 {    
-  if (params.containsKey("eeprom"CR)){
+  if (params.containsKey("eeprom")){
     bool eeprom = params["eeprom"];
-    
     if (eeprom){
       configuration.save();
       result["ok"]= true;  
-    }else{
-      return 1;
     }
     return 0;
   }
+  return 1;
 }
 
 
@@ -275,10 +276,11 @@ void mgr_serial(){
     JsonObject& msg = jsonBuffer.parse(Serial);
       if (msg.success()){
 	int err=rpcserver.processMessage(msg);
-	LOGN(F("#rpc processMessage return status: %d"CR),err);
+	LOGN(F("rpc processMessage return status: %d"CR),err);
 	msg.printTo(Serial);
+	Serial.println("");
     }else{
-      LOGN("#error decoding msg"CR);      
+      LOGN("error decoding msg"CR);      
     }
   }
 }
@@ -301,15 +303,47 @@ void setup()
 
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
-  LOGN(F("#Started"CR));
+  LOGN(F("Started"CR));
   
   if (configuration.load()){
-    LOGN(F("#Configuration loaded"CR));
+    LOGN(F("Configuration loaded"CR));
   } else {
-    LOGN(F("#Configuration not loaded"CR));
+    LOGN(F("Configuration not loaded"CR));
     configuration.ack=0;
   }
-  LOGN(F("#ack: %d"CR),configuration.ack);
+  LOGN(F("ack: %d"CR),configuration.ack);
+  LOGN(F("appeui: %d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.appeui[0]
+       ,configuration.appeui[1]
+       ,configuration.appeui[2]
+       ,configuration.appeui[3]
+       ,configuration.appeui[4]
+       ,configuration.appeui[5]
+       ,configuration.appeui[6]
+       ,configuration.appeui[7]);
+  LOGN(F("deveui: %d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.deveui[0]
+       ,configuration.deveui[1]
+       ,configuration.deveui[2]
+       ,configuration.deveui[3]
+       ,configuration.deveui[4]
+       ,configuration.deveui[5]
+       ,configuration.deveui[6]
+       ,configuration.deveui[7]);
+  LOGN(F("appkey: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.appkey[0]
+       ,configuration.appkey[1]
+       ,configuration.appkey[2]
+       ,configuration.appkey[3]
+       ,configuration.appkey[4]
+       ,configuration.appkey[5]
+       ,configuration.appkey[6]
+       ,configuration.appkey[7]
+       ,configuration.appkey[8]
+       ,configuration.appkey[9]
+       ,configuration.appkey[10]
+       ,configuration.appkey[11]
+       ,configuration.appkey[12]
+       ,configuration.appkey[13]
+       ,configuration.appkey[14]
+       ,configuration.appkey[15]);
   
   // register the local method
   rpcserver.registerMethod("send",      &send);
