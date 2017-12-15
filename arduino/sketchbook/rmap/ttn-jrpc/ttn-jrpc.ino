@@ -110,6 +110,9 @@ struct config_t               // configuration to save and load fron eeprom
   }
 } configuration;
 
+ev_t event;
+int sendstatus;
+unsigned long jointime;
 
 void os_getArtEui (u1_t* buf) { memcpy_P(buf, configuration.appeui, 8);}
 void os_getDevEui (u1_t* buf) { memcpy_P(buf, configuration.deveui, 8);}
@@ -130,8 +133,31 @@ int send(JsonObject& params, JsonObject& result)
   uint8_t payload[51];
   memcpy(payload, mydata, 51*sizeof(uint8_t));
   do_send(payload);
-  result["ok"]= true;  
-  return 0;
+
+  if (sendstatus != 1 ){
+    LOGE(F("no packet send"CR));
+    return 2;
+  }
+
+  //while (!(event == NULL)){
+  unsigned long starttime=millis();
+  while((millis())-starttime < 10000){
+
+    wdt_reset();
+    os_runloop_once();
+    
+    if (event == EV_TXCOMPLETE){
+      if (LMIC.txrxFlags & TXRX_ACK)
+	result["ack"]= "OK";  
+      if (LMIC.dataLen) {
+	result["payloadlen"]= LMIC.dataLen;
+      }
+      result["status"]= "OK";  
+      result["event"]= event;  
+      return 0;
+    }
+  }
+  return 3;
 }
 
 
@@ -193,7 +219,8 @@ int save(JsonObject& params, JsonObject& result)
 
 void onEvent (ev_t ev) {
   LOGN(F("%l : "),os_getTime());
-    switch(ev) {
+  event=ev;
+  switch(ev) {
         case EV_SCAN_TIMEOUT:
             LOGN(F("EV_SCAN_TIMEOUT"CR));
             break;
@@ -259,14 +286,19 @@ void onEvent (ev_t ev) {
 }
 
 void do_send(uint8_t mydata[]){
-    // Check if there is not a current TX/RX job running
-    if (LMIC.opmode & OP_TXRXPEND) {
-        LOGN(F("OP_TXRXPEND, not sending"CR));
-    } else {
-        // Prepare upstream data transmission at the next possible time.
-        LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-        LOGN(F("Packet queued"CR));
-    }
+  sendstatus=NULL;
+  LMIC_clrTxData();
+  
+  // Check if there is not a current TX/RX job running
+  if (LMIC.opmode & OP_TXRXPEND) {
+    LOGN(F("OP_TXRXPEND, not sending"CR));
+    sendstatus=2;
+  } else {
+    // Prepare upstream data transmission at the next possible time.
+    LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+    LOGN(F("Packet queued"CR));
+    sendstatus=1;
+  }
 }
 
 void mgr_serial(){
@@ -354,11 +386,16 @@ void setup()
   os_init();
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
-
+  LMIC_startJoining();
+  jointime=millis();
 }
 
 void loop() {
   wdt_reset();
   mgr_serial();
   os_runloop_once();
+  if((millis())-jointime > 3600000){
+    LMIC_tryRejoin ();
+    jointime=millis();
+  }
 }
