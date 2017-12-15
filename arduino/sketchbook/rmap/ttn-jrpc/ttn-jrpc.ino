@@ -221,68 +221,80 @@ void onEvent (ev_t ev) {
   LOGN(F("%l : "),os_getTime());
   event=ev;
   switch(ev) {
-        case EV_SCAN_TIMEOUT:
-            LOGN(F("EV_SCAN_TIMEOUT"CR));
-            break;
-        case EV_BEACON_FOUND:
-            LOGN(F("EV_BEACON_FOUND"CR));
-            break;
-        case EV_BEACON_MISSED:
-            LOGN(F("EV_BEACON_MISSED"CR));
-            break;
-        case EV_BEACON_TRACKED:
-            LOGN(F("EV_BEACON_TRACKED"CR));
-            break;
-        case EV_JOINING:
-            LOGN(F("EV_JOINING"CR));
-            break;
-        case EV_JOINED:
-            LOGN(F("EV_JOINED"CR));
-
-            // Disable link check validation (automatically enabled
-            // during join, but not supported by TTN at this time).
-            LMIC_setLinkCheckMode(0);
-            break;
-        case EV_RFU1:
-            LOGN(F("EV_RFU1"CR));
-            break;
-        case EV_JOIN_FAILED:
-            LOGN(F("EV_JOIN_FAILED"CR));
-            break;
-        case EV_REJOIN_FAILED:
-            LOGN(F("EV_REJOIN_FAILED"CR));
-            break;
-            break;
-        case EV_TXCOMPLETE:
-            LOGN(F("EV_TXCOMPLETE (includes waiting for RX windows)"CR));
-            if (LMIC.txrxFlags & TXRX_ACK)
-              LOGN(F("Received ack"CR));
-            if (LMIC.dataLen) {
-              LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
-            }
-            // Schedule next transmission
-            //os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
-            break;
-        case EV_LOST_TSYNC:
-            LOGN(F("EV_LOST_TSYNC"CR));
-            break;
-        case EV_RESET:
-            LOGN(F("EV_RESET"CR));
-            break;
-        case EV_RXCOMPLETE:
-            // data received in ping slot
-            LOGN(F("EV_RXCOMPLETE"CR));
-            break;
-        case EV_LINK_DEAD:
-            LOGN(F("EV_LINK_DEAD"CR));
-            break;
-        case EV_LINK_ALIVE:
-            LOGN(F("EV_LINK_ALIVE"CR));
-            break;
-         default:
-            LOGN(F("Unknown event"CR));
-            break;
-    }
+  case EV_SCAN_TIMEOUT:
+    LOGN(F("EV_SCAN_TIMEOUT"CR));
+    break;
+  case EV_BEACON_FOUND:
+    LOGN(F("EV_BEACON_FOUND"CR));
+    break;
+  case EV_BEACON_MISSED:
+    LOGN(F("EV_BEACON_MISSED"CR));
+    break;
+  case EV_BEACON_TRACKED:
+    LOGN(F("EV_BEACON_TRACKED"CR));
+    break;
+  case EV_JOINING:
+    LOGN(F("EV_JOINING"CR));
+    break;
+  case EV_JOINED:
+    LOGN(F("EV_JOINED"CR));
+    
+    // Disable link check validation (automatically enabled
+    // during join, but not supported by TTN at this time).
+    LMIC_setLinkCheckMode(0);
+    break;
+  case EV_RFU1:
+    LOGN(F("EV_RFU1"CR));
+    break;
+  case EV_JOIN_FAILED:
+    LOGN(F("EV_JOIN_FAILED"CR));
+    break;
+  case EV_REJOIN_FAILED:
+    LOGN(F("EV_REJOIN_FAILED"CR));
+    break;
+    break;
+  case EV_TXCOMPLETE:
+    LOGN(F("EV_TXCOMPLETE (includes waiting for RX windows)"CR));
+    if (LMIC.txrxFlags & TXRX_ACK)
+      LOGN(F("Received ack"CR));
+    if (LMIC.dataLen) {
+      LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
+      // data received in rx slot after tx
+      //LOGN(F("Data Received: "));
+      //Serial.write(LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
+      //LOGN(CR);
+      if (LMIC.dataLen > 1) {
+	switch ((LMIC.frame + LMIC.dataBeg)[1]) {
+	case 7: LMIC_setDrTxpow(DR_SF7, 14); break;
+	case 8: LMIC_setDrTxpow(DR_SF8, 14); break;
+	case 9: LMIC_setDrTxpow(DR_SF9, 14); break;
+	case 10: LMIC_setDrTxpow(DR_SF10, 14); break;
+	case 11: LMIC_setDrTxpow(DR_SF11, 14); break;
+	case 12: LMIC_setDrTxpow(DR_SF12, 14); break;
+	}
+      }
+    }	    
+    
+  case EV_LOST_TSYNC:
+    LOGN(F("EV_LOST_TSYNC"CR));
+    break;
+  case EV_RESET:
+    LOGN(F("EV_RESET"CR));
+    break;
+  case EV_RXCOMPLETE:
+    // data received in ping slot
+    LOGN(F("EV_RXCOMPLETE"CR));
+    break;
+  case EV_LINK_DEAD:
+    LOGN(F("EV_LINK_DEAD"CR));
+    break;
+  case EV_LINK_ALIVE:
+    LOGN(F("EV_LINK_ALIVE"CR));
+    break;
+  default:
+    LOGN(F("Unknown event"CR));
+    break;
+  }
 }
 
 void do_send(uint8_t mydata[]){
@@ -386,6 +398,8 @@ void setup()
   os_init();
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
+  LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
+  LMIC_setDrTxpow(DR_SF12, 14);
   LMIC_startJoining();
   jointime=millis();
 }
