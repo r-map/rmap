@@ -1,0 +1,7 @@
+(sym_lib_table
+  (lib (name wireless-modules)(type Legacy)(uri ${KIPRJMOD}/../lib/wireless-modules.lib)(options "")(descr ""))
+  (lib (name microduino)(type Legacy)(uri ${KIPRJMOD}/../lib/microduino.lib)(options "")(descr ""))
+  (lib (name microduino_n)(type Legacy)(uri ${KIPRJMOD}/../lib/microduino_n.lib)(options "")(descr ""))
+  (lib (name conn_Coaxial)(type Legacy)(uri /home/lubuntu/Documenti/elettro/rmap/kicad/r-map_v2/lib/conn_Coaxial.lib)(options "")(descr ""))
+  (lib (name power)(type Legacy)(uri ${KIPRJMOD}/../lib/power.lib)(options "")(descr ""))
+)

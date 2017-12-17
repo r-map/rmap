@@ -1,0 +1,218 @@
+EESchema Schematic File Version 4
+LIBS:microduino_cc1101-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L wireless-modules:CC1101-868MHz-Module U2
+U 1 1 5A357AC8
+P 8200 2600
+F 0 "U2" H 9341 2653 60  0000 L CNN
+F 1 "CC1101-868MHz-Module" H 9200 2900 60  0000 L CNN
+F 2 "lib:CC1101-868MHz-Module" H 8200 2600 60  0001 C CNN
+F 3 "http://www.digirf.com/XWFU/2013/4f3751b81deca976.pdf" H 8200 2600 60  0001 C CNN
+	1    8200 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino:Microduino U1
+U 1 1 5A357CC2
+P 4250 2300
+F 0 "U1" H 4150 2747 60  0000 C CNN
+F 1 "Microduino" H 4150 2641 60  0000 C CNN
+F 2 "lib:microduino" H 4250 2300 60  0001 C CNN
+F 3 "" H 4250 2300 60  0000 C CNN
+	1    4250 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8100 3400 8100 3550
+Wire Wire Line
+	8100 3550 8200 3550
+Wire Wire Line
+	8300 3550 8300 3400
+$Comp
+L microduino_n:GND #PWR01
+U 1 1 5A357E7C
+P 8200 3700
+F 0 "#PWR01" H 8200 3450 50  0001 C CNN
+F 1 "GND" H 8205 3527 50  0000 C CNN
+F 2 "" H 8200 3700 50  0001 C CNN
+F 3 "" H 8200 3700 50  0001 C CNN
+	1    8200 3700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8200 3700 8200 3550
+Connection ~ 8200 3550
+Wire Wire Line
+	8200 3550 8300 3550
+$Comp
+L microduino_n:GND #PWR02
+U 1 1 5A357EE6
+P 3300 2100
+F 0 "#PWR02" H 3300 1850 50  0001 C CNN
+F 1 "GND" V 3305 1972 50  0000 R CNN
+F 2 "" H 3300 2100 50  0001 C CNN
+F 3 "" H 3300 2100 50  0001 C CNN
+	1    3300 2100
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	3300 2100 3450 2100
+Text GLabel 5000 2900 2    60   Input ~ 0
+SCLK
+Text GLabel 6900 2400 0    60   Input ~ 0
+SCLK
+Wire Wire Line
+	6900 2500 7100 2500
+Wire Wire Line
+	5000 2900 4850 2900
+Text GLabel 5000 2800 2    60   Input ~ 0
+MISO
+Text GLabel 6900 2500 0    60   Input ~ 0
+MISO
+Wire Wire Line
+	6900 2400 7100 2400
+Wire Wire Line
+	5000 2800 4850 2800
+Text GLabel 5000 2700 2    60   Input ~ 0
+MOSI
+Text GLabel 6900 2300 0    60   Input ~ 0
+MOSI
+Wire Wire Line
+	6900 2300 7100 2300
+Wire Wire Line
+	5000 2700 4850 2700
+Text GLabel 6900 2600 0    60   Input ~ 0
+SS
+Wire Wire Line
+	6900 2600 7100 2600
+Text GLabel 5000 2600 2    60   Input ~ 0
+SS
+Wire Wire Line
+	5000 2600 4850 2600
+$Comp
+L microduino_n:+3V3 #PWR03
+U 1 1 5A358541
+P 8200 1700
+F 0 "#PWR03" H 8200 1550 50  0001 C CNN
+F 1 "+3V3" H 8215 1873 50  0000 C CNN
+F 2 "" H 8200 1700 50  0001 C CNN
+F 3 "" H 8200 1700 50  0001 C CNN
+	1    8200 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_n:+3V3 #PWR04
+U 1 1 5A3586B4
+P 5000 2200
+F 0 "#PWR04" H 5000 2050 50  0001 C CNN
+F 1 "+3V3" V 5015 2328 50  0000 L CNN
+F 2 "" H 5000 2200 50  0001 C CNN
+F 3 "" H 5000 2200 50  0001 C CNN
+	1    5000 2200
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	5000 2200 4950 2200
+NoConn ~ 4850 2100
+NoConn ~ 4850 2300
+NoConn ~ 4850 2400
+NoConn ~ 4850 2500
+Text GLabel 6900 2800 0    60   Input ~ 0
+GDO0
+Text GLabel 3250 2700 0    60   Input ~ 0
+GDO0
+Text GLabel 3250 2600 0    60   Input ~ 0
+GD01
+Text GLabel 6900 2900 0    60   Input ~ 0
+GD01
+Wire Wire Line
+	6900 2900 7100 2900
+Wire Wire Line
+	7100 2800 6900 2800
+Wire Wire Line
+	3250 2600 3450 2600
+Wire Wire Line
+	3250 2700 3450 2700
+$Comp
+L conn_Coaxial:Conn_Coaxial J1
+U 1 1 5A3598C7
+P 9650 2600
+F 0 "J1" H 9749 2576 50  0000 L CNN
+F 1 "Conn_Coaxial" H 9749 2485 50  0000 L CNN
+F 2 "lib:SMA_EDGE" H 9650 2600 50  0001 C CNN
+F 3 "" H 9650 2600 50  0001 C CNN
+	1    9650 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9500 2600 9300 2600
+$Comp
+L microduino_n:GND #PWR05
+U 1 1 5A359D95
+P 9650 2900
+F 0 "#PWR05" H 9650 2650 50  0001 C CNN
+F 1 "GND" H 9655 2727 50  0000 C CNN
+F 2 "" H 9650 2900 50  0001 C CNN
+F 3 "" H 9650 2900 50  0001 C CNN
+	1    9650 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9650 2900 9650 2800
+NoConn ~ 3450 2200
+NoConn ~ 3450 2300
+NoConn ~ 3450 2400
+NoConn ~ 3450 2500
+NoConn ~ 3450 2800
+NoConn ~ 3450 2900
+NoConn ~ 3750 3300
+NoConn ~ 3850 3300
+NoConn ~ 3950 3300
+NoConn ~ 4050 3300
+NoConn ~ 4150 3300
+NoConn ~ 4250 3300
+NoConn ~ 4350 3300
+NoConn ~ 4450 3300
+NoConn ~ 4550 3300
+Wire Wire Line
+	8100 1800 8100 1750
+Wire Wire Line
+	8100 1750 8200 1750
+Wire Wire Line
+	8300 1750 8300 1800
+Wire Wire Line
+	8200 1700 8200 1750
+Connection ~ 8200 1750
+Wire Wire Line
+	8200 1750 8300 1750
+$Comp
+L power:PWR_FLAG #FLG01
+U 1 1 5A3631ED
+P 4950 2050
+F 0 "#FLG01" H 4950 2125 50  0001 C CNN
+F 1 "PWR_FLAG" H 4950 2224 50  0000 C CNN
+F 2 "" H 4950 2050 50  0001 C CNN
+F 3 "" H 4950 2050 50  0001 C CNN
+	1    4950 2050
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4950 2050 4950 2200
+Connection ~ 4950 2200
+Wire Wire Line
+	4950 2200 4850 2200
+$EndSCHEMATC
