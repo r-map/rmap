@@ -1,0 +1,9 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP CC1101-868MHz-Module
+D CC1101 868/915 MHz module
+K CC1101, wireless
+F http://www.digirf.com/XWFU/2013/4f3751b81deca976.pdf
+$ENDCMP
+#
+#End Doc Library
