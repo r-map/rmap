@@ -241,7 +241,8 @@ void onEvent (ev_t ev) {
     
     // Disable link check validation (automatically enabled
     // during join, but not supported by TTN at this time).
-    LMIC_setLinkCheckMode(0);
+    // DISABLE FOR MOBILE STATION
+    //LMIC_setLinkCheckMode(0);
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
@@ -263,6 +264,7 @@ void onEvent (ev_t ev) {
       //LOGN(F("Data Received: "));
       //Serial.write(LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
       //LOGN(CR);
+      /*
       if (LMIC.dataLen > 1) {
 	switch ((LMIC.frame + LMIC.dataBeg)[1]) {
 	case 7: LMIC_setDrTxpow(DR_SF7, 14); break;
@@ -272,6 +274,7 @@ void onEvent (ev_t ev) {
 	case 11: LMIC_setDrTxpow(DR_SF11, 14); break;
 	case 12: LMIC_setDrTxpow(DR_SF12, 14); break;
 	}
+      */
       }
     }	    
     
@@ -399,7 +402,8 @@ void setup()
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
   LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
-  LMIC_setDrTxpow(DR_SF12, 14);
+  //LMIC_setDrTxpow(DR_SF12, 14);
+  LMIC_setAdrMode(1);
   LMIC_startJoining();
   jointime=millis();
 }
