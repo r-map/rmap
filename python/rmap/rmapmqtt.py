@@ -111,18 +111,18 @@ class rmapmqtt:
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
-            # retained only if the station is fixed
-            retain = self.maintprefix != "mobile"
+            ## retained only if the station is fixed
+            #retain = self.maintprefix != "mobile"
 
-            rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
-                             payload=dumps({ "v": "conn"}),
-                                  qos=1,retain=retain)
+            #rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+            #                 payload=dumps({ "v": "conn"}),
+            #                      qos=1,retain=retain)
 
-            if rc[0] != mqtt.MQTT_ERR_SUCCESS:
-                raise Exception("publish status",rc)
+            #if rc[0] != mqtt.MQTT_ERR_SUCCESS:
+            #    raise Exception("publish status",rc)
 
-            self.log("publish maint message mid: "+str(rc[1]))
-
+            #self.log("publish maint message mid: "+str(rc[1]))
+            self.mqttc.loop()
         except Exception as inst:
             self.error(inst)
 
@@ -131,6 +131,7 @@ class rmapmqtt:
         bloking publish
         with qos > 0 we wait for ack
         '''
+        self.mqttc.loop()
         self.puback=False
         rc,self.mid=self.mqttc.publish(topic,payload=payload,qos=qos,retain=retain)
         if rc != mqtt.MQTT_ERR_SUCCESS:
