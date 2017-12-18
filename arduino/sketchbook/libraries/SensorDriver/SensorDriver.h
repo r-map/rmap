@@ -121,6 +121,7 @@ class SensorDriverTmp : public SensorDriver
 
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    int getdata(unsigned long data,unsigned short width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -166,6 +167,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    int getdata(unsigned long data,unsigned short width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif

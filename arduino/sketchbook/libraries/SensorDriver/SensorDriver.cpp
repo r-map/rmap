@@ -393,6 +393,27 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverAdt7420::getdata(unsigned long data,unsigned short width)
+{
+  /*
+    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
+    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
+    data width (bits): The number of bits the element requires for representation in data
+  */
+  
+  long values[1];
+  width=7;
+  const unsigned int reference=22315;
+  
+  if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
+    data=(values[1]-reference)<< (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+}
+
   #if defined(USEAJSON)
 aJsonObject* SensorDriverAdt7420::getJson()
 {
@@ -792,6 +813,27 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverHih6100::getdata(unsigned long data,unsigned short width)
+{
+  /*
+    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
+    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
+    data width (bits): The number of bits the element requires for representation in data
+  */
+  
+  long values[1];
+  width=7;
+  const unsigned int reference=0;
+  
+  if (SensorDriverHih6100::get(values,1) == SD_SUCCESS){
+    data=(values[1]-reference)<< (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
 }
 
 #if defined(USEAJSON)
