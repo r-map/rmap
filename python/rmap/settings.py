@@ -105,6 +105,17 @@ configspec['mqtt2graphited']['user']     = "string(default=None)"
 configspec['mqtt2graphited']['group']    = "string(default=None)"
 configspec['mqtt2graphited']['mapfile'] = "string(default='map')"
 
+
+configspec['ttn2dballed']={}
+
+configspec['ttn2dballed']['logfile']  = "string(default='/tmp/ttn2dballed.log')"
+configspec['ttn2dballed']['errfile']  = "string(default='/tmp/ttn2dballed.err')"
+configspec['ttn2dballed']['lockfile'] = "string(default='/tmp/ttn2dballed.lock')"
+configspec['ttn2dballed']['user']     = "string(default=None)"
+configspec['ttn2dballed']['group']    = "string(default=None)"
+configspec['ttn2dballed']['mapfile'] = "string(default='ttnmap')"
+
+
 configspec['amqp2dballed']={}
 configspec['amqp2dballed']['logfile']  = "string(default='/tmp/amqp2dballed.log')"
 configspec['amqp2dballed']['errfile']  = "string(default='/tmp/amqp2dballed.err')"
@@ -364,6 +375,14 @@ lockfilemqtt2graphited             = config['mqtt2graphited']['lockfile']
 usermqtt2graphited                 = config['mqtt2graphited']['user']
 groupmqtt2graphited                = config['mqtt2graphited']['group']
 mapfilemqtt2graphited              = config['mqtt2graphited']['mapfile']
+
+# section ttn2dballed
+logfilettn2dballed              = config['ttn2dballed']['logfile']
+errfilettn2dballed              = config['ttn2dballed']['errfile']
+lockfilettn2dballed             = config['ttn2dballed']['lockfile']
+userttn2dballed                 = config['ttn2dballed']['user']
+groupttn2dballed                = config['ttn2dballed']['group']
+mapfilettn2dballed              = config['ttn2dballed']['mapfile']
 
 
 
