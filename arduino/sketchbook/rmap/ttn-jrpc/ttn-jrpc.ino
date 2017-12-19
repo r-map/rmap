@@ -114,9 +114,9 @@ ev_t event;
 int sendstatus;
 unsigned long jointime;
 
-void os_getArtEui (u1_t* buf) { memcpy_P(buf, configuration.appeui, 8);}
-void os_getDevEui (u1_t* buf) { memcpy_P(buf, configuration.deveui, 8);}
-void os_getDevKey (u1_t* buf) { memcpy_P(buf, configuration.appkey, 16);}
+void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
+void os_getDevEui (u1_t* buf) { memcpy(buf, configuration.deveui, 8);}
+void os_getDevKey (u1_t* buf) { memcpy(buf, configuration.appkey, 16);}
 
 //static uint8_t mydata[] = "Hello, world!";
 //static osjob_t sendjob;
@@ -124,14 +124,26 @@ void os_getDevKey (u1_t* buf) { memcpy_P(buf, configuration.appkey, 16);}
 
 int send(JsonObject& params, JsonObject& result)
 {
-  const char* mydata=params["payload"];
-  if (mydata == NULL ){
+  char mydata[51];
+  JsonArray& a_mydata = params["payload"];
+  int i=0;
+  for(JsonArray::iterator it=a_mydata.begin(); it!=a_mydata.end(); ++it) {
+    // *it contains the JsonVariant which can be casted as usuals
+    mydata[i] = it->as<uint8_t>();    
+    
+    i++;
+    //}else{
+    //return  4;
+  }
+  /*if (mydata == NULL ){
     LOGN(F("no payload present"CR));
     return 1;
   }
- 
-  uint8_t payload[51];
-  memcpy(payload, mydata, 51*sizeof(uint8_t));
+*/
+  uint8_t payload[i];
+  
+  memcpy(payload, mydata, i);
+  
   do_send(payload);
 
   if (sendstatus != 1 ){
@@ -141,7 +153,7 @@ int send(JsonObject& params, JsonObject& result)
 
   //while (!(event == NULL)){
   unsigned long starttime=millis();
-  while((millis())-starttime < 10000){
+  while((millis())-starttime < 30000){
 
     wdt_reset();
     os_runloop_once();
@@ -218,7 +230,7 @@ int save(JsonObject& params, JsonObject& result)
 
 
 void onEvent (ev_t ev) {
-  LOGN(F("%l : "),os_getTime());
+  LOGN(F("Time: %l : "),os_getTime());
   event=ev;
   switch(ev) {
   case EV_SCAN_TIMEOUT:
@@ -274,8 +286,9 @@ void onEvent (ev_t ev) {
 	case 11: LMIC_setDrTxpow(DR_SF11, 14); break;
 	case 12: LMIC_setDrTxpow(DR_SF12, 14); break;
 	}
-      */
+
       }
+            */
     }	    
     
   case EV_LOST_TSYNC:
@@ -310,7 +323,9 @@ void do_send(uint8_t mydata[]){
     sendstatus=2;
   } else {
     // Prepare upstream data transmission at the next possible time.
-    LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+   // LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+    LMIC_setTxData2(1, mydata, 4, 0);
+   
     LOGN(F("Packet queued"CR));
     sendstatus=1;
   }
@@ -359,15 +374,7 @@ void setup()
     configuration.ack=0;
   }
   LOGN(F("ack: %d"CR),configuration.ack);
-  LOGN(F("appeui: %d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.appeui[0]
-       ,configuration.appeui[1]
-       ,configuration.appeui[2]
-       ,configuration.appeui[3]
-       ,configuration.appeui[4]
-       ,configuration.appeui[5]
-       ,configuration.appeui[6]
-       ,configuration.appeui[7]);
-  LOGN(F("deveui: %d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.deveui[0]
+  LOGN(F("deveui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.deveui[0]
        ,configuration.deveui[1]
        ,configuration.deveui[2]
        ,configuration.deveui[3]
@@ -375,7 +382,15 @@ void setup()
        ,configuration.deveui[5]
        ,configuration.deveui[6]
        ,configuration.deveui[7]);
-  LOGN(F("appkey: %d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d"CR),configuration.appkey[0]
+  LOGN(F("appeui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.appeui[0]
+       ,configuration.appeui[1]
+       ,configuration.appeui[2]
+       ,configuration.appeui[3]
+       ,configuration.appeui[4]
+       ,configuration.appeui[5]
+       ,configuration.appeui[6]
+       ,configuration.appeui[7]);
+  LOGN(F("appkey: %x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.appkey[0]
        ,configuration.appkey[1]
        ,configuration.appkey[2]
        ,configuration.appkey[3]
