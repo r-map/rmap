@@ -272,6 +272,7 @@ private:
         if(_prefix != NULL) _prefix(_logOutput);
         if (_showLevel) {
           char levels[] = "FEWNTV";
+	  _logOutput->print("#");
           _logOutput->print(levels[level - 1]);
           _logOutput->print(": ");
         }
