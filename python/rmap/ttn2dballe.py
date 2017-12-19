@@ -29,10 +29,12 @@ import signal
 import base64
 from rmap import rmapmqtt
 from datetime import datetime
+import threading
+import traceback
 
 LOGFORMAT = '%(asctime)-15s %(message)s'
 
-DEBUG = 0
+DEBUG = 1
 if DEBUG:
     logging.basicConfig(level=logging.DEBUG, format=LOGFORMAT)
 else:
@@ -42,9 +44,36 @@ client_id = "ttn2dballe_%d" % (os.getpid())
 
 def bitextract(template,start,nbit):
     return (template>>start)&((1 << nbit) - 1)
-                
 
-class ttn2dballe():
+
+class Threaded_ttn2dballe(threading.Thread):
+    def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug):
+        threading.Thread.__init__(self)
+        self.mqtt_host=mqtt_host
+        self.mqttuser=mqttuser
+        self.mqttpassword=mqttpassword
+        self.topics=topics
+        self.user=user
+        self.slug=slug
+
+    def run(self):
+
+        try:
+            myttn2dballe=ttn2dballe(self.mqtt_host,self.mqttuser, self.mqttpassword , self.topics, self.user, self.slug)
+            myttn2dballe.run()
+            
+        except Exception as exception:
+            # log and retry on exception 
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            logging.error('Subprocess failed')
+            time.sleep(10)
+
+        else:
+            logging.info("Task done: thread terminated")
+
+        
+class ttn2dballe(object):
 
   def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug):
 

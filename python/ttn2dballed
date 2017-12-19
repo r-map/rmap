@@ -36,12 +36,14 @@ django.setup()
 from rmap import daemon
 from rmap import __version__
 import rmap.settings
+from rmap.ttn2dballe import Threaded_ttn2dballe
+import threading
 
 # TODO port those on config file !
-MQTT_HOST = 'localhost'
+MQTT_HOST = os.environ.get('MQTT_HOST', 'eu.thethings.network')
 
 
-MAPFILE = rmap.settings.mapfilettn2dballed
+mapfile = rmap.settings.mapfilettn2dballed
 logfile=rmap.settings.logfilettn2dballed
 errfile=rmap.settings.errfilettn2dballed
 lockfile=rmap.settings.lockfilettn2dballed
@@ -88,21 +90,35 @@ def main (self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     logging.info('Starting up ttn2dballed')
 
+
+    f = open(mapfile)
+    for line in f.readlines():
+        line = line.rstrip()
+        if len(line) == 0 or line[0] == '#':
+            continue
+        try:
+            mqttuser, mqttpassword , topic, user, slug = line.split()
+
+            td = Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug)
+            td.setDaemon(True)
+            td.start()
+
+        except Exception as exception:
+            # log and retry on exception 
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            logging.error('Subprocess failed')
+            time.sleep(10)
+
+
     try:
-        #m2g=mqtt2graphite.mqtt2graphite(MQTT_HOST, MAPFILE)
-        #m2g.run()
-        print "ciao"
-        
-    except Exception as exception:
-        # log and retry on exception 
-        logging.error('Exception occured: ' + str(exception))
-        logging.error(traceback.format_exc())
-        logging.error('Subprocess failed')
-        #time.sleep(10)
+        while (threading.active_count() > 0):
+            time.sleep(3)
+
     except KeyboardInterrupt:
         # terminate on keyboard interrupt
         sys.stdout.write("keyboard interrupt\n")
@@ -117,6 +133,9 @@ def main (self):
             logging.info("killed by signal\n")
             return False
 
+
+
+            
 if __name__ == '__main__':
     
     import sys, os
