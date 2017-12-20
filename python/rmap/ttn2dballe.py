@@ -47,7 +47,7 @@ def bitextract(template,start,nbit):
 
 
 class Threaded_ttn2dballe(threading.Thread):
-    def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug):
+    def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug, terminate):
         threading.Thread.__init__(self)
         self.mqtt_host=mqtt_host
         self.mqttuser=mqttuser
@@ -55,11 +55,12 @@ class Threaded_ttn2dballe(threading.Thread):
         self.topics=topics
         self.user=user
         self.slug=slug
-
+        self.terminate=terminate
+        
     def run(self):
 
         try:
-            myttn2dballe=ttn2dballe(self.mqtt_host,self.mqttuser, self.mqttpassword , self.topics, self.user, self.slug)
+            myttn2dballe=ttn2dballe(self.mqtt_host,self.mqttuser, self.mqttpassword , self.topics, self.user, self.slug, self.terminate)
             myttn2dballe.run()
             
         except Exception as exception:
@@ -75,11 +76,12 @@ class Threaded_ttn2dballe(threading.Thread):
         
 class ttn2dballe(object):
 
-  def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug):
+  def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug,terminate):
 
     self.mqtt_host=mqtt_host
     self.mqttc = paho.Client(client_id, clean_session=True)
     self.map = {}
+    self.terminateevent=terminate
 
     for topic in topics:
         self.map[topic] = (user, slug)
@@ -111,6 +113,14 @@ class ttn2dballe(object):
     self.mqttc.disconnect()
     logging.info("Disconnected from broker; exiting on signal %d", signum)
     sys.exit(signum)
+
+  def terminate(self):
+    '''Disconnect cleanly on terminate event'''
+
+#    self.mqttc.publish("clients/" + client_id, "Offline")
+    self.mqttc.disconnect()
+    logging.info("Disconnected from broker; exiting on terminate event")
+    sys.exit(0)
 
 
   def on_connect(self,mosq, userdata, flags, rc):
@@ -225,6 +235,8 @@ class ttn2dballe(object):
         logging.info("Unexpected disconnect (rc %s); reconnecting in 5 seconds" % rc)
         time.sleep(5)
 
+
+        
   def run(self):
     logging.info("Starting %s" % client_id)
     logging.info("INFO MODE")
@@ -241,13 +253,17 @@ class ttn2dballe(object):
         if (not (rc == paho.MQTT_ERR_SUCCESS)):
             logging.info("Cannot connect to MQTT; retry in 5 seconds")
             time.sleep(5)
+            
+    #signal.signal(signal.SIGTERM, self.cleanup)
+    #signal.signal(signal.SIGINT, self.cleanup)
+    self.mqttc.loop_start()
 
-    signal.signal(signal.SIGTERM, self.cleanup)
-    signal.signal(signal.SIGINT, self.cleanup)
+    while not self.terminateevent.isSet():
+        time.sleep(5)
 
-    self.mqttc.loop_forever()
-
-
+    self.terminate()
+    self.mqttc.loop_stop()
+        
 if __name__ == '__main__':
 
     MQTT_HOST = os.environ.get('MQTT_HOST', 'eu.thethings.network')

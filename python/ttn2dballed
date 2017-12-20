@@ -95,6 +95,8 @@ def main (self):
     logging.info('Starting up ttn2dballed')
 
 
+    terminate = threading.Event()
+    threads=[]
     f = open(mapfile)
     for line in f.readlines():
         line = line.rstrip()
@@ -103,9 +105,10 @@ def main (self):
         try:
             mqttuser, mqttpassword , topic, user, slug = line.split()
 
-            td = Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug)
-            td.setDaemon(True)
-            td.start()
+            thread=Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug, terminate)
+            #thread.setDaemon(True)
+            thread.start()
+            threads.append(thread)
 
         except Exception as exception:
             # log and retry on exception 
@@ -116,24 +119,33 @@ def main (self):
 
 
     try:
-        while (threading.active_count() > 0):
-            time.sleep(3)
+        #while (threading.active_count() > nthread):
+        while True:
+            c=False
+            for th in threads:
+                if not th.is_alive():
+                    c=True
+            if c:  break
+            
+            logging.debug("OK")
+            time.sleep(5)
+            if killer.kill_now:
+                logging.info("killed by signal\n")
+                terminate.set()
+                break
 
     except KeyboardInterrupt:
         # terminate on keyboard interrupt
         sys.stdout.write("keyboard interrupt\n")
         logging.info("keyboard interrupt\n")
-        return False
-    else:
-        # no exception was raised
-        logging.info('Subprocess finished')
+        terminate.set()
     finally:
         # check if we have to terminate together with other exceptions
-        if killer.kill_now:
-            logging.info("killed by signal\n")
-            return False
+        terminate.set()
 
-
+    logging.info("wait for thread to terminate")
+    for th in threads:
+        th.join()
 
             
 if __name__ == '__main__':
