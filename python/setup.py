@@ -139,6 +139,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2graphited.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2dballed.1","./mqtt2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2dballed.1"])
+            subprocess.check_call(["help2man","-N","-o","man/man1/ttn2dballed.1","./ttn2dballed"])
+            subprocess.check_call(["gzip", "-f","man/man1/ttn2dballed.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
             subprocess.check_call(["gzip", "-f","man/man1/poweroffd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/composereportd.1","./composereportd"])
@@ -256,6 +258,7 @@ try:
 
     data_files.append(('/etc/rmap',['rmap-site.cfg']))
     data_files.append(('/etc/rmap',['map']))
+    data_files.append(('/etc/rmap',['ttnmap']))
     data_files.append(('/etc/rmap',['dashboard.conf']))
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
@@ -374,7 +377,7 @@ setup(name='rmap',
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
       },
       scripts=[
-          'stationd','mqtt2graphited','mqtt2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
+          'stationd','mqtt2graphited','mqtt2dballed','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,

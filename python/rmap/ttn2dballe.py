@@ -85,6 +85,8 @@ class ttn2dballe(object):
 
     for topic in topics:
         self.map[topic] = (user, slug)
+    print mqttuser,mqttpassword
+    print self.mqtt_host
     self.mqttc.username_pw_set(mqttuser,mqttpassword)
 
 #    try:
@@ -243,19 +245,8 @@ class ttn2dballe(object):
     logging.debug("DEBUG MODE")
 
 
-    rc=paho.MQTT_ERR_CONN_REFUSED
-    while ( not  (rc == paho.MQTT_ERR_SUCCESS)):
-        try:
-            rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
-        except:
-            rc=paho.MQTT_ERR_CONN_REFUSED
-
-        if (not (rc == paho.MQTT_ERR_SUCCESS)):
-            logging.info("Cannot connect to MQTT; retry in 5 seconds")
-            time.sleep(5)
-            
-    #signal.signal(signal.SIGTERM, self.cleanup)
-    #signal.signal(signal.SIGINT, self.cleanup)
+    rc=self.mqttc.connect_async(self.mqtt_host, 1883, 60)
+        
     self.mqttc.loop_start()
 
     while not self.terminateevent.isSet():
