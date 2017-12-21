@@ -1,4 +1,4 @@
-1#!/usr/bin/env python
+#!/usr/bin/env python
 # Copyright (c) 2017 Paolo Patruno <p.patruno@iperbole.bologna.it>
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -17,9 +17,10 @@
 __author__ = "Paolo Patruno"
 __copyright__ = "Copyright (C) 2017 by Paolo Patruno"
 
-import sys, os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+#import sys, os
+#sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+import rmap.settings
 import paho.mqtt.client as paho
 import os, sys
 import logging
@@ -30,18 +31,22 @@ import base64
 from rmap import rmapmqtt
 from datetime import datetime
 import threading
+import thread
 import traceback
+from stations.models import StationMetadata
+from django.core.exceptions import ObjectDoesNotExist
 
-LOGFORMAT = '%(asctime)-15s %(message)s'
 
-DEBUG = 1
-if DEBUG:
-    logging.basicConfig(level=logging.DEBUG, format=LOGFORMAT)
-else:
-    logging.basicConfig(level=logging.INFO, format=LOGFORMAT)
+#LOGFORMAT = '%(asctime)-15s %(message)s'
+#DEBUG = 1
+#if DEBUG:
+#    logging.basicConfig(level=logging.DEBUG, format=LOGFORMAT)
+#else:
+#    logging.basicConfig(level=logging.INFO, format=LOGFORMAT)
 
-client_id = "ttn2dballe_%d" % (os.getpid())
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
 
+	
 def bitextract(template,start,nbit):
     return (template>>start)&((1 << nbit) - 1)
 
@@ -59,6 +64,8 @@ class Threaded_ttn2dballe(threading.Thread):
         
     def run(self):
 
+        logging.info('Starting up new thread')
+    
         try:
             myttn2dballe=ttn2dballe(self.mqtt_host,self.mqttuser, self.mqttpassword , self.topics, self.user, self.slug, self.terminate)
             myttn2dballe.run()
@@ -78,15 +85,14 @@ class ttn2dballe(object):
 
   def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug,terminate):
 
+    self.client_id = "ttn2dballe_%d_%d" % (os.getpid(), thread.get_ident())
     self.mqtt_host=mqtt_host
-    self.mqttc = paho.Client(client_id, clean_session=True)
+    self.mqttc = paho.Client(self.client_id, clean_session=True)
     self.map = {}
     self.terminateevent=terminate
 
     for topic in topics:
         self.map[topic] = (user, slug)
-    print mqttuser,mqttpassword
-    print self.mqtt_host
     self.mqttc.username_pw_set(mqttuser,mqttpassword)
 
 #    try:
@@ -105,13 +111,13 @@ class ttn2dballe(object):
     os.environ['TZ'] = 'GMT'
     time.tzset()
 
-#    self.mqttc.will_set("clients/" + client_id, payload="Adios!", qos=0, retain=False)
+#    self.mqttc.will_set("clients/" + self.client_id, payload="Adios!", qos=0, retain=False)
 
 
   def cleanup(self,signum, frame):
     '''Disconnect cleanly on SIGTERM or SIGINT'''
 
-#    self.mqttc.publish("clients/" + client_id, "Offline")
+#    self.mqttc.publish("clients/" + self.client_id, "Offline")
     self.mqttc.disconnect()
     logging.info("Disconnected from broker; exiting on signal %d", signum)
     sys.exit(signum)
@@ -119,16 +125,16 @@ class ttn2dballe(object):
   def terminate(self):
     '''Disconnect cleanly on terminate event'''
 
-#    self.mqttc.publish("clients/" + client_id, "Offline")
+#    self.mqttc.publish("clients/" + self.client_id, "Offline")
     self.mqttc.disconnect()
     logging.info("Disconnected from broker; exiting on terminate event")
     sys.exit(0)
 
 
   def on_connect(self,mosq, userdata, flags, rc):
-    logging.info("Connected to broker at %s as %s" % (self.mqtt_host, client_id))
+    logging.info("Connected to broker at %s as %s" % (self.mqtt_host, self.client_id))
 
-#    self.mqttc.publish("clients/" + client_id, "Online")
+#    self.mqttc.publish("clients/" + self.client_id, "Online")
 
     for topic in self.map:
         logging.debug("Subscribing to topic %s" % topic)
@@ -174,28 +180,32 @@ class ttn2dballe(object):
                 numtemplate=bitextract(template,start,nbit)
                 
                 if numtemplate==1:
-                    lon=10.0
-                    lat=44.0
-                    password="password"
-                    mqtt=rmapmqtt.rmapmqtt(ident=user,password=password,lon=lon,lat=lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
+
+                    try:
+                        mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
+                    except ObjectDoesNotExist :
+                        logging.error("StationMetadata matching query does not exist")
+                        return
+                    if not mystation.active:
+                        logging.error("disactivated station: do nothing! %s %s " % numtempla)
+                        return
+
+                    mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
                     dt=datetime.utcnow().replace(microsecond=0)
 
                     start+=nbit
                     nbit=16
                     temp=bitextract(template,  start, nbit)
-                    print temp
+
                     start+=nbit
                     nbit=7
                     humi=bitextract(template, start, nbit)
-                    print humi
                     
                     temp=temp/100.+223.15
-                    print temp
                     datavar={"B12101":{"t": dt,"v": temp}}
                     mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
                     
                     himi=humi/1.+0.
-                    print humi
                     datavar={"B13003":{"t": dt,"v": humi}}
                     mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
 
@@ -206,16 +216,15 @@ class ttn2dballe(object):
 
                     
                 metadata=st["metadata"]
-                print metadata
                 ts=time.strptime(st.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))),"%Y-%m-%dT%H:%M:%S")
-                print ts
                 #timestamp=int(time.mktime(ts))
                 #print timestamp
             except:
-                logging.error("Topic %s contains non-JSON payload [%s]" %
+                logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                              (msg.topic, msg.payload))
-                raise
+                #raise
                 #return
+                self.terminateevent.set()
 
         else:
             logging.info("Unknown mapping key [%s]", type)
@@ -240,7 +249,7 @@ class ttn2dballe(object):
 
         
   def run(self):
-    logging.info("Starting %s" % client_id)
+    logging.info("Starting %s" % self.client_id)
     logging.info("INFO MODE")
     logging.debug("DEBUG MODE")
 

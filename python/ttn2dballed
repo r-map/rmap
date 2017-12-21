@@ -84,7 +84,7 @@ def main (self):
     killer = GracefulKiller()
     
     # configure the logger
-    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
     handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
     handler.setFormatter(formatter)
     
@@ -127,7 +127,7 @@ def main (self):
                     c=True
             if c:  break
             
-            logging.debug("OK")
+            #logging.debug("OK")
             time.sleep(5)
             if killer.kill_now:
                 logging.info("killed by signal\n")
