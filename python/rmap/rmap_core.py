@@ -37,6 +37,7 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 import exifutils
 from django.db import connection
+import collections
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
 
@@ -322,9 +323,10 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
 
 
 ttntemplate=[]
-ttntemplate.append(())
-ttntemplate.append(({"nbit":16,"offset":22315,"scale":100,"bcode":"B12101","timerange":"254,0,0","level":"103,2000,-,-"},
-                    {"nbit":7,"offset":0,"scale":1,"bcode":"B13003","timerange":"254,0,0","level":"103,2000,-,-"}))
+ttntemplate.append(collections.OrderedDict())  # null template 0
+ttntemplate.append(collections.OrderedDict())  # template 1: temperature and himidity
+ttntemplate[1]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
+ttntemplate[1]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
 
             
 # the first is the default
