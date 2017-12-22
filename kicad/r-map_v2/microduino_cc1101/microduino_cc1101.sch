@@ -135,16 +135,8 @@ Text GLabel 6900 2800 0    60   Input ~ 0
 GDO0
 Text GLabel 3250 2700 0    60   Input ~ 0
 GDO0
-Text GLabel 3250 2600 0    60   Input ~ 0
-GD01
-Text GLabel 6900 2900 0    60   Input ~ 0
-GD01
-Wire Wire Line
-	6900 2900 7100 2900
 Wire Wire Line
 	7100 2800 6900 2800
-Wire Wire Line
-	3250 2600 3450 2600
 Wire Wire Line
 	3250 2700 3450 2700
 $Comp
@@ -215,4 +207,6 @@ Wire Wire Line
 Connection ~ 4950 2200
 Wire Wire Line
 	4950 2200 4850 2200
+NoConn ~ 7100 2900
+NoConn ~ 3450 2600
 $EndSCHEMATC
