@@ -1,6 +1,13 @@
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
+import django
+django.setup()
+
+import rmap.jsonrpc as jsonrpc
+from rmap import rmap_core
+
 def bin(s):
     return str(s) if s<=1 else bin(s>>1) + str(s&1)
 
@@ -20,9 +27,8 @@ def bit2bytelist(template,totbit):
         data.append(bitextract(template,0,8+start)<< -start )
     return data
 
-# create JSON-RPC client
-import rmap.jsonrpc as jsonrpc
-#server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(radio=False,notification=False), jsonrpc.TransportSERIAL(port="/dev/ttyUSB0",baudrate=19200, logfunc=jsonrpc.log_file("myrpc.log"),timeout=15))
+# create JSON-RPC server
+server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(radio=False,notification=False), jsonrpc.TransportSERIAL(port="/dev/ttyUSB0",baudrate=19200, logfunc=jsonrpc.log_file("myrpc.log"),timeout=15))
 
 
 # call a remote-procedure
@@ -35,26 +41,32 @@ import rmap.jsonrpc as jsonrpc
 #print server.set(appkey=(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16))
 #print server.save(eeprom=True)
 
+mytemplate=1
+temperature=278.5
+humidity=55.
 
+# start encoding
 template=0
 totbit=0
 #set data template number
 nbit=8
-bit=0x01
+bit=mytemplate
 template=bitprepend(template,bit,nbit)
 totbit+=nbit
 
 #insert temperature
-temp=283.15
-nbit=16
-bit=int(temp*100-253.15)
+nbit=rmap_core.ttntemplate[mytemplate][0]["nbit"]
+scale=rmap_core.ttntemplate[mytemplate][0]["scale"]
+offset=rmap_core.ttntemplate[mytemplate][0]["offset"]
+bit=int(temperature*scale-offset)
 template=bitprepend(template,bit,nbit)
 totbit+=nbit
 
 #insert humidity
-humi=55
-nbit=7
-bit=int(humi*1-0)
+nbit=rmap_core.ttntemplate[mytemplate][1]["nbit"]
+scale=rmap_core.ttntemplate[mytemplate][1]["scale"]
+offset=rmap_core.ttntemplate[mytemplate][1]["offset"]
+bit=int(humidity*scale-offset)
 template=bitprepend(template,bit,nbit)
 totbit+=nbit
 
