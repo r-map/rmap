@@ -320,6 +320,13 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
             oldsensor.delete()
             mysensor.save()
 
+
+ttntemplate=[]
+ttntemplate.append(())
+ttntemplate.append(({"nbit":16,"offset":22315,"scale":100,"bcode":"B12101","timerange":"254,0,0","level":"103,2000,-,-"},
+                    {"nbit":7,"offset":0,"scale":1,"bcode":"B13003","timerange":"254,0,0","level":"103,2000,-,-"}))
+
+            
 # the first is the default
 template_choices = [
     "default",

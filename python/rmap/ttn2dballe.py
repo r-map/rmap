@@ -35,7 +35,7 @@ import thread
 import traceback
 from stations.models import StationMetadata
 from django.core.exceptions import ObjectDoesNotExist
-
+from rmap import rmap_core
 
 #LOGFORMAT = '%(asctime)-15s %(message)s'
 #DEBUG = 1
@@ -158,29 +158,25 @@ class ttn2dballe(object):
         if paho.topic_matches_sub(t, msg.topic):
             # print "%s matches MAP(%s) => %s" % (msg.topic, t, self.map[t])
 
-            # Must we rename the received msg topic into a different
-            # name for Carbon? In any case, replace MQTT slashes (/)
-            # by Carbon periods (.)
             (user, slug) = self.map[t]
-            #if remap is None:
-                #carbonkey = msg.topic.replace('/', '.').replace(',','_')
-            #else:
-                #carbonkey = remap.replace('/', '.')
-            #logging.debug("CARBONKEY is [%s]" % carbonkey)
 
-            # JSON: try and load the JSON string from payload 
-            
+            # JSON: try and load the JSON string from payload             
             try:
                 st = json.loads(msg.payload)
+                
+                metadata=st["metadata"]
+                #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
+                mytime=metadata.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))).split(".")[0]
+                dt=datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
+
                 payload=base64.b64decode(st["payload_raw"])
-                #print payload
                 template=int(payload.encode("hex"),16)
                 start=0
                 nbit=8
                 numtemplate=bitextract(template,start,nbit)
 
                 #                             TEMPLATE NUMBER 1
-                if numtemplate==1:
+                if numtemplate > 0 and numtemplate <= len(rmap_core.ttntemplate):
 
                     try:
                         mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
@@ -192,41 +188,28 @@ class ttn2dballe(object):
                         return
 
                     mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
-                    dt=datetime.utcnow().replace(microsecond=0)
 
-                    #                     TEMPERATURE
-                    start+=nbit
-                    nbit=16
-                    temp=bitextract(template,  start, nbit)
-                    if (temp != ((1 << nbit) - 1)):
-                        temp=temp/100.+223.15
-                        datavar={"B12101":{"t": dt,"v": temp}}
-                        mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
+                    mytemplate=rmap_core.ttntemplate[numtemplate]
+                    for param in mytemplate:
 
-                    #                     HUMIDITY
-                    start+=nbit
-                    nbit=7
-                    humi=bitextract(template, start, nbit)
-                    if (humi != ((1 << nbit) - 1)):
-                        humi=humi/1.+0.
-                        datavar={"B13003":{"t": dt,"v": humi}}
-                        mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
+                        start+=nbit
+                        nbit=param["nbit"]
+                        bval=bitextract(template,  start, nbit)
+                        if (bval != ((1 << nbit) - 1)):
+                            #val=(bval+param["offset"])/float(param["scale"])
+                            val=bval+param["offset"]
+                            datavar={param["bcode"]:{"t": dt,"v": val}}
+                            mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
 
                     mqtt.disconnect()
                     
                 else:
                     logging.error("Unknown template %d " % numtemplate)
-
                     
-                metadata=st["metadata"]
-                ts=time.strptime(st.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))),"%Y-%m-%dT%H:%M:%S")
-                #timestamp=int(time.mktime(ts))
-                #print timestamp
             except:
                 logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                              (msg.topic, msg.payload))
                 #raise
-                #return
                 self.terminateevent.set()
 
         else:
