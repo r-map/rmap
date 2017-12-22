@@ -178,7 +178,8 @@ class ttn2dballe(object):
                 start=0
                 nbit=8
                 numtemplate=bitextract(template,start,nbit)
-                
+
+                #                             TEMPLATE NUMBER 1
                 if numtemplate==1:
 
                     try:
@@ -193,21 +194,23 @@ class ttn2dballe(object):
                     mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
                     dt=datetime.utcnow().replace(microsecond=0)
 
+                    #                     TEMPERATURE
                     start+=nbit
                     nbit=16
                     temp=bitextract(template,  start, nbit)
+                    if (temp != ((1 << nbit) - 1)):
+                        temp=temp/100.+223.15
+                        datavar={"B12101":{"t": dt,"v": temp}}
+                        mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
 
+                    #                     HUMIDITY
                     start+=nbit
                     nbit=7
                     humi=bitextract(template, start, nbit)
-                    
-                    temp=temp/100.+223.15
-                    datavar={"B12101":{"t": dt,"v": temp}}
-                    mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
-                    
-                    himi=humi/1.+0.
-                    datavar={"B13003":{"t": dt,"v": humi}}
-                    mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
+                    if (humi != ((1 << nbit) - 1)):
+                        humi=humi/1.+0.
+                        datavar={"B13003":{"t": dt,"v": humi}}
+                        mqtt.data(timerange="254,0,0",level="103,2000,-,-",datavar=datavar)
 
                     mqtt.disconnect()
                     
