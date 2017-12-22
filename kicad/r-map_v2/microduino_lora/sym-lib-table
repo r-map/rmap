@@ -1,3 +1,8 @@
 (sym_lib_table
-  (lib (name rmap)(type "Unknown SCH_FILE_T value: 1")(uri "$(KIPRJMOD)/../lib/")(options "")(descr ""))
+  (lib (name rmap)(type Legacy)(uri "$(KIPRJMOD)/../lib/")(options " pwr_sym_only")(descr ""))
+  (lib (name lora)(type Legacy)(uri /home/lubuntu/Documenti/elettro/rmap/kicad/r-map_v2/lib/lora.lib)(options "")(descr ""))
+  (lib (name microduino)(type Legacy)(uri /home/lubuntu/Documenti/elettro/rmap/kicad/r-map_v2/lib/microduino.lib)(options "")(descr ""))
+  (lib (name power)(type Legacy)(uri /home/lubuntu/Documenti/elettro/rmap/kicad/r-map_v2/lib/power.lib)(options "")(descr ""))
+  (lib (name conn_Coaxial)(type Legacy)(uri /home/lubuntu/Documenti/elettro/rmap/kicad/r-map_v2/lib/conn_Coaxial.lib)(options "")(descr ""))
+  (lib (name microduino_lora-rescue)(type Legacy)(uri ${KIPRJMOD}/microduino_lora-rescue.lib)(options "")(descr ""))
 )
