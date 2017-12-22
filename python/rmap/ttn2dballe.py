@@ -29,13 +29,14 @@ import json
 import signal
 import base64
 from rmap import rmapmqtt
-from datetime import datetime
+import datetime
 import threading
 import thread
 import traceback
 from stations.models import StationMetadata
 from django.core.exceptions import ObjectDoesNotExist
 from rmap import rmap_core
+import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
 
 #LOGFORMAT = '%(asctime)-15s %(message)s'
 #DEBUG = 1
@@ -167,7 +168,7 @@ class ttn2dballe(object):
                 metadata=st["metadata"]
                 #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
                 mytime=metadata.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))).split(".")[0]
-                dt=datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
+                dt=datetime.datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
 
                 payload=base64.b64decode(st["payload_raw"])
                 template=int(payload.encode("hex"),16)
@@ -190,7 +191,7 @@ class ttn2dballe(object):
                     mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
 
                     mytemplate=rmap_core.ttntemplate[numtemplate]
-                    for param in mytemplate:
+                    for bcode,param in mytemplate.items():
 
                         start+=nbit
                         nbit=param["nbit"]
@@ -198,7 +199,7 @@ class ttn2dballe(object):
                         if (bval != ((1 << nbit) - 1)):
                             #val=(bval+param["offset"])/float(param["scale"])
                             val=bval+param["offset"]
-                            datavar={param["bcode"]:{"t": dt,"v": val}}
+                            datavar={bcode:{"t": dt,"v": val}}
                             mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
 
                     mqtt.disconnect()
@@ -209,8 +210,8 @@ class ttn2dballe(object):
             except:
                 logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                              (msg.topic, msg.payload))
-                #raise
-                self.terminateevent.set()
+                raise
+                #self.terminateevent.set()
 
         else:
             logging.info("Unknown mapping key [%s]", type)
