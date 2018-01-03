@@ -1,23 +1,19 @@
 from pyparsing import (
-    ParserElement, Forward, Combine, Optional, Word, Literal, CaselessKeyword,
+    Forward, Combine, Optional, Word, Literal, CaselessKeyword,
     CaselessLiteral, Group, FollowedBy, LineEnd, OneOrMore, ZeroOrMore,
-    nums, alphas, alphanums, printables, delimitedList, quotedString,
-    __version__,
+    alphas, alphanums, printables, delimitedList, quotedString, Regex,
+    __version__, Suppress, Empty
 )
 
-ParserElement.enablePackrat()
 grammar = Forward()
 
 expression = Forward()
 
 # Literals
-intNumber = Combine(
-  Optional('-') + Word(nums)
-)('integer')
 
-floatNumber = Combine(
-  Optional('-') + Word(nums) + Literal('.') + Word(nums)
-)('float')
+intNumber = Regex(r'-?\d+')('integer')
+
+floatNumber = Regex(r'-?\d+\.\d+')('float')
 
 sciNumber = Combine(
   (floatNumber | intNumber) + CaselessLiteral('e') + intNumber
@@ -37,6 +33,10 @@ boolean = Group(
   CaselessKeyword("true") |
   CaselessKeyword("false")
 )('boolean')
+
+none = Group(
+  CaselessKeyword('none')
+)('none')
 
 argname = Word(alphas + '_', alphanums + '_')('argname')
 funcname = Word(alphas + '_', alphanums + '_')('funcname')
@@ -58,10 +58,11 @@ comma = Literal(',').suppress()
 equal = Literal('=').suppress()
 backslash = Literal('\\').suppress()
 
-symbols = '''(){},=.'"\\'''
+symbols = '''(){},.'"\\|'''
 arg = Group(
   boolean |
   number |
+  none |
   aString |
   expression
 )('args*')
@@ -70,18 +71,23 @@ kwarg = Group(argname + equal + arg)('kwargs*')
 args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
 kwargs = delimitedList(kwarg)
 
+def setRaw(s, loc, toks):
+  toks[0].raw = s[toks[0].start:toks[0].end]
+
 call = Group(
+  Empty().setParseAction(lambda s, l, t: l)('start') +
   funcname + leftParen +
   Optional(
     args + Optional(
       comma + kwargs
     )
-  ) + rightParen
-)('call')
+  ) + rightParen +
+  Empty().leaveWhitespace().setParseAction(lambda s, l, t: l)('end')
+).setParseAction(setRaw)('call')
 
 # Metric pattern (aka. pathExpression)
 validMetricChars = ''.join((set(printables) - set(symbols)))
-escapedChar = backslash + Word(symbols, exact=1)
+escapedChar = backslash + Word(symbols + '=', exact=1)
 partialPathElem = Combine(
   OneOrMore(
     escapedChar | Word(validMetricChars)
@@ -114,11 +120,18 @@ template = Group(
   rightParen
 )('template')
 
+pipeSep = ZeroOrMore(Literal(' ')) + Literal('|') + ZeroOrMore(Literal(' '))
+
+pipedExpression = Group(
+  (template | call | pathExpression) +
+  Group(ZeroOrMore(Suppress(pipeSep) + Group(call)('pipedCall')))('pipedCalls')
+)('expression')
+
 if __version__.startswith('1.'):
-    expression << Group(template | call | pathExpression)('expression')
+    expression << pipedExpression
     grammar << expression
 else:
-    expression <<= Group(template | call | pathExpression)('expression')
+    expression <<= pipedExpression
     grammar <<= expression
 
 

@@ -22,7 +22,7 @@ class Template(models.Model):
   def setState(self, state, key):
     #XXX Might not need this
     def replace_string(s):
-      if isinstance(s, unicode):
+      if isinstance(s, six.text_type):
         s = s.replace(key, '__VALUE__')
       return s
 

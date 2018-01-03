@@ -441,6 +441,12 @@ CARBONLINK_HASHING_TYPE = 'carbon_ch'
 CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 STANDARD_DIRS = []
+LOG_FILE_INFO='graphite_info.log'
+LOG_FILE_EXCEPTION='graphite_exception.log'
+LOG_FILE_CACHE='graphite_cache.log'
+LOG_FILE_RENDERING='graphite_rendering.log'
+LOG_DIR='/tmp/'
+
 # Cluster settings
 CLUSTER_SERVERS = []
 URL_PREFIX = ''
