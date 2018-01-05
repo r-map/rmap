@@ -390,7 +390,7 @@ mapfilettn2dballed              = config['ttn2dballed']['mapfile']
 
 from os.path import abspath, dirname, join
 
-WEBAPP_VERSION="rmap "+__version__ + " + graphite git 01/01/2017"
+WEBAPP_VERSION="rmap "+__version__ + " + graphite 1.1.1"
 JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%m/%d'
 WEB_DIR = dirname( abspath(__file__) )
@@ -446,6 +446,16 @@ LOG_FILE_EXCEPTION='graphite_exception.log'
 LOG_FILE_CACHE='graphite_cache.log'
 LOG_FILE_RENDERING='graphite_rendering.log'
 LOG_DIR='/tmp/'
+TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
+FUNCTION_PLUGINS = []
+REMOTE_STORE_FORWARD_HEADERS = []
+DEFAULT_XFILES_FACTOR = 0
+REMOTE_FETCH_TIMEOUT = 3.0
+USE_WORKER_POOL = True
+POOL_MAX_WORKERS = 10
+METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
+METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
+REMOTE_FIND_TIMEOUT = 3.0
 
 # Cluster settings
 CLUSTER_SERVERS = []
@@ -476,6 +486,8 @@ if not WHITELIST_FILE:
 if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 
+USE_TZ = True
+  
 ###  end graphite settings
 
 
