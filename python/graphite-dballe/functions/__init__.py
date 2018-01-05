@@ -7,9 +7,7 @@ from os.path import dirname, join, splitext
 from django.conf import settings
 
 from .params import Param, ParamTypes  # noqa
-import sys
-sys.path.append('graphite-dballe')
-from logger import log
+from ..logger import log
 
 customDir = join(dirname(__file__), 'custom')
 customModPrefix = 'graphite.functions.custom.'

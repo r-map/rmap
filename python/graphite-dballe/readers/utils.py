@@ -1,8 +1,5 @@
 import abc
-
-import sys
-sys.path.append('graphite-dballe')
-from logger import log
+from ..logger import log
 
 class BaseReader(object):
     __metaclass__ = abc.ABCMeta
