@@ -14,43 +14,32 @@ limitations under the License"""
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
-from url_shortener.views import shorten, follow
-from browser.views import browser
-
-from .render import urls as render_urls
-from .composer import urls as composer_urls
-from .metrics import urls as metrics_urls
-from .browser import urls as browser_urls
-from .account import urls as account_urls
-from .dashboard import urls as dashboard_urls
-from .whitelist import urls as whitelist_urls
-from .version import urls as version_urls
-from .events import urls as events_urls
-
-
+from .url_shortener.views import shorten, follow
+from .browser.views import browser
 
 graphite_urls = [
-    url('^admin/', include(admin.site.urls)),
-    url('^render/?', include(render_urls)),
-    url('^composer/?', include(composer_urls)),
-    url('^metrics/?', include(metrics_urls)),
-    url('^browser/?', include(browser_urls)),
-    url('^account/', include(account_urls)),
-    url('^dashboard/?', include(dashboard_urls)),
-    url('^whitelist/?', include(whitelist_urls)),
-    url('^version/', include(version_urls)),
-    url('^events/', include(events_urls)),
+    url('^admin/', admin.site.urls),
+    url('^render/', include('graphite-dballe.render.urls')),
+    url('^composer/', include('graphite-dballe.composer.urls')),
+    url('^metrics/', include('graphite-dballe.metrics.urls')),
+    url('^browser/', include('graphite-dballe.browser.urls')),
+    url('^account/', include('graphite-dballe.account.urls')),
+    url('^dashboard/', include('graphite-dballe.dashboard.urls')),
+    url('^whitelist/', include('graphite-dballe.whitelist.urls')),
+    url('^version/', include('graphite-dballe.version.urls')),
+    url('^events/', include('graphite-dballe.events.urls')),
+    url('^tags/', include('graphite-dballe.tags.urls')),
+    url('^functions/', include('graphite-dballe.functions.urls')),
     url('^s/(?P<path>.*)', shorten, name='shorten'),
     url('^S/(?P<link_id>[a-zA-Z0-9]+)/?$', follow, name='follow'),
     url('^$', browser, name='browser'),
 ]
 
-url_prefix = ''
 if settings.URL_PREFIX.strip('/'):
-    url_prefix = '{0}/'.format(settings.URL_PREFIX.strip('/'))
+    urlpatterns = [
+        url(r'^{0}/'.format(settings.URL_PREFIX.strip('/')), include(graphite_urls)),
+    ]
+else:
+    urlpatterns = graphite_urls
 
-urlpatterns = [
-    url(r'^{0}'.format(url_prefix), include(graphite_urls)),
-]
-
-#handler500 = 'views.server_error'
+#handler500 = 'graphite.views.server_error'

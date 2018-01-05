@@ -19,6 +19,12 @@ class IntervalSet:
   def __iter__(self):
     return iter(self.intervals)
 
+  def __len__(self):
+    return len(self.intervals)
+
+  def __getitem__(self, i):
+    return self.intervals[i]
+
   def __nonzero__(self):
     return self.size != 0
 
@@ -83,8 +89,23 @@ class Interval:
   def __eq__(self, other):
     return self.tuple == other.tuple
 
+  def __ne__(self, other):
+    return self.tuple != other.tuple
+
   def __hash__(self):
     return hash( self.tuple )
+
+  def __lt__(self, other):
+    return self.start < self.start
+
+  def __le__(self, other):
+    return self.start <= self.start
+
+  def __gt__(self, other):
+    return self.start > self.start
+
+  def __ge__(self, other):
+    return self.start >= self.start
 
   def __cmp__(self, other):
     return cmp(self.start, other.start)
@@ -92,7 +113,10 @@ class Interval:
   def __len__(self):
     raise TypeError("len() doesn't support infinite values, use the 'size' attribute instead")
 
-  def __nonzero__(self):
+  def __nonzero__(self):  # Python 2
+    return self.size != 0
+
+  def __bool__(self):  # Python 3
     return self.size != 0
 
   def __repr__(self):
