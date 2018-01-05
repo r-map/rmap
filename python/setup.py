@@ -288,6 +288,10 @@ for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
     if filenames:
         for file in filenames:
             graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
+for dirpath, dirnames, filenames in os.walk('graphite-dballe/functions/custom'):
+    if filenames:
+        for file in filenames:
+            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
 for dirpath, dirnames, filenames in os.walk('http2mqtt/static'):
     if filenames:
         for file in filenames:
@@ -357,6 +361,9 @@ setup(name='rmap',
                 'graphite-dballe.url_shortener','graphite-dballe.url_shortener.migrations',
                 'graphite-dballe.version',
                 'graphite-dballe.whitelist',
+                'graphite-dballe.worker_pool',
+                'graphite-dballe.tags',
+                'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
       ],
 
@@ -382,7 +389,7 @@ setup(name='rmap',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz"],
+      install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","python-six","python-scandir"],
       extras_require = {
           'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'django-classy-tags','django_cookie_law']

@@ -450,12 +450,12 @@ TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
 FUNCTION_PLUGINS = []
 REMOTE_STORE_FORWARD_HEADERS = []
 DEFAULT_XFILES_FACTOR = 0
-REMOTE_FETCH_TIMEOUT = 3.0
+REMOTE_FETCH_TIMEOUT = 180.0
 USE_WORKER_POOL = True
 POOL_MAX_WORKERS = 10
 METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
 METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
-REMOTE_FIND_TIMEOUT = 3.0
+REMOTE_FIND_TIMEOUT = 180.0
 
 # Cluster settings
 CLUSTER_SERVERS = []
