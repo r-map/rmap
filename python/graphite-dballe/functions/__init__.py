@@ -6,8 +6,10 @@ from os.path import dirname, join, splitext
 
 from django.conf import settings
 
-from graphite.functions.params import Param, ParamTypes  # noqa
-from graphite.logger import log
+from .params import Param, ParamTypes  # noqa
+import sys
+sys.path.append('graphite-dballe')
+from logger import log
 
 customDir = join(dirname(__file__), 'custom')
 customModPrefix = 'graphite.functions.custom.'
@@ -19,7 +21,7 @@ def loadFunctions(force=False):
   if _SeriesFunctions and not force:
     return
 
-  from graphite.render import functions
+  from ..render import functions
 
   _SeriesFunctions.clear()
   _SeriesFunctions.update(functions.SeriesFunctions)

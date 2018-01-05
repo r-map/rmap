@@ -22,7 +22,7 @@ from six.moves.http_client import HTTPConnection
 from six.moves.urllib.parse import urlsplit
 from time import ctime, strftime
 from traceback import format_exc
-from ..util import getProfile
+from ..user_util import getProfile
 from ..logger import log
 from ..account.models import MyGraph
 

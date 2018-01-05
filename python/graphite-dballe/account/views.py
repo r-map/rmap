@@ -19,9 +19,11 @@ except ImportError:  # Django < 1.10
     from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect
 from django.shortcuts import render_to_response
-from ..util import getProfile
+from ..user_util import getProfile
+from django.views.decorators.csrf import csrf_exempt
 
 
+@csrf_exempt
 def loginView(request):
   username = request.POST.get('username')
   password = request.POST.get('password')
@@ -41,17 +43,20 @@ def loginView(request):
   else:
     return render_to_response("login.html",{'nextPage' : nextPage})
 
+@csrf_exempt
 def logoutView(request):
   nextPage = request.GET.get('nextPage', reverse('browser'))
   logout(request)
   return HttpResponseRedirect(nextPage)
 
+@csrf_exempt
 def editProfile(request):
   if not request.user.is_authenticated():
     return HttpResponseRedirect(reverse('browser'))
   context = { 'profile' : getProfile(request) }
   return render_to_response("editProfile.html",context)
 
+@csrf_exempt
 def updateProfile(request):
   profile = getProfile(request,allowDefault=False)
   if profile:

@@ -20,7 +20,8 @@ from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from ..account.models import Profile
 from ..compat import HttpResponse
-from ..util import getProfile, getProfileByUsername, json
+from ..user_util import getProfile, getProfileByUsername
+import json
 from ..logger import log
 from hashlib import md5
 from six.moves.urllib.parse import urlencode, urlparse, parse_qsl

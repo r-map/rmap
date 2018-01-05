@@ -4,7 +4,7 @@ import bisect
 import re
 import time
 
-from graphite.tags.utils import TaggedSeries
+from ..tags.utils import TaggedSeries
 
 
 class BaseTagDB(object):

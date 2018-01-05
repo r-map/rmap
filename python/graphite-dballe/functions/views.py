@@ -1,5 +1,5 @@
-from graphite.util import jsonResponse, HttpResponse, HttpError
-from graphite.functions import SeriesFunctions, SeriesFunction, PieFunctions, PieFunction, functionInfo
+from ..util import jsonResponse, HttpResponse, HttpError
+from . import SeriesFunctions, SeriesFunction, PieFunctions, PieFunction, functionInfo
 
 def jsonEncoder(obj):
   if hasattr(obj, 'toJSON'):

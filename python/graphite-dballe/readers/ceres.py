@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 
-from graphite.intervals import Interval, IntervalSet
-from graphite.readers.utils import merge_with_carbonlink, BaseReader
+from ..intervals import Interval, IntervalSet
+from ..readers.utils import merge_with_carbonlink, BaseReader
 
 try:
     import ceres

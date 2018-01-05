@@ -18,5 +18,5 @@ from . import views
 urlpatterns = [
     url(r'^add$', views.add, name='whitelist_add'),
     url(r'^remove$', views.remove, name='whitelist_remove'),
-    url(r'^?$', views.show, name='whitelist_show'),
+    url(r'^$', views.show, name='whitelist_show'),
 ]

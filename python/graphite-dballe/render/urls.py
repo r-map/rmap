@@ -19,5 +19,5 @@ urlpatterns = [
     url(r'^local/?$', views.renderLocalView, name='render_local'),
     url(r'^~(?P<username>[^/]+)/(?P<graphName>[^/]+)/?$', views.renderMyGraphView,
         name='render_my_graph'),
-    url(r'^?$', views.renderView, name='render'),
+    url(r'^$', views.renderView, name='render'),
 ]

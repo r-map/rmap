@@ -19,9 +19,9 @@ except ImportError:
     gzip = False
 
 
-from graphite.intervals import Interval, IntervalSet
-from graphite.logger import log
-from graphite.readers.utils import merge_with_carbonlink, BaseReader
+from ..intervals import Interval, IntervalSet
+from ..logger import log
+from ..readers.utils import merge_with_carbonlink, BaseReader
 
 # The parser was replacing __readHeader with the <class>__readHeader
 # which was not working.

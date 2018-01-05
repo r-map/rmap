@@ -18,5 +18,5 @@ from . import views
 urlpatterns = [
     url(r'^get_data?$', views.get_data, name='events_get_data'),
     url(r'^(?P<event_id>\d+)/?$', views.detail, name='events_detail'),
-    url(r'^?$', views.view_events, name='events'),
+    url(r'^$', views.view_events, name='events'),
 ]

@@ -27,7 +27,9 @@ from ..render.attime import parseATTime
 from ..storage import STORE, extractForwardHeaders
 from ..user_util import getProfile
 from ..util import epoch, json, pickle, msgpack
+from django.views.decorators.csrf import csrf_exempt
 
+dballepresent=True
 
 @csrf_exempt
 def index_json(request):

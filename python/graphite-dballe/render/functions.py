@@ -49,8 +49,8 @@ from ..util import epoch, epoch_to_dt, timestamp, deltaseconds
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
-  from graphite.render.glyph import format_units
-  from graphite.render.datalib import TimeSeries
+  from glyph import format_units
+  from datalib import TimeSeries
 
 NAN = float('NaN')
 INF = float('inf')

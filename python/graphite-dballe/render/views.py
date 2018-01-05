@@ -27,11 +27,11 @@ from ..user_util import getProfileByUsername
 from ..util import json, unpickle, pickle, msgpack, BytesIO
 from ..storage import extractForwardHeaders
 from ..logger import log
-from .render.evaluator import evaluateTarget
-from .render.attime import parseATTime
+from evaluator import evaluateTarget
+from attime import parseATTime
 from ..functions import loadFunctions, PieFunction
-from .render.hashing import hashRequest, hashData
-from .render.glyph import GraphTypes
+from hashing import hashRequest, hashData
+from glyph import GraphTypes
 from ..tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
 
 from django.http import HttpResponseServerError, HttpResponseRedirect

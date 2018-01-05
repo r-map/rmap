@@ -2,9 +2,9 @@
 import time
 import abc
 
-from graphite.node import BranchNode, LeafNode  # noqa
-from graphite.util import is_pattern
-from graphite.intervals import Interval
+from ..node import BranchNode, LeafNode  # noqa
+from ..util import is_pattern
+from ..intervals import Interval
 
 
 class FindQuery(object):

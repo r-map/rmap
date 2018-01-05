@@ -17,11 +17,11 @@ from . import views
 
 urlpatterns = [
     url(r'^index\.json$', views.index_json, name='metrics_index'),
-    url(r'^find/?$', views.find_view, name='metrics_find'),
-    url(r'^expand/?$', views.expand_view, name='metrics_expand'),
-    url(r'^get-metadata/?$', views.get_metadata_view,
+    url(r'^find/$', views.find_view, name='metrics_find'),
+    url(r'^expand/$', views.expand_view, name='metrics_expand'),
+    url(r'^get-metadata/$', views.get_metadata_view,
         name='metrics_get_metadata'),
-    url(r'^set-metadata/?$', views.set_metadata_view,
+    url(r'^set-metadata/$', views.set_metadata_view,
         name='metrics_set_metadata'),
-    url(r'^?$', views.find_view, name='metrics'),
+    url(r'^$', views.find_view, name='metrics'),
 ]

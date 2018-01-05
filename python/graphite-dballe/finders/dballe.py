@@ -446,7 +446,7 @@ class DballeReader(object):
         return time_info, series
 
     def get_intervals(self):
-        #print "getintervals"
+        print "getintervals"
         #return IntervalSet([Interval(start, end)])
 
         uri=path2uri(self.path)

@@ -1416,7 +1416,10 @@ class LineGraph(Graph):
       numberOfDataPoints = self.timeRange/series.step
       minXStep = float( self.params.get('minXStep',1.0) )
       divisor = self.timeRange / series.step
-      bestXStep = numberOfPixels / divisor
+      try:
+          bestXStep = numberOfPixels / divisor
+      except:
+          bestXStep = 1
       if bestXStep < minXStep:
         drawableDataPoints = int( numberOfPixels / minXStep )
         pointsPerPixel = math.ceil( float(numberOfDataPoints) / float(drawableDataPoints) )
@@ -1580,8 +1583,10 @@ class LineGraph(Graph):
     self.end_dt = datetime.fromtimestamp(self.endTime, tzinfo)
 
     secondsPerPixel = float(self.timeRange) / float(self.graphWidth)
-    self.xScaleFactor = float(self.graphWidth) / float(self.timeRange) #pixels per second
-
+    try:
+        self.xScaleFactor = float(self.graphWidth) / float(self.timeRange) #pixels per second
+    except:
+        self.xScaleFactor = 1.
     potential = [c for c in xAxisConfigs if c['seconds'] <= secondsPerPixel and c.get('maxInterval', self.timeRange + 1) >= self.timeRange]
     if potential:
       self.xConf = potential[-1]

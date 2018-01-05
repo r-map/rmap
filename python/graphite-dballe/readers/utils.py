@@ -1,7 +1,8 @@
 import abc
 
-from graphite.logger import log
-
+import sys
+sys.path.append('graphite-dballe')
+from logger import log
 
 class BaseReader(object):
     __metaclass__ = abc.ABCMeta

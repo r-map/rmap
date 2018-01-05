@@ -3,7 +3,7 @@ import re
 from django.db import connection
 from hashlib import sha256
 
-from graphite.tags.base import BaseTagDB, TaggedSeries
+from ..tags.base import BaseTagDB, TaggedSeries
 
 
 class LocalDatabaseTagDB(BaseTagDB):

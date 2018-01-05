@@ -16,8 +16,8 @@ except ImportError:
     rrdtool = False
 
 from django.conf import settings
-from graphite.intervals import Interval, IntervalSet
-from graphite.readers.utils import BaseReader
+from ..intervals import Interval, IntervalSet
+from ..readers.utils import BaseReader
 
 
 class RRDReader(BaseReader):

@@ -16,12 +16,12 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-  url(r'^/tagSeries$', views.tagSeries, name='tagSeries'),
-  url(r'^/tagMultiSeries$', views.tagMultiSeries, name='tagMultiSeries'),
-  url(r'^/delSeries$', views.delSeries, name='delSeries'),
-  url(r'^/findSeries$', views.findSeries, name='findSeries'),
-  url(r'^/autoComplete/tags$', views.autoCompleteTags, name='tagAutoCompleteTags'),
-  url(r'^/autoComplete/values$', views.autoCompleteValues, name='tagAutoCompleteValues'),
-  url(r'^/(.+)$', views.tagDetails, name='tagDetails'),
-  url(r'^/?$', views.tagList, name='tagList'),
+  url(r'^tagSeries$', views.tagSeries, name='tagSeries'),
+  url(r'^tagMultiSeries$', views.tagMultiSeries, name='tagMultiSeries'),
+  url(r'^delSeries$', views.delSeries, name='delSeries'),
+  url(r'^findSeries$', views.findSeries, name='findSeries'),
+  url(r'^autoComplete/tags$', views.autoCompleteTags, name='tagAutoCompleteTags'),
+  url(r'^autoComplete/values$', views.autoCompleteValues, name='tagAutoCompleteValues'),
+  url(r'^(.+)$', views.tagDetails, name='tagDetails'),
+  url(r'^$', views.tagList, name='tagList'),
 ]

@@ -1,5 +1,5 @@
-from graphite.util import jsonResponse, HttpResponse, HttpError
-from graphite.storage import STORE, extractForwardHeaders
+from ..util import jsonResponse, HttpResponse, HttpError
+from ..storage import STORE, extractForwardHeaders
 
 def _requestContext(request):
   return {

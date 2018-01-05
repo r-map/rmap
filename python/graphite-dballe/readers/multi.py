@@ -1,8 +1,8 @@
 import functools
 
-from graphite.intervals import IntervalSet
-from graphite.logger import log
-from graphite.readers.utils import BaseReader
+from ..intervals import IntervalSet
+from ..logger import log
+from ..readers.utils import BaseReader
 
 
 class MultiReader(BaseReader):
