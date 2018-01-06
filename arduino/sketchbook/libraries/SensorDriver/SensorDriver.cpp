@@ -406,7 +406,7 @@ int SensorDriverAdt7420::getdata(unsigned long data,unsigned short width)
   const unsigned int reference=22315;
   
   if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
-    data=(values[1]-reference)<< (sizeof(values[1])-width);
+    data=(values[1]-reference) // << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
     return SD_INTERNAL_ERROR;
@@ -828,7 +828,7 @@ int SensorDriverHih6100::getdata(unsigned long data,unsigned short width)
   const unsigned int reference=0;
   
   if (SensorDriverHih6100::get(values,1) == SD_SUCCESS){
-    data=(values[1]-reference)<< (sizeof(values[1])-width);
+    data=(values[1]-reference)// << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
     return SD_INTERNAL_ERROR;

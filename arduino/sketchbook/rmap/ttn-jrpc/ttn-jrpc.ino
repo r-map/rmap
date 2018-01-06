@@ -124,27 +124,33 @@ void os_getDevKey (u1_t* buf) { memcpy(buf, configuration.appkey, 16);}
 
 int send(JsonObject& params, JsonObject& result)
 {
-  char mydata[51];
   JsonArray& a_mydata = params["payload"];
-  int i=0;
+  const size_t nbyte=a_mydata.size();
+
+  if (nbyte > 51) {
+    LOGE(F("payload too big"CR));
+    return 1;
+  }
+  uint8_t mydata[nbyte];
+
+  size_t i=nbyte-1;
   for(JsonArray::iterator it=a_mydata.begin(); it!=a_mydata.end(); ++it) {
     // *it contains the JsonVariant which can be casted as usuals
     mydata[i] = it->as<uint8_t>();    
-    
-    i++;
-    //}else{
-    //return  4;
+    LOGN(F("payload %d : %d"CR),i,mydata[i]);    
+    i--;
   }
   /*if (mydata == NULL ){
     LOGN(F("no payload present"CR));
     return 1;
   }
 */
-  uint8_t payload[i];
+
+  // memcpy now is not usefull but you need it if you want payload permanent for async operation (non in stack memory)
+  uint8_t payload[nbyte];
+  memcpy(payload, mydata, nbyte);
   
-  memcpy(payload, mydata, i);
-  
-  do_send(payload);
+  do_send(payload,nbyte);
 
   if (sendstatus != 1 ){
     LOGE(F("no packet send"CR));
@@ -313,7 +319,7 @@ void onEvent (ev_t ev) {
   }
 }
 
-void do_send(uint8_t mydata[]){
+void do_send(uint8_t mydata[],size_t nbyte){
   sendstatus=NULL;
   LMIC_clrTxData();
   
@@ -324,7 +330,8 @@ void do_send(uint8_t mydata[]){
   } else {
     // Prepare upstream data transmission at the next possible time.
    // LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-    LMIC_setTxData2(1, mydata, 4, 0);
+   // LMIC_setTxData2(1, mydata, 4, 0);
+    LMIC_setTxData2(1, mydata, nbyte, 0);
    
     LOGN(F("Packet queued"CR));
     sendstatus=1;
