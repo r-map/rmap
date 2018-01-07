@@ -37,6 +37,7 @@ from stations.models import StationMetadata
 from django.core.exceptions import ObjectDoesNotExist
 from rmap import rmap_core
 import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
+import binascii
 
 #LOGFORMAT = '%(asctime)-15s %(message)s'
 #DEBUG = 1
@@ -51,6 +52,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(level
 def bitextract(template,start,nbit):
     return (template>>start)&((1 << nbit) - 1)
 
+## testBit() returns a nonzero result, 2**offset, if the bit at 'offset' is one.
+#def testBit(int_type, offset):
+#    mask = 1 << offset
+#    return(int_type & mask)
+#
+## setBit() returns an integer with the bit at 'offset' set to 1.
+#def setBit(int_type, offset):
+#    mask = 1 << offset
+#    return(int_type | mask)
 
 class Threaded_ttn2dballe(threading.Thread):
     def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug, terminate):
@@ -171,9 +181,26 @@ class ttn2dballe(object):
                 dt=datetime.datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
 
                 payload=base64.b64decode(st["payload_raw"])
-                template=int(payload.encode("hex"),16)
-                start=0
+                print "payload: ",payload
+
+
+                print "hex: ",binascii.hexlify(payload)
+
+                nbits=len(binascii.hexlify(payload))*4
+                template=int(binascii.hexlify(payload),16)
+
+                #temp=int(binascii.hexlify(payload),16)
+                #template=0
+                #for i in xrange(0,nbits):
+                #    if (testBit(temp,i)!=0):
+                #        template=setBit(template,nbits-i-1)
+                        
+                print "int: ",template
+                print "bynary: {0:b}".format(template)
+                #print "bynary:",bin(template)
+
                 nbit=8
+                start=nbits-nbit
                 numtemplate=bitextract(template,start,nbit)
 
                 #                             TEMPLATE NUMBER 1
@@ -188,18 +215,20 @@ class ttn2dballe(object):
                         logging.error("disactivated station: do nothing! %s %s " % numtempla)
                         return
 
+                    print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","sample","host=","rmap.cc","prefix=","test","maintprefix=","test"                    
                     mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
 
                     mytemplate=rmap_core.ttntemplate[numtemplate]
                     for bcode,param in mytemplate.items():
 
-                        start+=nbit
                         nbit=param["nbit"]
+                        start-=nbit
                         bval=bitextract(template,  start, nbit)
                         if (bval != ((1 << nbit) - 1)):
                             #val=(bval+param["offset"])/float(param["scale"])
                             val=bval+param["offset"]
                             datavar={bcode:{"t": dt,"v": val}}
+                            print "datavar=",datavar
                             mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
 
                     mqtt.disconnect()

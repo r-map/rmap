@@ -133,12 +133,12 @@ int send(JsonObject& params, JsonObject& result)
   }
   uint8_t mydata[nbyte];
 
-  size_t i=nbyte-1;
+  size_t i=0;
   for(JsonArray::iterator it=a_mydata.begin(); it!=a_mydata.end(); ++it) {
     // *it contains the JsonVariant which can be casted as usuals
     mydata[i] = it->as<uint8_t>();    
     LOGN(F("payload %d : %d"CR),i,mydata[i]);    
-    i--;
+    i++;
   }
   /*if (mydata == NULL ){
     LOGN(F("no payload present"CR));
