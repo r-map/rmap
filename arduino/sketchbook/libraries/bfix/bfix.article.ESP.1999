@@ -1,0 +1,327 @@
+
+Embedded Systems Programming
+
+A Generic API for Bit Manipulation in C
+
+Richard Hogaboom
+
+July 1, 1999
+
+
+1. Introduction.
+
+  Embedded systems always involve low level manipulation, that is, bit level manipulation - the setting
+or clearing of individual bits or short length bit fields - of memory.  There are several reasons for this.
+Lack of available RAM resources frequently results in bit level manipulation to compress/uncompress data,
+store tabular data efficiently, and implement complex algorithms in as little space as possible.  Often the
+device registers of CPU peripheral chips - Direct Memory Access(DMA), Serial Communications Controller(SCC),
+or Processor Interrupt Controller(PIC) , etc... chips -  are memory mapped into the process address space.
+These registers generally fall into three categories - control, status, and data registers.  A quick glance
+at any chip spec sheet will reveal these registers as of usually 8, 16, or 32 bits length and packed with
+single and multiple bit fields for controlling(WO) the device, obtaining status(RO) from the device, and
+transferring data(RW) to/from the device.  A C program must map variables onto the registers addresses and
+the resulting variables are referred to as volatile because they may have their data changed by the hardware
+rather than by the software.  Embedded systems often interface to devices that receive or transmit binary
+encoded streams that have to be encoded/decoded in memory in real time.  The general desire of embedded
+systems programmers to be close to the action inevitably results in frequent bit picking.  Part of the
+reason for the success of the C language in the embedded arena is its ability to manipulate bit data.  If
+the manipulation involves only device registers, then the native C facilities are not to much trouble.  The
+programmer just makes some macros that shift or mask the appropriate bits to get what he wants.  However,
+if the data involves longer binary encoded records, then this is where the C API runs into a problem.  I
+have, over the years, seen many lengthy complex binary records described with the short or long integer bit
+field definition facilities.  C limits these bit fields to be subfields of integer defined variables.  This
+implies two limitations.  First, that bit fields be no longer, in bits, than the underlying variable, and
+second, that no bit field overlap the underlying variable boundaries.  Complex records are usually composed
+of several contiguous long integers populated with bit subfield definitions.  Compilers are free(ANSI) to
+impose these size and alignment restrictions, and to specify in an implementation-dependent, but predictable,
+way how bit fields are packed into the underlying machine word structure.  Structure memory alignment is
+often not portable but bit field memory is even less so.
+
+2. The bfx()/bfi() API.
+
+   After tiring years of noodling about with the C approach - both my own code and several dark encounters
+with others code - I decided on a simpler API that would be easy to use, would isolate the more machine
+dependent bit picking code inside subroutines, and would make code based on the API more easily updated if
+the underlying machine changed either in instruction set or in the fundamental word length that may be bit
+shifted.  The creative process went something like this.  I said to myself, "Gee, wouldn't it be nice to have
+some routine(s) that would take an unsigned char array of arbitrary length and a bit number location,
+independent of char boundaries, along the array, and insert(extract) a bitfield of specified arbitrary length
+(Err.. Ahh.. Well, almost arbitrary) at that location."  Enter bit field insert, bfi(), and bit field extract,
+bfx() - with their prototypes:  
+
+   Bit field insert:
+      void bfi(unsigned char *cptr, unsigned long bit_offset, unsigned long bit_len, long value);
+
+           cptr       - pointer to unsigned char array
+           bit_offset - bit offset(starting from 1) from the start of the char array
+           bit_len    - bit length of field to insert
+           value      - value to be inserted
+
+
+   Bit field extract:
+      unsigned long bfx(unsigned char *cptr, unsigned long bit_offset, unsigned long bit_len);
+
+           cptr       - pointer to unsigned char array
+           bit_offset - bit offset(starting from 1) from the start of the char array
+           bit_len    - bit length of field to extract
+
+This seemed compellingly simple.  Arbitrary binary records could now be specified in a C type independent and
+underlying type boundary independent way.  I chose to start with bit 1 in order to make the bit numbering
+scheme as intuitive as possible - the first bit is bit 1.  An example of this API usage for inserting and
+extracting from a two byte array follows:
+
+   Insert bit fields:
+      unsigned char cp[2];
+ 
+      bfi(cp, 1, 1, 0);     set bit 1 to 0(b0)
+      bfi(cp, 2, 2, 3);     set bits 2-3 to 3(b11)
+      bfi(cp, 4, 4, 8);     set bits 4-7 to 8(b1000)
+      bfi(cp, 8, 2, 1);     set bits 8-9 to 1(b01)
+      bfi(cp, 10, 3, 0x7);  set bits 10-12 to 7(b111)
+      bfi(cp, 13, 4, 0xf);  set bits 13-16 to 0xf(b1111)
+ 
+      cp[2] will be set to 0x70ff
+ 
+   Extract bit fields:
+ 
+      l1 = bfx(cp, 1, 2);   sets l1 to 1
+      l2 = bfx(cp, 3, 1);   sets l2 to 1
+      l3 = bfx(cp, 4, 6);   sets l3 to 33
+      l4 = bfx(cp, 10, 4);  sets l4 to 15
+      l5 = bfx(cp, 14, 3);  sets l5 to 7
+ 
+3. A Bit of History.
+
+   Mostly, in classic C, one of three techniques are used to manipulate bitfields: a. the structure construct
+with bit fields specified with a post declarator colon and integer field width, b. the << and >> shift operators,
+and c. either single or multiple bit macro defines.  Examples of each follow.
+
+   struct {
+      signed int   bf1: 1;
+      signed int   bf2: 2;
+      unsigned int    : 1;
+      int             : 3;
+      unsigned        : 0;
+      unsigned int bf3:16;
+   } bitfields;
+
+This struct defines how bitfields are normally specified and illustrates the syntactic complexity of C's
+bitfield usage.  Bitfield types may be signed int, unsigned int, or "plain" int.  Unsigned ints are
+straightforward, signed ints are not.  It is implementation-dependent as to weather the >> shift
+operator shifts 0's or 1's in from the left.  For "plain" ints the implementor may use signed, unsigned,
+or "pseudo-signed" (contains only unsigned value but the usual unary conversions apply as if signed).
+Unnamed bitfields may be specified to provide padding between named bitfields.  The contents of the pad
+bits cannot be initialized or used at run time.  Thus, if the structure is to be output, there is no
+control over the value of these bits.  In some cases this is unimportant because the data is to be read
+back into the same structure and pad bits.  In other cases, for binary data, these values may be important.
+Zero length bitfields specify next field machine alignment at the boundary appropriate to its type.  
+This again is machine dependent depending on the natural unit of alignment of that type on that machine.
+The shift operators are sometimes used to isolate bitfields by shifting left and then shifting right to
+zero out unwanted bits and right justify the bits desired, like so:
+
+   (i << 2) >> 4;
+
+which would isolate bits 29-2 right justified in i.  The unwary may be taken in, if i is signed and negative
+(with a 1 bit at bit position 31), by the implementation specified bits, 0's or 1's, shifted in from the left.
+Even more obscurely, the result is undefined if the right operand of a shift is negative or the shift is
+greater than the size in bits of the left operand type.  Macro defines with the wanted bits set to 1's are
+used to declare bit masks to be and'ed with some object variable to zero unwanted bits while leaving the
+mask bits alone.
+
+#define MASK 0x0001fff0
+
+This isolates the necessary field but still requires a right shift to right justify the bitfield if arithmetic
+operation is desired on the bitfield.  Also, the bitfield is limited to the boundaries of the underlying
+object, some fundamental C type, and thus cannot be used to extract some boundary crossing bitfield in an
+arbitrary binary record.  More complicated operations to extract both ends of such a bitfield and put them
+back together are necessary.  This historical limitation of C has resulted in the construction of many
+standards based binary records that have boundaries that are naturally suited to C.  Just look at TCP/IP
+headers, for example.  My point here is not to provide a tutorial on the details and variability of C
+bitfield manipulation, but to illustrate that so much is implementation-dependent or undefined, and that
+considerable effort is expended to manipulate complex binary records.  See "C: A Reference Manual" by
+Harbison and Steele for all the necessary details.
+
+4. Documenting the Process.
+
+   I used integer arguments n the previous example in order to show explicitly the bit offsets and lengths,
+however, in practice I usually use defines for the offsets and bitfield lengths, like so:
+
+   #define LOC_FLD1 1
+   #define LOC_FLD2 2
+
+   #define FLD1_LEN 1
+   #define FLD2_LEN 2
+
+   bfi(cp, LOC_FLD1, FLD1_LEN, 0);
+   bfi(cp, LOC_FLD2, FLD2_LEN, 3);
+
+This allows the definition of a complex binary record to be described entirely by a series of field and length
+defines and for easy visual scanning of these defines to understand the record.  All extracted fields are right
+justified in the returned variable and can thus be arithmetically manipulated directly.
+
+   I often further document the format of the binary records with comments of the form(example from air
+surveillance application):
+
+/*
+ * Msg. Formats:
+ *    ground squitter msg format(bits, with "|" separator at byte boundaries):
+ *    0        1        2        3        4        5        6        7        8        9        10
+ *    dddddccc|aaaaaaaa|aaaaaaaa|aaaaaaaa|tttttmmm|mmmmgggg|gggssill|llllllll|lllllllo|oooooooo|oooooooo
+ *
+ *    d(5)  - downlink format
+ *    c(3)  - capability field
+ *    a(24) - mode s address
+ *    t(5)  - type
+ *    m(7)  - movement
+ *    g(7)  - ground track
+ *    s(2)  - spare
+ *    i(1)  - time(0 for even sec - 1 for odd sec)
+ *    l(17) - latitude
+ *    o(17) - longitude
+ *
+ * Msg. Formats:
+ *    air squitter msg format(bits, with "|" separator at byte boundaries):
+ *    0        1        2        3        4        5        6        7        8        9        10
+ *    dddddccc|aaaaaaaa|aaaaaaaa|aaaaaaaa|tttttssu|aaaaaaaa|aaaapill|llllllll|lllllllo|oooooooo|oooooooo
+ *
+ *    d(5)  - downlink format
+ *    c(3)  - capability field
+ *    a(24) - mode s address
+ *    t(5)  - type
+ *    s(2)  - surveillance/status
+ *    u(1)  - turn indicator
+ *    a(12) - altitude
+ *    p(1)  - spare
+ *    i(1)  - time(0 for even sec - 1 for odd sec)
+ *    l(17) - latitude
+ *    o(17) - longitude
+ */
+
+This shows the detailed format of the binary record in a linear form with byte boundaries delineated by "|"
+separators, the bytes numbered from zero, and the fields described by single letters(with widths) and a short
+verbal description.  When counting along the record for bit locations to use in bfx()/bfi() the byte number
+times eight plus the offset into the byte that starts the field is used.  For these records the bit locations
+would be numbered from 1 to 88, covering the eleven full bytes.  In some cases where there exists excellent
+outside program record documentation and all the record bit manipulation is confined to a single routine then
+I might hard code bit numbers.  This is the case with the rgrib.c and wgrib.c extended examples sited below.
+
+5. An Extended Example.
+
+   I provide two extended more complex examples of the API usage - rgrib.c and wgrib.c.  The full code for
+these is on the Web page.  Listed here are the routines for packing and unpacking the Product Definition Section.
+These examples are based on reading and writing World Meteorological Organization(WMO) GRIB(gridded binary) records.
+These binary records were designed for the most efficient storage and transmission of meteorological related data.
+
+   static int
+pds_unpack(const unsigned char *pdsp, GRIB *grec)
+{
+   if ( bfx(&pdsp[ 0], 1, 24) != pds_sec_len )
+      return 3;
+
+   grec->pds.param_tbl_ver =    bfx(&pdsp[ 3], 1,  8);
+   grec->pds.center_id =        bfx(&pdsp[ 4], 1,  8);
+   grec->pds.gen_pid =          bfx(&pdsp[ 5], 1,  8);
+   grec->pds.grid_id =          bfx(&pdsp[ 6], 1,  8);
+   grec->pds.gds_flag =         bfx(&pdsp[ 7], 1,  1);
+   grec->pds.bms_flag =         bfx(&pdsp[ 7], 2,  1);
+   grec->pds.product =          bfx(&pdsp[ 8], 1,  8);
+   grec->pds.type_level =       bfx(&pdsp[ 9], 1,  8);
+   grec->pds.contents_level =   bfx(&pdsp[10], 1, 16);
+   grec->pds.yr =               bfx(&pdsp[12], 1,  8);
+   grec->pds.mon =              bfx(&pdsp[13], 1,  8);
+   grec->pds.day =              bfx(&pdsp[14], 1,  8);
+   grec->pds.hr =               bfx(&pdsp[15], 1,  8);
+   grec->pds.min =              bfx(&pdsp[16], 1,  8);
+   grec->pds.forecast_unit =    bfx(&pdsp[17], 1,  8);
+   grec->pds.p1 =               bfx(&pdsp[18], 1,  8);
+   grec->pds.p2 =               bfx(&pdsp[19], 1,  8);
+   grec->pds.tim_rng_ind =      bfx(&pdsp[20], 1,  8);
+   grec->pds.num_in_avg =       bfx(&pdsp[21], 1, 16);
+   grec->pds.num_mis_from_avg = bfx(&pdsp[23], 1,  8);
+   grec->pds.century =          bfx(&pdsp[24], 1,  8);
+   grec->pds.subcenter_id =     bfx(&pdsp[25], 1,  8);
+   grec->pds.D =                bfx(&pdsp[26], 1, 16);
+
+   return 0;
+}
+
+   static void
+pds_init(unsigned char *pdsp, GRIB grec)
+{
+   bfi(&pdsp[ 0], 1, 24, (long)pds_sec_len);
+   bfi(&pdsp[ 3], 1,  8, (long)grec.pds.param_tbl_ver);
+   bfi(&pdsp[ 4], 1,  8, (long)grec.pds.center_id);
+   bfi(&pdsp[ 5], 1,  8, (long)grec.pds.gen_pid);
+   bfi(&pdsp[ 6], 1,  8, (long)grec.pds.grid_id);
+   bfi(&pdsp[ 7], 1,  1, (long)grec.pds.gds_flag);
+   bfi(&pdsp[ 7], 2,  1, (long)grec.pds.bms_flag);
+   bfi(&pdsp[ 7], 3,  6, (long)0);
+   bfi(&pdsp[ 8], 1,  8, (long)grec.pds.product);
+   bfi(&pdsp[ 9], 1,  8, (long)grec.pds.type_level);
+   bfi(&pdsp[10], 1, 16, (long)grec.pds.contents_level);
+   bfi(&pdsp[12], 1,  8, (long)grec.pds.yr);
+   bfi(&pdsp[13], 1,  8, (long)grec.pds.mon);
+   bfi(&pdsp[14], 1,  8, (long)grec.pds.day);
+   bfi(&pdsp[15], 1,  8, (long)grec.pds.hr);
+   bfi(&pdsp[16], 1,  8, (long)grec.pds.min);
+   bfi(&pdsp[17], 1,  8, (long)grec.pds.forecast_unit);
+   bfi(&pdsp[18], 1,  8, (long)grec.pds.p1);
+   bfi(&pdsp[19], 1,  8, (long)grec.pds.p2);
+   bfi(&pdsp[20], 1,  8, (long)grec.pds.tim_rng_ind);
+   bfi(&pdsp[21], 1, 16, (long)grec.pds.num_in_avg);
+   bfi(&pdsp[23], 1,  8, (long)grec.pds.num_mis_from_avg);
+   bfi(&pdsp[24], 1,  8, (long)grec.pds.century);
+   bfi(&pdsp[25], 1,  8, (long)grec.pds.subcenter_id);
+   bfi(&pdsp[26], 1, 16, (long)grec.pds.D);
+}
+
+Note in pds_init() the explicit initialization of unused filler fields with zero bits.  Note also the
+addressing of individual bytes of the array because most bitfields are either byte aligned or are
+subfields of bytes.
+
+6. Caveats.
+
+   Now for the caveats.  Normally, no checking for reasonable values of bit_offset or bit_len are done.  An
+excessive value for bit_offset will address beyond the end of the unsigned char array just as any C subscripting
+misuse will do.  The value of bit_len should be from 25 to 32 depending on the value of bit_offset.  The
+routines always use a memmove() of four bytes from the char array to temporary storage in which logical
+operations are performed, and the result being returned to the char array.  This means that a bitfield is
+limited to 32 bits.  However, if the start bit of the bitfield is in the middle of a byte then the bitfield
+can only extend from the rest of the start byte to the end of the next three bytes.  In the worst case of a
+start bit at the end of the start byte then only that bit plus three more bytes(24 bits) can be used, for a
+total of 25 bits.  In most cases this is not a big restriction, since arbitrarily long bitfields are almost
+never encountered in practice.  Bitfields are keyed to be used in the natural short or long words of the
+machine, and these are not larger than a long int type.  In most cases, if a 32 bit bitfield is used, then it
+will almost always be aligned on a byte boundary.  The start bit is then at the start of the first byte
+and a 32 bit bitfield is then not a problem for this API.  If DEBUG is defined then checking is done.  
+Also make sure that the bit_offset+bit_len does not overrun the array or that a value to be inserted is not
+to long to fit into the bitfield, otherwise high order bits will be truncated.  If a value is negative then
+some of the propagated high order sign bits will be truncated.  Lastly, because four bytes are always moved
+into temporary storage, the usage of the last bit of the array will cause three more bytes, beyond the end of
+the char array, to be read and subsequently written back.  Assuming that bit_offset+bit_len is not beyond
+the end of the array, then no bit in that three extra bytes should be changed.  Allocating the unsigned char array
+with three extra bytes will guard against this, however, in practice this is not usually necessary.  I have run
+dbx memory access checking runs that do indeed uncover accesses in violation, but never with any consequence to
+program operation.  
+
+7. Test and 64 Bit Machines.
+
+   If all goes well then exactly bit_len bits will be set and no bit outside the bit field will be changed.  A
+simple test program that implements the series of bitfield insertions and extractions given above is provided.
+This code provides a three byte zeroed overrun guard that is printed out to demonstrate that these bits have
+not been modified.  I have tested this code on a little endian Intel machine as well as on the development big
+endian Sun platform and found it to operate correctly.  I have also run code that uses the GRIB file reader and
+writer under dbx with memory access checking enabled and found that, indeed, the three byte overrun produces
+violations, but in all cases this was harmless.  Adding guard bytes to the unsigned char record eliminated the
+dbx violations.  As 64 bit machines and operating systems become more prevalent it will be possible to extend
+the length of the allowable bitfields to from 57 to 64 bits because of the available underlying machine word of
+64 bits that logical operations may be performed on.
+
+References:
+
+1. C: A Reference Manual, Samuel P. Harbison and Guy L. Steele Jr., Prentice Hall, 1995.
+
+2. Office Note 388, GRIB(Edition 1), The WMO Format for the Storage of Weather Product Information and
+   The Exchange of Weather Product messages in Gridded Binary Form as used by NCEP Central Operations,
+   Clifford D. Dey, 1998.
+

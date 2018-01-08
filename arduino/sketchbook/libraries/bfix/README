@@ -1,0 +1,14 @@
+
+1. use lscpu to determine 32/64 bit machine and big or little endian
+
+2. two libraries are built, a static and a shared dynamic, the test code uses the static library
+
+3. the LLVM 4.0.0 scan-build program is used for static analysis
+
+4. email ricahrd.hogaboom@gmail.com about bugs/caveats/suggestions/observations
+
+5. since bit_offset is unsigned long it cannot have negative values - however no
+   check for too large is done
+
+6. in the build script adjust the CC variable to change the compiler - clang/gcc/clang++/g++
+
