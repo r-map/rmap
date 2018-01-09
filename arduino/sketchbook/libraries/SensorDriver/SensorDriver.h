@@ -51,6 +51,7 @@ class SensorDriver
     //virtual int mgroneshot(unsigned long timing);
     virtual int prepare(unsigned long& waittime) = 0;
     virtual int get(long values[],size_t lenvalues) = 0;
+    virtual int getdata(unsigned long& data,unsigned short& width);
 #if defined(USEAJSON)
    virtual aJsonObject* getJson() = 0;
 #endif
@@ -97,6 +98,7 @@ class SensorDriverTmp : public SensorDriver
 );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
     #if defined(USEAJSON)
     virtual aJsonObject* getJson();
     #endif
@@ -121,7 +123,7 @@ class SensorDriverTmp : public SensorDriver
 
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-    int getdata(unsigned long data,unsigned short width);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -143,6 +145,7 @@ class SensorDriverTmp : public SensorDriver
 );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -167,7 +170,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
-    int getdata(unsigned long data,unsigned short width);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -192,6 +195,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -238,6 +242,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -280,6 +285,7 @@ class SensorDriverTmp : public SensorDriver
      );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -306,6 +312,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -332,6 +339,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -358,6 +366,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -380,6 +389,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -402,6 +412,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -423,6 +434,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -450,6 +462,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -465,6 +478,7 @@ class SensorDriverTmp : public SensorDriver
    virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
     virtual ~SensorDriverSDS011oneshotSerial();
 
 #if defined(USEAJSON)
@@ -498,6 +512,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -520,6 +535,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -542,6 +558,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -563,6 +580,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -590,6 +608,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -616,6 +635,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -638,6 +658,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -660,6 +681,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -681,6 +703,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
@@ -723,6 +746,7 @@ class SensorDriverTmp : public SensorDriver
 		     );
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
+    virtual int getdata(unsigned long& data,unsigned short& width);
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif

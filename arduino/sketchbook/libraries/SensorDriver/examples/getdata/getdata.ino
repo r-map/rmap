@@ -104,11 +104,11 @@ void setup()
 
 
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"SSD");
-  sensors[0].address=I2C_SDSMICS_DEFAULTADDRESS;
+  strcpy(sensors[0].type,"ADT");
+  sensors[0].address=73;
 
   // start up the serial interface
-  Serial.begin(9600);
+  Serial.begin(19200);
   Serial.println("started");
 
   // start up the i2c interface
@@ -163,20 +163,20 @@ void loop()
 
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
-
+      
       /*
-
       // get integers values 
 #define LENVALUES 2
       long values[LENVALUES];
       size_t lenvalues=LENVALUES;
 
       for (int ii = 0; ii < lenvalues; ii++) {
-	values[ii]=4294967296;
+	values[ii]=0xFFFFFFFF;
       }
 
       if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
 	for (int ii = 0; ii < lenvalues; ii++) {
+	  Serial.print(F("value: "));
 	  Serial.println(values[ii]);
 	}
       }else{
@@ -184,6 +184,20 @@ void loop()
       }
       */
 
+      unsigned long data;
+      unsigned short width;
+      if (sd[i]->getdata(data,width) == SD_SUCCESS){
+	Serial.print(F("value: "));
+	Serial.println(data);
+	Serial.print(F("  width: "));
+	Serial.println(width);
+      }else{
+	Serial.println("Error");
+      }
+
+
+      
+      /*
       // get values in json format
       aj=sd[i]->getJson();
       json=aJson.print(aj,50);
@@ -192,6 +206,7 @@ void loop()
       Serial.println(json);
       free(json);
       aJson.deleteItem(aj);
+      */
     }
   }
 

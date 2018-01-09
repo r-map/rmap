@@ -14,10 +14,10 @@
 #define MAXDELAYFORREAD 60000
 
 // use ajson library for json response
-//#define USEAJSON
+#define USEAJSON
 
 // use aarduinojson library for json response
-#define USEARDUINOJSON
+//#define USEARDUINOJSON
 
 // use RF24Network library for radio transport
 //#define RADIORF24
@@ -60,7 +60,7 @@
 //#define TEMPERATUREHUMIDITY_REPORT
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
-#define SDS011_ONESHOT
+//#define SDS011_ONESHOT
 #define SDS_PIN_RX D1
 #define SDS_PIN_TX D2
 #define SDSSAMPLES 3

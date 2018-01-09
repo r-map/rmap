@@ -47,6 +47,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *******************************************************************************/
 
+#define SAMPLETIME 30
+
 #include <lmic.h>
 #include <hal/hal.h>
 #include <SPI.h>
@@ -57,6 +59,52 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
+#include <Time.h>
+#include <TimeAlarms.h>
+
+#include <Wire.h>
+#include <SensorDriver.h>
+#define SENSORS_LEN 2
+//#include <BitBool.h>
+#include <bfix.h>
+
+struct sensor_t
+{
+  char driver[5];         // driver name
+  char type[5];         // driver name
+  int address;            // i2c address
+} sensors[SENSORS_LEN];
+
+
+/*
+struct bittemplate_t
+{
+  BitBool<32> bits;
+};
+*/
+
+ /*
+struct dtemplate1_t
+{
+  uint8_t templaten;
+  uint8_t data[3];
+};
+
+struct dtemplate2_t
+{
+  uint8_t templaten;
+  uint8_t data[5];
+};
+  
+union {
+  //  bittemplate_t bittemplate;
+  dtemplate1_t dtemplate1;
+  dtemplate2_t dtemplate2;  
+} dtemplate;
+ */
+
+SensorDriver* sd[SENSORS_LEN];
+
 
 // initialize an instance of the JsonRPC library for registering 
 JsonRPC rpcserver(false ); //standard protocol
@@ -112,7 +160,6 @@ struct config_t               // configuration to save and load fron eeprom
 
 ev_t event;
 int sendstatus;
-unsigned long jointime;
 
 void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
 void os_getDevEui (u1_t* buf) { memcpy(buf, configuration.deveui, 8);}
@@ -354,6 +401,88 @@ void mgr_serial(){
   }
 }
 
+void mgr_sensors(){
+
+  long unsigned int waittime,maxwaittime=0;
+
+  LOGN(F("mgr_sensors"CR));
+  
+  // prepare sensors to measure
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == NULL){
+      if (sd[i]->prepare(waittime) == SD_SUCCESS){
+	maxwaittime=max(maxwaittime,waittime);
+      }else{
+	Serial.print(sensors[i].driver);
+	Serial.println(": prepare failed !");
+      }
+    }
+  }
+
+  //wait sensors to go ready
+  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+  delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
+
+  unsigned long data;
+  unsigned short width;
+
+  /*
+  unsigned short  mytemplate=1;
+  auto &b_mytemplate = toBitBool( mytemplate );
+
+  BitBool<32> bits;
+  for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
+      bits[ i_Index ] = b_mytemplate[ i_Index ];
+
+  
+  //for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
+  //    dtemplate.bittemplate[ i_Index ] = b_mytemplate[ i_Index ];
+  */
+  /*
+  dtemplate.dtemplate1.templaten=1;
+  dtemplate.dtemplate1.data[0]=1;
+  dtemplate.dtemplate1.data[1]=2;
+  dtemplate.dtemplate1.data[2]=3;
+  LOGN(F("-> %B"),dtemplate.dtemplate1.templaten);	
+  LOGN(F("-> %B"CR),dtemplate.dtemplate1.data);	
+  */
+
+  size_t nbyte=4;
+  unsigned char dtemplate[nbyte];
+  unsigned long bit_offset=1;
+  unsigned long bit_len=8;
+  bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
+  bit_offset+=bit_len;
+    
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == NULL){
+
+      // get  values 
+
+      if (sd[i]->getdata(data,width) == SD_SUCCESS){
+	LOGN(F("%d OK"CR),i);	
+	LOGN(F("%d data: %B"CR),i,data);	
+	//Serial.println(width);
+
+	bit_len=width;
+	bfi(dtemplate, bit_offset, bit_len, data,2); // template number
+	bit_offset+=bit_len;
+	
+      }else{
+	LOGN(F("Error"CR));	
+      }      
+    }
+  }
+
+  for (int i = 0; i < nbyte; i++) {
+    LOGN(F("template: %B"CR),dtemplate[i]);	
+  }    
+
+  do_send(dtemplate,nbyte);
+
+  
+}
+
 void setup() 
 {
 
@@ -366,6 +495,8 @@ void setup()
   */
   wdt_disable();
   wdt_enable(WDTO_8S);
+
+
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -413,6 +544,38 @@ void setup()
        ,configuration.appkey[13]
        ,configuration.appkey[14]
        ,configuration.appkey[15]);
+
+
+  // start up the i2c interface
+  Wire.begin();
+
+  // set the frequency 
+#define I2C_CLOCK 50000
+
+  //set the i2c clock 
+  TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+
+  setTime(12,0,0,1,1,17); // set time to 12:00:00am Jan 1 2017
+
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"ADT");
+  sensors[0].address=73;
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"HIH");
+  sensors[1].address=39;
+  
+  for (int i = 0; i < SENSORS_LEN; i++) {
+
+    sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
+    if (sd[i] == NULL){
+      Serial.print(sensors[i].driver);
+      Serial.println(": driver not created !");
+    }else{
+      Serial.print(sensors[i].driver);
+      Serial.println(": driver created");
+      sd[i]->setup(sensors[i].driver,sensors[i].address);
+    }
+  }
   
   // register the local method
   rpcserver.registerMethod("send",      &send);
@@ -427,15 +590,24 @@ void setup()
   //LMIC_setDrTxpow(DR_SF12, 14);
   LMIC_setAdrMode(1);
   LMIC_startJoining();
-  jointime=millis();
+
+  // query and send data
+  Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
+
+  // millis() and other can have overflow problem
+  // so we reset everythings one time a week
+  //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
+
+  // upgrade LMIC
+  Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
+
+  LOGN(F("End setup"CR));
+  
 }
 
 void loop() {
   wdt_reset();
   mgr_serial();
   os_runloop_once();
-  if((millis())-jointime > 3600000){
-    LMIC_tryRejoin ();
-    jointime=millis();
-  }
+  Alarm.delay(0);
 }
