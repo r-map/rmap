@@ -51,7 +51,7 @@ bfi
         unsigned long bit_offset,
         unsigned long bit_len,
         long value,
-        unsigned int endian
+        unsigned short endian
     );
 
     long
@@ -60,7 +60,7 @@ bfx
         const unsigned char *cptr,
         unsigned long bit_offset,
         unsigned long bit_len,
-        unsigned int endian
+        unsigned short endian
     );
 
 #endif /* BFIX_HPP */

@@ -47,7 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *******************************************************************************/
 
-#define SAMPLETIME 30
+#define SAMPLETIME 60
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -426,30 +426,12 @@ void mgr_sensors(){
   unsigned long data;
   unsigned short width;
 
-  /*
-  unsigned short  mytemplate=1;
-  auto &b_mytemplate = toBitBool( mytemplate );
-
-  BitBool<32> bits;
-  for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
-      bits[ i_Index ] = b_mytemplate[ i_Index ];
-
-  
-  //for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
-  //    dtemplate.bittemplate[ i_Index ] = b_mytemplate[ i_Index ];
-  */
-  /*
-  dtemplate.dtemplate1.templaten=1;
-  dtemplate.dtemplate1.data[0]=1;
-  dtemplate.dtemplate1.data[1]=2;
-  dtemplate.dtemplate1.data[2]=3;
-  LOGN(F("-> %B"),dtemplate.dtemplate1.templaten);	
-  LOGN(F("-> %B"CR),dtemplate.dtemplate1.data);	
-  */
-
+  // inizialize template
   size_t nbyte=4;
   unsigned char dtemplate[nbyte];
-  unsigned long bit_offset=1;
+
+  // set template number
+  unsigned long bit_offset=1; // bfix library start from 1, not 0
   unsigned long bit_len=8;
   bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
   bit_offset+=bit_len;
@@ -461,8 +443,7 @@ void mgr_sensors(){
 
       if (sd[i]->getdata(data,width) == SD_SUCCESS){
 	LOGN(F("%d OK"CR),i);	
-	LOGN(F("%d data: %B"CR),i,data);	
-	//Serial.println(width);
+	LOGN(F("%d data: %B"CR),i,data);
 
 	bit_len=width;
 	bfi(dtemplate, bit_offset, bit_len, data,2); // template number
@@ -480,6 +461,25 @@ void mgr_sensors(){
 
   do_send(dtemplate,nbyte);
 
+  if (sendstatus != 1 ){
+    LOGE(F("no packet send"CR));
+  }
+
+  unsigned long starttime=millis();
+  while((millis())-starttime < 30000){
+
+    wdt_reset();
+    os_runloop_once();
+    
+    if (event == EV_TXCOMPLETE){
+      if (LMIC.txrxFlags & TXRX_ACK)
+	LOGN(F("txrxFlags = TXRX_ACK"CR));
+      if (LMIC.dataLen) {
+	LOGN(F("payload len = %d"), LMIC.dataLen);
+	break;
+      }
+    }
+  }
   
 }
 
