@@ -20,7 +20,7 @@
 
 // define the version of the configuration saved on eeprom
 // if you chenge this the board start with default configuration at boot
-#define CONFVER "confsd01"
+#define CONFVER "confsd02"
 
 #define SDS011PRESENT 1
 #define MICS4514PRESENT 1

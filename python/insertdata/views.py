@@ -23,6 +23,7 @@ from nominatim import Nominatim
 from django.contrib.sites.shortcuts import get_current_site
 from django.utils.text import slugify
 #from rmap.rmap_core import isRainboInstance
+import rmap.rmap_core
 
 lang="it"
 
@@ -135,9 +136,14 @@ class NewStationForm(forms.ModelForm):
 
     #geom = PointField()
 
+    CHOICES = []
+    for tem in rmap.rmap_core.template_choices: 
+        CHOICES.append((tem,tem))
+    
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     name= forms.CharField(required=True,label=_("New station name"),help_text=_('The name of the station to insert'))
-
+    template=forms.ChoiceField(choices=CHOICES,required=True,label=_("station model"),help_text=_('The model of the station to insert'),initial="none")
+    
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
@@ -251,7 +257,6 @@ def insertDataImage(request):
                 user=rmap.settings.amqpuser
                 password=rmap.settings.amqppassword
 
-                import rmap.rmap_core
                 rmap.rmap_core.send2amqp(body=body,
                                          user=user,
                                          password=password,
@@ -511,26 +516,51 @@ def insertNewStation(request):
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
             ident=request.user.username
-
             name=newstationform.cleaned_data['name']
-
+            slug=slugify(name)
+            board_slug="default"
+            template=newstationform.cleaned_data['template']
+            
             if name:
                 try:
+                    try:
+                        print "del station:", ident,slug,ident
+                        mystation=StationMetadata.objects.get(slug__exact=slug,ident__username=ident)
+                        mystation.delete()
+                    except Exception as e:
+                        print e
+                    
                     print "new station:", name,ident,lon,lat
 
-                    mystation=StationMetadata(slug=slugify(name),name=name)
+                    mystation=StationMetadata(slug=slug,name=name)
                     user=User.objects.get(username=ident)
                     mystation.ident=user
-                    mystation.lat=lat
-                    mystation.lon=lon
+                    mystation.lat=rmap.rmap_core.truncate(lat,5)
+                    mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
 
+                    mystation.clean()
                     mystation.save()
 
-                except:
+                    rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
+                                 ,serialactivate=False
+                                 ,mqttactivate=True, mqttserver="rmap.cc", mqttusername=ident, mqttpassword="fakepassword", mqttsamplerate=30
+                                 ,bluetoothactivate=False, bluetoothname="HC-05"
+                                ,amqpactivate=False, amqpusername="rmap", amqppassword="fakepassword", amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+                                 ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
+                    )
+                    
+                    rmap.rmap_core.addsensors_by_template(
+                        station_slug=slug
+                        ,username=ident
+                        ,board_slug=board_slug
+                        ,template=template)
+                    
+                except Exception as e:
+                    print e
                     return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True})
 
-            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
+            return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"station":mystation})
 
         else:
 

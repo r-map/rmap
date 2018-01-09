@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <SensorDriver.h>
 
-#define SENSORS_LEN 1
+#define SENSORS_LEN 2
 
 struct sensor_t
 {
@@ -20,6 +20,10 @@ void setup()
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"SMI");
   sensors[0].address=I2C_SDSMICS_DEFAULTADDRESS;
+
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"SSD");
+  sensors[1].address=I2C_SDSMICS_DEFAULTADDRESS;
 
   // start up the serial interface
   Serial.begin(9600);
@@ -70,7 +74,7 @@ void loop()
   }
 
   //wait sensors to go ready
-  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+  Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
   delay(maxwaittime);
 
   for (int i = 0; i < SENSORS_LEN; i++) {

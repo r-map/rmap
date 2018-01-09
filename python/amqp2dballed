@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -102,7 +102,7 @@ class Threaded_bufr2dballe(threading.Thread):
                     totalbody += message.body
             
                 try:
-                    amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+self.dsn], stdin=subprocess.PIPE)]
+                    amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--rejected","/dev/null", "--dsn="+self.dsn], stdin=subprocess.PIPE)]
                     outstdout,outstderr=amqp2dballed.procs[0].communicate(input=totalbody)
 
                     if (outstdout): logging.debug(outstdout)

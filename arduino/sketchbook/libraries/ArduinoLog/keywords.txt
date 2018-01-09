@@ -1,0 +1,42 @@
+#######################################
+# Syntax Coloring Map ArduinoLog library
+#######################################
+
+#######################################
+#	Instances	(KEYWORD1)
+#######################################
+Logging	KEYWORD1	Logging library
+Log	    KEYWORD1	Logging library
+#######################################
+#	Datatypes	(KEYWORD1)
+#######################################
+
+#######################################
+#	Methods	and	Functions	(KEYWORD2)
+####################################### 
+fatal	KEYWORD2	fatal error output
+error	KEYWORD2	error output
+warning	KEYWORD2	warning output
+notice	KEYWORD2	info output
+trace 	KEYWORD2	trace output
+verbose	KEYWORD2	verbose output
+begin	KEYWORD2	initialize library
+setPrefix	KEYWORD2	set prefix function
+setSuffix	KEYWORD2	set suffix function
+
+#######################################
+#	Instances	(KEYWORD2)
+#######################################
+Logging	KEYWORD2	Logging library
+
+#######################################
+#	Constants	(LITERAL1)
+#######################################
+LOG_LEVEL_SILENT	LITERAL1	Constants
+LOG_LEVEL_FATAL	LITERAL1	Constants
+LOG_LEVEL_ERROR	LITERAL1	Constants
+LOG_LEVEL_WARNING	LITERAL1	Constants
+LOG_LEVEL_NOTICE	LITERAL1	Constants
+LOG_LEVEL_TRACE	LITERAL1	Constants
+LOG_LEVEL_VERBOSE	LITERAL1	Constants
+

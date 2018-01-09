@@ -1,8 +1,8 @@
 # These can be overridden in platform.local.txt
-compiler.c.extra_flags=
+compiler.c.extra_flags= -std=c11
 compiler.c.elf.extra_flags=
 compiler.S.extra_flags=
-compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=192 -DSERIAL_RX_BUFFER_SIZE=192 -fno-strict-aliasing
+compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=192 -DSERIAL_RX_BUFFER_SIZE=192 -fno-strict-aliasing  -std=c++11
 compiler.ar.extra_flags=
 compiler.objcopy.eep.extra_flags=
 compiler.elf2hex.extra_flags=

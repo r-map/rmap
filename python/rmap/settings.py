@@ -47,6 +47,7 @@ configspec['django']['STATIC_ROOT'] = "string(default='%s/static/')" % os.getcwd
 configspec['django']['MEDIA_PREFIX']="string(default='/media/')"
 configspec['django']['MEDIA_SITE_PREFIX']="string(default='/media/sito/')"
 configspec['django']['SERVE_STATIC']="boolean(default=True)"
+configspec['django']['CACHE_LOCATION']="string(default='%s/cache/')" % os.getcwd()
 
 
 configspec['daemon']={}
@@ -82,6 +83,7 @@ configspec['database']['DATABASE_HOST']="string(default='localhost')"
 configspec['database']['DATABASE_PORT']="integer(default=3306)"
 configspec['database']['DATABASE_ENGINE']="string(default='sqlite3')"
 configspec['database']['DATABASE_NAME']="string(default='%s/rmap.sqlite3')" % os.getcwd()
+configspec['database']['DEBUG_BORINUD_SOURCES']="boolean(default=True)"
 
 
 configspec['stationd']={}
@@ -105,6 +107,17 @@ configspec['mqtt2graphited']['lockfile'] = "string(default='/tmp/mqtt2graphited.
 configspec['mqtt2graphited']['user']     = "string(default=None)"
 configspec['mqtt2graphited']['group']    = "string(default=None)"
 configspec['mqtt2graphited']['mapfile'] = "string(default='map')"
+
+
+configspec['ttn2dballed']={}
+
+configspec['ttn2dballed']['logfile']  = "string(default='/tmp/ttn2dballed.log')"
+configspec['ttn2dballed']['errfile']  = "string(default='/tmp/ttn2dballed.err')"
+configspec['ttn2dballed']['lockfile'] = "string(default='/tmp/ttn2dballed.lock')"
+configspec['ttn2dballed']['user']     = "string(default=None)"
+configspec['ttn2dballed']['group']    = "string(default=None)"
+configspec['ttn2dballed']['mapfile'] = "string(default='ttnmap')"
+
 
 configspec['amqp2dballed']={}
 configspec['amqp2dballed']['logfile']  = "string(default='/tmp/amqp2dballed.log')"
@@ -245,6 +258,7 @@ MEDIA_SITE_PREFIX       = config['django']['MEDIA_SITE_PREFIX']
 SERVE_STATIC            = config['django']['SERVE_STATIC']
 MEDIA_URL               = "media/"
 SITE_MEDIA_URL          = BASE_URL+MEDIA_SITE_PREFIX
+CACHE_LOCATION          = config['django']['CACHE_LOCATION']
 
 
 # section daemon
@@ -341,6 +355,7 @@ exchangecomposereportd             = config['composereportd']['exchange']
 
 
 # section database
+DEBUG_BORINUD_SOURCES   = config['database']['DEBUG_BORINUD_SOURCES']
 DATABASE_USER     = config['database']['DATABASE_USER']
 DATABASE_PASSWORD = config['database']['DATABASE_PASSWORD']
 DATABASE_HOST     = config['database']['DATABASE_HOST']
@@ -367,13 +382,21 @@ usermqtt2graphited                 = config['mqtt2graphited']['user']
 groupmqtt2graphited                = config['mqtt2graphited']['group']
 mapfilemqtt2graphited              = config['mqtt2graphited']['mapfile']
 
+# section ttn2dballed
+logfilettn2dballed              = config['ttn2dballed']['logfile']
+errfilettn2dballed              = config['ttn2dballed']['errfile']
+lockfilettn2dballed             = config['ttn2dballed']['lockfile']
+userttn2dballed                 = config['ttn2dballed']['user']
+groupttn2dballed                = config['ttn2dballed']['group']
+mapfilettn2dballed              = config['ttn2dballed']['mapfile']
+
 
 
 #######               graphite settings
 
 from os.path import abspath, dirname, join
 
-WEBAPP_VERSION="rmap "+__version__ + " + graphite git 01/01/2017"
+WEBAPP_VERSION="rmap "+__version__ + " + graphite 1.1.1"
 JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%m/%d'
 WEB_DIR = dirname( abspath(__file__) )
@@ -424,10 +447,29 @@ CARBONLINK_HASHING_TYPE = 'carbon_ch'
 CARBONLINK_RETRY_DELAY = 15
 REPLICATION_FACTOR = 1
 STANDARD_DIRS = []
+LOG_FILE_INFO='graphite_info.log'
+LOG_FILE_EXCEPTION='graphite_exception.log'
+LOG_FILE_CACHE='graphite_cache.log'
+LOG_FILE_RENDERING='graphite_rendering.log'
+LOG_DIR='/tmp/'
+TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
+FUNCTION_PLUGINS = []
+REMOTE_STORE_FORWARD_HEADERS = []
+DEFAULT_XFILES_FACTOR = 0
+REMOTE_FETCH_TIMEOUT = 180.0
+USE_WORKER_POOL = True
+POOL_MAX_WORKERS = 10
+METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
+METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
+REMOTE_FIND_TIMEOUT = 180.0
+
 # Cluster settings
 CLUSTER_SERVERS = []
 URL_PREFIX = ''
-DEFAULT_CACHE_POLICY = []
+DEFAULT_CACHE_POLICY = [(0, 60), # default is 60 seconds
+                        (86400, 900), # >= 1 day queries are cached 15 minutes
+                        (86400*3, 3600)] # >= 3 day queries are cached 60 minutes
+
 #Remote rendering settings
 REMOTE_RENDERING = False #if True, rendering is delegated to RENDERING_HOSTS
 RENDERING_HOSTS = []
@@ -450,6 +492,8 @@ if not WHITELIST_FILE:
 if not INDEX_FILE:
   INDEX_FILE = join(STORAGE_DIR, 'index')
 
+USE_TZ = True
+  
 ###  end graphite settings
 
 
@@ -503,6 +547,14 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
+]
+
+if DEBUG:
+    MIDDLEWARE_CLASSES += [
+        'rmap.stations.middleware.ProfileMiddleware',
+    ]
+
+MIDDLEWARE_CLASSES += [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'django.middleware.doc.XViewMiddleware',
@@ -547,6 +599,7 @@ INSTALLED_APPS = [
     'rmap.doc',
     'rmap',
     'rmap.stations',
+    'rmap.network',
     'registration',
 ]
 
@@ -597,13 +650,21 @@ SERIALIZATION_MODULES = {
 #    }
 #}
 
-if not android :
-    CACHES = {
-        'default': {
-            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-            'LOCATION': '/var/tmp/django_cache',
-        }
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
+}
+
+if not android :
+    if not DEBUG:
+        CACHES = {
+            'default': {
+                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+                'LOCATION': CACHE_LOCATION,
+            }
+        }
 
 
 sample_measurements=[
@@ -811,9 +872,24 @@ report_measurements=[
         "trange": (0, 0, 900),
     },
     {
+        "var": "B15198",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 86400),
+    },
+    {
         "var": "B15195",
         "level": (103, 2000, None, None),
         "trange": (0, 0, 900),
+    },
+    {
+        "var": "B15195",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 86400),
+    },
+    {
+        "var": "B15193",
+        "level": (103, 2000, None, None),
+        "trange": (0, 0, 3600),
     },
     {
         "var": "B20003",
@@ -862,6 +938,11 @@ BORINUD =\
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
+                      "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
+                      "measurements": report_measurements
+                  },        
+                  {
+                      "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://rmap.cc:8090/dataset/report_fixed",
                       "measurements": report_measurements
                   },
@@ -894,6 +975,11 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+                       "measurements": report_measurements
+                   },        
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
                        "measurements": report_measurements
                    },        
                    {
@@ -942,6 +1028,11 @@ BORINUD =\
                        "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
                        "measurements": sample_measurements
                    },
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
+                       "measurements": sample_measurements
+                   },
                ],
                "CACHED_SUMMARY": "default",
                "CACHED_SUMMARY_TIMEOUT": 60*15,
@@ -956,6 +1047,11 @@ BORINUD =\
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
+                       "measurements": sample_measurements
+                   },
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
                        "measurements": sample_measurements
                    },
                ],
@@ -981,7 +1077,7 @@ BORINUD =\
           }
 
 
-if DEBUG:
+if DEBUG_BORINUD_SOURCES:
     BORINUD =\
               {
                   "report":
@@ -1121,6 +1217,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
         {"import": 'contacts',                         "apps": ('contacts'   ,)},        
+        {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
     )
 
     # Set up each optional app if available.
@@ -1137,7 +1234,7 @@ if LOAD_OPTIONAL_APPS:
                 print "import error: ", app["import"]
                 print "disable     : ", app.get("apps", ())
             else:
-                print "enable      : ", app.get("apps", ())
+                #print "enable      : ", app.get("apps", ())
                 INSTALLED_APPS += app.get("apps", ())
                 for ind,middleware in app.get("middleware", ()):
                     MIDDLEWARE_CLASSES.insert(ind,middleware)

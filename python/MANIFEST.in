@@ -6,6 +6,7 @@ include TODO
 include *.txt
 include rmap.spec
 include map
+include ttnmap
 include main.py
 global-include  *.txt *.py *.sh *.in *.cfg *.json *.conf
 recursive-include doc *

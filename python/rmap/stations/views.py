@@ -4,6 +4,8 @@ from models import StationMetadata
 from django.shortcuts import render
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from rmap import rmap_core
 
 class StationList(ListView):
     model = StationMetadata
@@ -52,12 +54,14 @@ def mystationmetadata_del(request,ident,slug):
 
 def mystationmetadata_list(request,ident):
     mystations=StationMetadata.objects.filter(ident__username=ident)
-    return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations})
+    return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations,"ident":ident})
 
 def mystationmetadata_detail(request,ident,slug):
     mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
     return render(request, 'stations/stationmetadata_detail.html',{"object":mystation})
 
+def mystationmetadata_json(request,ident,slug):
+    return HttpResponse(rmap_core.dumpstation(slug,ident), content_type="application/json")
 
 def StationsOnMap(request,ident=None,slug=None):
     if ident is None:

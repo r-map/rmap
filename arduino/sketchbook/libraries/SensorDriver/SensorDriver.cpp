@@ -1,4 +1,3 @@
-#include "Wire.h"      // Wire (I2C) defines
 #include "SensorDriver.h"
 
 //void SensorDriverInit()
@@ -123,15 +122,24 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #endif
 	
 	return NULL;
-    } else {
+    } else
 
 #if defined (RADIORF24)
-  if (strcmp(driver, "RF24") == 0)
-    return new SensorDriverRF24();
-  else 
+    if (strcmp(driver, "RF24") == 0){
+      return new SensorDriverRF24();
+    } else
 #endif
-    return NULL;
-  }
+
+#if defined (SDS011_ONESHOT)
+    if (strcmp(driver, "SERI") == 0){
+      if (strcmp(type, "SSD") == 0) {
+	return new SensorDriverSDS011oneshotSerial();
+      }
+    } else
+#endif
+    {
+      return NULL;
+    }
 }
 SensorDriver::~SensorDriver() {}
 
@@ -284,6 +292,12 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
   #if defined(USEAJSON)
 aJsonObject* SensorDriverTmp::getJson()
 {
@@ -385,6 +399,27 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
+{
+  /*
+    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
+    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
+    data width (bits): The number of bits the element requires for representation in data
+  */
+
+  long values[1];
+  width=16;
+  const long reference=22315;
+  
+  if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
+    data=(values[0]-reference) ;// << (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+}
+
   #if defined(USEAJSON)
 aJsonObject* SensorDriverAdt7420::getJson()
 {
@@ -405,6 +440,29 @@ aJsonObject* SensorDriverAdt7420::getJson()
   return jsonvalues;
 }
   #endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverAdt7420::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[1];
+  StaticJsonBuffer<100> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,1) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B12101"]= values[0];      
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B12101"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
 #endif
 
 #if defined (RADIORF24)
@@ -564,7 +622,7 @@ aJsonObject* SensorDriverRF24::getJson()
     return jsonvalues; 
   }
   
-  IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... getjson")));
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... getJson")));
   
   // example calling rpc:
   // {"jsonrpc": "2.0", "method": "getjson", "params": {"driver":"TMP","type":"TMP","address": 72}, "id": 0}
@@ -763,6 +821,27 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
+{
+  /*
+    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
+    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
+    data width (bits): The number of bits the element requires for representation in data
+  */
+  
+  long values[1];
+  width=7;
+  const long reference=0;
+  
+  if (SensorDriverHih6100::get(values,1) == SD_SUCCESS){
+    data=(values[0]-reference);// << (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHih6100::getJson()
 {
@@ -786,6 +865,39 @@ aJsonObject* SensorDriverHih6100::getJson()
 #endif
   }
   return jsonvalues;
+}
+#endif
+#if defined(USEARDUINOJSON)
+int SensorDriverHih6100::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[1];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,1) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B13003"]= values[0];      
+    }else{
+      jsonvalues["B13003"]=RawJson("null");
+    }
+#if defined(SECONDARYPARAMETER)
+    // if you have a second value add here
+    if (values[1] >= 0){
+      jsonvalues["B12101"]= values[1];      
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+#endif    
+  }else{
+    jsonvalues["B13003"]=RawJson("null");
+#if defined(SECONDARYPARAMETER)
+    // if you have a second value add here
+    jsonvalues["B12101"]=RawJson("null");
+#endif
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
 }
 #endif
 #endif
@@ -847,6 +959,12 @@ int SensorDriverHyt271::get(long values[], size_t lenvalues) {
 	
 	_timing = 0;
 	return SD_SUCCESS;
+}
+
+int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -1174,6 +1292,12 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverBmp085::getJson()
 {
@@ -1281,6 +1405,11 @@ int SensorDriverSI7021::get(long values[],size_t lenvalues)
   _timing=0;
   return SD_SUCCESS;
 
+}
+int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -1416,6 +1545,12 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
   #if defined(USEAJSON)
 aJsonObject* SensorDriverDw1::getJson()
 {
@@ -1522,6 +1657,13 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
   return SD_SUCCESS;
 
 }
+
+int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTbr::getJson()
@@ -1649,6 +1791,11 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -1847,6 +1994,12 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTH60mean::getJson()
 {
@@ -2040,6 +2193,12 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -2240,6 +2399,12 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmin::getJson()
 {
@@ -2433,6 +2598,12 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmax::getJson()
 {
@@ -2542,7 +2713,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
     SDSMICSstarted=false;
-    delay(10);
+    delay(100);
   }
 
   // get pm25
@@ -2587,6 +2758,12 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011oneshot::getJson()
 {
@@ -2614,6 +2791,219 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
   return jsonvalues;
 }
 #endif
+#if defined(USEARDUINOJSON)
+int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if (values[1] >= 0){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+
+// serial driver for SDS011
+
+/*
+SensorDriverSDS011oneshotSerial::SensorDriverSDS011oneshotSerial(){
+  //sdsSerial= new SoftwareSerial(2,3, false, 128);
+  _sds011 = new sds011::Sds011(*sdsSerial);
+  }
+*/
+
+int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  bool oneshot=true;
+
+  _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
+  _sdsSerial->begin(9600);
+  _sds011 = new sds011::Sds011(*_sdsSerial);
+
+   
+  /*
+  switch (address)
+    {
+    case 0:                  // Serial 0
+      Serial.begin(9600);
+      _sds011 = sds011::Sds011(Serial); 
+      break;
+    case 1:                  // Serial 1
+      Serial1.begin(9600);
+      _sds011 = sds011::Sds011(Serial1);   
+      break;
+    case default:                 // software serial with pins defined by address
+      if (address > 10){
+	SoftwareSerial mySerial(address/10,address%10);
+	mySerial.begin(9600);
+	_sds011 = sds011::Sds011(myserial);   
+      }else{
+	return SD_INTERNAL_ERROR;
+      }
+      break;
+    }
+  
+  */
+
+  //sdsSerial->begin(9600);
+
+  _sds011->set_sleep(false);
+  IF_SDSDEBUG(SDDBGSERIAL.print(F("Sds011 firmware version: ")));
+  IF_SDSDEBUG(SDDBGSERIAL.println(_sds011->firmware_version()));
+
+  _sds011->set_sleep(true);
+  _sds011->set_mode(sds011::QUERY);
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
+{
+
+    SDSMICSstarted=true;
+    _sds011->set_sleep(false);
+    waittime= 14500ul;
+    //}else{
+    //waittime= 1ul;
+    //}
+
+  _timing=millis();
+  return SD_SUCCESS;
+}
+
+int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
+{
+  int pm25=0xFFFFFFFF;
+  int pm10=0xFFFFFFFF;
+  bool ok;
+  
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  if (SDSMICSstarted) {
+
+    ok = _sds011->query_data_auto(&pm25, &pm10, SDSSAMPLES);
+    _sds011->set_sleep(true);
+
+    SDSMICSstarted=false;
+  }
+
+  if (ok) {
+    // get pm25
+    if (lenvalues >= 1) {
+      values[0] = pm25 ;
+    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    }
+    
+    // get pm10
+    if (lenvalues >= 2) {
+      values[1] = pm10 ;
+      //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
+    }
+  }else{
+    values[0]=0xFFFFFFFF;
+    values[1]=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverSDS011oneshotSerial::get(values,2) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
+  }
+  return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
+
+  delete _sds011;
+  delete _sdsSerial;
+}
+
+
 #endif
 
 #if defined (SDS011_REPORT)
@@ -2781,6 +3171,12 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -2976,6 +3372,12 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -3176,6 +3578,12 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011min::getJson()
 {
@@ -3369,6 +3777,12 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011max::getJson()
 {
@@ -3476,7 +3890,7 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
     Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
     SDSMICSstarted=false;
-    delay(10);
+    delay(100);
   }
 
   // get CO
@@ -3521,6 +3935,12 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514oneshot::getJson()
 {
@@ -3546,6 +3966,36 @@ aJsonObject* SensorDriverMICS4514oneshot::getJson()
     aJson.addNullToObject(jsonvalues, "B15193");
   }
   return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverMICS4514oneshot::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B15196"]= values[0];      
+    }else{
+      jsonvalues["B15196"]=RawJson("null");
+    }
+
+    if (values[1] >= 0){
+      jsonvalues["B15193"]= values[1];
+    }else{
+      jsonvalues["B15193"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15196"]=RawJson("null");
+    jsonvalues["B15193"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
 }
 #endif
 #endif
@@ -3715,6 +4165,12 @@ int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -3910,6 +4366,12 @@ int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
 
   return SD_SUCCESS;
 
+}
+
+int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
 }
 
 #if defined(USEAJSON)
@@ -4110,6 +4572,12 @@ int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
 
 }
 
+int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514min::getJson()
 {
@@ -4302,6 +4770,13 @@ int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
   return SD_SUCCESS;
 
 }
+
+int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514max::getJson()

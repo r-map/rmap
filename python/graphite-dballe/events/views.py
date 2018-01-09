@@ -1,5 +1,5 @@
 import datetime
-import pytz
+import six
 
 try:
     from django.contrib.sites.requests import RequestSite
@@ -7,12 +7,12 @@ except ImportError:  # Django < 1.9
     from django.contrib.sites.models import RequestSite
 
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.serializers.json import DjangoJSONEncoder
 from django.forms.models import model_to_dict
 from django.shortcuts import render_to_response, get_object_or_404
-from django.utils.timezone import now, make_aware
+from django.utils.timezone import now
 
-from ..compat import HttpResponse, JsonResponse
-from ..util import json, epoch
+from ..util import json, epoch, epoch_to_dt, jsonResponse, HttpError, HttpResponse
 from ..events.models import Event
 from ..render.attime import parseATTime
 
@@ -34,21 +34,23 @@ def view_events(request):
         return post_event(request)
 
 
+@jsonResponse(encoder=DjangoJSONEncoder)
+def jsonDetail(request, queryParams, event_id):
+    try:
+       e = Event.objects.get(id=event_id)
+       e.tags = e.tags.split()
+       return model_to_dict(e)
+    except ObjectDoesNotExist:
+       raise HttpError('Event matching query does not exist', status=404)
+
+
 def detail(request, event_id):
-    if request.META['HTTP_ACCEPT'] == 'application/json':
-        try:
-           e = Event.objects.get(id=event_id)
-           e.tags = e.tags.split()
-           response = JsonResponse(model_to_dict(e))
-           return response
-        except ObjectDoesNotExist:
-           error = {'error': 'Event matching query does not exist'}
-           response = JsonResponse(error, status=404)
-           return response
-    else:
-        e = get_object_or_404(Event, pk=event_id)
-        context = {'event': e}
-        return render_to_response('event.html', context)
+    if request.META.get('HTTP_ACCEPT') == 'application/json':
+        return jsonDetail(request, event_id)
+
+    e = get_object_or_404(Event, pk=event_id)
+    context = {'event': e}
+    return render_to_response('event.html', context)
 
 
 def post_event(request):
@@ -57,16 +59,17 @@ def post_event(request):
         assert isinstance(event, dict)
 
         tags = event.get('tags')
-        if tags:
-            if not isinstance(tags, list):
+        if tags is not None:
+            if isinstance(tags, list):
+                tags = ' '.join(tags)
+            elif not isinstance(tags, six.string_types):
                 return HttpResponse(
-                    json.dumps({'error': '"tags" must be an array'}),
+                    json.dumps({'error': '"tags" must be an array or space-separated string'}),
                     status=400)
-            tags = ' '.join(tags)
+        else:
+            tags = None
         if 'when' in event:
-            when = make_aware(
-                datetime.datetime.utcfromtimestamp(
-                    event.get('when')), pytz.utc)
+            when = epoch_to_dt(event['when'])
         else:
             when = now()
 
@@ -83,9 +86,12 @@ def post_event(request):
 
 
 def get_data(request):
-    if 'jsonp' in request.GET or 'jsonp' in request.POST:
+    query_params = request.GET.copy()
+    query_params.update(request.POST)
+
+    if 'jsonp' in query_params:
         response = HttpResponse(
-          "%s(%s)" % (request.REQUEST.get('jsonp'),
+          "%s(%s)" % (query_params.get('jsonp'),
               json.dumps(fetch(request), cls=EventEncoder)),
           content_type='text/javascript')
     else:
@@ -99,7 +105,7 @@ def fetch(request):
     if request.GET.get('from') is not None:
         time_from = parseATTime(request.GET['from'])
     else:
-        time_from = datetime.datetime.fromtimestamp(0)
+        time_from = epoch_to_dt(0)
 
     if request.GET.get('until') is not None:
         time_until = parseATTime(request.GET['until'])

@@ -37,6 +37,7 @@ from django.core.files.base import ContentFile
 from datetime import datetime
 import exifutils
 from django.db import connection
+import collections
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
 
@@ -158,6 +159,15 @@ from django.db import connection
 #    name=Site.objects.get(domain=domain).name
 #    print "MY SITE:", name
 #    return name == "rainbo"
+
+#https://stackoverflow.com/questions/783897/truncating-floats-in-python
+def truncate(f, n):
+    '''Truncates/pads a float f to n decimal places without rounding'''
+    s = '{}'.format(f)
+    if 'e' in s or 'E' in s:
+        return '{0:.{1}f}'.format(f, n)
+    i, p, d = s.partition('.')
+    return '.'.join([i, (d+'0'*n)[:n]])
 
 
 def delsensor(station_slug=None,username=None,board_slug=None,name=None):
@@ -311,6 +321,14 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
             oldsensor.delete()
             mysensor.save()
 
+
+ttntemplate=[]
+ttntemplate.append(collections.OrderedDict())  # null template 0
+ttntemplate.append(collections.OrderedDict())  # template 1: temperature and himidity
+ttntemplate[1]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
+ttntemplate[1]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
+
+            
 # the first is the default
 template_choices = [
     "default",
@@ -320,8 +338,8 @@ template_choices = [
     "stima_sm",    "stima_th",    "stima_y",    "stima_ths",    "stima_thsm",    "stima_thw",    "stima_thp",    "stima_yp",
     "stima_thwr",    "stima_thwrp",
     "stima_rf24_t",    "stima_rf24_h",    "stima_rf24_w",    "stima_rf24_r",    "stima_rf24_p",    "stima_rf24_th",    "stima_rf24_y",
-    "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp",
-    "stima_report_thp","stima_report_p",
+    "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp", "luftdaten",
+    "stima_report_thp","stima_report_thpb", "stima_report_p",
     "stima_indirect_t",    "stima_indirect_h",    "stima_indirect_r",    "stima_indirect_p",    "stima_indirect_s", "stima_indirect_m",
     "stima_indirect_sm", "stima_indirect_th",    "stima_indirect_y",    "stima_indirect_thw",    "stima_indirect_thp",    "stima_indirect_yp",    "stima_indirect_ths",    "stima_indirect_thsm",
     "stima_indirect_thwr",    "stima_indirect_thwrp",    "stima_indirect_report_thp",
@@ -622,6 +640,12 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Pressure",driver="RF24",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
+    if (template == "luftdaten"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+                  type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
+        
     if (template == "stima_report_p"):
         print "setting template:", template
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
@@ -648,6 +672,28 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Precipitation report",driver="I2C",
                   type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
 
+
+    if (template == "stima_report_thpb"):
+        print "setting template:", template
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="I2C",
+                  type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="I2C",
+                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="I2C",
+                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max malues",driver="I2C",
+                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="I2C",
+                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Battery charge monitor",driver="I2C",
+                  type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
 
 
     if (template == "stima_indirect_t"):

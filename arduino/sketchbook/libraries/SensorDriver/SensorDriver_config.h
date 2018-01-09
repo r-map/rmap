@@ -1,5 +1,5 @@
 ﻿// activate debug on serial port
-#define SDDEBUGONSERIAL
+//#define SDDEBUGONSERIAL
 
 
 // add secondary to primary parameters to send in multiparameter sensors 
@@ -16,6 +16,9 @@
 // use ajson library for json response
 #define USEAJSON
 
+// use aarduinojson library for json response
+//#define USEARDUINOJSON
+
 // use RF24Network library for radio transport
 //#define RADIORF24
 
@@ -26,7 +29,7 @@
 #define NTRY 3 
 
 // include TMP driver
-#define TMPDRIVER
+//#define TMPDRIVER
 
 // include ADT driver
 #define ADTDRIVER
@@ -35,29 +38,32 @@
 #define HIHDRIVER
 
 // include HYT driver
-#define HYTDRIVER
+//#define HYTDRIVER
 
 // include BMP driver
-#define BMPDRIVER
+//#define BMPDRIVER
 //#define BMP085_DEBUG 1
 
 //include SI7021
-#define HI7021DRIVER
+//#define HI7021DRIVER
 
 // include DAVIS WIND driver
-#define DAVISWIND1
+//#define DAVISWIND1
 
 // include tipping bucket rain gauge driver
-#define TIPPINGBUCKETRAINGAUGE
+//#define TIPPINGBUCKETRAINGAUGE
 
 // include TH temperature/humidity driver SAMPLE MODE
 //#define TEMPERATUREHUMIDITY_ONESHOT
 
 // include TH temperature/humidity driver REPORT MODE
-#define TEMPERATUREHUMIDITY_REPORT
+//#define TEMPERATUREHUMIDITY_REPORT
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
-#define SDS011_ONESHOT
+//#define SDS011_ONESHOT
+#define SDS_PIN_RX D1
+#define SDS_PIN_TX D2
+#define SDSSAMPLES 3
 
 // include sds011 pm 2.5 and pm 10 driver REPORT MODE
 //#define SDS011_REPORT

@@ -6,8 +6,8 @@
 #define SCALE1PIN 8
 #define SCALE2PIN 9
 
-#define COPIN 1
 #define NO2PIN 0
+#define COPIN 1
 #define HEATERPIN 7
 
 static const int SAMPLES=3;
@@ -27,7 +27,7 @@ void setup()
 
 void loop()
 {
-    int co, no2;
+    unsigned int co, no2;
     bool ok;
 
     ok = sensor.query_data_auto(&co, &no2, SAMPLES);

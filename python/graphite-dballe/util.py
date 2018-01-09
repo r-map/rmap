@@ -13,96 +13,96 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 import imp
-import os
+import io
+import json as _json
 import socket
 import time
 import sys
 import calendar
 import pytz
-from os.path import splitext, basename, relpath
-from shutil import move
-from tempfile import mkstemp
-try:
-  import cPickle as pickle
-  USING_CPICKLE = True
-except:
-  import pickle
-  USING_CPICKLE = False
+import six
+import traceback
 
-try:
-  from cStringIO import StringIO
-except ImportError:
-  from StringIO import StringIO
+from datetime import datetime
+from functools import wraps
+from os.path import splitext, basename
 
 from django.conf import settings
-from django.contrib.auth.models import User
-from .account.models import Profile
+from django.utils.timezone import make_aware
+
+from .compat import HttpResponse
 from .logger import log
 
+# BytesIO is needed on py3 as StringIO does not operate on byte input anymore
+# We could use BytesIO on py2 as well but it is slower than StringIO
+if sys.version_info >= (3, 0):
+  PY3 = True
+  import pickle
+  from io import BytesIO
+else:
+  PY3 = False
+  import cPickle as pickle
+  from cStringIO import StringIO as BytesIO
 
-# There are a couple different json modules floating around out there with
-# different APIs. Hide the ugliness here.
+# use https://github.com/msgpack/msgpack-python if available
 try:
-  import json
+  import msgpack  # NOQA
+# otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
-  import simplejson as json
-
-if hasattr(json, 'read') and not hasattr(json, 'loads'):
-  json.loads = json.read
-  json.dumps = json.write
-  json.load = lambda file: json.read( file.read() )
-  json.dump = lambda obj, file: file.write( json.write(obj) )
+  import umsgpack as msgpack  # NOQA
 
 def epoch(dt):
   """
   Returns the epoch timestamp of a timezone-aware datetime object.
   """
+  if not dt.tzinfo:
+    tb = traceback.extract_stack(None, 2)
+    log.warning('epoch() called with non-timezone-aware datetime in %s at %s:%d' % (tb[0][2], tb[0][0], tb[0][1]))
+    return calendar.timegm(make_aware(dt, pytz.timezone(settings.TIME_ZONE)).astimezone(pytz.utc).timetuple())
   return calendar.timegm(dt.astimezone(pytz.utc).timetuple())
 
-def getProfile(request, allowDefault=True):
-  if request.user.is_authenticated():
-    return Profile.objects.get_or_create(user=request.user)[0]
-  elif allowDefault:
-    return default_profile()
 
+def epoch_to_dt(timestamp):
+    """
+    Returns the timezone-aware datetime of an epoch timestamp.
+    """
+    return make_aware(datetime.utcfromtimestamp(timestamp), pytz.utc)
 
-def getProfileByUsername(username):
-  try:
-    return Profile.objects.get(user__username=username)
-  except Profile.DoesNotExist:
-    return None
+def timebounds(requestContext):
+  startTime = int(epoch(requestContext['startTime']))
+  endTime = int(epoch(requestContext['endTime']))
+  now = int(epoch(requestContext['now']))
+
+  return (startTime, endTime, now)
 
 def is_local_interface(host):
   is_ipv6 = False
-  if ':' in host:
-    try:
-      if host.find('[', 0, 2) != -1:
-        last_bracket_position  = host.rfind(']')
-        last_colon_position = host.rfind(':')
-        if last_colon_position > last_bracket_position:
-          host = host.rsplit(':', 1)[0]
-        host = host.strip('[]')
-      socket.inet_pton(socket.AF_INET6, host)
-      is_ipv6 = True
-    except socket.error:
-      host = host.split(':',1)[0]
+  if ':' not in host:
+    pass
+  elif host.count(':') == 1:
+    host = host.split(':', 1)[0]
+  else:
+    is_ipv6 = True
+
+    if host.find('[', 0, 2) != -1:
+      last_bracket_position  = host.rfind(']')
+      last_colon_position = host.rfind(':')
+      if last_colon_position > last_bracket_position:
+        host = host.rsplit(':', 1)[0]
+      host = host.strip('[]')
 
   try:
     if is_ipv6:
       sock = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.connect( (host, 4242) )
-    local_ip = sock.getsockname()[0]
-    sock.close()
+    sock.bind( (host, 0) )
   except:
-    log.exception("Failed to open socket with %s" % host)
-    raise
+    return False
+  finally:
+    sock.close()
 
-  if local_ip == host:
-    return True
-
-  return False
+  return True
 
 
 def is_pattern(s):
@@ -123,21 +123,6 @@ def find_escaped_pattern_fields(pattern_string):
       yield index
 
 
-def default_profile():
-    # '!' is an unusable password. Since the default user never authenticates
-    # this avoids creating a default (expensive!) password hash at every
-    # default_profile() call.
-    user, created = User.objects.get_or_create(
-        username='default', defaults={'email': 'default@localhost.localdomain',
-                                      'password': '!'})
-    if created:
-        log.info("Default user didn't exist, created it")
-    profile, created = Profile.objects.get_or_create(user=user)
-    if created:
-        log.info("Default profile didn't exist, created it")
-    return profile
-
-
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
   module_file = open(module_path, 'U')
@@ -148,9 +133,9 @@ def load_module(module_path, member=None):
   else:
     return module
 
-def timestamp(datetime):
+def timestamp(dt):
   "Convert a datetime object into epoch time"
-  return time.mktime( datetime.timetuple() )
+  return time.mktime(dt.timetuple())
 
 def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
@@ -161,7 +146,7 @@ def deltaseconds(timedelta):
 # The SafeUnpickler classes were largely derived from
 # http://nadiana.com/python-pickle-insecure
 # This code also lives in carbon.util
-if USING_CPICKLE:
+if not PY3:
   class SafeUnpickler(object):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
@@ -183,15 +168,23 @@ if USING_CPICKLE:
 
     @classmethod
     def loads(cls, pickle_string):
-      pickle_obj = pickle.Unpickler(StringIO(pickle_string))
+      pickle_obj = pickle.Unpickler(BytesIO(pickle_string))
       pickle_obj.find_global = cls.find_class
       return pickle_obj.load()
+
+    @classmethod
+    def load(cls, file):
+      pickle_obj = pickle.Unpickler(file)
+      pickle_obj.find_global = cls.find_class
+      return pickle_obj.load()
+
+  unpickle = SafeUnpickler
 
 else:
   class SafeUnpickler(pickle.Unpickler):
     PICKLE_SAFE = {
       'copy_reg': set(['_reconstructor']),
-      '__builtin__': set(['object', 'list', 'set']),
+      'builtins': set(['object', 'list', 'set']),
       'collections': set(['deque']),
       'render.datalib': set(['TimeSeries']),
       'intervals': set(['Interval', 'IntervalSet']),
@@ -206,52 +199,163 @@ else:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
-    @classmethod
-    def loads(cls, pickle_string):
-      return cls(StringIO(pickle_string)).load()
+  class unpickle(object):
+    @staticmethod
+    def loads(pickle_string):
+      return SafeUnpickler(BytesIO(pickle_string)).load()
 
-unpickle = SafeUnpickler
+    @staticmethod
+    def load(file):
+      return SafeUnpickler(file).load()
 
 
-def write_index(whisper_dir=None, ceres_dir=None, index=None):
-  if not whisper_dir:
-    whisper_dir = settings.WHISPER_DIR
-  if not ceres_dir:
-    ceres_dir = settings.CERES_DIR
-  if not index:
-    index = settings.INDEX_FILE
-  try:
-    fd, tmp = mkstemp()
+class json(object):
+  JSONEncoder = _json.JSONEncoder
+  JSONDecoder = _json.JSONDecoder
+
+  @staticmethod
+  def dump(*args, **kwargs):
+    return _json.dump(*args, **kwargs)
+
+  @staticmethod
+  def dumps(*args, **kwargs):
+    return _json.dumps(*args, **kwargs)
+
+  @staticmethod
+  def load(fp, *args, **kwargs):
+    return _json.load(fp, *args, **kwargs)
+
+  @staticmethod
+  def loads(s, *args, **kwargs):
+    if isinstance(s, six.binary_type):
+      return _json.loads(s.decode('utf-8'), *args, **kwargs)
+    return _json.loads(s, *args, **kwargs)
+
+
+class Timer(object):
+  __slots__ = ('msg', 'name', 'start_time')
+
+  def __init__(self, name):
+    self.name = name
+    self.msg = 'completed in'
+    self.start_time = time.time()
+
+  def set_msg(self, msg):
+    self.msg = msg
+
+  def set_name(self, name):
+    self.name = name
+
+  def stop(self):
+    log.info(
+      '{name} :: {msg} {sec:.6}s'.format(
+        name=self.name,
+        msg=self.msg,
+        sec=time.time() - self.start_time,
+      )
+    )
+
+
+def logtime(f):
+  @wraps(f)
+  def wrapped_f(*args, **kwargs):
+    timer = Timer(f.__module__ + '.' + f.__name__)
+    kwargs['timer'] = timer
+
     try:
-      tmp_index = os.fdopen(fd, 'wt')
-      build_index(whisper_dir, ".wsp", tmp_index)
-      build_index(ceres_dir, ".ceres-node", tmp_index)
-    finally:
-      tmp_index.close()
-    move(tmp, index)
-  finally:
-    try:
-      os.unlink(tmp)
+      return f(*args, **kwargs)
     except:
-      pass
-  return None
+      timer.msg = 'failed in'
+      raise
+    finally:
+      timer.stop()
+
+  return wrapped_f
 
 
-def build_index(base_path, extension, fd):
-  t = time.time()
-  total_entries = 0
-  contents = os.walk(base_path, followlinks=True)
-  extension_len = len(extension)
-  for (dirpath, dirnames, filenames) in contents:
-    path = relpath(dirpath, base_path).replace('/', '.')
-    for metric in filenames:
-      if metric.endswith(extension):
-        metric = metric[:-extension_len]
+class BufferedHTTPReader(io.IOBase):
+  def __init__(self, response, buffer_size=1048576):
+    self.response = response
+    self.buffer_size = buffer_size
+    self.buffer = b''
+    self.pos = 0
+
+  def read(self, amt=None):
+    if amt is None:
+      return self.response.read()
+    if len(self.buffer) - self.pos < amt:
+      self.buffer = self.buffer[self.pos:]
+      self.pos = 0
+      self.buffer += self.response.read(self.buffer_size)
+    data = self.buffer[self.pos:self.pos + amt]
+    self.pos += amt
+    if self.pos >= len(self.buffer):
+      self.pos = 0
+      self.buffer = b''
+    return data
+
+
+def jsonResponse(*args, **kwargs):
+  encoder = kwargs.get('encoder')
+  default = kwargs.get('default')
+
+  def decorator(f):
+    @wraps(f)
+    def wrapped_f(request, *args, **kwargs):
+      if request.method == 'GET':
+        queryParams = request.GET.copy()
+      elif request.method == 'POST':
+        queryParams = request.GET.copy()
+        queryParams.update(request.POST)
       else:
-        continue
-      line = "{0}.{1}\n".format(path, metric)
-      total_entries += 1
-      fd.write(line)
-  fd.flush()
-  log.info("[IndexSearcher] index rebuild of \"%s\" took %.6f seconds (%d entries)" % (base_path, time.time() - t, total_entries))
-  return None
+        queryParams = {}
+
+      try:
+        return _jsonResponse(
+          f(request, queryParams, *args, **kwargs), queryParams, encoder=encoder, default=default)
+      except ValueError as err:
+        return _jsonError(
+          str(err), queryParams, status=getattr(err, 'status', 400), encoder=encoder, default=default)
+      except Exception as err:
+        return _jsonError(
+          str(err), queryParams, status=getattr(err, 'status', 500), encoder=encoder, default=default)
+
+    return wrapped_f
+
+  # used like @jsonResponse
+  if args:
+    return decorator(args[0])
+
+  # used like @jsonResponse(encoder=DjangoJSONEncoder)
+  return decorator
+
+
+class HttpError(Exception):
+  def __init__(self, message, status=500):
+    super(HttpError, self).__init__(message)
+    self.status=status
+
+
+def _jsonResponse(data, queryParams, status=200, encoder=None, default=None):
+  if isinstance(data, HttpResponse):
+    return data
+
+  if not queryParams:
+    queryParams = {}
+
+  return HttpResponse(
+    json.dumps(
+      data,
+      indent=(2 if queryParams.get('pretty') else None),
+      sort_keys=bool(queryParams.get('pretty')),
+      cls=encoder,
+      default=default
+    ) if data is not None else 'null',
+    content_type='application/json',
+    status=status
+  )
+
+
+def _jsonError(message, queryParams, status=500, encoder=None, default=None):
+  return _jsonResponse(
+    {'error': message}, queryParams, status=status, encoder=encoder, default=default)

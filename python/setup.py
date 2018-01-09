@@ -139,6 +139,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2graphited.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2dballed.1","./mqtt2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2dballed.1"])
+            subprocess.check_call(["help2man","-N","-o","man/man1/ttn2dballed.1","./ttn2dballed"])
+            subprocess.check_call(["gzip", "-f","man/man1/ttn2dballed.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
             subprocess.check_call(["gzip", "-f","man/man1/poweroffd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/composereportd.1","./composereportd"])
@@ -204,6 +206,7 @@ insertdata_package_data = []
 registration_package_data = []
 showdata_package_data = []
 rainbo_package_data = []
+firmware_updater = []
 
 data_files = []
 
@@ -255,6 +258,7 @@ try:
 
     data_files.append(('/etc/rmap',['rmap-site.cfg']))
     data_files.append(('/etc/rmap',['map']))
+    data_files.append(('/etc/rmap',['ttnmap']))
     data_files.append(('/etc/rmap',['dashboard.conf']))
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
@@ -281,6 +285,10 @@ for dirpath, dirnames, filenames in os.walk('geoimage/static'):
         for file in filenames:
             geoimage_package_data.append( os.path.relpath(os.path.join(dirpath, file),'geoimage'))
 for dirpath, dirnames, filenames in os.walk('graphite-dballe/static'):
+    if filenames:
+        for file in filenames:
+            graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
+for dirpath, dirnames, filenames in os.walk('graphite-dballe/functions/custom'):
     if filenames:
         for file in filenames:
             graphite_dballe_package_data.append( os.path.relpath(os.path.join(dirpath, file),'graphite-dballe'))
@@ -328,6 +336,7 @@ setup(name='rmap',
 #      include_package_data=True,
 #      packages=find_packages(),
       packages=['rmap','rmap.stations','rmap.stations.migrations','rmap.doc',
+                'rmap.network','rmap.network.migrations',
                 'mapview',
                 'http2mqtt',
                 'registration','registration.management','registration.backends','registration.backends.default','registration.backends.simple','registration.management.commands','registration.migrations',
@@ -352,11 +361,16 @@ setup(name='rmap',
                 'graphite-dballe.url_shortener','graphite-dballe.url_shortener.migrations',
                 'graphite-dballe.version',
                 'graphite-dballe.whitelist',
+                'graphite-dballe.worker_pool',
+                'graphite-dballe.tags',
+                'graphite-dballe.functions',
+                'firmware_updater','firmware_updater.migrations',
       ],
 
       package_data={
           'rmap': ['icons/*.png','tables/*.txt','templates/*.htm*','templates/*.txt','templates/stations/*']+rmap_package_data,
           'rmap.stations': ['fixtures/*.json'],
+          'rmap.network': ['fixtures/*.json','templates/network/*'],
           'mapview': ['icons/*.png'],          
           'amatyr':['templates/amatyr/*']+amatyr_package_data,
           'borinud':['templates/borinud/*']+borinud_package_data,
@@ -370,12 +384,12 @@ setup(name='rmap',
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
       },
       scripts=[
-          'stationd','mqtt2graphited','mqtt2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
+          'stationd','mqtt2graphited','mqtt2dballed','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz"],
+      install_requires= [ 'Django>=1.9,<1.9.99',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","python-six","python-scandir"],
       extras_require = {
           'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'django-classy-tags','django_cookie_law']

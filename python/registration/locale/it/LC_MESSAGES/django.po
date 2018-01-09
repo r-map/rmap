@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-registration 0.8 alpha-1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-08-01 16:57+0000\n"
-"PO-Revision-Date: 2017-01-23 13:19+0100\n"
+"POT-Creation-Date: 2017-11-01 20:01+0000\n"
+"PO-Revision-Date: 2017-10-31 16:32+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: Italiano <it@li.org>\n"
 "Language: it_IT\n"
@@ -17,7 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.8.8\n"
 
 #: registration/admin.py:25
 msgid "Activate users"
@@ -187,11 +187,11 @@ msgstr "Dimenticato la password?"
 msgid "Reset it"
 msgstr "Reimpostalo"
 
-#: registration/templates/registration/login.html:18
+#: registration/templates/registration/login.html:20
 msgid "Not a member?"
 msgstr "Non sei iscritto?"
 
-#: registration/templates/registration/login.html:18
+#: registration/templates/registration/login.html:20
 msgid "Register"
 msgstr "Registra"
 
@@ -201,7 +201,7 @@ msgstr "Uscito"
 
 #: registration/templates/registration/logout.html:7
 msgid "Successfully logged out"
-msgstr "Entrato con successo"
+msgstr "Uscito con successo"
 
 #: registration/templates/registration/password_change_done.html:4
 msgid "Password changed"

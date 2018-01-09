@@ -371,7 +371,7 @@ void loop() {
 
 	new_address=-1;
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-sds011 (1-127)"));
+	  Serial.println(F("digit new i2c address for i2c-sdsmics (1-127)"));
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -387,7 +387,7 @@ void loop() {
 
  	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-sds011 (0/1)"));
+	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-sdsmics (0/1)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -399,10 +399,12 @@ void loop() {
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 
  	int8_t calibration=-1;
+
+	//NO2
 	while (true){
 	  while (calibration < 0 || calibration >= MAX_POINTS){
-	    Serial.println(F("Select calibration point (0/MAX_POINT-1)"));
-	    Serial.println(F("digit 0 - MAX_POINTS-1 for calibration; MAX_POINTS to continue without calibration or terminate calibration for i2c-sds011"));
+	    Serial.println(F("Select calibration point (0/MAX_POINT-1) for NO2"));
+	    Serial.println(F("digit 0 - MAX_POINTS-1 for calibration; MAX_POINTS to continue without calibration or terminate calibration for i2c-sdsmics"));
 	    calibration=Serial.parseInt();
 	    Serial.println(calibration);
 	  }
@@ -454,13 +456,147 @@ void loop() {
 	}
 
 	while (calibration < 0 || calibration >= MAX_POINTS){
-	  Serial.println(F("digit number of calibration points for i2c-sds011"));
+	  Serial.println(F("digit number of calibration points for i2c-sdsmics"));
 	  calibration=Serial.parseInt();
 	  Serial.println(calibration);
 	}
 
 	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
 	Wire.write(NO2NUMPOINTS);
+	Wire.write(calibration);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+
+	// PM25
+	while (true){
+	  while (calibration < 0 || calibration >= MAX_POINTS){
+	    Serial.println(F("Select calibration point (0/MAX_POINT-1) for PM 2.5"));
+	    Serial.println(F("digit 0 - MAX_POINTS-1 for calibration; MAX_POINTS to continue without calibration or terminate calibration for i2c-sdsmics"));
+	    calibration=Serial.parseInt();
+	    Serial.println(calibration);
+	  }
+	  if (calibration == MAX_POINTS) break;
+
+	  delay(1000);
+	  
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);   // Open I2C line in write mode
+	  Wire.write(I2C_MICS4514_PM25SAMPLE);             // Set the register pointer to I2C_MICS4514_NO2RESISTANCE
+	  if (Wire.endTransmission() != 0){
+	    Serial.println(F("ERROR writing on I2C BUS"));
+	    return;
+	  }
+	  
+	  Wire.requestFrom(I2C_SDSMICS_DEFAULTADDRESS,2);
+	  if (Wire.available() < 2){    // slave may send less than requested
+	    Serial.println(F("ERROR reading on I2C BUS"));
+	    return;
+	  }
+	  
+	  byte MSB = Wire.read();
+	  byte LSB = Wire.read();
+	  
+	  if ((MSB == 255) & (LSB ==255)){ 
+	    Serial.println(F("Missing value reading resistance"));
+	    return;
+	  }
+	  
+	  float sample = float((MSB << 8) | LSB); 
+	  
+	  float concentration=0.;
+	  while (concentration == 0.){
+	    Serial.println(F("digit concentration for calibration"));
+	    concentration=Serial.parseFloat();
+	    Serial.println(concentration);
+	  }
+	    
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(PM25CONCENTRATIONS+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&sample,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(PM25SAMPLES+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&concentration,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	  	  
+	}
+
+	while (calibration < 0 || calibration >= MAX_POINTS){
+	  Serial.println(F("digit number of calibration points for i2c-sdsmics"));
+	  calibration=Serial.parseInt();
+	  Serial.println(calibration);
+	}
+
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(PM25NUMPOINTS);
+	Wire.write(calibration);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+
+	// PM10
+	while (true){
+	  while (calibration < 0 || calibration >= MAX_POINTS){
+	    Serial.println(F("Select calibration point (0/MAX_POINT-1) for PM 10"));
+	    Serial.println(F("digit 0 - MAX_POINTS-1 for calibration; MAX_POINTS to continue without calibration or terminate calibration for i2c-sdsmics"));
+	    calibration=Serial.parseInt();
+	    Serial.println(calibration);
+	  }
+	  if (calibration == MAX_POINTS) break;
+
+	  delay(1000);
+	  
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);   // Open I2C line in write mode
+	  Wire.write(I2C_MICS4514_PM10SAMPLE);             // Set the register pointer to I2C_MICS4514_NO2RESISTANCE
+	  if (Wire.endTransmission() != 0){
+	    Serial.println(F("ERROR writing on I2C BUS"));
+	    return;
+	  }
+	  
+	  Wire.requestFrom(I2C_SDSMICS_DEFAULTADDRESS,2);
+	  if (Wire.available() < 2){    // slave may send less than requested
+	    Serial.println(F("ERROR reading on I2C BUS"));
+	    return;
+	  }
+	  
+	  byte MSB = Wire.read();
+	  byte LSB = Wire.read();
+	  
+	  if ((MSB == 255) & (LSB ==255)){ 
+	    Serial.println(F("Missing value reading resistance"));
+	    return;
+	  }
+	  
+	  float sample = float((MSB << 8) | LSB); 
+	  
+	  float concentration=0.;
+	  while (concentration == 0.){
+	    Serial.println(F("digit concentration for calibration"));
+	    concentration=Serial.parseFloat();
+	    Serial.println(concentration);
+	  }
+	    
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(PM10CONCENTRATIONS+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&sample,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+
+	  Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	  Wire.write(PM10SAMPLES+sizeof(concentration)*calibration);
+	  Wire.write((uint8_t*)&concentration,4);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	  	  
+	}
+
+	while (calibration < 0 || calibration >= MAX_POINTS){
+	  Serial.println(F("digit number of calibration points for i2c-sdsmics"));
+	  calibration=Serial.parseInt();
+	  Serial.println(calibration);
+	}
+
+	Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
+	Wire.write(PM25NUMPOINTS);
 	Wire.write(calibration);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 

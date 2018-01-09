@@ -3,8 +3,8 @@ import re
 import errno
 
 from os.path import getmtime
-from urllib import urlencode
-from ConfigParser import ConfigParser
+from six.moves.urllib.parse import urlencode
+from six.moves.configparser import ConfigParser
 from django.shortcuts import render_to_response
 from django.http import QueryDict
 from django.conf import settings
@@ -319,8 +319,9 @@ def find(request):
   results = []
 
   # Find all dashboard names that contain each of our query terms as a substring
-  for dashboard in Dashboard.objects.order_by('name'):
-    name = dashboard.name.lower()
+  for dashboard_name in Dashboard.objects.order_by('name').values_list('name', flat=True):
+    name = dashboard_name.lower()
+
     if name.startswith('temporary-'):
       continue
 
@@ -333,7 +334,7 @@ def find(request):
         break
 
     if found:
-      results.append( dict(name=dashboard.name) )
+      results.append( dict(name=dashboard_name) )
 
   return json_response( dict(dashboards=results) )
 

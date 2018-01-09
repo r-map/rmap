@@ -1,7 +1,7 @@
 import csv
 import json
 import codecs
-from datetime import datetime
+from datetime import datetime,timedelta
 import logging
 try:
     from urllib.request import urlopen
@@ -33,6 +33,8 @@ VARIABLE_BCODES = {
     111: "B15198",
     82: None,
 }
+
+current=0
 
 STATIONS_URL = "https://docs.google.com/spreadsheets/d/1GlY3Pu9GDpLDk8Spl9yV1wjCRPvOI1m7BFxumfcuGcE/export?format=csv"
 VARIABLES_URL = "https://docs.google.com/spreadsheets/d/13QcqldwA3EQ_4E17Hqggd2ZcMgUA5UwACttAWEkaU28/export?format=csv"
@@ -102,15 +104,18 @@ def load_variables():
     return variables
 
 
-def export_data(outfile):
+def export_data(outfile,low=0,high=None,datetimemin=None):
     db = dballe.DB.connect_from_url("sqlite://:memory:")
     db.reset()
+    last=low
     stations = load_stations()
     variables = load_variables()
     for rec in stations.values():
         db.insert_station_data(rec, can_add_stations=True)
 
-    for row in iter_datastore():
+    for row in iter_datastore(low=low,high=high):
+        last+=1
+        #last=row["_id"]
         variable = variables.get(row["variable_id"])
         station = stations.get(row["station_id"])
         reftime = datetime.strptime(row["reftime"], "%Y-%m-%dT%H:%M:%S")
@@ -122,24 +127,42 @@ def export_data(outfile):
             logger.warning("Unknown station {}, skipping".format(row["station_id"]))
             continue
         else:
-            rec = station.copy()
+            rec = dballe.Record(**{
+                k: station.get(k)
+                for k in ("ident", "lon", "lat", "rep_memo")
+            })
             rec["date"] = reftime
             rec[variable["var"]] = value * 10**-9
             rec["level"] = variable["level"]
             rec["trange"] = variable["trange"]
             db.insert_data(rec)
 
-    db.export_to_file(dballe.Record(), filename=outfile,
+    db.export_to_file(dballe.Record(datemin=datetimemin), filename=outfile,
                       format="BUFR", generic=True)
 
+    return last+1
 
 
 def main():
+
+    """
+    example: python arpae_aq_ckan_to_bufr/__init__.py --verbose --low=190388 --yearmin=2017 --monthmin=01 --daymin=01 tmp.bufr
+    """
     from argparse import ArgumentParser
     parser = ArgumentParser()
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("outfile")
+    parser.add_argument("--low", default=0,type=int,help='start download data from this record')
+
+    parser.add_argument("--daymin",default=1,type=int,help='day min to extract')
+    parser.add_argument("--monthmin",default=1,type=int,help='month min to extract')
+    parser.add_argument("--yearmin",type=int,help='year min to extract')
+
+    parser.add_argument("--hourmin",default=0,type=int,help='hour min to extract')
+    parser.add_argument("--minmin",default=0,type=int,help='min min to extract')
+
+    parser.add_argument("--nlastdays",type=int,help='extract this number of day back in time')
 
     args = parser.parse_args()
 
@@ -155,8 +178,20 @@ def main():
 
     logging.basicConfig(level=loglevel, format=logformat)
 
+    if args.yearmin is None:
+        datetimemin=None
+    else:
+        datetimemin=datetime(args.yearmin, args.monthmin, args.daymin, args.hourmin, args.minmin)
+
+    if not args.nlastdays is None:
+        datetimemin=(datetime.now()-timedelta(days=args.nlastdays)).replace(hour=0, minute=0, second=0, microsecond=0)
+
+    logging.info("extract data starting from: "+str(datetimemin))
+
+
     try:
-        export_data(args.outfile)
+        last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
+        print last
     except Exception as e:
         logging.exception(e)
 

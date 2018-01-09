@@ -3,32 +3,6 @@
 
 #include <avr/pgmspace.h>
 
-// ATMEL ATMEGA1284P on Calunium, PCB version
-//
-//                       +---\/---+
-//           (D 4) PB0 1 |        | 40 PA0 (D 31) AI 7
-//           (D 5) PB1 2 |        | 39 PA1 (D 30) AI 6
-//      INT2 (D 6) PB2 3 |        | 38 PA2 (D 29) AI 5
-//       PWM (D 7) PB3 4 |        | 37 PA3 (D 28) AI 4
-//   PWM/SS (D 10) PB4 5 |        | 36 PA4 (D 27) AI 3
-//     MOSI (D 11) PB5 6 |        | 35 PA5 (D 26) AI 2
-// PWM/MISO (D 12) PB6 7 |        | 34 PA6 (D 25) AI 1
-//  PWM/SCK (D 13) PB7 8 |        | 33 PA7 (D 24) AI 0
-//                 RST 9 |        | 32 AREF
-//                VCC 10 |        | 31 GND 
-//                GND 11 |        | 30 AVCC
-//              XTAL2 12 |        | 29 PC7 (D 14) 
-//              XTAL1 13 |        | 28 PC6 (D 15) 
-//      RX0 (D 0) PD0 14 |        | 27 PC5 (D 16) TDI
-//      TX0 (D 1) PD1 15 |        | 26 PC4 (D 17) TDO
-// INT0 RX1 (D 2) PD2 16 |        | 25 PC3 (D 18) TMS
-// INT1 TX1 (D 3) PD3 17 |        | 24 PC2 (D 19) TCK
-//     PWM (D 22) PD4 18 |        | 23 PC1 (D 20) SDA
-//      PWM (D 9) PD5 19 |        | 22 PC0 (D 21) SCL
-//      PWM (D 8) PD6 20 |        | 21 PD7 (D 23) PWM
-//                       +--------+
-//
-
 #define CALUNIUM
 #define CALUNIUM_VARIANT stripboard
 
@@ -48,6 +22,7 @@ extern const uint8_t digital_pin_to_timer_PGM[NUM_DIGITAL_PINS];
 
 #define ifpin(p,what,ifnot)	    (((p) >= 0 && (p) < NUM_DIGITAL_PINS) ? (what) : (ifnot))
 #define digitalPinHasPWM(p)         ifpin(p,pgm_read_byte(digital_pin_to_timer_PGM + (p)) != NOT_ON_TIMER,1==0)
+#define digitalPinToInterrupt(p) ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) == 6 ? 2 : NOT_AN_INTERRUPT)))
 
 #define digitalPinToAnalogPin(p)    ( (p) >= 24 && (p) <= 31 ? (p) - 24 : -1 )
 #define analogPinToChannel(p)	    ( (p) < NUM_ANALOG_INPUTS ? NUM_ANALOG_INPUTS - 1 - (p) : -1 )
@@ -59,7 +34,6 @@ static const uint8_t SCK  = 13;
 
 static const uint8_t SDA = 20;
 static const uint8_t SCL = 21;
-static const uint8_t LED_BUILTIN = 13;
 
 static const uint8_t A0 = 24;
 static const uint8_t A1 = 25;
@@ -69,6 +43,29 @@ static const uint8_t A4 = 28;
 static const uint8_t A5 = 29;
 static const uint8_t A6 = 30;
 static const uint8_t A7 = 31;
+
+static const uint8_t D0 = 0;
+static const uint8_t D1 = 1;
+static const uint8_t D2 = 2;
+static const uint8_t D3 = 3;
+static const uint8_t D4 = 4;
+static const uint8_t D5 = 5;
+static const uint8_t D6 = 6;
+static const uint8_t D7 = 7;
+static const uint8_t D8 = 8;
+static const uint8_t D9 = 9;
+static const uint8_t D10 = 10;
+static const uint8_t D11 = 11;
+static const uint8_t D12 = 12;
+static const uint8_t D13 = 13;
+static const uint8_t D14 = 14;
+static const uint8_t D15 = 15;
+static const uint8_t D16 = 16;
+static const uint8_t D17 = 17;
+static const uint8_t D18 = 18;
+static const uint8_t D19 = 19;
+static const uint8_t D20 = 20;
+static const uint8_t D21 = 21;
 
 #ifdef PCICR
 #define digitalPinToPCICR(p)    ( \
