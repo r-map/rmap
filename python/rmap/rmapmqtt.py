@@ -73,7 +73,8 @@ class rmapmqtt:
         self.connected=False
         self.mid=-1
         self.loop_started=False
-
+        self.messageinfo=None
+        
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
         # but note that the client id must be unique on the broker. Leaving the client
@@ -126,20 +127,21 @@ class rmapmqtt:
         except Exception as inst:
             self.error(inst)
 
-    def publish(self,topic,payload,qos=0,retain=False,timeout=3.):
+    def publish(self,topic,payload,qos=0,retain=False,timeout=15.):
         ''' 
         bloking publish
         with qos > 0 we wait for ack
         '''
         self.mqttc.loop()
         self.puback=False
-        rc,self.mid=self.mqttc.publish(topic,payload=payload,qos=qos,retain=retain)
+        self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=qos,retain=retain)
+        rc,self.mid=self.messageinfo
         if rc != mqtt.MQTT_ERR_SUCCESS:
             return rc
         if (qos == 0 ):
             return rc
 
-        self.log("publish ana message mid: "+str(self.mid))
+        self.log("publish message mid: "+str(self.mid))
 
         last=time.time()
         while ((time.time()-last) < timeout and not self.puback):
@@ -267,6 +269,8 @@ class rmapmqtt:
             #if rc != mqtt.MQTT_ERR_SUCCESS:
             #    raise Exception("loop",rc)
 
+            self.messageinfo.wait_for_publish()
+            
             rc = self.mqttc.disconnect()
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("disconnect",rc)
