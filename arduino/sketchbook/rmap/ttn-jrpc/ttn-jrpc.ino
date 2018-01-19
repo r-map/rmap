@@ -47,7 +47,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *******************************************************************************/
 
-#define SAMPLETIME 60
+#define SAMPLETIME 10800UL
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -67,6 +67,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSORS_LEN 2
 //#include <BitBool.h>
 #include <bfix.h>
+#include <Sleep_n0m1.h>
 
 struct sensor_t
 {
@@ -168,6 +169,7 @@ void os_getDevKey (u1_t* buf) { memcpy(buf, configuration.appkey, 16);}
 //static uint8_t mydata[] = "Hello, world!";
 //static osjob_t sendjob;
 
+Sleep sleep;
 
 int send(JsonObject& params, JsonObject& result)
 {
@@ -475,12 +477,25 @@ void mgr_sensors(){
       if (LMIC.txrxFlags & TXRX_ACK)
 	LOGN(F("txrxFlags = TXRX_ACK"CR));
       if (LMIC.dataLen) {
-	LOGN(F("payload len = %d"), LMIC.dataLen);
+	LOGN(F("payload len = %d"CR), LMIC.dataLen);
 	break;
       }
     }
   }
   
+}
+
+void sleep_mgr_sensors() {
+
+  mgr_sensors();
+  LOGN(F("sleep %d seconds"CR),SAMPLETIME);
+  delay(1000);
+  os_runloop_once();
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SAMPLETIME*1000UL); //sleep for SAMPLETIME
+  delay(1000);
+  LOGN(F("wake up"CR));  
+  os_runloop_once();
 }
 
 void setup() 
@@ -592,15 +607,15 @@ void setup()
   LMIC_startJoining();
 
   // query and send data
-  Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
+  //Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
 
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
 
   // upgrade LMIC
-  Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
-
+  //Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
+    
   LOGN(F("End setup"CR));
   
 }
@@ -609,5 +624,6 @@ void loop() {
   wdt_reset();
   mgr_serial();
   os_runloop_once();
-  Alarm.delay(0);
+  //Alarm.delay(0);
+  sleep_mgr_sensors();
 }
