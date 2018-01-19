@@ -573,10 +573,8 @@ class Client(object):
         self._websocket_extra_headers = None
 
     def __del__(self):
-        self._sockpairW.close()
-        self._sockpairR.close()
-        #pass
-
+        pass
+    
     def reinitialise(self, client_id="", clean_session=True, userdata=None):
         if self._sock:
             self._sock.close()

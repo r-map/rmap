@@ -234,12 +234,19 @@ class ttn2dballe(object):
                         mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
 
                 mqtt.disconnect()
+                #if mqtt.mqttc._sock:
+                #    mqtt.mqttc._sock.close()
+                #if mqtt.mqttc._sockpairW:
+                #    mqtt.mqttc._sockpairW.close()
+                #if mqtt.mqttc._sockpairR:
+                #    mqtt.mqttc._sockpairR.close()
                     
-                    
-            except:
+            except Exception as exception:
                 logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                              (msg.topic, msg.payload))
-                #raise
+                logging.error('Exception occured: ' + str(exception))
+                logging.error(traceback.format_exc())
+
                 # if some exception occour here, ask to terminate; if not the thread will stall forever
                 self.terminateevent.set()
 
