@@ -646,6 +646,7 @@ void setup()
   // Setting up channels should happen after LMIC_setSession, as that
   // configures the minimal channel set.
   // NA-US channels 0-71 are configured automatically
+  /*
   LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
   LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
   LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
@@ -655,7 +656,7 @@ void setup()
   LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
   LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
   LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
-  
+  */
   // For single channel gateways: Restrict to channel 0 when defined above
 #ifdef CHANNEL0
   LMIC_disableChannel(1);
@@ -681,14 +682,24 @@ void setup()
 #endif
 
   // Enaable link check validation
-  LMIC_setLinkCheckMode(1);
+  //LMIC_setLinkCheckMode(0);
 
   // TTN uses SF9 for its RX2 window.
-  LMIC.dn2Dr = DR_SF9;
+  //LMIC.dn2Dr = DR_SF9;
 
   // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
   //LMIC_setDrTxpow(DR_SF12, 14);
-  LMIC_setAdrMode(1);
+  //LMIC_setAdrMode(1);
+
+  // Maximum TX power
+  //LMIC.txpow = 27;
+  // Use a medium spread factor. This can be increased up to SF12 for
+  // better range, but then the interval should be (significantly)
+  // lowered to comply with duty cycle limits as well.
+  //LMIC.datarate = DR_SF9;
+  // This sets CR 4/5, BW125 (except for DR_SF7B, which uses BW250)
+  //LMIC.rps = updr2rps(LMIC.datarate);
+  
   LMIC_startJoining();
 
   // query and send data
