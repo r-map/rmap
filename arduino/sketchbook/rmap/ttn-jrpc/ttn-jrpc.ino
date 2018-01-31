@@ -298,6 +298,48 @@ int save(JsonObject& params, JsonObject& result)
   return 1;
 }
 
+// set/return DR_SF parameter
+int sf(JsonObject& params, JsonObject& result)
+{    
+  int sf = params["sf"];
+  if (!(sf == NULL)){
+
+    unsigned int dr_sf;
+    
+    switch (sf) {
+    case 12: dr_sf=DR_SF12; break;
+    case 11: dr_sf=DR_SF11; break;
+    case 10: dr_sf=DR_SF10; break;
+    case  9: dr_sf=DR_SF9 ; break;
+    case  8: dr_sf=DR_SF8 ; break;
+    case  7: dr_sf=DR_SF7 ; break;
+    case  6: dr_sf=DR_SF7B; break;
+    case  5: dr_sf=DR_FSK ; break;
+    default: return 2 ; break;
+    }
+
+    LMIC_setDrTxpow(dr_sf, 14);
+    //}else{
+    //return  1;
+  }
+
+  switch (LMIC.datarate) {
+  case DR_SF12: sf=12; break;
+  case DR_SF11: sf=11; break;
+  case DR_SF10: sf=10; break;
+  case DR_SF9:  sf=9 ; break;
+  case DR_SF8:  sf=8 ; break;
+  case DR_SF7:  sf=7 ; break;
+  case DR_SF7B: sf=6 ; break;
+  case DR_FSK:  sf=5 ; break;
+  default:      sf=0 ; break;
+  }
+  
+  result["sf"]= sf;  
+  return 0;
+}
+
+
 
 void onEvent (ev_t ev) {
   LOGN(F("Time: %l : "CR),os_getTime());
@@ -619,6 +661,7 @@ void setup()
   rpcserver.registerMethod("send",      &send);
   rpcserver.registerMethod("set",       &set);
   rpcserver.registerMethod("save",      &save);
+  rpcserver.registerMethod("sf",        &sf);
 
   //Unused IO pins on the microcontroller must not be left floating in
   //an unknown state. Floating IO pins can consumes at least few tens
