@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-01-27T00:00"
+#define SOFTWARE_VERSION "2018-02-02T12:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -34,6 +34,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define WIFI_SSED "STIMA-configuration"
 #define WIFI_PASSWORD  "bellastima"
 #define SAMPLETIME 60
+
+#define OLEDI2CADDRESS 0X3C
 
 
 // NODEMCU FOR LUFDATEN HOWTO
@@ -66,6 +68,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <SensorDriver.h>
+#include <U8g2lib.h>
 
 
 // logging level at compile time
@@ -125,6 +128,9 @@ struct sensor_t
 } sensors[SENSORS_LEN];;
 
 SensorDriver* sd[SENSORS_LEN];
+
+U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
+bool oledpresent=false;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
@@ -312,12 +318,34 @@ void firmware_upgrade() {
     case HTTP_UPDATE_FAILED:
       LOGE(F("[update] Update failed." CR));
       LOGE(F("%s" CR),ESPhttpUpdate.getLastErrorString().c_str());
+      if (oledpresent) {
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("FW Update"));
+	u8g2.setCursor(0, 30); 
+	u8g2.print(F("Failed"));
+	u8g2.sendBuffer();
+	delay(3000);
+      }
     break;
     case HTTP_UPDATE_NO_UPDATES:
       LOGN(F("[update] No Update." CR));
+      if (oledpresent) {
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("NO Firmware"));
+	u8g2.setCursor(0, 30); 
+	u8g2.print(F("Update"));
+	u8g2.sendBuffer();
+	delay(3000);
+      }
       break;
     case HTTP_UPDATE_OK:
       LOGN(F("[update] Update ok." CR)); // may not called we reboot the ESP
+      if (oledpresent) {
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("FW Updated!"));
+	u8g2.sendBuffer();
+	delay(3000);
+      }
       break;
     }
 }
@@ -577,6 +605,11 @@ void reboot() {
 
 void setup() {
   // put your setup code here, to run once:
+
+  pinMode(RESET_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  digitalWrite(LED_PIN,HIGH);
+
   Serial.begin(115200);
   Serial.println();
 
@@ -590,10 +623,38 @@ void setup() {
   Log.begin(LOG_LEVEL, &Serial);
   LOGN(F("Started" CR));
 
-  pinMode(RESET_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  digitalWrite(LED_PIN,HIGH);
+#ifdef I2CPULLUP
+  //if you want to set the internal pullup
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
+#else
+  // here we enforce we do not want pullup
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+#endif
 
+  Wire.begin(SDA,SCL);
+  Wire.setClock(I2C_CLOCK);
+
+
+  // check return value of
+  // the Write.endTransmisstion to see if
+  // a device did acknowledge to the address.
+  Wire.beginTransmission(OLEDI2CADDRESS);
+  if (Wire.endTransmission() == 0) {
+    LOGN(F("OLED Found" CR));
+    oledpresent=true;
+    u8g2.setI2CAddress(OLEDI2CADDRESS*2);
+    u8g2.begin();
+    u8g2.setFont(u8g2_font_5x7_tf);
+    u8g2.setFontMode(0); // enable transparent mode, which is faster
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("Starting up!"));
+    u8g2.sendBuffer();
+    delay(3000);
+  }
+  
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
@@ -606,6 +667,17 @@ void setup() {
 
   if (digitalRead(RESET_PIN) == LOW) {
     LOGN(F("clean FS"));
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("Clean FS"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("Reset wifi"));
+      u8g2.setCursor(0, 30); 
+      u8g2.print(F("configuration"));
+      u8g2.sendBuffer();
+      delay(3000);
+    }
     SPIFFS.format();
     LOGN(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
@@ -617,6 +689,15 @@ void setup() {
     readconfig();
   } else {
     LOGN(F("failed to mount FS" CR));
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("Mount FS"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("Failed"));
+      u8g2.sendBuffer();
+      delay(3000);
+    }
   }
   
   // The extra parameters to be configured (can be either global or just in the setup)
@@ -660,6 +741,13 @@ void setup() {
     //if you get here you have connected to the WiFi
     LOGN(F("connected...yeey :)" CR));
     digitalWrite(LED_PIN,HIGH);
+
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("WIFI connected"));
+      u8g2.sendBuffer();
+    }
   }
   
   if (shouldSaveConfig){
@@ -670,12 +758,30 @@ void setup() {
     strcpy(rmap_slug, custom_rmap_slug.getValue());
 
     writeconfig();
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("NEW configuration"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("saved"));
+      u8g2.sendBuffer();
+    }
+    
   }
 
   LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
 
   firmware_upgrade();
 
+  if (oledpresent) {
+    u8g2.setCursor(0, 40); 
+    u8g2.print(F("IP:"));
+    u8g2.setFont(u8g2_font_u8glib_4_tf);
+    u8g2.print(WiFi.localIP().toString().c_str());
+    u8g2.sendBuffer();
+  }
+
+  
   String remote_config= rmap_get_remote_config();
 
   if ( remote_config == String() ) {
@@ -686,25 +792,24 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
-#ifdef I2CPULLUP
-  //if you want to set the internal pullup
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
-#else
-  // here we enforce we do not want pullup
-  digitalWrite( SDA, LOW);
-  digitalWrite( SCL, LOW);
-#endif
-
-  Wire.begin(SDA,SCL);
-  Wire.setClock(I2C_CLOCK);
-
   //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
   if (!rmap_config(remote_config) == 0) {
     LOGN(F("station not configurated ! restart" CR));
     //LOGN(F("Reset wifi configuration" CR));
     //wifiManager.resetSettings();
-    delay(1000);
+
+    if (oledpresent){
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("Station not"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("configurated!"));
+      u8g2.setCursor(0, 30);
+      u8g2.print(F("RESTART"));
+      u8g2.sendBuffer();
+    }
+    
+    delay(5000);
     reboot();
   }
 
