@@ -140,6 +140,9 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
     {
       return NULL;
     }
+
+  return NULL;
+
 }
 SensorDriver::~SensorDriver() {}
 
@@ -207,6 +210,9 @@ int SensorDriver::setup(const char* driver, const int address, const int node, c
 }
 
 #endif
+
+
+
 
 
 #if defined (TMPDRIVER)
@@ -292,11 +298,13 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
   #if defined(USEAJSON)
 aJsonObject* SensorDriverTmp::getJson()
@@ -399,6 +407,7 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
 {
   /*
@@ -419,6 +428,7 @@ int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
   }
   return SD_SUCCESS;
 }
+#endif
 
   #if defined(USEAJSON)
 aJsonObject* SensorDriverAdt7420::getJson()
@@ -821,6 +831,7 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
 {
   /*
@@ -841,6 +852,7 @@ int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
   }
   return SD_SUCCESS;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHih6100::getJson()
@@ -961,11 +973,13 @@ int SensorDriverHyt271::get(long values[], size_t lenvalues) {
 	return SD_SUCCESS;
 }
 
+#if defined (USEGETDATA)
 int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHyt271::getJson() {
@@ -1292,11 +1306,13 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverBmp085::getJson()
@@ -1406,11 +1422,14 @@ int SensorDriverSI7021::get(long values[],size_t lenvalues)
   return SD_SUCCESS;
 
 }
+
+#if defined (USEGETDATA)
 int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSI7021::getJson()
@@ -1545,11 +1564,13 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
   #if defined(USEAJSON)
 aJsonObject* SensorDriverDw1::getJson()
@@ -1658,12 +1679,13 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
-
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTbr::getJson()
@@ -1792,11 +1814,14 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
   return SD_SUCCESS;
 
 }
+
+#if defined (USEGETDATA)
 int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHoneshot::getJson()
@@ -1994,11 +2019,13 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTH60mean::getJson()
@@ -2195,11 +2222,13 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmean::getJson()
@@ -2399,11 +2428,13 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmin::getJson()
@@ -2598,11 +2629,13 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmax::getJson()
@@ -2758,11 +2791,13 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011oneshot::getJson()
@@ -2835,7 +2870,7 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
 {
 
   SensorDriver::setup(driver,address,node,type);
-  bool oneshot=true;
+  //bool oneshot=true;
 
   _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
   _sdsSerial->begin(9600);
@@ -2896,7 +2931,7 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 {
   int pm25=0xFFFFFFFF;
   int pm10=0xFFFFFFFF;
-  bool ok;
+  bool ok=false;
   
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
@@ -2932,11 +2967,13 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
@@ -2974,13 +3011,13 @@ int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buff
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,2) == SD_SUCCESS){
-    if (values[0] != 0xFFFFFFFF){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[0];      
     }else{
       jsonvalues["B15198"]=RawJson("null");
     }
 
-    if (values[1] != 0xFFFFFFFF){
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
       jsonvalues["B15195"]= values[1];
     }else{
       jsonvalues["B15195"]=RawJson("null");
@@ -3000,7 +3037,8 @@ int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buff
 SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
 
   delete _sds011;
-  delete _sdsSerial;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+  //delete _sdsSerial;
 }
 
 
@@ -3173,11 +3211,13 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS01160mean::getJson()
@@ -3374,11 +3414,13 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011mean::getJson()
@@ -3578,11 +3620,13 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011min::getJson()
@@ -3777,11 +3821,13 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011max::getJson()
@@ -3935,11 +3981,13 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514oneshot::getJson()
@@ -4167,11 +4215,13 @@ int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS451460mean::getJson()
@@ -4368,11 +4418,13 @@ int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514mean::getJson()
@@ -4572,11 +4624,13 @@ int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514min::getJson()
@@ -4771,12 +4825,13 @@ int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
 
 }
 
+#if defined (USEGETDATA)
 int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
   return SD_INTERNAL_ERROR;
 }
-
+#endif
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514max::getJson()

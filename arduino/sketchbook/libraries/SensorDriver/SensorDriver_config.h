@@ -13,6 +13,9 @@
 // this the value for http and report
 #define MAXDELAYFORREAD 60000
 
+// add getdata method in library for lora-ttn compression
+#define USEGETDATA
+
 // use ajson library for json response
 #define USEAJSON
 
@@ -61,8 +64,11 @@
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
 //#define SDS011_ONESHOT
-#define SDS_PIN_RX D1
-#define SDS_PIN_TX D2
+//luftdaten
+//#define SDS_PIN_RX D1
+//#define SDS_PIN_TX D2
+#define SDS_PIN_RX D5
+#define SDS_PIN_TX D6
 #define SDSSAMPLES 3
 
 // include sds011 pm 2.5 and pm 10 driver REPORT MODE
