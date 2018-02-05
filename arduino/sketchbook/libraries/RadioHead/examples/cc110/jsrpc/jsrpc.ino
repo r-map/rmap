@@ -406,7 +406,7 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 */
 
   cc110.setTxPower(RH_CC110::TransmitPower10dBm);
-  cc110.setModemConfig(RH_CC110::GFSK_Rb1_2Fd5_2);
+  cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);
   cc110.setFrequency(433.300);
 
   // initialize the digital pin as an output

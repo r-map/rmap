@@ -1,9 +1,9 @@
-# define VERSION "220171127"
+# define VERSION "20180205"
 
 // radio bidirectional comunication
 //#define TWOWAY "Yes"
 #define CLIENT "Yes"
-//#define SERVER "Yes"
+#define SERVER "Yes"
 
 
 // define the  pins used
