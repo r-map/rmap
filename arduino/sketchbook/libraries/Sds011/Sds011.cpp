@@ -5,12 +5,14 @@ using namespace sds011;
 
 Sds011::Sds011(Stream &out) : _out(out)
 {
+  _out.setTimeout(10000);
 }
 
 String Sds011::firmware_version(void)
 {
     bool ok;
 
+    IF_SDEBUG(Serial.println(F("Sds011 CMD firmware version")));
     _send_cmd(CMD_FIRMWARE, NULL, 0);
 
     ok = _read_response();
@@ -21,27 +23,61 @@ String Sds011::firmware_version(void)
     return String(_buf[3])+"_"+String(_buf[4])+"_"+String(_buf[5]);
 }
 
-void Sds011::set_mode(Report_mode mode)
+bool Sds011::set_mode(Report_mode mode)
 {
     uint8_t data[] = {0x1, mode};
+    IF_SDEBUG(Serial.print(F("Sds011 CMD set mode: ")));
+    IF_SDEBUG(Serial.println(mode));
     _send_cmd(CMD_MODE, data, 2);
-    _ignore_response();
+
+    if (!_read_response()) {
+        IF_SDEBUG(Serial.println(F("Sds011 read response failed")));
+        return false;
+    }
+
+    /*
+    byte expected[]= 
+    int n=memcmp ( _buff, expected, sizeof(expected) )
+    */
+    delay(2000);
+    return true;
 }
 
-void Sds011::set_sleep(bool sleep)
+bool Sds011::set_sleep(bool sleep)
 {
     uint8_t data[] = {0x1, !sleep};
+    IF_SDEBUG(Serial.print(F("Sds011 CMD set sleep: ")));    
+    IF_SDEBUG(Serial.println(sleep));    
     _send_cmd(CMD_SLEEP, data, 2);
-    _ignore_response();
+    
+    if (!_read_response()) {
+        IF_SDEBUG(Serial.println(F("Sds011 read response failed")));
+        return false;
+    }
+
+    /*
+    byte expected[]= 
+    int n=memcmp ( _buff, expected, sizeof(expected) )
+    */
+    if (sleep==sds011::WORK){
+      IF_SDEBUG(Serial.println(F("Sds011 wake up: you have to wait for 30s")));
+      //delay(30000);
+    }else{
+      delay(2000);
+    }
+    return true;
+
 }
 
 bool Sds011::query_data(int *pm25, int *pm10)
 {
     bool ok;
+    IF_SDEBUG(Serial.println(F("Sds011 CMD query data")));
     _send_cmd(CMD_QUERY_DATA, NULL, 0);
 
     ok =_read_response();
     if (!ok) {
+        IF_SDEBUG(Serial.println(F("Sds011 read response failed")));
         return false;
     }
 
@@ -57,18 +93,17 @@ bool Sds011::query_data_auto(int *pm25, int *pm10, int n)
     int pm10_table[n];
     int ok;
 
+    IF_SDEBUG(Serial.println(F("Sds011 query data auto")));
+    
     for (int i = 0; i<n; i++) {
         ok = query_data(&pm25_table[i], &pm10_table[i]);
         if (!ok){
-            return false;
+	  //i--;          // here you can manage a retry
+	  return false;   // or fail
         }
 
-        ok = crc_ok();
-        if (!ok) {
-            n--, i--;
-            continue;
-        }
-        delay(1000);
+	//recommended query interval of not less than 3 seconds
+	if (i < (n-1)) delay(3000);
     }
 
     _filter_data(n, pm25_table, pm10_table, pm25, pm10);
@@ -82,14 +117,8 @@ bool Sds011::crc_ok(void)
     for (int i=2; i<8; i++) {
         crc+=_buf[i];
     }
-    IF_SDEBUG(Serial.print(F("Sds011 crc: ")));
-    IF_SDEBUG(Serial.println(crc==_buf[8]));
+    //IF_SDEBUG(Serial.println(crc==_buf[8]));
     return crc==_buf[8];
-}
-
-bool Sds011::timeout(void)
-{
-    return _timeout;
 }
 
 void Sds011::_send_cmd(enum Command cmd, uint8_t *data, uint8_t len)
@@ -116,83 +145,48 @@ void Sds011::_send_cmd(enum Command cmd, uint8_t *data, uint8_t len)
 
     _buf[17] = crc;
 
+    //_out.flush();
+
+    while (_out.read() >= 0 ){
+      IF_SDEBUG(Serial.println(F("Sds011 skip byte")));
+    }
+    
     for (i = 0; i < 19; i++) {
         _out.write(_buf[i]);
     }
-    _out.flush();
+    //_out.flush();
 }
 
-uint8_t Sds011::_read_byte(uint16_t timeout)
-{
-    uint16_t c = 0;
-
-    while (!_out.available()) {
-        if (timeout > 0) {
-            if (c == timeout) {
-                _timeout = true;
-                return 0;
-            }
-            c++;
-        }
-        delay(1);
-    }
-
-    _timeout = false;
-    return _out.read();
-}
-
-void Sds011::_ignore_response(void)
-{
-    delay(300);
-    while (_out.available())
-        _out.read();
-}
 
 bool Sds011::_read_response(void)
 {
-    uint8_t i = 1, b;
 
-    while ((b=_read_byte(1000)) != 0xAA) {
-      IF_SDEBUG(Serial.print(F("Sds011 read:")));
-      IF_SDEBUG(Serial.println(b));
-      if (timeout()) {
-	IF_SDEBUG(Serial.println(F("Sds011 timeout")));
-	return false;
-      }
-    }
+  IF_SDEBUG(Serial.println(F("Sds011 read_response")));
+ 
+  unsigned short int nbytes = _out.readBytes(_buf, 10);
 
-    _buf[0] = b;
+  IF_SDEBUG(Serial.print(F("Sds011 read:")));
+  IF_SDEBUG(Serial.println(nbytes));
+  for (short unsigned int i =0 ; i<nbytes ; i++) {
+    IF_SDEBUG(Serial.print(_buf[i],HEX));
+    IF_SDEBUG(Serial.print(F(",")));
+  }
+  IF_SDEBUG(Serial.println(F("<")));
+  
+  if (nbytes < 10) {
+    IF_SDEBUG(Serial.println(F("Sds011 timeout")));
+    return false;
+  }
 
-    for(i = 1; i<10; i++) {
-        _buf[i] = _read_byte(1000);
-	IF_SDEBUG(Serial.print(F("Sds011 read: ")));
-	IF_SDEBUG(Serial.println(_buf[i]));
-    }
+  if (!crc_ok()) {
+    IF_SDEBUG(Serial.println(F("Sds011 wrong crc")));
+    return false;
+  }
 
-    return !timeout();
+  IF_SDEBUG(Serial.println(F("Sds011 crc ok")));  
+  return true;
 }
 
-String Sds011::_buf_to_string(void)
-{
-    String ret = "";
-    uint8_t i = 0;
-
-    for(i = 0; i<19; i++) {
-        char c = (_buf[i]>>4) + '0';
-        if (c > '9') {
-            c += 'A'-'9'-1;
-        }
-        ret += c;
-
-        c = (_buf[i] & 0xf) + '0';
-        if (c > '9') {
-            c += 'A'-'9'-1;
-        }
-        ret += c;
-    }
-
-    return ret;
-}
 
 void Sds011::_filter_data(int n, int *pm25_table, int *pm10_table, int *pm25, int *pm10)
 {
