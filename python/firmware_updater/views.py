@@ -81,8 +81,8 @@ def update(request,name):
         print "slug: ",espversion["slug"]
     except:
         print "no slug in version"
-        
-    if espdate >= firmware.date:
+
+    if espdate >= firmware.date.replace(tzinfo=None):
         print ' 304 No new firmware'
         return HttpResponse(' 304 No new firmware',status=304)
 
