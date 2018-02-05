@@ -2875,8 +2875,8 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
   _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
   _sdsSerial->begin(9600);
   _sds011 = new sds011::Sds011(*_sdsSerial);
-
-   
+  delay(1000);
+ 
   /*
   switch (address)
     {
@@ -2903,47 +2903,47 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
 
   //sdsSerial->begin(9600);
 
-  _sds011->set_sleep(false);
+  //_sds011->set_sleep(false);
   IF_SDSDEBUG(SDDBGSERIAL.print(F("Sds011 firmware version: ")));
   IF_SDSDEBUG(SDDBGSERIAL.println(_sds011->firmware_version()));
 
-  _sds011->set_sleep(true);
-  _sds011->set_mode(sds011::QUERY);
+  if (_sds011->set_mode(sds011::QUERY)){
+    //if (_sds011->set_sleep(sds011::SLEEP)){
 
-  return SD_SUCCESS;
+      SDSMICSstarted=false;
+      _timing=millis();
+
+      return SD_SUCCESS;
+      //}
+  }
+  return SD_INTERNAL_ERROR;
 }
 
 int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
 {
-
+  //if (_sds011->set_sleep(sds011::WORK)) {
     SDSMICSstarted=true;
-    _sds011->set_sleep(false);
-    waittime= 14500ul;
+    _timing=millis();
+    //waittime= 30000ul;
+    waittime= 10ul;
+    return SD_SUCCESS;
     //}else{
-    //waittime= 1ul;
+    //return SD_INTERNAL_ERROR;
     //}
-
-  _timing=millis();
-  return SD_SUCCESS;
 }
 
 int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 {
   int pm25=0xFFFFFFFF;
   int pm10=0xFFFFFFFF;
-  bool ok=false;
+
+  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
+  if (!SDSMICSstarted)  return SD_INTERNAL_ERROR;
+
+  SDSMICSstarted=false;  
+  _timing=0;
   
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  if (SDSMICSstarted) {
-
-    ok = _sds011->query_data_auto(&pm25, &pm10, SDSSAMPLES);
-    _sds011->set_sleep(true);
-
-    SDSMICSstarted=false;
-  }
-
-  if (ok) {
+  if (_sds011->query_data_auto(&pm25, &pm10, SDSSAMPLES)) {
     // get pm25
     if (lenvalues >= 1) {
       values[0] = pm25 ;
@@ -2958,11 +2958,11 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
   }else{
     values[0]=0xFFFFFFFF;
     values[1]=0xFFFFFFFF;
+    //_sds011->set_sleep(sds011::SLEEP);
     return SD_INTERNAL_ERROR;
   }
-  
-  _timing=0;
 
+  //_sds011->set_sleep(sds011::SLEEP);
   return SD_SUCCESS;
 
 }
