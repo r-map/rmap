@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-02-02T12:00"
+#define SOFTWARE_VERSION "2018-02-04T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -579,6 +579,10 @@ void repeats() {
   delay(maxwaittime);
 
   if (publish_maint()) {
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.sendBuffer();
+    }
     for (int i = 0; i < SENSORS_LEN; i++) {
       if (!sd[i] == NULL){
 
@@ -586,12 +590,17 @@ void repeats() {
 	if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 
 	  publish_data(values,sensors[i].timerange,sensors[i].level);
+	  if (oledpresent) {
+	    u8g2.setCursor(0, (i+1)*10); 
+	    u8g2.print(values);
+	  }
 	  
 	}else{
 	  LOGN(F("Error" CR));
 	}
       }
     }
+  if (oledpresent) u8g2.sendBuffer();
   }
   digitalWrite(LED_PIN,HIGH);
 }
@@ -651,6 +660,10 @@ void setup() {
     u8g2.clearBuffer();
     u8g2.setCursor(0, 10); 
     u8g2.print(F("Starting up!"));
+    u8g2.setCursor(0, 20); 
+    u8g2.print(F("Version:"));
+    u8g2.setCursor(0, 30); 
+    u8g2.print(F(SOFTWARE_VERSION));
     u8g2.sendBuffer();
     delay(3000);
   }
@@ -778,6 +791,7 @@ void setup() {
     u8g2.print(F("IP:"));
     u8g2.setFont(u8g2_font_u8glib_4_tf);
     u8g2.print(WiFi.localIP().toString().c_str());
+    u8g2.setFont(u8g2_font_5x7_tf);
     u8g2.sendBuffer();
   }
 
