@@ -112,6 +112,12 @@ check process amqp2dballed_report_fixed with pidfile /var/run/rmap/amqp2dballed_
     stop program  = "/usr/bin/amqp2geoimaged stop"
 #    depends on apache, rmap
 
+  check process ttn2dballed with pidfile /var/run/rmap/ttn2dballed.lock
+    start program = "/usr/bin/ttn2dballed restart"
+    stop program  = "/usr/bin/ttn2dballed stop"
+#    depends on apache, rmap
+
+
 
 #  check directory wsgirmap path /var/run/wsgirmap
 #    if does not exist then exec "/bin/mkdir -p /var/run/wsgirmap || exit 1"
