@@ -220,7 +220,7 @@ class ttn2dballe(object):
             try:
                 #print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    
                 logging.info("ident=%s username=%s password=%s lon=%f lat=%f network=fixed host=rmap.cc prefix=sample maintprefix=maint" % (user,rmap.settings.mqttuser,"fakepassword",mystation.lon,mystation.lat))
-                mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="rmap.cc",prefix="sample",maintprefix="maint")
+                mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="rmap.cc",prefix="sample",maintprefix="maint",logfunc=logging.debug)
                 
                 mytemplate=rmap_core.ttntemplate[numtemplate]
                 for bcode,param in mytemplate.items():
