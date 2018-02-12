@@ -46,7 +46,7 @@ import binascii
 #else:
 #    logging.basicConfig(level=logging.INFO, format=LOGFORMAT)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+#logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
 
 	
 def bitextract(template,start,nbit):
@@ -177,8 +177,8 @@ class ttn2dballe(object):
                 dt=datetime.datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
             
                 payload=base64.b64decode(st["payload_raw"])
-                print "payload: ",payload
-                print "hex: ",binascii.hexlify(payload)
+                #print "payload: ",payload
+                logging.debug("hex: %s" % binascii.hexlify(payload))
                 
                 nbits=len(binascii.hexlify(payload))*4
                 template=int(binascii.hexlify(payload),16)
@@ -189,8 +189,8 @@ class ttn2dballe(object):
                     #    if (testBit(temp,i)!=0):
                 #        template=setBit(template,nbits-i-1)
                     
-                print "int: ",template
-                print "bynary: {0:b}".format(template)
+                logging.debug("int: %d" %template)
+                logging.debug("bynary: {0:b}".format(template))
                 #print "bynary:",bin(template)
                 
                 nbit=8
@@ -214,10 +214,12 @@ class ttn2dballe(object):
                     return
             except:
                 logging.error("error decoding message: skip it and do nothing!")
-                return
+                raise
+                #return
 
             try:
-                print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    
+                #print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    
+                logging.info("ident=%s username=%s password=%s lon=%f lat=%f network=fixed host=rmap.cc prefix=sample maintprefix=maint" % (user,rmap.settings.mqttuser,"fakepassword",mystation.lon,mystation.lat))
                 mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="rmap.cc",prefix="sample",maintprefix="maint")
                 
                 mytemplate=rmap_core.ttntemplate[numtemplate]
@@ -230,7 +232,8 @@ class ttn2dballe(object):
                         #val=(bval+param["offset"])/float(param["scale"])
                         val=bval+param["offset"]
                         datavar={bcode:{"t": dt,"v": val}}
-                        print "datavar=",datavar
+                        #print "datavar=",datavar
+                        logging.info("timerange=%s level=%s bcode=%s val=%d" % (param["timerange"],param["level"],bcode,val))
                         mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
 
                 mqtt.disconnect()
