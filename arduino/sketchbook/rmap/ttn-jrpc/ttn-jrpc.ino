@@ -60,9 +60,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
+#ifndef DEEPSLEEP
 #include <Time.h>
 #include <TimeAlarms.h>
-
+#endif
 #include <Wire.h>
 #include <SensorDriver.h>
 #define SENSORS_LEN 2
@@ -116,7 +117,7 @@ const lmic_pinmap lmic_pins = {
     .nss = 10,
     .rxtx = LMIC_UNUSED_PIN,
     .rst = LMIC_UNUSED_PIN,
-    .dio = {2, 3, 4},
+    .dio = {DIO0, DIO1, DIO2},
 };
 
 char confver[7] = CONFVER; // version of configuration saved on eeprom
@@ -577,7 +578,7 @@ void setup()
   wdt_disable();
   wdt_enable(WDTO_8S);
 
-
+  bool waitforconf=false;
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -587,11 +588,25 @@ void setup()
   LOGN(F("Started"CR));
   
   if (configuration.load()){
-    LOGN(F("Configuration loaded"CR));
+    LOGN(F("Configuration loaded" CR));
   } else {
-    LOGN(F("Configuration not loaded"CR));
+    LOGN(F("Configuration not loaded" CR));
     configuration.ack=0;
+    waitforconf=true;
   }
+
+  pinMode(FORCECONFIGPIN, INPUT_PULLUP);
+
+  if (digitalRead(FORCECONFIGPIN) == LOW) {
+    LOGN(F("force configuration by serial" CR));
+    waitforconf=true;
+  }
+  
+  while(waitforconf) {
+    mgr_serial();
+    wdt_reset();
+  }
+
   LOGN(F("ack: %d"CR),configuration.ack);
   LOGN(F("deveui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.deveui[0]
        ,configuration.deveui[1]
@@ -636,8 +651,10 @@ void setup()
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
 
+#ifndef DEEPSLEEP
   setTime(12,0,0,1,1,17); // set time to 12:00:00am Jan 1 2017
-
+#endif
+  
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
   sensors[0].address=73;
@@ -746,14 +763,15 @@ void setup()
   LMIC_startJoining();
 
   // query and send data
-  //Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
-
+#ifndef DEEPSLEEP
+  Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
 
   // upgrade LMIC
   //Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
+#endif
     
   LOGN(F("End setup"CR));
   
@@ -763,6 +781,9 @@ void loop() {
   wdt_reset();
   mgr_serial();
   os_runloop_once();
-  //Alarm.delay(0);
+#if defined(DEEPSLEEP)
   sleep_mgr_sensors();
+#else
+  Alarm.delay(0);
+#endif
 }
