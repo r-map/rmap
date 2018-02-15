@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-02-04T00:00"
+#define SOFTWARE_VERSION "2018-02-15T12:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -31,9 +31,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define SDS_PIN_RX D5
 //#define SDS_PIN_TX D6
 
-#define WIFI_SSED "STIMA-configuration"
+#define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
-#define SAMPLETIME 60
+#define SAMPLETIME 30
 
 #define OLEDI2CADDRESS 0X3C
 
@@ -134,7 +134,7 @@ bool oledpresent=false;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
-  Serial.println("Should save config");
+  LOGN("Should save config" CR);
   shouldSaveConfig = true;
 }
 
@@ -324,7 +324,6 @@ void firmware_upgrade() {
 	u8g2.setCursor(0, 30); 
 	u8g2.print(F("Failed"));
 	u8g2.sendBuffer();
-	delay(3000);
       }
     break;
     case HTTP_UPDATE_NO_UPDATES:
@@ -335,7 +334,6 @@ void firmware_upgrade() {
 	u8g2.setCursor(0, 30); 
 	u8g2.print(F("Update"));
 	u8g2.sendBuffer();
-	delay(3000);
       }
       break;
     case HTTP_UPDATE_OK:
@@ -344,7 +342,6 @@ void firmware_upgrade() {
 	u8g2.setCursor(0, 20); 
 	u8g2.print(F("FW Updated!"));
 	u8g2.sendBuffer();
-	delay(3000);
       }
       break;
     }
@@ -666,6 +663,8 @@ void setup() {
     u8g2.print(F(SOFTWARE_VERSION));
     u8g2.sendBuffer();
     delay(3000);
+  }else{
+        LOGN(F("OLED NOT Found" CR));
   }
   
   /*
@@ -702,24 +701,39 @@ void setup() {
     readconfig();
   } else {
     LOGN(F("failed to mount FS" CR));
+    LOGN(F("Reformat SPIFFS" CR));
+    SPIFFS.format();
+    LOGN(F("Reset wifi configuration" CR));
+    wifiManager.resetSettings();
+
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
       u8g2.print(F("Mount FS"));
       u8g2.setCursor(0, 20); 
       u8g2.print(F("Failed"));
+      u8g2.setCursor(0, 30); 
+      u8g2.print(F("RESET"));
+      u8g2.setCursor(0, 40); 
+      u8g2.print(F("CONFIGURATION"));
       u8g2.sendBuffer();
       delay(3000);
     }
+  }
+
+  if (readconfig_rmap() == String()) {
+    LOGN(F("station configuration not found!" CR));
+    LOGN(F("Reset wifi configuration" CR));
+    wifiManager.resetSettings();
   }
   
   // The extra parameters to be configured (can be either global or just in the setup)
   // After connecting, parameter.getValue() will get you the configured value
   // id/name placeholder/prompt default length
-  WiFiManagerParameter custom_rmap_server("server", "rmap server", rmap_server, 40);
+  WiFiManagerParameter custom_rmap_server("server", "rmap server", rmap_server, 41);
   WiFiManagerParameter custom_rmap_user("user", "rmap user", rmap_user, 10);
-  WiFiManagerParameter custom_rmap_password("password", "rmap password", rmap_password, 30, "type = \"password\"");
-  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 30);
+  WiFiManagerParameter custom_rmap_password("password", "rmap password", rmap_password, 31, "type = \"password\"");
+  WiFiManagerParameter custom_rmap_slug("slug", "rmap station slug", rmap_slug, 31);
 
   //set config save notify callback
   wifiManager.setSaveConfigCallback(saveConfigCallback);
@@ -742,23 +756,44 @@ void setup() {
   //in seconds
   wifiManager.setTimeout(180);
 
+
+  if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("ssed:"));
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F(WIFI_SSED));
+      u8g2.setCursor(0, 35); 
+      u8g2.print(F("password:"));
+      u8g2.setCursor(0, 45); 
+      u8g2.print(F(WIFI_PASSWORD));
+      u8g2.sendBuffer();
+    }
+
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
   //and goes into a blocking loop awaiting configuration
+  //wifiManager.setDebugOutput(false);
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
     LOGN(F("failed to connect and hit timeout" CR));
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("WIFI KO"));
+      u8g2.sendBuffer();
+    }
     delay(3000);
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
-    LOGN(F("connected...yeey :)" CR));
+    LOGN(F("connected... good!)" CR));
     digitalWrite(LED_PIN,HIGH);
 
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
-      u8g2.print(F("WIFI connected"));
+      u8g2.print(F("WIFI OK"));
       u8g2.sendBuffer();
     }
   }
