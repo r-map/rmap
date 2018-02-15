@@ -33,7 +33,7 @@ void loop() {
     //sets timeout until configuration portal gets turned off
     //useful to make it all retry or go to sleep
     //in seconds
-    //wifiManager.setConfigPortalTimeout(120);
+    //wifiManager.setTimeout(120);
 
     //it starts an access point with the specified name
     //here  "AutoConnectAP"
@@ -41,9 +41,6 @@ void loop() {
 
     //WITHOUT THIS THE AP DOES NOT SEEM TO WORK PROPERLY WITH SDK 1.5 , update to at least 1.5.1
     //WiFi.mode(WIFI_STA);
-    
-    // disable captive portal redirection
-    // wifiManager.setCaptivePortalEnable(false);
     
     if (!wifiManager.startConfigPortal("OnDemandAP")) {
       Serial.println("failed to connect and hit timeout");
