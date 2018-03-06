@@ -38,6 +38,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rmap import rmap_core
 import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
 import binascii
+from django.db import connection
 
 #LOGFORMAT = '%(asctime)-15s %(message)s'
 #DEBUG = 1
@@ -201,6 +202,13 @@ class ttn2dballe(object):
                 if numtemplate > 0 and numtemplate <= len(rmap_core.ttntemplate):
 
                     try:
+
+                        #close django connection to DB to be sure we have a new active connection handler
+                        try:
+                            connection.close()
+                        except Exception as e:
+                            print ("django connection close error",e)
+                        
                         mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
                     except ObjectDoesNotExist :
                         logging.error("StationMetadata matching query does not exist")
