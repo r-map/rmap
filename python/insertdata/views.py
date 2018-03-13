@@ -351,8 +351,7 @@ def insertDataRainboWeatherData(request):
                     slug=form.cleaned_data['coordinate_slug']
                     print user,password,network,prefix
                     print "<",slug,">","prefix:",prefix
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="rmap.cc",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
-                    #mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
                     form = RainboWeatherForm() # An unbound Rainbo form
