@@ -917,32 +917,32 @@ BORINUD =\
                   }, 
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
+                      "dataset": "http://localhost:8090/dataset/meteonetwork",
                       "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/arpav",
+                      "dataset": "http://localhost:8090/dataset/arpav",
                       "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+                      "dataset": "http://localhost:8090/dataset/opendata-er",
                       "measurements": report_measurements
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
+                      "dataset": "http://localhost:8090/dataset/opendata-aq-er",
                       "measurements": report_measurements
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/report_fixed",
+                      "dataset": "http://localhost:8090/dataset/report_fixed",
                       "measurements": report_measurements
                   },
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "http://rmap.cc:8090/dataset/report_mobile",
+                      "dataset": "http://localhost:8090/dataset/report_mobile",
                       "measurements": report_measurements
                   },
               ],
@@ -958,27 +958,27 @@ BORINUD =\
                    }, 
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/meteonetwork",
+                       "dataset": "http://localhost:8090/dataset/meteonetwork",
                        "measurements": report_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/arpav",
+                       "dataset": "http://localhost:8090/dataset/arpav",
                        "measurements": report_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/opendata-er",
+                       "dataset": "http://localhost:8090/dataset/opendata-er",
                        "measurements": report_measurements
                    },        
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/opendata-aq-er",
+                       "dataset": "http://localhost:8090/dataset/opendata-aq-er",
                        "measurements": report_measurements
                    },        
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/report_fixed",
+                       "dataset": "http://localhost:8090/dataset/report_fixed",
                        "measurements": report_measurements
                    },
                ],
@@ -994,7 +994,7 @@ BORINUD =\
                    }, 
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/report_mobile",
+                       "dataset": "http://localhost:8090/dataset/report_mobile",
                        "measurements": report_measurements
                    },
                ],
@@ -1014,17 +1014,17 @@ BORINUD =\
                    },         
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
+                       "dataset": "http://localhost:8090/dataset/sample_fixed",
                        "measurements": sample_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
+                       "dataset": "http://localhost:8090/dataset/sample_mobile",
                        "measurements": sample_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
+                       "dataset": "http://localhost:8090/dataset/luftdaten",
                        "measurements": sample_measurements
                    },
                ],
@@ -1040,12 +1040,12 @@ BORINUD =\
                    }, 
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/sample_fixed",
+                       "dataset": "http://localhost:8090/dataset/sample_fixed",
                        "measurements": sample_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/luftdaten",
+                       "dataset": "http://localhost:8090/dataset/luftdaten",
                        "measurements": sample_measurements
                    },
                ],
@@ -1061,7 +1061,7 @@ BORINUD =\
                    },         
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "http://rmap.cc:8090/dataset/sample_mobile",
+                       "dataset": "http://localhost:8090/dataset/sample_mobile",
                        "measurements": sample_measurements
                    },
                ],
@@ -1069,6 +1069,84 @@ BORINUD =\
                "CACHED_SUMMARY_TIMEOUT": 60*15,
            }
           }
+
+BORINUDLAST =\
+          {"report":{
+              "SOURCES": 
+              [
+                  {
+                      "class": "borinud.utils.source.DballeDB",
+                      "url": dsnreport_fixed,
+                  }, 
+                  {
+                      "class": "borinud.utils.source.DballeDB",
+                      "url": dsnreport_mobile,
+                  }, 
+              ],
+              "CACHED_SUMMARY": "default",
+              "CACHED_SUMMARY_TIMEOUT": 60*15,},
+           
+           "report_fixed":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnreport_fixed,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "report_mobile":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnreport_mobile,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnsample_fixed,
+                   }, 
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnsample_mobile,
+                   },         
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample_fixed":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnsample_fixed,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample_mobile":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": dsnsample_mobile,
+                   },         
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           }
+          }
+
 
 
 if DEBUG_BORINUD_SOURCES:
@@ -1166,7 +1244,7 @@ LEAFLET_CONFIG = {
 #'MINIMAP': True,
 }
 
-MAINSITES=("rmapv.rmap.cc","rmap.publicwifi.it")
+MAINSITES=("rmapv.rmap.cc","rmap.cc","rmaper.rmap.it","rmap.it")
 ALLOWED_HOSTS = ['*']
 
 #django-hosts configuration

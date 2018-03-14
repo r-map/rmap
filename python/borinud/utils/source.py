@@ -30,16 +30,16 @@ except ImportError:
     from urllib.request import urlopen
     from urllib.parse import quote
 
-from ..settings import BORINUD
+from ..settings import BORINUD,BORINUDLAST
 
 
-def get_db(dsn="report"):
+def get_db(dsn="report",last=True):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
             k: v for k, v in i.items() if k != "class"
         })
-        for i in BORINUD[dsn]["SOURCES"]
+        for i in (BORINUDLAST[dsn]["SOURCES"] if last else BORINUD[dsn]["SOURCES"])
     ]
     if len(dbs) == 1:
         db = dbs[0]
