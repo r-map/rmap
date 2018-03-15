@@ -183,8 +183,6 @@ def summaries(request, **kwargs):
     else:
         seg="last"
 
-    seg="last"
-
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
