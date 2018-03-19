@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-02-15T12:00"
+#define SOFTWARE_VERSION "2018-03-20T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -39,11 +39,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 // NODEMCU FOR LUFDATEN HOWTO
-//#define RESET_PIN D0 
-//#define SDS_PIN_RX D1
-//#define SDS_PIN_TX D2
 //#define SDA D4
 //#define SCL D5
+//#define RESET_PIN D0 
+//#define LED_PIN D4
+// those are defined in SensorDriver_config.h
+//#define SDS_PIN_RX D1
+//#define SDS_PIN_TX D2
 
 // set the frequency
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
@@ -131,6 +133,7 @@ SensorDriver* sd[SENSORS_LEN];
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
+unsigned short int displaypos;
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
@@ -548,6 +551,50 @@ void writeconfig() {;
   LOGN(F("saved config parameter" CR));
 }
 
+
+
+void display_values(const char* values) {
+  
+  StaticJsonBuffer<200> jsonBuffer;
+
+  JsonObject& json =jsonBuffer.parseObject(values);
+  if (json.success()){
+    for (JsonPair& pair : json) {
+
+      if (pair.value.as<char*>() == NULL) continue;
+      float val=pair.value.as<float>();
+
+      u8g2.setCursor(0, (displaypos+1)*10); 
+      
+      if (strcmp(pair.key,"B12101")==0){
+	u8g2.print(F("T   : "));
+	u8g2.print(val/100.-273.15);
+	u8g2.print(F(" C"));
+	displaypos++;
+      }
+      if (strcmp(pair.key,"B13003")==0){
+	u8g2.print(F("U   : "));
+	u8g2.print(val);
+	u8g2.print(F(" %"));
+	displaypos++;
+      }
+      if (strcmp(pair.key,"B15198")==0){
+	u8g2.print(F("PM2 : "));
+	u8g2.print(val/10.);
+	u8g2.print(F(" ug/m3"));
+	displaypos++;
+      }
+      if (strcmp(pair.key,"B15195")==0){
+	u8g2.print(F("PM10: "));
+	u8g2.print(val/10.);
+	u8g2.print(F(" ug/m3"));
+	displaypos++;
+      }
+    }
+  }
+}
+
+
 void repeats() {
 
   long unsigned int waittime,maxwaittime=0;
@@ -578,7 +625,11 @@ void repeats() {
   if (publish_maint()) {
     if (oledpresent) {
       u8g2.clearBuffer();
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("Measure!"));
       u8g2.sendBuffer();
+      displaypos=0;
+      u8g2.clearBuffer();
     }
     for (int i = 0; i < SENSORS_LEN; i++) {
       if (!sd[i] == NULL){
@@ -588,8 +639,7 @@ void repeats() {
 
 	  publish_data(values,sensors[i].timerange,sensors[i].level);
 	  if (oledpresent) {
-	    u8g2.setCursor(0, (i+1)*10); 
-	    u8g2.print(values);
+	    display_values(values);
 	  }
 	  
 	}else{
