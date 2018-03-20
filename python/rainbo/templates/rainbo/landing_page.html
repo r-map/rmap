@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% load staticfiles %}
+{% load i18n %}
 <head>
 
     <meta charset="utf-8">
@@ -49,19 +50,19 @@
                     <a href="#page-top"></a>
                 </li>
                 <li class="page-scroll">
-                    <a href="#benvenuto">Benvenuto</a>
+                    <a href="#benvenuto">{% trans "Welcome" %}</a>
                 </li>
                 <li class="page-scroll">
-                    <a href="#dati">Visualizza</a>
+                    <a href="#dati">{% trans "Show Data" %}</a>
                 </li>
                 <li class="page-scroll">
-                    <a href="#partecipa">Partecipa</a>
+                    <a href="#partecipa">{% trans "Contribute" %}</a>
                 </li>
                 <li class="page-scroll">
-                    <a href="#partners">Partners</a>
+                    <a href="#partners">{% trans "Partners" %}</a>
                 </li>
                 <li class="page-scroll">
-                    <a href="#contact">Contatti</a>
+                    <a href="#contact">{% trans "Contacts" %}</a>
                 </li>
                 {% include 'rainbo/base_service/section_service_nav_users.html' %}
             </ul>

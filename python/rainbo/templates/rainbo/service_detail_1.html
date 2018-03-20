@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load i18n %}
 <!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal1" tabindex="-1" role="dialog" aria-hidden="true">
     <div class="modal-content modal-dialog modal-lg" data-dismiss="modal">
@@ -12,26 +13,26 @@
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="modal-body text-justify">
-                        <h2 class="text-center">Visibilità</h2>
+                        <h2 class="text-center">{% trans "Visibility" %}</h2>
                         <hr class="star-primary">
                         <br><br>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/110.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>            
-                            <div class="col-lg-9 col-xs-8"> <b class="text-center">Foschia</b> 
-                                <br><br><b>Definizione:</b> sospensione nell'atmosfera di piccole goccioline d'acqua, solitamente microscopiche, o di particelle igroscopiche, le quali riducono la visibilit&agrave; alla superficie terrestre.
-<br><br><b>Commento:</b> il termine "foschia" o nebbia leggera &egrave; usato quando la visibilit&agrave; orizzontale &egrave; compresa tra 10 Km e 1 km. Le goccioline sono pi&ugrave; piccole e pi&ugrave; disperse che nel caso della nebbia la quale, per il resto, ha la stessa costituzione. La foschia forma un velo abbastanza sottile di aspetto grigiastro che copre il paesaggio.   
+                            <div class="col-lg-9 col-xs-8"> <b class="text-center">{% trans "Haze" %}</b> 
+                                <br><br><b>{% trans "Definition" %}:</b> {% trans "suspension in the atmosphere of small droplets of water, usually microscopic, or of hygroscopic particles, which reduce the visibility to the earth's surface." %} 
+                                <br><br><b>{% trans "Comment" %}:</b>{% trans "the term 'haze' or light fog is used when the horizontal visibility is between 10 km and 1 km. The droplets are smaller and more dispersed than in the case of fog which, for the rest, has the same constitution. The haze forms a fairly thin veil of greyish appearance that covers the landscape." %}
                            </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/130.png' %}" class="img-responsive center-block landing-img" alt="">
-                            </div>          
-                            <div class="col-lg-9 col-xs-8"> <b class="text-center">Nebbia</b> 
-                                <br><br><b>Definizione:</b> sospensione di piccolissime goccioline di acqua, solitamente microscopiche, le quali riducono la visibilit&agrave; alla superficie terrestre.
-<br><br><b>Commento:</b> la riduzione della visibilit&agrave; dipende dalla struttura della nebbia; specialmente dal numero di goccioline per unit&agrave; di volume e dalla distribuzione nelle dimensioni di queste. Il termine nebbia &egrave; usato quando la visibilit&agrave; orizzontale alla superficie terrestre &egrave; inferiore ad 1 km. Quando illuminate, singole goccioline di nebbia sono visibili ad occhio nudo; esse sono spesso in movimento in maniera turbolenta. La nebbia forma un velo biancastro che copre il paesaggio; esso pu&ograve; comunque prendere, quando mischiato con polvere o fumo, una debole colorazione.
-<br><br><b>Nota:</b> sulla superficie terrestre, a temperature inferiori a -10 &deg;C, la nebbia pu&ograve; essere composta, solitamente per congelamento delle goccioline, da cristalli di ghiaccio i quali, come la polvere di diamante, danno origine a fenomeni ottici.
+                            </div> <br><br> 
+                            <div class="col-lg-9 col-xs-8"> <b class="text-center">{% trans "Fog" %}</b> 
+                                <br><br><b>{% trans "Definition" %}:</b> {% trans "suspension in the atmosphere of small droplets of water, usually microscopic, or of hygroscopic particles, which reduce the visibility to the earth's surface." %}  
+                                <br><br><b>{% trans "Comment" %}:</b> {% trans "the reduction of visibility depends on the structure of the fog; especially from the number of droplets per unit volume and from the size distribution of these. The term fog is used when the horizontal visibility to the earth's surface is less than 1 km. When illuminated, individual droplets of mist are visible to the naked eye; they are often in turbulent movement. The fog forms a whitish veil covering the landscape; however, it can take a faint color when mixed with powder or smoke." %}
+                                <br><br><b> {% trans "Note" %}: </b> {% trans "on the earth's surface, at temperatures below -10 ° C, the fog can be composed, usually by freezing of the droplets, from ice crystals which, like the diamond dust, give rise to optical phenomena." %}
                             </div>
                         </div>
 

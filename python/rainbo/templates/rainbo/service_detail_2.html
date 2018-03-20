@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load staticfiles %}
 <!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal2" tabindex="-1" role="dialog" aria-hidden="true">
@@ -12,37 +13,37 @@
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="modal-body text-justify">
-                        <h2 class="text-center">Pioggia</h2>
+                        <h2 class="text-center">{% trans "Rain" %}</h2>
                         <hr class="star-primary">
-                        <br><br><b>Definizione:</b> L'intensit&agrave; di una precipitazione liquida si misura in mm all'ora e corrisponde alla quantit&agrave; di gocce che giungono a terra: pi&ugrave; sono fitte, pi&ugrave; &egrave; intensa.
+                        <br><br><b>{% trans "Definition" %}:</b> {% trans "The intensity of a liquid precipitation is measured in mm per hour and corresponds to the quantity of drops that reach the ground: more dense are drops, more intense is the precipitation." %}
                         <br><br>
-                        Rifacendosi alla classificazione ufficiale in meteorologia:
+                        {% trans "Referring to the official meteorology classification:" %}
                         <br><br>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/150.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>            
-                            <div class="col-lg-9 col-xs-8">  <b>pioviggine</b> per precipitazioni fino a 1 mm all'ora</div>
+			    <div class="col-lg-9 col-xs-8">  <b>{% trans "drizzle" %}</b>, {% trans " intensity lesser than 1 mm/h" %} </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/160.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>pioggia, da debole a forte</b> se l'intensit&agrave; &egrave; compresa tra 1 e 10 mm/h</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "rain, from weak to heavy" %}</b>, {% trans "intensity is between 1 and 10 mm/h" %} </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/165.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>pioggia congelantesi al suolo</b>i quando le temperature arrivano allo zero e le precipitazioni assumono carattere di neve</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "freezing on the ground" %}</b> {% trans "when temperatures reach zero and precipitation takes on a snow character" %} </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/184.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>pioggia violenta o nubifragio</b> se oltre i 50 mm all'ora</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "very heavy rain" %}</b>, {% trans "intensity is over 50 mm/h" %}</div>
                         </div>
-                        <br><br><b>Commento:</b> L'intensit&agrave; di una precipitazione liquida si misura in mm all'ora (mm/h) e corrisponde alla quantit&agrave; di gocce che giungono a terra: pi&ugrave; sono fitte, pi&ugrave; è&ograve; intensa.
+                        <br><br><b>{% trans "Comment" %}:</b> {% trans "The intensity of a liquid precipitation is measured in mm per hour (mm / h) and corresponds to the quantity of drops that reach the ground: more dense are drops, more intense is the precipitation." %}  
                     </div>
                 </div>
             </div>

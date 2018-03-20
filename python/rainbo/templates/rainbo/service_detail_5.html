@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load staticfiles %}
 <!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal5" tabindex="-1" role="dialog" aria-hidden="true">
@@ -12,16 +13,19 @@
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="modal-body text-justify">
-                        <h2 class="text-center">Tromba d'aria</h2>
+			    <h2 class="text-center">{% trans "Tornado"%}</h2>
                         <hr class="star-primary">
                         <br><br>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/199.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>            
-                            <div class="col-lg-9 col-xs-8"> <b class="text-center">Tromba d'aria</b>
-                                <br><br><b>Definizione:</b> fenomeno costituito da un turbine di vento spesso violento, rive lato dalla presenza di una specie di tubo o di cono rovesciato (nube ad imbuto) pendente dalla base di un Cumulonembo (particolarit&agrave; supplementare tuba) e da un "cespo" costituito da goccioline diacqua sollevate dalla superficie del mare o di polvere, sabbia o detriti sollevati dalla superficie del suolo.
-<br><br><b>Commento:</b> l'asse della nube ad imbuto &egrave; verticale, inclinato o talvolta sinuoso. Non straordinariamente, l'imbuto si fonde col cespo. L'aria nel turbine ruota rapidamente, assai spesso in senso ciclonico; un rapido movimento rotatorio pu&ograve; anche essere osservato al di fuori dell'imbuto e del "cespo". Pi&ugrave; lontano, l'aria &egrave; spesso assai calma.
+                            <div class="col-lg-9 col-xs-8"> <b class="text-center">{% trans "Tornado"%}</b>
+                                <br><br><b>{% trans "Definition" %}:</b> 
+				
+				{% trans "This phenomenon consists of a wind turbidity that is often violent, revealed by the presence of a kind of tube or inverted cone (funnel cloud) hanging from the base of a Cumulonimbus (special tuba) and from a 'head' consisting of water droplets raised from the surface of the sea or dust, sand or debris raised off the ground surface." %} 
+                                <br> <br> <b> {% trans "Comment" %}: </b> 
+                               {% trans "the axis of the funnel cloud is vertical, inclined or sometimes sinuous. Not surprisingly, the funnel merges with the tuft. The air in the turbine rotates rapidly, very often in a cyclonic sense; a rapid rotary movement can also to be observed outside the funnel and the 'head'. Furthest, the air is often very calm." %}
                             </div>
                             </div>
                     </div>
