@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-16 16:10+0100\n"
-"PO-Revision-Date: 2018-03-20 11:21+0100\n"
+"POT-Creation-Date: 2018-03-20 15:36+0100\n"
+"PO-Revision-Date: 2018-03-20 15:40+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -339,6 +339,10 @@ msgstr "strada ghiacciata"
 msgid "flooding"
 msgstr "allagamento"
 
+#: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:42
+msgid "pothole"
+msgstr "buca in stada"
+
 #: insertdata/views.py:122
 msgid "Impact detected"
 msgstr "Impatto rilevato"
@@ -370,7 +374,7 @@ msgstr "Visualizza"
 
 #: rainbo/templates/rainbo/base.html:72
 msgid "Partecipate"
-msgstr ""
+msgstr "Partecipa"
 
 #: rainbo/templates/rainbo/base.html:75
 #: rainbo/templates/rainbo/landing_page.html:65
@@ -952,6 +956,19 @@ msgstr ""
 "Nei centri urbani è frequente che, per il forte maltempo, le reti fognarie "
 "non riescano a contenere l'acqua piovana in eccesso, causando allagamenti "
 "diffusi e problemi alla circolazione stradale"
+
+#: rainbo/templates/rainbo/service_detail_6.html:44
+msgid ""
+"A <b>Pothole</b> is a structural failure in a <b> road </b> surface, caused "
+"by failure primarily in asphalt <b>pavement</b> due to the presence of water "
+"in the underlying soil structure and the presence of traffic passing over "
+"the affected area. Long-lasting or heavy rainfall events can cause potholes "
+"in the road."
+msgstr ""
+"Una <b>buca in strada</b> consiste nel <b>cedimento dell'asfalto</b>, "
+"causato dalla presenza di acqua nella struttura del suolo sottostante e del "
+"traffico che la attraversa. Gli eventi di precipitazione intensa e/o "
+"duraturi ne rappresentano la causa più frequente."
 
 #: rainbo/templates/rainbo/service_push_impact.html:18
 msgid ""

@@ -119,7 +119,7 @@ class RainboWeatherForm(forms.ModelForm):
 
 class RainboImpactForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,_("fallen tree")),(20,_("icy road")),(30,_("flooding"))],required=False,label=_("Impact detected"),help_text='') 
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,_("fallen tree")),(20,_("icy road")),(30,_("flooding")),(40,_("pothole"))],required=False,label=_("Impact detected"),help_text='') 
 
     class Meta:
         model = GeorefencedImage

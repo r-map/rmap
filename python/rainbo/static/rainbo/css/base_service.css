@@ -838,6 +838,20 @@ label[for=id_impact_detected_2] > input{
     background-image: url(/static/rainbo/img/icons/impact_floading.png) !important;
 }
 
+label[for=id_impact_detected_3],
+.myDivIcon30{
+    vertical-align: bottom;
+    padding-top: 45px;
+    background-image: url(/static/rainbo/img/icons/impact_road_grey.png);
+}
+
+label[for=id_impact_detected_3] > input{
+    display: none;
+}
+
+.id_impact_detected_3_selected{
+    background-image: url(/static/rainbo/img/icons/impact_road.png) !important;
+}
 
 
 .insertdata-selector input{
