@@ -51,6 +51,7 @@ import rmap.settings
 def main():
 
     import os,logging,logging.handlers
+    import optparse
 
     handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileweb, maxBytes=5000000, backupCount=10)
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -62,6 +63,97 @@ def main():
     logging.getLogger('').addHandler(handler)
     logging.getLogger('').setLevel(logging.DEBUG)
 
+    p = optparse.OptionParser(usage="usage: %prog [options]",version="%prog "+__version__)
+    p.add_option("--dsnreport_fixed",dest="dsnreport_fixed", help="set Borinud DSN (default %default)", default=rmap.settings.dsnreport_fixed)
+    p.add_option("--dsnreport_mobile",dest="dsnreport_mobile", help="set Borinud DSN (default %default)", default=rmap.settings.dsnreport_mobile)
+    p.add_option("--dsnsample_fixed",dest="dsnsample_fixed", help="set Borinud DSN (default %default)", default=rmap.settings.dsnsample_fixed)
+    p.add_option("--dsnsample_mobile",dest="dsnsample_mobile", help="set Borinud DSN (default %default)", default=rmap.settings.dsnsample_mobile)
+
+    (options, args) = p.parse_args()
+
+
+    BORINUD =\
+          {"report":{
+              "SOURCES": 
+              [
+                  {
+                      "class": "borinud.utils.source.DballeDB",
+                      "url": options.dsnreport_fixed,
+                  }, 
+                  {
+                      "class": "borinud.utils.source.DballeDB",
+                      "url": options.dsnreport_mobile,
+                  }, 
+              ],
+              "CACHED_SUMMARY": "default",
+              "CACHED_SUMMARY_TIMEOUT": 60*15,},
+           
+           "report_fixed":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnreport_fixed,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "report_mobile":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnreport_mobile,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnsample_fixed,
+                   }, 
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnsample_mobile,
+                   },         
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample_fixed":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnsample_fixed,
+                   }, 
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           },
+           "sample_mobile":{
+               "SOURCES": 
+               [
+                   {
+                       "class": "borinud.utils.source.DballeDB",
+                       "url": options.dsnsample_mobile,
+                   },         
+               ],
+               "CACHED_SUMMARY": "default",
+               "CACHED_SUMMARY_TIMEOUT": 60*15,
+           }
+          }
+
+
+    settings.BORINUD=BORINUD
+    settings.BORINUDLAST=BORINUD
+
+    
     logging.info('Starting up rmapweb version '+__version__)
 
 
