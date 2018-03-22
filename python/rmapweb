@@ -20,15 +20,10 @@
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 
-import django
-django.setup()
-
-from django.conf import settings
 
 #from rmap import daemon
 from rmap import __version__
-from django.core import management
-import rmap.settings
+
 
 #rmapweb = daemon.Daemon(
 #        stdin="/dev/null",
@@ -52,6 +47,7 @@ def main():
 
     import os,logging,logging.handlers
     import optparse
+    import rmap.settings
 
     handler = logging.handlers.RotatingFileHandler(rmap.settings.logfileweb, maxBytes=5000000, backupCount=10)
     formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -150,9 +146,15 @@ def main():
           }
 
 
-    settings.BORINUD=BORINUD
-    settings.BORINUDLAST=BORINUD
+    rmap.settings.BORINUD=BORINUD
+    rmap.settings.BORINUDLAST=BORINUD
+    
+    from django.conf import settings
 
+    from django.core import management
+    import django
+
+    django.setup()
     
     logging.info('Starting up rmapweb version '+__version__)
 
