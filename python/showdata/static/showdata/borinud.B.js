@@ -1963,6 +1963,18 @@
         "B13082": {
             "description": "WATER TEMPERATURE", 
             "unit": "K"
+        },
+        "B25025": {
+            "description": "Battery voltage",
+            "unit": "V"
+        },
+        "B25192": {
+            "description": "Battery charge",
+            "unit": "%"
+        },
+        "B25193": {
+            "description": "Battery current",
+            "unit": "A"
         }
     };
     this.borinud = this.borinud || {}
