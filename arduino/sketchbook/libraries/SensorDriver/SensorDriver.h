@@ -32,6 +32,11 @@
 #include <SoftwareSerial.h>
 #endif
 
+#if defined (HPM_ONESHOT)
+#include "hpm.h"
+#include <SoftwareSerial.h>
+#endif
+
 // initialize the I2C interface
 //void SensorDriverInit();
 
@@ -807,6 +812,35 @@ class SensorDriverTmp : public SensorDriver
   #endif
 };
 #endif
+
+#if defined (HPM_ONESHOT)
+
+ class SensorDriverHPMoneshotSerial : public SensorDriver
+ {
+ public:
+   //SensorDriverHPMoneshotSerial();
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined (USEGETDATA)
+    virtual int getdata(unsigned long& data,unsigned short& width);
+  #endif
+    virtual ~SensorDriverHPMoneshotSerial();
+
+#if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+    
+   protected:
+    SoftwareSerial* _hpmSerial=NULL;
+    hpm* _hpm=NULL;  
+};
+
+#endif
+
 
 #define SD_INTERNAL_ERROR 1
 #define SD_SUCCESS 0

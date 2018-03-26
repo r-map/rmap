@@ -9,6 +9,7 @@
 int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
+bool HPMstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -100,7 +101,6 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	return new SensorDriverSDS011max();
       else
 #endif
-
 #if defined (MICS4514_ONESHOT)
       if (strcmp(type, "SMI") == 0)
 	return new SensorDriverMICS4514oneshot();
@@ -130,13 +130,19 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
     } else
 #endif
 
+      if (strcmp(driver, "SERI") == 0){
 #if defined (SDS011_ONESHOT)
-    if (strcmp(driver, "SERI") == 0){
-      if (strcmp(type, "SSD") == 0) {
-	return new SensorDriverSDS011oneshotSerial();
-      }
-    } else
+	if (strcmp(type, "SSD") == 0) {
+	  return new SensorDriverSDS011oneshotSerial();
+	} else 
 #endif
+#if defined (HPM_ONESHOT)
+	  if (strcmp(type, "HPM") == 0) {
+	    return new SensorDriverHPMoneshotSerial();
+	  }
+#endif
+
+    } else
     {
       return NULL;
     }
@@ -4870,4 +4876,161 @@ aJsonObject* SensorDriverMICS4514max::getJson()
 }
 #endif
 #endif
+
+
+#if defined (HPM_ONESHOT)
+
+int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  //bool oneshot=true;
+
+  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX, false, 128);
+  _hpmSerial->begin(9600);
+  _hpm = new hpm();
+  delay(1000);
+
+  Serial.println("try to build HPM");
+  
+  if(_hpm->init(_hpmSerial)){
+
+      HPMstarted=false;
+      _timing=millis();
+
+      return SD_SUCCESS;
+  }
+  return SD_INTERNAL_ERROR;
+}
+
+int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
+{
+  if(_hpm->startParticleMeasurement()){
+    HPMstarted=true;
+    _timing=millis();
+    //waittime= 6000ul;
+    waittime= 14500ul;
+    return SD_SUCCESS;
+  }else{
+    return SD_INTERNAL_ERROR;
+  }
+}
+
+int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
+{
+  int pm=0xFFFFFFFF;
+
+  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
+  if (!HPMstarted)  return SD_INTERNAL_ERROR;
+
+  HPMstarted=false;  
+  _timing=0;
+
+  // measure and get pm25
+  _hpm->readParticleMeasuringResults();
+  _hpm->stopParticleMeasurement();
+
+  pm=_hpm->get(PM25_TYPE);
+  if (pm == 0xFFFF){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm25 missed")));
+    return SD_INTERNAL_ERROR;
+  }
+  if (lenvalues >= 1) {
+    values[0] = pm*10 ;
+  }
+    
+  // get pm10
+  if (lenvalues >= 2) {
+    pm=_hpm->get(PM10_TYPE);
+    if (pm ==0xFFFF){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm10 missed")));
+      return SD_INTERNAL_ERROR;
+    }
+    values[1] = pm*10 ;
+  }
+
+  return SD_SUCCESS;
+
+}
+
+#if defined (USEGETDATA)
+int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  return SD_INTERNAL_ERROR;
+}
+#endif
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverHPMoneshotSerial::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverHPMoneshotSerial::get(values,2) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
+  }
+  return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverHPMoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverHPMoneshotSerial::~SensorDriverHPMoneshotSerial(){
+
+  delete _hpm;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+  //delete _hpmSerial;
+}
+
+
+#endif
+
+
+
+
 

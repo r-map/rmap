@@ -14,13 +14,13 @@
 #define MAXDELAYFORREAD 60000
 
 // add getdata method in library for lora-ttn compression
-#define USEGETDATA
+//#define USEGETDATA
 
 // use ajson library for json response
-#define USEAJSON
+//#define USEAJSON
 
 // use aarduinojson library for json response
-//#define USEARDUINOJSON
+#define USEARDUINOJSON
 
 // use RF24Network library for radio transport
 //#define RADIORF24
@@ -63,12 +63,13 @@
 //#define TEMPERATUREHUMIDITY_REPORT
 
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
-//#define SDS011_ONESHOT
+#define SDS011_ONESHOT
 //luftdaten
 //#define SDS_PIN_RX D1
 //#define SDS_PIN_TX D2
 #define SDS_PIN_RX D5
 #define SDS_PIN_TX D6
+
 #define SDSSAMPLES 3
 
 // include sds011 pm 2.5 and pm 10 driver REPORT MODE
@@ -80,6 +81,13 @@
 // include mics4514 CO and NO2pm driver REPORT MODE
 //#define MICS4514_REPORT
 
+// include Honeywell HPM pm 2.5 and pm 10 driver SAMPLE MODE
+#define HPM_ONESHOT
+//luftdaten
+//#define HPM_PIN_RX D1
+//#define HPM_PIN_TX D2
+#define HPM_PIN_RX D5
+#define HPM_PIN_TX D6
 
 #if defined (TEMPERATUREHUMIDITY_ONESHOT)
 #if defined (TEMPERATUREHUMIDITY_REPORT)

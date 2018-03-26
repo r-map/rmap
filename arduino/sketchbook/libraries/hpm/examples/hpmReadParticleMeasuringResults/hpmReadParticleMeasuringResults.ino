@@ -22,8 +22,13 @@ void loop() {
 
   // update values at every 5s interval
 
-  uint16_t val = HPM.readParticleMeasuringResults();
+  HPM.readParticleMeasuringResults();
+  uint16_t val = HPM.get(PM25_TYPE)
   Serial.print(F("PM2.5 val: ")); 
+  Serial.print(val);
+  Serial.println(F("  ug/m3"));
+  val = HPM.get(PM10_TYPE)
+  Serial.print(F("PM10  val: ")); 
   Serial.print(val);
   Serial.println(F("  ug/m3"));
 

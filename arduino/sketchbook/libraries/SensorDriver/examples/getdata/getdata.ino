@@ -24,7 +24,7 @@ struct sensor_t
 SensorDriver* sd[SENSORS_LEN];
 
 char* json;
-aJsonObject* aj;
+//aJsonObject* aj;
 
 //#define LENBUF 120
 //const int node=0; 
@@ -103,8 +103,8 @@ void setup()
   */
 
 
-  strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"ADT");
+  strcpy(sensors[0].driver,"SERI");
+  strcpy(sensors[0].type,"HPM");
   sensors[0].address=73;
 
   // start up the serial interface
@@ -118,7 +118,7 @@ void setup()
 #define I2C_CLOCK 50000
 
   //set the i2c clock 
-  TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
+  //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
 
 
   delay(1000);
@@ -164,7 +164,7 @@ void loop()
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
       
-      /*
+      
       // get integers values 
 #define LENVALUES 2
       long values[LENVALUES];
@@ -182,8 +182,8 @@ void loop()
       }else{
 	Serial.println("Error");
       }
-      */
-
+      
+      /*
       unsigned long data;
       unsigned short width;
       if (sd[i]->getdata(data,width) == SD_SUCCESS){
@@ -194,7 +194,7 @@ void loop()
       }else{
 	Serial.println("Error");
       }
-
+      */
 
       
       /*

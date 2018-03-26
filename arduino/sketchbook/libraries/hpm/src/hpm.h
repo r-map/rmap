@@ -20,7 +20,7 @@ public:
 
 	bool init(Stream *serial);
 	uint16_t get(hpm_sensor_type type=PM25_TYPE);
-	uint16_t readParticleMeasuringResults(hpm_sensor_type type=PM25_TYPE);
+	bool readParticleMeasuringResults();
 	bool startParticleMeasurement();
 	bool stopParticleMeasurement();
 	bool stopAutoSend();

@@ -35,12 +35,11 @@ uint16_t hpm::get(hpm_sensor_type type){
   return 0xFFFF;
 }
 
-uint16_t hpm::readParticleMeasuringResults(hpm_sensor_type type){
+bool hpm::readParticleMeasuringResults(){
 
   sendCmd(0x01,0x04);
   pm25_val = pm10_val = 0xFFFF;
-  readResponse();
-  return get(type);
+  return readResponse();
 }
 
 bool hpm::startParticleMeasurement(){
