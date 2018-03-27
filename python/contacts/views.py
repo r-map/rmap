@@ -9,10 +9,9 @@
 from django.http import HttpResponse
 import json
 from django.contrib.auth.models import User
+from django.core.mail import send_mail
 
-from mail_sender import send_mail
 import rmap.settings as settings
-
 
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #         Manage email from the homepage contact form 
@@ -36,7 +35,7 @@ Message:
 """ %( post[ 'name' ], post[ 'email' ], post[ 'phone' ], post[ 'message' ] )
     receivers = get_admin_mail()
     sender    = settings.DEFAULT_FROM_EMAIL
-    send_mail( subject, message, receivers, sender )
+    send_mail( subject, message, receivers, sender,fail_silently=False )
     
     result = json.dumps( { 'error_message' : None } )
     
