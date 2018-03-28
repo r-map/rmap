@@ -69,20 +69,40 @@ def dballe2arkimet(date):
 
     logging.info("Start to migrate data to arkimet")
 
-    p1=subprocess.Popen (("dbadb", "export", "--dsn", opts.dsn, "yearmax=%s"%date.year,  "monthmax=%s"%date.month , "daymax=%s"%date.day )
-                           ,stdout=subprocess.PIPE, stderr=stderr,env={"TMPDIR":opts.cachedir})
-    p2=subprocess.Popen (("arki-scan", "--dispatch="+opts.arkiconf , "bufr:-",  "--summary", "--dump", "--status"), stdin=p1.stdout, stdout=subprocess.PIPE,stderr=stderr)
-    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    st=p2.communicate()
-    stdout.write(st[0])
-    #stderr.write(st[1])
+#    p1=subprocess.Popen (("dbadb", "export", "--dsn", opts.dsn, "yearmax=%s"%date.year,  "monthmax=%s"%date.month , "daymax=%s"%date.day )
+#                           ,stdout=subprocess.PIPE, stderr=stderr,env={"TMPDIR":opts.cachedir})
+#    p2=subprocess.Popen (("arki-scan", "--dispatch="+opts.arkiconf , "bufr:-",  "--summary", "--dump", "--status"), stdin=p1.stdout, stdout=subprocess.PIPE,stderr=stderr)
+#    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+#    st=p2.communicate()
+#    stdout.write(st[0])
+#    #stderr.write(st[1])
+#
+#    logging.info("End to migrate data to arkimet")
+#
+#    p1.wait()
+#    logging.info("Return status: %s %s" % (p1.returncode,p2.returncode))
+#    
+#    if (p1.returncode == 0 and (p2.returncode==0 or p2.returncode==2)):
+#        logging.info("Start to delete data from dballe")
+#        subprocess.check_call (("dbadb", "delete", "--dsn", opts.dsn,  "yearmax=%s"%date.year,  "monthmax=%s"%date.month , "daymax=%s"%date.day )
+#                               ,stderr=stderr,stdout=stdout,env={"TMPDIR":opts.cachedir})
+#        logging.info("End to delete data from dballe")
+#    else:
+#        logging.error("Error migrate data from dballe to arkimet")
+#        logging.warning("Do not delete data from dballe")
+
+    tmpdatafile="tmpdatafile"
+    with open(tmpdatafile, 'w') as data:
+        p1returncode = subprocess.call (("dbadb", "export", "--dsn", opts.dsn, "yearmax=%s"%date.year,  "monthmax=%s"%date.month , "daymax=%s"%date.day )
+                                        ,stdout=data, stderr=stderr,env={"TMPDIR":opts.cachedir})
+        
+    p2returncode = subprocess.call (("arki-scan", "--dispatch="+opts.arkiconf , "bufr:"+tmpdatafile,  "--summary", "--dump", "--status"),stderr=stderr,stdout=stdout)
 
     logging.info("End to migrate data to arkimet")
 
-    p1.wait()
-    logging.info("Return status: %s %s" % (p1.returncode,p2.returncode))
+    logging.info("Return status: %s %s" % (p1returncode,p2returncode))
     
-    if (p1.returncode == 0 and (p2.returncode==0 or p2.returncode==2)):
+    if (p1returncode == 0 and (p2returncode==0 or p2returncode==2)):
         logging.info("Start to delete data from dballe")
         subprocess.check_call (("dbadb", "delete", "--dsn", opts.dsn,  "yearmax=%s"%date.year,  "monthmax=%s"%date.month , "daymax=%s"%date.day )
                                ,stderr=stderr,stdout=stdout,env={"TMPDIR":opts.cachedir})
