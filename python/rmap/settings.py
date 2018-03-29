@@ -511,6 +511,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.'+DATABASE_ENGINE,
+            #'ENGINE': 'django_postgres_readonly',
             'NAME':    DATABASE_NAME,
             'USER':    DATABASE_USER,
             'PASSWORD':DATABASE_PASSWORD,
