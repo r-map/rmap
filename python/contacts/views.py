@@ -32,7 +32,9 @@ Phone: %s
 
 Message:
 %s
-""" %( post[ 'name' ], post[ 'email' ], post[ 'phone' ], post[ 'message' ] )
+
+%s
+""" %( post[ 'name' ], post[ 'email' ], post[ 'phone' ], post[ 'message' ], settings.RAINBO_MESSAGE_SIGNATURE )
     receivers = get_admin_mail()
     sender    = settings.DEFAULT_FROM_EMAIL
     send_mail( subject, message, receivers, sender,fail_silently=False )
