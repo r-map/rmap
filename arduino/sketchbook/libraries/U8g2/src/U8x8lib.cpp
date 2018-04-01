@@ -368,6 +368,7 @@ extern "C" uint8_t u8x8_byte_arduino_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t a
     case U8X8_MSG_BYTE_INIT:
       /* disable chipselect */
       u8x8_gpio_SetCS(u8x8, u8x8->display_info->chip_disable_level);
+      
       /* no wait required here */
       
       /* for SPI: setup correct level of the clock signal */
@@ -376,7 +377,28 @@ extern "C" uint8_t u8x8_byte_arduino_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t a
       // removed, use SPI.begin() instead: digitalWrite(13, u8x8_GetSPIClockPhase(u8x8));
       
       /* setup hardware with SPI.begin() instead of previous digitalWrite() and pinMode() calls */
-      SPI.begin();	
+
+
+      /* issue #377 */
+      /* issue #378: removed ESP8266 support, which is implemented differently */
+#if defined(ESP_PLATFORM) || defined(ARDUINO_ARCH_ESP32)
+      /* ESP32 has the following begin: SPI.begin(int8_t sck=SCK, int8_t miso=MISO, int8_t mosi=MOSI, int8_t ss=-1); */
+      /* not sure about ESP8266 */
+      if ( u8x8->pins[U8X8_PIN_I2C_CLOCK] != U8X8_PIN_NONE && u8x8->pins[U8X8_PIN_I2C_DATA] != U8X8_PIN_NONE )
+      {
+	/* SPI.begin(int8_t sck=SCK, int8_t miso=MISO, int8_t mosi=MOSI, int8_t ss=-1); */
+	/* actually MISO is not used, but what else could be used here??? */
+	SPI.begin(u8x8->pins[U8X8_PIN_I2C_CLOCK], MISO, u8x8->pins[U8X8_PIN_I2C_DATA]);
+      }
+      else
+      {
+	SPI.begin();
+      }
+#else
+      SPI.begin();
+#endif 
+
+      
 
       break;
       
@@ -429,8 +451,9 @@ extern "C" uint8_t u8x8_byte_arduino_hw_spi(u8x8_t *u8x8, uint8_t msg, uint8_t a
       return 0;
   }
   
-#else
-#endif
+#else	/* U8X8_HAVE_HW_SPI */
+
+#endif	/* U8X8_HAVE_HW_SPI */
   return 1;
 }
 
@@ -541,8 +564,8 @@ extern "C" uint8_t u8x8_byte_arduino_hw_i2c(U8X8_UNUSED u8x8_t *u8x8, U8X8_UNUSE
       Wire.write((uint8_t *)arg_ptr, (int)arg_int);
       break;
     case U8X8_MSG_BYTE_INIT:
-#ifdef ESP8266
-      /* for ESP8266, Wire.begin has two more arguments: clock and data */          
+#if defined(ESP8266) || defined(ARDUINO_ARCH_ESP8266) || defined(ESP_PLATFORM) || defined(ARDUINO_ARCH_ESP32)
+      /* for ESP8266/ESP32, Wire.begin has two more arguments: clock and data */          
       if ( u8x8->pins[U8X8_PIN_I2C_CLOCK] != U8X8_PIN_NONE && u8x8->pins[U8X8_PIN_I2C_DATA] != U8X8_PIN_NONE )
       {
 	// second argument for the wire lib is the clock pin. In u8g2, the first argument of the  clock pin in the clock/data pair

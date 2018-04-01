@@ -351,8 +351,7 @@ def insertDataRainboWeatherData(request):
                     slug=form.cleaned_data['coordinate_slug']
                     print user,password,network,prefix
                     print "<",slug,">","prefix:",prefix
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="rmap.cc",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
-                    #mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
                     form = RainboWeatherForm() # An unbound Rainbo form
@@ -402,12 +401,13 @@ def insertDataManualData(request):
             if address:
                 nom = Nominatim(base_url="http://nominatim.openstreetmap.org",referer=get_current_site(request))
                 result=nom.query(address,limit=1,countrycodes="IT")
-                if len(result) >= 1:
-                    lat= result[0]["lat"]
-                    lon= result[0]["lon"]
-                    address= result[0]["display_name"]
-                    request.POST['geom']= str(Point(float(lon),float(lat)))
-                    request.POST['address']= address
+                if result is not None:
+                    if len(result) >= 1:
+                        lat= result[0]["lat"]
+                        lon= result[0]["lon"]
+                        address= result[0]["display_name"]
+                        request.POST['geom']= str(Point(float(lon),float(lat)))
+                        request.POST['address']= address
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             nominatimform = NominatimForm()

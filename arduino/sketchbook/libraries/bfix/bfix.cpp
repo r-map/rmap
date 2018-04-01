@@ -152,7 +152,7 @@
  *     unsigned long bit_offset
  *     unsigned long bit_len
  *     long value
- *     unsigned int endian
+ *     unsigned short endian
  *
  *     int return = bfi(cptr, bit_offset, bit_len, value, endian);
  *
@@ -168,7 +168,7 @@
  *     unsigned long bit_offset - bit offset(starting from 1) from the start of the char array
  *     unsigned long bit_len    - bit length of field to insert
  *     long value               - value to insert
- *     unsigned int endian      - endian enum, 0(run time checking), 1(big endian), 2(little endian)
+ *     unsigned short endian      - endian enum, 0(run time checking), 1(big endian), 2(little endian)
  *
  * Comments:
  *     4(32 bit machines)/8(64 bit machines) bytes are always read from the unsigned char
@@ -187,7 +187,7 @@ bfi
         unsigned long bit_offset,
         unsigned long bit_len,
         long value,
-        unsigned int endian
+        unsigned short endian
     )
 {
     /* machine dependencies */
@@ -392,7 +392,7 @@ bfi
  *     const unsigned char *cptr - const pointer to unsigned char array
  *     unsigned long bit_offset  - bit offset(starting from 1) from the start of the char array
  *     unsigned long bit_len     - bit length of field to extract
- *     unsigned int endian       - endian enum, 0(run time checking), 1(big endian), 2(little endian)
+ *     unsigned short endian       - endian enum, 0(run time checking), 1(big endian), 2(little endian)
  *
  * Comments:
  */
@@ -403,7 +403,7 @@ bfx
         const unsigned char *cptr,
         unsigned long bit_offset,
         unsigned long bit_len,
-        unsigned int endian
+        unsigned short endian
     )
 {
     /* machine dependencies */

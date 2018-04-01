@@ -1,0 +1,29 @@
+#######################################
+# Syntax Coloring Map for HPM
+#######################################
+
+#######################################
+# Library (KEYWORD1)
+#######################################
+
+hpm	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+init 	KEYWORD2
+get	KEYWORD2	
+readParticleMeasuringResults 	KEYWORD2
+startParticleMeasurement 	KEYWORD2
+stopParticleMeasurement 	KEYWORD2
+stopAutoSend 	KEYWORD2
+enableAutoSend 	KEYWORD2
+setCustomerAdjustmentCoefficient 	KEYWORD2
+readCustomerAdjustmentCoefficient 	KEYWORD2
+loop 	KEYWORD2
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################

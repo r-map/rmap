@@ -29,7 +29,22 @@ from ..user_util import getProfile
 from ..util import epoch, json, pickle, msgpack
 from django.views.decorators.csrf import csrf_exempt
 
-dballepresent=True
+try:
+    import dballe
+    dballepresent=True
+except ImportError:
+    print "dballe utilities disabled"
+    dballepresent=False
+
+def toint(level):
+    ilevel=[]
+    for ele in level.split("_"):
+        try:
+            iele=int(ele)
+        except:
+            iele=None
+        ilevel.append(iele)
+    return ilevel
 
 @csrf_exempt
 def index_json(request):
@@ -338,7 +353,7 @@ def tree_json(nodes, base_path, wildcards=False):
       text = urllib.unquote_plus(str(node.name))
 
     resultNode = {
-      'text' : unquote_plus(str(node.name)),
+        'text' : text,
       'id' : base_path + str(node.name),
     }
 

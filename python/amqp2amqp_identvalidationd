@@ -41,11 +41,6 @@ amqp2amqp_identvalidationd = daemon.Daemon(
         group=rmap.settings.groupamqp2amqp_identvalidationd
 )
 
-credentials=pika.PlainCredentials(user, password)
-
-sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
-    host=host,credentials=credentials,heartbeat_interval=0))
-sendchannel = sendconnection.channel()
 
 
 def callback(ch, method, properties, body):
@@ -143,6 +138,12 @@ if __name__ == '__main__':
 
     if amqp2amqp_identvalidationd.service():
 
+        credentials=pika.PlainCredentials(user, password)
+
+        sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=host,credentials=credentials,heartbeat_interval=0))
+        sendchannel = sendconnection.channel()
+        
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
         sys.stdout.write("Daemon stdout output\n")
         sys.stderr.write("Daemon stderr output\n")

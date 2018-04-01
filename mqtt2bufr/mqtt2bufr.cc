@@ -38,14 +38,30 @@
 
 #include "parser.h"
 
+std::vector<std::string> topics;
+
 struct mosq : public mosqpp::mosquittopp {
-    mqtt2bufr::Parser parser;
-    bool debug;
+  mqtt2bufr::Parser parser;
+  bool debug;
     bool overwrite_date;
 
     mosq(bool debug=false, bool overwrite_date=false) : debug(debug), overwrite_date(overwrite_date) {}
+  void on_connect(int rc)
+  {
+    if(rc == 0){
+      std::cerr << "Connected "<< std::endl;
+      /* Only attempt to subscribe on a successful connect. */
+      for (std::vector<std::string>::const_iterator i = topics.begin();
+	   i != topics.end(); ++i) {
+        if (subscribe(NULL, i->c_str()) != 0) {
+	  std::cerr << "Error while subscribing to topic " << *i << std::endl;
+	  //return 1;
+        }
+      }
+    }
+  }
 
-    virtual void on_message(const struct mosquitto_message *message) {
+    void on_message(const struct mosquitto_message *message) {
         dballe::Msg msg;
         try {
             msg = parser.parse(message->topic,
@@ -66,7 +82,7 @@ struct mosq : public mosqpp::mosquittopp {
         }
     }
 
-    virtual void on_log(int level, const char *str) {
+    void on_log(int level, const char *str) {
       if (debug)
         std::cerr << str << std::endl;
     }
@@ -105,7 +121,6 @@ int main(int argc, char** argv)
     int keepalive = 60;
     int port = 1883;
     std::string hostname = "localhost";
-    std::vector<std::string> topics;
     char* username = NULL;
     char* password = NULL;
     bool debug = false;
@@ -181,13 +196,6 @@ int main(int argc, char** argv)
     if (m.connect(hostname.c_str(), port, keepalive) != 0) {
         std::cerr << "Error while connecting to " << hostname << ":" << port << std::endl;
         return 1;
-    }
-    for (std::vector<std::string>::const_iterator i = topics.begin();
-         i != topics.end(); ++i) {
-        if (m.subscribe(NULL, i->c_str()) != 0) {
-            std::cerr << "Error while subscribing to topic " << *i << std::endl;
-            return 1;
-        }
     }
     while (m.loop() == 0) {}
 

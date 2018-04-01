@@ -47,7 +47,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *******************************************************************************/
 
-#define SAMPLETIME 30
+#define SAMPLETIME 10800UL
+//#define CHANNEL0
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -59,14 +60,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 // include the JsonRPC library
 #include <arduinoJsonRPC.h>
+#ifndef DEEPSLEEP
 #include <Time.h>
 #include <TimeAlarms.h>
-
+#endif
 #include <Wire.h>
 #include <SensorDriver.h>
 #define SENSORS_LEN 2
 //#include <BitBool.h>
 #include <bfix.h>
+#include <Sleep_n0m1.h>
 
 struct sensor_t
 {
@@ -114,7 +117,7 @@ const lmic_pinmap lmic_pins = {
     .nss = 10,
     .rxtx = LMIC_UNUSED_PIN,
     .rst = LMIC_UNUSED_PIN,
-    .dio = {2, 3, 4},
+    .dio = {DIO0, DIO1, DIO2},
 };
 
 char confver[7] = CONFVER; // version of configuration saved on eeprom
@@ -158,7 +161,7 @@ struct config_t               // configuration to save and load fron eeprom
   }
 } configuration;
 
-ev_t event;
+volatile ev_t event;
 int sendstatus;
 
 void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
@@ -168,7 +171,21 @@ void os_getDevKey (u1_t* buf) { memcpy(buf, configuration.appkey, 16);}
 //static uint8_t mydata[] = "Hello, world!";
 //static osjob_t sendjob;
 
+Sleep sleep;
 
+void printDataRate() {
+  switch (LMIC.datarate) {
+  case DR_SF12: LOGN(F("Datarate: SF12"CR)); break;
+  case DR_SF11: LOGN(F("Datarate: SF11"CR)); break;
+  case DR_SF10: LOGN(F("Datarate: SF10"CR)); break;
+  case DR_SF9:  LOGN(F("Datarate: SF9"CR)); break;
+  case DR_SF8:  LOGN(F("Datarate: SF8"CR)); break;
+  case DR_SF7:  LOGN(F("Datarate: SF7"CR)); break;
+  case DR_SF7B: LOGN(F("Datarate: SF7B"CR)); break;
+  case DR_FSK:  LOGN(F("Datarate: FSK"CR)); break;
+  default:      LOGN(F("Datarate Unknown Value: %d"CR), LMIC.datarate); break;
+  }
+}
 int send(JsonObject& params, JsonObject& result)
 {
   JsonArray& a_mydata = params["payload"];
@@ -205,8 +222,9 @@ int send(JsonObject& params, JsonObject& result)
   }
 
   //while (!(event == NULL)){
+  // Timeout when there's no "EV_TXCOMPLETE" event after 60 seconds
   unsigned long starttime=millis();
-  while((millis())-starttime < 30000){
+  while((millis()-starttime) < 60000UL){
 
     wdt_reset();
     os_runloop_once();
@@ -281,9 +299,51 @@ int save(JsonObject& params, JsonObject& result)
   return 1;
 }
 
+// set/return DR_SF parameter
+int sf(JsonObject& params, JsonObject& result)
+{    
+  int sf = params["sf"];
+  if (!(sf == NULL)){
+
+    unsigned int dr_sf;
+    
+    switch (sf) {
+    case 12: dr_sf=DR_SF12; break;
+    case 11: dr_sf=DR_SF11; break;
+    case 10: dr_sf=DR_SF10; break;
+    case  9: dr_sf=DR_SF9 ; break;
+    case  8: dr_sf=DR_SF8 ; break;
+    case  7: dr_sf=DR_SF7 ; break;
+    case  6: dr_sf=DR_SF7B; break;
+    case  5: dr_sf=DR_FSK ; break;
+    default: return 2 ; break;
+    }
+
+    LMIC_setDrTxpow(dr_sf, 14);
+    //}else{
+    //return  1;
+  }
+
+  switch (LMIC.datarate) {
+  case DR_SF12: sf=12; break;
+  case DR_SF11: sf=11; break;
+  case DR_SF10: sf=10; break;
+  case DR_SF9:  sf=9 ; break;
+  case DR_SF8:  sf=8 ; break;
+  case DR_SF7:  sf=7 ; break;
+  case DR_SF7B: sf=6 ; break;
+  case DR_FSK:  sf=5 ; break;
+  default:      sf=0 ; break;
+  }
+  
+  result["sf"]= sf;  
+  return 0;
+}
+
+
 
 void onEvent (ev_t ev) {
-  LOGN(F("Time: %l : "),os_getTime());
+  LOGN(F("Time: %l : "CR),os_getTime());
   event=ev;
   switch(ev) {
   case EV_SCAN_TIMEOUT:
@@ -343,7 +403,7 @@ void onEvent (ev_t ev) {
       }
             */
     }	    
-    
+    break;    
   case EV_LOST_TSYNC:
     LOGN(F("EV_LOST_TSYNC"CR));
     break;
@@ -372,12 +432,15 @@ void do_send(uint8_t mydata[],size_t nbyte){
   
   // Check if there is not a current TX/RX job running
   if (LMIC.opmode & OP_TXRXPEND) {
-    LOGN(F("OP_TXRXPEND, not sending"CR));
+    LOGE(F("OP_TXRXPEND, not sending"CR));
     sendstatus=2;
   } else {
+
+    // reset event status
+    event = EV_RESET;
     // Prepare upstream data transmission at the next possible time.
-   // LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-   // LMIC_setTxData2(1, mydata, 4, 0);
+    // LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
+    // LMIC_setTxData2(1, mydata, 4, 0);
     LMIC_setTxData2(1, mydata, nbyte, 0);
    
     LOGN(F("Packet queued"CR));
@@ -426,30 +489,12 @@ void mgr_sensors(){
   unsigned long data;
   unsigned short width;
 
-  /*
-  unsigned short  mytemplate=1;
-  auto &b_mytemplate = toBitBool( mytemplate );
-
-  BitBool<32> bits;
-  for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
-      bits[ i_Index ] = b_mytemplate[ i_Index ];
-
-  
-  //for( int i_Index = 8 - 1 ; i_Index ; --i_Index )
-  //    dtemplate.bittemplate[ i_Index ] = b_mytemplate[ i_Index ];
-  */
-  /*
-  dtemplate.dtemplate1.templaten=1;
-  dtemplate.dtemplate1.data[0]=1;
-  dtemplate.dtemplate1.data[1]=2;
-  dtemplate.dtemplate1.data[2]=3;
-  LOGN(F("-> %B"),dtemplate.dtemplate1.templaten);	
-  LOGN(F("-> %B"CR),dtemplate.dtemplate1.data);	
-  */
-
+  // inizialize template
   size_t nbyte=4;
   unsigned char dtemplate[nbyte];
-  unsigned long bit_offset=1;
+
+  // set template number
+  unsigned long bit_offset=1; // bfix library start from 1, not 0
   unsigned long bit_len=8;
   bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
   bit_offset+=bit_len;
@@ -461,8 +506,7 @@ void mgr_sensors(){
 
       if (sd[i]->getdata(data,width) == SD_SUCCESS){
 	LOGN(F("%d OK"CR),i);	
-	LOGN(F("%d data: %B"CR),i,data);	
-	//Serial.println(width);
+	LOGN(F("%d data: %B"CR),i,data);
 
 	bit_len=width;
 	bfi(dtemplate, bit_offset, bit_len, data,2); // template number
@@ -480,7 +524,45 @@ void mgr_sensors(){
 
   do_send(dtemplate,nbyte);
 
+  if (sendstatus != 1 ){
+    LOGE(F("no packet send"CR));
+  }
+
+  printDataRate();
   
+  // Timeout when there's no "EV_TXCOMPLETE" event after 60 seconds
+  unsigned long starttime=millis();
+  while((millis()-starttime) < 60000UL){
+
+    wdt_reset();
+    os_runloop_once();
+    
+    if (event == EV_TXCOMPLETE){
+      if (LMIC.txrxFlags & TXRX_ACK)
+	LOGN(F("txrxFlags = TXRX_ACK"CR));
+      if (LMIC.dataLen) {
+	LOGN(F("payload len = %d"CR), LMIC.dataLen);
+      }
+      LOGN(F("Send completed"CR));
+      return;
+    }
+  }
+  LOGE(F("Send NOT completed"CR));
+  
+}
+
+void sleep_mgr_sensors() {
+
+  mgr_sensors();
+  LOGN(F("sleep %d seconds"CR),SAMPLETIME);
+  delay(1000);
+  os_runloop_once();
+  // Enter sleep mode
+  sleep.pwrDownMode(); //set sleep mode
+  sleep.sleepDelay(SAMPLETIME*1000UL); //sleep for SAMPLETIME
+  delay(1000);
+  LOGN(F("wake up"CR));  
+  os_runloop_once();
 }
 
 void setup() 
@@ -496,7 +578,7 @@ void setup()
   wdt_disable();
   wdt_enable(WDTO_8S);
 
-
+  bool waitforconf=false;
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -506,11 +588,25 @@ void setup()
   LOGN(F("Started"CR));
   
   if (configuration.load()){
-    LOGN(F("Configuration loaded"CR));
+    LOGN(F("Configuration loaded" CR));
   } else {
-    LOGN(F("Configuration not loaded"CR));
+    LOGN(F("Configuration not loaded" CR));
     configuration.ack=0;
+    waitforconf=true;
   }
+
+  pinMode(FORCECONFIGPIN, INPUT_PULLUP);
+
+  if (digitalRead(FORCECONFIGPIN) == LOW) {
+    LOGN(F("force configuration by serial" CR));
+    waitforconf=true;
+  }
+  
+  while(waitforconf) {
+    mgr_serial();
+    wdt_reset();
+  }
+
   LOGN(F("ack: %d"CR),configuration.ack);
   LOGN(F("deveui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.deveui[0]
        ,configuration.deveui[1]
@@ -555,8 +651,10 @@ void setup()
   //set the i2c clock 
   TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
 
+#ifndef DEEPSLEEP
   setTime(12,0,0,1,1,17); // set time to 12:00:00am Jan 1 2017
-
+#endif
+  
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
   sensors[0].address=73;
@@ -567,12 +665,11 @@ void setup()
   for (int i = 0; i < SENSORS_LEN; i++) {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
+    LOGN(sensors[i].driver);
     if (sd[i] == NULL){
-      Serial.print(sensors[i].driver);
-      Serial.println(": driver not created !");
+      LOGN(": driver not created !"CR);
     }else{
-      Serial.print(sensors[i].driver);
-      Serial.println(": driver created");
+      LOGN(": driver created"CR);
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
@@ -581,26 +678,101 @@ void setup()
   rpcserver.registerMethod("send",      &send);
   rpcserver.registerMethod("set",       &set);
   rpcserver.registerMethod("save",      &save);
+  rpcserver.registerMethod("sf",        &sf);
+
+  //Unused IO pins on the microcontroller must not be left floating in
+  //an unknown state. Floating IO pins can consumes at least few tens
+  //of μA and that can add up quite a bit if you have few of them
+  //floating around. Configure unused IO pins to enable the build-in
+  //internal pull up.
+
+  // ***** Put unused pins into known state *****
+  //pinMode(0, INPUT_PULLUP)
   
   // LMIC init
   os_init();
   // Reset the MAC state. Session and pending data transfers will be discarded.
   LMIC_reset();
   LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
+
+// not shure if we need this
+#if defined(CFG_eu868)
+  // Set up the channels used by the Things Network, which corresponds
+  // to the defaults of most gateways. Without this, only three base
+  // channels from the LoRaWAN specification are used, which certainly
+  // works, so it is good for debugging, but can overload those
+  // frequencies, so be sure to configure the full frequency range of
+  // your network here (unless your network autoconfigures them).
+  // Setting up channels should happen after LMIC_setSession, as that
+  // configures the minimal channel set.
+  // NA-US channels 0-71 are configured automatically
+  /*
+  LMIC_setupChannel(0, 868100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(1, 868300000, DR_RANGE_MAP(DR_SF12, DR_SF7B), BAND_CENTI);      // g-band
+  LMIC_setupChannel(2, 868500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(3, 867100000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(4, 867300000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(5, 867500000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(6, 867700000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(7, 867900000, DR_RANGE_MAP(DR_SF12, DR_SF7),  BAND_CENTI);      // g-band
+  LMIC_setupChannel(8, 868800000, DR_RANGE_MAP(DR_FSK,  DR_FSK),  BAND_MILLI);      // g2-band
+  */
+  // For single channel gateways: Restrict to channel 0 when defined above
+#ifdef CHANNEL0
+  LMIC_disableChannel(1);
+  LMIC_disableChannel(2);
+  LMIC_disableChannel(3);
+  LMIC_disableChannel(4);
+  LMIC_disableChannel(5);
+  LMIC_disableChannel(6);
+  LMIC_disableChannel(7);
+  LMIC_disableChannel(8);
+#endif
+  
+  // TTN defines an additional channel at 869.525Mhz using SF9 for class B
+  // devices' ping slots. LMIC does not have an easy way to define set this
+  // frequency and support for class B is spotty and untested, so this
+  // frequency is not configured here.
+#elif defined(CFG_us915)
+  // NA-US channels 0-71 are configured automatically
+  // but only one group of 8 should (a subband) should be active
+  // TTN recommends the second sub band, 1 in a zero based count.
+  // https://github.com/TheThingsNetwork/gateway-conf/blob/master/US-global_conf.json
+  LMIC_selectSubBand(1);
+#endif
+
+  // Enaable link check validation
+  //LMIC_setLinkCheckMode(0);
+
+  // TTN uses SF9 for its RX2 window.
+  //LMIC.dn2Dr = DR_SF9;
+
+  // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
   //LMIC_setDrTxpow(DR_SF12, 14);
-  LMIC_setAdrMode(1);
+  //LMIC_setAdrMode(1);
+
+  // Maximum TX power
+  //LMIC.txpow = 27;
+  // Use a medium spread factor. This can be increased up to SF12 for
+  // better range, but then the interval should be (significantly)
+  // lowered to comply with duty cycle limits as well.
+  //LMIC.datarate = DR_SF9;
+  // This sets CR 4/5, BW125 (except for DR_SF7B, which uses BW250)
+  //LMIC.rps = updr2rps(LMIC.datarate);
+  
   LMIC_startJoining();
 
   // query and send data
+#ifndef DEEPSLEEP
   Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
-
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
 
   // upgrade LMIC
-  Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
-
+  //Alarm.alarmRepeat(4,0,0,LMIC_tryRejoin);          // 4:00:00 every day  
+#endif
+    
   LOGN(F("End setup"CR));
   
 }
@@ -609,5 +781,9 @@ void loop() {
   wdt_reset();
   mgr_serial();
   os_runloop_once();
+#if defined(DEEPSLEEP)
+  sleep_mgr_sensors();
+#else
   Alarm.delay(0);
+#endif
 }

@@ -7,7 +7,7 @@ static const int PM10_NORM=40;
 static const int SAMPLES=3;
 
 // RX, TX
-SoftwareSerial mySerial(D1,D2);
+SoftwareSerial mySerial(D5,D6);
 sds011::Sds011 sensor(mySerial);
 //sds011::Sds011 sensor(Serial1);
 
@@ -48,32 +48,31 @@ void display_data(uint16_t pm25, uint16_t pm10)
 void setup()
 {
 
-    Serial.begin(9600);
-    Serial.println("Hello");
+    Serial.begin(115200);
     mySerial.begin(9600);
+
+    Serial.println("Hello");
+    
+    delay(1000);
     
     Serial.print("Sds011 firmware version: ");
     Serial.println(sensor.firmware_version());
 
-    sensor.set_sleep(false);
     sensor.set_mode(sds011::QUERY);
+    sensor.set_sleep(sds011::SLEEP);
 }
 
 void loop()
 {
     int pm25, pm10;
-    bool ok;
 
-    sensor.set_sleep(false);
-    delay(1000);
-    ok = sensor.query_data_auto(&pm25, &pm10, SAMPLES);
-    sensor.set_sleep(true);
+    sensor.set_sleep(sds011::WORK);
 
-    if (ok) {
+    if (sensor.query_data_auto(&pm25, &pm10, SAMPLES)) {
       display_data(pm25, pm10);
     } else {
-      Serial.println(F("NO SENSOR!"));
+      Serial.println(F("Sensor Error!"));
     }
-
-    delay(3000);
+    sensor.set_sleep(sds011::SLEEP);
+    delay(10000);
 }

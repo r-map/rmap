@@ -645,7 +645,7 @@
             "unit": "DEGREE TRUE"
         }, 
         "B20003": {
-            "description": "PRESENT WEATHER (SEE NOTE 1)", 
+            "description": "PRESENT WEATHER", 
             "unit": "CODE TABLE 20003"
         }, 
         "B20001": {
@@ -653,16 +653,20 @@
             "unit": "M"
         }, 
         "B20004": {
-            "description": "PAST WEATHER (1) (SEE NOTE 2)", 
+            "description": "PAST WEATHER (1)", 
             "unit": "CODE TABLE 20004"
         }, 
         "B20005": {
-            "description": "PAST WEATHER (2) (SEE NOTE 2)", 
+            "description": "PAST WEATHER (2)", 
             "unit": "CODE TABLE 20005"
         }, 
         "B20009": {
             "description": "GENERAL WEATHER INDICATOR (TAF/METAR)", 
             "unit": "CODE TABLE 20009"
+        }, 
+        "B20203": {
+            "description": "WEATHER IMPACT", 
+            "unit": "CODE TABLE 20203"
         }, 
         "B13206": {
             "description": "[SIM] Soil water content", 
@@ -1959,6 +1963,18 @@
         "B13082": {
             "description": "WATER TEMPERATURE", 
             "unit": "K"
+        },
+        "B25025": {
+            "description": "Battery voltage",
+            "unit": "V"
+        },
+        "B25192": {
+            "description": "Battery charge",
+            "unit": "%"
+        },
+        "B25193": {
+            "description": "Battery current",
+            "unit": "A"
         }
     };
     this.borinud = this.borinud || {}

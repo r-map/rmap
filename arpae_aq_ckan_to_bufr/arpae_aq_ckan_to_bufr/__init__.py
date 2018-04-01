@@ -131,12 +131,16 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
                 k: station.get(k)
                 for k in ("ident", "lon", "lat", "rep_memo")
             })
-            rec["date"] = reftime
-            rec[variable["var"]] = value * 10**-9
-            rec["level"] = variable["level"]
-            rec["trange"] = variable["trange"]
-            db.insert_data(rec)
-
+            try:
+                rec["date"] = reftime
+                rec[variable["var"]] = value * 10**-9
+                rec["level"] = variable["level"]
+                rec["trange"] = variable["trange"]
+                db.insert_data(rec)
+            except:
+                logger.error("Error encoding/write message")
+                
+            
     db.export_to_file(dballe.Record(datemin=datetimemin), filename=outfile,
                       format="BUFR", generic=True)
 

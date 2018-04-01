@@ -38,6 +38,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from rmap import rmap_core
 import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
 import binascii
+from django.db import connection
 
 #LOGFORMAT = '%(asctime)-15s %(message)s'
 #DEBUG = 1
@@ -46,7 +47,7 @@ import binascii
 #else:
 #    logging.basicConfig(level=logging.INFO, format=LOGFORMAT)
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+#logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
 
 	
 def bitextract(template,start,nbit):
@@ -157,14 +158,10 @@ class ttn2dballe(object):
 
   def on_message(self,mosq, userdata, msg):
 
-#    sock = self.sock
-#    host = self.carbon_server
-#    port = self.carbon_port
-    lines = []
     now = int(time.time())
-
-    # Find out how to handle the topic in this message: slurp through
-    # our map 
+    
+    # Find out how to handle the topic in this message: slurp through our map 
+    # this is not needed if all things are right; I cannot receive topics that I have not subscribed
     for t in self.map:
         if paho.topic_matches_sub(t, msg.topic):
             # print "%s matches MAP(%s) => %s" % (msg.topic, t, self.map[t])
@@ -179,77 +176,99 @@ class ttn2dballe(object):
                 #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
                 mytime=metadata.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))).split(".")[0]
                 dt=datetime.datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
-
+            
                 payload=base64.b64decode(st["payload_raw"])
-                print "payload: ",payload
-
-
-                print "hex: ",binascii.hexlify(payload)
-
+                #print "payload: ",payload
+                logging.debug("hex: %s" % binascii.hexlify(payload))
+                
                 nbits=len(binascii.hexlify(payload))*4
                 template=int(binascii.hexlify(payload),16)
-
+                
                 #temp=int(binascii.hexlify(payload),16)
                 #template=0
                 #for i in xrange(0,nbits):
-                #    if (testBit(temp,i)!=0):
+                    #    if (testBit(temp,i)!=0):
                 #        template=setBit(template,nbits-i-1)
-                        
-                print "int: ",template
-                print "bynary: {0:b}".format(template)
+                    
+                logging.debug("int: %d" %template)
+                logging.debug("bynary: {0:b}".format(template))
                 #print "bynary:",bin(template)
-
+                
                 nbit=8
                 start=nbits-nbit
                 numtemplate=bitextract(template,start,nbit)
-
+                
                 #                             TEMPLATE NUMBER 1
                 if numtemplate > 0 and numtemplate <= len(rmap_core.ttntemplate):
 
                     try:
+
+                        #close django connection to DB to be sure we have a new active connection handler
+                        try:
+                            connection.close()
+                        except Exception as e:
+                            print ("django connection close error",e)
+                        
                         mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
                     except ObjectDoesNotExist :
                         logging.error("StationMetadata matching query does not exist")
                         return
                     if not mystation.active:
-                        logging.error("disactivated station: do nothing! %s %s " % numtempla)
+                        logging.error("disactivated station: %s %s ; do nothing!" % (slug,user) )
                         return
 
-                    print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","sample","host=","rmap.cc","prefix=","test","maintprefix=","test"                    
-                    mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="sample",host="rmap.cc",prefix="test",maintprefix="test")
-
-                    mytemplate=rmap_core.ttntemplate[numtemplate]
-                    for bcode,param in mytemplate.items():
-
-                        nbit=param["nbit"]
-                        start-=nbit
-                        bval=bitextract(template,  start, nbit)
-                        if (bval != ((1 << nbit) - 1)):
-                            #val=(bval+param["offset"])/float(param["scale"])
-                            val=bval+param["offset"]
-                            datavar={bcode:{"t": dt,"v": val}}
-                            print "datavar=",datavar
-                            mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
-
-                    mqtt.disconnect()
-                    
                 else:
                     logging.error("Unknown template %d " % numtemplate)
-                    
+                    return
             except:
+                logging.error("error decoding message: skip it and do nothing!")
+                raise
+                #return
+
+            try:
+                #print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    
+                logging.info("ident=%s username=%s password=%s lon=%f lat=%f network=fixed host=localhost prefix=sample maintprefix=maint" % (user,rmap.settings.mqttuser,"fakepassword",mystation.lon,mystation.lat))
+                mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="localhost",prefix="sample",maintprefix="maint",logfunc=logging.debug)
+                
+                mytemplate=rmap_core.ttntemplate[numtemplate]
+                for bcode,param in mytemplate.items():
+                    
+                    nbit=param["nbit"]
+                    start-=nbit
+                    bval=bitextract(template,  start, nbit)
+                    if (bval != ((1 << nbit) - 1)):
+                        #val=(bval+param["offset"])/float(param["scale"])
+                        val=bval+param["offset"]
+                        datavar={bcode:{"t": dt,"v": val}}
+                        #print "datavar=",datavar
+                        logging.info("timerange=%s level=%s bcode=%s val=%d" % (param["timerange"],param["level"],bcode,val))
+                        mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
+
+                mqtt.disconnect()
+                #if mqtt.mqttc._sock:
+                #    mqtt.mqttc._sock.close()
+                #if mqtt.mqttc._sockpairW:
+                #    mqtt.mqttc._sockpairW.close()
+                #if mqtt.mqttc._sockpairR:
+                #    mqtt.mqttc._sockpairR.close()
+                    
+            except Exception as exception:
                 logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                              (msg.topic, msg.payload))
-                raise
-                #self.terminateevent.set()
+                logging.error('Exception occured: ' + str(exception))
+                logging.error(traceback.format_exc())
 
-        else:
-            logging.info("Unknown mapping key [%s]", type)
-            return
+                # if some exception occour here, ask to terminate; if not the thread will stall forever
+                self.terminateevent.set()
 
-        message = '\n'.join(lines) + '\n'
-        logging.debug("%s", message)
+            finally:
+                return
 
-        #            self.sock.sendto(message, (host, port))
+    logging.error("Message topic do not match any topics that I have subcribed [%s]", t)
+    # somethings go wrong here; I cannot receive topics that I have not subscribed
+    self.terminateevent.set()
+    
+
   
   def on_subscribe(self,mosq, userdata, mid, granted_qos):
     logging.debug("Subscribed: "+str(mid)+" "+str(granted_qos))
