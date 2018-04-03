@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load staticfiles %}
 <!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal4" tabindex="-1" role="dialog" aria-hidden="true">
@@ -12,38 +13,39 @@
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="modal-body text-justify">
-                        <h2 class="text-center">Temporali</h2>
+                        <h2 class="text-center">{% trans "Thunderstorm" %}</h2>
                         <hr class="star-primary">
-                         <br><br><b>Definizione:</b> Quando una o pi&ugrave;  brusche scariche di elettricit&agrave; si manifestano con un bagliore breve ed intenso (fulmine) e con un rombo secco o un sordo brontolio (tuono). I temporali si sviluppano con più frequenza tra i mesi di aprile e ottobre.
+                         <br><br><b>{% trans "Definition" %}:</b> 
+			 {% trans " When one or more abrupt discharges of electricity occur with a short and intense glow (lightning) and with a dry rumble or a dull rumble (thunder). Thunderstorms develop more frequently between the months of April and October." %}
                         <br><br>
-                        Il temporale osservato pu&ograve; essere:
+			{% trans "The observed thunderstorms could be"%}:
                         <br><br>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/192.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>            
-                            <div class="col-lg-9 col-xs-8"> <b>debole o moderato con pioggia</b>, se poco intenso e senza grandine, con tuoni in lontananza</div>
+			    <div class="col-lg-9 col-xs-8"> <b>{% trans "weak or moderate with rain"%}</b>, {% trans "if not intense and without hail, with thunder in the distance" %}</div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/193.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>debole o moderato con grandone</b>, se poco intenso ma accompagnato da grandine, di bassa intensità e con tuoni non bene udibili</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "weak or moderate with hail"%}</b>, {% trans "if not intense but with hail, low intensity and with not well audible thunders" %}</div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/195.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>forte con pioggia</b>, se con precipitazioni intense, accompagnate da forte vento in genere, lampi e tuoni ben udibili e ad alta intensità</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "heavy with rain" %}</b>, {% trans "with heavy rainfall, accompanied by intense wind in general, lightning and thunder very audible and high intensity" %}</div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/196.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>forte con grandine</b>, come descritto sopra, ma con grandine al posto della pioggia</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "heavy with hail" %}</b>, {% trans "as described above, but with hail instead of rain" %}</div>
                         </div>
-                        <br><br><b>Commento:</b> I temporali sono associati a nubi convettive e sono spesso accompagnati da precipitazioni le quali, quando raggiungono la superficie terrestre, sono sotto forma di rovesci di pioggia, neve, neve tonda, grandine, spesso associate a forti raffiche di vento.
-
+                        <br><br><b>{% trans "Comment" %}:</b> 
+			{% trans "Thunderstorms are associated with convective clouds and are often accompanied by precipitations which, when they reach the earth's surface, are in the form of rain showers, snow, round snow, hail, often associated with strong gusts of wind." %}
                     </div>
                 </div>
             </div>

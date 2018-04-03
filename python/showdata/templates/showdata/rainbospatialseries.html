@@ -107,37 +107,37 @@ function null2_(i)
 
 switch(type){
     case "dam":
-        filter = filter.concat([10,20,30]);
-        description = "Impatti Osservati";
+        filter = filter.concat([10,20,30,40]);
+        description = "{% trans "Observerd Impact" %}";
         trange = "";
     break;
     case "all":
-        filter = filter.concat([10,20,30,110,130,150,160,165,184,185,186,187,192,193,195,196,199]);
+        filter = filter.concat([10,20,30,40,110,130,150,160,165,184,185,186,187,192,193,195,196,199]);
     break; 
     case "110":
         filter = filter.concat([110,130]);
-        description = "Tempo Presente";
-        trange = "Dati Visibilità";		
+        description = "{% trans "Present Weather" %}";
+        trange = "{% trans "Visibility Data" %}";
     break;
     case "150":
         filter = filter.concat([150,160,165,184]);
-        description = "Tempo Presente";
-        trange = "Dati Pioggia";
+        description = "{% trans "Present Weather" %}";
+        trange = "{% trans "Rain Data" %}";
     break;
     case "180":
         filter = filter.concat([185,186,187]);
-        description = "Tempo Presente";
-        trange = "Dati Neve";
+        description = "{% trans "Present Weather" %}";
+        trange = "{% trans "Snow Data" %}";
         break;
     case "190":
         filter = filter.concat([192,193,195,196]);
-        description = "Tempo Presente";
-        trange = "Dati Temporali";
+        description = "{% trans "Present Weather" %}";
+        trange = "{% trans "Thunderstorm Data" %}";
         break;
     case "199":
         filter = filter.concat([199]);
-        description = "Tempo Presente";
-        trange = "Dati Tromba d'aria";
+        description = "{% trans "Present Weather" %}";
+        trange = "{% trans "Tornado Data" %}";
         break;
     default :
     break;
@@ -155,7 +155,7 @@ switch(type){
        document.write(trange);
        </script>
        <br>
-       per il giorno {{day}}/{{month}}/{{year}} 
+       {% trans "for day " %}{{day}}/{{month}}/{{year}} (GMT +1)
       </h4>
     </div>
 

@@ -16,6 +16,9 @@ $('input:radio').change(function(){
       case 'id_impact_detected_2':
             $(this).parent().addClass("id_impact_detected_2_selected");
             break;
+      case 'id_impact_detected_3':
+            $(this).parent().addClass("id_impact_detected_3_selected");
+            break;
       case 'id_not_significant_0':
             $(this).parent().addClass("id_not_significant_0_selected");
             break;

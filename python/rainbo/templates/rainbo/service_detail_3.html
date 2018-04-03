@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load staticfiles %}
 <!--Details for s-->
 <div class="services-modal modal fade" id="servicesModal3" tabindex="-1" role="dialog" aria-hidden="true">
@@ -12,31 +13,36 @@
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="modal-body text-justify">
-                        <h2 class="text-center">Neve</h2>
+                        <h2 class="text-center">{% trans "Snow" %}</h2>
                         <hr class="star-primary">
-                        <br><br><b>Definizione:</b> precipitazione di cristalli di ghiaccio, singoli o agglomerati in fiocchi, che cade da una nube.
+                        <br><br><b>{% trans "Definition" %}:</b>{% trans "precipitation of ice crystals, single or agglomerated in flakes, which falls from a cloud." %} 
                         <br><br>
-                        La precipitazione nevosa pu&ograve; essere:
+			{% trans "The snowy precipitation could be" %}
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/185.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>            
-                            <div class="col-lg-9 col-xs-8"> <b>debole</b>, (intensit&agrave; minore di 1mm/h), se cade qualche fiocco di neve ovvero 2 o 3 fiocchi su un palmo di mano, se la esponi all'aperto per un minuto</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "weak" %}</b>, {% trans "Intensity < 1 mm/h, if you fall a few flakes of snow or 2 or 3 snowflakes on a palm of your hand, if you expose it outdoors for a minute" %}
+                           </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/186.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>moderata</b>, (intensit&agrave; compresa tra 1 e 5 mm/h),  se aumentano il numero di fiocchi e/o la dimensione e/o la velocità con cui cade (sulla mano raccogli più di 3 fiocchi)</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "moderate" %}</b>, 
+                           {% trans "Intensity between 1 and 5 mm/h, If the number and/or size and/or speed increase (on the hand collect more than 3 snowflakes)" %} 
+                           </div>
                         </div>
                         <div class="row description">
                             <div class="col-lg-2 col-lg-offset-1 col-xs-4">
                                     <img src="{% static 'rainbo/img/icons/187.png' %}" class="img-responsive center-block landing-img" alt="">
                             </div>          
-                            <div class="col-lg-9 col-xs-8"> <b>forte</b>, (intensit&agrave; maggiore di 5 mm/h),  se la precipitazione &egrave; intensa, ovvero la mano esposta si ricopre di fiocchi di neve</div>
+                            <div class="col-lg-9 col-xs-8"> <b>{% trans "heavy" %}</b>, 
+                            {% trans "Intensity greater than 5 mm/h, if precipitation is intense (the exposed hand is covered with snowflakes)" %}
+                            </div>
                         </div>
-                        <br><br><b>Commento:</b> la forma, la dimensione e la concentrazione dei cristalli di neve differiscono notevolmente al variare della temperatura alla quale essi si formano e delle condizioni nelle quali si sviluppano. Una nevicata include solitamente diversi tipi di cristalli di neve, i quali possono essere osservati in quasi tutte le loro forme durante lo svolgersi del fenomeno. 
-A temperature maggiori di -5 &deg;C, i cristalli di ghiaccio sono generalmente riuniti in fiocchi di neve.
+                        <br><br><b>{% trans "Comment" %}:</b>
+                        {% trans "the shape, the size and the concentration of the snow crystals differ greatly with the variation of the temperature at which they are formed and the conditions in which they develop. A snowfall usually includes several types of snow crystals, which can be observed in almost all their forms during the course of the phenomenon. At temperatures higher than -5 &deg;C, ice crystals are generally combined into snowflakes." %}	
                     </div>
                 </div>
             </div>

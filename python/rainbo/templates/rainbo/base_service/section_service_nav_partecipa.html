@@ -1,17 +1,18 @@
+{% load i18n %}
 <li class="dropdown">
     <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-        <i class="fa fa-pencil-square-o"></i>  Partecipa <i class="fa fa-caret-down"></i>
+        <i class="fa fa-pencil-square-o"></i> {% trans "Contribute" %} <i class="fa fa-caret-down"></i>
     </a>
     <ul class="dropdown-menu dropdown-user">
         <li class="page-scroll">
             <a href="/insertdata/manualdata">
-                <i class="fa fa-pencil-square-o"></i>  Aggiungi Tempo Presente
+                <i class="fa fa-pencil-square-o"></i>  {% trans "Add present weather" %}
             </a>
         </li>	
             
         <li class="page-scroll">
             <a href="/insertdata/impactdata">
-                <i class="fa fa-pencil-square-o"></i>  Aggiungi Impatto
+                <i class="fa fa-pencil-square-o"></i>  {% trans "Add Impact" %}
             </a>
         </li> 
     </ul>

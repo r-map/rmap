@@ -1,21 +1,22 @@
+{% load i18n %}
 {% load static %}
 <section id="partecipa">
     <div class="container">
         <div class="row">
             <div class="col-lg-12 text-center">
-                <h2>Partecipa</h2>
+                <h2>{% trans "Contribute" %}</h2>
                 <hr class="star-primary">
             </div>
         </div>
         <div class="container">
-            <div class="text-center danger">Cosa stai osservando?</div>
+            <div class="text-center danger">{% trans "What are you observing?" %}</div>
             <div class="col-md-2 col-md-offset-4 col-xs-6 services-item user-item">
                 <a href="#servicesModalWeather" class="services-link" data-toggle="modal">
                     {% include 'rainbo/service_info.html' %}
                     <img src="{% static 'rainbo/img/landing_page/partecipa_weather.png' %}" class="img-responsive center-block landing-img" alt="">
                     <div class="caption">
                         <div class="caption-content">
-                            <p>Tempo Presente</p>
+                            <p>{% trans "Present Weather" %}</p>
                         </div>
                     </div>
                 </a>
@@ -29,7 +30,7 @@
                     <img src="{% static 'rainbo/img/landing_page/partecipa_impact.png' %}" class="img-responsive center-block landing-img" alt="">
                     <div class="caption">
                         <div class="caption-content">
-                            <p>Impatto</p>
+                            <p>{% trans "Impact" %}</p>
                         </div>
                     </div>
                 </a>

@@ -42,6 +42,9 @@ urlpatterns = [
     url(r'^accounts/profile/$',
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
+#   Uncomment the next line to enable the admin and reset password
+    url(r'^admin/', include(admin.site.urls)),
+
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', showdata.views.rainbotimeseries,name="timeseriesyearly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesmonthly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesdaily"),
@@ -50,7 +53,8 @@ urlpatterns = [
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', showdata.views.rainbospatialseries,name="spatialserieshourly"),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', showdata.views.rainbospatialseries,name="spatialseriesdaily"),
 
-    url(r'^borinud/', include('borinud.urls'))
+    url(r'^borinud/', include('borinud.urls')),
 
+    url( r'^contacts/', include( 'contacts.urls' ) ),
 ]
 
