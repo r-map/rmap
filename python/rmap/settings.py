@@ -952,6 +952,11 @@ BORINUD =\
                       "dataset": "http://localhost:8090/dataset/report_mobile",
                       "measurements": report_measurements
                   },
+                  {
+                      "class": "borinud.utils.source.ArkimetBufrDB",
+                      "dataset": "http://localhost:8090/dataset/report_luftdaten",
+                      "measurements": sample_measurements
+                  },
               ],
               "CACHED_SUMMARY": "default",
               "CACHED_SUMMARY_TIMEOUT": 60*15,},
@@ -987,6 +992,11 @@ BORINUD =\
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://localhost:8090/dataset/report_fixed",
                        "measurements": report_measurements
+                   },
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://localhost:8090/dataset/report_luftdaten",
+                       "measurements": sample_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
@@ -1295,7 +1305,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'django_extensions',              "apps": ('django_extensions',)},
         {"import": 'rainbo',                         "apps": ('rainbo'   ,)},
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
-        {"import": 'contacts',                         "apps": ('contacts'   ,)},        
+        {"import": 'contacts',                       "apps": ('contacts'   ,)},
         {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
     )
 
