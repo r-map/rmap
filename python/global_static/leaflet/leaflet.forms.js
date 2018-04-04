@@ -17,6 +17,7 @@ L.FieldStore = L.Class.extend({
         var items = typeof(layer.getLayers) == 'function' ? layer.getLayers() : [layer],
             is_multi = this.options.is_collection || items.length > 1,
             is_generic = this.options.is_generic,
+            collection_type = this.options.collection_type,
             is_empty = items.length === 0;
 
         if (is_empty)
@@ -35,11 +36,39 @@ L.FieldStore = L.Class.extend({
         }
 
         var geojson = geom.toGeoJSON();
-        var is_geometrycollection = (geojson.geometry.type == 'GeometryCollection');
+        var is_geometrycollection = (geojson.geometry && geojson.geometry.type == 'GeometryCollection');
         if (is_multi && is_generic && !is_geometrycollection) {
             var flat = {type: 'GeometryCollection', geometries: []};
             for (var i=0; i < geojson.features.length; i++) {
                 flat.geometries.push(geojson.features[i].geometry);
+            }
+            geojson = flat;
+        }
+        // Special case for MultiPolyline/MultiPolygon because it was removed from leaflet 1.0
+        else if (is_multi && collection_type != 'featureGroup') {
+            var latlngs = [];
+            for (var i = 0; i < geojson.features.length; i++) {
+                var latlng = [];
+                var coord = geojson.features[i].geometry.coordinates;
+                if (collection_type == 'polygon') {
+                    coord = coord[0];
+                }
+                for (var j = 0; j < coord.length; j++) {
+                    latlng.push([coord[j][1], coord[j][0]]);
+                }
+                if (collection_type == 'polygon') {
+                    latlng = [latlng];
+                }
+                latlngs.push(latlng);
+            }
+            geom = L[collection_type](latlngs);
+            geojson = geom.toGeoJSON().geometry;
+        }
+        // In order to make multipoint work, it seems we need to treat it similarly to the GeometryCollections
+        else if (this.options.geom_type == 'MULTIPOINT') {
+            var flat = {type: 'MultiPoint', coordinates: []};
+            for (var i=0; i < geojson.features.length; i++) {
+                flat.coordinates.push(geojson.features[i].geometry.coordinates);
             }
             geojson = flat;
         }
@@ -76,8 +105,8 @@ L.GeometryField = L.Class.extend({
         options.is_polygon = /polygon$/.test(geom_type) || options.is_generic;
         options.is_point = /point$/.test(geom_type) || options.is_generic;
         options.collection_type = ({
-            'multilinestring': 'multiPolyline',
-            'multipolygon': 'multiPolygon',
+            'multilinestring': 'polyline',
+            'multipolygon': 'polygon',
         })[geom_type] || 'featureGroup';
 
         L.setOptions(this, options);
@@ -151,15 +180,22 @@ L.GeometryField = L.Class.extend({
         var geometry = this.store.load();
         if (geometry) {
             // Add initial geometry to the map
-            geometry.addTo(this._map);
             if (geometry instanceof L.LayerGroup) {
                 geometry.eachLayer(function (l) {
                     this.drawnItems.addLayer(l);
                 }, this);
             }
+            else if (this.options.collection_type !== 'featureGroup'
+                        && (geometry instanceof L.Polygon || geometry instanceof L.Polyline)) {
+                var latlngs = geometry.getLatLngs();
+                for (var i = 0; i < latlngs.length; i++) {
+                    this.drawnItems.addLayer(L[this.options.collection_type](latlngs[i]));
+                }
+            }
             else {
                 this.drawnItems.addLayer(geometry);
             }
+            this.drawnItems.addTo(this._map);
         }
         this._setView();
         return geometry;
@@ -169,12 +205,10 @@ L.GeometryField = L.Class.extend({
         // Change view extent
         if (this.drawnItems.getLayers().length > 0) {
             var bounds = this.drawnItems.getBounds();
-            // In case of points, fitBounds() fails.
-            // https://github.com/makinacorpus/django-leaflet/issues/90
-            if (!bounds._southWest.equals(bounds._northEast))
-                this._map.fitBounds(bounds);
-            else
-                this._map.setView(bounds._northEast, this.default_zoom);
+            var options = {
+                maxZoom: this._map.maxZoom || 15
+            };
+            this._map.fitBounds(bounds, options);
         }
         // Else keep view extent set by django-leaflet template tag
     },
@@ -204,7 +238,7 @@ L.GeometryField = L.Class.extend({
     },
 
     _editionLayer: function () {
-        var type = this.options.collection_type,
+        var type = 'featureGroup',
             constructor = L[type];
         if (typeof(constructor) != 'function') {
             throw 'Unsupported geometry type: ' + type;
