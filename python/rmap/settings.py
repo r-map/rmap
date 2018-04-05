@@ -1257,8 +1257,9 @@ LEAFLET_CONFIG = {
 'MIN_ZOOM': 2,
 'DEFAULT_ZOOM': 5,
 'MAX_ZOOM': 19,
-#'RESET_VIEW': False,
+'RESET_VIEW': False,
 #'MINIMAP': True,
+'ATTRIBUTION_PREFIX': "Powered by RMAP contributors",
 }
 
 MAINSITES=("rmapv.rmap.cc","rmap.cc","rmaper.rmap.it","rmap.it")
