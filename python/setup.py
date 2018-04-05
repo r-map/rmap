@@ -206,6 +206,7 @@ insertdata_package_data = []
 registration_package_data = []
 showdata_package_data = []
 rainbo_package_data = []
+contacts_package_data = []
 firmware_updater = []
 
 data_files = []
@@ -319,6 +320,11 @@ for dirpath, dirnames, filenames in os.walk('rainbo/static'):
     if filenames:
         for file in filenames:
             rainbo_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rainbo'))
+
+for dirpath, dirnames, filenames in os.walk('contacts/static'):
+    if filenames:
+        for file in filenames:
+            contacts_package_data.append( os.path.relpath(os.path.join(dirpath, file),'contacts'))
             
 
 #package_data.append('rmap_config')
@@ -348,6 +354,7 @@ setup(name='rmap',
                 'amatyr',
                 'showdata','showdata.migrations',
                 'rainbo',
+                'contacts',
                 'borinud_sos',
                 'graphite-dballe','graphite-dballe.migrations',
                 'graphite-dballe.account','graphite-dballe.account.migrations',
@@ -381,6 +388,7 @@ setup(name='rmap',
           'registration':['templates/registration/*']+registration_package_data,
           'showdata':['templates/showdata/*']+showdata_package_data,
           'rainbo':['templates/rainbo/*.html','templates/rainbo/base_service/*.html']+rainbo_package_data,          
+          'contacts':['templates/contacts/*']+contacts_package_data,          
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
       },
       scripts=[
