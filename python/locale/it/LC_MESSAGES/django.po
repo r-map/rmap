@@ -341,7 +341,7 @@ msgstr "allagamento"
 
 #: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:42
 msgid "pothole"
-msgstr "buca in stada"
+msgstr "buca in strada"
 
 #: insertdata/views.py:122
 msgid "Impact detected"
