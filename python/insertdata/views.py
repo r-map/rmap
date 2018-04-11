@@ -12,6 +12,7 @@ from django.core.urlresolvers import reverse
 from  rmap.tables import Table,TableEntry
 import os
 from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as __
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from django.core.files.base import ContentFile
@@ -82,7 +83,7 @@ class StationForm(forms.Form):
     def __init__(self, username, *args, **kwargs):
 
         super(StationForm, self).__init__(*args, **kwargs)
-        self.fields['station_slug'] = forms.ChoiceField(scelta_stations(username),required=False,label=_('Your station'),help_text=_('Select configurated station'),initial="")
+        self.fields['station_slug'] = forms.ChoiceField(scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
 
 
 class ManualForm(forms.ModelForm):
@@ -90,10 +91,10 @@ class ManualForm(forms.ModelForm):
     #geom = PointField()
 
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=_('Present weather'),help_text=_('Present weather'),initial="")
+    presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
 
-    visibility=forms.IntegerField(required=False,label=_("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
-    snow_height=forms.IntegerField(required=False,label=_("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
+    visibility=forms.IntegerField(required=False,label=__("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
+    snow_height=forms.IntegerField(required=False,label=__("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
 
     class Meta:
         model = GeorefencedImage
@@ -104,12 +105,12 @@ class ManualForm(forms.ModelForm):
 class RainboWeatherForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     #fixed standard values from ~/rmap/python/rmap/tables/present_weather.txt  
-    not_significant = forms.ChoiceField(widget=forms.RadioSelect(),choices=[(100,_("not significant"))],required=False,label=_("Not_significant"),help_text='')
-    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,_("haze")),(130,_("fog"))],required=False,label=_("Visibility"),help_text='')
-    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,_("weak")),(186,_("moderate")),(187,_("intense"))],required=False,label=_("Snow"),help_text='')    
-    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,_("moderate with rain")),(193,_("moderate with hail")),(195,_("intense with rain")),(196,_("intense with hail"))],required=False,label=_("Thunderstorm"),help_text='') 
-    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,_("drizzle")),(160,_("rain")),(165,_("freezing on the ground")),(184,'very heavy')],required=False,label=_("Rain"),help_text='')
-    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,_("tornado"))],required=False,label=_("Tornado"),help_text='')
+    not_significant = forms.ChoiceField(widget=forms.RadioSelect(),choices=[(100,__("not significant"))],required=False,label=__("Not_significant"),help_text='')
+    visibility_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(110,__("haze")),(130,__("fog"))],required=False,label=__("Visibility"),help_text='')
+    snow_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(185,__("weak")),(186,__("moderate")),(187,__("intense"))],required=False,label=__("Snow"),help_text='')    
+    thunderstorm_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(192,__("moderate with rain")),(193,__("moderate with hail")),(195,__("intense with rain")),(196,__("intense with hail"))],required=False,label=__("Thunderstorm"),help_text='') 
+    rain_intensity=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(150,__("drizzle")),(160,__("rain")),(165,__("freezing on the ground")),(184,'very heavy')],required=False,label=__("Rain"),help_text='')
+    tornado=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(199,__("tornado"))],required=False,label=__("Tornado"),help_text='')
 
     class Meta:
         model = GeorefencedImage
@@ -119,7 +120,7 @@ class RainboWeatherForm(forms.ModelForm):
 
 class RainboImpactForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,_("fallen tree")),(20,_("icy road")),(30,_("flooding")),(40,_("pothole"))],required=False,label=_("Impact detected"),help_text='') 
+    impact_detected=forms.ChoiceField(widget=forms.RadioSelect(),choices=[(10,__("fallen tree")),(20,__("icy road")),(30,__("flooding")),(40,__("pothole"))],required=False,label=__("Impact detected"),help_text='') 
 
     class Meta:
         model = GeorefencedImage
@@ -128,7 +129,7 @@ class RainboImpactForm(forms.ModelForm):
 
 
 class NominatimForm(forms.Form):
-    address= forms.CharField(required=False,label=_("Search address"),help_text='')
+    address= forms.CharField(required=False,label=__("Search address"),help_text='')
 
 
 
@@ -141,8 +142,8 @@ class NewStationForm(forms.ModelForm):
         CHOICES.append((tem,tem))
     
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    name= forms.CharField(required=True,label=_("New station name"),help_text=_('The name of the station to insert'))
-    template=forms.ChoiceField(choices=CHOICES,required=True,label=_("station model"),help_text=_('The model of the station to insert'),initial="none")
+    name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
+    template=forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
     
     class Meta:
         model = GeorefencedImage
