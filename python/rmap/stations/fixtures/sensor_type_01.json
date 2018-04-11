@@ -135,7 +135,7 @@
         "model": "stations.sensortype",
         "fields": {
             "active": true,
-            "name": "I2C SDSMICS module, one shot mode, dust",
+            "name": "Serial SDS011 sensor, one shot mode, dust",
             "type": "SSD",
 	    "datalevel": "sample",
             "bcodes": [
