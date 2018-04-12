@@ -492,7 +492,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
                   type="HPM",address=36,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "stima_thdm"):
@@ -502,7 +502,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ADT",address=73,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Humidity",driver="I2C",
                   type="HIH",address=39,timerange="254,0,0",level="103,2000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
                   type="HPM",address=36,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Nitrogen dioxide",driver="I2C",
                   type="SMI",address=36,timerange="254,0,0",level="103,2000,-,-")
