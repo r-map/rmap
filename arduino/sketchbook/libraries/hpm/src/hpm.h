@@ -28,6 +28,7 @@ public:
 	bool setCustomerAdjustmentCoefficient(uint8_t value);
 	uint8_t readCustomerAdjustmentCoefficient();
 	bool loop();
+	bool query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n);
 
 private:
 
@@ -43,6 +44,7 @@ private:
 	uint8_t getCheckSum8(uint8_t *buf, uint8_t len);
 	uint16_t getCheckSum(uint8_t *buf, uint8_t len);
 	void flush();
+	void _filter_data(unsigned int n, unsigned int *pm25_table, unsigned int *pm10_table, unsigned int *pm25, unsigned int *pm10);
 
 };
 

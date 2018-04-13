@@ -209,3 +209,67 @@ void hpm::flush(){
 	}
 }
 
+
+
+
+bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n)
+{
+    unsigned int pm25_table[n];
+    unsigned int pm10_table[n];
+
+    Log.notice(F("HPM query data auto" CR));
+
+    
+    for (unsigned int i = 0; i<n; i++) {
+      readParticleMeasuringResults();
+      pm25_table[i] = get(PM25_TYPE);
+      if (pm25_table[i] == 0xFFFF) return false;
+      pm10_table[i] = get(PM10_TYPE);
+      if (pm10_table[i] == 0xFFFF) return false;
+
+      //recommended query interval of not less than 1 seconds
+      if (i < (n-1)) delay(1000);
+    }
+
+    _filter_data(n, pm25_table, pm10_table, pm25, pm10);
+
+    return true;
+}
+
+
+void hpm::_filter_data(unsigned int n, unsigned int *pm25_table, unsigned int *pm10_table, unsigned int *pm25, unsigned int *pm10)
+{
+    unsigned int pm25_min, pm25_max, pm10_min, pm10_max, pm25_sum, pm10_sum;
+
+    pm10_sum = pm10_min = pm10_max = pm10_table[0];
+    pm25_sum = pm25_min = pm25_max = pm25_table[0];
+
+    for (int i=1; i<n; i++) {
+        if (pm10_table[i] < pm10_min) {
+            pm10_min = pm10_table[i];
+        }
+        if (pm10_table[i] > pm10_max) {
+            pm10_max = pm10_table[i];
+        }
+        if (pm25_table[i] < pm25_min) {
+            pm25_min = pm25_table[i];
+        }
+        if (pm25_table[i] > pm25_max) {
+            pm25_max = pm25_table[i];
+        }
+        pm10_sum += pm10_table[i];
+        pm25_sum += pm25_table[i];
+    }
+
+    if (n > 2) {
+        *pm10 = (pm10_sum - pm10_max - pm10_min)/(n-2);
+        *pm25 = (pm25_sum - pm25_max - pm25_min)/(n-2);
+    } else if (n > 1) {
+        *pm10 = (pm10_sum - pm10_min)/(n-1);
+        *pm25 = (pm25_sum - pm25_min)/(n-1);
+    } else {
+        *pm10 = pm10_sum/n;
+        *pm25 = pm25_sum/n;
+    }
+}
+

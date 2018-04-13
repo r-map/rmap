@@ -4894,11 +4894,12 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   Serial.println("try to build HPM");
   
   if(_hpm->init(_hpmSerial)){
-
+    if( _hpm->stopParticleMeasurement()){
       HPMstarted=false;
       _timing=millis();
 
       return SD_SUCCESS;
+    }
   }
   return SD_INTERNAL_ERROR;
 }
@@ -4918,7 +4919,8 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
 
 int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 {
-  int pm=0xFFFFFFFF;
+  unsigned int pm25=0xFFFFFFFF;
+  unsigned int pm10=0xFFFFFFFF;
 
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!HPMstarted)  return SD_INTERNAL_ERROR;
@@ -4926,31 +4928,27 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
   HPMstarted=false;  
   _timing=0;
 
-  // measure and get pm25
-  _hpm->readParticleMeasuringResults();
+  // measure
+  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
   _hpm->stopParticleMeasurement();
 
-  pm=_hpm->get(PM25_TYPE);
-  if (pm == 0xFFFF){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm25 missed")));
-    return SD_INTERNAL_ERROR;
-  }
-  if (lenvalues >= 1) {
-    values[0] = pm*10 ;
-  }
-    
-  // get pm10
-  if (lenvalues >= 2) {
-    pm=_hpm->get(PM10_TYPE);
-    if (pm ==0xFFFF){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm10 missed")));
-      return SD_INTERNAL_ERROR;
+  if (status){
+
+  // get pm25
+    if (lenvalues >= 1) {
+      values[0] = pm25*10 ;
     }
-    values[1] = pm*10 ;
+
+    // get pm10
+    if (lenvalues >= 2) {
+      values[1] = pm10*10 ;
+    }
+
+    return SD_SUCCESS;
+  } else {
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm error")));
+    return SD_INTERNAL_ERROR;    
   }
-
-  return SD_SUCCESS;
-
 }
 
 #if defined (USEGETDATA)

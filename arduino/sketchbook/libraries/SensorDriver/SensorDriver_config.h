@@ -84,6 +84,7 @@
 
 // include Honeywell HPM pm 2.5 and pm 10 driver SAMPLE MODE
 //#define HPM_ONESHOT
+#define HPMSAMPLES 3
 
 //luftdaten
 //#define HPM_PIN_RX D1
