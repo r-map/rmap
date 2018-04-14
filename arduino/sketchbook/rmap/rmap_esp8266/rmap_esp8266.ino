@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-04-13T12:00"
+#define SOFTWARE_VERSION "2018-04-15T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -33,7 +33,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
-#define SAMPLETIME 30
+#define SAMPLETIME 60
 
 #define OLEDI2CADDRESS 0X3C
 

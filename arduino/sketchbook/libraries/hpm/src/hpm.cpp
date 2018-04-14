@@ -210,8 +210,6 @@ void hpm::flush(){
 }
 
 
-
-
 bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n)
 {
     unsigned int pm25_table[n];
@@ -227,8 +225,20 @@ bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n
       pm10_table[i] = get(PM10_TYPE);
       if (pm10_table[i] == 0xFFFF) return false;
 
-      //recommended query interval of not less than 1 seconds
-      if (i < (n-1)) delay(1000);
+      //recommended query interval of not less than 10 seconds
+
+      /*
+	https://forum.digikey.com/t/hpm-series-pm2-5-particle-sensor/858
+	How fast does the HPM Series analyze media and respond?
+
+	A. Ultra-fast, the HPM Series analyzes media in less than six seconds.
+	This speed allows the HPM Series to quickly analyze and provide data to supporting equipment,
+	allowing the device to respond to changing conditions in real-time.
+	It was suggested while we were in training to allow the unit to run for 15 seconds
+	to ensure that you see a normalized result. The output of the sensor is a 10 second average.
+      */
+      
+      if (i < (n-1)) delay(10000);
     }
 
     _filter_data(n, pm25_table, pm10_table, pm25, pm10);
