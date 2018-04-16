@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-04-15T00:00"
+#define SOFTWARE_VERSION "2018-04-17T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -678,6 +678,7 @@ void setup() {
   // set runtime log level to the same of compile time
   Log.begin(LOG_LEVEL, &Serial);
   LOGN(F("Started" CR));
+  LOGN(F("Version: " SOFTWARE_VERSION CR));
 
 #ifdef I2CPULLUP
   //if you want to set the internal pullup
