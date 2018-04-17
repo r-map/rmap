@@ -21,9 +21,10 @@
 
  <link rel="stylesheet" type="text/css" href="{% static "showdata/LeafletStyleSheet.css" %}" >
 
+<!--
  <script type="text/javascript" src="{% static "showdata/leaflet.label.js" %}" ></script>
  <link rel="stylesheet" type="text/css" href="{% static "showdata/leaflet.label.css" %}" >
-
+-->
 <!--
  <script type="text/javascript" src="{% static "showdata/leaflet.markercluster.js" %}" ></script>
  <link rel="stylesheet" type="text/css" href="{% static "showdata/MarkerCluster.css" %}" >
@@ -53,9 +54,11 @@
 }
 
 
+<!--
 .leaflet-label {
     background: rgba(235, 235, 235, 0.95);
     z-index: 10000 !important;
+-->
 }
 
 
@@ -450,7 +453,7 @@ function map_init(map, options)
 			})
 		    );
 
-		    leafletMarker.bindLabel(data.feature.properties.date);
+		    leafletMarker.bindTooltip(data.feature.properties.date);
 		    
 		    /*
 		    var popup = L.popup()
