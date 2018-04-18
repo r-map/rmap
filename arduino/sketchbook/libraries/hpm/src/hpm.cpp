@@ -17,6 +17,11 @@ bool hpm::init(Stream *serial){
 	  Log.notice(F("Initialisation successful" CR));
 	    return true;
 	}
+	Log.notice(F("First initialisation failed" CR));
+	if(stopAutoSend() && stopParticleMeasurement()){
+	  Log.notice(F("Second initialisation successful" CR));
+	    return true;
+	}
 	Log.error(F("Initialisation failed" CR));
 	return false;
 }
@@ -82,7 +87,6 @@ uint8_t hpm::readCustomerAdjustmentCoefficient(){
 
 bool hpm::sendCmd(uint8_t len,uint8_t cmd, uint8_t value  ){
 
-  flush();
   uint8_t cmdBuf[5];
   uint8_t size;
   
@@ -97,12 +101,16 @@ bool hpm::sendCmd(uint8_t len,uint8_t cmd, uint8_t value  ){
   }
   cmdBuf[size-1] = getCheckSum8(cmdBuf, size-1);
 
-  Log.notice(F("Sending command" CR));
-    for(uint8_t i=0; i< size;i++){
-      //Log.debug HEX(cmdBuf[i])
-      //Log.debug(F(" " CR));
-	_serial->write(cmdBuf[i]);
-    }
+  Log.notice(F("Sending command:"));
+  for(uint8_t i=0; i< size;i++){
+    Log.notice(F(" %X"),cmdBuf[i]);
+  }
+  Log.notice(F(CR));
+  
+  flush();
+  for(uint8_t i=0; i< size;i++){
+    _serial->write(cmdBuf[i]);
+  }
   return true;
 }
 
@@ -167,7 +175,7 @@ bool hpm::readResponse(){
       }
 
     } else {
-      Log.notice(F("Unknown ACK" CR));
+      Log.notice(F("Unknown ACK %X %X" CR),buf[0],buf[1]);
       return false;
     }
   }
@@ -204,9 +212,10 @@ uint16_t hpm::getCheckSum(uint8_t *buf, uint8_t len){
 }
 
 void hpm::flush(){
-	while(_serial->available()){
-		_serial->read();
-	}
+  delay(1);
+  while(_serial->available()){
+    _serial->read();
+  }
 }
 
 
@@ -219,12 +228,15 @@ bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n
 
     
     for (unsigned int i = 0; i<n; i++) {
-      readParticleMeasuringResults();
+      if (!readParticleMeasuringResults()) return false;
       pm25_table[i] = get(PM25_TYPE);
       if (pm25_table[i] == 0xFFFF) return false;
       pm10_table[i] = get(PM10_TYPE);
       if (pm10_table[i] == 0xFFFF) return false;
 
+      Log.notice(F("PM25 %d" CR),pm25_table[i]);
+      Log.notice(F("PM10 %d" CR),pm10_table[i]);
+      
       //recommended query interval of not less than 10 seconds
 
       /*

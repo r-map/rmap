@@ -4891,7 +4891,7 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   _hpm = new hpm();
   delay(1000);
 
-  Serial.println("try to build HPM");
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build HPM")));
   
   if(_hpm->init(_hpmSerial)){
     if( _hpm->stopParticleMeasurement()){
