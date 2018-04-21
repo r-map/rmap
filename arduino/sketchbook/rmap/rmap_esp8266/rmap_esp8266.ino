@@ -23,13 +23,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
 
-#define SCL D1
-#define SDA D2
-#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
-#define LED_PIN D4
-// those are defined in SensorDriver_config.h
-//#define SDS_PIN_RX D5
-//#define SDS_PIN_TX D6
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
@@ -38,14 +31,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OLEDI2CADDRESS 0X3C
 
 
+#if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
-//#define SDA D4
-//#define SCL D5
-//#define RESET_PIN D0 
-//#define LED_PIN D4
+#define SDA D4
+#define SCL D5
+#define RESET_PIN D0 
+#define LED_PIN D4
 // those are defined in SensorDriver_config.h
 //#define SDS_PIN_RX D1
 //#define SDS_PIN_TX D2
+
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define LED_PIN D4
+// those are defined in SensorDriver_config.h
+//#define SDS_PIN_RX D5
+//#define SDS_PIN_TX D6
+#else
+#error "unknown platform"
+#endif
 
 // set the frequency
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 

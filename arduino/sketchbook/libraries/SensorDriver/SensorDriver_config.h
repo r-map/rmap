@@ -13,14 +13,16 @@
 // this the value for http and report
 #define MAXDELAYFORREAD 60000
 
+#if defined(ARDUINO_ARCH_ESP8266)
+// use aarduinojson library for json response
+#define USEARDUINOJSON
+#else
 // add getdata method in library for lora-ttn compression
 #define USEGETDATA
 
 // use ajson library for json response
 #define USEAJSON
-
-// use aarduinojson library for json response
-//#define USEARDUINOJSON
+#endif
 
 // use RF24Network library for radio transport
 //#define RADIORF24
@@ -62,14 +64,20 @@
 // include TH temperature/humidity driver REPORT MODE
 //#define TEMPERATUREHUMIDITY_REPORT
 
+#if defined(ARDUINO_ARCH_ESP8266)
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
-//#define SDS011_ONESHOT
+#define SDS011_ONESHOT
+
+#if defined(ARDUINO_ESP8266_NODEMCU)
 //luftdaten
-//#define SDS_PIN_RX D1
-//#define SDS_PIN_TX D2
+#define SDS_PIN_RX D1
+#define SDS_PIN_TX D2
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 // wemos
 #define SDS_PIN_RX D5
 #define SDS_PIN_TX D6
+#endif
+#endif
 
 #define SDSSAMPLES 3
 
@@ -82,17 +90,23 @@
 // include mics4514 CO and NO2pm driver REPORT MODE
 //#define MICS4514_REPORT
 
+#if defined(ARDUINO_ARCH_ESP8266)
 // include Honeywell HPM pm 2.5 and pm 10 driver SAMPLE MODE
-//#define HPM_ONESHOT
-#define HPMSAMPLES 3
+#define HPM_ONESHOT
 
+#if defined(ARDUINO_ESP8266_NODEMCU)
 //luftdaten
-//#define HPM_PIN_RX D1
-//#define HPM_PIN_TX D2
+#define HPM_PIN_RX D1
+#define HPM_PIN_TX D2
 
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 //wemos
 #define HPM_PIN_RX D5
 #define HPM_PIN_TX D6
+#endif
+#endif
+#define HPMSAMPLES 3
+
 
 #if defined (TEMPERATUREHUMIDITY_ONESHOT)
 #if defined (TEMPERATUREHUMIDITY_REPORT)
