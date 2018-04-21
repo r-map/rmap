@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-04-17T00:00"
+#define SOFTWARE_VERSION "2018-04-21T12:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -71,7 +71,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <SensorDriver.h>
 #include <U8g2lib.h>
-
+#include "time.h"
 
 // logging level at compile time
 // Available levels are:
@@ -605,6 +605,8 @@ void repeats() {
   //  size_t lenvalues=MAX_VALUES_FOR_SENSOR;
 
   digitalWrite(LED_PIN,LOW);
+  time_t tnow = time(nullptr);
+  LOGN(F("Time: %s" CR),ctime(&tnow));
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
@@ -728,6 +730,8 @@ void setup() {
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
 
+  configTime(0, 0, "0.europe.pool.ntp.org");
+  
   if (digitalRead(RESET_PIN) == LOW) {
     LOGN(F("clean FS"));
     if (oledpresent) {
@@ -913,17 +917,22 @@ void setup() {
     reboot();
   }
 
+  time_t tnow = time(nullptr);
+  LOGN(F("Time: %s" CR),ctime(&tnow));
+  
   LOGN(F("mqtt server: %s" CR),rmap_server);
   mqttclient.setServer(rmap_server, 1883);
 
-  Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every tr seconds
+  Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every SAMPLETIME seconds
 
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
-  Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
+  //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
+  Alarm.timerRepeat(3600*24*7,reboot);          // every week
 
   // upgrade firmware
-  Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
+  //Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
+  Alarm.timerRepeat(3600*24,firmware_upgrade);          // every day  
 }
 
 
