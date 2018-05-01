@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-04-21T12:00"
+#define SOFTWARE_VERSION "2018-05-01T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -33,8 +33,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
-#define SDA D4
-#define SCL D5
+#define SDA D5
+#define SCL D6
 #define RESET_PIN D0 
 #define LED_PIN D4
 // those are defined in SensorDriver_config.h
@@ -219,53 +219,52 @@ bool publish_maint() {
 
   const String data;  
   
-  if (!mqttclient.connected()) {
-    //String clientId = "ESP8266Client-";
-    //clientId += String(random(0xffff), HEX);
+  //String clientId = "ESP8266Client-";
+  //clientId += String(random(0xffff), HEX);
     
-    LOGN(F("Connet to mqtt broker" CR));
+  LOGN(F("Connet to mqtt broker" CR));
 
-    char longitude [10];
-    char latitude [10];
-    itoa (coordCharToInt(rmap_longitude),longitude,10);
-    itoa (coordCharToInt(rmap_latitude),latitude,10);
+  char longitude [10];
+  char latitude [10];
+  itoa (coordCharToInt(rmap_longitude),longitude,10);
+  itoa (coordCharToInt(rmap_latitude),latitude,10);
+  
+  char mqttid[100]="";
+  strcat(mqttid,rmap_user);
+  strcat(mqttid,"/");
+  strcat(mqttid,longitude);
+  strcat(mqttid,",");
+  strcat(mqttid,latitude);
+  strcat(mqttid,"/");
+  strcat(mqttid,rmap_network);
+  
+  LOGN(F("mqttid: %s" CR),mqttid);
+  
+  char mainttopic[100]="";
+  strcpy (mainttopic,rmap_mqttmaintpath);
+  strcat(mainttopic,"/");
+  strcat(mainttopic,mqttid);
+  strcat (mainttopic,"/-,-,-/-,-,-,-/B01213");
+  LOGN(F("MQTT maint topic: %s" CR),mainttopic);
     
-    char mqttid[100]="";
-    strcat(mqttid,rmap_user);
-    strcat(mqttid,"/");
-    strcat(mqttid,longitude);
-    strcat(mqttid,",");
-    strcat(mqttid,latitude);
-    strcat(mqttid,"/");
-    strcat(mqttid,rmap_network);
-    
-    LOGN(F("mqttid: %s" CR),mqttid);
-
-    char mainttopic[100]="";
-    strcpy (mainttopic,rmap_mqttmaintpath);
-    strcat(mainttopic,"/");
-    strcat(mainttopic,mqttid);
-    strcat (mainttopic,"/-,-,-/-,-,-,-/B01213");
-    LOGN(F("MQTT maint topic: %s" CR),mainttopic);
-    
-    if (mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
-      LOGN(F("MQTT connected" CR));
-
-      if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
-	LOGN(F("MQTT maint published" CR));
-      }
-      return true;
-    }else{
-      LOGE(F("Error connecting MQTT" CR));
-      return false;
-    }
-  } else {
-    return true;
+  if (!mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
+    LOGE(F("Error connecting MQTT" CR));
+    return false;
   }
+  LOGN(F("MQTT connected" CR));
+  yield();
+  
+  if (!mqttclient.publish(mainttopic,(uint8_t*)"{\"v\":\"conn\"}", 12,1)){
+    LOGE(F("MQTT maint not published" CR));
+    mqttclient.disconnect();
+    return false;
+  }
+  LOGN(F("MQTT maint published" CR));
+  return true;
 }
 
 
-void publish_data(const char* values, const char* timerange, const char* level) {
+bool publish_data(const char* values, const char* timerange, const char* level) {
   
   char topic[100]="";
   StaticJsonBuffer<200> jsonBuffer;
@@ -278,34 +277,51 @@ void publish_data(const char* values, const char* timerange, const char* level) 
   LOGN(F("have to publish: %s" CR),values);
 
   JsonObject& json =jsonBuffer.parseObject(values);
-  if (json.success()){
-    for (JsonPair& pair : json) {
-
-      if (pair.value.as<char*>() == NULL) continue;
-      char payload[100]="{\"v\":";
-      strcat(payload,pair.value.as<char*>());
-      strcat(payload,"}");
-      
-      strcpy(topic,rmap_mqttrootpath);
-      strcat(topic,"/");
-      strcat(topic,rmap_user);
-      strcat(topic,"/");  
-      strcat(topic,longitude);
-      strcat(topic,",");
-      strcat(topic,latitude);
-      strcat(topic,"/");
-      strcat(topic,rmap_network);
-      strcat(topic,"/");
-      strcat(topic,timerange);
-      strcat(topic,"/");
-      strcat(topic,level);
-      strcat(topic,"/");
-      strcat(topic,pair.key);
-
-      LOGN(F("mqtt publish: %s %s" CR),topic,payload);
-      mqttclient.publish(topic, payload);
-    }
+  if (!json.success()) {
+    LOGE(F("reading json data" CR));
+    return false;
   }
+  for (JsonPair& pair : json) {
+
+    if (pair.value.as<char*>() == NULL){
+      analogWriteFreq(2);
+      analogWrite(LED_PIN,512);
+      delay(1000);
+      digitalWrite(LED_PIN,HIGH);      
+      analogWriteFreq(1);
+      delay(1000);
+      digitalWrite(LED_PIN,LOW);      
+      continue;
+    }
+    char payload[100]="{\"v\":";
+    strcat(payload,pair.value.as<char*>());
+    strcat(payload,"}");
+      
+    strcpy(topic,rmap_mqttrootpath);
+    strcat(topic,"/");
+    strcat(topic,rmap_user);
+    strcat(topic,"/");  
+    strcat(topic,longitude);
+    strcat(topic,",");
+    strcat(topic,latitude);
+    strcat(topic,"/");
+    strcat(topic,rmap_network);
+    strcat(topic,"/");
+    strcat(topic,timerange);
+    strcat(topic,"/");
+    strcat(topic,level);
+    strcat(topic,"/");
+    strcat(topic,pair.key);
+
+    LOGN(F("mqtt publish: %s %s" CR),topic,payload);
+    if (!mqttclient.publish(topic, payload)){
+      LOGE(F("MQTT data not published" CR));
+      mqttclient.disconnect();
+      return false;
+    }
+    LOGN(F("MQTT data published" CR));
+  }
+  return true;
 }
 
 void firmware_upgrade() {
@@ -319,7 +335,10 @@ void firmware_upgrade() {
   root.printTo(buffer, sizeof(buffer));
   LOGN(F("url for firmware update: %s" CR),update_url);
   LOGN(F("version for firmware update: %s" CR),buffer);
-		
+
+  analogWriteFreq(4);
+  analogWrite(LED_PIN,512);  
+
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
   t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
   switch(ret)
@@ -334,6 +353,12 @@ void firmware_upgrade() {
 	u8g2.print(F("Failed"));
 	u8g2.sendBuffer();
       }
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
+      digitalWrite(LED_PIN,HIGH);      
+      delay(1000);
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
     break;
     case HTTP_UPDATE_NO_UPDATES:
       LOGN(F("[update] No Update." CR));
@@ -344,16 +369,34 @@ void firmware_upgrade() {
 	u8g2.print(F("Update"));
 	u8g2.sendBuffer();
       }
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
       break;
     case HTTP_UPDATE_OK:
       LOGN(F("[update] Update ok." CR)); // may not called we reboot the ESP
+      /*
       if (oledpresent) {
 	u8g2.setCursor(0, 20); 
 	u8g2.print(F("FW Updated!"));
 	u8g2.sendBuffer();
       }
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
+      digitalWrite(LED_PIN,HIGH);      
+      delay(1000);
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
+      digitalWrite(LED_PIN,HIGH);      
+      delay(1000);
+      digitalWrite(LED_PIN,LOW);      
+      delay(1000);
+      */
       break;
     }
+
+  analogWriteFreq(1);
+  digitalWrite(LED_PIN,HIGH);
+
 }
 
 
@@ -455,6 +498,8 @@ int  rmap_config(String payload){
 	      }else{		
 		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
 		  LOGE(F("sensor not present or broken" CR));
+		  analogWrite(LED_PIN,750);
+		  delay(5000);
 		}		
 	      }
 	      ii++;
@@ -467,6 +512,8 @@ int  rmap_config(String payload){
       }
     } else {
       LOGE(F("error parsing array" CR));
+      analogWrite(LED_PIN,973);
+      delay(5000);
       status = 2;
     }
     
@@ -626,37 +673,81 @@ void repeats() {
     }
   }
 
+  yield();
+  
   //wait sensors to go ready
   LOGN(F("wait sensors for ms: %d" CR),maxwaittime);
-  delay(maxwaittime);
+  unsigned long int now=millis();
 
-  if (publish_maint()) {
-    if (oledpresent) {
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 20); 
-      u8g2.print(F("Measure!"));
-      u8g2.sendBuffer();
-      displaypos=0;
-      u8g2.clearBuffer();
+  // manage mqtt reconnect as RMAP standard
+  if (!mqttclient.connected()){
+    if (!publish_maint()) {
+      LOGE(F("Error in publish maint" CR));
+      if (oledpresent) {
+	u8g2.clearBuffer();
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("MQTT Error maint"));
+	u8g2.sendBuffer();
+	displaypos=0;
+	u8g2.clearBuffer();
+	delay(3000);
+      }else{
+	// if we do not have display terminate (we do not display values)
+	analogWrite(LED_PIN,512);
+	delay(5000);
+	digitalWrite(LED_PIN,HIGH);
+	return;
+      }
     }
-    for (int i = 0; i < SENSORS_LEN; i++) {
-      if (!sd[i] == NULL){
+  }
 
-	LOGN(F("getJson sd %d" CR),i);
-	if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
+  while ((float(maxwaittime)-float(millis()-now)) >0.) {
+    //LOGN(F("delay" CR));
+    mqttclient.loop();;
+    yield();
+  }
 
-	  publish_data(values,sensors[i].timerange,sensors[i].level);
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 20); 
+    u8g2.print(F("Measure!"));
+    u8g2.sendBuffer();
+    displaypos=0;
+    u8g2.clearBuffer();
+  }
+
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    yield();
+    if (!sd[i] == NULL){
+      LOGN(F("getJson sd %d" CR),i);
+      if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
+	if(publish_data(values,sensors[i].timerange,sensors[i].level)){
 	  if (oledpresent) {
 	    display_values(values);
 	  }
-	  
 	}else{
-	  LOGN(F("Error" CR));
+	  LOGE(F("Error in publish data" CR));
+	  if (oledpresent) {
+	    u8g2.setCursor(0, (displaypos+1)*10); 
+	    u8g2.print(F("MQTT error publish"));
+	    displaypos++;
+	  }else{
+	    analogWrite(LED_PIN,973);
+	    delay(5000);
+	  }
+	}
+      }else{
+	LOGE(F("Error getting json from sensor" CR));
+	if (oledpresent) {
+	  u8g2.setCursor(0, (displaypos+1)*10); 
+	  u8g2.print(F("Sensor error"));
+	  displaypos++;
 	}
       }
     }
-  if (oledpresent) u8g2.sendBuffer();
   }
+  
+  if (oledpresent) u8g2.sendBuffer();
   digitalWrite(LED_PIN,HIGH);
 }
 
@@ -672,6 +763,7 @@ void setup() {
 
   pinMode(RESET_PIN, INPUT_PULLUP);
   pinMode(LED_PIN, OUTPUT);
+  analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
 
   Serial.begin(115200);
@@ -721,11 +813,22 @@ void setup() {
     u8g2.setCursor(0, 30); 
     u8g2.print(F(SOFTWARE_VERSION));
     u8g2.sendBuffer();
-    delay(3000);
   }else{
         LOGN(F("OLED NOT Found" CR));
   }
   
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+  delay(1000);
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+  delay(1000);
+  digitalWrite(LED_PIN,LOW);
+  delay(1000);
+  digitalWrite(LED_PIN,HIGH);
+
   /*
   char esp_chipid[11];
   itoa(ESP.getChipId(),esp_chipid,10);
@@ -831,6 +934,8 @@ void setup() {
       u8g2.sendBuffer();
     }
 
+  analogWrite(LED_PIN,512);
+  
   //fetches ssid and pass and tries to connect
   //if it does not connect it starts an access point with the specified name
   //here  "AutoConnectAP"
@@ -848,15 +953,14 @@ void setup() {
     //reboot();
   }else{
     //if you get here you have connected to the WiFi
-    LOGN(F("connected... good!)" CR));
-    digitalWrite(LED_PIN,HIGH);
-
+    LOGN(F("connected... good!" CR));
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
       u8g2.print(F("WIFI OK"));
       u8g2.sendBuffer();
     }
+    digitalWrite(LED_PIN,HIGH);
   }
   
   if (shouldSaveConfig){
@@ -896,6 +1000,9 @@ void setup() {
 
   if ( remote_config == String() ) {
     LOGN(F("remote configuration failed" CR));
+    analogWrite(LED_PIN,50);
+    delay(5000);
+    digitalWrite(LED_PIN,HIGH);    
     remote_config=readconfig_rmap();
   }else{
     LOGN(F("write configuration" CR));
