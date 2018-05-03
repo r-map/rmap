@@ -1086,7 +1086,27 @@ class TransportSTDINOUT(Transport):
         """read data from STDIN"""
         print "***RECV (please enter, ^D ends.):"
         return sys.stdin.read()
+    def close (self):
+        pass
 
+class TransportDUMMY(Transport):
+    """receive from STDIN, send to STDOUT.
+
+    Useful e.g. for create script of commands.
+    """
+    def send(self, string):
+        """write data to STDOUT with '***SEND:' prefix """
+        print "***SEND:"
+        print string
+    def recv(self):
+        """expected response"""
+
+        response = '{"jsonrpc":"2.0","result":{},"id":0}'
+        print "***RECV:"
+        print response
+        return response
+    def close (self):
+        pass
 
 import socket, select
 class TransportSocket(Transport):

@@ -925,6 +925,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
         if transport is None:
 
+            if transport_name == "dummy":
+                transport=jsonrpc.TransportDUMMY()
+
+            
             if transport_name == "serial":
                 try:
                     if ( board.transportserial.active):
@@ -939,7 +943,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         print "mybaudrate:",mybaudrate
 
                         transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
-
+                        
                 except ObjectDoesNotExist:
                     print "transport serial not present for this board"
                     return
