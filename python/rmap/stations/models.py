@@ -10,6 +10,7 @@ from  django import VERSION as djversion
 from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.core.exceptions import ValidationError
+from django.core.validators import validate_comma_separated_integer_list
 
 try:
     import dballe
@@ -319,8 +320,8 @@ class TransportRF24Network(models.Model):
     channel=models.PositiveIntegerField(default=93,null=False,blank=False, choices=RF24_CHANNEL_CHOICES,help_text=ugettext_lazy("Channel number for RF24"))
 
     #  TODO integer field to be converted to 0X
-    key=models.CommaSeparatedIntegerField(max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES key"))
-    iv=models.CommaSeparatedIntegerField(max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES cbc iv"))
+    key=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES key"))
+    iv=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES cbc iv"))
 
     board = models.OneToOneField("Board")
 
@@ -593,6 +594,10 @@ class Board(models.Model):
     category = models.CharField(max_length=50, blank=False,choices=BOARD_CATEGORY_CHOICES)
     stationmetadata = models.ForeignKey('StationMetadata')
 
+    mac = models.CharField(max_length=50, blank=True,default="",help_text=ugettext_lazy("MAC address"))
+    swversion = models.CharField(max_length=255, blank=True,default="",help_text=ugettext_lazy("Software version"))
+    swlastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Software last update date"))
+    
 #    def changeform_link(self):
 #        if self.id:
 #            # Replace "myapp" with the name of the app containing
