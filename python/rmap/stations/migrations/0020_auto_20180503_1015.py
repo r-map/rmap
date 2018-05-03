@@ -17,7 +17,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='board',
             name='mac',
-            field=models.CharField(blank=True, default=b'', help_text='MAC address', max_length=50),
+            field=models.CharField(blank=True, default=b'', help_text='MAC address', max_length=128),
         ),
         migrations.AddField(
             model_name='board',

@@ -594,7 +594,7 @@ class Board(models.Model):
     category = models.CharField(max_length=50, blank=False,choices=BOARD_CATEGORY_CHOICES)
     stationmetadata = models.ForeignKey('StationMetadata')
 
-    mac = models.CharField(max_length=50, blank=True,default="",help_text=ugettext_lazy("MAC address"))
+    mac = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("MAC address"))
     swversion = models.CharField(max_length=255, blank=True,default="",help_text=ugettext_lazy("Software version"))
     swlastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Software last update date"))
     

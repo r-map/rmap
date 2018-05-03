@@ -8,6 +8,8 @@ import json
 import dateutil.parser
 from rmap.stations.models import Board
 import django.utils.timezone
+from django.contrib.auth.hashers import check_password, make_password
+import traceback
 
 def md5(fname):
     hash_md5 = hashlib.md5()
@@ -88,10 +90,6 @@ def update(request,name):
     except:
         print "no board slug in version; set default"
         swversion["bslug"]="default"
-        
-    if swdate >= firmware.date.replace(tzinfo=None):
-        print ' 304 No new firmware'
-        return HttpResponse(' 304 No new firmware',status=304)
 
     try:
         myboard = Board.objects.get(slug=swversion["bslug"]
@@ -100,20 +98,25 @@ def update(request,name):
 
         if not myboard.mac:
             print "update missed mac in firmware updater"
-            myboard.mac=sta_mac
-            myboard.save(update_fields=['mac'])
+            myboard.mac=make_password(sta_mac)
+            myboard.save(update_fields=['mac',])
 
-        if (myboard.mac==sta_mac):
+        if check_password(sta_mac, myboard.mac):
             myboard.swversion=swversion["ver"]
             myboard.swlastupdate=django.utils.timezone.now()            
-            myboard.update(update_fields=["swversion","swlastupdate"])
+            myboard.save(update_fields=["swversion","swlastupdate"])
         else:
             print "WARNING! mac mismach in firmware updater"
             
     except:
         print "user/station/board not present on DB; ignore it"
-    
+        traceback.print_exc()
+    #    raise
 
+    if swdate >= firmware.date.replace(tzinfo=None):
+        print ' 304 No new firmware'
+        return HttpResponse(' 304 No new firmware',status=304)
+    
     mymd5=md5(firmware.file.path)
     mysize=os.path.getsize(firmware.file.path)
 
