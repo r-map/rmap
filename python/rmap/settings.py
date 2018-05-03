@@ -644,6 +644,9 @@ SERIALIZATION_MODULES = {
     'geojson' : 'djgeojson.serializers'
 }
 
+SUMMARYCACHETIMEOUT=60*60
+
+
 #CACHES = {
 #    'default': {
 #        'BACKEND': 'django.core.cache.backerlnds.memcached.MemcachedCache',
@@ -959,7 +962,7 @@ BORINUD =\
                   },
               ],
               "CACHED_SUMMARY": "default",
-              "CACHED_SUMMARY_TIMEOUT": 60*15,},
+              "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
            
            "report_fixed":{
                "SOURCES": 
@@ -1000,7 +1003,7 @@ BORINUD =\
                    },
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "report_mobile":{
                "SOURCES": 
@@ -1016,7 +1019,7 @@ BORINUD =\
                    },
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample":{
                "SOURCES": 
@@ -1046,7 +1049,7 @@ BORINUD =\
                    },
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample_fixed":{
                "SOURCES": 
@@ -1067,7 +1070,7 @@ BORINUD =\
                    },
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample_mobile":{
                "SOURCES": 
@@ -1083,7 +1086,7 @@ BORINUD =\
                    },
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            }
           }
 
@@ -1101,7 +1104,7 @@ BORINUDLAST =\
                   }, 
               ],
               "CACHED_SUMMARY": "default",
-              "CACHED_SUMMARY_TIMEOUT": 60*15,},
+              "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
            
            "report_fixed":{
                "SOURCES": 
@@ -1112,7 +1115,7 @@ BORINUDLAST =\
                    }, 
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "report_mobile":{
                "SOURCES": 
@@ -1123,7 +1126,7 @@ BORINUDLAST =\
                    }, 
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample":{
                "SOURCES": 
@@ -1138,7 +1141,7 @@ BORINUDLAST =\
                    },         
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample_fixed":{
                "SOURCES": 
@@ -1149,7 +1152,7 @@ BORINUDLAST =\
                    }, 
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            },
            "sample_mobile":{
                "SOURCES": 
@@ -1160,7 +1163,7 @@ BORINUDLAST =\
                    },         
                ],
                "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
+               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
            }
           }
 
@@ -1184,7 +1187,7 @@ if DEBUG_BORINUD_SOURCES:
                           
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,},
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
                   
                   "report_fixed":{
                       "SOURCES": 
@@ -1195,7 +1198,7 @@ if DEBUG_BORINUD_SOURCES:
                           }, 
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   },
                   "report_mobile":{
                       "SOURCES": 
@@ -1206,7 +1209,7 @@ if DEBUG_BORINUD_SOURCES:
                           }, 
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   },
                   "sample":{
                       "SOURCES": 
@@ -1221,7 +1224,7 @@ if DEBUG_BORINUD_SOURCES:
                           }, 
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   },
                   "sample_fixed":{
                       "SOURCES": 
@@ -1232,7 +1235,7 @@ if DEBUG_BORINUD_SOURCES:
                           }, 
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   },
                   "sample_mobile":{
                       "SOURCES": 
@@ -1243,7 +1246,7 @@ if DEBUG_BORINUD_SOURCES:
                           },         
                       ],
                       "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": 60*15,
+                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   }
               }
     
