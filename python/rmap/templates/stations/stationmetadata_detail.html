@@ -73,7 +73,14 @@
 
   <img src = "/graphite/render/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&hideLegend=true&tz=UTC&width=400&height=250&from=-12hours">
 
-  <p><a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&from=-12hours" role="button">Graphite composer &raquo;</a></p>
+  <p>
+    
+    <a class="btn btn-default" href=    {% url 'showdata:timeseriesdaily'  object.ident object.lonlat object.network sensor.timerange sensor.level bcode.bcode year month day %}?{% if object.mqttrootpath %}dsn={{object.mqttrootpath}}{% endif %} role="button">Timeseries &raquo;</a>
+
+    <a class="btn btn-default" href=    {% url 'showdata:spatialseriesdaily'  object.ident object.lonlat object.network sensor.timerange sensor.level bcode.bcode year month day %}?{% if object.mqttrootpath %}dsn={{object.mqttrootpath}}{% endif %} role="button">Spatialseries &raquo;</a>
+
+    <a class="btn btn-default" href="/graphite/composer/?target=offset(scale({{ object.mqttrootpath }}_{{ object.network }}.{{ object.ident }}.{{ object.lon_lat }}.*.{{ sensor.underscored_timerange }}.{{ sensor.underscored_level}}.{{bcode.bcode}},{{bcode.scale}}),{{bcode.offset}})&from=-12hours" role="button">Graphite composer &raquo;</a>
+  </p>
 </div>
 
           {% endfor %}

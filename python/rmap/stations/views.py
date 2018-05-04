@@ -6,6 +6,7 @@ from django import forms
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from rmap import rmap_core
+from datetime import datetime,timedelta
 
 class StationList(ListView):
     model = StationMetadata
@@ -57,8 +58,16 @@ def mystationmetadata_list(request,ident):
     return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations,"ident":ident})
 
 def mystationmetadata_detail(request,ident,slug):
+
+    now=datetime.utcnow()
+    showdate=(now-timedelta(minutes=30))
+    year='{:04d}'.format(showdate.year)
+    month='{:02d}'.format(showdate.month)
+    day='{:02d}'.format(showdate.day)
+    hour='{:02d}'.format(showdate.hour)
+    
     mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
-    return render(request, 'stations/stationmetadata_detail.html',{"object":mystation})
+    return render(request, 'stations/stationmetadata_detail.html',{"object":mystation,"year":year,"month":month,"day":day,"hour":hour})
 
 def mystationmetadata_json(request,ident,slug):
     return HttpResponse(rmap_core.dumpstation(slug,ident), content_type="application/json")

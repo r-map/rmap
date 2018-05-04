@@ -720,6 +720,9 @@ class StationMetadata(models.Model):
     def lon_lat(self):
         return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
+    def lonlat(self):
+        return "%d,%d" % (nint(self.lon*100000),nint(self.lat*100000))
+
 
     def clean(self):
         # check sensor datalevel with roothpath
