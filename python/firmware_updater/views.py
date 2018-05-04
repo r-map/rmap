@@ -6,7 +6,7 @@ import os
 import hashlib
 import json
 import dateutil.parser
-from rmap.stations.models import Board
+from rmap.stations.models import Board,BoardFirmwareMetadata
 import django.utils.timezone
 from django.contrib.auth.hashers import check_password, make_password
 import traceback
@@ -102,20 +102,21 @@ def update(request,name):
                 myboard.boardfirmwaremetadata.mac=make_password(sta_mac)
                 myboard.boardfirmwaremetadata.save(update_fields=['mac',])
         else:
-            bfm=BoardfirmwareMetadata(mac=make_password(sta_mac))
+            print "add firmware metadata to board"
+            bfm=BoardFirmwareMetadata(board=myboard,mac=make_password(sta_mac))
             myboard.boardfirmwaremetadata=bfm
-            myboard.boardfirmwaremetadata.save(update_fields=['mac',])                
+            myboard.save()
         if check_password(sta_mac, myboard.boardfirmwaremetadata.mac):
+            print "update firmware metadata"
             myboard.boardfirmwaremetadata.swversion=swversion["ver"]
             myboard.boardfirmwaremetadata.swlastupdate=django.utils.timezone.now()            
-            myboard.boardfirmwaremetadata.save(update_fields=["swversion","swlastupdate"])
+            myboard.boardfirmwaremetadata.save()
         else:
             print "WARNING! mac mismach in firmware updater"
             
     except:
         print "user/station/board not present on DB; ignore it"
         traceback.print_exc()
-    #    raise
 
     if swdate >= firmware.date.replace(tzinfo=None):
         print ' 304 No new firmware'
