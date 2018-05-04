@@ -9,7 +9,8 @@
   jQuery(function( $ ){
     $('#preloadimages img').preload({
           placeholder:'{% static "showdata/loading.gif" %}',
-          notFound:'{% static "showdata/access-error-logs.png" %}'
+          notFound:'{% static "showdata/access-error-logs.png" %}',
+          threshold:1
     });
   });
 </script>
