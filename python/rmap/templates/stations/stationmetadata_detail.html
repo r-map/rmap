@@ -60,6 +60,7 @@
 {% for board in object.board_set.all %}
   {% if board.active  %}
     <h3>{% trans 'Board name' %}: {{ board.name }}</h3>
+    <h4>{% trans 'Firmware version' %}: {{ board.boardfirmwaremetadata.swversion }}   {% trans 'Last firmware update' %}: {{ board.boardfirmwaremetadata.swlastupdate }}</h4>
     {% for sensor in board.sensor_set.all %}
       {% if sensor.active  %}
         {% if sensor.type.active and sensor.driver != 'JRPC' %}
