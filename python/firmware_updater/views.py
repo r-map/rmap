@@ -96,15 +96,19 @@ def update(request,name):
                                     ,stationmetadata__slug=swversion["slug"]
                                     ,stationmetadata__ident__username=swversion["user"])
 
-        if not myboard.mac:
-            print "update missed mac in firmware updater"
-            myboard.mac=make_password(sta_mac)
-            myboard.save(update_fields=['mac',])
-
-        if check_password(sta_mac, myboard.mac):
-            myboard.swversion=swversion["ver"]
-            myboard.swlastupdate=django.utils.timezone.now()            
-            myboard.save(update_fields=["swversion","swlastupdate"])
+        if hasattr(myboard, 'boardfirmwaremetadata'):
+            if not myboard.boardfirmwaremetadata.mac:
+                print "update missed mac in firmware updater"
+                myboard.boardfirmwaremetadata.mac=make_password(sta_mac)
+                myboard.boardfirmwaremetadata.save(update_fields=['mac',])
+        else:
+            bfm=BoardfirmwareMetadata(mac=make_password(sta_mac))
+            myboard.boardfirmwaremetadata=bfm
+            myboard.boardfirmwaremetadata.save(update_fields=['mac',])                
+        if check_password(sta_mac, myboard.boardfirmwaremetadata.mac):
+            myboard.boardfirmwaremetadata.swversion=swversion["ver"]
+            myboard.boardfirmwaremetadata.swlastupdate=django.utils.timezone.now()            
+            myboard.boardfirmwaremetadata.save(update_fields=["swversion","swlastupdate"])
         else:
             print "WARNING! mac mismach in firmware updater"
             

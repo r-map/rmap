@@ -593,10 +593,6 @@ class Board(models.Model):
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
     category = models.CharField(max_length=50, blank=False,choices=BOARD_CATEGORY_CHOICES)
     stationmetadata = models.ForeignKey('StationMetadata')
-
-    mac = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("MAC address"))
-    swversion = models.CharField(max_length=255, blank=True,default="",help_text=ugettext_lazy("Software version"))
-    swlastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Software last update date"))
     
 #    def changeform_link(self):
 #        if self.id:
@@ -626,6 +622,16 @@ class Board(models.Model):
     def __unicode__(self):
         return u'%s' % (self.slug)
 
+class BoardFirmwareMetadata(models.Model):
+    """Board metadata for firmware management."""
+
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
+    
+    mac = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("MAC address"))
+    swversion = models.CharField(max_length=255, blank=True,default="",help_text=ugettext_lazy("Software version"))
+    swlastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Software last update date"))
+
+    
 class StationConstantDataManager(models.Manager):
     def get_by_natural_key(self, btable,stationmetadata):
         #print "StationConstantDataManager: ", stationmetadata
