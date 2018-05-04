@@ -88,7 +88,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
 
   
-const char* update_host = "rmap.cc";
+//const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
 const int update_port = 80;
 
@@ -340,7 +340,7 @@ void firmware_upgrade() {
   analogWrite(LED_PIN,512);  
 
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(buffer));
+  t_httpUpdate_return ret = ESPhttpUpdate.update(rmap_server, update_port, update_url, String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
