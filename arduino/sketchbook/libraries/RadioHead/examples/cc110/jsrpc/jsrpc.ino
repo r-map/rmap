@@ -19,6 +19,16 @@
 // Singleton instance of the radio driver
 RH_CC110 cc110;
 
+//  GFSK_Rb1_2Fd5_2 = 0,   ///< GFSK, Data Rate: 1.2kBaud, Dev: 5.2kHz, RX BW 58kHz, optimised for sensitivity
+//  GFSK_Rb2_4Fd5_2,       ///< GFSK, Data Rate: 2.4kBaud, Dev: 5.2kHz, RX BW 58kHz, optimised for sensitivity
+//  GFSK_Rb4_8Fd25_4,      ///< GFSK, Data Rate: 4.8kBaud, Dev: 25.4kHz, RX BW 100kHz, optimised for sensitivity
+//  GFSK_Rb10Fd19,         ///< GFSK, Data Rate: 10kBaud, Dev: 19kHz, RX BW 100kHz, optimised for sensitivity
+//  GFSK_Rb38_4Fd20,       ///< GFSK, Data Rate: 38.4kBaud, Dev: 20kHz, RX BW 100kHz, optimised for sensitivity
+//  GFSK_Rb76_8Fd32,       ///< GFSK, Data Rate: 76.8kBaud, Dev: 32kHz, RX BW 232kHz, optimised for sensitivity
+//  GFSK_Rb100Fd47,        ///< GFSK, Data Rate: 100kBaud, Dev: 47kHz, RX BW 325kHz, optimised for sensitivity
+//  GFSK_Rb250Fd127,       ///< GFSK, Data Rate: 250kBaud, Dev: 127kHz, RX BW 540kHz, optimised for sensitivity
+
+
 // include the aJSON library
 #include <aJSON.h>
 
@@ -405,13 +415,10 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 23 	433.625 	46 	434.200 	69 	434.775
 */
 
-  cc110.setTxPower(RH_CC110::TransmitPower10dBm);
-  cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);
-  cc110.setFrequency(433.300);
-
-  // initialize the digital pin as an output
-  pinMode(13, OUTPUT);
-
+  cc110.setTxPower(RH_CC110::TransmitPower0dBm);
+  //cc110.setModemConfig(RH_CC110::GFSK_Rb4_8Fd25_4);  // Giacomo
+  cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);    // Pat1
+  cc110.setFrequency(434.750);
 
 
   for (int dstunit=0 ;dstunit  < sizeof(pins)/sizeof(*pins); dstunit++)
