@@ -65,7 +65,8 @@ parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are s
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
 
 parser.add_argument('--list_stations',action="store_true", help="list all stations, board and transports")
-parser.add_argument('--list_boards',action="store_true", help="list all board on station and transports")
+parser.add_argument('--list_boards',action="store_true", help="list all board and transports on station ")
+parser.add_argument('--list_sensors',action="store_true", help="list all board on board ")
 parser.add_argument('--wizard',action="store_true", help="wizard configuration tool (simple set user, password, location on station")
 parser.add_argument('--delsensor',action="store_true", help="del sensor from module of station")
 parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete ALL sensor from module of station")
@@ -306,6 +307,35 @@ if args.list_boards:
     print "END of board list"
     #raise SystemExit(0)
 
+
+if args.list_sensors:
+
+    if (args.username is None or
+        args.board_slug is None or
+        args.station_slug is None):
+        print " selected list_boards without username or station_slug or board_slug"
+        raise SystemExit(1)
+
+
+    for mysensor in Sensor.objects.filter(board__slug=args.board_slug
+                                ,board__stationmetadata__slug=args.station_slug
+                                ,board__stationmetadata__ident__username=args.username):
+    
+        print "SENSOR:", mysensor
+        print "active: ",mysensor.active
+        print "name: ", mysensor.name
+        print "driver: ", mysensor.driver
+        print "type: ", mysensor.type
+        print "i2cbus: ", mysensor.i2cbus
+        print "address: ", mysensor.address
+        print "node: ", mysensor.node
+        print "timerange: ", mysensor.timerange, " -> ", mysensor.describe_timerange()
+        print "level: ", mysensor.level , " -> ",mysensor.describe_level()
+
+    print "END of sensor list"
+    #raise SystemExit(0)
+
+    
 
 if args.config_station:
 
