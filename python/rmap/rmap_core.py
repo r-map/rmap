@@ -1043,6 +1043,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/")
 
+        print "mqttmaintpath:",rpcproxy.configure(mqttmaintpath=mystation.mqttmaintpath+"/"+str(mystation.ident)+"/"+\
+                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
+                                                 "/"+mystation.network+"/")
+        
         print ">>>>>>> save config"
         print "save",rpcproxy.configure(save=True )
 
