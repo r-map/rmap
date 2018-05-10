@@ -417,8 +417,18 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 
   cc110.setTxPower(RH_CC110::TransmitPower0dBm);
   //cc110.setModemConfig(RH_CC110::GFSK_Rb4_8Fd25_4);  // Giacomo
-  cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);    // Pat1
-  cc110.setFrequency(434.750);
+  //cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);    // Pat1
+
+  // For 26MHz crystals
+  //PROGMEM static const RH_CC110::ModemConfig GFSK_R1_2Fd25_4 =
+  static const RH_CC110::ModemConfig GFSK_R1_2Fd25_4 =
+  // 0B    0C    10    11    12    15    19    1A    1B    1C    1D    21    22    23    24    25    26    2C    2D    2E
+  {0x06, 0x00, 0xC5, 0x83, 0x13, 0x40, 0x16, 0x6c, 0x43, 0x40, 0x91, 0x56, 0x10, 0xe9, 0x2a, 0x00, 0x1f, 0x81, 0x35, 0x09}; // GFSK_R1_2Fd47 GFSK, Data Rate: 1.2kBaud, Dev: 47kHz, RX BW 325kHz, optimised for sensitivity
+  //{0x06, 0x00, 0xc7, 0x83, 0x13, 0x40, 0x16, 0x6c, 0x43, 0x40, 0x91, 0x56, 0x10, 0xe9, 0x2a, 0x00, 0x1f, 0x81, 0x35, 0x09}; // GFSK_Rb4_8Fd25_4
+
+  cc110.setModemRegisters(&GFSK_R1_2Fd25_4);
+  
+  cc110.setFrequency(434.0+FREQCORR);
 
 
   for (int dstunit=0 ;dstunit  < sizeof(pins)/sizeof(*pins); dstunit++)
@@ -506,8 +516,8 @@ void mgr_radio(){
       //RH_CC110::printBuffer("#request: ", buf, len);
       IF_SDEBUG(DBGSERIAL.print(F("#got request: ")));
       IF_SDEBUG(DBGSERIAL.println((char*)buf));
-//      IF_SDEBUG(DBGSERIAL.print(F("RSSI: ")));
-//      IF_SDEBUG(DBGSERIAL.println(cc110.lastRssi(), DEC));
+      IF_SDEBUG(DBGSERIAL.print(F("#RSSI: ")));
+      IF_SDEBUG(DBGSERIAL.println(cc110.lastRssi(), DEC));
 
       radiomsg = aJson.parse((char*)buf);
 

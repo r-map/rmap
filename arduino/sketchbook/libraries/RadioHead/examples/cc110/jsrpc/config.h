@@ -2,9 +2,11 @@
 
 // radio bidirectional comunication
 //#define TWOWAY "Yes"
-#define CLIENT "Yes"
+//#define CLIENT "Yes"
 #define SERVER "Yes"
 
+// freq added to standard channel
+#define FREQCORR 0.050
 
 // define the  pins used
 #define PINS 4,5,A6,A7
