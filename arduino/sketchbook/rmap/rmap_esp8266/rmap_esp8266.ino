@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-05-01T00:00"
+#define SOFTWARE_VERSION "2018-05-24T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // NODEMCU FOR LUFDATEN HOWTO
 #define SDA D5
 #define SCL D6
-#define RESET_PIN D0 
+#define RESET_PIN D7
 #define LED_PIN D4
 // those are defined in SensorDriver_config.h
 //#define SDS_PIN_RX D1
