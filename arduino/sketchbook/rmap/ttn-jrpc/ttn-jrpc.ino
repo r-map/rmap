@@ -1,5 +1,5 @@
 /**********************************************************************
-Copyright (C) 2017  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2018  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
 
@@ -29,8 +29,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *******************************************************************************/
 
 /*******************************************************************************
- * This example sends a valid LoRaWAN packet with payload "Hello,
- * world!", using frequency and encryption settings matching those of
+ * This example sends a valid LoRaWAN packet with payload as in RMAP definition
+ * for LoraWan transmissions, using frequency and encryption settings matching those of
  * the The Things Network.
  *
  * This uses OTAA (Over-the-air activation), where where a DevEUI and
@@ -46,9 +46,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * DevEUI and AppKey.
  *
  *******************************************************************************/
-
-#define SAMPLETIME 10800UL
-//#define CHANNEL0
 
 #include <lmic.h>
 #include <hal/hal.h>
@@ -162,7 +159,8 @@ struct config_t               // configuration to save and load fron eeprom
 } configuration;
 
 volatile ev_t event;
-int sendstatus;
+short unsigned int sendstatus;
+short unsigned int joinstatus;
 
 void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
 void os_getDevEui (u1_t* buf) { memcpy(buf, configuration.deveui, 8);}
@@ -222,21 +220,22 @@ int send(JsonObject& params, JsonObject& result)
   }
 
   //while (!(event == NULL)){
-  // Timeout when there's no "EV_TXCOMPLETE" event after 60 seconds
+  // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
   unsigned long starttime=millis();
-  while((millis()-starttime) < 60000UL){
+  while((millis()-starttime) < (TXTIMEOUT*1000UL)){
 
     wdt_reset();
     os_runloop_once();
     
     if (event == EV_TXCOMPLETE){
-      if (LMIC.txrxFlags & TXRX_ACK)
-	result["ack"]= "OK";  
+      if (LMIC.txrxFlags & TXRX_ACK) {
+	result["ack"]= "OK";
+      }
       if (LMIC.dataLen) {
 	result["payloadlen"]= LMIC.dataLen;
       }
-      result["status"]= "OK";  
-      result["event"]= event;  
+      result["status"]= "OK";
+      result["event"]= event;
       return 0;
     }
   }
@@ -360,29 +359,34 @@ void onEvent (ev_t ev) {
     break;
   case EV_JOINING:
     LOGN(F("EV_JOINING"CR));
+    joinstatus=1;
     break;
   case EV_JOINED:
     LOGN(F("EV_JOINED"CR));
-    
+    joinstatus=2;
     // Disable link check validation (automatically enabled
     // during join, but not supported by TTN at this time).
-    // DISABLE FOR MOBILE STATION
-    //LMIC_setLinkCheckMode(0);
+    // DISABLE THOSE FOR MOBILE STATION
+    LMIC_setLinkCheckMode(0);
+    LMIC_setDrTxpow(DR_SF12, 14);
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
     break;
   case EV_JOIN_FAILED:
     LOGN(F("EV_JOIN_FAILED"CR));
+    joinstatus=3;
     break;
   case EV_REJOIN_FAILED:
     LOGN(F("EV_REJOIN_FAILED"CR));
+    joinstatus=4;
     break;
     break;
   case EV_TXCOMPLETE:
     LOGN(F("EV_TXCOMPLETE (includes waiting for RX windows)"CR));
-    if (LMIC.txrxFlags & TXRX_ACK)
+    if (LMIC.txrxFlags & TXRX_ACK){
       LOGN(F("Received ack"CR));
+    }
     if (LMIC.dataLen) {
       LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
       // data received in rx slot after tx
@@ -439,10 +443,7 @@ void do_send(uint8_t mydata[],size_t nbyte){
     // reset event status
     event = EV_RESET;
     // Prepare upstream data transmission at the next possible time.
-    // LMIC_setTxData2(1, mydata, sizeof(mydata)-1, 0);
-    // LMIC_setTxData2(1, mydata, 4, 0);
-    LMIC_setTxData2(1, mydata, nbyte, 0);
-   
+    LMIC_setTxData2(1, mydata, nbyte, configuration.ack);
     LOGN(F("Packet queued"CR));
     sendstatus=1;
   }
@@ -522,33 +523,38 @@ void mgr_sensors(){
     LOGN(F("template: %B"CR),dtemplate[i]);	
   }    
 
-  do_send(dtemplate,nbyte);
 
-  if (sendstatus != 1 ){
-    LOGE(F("no packet send"CR));
-  }
+  for (short int i = 0; i < NRETRY; i++) {
 
-  printDataRate();
-  
-  // Timeout when there's no "EV_TXCOMPLETE" event after 60 seconds
-  unsigned long starttime=millis();
-  while((millis()-starttime) < 60000UL){
+    LOGN(F("send try number %d"CR),i);
 
-    wdt_reset();
-    os_runloop_once();
-    
-    if (event == EV_TXCOMPLETE){
-      if (LMIC.txrxFlags & TXRX_ACK)
-	LOGN(F("txrxFlags = TXRX_ACK"CR));
-      if (LMIC.dataLen) {
-	LOGN(F("payload len = %d"CR), LMIC.dataLen);
-      }
-      LOGN(F("Send completed"CR));
-      return;
+    do_send(dtemplate,nbyte);
+
+    if (sendstatus != 1 ){
+      LOGE(F("no packet send"CR));
     }
-  }
-  LOGE(F("Send NOT completed"CR));
+
+    printDataRate();
   
+    // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
+    unsigned long starttime=millis();
+    while((millis()-starttime) < (TXTIMEOUT*1000UL)){
+
+      wdt_reset();
+      os_runloop_once();
+      
+      if (event == EV_TXCOMPLETE){
+	if (LMIC.txrxFlags & TXRX_ACK)
+	  LOGN(F("txrxFlags = TXRX_ACK"CR));
+	if (LMIC.dataLen) {
+	  LOGN(F("payload len = %d"CR), LMIC.dataLen);
+	}
+	LOGN(F("Send completed"CR));
+	return;
+    }
+    }
+    LOGE(F("Send NOT completed"CR));
+  }
 }
 
 void sleep_mgr_sensors() {
@@ -748,8 +754,9 @@ void setup()
   //LMIC.dn2Dr = DR_SF9;
 
   // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
-  //LMIC_setDrTxpow(DR_SF12, 14);
+  LMIC_setDrTxpow(DR_SF12, 14);
   //LMIC_setAdrMode(1);
+  LMIC_setAdrMode(0);
 
   // Maximum TX power
   //LMIC.txpow = 27;
@@ -760,10 +767,44 @@ void setup()
   // This sets CR 4/5, BW125 (except for DR_SF7B, which uses BW250)
   //LMIC.rps = updr2rps(LMIC.datarate);
   
-  LMIC_startJoining();
+  joinstatus=0;
+  
+  while (joinstatus != 2){
+    LOGN(F("startJoining"CR));  
+    LMIC_startJoining();
+    //unsigned long starttime=millis();
+    //while((millis()-starttime) < 60000UL){
+    while( joinstatus < 2) {
+      wdt_reset();
+      mgr_serial();
+      os_runloop_once();
+    }
 
+    if (joinstatus != 2){
+#if defined(DEEPSLEEP)
+      // Enter sleep mode
+      LOGN(F("sleep"CR));  
+      delay(100);
+      sleep.pwrDownMode(); //set sleep mode
+      sleep.sleepDelay(JOINRETRYDELAY*1000UL); //sleep
+      delay(100);
+      LOGN(F("wake up"CR));  
+      os_runloop_once();
+#else
+      unsigned long starttime=millis();
+      while((millis()-starttime) < (JOINRETRYDELAY*1000UL)){
+	wdt_reset();
+	mgr_serial();
+      }
+#endif    
+    }
+  }
+
+
+  
   // query and send data
 #ifndef DEEPSLEEP
+  
   Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
