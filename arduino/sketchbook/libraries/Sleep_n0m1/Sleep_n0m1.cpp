@@ -44,8 +44,8 @@ Sleep::Sleep()
 	timeSleep = 0;  // total time due to sleep
 	calibv = 1.0; // ratio of real clock with WDT clock
 	//byte isrcalled = 0;  // WDT vector flag
-	sleepCycleCount = 0;
-	sleepCycleInterval = 100;
+	//sleepCycleCount = 0;
+	//sleepCycleInterval = 100;
 	sleepMode_ = SLEEP_MODE_PWR_DOWN;
 }
 
@@ -147,18 +147,18 @@ void Sleep::sleepDelay(unsigned long sleepTime, boolean &abortCycle) {
   ADCSRA &= ~(1<<ADEN);  // adc off
    // PRR = 0xEF; // modules off
   
-  ++sleepCycleCount;
-  sleepCycleCount = sleepCycleCount % sleepCycleInterval; //recalibrate every interval cycles
-  if(sleepCycleCount == 1)
+  //  ++sleepCycleCount;
+  //sleepCycleCount = sleepCycleCount % sleepCycleInterval; //recalibrate every interval cycles
+  if(sleepTime > 1000UL)
   {
-	calibrateTime(sleepTime,abortCycle);
+	calibrateTime(1000UL,abortCycle);
+	sleepTime -= 1000UL/calibv;
+	timeSleep += 1000UL/calibv;
   }
-  else
-  {
-  	set_sleep_mode(sleepMode_);
-  	int trem = sleepWDT(sleepTime*calibv,abortCycle); 
-  	timeSleep += (sleepTime-trem);
-  }
+  set_sleep_mode(sleepMode_);
+  int trem = sleepWDT(sleepTime*calibv,abortCycle); 
+  timeSleep += (sleepTime-trem);
+
   // PRR = 0x00; //modules on
  ADCSRA |= (1<<ADEN);  // adc on
 }
