@@ -227,7 +227,7 @@ bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n
     Log.notice(F("HPM query data auto" CR));
 
     
-    for (unsigned int i = 0; i<n; i++) {
+    for (unsigned short int i = 0; i<n; i++) {
       if (!readParticleMeasuringResults()) return false;
       pm25_table[i] = get(PM25_TYPE);
       if (pm25_table[i] == 0xFFFF) return false;
@@ -250,7 +250,15 @@ bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n
 	to ensure that you see a normalized result. The output of the sensor is a 10 second average.
       */
       
-      if (i < (n-1)) delay(10000);
+      if (i < (n-1)){
+	unsigned long starttime=millis();
+	while (starttime + 10000 > millis()){ 
+#ifndef ARDUINO_ARCH_ESP8266
+	  wdt_reset();
+#endif
+	  delay(10);
+	}
+      }
     }
 
     _filter_data(n, pm25_table, pm10_table, pm25, pm10);

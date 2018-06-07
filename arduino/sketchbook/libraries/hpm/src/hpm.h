@@ -5,6 +5,10 @@
 #include <SoftwareSerial.h>
 #include <ArduinoLog.h>
 
+#ifndef ARDUINO_ARCH_ESP8266
+#include <avr/wdt.h>
+#endif
+
 #define HPM_RESP_TIME 1500
 
 enum hpm_sensor_type {
