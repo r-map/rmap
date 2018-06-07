@@ -328,6 +328,11 @@ ttntemplate.append(collections.OrderedDict())  # template 1: temperature and him
 ttntemplate[1]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
 ttntemplate[1]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
 
+ttntemplate.append(collections.OrderedDict())  # template 2: temperature and himidity
+ttntemplate[2]["B12101"]={"nbit":16,"offset":22315,"scale":100,"timerange":"254,0,0","level":"103,2000,-,-"}
+ttntemplate[2]["B13003"]={"nbit":7,"offset":0,"scale":1,"timerange":"254,0,0","level":"103,2000,-,-"}
+ttntemplate[2]["B15198"]={"nbit":20,"offset":0,"scale":10000000000,"timerange":"254,0,0","level":"103,2000,-,-"}
+
             
 # the first is the default
 template_choices = [
@@ -1043,10 +1048,6 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/")
 
-        print "mqttmaintpath:",rpcproxy.configure(mqttmaintpath=mystation.mqttmaintpath+"/"+str(mystation.ident)+"/"+\
-                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
-                                                 "/"+mystation.network+"/")
-        
         print ">>>>>>> save config"
         print "save",rpcproxy.configure(save=True )
 
