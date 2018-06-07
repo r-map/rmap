@@ -90,7 +90,7 @@
 // include mics4514 CO and NO2pm driver REPORT MODE
 //#define MICS4514_REPORT
 
-#if defined(ARDUINO_ARCH_ESP8266)
+//#if defined(ARDUINO_ARCH_ESP8266)
 // include Honeywell HPM pm 2.5 and pm 10 driver SAMPLE MODE
 #define HPM_ONESHOT
 
@@ -103,9 +103,13 @@
 //wemos
 #define HPM_PIN_RX D5
 #define HPM_PIN_TX D6
+#else
+#define HPM_PIN_RX D4
+#define HPM_PIN_TX D5
 #endif
-#endif
+
 #define HPMSAMPLES 3
+//#endif
 
 
 #if defined (TEMPERATUREHUMIDITY_ONESHOT)

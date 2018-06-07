@@ -15,7 +15,7 @@
 #define FORCECONFIGPIN 8
 
 // read sensors and send messages every SAMPLETIME seconds
-#define SAMPLETIME 60UL
+#define SAMPLETIME 900UL
 
 #define JOINRETRYDELAY 60UL
 

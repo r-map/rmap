@@ -63,7 +63,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include <Wire.h>
 #include <SensorDriver.h>
-#define SENSORS_LEN 2
+#define SENSORS_LEN 3
 //#include <BitBool.h>
 #include <bfix.h>
 #include <Sleep_n0m1.h>
@@ -159,8 +159,8 @@ struct config_t               // configuration to save and load fron eeprom
 } configuration;
 
 volatile ev_t event;
-short unsigned int sendstatus;
-short unsigned int joinstatus;
+volatile short unsigned int sendstatus;
+volatile short unsigned int joinstatus;
 
 void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
 void os_getDevEui (u1_t* buf) { memcpy(buf, configuration.deveui, 8);}
@@ -367,8 +367,8 @@ void onEvent (ev_t ev) {
     // Disable link check validation (automatically enabled
     // during join, but not supported by TTN at this time).
     // DISABLE THOSE FOR MOBILE STATION
-    LMIC_setLinkCheckMode(0);
-    LMIC_setDrTxpow(DR_SF12, 14);
+    //LMIC_setLinkCheckMode(1);
+    //LMIC_setDrTxpow(DR_SF12, 14);
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
@@ -460,7 +460,7 @@ void mgr_serial(){
 	msg.printTo(Serial);
 	Serial.println("");
     }else{
-      LOGN("error decoding msg"CR);      
+	LOGN(F("error decoding msg"CR));      
     }
   }
 }
@@ -474,36 +474,43 @@ void mgr_sensors(){
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
+      LOGN(F("prepare for: %s %s %d"CR),sensors[i].driver,sensors[i].type,sensors[i].address);
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=max(maxwaittime,waittime);
       }else{
-	Serial.print(sensors[i].driver);
-	Serial.println(": prepare failed !");
+	LOGN(F("Error"CR));
       }
     }
   }
 
   //wait sensors to go ready
   //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
-  delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
+  unsigned long starttime=millis();
+  while((millis()-starttime) < maxwaittime){
+    wdt_reset();
+    os_runloop_once();
+  }
 
   unsigned long data;
   unsigned short width;
 
   // inizialize template
-  size_t nbyte=4;
+  //size_t nbyte=4;  // (16+7)/8 +1
+  size_t nbyte=7; // (16+7+20)/8 +1
   unsigned char dtemplate[nbyte];
 
   // set template number
   unsigned long bit_offset=1; // bfix library start from 1, not 0
   unsigned long bit_len=8;
-  bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
+  //bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
+  bfi(dtemplate, bit_offset, bit_len, 2,2); // template number
   bit_offset+=bit_len;
     
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == NULL){
 
       // get  values 
+      LOGN(F("getdata for: %s %s %d"CR),sensors[i].driver,sensors[i].type,sensors[i].address);
 
       if (sd[i]->getdata(data,width) == SD_SUCCESS){
 	LOGN(F("%d OK"CR),i);	
@@ -524,7 +531,7 @@ void mgr_sensors(){
   }    
 
 
-  for (short int i = 0; i < NRETRY; i++) {
+  for (short int i = 1; i <= NRETRY; i++) {
 
     LOGN(F("send try number %d"CR),i);
 
@@ -667,15 +674,19 @@ void setup()
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"HIH");
   sensors[1].address=39;
+  strcpy(sensors[2].driver,"SERI");
+  strcpy(sensors[2].type,"HPM");
+  sensors[2].address=36;
+
   
   for (int i = 0; i < SENSORS_LEN; i++) {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
-    LOGN(sensors[i].driver);
+    LOGN(F("setup for %s %s %d"CR) ,sensors[i].driver,sensors[i].type,sensors[i].address);
     if (sd[i] == NULL){
-      LOGN(": driver not created !"CR);
+      LOGN(F("driver not created !"CR));
     }else{
-      LOGN(": driver created"CR);
+      LOGN(F("driver created"CR));
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
@@ -754,9 +765,9 @@ void setup()
   //LMIC.dn2Dr = DR_SF9;
 
   // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
-  LMIC_setDrTxpow(DR_SF12, 14);
-  //LMIC_setAdrMode(1);
-  LMIC_setAdrMode(0);
+  //LMIC_setDrTxpow(DR_SF12, 14);
+  LMIC_setAdrMode(1);
+  //LMIC_setAdrMode(0);
 
   // Maximum TX power
   //LMIC.txpow = 27;

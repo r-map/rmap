@@ -4886,7 +4886,13 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   SensorDriver::setup(driver,address,node,type);
   //bool oneshot=true;
 
+  #if defined(ARDUINO_ARCH_ESP8266)
   _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX, false, 128);
+  #else
+  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX);
+  //_hpmSerial= &Serial1;
+  #endif
+
   _hpmSerial->begin(9600);
   _hpm = new hpm();
   delay(1000);
@@ -4954,8 +4960,19 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 #if defined (USEGETDATA)
 int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& width)
 {
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
+
+  long values[1];
+  width=20;
+  const long reference=0;
+  
+  if (SensorDriverHPMoneshotSerial::get(values,1) == SD_SUCCESS){
+    data=(values[0]-reference);// << (sizeof(values[1])-width);
+  }else{  
+    data=0xFFFFFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+  
 }
 #endif
 
