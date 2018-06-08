@@ -21,9 +21,6 @@
 
 #define TXTIMEOUT 130UL
 
-// usefull with ack active
-#define NRETRY 3
-
 // enable for one channel gateway
 //#define CHANNEL0
 

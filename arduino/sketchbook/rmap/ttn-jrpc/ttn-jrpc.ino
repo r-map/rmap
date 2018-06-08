@@ -121,7 +121,9 @@ char confver[7] = CONFVER; // version of configuration saved on eeprom
 
 struct config_t               // configuration to save and load fron eeprom
 {
-  int ack;
+  bool ack;
+  bool mobile;
+  short unsigned int sf;
   // This EUI must be in little-endian format, so least-significant-byte
   // first. When copying an EUI from ttnctl output, this means to reverse
   // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
@@ -133,6 +135,7 @@ struct config_t               // configuration to save and load fron eeprom
   // number but a block of memory, endianness does not really apply). In
   // practice, a key taken from ttnctl can be copied as-is.
   u1_t appkey[16];
+
   void save () {
     int p=0;                  // save to eeprom
     p+=EEPROM_writeAnything(p, confver);
@@ -140,7 +143,10 @@ struct config_t               // configuration to save and load fron eeprom
     p+=EEPROM_writeAnything(p, deveui);
     p+=EEPROM_writeAnything(p, appkey);
     p+=EEPROM_writeAnything(p, ack);
+    p+=EEPROM_writeAnything(p, mobile);
+    p+=EEPROM_writeAnything(p, sf);
   }
+
   bool load () {                // load from eeprom
     int p=0;
     char ver[7];
@@ -150,6 +156,8 @@ struct config_t               // configuration to save and load fron eeprom
       p+=EEPROM_readAnything(p, deveui);
       p+=EEPROM_readAnything(p, appkey);
       p+=EEPROM_readAnything(p, ack);
+      p+=EEPROM_readAnything(p, mobile);
+      p+=EEPROM_readAnything(p, sf);
       return true;
     }
     else{
@@ -225,6 +233,7 @@ int send(JsonObject& params, JsonObject& result)
   while((millis()-starttime) < (TXTIMEOUT*1000UL)){
 
     wdt_reset();
+    mgr_serial();
     os_runloop_once();
     
     if (event == EV_TXCOMPLETE){
@@ -244,13 +253,20 @@ int send(JsonObject& params, JsonObject& result)
 
 
 int set(JsonObject& params, JsonObject& result)
-{    
-  int ack = params["ack"];
-  if (!(ack == NULL)){
-    configuration.ack=ack;
-    //}else{
-    //return  1;
+{
+  LOGN(F("set method"CR));
+  
+  if (params.containsKey("ack"))
+    configuration.ack= params["ack"];
+
+  if (params.containsKey("mobile"))
+    configuration.mobile=params["mobile"];
+
+  if (params.containsKey("sf")) {
+    configuration.sf=params["sf"];
+    if (setsf(configuration.sf) == 0) return 5;
   }
+  
   int i=0;
   JsonArray& arrayappeui = params["appeui"];
   i=0;
@@ -281,7 +297,7 @@ int set(JsonObject& params, JsonObject& result)
   }
 
   result["ok"]= true;  
-  return 0;
+  return E_SUCCESS;
 }
 
 
@@ -298,29 +314,30 @@ int save(JsonObject& params, JsonObject& result)
   return 1;
 }
 
+int setsf(int sf){
+  unsigned int dr_sf;
+  
+  switch (sf) {
+  case 12: dr_sf=DR_SF12; break;
+  case 11: dr_sf=DR_SF11; break;
+  case 10: dr_sf=DR_SF10; break;
+  case  9: dr_sf=DR_SF9 ; break;
+  case  8: dr_sf=DR_SF8 ; break;
+  case  7: dr_sf=DR_SF7 ; break;
+  case  6: dr_sf=DR_SF7B; break;
+  case  5: dr_sf=DR_FSK ; break;
+  default: return 0 ; break;
+  }
+  // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)  
+  LMIC_setDrTxpow(dr_sf, 20);
+}
+
 // set/return DR_SF parameter
 int sf(JsonObject& params, JsonObject& result)
 {    
   int sf = params["sf"];
   if (!(sf == NULL)){
-
-    unsigned int dr_sf;
-    
-    switch (sf) {
-    case 12: dr_sf=DR_SF12; break;
-    case 11: dr_sf=DR_SF11; break;
-    case 10: dr_sf=DR_SF10; break;
-    case  9: dr_sf=DR_SF9 ; break;
-    case  8: dr_sf=DR_SF8 ; break;
-    case  7: dr_sf=DR_SF7 ; break;
-    case  6: dr_sf=DR_SF7B; break;
-    case  5: dr_sf=DR_FSK ; break;
-    default: return 2 ; break;
-    }
-
-    LMIC_setDrTxpow(dr_sf, 14);
-    //}else{
-    //return  1;
+    if (setsf(sf) == 0) return  2;
   }
 
   switch (LMIC.datarate) {
@@ -368,7 +385,7 @@ void onEvent (ev_t ev) {
     // during join, but not supported by TTN at this time).
     // DISABLE THOSE FOR MOBILE STATION
     //LMIC_setLinkCheckMode(1);
-    //LMIC_setDrTxpow(DR_SF12, 14);
+    if (configuration.mobile) setsf(configuration.sf);
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
@@ -488,6 +505,7 @@ void mgr_sensors(){
   unsigned long starttime=millis();
   while((millis()-starttime) < maxwaittime){
     wdt_reset();
+    mgr_serial();
     os_runloop_once();
   }
 
@@ -530,38 +548,35 @@ void mgr_sensors(){
     LOGN(F("template: %B"CR),dtemplate[i]);	
   }    
 
+  do_send(dtemplate,nbyte);
 
-  for (short int i = 1; i <= NRETRY; i++) {
-
-    LOGN(F("send try number %d"CR),i);
-
-    do_send(dtemplate,nbyte);
-
-    if (sendstatus != 1 ){
-      LOGE(F("no packet send"CR));
-    }
-
-    printDataRate();
-  
-    // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
-    unsigned long starttime=millis();
-    while((millis()-starttime) < (TXTIMEOUT*1000UL)){
-
-      wdt_reset();
-      os_runloop_once();
-      
-      if (event == EV_TXCOMPLETE){
-	if (LMIC.txrxFlags & TXRX_ACK)
-	  LOGN(F("txrxFlags = TXRX_ACK"CR));
-	if (LMIC.dataLen) {
-	  LOGN(F("payload len = %d"CR), LMIC.dataLen);
-	}
-	LOGN(F("Send completed"CR));
-	return;
-    }
-    }
-    LOGE(F("Send NOT completed"CR));
+  if (sendstatus != 1 ){
+    LOGE(F("no packet send"CR));
   }
+
+  printDataRate();
+  
+  // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
+  //unsigned long starttime=millis();
+  while((millis()-starttime) < (TXTIMEOUT*1000UL)){
+
+    wdt_reset();
+    mgr_serial();
+    os_runloop_once();
+    
+    if (event == EV_TXCOMPLETE){
+      if (LMIC.txrxFlags & TXRX_ACK)
+	LOGN(F("txrxFlags = TXRX_ACK"CR));
+      if (LMIC.dataLen) {
+	LOGN(F("payload len = %d"CR), LMIC.dataLen);
+      }
+      LOGN(F("Send completed"CR));
+      return;
+    }
+  }
+
+  LOGE(F("Send NOT completed"CR));
+
 }
 
 void sleep_mgr_sensors() {
@@ -592,6 +607,12 @@ void setup()
   wdt_enable(WDTO_8S);
 
   bool waitforconf=false;
+
+  // register the local method
+  rpcserver.registerMethod("send",      &send);
+  rpcserver.registerMethod("set",       &set);
+  rpcserver.registerMethod("save",      &save);
+  rpcserver.registerMethod("sf",        &sf);
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -604,7 +625,9 @@ void setup()
     LOGN(F("Configuration loaded" CR));
   } else {
     LOGN(F("Configuration not loaded" CR));
-    configuration.ack=0;
+    configuration.ack=false;
+    configuration.mobile=false;
+    configuration.sf=9;
     waitforconf=true;
   }
 
@@ -621,6 +644,8 @@ void setup()
   }
 
   LOGN(F("ack: %d"CR),configuration.ack);
+  LOGN(F("mobile: %d"CR),configuration.mobile);
+  LOGN(F("sf: %d"CR),configuration.sf);
   LOGN(F("deveui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.deveui[0]
        ,configuration.deveui[1]
        ,configuration.deveui[2]
@@ -691,11 +716,6 @@ void setup()
     }
   }
   
-  // register the local method
-  rpcserver.registerMethod("send",      &send);
-  rpcserver.registerMethod("set",       &set);
-  rpcserver.registerMethod("save",      &save);
-  rpcserver.registerMethod("sf",        &sf);
 
   //Unused IO pins on the microcontroller must not be left floating in
   //an unknown state. Floating IO pins can consumes at least few tens
@@ -764,10 +784,9 @@ void setup()
   // TTN uses SF9 for its RX2 window.
   //LMIC.dn2Dr = DR_SF9;
 
-  // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
-  //LMIC_setDrTxpow(DR_SF12, 14);
-  LMIC_setAdrMode(1);
-  //LMIC_setAdrMode(0);
+  // Set data rate and transmit power for uplink
+  setsf(configuration.sf);
+  LMIC_setAdrMode(!configuration.mobile);
 
   // Maximum TX power
   //LMIC.txpow = 27;
@@ -783,6 +802,9 @@ void setup()
   while (joinstatus != 2){
     LOGN(F("startJoining"CR));  
     LMIC_startJoining();
+    setsf(configuration.sf);
+    //setDrJoin(DRCHG_SET, DR_SF12);
+    
     //unsigned long starttime=millis();
     //while((millis()-starttime) < 60000UL){
     while( joinstatus < 2) {
