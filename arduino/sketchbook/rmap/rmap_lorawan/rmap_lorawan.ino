@@ -136,6 +136,7 @@ struct config_t               // configuration to save and load fron eeprom
   bool mobile;
   short unsigned int sf;
   short unsigned int mytemplate;
+  unsigned int sampletime;
   // This EUI must be in little-endian format, so least-significant-byte
   // first. When copying an EUI from ttnctl output, this means to reverse
   // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
@@ -160,6 +161,7 @@ struct config_t               // configuration to save and load fron eeprom
     p+=EEPROM_writeAnything(p, sf);
     p+=EEPROM_writeAnything(p, mytemplate);
     p+=EEPROM_writeAnything(p, session);
+    p+=EEPROM_writeAnything(p, sampletime);
   }
 
   void reset () {
@@ -167,6 +169,7 @@ struct config_t               // configuration to save and load fron eeprom
     mobile=false;
     sf=9;
     mytemplate=1;
+    sampletime=900;
     session.joinstatus=0;
     // TODO
     // reset key for security
@@ -185,6 +188,7 @@ struct config_t               // configuration to save and load fron eeprom
       p+=EEPROM_readAnything(p, sf);
       p+=EEPROM_readAnything(p, mytemplate);
       p+=EEPROM_readAnything(p, session);
+      p+=EEPROM_readAnything(p, sampletime);
       return true;
     }
     else{
@@ -338,6 +342,9 @@ int set(JsonObject& params, JsonObject& result)
   if (params.containsKey("template"))
     configuration.mytemplate=params["template"];
   
+  if (params.containsKey("sampletime"))
+    configuration.sampletime=params["sampletime"];
+  
   if (params.containsKey("sf")) {
     configuration.sf=params["sf"];
     if (setsf(configuration.sf) == 0) return 5;
@@ -385,7 +392,7 @@ int set(JsonObject& params, JsonObject& result)
   if (params.containsKey("seqnoDn"))
     configuration.mobile=params["seqnoDn"];
   
-  JsonArray& nwkkey = params["nwkkey"];
+  JsonArray& arraynwkkey = params["nwkkey"];
   i=0;
   for(JsonArray::iterator it=arraynwkkey.begin(); it!=arraynwkkey.end(); ++it) {
     // *it contains the JsonVariant which can be casted as usuals
@@ -393,7 +400,7 @@ int set(JsonObject& params, JsonObject& result)
     i++;
   }
 
-  JsonArray& artkey = params["artkey"];
+  JsonArray& arrayartkey = params["artkey"];
   i=0;
   for(JsonArray::iterator it=arrayartkey.begin(); it!=arrayartkey.end(); ++it) {
     // *it contains the JsonVariant which can be casted as usuals
