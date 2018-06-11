@@ -786,9 +786,8 @@ void setup()
   noInterrupts ();
   attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
   interrupts ();
-
-
   
+  LOGN(F("sampletime: %d"CR),configuration.sampletime);
   LOGN(F("ack: %d"CR),configuration.ack);
   LOGN(F("mobile: %d"CR),configuration.mobile);
   LOGN(F("sf: %d"CR),configuration.sf);
