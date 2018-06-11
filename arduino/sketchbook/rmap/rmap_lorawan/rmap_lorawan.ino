@@ -343,9 +343,6 @@ int set(JsonObject& params, JsonObject& result)
     if (setsf(configuration.sf) == 0) return 5;
   }
 
-  if (params.containsKey("template"))
-    configuration.mytemplate=params["template"];
-  
   int i=0;
   JsonArray& arrayappeui = params["appeui"];
   i=0;
@@ -375,6 +372,35 @@ int set(JsonObject& params, JsonObject& result)
     //return  4;
   }
 
+
+  if (params.containsKey("netid"))
+    configuration.mobile=params["netid"];
+
+  if (params.containsKey("devaddr"))
+    configuration.mobile=params["devaddr"];
+
+  if (params.containsKey("seqnoUp"))
+    configuration.mobile=params["seqnoUp"];
+
+  if (params.containsKey("seqnoDn"))
+    configuration.mobile=params["seqnoDn"];
+  
+  JsonArray& nwkkey = params["nwkkey"];
+  i=0;
+  for(JsonArray::iterator it=arraynwkkey.begin(); it!=arraynwkkey.end(); ++it) {
+    // *it contains the JsonVariant which can be casted as usuals
+    configuration.session.nwkkey[i] = it->as<uint8_t>();    
+    i++;
+  }
+
+  JsonArray& artkey = params["artkey"];
+  i=0;
+  for(JsonArray::iterator it=arrayartkey.begin(); it!=arrayartkey.end(); ++it) {
+    // *it contains the JsonVariant which can be casted as usuals
+    configuration.session.artkey[i] = it->as<uint8_t>();    
+    i++;
+  }
+  
   result["ok"]= true;  
   return E_SUCCESS;
 }
