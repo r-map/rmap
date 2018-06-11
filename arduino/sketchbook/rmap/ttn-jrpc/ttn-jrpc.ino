@@ -104,7 +104,7 @@ union {
  */
 
 SensorDriver* sd[SENSORS_LEN];
-
+unsigned short int sensors_len;
 
 // initialize an instance of the JsonRPC library for registering 
 JsonRPC rpcserver(false ); //standard protocol
@@ -117,6 +117,17 @@ const lmic_pinmap lmic_pins = {
     .dio = {DIO0, DIO1, DIO2},
 };
 
+// layout of session parameters
+typedef struct {
+  unsigned short int joinstatus; // 2 as joined
+  u4_t netid;          // network id
+  devaddr_t devaddr;   // device address
+  u1_t nwkkey[16];     // network session key
+  u1_t artkey[16];     // application session key
+  u4_t seqnoUp;        // up sequence counter
+  u4_t seqnoDn;        // down sequence counter
+} sessparam_t;
+
 char confver[7] = CONFVER; // version of configuration saved on eeprom
 
 struct config_t               // configuration to save and load fron eeprom
@@ -124,6 +135,7 @@ struct config_t               // configuration to save and load fron eeprom
   bool ack;
   bool mobile;
   short unsigned int sf;
+  short unsigned int mytemplate;
   // This EUI must be in little-endian format, so least-significant-byte
   // first. When copying an EUI from ttnctl output, this means to reverse
   // the bytes. For TTN issued EUIs the last bytes should be 0xD5, 0xB3,
@@ -135,7 +147,8 @@ struct config_t               // configuration to save and load fron eeprom
   // number but a block of memory, endianness does not really apply). In
   // practice, a key taken from ttnctl can be copied as-is.
   u1_t appkey[16];
-
+  sessparam_t session;
+  
   void save () {
     int p=0;                  // save to eeprom
     p+=EEPROM_writeAnything(p, confver);
@@ -145,6 +158,18 @@ struct config_t               // configuration to save and load fron eeprom
     p+=EEPROM_writeAnything(p, ack);
     p+=EEPROM_writeAnything(p, mobile);
     p+=EEPROM_writeAnything(p, sf);
+    p+=EEPROM_writeAnything(p, mytemplate);
+    p+=EEPROM_writeAnything(p, session);
+  }
+
+  void reset () {
+    ack=false;
+    mobile=false;
+    sf=9;
+    mytemplate=1;
+    session.joinstatus=0;
+    // TODO
+    // reset key for security
   }
 
   bool load () {                // load from eeprom
@@ -158,17 +183,21 @@ struct config_t               // configuration to save and load fron eeprom
       p+=EEPROM_readAnything(p, ack);
       p+=EEPROM_readAnything(p, mobile);
       p+=EEPROM_readAnything(p, sf);
+      p+=EEPROM_readAnything(p, mytemplate);
+      p+=EEPROM_readAnything(p, session);
       return true;
     }
     else{
+      reset();
       return false;
     }
   }
 } configuration;
 
-volatile ev_t event;
-volatile short unsigned int sendstatus;
-volatile short unsigned int joinstatus;
+ev_t event;
+short unsigned int sendstatus;
+short unsigned int sendcompletedstatus;
+short unsigned int joinstatus;
 
 void os_getArtEui (u1_t* buf) { memcpy(buf, configuration.appeui, 8);}
 void os_getDevEui (u1_t* buf) { memcpy(buf, configuration.deveui, 8);}
@@ -192,6 +221,41 @@ void printDataRate() {
   default:      LOGN(F("Datarate Unknown Value: %d"CR), LMIC.datarate); break;
   }
 }
+
+
+int shutdown(JsonObject& params, JsonObject& result) {
+  LOGN(F("shutdown"CR));
+  delay(100); //delay to allow serial to fully print before sleep
+  
+  if (joinstatus == 2){
+    configuration.session.joinstatus=joinstatus;
+    configuration.session.netid = LMIC.netid;
+    configuration.session.devaddr = LMIC.devaddr;
+    memcpy(configuration.session.nwkkey, LMIC.nwkKey, 16);
+    memcpy(configuration.session.artkey, LMIC.artKey, 16);
+    configuration.session.seqnoUp=LMIC.seqnoUp;
+    configuration.session.seqnoDn=LMIC.seqnoDn;
+    
+    configuration.save();
+  }
+  
+  powerdown();
+  return 0;
+}
+
+void powerdown(){
+  sleep.pwrDownMode(); //set sleep mode
+  
+  //Sleep till interrupt pin equals a particular state.
+  sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
+  
+  //Reboot mode
+  //wdt_enable(WDTO_30MS); while(1) {} 
+  // Restarts program from beginning but 
+  // does not reset the peripherals and registers
+  //asm volatile ("  jmp 0");
+}
+
 int send(JsonObject& params, JsonObject& result)
 {
   JsonArray& a_mydata = params["payload"];
@@ -230,31 +294,40 @@ int send(JsonObject& params, JsonObject& result)
   //while (!(event == NULL)){
   // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
   unsigned long starttime=millis();
-  while((millis()-starttime) < (TXTIMEOUT*1000UL)){
+  while((millis()-starttime) < (TXTIMEOUT*1000UL) && sendcompletedstatus == 0){
 
     wdt_reset();
     mgr_serial();
     os_runloop_once();
-    
-    if (event == EV_TXCOMPLETE){
-      if (LMIC.txrxFlags & TXRX_ACK) {
-	result["ack"]= "OK";
-      }
-      if (LMIC.dataLen) {
-	result["payloadlen"]= LMIC.dataLen;
-      }
-      result["status"]= "OK";
-      result["event"]= event;
-      return 0;
-    }
   }
-  return 3;
+  
+  if (LMIC.dataLen) {
+    result["payloadlen"]= LMIC.dataLen;
+  }
+  
+  if (sendcompletedstatus == 1){
+    LOGN(F("Send completed"CR));
+    result["status"]= "OK";
+    return 0;
+  }else if (sendcompletedstatus == 2){
+    LOGN(F("Sent but NO ack"CR));
+    result["status"]= "OK";
+    result["ack"]= "KO";
+    return 1;
+  }else{
+    LOGE(F("Send NOT completed"CR));
+    result["status"]= "KO";
+    return 3;
+  }
 }
 
 
 int set(JsonObject& params, JsonObject& result)
 {
   LOGN(F("set method"CR));
+
+  if (params["reset"])
+    configuration.reset();
   
   if (params.containsKey("ack"))
     configuration.ack= params["ack"];
@@ -262,10 +335,16 @@ int set(JsonObject& params, JsonObject& result)
   if (params.containsKey("mobile"))
     configuration.mobile=params["mobile"];
 
+  if (params.containsKey("template"))
+    configuration.mytemplate=params["template"];
+  
   if (params.containsKey("sf")) {
     configuration.sf=params["sf"];
     if (setsf(configuration.sf) == 0) return 5;
   }
+
+  if (params.containsKey("template"))
+    configuration.mytemplate=params["template"];
   
   int i=0;
   JsonArray& arrayappeui = params["appeui"];
@@ -328,8 +407,9 @@ int setsf(int sf){
   case  5: dr_sf=DR_FSK ; break;
   default: return 0 ; break;
   }
-  // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)  
-  LMIC_setDrTxpow(dr_sf, 20);
+  // Set data rate and transmit power for uplink (note: txpow seems to be ignored by the library)
+  //https://github.com/matthijskooijman/arduino-lmic/issues/33
+  LMIC_setDrTxpow(dr_sf, 14);
 }
 
 // set/return DR_SF parameter
@@ -381,11 +461,18 @@ void onEvent (ev_t ev) {
   case EV_JOINED:
     LOGN(F("EV_JOINED"CR));
     joinstatus=2;
-    // Disable link check validation (automatically enabled
-    // during join, but not supported by TTN at this time).
-    // DISABLE THOSE FOR MOBILE STATION
-    //LMIC_setLinkCheckMode(1);
-    if (configuration.mobile) setsf(configuration.sf);
+
+    //https://github.com/matthijskooijman/arduino-lmic/pull/64    
+    if (configuration.mobile){
+      // DISABLE THOSE FOR MOBILE STATION
+      LMIC_setLinkCheckMode(0);
+      LMIC_setAdrMode(0);
+      setsf(configuration.sf);
+    }else{
+      // Enaable link check validation
+      LMIC_setLinkCheckMode(1);
+      LMIC_setAdrMode(1);
+    }
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
@@ -403,7 +490,15 @@ void onEvent (ev_t ev) {
     LOGN(F("EV_TXCOMPLETE (includes waiting for RX windows)"CR));
     if (LMIC.txrxFlags & TXRX_ACK){
       LOGN(F("Received ack"CR));
+      sendcompletedstatus=1;
+    }else{
+      if (configuration.ack) {
+	sendcompletedstatus=2;
+      }else{
+	sendcompletedstatus=1;	
+      }
     }
+    
     if (LMIC.dataLen) {
       LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
       // data received in rx slot after tx
@@ -449,6 +544,7 @@ void onEvent (ev_t ev) {
 
 void do_send(uint8_t mydata[],size_t nbyte){
   sendstatus=NULL;
+  sendcompletedstatus=NULL;
   LMIC_clrTxData();
   
   // Check if there is not a current TX/RX job running
@@ -489,7 +585,7 @@ void mgr_sensors(){
   LOGN(F("mgr_sensors"CR));
   
   // prepare sensors to measure
-  for (int i = 0; i < SENSORS_LEN; i++) {
+  for (int i = 0; i < sensors_len; i++) {
     if (!sd[i] == NULL){
       LOGN(F("prepare for: %s %s %d"CR),sensors[i].driver,sensors[i].type,sensors[i].address);
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
@@ -524,7 +620,7 @@ void mgr_sensors(){
   bfi(dtemplate, bit_offset, bit_len, 2,2); // template number
   bit_offset+=bit_len;
     
-  for (int i = 0; i < SENSORS_LEN; i++) {
+  for (int i = 0; i < sensors_len; i++) {
     if (!sd[i] == NULL){
 
       // get  values 
@@ -558,25 +654,19 @@ void mgr_sensors(){
   
   // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
   //unsigned long starttime=millis();
-  while((millis()-starttime) < (TXTIMEOUT*1000UL)){
-
+  while((millis()-starttime) < (TXTIMEOUT*1000UL) && sendcompletedstatus == 0){
     wdt_reset();
     mgr_serial();
     os_runloop_once();
-    
-    if (event == EV_TXCOMPLETE){
-      if (LMIC.txrxFlags & TXRX_ACK)
-	LOGN(F("txrxFlags = TXRX_ACK"CR));
-      if (LMIC.dataLen) {
-	LOGN(F("payload len = %d"CR), LMIC.dataLen);
-      }
-      LOGN(F("Send completed"CR));
-      return;
-    }
   }
 
-  LOGE(F("Send NOT completed"CR));
-
+  if (sendcompletedstatus == 1){
+    LOGN(F("Send completed"CR));
+  }else if (sendcompletedstatus == 2){
+    LOGN(F("Sent but NO ack"CR));
+  }else{
+    LOGE(F("Send NOT completed"CR));
+  }
 }
 
 void sleep_mgr_sensors() {
@@ -613,6 +703,7 @@ void setup()
   rpcserver.registerMethod("set",       &set);
   rpcserver.registerMethod("save",      &save);
   rpcserver.registerMethod("sf",        &sf);
+  rpcserver.registerMethod("shutdown",  &shutdown);
   
   Serial.begin(19200);
   //while (!Serial); // wait for serial port to connect. Needed for native USB
@@ -625,9 +716,6 @@ void setup()
     LOGN(F("Configuration loaded" CR));
   } else {
     LOGN(F("Configuration not loaded" CR));
-    configuration.ack=false;
-    configuration.mobile=false;
-    configuration.sf=9;
     waitforconf=true;
   }
 
@@ -643,6 +731,13 @@ void setup()
     wdt_reset();
   }
 
+
+  noInterrupts ();
+  attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
+  interrupts ();
+
+
+  
   LOGN(F("ack: %d"CR),configuration.ack);
   LOGN(F("mobile: %d"CR),configuration.mobile);
   LOGN(F("sf: %d"CR),configuration.sf);
@@ -692,19 +787,25 @@ void setup()
 #ifndef DEEPSLEEP
   setTime(12,0,0,1,1,17); // set time to 12:00:00am Jan 1 2017
 #endif
-  
-  strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"ADT");
-  sensors[0].address=73;
-  strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"HIH");
-  sensors[1].address=39;
-  strcpy(sensors[2].driver,"SERI");
-  strcpy(sensors[2].type,"HPM");
-  sensors[2].address=36;
 
+  if (configuration.mytemplate == 1 || configuration.mytemplate == 2){
+    sensors_len=2;
+    strcpy(sensors[0].driver,"I2C");
+    strcpy(sensors[0].type,"ADT");
+    sensors[0].address=73;
+    strcpy(sensors[1].driver,"I2C");
+    strcpy(sensors[1].type,"HIH");
+    sensors[1].address=39;
+  }
   
-  for (int i = 0; i < SENSORS_LEN; i++) {
+  if (configuration.mytemplate == 2){ 
+    sensors_len=3;
+    strcpy(sensors[2].driver,"SERI");
+    strcpy(sensors[2].type,"HPM");
+    sensors[2].address=36;
+  }
+  
+  for (int i = 0; i < sensors_len; i++) {
 
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
     LOGN(F("setup for %s %s %d"CR) ,sensors[i].driver,sensors[i].type,sensors[i].address);
@@ -778,62 +879,70 @@ void setup()
   LMIC_selectSubBand(1);
 #endif
 
-  // Enaable link check validation
-  //LMIC_setLinkCheckMode(0);
-
   // TTN uses SF9 for its RX2 window.
   //LMIC.dn2Dr = DR_SF9;
 
   // Set data rate and transmit power for uplink
   setsf(configuration.sf);
-  LMIC_setAdrMode(!configuration.mobile);
 
-  // Maximum TX power
-  //LMIC.txpow = 27;
   // Use a medium spread factor. This can be increased up to SF12 for
   // better range, but then the interval should be (significantly)
   // lowered to comply with duty cycle limits as well.
   //LMIC.datarate = DR_SF9;
   // This sets CR 4/5, BW125 (except for DR_SF7B, which uses BW250)
   //LMIC.rps = updr2rps(LMIC.datarate);
-  
-  joinstatus=0;
-  
-  while (joinstatus != 2){
-    LOGN(F("startJoining"CR));  
-    LMIC_startJoining();
-    setsf(configuration.sf);
-    //setDrJoin(DRCHG_SET, DR_SF12);
-    
-    //unsigned long starttime=millis();
-    //while((millis()-starttime) < 60000UL){
-    while( joinstatus < 2) {
-      wdt_reset();
-      mgr_serial();
-      os_runloop_once();
-    }
 
-    if (joinstatus != 2){
-#if defined(DEEPSLEEP)
-      // Enter sleep mode
-      LOGN(F("sleep"CR));  
-      delay(100);
-      sleep.pwrDownMode(); //set sleep mode
-      sleep.sleepDelay(JOINRETRYDELAY*1000UL); //sleep
-      delay(100);
-      LOGN(F("wake up"CR));  
-      os_runloop_once();
-#else
-      unsigned long starttime=millis();
-      while((millis()-starttime) < (JOINRETRYDELAY*1000UL)){
+  if (configuration.session.joinstatus == 2) {
+
+    LMIC_setSession (configuration.session.netid,
+		     configuration.session.devaddr,
+		     configuration.session.nwkkey,
+		     configuration.session.artkey);
+    LMIC.seqnoDn = configuration.session.seqnoDn;
+    LMIC.seqnoUp = configuration.session.seqnoUp + 2; // avoid reuse of seq numbers
+
+    joinstatus = 2;
+
+  }else{
+  
+    joinstatus=0;
+    
+    while (joinstatus != 2){
+      LOGN(F("startJoining"CR));  
+      LMIC_startJoining();
+      setsf(configuration.sf);
+      //setDrJoin(DRCHG_SET, DR_SF12);
+      
+      //unsigned long starttime=millis();
+      //while((millis()-starttime) < 60000UL){
+      while( joinstatus < 2) {
 	wdt_reset();
 	mgr_serial();
+	os_runloop_once();
       }
+      
+      if (joinstatus != 2){
+#if defined(DEEPSLEEP)
+	// Enter sleep mode
+	LOGN(F("sleep"CR));  
+	delay(100);
+	sleep.pwrDownMode(); //set sleep mode
+	sleep.sleepDelay(JOINRETRYDELAY*1000UL); //sleep
+	delay(100);
+	LOGN(F("wake up"CR));  
+	os_runloop_once();
+#else
+	unsigned long starttime=millis();
+	while((millis()-starttime) < (JOINRETRYDELAY*1000UL)){
+	  wdt_reset();
+	  mgr_serial();
+	}
 #endif    
+      }
     }
   }
-
-
+  
+  
   
   // query and send data
 #ifndef DEEPSLEEP

@@ -14,6 +14,10 @@
 // define pin and led that force and display configuration status at boot
 #define FORCECONFIGPIN 8
 
+//pin that command power up and down
+#define POWERPIN 3
+
+
 // read sensors and send messages every SAMPLETIME seconds
 #define SAMPLETIME 900UL
 
@@ -26,3 +30,5 @@
 
 // enable for deep sleep microcontroller and disable jsrpc runtime
 #define DEEPSLEEP
+
+#define digitalPinToInterrupt(p) ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) >= 18 && (p) <= 21 ? 23 - (p) : NOT_AN_INTERRUPT)))
