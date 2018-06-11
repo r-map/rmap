@@ -385,7 +385,19 @@ int save(JsonObject& params, JsonObject& result)
   if (params.containsKey("eeprom")){
     bool eeprom = params["eeprom"];
     if (eeprom){
-      configuration.save();
+
+      if (joinstatus == 2){
+	configuration.session.joinstatus=joinstatus;
+	configuration.session.netid = LMIC.netid;
+	configuration.session.devaddr = LMIC.devaddr;
+	memcpy(configuration.session.nwkkey, LMIC.nwkKey, 16);
+	memcpy(configuration.session.artkey, LMIC.artKey, 16);
+	configuration.session.seqnoUp=LMIC.seqnoUp;
+	configuration.session.seqnoDn=LMIC.seqnoDn;
+    
+	configuration.save();
+      }
+
       result["ok"]= true;  
     }
     return 0;
@@ -607,17 +619,23 @@ void mgr_sensors(){
 
   unsigned long data;
   unsigned short width;
-
+  size_t nbyte=0;
+  
   // inizialize template
-  //size_t nbyte=4;  // (16+7)/8 +1
-  size_t nbyte=7; // (16+7+20)/8 +1
+  if (configuration.mytemplate == 1){
+    nbyte=4;  // (16+7)/8 +1
+  }else if (configuration.mytemplate == 2){
+    nbyte=7; // (16+7+20)/8 +1
+  }
   unsigned char dtemplate[nbyte];
 
   // set template number
+
   unsigned long bit_offset=1; // bfix library start from 1, not 0
   unsigned long bit_len=8;
-  //bfi(dtemplate, bit_offset, bit_len, 1,2); // template number
-  bfi(dtemplate, bit_offset, bit_len, 2,2); // template number
+
+  bfi(dtemplate, bit_offset, bit_len, configuration.mytemplate,2); // template number
+
   bit_offset+=bit_len;
     
   for (int i = 0; i < sensors_len; i++) {
@@ -653,7 +671,7 @@ void mgr_sensors(){
   printDataRate();
   
   // Timeout when there's no "EV_TXCOMPLETE" event after TXTIMEOUT seconds
-  //unsigned long starttime=millis();
+  starttime=millis();
   while((millis()-starttime) < (TXTIMEOUT*1000UL) && sendcompletedstatus == 0){
     wdt_reset();
     mgr_serial();
@@ -741,6 +759,7 @@ void setup()
   LOGN(F("ack: %d"CR),configuration.ack);
   LOGN(F("mobile: %d"CR),configuration.mobile);
   LOGN(F("sf: %d"CR),configuration.sf);
+  LOGN(F("template: %d"CR),configuration.mytemplate);
   LOGN(F("deveui: %x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.deveui[0]
        ,configuration.deveui[1]
        ,configuration.deveui[2]
@@ -774,6 +793,47 @@ void setup()
        ,configuration.appkey[14]
        ,configuration.appkey[15]);
 
+
+  LOGN(F("joinstatus: %d"CR),configuration.session.joinstatus);
+  LOGN(F("netid: %d"CR),configuration.session.netid);
+  LOGN(F("devaddr: %d"CR),configuration.session.devaddr);
+
+  LOGN(F("nwkkey: %x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.session.nwkkey[0]
+       ,configuration.session.nwkkey[1]
+       ,configuration.session.nwkkey[2]
+       ,configuration.session.nwkkey[3]
+       ,configuration.session.nwkkey[4]
+       ,configuration.session.nwkkey[5]
+       ,configuration.session.nwkkey[6]
+       ,configuration.session.nwkkey[7]
+       ,configuration.session.nwkkey[8]
+       ,configuration.session.nwkkey[9]
+       ,configuration.session.nwkkey[10]
+       ,configuration.session.nwkkey[11]
+       ,configuration.session.nwkkey[12]
+       ,configuration.session.nwkkey[13]
+       ,configuration.session.nwkkey[14]
+       ,configuration.session.nwkkey[15]);
+
+  LOGN(F("artkey: %x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x"CR),configuration.session.artkey[0]
+       ,configuration.session.artkey[1]
+       ,configuration.session.artkey[2]
+       ,configuration.session.artkey[3]
+       ,configuration.session.artkey[4]
+       ,configuration.session.artkey[5]
+       ,configuration.session.artkey[6]
+       ,configuration.session.artkey[7]
+       ,configuration.session.artkey[8]
+       ,configuration.session.artkey[9]
+       ,configuration.session.artkey[10]
+       ,configuration.session.artkey[11]
+       ,configuration.session.artkey[12]
+       ,configuration.session.artkey[13]
+       ,configuration.session.artkey[14]
+       ,configuration.session.artkey[15]);
+
+  LOGN(F("seqnoUp: %d"CR),configuration.session.seqnoUp);
+  LOGN(F("seqnoDn: %d"CR),configuration.session.seqnoDn);
 
   // start up the i2c interface
   Wire.begin();
