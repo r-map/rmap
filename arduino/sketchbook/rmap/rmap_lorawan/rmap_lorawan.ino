@@ -723,12 +723,12 @@ void mgr_sensors(){
 void sleep_mgr_sensors() {
 
   mgr_sensors();
-  LOGN(F("sleep %d seconds"CR),SAMPLETIME);
+  LOGN(F("sleep %d seconds"CR),configuration.sampletime);
   delay(1000);
   os_runloop_once();
   // Enter sleep mode
   sleep.pwrDownMode(); //set sleep mode
-  sleep.sleepDelay(SAMPLETIME*1000UL); //sleep for SAMPLETIME
+  sleep.sleepDelay(configuration.sampletime*1000UL); //sleep for SAMPLETIME
   delay(1000);
   LOGN(F("wake up"CR));  
   os_runloop_once();
@@ -1039,7 +1039,7 @@ void setup()
   // query and send data
 #ifndef DEEPSLEEP
   
-  Alarm.timerRepeat(SAMPLETIME, mgr_sensors);             // timer for every tr seconds
+  Alarm.timerRepeat(configuration.sampletime, mgr_sensors);             // timer for every tr seconds
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday

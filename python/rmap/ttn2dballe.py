@@ -222,8 +222,8 @@ class ttn2dballe(object):
                     return
             except:
                 logging.error("error decoding message: skip it and do nothing!")
-                raise
-                #return
+                #raise
+                return
 
             try:
                 #print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    

@@ -15,11 +15,7 @@
 #define FORCECONFIGPIN 8
 
 //pin that command power up and down
-#define POWERPIN 3
-
-
-// read sensors and send messages every SAMPLETIME seconds
-#define SAMPLETIME 900UL
+#define POWERPIN D3
 
 #define JOINRETRYDELAY 60UL
 
