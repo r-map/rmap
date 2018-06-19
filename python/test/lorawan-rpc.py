@@ -78,8 +78,8 @@ print server.set(appeui=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08))
 print server.set(appkey=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16))
 
 # set other parameter
-#  "reset" "sampletime" "ack" "mobile" "template" "fs" "template" "deveui" "appeui" "appkey" "netid" "devaddr" "seqnoUp" "seqnoDn" "nwkkey" "artkey" return "ok"
-print server.set(sampletime=1800,ack=1,fs=12,mobile=False)
+#  "reset" "sampletime" "ack" "mobile" "template" "sf" "template" "deveui" "appeui" "appkey" "netid" "devaddr" "seqnoUp" "seqnoDn" "nwkkey" "artkey" return "ok"
+print server.set(sampletime=1800,ack=1,sf=12,mobile=False)
 
 # set or read sf
 # parameter "sf" return "sf"
