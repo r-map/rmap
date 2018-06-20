@@ -771,6 +771,7 @@ void setup()
   }
 
   pinMode(FORCECONFIGPIN, INPUT_PULLUP);
+  pinMode(POWERPIN, INPUT_PULLUP);
 
   if (digitalRead(FORCECONFIGPIN) == LOW) {
     LOGN(F("force configuration by serial" CR));
