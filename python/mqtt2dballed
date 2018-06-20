@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/bin/python
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -343,7 +343,7 @@ def main(self):
 
             while p1.poll() is None:
                 #p2 = subprocess.Popen(["arki-scan", "--inline", "bufr:-"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                p2 = subprocess.Popen(["arki-query", "--inline","", "bufr:-"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p2 = subprocess.Popen(["arki-query", "--stdin=bufr","--inline",""],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 
@@ -378,7 +378,7 @@ def main(self):
                                 line=""
                             if line:
                                 #print 'Got data:', line
-                                logging.error("arki-scan: "+line.rstrip("\n"))
+                                logging.error("arki-query: "+line.rstrip("\n"))
                             else:
                                 break
 

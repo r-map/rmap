@@ -428,9 +428,9 @@ int save(JsonObject& params, JsonObject& result)
 	configuration.session.seqnoUp=LMIC.seqnoUp;
 	configuration.session.seqnoDn=LMIC.seqnoDn;
     
-	configuration.save();
       }
 
+      configuration.save();
       result["ok"]= true;  
     }
     return 0;
