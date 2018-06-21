@@ -117,6 +117,9 @@ const lmic_pinmap lmic_pins = {
     .dio = {DIO0, DIO1, DIO2},
 };
 
+volatile bool pdown;
+
+
 // layout of session parameters
 typedef struct {
   unsigned short int joinstatus; // 2 as joined
@@ -229,8 +232,30 @@ void printDataRate() {
 
 int shutdown(JsonObject& params, JsonObject& result) {
   LOGN(F("shutdown"CR));
-  delay(100); //delay to allow serial to fully print before sleep
-  
+  delay(100); //delay to allow serial to fully print before sleep  
+  setpowerdown();
+  return 0;
+}
+
+void setpowerdown(){
+  pdown=true;
+}
+void unsetpowerdown(){
+  pdown=false;
+}
+bool checkpowerdown(){
+  return pdown;
+}
+
+void powerdown(){
+
+  unsetpowerdown();
+
+  if (digitalRead(POWERPIN) == HIGH) {
+    LOGN(F("powerdown canceled" CR));
+    return;
+  }
+
   if (joinstatus == 2){
     configuration.session.joinstatus=joinstatus;
     configuration.session.netid = LMIC.netid;
@@ -239,16 +264,16 @@ int shutdown(JsonObject& params, JsonObject& result) {
     memcpy(configuration.session.artkey, LMIC.artKey, 16);
     configuration.session.seqnoUp=LMIC.seqnoUp;
     configuration.session.seqnoDn=LMIC.seqnoDn;
-    
-    configuration.save();
   }
   
-  powerdown();
-  return 0;
-}
-
-void powerdown(){
+  configuration.save();
+  
   sleep.pwrDownMode(); //set sleep mode
+
+  if (digitalRead(POWERPIN) == HIGH) {
+    LOGN(F("powerdown canceled after save" CR));
+    return;
+  }
   
   //Sleep till interrupt pin equals a particular state.
   sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
@@ -786,7 +811,8 @@ void setup()
 
 
   noInterrupts ();
-  attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
+  unsetpowerdown();
+  attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
   interrupts ();
   
   LOGN(F("sampletime: %d"CR),configuration.sampletime);
@@ -1055,6 +1081,7 @@ void setup()
 }
 
 void loop() {
+  if (checkpowerdown) powerdown();
   wdt_reset();
   mgr_serial();
   os_runloop_once();

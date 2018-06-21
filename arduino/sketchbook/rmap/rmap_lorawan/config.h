@@ -16,7 +16,7 @@
 
 //pin that command power up and down
 #define POWERPIN D3
-//#define POWERPIN_PULL INPUT_PULLDOWN
+//#define POWERPIN_PULL INPUT
 #define POWERPIN_PULL INPUT_PULLUP
 
 #define JOINRETRYDELAY 60UL
@@ -27,6 +27,6 @@
 //#define CHANNEL0
 
 // enable for deep sleep microcontroller and disable jsrpc runtime
-#define DEEPSLEEP
+//#define DEEPSLEEP
 
 #define digitalPinToInterrupt(p) ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) >= 18 && (p) <= 21 ? 23 - (p) : NOT_AN_INTERRUPT)))
