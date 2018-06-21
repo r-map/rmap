@@ -141,7 +141,6 @@ class DballeDB(DB):
 
     def query_stations(self, rec):
         db = self.__open_db()
-        rec.set_station_context()
         return db.query_station_data(rec)
 
     def query_summary(self, rec):
