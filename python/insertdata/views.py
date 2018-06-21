@@ -168,7 +168,9 @@ def insertDataImage(request):
                 station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
                 #stationlat=station.lat
                 #stationlon=station.lon
-                request.POST['geom']= str(Point(station.lon,station.lat))
+                POST=request.POST.copy()
+                POST['geom']= str(Point(station.lon,station.lat))
+                stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the POST data
                 return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
@@ -184,8 +186,11 @@ def insertDataImage(request):
                     lat= result[0]["lat"]
                     lon= result[0]["lon"]
                     address= result[0]["display_name"]
-                    request.POST['geom']= str(Point(float(lon),float(lat)))
-                    request.POST['address']= address
+                    POST=request.POST.copy()
+                    POST['geom']= str(Point(float(lon),float(lat)))
+                    POST['address']= address
+                    stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
+                    nominatimform = NominatimForm(POST) # A form bound to the new data
                 return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             nominatimform = NominatimForm()
@@ -388,9 +393,11 @@ def insertDataManualData(request):
                 station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
                 #stationlat=station.lat
                 #stationlon=station.lon
-
-                request.POST['geom']= str(Point(station.lon,station.lat))
-                request.POST['coordinate_slug']= slug
+                POST=request.POST.copy()
+                POST['geom']= str(Point(station.lon,station.lat))
+                POST['coordinate_slug']= slug
+                stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
+                form = ManualForm(POST) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
@@ -407,8 +414,12 @@ def insertDataManualData(request):
                         lat= result[0]["lat"]
                         lon= result[0]["lon"]
                         address= result[0]["display_name"]
-                        request.POST['geom']= str(Point(float(lon),float(lat)))
-                        request.POST['address']= address
+                        POST=request.POST.copy()
+                        POST['geom']= str(Point(float(lon),float(lat)))
+                        POST['address']= address
+                        nominatimform = NominatimForm(POST) # A form bound to the new data
+                        stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
+                        form = ManualForm(POST) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             nominatimform = NominatimForm()
@@ -503,8 +514,12 @@ def insertNewStation(request):
                     lat= result[0]["lat"]
                     lon= result[0]["lon"]
                     address= result[0]["display_name"]
-                    request.POST['geom']= str(Point(float(lon),float(lat)))
-                    request.POST['address']= address
+                    POST=request.POST.copy()
+                    POST['geom']= str(Point(float(lon),float(lat)))
+                    POST['address']= address
+                    newstationform = NewStationForm(POST) # A form bound to the new data
+                    nominatimform = NominatimForm(POST) # A form bound to the new data
+
                 return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform})
         else:
             nominatimform = NominatimForm()
