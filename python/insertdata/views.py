@@ -170,7 +170,8 @@ def insertDataImage(request):
                 #stationlon=station.lon
                 POST=request.POST.copy()
                 POST['geom']= str(Point(station.lon,station.lat))
-                stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the POST data
+                stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
+                form = ImageForm(POST, request.FILES) # A form bound to the new data
                 return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
@@ -191,6 +192,7 @@ def insertDataImage(request):
                     POST['address']= address
                     stationform = StationForm(request.user.get_username(),POST, request.FILES) # A form bound to the new data
                     nominatimform = NominatimForm(POST) # A form bound to the new data
+                    form = ImageForm(POST, request.FILES) # A form bound to the new data
                 return render(request, 'insertdata/form.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             nominatimform = NominatimForm()
