@@ -2,7 +2,7 @@ from models import GeorefencedImage
 from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
-from widgets import MySelectDateWidget
+from django.forms.widgets import SelectDateWidget
 from django.utils.translation import ugettext_lazy
 
 class ExtremeForm(forms.Form):
@@ -10,9 +10,13 @@ class ExtremeForm(forms.Form):
     initial_start=date.today()-timedelta(days=10)
     initial_end=date.today()
 
-    datetime_start = forms.DateTimeField(required=True,initial=initial_start,widget=MySelectDateWidget(),label=ugettext_lazy("Starting date"),help_text=ugettext_lazy("Elaborate starting from this date"))
 
-    datetime_end = forms.DateTimeField(required=True,initial=initial_end,widget=MySelectDateWidget(),label=ugettext_lazy("Ending date"),help_text=ugettext_lazy("Elaborate ending to this date"))
+    this_year = date.today().year-9
+    years = range(this_year, this_year+10)
+
+    datetime_start = forms.DateTimeField(required=True,initial=initial_start,widget=SelectDateWidget(years=years),label=ugettext_lazy("Starting date"),help_text=ugettext_lazy("Elaborate starting from this date"))
+
+    datetime_end = forms.DateTimeField(required=True,initial=initial_end,widget=SelectDateWidget(years=years),label=ugettext_lazy("Ending date"),help_text=ugettext_lazy("Elaborate ending to this date"))
 
 
 

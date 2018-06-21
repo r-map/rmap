@@ -398,7 +398,7 @@ from os.path import abspath, dirname, join
 
 WEBAPP_VERSION="rmap "+__version__ + " + graphite 1.1.1"
 JAVASCRIPT_DEBUG = False
-DATE_FORMAT = '%m/%d'
+DATE_FORMAT = '%y/%m/%d'
 WEB_DIR = dirname( abspath(__file__) )
 WEBAPP_DIR = dirname(WEB_DIR)
 GRAPHITE_ROOT = dirname(WEBAPP_DIR)
