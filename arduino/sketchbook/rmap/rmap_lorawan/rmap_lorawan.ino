@@ -660,7 +660,7 @@ void mgr_sensors(){
   }else if (configuration.mytemplate == 2){
     nbyte=7; // (16+7+20)/8 +1
   }
-  unsigned char dtemplate[nbyte];
+  unsigned char dtemplate[nbyte]={0xFF};
 
   // set template number
 
@@ -680,14 +680,15 @@ void mgr_sensors(){
       if (sd[i]->getdata(data,width) == SD_SUCCESS){
 	LOGN(F("%d OK"CR),i);	
 	LOGN(F("%d data: %B"CR),i,data);
-
-	bit_len=width;
-	bfi(dtemplate, bit_offset, bit_len, data,2); // template number
-	bit_offset+=bit_len;
-	
       }else{
-	LOGN(F("Error"CR));	
-      }      
+	//data=0xFFFFFFFF;  // not required
+	LOGN(F("Error"CR));
+      }
+
+      bit_len=width;
+      bfi(dtemplate, bit_offset, bit_len, data,2); // template number
+      bit_offset+=bit_len;
+
     }
   }
 

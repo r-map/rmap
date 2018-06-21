@@ -139,7 +139,7 @@ bool hpm::readResponse(){
 	    pm10_val = buf[5] << 8 | buf[6];
 	    return true;
 	  } else {
-	    // if command failed, initialise all values to 0
+	    // if command failed, initialise all values to missing
 	    pm25_val = pm10_val = 0xFFFF;
 	    Log.error(F("INVALID CHECKSUM" CR));
 	    return false;

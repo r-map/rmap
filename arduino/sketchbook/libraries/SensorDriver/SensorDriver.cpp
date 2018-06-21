@@ -4925,8 +4925,8 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
 
 int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 {
-  unsigned int pm25=0xFFFFFFFF;
-  unsigned int pm10=0xFFFFFFFF;
+  unsigned int pm25;
+  unsigned int pm10;
 
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!HPMstarted)  return SD_INTERNAL_ERROR;
@@ -4952,7 +4952,7 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 
     return SD_SUCCESS;
   } else {
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#pm error")));
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#hpm error")));
     return SD_INTERNAL_ERROR;    
   }
 }
@@ -4967,7 +4967,7 @@ int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& wi
   
   if (SensorDriverHPMoneshotSerial::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
-  }else{  
+  }else{
     data=0xFFFFFFFF;
     return SD_INTERNAL_ERROR;
   }

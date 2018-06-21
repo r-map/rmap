@@ -1,6 +1,6 @@
 #include <hpm.h>
 #include <SoftwareSerial.h>
-SoftwareSerial hpm_ser(D5, D6);
+SoftwareSerial hpm_ser(D4, D5);
 
 hpm HPM;
 
@@ -23,11 +23,11 @@ void loop() {
   // update values at every 5s interval
 
   HPM.readParticleMeasuringResults();
-  uint16_t val = HPM.get(PM25_TYPE)
+  uint16_t val = HPM.get(PM25_TYPE);
   Serial.print(F("PM2.5 val: ")); 
   Serial.print(val);
   Serial.println(F("  ug/m3"));
-  val = HPM.get(PM10_TYPE)
+  val = HPM.get(PM10_TYPE);
   Serial.print(F("PM10  val: ")); 
   Serial.print(val);
   Serial.println(F("  ug/m3"));
