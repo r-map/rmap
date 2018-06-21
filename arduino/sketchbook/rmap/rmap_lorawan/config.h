@@ -16,6 +16,8 @@
 
 //pin that command power up and down
 #define POWERPIN D3
+//#define POWERPIN_PULL INPUT_PULLDOWN
+#define POWERPIN_PULL INPUT_PULLUP
 
 #define JOINRETRYDELAY 60UL
 
