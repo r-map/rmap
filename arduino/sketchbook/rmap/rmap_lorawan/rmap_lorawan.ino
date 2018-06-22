@@ -272,7 +272,7 @@ void powerdown(){
     configuration.session.seqnoUp=LMIC.seqnoUp;
     configuration.session.seqnoDn=LMIC.seqnoDn;
     LOGN(F("save configuration" CR));
-    //configuration.save();
+    configuration.save();
   }
 
   if (digitalRead(POWERPIN) == HIGH) {
@@ -297,9 +297,26 @@ void powerdown(){
   wdt_disable();
   wdt_enable(WDTO_8S);
   attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
-  
+}
+
+
+
+void reboot(){
+
+  if (joinstatus == 2){
+    configuration.session.joinstatus=joinstatus;
+    configuration.session.netid = LMIC.netid;
+    configuration.session.devaddr = LMIC.devaddr;
+    memcpy(configuration.session.nwkkey, LMIC.nwkKey, 16);
+    memcpy(configuration.session.artkey, LMIC.artKey, 16);
+    configuration.session.seqnoUp=LMIC.seqnoUp;
+    configuration.session.seqnoDn=LMIC.seqnoDn;
+    LOGN(F("save configuration" CR));
+    configuration.save();
+  }
+
   //Reboot mode
-  //wdt_enable(WDTO_30MS); while(1) {} 
+  wdt_enable(WDTO_30MS); while(1) {} 
   // Restarts program from beginning but 
   // does not reset the peripherals and registers
   //asm volatile ("  jmp 0");
