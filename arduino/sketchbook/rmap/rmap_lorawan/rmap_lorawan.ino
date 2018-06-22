@@ -249,10 +249,17 @@ bool checkpowerdown(){
 
 void powerdown(){
 
+  LOGN(F("entering powerdown" CR));
+  delay(1000); //debounce time
+
+  noInterrupts ();
+  
   unsetpowerdown();
 
+  
   if (digitalRead(POWERPIN) == HIGH) {
     LOGN(F("powerdown canceled" CR));
+    interrupts ();
     return;
   }
 
@@ -264,19 +271,32 @@ void powerdown(){
     memcpy(configuration.session.artkey, LMIC.artKey, 16);
     configuration.session.seqnoUp=LMIC.seqnoUp;
     configuration.session.seqnoDn=LMIC.seqnoDn;
+    LOGN(F("save configuration" CR));
+    //configuration.save();
   }
-  
-  configuration.save();
-  
-  sleep.pwrDownMode(); //set sleep mode
 
   if (digitalRead(POWERPIN) == HIGH) {
     LOGN(F("powerdown canceled after save" CR));
+    interrupts ();
     return;
   }
+
+  detachInterrupt(digitalPinToInterrupt(POWERPIN));
+
+  LOGN(F("POWERDOWN" CR));
+  EIFR |= (1 << INTF1); // | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+  wdt_disable();
   
+  interrupts ();
+  delay(3000); //flush any serial output
+  sleep.pwrDownMode(); //set sleep mode
   //Sleep till interrupt pin equals a particular state.
   sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
+
+  LOGN(F("WAKEUP" CR));
+  wdt_disable();
+  wdt_enable(WDTO_8S);
+  attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
   
   //Reboot mode
   //wdt_enable(WDTO_30MS); while(1) {} 
@@ -754,7 +774,16 @@ void sleep_mgr_sensors() {
   os_runloop_once();
   // Enter sleep mode
   sleep.pwrDownMode(); //set sleep mode
-  sleep.sleepDelay(configuration.sampletime*1000UL); //sleep for SAMPLETIME
+
+  unsigned int timetosleep=configuration.sampletime;
+  #define SLEEPSTEP 60    // max delay between a powerdown request and effectictive powerdown 
+  while(timetosleep > SLEEPSTEP){
+    sleep.sleepDelay(SLEEPSTEP*1000UL); //sleep for SAMPLETIME
+    timetosleep -= SLEEPSTEP;
+    if (checkpowerdown()) powerdown();
+  }
+  sleep.sleepDelay(timetosleep*1000UL); //sleep for SAMPLETIME
+
   delay(1000);
   LOGN(F("wake up"CR));  
   os_runloop_once();
@@ -808,7 +837,6 @@ void setup()
     mgr_serial();
     wdt_reset();
   }
-
 
   noInterrupts ();
   unsetpowerdown();
@@ -1081,7 +1109,7 @@ void setup()
 }
 
 void loop() {
-  if (checkpowerdown) powerdown();
+  if (checkpowerdown()) powerdown();
   wdt_reset();
   mgr_serial();
   os_runloop_once();
