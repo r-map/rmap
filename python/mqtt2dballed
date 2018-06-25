@@ -137,13 +137,14 @@ def maindirecttodballe(self):
     oldtopic2="None"
     oldtopic3="None"
 
-    if self.options.datalevel == "sample":
-        oldtopic1="rmap/#"
-        oldtopic2="sample/+/+/rmap/#"
-        oldtopic3="sample/+/+/arpae/#"
-    elif self.options.datalevel == "report":
-        oldtopic1="fixed/#"
-        oldtopic2="report/+/+/rmap/#"
+    if self.options.stationtype == "fixed":
+        if self.options.datalevel == "sample":
+            oldtopic1="rmap/#"
+            oldtopic2="sample/+/+/rmap/#"
+            oldtopic3="sample/+/+/arpae/#"
+        elif self.options.datalevel == "report":
+            oldtopic1="fixed/#"
+            oldtopic2="report/+/+/rmap/#"
 
     if self.options.stationtype == "mobile":
         oldtopic1="mobile/#"
@@ -318,13 +319,15 @@ def main(self):
     oldtopic2="None"
     oldtopic3="None"
 
-    if self.options.datalevel == "sample":
-        oldtopic1="rmap/#"
-        oldtopic2="sample/+/+/rmap/#"
-        oldtopic3="sample/+/+/arpae/#"
-    elif self.options.datalevel == "report":
-        oldtopic1="fixed/#"
-        oldtopic2="report/+/+/rmap/#"
+
+    if self.options.stationtype == "fixed":
+        if self.options.datalevel == "sample":
+            oldtopic1="rmap/#"
+            oldtopic2="sample/+/+/rmap/#"
+            oldtopic3="sample/+/+/arpae/#"
+        elif self.options.datalevel == "report":
+            oldtopic1="fixed/#"
+            oldtopic2="report/+/+/rmap/#"
 
     if self.options.stationtype == "mobile":
         oldtopic1="mobile/#"
