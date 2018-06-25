@@ -947,6 +947,11 @@ BORINUD =\
                   },        
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
+                      "dataset": "http://localhost:8090/dataset/cnraq",
+                      "measurements": report_measurements
+                  },        
+                  {
+                      "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://localhost:8090/dataset/report_fixed",
                       "measurements": report_measurements
                   },
@@ -958,7 +963,7 @@ BORINUD =\
                   {
                       "class": "borinud.utils.source.ArkimetBufrDB",
                       "dataset": "http://localhost:8090/dataset/report_luftdaten",
-                      "measurements": sample_measurements
+                      "measurements": report_measurements
                   },
               ],
               "CACHED_SUMMARY": "default",
@@ -993,13 +998,18 @@ BORINUD =\
                    },        
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
+                       "dataset": "http://localhost:8090/dataset/cnraq",
+                       "measurements": report_measurements
+                   },        
+                   {
+                       "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://localhost:8090/dataset/report_fixed",
                        "measurements": report_measurements
                    },
                    {
                        "class": "borinud.utils.source.ArkimetBufrDB",
                        "dataset": "http://localhost:8090/dataset/report_luftdaten",
-                       "measurements": sample_measurements
+                       "measurements": report_measurements
                    },
                ],
                "CACHED_SUMMARY": "default",
