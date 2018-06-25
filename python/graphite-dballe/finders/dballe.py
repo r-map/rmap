@@ -69,12 +69,22 @@ class  wssummaries(object):
 
             #p = re.compile(query.pattern.replace(".","\.").replace("*",".*"))
             uri=path2uri(self.query.pattern)
-            startdt=datetime.utcfromtimestamp(self.query.startTime)
-            enddt  =datetime.utcfromtimestamp(self.query.endTime)
-            r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"_"+self.stationtype+
-                           "&yearmin={:04d}".format(startdt.year)+"&monthmin={:02d}".format(startdt.month)+"&daymin={:02d}".format(startdt.day)+"&hourmin={:02d}".format(startdt.hour)+"&minumin={:02d}".format(startdt.minute)+"&secmin={:02d}".format(startdt.second)+
-                           "&yearmax={:04d}".format(enddt.year)+"&monthmax={:02d}".format(enddt.month)+"&daymax={:02d}".format(enddt.day)+"&hourmax={:02d}".format(enddt.hour)+"&minumax={:02d}".format(enddt.minute)+"&secmax={:02d}".format(enddt.second)
-                           ,timeout=timeout)
+
+
+            uri="http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"_"+self.stationtype
+
+            #print "start:",self.query.startTime,"stop:",self.query.endTime
+            if (self.query.startTime is not None):
+                startdt=datetime.utcfromtimestamp(self.query.startTime)
+                uri+="&yearmin={:04d}".format(startdt.year)+"&monthmin={:02d}".format(startdt.month)+"&daymin={:02d}".format(startdt.day)+"&hourmin={:02d}".format(startdt.hour)+"&minumin={:02d}".format(startdt.minute)+"&secmin={:02d}".format(startdt.second)
+
+            if (self.query.endTime is not None):
+                enddt  =datetime.utcfromtimestamp(self.query.endTime)
+                uri+="&yearmax={:04d}".format(enddt.year)+"&monthmax={:02d}".format(enddt.month)+"&daymax={:02d}".format(enddt.day)+"&hourmax={:02d}".format(enddt.hour)+"&minumax={:02d}".format(enddt.minute)+"&secmax={:02d}".format(enddt.second)
+
+            #print "URI:",uri
+
+            r=requests.get(uri, timeout=timeout)
             rj=r.json()
 
             #serialize json in a new json good to build graphite path 
