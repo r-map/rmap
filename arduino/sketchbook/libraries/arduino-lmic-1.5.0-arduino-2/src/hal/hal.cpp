@@ -109,6 +109,17 @@ static void hal_time_init () {
     // Nothing to do
 }
 
+
+unsigned long microspassedtosleep=0;
+
+unsigned long totalmicros() {
+  return micros()+microspassedtosleep;
+}
+
+void addsleepedtime(unsigned long sleepedmillis) {
+  microspassedtosleep+=sleepedmillis;
+}
+
 u4_t hal_ticks () {
     // Because micros() is scaled down in this function, micros() will
     // overflow before the tick timer should, causing the tick timer to
@@ -133,7 +144,7 @@ u4_t hal_ticks () {
 
     // Scaled down timestamp. The top US_PER_OSTICK_EXPONENT bits are 0,
     // the others will be the lower bits of our return value.
-    uint32_t scaled = micros() >> US_PER_OSTICK_EXPONENT;
+    uint32_t scaled = totalmicros() >> US_PER_OSTICK_EXPONENT;
     // Most significant byte of scaled
     uint8_t msb = scaled >> 24;
     // Mask pointing to the overlapping bit in msb and overflow.

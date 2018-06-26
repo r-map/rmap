@@ -663,6 +663,7 @@ void do_send(uint8_t mydata[],size_t nbyte){
     // reset event status
     event = EV_RESET;
     // Prepare upstream data transmission at the next possible time.
+    // send to port 1
     LMIC_setTxData2(1, mydata, nbyte, configuration.ack);
     LOGN(F("Packet queued"CR));
     sendstatus=1;
@@ -796,10 +797,12 @@ void sleep_mgr_sensors() {
   #define SLEEPSTEP 60    // max delay between a powerdown request and effectictive powerdown 
   while(timetosleep > SLEEPSTEP){
     sleep.sleepDelay(SLEEPSTEP*1000UL); //sleep for SAMPLETIME
+    addsleepedtime(SLEEPSTEP*1000UL);
     timetosleep -= SLEEPSTEP;
     if (checkpowerdown()) powerdown();
   }
   sleep.sleepDelay(timetosleep*1000UL); //sleep for SAMPLETIME
+  addsleepedtime(timetosleep*1000UL);
 
   delay(1000);
   LOGN(F("wake up"CR));  
@@ -1036,6 +1039,7 @@ void setup()
   // devices' ping slots. LMIC does not have an easy way to define set this
   // frequency and support for class B is spotty and untested, so this
   // frequency is not configured here.
+  
 #elif defined(CFG_us915)
   // NA-US channels 0-71 are configured automatically
   // but only one group of 8 should (a subband) should be active
@@ -1044,8 +1048,6 @@ void setup()
   LMIC_selectSubBand(1);
 #endif
 
-  // TTN uses SF9 for its RX2 window.
-  //LMIC.dn2Dr = DR_SF9;
 
   // Set data rate and transmit power for uplink
   setsf(configuration.sf);
@@ -1066,6 +1068,13 @@ void setup()
     LMIC.seqnoDn = configuration.session.seqnoDn;
     LMIC.seqnoUp = configuration.session.seqnoUp + 2; // avoid reuse of seq numbers
 
+    // TTN uses SF9 for its RX2 window.
+    //https://github.com/matthijskooijman/arduino-lmic#downlink-datarate
+    //https://github.com/matthijskooijman/arduino-lmic/issues/20
+    //https://github.com/matthijskooijman/arduino-lmic/pull/23
+    
+    LMIC.dn2Dr = DR_SF9;
+    
     joinstatus = 2;
 
   }else{
@@ -1093,6 +1102,7 @@ void setup()
 	delay(100);
 	sleep.pwrDownMode(); //set sleep mode
 	sleep.sleepDelay(JOINRETRYDELAY*1000UL); //sleep
+	addsleepedtime(JOINRETRYDELAY*1000UL);
 	delay(100);
 	LOGN(F("wake up"CR));  
 	os_runloop_once();
