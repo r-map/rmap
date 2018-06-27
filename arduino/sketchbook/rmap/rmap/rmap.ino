@@ -3339,6 +3339,8 @@ void setup()
   uint8_t ntry=0;
 
   #if defined(USE_ENC28J60)
+  IF_SDEBUG(DBGSERIAL.print("MAC: "));
+  IF_SDEBUG(DBGSERIAL.println(configuration.mac[0]));
     while (Ethernet.begin(configuration.mac,ENCCEPIN) == 0 && ntry < 5) {
   #elif defined(USE_W5500)
     while (Ethernet.begin(configuration.mac) == 0 && ntry < 5) {

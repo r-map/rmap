@@ -21,6 +21,7 @@
 
 #define JOINRETRYDELAY 60UL
 
+// this should be removed !
 #define TXTIMEOUT 130UL
 
 // enable for one channel gateway
