@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2018-06-26 15:10+0200\n"
-"PO-Revision-Date: 2018-06-26 15:28+0200\n"
+"PO-Revision-Date: 2018-06-27 12:38+0200\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -18,16 +18,12 @@ msgstr ""
 "X-Generator: Poedit 1.8.12\n"
 
 #: firmware_updater/models.py:54
-#, fuzzy
-#| msgid "Board name"
 msgid "Firmware name"
-msgstr "Nome scheda"
+msgstr "Nome del firmware"
 
 #: firmware_updater/models.py:55
-#, fuzzy
-#| msgid "Network description"
 msgid "Firmware description"
-msgstr "Descrizione della rete"
+msgstr "Descrizione del firmware"
 
 #: firmware_updater/models.py:75
 msgid "File"
@@ -57,10 +53,8 @@ msgid "Active"
 msgstr "Attivo"
 
 #: firmware_updater/models.py:80
-#, fuzzy
-#| msgid "Activate the board for measurements"
 msgid "Activate the firmware for upgrade"
-msgstr "Attiva la board per le misure"
+msgstr "Attivare il firmware per aggiornarlo"
 
 #: geoimage/models.py:53
 msgid "Activate this geoimage"
@@ -493,7 +487,7 @@ msgstr ""
 
 #: rainbo/templates/rainbo/section_welcome.html:29
 msgid "Thanks for your partecipation!"
-msgstr "Grazie per il vostro partecipazione! "
+msgstr "Grazie per la vostra partecipazione!"
 
 #: rainbo/templates/rainbo/section_welcome.html:32
 msgid "The RainBO Staff"
@@ -1936,18 +1930,16 @@ msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
 #: rmap/stations/models.py:630
-#, fuzzy
-#| msgid "Search address"
 msgid "MAC address"
-msgstr "Indirizzo di ricerca"
+msgstr "MAC address"
 
 #: rmap/stations/models.py:631
 msgid "Software version"
-msgstr ""
+msgstr "Versione del software"
 
 #: rmap/stations/models.py:632
 msgid "Software last update date"
-msgstr ""
+msgstr "Data ultimo aggiornamento software"
 
 #: rmap/stations/models.py:658
 msgid "Activate this metadata"
@@ -2199,16 +2191,12 @@ msgid "Board name"
 msgstr "Nome scheda"
 
 #: rmap/templates/stations/stationmetadata_detail.html:63
-#, fuzzy
-#| msgid "Network description"
 msgid "Firmware version"
-msgstr "Descrizione della rete"
+msgstr "Versione del Firmware"
 
 #: rmap/templates/stations/stationmetadata_detail.html:63
-#, fuzzy
-#| msgid "Board name"
 msgid "Last firmware update"
-msgstr "Nome scheda"
+msgstr "Ultimo aggiornamento firmware"
 
 #: rmap/templates/stations/stationmetadata_detail.html:70
 msgid "Variable"
@@ -2286,10 +2274,8 @@ msgid "Graph data for station"
 msgstr "Grafico della stazione"
 
 #: showdata/templates/showdata/spatialseries.html:576
-#, fuzzy
-#| msgid "Show all stations"
 msgid "Show all stations on a map"
-msgstr "Mostra tutte le stazioni"
+msgstr "Mostra tutte le stazioni sulla mappa"
 
 #: showdata/templates/showdata/spatialseries.html:591
 msgid "Show all values on a graph"
