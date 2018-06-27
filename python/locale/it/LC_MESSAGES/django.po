@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-03-20 15:36+0100\n"
-"PO-Revision-Date: 2018-03-20 15:40+0100\n"
+"POT-Creation-Date: 2018-06-26 15:10+0200\n"
+"PO-Revision-Date: 2018-06-26 15:28+0200\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -46,12 +46,12 @@ msgid "When the firmware was done"
 msgstr ""
 
 #: firmware_updater/models.py:79 geoimage/models.py:53
-#: rmap/stations/models.py:93 rmap/stations/models.py:203
-#: rmap/stations/models.py:317 rmap/stations/models.py:354
-#: rmap/stations/models.py:412 rmap/stations/models.py:488
-#: rmap/stations/models.py:520 rmap/stations/models.py:551
-#: rmap/stations/models.py:591 rmap/stations/models.py:647
-#: rmap/stations/models.py:692 rmap/templates/profile_details.html:19
+#: rmap/stations/models.py:94 rmap/stations/models.py:204
+#: rmap/stations/models.py:318 rmap/stations/models.py:355
+#: rmap/stations/models.py:413 rmap/stations/models.py:489
+#: rmap/stations/models.py:521 rmap/stations/models.py:552
+#: rmap/stations/models.py:592 rmap/stations/models.py:658
+#: rmap/stations/models.py:703 rmap/templates/profile_details.html:19
 #: rmap/templates/stations/stationmetadata_detail.html:27
 msgid "Active"
 msgstr "Attivo"
@@ -83,19 +83,19 @@ msgstr "Reimposta filtro"
 msgid "Submit"
 msgstr "Invia"
 
-#: geoimage/views.py:13
+#: geoimage/views.py:17
 msgid "Starting date"
 msgstr "Data iniziale"
 
-#: geoimage/views.py:13
+#: geoimage/views.py:17
 msgid "Elaborate starting from this date"
 msgstr "Data iniziale elaborazione:"
 
-#: geoimage/views.py:15
+#: geoimage/views.py:19
 msgid "Ending date"
 msgstr "Data finale"
 
-#: geoimage/views.py:15
+#: geoimage/views.py:19
 msgid "Elaborate ending to this date"
 msgstr "Data finale elaborazione"
 
@@ -185,12 +185,12 @@ msgid "Slug"
 msgstr "Slug (nome della risorsa)"
 
 #: insertdata/templates/insertdata/newstationform.html:26 rmap/form.py:35
-#: rmap/stations/models.py:701
+#: rmap/stations/models.py:712
 msgid "Longitude"
 msgstr "Longitudine"
 
 #: insertdata/templates/insertdata/newstationform.html:27 rmap/form.py:34
-#: rmap/stations/models.py:700
+#: rmap/stations/models.py:711
 msgid "Latitude"
 msgstr "Latitudine"
 
@@ -208,35 +208,35 @@ msgid "No phenomenon in progress"
 msgstr "Nessun fenomeno in atto"
 
 #: insertdata/templates/insertdata/rainbodataform.html:125
-#: insertdata/views.py:108 rainbo/templates/rainbo/section_dati.html:21
+#: rainbo/templates/rainbo/section_dati.html:21
 #: rainbo/templates/rainbo/service_detail_1.html:16
 #: rainbo/templates/rainbo/service_push_weather.html:24
 msgid "Visibility"
 msgstr "Visibilità"
 
 #: insertdata/templates/insertdata/rainbodataform.html:132
-#: insertdata/views.py:111 rainbo/templates/rainbo/section_dati.html:34
+#: rainbo/templates/rainbo/section_dati.html:34
 #: rainbo/templates/rainbo/service_detail_2.html:16
 #: rainbo/templates/rainbo/service_push_weather.html:30
 msgid "Rain"
 msgstr "Pioggia"
 
 #: insertdata/templates/insertdata/rainbodataform.html:139
-#: insertdata/views.py:109 rainbo/templates/rainbo/section_dati.html:48
+#: rainbo/templates/rainbo/section_dati.html:48
 #: rainbo/templates/rainbo/service_detail_3.html:16
 #: rainbo/templates/rainbo/service_push_weather.html:36
 msgid "Snow"
 msgstr "Neve"
 
 #: insertdata/templates/insertdata/rainbodataform.html:146
-#: insertdata/views.py:110 rainbo/templates/rainbo/section_dati.html:62
+#: rainbo/templates/rainbo/section_dati.html:62
 #: rainbo/templates/rainbo/service_detail_4.html:16
 #: rainbo/templates/rainbo/service_push_weather.html:42
 msgid "Thunderstorm"
 msgstr "Temporale"
 
 #: insertdata/templates/insertdata/rainbodataform.html:153
-#: insertdata/views.py:112 rainbo/templates/rainbo/section_dati.html:76
+#: rainbo/templates/rainbo/section_dati.html:76
 #: rainbo/templates/rainbo/service_detail_5.html:16
 #: rainbo/templates/rainbo/service_detail_5.html:23
 #: rainbo/templates/rainbo/service_push_weather.html:48
@@ -247,132 +247,15 @@ msgstr "Tromba d'aria"
 msgid "Impact type"
 msgstr "Tipo d'impatto"
 
-#: insertdata/views.py:85
-msgid "Your station"
-msgstr "La tua stazione"
-
-#: insertdata/views.py:85
-msgid "Select configurated station"
-msgstr "Seleziona una stazione configurata"
-
-#: insertdata/views.py:93 rmap/rmapgui.py:1199
-msgid "Present weather"
-msgstr "Tempo presente"
-
-#: insertdata/views.py:95 rmap/rmapgui.py:1177
-msgid "Visibility(m.)"
-msgstr "Visibilità (m)"
-
-#: insertdata/views.py:96 rmap/rmapgui.py:1176
-msgid "Snow height(cm.)"
-msgstr "Altezza neve (cm)"
-
-#: insertdata/views.py:107
-msgid "not significant"
-msgstr "Niente di significativo"
-
-#: insertdata/views.py:107
-msgid "Not_significant"
-msgstr "Niente di significativo"
-
-#: insertdata/views.py:108
-msgid "haze"
-msgstr "foschia"
-
-#: insertdata/views.py:108
-msgid "fog"
-msgstr "nebbia"
-
-#: insertdata/views.py:109 rainbo/templates/rainbo/service_detail_3.html:25
-msgid "weak"
-msgstr "debole"
-
-#: insertdata/views.py:109 rainbo/templates/rainbo/service_detail_3.html:32
-msgid "moderate"
-msgstr "moderato"
-
-#: insertdata/views.py:109
-msgid "intense"
-msgstr "intenso"
-
-#: insertdata/views.py:110
-msgid "moderate with rain"
-msgstr "moderato con pioggia"
-
-#: insertdata/views.py:110
-msgid "moderate with hail"
-msgstr "moderato con grandine"
-
-#: insertdata/views.py:110
-msgid "intense with rain"
-msgstr "intenso con pioggia"
-
-#: insertdata/views.py:110
-msgid "intense with hail"
-msgstr "intenso con grandine"
-
-#: insertdata/views.py:111 rainbo/templates/rainbo/service_detail_2.html:26
-msgid "drizzle"
-msgstr "pioviggine"
-
-#: insertdata/views.py:111
-msgid "rain"
-msgstr "pioggia"
-
-#: insertdata/views.py:111 rainbo/templates/rainbo/service_detail_2.html:38
-msgid "freezing on the ground"
-msgstr "congelantesi al suolo"
-
-#: insertdata/views.py:112
-msgid "tornado"
-msgstr "tromba d'aria"
-
-#: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:30
-msgid "fallen tree"
-msgstr "albero caduto"
-
-#: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:36
-msgid "icy road"
-msgstr "strada ghiacciata"
-
-#: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:24
-msgid "flooding"
-msgstr "allagamento"
-
-#: insertdata/views.py:122 rainbo/templates/rainbo/service_push_impact.html:42
-msgid "pothole"
-msgstr "buca in strada"
-
-#: insertdata/views.py:122
-msgid "Impact detected"
-msgstr "Impatto rilevato"
-
-#: insertdata/views.py:131
-msgid "Search address"
-msgstr "Indirizzo di ricerca"
-
-#: insertdata/views.py:144
-msgid "New station name"
-msgstr "Nome nuova stazione"
-
-#: insertdata/views.py:144
-msgid "The name of the station to insert"
-msgstr "Il nome della stazione da inserire"
-
-#: insertdata/views.py:145
-msgid "station model"
-msgstr "modello stazione"
-
-#: insertdata/views.py:145
-msgid "The model of the station to insert"
-msgstr "Il modello della stazione da inserire"
-
 #: rainbo/templates/rainbo/base.html:69
 #: rainbo/templates/rainbo/landing_page.html:56
 msgid "Show Data"
 msgstr "Visualizza"
 
 #: rainbo/templates/rainbo/base.html:72
+#: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:4
+#: rainbo/templates/rainbo/landing_page.html:59
+#: rainbo/templates/rainbo/section_partecipa.html:7
 msgid "Partecipate"
 msgstr "Partecipa"
 
@@ -401,12 +284,6 @@ msgstr "Cambia password"
 msgid "Home"
 msgstr ""
 
-#: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:4
-#: rainbo/templates/rainbo/landing_page.html:59
-#: rainbo/templates/rainbo/section_partecipa.html:7
-msgid "Contribute"
-msgstr "Partecipa"
-
 #: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:9
 msgid "Add present weather"
 msgstr "Aggiungi tempo presente"
@@ -426,27 +303,27 @@ msgid "Show"
 msgstr "Visualizza"
 
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:9
-#: showdata/templates/showdata/rainbospatialseries.html:120
+#: showdata/templates/showdata/rainbospatialseries.html:121
 msgid "Visibility Data"
 msgstr "Dati Visibilità"
 
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:14
-#: showdata/templates/showdata/rainbospatialseries.html:125
+#: showdata/templates/showdata/rainbospatialseries.html:126
 msgid "Rain Data"
 msgstr "Dati Pioggia"
 
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:19
-#: showdata/templates/showdata/rainbospatialseries.html:130
+#: showdata/templates/showdata/rainbospatialseries.html:131
 msgid "Snow Data"
 msgstr "Dati Pioggia"
 
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:24
-#: showdata/templates/showdata/rainbospatialseries.html:135
+#: showdata/templates/showdata/rainbospatialseries.html:136
 msgid "Thunderstorm Data"
 msgstr "Dati Temporale"
 
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:29
-#: showdata/templates/showdata/rainbospatialseries.html:140
+#: showdata/templates/showdata/rainbospatialseries.html:141
 msgid "Tornado Data"
 msgstr "Dati Tromba d'aria"
 
@@ -516,21 +393,29 @@ msgstr "Cosa stai osservando"
 
 #: rainbo/templates/rainbo/section_partecipa.html:19
 #: rainbo/templates/rainbo/service_push_weather.html:16
-#: showdata/templates/showdata/rainbospatialseries.html:119
-#: showdata/templates/showdata/rainbospatialseries.html:124
-#: showdata/templates/showdata/rainbospatialseries.html:129
-#: showdata/templates/showdata/rainbospatialseries.html:134
-#: showdata/templates/showdata/rainbospatialseries.html:139
+#: showdata/templates/showdata/rainbospatialseries.html:120
+#: showdata/templates/showdata/rainbospatialseries.html:125
+#: showdata/templates/showdata/rainbospatialseries.html:130
+#: showdata/templates/showdata/rainbospatialseries.html:135
+#: showdata/templates/showdata/rainbospatialseries.html:140
 msgid "Present Weather"
 msgstr "Tempo presente"
 
 #: rainbo/templates/rainbo/section_welcome.html:13
 msgid ""
-"Welcome to Rmap4RainBO crowdsourcing application developed in LIFE RainBO "
-"project."
+"Welcome to Rmap4RainBO crowdsourcing application developed by <a "
+"target='_blank' href='http://www.meeo.it/wp/?lang=en'>MEEO S.r.l</a>, in the "
+"<a target='_blank' href='https://www.rainbolife.eu/'>RainBO LIFE project</"
+"a>, in collaboration with <a target='_blank' href='https://www.arpae."
+"it/'>ARPAE</a> starting from the <a target='_blank' href='http://rmap."
+"cc/'>Rmap</a> application"
 msgstr ""
-"Benvenuto nell'applicazione di crowdsourcing Rmap4RainBO sviluppata "
-"nell'ambito del progetto LIFE RainBO. "
+"Benvenuto nell'applicazione di crowdsourcing Rmap4RainBO sviluppata da <a "
+"target='_blank' href='http://www.meeo.it/wp/?lang=en'>MEEO S.r.l</a>,  "
+"nell'ambito del progetto <a target='_blank' href='https://www.rainbolife."
+"eu/'>RainBO LIFE</a>, in collaborazione con <a target='_blank' href='https://"
+"www.arpae.it/'>ARPAE</a> partendo dall’applicazione <a target='_blank' "
+"href='http://rmap.cc/'>Rmap</a>."
 
 #: rainbo/templates/rainbo/section_welcome.html:15
 msgid ""
@@ -561,7 +446,9 @@ msgid ""
 "reviewed and updated after further comparisons with the competent "
 "institutions. The goal is to start building a database of historical data on "
 "the recorded impacts in order to correlate them to regional meteorological "
-"alerts."
+"alerts. The weather phenomena codification is based on the <a "
+"target='_blank' href='https://www.wmo.int/pages/index_en.html'>WMO – World "
+"Meteorological Organization</a> standards."
 msgstr ""
 "L'applicazione rappresenta anche una piattaforma sperimentale rivolta a "
 "cittadini e istituzioni, per raccogliere riscontri sul territorio rispetto "
@@ -573,7 +460,10 @@ msgstr ""
 "ma potrà ovviamente essere rivista e aggiornata a seguito di ulteriori "
 "confronti con le istituzioni competenti. L'obiettivo è quello di iniziare a "
 "costruire un database di dati storici sugli impatti registrati per "
-"correlarli alle allerte regionali "
+"correlarli alle allerte regionali. La codifica dei fenomeni di tempo "
+"osservato fa invece riferimento agli standards <a target='_blank' "
+"href='https://www.wmo.int/pages/index_en.html'>WMO – World Meteorological "
+"Organization</a>. "
 
 #: rainbo/templates/rainbo/section_welcome.html:20
 msgid ""
@@ -581,8 +471,9 @@ msgid ""
 "useful to understand where significant phenomena are occurring and what "
 "damages have been reported on the interested area."
 msgstr ""
-"La geolocalizzazione delle informazioni è utile per capire dove si stanno "
-"verificando fenomeni significativi e quali danni sono stati riportati. "
+"La sezione 'VISUALIZZA', grazie alla geolocalizzazione delle informazioni, è "
+"utile per capire dove si stanno verificando fenomeni significativi e quali "
+"danni sono stati riportati. "
 
 #: rainbo/templates/rainbo/section_welcome.html:23
 msgid ""
@@ -593,10 +484,18 @@ msgstr ""
 "nella sezione LOGIN/Register fornendo username, password e indirizzo email. "
 
 #: rainbo/templates/rainbo/section_welcome.html:26
-msgid "Thanks for your contribute!"
-msgstr "Grazie per il vostro contributo! "
+msgid ""
+"At <a target='_blank' href='https://www.rainbolife.eu/node/72'>this link</"
+"a>, a quick user guide for the present web application is available."
+msgstr ""
+"A <a target='_blank' href='https://www.rainbolife.eu/node/72'>questo link</"
+"a> &egrave disponibile un breve manuale d’uso dell’applicazione web."
 
 #: rainbo/templates/rainbo/section_welcome.html:29
+msgid "Thanks for your partecipation!"
+msgstr "Grazie per il vostro partecipazione! "
+
+#: rainbo/templates/rainbo/section_welcome.html:32
 msgid "The RainBO Staff"
 msgstr "Lo Staff di progetto RainBO"
 
@@ -716,6 +615,10 @@ msgid "Referring to the official meteorology classification:"
 msgstr "Rifacendosi alla classificazione ufficiale in meteorologia:"
 
 #: rainbo/templates/rainbo/service_detail_2.html:26
+msgid "drizzle"
+msgstr "pioviggine"
+
+#: rainbo/templates/rainbo/service_detail_2.html:26
 msgid " intensity lesser than 1 mm/h"
 msgstr "per precipitazioni fino a 1 mm all'ora"
 
@@ -726,6 +629,10 @@ msgstr "pioggia, da debole a forte"
 #: rainbo/templates/rainbo/service_detail_2.html:32
 msgid "intensity is between 1 and 10 mm/h"
 msgstr "se l'intensit&agrave; &egrave; compresa tra 1 e 10 mm/h"
+
+#: rainbo/templates/rainbo/service_detail_2.html:38
+msgid "freezing on the ground"
+msgstr "congelantesi al suolo"
 
 #: rainbo/templates/rainbo/service_detail_2.html:38
 msgid ""
@@ -765,12 +672,20 @@ msgid "The snowy precipitation could be"
 msgstr "La precipitazione nevosa pu&ograve; essere:"
 
 #: rainbo/templates/rainbo/service_detail_3.html:25
+msgid "weak"
+msgstr "debole"
+
+#: rainbo/templates/rainbo/service_detail_3.html:25
 msgid ""
 "Intensity < 1 mm/h, if you fall a few flakes of snow or 2 or 3 snowflakes on "
 "a palm of your hand, if you expose it outdoors for a minute"
 msgstr ""
 "(intensit&agrave; minore di 1mm/h), se cade qualche fiocco di neve ovvero 2 "
 "o 3 fiocchi su un palmo di mano, se la esponi all'aperto per un minuto"
+
+#: rainbo/templates/rainbo/service_detail_3.html:32
+msgid "moderate"
+msgstr "moderato"
 
 #: rainbo/templates/rainbo/service_detail_3.html:33
 msgid ""
@@ -979,6 +894,22 @@ msgstr ""
 "In questa sezione puoi caricare informazioni su impatti osservati che "
 "possono essere ricondotti a fenomeni metereologici, in particolare, "
 "riteniamo di particolare importanza le seguenti categorie:"
+
+#: rainbo/templates/rainbo/service_push_impact.html:24
+msgid "flooding"
+msgstr "allagamento"
+
+#: rainbo/templates/rainbo/service_push_impact.html:30
+msgid "fallen tree"
+msgstr "albero caduto"
+
+#: rainbo/templates/rainbo/service_push_impact.html:36
+msgid "icy road"
+msgstr "strada ghiacciata"
+
+#: rainbo/templates/rainbo/service_push_impact.html:42
+msgid "pothole"
+msgstr "buca in strada"
 
 #: rainbo/templates/rainbo/service_push_weather.html:18
 msgid ""
@@ -1427,6 +1358,14 @@ msgstr "Accoda dati per pubblicazione"
 msgid "Meteo"
 msgstr ""
 
+#: rmap/rmapgui.py:1176
+msgid "Snow height(cm.)"
+msgstr "Altezza neve (cm)"
+
+#: rmap/rmapgui.py:1177
+msgid "Visibility(m.)"
+msgstr "Visibilità (m)"
+
 #: rmap/rmapgui.py:1178
 msgid "Air Quality"
 msgstr "Qualità aria"
@@ -1518,6 +1457,10 @@ msgstr "Pulisci Coda"
 #: rmap/rmapgui.py:1198
 msgid "Queue status"
 msgstr "Stato della coda"
+
+#: rmap/rmapgui.py:1199
+msgid "Present weather"
+msgstr "Tempo presente"
 
 #: rmap/rmapgui.py:1200
 msgid "Manual measurements"
@@ -1833,40 +1776,40 @@ msgstr "Stato connessione: OK connesso"
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 
-#: rmap/stations/models.py:93 rmap/stations/models.py:203
+#: rmap/stations/models.py:94 rmap/stations/models.py:204
 msgid "Activate this sensor to take measurements"
 msgstr "Attiva questo sensore per rilevare le misure"
 
-#: rmap/stations/models.py:94 rmap/stations/models.py:204
-#: rmap/stations/models.py:241
+#: rmap/stations/models.py:95 rmap/stations/models.py:205
+#: rmap/stations/models.py:242
 msgid "Descriptive text"
 msgstr "Testo descrittivo"
 
-#: rmap/stations/models.py:96
+#: rmap/stations/models.py:97
 msgid "Driver to use"
 msgstr "Driver da usare"
 
-#: rmap/stations/models.py:98 rmap/stations/models.py:206
+#: rmap/stations/models.py:99 rmap/stations/models.py:207
 msgid "Type of sensor"
 msgstr "Tipo del sensore"
 
-#: rmap/stations/models.py:100
+#: rmap/stations/models.py:101
 msgid "I2C bus number (for raspberry only)"
 msgstr ""
 
-#: rmap/stations/models.py:101
+#: rmap/stations/models.py:102
 msgid "I2C ddress (decimal)"
 msgstr ""
 
-#: rmap/stations/models.py:102
+#: rmap/stations/models.py:103
 msgid "RF24Network node ddress"
 msgstr ""
 
-#: rmap/stations/models.py:104 rmap/stations/models.py:105
+#: rmap/stations/models.py:105 rmap/stations/models.py:106
 msgid "Sensor metadata from rmap RFC"
 msgstr "Metadati del sensore dal RFC rmap"
 
-#: rmap/stations/models.py:117 rmap/stations/models.py:724
+#: rmap/stations/models.py:118 rmap/stations/models.py:738
 msgid ""
 "Station and sensor have different data level; change mqttrootpath or active "
 "sensors."
@@ -1874,169 +1817,183 @@ msgstr ""
 "Statione e sensore hanno data level differente; cambia mqttrootpath o i "
 "sensori attivi."
 
-#: rmap/stations/models.py:208
+#: rmap/stations/models.py:209
 msgid "Data Level as defined by WMO (Sensor metadata from rmap RFC)"
 msgstr "Data Level come dfinito dal WMO (Sensor metadata come da RMAP RFC)"
 
-#: rmap/stations/models.py:210
+#: rmap/stations/models.py:211
 msgid "Bcode variable definition"
 msgstr ""
 
-#: rmap/stations/models.py:240
+#: rmap/stations/models.py:241
 msgid "Bcode as defined in dballe btable"
 msgstr ""
 
-#: rmap/stations/models.py:242
+#: rmap/stations/models.py:243
 msgid "Units of measure"
 msgstr "Unità di misura"
 
-#: rmap/stations/models.py:243
+#: rmap/stations/models.py:244
 msgid "Offset coeficent to convert units"
 msgstr "Coefficiente offset di conversione delle unità di misura"
 
-#: rmap/stations/models.py:244
+#: rmap/stations/models.py:245
 msgid "Scale coeficent to convert units"
 msgstr "Fattore di scala di conversione delle unità di misura"
 
-#: rmap/stations/models.py:245
+#: rmap/stations/models.py:246
 msgid "units of measure"
 msgstr "unità di misura"
 
-#: rmap/stations/models.py:317 rmap/stations/models.py:354
-#: rmap/stations/models.py:412 rmap/stations/models.py:488
-#: rmap/stations/models.py:520 rmap/stations/models.py:551
+#: rmap/stations/models.py:318 rmap/stations/models.py:355
+#: rmap/stations/models.py:413 rmap/stations/models.py:489
+#: rmap/stations/models.py:521 rmap/stations/models.py:552
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
-#: rmap/stations/models.py:318
+#: rmap/stations/models.py:319
 msgid "Node ID for RF24 Network"
 msgstr ""
 
-#: rmap/stations/models.py:319
+#: rmap/stations/models.py:320
 msgid "Channel number for RF24"
 msgstr "Numero canale per RF24"
 
-#: rmap/stations/models.py:322
+#: rmap/stations/models.py:323
 msgid "AES key"
 msgstr ""
 
-#: rmap/stations/models.py:323
+#: rmap/stations/models.py:324
 msgid "AES cbc iv"
 msgstr ""
 
-#: rmap/stations/models.py:356
+#: rmap/stations/models.py:357
 msgid "interval in seconds for publish"
 msgstr "intervallo in secondi per la pubblicazione"
 
-#: rmap/stations/models.py:357
+#: rmap/stations/models.py:358
 msgid "MQTT server"
 msgstr ""
 
-#: rmap/stations/models.py:358
+#: rmap/stations/models.py:359
 msgid "MQTT user"
 msgstr ""
 
-#: rmap/stations/models.py:359
+#: rmap/stations/models.py:360
 msgid "MQTT password"
 msgstr ""
 
-#: rmap/stations/models.py:413
+#: rmap/stations/models.py:414
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: rmap/stations/models.py:415
+#: rmap/stations/models.py:416
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: rmap/stations/models.py:489
+#: rmap/stations/models.py:490
 msgid "Baud rate"
 msgstr ""
 
-#: rmap/stations/models.py:490
+#: rmap/stations/models.py:491
 msgid "Serial device"
 msgstr ""
 
-#: rmap/stations/models.py:521
+#: rmap/stations/models.py:522
 msgid "bluetooth name"
 msgstr "Nome Bluetooth"
 
-#: rmap/stations/models.py:553
+#: rmap/stations/models.py:554
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: rmap/stations/models.py:554
+#: rmap/stations/models.py:555
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: rmap/stations/models.py:555
+#: rmap/stations/models.py:556
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP "
 
-#: rmap/stations/models.py:556
+#: rmap/stations/models.py:557
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: rmap/stations/models.py:557
+#: rmap/stations/models.py:558
 msgid "AMQP password"
 msgstr "Password AMQP"
 
-#: rmap/stations/models.py:590 rmap/stations/models.py:691
+#: rmap/stations/models.py:591 rmap/stations/models.py:702
 msgid "station name"
 msgstr "nome stazione"
 
-#: rmap/stations/models.py:591
+#: rmap/stations/models.py:592
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
-#: rmap/stations/models.py:592 rmap/stations/models.py:693
+#: rmap/stations/models.py:593 rmap/stations/models.py:704
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: rmap/stations/models.py:647
+#: rmap/stations/models.py:630
+#, fuzzy
+#| msgid "Search address"
+msgid "MAC address"
+msgstr "Indirizzo di ricerca"
+
+#: rmap/stations/models.py:631
+msgid "Software version"
+msgstr ""
+
+#: rmap/stations/models.py:632
+msgid "Software last update date"
+msgstr ""
+
+#: rmap/stations/models.py:658
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: rmap/stations/models.py:648
+#: rmap/stations/models.py:659
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: rmap/stations/models.py:649
+#: rmap/stations/models.py:660
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: rmap/stations/models.py:692
+#: rmap/stations/models.py:703
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: rmap/stations/models.py:700
+#: rmap/stations/models.py:711
 msgid "Precise Latitude of the station"
 msgstr "Latitudine precisa della stazione"
 
-#: rmap/stations/models.py:701
+#: rmap/stations/models.py:712
 msgid "Precise Longitude of the station"
 msgstr "Longitudine precisa della stazione"
 
-#: rmap/stations/models.py:703
+#: rmap/stations/models.py:714
 msgid "station network"
 msgstr "rete stazione"
 
-#: rmap/stations/models.py:705
+#: rmap/stations/models.py:716
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: rmap/stations/models.py:706
+#: rmap/stations/models.py:717
 msgid "maint mqtt path for publish"
 msgstr "percorso di pubblicazione mqtt per amministrazione"
 
-#: rmap/stations/models.py:707
+#: rmap/stations/models.py:718
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:792
+#: rmap/stations/models.py:806
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: rmap/stations/models.py:792
+#: rmap/stations/models.py:806
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
@@ -2241,7 +2198,19 @@ msgstr "Visualizzazione grafici"
 msgid "Board name"
 msgstr "Nome scheda"
 
-#: rmap/templates/stations/stationmetadata_detail.html:69
+#: rmap/templates/stations/stationmetadata_detail.html:63
+#, fuzzy
+#| msgid "Network description"
+msgid "Firmware version"
+msgstr "Descrizione della rete"
+
+#: rmap/templates/stations/stationmetadata_detail.html:63
+#, fuzzy
+#| msgid "Board name"
+msgid "Last firmware update"
+msgstr "Nome scheda"
+
+#: rmap/templates/stations/stationmetadata_detail.html:70
 msgid "Variable"
 msgstr "Variabile"
 
@@ -2261,78 +2230,151 @@ msgstr "Annulla filtro su SLUG"
 msgid "Profile"
 msgstr "Profilo"
 
-#: showdata/templates/showdata/rainbospatialseries.html:111
+#: showdata/templates/showdata/rainbospatialseries.html:112
 msgid "Observerd Impact"
 msgstr "Impatto osservato"
 
-#: showdata/templates/showdata/rainbospatialseries.html:158
+#: showdata/templates/showdata/rainbospatialseries.html:159
 msgid "for day "
 msgstr "per il giorno "
 
-#: showdata/templates/showdata/rainbospatialseries.html:166
-#: showdata/templates/showdata/spatialseries.html:104
-#: showdata/templates/showdata/timeseries.html:48
+#: showdata/templates/showdata/rainbospatialseries.html:167
+#: showdata/templates/showdata/spatialseries.html:108
+#: showdata/templates/showdata/timeseries.html:49
 msgid "Prev"
 msgstr "Prima"
 
-#: showdata/templates/showdata/rainbospatialseries.html:171
-#: showdata/templates/showdata/spatialseries.html:109
-#: showdata/templates/showdata/timeseries.html:53
+#: showdata/templates/showdata/rainbospatialseries.html:172
+#: showdata/templates/showdata/spatialseries.html:113
+#: showdata/templates/showdata/timeseries.html:54
 msgid "Next"
 msgstr "Dopo"
 
-#: showdata/templates/showdata/rainbospatialseries.html:178
-#: showdata/templates/showdata/spatialseries.html:125
+#: showdata/templates/showdata/rainbospatialseries.html:179
+#: showdata/templates/showdata/spatialseries.html:129
 msgid "Loading data"
 msgstr "Caricamento dati"
 
-#: showdata/templates/showdata/rainbospatialseries.html:179
-#: showdata/templates/showdata/spatialseries.html:126
-#: showdata/templates/showdata/stations.html:72
+#: showdata/templates/showdata/rainbospatialseries.html:180
+#: showdata/templates/showdata/spatialseries.html:130
+#: showdata/templates/showdata/stations.html:73
 msgid "Please wait ..."
 msgstr "Attendere per favore..."
 
-#: showdata/templates/showdata/rainbospatialseries.html:232
-#: showdata/templates/showdata/spatialseries.html:246
-#: showdata/templates/showdata/stations.html:126
+#: showdata/templates/showdata/rainbospatialseries.html:233
+#: showdata/templates/showdata/spatialseries.html:250
+#: showdata/templates/showdata/stations.html:127
 msgid "Please Wait..."
 msgstr "Attendere per favore..."
 
-#: showdata/templates/showdata/spatialseries.html:96
-#: showdata/templates/showdata/timeseries.html:40
+#: showdata/templates/showdata/spatialseries.html:100
+#: showdata/templates/showdata/timeseries.html:41
 msgid "More"
 msgstr "Di più"
 
-#: showdata/templates/showdata/spatialseries.html:117
-#: showdata/templates/showdata/timeseries.html:61
+#: showdata/templates/showdata/spatialseries.html:121
+#: showdata/templates/showdata/timeseries.html:62
 msgid "Less"
 msgstr "Meno"
 
-#: showdata/templates/showdata/spatialseries.html:287
+#: showdata/templates/showdata/spatialseries.html:291
 msgid "Graph for mobile station"
 msgstr "Grafico per stazione mobile"
 
-#: showdata/templates/showdata/spatialseries.html:297
+#: showdata/templates/showdata/spatialseries.html:301
 msgid "Graph data for station"
 msgstr "Grafico della stazione"
 
-#: showdata/templates/showdata/spatialseries.html:568
-msgid "Show all coordinates on a map"
-msgstr "Mostra tutte le coordinate su una mappa"
+#: showdata/templates/showdata/spatialseries.html:576
+#, fuzzy
+#| msgid "Show all stations"
+msgid "Show all stations on a map"
+msgstr "Mostra tutte le stazioni"
 
-#: showdata/templates/showdata/spatialseries.html:582
+#: showdata/templates/showdata/spatialseries.html:591
 msgid "Show all values on a graph"
 msgstr "Mostra tutti i valori in grafico"
 
-#: showdata/templates/showdata/spatialseries.html:599
-#: showdata/templates/showdata/stations.html:268
-#: showdata/templates/showdata/timeseries.html:115
+#: showdata/templates/showdata/spatialseries.html:604
+msgid "Show all coordinates on a map"
+msgstr "Mostra tutte le coordinate su una mappa"
+
+#: showdata/templates/showdata/spatialseries.html:618
+#: showdata/templates/showdata/stations.html:269
+#: showdata/templates/showdata/timeseries.html:116
 msgid "Download data"
 msgstr "Scarica i dati"
 
-#: showdata/templates/showdata/timeseries.html:93
+#: showdata/templates/showdata/timeseries.html:94
 msgid "Show values on a map"
 msgstr "Mostra valori sulla mappa"
+
+#, fuzzy
+#~| msgid ""
+#~| "Welcome to Rmap4RainBO crowdsourcing application developed in LIFE "
+#~| "RainBO project."
+#~ msgid ""
+#~ "Welcome to Rmap4RainBO crowdsourcing application developed by <a target=\\"
+#~ msgstr ""
+#~ "Benvenuto nell'applicazione di crowdsourcing Rmap4RainBO sviluppata "
+#~ "nell'ambito del progetto LIFE RainBO. "
+
+#~ msgid "Your station"
+#~ msgstr "La tua stazione"
+
+#~ msgid "Select configurated station"
+#~ msgstr "Seleziona una stazione configurata"
+
+#~ msgid "not significant"
+#~ msgstr "Niente di significativo"
+
+#~ msgid "Not_significant"
+#~ msgstr "Niente di significativo"
+
+#~ msgid "haze"
+#~ msgstr "foschia"
+
+#~ msgid "fog"
+#~ msgstr "nebbia"
+
+#~ msgid "intense"
+#~ msgstr "intenso"
+
+#~ msgid "moderate with rain"
+#~ msgstr "moderato con pioggia"
+
+#~ msgid "moderate with hail"
+#~ msgstr "moderato con grandine"
+
+#~ msgid "intense with rain"
+#~ msgstr "intenso con pioggia"
+
+#~ msgid "intense with hail"
+#~ msgstr "intenso con grandine"
+
+#~ msgid "rain"
+#~ msgstr "pioggia"
+
+#~ msgid "tornado"
+#~ msgstr "tromba d'aria"
+
+#~ msgid "Impact detected"
+#~ msgstr "Impatto rilevato"
+
+#~ msgid "New station name"
+#~ msgstr "Nome nuova stazione"
+
+#~ msgid "The name of the station to insert"
+#~ msgstr "Il nome della stazione da inserire"
+
+#~ msgid "station model"
+#~ msgstr "modello stazione"
+
+#~ msgid "The model of the station to insert"
+#~ msgstr "Il modello della stazione da inserire"
+
+#~ msgid "Contribute"
+#~ msgstr "Partecipa"
 
 #~ msgid ""
 #~ "The intensity of a liquid precipitation is measured in mm per hour and "

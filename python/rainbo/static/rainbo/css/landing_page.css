@@ -30,6 +30,15 @@ a.navbar-brand:hover{
     color: #1a242f !important;
 }
 
+.welcome-div a,
+.welcome-div a:hover,
+.welcome-div a:focus,
+.welcome-div a:active,
+.welcome-div a.active {
+    outline: 0;
+    color: #217dbb;
+    text-decoration: underline;
+}
 
 h1,
 h2,
