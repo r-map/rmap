@@ -199,7 +199,7 @@ class ttn2dballe(object):
                 numtemplate=bitextract(template,start,nbit)
                 
                 #                             TEMPLATE NUMBER 1
-                if numtemplate > 0 and numtemplate <= len(rmap_core.ttntemplate):
+                if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
 
                     try:
 
