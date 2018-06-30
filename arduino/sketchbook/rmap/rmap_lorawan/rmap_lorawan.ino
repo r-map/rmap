@@ -299,6 +299,9 @@ void powerdown(){
   wdt_enable(WDTO_8S);
   attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
 
+  // wait for sensor to go ready (for that powered by other source than mcu)
+  Delay(1000);
+  
   // I need to setup sensors after a powerdown
   for (int i = 0; i < sensors_len; i++) {
     if (sd[i] == NULL){
