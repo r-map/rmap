@@ -288,6 +288,7 @@ void powerdown(){
   wdt_disable();
   
   interrupts ();
+  //LMIC_shutdown();
   delay(3000); //flush any serial output
   sleep.pwrDownMode(); //set sleep mode
   //Sleep till interrupt pin equals a particular state.
@@ -297,6 +298,21 @@ void powerdown(){
   wdt_disable();
   wdt_enable(WDTO_8S);
   attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
+
+  // I need to setup sensors after a powerdown
+  for (int i = 0; i < sensors_len; i++) {
+    if (sd[i] == NULL){
+      LOGN(F("sensor absent %d"CR),i);
+    }else{
+      LOGN(F("sensor setup %d "CR),i);
+      sd[i]->setup(sensors[i].driver,sensors[i].address);
+    }
+  }
+
+  // restart LMIC
+  //LMIC_reset();
+  //LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
+
 }
 
 
@@ -554,12 +570,19 @@ void onEvent (ev_t ev) {
     break;
   case EV_BEACON_FOUND:
     LOGN(F("EV_BEACON_FOUND"CR));
+    /*
+    if(configuration.ping){
+      // send empty frame up to notify server of ping mode and interval!
+      LMIC_sendAlive();
+    }
+    */
     break;
   case EV_BEACON_MISSED:
     LOGN(F("EV_BEACON_MISSED"CR));
     break;
   case EV_BEACON_TRACKED:
     LOGN(F("EV_BEACON_TRACKED"CR));
+    LOGN(F("GPS time = "), LMIC.bcninfo.time);
     break;
   case EV_JOINING:
     LOGN(F("EV_JOINING"CR));
@@ -567,8 +590,10 @@ void onEvent (ev_t ev) {
     break;
   case EV_JOINED:
     LOGN(F("EV_JOINED"CR));
-    joinstatus=2;
+    LOGN(F("netid = %d"CR), LMIC.netid);
 
+    joinstatus=2;
+    
     //https://github.com/matthijskooijman/arduino-lmic/pull/64    
     if (configuration.mobile){
       // DISABLE THOSE FOR MOBILE STATION
@@ -580,6 +605,19 @@ void onEvent (ev_t ev) {
       LMIC_setLinkCheckMode(1);
       LMIC_setAdrMode(1);
     }
+
+    /*
+    if (configuration.beacon) {
+      // enable beacon
+      LMIC_enableTracking(0);
+    }
+    
+    if (configuration.ping) {
+      // enable ping
+      LMIC_setPingable(1);
+    }
+    */
+    
     break;
   case EV_RFU1:
     LOGN(F("EV_RFU1"CR));
@@ -606,12 +644,18 @@ void onEvent (ev_t ev) {
       }
     }
     
+    //break;    
+
+  case EV_RXCOMPLETE:
+
+    // data received in ping slot
+    LOGN(F("EV_RXCOMPLETE"CR));
+
     if (LMIC.dataLen) {
       LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
       // data received in rx slot after tx
-      //LOGN(F("Data Received: "));
-      //Serial.write(LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
-      //LOGN(CR);
+      LOGN(F("Data Received: %d %d"CR), LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
+
       /*
       if (LMIC.dataLen > 1) {
 	switch ((LMIC.frame + LMIC.dataBeg)[1]) {
@@ -624,18 +668,41 @@ void onEvent (ev_t ev) {
 	}
 
       }
-            */
-    }	    
-    break;    
+      */
+    }  
+
+    if(LMIC.dataLen == 1) {
+      // set PING if exactly one byte is received
+      LOGN(F("PING message %d"CR),LMIC.frame[LMIC.dataBeg] & 0x01);
+    }
+  
+    /*
+    u1_t f = LMIC.txrxFlags; // EV_XXCOMPLETE,FF[,PP[,DDDDDDDD...]]
+    buf = buffer_alloc(3 + len + 1 + 2 + ((f & TXRX_PORT) ? 3 : 0) + (LMIC.dataLen ? 1+2*LMIC.dataLen:0) + 2);
+    memcpy(buf, "EV_", 3);
+    memcpy(buf+3, evnames[ev], len);
+    len += 3;
+    buf[len++] = ',';
+    // flags
+    buf[len++] = (f & TXRX_ACK) ? 'A' : (f & TXRX_NACK) ? 'N' : '0';
+    buf[len++] = (f & TXRX_DNW1) ? '1' : (f & TXRX_DNW2) ? '2' : (f & TXRX_PING) ? 'P' : '0';
+    if(f & TXRX_PORT) { // port
+      buf[len++] = ',';
+      len += puthex(buf+len, &LMIC.frame[LMIC.dataBeg-1], 1);
+    }
+    if(LMIC.dataLen) { // downstream data
+      buf[len++] = ',';
+      len += puthex(buf+len, LMIC.frame+LMIC.dataBeg, LMIC.dataLen);
+    }
+    */
+
+    break;
+
   case EV_LOST_TSYNC:
     LOGN(F("EV_LOST_TSYNC"CR));
     break;
   case EV_RESET:
     LOGN(F("EV_RESET"CR));
-    break;
-  case EV_RXCOMPLETE:
-    // data received in ping slot
-    LOGN(F("EV_RXCOMPLETE"CR));
     break;
   case EV_LINK_DEAD:
     LOGN(F("EV_LINK_DEAD"CR));
@@ -794,15 +861,16 @@ void sleep_mgr_sensors() {
   sleep.pwrDownMode(); //set sleep mode
 
   unsigned int timetosleep=configuration.sampletime;
+  addsleepedtime(configuration.sampletime*1000UL);
   #define SLEEPSTEP 60    // max delay between a powerdown request and effectictive powerdown 
   while(timetosleep > SLEEPSTEP){
+    //LOGN(F("sleep..."CR));
     sleep.sleepDelay(SLEEPSTEP*1000UL); //sleep for SAMPLETIME
-    addsleepedtime(SLEEPSTEP*1000UL);
     timetosleep -= SLEEPSTEP;
+    //LOGN(F("have to sleep %d seconds"CR),timetosleep);
     if (checkpowerdown()) powerdown();
   }
   sleep.sleepDelay(timetosleep*1000UL); //sleep for SAMPLETIME
-  addsleepedtime(timetosleep*1000UL);
 
   delay(1000);
   LOGN(F("wake up"CR));  
@@ -1074,6 +1142,18 @@ void setup()
     //https://github.com/matthijskooijman/arduino-lmic/pull/23
     
     LMIC.dn2Dr = DR_SF9;
+
+    /*
+    if (configuration.beacon) {
+      // enable beacon
+      LMIC_enableTracking(0);
+    }
+    
+    if (configuration.ping) {
+      // enable ping
+      LMIC_setPingable(1);
+    }
+    */
     
     joinstatus = 2;
 
