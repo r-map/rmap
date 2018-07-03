@@ -854,6 +854,8 @@ class TransportMQTT(Transport):
 
         self.timeout=timeout
         self.start=0
+        self.connected=False
+        self.mid=-1
 
         self.topiccom=rpctopic+"/"+user+"/"+mac+"/com"
         self.topicres=rpctopic+"/"+user+"/"+mac+"/res"
@@ -884,17 +886,20 @@ class TransportMQTT(Transport):
         self.mqttc.loop_stop()
         self.mqttc.disconnect()
         self.log("Disconnected from broker; exiting on signal %d", signum)
+        self.connected=False
+
         sys.exit(signum)
 
     def on_connect(self,mosq, userdata, flags, rc):
         self.log("Connected to broker at %s" % (self.mqtt_host,))
+        self.connected=True
 
         self.log("Subscribing to topic %s" % self.topicres)
         self.mqttc.subscribe(self.topicres, 0)
 
     def on_publish(self,mosq, userdata, mid):
         self.log("pubblish %s with id %s" % (userdata, mid))
-
+        self.mid=mid        
 
     def on_message(self,mosq, userdata, msg):
 
@@ -911,6 +916,7 @@ class TransportMQTT(Transport):
 
     def on_disconnect(self,mosq, userdata, rc):
 
+        self.connected=False
         if rc == 0:
             self.log("Clean disconnection")
         else:
@@ -920,8 +926,16 @@ class TransportMQTT(Transport):
     def send(self, string):
         """write data to mqtt broker """
 
-        self.mqttc.publish(self.topiccom, payload=string, qos=0, retain=False)
+        while not self.connected:
+            self.log( "wait for connect" )
+            time.sleep(1)
+
+        mi=self.mqttc.publish(self.topiccom, payload=string, qos=0, retain=False)
         self.log( "mqtt publish : %s" % (string) )
+        
+        while not mi.mid == self.mid:
+            self.log( "wait for publish" )
+            time.sleep(1)
 
         self.start=time.time()
 
@@ -942,6 +956,7 @@ class TransportMQTT(Transport):
         self.ser.close()
         self.mqttc.loop_stop()
         self.mqtt.disconnect()
+        self.connected=False
         self.log( "mqtt connetion closed" )
 
 class TransportBLUETOOTH(Transport):
@@ -1108,6 +1123,161 @@ class TransportDUMMY(Transport):
     def close (self):
         pass
 
+
+class TransportTTN(Transport):
+    """
+    The Things Network transport over mqtt
+    (https://www.thethingsnetwork.org/docs/applications/mqtt/api.html).
+    """
+
+    def __init__(self,host="eu.thethings.network",appid=None,devid=None,password=None,confirmed=False,port=1,schedule="replace",timeout=1800,logfunc=log_dummy):
+
+    
+        import paho.mqtt.client as mqtt
+        import signal
+
+        self.mqtt_host = host
+        self.mqttc = mqtt.Client()
+        if appid is not None:
+            print "credenziali:",appid,password
+            self.mqttc.username_pw_set(appid,password)
+
+        self.mqttc.on_message = self.on_message
+        self.mqttc.on_connect = self.on_connect
+        self.mqttc.on_disconnect = self.on_disconnect
+        self.mqttc.on_publish = self.on_publish
+        self.mqttc.on_subscribe = self.on_subscribe
+        self.mqtt_lastmessage=""
+
+        self.timeout=timeout
+        self.start=0
+        self.connected=False
+        self.mid=-1
+
+        self.confirmed=confirmed
+        self.port=port
+        self.schedule=schedule
+
+        self.topiccom=appid+"/devices/"+devid+"/down"
+
+        if self.confirmed:
+            self.topicres=appid+"/devices/"+devid+"/events/down/acks"
+        else:
+            self.topicres=appid+"/devices/"+devid+"/events/down/sent"
+            # this is more relaxed
+            #self.topicres=appid+"/devices/"+devid+"/events/down/scheduled"
+
+        self.log    = logfunc
+        
+        self.log( "mqtt connect" )
+
+        rc=mqtt.MQTT_ERR_CONN_REFUSED
+        while ( not  (rc == mqtt.MQTT_ERR_SUCCESS)):
+            try:
+                rc=self.mqttc.connect(self.mqtt_host, 1883, 60)
+            except:
+                rc=mqtt.MQTT_ERR_CONN_REFUSED
+
+            if (not (rc == mqtt.MQTT_ERR_SUCCESS)):
+                self.log("Cannot connect to MQTT; retry in 5 seconds")
+                time.sleep(5)
+
+        signal.signal(signal.SIGTERM, self.cleanup)
+        signal.signal(signal.SIGINT, self.cleanup)
+
+        #self.mqttc.loop_forever()
+        self.mqttc.loop_start()
+
+    def cleanup(self,signum, frame):
+        '''Disconnect cleanly on SIGTERM or SIGINT'''
+
+        self.mqttc.loop_stop()
+        self.mqttc.disconnect()
+        self.connected=False
+        self.log("Disconnected from broker; exiting on signal %d", signum)
+        sys.exit(signum)
+
+    def on_connect(self,mosq, userdata, flags, rc):
+        self.log("Connected to broker at %s" % (self.mqtt_host,))
+        self.connected=True
+
+        self.log("Subscribing to topic %s" % self.topicres)
+        self.mqttc.subscribe(self.topicres, 0)
+
+    def on_publish(self,mosq, userdata, mid):
+        self.log("pubblished %s with id %s" % (userdata, mid))
+        self.mid=mid
+        
+    def on_message(self,mosq, userdata, msg):
+
+        # this remove all retained messages
+        # mosq.publish(msg.topic, payload=None, qos=0, retain=True)
+
+        self.log("Topic [%s]  payload [%s]" %
+                      (msg.topic, msg.payload))
+
+        #self.mqtt_lastmessage=msg.payload
+        self.mqtt_lastmessage='{"jsonrpc":"2.0","id":0,"result":{"ok":true}}'
+        
+    def on_subscribe(self,mosq, userdata, mid, granted_qos):
+        self.log("Subscribed: "+str(mid)+" "+str(granted_qos))
+
+    def on_disconnect(self,mosq, userdata, rc):
+
+        self.connected=False
+
+        if rc == 0:
+            self.log("Clean disconnection")
+        else:
+            self.log("Unexpected disconnect (rc %s); reconnecting in 5 seconds" % rc)
+            time.sleep(5)
+
+    def send(self, string):
+        """write data to mqtt broker """
+
+        #for ttn select "payload_raw" in "params"; purge others and add specific parameters like "port"
+        rpc=simplejson.loads(string)
+                
+        payloaddict={"confirmed":self.confirmed,"port":self.port,"schedule":self.schedule,"payload_raw":rpc["params"]["payload_raw"]}
+        payload=simplejson.dumps(payloaddict)        
+
+        self.log("ttn send: %s" % payload)
+        
+        while not self.connected:
+            self.log( "wait for connect" )
+            time.sleep(1)
+        
+        mi=self.mqttc.publish(self.topiccom, payload=payload, qos=0, retain=False)
+        self.log( "mqtt publish : %s" % (string) )
+
+        while not mi.mid == self.mid:
+            self.log( "wait for publish" )
+            time.sleep(1)
+        
+        self.start=time.time()
+
+    def recv(self):
+        """read data from mqtt broker """
+        if (time.time() - self.start) > self.timeout:
+            self.mqtt_lastmessage=""
+        else:
+            while (time.time() - self.start) < self.timeout and self.mqtt_lastmessage == "":
+                time.sleep(.1)
+
+        message=self.mqtt_lastmessage
+        self.log( "serial port (%s): %s" % ("RECEIVE",message) )
+        self.mqtt_lastmessage=""
+        return message
+
+    def close (self):
+        self.ser.close()
+        self.mqttc.loop_stop()
+        self.mqtt.disconnect()
+        self.connected=False
+        self.log( "mqtt connetion closed" )
+
+
+    
 import socket, select
 class TransportSocket(Transport):
     """Transport via socket.

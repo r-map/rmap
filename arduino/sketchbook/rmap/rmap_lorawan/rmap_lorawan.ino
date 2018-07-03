@@ -657,7 +657,16 @@ void onEvent (ev_t ev) {
     if (LMIC.dataLen) {
       LOGN(F("Received %d bytes of payload"CR),LMIC.dataLen);
       // data received in rx slot after tx
-      LOGN(F("Data Received: %d %d"CR), LMIC.frame + LMIC.dataBeg, LMIC.dataLen);
+
+      u1_t* buf= LMIC.frame + LMIC.dataBeg;
+      u2_t len=LMIC.dataLen;
+      LOGN(F("Data Received: "));
+      while(len--) {
+	LOGN(F(" %X"), *buf++);
+      }
+      LOGN(F(CR));
+
+      mgr_jsonrpc();
 
       /*
       if (LMIC.dataLen > 1) {
@@ -739,6 +748,49 @@ void do_send(uint8_t mydata[],size_t nbyte){
     sendstatus=1;
   }
 }
+ 
+
+ void mgr_jsonrpc(){
+   
+  const u1_t* buf= LMIC.frame + LMIC.dataBeg;
+  u2_t len=LMIC.dataLen;
+
+  unsigned long bit_offset=1; // bfix library start from 1, not 0
+  unsigned long bit_len=8;
+  
+  long jsrpc=bfx(buf, bit_offset, bit_len,2); // template number
+  bit_offset+=bit_len;
+  LOGN(F(" jsrpc %d"CR), jsrpc);
+
+  switch (jsrpc) {
+  case 1: {
+    bit_len=1;
+    long save=bfx(buf, bit_offset, bit_len,2); // template number
+    bit_offset+=bit_len;
+    LOGN(F(" save %d"CR), save);
+    
+    bit_len=16;
+    long sampletime=bfx(buf, bit_offset, bit_len,2); // template number
+    bit_offset+=bit_len;
+    LOGN(F(" sampletime %d"CR), sampletime);
+
+    configuration.sampletime=sampletime;
+    
+    if (save == 1){
+      LOGN(F("save configuration" CR));
+      configuration.save();
+    }
+    
+    break;
+  }
+    
+  default:
+    LOGN(F("Unknown jsrpc: %d"CR), jsrpc);
+    break;
+  }
+    
+}
+
 
 void mgr_serial(){
 
