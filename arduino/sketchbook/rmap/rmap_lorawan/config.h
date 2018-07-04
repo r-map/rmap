@@ -19,6 +19,9 @@
 //#define POWERPIN_PULL INPUT
 #define POWERPIN_PULL INPUT_PULLUP
 
+// define the output pins used for (relays)
+#define OUTPUTPINS D7,D8
+
 #define JOINRETRYDELAY 60UL
 
 // this should be removed !

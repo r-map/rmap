@@ -1473,3 +1473,74 @@ def configdb(username="rmap",password="rmap",
 
         # TODO Serial TCPIP
 
+def compact(myrpc,mydata):
+    def bin(s):
+        return str(s) if s<=1 else bin(s>>1) + str(s&1)
+
+    def bitprepend(template,bit,nbit):
+        return (template<<nbit) | bit
+
+    def bitextract(template,start,nbit):
+        return (template>>start)&((1 << nbit) - 1)
+
+    def bit2bytelist(template,totbit):
+        data=[]
+        start=totbit-8
+        while start >= 0:
+            data.append(bitextract(template,start,8))
+            start-=8
+        if start >=-7:
+            data.append(bitextract(template,0,8+start)<< -start )
+        return data
+
+    # start encoding
+    template=0
+    totbit=0
+    #set data template number
+    nbit=8
+    template=bitprepend(template,myrpc,nbit)
+    totbit+=nbit
+
+    #insert data
+    if (myrpc == 1):
+    
+        nbit=1
+        template=bitprepend(template,int(mydata["save"]),nbit)
+        totbit+=nbit
+        
+        nbit=16
+        template=bitprepend(template,mydata["sampletime"],nbit)
+        totbit+=nbit
+
+    elif (myrpc == 2):
+
+        #[{"n":0,"s":True},{"n":3,"s":False}]
+        for pin in mydata:
+            nbit=4
+            template=bitprepend(template,pin["n"],nbit)
+            totbit+=nbit
+        
+            nbit=1
+            template=bitprepend(template,pin["s"],nbit)
+            totbit+=nbit
+
+        
+    print "totbit: ",totbit
+    print bin(template)
+
+    #create a list of bytes
+    data=bit2bytelist(template,totbit)
+    
+    binstring=""
+    for byte in data:
+        binstring+=chr(byte)
+
+    
+    ##convert endian
+    #for i in xrange(0,len(data),2):
+    #    tmp=data[i]
+    #    data[i]=data[i+1]
+    #    data[i+1]=tmp
+        
+    return binstring
+

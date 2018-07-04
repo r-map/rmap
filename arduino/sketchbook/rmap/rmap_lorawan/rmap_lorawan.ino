@@ -119,6 +119,7 @@ const lmic_pinmap lmic_pins = {
 
 volatile bool pdown;
 
+const uint8_t pins [] = {OUTPUTPINS};
 
 // layout of session parameters
 typedef struct {
@@ -764,6 +765,11 @@ void do_send(uint8_t mydata[],size_t nbyte){
 
   switch (jsrpc) {
   case 1: {
+
+    if (len < 4) {
+      LOGE(F("template mismach"CR));
+      break;
+    }
     bit_len=1;
     long save=bfx(buf, bit_offset, bit_len,2); // template number
     bit_offset+=bit_len;
@@ -783,7 +789,33 @@ void do_send(uint8_t mydata[],size_t nbyte){
     
     break;
   }
+
+  case 2: {
+
+    len--;
+    while (len >= 5) {
+      len-=5;
+      bit_len=4;
+      long pin=bfx(buf, bit_offset, bit_len,2); // template number
+      bit_offset+=bit_len;
+      LOGN(F(" pin %d"CR), pin);
     
+      bit_len=1;
+      long state=bfx(buf, bit_offset, bit_len,2); // template number
+      bit_offset+=bit_len;
+      LOGN(F(" state %d"CR), state);
+
+      bool pinok = false;
+      for (uint8_t i=0;i < sizeof(pins)/sizeof(*pins) ;i++) 
+	if (pin == pins[i]) pinok=true;
+      if (!pinok) break;
+    
+      digitalWrite(pin, state);
+    }
+        
+    break;
+  }
+
   default:
     LOGN(F("Unknown jsrpc: %d"CR), jsrpc);
     break;
@@ -1079,6 +1111,12 @@ void setup()
   setTime(12,0,0,1,1,17); // set time to 12:00:00am Jan 1 2017
 #endif
 
+  // initialize the digital pin as an output
+  for (uint8_t i=0; i< sizeof(pins)/sizeof(*pins) ; i++){
+    pinMode(pins[i], OUTPUT);
+    LOGN(F("set pins for ATTUATORE: %d"CR),pins[i]);
+  }
+  
   if (configuration.mytemplate == 1 || configuration.mytemplate == 2){
     sensors_len=2;
     strcpy(sensors[0].driver,"I2C");
