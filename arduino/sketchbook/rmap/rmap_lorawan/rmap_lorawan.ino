@@ -754,7 +754,7 @@ void do_send(uint8_t mydata[],size_t nbyte){
  void mgr_jsonrpc(){
    
   const u1_t* buf= LMIC.frame + LMIC.dataBeg;
-  u2_t len=LMIC.dataLen;
+  unsigned int bitlen=LMIC.dataLen*8;
 
   unsigned long bit_offset=1; // bfix library start from 1, not 0
   unsigned long bit_len=8;
@@ -766,17 +766,17 @@ void do_send(uint8_t mydata[],size_t nbyte){
   switch (jsrpc) {
   case 1: {
 
-    if (len < 4) {
+    if (bitlen < 25) {
       LOGE(F("template mismach"CR));
       break;
     }
     bit_len=1;
-    long save=bfx(buf, bit_offset, bit_len,2); // template number
+    long save=bfx(buf, bit_offset, bit_len,2); // save parameter
     bit_offset+=bit_len;
     LOGN(F(" save %d"CR), save);
     
     bit_len=16;
-    long sampletime=bfx(buf, bit_offset, bit_len,2); // template number
+    long sampletime=bfx(buf, bit_offset, bit_len,2); // sampletime parameter
     bit_offset+=bit_len;
     LOGN(F(" sampletime %d"CR), sampletime);
 
@@ -792,27 +792,40 @@ void do_send(uint8_t mydata[],size_t nbyte){
 
   case 2: {
 
-    len--;
-    while (len >= 5) {
-      len-=5;
+    if (bitlen < 13) {
+      LOGE(F("template mismach"CR));
+      break;
+    }
+
+    while (bit_offset+5 <= bitlen+1 ) {
+      //LOGN("bit_offset %d; bitlen %d"CR, bit_offset+5, bitlen);
       bit_len=4;
-      long pin=bfx(buf, bit_offset, bit_len,2); // template number
+      long pin=bfx(buf, bit_offset, bit_len,2); // pin parameter
       bit_offset+=bit_len;
       LOGN(F(" pin %d"CR), pin);
     
       bit_len=1;
-      long state=bfx(buf, bit_offset, bit_len,2); // template number
+      long state=bfx(buf, bit_offset, bit_len,2); // state parameter
       bit_offset+=bit_len;
       LOGN(F(" state %d"CR), state);
+
+      if (pin == 0){
+	LOGN(F(" SKIP missed pin %d"CR), pin);
+	continue;
+      }
 
       bool pinok = false;
       for (uint8_t i=0;i < sizeof(pins)/sizeof(*pins) ;i++) 
 	if (pin == pins[i]) pinok=true;
-      if (!pinok) break;
-    
-      digitalWrite(pin, state);
+      if (pinok){
+	digitalWrite(pin, state);
+      }else{
+	LOGN(F(" SKIP not mapped pin %d"CR), pin);
+      }
     }
-        
+
+    //LOGN(F("final bit_offset %d ;  bitlen %d"CR), bit_offset+5, bitlen);
+      
     break;
   }
 
@@ -1000,6 +1013,9 @@ void setup()
     waitforconf=true;
   }
 
+  configuration.sampletime=60; // ++++++++++++++++
+  configuration.session.seqnoDn=0; // ++++++++++++++
+  
   pinMode(FORCECONFIGPIN, INPUT_PULLUP);
   pinMode(POWERPIN, POWERPIN_PULL);
 
