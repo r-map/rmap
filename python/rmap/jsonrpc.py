@@ -953,9 +953,8 @@ class TransportMQTT(Transport):
         return message
 
     def close (self):
-        self.ser.close()
         self.mqttc.loop_stop()
-        self.mqtt.disconnect()
+        self.mqttc.disconnect()
         self.connected=False
         self.log( "mqtt connetion closed" )
 
@@ -1270,9 +1269,8 @@ class TransportTTN(Transport):
         return message
 
     def close (self):
-        self.ser.close()
         self.mqttc.loop_stop()
-        self.mqtt.disconnect()
+        self.mqttc.disconnect()
         self.connected=False
         self.log( "mqtt connetion closed" )
 
@@ -1470,6 +1468,12 @@ class ServerProxy:
         #  result getattr(my_server_proxy, "strange-python-name")(args)
         return _method(self.__req, name)
 
+    #those are here for "with" statement
+    def __enter__(self, *args, **kwargs):
+        return self
+    def __exit__(self, type, value, traceback):
+        self.__transport.close()
+    
 # request dispatcher
 class _method:
     """some "magic" to bind an RPC method to an RPC server.

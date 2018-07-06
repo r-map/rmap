@@ -1,6 +1,6 @@
 appid="ttn2dballe"
 devid="prova"
-password="ttn-account-v2.Wv-dDe8CcyQy96STLVIEcGZehH2K3rKcP3LL38yCWmc"
+password="ttn-account-v2.your ttn password"
 confirmed=False
 port=1
 schedule="replace"
@@ -20,24 +20,24 @@ import base64
 
 ttntransport=jsonrpc.TransportTTN(appid=appid,devid=devid,password=password,confirmed=confirmed,port=port,schedule=schedule,logfunc=jsonrpc.log_stdout)
     
-rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),ttntransport)
-if (rpcproxy is None):
-    print ">>>>>>> Error building ttn transport"
-    raise SystemExit(1)
-else:
+with  jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),ttntransport) as rpcproxy:
+    if (rpcproxy is None):
+        print ">>>>>>> Error building ttn transport"
+        raise SystemExit(1)
+    else:
 
-    print ">>>>>>> execute ttn JSRPC"
+        print ">>>>>>> execute ttn JSRPC"
 
 
-    mydata=[{"n":4,"s":True},{"n":5,"s":False}]
-    data=rmap_core.compact(2,mydata)
-    print data
+        mydata=[{"n":7,"s":True},{"n":5,"s":False},{"n":4,"s":True},{"n":8,"s":False}]
+        mydata=[{"n":7,"s":True},{"n":5,"s":False}]
+        data=rmap_core.compact(2,mydata)
+        print data
         
-    payload_raw=base64.encodestring(data)
+        payload_raw=base64.encodestring(data)
+        
+        print "pinonoff",rpcproxy.pinonoff(payload_raw=payload_raw )
+    
+        print "END of ttn JSRPC"
 
-    print "pinonoff",rpcproxy.pinonoff(payload_raw=payload_raw )
-
-    print "END of ttn JSRPC"
-
-print server.shutdown()
 
