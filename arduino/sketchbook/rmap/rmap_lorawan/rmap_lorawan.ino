@@ -291,6 +291,7 @@ void powerdown(){
   interrupts ();
   //LMIC_shutdown();
   delay(3000); //flush any serial output
+  digitalWrite(POWERLED, 0);
   sleep.pwrDownMode(); //set sleep mode
   //Sleep till interrupt pin equals a particular state.
   sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
@@ -299,6 +300,7 @@ void powerdown(){
   wdt_disable();
   wdt_enable(WDTO_8S);
   attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
+  digitalWrite(POWERLED, 1);
 
   // wait for sensor to go ready (for that powered by other source than mcu)
   delay(1000);
@@ -1013,9 +1015,6 @@ void setup()
     waitforconf=true;
   }
 
-  configuration.sampletime=60; // ++++++++++++++++
-  configuration.session.seqnoDn=0; // ++++++++++++++
-  
   pinMode(FORCECONFIGPIN, INPUT_PULLUP);
   pinMode(POWERPIN, POWERPIN_PULL);
 
@@ -1132,6 +1131,9 @@ void setup()
     pinMode(pins[i], OUTPUT);
     LOGN(F("set pins for ATTUATORE: %d"CR),pins[i]);
   }
+
+  pinMode(POWERLED, OUTPUT);
+  digitalWrite(POWERLED, 1);
   
   if (configuration.mytemplate == 1 || configuration.mytemplate == 2){
     sensors_len=2;

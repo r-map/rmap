@@ -22,6 +22,9 @@
 // define the output pins used for (relays)
 #define OUTPUTPINS D7,D8
 
+// on when station is power on
+#define POWERLED D9
+
 #define JOINRETRYDELAY 60UL
 
 // this should be removed !
