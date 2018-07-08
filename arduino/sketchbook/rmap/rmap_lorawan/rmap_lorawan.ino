@@ -245,6 +245,10 @@ void unsetpowerdown(){
   pdown=false;
 }
 bool checkpowerdown(){
+  if (digitalRead(POWERPIN) == LOW) {
+    LOGN(F("recovery lost interrupt for powerdown" CR));
+    setpowerdown();
+  }
   return pdown;
 }
 
@@ -1245,7 +1249,7 @@ void setup()
 		     configuration.session.nwkkey,
 		     configuration.session.artkey);
     LMIC.seqnoDn = configuration.session.seqnoDn;
-    LMIC.seqnoUp = configuration.session.seqnoUp + 2; // avoid reuse of seq numbers
+    LMIC.seqnoUp = configuration.session.seqnoUp;
 
     // TTN uses SF9 for its RX2 window.
     //https://github.com/matthijskooijman/arduino-lmic#downlink-datarate
