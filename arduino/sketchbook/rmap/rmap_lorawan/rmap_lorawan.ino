@@ -289,6 +289,9 @@ void powerdown(){
   ///detachInterrupt(digitalPinToInterrupt(POWERPIN));
 
   LOGN(F("POWERDOWN" CR));
+  wdt_enable(WDTO_8S); while(1) {} 
+
+  /*
   wdt_disable();
   
   ///interrupts ();
@@ -328,6 +331,8 @@ void powerdown(){
   // restart LMIC
   //LMIC_reset();
   //LMIC_setClockError(MAX_CLOCK_ERROR * 1 / 100);
+
+  */
 
 }
 
@@ -1090,14 +1095,15 @@ void setup()
     delay(500); //flush any serial output
     digitalWrite(POWERLED, 0);
     sleep.pwrDownMode(); //set sleep mode
-    //Sleep till interrupt pin equals a particular state.
+
     if (digitalRead(POWERPIN) == LOW) {
-      detachInterrupt(digitalPinToInterrupt(POWERPIN));
       sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
-      EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
-      PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
-      attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
     }
+
+    EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+    PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
+    attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
+
     wdt_disable();
     wdt_reset();
     wdt_enable(WDTO_8S);
@@ -1111,13 +1117,13 @@ void setup()
   }
   
   ///noInterrupts ();
-  unsetpowerdown();
-  ///EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+  ///interrupts ();
+
   EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
   PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
   attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
-  ///interrupts ();
-
+  unsetpowerdown();
+  
   // wait for sensor to go ready (for that powered by other source than mcu)
   delay(1000);
 
