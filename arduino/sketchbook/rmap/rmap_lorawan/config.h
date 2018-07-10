@@ -16,7 +16,7 @@
 
 //pin that command power up and down
 #define POWERPIN D3
-//#define POWERPIN_PULL INPUT
+//define POWERPIN_PULL INPUT
 #define POWERPIN_PULL INPUT_PULLUP
 
 // define the output pins used for (relays)
@@ -37,3 +37,5 @@
 #define DEEPSLEEP
 
 #define digitalPinToInterrupt(p) ((p) == 2 ? 0 : ((p) == 3 ? 1 : ((p) >= 18 && (p) <= 21 ? 23 - (p) : NOT_AN_INTERRUPT)))
+
+#define SLEEPSTEP 60    // max delay between a powerdown request and effectictive powerdown 

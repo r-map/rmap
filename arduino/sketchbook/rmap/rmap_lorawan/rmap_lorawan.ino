@@ -257,14 +257,14 @@ void powerdown(){
   LOGN(F("entering powerdown" CR));
   delay(1000); //debounce time
 
-  noInterrupts ();
+  ///noInterrupts ();
   
   unsetpowerdown();
 
   
   if (digitalRead(POWERPIN) == HIGH) {
     LOGN(F("powerdown canceled" CR));
-    interrupts ();
+    ///interrupts ();
     return;
   }
 
@@ -282,32 +282,38 @@ void powerdown(){
 
   if (digitalRead(POWERPIN) == HIGH) {
     LOGN(F("powerdown canceled after save" CR));
-    interrupts ();
+    ///interrupts ();
     return;
   }
 
-  detachInterrupt(digitalPinToInterrupt(POWERPIN));
+  ///detachInterrupt(digitalPinToInterrupt(POWERPIN));
 
   LOGN(F("POWERDOWN" CR));
-  EIFR |= (1 << INTF1); // | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
   wdt_disable();
   
-  interrupts ();
+  ///interrupts ();
   //LMIC_shutdown();
-  delay(3000); //flush any serial output
+  delay(1000); //flush any serial output
   digitalWrite(POWERLED, 0);
   sleep.pwrDownMode(); //set sleep mode
   //Sleep till interrupt pin equals a particular state.
+  detachInterrupt(digitalPinToInterrupt(POWERPIN));
   sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
+  EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+  PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
+  attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
 
-  LOGN(F("WAKEUP" CR));
   wdt_disable();
   wdt_enable(WDTO_8S);
-  attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
   digitalWrite(POWERLED, 1);
+  LOGN(F("WAKE UP" CR));
 
   // wait for sensor to go ready (for that powered by other source than mcu)
-  delay(1000);
+  delay(5000);
+  wdt_reset();
+  
+  LOGN(F("POWER STABILIZED" CR));
+  ///attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
   
   // I need to setup sensors after a powerdown
   for (int i = 0; i < sensors_len; i++) {
@@ -968,13 +974,12 @@ void sleep_mgr_sensors() {
 
   unsigned int timetosleep=configuration.sampletime;
   addsleepedtime(configuration.sampletime*1000UL);
-  #define SLEEPSTEP 60    // max delay between a powerdown request and effectictive powerdown 
+
   while(timetosleep > SLEEPSTEP){
     //LOGN(F("sleep..."CR));
     sleep.sleepDelay(SLEEPSTEP*1000UL); //sleep for SAMPLETIME
     timetosleep -= SLEEPSTEP;
     //LOGN(F("have to sleep %d seconds"CR),timetosleep);
-    if (checkpowerdown()) powerdown();
   }
   sleep.sleepDelay(timetosleep*1000UL); //sleep for SAMPLETIME
 
@@ -996,6 +1001,47 @@ void setup()
   wdt_disable();
   wdt_enable(WDTO_8S);
 
+
+  //Unused IO pins on the microcontroller must not be left floating in
+  //an unknown state. Floating IO pins can consumes at least few tens
+  //of μA and that can add up quite a bit if you have few of them
+  //floating around. Configure unused IO pins to enable the build-in
+  //internal pull up.
+
+  // ***** Put unused pins into known state *****
+  pinMode(D0,  INPUT_PULLUP);
+  pinMode(D1,  INPUT_PULLUP);
+  pinMode(D2,  INPUT_PULLUP);
+  pinMode(D3,  INPUT_PULLUP);
+  pinMode(D4,  INPUT_PULLUP);
+  pinMode(D5,  INPUT_PULLUP);
+  pinMode(D6,  INPUT_PULLUP);
+  pinMode(D7,  INPUT_PULLUP);
+  pinMode(D8,  INPUT_PULLUP);
+  pinMode(D9,  INPUT_PULLUP);
+  pinMode(D10, INPUT_PULLUP);
+  pinMode(D11, INPUT_PULLUP);
+  pinMode(D12, INPUT_PULLUP);
+  pinMode(A1,  INPUT_PULLUP);
+  pinMode(A2,  INPUT_PULLUP);
+  pinMode(A3,  INPUT_PULLUP);
+  pinMode(A4,  INPUT_PULLUP);
+  pinMode(A5,  INPUT_PULLUP);
+  pinMode(A6,  INPUT_PULLUP);
+  pinMode(A7,  INPUT_PULLUP);
+  
+  pinMode(POWERLED, OUTPUT);
+  digitalWrite(POWERLED, 1);
+  delay(1000);
+  digitalWrite(POWERLED, 0);
+  delay(1000);
+  digitalWrite(POWERLED, 1);
+  delay(1000);
+  digitalWrite(POWERLED, 0);
+  delay(1000);
+  digitalWrite(POWERLED, 1);
+  wdt_reset();
+  
   bool waitforconf=false;
 
   // register the local method
@@ -1011,6 +1057,7 @@ void setup()
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
 
   LOGN(F("Started"CR));
+  wdt_reset();
   
   if (configuration.load()){
     LOGN(F("Configuration loaded" CR));
@@ -1031,11 +1078,49 @@ void setup()
     mgr_serial();
     wdt_reset();
   }
+  wdt_reset();
 
-  noInterrupts ();
+  if (digitalRead(POWERPIN) == LOW) {
+    LOGN(F("WAIT FOR POWER" CR));
+    wdt_disable();  
+    ///interrupts ();
+    digitalWrite(POWERLED, 0);
+    delay(500); //flush any serial output
+    digitalWrite(POWERLED, 1);
+    delay(500); //flush any serial output
+    digitalWrite(POWERLED, 0);
+    sleep.pwrDownMode(); //set sleep mode
+    //Sleep till interrupt pin equals a particular state.
+    if (digitalRead(POWERPIN) == LOW) {
+      detachInterrupt(digitalPinToInterrupt(POWERPIN));
+      sleep.sleepInterrupt(digitalPinToInterrupt(POWERPIN),RISING); //(interrupt Number, interrupt State)
+      EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+      PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
+      attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
+    }
+    wdt_disable();
+    wdt_reset();
+    wdt_enable(WDTO_8S);
+    LOGN(F("POWER RETURNED" CR));
+    digitalWrite(POWERLED, 1);
+    delay(500);
+    digitalWrite(POWERLED, 0);
+    delay(500);
+    digitalWrite(POWERLED, 1);
+    wdt_reset();
+  }
+  
+  ///noInterrupts ();
   unsetpowerdown();
-  attachInterrupt(digitalPinToInterrupt(POWERPIN),setpowerdown,FALLING);
-  interrupts ();
+  ///EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+  EIFR |= (1 << INTF1) | (1 << INTF0);    //https://github.com/arduino/Arduino/issues/510
+  PCIFR  |= bit (PCIF1);   // clear any outstanding interrupts
+  attachInterrupt(digitalPinToInterrupt(POWERPIN),powerdown,FALLING);
+  ///interrupts ();
+
+  // wait for sensor to go ready (for that powered by other source than mcu)
+  delay(1000);
+
   
   LOGN(F("sampletime: %d"CR),configuration.sampletime);
   LOGN(F("ack: %d"CR),configuration.ack);
@@ -1135,9 +1220,6 @@ void setup()
     pinMode(pins[i], OUTPUT);
     LOGN(F("set pins for ATTUATORE: %d"CR),pins[i]);
   }
-
-  pinMode(POWERLED, OUTPUT);
-  digitalWrite(POWERLED, 1);
   
   if (configuration.mytemplate == 1 || configuration.mytemplate == 2){
     sensors_len=2;
@@ -1167,17 +1249,7 @@ void setup()
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
-  
-
-  //Unused IO pins on the microcontroller must not be left floating in
-  //an unknown state. Floating IO pins can consumes at least few tens
-  //of μA and that can add up quite a bit if you have few of them
-  //floating around. Configure unused IO pins to enable the build-in
-  //internal pull up.
-
-  // ***** Put unused pins into known state *****
-  //pinMode(0, INPUT_PULLUP)
-  
+    
   // LMIC init
   os_init();
   // Reset the MAC state. Session and pending data transfers will be discarded.
