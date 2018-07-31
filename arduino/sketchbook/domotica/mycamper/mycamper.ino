@@ -276,98 +276,106 @@ void setup() {
 
   delay(1000);
   
-  //if (digitalRead(RESET_PIN) == LOW) {
-  if (false) {
-    LOGN(F("Wait for wifi configuration" CR));
-    if (oledpresent) {
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
-      u8g2.print(F("Wait conf"));
-      u8g2.sendBuffer();
-      delay(3000);
-    }
-    
-    //WiFiManager
-    //Local intialization. Once its business is done, there is no need to keep it around
-    WiFiManager wifiManager;
-
-    //wifiManager.resetSettings();
-    
-    //set static ip
-    //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-    
-    //set minimum quality of signal so it ignores AP's under that quality
-    //defaults to 8%
-    //wifiManager.setMinimumSignalQuality();
-    
-    //sets timeout until configuration portal gets turned off
-    //useful to make it all retry or go to sleep
-    //in seconds
-    wifiManager.setTimeout(180);
-
-    
-    if (oledpresent) {
-      u8g2.clearBuffer();
-      u8g2.setCursor(0, 10); 
-      u8g2.print(F("ssed:"));
-      u8g2.setCursor(0, 20); 
-      u8g2.print(F(WIFI_SSED));
-      u8g2.setCursor(0, 35); 
-      u8g2.print(F("password:"));
-      u8g2.setCursor(0, 45); 
-      u8g2.print(F(WIFI_PASSWORD));
-      u8g2.sendBuffer();
-    }
-    
-    analogWrite(LED_PIN,512);
-  
-    //fetches ssid and pass and tries to connect
-    //if it does not connect it starts an access point with the specified name
-    //here  "AutoConnectAP"
-    //and goes into a blocking loop awaiting configuration
-    //wifiManager.setDebugOutput(false);
-				  
-    if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-      LOGN(F("failed to connect and hit timeout" CR));
+  if (digitalRead(RESET_PIN) == LOW) {
+    if (false) {
+      LOGN(F("Wait for wifi configuration" CR));
       if (oledpresent) {
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 10); 
-	u8g2.print(F("WIFI KO"));
+	u8g2.print(F("Wait conf"));
 	u8g2.sendBuffer();
+	delay(3000);
       }
-      delay(3000);
-      reboot();
-    }else{
-  
-      //if you get here you have connected to the WiFi
-      LOGN(F("connected... good!" CR));
+      
+      //WiFiManager
+      //Local intialization. Once its business is done, there is no need to keep it around
+      WiFiManager wifiManager;
+
+      //wifiManager.resetSettings();
+      
+      //set static ip
+      //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+      
+      //set minimum quality of signal so it ignores AP's under that quality
+      //defaults to 8%
+      //wifiManager.setMinimumSignalQuality();
+      
+      //sets timeout until configuration portal gets turned off
+      //useful to make it all retry or go to sleep
+      //in seconds
+      wifiManager.setTimeout(180);
+      
+    
       if (oledpresent) {
 	u8g2.clearBuffer();
 	u8g2.setCursor(0, 10); 
-	u8g2.print(F("WIFI OK"));
-	u8g2.sendBuffer();
+	u8g2.print(F("ssed:"));
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F(WIFI_SSED));
+	u8g2.setCursor(0, 35); 
+	u8g2.print(F("password:"));
+	u8g2.setCursor(0, 45); 
+	u8g2.print(F(WIFI_PASSWORD));
+      u8g2.sendBuffer();
       }
-      digitalWrite(LED_PIN,HIGH);
-      LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
-    
-    
-      if (oledpresent) {
-	u8g2.setCursor(0, 40); 
-	u8g2.print(F("IP:"));
-	u8g2.setFont(u8g2_font_u8glib_4_tf);
-	u8g2.print(WiFi.localIP().toString().c_str());
-	u8g2.setFont(u8g2_font_5x7_tf);
-	u8g2.sendBuffer();
-      }
-
-      firmware_upgrade();
-    }
+      
+      analogWrite(LED_PIN,512);
+      
+      //fetches ssid and pass and tries to connect
+      //if it does not connect it starts an access point with the specified name
+      //here  "AutoConnectAP"
+      //and goes into a blocking loop awaiting configuration
+      //wifiManager.setDebugOutput(false);
+      
+      if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
+	LOGN(F("failed to connect and hit timeout" CR));
+	if (oledpresent) {
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print(F("WIFI KO"));
+	  u8g2.sendBuffer();
+	}
+	delay(3000);
+	reboot();
+      }else{
   
+	//if you get here you have connected to the WiFi
+	LOGN(F("connected... good!" CR));
+	if (oledpresent) {
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print(F("WIFI OK"));
+	  u8g2.sendBuffer();
+	}
+	digitalWrite(LED_PIN,HIGH);
+	LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
+	
+	
+	if (oledpresent) {
+	  u8g2.setCursor(0, 40); 
+	  u8g2.print(F("IP:"));
+	  u8g2.setFont(u8g2_font_u8glib_4_tf);
+	  u8g2.print(WiFi.localIP().toString().c_str());
+	  u8g2.setFont(u8g2_font_5x7_tf);
+	u8g2.sendBuffer();
+	}
+	
+	firmware_upgrade();
+      }
+    }
   }
   
   //read configuration from FS json
   LOGN(F("mounting FS..." CR));
   if (SPIFFS.begin()) {
+    Serial.println();  
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
+      Serial.println();
+    }
   } else {
     LOGN(F("failed to mount FS" CR));
     if (oledpresent) {
@@ -377,16 +385,6 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
-    Serial.println();
-  
-    Dir dir = SPIFFS.openDir("/");
-    while (dir.next()) {
-      String fileName = dir.fileName();
-      size_t fileSize = dir.fileSize();
-      Serial.printf("FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
-      Serial.println();
-    }
-
   }
 
 
@@ -415,7 +413,7 @@ void setup() {
   server.serveStatic("/js", SPIFFS, "/js");
   server.serveStatic("/css", SPIFFS, "/css");
   server.serveStatic("/img", SPIFFS, "/img");
-  server.serveStatic("/", SPIFFS, "/index.html");
+  server.serveStatic("/", SPIFFS, "/");
 
   server.begin();
   LOGN(F("HTTP server started" CR));
