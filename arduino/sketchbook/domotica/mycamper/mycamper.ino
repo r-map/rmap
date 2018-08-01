@@ -17,24 +17,6 @@
  */
 
 
-// increment on change
-#define SOFTWARE_VERSION "2018-07-31T00:00"
-#define FIRMWARE_TYPE "DOMOTICA"
-
-#define SCL D1
-#define SDA D2
-#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
-#define LED_PIN D4
-
-const char* rmap_server= "rmap.cc";
-#define WIFI_SSED "mycamper"
-#define WIFI_PASSWORD  "ford1234"
-#define OLEDI2CADDRESS 0X3C
-
-// set the frequency
-// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
-#define I2C_CLOCK 30418
-
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
@@ -51,6 +33,33 @@ const char* rmap_server= "rmap.cc";
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <U8g2lib.h>
+//#include <IRremote.h>             // Include IR Remote Library by Ken Shirriff
+#include <IRremoteESP8266.h>
+#include <IRrecv.h>
+#include <IRutils.h>
+
+
+// increment on change
+#define SOFTWARE_VERSION "2018-07-31T00:00"
+#define FIRMWARE_TYPE "DOMOTICA"
+
+//#define I2CPULLUP Yes
+
+#define RECV_PIN  D0    // Define IR sensor pin
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D3    // pin to connect to ground for reset wifi configuration
+#define LED_PIN D4
+const uint8_t GPIOPIN[4] = {D5,D6,D7,D8};  // output pins
+
+const char* rmap_server= "rmap.cc";
+#define WIFI_SSED "mycamper"
+#define WIFI_PASSWORD  "ford1234"
+#define OLEDI2CADDRESS 0X3C
+
+// set the frequency
+// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
+#define I2C_CLOCK 30418
 
 // logging level at compile time
 // Available levels are:
@@ -58,9 +67,12 @@ const char* rmap_server= "rmap.cc";
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 
+// Define IR Receiver and Results Objects
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
-
   
 //const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
@@ -69,16 +81,16 @@ const int update_port = 80;
 WiFiClient espClient;
 //PubSubClient mqttclient(espClient);
 
-
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
 unsigned short int displaypos;
 
-const uint8_t GPIOPIN[4] = {D5,D6,D7,D8};  // Led
-
-// Création des objets / create Objects
+// create Objects
 ESP8266WebServer server ( 80 );
 DNSServer dnsServer;
+
+unsigned short int togglestate=0;
+
 
 void firmware_upgrade() {
 
@@ -163,15 +175,14 @@ void updateGpio(){
   String gpio = server.arg("id");
   String etat = server.arg("etat");
   String success = "1";
-  int pin = D5;
-  if ( gpio == "D5" ) {
-    pin = D5;
-  } else if ( gpio == "D7" ) {
-    pin = D7;
-  } else if ( gpio == "D8" ) {
-    pin = D8;  
-  } else {   
-      pin = D5;
+  int pin = GPIOPIN[0];
+
+  Serial.println(gpio);  
+  const char* cind = gpio.c_str(); 
+  int ind = atoi(cind);
+ 
+  if ( ind >= 0 && ind <= 4 ) {
+    pin = GPIOPIN[ind];
   }
   LOGN(F("pin: %d" CR),pin);
 
@@ -180,7 +191,7 @@ void updateGpio(){
   } else if ( etat == "0" ) {
     digitalWrite(pin, LOW);
   } else {
-    success = "1";
+    success = "0";
     //LOGE(F("Err pin value: %d" CR),etat);    
   }
   
@@ -193,19 +204,97 @@ void updateGpio(){
 }
 
 
-void setup() {
-     
-  pinMode(RESET_PIN, INPUT_PULLUP);
-  pinMode(LED_PIN, OUTPUT);
-  analogWriteFreq(1);
-  digitalWrite(LED_PIN,HIGH);
-
-  for ( int x = 0 ; x < 5 ; x++ ) {
-    pinMode(GPIOPIN[x], OUTPUT);
+void tryupgrade(){
+  LOGN(F("Wait for wifi configuration" CR));
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("Wait conf"));
+    u8g2.sendBuffer();
+    delay(3000);
   }
   
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wifiManager;
+
+  //wifiManager.resetSettings();
+  
+  //set static ip
+  //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+  
+  //set minimum quality of signal so it ignores AP's under that quality
+  //defaults to 8%
+  //wifiManager.setMinimumSignalQuality();
+  
+  //sets timeout until configuration portal gets turned off
+  //useful to make it all retry or go to sleep
+  //in seconds
+  wifiManager.setTimeout(180);
+  
+  
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("ssed:"));
+    u8g2.setCursor(0, 20); 
+    u8g2.print(F(WIFI_SSED));
+    u8g2.setCursor(0, 35); 
+    u8g2.print(F("password:"));
+    u8g2.setCursor(0, 45); 
+    u8g2.print(F(WIFI_PASSWORD));
+    u8g2.sendBuffer();
+  }
+  
+  analogWrite(LED_PIN,512);
+  
+  //fetches ssid and pass and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
+  //and goes into a blocking loop awaiting configuration
+  //wifiManager.setDebugOutput(false);
+  
+  if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
+    LOGN(F("failed to connect and hit timeout" CR));
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("WIFI KO"));
+      u8g2.sendBuffer();
+    }
+    delay(3000);
+    reboot();
+  }else{
+    
+    //if you get here you have connected to the WiFi
+    LOGN(F("connected... good!" CR));
+    if (oledpresent) {
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 10); 
+      u8g2.print(F("WIFI OK"));
+      u8g2.sendBuffer();
+    }
+    digitalWrite(LED_PIN,HIGH);
+    LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
+    
+    
+    if (oledpresent) {
+      u8g2.setCursor(0, 40); 
+      u8g2.print(F("IP:"));
+      u8g2.setFont(u8g2_font_u8glib_4_tf);
+      u8g2.print(WiFi.localIP().toString().c_str());
+      u8g2.setFont(u8g2_font_5x7_tf);
+      u8g2.sendBuffer();
+    }
+    
+    firmware_upgrade();
+  }
+}
+
+
+void setup() {
+     
   Serial.begin ( 115200 );
-  LOGN(F("Started" CR));
 
   // Pass log level, whether to show log level, and print interface.
   // Available levels are:
@@ -217,9 +306,17 @@ void setup() {
   Log.begin(LOG_LEVEL, &Serial);
   LOGN(F("Started" CR));
   LOGN(F("Version: " SOFTWARE_VERSION CR));
-
-  /*
   
+    
+  pinMode(RESET_PIN, INPUT_PULLUP);
+  pinMode(LED_PIN, OUTPUT);
+  analogWriteFreq(1);
+  digitalWrite(LED_PIN,HIGH);
+  
+  for ( int x = 0 ; x < 5 ; x++ ) {
+    pinMode(GPIOPIN[x], OUTPUT);
+  }
+
 #ifdef I2CPULLUP
   //if you want to set the internal pullup
   digitalWrite( SDA, HIGH);
@@ -232,9 +329,8 @@ void setup() {
 
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
-  */
-
-
+  delay(1000);
+  
   // check return value of
   // the Write.endTransmisstion to see if
   // a device did acknowledge to the address.
@@ -270,102 +366,12 @@ void setup() {
   delay(1000);
   digitalWrite(LED_PIN,HIGH);
 
-
-
   configTime(0, 0, "0.europe.pool.ntp.org");
 
+  irrecv.enableIRIn();  // Start the receiver
+    
   delay(1000);
   
-  if (digitalRead(RESET_PIN) == LOW) {
-    if (false) {
-      LOGN(F("Wait for wifi configuration" CR));
-      if (oledpresent) {
-	u8g2.clearBuffer();
-	u8g2.setCursor(0, 10); 
-	u8g2.print(F("Wait conf"));
-	u8g2.sendBuffer();
-	delay(3000);
-      }
-      
-      //WiFiManager
-      //Local intialization. Once its business is done, there is no need to keep it around
-      WiFiManager wifiManager;
-
-      //wifiManager.resetSettings();
-      
-      //set static ip
-      //wifiManager.setSTAStaticIPConfig(IPAddress(10,0,1,99), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-      
-      //set minimum quality of signal so it ignores AP's under that quality
-      //defaults to 8%
-      //wifiManager.setMinimumSignalQuality();
-      
-      //sets timeout until configuration portal gets turned off
-      //useful to make it all retry or go to sleep
-      //in seconds
-      wifiManager.setTimeout(180);
-      
-    
-      if (oledpresent) {
-	u8g2.clearBuffer();
-	u8g2.setCursor(0, 10); 
-	u8g2.print(F("ssed:"));
-	u8g2.setCursor(0, 20); 
-	u8g2.print(F(WIFI_SSED));
-	u8g2.setCursor(0, 35); 
-	u8g2.print(F("password:"));
-	u8g2.setCursor(0, 45); 
-	u8g2.print(F(WIFI_PASSWORD));
-      u8g2.sendBuffer();
-      }
-      
-      analogWrite(LED_PIN,512);
-      
-      //fetches ssid and pass and tries to connect
-      //if it does not connect it starts an access point with the specified name
-      //here  "AutoConnectAP"
-      //and goes into a blocking loop awaiting configuration
-      //wifiManager.setDebugOutput(false);
-      
-      if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-	LOGN(F("failed to connect and hit timeout" CR));
-	if (oledpresent) {
-	  u8g2.clearBuffer();
-	  u8g2.setCursor(0, 10); 
-	  u8g2.print(F("WIFI KO"));
-	  u8g2.sendBuffer();
-	}
-	delay(3000);
-	reboot();
-      }else{
-  
-	//if you get here you have connected to the WiFi
-	LOGN(F("connected... good!" CR));
-	if (oledpresent) {
-	  u8g2.clearBuffer();
-	  u8g2.setCursor(0, 10); 
-	  u8g2.print(F("WIFI OK"));
-	  u8g2.sendBuffer();
-	}
-	digitalWrite(LED_PIN,HIGH);
-	LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
-	
-	
-	if (oledpresent) {
-	  u8g2.setCursor(0, 40); 
-	  u8g2.print(F("IP:"));
-	  u8g2.setFont(u8g2_font_u8glib_4_tf);
-	  u8g2.print(WiFi.localIP().toString().c_str());
-	  u8g2.setFont(u8g2_font_5x7_tf);
-	u8g2.sendBuffer();
-	}
-	
-	firmware_upgrade();
-      }
-    }
-  }
-  
-  //read configuration from FS json
   LOGN(F("mounting FS..." CR));
   if (SPIFFS.begin()) {
     Serial.println();  
@@ -424,5 +430,89 @@ void loop() {
   // put your main code here, to run repeatedly:
   dnsServer.processNextRequest();
   server.handleClient();
+
+  if (irrecv.decode(&results)){
+    // Print Code in HEX
+    serialPrintUint64(results.value, HEX);
+
+    switch(results.value){
+    case 0xFECA35: //Red Keypad Button
+      // Turn on LED for 2 Seconds
+      digitalWrite(GPIOPIN[1], HIGH);
+      delay(2000);
+      digitalWrite(GPIOPIN[1], LOW);
+      break;
+      
+    case 0xFE8A75: //Yellow Keypad Button
+      // Toggle LED On or Off
+      if(togglestate==0){
+        digitalWrite( GPIOPIN[0] , HIGH);
+        togglestate=1;
+      }
+      else {
+        digitalWrite(GPIOPIN[0], LOW);
+        togglestate=0;
+      }
+      break;
+      
+    }
+
+    switch (results.decode_type){
+    case NEC: 
+      Serial.println("NEC"); 
+      break;
+    case SONY: 
+      Serial.println("SONY"); 
+      break;
+    case RC5: 
+      Serial.println("RC5"); 
+      break;
+    case RC6: 
+      Serial.println("RC6"); 
+      break;
+    case DISH: 
+      Serial.println("DISH"); 
+      break;
+    case SHARP: 
+      Serial.println("SHARP"); 
+      break;
+    case JVC: 
+      Serial.println("JVC"); 
+      break;
+    case SANYO: 
+      Serial.println("SANYO"); 
+      break;
+    case MITSUBISHI: 
+      Serial.println("MITSUBISHI"); 
+      break;
+    case SAMSUNG: 
+      Serial.println("SAMSUNG"); 
+      break;
+    case LG: 
+      Serial.println("LG"); 
+      break;
+    case WHYNTER: 
+      Serial.println("WHYNTER"); 
+      break;
+    case AIWA_RC_T501: 
+      Serial.println("AIWA_RC_T501"); 
+      break;
+    case PANASONIC: 
+      Serial.println("PANASONIC"); 
+      break;
+    case DENON: 
+      Serial.println("DENON"); 
+      break;
+    default:
+    case UNKNOWN: 
+      Serial.println("UNKNOWN"); 
+      break;
+    }
+    
+    irrecv.resume();
+  }
+
+  if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
+
 }
 
