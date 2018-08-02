@@ -45,12 +45,12 @@
 
 //#define I2CPULLUP Yes
 
-#define RECV_PIN  D0    // Define IR sensor pin
+#define RECV_PIN  D5    // Define IR sensor pin
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D3    // pin to connect to ground for reset wifi configuration
 #define LED_PIN D4
-const uint8_t GPIOPIN[4] = {D5,D6,D7,D8};  // output pins
+const uint8_t GPIOPIN[4] = {D0,D6,D7,D8};  // output pins
 
 const char* rmap_server= "rmap.cc";
 #define WIFI_SSED "mycamper"
@@ -89,7 +89,10 @@ unsigned short int displaypos;
 ESP8266WebServer server ( 80 );
 DNSServer dnsServer;
 
-unsigned short int togglestate=0;
+//unsigned short int togglestate1=0;
+//unsigned short int togglestate2=0;
+//unsigned short int togglestate3=0;
+//unsigned short int togglestate4=0;
 
 
 void firmware_upgrade() {
@@ -203,7 +206,7 @@ void updateGpio(){
   LOGN(F("GPIO updated" CR));
 }
 
-
+/*
 void tryupgrade(){
   LOGN(F("Wait for wifi configuration" CR));
   if (oledpresent) {
@@ -290,7 +293,7 @@ void tryupgrade(){
     firmware_upgrade();
   }
 }
-
+*/
 
 void setup() {
      
@@ -430,33 +433,47 @@ void loop() {
   // put your main code here, to run repeatedly:
   dnsServer.processNextRequest();
   server.handleClient();
-
+  
   if (irrecv.decode(&results)){
     // Print Code in HEX
-    serialPrintUint64(results.value, HEX);
+    //serialPrintUint64(results.value, HEX);
+    //Serial.print(" : ");
+    //Serial.print(results.decode_type);
+    //Serial.print(" : ");
+    //Serial.println(NEC);
+    if (results.decode_type == NEC) {
+      short int ind;
 
-    switch(results.value){
-    case 0xFECA35: //Red Keypad Button
-      // Turn on LED for 2 Seconds
-      digitalWrite(GPIOPIN[1], HIGH);
-      delay(2000);
-      digitalWrite(GPIOPIN[1], LOW);
-      break;
-      
-    case 0xFE8A75: //Yellow Keypad Button
-      // Toggle LED On or Off
-      if(togglestate==0){
-        digitalWrite( GPIOPIN[0] , HIGH);
-        togglestate=1;
+      switch(results.value){
+      case 0xFF906F: // 1 Keypad Button
+	ind=0;
+	break;
+	
+      case 0xFFB847: // 2 Keypad Button
+	ind=1;
+	break;
+
+      case 0xFFF807: // 3 Keypad Button
+	ind=2;
+	break;
+	
+      case 0xFFB04F: // 4 Keypad Button
+	ind=3;
+	break;
+	
+      default:
+	ind=-1;	
+	break;
       }
-      else {
-        digitalWrite(GPIOPIN[0], LOW);
-        togglestate=0;
+
+      if (ind>=0){
+	LOGN(F("received key %d" CR),ind+1);
+	// Toggle LED On or Off
+	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
       }
-      break;
-      
     }
 
+    /*
     switch (results.decode_type){
     case NEC: 
       Serial.println("NEC"); 
@@ -508,11 +525,12 @@ void loop() {
       Serial.println("UNKNOWN"); 
       break;
     }
+    */
     
     irrecv.resume();
   }
 
-  if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
+  //if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
 
 }
 
