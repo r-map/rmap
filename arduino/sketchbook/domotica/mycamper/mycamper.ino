@@ -468,6 +468,13 @@ void loop() {
 
       if (ind>=0){
 	LOGN(F("received key %d" CR),ind+1);
+	if (oledpresent) {
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print(F("key "));
+	  u8g2.print(ind+1);
+	  u8g2.sendBuffer();
+	}
 	// Toggle LED On or Off
 	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
       }
