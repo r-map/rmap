@@ -910,6 +910,11 @@ report_measurements=[
         "level": (1, None, None, None),
         "trange": (254, 0, 0),
     },
+    {
+        "var": "B25192",
+        "level": (265, 1, None, None),
+        "trange": (254, 0, 0),
+    },
 ]
 
 
