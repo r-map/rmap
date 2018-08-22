@@ -16,14 +16,14 @@ try:
     import dballe
     dballepresent=True
 except ImportError:
-    print "dballe utilities disabled"
+    print("dballe utilities disabled")
     dballepresent=False
 
 try:
     from django.contrib.gis.geos import Point
     gdalpresent=True
 except:
-    print "gdal utilities disabled"
+    print("gdal utilities disabled")
     gdalpresent=False
 
     
@@ -164,7 +164,7 @@ class Sensor(models.Model):
 
     def __unicode__(self):
         #return u'%s-%s-%s-%s-%d-%s-%s-%s' % (self.name,self.active,self.driver,self.type,self.address,self.timerange,self.level,self.board)
-        return u'%s-%s-%s' % (self.name,self.active,self.driver)
+        return '%s-%s-%s' % (self.name,self.active,self.driver)
 
 
 
@@ -224,7 +224,7 @@ class SensorType(models.Model):
         #unique_together = (('name', 'type'),)
 
     def __unicode__(self):
-        return u'%s-%s-%s' % (self.name,self.active,self.type)
+        return '%s-%s-%s' % (self.name,self.active,self.type)
 
 
 
@@ -271,7 +271,7 @@ class Bcode(models.Model):
             return self.bcode
         
     def __unicode__(self):
-        return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
+        return '%s-%s-%s' % (self.bcode,self.description,self.unit)
 
 
     
@@ -338,7 +338,7 @@ class TransportRF24Network(models.Model):
         verbose_name_plural = 'RF24 Network nodes' 
 
     def __unicode__(self):
-        return u'%s' % (self.node)
+        return '%s' % (self.node)
 
 
 class TransportMqttManager(models.Manager):
@@ -374,7 +374,7 @@ class TransportMqtt(models.Model):
         verbose_name_plural = 'MQTT transport'
 
     def __unicode__(self):
-        return u'%s' % (self.mqttserver)
+        return '%s' % (self.mqttserver)
 
 
 class TransportTcpipManager(models.Manager):
@@ -430,7 +430,7 @@ class TransportTcpip(models.Model):
         verbose_name_plural = 'tcp/ip DNS resoved names' 
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return '%s' % (self.name)
 
 class TransportSerialManager(models.Manager):
     def get_by_natural_key(self, board):
@@ -505,7 +505,7 @@ class TransportSerial(models.Model):
         verbose_name_plural = 'serial transports'
 
     def __unicode__(self):
-        return u'%s' % (self.device)
+        return '%s' % (self.device)
 
 
 class TransportBluetoothManager(models.Manager):
@@ -536,7 +536,7 @@ class TransportBluetooth(models.Model):
         verbose_name_plural = 'bluetooth transport'
 
     def __unicode__(self):
-        return u'%s' % (self.name)
+        return '%s' % (self.name)
 
 
 class TransportAmqpManager(models.Manager):
@@ -567,7 +567,7 @@ class TransportAmqp(models.Model):
     natural_key.dependencies = ['stations.board']
 
     def __unicode__(self):
-        return u'%s' % (self.amqpserver)
+        return '%s' % (self.amqpserver)
 
 
 class BoardManager(models.Manager):
@@ -620,7 +620,7 @@ class Board(models.Model):
         unique_together = (('slug', 'stationmetadata'),)
 
     def __unicode__(self):
-        return u'%s' % (self.slug)
+        return '%s' % (self.slug)
 
 class BoardFirmwareMetadata(models.Model):
     """Board metadata for firmware management."""
@@ -674,7 +674,7 @@ class StationConstantData(models.Model):
         unique_together = (('btable', 'stationmetadata'),)
 
     def __unicode__(self):
-        return u'%s' % (self.btable)
+        return '%s' % (self.btable)
 
 class StationMetadataManager(models.Manager):
     def get_by_natural_key(self, slug, ident):
@@ -747,7 +747,7 @@ class StationMetadata(models.Model):
 
     @property
     def popupContent(self):
-        return  u'\
+        return  '\
         <p>\
            ident: <a href="/stationsonmap/{}">{}\
            </a>\
@@ -784,7 +784,7 @@ class StationMetadata(models.Model):
 
 
     def __unicode__(self):
-        return u'%s/%s' % (self.slug,self.ident)
+        return '%s/%s' % (self.slug,self.ident)
 
 
 from django.contrib.auth.models import User

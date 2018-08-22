@@ -25,8 +25,8 @@ from datetime import datetime
 import tempfile
 
 try:
-    from urllib import quote
-    from urllib2 import urlopen
+    from urllib.parse import quote
+    from urllib.request import urlopen
 except ImportError:
     from urllib.request import urlopen
     from urllib.parse import quote
@@ -38,7 +38,7 @@ def get_db(dsn="report",last=True):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
-            k: v for k, v in i.items() if k != "class"
+            k: v for k, v in list(i.items()) if k != "class"
         })
         for i in (BORINUDLAST[dsn]["SOURCES"] if last else BORINUD[dsn]["SOURCES"])
     ]
@@ -100,13 +100,13 @@ class MergeDB(DB):
 
     def query_stations(self, rec):
         for r in self.get_unique_records(
-            "query_stations", rec, lambda g: g.next()
+            "query_stations", rec, lambda g: next(g)
         ):
             yield r.copy()
 
     def query_summary(self, rec):
         def reducer(g):
-            rec = g.next()
+            rec = next(g)
             for r in g:
                 if r["datemin"] < rec["datemin"]:
                     rec["datemin"] = r["datemin"]
@@ -246,10 +246,10 @@ class SummaryCacheDB(DB):
         return self.db.query_stations(rec)
 
     def query_summary(self, rec):
-        return filter(
+        return list(filter(
             self.get_filter_summary(rec),
             self.get_cached_summary()
-        )
+        ))
 
     def query_data(self, rec):
             return self.db.query_data(rec)
@@ -316,13 +316,13 @@ class ArkimetVm2DB(DB):
 
         q["reftime"] = ",".join(q["reftime"])
         q["area"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"].items()
         ]))
         q["product"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["product"].iteritems()
+            "{}={}".format(k, v) for k, v in q["product"].items()
         ]))
 
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
 
         return arkiquery
 
@@ -333,7 +333,7 @@ class ArkimetVm2DB(DB):
                 "style": "postprocess",
                 "command": "json",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         for f in json.load(r)["features"]:
             p = f["properties"]
@@ -360,7 +360,7 @@ class ArkimetVm2DB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "json",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
             if not "va" in  i["area"] or not "va" in i["product"]:
@@ -441,7 +441,7 @@ class ArkimetBufrDB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "json",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
             for m in self.measurements:
@@ -491,7 +491,7 @@ class ArkimetBufrDB(DB):
                                                           "pindicator", "p1", "p2",
                                                           "var"]]),
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
 
         return urlopen(url)
 
@@ -526,7 +526,7 @@ class ArkimetBufrDB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "data",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         db.load(r, "BUFR")
 
@@ -564,9 +564,9 @@ class ArkimetBufrDB(DB):
         q["reftime"] = ",".join(q["reftime"])
 
         q["area"] = "GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"]["fixed"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"]["fixed"].items()
         ])) + " or GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"]["mobile"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"]["mobile"].items()
         ]))
 
         if "lonmin" in rec and "latmin" in rec and "lonmax" in rec and "latmax" in rec:
@@ -574,5 +574,5 @@ class ArkimetBufrDB(DB):
                 rec["lonmin"],rec["latmin"],rec["lonmin"],rec["latmax"],rec["lonmax"],rec["latmax"],rec["lonmin"],rec["latmin"]
             )
 
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
         return arkiquery

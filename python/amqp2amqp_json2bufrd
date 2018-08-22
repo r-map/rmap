@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -46,7 +46,7 @@ amqp2amqp_json2bufr = daemon.Daemon(
 )
 
 def callback(ch, method, properties, body):
-    print " [x] Received message"
+    print(" [x] Received message")
 
     #if properties.user_id is None:
     #    print "Ignore anonymous message"
@@ -61,13 +61,13 @@ def callback(ch, method, properties, body):
 
         status=amqp2amqp_json2bufr.procs[0].wait()
         if status != 0:
-            print "There were some errors executing dbadb import error: ",status,outerr
+            print("There were some errors executing dbadb import error: ",status,outerr)
             #print "skip message: "
             #print body
             #print "---------------------"
 
     except:
-        print "There were some errors executing dbadb import"
+        print("There were some errors executing dbadb import")
         raise
 
 
@@ -78,21 +78,21 @@ def callback(ch, method, properties, body):
 
         status=amqp2amqp_json2bufr.procs[0].wait()
         if status != 0:
-            print "There were some errors executing dbadb export error: ",status,outerr
+            print("There were some errors executing dbadb export error: ",status,outerr)
             #print "skip message: "
             #print body
             #print "---------------------"
 
     except:
-        print "There were some errors executing dbadb export"
+        print("There were some errors executing dbadb export")
         raise
 
     try:
 
         if (outbody == ""):
-            print "skip empty output message"
+            print("skip empty output message")
         else:
-            print "publish message: "
+            print("publish message: ")
             #print outbody
             #print "---------------------"
         
@@ -107,15 +107,15 @@ def callback(ch, method, properties, body):
                                         routing_key=routing_key,
                                          body=outbody,
                                          properties=properties):
-                print 'Message publish was confirmed'
+                print('Message publish was confirmed')
             else:
-                print 'Message could not be confirmed'
+                print('Message could not be confirmed')
 
             
-            print " [x] message Sent "
+            print(" [x] message Sent ")
 
     except:
-        print "There were some errors publishing message"
+        print("There were some errors publishing message")
         raise        
 
     finally:
@@ -124,7 +124,7 @@ def callback(ch, method, properties, body):
         except:
             pass
 
-    print " [x] Done"
+    print(" [x] Done")
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
@@ -137,7 +137,7 @@ def main(self):
     channel = connection.channel()
     #channel.queue_declare(queue=queue)
 
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
     channel.basic_consume(callback,

@@ -11,7 +11,7 @@ from rmap.settings import *
 from itertools import groupby
 from django.contrib.sites.models import Site
 from datetime import timedelta, datetime
-from rrule import rrule, YEARLY, MONTHLY, DAILY, HOURLY
+from .rrule import rrule, YEARLY, MONTHLY, DAILY, HOURLY
 
 
 timeout=180.
@@ -61,7 +61,7 @@ class  wssummaries(object):
             self.key="var"
             self.branch=False
         else:
-            raise "error in graphite query to dballe"
+            raise Exception("error in graphite query to dballe")
 
         self.summaries=[]
 
@@ -122,7 +122,7 @@ class  wssummaries(object):
                     newstation["level"]= data["level"][0]+"_"+data["level"][1]+"_"+data["level"][2]+"_"+data["level"][3]
                     newstation["timerange"]=data["timerange"][0]+"_"+data["timerange"][1]+"_"+data["timerange"][2]
 
-                    for key in data["vars"].keys():
+                    for key in list(data["vars"].keys()):
                         newstation["var"]=key
                         if self.stationtype == "mobile" :
                             #compat mobile stations same ident ... and different coordinates 
@@ -137,9 +137,9 @@ class  wssummaries(object):
     def __iter__(self):
         return self
 
-    def next(self):
+    def __next__(self):
         #the next of iterator is next of generator
-        return self.mygenerator.next()
+        return next(self.mygenerator)
 
     def generator(self):
 
@@ -396,7 +396,7 @@ class DballeReader(object):
                 #print "startstep:",startstep
                 startdatestep = dateutil.parser.parse(startstep)  
                 starttimestep = int(time.mktime(startdatestep.timetuple()))
-                for i in xrange(1,len(rj)):
+                for i in range(1,len(rj)):
                     endstep   = rj[i]["date"]
                     #print "endstep:",endstep
                     enddatestep   = dateutil.parser.parse(endstep)
@@ -416,7 +416,7 @@ class DballeReader(object):
             endtime   = int(time.mktime(enddate.timetuple()))
 
             size=int((int(end_time)-int(start_time))/step)+1
-            series=[None for i in xrange(size)]
+            series=[None for i in range(size)]
 
             #print "request time: ",start_time,end_time
             #print "getted  time: ",starttime,endtime
@@ -460,7 +460,7 @@ class DballeReader(object):
         return time_info, series
 
     def get_intervals(self):
-        print "getintervals"
+        print("getintervals")
         #return IntervalSet([Interval(start, end)])
 
         uri=path2uri(self.path)

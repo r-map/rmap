@@ -7,9 +7,7 @@ import time
 from ..tags.utils import TaggedSeries
 
 
-class BaseTagDB(object):
-  __metaclass__ = abc.ABCMeta
-
+class BaseTagDB(object, metaclass=abc.ABCMeta):
   def __init__(self, settings, *args, **kwargs):
     """Initialize the tag db."""
     self.settings = settings

@@ -213,7 +213,7 @@ for entry in flatten_errors(config, test):
     section_string = ', '.join(section_list)
     if error == False:
         error = 'Missing value or section.'
-    print section_string, ' = ', error
+    print(section_string, ' = ', error)
     raise error
 
 # section django
@@ -1339,8 +1339,8 @@ if LOAD_OPTIONAL_APPS:
                     imp.find_module(moduletree[1], module.__path__) # __path__ is already a list
 
             except ImportError:
-                print "import error: ", app["import"]
-                print "disable     : ", app.get("apps", ())
+                print("import error: ", app["import"])
+                print("disable     : ", app.get("apps", ()))
             else:
                 #print "enable      : ", app.get("apps", ())
                 INSTALLED_APPS += app.get("apps", ())
@@ -1359,7 +1359,7 @@ if not android :
                 'level': 'DEBUG',
                 'class': 'logging.handlers.RotatingFileHandler',
                 'filename': '/tmp/django_rot.log',
-                'maxBytes': '16777216', # 16megabytes
+                'maxBytes': 16777216, # 16megabytes
                 'formatter': 'verbose'
             },
         },

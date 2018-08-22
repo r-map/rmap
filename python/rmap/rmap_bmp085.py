@@ -251,12 +251,12 @@ def main():
 
     bmp_driver = BMP085(busnum=1,mode=BMP085_ULTRAHIGHRES)
     dt = bmp_driver.prepare()
-    print "delay", dt
+    print("delay", dt)
     time.sleep(dt/1000)
     temperature,pressure=bmp_driver.get_values()
-    print "Temperature:", temperature, "C", " -- ", temperature + 273.15,"K"
-    print "Pressure:", pressure / 100.0, "hPa"
-    print {"B12101":int(temperature*100.+27315.),"B10004":int(pressure/10.)}
+    print("Temperature:", temperature, "C", " -- ", temperature + 273.15,"K")
+    print("Pressure:", pressure / 100.0, "hPa")
+    print({"B12101":int(temperature*100.+27315.),"B10004":int(pressure/10.)})
 
 
 if __name__ == '__main__':

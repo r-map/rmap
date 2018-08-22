@@ -11,7 +11,7 @@ def log_dummy( message ):
     pass
 def log_stdout( message ):
     """print message to STDOUT"""
-    print message
+    print(message)
 
 def log_file( filename ):
     """return a logfunc which logs to a file (in utf-8)"""

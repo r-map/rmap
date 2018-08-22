@@ -14,7 +14,7 @@
 
 # make / work consistently between python 2.x and 3.x
 # https://www.python.org/dev/peps/pep-0238/
-from __future__ import division
+
 
 import math
 import random
@@ -26,7 +26,7 @@ from functools import reduce
 from six.moves import range, zip
 import six
 try:
-  from itertools import izip, izip_longest
+  from itertools import zip_longest
 except ImportError:
   # Python 3
   from itertools import zip_longest as izip_longest
@@ -49,8 +49,8 @@ from ..util import epoch, epoch_to_dt, timestamp, deltaseconds
 if environ.get('READTHEDOCS'):
   format_units = lambda *args, **kwargs: (0,'')
 else:
-  from glyph import format_units
-  from datalib import TimeSeries
+  from .glyph import format_units
+  from .datalib import TimeSeries
 
 NAN = float('NaN')
 INF = float('inf')
@@ -67,7 +67,7 @@ def safeSum(values):
 def safeDiff(values):
   safeValues = [v for v in values if v is not None]
   if safeValues:
-    values = list(map(lambda x: x*-1, safeValues[1:]))
+    values = list([x*-1 for x in safeValues[1:]])
     values.insert(0, safeValues[0])
     return sum(values)
 
@@ -209,7 +209,7 @@ def normalize(seriesLists):
 
 def matchSeries(seriesList1, seriesList2):
   assert len(seriesList2) == len(seriesList1), "The number of series in each argument must be the same"
-  return izip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
+  return zip(sorted(seriesList1, key=lambda a: a.name), sorted(seriesList2, key=lambda a: a.name))
 
 def formatPathExpressions(seriesList):
   # remove duplicates
@@ -289,7 +289,7 @@ def aggregate(requestContext, seriesList, func, xFilesFactor=None):
     return []
   xFilesFactor = xFilesFactor if xFilesFactor is not None else requestContext.get('xFilesFactor')
   name = "%sSeries(%s)" % (func, formatPathExpressions(seriesList))
-  values = ( consolidationFunc(row) if xffValues(row, xFilesFactor) else None for row in izip_longest(*seriesList) )
+  values = ( consolidationFunc(row) if xffValues(row, xFilesFactor) else None for row in zip_longest(*seriesList) )
   tags = seriesList[0].tags
   for series in seriesList:
     tags = {tag: tags[tag] for tag in tags if tag in series.tags and tags[tag] == series.tags[tag]}
@@ -439,13 +439,13 @@ def aggregateWithWildcards(requestContext, seriesList, func, *positions):
   metaSeries = {}
   keys = []
   for series in seriesList:
-    key = '.'.join(map(lambda x: x[1], filter(lambda i: i[0] not in positions, enumerate(series.name.split('.')))))
+    key = '.'.join([x[1] for x in [i for i in enumerate(series.name.split('.')) if i[0] not in positions]])
     if key not in metaSeries:
       metaSeries[key] = [series]
       keys.append(key)
     else:
       metaSeries[key].append(series)
-  for key in metaSeries.keys():
+  for key in list(metaSeries.keys()):
     metaSeries[key] = aggregate(requestContext, metaSeries[key], func)[0]
     metaSeries[key].name = key
   return [ metaSeries[key] for key in keys ]
@@ -606,7 +606,7 @@ def percentileOfSeries(requestContext, seriesList, n, interpolate=False):
 
   name = 'percentileOfSeries(%s,%g)' % (seriesList[0].pathExpression, n)
   (start, end, step) = normalize([seriesList])[1:]
-  values = [ _getPercentile(row, n, interpolate) for row in izip_longest(*seriesList) ]
+  values = [ _getPercentile(row, n, interpolate) for row in zip_longest(*seriesList) ]
   resultSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
 
   return [resultSeries]
@@ -845,7 +845,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
         else:
           name = 'sumSeries(%s)' % formatPathExpressions(metaSeries[key])
           (seriesList,start,end,step) = normalize([metaSeries[key]])
-          totalValues = [ safeSum(row) for row in izip_longest(*metaSeries[key]) ]
+          totalValues = [ safeSum(row) for row in zip_longest(*metaSeries[key]) ]
           totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # total seriesList was specified, sum the values for each group of totals
     elif isinstance(total, list):
@@ -858,13 +858,13 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
         else:
           totalSeries[key].append(series)
 
-      for key in totalSeries.keys():
+      for key in list(totalSeries.keys()):
         if len(totalSeries[key]) == 1:
           totalSeries[key] = totalSeries[key][0]
         else:
           name = 'sumSeries(%s)' % formatPathExpressions(totalSeries[key])
           (seriesList,start,end,step) = normalize([totalSeries[key]])
-          totalValues = [ safeSum(row) for row in izip_longest(*totalSeries[key]) ]
+          totalValues = [ safeSum(row) for row in zip_longest(*totalSeries[key]) ]
           totalSeries[key] = TimeSeries(name,start,end,step,totalValues,xFilesFactor=xFilesFactor)
     # trying to use nodes with a total value, which isn't supported because it has no effect
     else:
@@ -891,7 +891,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
           series2 = totalSeries[key]
           name = "asPercent(%s,%s)" % (series1.name, series2.name)
           (seriesList,start,end,step) = normalize([(series1, series2)])
-          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
+          resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in zip_longest(series1,series2) ]
 
         resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
         resultList.append(resultSeries)
@@ -899,7 +899,7 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     return resultList
 
   if total is None:
-    totalValues = [ safeSum(row) for row in izip_longest(*seriesList) ]
+    totalValues = [ safeSum(row) for row in zip_longest(*seriesList) ]
     totalText = "sumSeries(%s)" % formatPathExpressions(seriesList)
   elif type(total) is list:
     if len(total) != 1 and len(total) != len(seriesList):
@@ -918,12 +918,12 @@ def asPercent(requestContext, seriesList, total=None, *nodes):
     for series1, series2 in matchSeries(seriesList, total):
       name = "asPercent(%s,%s)" % (series1.name,series2.name)
       (seriesList,start,end,step) = normalize([(series1, series2)])
-      resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in izip_longest(series1,series2) ]
+      resultValues = [ safeMul(safeDiv(v1, v2), 100.0) for v1,v2 in zip_longest(series1,series2) ]
       resultSeries = TimeSeries(name,start,end,step,resultValues,xFilesFactor=xFilesFactor)
       resultList.append(resultSeries)
   else:
     for series in seriesList:
-      resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in izip_longest(series,totalValues) ]
+      resultValues = [ safeMul(safeDiv(val, totalVal), 100.0) for val,totalVal in zip_longest(series,totalValues) ]
 
       name = "asPercent(%s,%s)" % (series.name, totalText or series.pathExpression)
       resultSeries = TimeSeries(name,series.start,series.end,series.step,resultValues,xFilesFactor=xFilesFactor)
@@ -965,7 +965,7 @@ def divideSeriesLists(requestContext, dividendSeriesList, divisorSeriesList):
     end = max([s.end for s in bothSeries])
     end -= (end - start) % step
 
-    values = ( safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
+    values = ( safeDiv(v1,v2) for v1,v2 in zip_longest(*bothSeries) )
 
     quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
@@ -1018,7 +1018,7 @@ def divideSeries(requestContext, dividendSeriesList, divisorSeries):
     end = max([s.end for s in bothSeries])
     end -= (end - start) % step
 
-    values = ( safeDiv(v1,v2) for v1,v2 in izip_longest(*bothSeries) )
+    values = ( safeDiv(v1,v2) for v1,v2 in zip_longest(*bothSeries) )
 
     quotientSeries = TimeSeries(name, start, end, step, values, xFilesFactor=requestContext.get('xFilesFactor'))
     results.append(quotientSeries)
@@ -1071,7 +1071,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   """
   sortedSeries={}
 
-  for seriesAvg, seriesWeight in izip_longest(seriesListAvg , seriesListWeight):
+  for seriesAvg, seriesWeight in zip_longest(seriesListAvg , seriesListWeight):
     key = aggKey(seriesAvg, nodes)
 
     if key not in sortedSeries:
@@ -1086,7 +1086,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
 
   productList = []
 
-  for key in sortedSeries.keys():
+  for key in list(sortedSeries.keys()):
     if 'weight' not in sortedSeries[key]:
       continue
     if 'avg' not in sortedSeries[key]:
@@ -1095,7 +1095,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
     seriesWeight = sortedSeries[key]['weight']
     seriesAvg = sortedSeries[key]['avg']
 
-    productValues = [ safeMul(val1, val2) for val1,val2 in izip_longest(seriesAvg,seriesWeight) ]
+    productValues = [ safeMul(val1, val2) for val1,val2 in zip_longest(seriesAvg,seriesWeight) ]
     name='product(%s,%s)' % (seriesWeight.name, seriesAvg.name)
     productSeries = TimeSeries(name,seriesAvg.start,seriesAvg.end,seriesAvg.step,productValues,xFilesFactor=requestContext.get('xFilesFactor'))
     productList.append(productSeries)
@@ -1106,7 +1106,7 @@ def weightedAverage(requestContext, seriesListAvg, seriesListWeight, *nodes):
   sumProducts=sumSeries(requestContext, productList)[0]
   sumWeights=sumSeries(requestContext, seriesListWeight)[0]
 
-  resultValues = [ safeDiv(val1, val2) for val1,val2 in izip_longest(sumProducts,sumWeights) ]
+  resultValues = [ safeDiv(val1, val2) for val1,val2 in zip_longest(sumProducts,sumWeights) ]
   name = "weightedAverage(%s, %s, %s)" % (','.join(sorted(set(s.pathExpression for s in seriesListAvg))) ,','.join(sorted(set(s.pathExpression for s in seriesListWeight))), ','.join(map(str,nodes)))
   resultSeries = TimeSeries(name,sumProducts.start,sumProducts.end,sumProducts.step,resultValues,xFilesFactor=requestContext.get('xFilesFactor'))
   return [resultSeries]
@@ -1411,7 +1411,7 @@ def powSeries(requestContext, *seriesLists):
     return []
   name = "powSeries(%s)" % ','.join([s.name for s in seriesList])
   values = []
-  for row in izip_longest(*seriesList):
+  for row in zip_longest(*seriesList):
     first = True
     tmpVal = None
     for element in row:
@@ -4210,7 +4210,7 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
     else: return v
 
   if referenceSeries:
-    defaults = [default if any(v is not None for v in x) else None for x in izip_longest(*referenceSeries)]
+    defaults = [default if any(v is not None for v in x) else None for x in zip_longest(*referenceSeries)]
   else:
     defaults = None
 
@@ -4224,7 +4224,7 @@ def transformNull(requestContext, seriesList, default=0, referenceSeries=None):
       series.name = "transformNull(%s,%g)" % (series.name, default)
     series.pathExpression = series.name
     if defaults:
-      values = [transform(v, d) for v, d in izip_longest(series, defaults)]
+      values = [transform(v, d) for v, d in zip_longest(series, defaults)]
     else:
       values = [transform(v, default) for v in series]
     series.extend(values)
@@ -4314,7 +4314,7 @@ def countSeries(requestContext, *seriesLists):
   if seriesLists:
     (seriesList,start,end,step) = normalize(seriesLists)
     name = "countSeries(%s)" % formatPathExpressions(seriesList)
-    values = ( int(len(row)) for row in izip_longest(*seriesList) )
+    values = ( int(len(row)) for row in zip_longest(*seriesList) )
     series = TimeSeries(name,start,end,step,values, xFilesFactor=requestContext.get('xFilesFactor'))
     series.pathExpression = name
   else:
@@ -4586,7 +4586,7 @@ def groupByNodes(requestContext, seriesList, callback, *nodes):
       keys.append(key)
     else:
       metaSeries[key].append(series)
-  for key in metaSeries.keys():
+  for key in list(metaSeries.keys()):
     if callback in SeriesFunctions:
       metaSeries[key] = SeriesFunctions[callback](requestContext, metaSeries[key])[0]
     else:

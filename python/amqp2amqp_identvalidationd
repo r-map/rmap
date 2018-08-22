@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -44,17 +44,17 @@ amqp2amqp_identvalidationd = daemon.Daemon(
 
 
 def callback(ch, method, properties, body):
-    print " [x] Received message"
+    print(" [x] Received message")
 
     if properties.user_id is None:
-        print "Ignore anonymous message"
-        print " [x] Done"
+        print("Ignore anonymous message")
+        print(" [x] Done")
         ch.basic_ack(delivery_tag = method.delivery_tag)
         return
   
     #At this point we can check if we trust this authenticated user... 
     ident=properties.user_id
-    print "Received from user: %r" % ident 
+    print("Received from user: %r" % ident) 
 
     #but we check that message content is with the same ident
     try:
@@ -64,22 +64,22 @@ def callback(ch, method, properties, body):
 
         status=amqp2amqp_identvalidationd.procs[0].wait()
         if status != 0:
-            print "There were some errors executing dbadb import error: ",status,outerr
+            print("There were some errors executing dbadb import error: ",status,outerr)
             #print "skip message: "
             #print body
             #print "---------------------"
 
     except:
-        print "There were some errors executing dba_transform"
+        print("There were some errors executing dba_transform")
         raise
 
 
     try:
 
         if (outbody == ""):
-            print "skip empty output message"
+            print("skip empty output message")
         else:
-            print "publish message: "
+            print("publish message: ")
             #print outbody
             #print "---------------------"
         
@@ -94,18 +94,18 @@ def callback(ch, method, properties, body):
                                         routing_key=routing_key,
                                          body=outbody,
                                          properties=properties):
-                print 'Message publish was confirmed'
+                print('Message publish was confirmed')
             else:
-                print 'Message could not be confirmed'
+                print('Message could not be confirmed')
 
             
-            print " [x] message Sent "
+            print(" [x] message Sent ")
 
     except:
-        print "There were some errors publishing message"
+        print("There were some errors publishing message")
         raise        
 
-    print " [x] Done"
+    print(" [x] Done")
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
@@ -118,7 +118,7 @@ def main(self):
     channel = connection.channel()
     #channel.queue_declare(queue=queue)
 
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
     channel.basic_consume(callback,

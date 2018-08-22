@@ -20,7 +20,7 @@ def functionList(request, queryParams):
   group = queryParams.get('group')
   result = {}
 
-  for (name, func) in funcs.items():
+  for (name, func) in list(funcs.items()):
     info = functionInfo(name, func)
     if group is not None and group != info['group']:
       continue

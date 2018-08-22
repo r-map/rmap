@@ -4,14 +4,14 @@ from django.contrib.auth import authenticate
 from django.shortcuts import render
 #from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.sites.shortcuts import get_current_site
-from form import WizardForm,WizardForm2
+from .form import WizardForm,WizardForm2
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from stations.models import StationMetadata
-import settings
-import rabbitshovel
-import network
+from .stations.models import StationMetadata
+from . import settings
+from . import rabbitshovel
+from . import network
 from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
@@ -107,9 +107,9 @@ def wizard2(request):
                     if ssid != "":
                         net=network.wifi()
                         stato=net.create(ssid=ssid ,password=password)
-                        print "nmcli stato:",stato
-                        print "nmcli stdout=",net.stdout
-                        print "nmcli stderr=",net.stderr
+                        print("nmcli stato:",stato)
+                        print("nmcli stdout=",net.stdout)
+                        print("nmcli stderr=",net.stderr)
 
                         if stato != 0 :
                             return HttpResponseRedirect('/wizard_error/')

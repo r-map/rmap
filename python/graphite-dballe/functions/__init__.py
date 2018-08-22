@@ -41,13 +41,13 @@ def loadFunctions(force=False):
       log.warning('Error loading function plugin %s: %s' % (module_name, e))
       continue
 
-    for func_name, func in getattr(module, 'SeriesFunctions', {}).items():
+    for func_name, func in list(getattr(module, 'SeriesFunctions', {}).items()):
       try:
         addFunction(_SeriesFunctions, func, func_name)
       except Exception as e:
         log.warning('Error loading function plugin %s: %s' % (module_name, e))
 
-    for func_name, func in getattr(module, 'PieFunctions', {}).items():
+    for func_name, func in list(getattr(module, 'PieFunctions', {}).items()):
       try:
         addFunction(_PieFunctions, func, func_name)
       except Exception as e:

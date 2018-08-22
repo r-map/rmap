@@ -17,7 +17,7 @@
 
 
 import sqlite3
-from utils import nint
+from .utils import nint
 
 class geoid():
 
@@ -79,7 +79,7 @@ class Closer:
         try:
            self.obj.close()
         except AttributeError: # obj isn't closable
-           print 'Not closable.'
+           print('Not closable.')
            return True # exception handled successfully
 
 
@@ -90,11 +90,11 @@ def main():
     lat=44.48906
         
     with Closer(geoid()) as geo:
-        print geo.get(lon,lat)
-        print geo.get(lon,lat)
-        print geo.get(lon+1.,lat)
-        print geo.get(lon,lat+1.)
-        print geo.get(90.,60.)
+        print(geo.get(lon,lat))
+        print(geo.get(lon,lat))
+        print(geo.get(lon+1.,lat))
+        print(geo.get(lon,lat+1.))
+        print(geo.get(90.,60.))
 
 
 if __name__ == '__main__':

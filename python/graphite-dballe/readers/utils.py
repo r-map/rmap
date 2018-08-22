@@ -1,9 +1,7 @@
 import abc
 from ..logger import log
 
-class BaseReader(object):
-    __metaclass__ = abc.ABCMeta
-
+class BaseReader(object, metaclass=abc.ABCMeta):
     supported = True
 
     @abc.abstractmethod

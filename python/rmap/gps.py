@@ -16,8 +16,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
-from utils import nint
-from geoid_corrections import geoid
+from .utils import nint
+from .geoid_corrections import geoid
 from kivy.clock import Clock, mainthread
 
 def null(**kwargs):
@@ -90,7 +90,7 @@ class plyergps():
         try:
             self.height=int(kwargs["altitude"])-int(self.geo.get(self.lon,self.lat))
         except:
-            print "ERROR getting height on msl"
+            print("ERROR getting height on msl")
             self.height=None
 
         self.gpsfix=True

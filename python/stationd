@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2015 Paolo Patruno <p.patruno@iperbole.bologna.it>
 #                    Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
@@ -32,8 +32,8 @@ from rmap import __version__
 from rmap.stations.models import StationMetadata
 try:
   from rmap import sensordriver
-except RuntimeError,e:
-  print "ERROR:", str(e)
+except RuntimeError as e:
+  print("ERROR:", str(e))
 
 logfilermap=rmap.settings.logfilestationd
 errfilermap=rmap.settings.errfilestationd
@@ -61,7 +61,7 @@ def main ():
   from signal import signal, SIGINT
 
   mystation=station(slug=rmap.settings.stationslug,username=rmap.settings.ident,boardslug=rmap.settings.boardslug,trip=False)
-  print "background restored queue:",mystation.anavarlist,mystation.datavarlist
+  print("background restored queue:",mystation.anavarlist,mystation.datavarlist)
   mystation.display()
 
   signal(SIGINT, mystation.exit)
@@ -70,12 +70,12 @@ def main ():
     mystation.boot(configurestation=False)
     mystation.loopforever()
   except:
-    print "error on boot/loopforever"
+    print("error on boot/loopforever")
 
     try:
       mystation.on_stop()
     except:
-      print "error on_stop"
+      print("error on_stop")
 
 if __name__ == '__main__':
 

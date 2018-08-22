@@ -40,7 +40,7 @@ class RemoteFinder(BaseFinder):
         return {
           'host': parsed.netloc,
           'url': '%s://%s%s' % (parsed.scheme, parsed.netloc, parsed.path),
-          'params': {key: value[-1] for (key, value) in parse_qs(parsed.query).items()},
+          'params': {key: value[-1] for (key, value) in list(parse_qs(parsed.query).items())},
         }
 
     def __init__(self, host):

@@ -23,7 +23,7 @@ try:
     django.setup()
 
 except:
-    print "error setting django env"
+    print("error setting django env")
 
 class distclean(Command):
     description = "remove man pages and *.mo files"
@@ -60,7 +60,7 @@ class distclean(Command):
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in files:
                 if name.endswith('.pyc') and os.path.isfile(os.path.join(root, name)):
-                    print 'removing: %s' % os.path.join(root, name)
+                    print('removing: %s' % os.path.join(root, name))
                     if not(self.dry_run): os.remove(os.path.join(root, name))
 
 
@@ -183,7 +183,7 @@ class djangocollectstatic(Command):
 
     def run(self):
 
-        print "execute django collectstatic files"
+        print("execute django collectstatic files")
 
         from django.core import management
         management.call_command("collectstatic", verbosity=0, interactive=False)
@@ -265,9 +265,9 @@ try:
 
 except OSError as e:
     if (e[0] == errno.EACCES):
-       print >> sys.stderr, "You do not have root permissions to install files in /etc !"
+       print("You do not have root permissions to install files in /etc !", file=sys.stderr)
     else:
-        print >> sys.stderr, "There are some problems to install files in /etc !"
+        print("There are some problems to install files in /etc !", file=sys.stderr)
 
 for dirpath, dirnames, filenames in os.walk('rmap/static'):
     if filenames:

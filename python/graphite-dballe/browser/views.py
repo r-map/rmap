@@ -96,7 +96,7 @@ def myGraphLookup(request):
   }
 
   try:
-    path = request.GET.get('path', u'')
+    path = request.GET.get('path', '')
 
     if path:
       if path.endswith('.'):
@@ -106,7 +106,7 @@ def myGraphLookup(request):
         userpath_prefix = path + '.'
 
     else:
-      userpath_prefix = u""
+      userpath_prefix = ""
 
     matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
 

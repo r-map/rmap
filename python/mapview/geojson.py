@@ -31,7 +31,7 @@ class GeoJsonMapLayer(MapLayer):
 
     def reposition(self):
         if self.geojson:
-            print "Reload geojson"
+            print("Reload geojson")
             self.on_geojson(self, self.geojson)
 
     def on_geojson(self, instance, geojson):

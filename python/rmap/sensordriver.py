@@ -18,17 +18,17 @@
 
 import json
 import time
-from utils import nint
-from registerswind import *
-from registersrain import *
+from .utils import nint
+from .registerswind import *
+from .registersrain import *
 
 
 try:
-    from rmap_bmp085 import *
+    from .rmap_bmp085 import *
 except:
     pass
     #print "warning bmp085 driver will not be included"
-import jsonrpc
+from . import jsonrpc
 
 MAXDELAYTIME = 30000
 
@@ -505,11 +505,11 @@ def main():
         for driver in drivers:
             dt=max(driver.prepare(),dt)
             
-        print "sleep:",dt
+        print("sleep:",dt)
         time.sleep(dt/1000.)
 
         for driver in drivers:
-            print driver.getJson()
+            print(driver.getJson())
 
         time.sleep(1)
 

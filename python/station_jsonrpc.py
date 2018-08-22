@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Copyright (c) 2013 Paolo Patruno <p.patruno@iperbole.bologna.it>
 #                    Emanuele Di Giacomo <edigiacomo@arpa.emr.it>
@@ -44,12 +44,12 @@ rpcproxy = rmap.jsonrpc.ServerProxy( rmap.jsonrpc.JsonRpc20(), rmap.jsonrpc.Tran
 valuerpc = rpcproxy.gettmpvalues(address=rpcaddress )[vartable]
 reptime  = datetime.datetime.now()
 
-print valuerpc
-print (valuerpc-27315)/100.,reptime
+print(valuerpc)
+print(((valuerpc-27315)/100.,reptime))
 
 rpcaddress=0x49
 valuerpc = rpcproxy.getadt7420values(address=rpcaddress )[vartable]
 reptime  = datetime.datetime.now()
 
-print valuerpc
-print (valuerpc-27315)/100.,reptime
+print(valuerpc)
+print(((valuerpc-27315)/100.,reptime))

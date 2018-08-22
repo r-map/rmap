@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 
 from ..intervals import Interval, IntervalSet
 from ..readers.utils import merge_with_carbonlink, BaseReader

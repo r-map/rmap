@@ -254,8 +254,8 @@ class RPCInvalidParamValues(RPCFault):
 
 try:
     import simplejson
-except ImportError, err:
-    print "FATAL: json-module 'simplejson' is missing (%s)" % (err)
+except ImportError as err:
+    print("FATAL: json-module 'simplejson' is missing (%s)" % (err))
     sys.exit(1)
 
 #----------------------
@@ -266,7 +266,7 @@ def dictkeyclean(d):
     :Raises: UnicodeEncodeError
     """
     new_d = {}
-    for (k, v) in d.iteritems():
+    for (k, v) in d.items():
         new_d[str(k)] = v
     return new_d
 
@@ -308,7 +308,7 @@ class JsonRpc10:
         :Raises:    TypeError if method/params is of wrong type or 
                     not JSON-serializable
         """
-        if not isinstance(method, (str, unicode)):
+        if not isinstance(method, str):
             raise TypeError('"method" must be a string (or unicode string).')
         if not isinstance(params, (tuple, list)):
             raise TypeError("params must be a tuple/list.")
@@ -324,7 +324,7 @@ class JsonRpc10:
                     | "method", "params" and "id" are always in this order.
         :Raises:    see dumps_request
         """
-        if not isinstance(method, (str, unicode)):
+        if not isinstance(method, str):
             raise TypeError('"method" must be a string (or unicode string).')
         if not isinstance(params, (tuple, list)):
             raise TypeError("params must be a tuple/list.")
@@ -374,11 +374,11 @@ class JsonRpc10:
         """
         try:
             data = self.loads(string)
-        except ValueError, err:
+        except ValueError as err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
         if "method" not in data:        raise RPCInvalidRPC("""Invalid Request, "method" is missing.""")
-        if not isinstance(data["method"], (str, unicode)):
+        if not isinstance(data["method"], str):
             raise RPCInvalidRPC("""Invalid Request, "method" must be a string.""")
         if "id"     not in data:        data["id"]     = None   #be liberal
         if "params" not in data:        data["params"] = ()     #be liberal
@@ -403,7 +403,7 @@ class JsonRpc10:
         """
         try:
             data = self.loads(string)
-        except ValueError, err:
+        except ValueError as err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
         if "id" not in data:            raise RPCInvalidRPC("""Invalid Response, "id" missing.""")
@@ -489,7 +489,7 @@ class JsonRpc20:
         :Raises:    TypeError if method/params is of wrong type or 
                     not JSON-serializable
         """
-        if not isinstance(method, (str, unicode)):
+        if not isinstance(method, str):
             raise TypeError('"method" must be a string (or unicode string).')
         if not isinstance(params, (tuple, list, dict)):
             raise TypeError("params must be a tuple/list/dict or None.")
@@ -517,7 +517,7 @@ class JsonRpc20:
                     | "jsonrpc", "method" and "params" are always in this order.
         :Raises:    see dumps_request
         """
-        if not isinstance(method, (str, unicode)):
+        if not isinstance(method, str):
             raise TypeError('"method" must be a string (or unicode string).')
         if not isinstance(params, (tuple, list, dict)):
             raise TypeError("params must be a tuple/list/dict or None.")
@@ -588,13 +588,13 @@ class JsonRpc20:
         """
         try:
             data = self.loads(string)
-        except ValueError, err:
+        except ValueError as err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
 
         if not self.radio:
             if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
-            if not isinstance(data["jsonrpc"], (str, unicode)):
+            if not isinstance(data["jsonrpc"], str):
                 raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
             if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
 
@@ -610,7 +610,7 @@ class JsonRpc20:
             numfield=3
             
         if methodkey not in data:        raise RPCInvalidRPC("Invalid Request, '"+methodkey+"' is missing.")
-        if not isinstance(data[methodkey], (str, unicode)):
+        if not isinstance(data[methodkey], str):
             raise RPCInvalidRPC("Invalid Request, '"+methodkey+"' must be a string.")
 
         if paramskey not in data:        data["params"] = ()
@@ -642,13 +642,13 @@ class JsonRpc20:
         
         try:
             data = self.loads(string)
-        except ValueError, err:
+        except ValueError as err:
             raise RPCParseError("No valid JSON. (%s)" % str(err))
         if not isinstance(data, dict):  raise RPCInvalidRPC("No valid RPC-package.")
 
         if not self.radio:
             if "jsonrpc" not in data:       raise RPCInvalidRPC("""Invalid Response, "jsonrpc" missing.""")
-            if not isinstance(data["jsonrpc"], (str, unicode)):
+            if not isinstance(data["jsonrpc"], str):
                 raise RPCInvalidRPC("""Invalid Response, "jsonrpc" must be a string.""")
             if data["jsonrpc"] != "2.0":    raise RPCInvalidRPC("""Invalid jsonrpc version.""")
 
@@ -727,7 +727,7 @@ def log_dummy( message ):
     pass
 def log_stdout( message ):
     """print message to STDOUT"""
-    print message
+    print(message)
 
 def log_file( filename ):
     """return a logfunc which logs to a file (in utf-8)"""
@@ -999,7 +999,7 @@ class TransportBLUETOOTH(Transport):
                 self.log( "bluetooth name %s: %s" % (self.name,"connected") )
 
             except Exception as e:
-                print e
+                print(e)
                 self.log("ERROR: connecting bluetooth")
                 traceback.print_exc()
 
@@ -1094,11 +1094,11 @@ class TransportSTDINOUT(Transport):
     """
     def send(self, string):
         """write data to STDOUT with '***SEND:' prefix """
-        print "***SEND:"
-        print string
+        print("***SEND:")
+        print(string)
     def recv(self):
         """read data from STDIN"""
-        print "***RECV (please enter, ^D ends.):"
+        print("***RECV (please enter, ^D ends.):")
         return sys.stdin.read()
     def close (self):
         pass
@@ -1110,14 +1110,14 @@ class TransportDUMMY(Transport):
     """
     def send(self, string):
         """write data to STDOUT with '***SEND:' prefix """
-        print "***SEND:"
-        print string
+        print("***SEND:")
+        print(string)
     def recv(self):
         """expected response"""
 
         response = '{"jsonrpc":"2.0","result":{},"id":0}'
-        print "***RECV:"
-        print response
+        print("***RECV:")
+        print(response)
         return response
     def close (self):
         pass
@@ -1138,7 +1138,7 @@ class TransportTTN(Transport):
         self.mqtt_host = host
         self.mqttc = mqtt.Client()
         if appid is not None:
-            print "credenziali:",appid,password
+            print("credenziali:",appid,password)
             self.mqttc.username_pw_set(appid,password)
 
         self.mqttc.on_message = self.on_message
@@ -1453,7 +1453,7 @@ class ServerProxy:
 
         try:
             resp_str = self.__transport.sendrecv( req_str )
-        except Exception,err:
+        except Exception as err:
             raise RPCTransportError()
         resp = self.__data_serializer.loads_response( resp_str )
 
@@ -1589,9 +1589,9 @@ class Server:
                 notification = True
             else:                   #request
                 method, params, id = req
-        except RPCFault, err:
+        except RPCFault as err:
             return self.__data_serializer.dumps_error( err, id=None )
-        except Exception, err:
+        except Exception as err:
             self.log( "%d (%s): %s" % (INTERNAL_ERROR, ERROR_MESSAGE[INTERNAL_ERROR], str(err)) )
             return self.__data_serializer.dumps_error( RPCFault(INTERNAL_ERROR, ERROR_MESSAGE[INTERNAL_ERROR]), id=None )
 
@@ -1605,11 +1605,11 @@ class Server:
                 result = self.funcs[method]( **params )
             else:
                 result = self.funcs[method]( *params )
-        except RPCFault, err:
+        except RPCFault as err:
             if notification:
                 return None
             return self.__data_serializer.dumps_error( err, id=None )
-        except Exception, err:
+        except Exception as err:
             if notification:
                 return None
             self.log( "%d (%s): %s" % (INTERNAL_ERROR, ERROR_MESSAGE[INTERNAL_ERROR], str(err)) )
@@ -1619,7 +1619,7 @@ class Server:
             return None
         try:
             return self.__data_serializer.dumps_response( result, id )
-        except Exception, err:
+        except Exception as err:
             self.log( "%d (%s): %s" % (INTERNAL_ERROR, ERROR_MESSAGE[INTERNAL_ERROR], str(err)) )
             return self.__data_serializer.dumps_error( RPCFault(INTERNAL_ERROR, ERROR_MESSAGE[INTERNAL_ERROR]), id )
 

@@ -26,18 +26,18 @@ try:
     from plyer.compat import PY2
     from plyer import notification
 except:
-    print "plyer not available"
+    print("plyer not available")
 
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
-import settings
+from . import settings
 import json
 from datetime import datetime, timedelta
 import time
 import codecs
 #import mosquitto
 import paho.mqtt.client as mqtt
-from utils import nint,log_stdout
+from .utils import nint,log_stdout
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):
@@ -105,10 +105,10 @@ class rmapmqtt:
                             qos=1, retain=retain)
 
         try:
-            print "start connect"
+            print("start connect")
             #self.mqttc.connect_async(self.host,self.port,self.timeout)
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
-            print "end connect"
+            print("end connect")
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
@@ -167,7 +167,7 @@ class rmapmqtt:
             # retained only if the station is fixed
             retain = self.prefix != "mobile"
 
-            for key,val in anavar.iteritems():
+            for key,val in anavar.items():
                 rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
                                       payload=dumps(val),
                                       qos=1,retain=retain)
@@ -192,7 +192,7 @@ class rmapmqtt:
             if prefix is None:
                 prefix=self.prefix
                 
-            for key,val in datavar.iteritems():
+            for key,val in datavar.items():
                 rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
@@ -305,14 +305,14 @@ class rmapmqtt:
             except Exception as inst:
                 self.error(inst)
 
-        print "--------------------------------> connected"
+        print("--------------------------------> connected")
         self.connected=True
 
 
     def on_disconnect(self,mosq, userdata, rc):
         self.log("disconnect rc: "+str(rc))
 
-        print "--------------------------------> disconnected"
+        print("--------------------------------> disconnected")
         self.connected=False
 
         #if rc == 1 :
@@ -370,8 +370,8 @@ def do_notify(message="",title="Notification"):
     try:
         notification.notify(**kwargs)
     except exception as e:
-        print e
-        print "error on notify message:",title, message
+        print(e)
+        print("error on notify message:",title, message)
         traceback.print_exc()
 
 def main():

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Copyright (c) 2013 Paolo Patruno <p.patruno@iperbole.bologna.it>
 # All rights reserved.
@@ -46,7 +46,7 @@ import argparse
 
 import django
 from django.core import serializers
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 import base64
 
 # go to share dir for virtualenv
@@ -153,7 +153,7 @@ if args.wizard:
         args.password is None or
         args.lon is None or
         args.lat is None):
-        print " selected wizard without username or password or lat or lon or board"
+        print(" selected wizard without username or password or lat or lon or board")
         raise SystemExit(1)
 
 
@@ -182,7 +182,7 @@ if args.wizard:
                             activate=True,
                             stationname=args.stationname)
 
-    print "END of wizard configuration"
+    print("END of wizard configuration")
 
 
 if args.addboard:
@@ -190,7 +190,7 @@ if args.addboard:
     if (args.station_slug is None or
         args.board_slug is None or
         args.username is None):
-        print " selected addboard without station_slug or board_slug or username"
+        print(" selected addboard without station_slug or board_slug or username")
         raise SystemExit(1)
 
     rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,activate=True
@@ -210,12 +210,12 @@ if args.delsensor:
         or args.username is None
         or args.board_slug is None):
 
-        print " selected delsensor without  station_slug or username or board_slug or sensorname"
+        print(" selected delsensor without  station_slug or username or board_slug or sensorname")
         raise SystemExit(1)
 
     rmap.rmap_core.delsensor(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,name=args.sensorname)
 
-    print "END of delsensor configuration"
+    print("END of delsensor configuration")
 
 
 if args.delsensors:
@@ -224,12 +224,12 @@ if args.delsensors:
         or args.station_slug is None
         or args.username is None):
 
-        print " selected delsensor without station_slug or username or board_slug"
+        print(" selected delsensor without station_slug or username or board_slug")
         raise SystemExit(1)
 
     rmap.rmap_core.delsensors(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug)
 
-    print "END of delsensors configuration"
+    print("END of delsensors configuration")
 
 
 
@@ -240,7 +240,7 @@ if args.addsensor:
         or args.username is None
         or args.board_slug is None):
 
-        print " selected addsensor without sensorname or station_slug or username orboard_slug"
+        print(" selected addsensor without sensorname or station_slug or username orboard_slug")
         raise SystemExit(1)
 
 
@@ -249,7 +249,7 @@ if args.addsensor:
                              timerange=args.timerange,level=args.level)
     #,sensortemplate=args.sensortemplate)
 
-    print "END of addsensor configuration"
+    print("END of addsensor configuration")
 
 
 if args.addsensors_by_template is not None:
@@ -258,22 +258,22 @@ if args.addsensors_by_template is not None:
         or args.station_slug is None
         or args.username is None):
 
-        print " selected addsensors_by_template without station_slug or username or board_slug"
+        print(" selected addsensors_by_template without station_slug or username or board_slug")
         raise SystemExit(1)
 
 
     rmap.rmap_core.addsensors_by_template(args.station_slug,args.username,args.board_slug,args.addsensors_by_template)
 
-    print "END of addsensors_by_template configuration"
+    print("END of addsensors_by_template configuration")
 
 
 if args.list_stations:
 
     for mystation in StationMetadata.objects.all():
-        print "STATION:", mystation
-        print "slug=",mystation.slug
+        print("STATION:", mystation)
+        print("slug=",mystation.slug)
 
-    print "END of station list"
+    print("END of station list")
     #raise SystemExit(0)
 
 if args.list_boards:
@@ -281,43 +281,43 @@ if args.list_boards:
 
     if (args.username is None or
         args.station_slug is None):
-        print " selected list_boards without username or station_slug"
+        print(" selected list_boards without username or station_slug")
         raise SystemExit(1)
 
 
     mystation=StationMetadata.objects.get(slug=args.station_slug,ident__username=args.username)
 
-    print "STATION:", mystation
+    print("STATION:", mystation)
 
     for board in mystation.board_set.all():
-        print ">board: ", board.name," slug="+board.slug," active=",board.active
+        print(">board: ", board.name," slug="+board.slug," active=",board.active)
         try:
             if ( board.transportserial.active):
-                print "\tSerial Transport device=",board.transportserial.device," baudrate=",board.transportserial.baudrate
+                print("\tSerial Transport device=",board.transportserial.device," baudrate=",board.transportserial.baudrate)
                 
         except ObjectDoesNotExist:
-            print "\ttransport serial not present for this board"
+            print("\ttransport serial not present for this board")
 
 
         try:
             if ( board.transporttcpip.active):
-                print "\tTCP/IP Transport", " hostname=",board.transporttcpip.name
+                print("\tTCP/IP Transport", " hostname=",board.transporttcpip.name)
 
         except ObjectDoesNotExist:
 
-            print "\ttransport TCPIP not present for this board"
+            print("\ttransport TCPIP not present for this board")
 
         try:
             if ( board.transportamqp.active):
-                print "\tAMQP Transport", " amqpserver=",board.transportamqp.amqpserver,
+                print("\tAMQP Transport", " amqpserver=",board.transportamqp.amqpserver, end=' ')
                 " exchange=",board.transportamqp.exchange, "queue=",board.transportamqp.queue
 
         except ObjectDoesNotExist:
 
-            print "\ttransport AMQP not present for this board"
+            print("\ttransport AMQP not present for this board")
 
 
-    print "END of board list"
+    print("END of board list")
     #raise SystemExit(0)
 
 
@@ -326,7 +326,7 @@ if args.list_sensors:
     if (args.username is None or
         args.board_slug is None or
         args.station_slug is None):
-        print " selected list_boards without username or station_slug or board_slug"
+        print(" selected list_boards without username or station_slug or board_slug")
         raise SystemExit(1)
 
 
@@ -334,18 +334,18 @@ if args.list_sensors:
                                 ,board__stationmetadata__slug=args.station_slug
                                 ,board__stationmetadata__ident__username=args.username):
     
-        print "SENSOR:", mysensor
-        print "active: ",mysensor.active
-        print "name: ", mysensor.name
-        print "driver: ", mysensor.driver
-        print "type: ", mysensor.type
-        print "i2cbus: ", mysensor.i2cbus
-        print "address: ", mysensor.address
-        print "node: ", mysensor.node
-        print "timerange: ", mysensor.timerange, " -> ", mysensor.describe_timerange()
-        print "level: ", mysensor.level , " -> ",mysensor.describe_level()
+        print("SENSOR:", mysensor)
+        print("active: ",mysensor.active)
+        print("name: ", mysensor.name)
+        print("driver: ", mysensor.driver)
+        print("type: ", mysensor.type)
+        print("i2cbus: ", mysensor.i2cbus)
+        print("address: ", mysensor.address)
+        print("node: ", mysensor.node)
+        print("timerange: ", mysensor.timerange, " -> ", mysensor.describe_timerange())
+        print("level: ", mysensor.level , " -> ",mysensor.describe_level())
 
-    print "END of sensor list"
+    print("END of sensor list")
     #raise SystemExit(0)
 
     
@@ -354,21 +354,21 @@ if args.config_station:
 
     if (args.username is None or
         args.station_slug is None):
-        print " selected config_station without username or station_slug"
+        print(" selected config_station without username or station_slug")
         raise SystemExit(1)
 
     rmap.rmap_core.configstation(transport_name=args.transport,station_slug=args.station_slug,
                                  board_slug=args.board_slug,
                                  device=args.device,baudrate=args.baudrate,host=args.host,username=args.username)
 
-    print "END of station configuration"
+    print("END of station configuration")
 
     
 if args.ttn_jsrpc:
 
     if (args.ttnappid is None or
         args.ttndevid is None):
-        print " selected ttn JSRPC without ttnappid or ttndevid"
+        print(" selected ttn JSRPC without ttnappid or ttndevid")
         raise SystemExit(1)
 
 
@@ -377,20 +377,20 @@ if args.ttn_jsrpc:
     
     rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),ttntransport)
     if (rpcproxy is None):
-        print ">>>>>>> Error building ttn transport"
+        print(">>>>>>> Error building ttn transport")
         raise SystemExit(1)
     else:
 
-        print ">>>>>>> execute ttn JSRPC"
+        print(">>>>>>> execute ttn JSRPC")
 
         sampletime=args.ttnsampletime
         save=True
-        print "Sampletime: ",sampletime
-        print "Save: ",save
+        print("Sampletime: ",sampletime)
+        print("Save: ",save)
 
         mydata={"sampletime":sampletime,"save":save}
         data=rmap.rmap_core.compact(1,mydata)
-        print data
+        print(data)
         
         #payload_raw="AQIDBA=="
         payload_raw=base64.encodestring(data)
@@ -400,9 +400,9 @@ if args.ttn_jsrpc:
         #print "payload: ",string
         
 
-        print "configuresampletime",rpcproxy.configuresampletime(payload_raw=payload_raw )
+        print("configuresampletime",rpcproxy.configuresampletime(payload_raw=payload_raw ))
 
-        print "END of ttn JSRPC"
+        print("END of ttn JSRPC")
 
     
 
@@ -410,10 +410,10 @@ if args.dump_station:
 
     if (args.username is None or
         args.station_slug is None):
-        print " selected dump station without username or station_slug"
+        print(" selected dump station without username or station_slug")
         raise SystemExit(1)
 
-    print rmap.rmap_core.dumpstation(station=args.station_slug,user=args.username)
+    print(rmap.rmap_core.dumpstation(station=args.station_slug,user=args.username))
 
 
 if args.upload_to_server:
@@ -421,42 +421,42 @@ if args.upload_to_server:
     if (args.username is None or
         args.password is None or
         args.station_slug is None):
-        print " selected upload_to_server without username or password or station_slug"
+        print(" selected upload_to_server without username or password or station_slug")
         raise SystemExit(1)
 
     rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,password=args.password)
 
-    print "END of upload_to_server configuration"
+    print("END of upload_to_server configuration")
 
 if args.download_from_server:
 
     if (args.username is None or
         args.station_slug is None):
-        print " selected download_from_server without username or station_slug"
+        print(" selected download_from_server without username or station_slug")
         raise SystemExit(1)
 
-    print "get configuration from:"
-    print "http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json"
-    body=urllib2.urlopen("http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json").read()
-    print body
+    print("get configuration from:")
+    print("http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json")
+    body=urllib.request.urlopen("http://rmapv.rmap.cc/stations/"+args.username+"/"+args.station_slug+"/json").read()
+    print(body)
 
     try:
         user = User.objects.create_user(args.username, args.username+'@rmap.cc', None)            
         #trap IntegrityError for user that already exist
     except IntegrityError:
-        print "user already exist"
+        print("user already exist")
         pass
     except:
         raise
     else:
-        print "user:", args.username, "created without password"
+        print("user:", args.username, "created without password")
     try:
         for deserialized_object in serializers.deserialize("json",body):
             try:
-                print "save:",deserialized_object.object
+                print("save:",deserialized_object.object)
                 deserialized_object.save()
             except Exception as e:
-                print (" [E] Error saving in DB",e)
+                print((" [E] Error saving in DB",e))
 
     except Exception as e:
-        print ("error in deserialize object; skip it",e)
+        print(("error in deserialize object; skip it",e))

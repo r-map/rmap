@@ -114,7 +114,7 @@ class StandardFinder(BaseFinder):
             entries = [pattern]
 
         if using_globstar:
-            matching_subdirs = map(operator.itemgetter(0), walk(current_dir))
+            matching_subdirs = list(map(operator.itemgetter(0), walk(current_dir)))
         else:
             subdirs = [
                 entry for entry in entries if isdir(

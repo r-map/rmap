@@ -1,4 +1,4 @@
-#!/bin/python
+#!/bin/python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -97,12 +97,12 @@ def maindirecttodballe(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     
-    if not (self.options.datalevel in dsndict.keys()):
+    if not (self.options.datalevel in list(dsndict.keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
 
-    if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
@@ -115,12 +115,12 @@ def maindirecttodballe(self):
     topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
 
-    if not (self.options.datalevel in topicdict.keys()):
+    if not (self.options.datalevel in list(topicdict.keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
 
-    if not (self.options.stationtype in topicdict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(topicdict[self.options.datalevel].keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
@@ -279,12 +279,12 @@ def main(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     
-    if not (self.options.datalevel in dsndict.keys()):
+    if not (self.options.datalevel in list(dsndict.keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
 
-    if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
@@ -297,12 +297,12 @@ def main(self):
     topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
 
-    if not (self.options.datalevel in topicdict.keys()):
+    if not (self.options.datalevel in list(topicdict.keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
 
-    if not (self.options.stationtype in topicdict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(topicdict[self.options.datalevel].keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False

@@ -41,15 +41,15 @@ if sys.version_info >= (3, 0):
   from io import BytesIO
 else:
   PY3 = False
-  import cPickle as pickle
-  from cStringIO import StringIO as BytesIO
+  import pickle as pickle
+  from io import StringIO as BytesIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
   import msgpack  # NOQA
 # otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
-  import umsgpack as msgpack  # NOQA
+  from . import umsgpack as msgpack  # NOQA
 
 def epoch(dt):
   """

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -27,7 +27,7 @@ from rmap import daemon
 import pika, subprocess
 import traceback
 import rmap.settings
-import threading,Queue,time
+import threading,queue,time
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
@@ -60,8 +60,8 @@ amqp2dballed = mydaemon(
 )
 
 
-send_queue = Queue.Queue()
-receive_queue = Queue.Queue()
+send_queue = queue.Queue()
+receive_queue = queue.Queue()
 
 
 class Message(object):
@@ -474,13 +474,13 @@ def main(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     if (not self.options.datalevel is None):
-        if not (self.options.datalevel in dsndict.keys()):
+        if not (self.options.datalevel in list(dsndict.keys())):
             logging.error('Invalid dsn')
             sys.stdout.write("Invalid dsn\n")
             return False
 
     if (not self.options.stationtype is None):
-        if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+        if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
             logging.error('Invalid dsn')
             sys.stdout.write("Invalid dsn\n")
             return False
@@ -501,7 +501,7 @@ def main(self):
     logging.info('DSN: %s'% dsn)
     logging.error("Start version: "+rmap.__version__)
 
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print(' [*] Waiting for messages. To exit press CTRL+C')
 
     consumer = amqpConsumer(dsn=dsn,queue=queue)
 
@@ -566,13 +566,13 @@ def oldmain(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     if (not self.options.datalevel is None):
-        if not (self.options.datalevel in dsndict.keys()):
+        if not (self.options.datalevel in list(dsndict.keys())):
             logging.error('Invalid dsn')
             sys.stdout.write("Invalid dsn\n")
             return False
 
     if (not self.options.stationtype is None):
-        if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+        if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
             logging.error('Invalid dsn')
             sys.stdout.write("Invalid dsn\n")
             return False

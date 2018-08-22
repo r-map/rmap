@@ -1,9 +1,9 @@
 from django.conf.urls import *
-import settings
-from stations.form import RmapRegistrationForm
+from . import settings
+from .stations.form import RmapRegistrationForm
 #from registration.forms import RegistrationFormTermsOfService
 from registration.backends.default.views import RegistrationView
-from views import home,wizard,wizard2,wizard_done,wizard_error
+from .views import home,wizard,wizard2,wizard_done,wizard_error
 import rmap.views
 import django.views
 from django.conf.urls.static import static
@@ -63,54 +63,54 @@ if not android  :
     try:
         urlpatterns.append(url(r'^', include('http2mqtt.urls')))
     except Exception as e:
-        print "Warnig: http2mqtt disabled"
-        print e
+        print("Warnig: http2mqtt disabled")
+        print(e)
     try:
         urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
     except Exception as e:
-        print "Warnig: borinud disabled"
-        print e
+        print("Warnig: borinud disabled")
+        print(e)
     try:
         urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
     except Exception as e:
-        print "Warnig: geoimage disabled"
-        print e
+        print("Warnig: geoimage disabled")
+        print(e)
     try:
         urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
     except Exception as e:
-        print "Warnig: insertdata disabled"
-        print e
+        print("Warnig: insertdata disabled")
+        print(e)
     try:
         urlpatterns.append(url(r'^amatyr/', include('amatyr.urls')))
     except Exception as e:
-        print "Warnig: amatyr disabled"
-        print e
+        print("Warnig: amatyr disabled")
+        print(e)
 
     try:
         urlpatterns.append(url(r'^showdata/', include('showdata.urls',namespace="showdata")))
     except Exception as e:
-        print "Warnig: showdata disabled"
-        print e
+        print("Warnig: showdata disabled")
+        print(e)
 
     try:
         #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
         urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls')))
     except Exception as e:
-        print "Warnig: graphite disabled"
-        print e
+        print("Warnig: graphite disabled")
+        print(e)
 
     try:
         #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
         urlpatterns.append(url(r'^sos/', include('borinud_sos.urls')))
     except Exception as e:
-        print "Warnig: sos disabled"
-        print e
+        print("Warnig: sos disabled")
+        print(e)
         
     try:
         urlpatterns.append(url(r'^firmware/', include('firmware_updater.urls')))
     except Exception as e:
-        print "Warnig: firmware_updater disabled"
-        print e
+        print("Warnig: firmware_updater disabled")
+        print(e)
 
   
         

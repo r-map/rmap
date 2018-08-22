@@ -73,7 +73,7 @@ class GeorefencedImage(models.Model):
     @property
     def popupContent(self):
         return \
-            u'\
+            '\
             <p>\
             <a href="#" onClick="window.open(\'/geoimage/{}/{}\',\'geoimage\', \'width=800, height=620\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\

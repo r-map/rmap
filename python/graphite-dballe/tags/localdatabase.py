@@ -264,7 +264,7 @@ class LocalDatabaseTagDB(BaseTagDB):
 
     with connection.cursor() as cursor:
       # tags
-      self._insert_ignore('tags_tag', ['tag'], [[tag] for tag in parsed.tags.keys()])
+      self._insert_ignore('tags_tag', ['tag'], [[tag] for tag in list(parsed.tags.keys())])
 
       sql = 'SELECT id, tag FROM tags_tag WHERE tag IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.keys())
@@ -272,7 +272,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       tag_ids = {tag: tag_id for (tag_id, tag) in cursor}
 
       # tag values
-      self._insert_ignore('tags_tagvalue', ['value'], [[value] for value in parsed.tags.values()])
+      self._insert_ignore('tags_tagvalue', ['value'], [[value] for value in list(parsed.tags.values())])
 
       sql = 'SELECT id, value FROM tags_tagvalue WHERE value IN (' + ', '.join(['%s'] * len(parsed.tags)) + ')'  # nosec
       params = list(parsed.tags.values())
@@ -296,7 +296,7 @@ class LocalDatabaseTagDB(BaseTagDB):
       self._insert_ignore(
         'tags_seriestag',
         ['series_id', 'tag_id', 'value_id'],
-        [[series_id, tag_ids[tag], value_ids[value]] for tag, value in parsed.tags.items()]
+        [[series_id, tag_ids[tag], value_ids[value]] for tag, value in list(parsed.tags.items())]
       )
 
     return path

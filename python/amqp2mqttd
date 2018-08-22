@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify
@@ -24,7 +24,7 @@ django.setup()
 import logging,logging.handlers
 from rmap import daemon
 import pika, subprocess
-import threading,Queue
+import threading,queue
 import rmap.settings
 import time
 
@@ -43,8 +43,8 @@ amqp2mqttd = daemon.Daemon(
         group=rmap.settings.groupamqp2mqttd
 )
 
-send_queue = Queue.Queue()
-receive_queue = Queue.Queue()
+send_queue = queue.Queue()
+receive_queue = queue.Queue()
 
 
 class Threaded_bufr2mqtt(threading.Thread):
@@ -341,7 +341,7 @@ class amqpConsumer(object):
 
         try:
             response=receive_queue.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             response=("",0)
 
         #try:
@@ -387,7 +387,7 @@ def main(amqp2mqttd):
 
     logger.error("Start version: "+rmap.__version__)
 
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print(' [*] Waiting for messages. To exit press CTRL+C')
 
     consumer = amqpConsumer()
     try:

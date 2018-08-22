@@ -25,7 +25,7 @@ class IntervalSet:
   def __getitem__(self, i):
     return self.intervals[i]
 
-  def __nonzero__(self):
+  def __bool__(self):
     return self.size != 0
 
   def __sub__(self, other):
@@ -113,7 +113,7 @@ class Interval:
   def __len__(self):
     raise TypeError("len() doesn't support infinite values, use the 'size' attribute instead")
 
-  def __nonzero__(self):  # Python 2
+  def __bool__(self):  # Python 2
     return self.size != 0
 
   def __bool__(self):  # Python 3

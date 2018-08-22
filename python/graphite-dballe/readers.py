@@ -5,6 +5,7 @@ from .intervals import Interval, IntervalSet
 from .carbonlink import CarbonLink
 from .logger import log
 from django.conf import settings
+from functools import reduce
 
 try:
   import whisper
@@ -68,7 +69,7 @@ class MultiReader(object):
             log.exception("Failed to complete subfetch")
             results[i] = None
 
-      results = [r for r in results.values() if r is not None]
+      results = [r for r in list(results.values()) if r is not None]
       if not results:
         raise Exception("All sub-fetches failed")
 
@@ -188,7 +189,7 @@ class WhisperReader(object):
       cached_datapoints = []
 
     if isinstance(cached_datapoints, dict):
-      cached_datapoints = cached_datapoints.items()
+      cached_datapoints = list(cached_datapoints.items())
 
     values = merge_with_cache(cached_datapoints,
                               start,
@@ -226,7 +227,7 @@ class RRDReader:
 
   @staticmethod
   def _convert_fs_path(fs_path):
-    if isinstance(fs_path, unicode):
+    if isinstance(fs_path, str):
       fs_path = fs_path.encode(sys.getfilesystemencoding())
     return os.path.realpath(fs_path)
 

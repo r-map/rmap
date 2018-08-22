@@ -64,8 +64,8 @@ MQTTv311 = 4
 
 if sys.version_info[0] >= 3:
     # define some alias for python2 compatibility
-    unicode = str
-    basestring = str
+    str = str
+    str = str
 
 # Message types
 CONNECT = 0x10
@@ -275,9 +275,9 @@ class MQTTMessageInfo(object):
         return self
 
     def __next__(self):
-        return self.next()
+        return next(self)
 
-    def next(self):
+    def __next__(self):
         if self._iterpos == 0:
             self._iterpos = 1
             return self.rc
@@ -509,7 +509,7 @@ class Client(object):
                 self._client_id = b""
         else:
             self._client_id = client_id
-        if isinstance(self._client_id, unicode):
+        if isinstance(self._client_id, str):
             self._client_id = self._client_id.encode('utf-8')
 
         self._username = None
@@ -1067,7 +1067,7 @@ class Client(object):
         if qos < 0 or qos > 2:
             raise ValueError('Invalid QoS level.')
 
-        if isinstance(payload, unicode):
+        if isinstance(payload, str):
             local_payload = payload.encode('utf-8')
         elif isinstance(payload, (bytes, bytearray)):
             local_payload = payload
@@ -1139,7 +1139,7 @@ class Client(object):
         # [MQTT-3.1.3-11] User name must be UTF-8 encoded string
         self._username = username.encode('utf-8')
         self._password = password
-        if isinstance(self._password, unicode):
+        if isinstance(self._password, str):
             self._password = self._password.encode('utf-8')
 
     def disconnect(self):
@@ -1199,7 +1199,7 @@ class Client(object):
         if isinstance(topic, tuple):
             topic, qos = topic
 
-        if isinstance(topic, basestring):
+        if isinstance(topic, str):
             if qos < 0 or qos > 2:
                 raise ValueError('Invalid QoS level.')
             if topic is None or len(topic) == 0:
@@ -1210,7 +1210,7 @@ class Client(object):
             for t, q in topic:
                 if q < 0 or q > 2:
                     raise ValueError('Invalid QoS level.')
-                if t is None or len(t) == 0 or not isinstance(t, basestring):
+                if t is None or len(t) == 0 or not isinstance(t, str):
                     raise ValueError('Invalid topic.')
                 topic_qos_list.append((t.encode('utf-8'), q))
 
@@ -1244,14 +1244,14 @@ class Client(object):
         topic_list = None
         if topic is None:
             raise ValueError('Invalid topic.')
-        if isinstance(topic, basestring):
+        if isinstance(topic, str):
             if len(topic) == 0:
                 raise ValueError('Invalid topic.')
             topic_list = [topic.encode('utf-8')]
         elif isinstance(topic, list):
             topic_list = []
             for t in topic:
-                if len(t) == 0 or not isinstance(t, basestring):
+                if len(t) == 0 or not isinstance(t, str):
                     raise ValueError('Invalid topic.')
                 topic_list.append(t.encode('utf-8'))
 
@@ -1411,7 +1411,7 @@ class Client(object):
         if qos < 0 or qos > 2:
             raise ValueError('Invalid QoS level.')
 
-        if isinstance(payload, unicode):
+        if isinstance(payload, str):
             self._will_payload = payload.encode('utf-8')
         elif isinstance(payload, (bytes, bytearray)):
             self._will_payload = payload
@@ -2025,14 +2025,14 @@ class Client(object):
                 return packet
 
     def _pack_str16(self, packet, data):
-        if isinstance(data, unicode):
+        if isinstance(data, str):
             data = data.encode('utf-8')
         packet.extend(struct.pack("!H", len(data)))
         packet.extend(data)
 
     def _send_publish(self, mid, topic, payload=b'', qos=0, retain=False, dup=False, info=None):
         # we assume that topic and payload are already properly encoded
-        assert not isinstance(topic, unicode) and not isinstance(payload, unicode) and payload is not None
+        assert not isinstance(topic, str) and not isinstance(payload, str) and payload is not None
 
         if self._sock is None:
             return MQTT_ERR_NO_CONN
@@ -2734,7 +2734,7 @@ class WebsocketWrapper(object):
 
         header = "\r\n".join([
             "GET {self._path} HTTP/1.1".format(self=self),
-            "\r\n".join("{}: {}".format(i, j) for i, j in websocket_headers.items()),
+            "\r\n".join("{}: {}".format(i, j) for i, j in list(websocket_headers.items())),
             "\r\n",
         ]).encode("utf8")
 

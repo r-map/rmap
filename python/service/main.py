@@ -31,7 +31,7 @@ from rmap.rmapstation import station
 if __name__ == '__main__':
 
     arg = os.getenv('PYTHON_SERVICE_ARGUMENT')
-    print "message from father: ",arg
+    print("message from father: ",arg)
 
     if arg is None:
         arg="station"
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     if arg == "station":
 
         mystation=station()
-        print "background restored queue:",mystation.anavarlist,mystation.datavarlist
+        print("background restored queue:",mystation.anavarlist,mystation.datavarlist)
         mystation.display()
 
         mystation.boot()

@@ -1,4 +1,4 @@
-from models import GeorefencedImage
+from .models import GeorefencedImage
 from django.shortcuts import render
 from django import forms
 from datetime import date,datetime,timedelta,time
@@ -12,7 +12,7 @@ class ExtremeForm(forms.Form):
 
 
     this_year = date.today().year-9
-    years = range(this_year, this_year+10)
+    years = list(range(this_year, this_year+10))
 
     datetime_start = forms.DateTimeField(required=True,initial=initial_start,widget=SelectDateWidget(years=years),label=ugettext_lazy("Starting date"),help_text=ugettext_lazy("Elaborate starting from this date"))
 
@@ -40,10 +40,10 @@ def showImage(request,ident=None):
         form = ExtremeForm() # An unbound form
 
     if ident is None:
-        print "query no ident:",datetime_start,datetime_end
+        print("query no ident:",datetime_start,datetime_end)
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end).order_by("date")
     else:
-        print "query:",datetime_start,datetime_end,ident
+        print("query:",datetime_start,datetime_end,ident)
         grimages=GeorefencedImage.objects.filter(date__gte=datetime_start,date__lte=datetime_end,ident__username=ident).order_by("date")
 
     return render(request, 'geoimage/georefencedimage_list.html',{'form': form,"grimages":grimages,"ident":ident})
@@ -51,7 +51,7 @@ def showImage(request,ident=None):
 
 def showOneImage(request,ident,id):
     grimage=GeorefencedImage.objects.get(ident__username=ident,id=id)
-    print "grimage"
-    print grimage
+    print("grimage")
+    print(grimage)
     return render(request, 'geoimage/georefencedimage.html',{"grimage":grimage})
 

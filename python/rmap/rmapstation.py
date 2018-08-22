@@ -26,11 +26,11 @@ import traceback
 
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
-import settings
-import jsonrpc
-from sensordriver import SensorDriver
-from gps import *
-from bluetooth import *
+from . import settings
+from . import jsonrpc
+from .sensordriver import SensorDriver
+from .gps import *
+from .bluetooth import *
 
 from plyer.compat import PY2
 from kivy.lib import osc    ####   osc IPC  ####
@@ -48,10 +48,10 @@ import json
 from datetime import datetime, timedelta
 import time
 #import mosquitto
-from rmapmqtt import rmapmqtt,do_notify
-from utils import log_stdout
-from stations.models import StationMetadata
-import rmap_core
+from .rmapmqtt import rmapmqtt,do_notify
+from .utils import log_stdout
+from .stations.models import StationMetadata
+from . import rmap_core
 
 
 class station():
@@ -73,7 +73,7 @@ class station():
         do all startup operations
         '''
 
-        print "INITIALIZE rmap station"
+        print("INITIALIZE rmap station")
         self.picklefile=picklefile
 
         self.anavarlist=[]
@@ -105,9 +105,9 @@ class station():
                     self.slug= pickle.load( file )
                     self.boardslug= pickle.load( file )
             else:
-                print "file ",self.picklefile," do not exist"
+                print("file ",self.picklefile," do not exist")
         except:
-            print "ERROR loading saved data"
+            print("ERROR loading saved data")
             self.anavarlist=[]
             self.datavarlist=[]
             self.trip=False
@@ -124,18 +124,18 @@ class station():
             self.boardslug=boardslug
 
         try:
-            print "get information for station:", self.slug
+            print("get information for station:", self.slug)
             if username is None:
                 mystation=StationMetadata.objects.filter(slug=self.slug)[0]
             else:
                 mystation=StationMetadata.objects.get(slug=self.slug,ident__username=username)
         except ObjectDoesNotExist:
-            print "not existent station in db: do nothing!"
+            print("not existent station in db: do nothing!")
             #raise SystemExit(0)
             raise Rmapdonotexist("not existent station in db")
 
         if not mystation.active:
-            print "Warning: disactivated station!"
+            print("Warning: disactivated station!")
 
         self.lon=mystation.lon
         self.lat=mystation.lat
@@ -147,23 +147,23 @@ class station():
         self.active=mystation.active
 
         for cdata in mystation.stationconstantdata_set.all():
-            print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> constant data: ", cdata.btable
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> constant data: ", cdata.btable)
             if not cdata.active: continue
-            print "found a good constant data"
+            print("found a good constant data")
             self.anavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},"anavar":{cdata.btable:{"v": cdata.value}}})
 
         self.drivers=[]
 
 
-        print "get info for BOARD:", self.boardslug
+        print("get info for BOARD:", self.boardslug)
         for board in mystation.board_set.all().filter(slug=self.boardslug):
-            print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name)
             if not board.active: continue
-            print "found a good base board"
+            print("found a good base board")
 
             try:
                 if ( board.transportmqtt.active):
-                    print "MQTT Transport", board.transportmqtt
+                    print("MQTT Transport", board.transportmqtt)
                     
                     self.mqtt_sampletime=board.transportmqtt.mqttsampletime
                     self.mqtt_host=board.transportmqtt.mqttserver
@@ -171,7 +171,7 @@ class station():
                     self.mqtt_password=board.transportmqtt.mqttpassword
 
             except ObjectDoesNotExist:
-                print "transport mqtt not present"
+                print("transport mqtt not present")
                 self.mqtt_sampletime=None
                 self.mqtt_host=None
                 self.mqtt_user=None
@@ -181,27 +181,27 @@ class station():
 
             try:
                 if ( board.transporttcpip.active):
-                    print "TCPIP Transport", board.transporttcpip
+                    print("TCPIP Transport", board.transporttcpip)
                     
                     self.tcpip_name=board.transporttcpip.name
                     self.transport_name="tcpip"
 
             except ObjectDoesNotExist:
-                print "transport tcpip not present"
+                print("transport tcpip not present")
                 self.tcpip_name=None
             #    raise SystemExit(0)
 
 
             try:
                 if ( board.transportserial.active):
-                    print "Serial Transport", board.transportserial
+                    print("Serial Transport", board.transportserial)
                     
                     self.serial_device=board.transportserial.device
                     self.serial_baudrate=board.transportserial.baudrate
                     self.transport_name="serial"
 
             except ObjectDoesNotExist:
-                print "transport serial not present"
+                print("transport serial not present")
                 self.serial_device=None
                 self.serial_baudrate=None
             #    raise SystemExit(0)
@@ -209,12 +209,12 @@ class station():
 
             try:
                 if ( board.transportbluetooth.active):
-                    print "Bluetooth Transport", board.transportbluetooth
+                    print("Bluetooth Transport", board.transportbluetooth)
                     self.bluetooth_name=board.transportbluetooth.name
                     self.transport_name="bluetooth"
 
             except ObjectDoesNotExist:
-                print "transport bluetooth not present"
+                print("transport bluetooth not present")
                 self.bluetooth_name=None
                 #raise SystemExit(0)
 
@@ -237,58 +237,58 @@ class station():
 
     def display(self):
 
-            print "station: >>>>>>>>"
+            print("station: >>>>>>>>")
 
-            print "lon:",self.lon
-            print "lat:",self.lat
-            print "mqtt ident:",self.mqtt_ident
-            print "prefix:",self.prefix
-            print "maintprefix",self.maintprefix
-            print "network:",self.network
+            print("lon:",self.lon)
+            print("lat:",self.lat)
+            print("mqtt ident:",self.mqtt_ident)
+            print("prefix:",self.prefix)
+            print("maintprefix",self.maintprefix)
+            print("network:",self.network)
 
 
-            print "board: >>>>>>>>"
+            print("board: >>>>>>>>")
             try:
-                print "sampletime:",self.mqtt_sampletime
+                print("sampletime:",self.mqtt_sampletime)
             except:
                 pass
             try:
-                print "host:",self.mqtt_host
+                print("host:",self.mqtt_host)
             except:
                 pass
             try:
-                print "user:",self.mqtt_user
+                print("user:",self.mqtt_user)
             except:
                 pass
             try:
-                print "password:",self.mqtt_password
+                print("password:",self.mqtt_password)
             except:
                 pass
             try:
-                print ""
-                print "transport:",self.transport_name
+                print("")
+                print("transport:",self.transport_name)
             except:
                 pass
 
             if self.transport_name == "bluetooth":
-                print "bluetooth_name:",self.bluetooth_name
+                print("bluetooth_name:",self.bluetooth_name)
 
             if self.transport_name == "serial":
-                print "serial_device:",self.serial_device
-                print "serial_baudrate:",self.serial_baudrate
+                print("serial_device:",self.serial_device)
+                print("serial_baudrate:",self.serial_baudrate)
 
             if self.transport_name == "tcpip":
-                print "tcpip_name:",self.tcpip_name
+                print("tcpip_name:",self.tcpip_name)
 
-            print ">>>> sensors:"
-            print self.drivers
+            print(">>>> sensors:")
+            print(self.drivers)
 
 
     def rpcin(self, message, *args):
         """
         Get a message from osc channel
         """
-        print "RPC: ",message[2]
+        print("RPC: ",message[2])
         self.rpcin_message=message[2]
 
     def rpcout(self,message,*args):
@@ -302,41 +302,41 @@ class station():
         called on application stop
         Here you can save data if needed
         '''
-        print ">>>>>>>>> called on application stop"
+        print(">>>>>>>>> called on application stop")
 
         try:
             self.stoptransport()
-            print "transport stopped"
+            print("transport stopped")
         except:
-            print "stop transport failed"
+            print("stop transport failed")
 
         # this seems required by android >= 5
         if self.bluetooth:
             self.bluetooth.close()
 
         self.stopmqtt()
-        print "mqtt stopped"
+        print("mqtt stopped")
 
         self.gps.stop()
-        print "gps stopped"
+        print("gps stopped")
 
         #self.br.stop()
 
-        print "start save common parameters"
+        print("start save common parameters")
         with open( self.picklefile, "wb" ) as file:
             pickle.dump( self.anavarlist, file )
             pickle.dump( self.datavarlist, file )
             pickle.dump( self.trip, file )
             pickle.dump( self.slug, file )
             pickle.dump( self.boardslug, file )
-        print "end save common parameters"
+        print("end save common parameters")
 
     def on_pause(self):
         '''
         called on application pause
         Here you can save data if needed
         '''
-        print ">>>>>>>>> called on application pause"
+        print(">>>>>>>>> called on application pause")
 
         self.on_stop()
 
@@ -347,7 +347,7 @@ class station():
         called on appication resume
         Here you can check if any data needs replacing (usually nothing)
         '''
-        print ">>>>>>>>> called on appication resume"
+        print(">>>>>>>>> called on appication resume")
 
         #self.br.start()
         try:
@@ -359,9 +359,9 @@ class station():
                     self.slug= pickle.load( file )
                     self.boardslug= pickle.load( file )
             else:
-                print "file ",self.picklefile," do not exist"
+                print("file ",self.picklefile," do not exist")
         except:
-            print "ERROR loading saved data"
+            print("ERROR loading saved data")
             self.anavarlist=[]
             self.datavarlist=[]
             self.trip=False
@@ -384,15 +384,15 @@ class station():
             if username is None:
                 username=self.username
 
-            print "configstation:",self.slug,board_slug,board_slug,username
+            print("configstation:",self.slug,board_slug,board_slug,username)
             rmap_core.configstation(station_slug=self.slug,
                                     board_slug=board_slug,
                                     transport=self.transport,
                                     logfunc=self.log,username=username)
 
         except Exception as e:
-            print "error in configure:"
-            print e
+            print("error in configure:")
+            print(e)
             raise
 
         finally:
@@ -408,16 +408,16 @@ class station():
         self.sensors=[]
         for driver in self.drivers:
             try:
-                print "driver: ",driver
+                print("driver: ",driver)
 
                 if driver["driver"] == "JRPC":
-                    print "found JRPC driver; setup for bridged RPC"
+                    print("found JRPC driver; setup for bridged RPC")
                     sd =SensorDriver.factory(driver["driver"],transport=self.transport)
                     # change transport !
                     sd.setup(driver="I2C",node=driver["node"],type=driver["type"],address=driver["address"])
 
                 elif driver["driver"] == "RF24":
-                    print "found RF24 driver; setup for bridged RPC"
+                    print("found RF24 driver; setup for bridged RPC")
                     sd =SensorDriver.factory("JRPC",transport=self.transport)
                     # change transport !
                     sd.setup(driver=driver["driver"],node=driver["node"],type=driver["type"],address=driver["address"])
@@ -429,11 +429,11 @@ class station():
                 self.sensors.append({"driver":sd,"timerange":driver["timerange"],"level":driver["level"]})
 
             except:
-                print "error in setup; sensor disabled:",\
+                print("error in setup; sensor disabled:",\
                 " driver=",driver["driver"],\
                 " node=",driver["node"],\
                 " type=",driver["type"],\
-                " address=",driver["address"]
+                " address=",driver["address"])
                 raise Exception("sensors setup",1)
 
 
@@ -448,17 +448,17 @@ class station():
         return False if the transport never works (used to reconnect bluetooth) 
         """
 
-        print ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>getdata"
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>getdata")
 
         if trip is None:
             trip=self.trip
 
         if trip and not self.ismobile():
-            print "trip with fix station: do nothing"
+            print("trip with fix station: do nothing")
             return True,{}
 
         if not trip and self.ismobile():
-            print "not on trip with mobile station: do nothing"
+            print("not on trip with mobile station: do nothing")
             return True,{}
 
         if trip and self.gps.gpsfix:
@@ -469,7 +469,7 @@ class station():
             self.anavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},"anavar":{"B07030":{"v": self.gps.height}}})
 
         elif trip:
-            print "we have lost gps during a trip"
+            print("we have lost gps during a trip")
             return True,{}
 
         dt=0
@@ -478,24 +478,24 @@ class station():
             now=datetime.utcnow().replace(microsecond=0)
 
         for sensor in self.sensors:
-            print "prepare: ",sensor
+            print("prepare: ",sensor)
             try:
                 dt=max(sensor["driver"].prepare(),dt)
                 connected=True
 
             except Exception as e:
-                print e
-                print "ERROR executing prepare rpc"
+                print(e)
+                print("ERROR executing prepare rpc")
                 traceback.print_exc()
 
-        print "sleep ms:",dt
+        print("sleep ms:",dt)
         time.sleep(dt/1000.)
 
         #message=""
         datavars=[]
         for sensor in self.sensors:
             try:
-              for btable,value in sensor["driver"].get().iteritems():
+              for btable,value in sensor["driver"].get().items():
                 datavar={btable:{"t": now,"v": value}}
                 datavars.append(datavar)
                 self.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},"timerange":sensor["timerange"],\
@@ -506,8 +506,8 @@ class station():
 #                message=stringa
 
             except Exception as e:
-                print e
-                print "ERROR executing getJson rpc"
+                print(e)
+                print("ERROR executing getJson rpc")
                 traceback.print_exc()
 
         return connected,datavars
@@ -528,12 +528,12 @@ class station():
         begin mqtt connection
         and publish constat station data
         '''
-        print ">>>>>>> startmqtt"
+        print(">>>>>>> startmqtt")
 
         #config = self.config
 
         if self.lat is None or self.lon is None:
-            print "you have to set LAT and LON"
+            print("you have to set LAT and LON")
             self.mqtt_status = _('Connect Status: ERROR, you have to define a location !')
             return
 
@@ -583,7 +583,7 @@ class station():
 
                 newanavarlist=[]
                 for item in self.anavarlist:
-                    print "try to publish",item
+                    print("try to publish",item)
                     try:
                         self.rmap.ana(item["anavar"],lon=item["coord"]["lon"],lat=item["coord"]["lat"])
 
@@ -596,11 +596,11 @@ class station():
 
                 newdatavarlist=[]
                 for item in self.datavarlist:
-                    print "try to publish",item
+                    print("try to publish",item)
                     try:
                         self.rmap.data(item["timerange"],item["level"],item["datavar"],lon=item["coord"]["lon"],lat=item["coord"]["lat"],prefix=item.get("prefix",None))
                         self.mqtt_status = _('Connect Status: Published')
-                        print "pubblicato", item["datavar"]
+                        print("pubblicato", item["datavar"])
                     except:
                         newdatavarlist.append(item)
                         self.mqtt_status =_('Connect Status: ERROR on Publish')
@@ -641,7 +641,7 @@ class station():
         '''
 
         if self.rmap.connected:
-            print "mqtt connected"
+            print("mqtt connected")
         else:
             #print "mqtt reconnect"
             #try:
@@ -649,7 +649,7 @@ class station():
             #except:
             #    print "error on reconnect"
 
-            print "try to restart mqtt"
+            print("try to restart mqtt")
             self.startmqtt()
 
         if self.rmap.connected:
@@ -670,7 +670,7 @@ class station():
 
         if self.transport_name == "bluetooth":
             if self.bluetooth.bluetooth is None:
-                print "Bluetooth try to reconnect"
+                print("Bluetooth try to reconnect")
                 self.transport=self.bluetooth.connect()
                 if self.transport is None:
                     print("bluetooth disabled")
@@ -679,7 +679,7 @@ class station():
                     try:
                         self.sensorssetup()
                     except:
-                        print "sensorssetup failed"
+                        print("sensorssetup failed")
 
         connected,datavars = self.getdata(trip,self.now)
 
@@ -689,7 +689,7 @@ class station():
             try:
                 self.sensorssetup()
             except:
-                print "sensorssetup failed"
+                print("sensorssetup failed")
 
         return datavars
 
@@ -697,7 +697,7 @@ class station():
         '''
         This function manage jsonrpc and mqtt messages.
         '''
-        print "call in loop"
+        print("call in loop")
 
         self.getdata_loop()
         self.publishmqtt_loop()
@@ -710,23 +710,23 @@ class station():
         """
         start transport
         """
-        print ">>>>>>> start transport ",self.transport_name
+        print(">>>>>>> start transport ",self.transport_name)
 
         if self.transport_name == "bluetooth":
-            print "start bluetooth"
+            print("start bluetooth")
             self.bluetooth=androbluetooth(name=self.bluetooth_name, logfunc=self.log)
             self.transport=self.bluetooth.connect()
 
         if self.transport_name == "tcpip":
-            print "start tcpip"
+            print("start tcpip")
             self.transport=jsonrpc.TransportTcpIp(addr=(self.tcpip_name,1000),timeout=3, logfunc=self.log)
 
         if self.transport_name == "serial":
-            print "start serial"
+            print("start serial")
             self.transport=jsonrpc.TransportSERIAL(port=self.serial_device,baudrate=self.serial_baudrate, logfunc=self.log)
 
         if self.transport_name == "mqtt":
-            print "start mqtt"
+            print("start mqtt")
             self.transport=jsonrpc.TransportMQTT(user=self.mqtt_user,
                                                  password=self.mqtt_password,
                                                  host=self.mqtt_host,
@@ -744,13 +744,13 @@ class station():
         try:
             self.transport.close()
         except:
-            print "ERROR closing transport"
+            print("ERROR closing transport")
             raise Exception("stop transport",1)
 
 
     def boot(self,configurestation=False):
 
-        print "background boot station"
+        print("background boot station")
 
         ####   osc IPC   ####
         osc.init()
@@ -763,7 +763,7 @@ class station():
         try:
             self.starttransport()
         except:
-            print "start transport failed"
+            print("start transport failed")
 
         notok=True
         while notok:
@@ -773,21 +773,21 @@ class station():
                 try:
                     self.sensorssetup()
                 except:
-                    print "sensorssetup failed"
+                    print("sensorssetup failed")
 
                 if self.trip:
                     self.gps.start()
                 self.startmqtt()
                 notok=False
             except:
-                print "Error booting station"
+                print("Error booting station")
                 time.sleep(5)
 
                 osc.readQueue(self.oscid)
                 if self.rpcin_message == "stop":
-                    print "received stop message from rpc"
+                    print("received stop message from rpc")
                     self.on_stop()
-                    print "send stopped message to rpc"
+                    print("send stopped message to rpc")
                     self.rpcout("stopped")
                     raise SystemExit(0)
                     #time.sleep(60) # wait for kill from father
@@ -798,23 +798,23 @@ class station():
                     try:
                         self.sensorssetup()
                     except:
-                        print "sensorssetup failed"
+                        print("sensorssetup failed")
 
-        print "background end boot"
+        print("background end boot")
 
     def loopforever(self):
 
         # wait until a "even" datetime and set nexttime      
         now=datetime.utcnow()
-        print "now:",now
+        print("now:",now)
         nexttime=now+timedelta(seconds=self.mqtt_sampletime)
         nextsec=int(nexttime.second/self.mqtt_sampletime)*self.mqtt_sampletime
         nexttime=nexttime.replace(second=nextsec,microsecond=0)
-        print "nexttime:",nexttime
+        print("nexttime:",nexttime)
         waitsec=(max((nexttime - datetime.utcnow()),timedelta())).total_seconds()
-        print "wait for:",waitsec
+        print("wait for:",waitsec)
         time.sleep(waitsec)
-        print "now:",datetime.utcnow()
+        print("now:",datetime.utcnow())
 
         self.now=nexttime
 
@@ -832,26 +832,26 @@ class station():
 
                 self.loop()
 
-                print "backgroud loop"
+                print("backgroud loop")
                 message=self.mqtt_status
 
                 title="Rmap last status"
                 if self.transport_name == "bluetooth":
                     title= self.bluetooth.bluetooth_status
 
-                print "notification title:"
-                print title
-                print "notification message:"
-                print message
+                print("notification title:")
+                print(title)
+                print("notification message:")
+                print(message)
 
                 do_notify(message,title)
 
             except Exception as e:
-                print e
-                print "ERROR in main loop!"
+                print(e)
+                print("ERROR in main loop!")
                 traceback.print_exc()
 
-            print "now:",datetime.utcnow()
+            print("now:",datetime.utcnow())
             nexttime=nexttime+timedelta(seconds=self.mqtt_sampletime)
 
             self.sleep_and_check_stop(nexttime)
@@ -860,7 +860,7 @@ class station():
 
     def sleep_and_check_stop(self,nexttime):
         waitsec=(max((nexttime - datetime.utcnow()),timedelta())).total_seconds()
-        print "wait for:",waitsec
+        print("wait for:",waitsec)
         #time.sleep(waitsec)
         stop=False
         while (datetime.utcnow() < nexttime):
@@ -875,19 +875,19 @@ class station():
             stop=True
 
         if (not stop):
-            print "continue on loop"
+            print("continue on loop")
             return
 
-        print "start shutdown background process"
+        print("start shutdown background process")
         try:
             self.on_stop()
         except:
-            print "error on_stop"
-        print "retuned from on_stop"
+            print("error on_stop")
+        print("retuned from on_stop")
 
-        print "RPC send stoppped"
+        print("RPC send stoppped")
         self.rpcout("stopped")
-        print "background exit"
+        print("background exit")
         raise SystemExit(0)
         #time.sleep(s30)
 
@@ -895,7 +895,7 @@ class station():
         try:
             self.on_stop()
         except:
-            print "error on_stop"
+            print("error on_stop")
         raise SystemExit(0)
 
 
@@ -939,7 +939,7 @@ def main():
     
         while reptime <= endtime:
 
-            print "connect status: ",rmap.connected
+            print("connect status: ",rmap.connected)
             timerange="254,0,0"               # dati istantanei
             level="103,2000,-,-"              # 2m dal suolo
             value=random.randint(25315,30000) # tempertaure in cent K
@@ -960,10 +960,10 @@ def main():
 
         rmap.disconnect()
         rmap.loop_stop()
-        print "work is done OK"
+        print("work is done OK")
 
     except:
-        print "terminated with error"
+        print("terminated with error")
         raise
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ Utility to adjust the EXIF
 """
 
 import sys
-import piexif
+from . import piexif
 from datetime import datetime
 import io
 
@@ -59,7 +59,7 @@ def parse(val):
     other = (val - deg) * 60
     minutes = int(other)
     secs = (other - minutes) * 60
-    secs = long(secs * SEC_DEN)
+    secs = int(secs * SEC_DEN)
     return (sign, deg, minutes, secs)
 
 #_parse = staticmethod(_parse)
@@ -93,14 +93,14 @@ def dumpimage(data):
 
         for ifd in ("0th", "Exif", "GPS", "1st"):
             for tag in exif_dict[ifd]:
-                print tag
-                print(piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag])
+                print(tag)
+                print((piexif.TAGS[ifd][tag]["name"], exif_dict[ifd][tag]))
         
         try:
             lat,lon=get_geo(exif_dict)
-            print "lat lon",lat,lon
+            print("lat lon",lat,lon)
         except:
-            print "error getting lat lon metadata"
+            print("error getting lat lon metadata")
 
 def setgeoimage(data,lat,lon,imagedescription="",usercomment="",dt=None):
 
@@ -164,7 +164,7 @@ def photo_manage(filename):
         except:
             import Image as PILImage
     except:
-        print "To use this program, you need to install Python Imaging Library PILLOW"
+        print("To use this program, you need to install Python Imaging Library PILLOW")
         sys.exit(1)
 
     im = PILImage.open(filename)
@@ -181,7 +181,7 @@ def photo_manage(filename):
     if piexif.ImageIFD.Orientation in exif_dict["0th"]:
         orientation = exif_dict["0th"][piexif.ImageIFD.Orientation]
 
-        print "ECCO ORIENTATION:",orientation
+        print("ECCO ORIENTATION:",orientation)
 
         if orientation == 1:
             # Nothing
@@ -259,13 +259,13 @@ if __name__ == "__main__":
                 data = file.read()
 
                 if options.dump:
-                     print "Input metadata:"
+                     print("Input metadata:")
                      dumpimage(data)
 
                 new_data=setgeoimage(data,lat=44.,lon=11.,imagedescription="pat1",usercomment="prova")
 
                 if options.dump:
-                     print "Output metadata:"
+                     print("Output metadata:")
                      dumpimage(new_data)
 
                 with open(fname+"new","w") as file:

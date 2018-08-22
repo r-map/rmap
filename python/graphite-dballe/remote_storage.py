@@ -1,6 +1,6 @@
 import time
-import httplib
-from urllib import urlencode
+import http.client
+from urllib.parse import urlencode
 from threading import Lock
 from django.conf import settings
 from django.core.cache import cache
@@ -11,7 +11,7 @@ from .util import unpickle
 from .render.hashing import compactHash
 
 def connector_class_selector(https_support=False):
-    return httplib.HTTPSConnection if https_support else httplib.HTTPConnection
+    return http.client.HTTPSConnection if https_support else http.client.HTTPConnection
 
 class RemoteStore(object):
   lastFailure = 0.0

@@ -118,7 +118,7 @@ class Ext:
         """
         s = "Ext Object (Type: 0x%02x, Data: " % self.type
         s += " ".join(["0x%02x" % ord(self.data[i:i + 1])
-                       for i in xrange(min(len(self.data), 8))])
+                       for i in range(min(len(self.data), 8))])
         if len(self.data) > 8:
             s += " ..."
         s += ")"
@@ -365,7 +365,7 @@ def _pack_map(obj, fp, options):
     else:
         raise UnsupportedTypeException("huge array")
 
-    for k, v in obj.items():
+    for k, v in list(obj.items()):
         pack(k, fp, **options)
         pack(v, fp, **options)
 
@@ -412,15 +412,15 @@ def _pack2(obj, fp, **options):
         _pack_ext(ext_handlers[obj.__class__](obj), fp, options)
     elif isinstance(obj, bool):
         _pack_boolean(obj, fp, options)
-    elif isinstance(obj, int) or isinstance(obj, long):
+    elif isinstance(obj, int) or isinstance(obj, int):
         _pack_integer(obj, fp, options)
     elif isinstance(obj, float):
         _pack_float(obj, fp, options)
-    elif compatibility and isinstance(obj, unicode):
+    elif compatibility and isinstance(obj, str):
         _pack_oldspec_raw(bytes(obj), fp, options)
     elif compatibility and isinstance(obj, bytes):
         _pack_oldspec_raw(obj, fp, options)
-    elif isinstance(obj, unicode):
+    elif isinstance(obj, str):
         _pack_string(obj, fp, options)
     elif isinstance(obj, str):
         _pack_binary(obj, fp, options)
@@ -432,7 +432,7 @@ def _pack2(obj, fp, **options):
         _pack_ext(obj, fp, options)
     elif ext_handlers:
         # Linear search for superclass
-        t = next((t for t in ext_handlers.keys() if isinstance(obj, t)), None)
+        t = next((t for t in list(ext_handlers.keys()) if isinstance(obj, t)), None)
         if t:
             _pack_ext(ext_handlers[t](obj), fp, options)
         else:
@@ -502,7 +502,7 @@ def _pack3(obj, fp, **options):
         _pack_ext(obj, fp, options)
     elif ext_handlers:
         # Linear search for superclass
-        t = next((t for t in ext_handlers.keys() if isinstance(obj, t)), None)
+        t = next((t for t in list(ext_handlers.keys()) if isinstance(obj, t)), None)
         if t:
             _pack_ext(ext_handlers[t](obj), fp, options)
         else:
@@ -723,7 +723,7 @@ def _unpack_array(code, fp, options):
     else:
         raise Exception("logic error, not array: 0x%02x" % ord(code))
 
-    return [_unpack(fp, options) for i in xrange(length)]
+    return [_unpack(fp, options) for i in range(length)]
 
 
 def _deep_list_to_tuple(obj):
@@ -744,7 +744,7 @@ def _unpack_map(code, fp, options):
 
     d = {} if not options.get('use_ordered_dict') \
         else collections.OrderedDict()
-    for _ in xrange(length):
+    for _ in range(length):
         # Unpack key
         k = _unpack(fp, options)
 
