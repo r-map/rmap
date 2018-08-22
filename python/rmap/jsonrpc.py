@@ -671,7 +671,7 @@ class JsonRpc20:
             resultkey="result"
             numfield=4
             
-	if idkey not in data:            raise RPCInvalidRPC("Invalid Response, '"+idkey+"' missing.")
+        if idkey not in data:            raise RPCInvalidRPC("Invalid Response, '"+idkey+"' missing.")
         if resultkey not in data:        data[resultkey] = None
         if errorkey  not in data:        data[errorkey]  = None
         if len(data) != numfield:              raise RPCInvalidRPC("""Invalid Response, additional or missing fields.""")
