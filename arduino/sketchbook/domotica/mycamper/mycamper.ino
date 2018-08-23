@@ -197,7 +197,18 @@ void updateGpio(){
     success = "0";
     //LOGE(F("Err pin value: %d" CR),etat);    
   }
-  
+
+  if (oledpresent) {
+    //u8g2.clearBuffer();
+    u8g2.setCursor(0, (ind+1)*10); 
+    u8g2.print(F("key "));
+    u8g2.print(ind+1);
+    //u8g2.setCursor(0, 20); 
+    u8g2.print(F(" : "));
+    u8g2.print(digitalRead(GPIOPIN[ind]));
+    u8g2.sendBuffer();
+  }
+
   String json = "{\"gpio\":\"" + String(gpio) + "\",";
   json += "\"etat\":\"" + String(etat) + "\",";
   json += "\"success\":\"" + String(success) + "\"}";
@@ -316,7 +327,7 @@ void setup() {
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
   
-  for ( int x = 0 ; x < 5 ; x++ ) {
+  for ( int x = 0 ; x < 4 ; x++ ) {
     pinMode(GPIOPIN[x], OUTPUT);
   }
 
@@ -332,7 +343,7 @@ void setup() {
 
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
-  delay(1000);
+  delay(100);
   
   // check return value of
   // the Write.endTransmisstion to see if
@@ -366,16 +377,28 @@ void setup() {
   digitalWrite(LED_PIN,HIGH);
   delay(1000);
   digitalWrite(LED_PIN,LOW);
+
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("Starting"));
+    u8g2.sendBuffer();
+  }
+
   delay(1000);
   digitalWrite(LED_PIN,HIGH);
 
-  configTime(0, 0, "0.europe.pool.ntp.org");
 
-  irrecv.enableIRIn();  // Start the receiver
-    
-  delay(1000);
+  //configTime(0, 0, "0.europe.pool.ntp.org");
   
   LOGN(F("mounting FS..." CR));
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("mounting FS..."));
+    u8g2.sendBuffer();
+    delay(3000);
+  }
   if (SPIFFS.begin()) {
     Serial.println();  
     Dir dir = SPIFFS.openDir("/");
@@ -396,6 +419,21 @@ void setup() {
     }
   }
 
+  irrecv.enableIRIn();  // Start the receiver
+
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("ssed:"));
+    u8g2.setCursor(0, 20); 
+    u8g2.print(F(WIFI_SSED));
+    u8g2.setCursor(0, 35); 
+    u8g2.print(F("password:"));
+    u8g2.setCursor(0, 45); 
+    u8g2.print(F(WIFI_PASSWORD));
+    u8g2.sendBuffer();
+    delay(1000);
+  }
 
   IPAddress apIP(192, 168, 1, 1);
   WiFi.mode(WIFI_AP);
@@ -415,7 +453,6 @@ void setup() {
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
   dnsServer.start(53, "*", apIP);
-
   
   server.on("/gpio", updateGpio);
 
@@ -427,6 +464,25 @@ void setup() {
   server.begin();
   LOGN(F("HTTP server started" CR));
 
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("Started:"));
+    delay(1000);
+  }
+
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    for ( int ind = 0 ; ind < 4 ; ind++ ) {
+      u8g2.setCursor(0, (ind+1)*10); 
+      u8g2.print(F("key "));
+      u8g2.print(ind+1);
+      //u8g2.setCursor(0, 20); 
+      u8g2.print(F(" : "));
+      u8g2.print(digitalRead(GPIOPIN[ind]));
+      u8g2.sendBuffer();
+    }
+  }
 }
 
 void loop() {
@@ -467,16 +523,19 @@ void loop() {
       }
 
       if (ind>=0){
-	LOGN(F("received key %d" CR),ind+1);
-	if (oledpresent) {
-	  u8g2.clearBuffer();
-	  u8g2.setCursor(0, 10); 
-	  u8g2.print(F("key "));
-	  u8g2.print(ind+1);
-	  u8g2.sendBuffer();
-	}
 	// Toggle LED On or Off
 	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
+	LOGN(F("received key %d status %d" CR),ind+1,digitalRead(GPIOPIN[ind]));
+	if (oledpresent) {
+	  //u8g2.clearBuffer();
+	  u8g2.setCursor(0, (ind+1)*10); 
+	  u8g2.print(F("key "));
+	  u8g2.print(ind+1);
+	  //u8g2.setCursor(0, 20); 
+	  u8g2.print(F(" : "));
+	  u8g2.print(digitalRead(GPIOPIN[ind]));
+	  u8g2.sendBuffer();
+	}
       }
     }
 
