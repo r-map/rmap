@@ -38,34 +38,11 @@
 #include <IRrecv.h>
 #include <IRutils.h>
 
+#include "config.h"
 
 // increment on change
 #define SOFTWARE_VERSION "2018-07-31T00:00"
 #define FIRMWARE_TYPE "DOMOTICA"
-
-//#define I2CPULLUP Yes
-
-#define RECV_PIN  D5    // Define IR sensor pin
-#define SCL D1
-#define SDA D2
-#define RESET_PIN D3    // pin to connect to ground for reset wifi configuration
-#define LED_PIN D4
-const uint8_t GPIOPIN[4] = {D0,D6,D7,D8};  // output pins
-
-const char* rmap_server= "rmap.cc";
-#define WIFI_SSED "mycamper"
-#define WIFI_PASSWORD  "ford1234"
-#define OLEDI2CADDRESS 0X3C
-
-// set the frequency
-// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
-#define I2C_CLOCK 30418
-
-// logging level at compile time
-// Available levels are:
-// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
-
 
 // Define IR Receiver and Results Objects
 IRrecv irrecv(RECV_PIN);
@@ -306,6 +283,12 @@ void tryupgrade(){
 }
 */
 
+
+void powersave(){
+  u8g2.setPowerSave(1);
+}
+
+
 void setup() {
      
   Serial.begin ( 115200 );
@@ -481,6 +464,7 @@ void setup() {
       u8g2.print(F(" : "));
       u8g2.print(digitalRead(GPIOPIN[ind]));
       u8g2.sendBuffer();
+      Alarm.timerOnce(TIMEON, powersave);
     }
   }
 }
@@ -497,23 +481,23 @@ void loop() {
     //Serial.print(results.decode_type);
     //Serial.print(" : ");
     //Serial.println(NEC);
-    if (results.decode_type == NEC) {
+    if (results.decode_type == DECODETYPE) {
       short int ind;
 
       switch(results.value){
-      case 0xFF906F: // 1 Keypad Button
+      case KEYPAD1: // 1 Keypad Button
 	ind=0;
 	break;
 	
-      case 0xFFB847: // 2 Keypad Button
+      case KEYPAD2: // 2 Keypad Button
 	ind=1;
 	break;
 
-      case 0xFFF807: // 3 Keypad Button
+      case KEYPAD3: // 3 Keypad Button
 	ind=2;
 	break;
 	
-      case 0xFFB04F: // 4 Keypad Button
+      case KEYPAD4: // 4 Keypad Button
 	ind=3;
 	break;
 	
@@ -536,6 +520,10 @@ void loop() {
 	  u8g2.print(digitalRead(GPIOPIN[ind]));
 	  u8g2.sendBuffer();
 	}
+
+	u8g2.setPowerSave(0);
+	Alarm.timerOnce(TIMEON, powersave);
+	
       }
     }
 
@@ -597,6 +585,7 @@ void loop() {
   }
 
   //if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
+  Alarm.delay(0);
 
 }
 
