@@ -71,6 +71,9 @@ DNSServer dnsServer;
 //unsigned short int togglestate3=0;
 //unsigned short int togglestate4=0;
 
+AlarmID_t alarmpowersave=0;
+
+
 
 void firmware_upgrade() {
 
@@ -519,11 +522,10 @@ void loop() {
 	  u8g2.print(F(" : "));
 	  u8g2.print(digitalRead(GPIOPIN[ind]));
 	  u8g2.sendBuffer();
+	  u8g2.setPowerSave(0);
+	  Alarm.free(alarmpowersave);
+	  alarmpowersave=Alarm.timerOnce(TIMEON, powersave);
 	}
-
-	u8g2.setPowerSave(0);
-	Alarm.timerOnce(TIMEON, powersave);
-	
       }
     }
 
