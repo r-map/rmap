@@ -1,3 +1,5 @@
+//#define APMODE 1
+
 //#define I2CPULLUP Yes
 
 #define RECV_PIN  D5    // Define IR sensor pin
@@ -7,7 +9,8 @@
 #define LED_PIN D4
 const uint8_t GPIOPIN[4] = {D0,D6,D7,D8};  // output pins
 
-const char* rmap_server= "rmap.cc";
+#define WIFI_APMODE 1
+const char* ota_server= "rmap.cc";
 #define WIFI_SSED "mycamper"
 #define WIFI_PASSWORD  "ford1234"
 #define OLEDI2CADDRESS 0X3C

@@ -89,7 +89,7 @@ void firmware_upgrade() {
   analogWrite(LED_PIN,512);  
 
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(rmap_server, update_port, update_url, String(buffer));
+  t_httpUpdate_return ret = ESPhttpUpdate.update(ota_server, update_port, update_url, String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
@@ -197,7 +197,7 @@ void updateGpio(){
   LOGN(F("GPIO updated" CR));
 }
 
-/*
+
 void tryupgrade(){
   LOGN(F("Wait for wifi configuration" CR));
   if (oledpresent) {
@@ -284,7 +284,6 @@ void tryupgrade(){
     firmware_upgrade();
   }
 }
-*/
 
 
 void powersave(){
@@ -374,8 +373,6 @@ void setup() {
   delay(1000);
   digitalWrite(LED_PIN,HIGH);
 
-
-  //configTime(0, 0, "0.europe.pool.ntp.org");
   
   LOGN(F("mounting FS..." CR));
   if (oledpresent) {
@@ -421,6 +418,8 @@ void setup() {
     delay(1000);
   }
 
+#ifdef  WIFI_APMODE
+  
   IPAddress apIP(192, 168, 1, 1);
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
@@ -439,6 +438,13 @@ void setup() {
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
   dnsServer.start(53, "*", apIP);
+
+#else
+  
+  configTime(0, 0, "0.europe.pool.ntp.org");
+  void tryupgrade(){
+
+#endif  
   
   server.on("/gpio", updateGpio);
 
@@ -586,7 +592,7 @@ void loop() {
     irrecv.resume();
   }
 
-  //if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
+  if (digitalRead(RESET_PIN) == LOW) tryupgrade();  
   Alarm.delay(0);
 
 }
