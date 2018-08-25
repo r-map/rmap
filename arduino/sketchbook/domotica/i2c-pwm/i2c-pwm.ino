@@ -81,13 +81,18 @@ typedef struct {
 typedef struct {
 
 //sample mode
+  bool                  oneshot;                  // one shot active
   uint8_t               i2c_address;              // i2c bus address (short unsigned int)
   void save (int* p) volatile {                            // save to eeprom
+    IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
     IF_SDEBUG(Serial.print(F("i2c address: "))); IF_SDEBUG(Serial.println(i2c_address));
+
+    *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
   }
   
   void load (int* p) volatile {                            // load from eeprom
+    *p+=EEPROM_readAnything(*p, oneshot);
     *p+=EEPROM_readAnything(*p, i2c_address);
   }
 } I2C_WRITABLE_REGISTERS;
@@ -111,6 +116,8 @@ volatile static uint8_t         receivedCommands[MAX_SENT_BYTES];
 volatile static uint8_t         new_command;                        //new command received (!=0)
 
 // one shot management
+// one shot management
+static bool oneshot;
 static bool start=false;
 static bool stop=false;
 
@@ -220,7 +227,15 @@ void mgr_command(){
 
       analogWrite(LED_PIN,512);  
       
+      break;
+    case I2C_PWM_COMMAND_ONESHOT_START:
+      IF_SDEBUG(Serial.println("COMMAND: oneshot start"));
+      start=true;
       break;          
+    case I2C_PWM_COMMAND_ONESHOT_STOP:
+      IF_SDEBUG(Serial.println("COMMAND: oneshot stop"));
+      stop=true;
+      break;
     case I2C_PWM_COMMAND_SAVE:
       IF_SDEBUG(Serial.println(F("COMMAND: save")));
 
@@ -347,20 +362,27 @@ void setup() {
       //load writable registers
       IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
       i2c_writabledataset1->load(&p);
+      i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
       i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
     }
   else
     {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
-
+      // set default to oneshot
+      i2c_writabledataset1->oneshot=false;
+      i2c_writabledataset2->oneshot=false;
       i2c_writabledataset1->i2c_address = I2C_PWM_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
     }
 
   IF_SDEBUG(Serial.print(F("i2c address: ")));
   IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
+  IF_SDEBUG(Serial.print(F("oneshot: ")));
+  IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
 
+  oneshot=i2c_writabledataset2->oneshot;
+  
   //Start I2C communication routines
   Wire.begin(i2c_writabledataset1->i2c_address);
   
@@ -399,6 +421,13 @@ void loop() {
   IF_SDEBUG(Serial.print(F("analog2: ")));
   IF_SDEBUG(Serial.println(i2c_dataset1->analog2.sample));
 
+  if (oneshot) {
+    //if one shot we have finish
+    IF_SDEBUG(Serial.println(F("oneshot end")));
+    start=false;    
+    return;
+  }
+  
   digitalWrite(LEDPIN,!digitalRead(LEDPIN));  // blink Led
 
 }
