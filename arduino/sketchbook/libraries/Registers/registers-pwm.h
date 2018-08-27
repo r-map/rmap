@@ -11,9 +11,9 @@
 #define OFFSET 32768
 
 
-//
+// registers
 #define I2C_PWM_COMMAND               0xFF
-#define I2C_PWM_COMMAND_DO              1
+#define I2C_PWM_COMMAND_TAKE            1
 #define I2C_PWM_COMMAND_ONESHOT_START   2
 #define I2C_PWM_COMMAND_ONESHOT_STOP    3
 #define I2C_PWM_COMMAND_SAVE            4
