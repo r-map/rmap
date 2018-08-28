@@ -1,11 +1,5 @@
-// activate debug on serial port
-#define DEBUGONSERIAL
-
-#ifdef DEBUGONSERIAL
-#define IF_SDEBUG(x) ({x;})
-#else
-#define IF_SDEBUG(x)
-#endif
+//disable debug at compile time but call function anyway
+//#define DISABLE_LOGGING disable
 
 // set the I2C clock frequency 
 #define I2C_CLOCK 30418

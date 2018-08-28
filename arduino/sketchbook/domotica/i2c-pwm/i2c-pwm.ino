@@ -37,7 +37,7 @@ You have two operative mode for reading analog values:
 * to set new value for operator
   - write register to write
   - write new value to set the register
-  -  send command TAKE to get new values in account
+  - send command TAKE to get new values in account
 
 */
 
@@ -46,7 +46,7 @@ How can I use PWM in power saving mode (ATmega328)?
 https://arduino.stackexchange.com/questions/46995/how-can-i-use-pwm-in-power-saving-mode-atmega328
 ossia quasi NO
 
-perÃ² posso andare in sleep quando tutti i PWM sono a 0 ossia la maggior parte del tempo;
+però posso andare in sleep quando tutti i PWM sono a 0 ossia la maggior parte del tempo;
 
 buffer scrivibili da i2c
 viene scritto buffer2
@@ -70,8 +70,14 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "Wire.h"
 #include "registers-pwm.h"      //Register definitions
 #include "config.h"
-
 #include "EEPROMAnything.h"
+#include <ArduinoLog.h>
+
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
+
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
 #define REG_PWM_SIZE            sizeof(values_t)                     //size of register map for pwm
@@ -109,8 +115,8 @@ typedef struct {
   uint8_t               onoff2;                   // on/off 2 value
 
   void save (int* p) volatile {                            // save to eeprom
-    IF_SDEBUG(Serial.print(F("oneshot: "))); IF_SDEBUG(Serial.println(oneshot));
-    IF_SDEBUG(Serial.print(F("i2c address: "))); IF_SDEBUG(Serial.println(i2c_address));
+    LOGN(F("oneshot: %T" CR),oneshot);
+    LOGN(F("i2c address: %d" CR),i2c_address);
 
     *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
@@ -154,13 +160,15 @@ boolean forcedefault=false;
 //
 void requestEvent()
 {
-  //IF_SDEBUG(Serial.print("request event: "));
-  //IF_SDEBUG(Serial.println(receivedCommands[0]));
-  //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]),HEX));
-  //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1),HEX));
-  //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),HEX));
-  //IF_SDEBUG(Serial.println(*((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3),HEX));
-
+  /*
+  LOGN("request event: comm %X : %X %X %X %X " CR,
+       receivedCommands[0],
+       *((uint8_t *)(i2c_dataset2)+receivedCommands[0]),
+       *((uint8_t *)(i2c_dataset2)+receivedCommands[0]+1),
+       *((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),
+       *((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3));
+  */
+  
   Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
@@ -170,59 +178,55 @@ void requestEvent()
 void receiveEvent( int bytesReceived)
 {
 
-  //IF_SDEBUG(Serial.print("receive event, bytes:"));
-  //IF_SDEBUG(Serial.println(bytesReceived));
-
+  //LOGN("receive event, bytes: %d" CR,bytesReceived);
+  
   uint8_t  *ptr1, *ptr2;
-     //IF_SDEBUG(SSerial.print("received:"));
-     for (int a = 0; a < bytesReceived; a++) {
-          if (a < MAX_SENT_BYTES) {
-               receivedCommands[a] = Wire.read();
-	       //IF_SDEBUG(Serial.println(receivedCommands[a]));
-          } else {
-               Wire.read();  // if we receive more data then allowed just throw it away
-          }
-     }
 
-     if (bytesReceived == 1){
-       //read address for a given register
-       //Addressing over the reg_map fallback to first byte
-       if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
-	 receivedCommands[0]=0;
-       }
-       //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
-       return;
-     }
-
-     if (bytesReceived == 2){
-       // check for a command
-       if (receivedCommands[0] == I2C_PWM_COMMAND) {
-	 //IF_SDEBUG(Serial.print("       received command:"));IF_SDEBUG(Serial.println(receivedCommands[1],HEX));
-	 new_command = receivedCommands[1]; return; }
-     }
-
-     //More than 1 byte was received, so there is definitely some data to write into a register
-     //Check for writeable registers and discard data is it's not writeable
-
-     //IF_SDEBUG(Serial.print("         check  writable buffer:"));
-     //IF_SDEBUG(Serial.println(receivedCommands[0]));
-     //IF_SDEBUG(Serial.println(I2C_PWM_MAP_WRITABLE));
-     //IF_SDEBUG(Serial.println(I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE));
-
-     if ((receivedCommands[0]>=I2C_PWM_MAP_WRITABLE) && (receivedCommands[0] < (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-       if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
-	 //Writeable registers
-	 // the two buffer should be in sync
-	 //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
-	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
-	 for (int a = 1; a < bytesReceived; a++) { 
-	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   //*ptr1++ = receivedCommands[a];
-	   *ptr2++ = receivedCommands[a];
-	 }
-	 // new data written
-       }
+  for (int a = 0; a < bytesReceived; a++) {
+    if (a < MAX_SENT_BYTES) {
+      receivedCommands[a] = Wire.read();
+      //LOGN("received: %X" CR, receivedCommands[a]);
+    } else {
+      Wire.read();  // if we receive more data then allowed just throw it away
     }
+  }
+  
+  if (bytesReceived == 1){
+    //read address for a given register
+    //Addressing over the reg_map fallback to first byte
+    if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
+      receivedCommands[0]=0;
+    }
+    //LOGN("set register: %X" CR,receivedCommands[0]);
+    return;
+  }
+  
+  if (bytesReceived == 2){
+    // check for a command
+    if (receivedCommands[0] == I2C_PWM_COMMAND) {
+      //LOGN("       received command: %X" CR,receivedCommands[1]);
+      new_command = receivedCommands[1]; return; }
+  }
+  
+  //More than 1 byte was received, so there is definitely some data to write into a register
+  //Check for writeable registers and discard data is it's not writeable
+
+  //LOGN("         check  writable buffer: %X %X %X" CR,receivedCommands[0],I2C_PWM_MAP_WRITABLE,I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE);
+  
+  if ((receivedCommands[0]>=I2C_PWM_MAP_WRITABLE) && (receivedCommands[0] < (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
+    if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+      //Writeable registers
+      // the two buffer should be in sync
+      //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
+      ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
+      for (int a = 1; a < bytesReceived; a++) { 
+	//LOGN("write in writable buffer: %X ,%X" CR,a,receivedCommands[a]);
+	//*ptr1++ = receivedCommands[a];
+	*ptr2++ = receivedCommands[a];
+      }
+      // new data written
+    }
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,9 +243,9 @@ void mgr_command(){
     switch (_command) {
     case I2C_PWM_COMMAND_TAKE:
       {
-	IF_SDEBUG(Serial.println("COMMAND: take"));
+	LOGN(F("COMMAND: take" CR));
       
-	//IF_SDEBUG(Serial.println("writable buffer exchange"));
+	//LOGN("writable buffer exchange"));
 	// disable interrupts for atomic operation
 	noInterrupts();
 	
@@ -264,13 +268,13 @@ void mgr_command(){
       }
     case I2C_PWM_COMMAND_ONESHOT_START:
       {
-	IF_SDEBUG(Serial.println("COMMAND: oneshot start"));
+	LOGN(F("COMMAND: oneshot start" CR));
       
 	if (!i2c_writabledataset1->oneshot) break;
 	
 	start=true;
 	
-	//IF_SDEBUG(Serial.println(F("reset registers to missing")));
+	//LOGN(F("reset registers to missing" CR));
 	uint8_t *ptr;
 	//Init to FF i2c_dataset2;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
@@ -280,21 +284,21 @@ void mgr_command(){
       }
     case I2C_PWM_COMMAND_ONESHOT_STOP:
       {
-	IF_SDEBUG(Serial.println("COMMAND: oneshot stop"));
+	LOGN(F("COMMAND: oneshot stop" CR));
 	
 	if (!i2c_writabledataset1->oneshot) break;
 	
 	// disable interrupts for atomic operation
 	noInterrupts();
 	//exchange double buffer
-	IF_SDEBUG(Serial.println(F("exchange double buffer")));
+	LOGN(F("exchange double buffer" CR));
 	i2c_datasettmp=i2c_dataset1;
 	i2c_dataset1=i2c_dataset2;
 	i2c_dataset2=i2c_datasettmp;
 	interrupts();
 	// new data published
 	
-	IF_SDEBUG(Serial.println(F("clean buffer")));
+	LOGN(F("clean buffer" CR));
 	uint8_t *ptr;
 	//Init to FF i2c_dataset1;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
@@ -305,10 +309,10 @@ void mgr_command(){
       }
     case I2C_PWM_COMMAND_SAVE:
       {
-	IF_SDEBUG(Serial.println(F("COMMAND: save")));
+	LOGN(F("COMMAND: save" CR));
       
 	// save configuration to eeprom
-	IF_SDEBUG(Serial.println(F("save configuration to eeprom")));
+	LOGN(F("save configuration to eeprom" CR));
 	int p=0;
 	
 	// save configuration version on eeprom
@@ -320,7 +324,7 @@ void mgr_command(){
       }
     default:
       {
-	IF_SDEBUG(Serial.println("WRONG command"));
+	LOGN(F("WRONG command" CR));
 	break;
       }	
     } //switch  
@@ -328,28 +332,28 @@ void mgr_command(){
 
   if (!i2c_writabledataset1->oneshot){
     // continuos mode
-    IF_SDEBUG(Serial.println("expose new measure in continuos mode"));
+    LOGN(F("expose new measure in continuos mode" CR));
 
       // disable interrupts for atomic operation
       noInterrupts();
       //exchange double buffer
-      IF_SDEBUG(Serial.println(F("exchange double buffer")));
+      LOGN(F("exchange double buffer" CR));
       i2c_datasettmp=i2c_dataset1;
       i2c_dataset1=i2c_dataset2;
       i2c_dataset2=i2c_datasettmp;
       interrupts();
       // new data published
       
-      IF_SDEBUG(Serial.println(F("clean buffer")));
+      LOGN(F("clean buffer" CR));
       uint8_t *ptr;
       //Init to FF i2c_dataset1;
       ptr = (uint8_t *)&i2c_dataset1->analog;
       for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
   }
   
-  //IF_SDEBUG(Serial.print(F("oneshot : ")));IF_SDEBUG(Serial.println(i2c_writabledataset2->oneshot));
-  //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
-  //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
+  //LOGN(F("oneshot : %T" CR),i2c_writabledataset2->oneshot);
+  //LOGN(F("oneshot start : %T" CR), start);
+  //LOGN(F("oneshot stop  : %T" CR)), stop);
 
 }
 
@@ -369,9 +373,19 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
-  IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
-  IF_SDEBUG(Serial.print(F("Start firmware version: ")));
-  IF_SDEBUG(Serial.println(VERSION));
+  
+  Serial.begin(115200);        // connect to the serial port
+
+  // Pass log level, whether to show log level, and print interface.
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, change #define LOG_LEVEL ....
+  //       this will significantly reduce your project size
+
+  // set runtime log level to the same of compile time
+  Log.begin(LOG_LEVEL, &Serial);
+
+  LOGN(F("Start firmware version: %s" CR),VERSION);
 
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
@@ -382,7 +396,7 @@ void setup() {
   i2c_writabledataset2=&i2c_writablebuffer2;
 
 
-  IF_SDEBUG(Serial.println(F("i2c_dataset 1&2 set to 1")));
+  LOGN(F("i2c_dataset 1&2 set to 1" CR));
 
   uint8_t *ptr;
   //Init to FF i2c_dataset1;
@@ -395,7 +409,7 @@ void setup() {
 
 
 
-  IF_SDEBUG(Serial.println(F("i2c_writabledataset 1&2 set to 1")));
+  LOGN(F("i2c_writabledataset 1&2 set to 1" CR));
   //Init to FF i2c_writabledataset1;
   ptr = (uint8_t *)i2c_writabledataset1;
   for (i=0;i<REG_WRITABLE_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
@@ -426,7 +440,7 @@ void setup() {
   }
 
   // load configuration saved on eeprom
-  IF_SDEBUG(Serial.println(F("try to load configuration from eeprom")));
+  LOGN(F("try to load configuration from eeprom" CR));
   int p=0;
   // check for configuration version on eeprom
   char EE_confver[10];
@@ -435,15 +449,15 @@ void setup() {
   if((strcmp(EE_confver,confver ) == 0) && !forcedefault)
     {
       //load writable registers
-      IF_SDEBUG(Serial.println(F("load writable registers from eeprom")));
+      LOGN(F("load writable registers from eeprom" CR));
       i2c_writabledataset1->load(&p);
       i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
       i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
     }
   else
     {
-      IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
-      IF_SDEBUG(Serial.println(F("set default values for writable registers")));
+      LOGN(F("EEPROM data not useful or set pin activated" CR));
+      LOGN(F("set default values for writable registers" CR));
       // set default to oneshot
       i2c_writabledataset1->oneshot=false;
       i2c_writabledataset2->oneshot=false;
@@ -451,10 +465,8 @@ void setup() {
       i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
     }
 
-  IF_SDEBUG(Serial.print(F("i2c address: ")));
-  IF_SDEBUG(Serial.println(i2c_writabledataset1->i2c_address));
-  IF_SDEBUG(Serial.print(F("oneshot: ")));
-  IF_SDEBUG(Serial.println(i2c_writabledataset1->oneshot));
+  LOGN(F("i2c address: %X" CR),i2c_writabledataset1->i2c_address);
+  LOGN(F("oneshot: %T" CR),i2c_writabledataset1->oneshot);
   
   //Start I2C communication routines
   Wire.begin(i2c_writabledataset1->i2c_address);
@@ -476,7 +488,7 @@ void setup() {
   Wire.onReceive(receiveEvent);
 
 
-  IF_SDEBUG(Serial.println(F("end setup")));
+  LOGN(F("end setup" CR));
 
 }
 
@@ -505,10 +517,8 @@ void loop() {
     i2c_dataset1->analog.analog1  = analogRead(ANALOG1_PIN);
     i2c_dataset1->analog.analog2  = analogRead(ANALOG2_PIN);
     
-    IF_SDEBUG(Serial.print(F("analog1: ")));
-    IF_SDEBUG(Serial.println(i2c_dataset1->analog.analog1));
-    IF_SDEBUG(Serial.print(F("analog2: ")));
-    IF_SDEBUG(Serial.println(i2c_dataset1->analog.analog2));
+    LOGN(F("analog1: %d" CR),i2c_dataset1->analog.analog1);
+    LOGN(F("analog2: %d" CR),i2c_dataset1->analog.analog2);
 
     start=false;
 
