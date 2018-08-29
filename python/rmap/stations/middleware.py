@@ -152,7 +152,7 @@ class ProfileMiddleware(object):
         if settings.DEBUG and 'cprof' in request.GET:
             (fd, self.profiler_file) = tempfile.mkstemp()
             self.profiler.dump_stats(self.profiler_file)
-            out = cStringIO.StringIO()
+            out = StringIO()
             stats = pstats.Stats(self.profiler_file, stream=out)
             stats.strip_dirs()          # Must happen prior to sort_stats
             if request.GET['cprof']:
