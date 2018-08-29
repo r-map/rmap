@@ -129,13 +129,13 @@ class MergeDB(DB):
         def if_null(value, default="-"):
             return value if value is not None else default
 
-        return = (
+        return (
             "{}/"
             "{},{}/"
             "{}/"
             "{},{},{}/"
             "{},{},{},{}/"
-            "{}
+            "{}"
         ).format(*map(if_null, (
             rec.get("ident"),
             rec.key("lon").enqi(),
