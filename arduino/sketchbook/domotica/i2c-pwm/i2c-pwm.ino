@@ -445,8 +445,8 @@ void setup() {
       IF_SDEBUG(Serial.println(F("EEPROM data not useful or set pin activated")));
       IF_SDEBUG(Serial.println(F("set default values for writable registers")));
       // set default to oneshot
-      i2c_writabledataset1->oneshot=false;
-      i2c_writabledataset2->oneshot=false;
+      i2c_writabledataset1->oneshot=true;
+      i2c_writabledataset2->oneshot=true;
       i2c_writabledataset1->i2c_address = I2C_PWM_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
     }

@@ -17,8 +17,8 @@
 // pins definitions
 #define LED_PIN  13
 #define FORCEDEFAULTPIN 8
-#define PWM1_PIN  2
-#define PWM2_PIN  3
+#define PWM1_PIN  10
+#define PWM2_PIN  11
 #define ONOFF1_PIN  4
 #define ONOFF2_PIN  5
 #define ANALOG1_PIN  A0
