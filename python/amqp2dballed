@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.4 -s
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -42,10 +42,10 @@ class  mydaemon(daemon.Daemon):
 
     def optionparser(self):
         op = super(mydaemon, self).optionparser()
-	op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default=None)
-	op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default=None)
-	#op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
-	#op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
+        op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default=None)
+        op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default=None)
+        #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
+        #op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
         return op 	  				 
 
 
@@ -97,7 +97,7 @@ class Threaded_bufr2dballe(threading.Thread):
 
             if len(messages) > 0:
                 logging.debug("elaborate %s messages" % len(messages))
-                totalbody=""
+                totalbody=b""
                 for message in messages:
                     totalbody += message.body
             

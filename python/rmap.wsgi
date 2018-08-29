@@ -10,9 +10,9 @@ from django.core.wsgi import get_wsgi_application
 
 try:
     application = get_wsgi_application()
-    print 'WSGI without exception'
+    print('WSGI without exception')
 except Exception:
-    print 'handling WSGI exception'
+    print('handling WSGI exception')
     # Error loading applications
     if 'mod_wsgi' in sys.modules:
         traceback.print_exc()

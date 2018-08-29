@@ -31,7 +31,7 @@ def is_number(s):
     except ValueError:
         return False
     except TypeError:
-	return False
+        return False
 
 class mqtt2graphite():
 

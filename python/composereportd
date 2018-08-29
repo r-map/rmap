@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.4 -s
 # GPL. (C) 2017 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -66,11 +66,11 @@ def main(self):
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")
 
     now=datetime.datetime.utcnow()
-    newminute = now.minute - (now.minute % (tloop/60))
+    newminute = now.minute - (now.minute % (tloop//60))
     newsecond=0
     nexttime=(now.replace(minute=newminute,second=newsecond,microsecond=0))
 
-    runtime=nexttime+ datetime.timedelta(seconds=tloop/3)
+    runtime=nexttime+ datetime.timedelta(seconds=tloop//3)
 
     if runtime > now:
         waitsec= (runtime - now).seconds
@@ -98,7 +98,7 @@ def main(self):
             logging.info(variable_list)
             logging.info(level)
             logging.info(timerange)
-            totalbody=""
+            totalbody=b""
             
             try:
                 #(fd, filename) = tempfile.mkstemp()
@@ -309,7 +309,7 @@ def main(self):
 	        #                             --comp-frac-valid '.002' --comp-stat-proc '254:6' tutto.bufr stddev.bufr
 
 
-                if totalbody != "":
+                if totalbody != b"":
 
                     try:
                         # Legge un file.

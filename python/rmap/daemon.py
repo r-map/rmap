@@ -220,8 +220,8 @@ class Daemon(object):
 		in the constructor.
 		"""
 		si = open(self.options.stdin, "r")
-		so = open(self.options.stdout, "a+")
-		se = open(self.options.stderr, "a+", 0)
+		so = open(self.options.stdout, "ab+")
+		se = open(self.options.stderr, "ab+", 0)
 		os.dup2(si.fileno(), sys.stdin.fileno())
 		os.dup2(so.fileno(), sys.stdout.fileno())
 		os.dup2(se.fileno(), sys.stderr.fileno())
@@ -352,7 +352,7 @@ class Daemon(object):
 	
 		# Write pid file (will belong to the new user)
 		if self.options.pidfile is not None:
-			open(self.options.pidfile, "wb").write(str(os.getpid()))
+			open(self.options.pidfile, "w").write(str(os.getpid()))
 
 		# Reopen file descriptors on SIGHUP
 		signal.signal(signal.SIGHUP, self.handlesighup)
@@ -368,7 +368,7 @@ class Daemon(object):
 		if self.options.pidfile is None:
 			sys.exit("no pidfile specified")
 		try:
-			pidfile = open(self.options.pidfile, "rb")
+			pidfile = open(self.options.pidfile, "r")
 		except IOError as exc:
 			sys.exit("can't open pidfile %s: %s" % (self.options.pidfile, str(exc)))
 		data = pidfile.read()

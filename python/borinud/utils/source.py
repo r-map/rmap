@@ -23,6 +23,8 @@ import dballe
 import json
 from datetime import datetime
 import tempfile
+import codecs
+from itertools import groupby
 
 try:
     from urllib.parse import quote
@@ -81,7 +83,42 @@ class DB(object):
         raise NotImplementedError()
 
 
+
 class MergeDB(DB):
+    """Container for DB."""
+
+    def __init__(self, dbs):
+        self.dbs=dbs
+
+    def __open_db(self,rec):
+        """Open the database."""
+        memdb = dballe.DB.connect_from_url("mem:")
+        for db in self.dbs:
+            print ("copydb: ",db,rec)
+            db.fill_db(rec,memdb)
+        return memdb
+
+    def query_stations(self, rec):
+        db = self.__open_db(rec)
+        return db.query_station_data(rec)
+
+    def query_summary(self, rec):
+        db = self.__open_db(rec)
+        rec["query"] = "details"
+        return db.query_summary(rec)
+
+    def query_data(self, rec):
+        db = self.__open_db(rec)
+        return db.query_data(rec)
+
+    def fill_db(self, rec, memdb):
+        for r in self.query_data(rec):
+            del r["ana_id"]
+            del r["data_id"]
+            memdb.insert_data(r, True, True)
+
+
+class MergeDBold(DB):
     """Container for DB."""
     def __init__(self, dbs):
         self.dbs = dbs
@@ -92,7 +129,6 @@ class MergeDB(DB):
         )))
 
     def get_unique_records(self, funcname, rec, reducer):
-        from itertools import groupby
         for k, g in groupby(sorted([
             r.copy() for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
@@ -442,7 +478,9 @@ class ArkimetBufrDB(DB):
                 "style": "json",
                 "query": query,
             }.items()]))
-        r = urlopen(url)
+
+        reader = codecs.getreader("utf-8")
+        r = reader(urlopen(url))
         for i in json.load(r)["items"]:
             for m in self.measurements:
                 if all([
@@ -492,6 +530,7 @@ class ArkimetBufrDB(DB):
                                                           "var"]]),
                 "query": query,
             }.items()]))
+
 
         return urlopen(url)
 

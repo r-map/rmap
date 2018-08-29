@@ -9,7 +9,7 @@ get surprised it you get it with data=None, and/or out of order.
 
 I've stripped down some of my code to make it simpler and am attaching
 a short example for a camera preview class. Not perfect, but I hope it
-helps.  My code has two possible handlers for the JPEG callback,m one
+helps.	My code has two possible handlers for the JPEG callback,m one
 for simply saving it to file, the other for loading it into a Texture
 - I currently use the first one but left the other one in just in
 case.
@@ -25,48 +25,48 @@ case, I've patched PythonActivity.java as follows:
     class):
 
     protected void onCreateBeforeSDLSurface() {
-            mFrameLayout = new FrameLayout(this);
-            mCameraView = new SurfaceView(this);
-            mCameraView.setZOrderOnTop(false);
-            mCameraView.setFocusable(false);
-            mCameraSurfaceHolder = mCameraView.getHolder();
-            mCameraSurfaceHolder.addCallback(this);
-            mCameraSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-            mFrameLayout.addView(mCameraView);
-            mCameraView.setVisibility(View.VISIBLE);
-        } 
+	    mFrameLayout = new FrameLayout(this);
+	    mCameraView = new SurfaceView(this);
+	    mCameraView.setZOrderOnTop(false);
+	    mCameraView.setFocusable(false);
+	    mCameraSurfaceHolder = mCameraView.getHolder();
+	    mCameraSurfaceHolder.addCallback(this);
+	    mCameraSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	    mFrameLayout.addView(mCameraView);
+	    mCameraView.setVisibility(View.VISIBLE);
+	} 
 
  
 
     Call this function instead of setContentView(mView), pass mView to the function:
 
-        protected void onCreateAfterSurface(SurfaceView mView) {
-            mView.setZOrderOnTop(true);    // necessary
-            mView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-            mFrameLayout.addView(mView);
-            setContentView(mFrameLayout);
-        }
+	protected void onCreateAfterSurface(SurfaceView mView) {
+	    mView.setZOrderOnTop(true);	   // necessary
+	    mView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+	    mFrameLayout.addView(mView);
+	    setContentView(mFrameLayout);
+	}
 
     Implement the SurfaceHolder.Callback interface:
 
-        public void surfaceCreated(SurfaceHolder holder) {
-            mCameraSurfaceReady = true;
-        }
+	public void surfaceCreated(SurfaceHolder holder) {
+	    mCameraSurfaceReady = true;
+	}
 
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        }
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	}
 
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            mCameraSurfaceReady = false;
-        }
+	public void surfaceDestroyed(SurfaceHolder holder) {
+	    mCameraSurfaceReady = false;
+	}
 
     Add this function: 
 
-        public SurfaceHolder getCameraSurfaceHolder() {
-            if (mCameraSurfaceReady)
-                return mCameraSurfaceHolder;
-            return null;
-        }
+	public SurfaceHolder getCameraSurfaceHolder() {
+	    if (mCameraSurfaceReady)
+		return mCameraSurfaceHolder;
+	    return null;
+	}
 
 
 Hope it helps :)
@@ -267,7 +267,7 @@ class CameraPreview(Widget):
 		''' Save data from the camera's JPEG callback into a file '''
 		filename = 'sample.jpg'
 
-                Logger.info('CameraPreview: trying to save jpeg file (%s)' % filename)
+		Logger.info('CameraPreview: trying to save jpeg file (%s)' % filename)
 
 		try:
 			with open(filename, 'wb') as f:
@@ -288,8 +288,8 @@ class CameraPreview(Widget):
 		self.dispatch('on_capture_completed', self.captured_filename, self.captured_size)
 
 	def on_capture_completed(self, filename_or_texture, size):
-                Logger.info('CameraPreview: saved jpeg file %s size %s' % (filename_or_texture,str(size)))
-                
+		Logger.info('CameraPreview: saved jpeg file %s size %s' % (filename_or_texture,str(size)))
+		
 		
 	def load_jpeg_to_tex_data(self, data):
 		''' Load data from the camera's JPEG callback into a kivy texture '''
@@ -327,12 +327,12 @@ class CameraPreview(Widget):
 	def do_capture(self):
 		''' Call this to capture an image '''
 
-                Logger.info('CameraPreview: do_capture')
+		Logger.info('CameraPreview: do_capture')
 
 		if not self.camera:
 			return
 
-                Logger.info('CameraPreview: cameratakepicture')
+		Logger.info('CameraPreview: cameratakepicture')
 
 		# Don't use raw or post-view calbacks since they are not always supported
 		self.camera.takePicture(
@@ -525,7 +525,7 @@ class CameraPreview(Widget):
 		degrees = self._rotation_to_degrees[rotation]
 		if self.info.facing == CameraInfo.CAMERA_FACING_FRONT:
 			result = (self.info.orientation + degrees) % 360
-			result = (360 - result) % 360;  # compensate the mirror
+			result = (360 - result) % 360;	# compensate the mirror
 		else: # back-facing
 			result = (self.info.orientation - degrees + 360) % 360
 		self.rotation = result
@@ -554,9 +554,9 @@ class CameraPreview(Widget):
 
 
 	def on_capture_completed(self):
-                pass
+		pass
 
-        def on_focus_completed(self):
-                pass
+	def on_focus_completed(self):
+		pass
 
 
