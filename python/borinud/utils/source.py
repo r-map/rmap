@@ -84,7 +84,7 @@ class DB(object):
 
 
 
-class MergeDB(DB):
+class MergeDBfake(DB):
     """Container for DB."""
 
     def __init__(self, dbs):
@@ -118,7 +118,7 @@ class MergeDB(DB):
             memdb.insert_data(r, True, True)
 
 
-class MergeDBold(DB):
+class MergeDB(DB):
     """Container for DB."""
     def __init__(self, dbs):
         self.dbs = dbs
