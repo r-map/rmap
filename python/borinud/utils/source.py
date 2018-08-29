@@ -124,8 +124,31 @@ class MergeDB(DB):
         self.dbs = dbs
 
     def unique_record_key(self, rec):
-        return tuple(map(rec.get, (
-            "ident", "lon", "lat", "rep_memo", "var", "level", "trange",
+        """Create a string from a record, based on ident, lon, lat, rep_memo,
+        trange, level and var values. Null values are encoded as "-"."""
+        def if_null(value, default="-"):
+            return value if value is not None else default
+
+        return = (
+            "{}/"
+            "{},{}/"
+            "{}/"
+            "{},{},{}/"
+            "{},{},{},{}/"
+            "{}
+        ).format(*map(if_null, (
+            rec.get("ident"),
+            rec.key("lon").enqi(),
+            rec.key("lat").enqi(),
+            rec.get("rep_memo"),
+            rec.get("trange")[0],
+            rec.get("trange")[1],
+            rec.get("trange")[2],
+            rec.get("level")[0],
+            rec.get("level")[1],
+            rec.get("level")[2],
+            rec.get("level")[3],
+            rec.get("var"),
         )))
 
     def get_unique_records(self, funcname, rec, reducer):
