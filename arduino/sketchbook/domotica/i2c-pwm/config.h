@@ -8,6 +8,9 @@
 // if you chenge this the board start with default configuration at boot
 #define CONFVER "confpwm00"
 
+// number of analog sample to do for average
+#define NSAMPLE 6
+
 // pins definitions
 #define LED_PIN  13
 #define FORCEDEFAULTPIN 8
@@ -15,5 +18,5 @@
 #define PWM2_PIN  11
 #define ONOFF1_PIN  4
 #define ONOFF2_PIN  5
-#define ANALOG1_PIN  A0
-#define ANALOG2_PIN  A1
+#define ANALOG1_PIN  0
+#define ANALOG2_PIN  1

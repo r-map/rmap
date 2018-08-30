@@ -84,6 +84,14 @@ void displayHelp()
   Serial.println(F("device to manage:"));
   Serial.println(F("\ta = pwm1"));
   Serial.println(F("\tb = pwm2"));
+  Serial.println(F("\tx = onoff1"));
+  Serial.println(F("\ty = onoff2"));
+  Serial.println();
+  Serial.println(F("\tm = pwm1 dimmer loop"));
+  Serial.println(F("\tn = pwm2 dimmer loop"));
+  Serial.println();
+  Serial.println(F("\tk = analog read 1"));
+  Serial.println(F("\tl = analog read 2"));
   Serial.println(F("\n\? = help - this page"));
   Serial.println();
 }
@@ -129,25 +137,20 @@ void loop() {
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
-	delay(1000);
       
 	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
 	Wire.write(I2C_PWM_ADDRESS);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
-	delay(1000);
+	delay(1);
 	
-	
-	delay(1000);
 	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
 	Wire.write(I2C_PWM_COMMAND);
 	Wire.write(I2C_PWM_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done; switch off"));
-	delay(10000);
-	
 	
 	displayHelp();
 	break;
@@ -160,12 +163,11 @@ void loop() {
 	int new_value;
 
 	new_value= -1;
-	while (new_value < 1 || new_value > 255){
-	  Serial.println(F("digit new value (1-255)"));
+	while (new_value < 0 || new_value > 255){
+	  Serial.println(F("digit new value (0-255)"));
 	  new_value=Serial.parseInt();
 	  Serial.println(new_value);
 	}
-	delay(1000);
       
 	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
 	switch (command)
@@ -181,20 +183,152 @@ void loop() {
 	Wire.write(new_value);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
-	delay(1000);
+	delay(1);
 	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
 	Wire.write(I2C_PWM_COMMAND);
 	Wire.write(I2C_PWM_COMMAND_TAKE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done"));
-	delay(10000);
-	
 	
 	displayHelp();
 	break;
       }
 
+    case 'k':
+    case 'l':
+      {      
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.write(I2C_PWM_COMMAND);
+	Wire.write(I2C_PWM_COMMAND_ONESHOT_START);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));
+       	delay(1000);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.write(I2C_PWM_COMMAND);
+	Wire.write(I2C_PWM_COMMAND_ONESHOT_STOP);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));
+       	delay(10);
+
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	switch (command)
+	  {
+	    
+	  case 'k':
+	    Wire.write(I2C_PWM_ANALOG1);
+	    break;
+	  case 'l':  
+	    Wire.write(I2C_PWM_ANALOG2);
+	    break;
+	  }
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));       
+	
+	Wire.requestFrom(I2C_PWM_DEFAULTADDRESS,2);
+	if (Wire.available() < 2)    // slave may send less than requested
+	  { 
+	    Serial.println(F("no data available"));
+	  }
+	byte LSB = Wire.read();
+	byte MSB = Wire.read();
+	
+	if ((MSB == 255) & (LSB ==255))
+	  { 
+	    Serial.println(F("missing value"));
+	  }
+	
+	//it's a 10bit int, from 0 to 1023
+	int value = ((MSB << 8) | LSB); // & 0xFFF; 
+	
+	Serial.print(F("value: "));
+	Serial.println(value);
+	
+	Serial.println(F("Done"));
+	
+	displayHelp();
+	break;
+      }
+
+
+    case 'm':
+    case 'n':
+      {      
+
+	//for( int new_value = -1; new_value < 255; new_value++ ) {
+	
+	int new_value= 0;
+	int inc =1;
+	while (new_value >= 0){
+	  if (new_value == 255) inc =-1;
+
+	  Serial.println(new_value);
+      
+	  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	  switch (command)
+	    {
+	      
+	    case 'm':
+	      Wire.write(I2C_PWM_PWM1);
+	      break;
+	    case 'n':  
+	      Wire.write(I2C_PWM_PWM2);
+	      break;
+	    }	      
+	  Wire.write(new_value);
+	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));               // End Write Transmission 
+	
+	  delay(1);
+	  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	  Wire.write(I2C_PWM_COMMAND);
+	  Wire.write(I2C_PWM_COMMAND_TAKE);
+	  if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));              // End Write Transmission 
+	  delay(1);	  
+
+	  new_value+= inc;
+	}
+	
+	displayHelp();
+	break;
+      }
+      
+    case 'x':
+    case 'y':
+      {      
+
+	int new_value;
+
+	new_value= -1;
+	while (new_value < 0 || new_value > 1){
+	  Serial.println(F("digit new value (0/1)"));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
+      
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	switch (command)
+	  {
+	    
+	  case 'x':
+	    Wire.write(I2C_PWM_ONOFF1);
+	    break;
+	  case 'y':  
+	    Wire.write(I2C_PWM_ONOFF2);
+	    break;
+	  }
+	Wire.write(new_value);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.write(I2C_PWM_COMMAND);
+	Wire.write(I2C_PWM_COMMAND_TAKE);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	Serial.println(F("Done"));
+	
+	displayHelp();
+	break;
+      }
+
+      
     case 'i':
       {
 

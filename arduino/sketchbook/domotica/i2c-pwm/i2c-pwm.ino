@@ -248,22 +248,19 @@ void mgr_command(){
 	//LOGN("writable buffer exchange"));
 	// disable interrupts for atomic operation
 	noInterrupts();
-	
-	// copy writable registers
-	uint8_t *ptr1 = (uint8_t *)&i2c_writabledataset1+I2C_PWM_MAP_WRITABLE;
-	uint8_t *ptr2 = (uint8_t *)&i2c_writabledataset2+I2C_PWM_MAP_WRITABLE;
-	for (int i=0;i<REG_WRITABLE_MAP_SIZE;i++){
-	  *ptr1 = *ptr2;
-	  ptr1++;
-	  ptr2++;
-	}
 
+	// copy writable registers
+	memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
+	
+	/*
 	//exchange double buffer
 	i2c_writabledatasettmp=i2c_writabledataset1;
 	i2c_writabledataset1=i2c_writabledataset2;
 	i2c_writabledataset2=i2c_writabledatasettmp;
-	interrupts();
+	*/
 
+	interrupts();
+	
 	take=true;
 	
 	break;
@@ -278,9 +275,22 @@ void mgr_command(){
 	
 	//LOGN(F("reset registers to missing" CR));
 	uint8_t *ptr;
-	//Init to FF i2c_dataset2;
+	//Init to FF i2c_dataset1;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
 	for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+
+	// disable interrupts for atomic operation
+	noInterrupts();
+	//exchange double buffer
+	LOGN(F("exchange double buffer" CR));
+	i2c_datasettmp=i2c_dataset1;
+	i2c_dataset1=i2c_dataset2;
+	i2c_dataset2=i2c_datasettmp;
+	interrupts();
+	// new data published
+	//Init to FF i2c_dataset1;
+	ptr = (uint8_t *)&i2c_dataset1->analog;
+	for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}	
 	
 	break;
       }
@@ -359,6 +369,35 @@ void mgr_command(){
 
 }
 
+
+
+void filter_data(unsigned int n, unsigned int *table, volatile uint16_t *value)
+{
+    unsigned int value_min, value_max, value_sum;
+
+    value_sum = value_min = value_max = table[0];
+
+    for (int i=1; i<n; i++) {
+        if (table[i] < value_min) {
+            value_min = table[i];
+        }
+        if (table[i] > value_max) {
+            value_max = table[i];
+        }
+        value_sum += table[i];
+    }
+
+    if (n > 2) {
+        *value = (value_sum - value_max - value_min)/(n-2);
+    } else if (n > 1) {
+        *value = (value_sum - value_min)/(n-1);
+    } else {
+        *value = value_sum/n;
+    }
+}
+
+
+
 void setup() {
 
   uint8_t i;
@@ -405,7 +444,7 @@ void setup() {
   ptr = (uint8_t *)i2c_dataset1;
   for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
-  //Init to FF i2c_dataset1;
+  //Init to FF i2c_dataset2;
   ptr = (uint8_t *)i2c_dataset2;
   for (i=0;i<REG_MAP_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
@@ -452,21 +491,26 @@ void setup() {
     {
       //load writable registers
       LOGN(F("load writable registers from eeprom" CR));
-      i2c_writabledataset1->load(&p);
-      i2c_writabledataset2->oneshot=i2c_writabledataset1->oneshot;
-      i2c_writabledataset2->i2c_address=i2c_writabledataset1->i2c_address;
+      i2c_writabledataset2->load(&p);
     }
   else
     {
       LOGN(F("EEPROM data not useful or set pin activated" CR));
       LOGN(F("set default values for writable registers" CR));
       // set default to oneshot
-      i2c_writabledataset1->oneshot=true;
       i2c_writabledataset2->oneshot=true;
-      i2c_writabledataset1->i2c_address = I2C_PWM_DEFAULTADDRESS;
       i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
     }
 
+  i2c_writabledataset2->pwm1 = 0;
+  i2c_writabledataset2->pwm2 = 0;
+  i2c_writabledataset2->onoff1 = 0;
+  i2c_writabledataset2->onoff2 = 0;
+
+  // copy writable registers
+  memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
+
+  
   LOGN(F("i2c address: %X" CR),i2c_writabledataset1->i2c_address);
   LOGN(F("oneshot: %T" CR),i2c_writabledataset1->oneshot);
   
@@ -506,6 +550,12 @@ void loop() {
     analogWrite(PWM1_PIN, i2c_writabledataset1->pwm1);  
     LOGN(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
     analogWrite(PWM2_PIN, i2c_writabledataset1->pwm2);  
+
+    LOGN(F("onoff1: %T" CR),i2c_writabledataset1->onoff1);
+    digitalWrite(ONOFF1_PIN, (i2c_writabledataset1->onoff1 == 0) ? LOW : HIGH );  
+    LOGN(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
+    digitalWrite(ONOFF2_PIN, (i2c_writabledataset1->onoff2 == 0) ? LOW : HIGH );  
+
     take =false;
   }
 
@@ -515,12 +565,20 @@ void loop() {
   
     i2c_dataset1->analog.analog1=LONG_MAX;
     i2c_dataset1->analog.analog2=LONG_MAX;
-    
-    analogRead(ANALOG1_PIN);
-    analogRead(ANALOG2_PIN);
-    delay(100);
-    i2c_dataset1->analog.analog1  = analogRead(ANALOG1_PIN);
-    i2c_dataset1->analog.analog2  = analogRead(ANALOG2_PIN);
+
+    unsigned int table1[NSAMPLE];
+    unsigned int table2[NSAMPLE];
+
+    for (int i =0; i < NSAMPLE; i++){
+      table1[i] = analogRead(ANALOG1_PIN);
+      //LOGN(F("read1: %d" CR),table1[i]);
+      table2[i] = analogRead(ANALOG2_PIN);
+      //LOGN(F("read2: %d" CR),table2[i]);
+      delay(10);
+    }
+
+    filter_data(NSAMPLE, table1,&i2c_dataset1->analog.analog1);
+    filter_data(NSAMPLE, table2,&i2c_dataset1->analog.analog2);
     
     LOGN(F("analog1: %d" CR),i2c_dataset1->analog.analog1);
     LOGN(F("analog2: %d" CR),i2c_dataset1->analog.analog2);
