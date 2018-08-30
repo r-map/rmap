@@ -251,7 +251,7 @@ void mgr_command(){
 	
 	// copy writable registers
 	uint8_t *ptr1 = (uint8_t *)&i2c_writabledataset1+I2C_PWM_MAP_WRITABLE;
-	uint8_t *ptr2 = (uint8_t *)&i2c_writabledataset1+I2C_PWM_MAP_WRITABLE;
+	uint8_t *ptr2 = (uint8_t *)&i2c_writabledataset2+I2C_PWM_MAP_WRITABLE;
 	for (int i=0;i<REG_WRITABLE_MAP_SIZE;i++){
 	  *ptr1 = *ptr2;
 	  ptr1++;
@@ -263,7 +263,9 @@ void mgr_command(){
 	i2c_writabledataset1=i2c_writabledataset2;
 	i2c_writabledataset2=i2c_writabledatasettmp;
 	interrupts();
-      
+
+	take=true;
+	
 	break;
       }
     case I2C_PWM_COMMAND_ONESHOT_START:
@@ -499,9 +501,12 @@ void loop() {
   mgr_command();
 
   if (take) {
-      analogWrite(PWM1_PIN, i2c_dataset1->analog.analog1 );  
-      analogWrite(PWM2_PIN, i2c_dataset1->analog.analog2 );  
-      take =false;
+    
+    LOGN(F("pwm1: %d" CR),i2c_writabledataset1->pwm1);
+    analogWrite(PWM1_PIN, i2c_writabledataset1->pwm1);  
+    LOGN(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
+    analogWrite(PWM2_PIN, i2c_writabledataset1->pwm2);  
+    take =false;
   }
 
   if (start || !i2c_writabledataset1->oneshot) {
