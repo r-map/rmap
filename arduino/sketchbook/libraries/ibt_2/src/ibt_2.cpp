@@ -92,9 +92,15 @@ ibt_2::ibt_2(unsigned short int bridge):
   _l_pwm(0),
   _bridge(bridge)
 {
+  pinMode(R_PWM, OUTPUT);
+  pinMode(L_PWM, OUTPUT);
+  pinMode(R_EN, OUTPUT);
+  pinMode(L_EN, OUTPUT);
+  pinMode(R_IS, INPUT);
+  pinMode(L_IS, INPUT);
+
   stop();
   setrotation();
-  Log.notice(F("ibt_2: Initialisation successful" CR));
 }
 
 void ibt_2::stop(unsigned short int bridge){
