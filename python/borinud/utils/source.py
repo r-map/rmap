@@ -237,8 +237,8 @@ class SummaryCacheDB(DB):
             "lon": o.key("lon").enqi(),
             "lat": o.key("lat").enqi(),
             "rep_memo": o.get("rep_memo"),
-            "level": o.get("level"),
-            "trange": o.get("trange"),
+            "level": list(map(o.get, ("leveltype1", "l1", "leveltype2", "l2"))),
+            "trange": list(map(o.get, ("pindicator", "p1", "p2"))),
             "bcode": o.get("var"),
             "date": o.date_extremes(),
         } for o in res]
