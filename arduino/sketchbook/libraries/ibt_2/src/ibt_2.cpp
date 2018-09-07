@@ -84,13 +84,20 @@ void filter_is(unsigned int n, unsigned int *table,  uint16_t *value)
 }
 
 
-ibt_2::ibt_2(unsigned short int bridge):
+
+domotic::domotic(unsigned short int bridge):
   _r_is(0xFFFFFFFF),
   _l_is(0xFFFFFFFF),
   _wise(CW),
   _r_pwm(0),
   _l_pwm(0),
   _bridge(bridge)
+{
+}
+
+
+ibt_2::ibt_2(unsigned short int bridge):
+  domotic(bridge)
 {
   pinMode(R_PWM, OUTPUT);
   pinMode(L_PWM, OUTPUT);
@@ -102,6 +109,7 @@ ibt_2::ibt_2(unsigned short int bridge):
   stop();
   setrotation();
 }
+
 
 void ibt_2::stop(unsigned short int bridge){
 
@@ -204,7 +212,7 @@ void ibt_2::setpwm(unsigned short int pwm,unsigned short int bridge){
 
 }
 
-uint16_t ibt_2::get(ibt_2_bridge half) {
+uint16_t ibt_2::get(domotic_bridge half) {
   
   if(half == bridge_r_half){ 
     uint16_t is=_r_is;
@@ -259,3 +267,4 @@ bool ibt_2::protectdelay(unsigned long int stoptime){
   }
   return status;
 }
+

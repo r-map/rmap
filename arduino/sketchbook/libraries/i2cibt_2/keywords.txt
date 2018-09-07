@@ -1,12 +1,12 @@
 #######################################
-# Syntax Coloring Map for i2cdomotic
+# Syntax Coloring Map for HPM
 #######################################
 
 #######################################
 # Library (KEYWORD1)
 #######################################
 
-i2cdomotic	KEYWORD1
+i2cibt_2	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)

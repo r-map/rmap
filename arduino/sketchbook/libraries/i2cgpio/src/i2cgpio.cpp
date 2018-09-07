@@ -17,10 +17,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "i2cdomotic.h"
+#include "i2cgpio.h"
 
 
-i2cdomotic::i2cdomotic(unsigned short int address):
+i2cgpio::i2cgpio(unsigned short int address):
   _address(address)
 {
   //Start I2C communication routines
@@ -37,7 +37,7 @@ i2cdomotic::i2cdomotic(unsigned short int address):
 }
 
 
-uint8_t i2cdomotic::digitalWrite(uint8_t pin, uint8_t value){
+uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
 
   Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
   switch (pin)
@@ -61,7 +61,7 @@ uint8_t i2cdomotic::digitalWrite(uint8_t pin, uint8_t value){
 }
 
 
-uint8_t i2cdomotic::analogWrite(uint8_t pin, uint8_t value){
+uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 
   Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
   switch (pin)
@@ -83,7 +83,7 @@ uint8_t i2cdomotic::analogWrite(uint8_t pin, uint8_t value){
   return 0;
 }
 
-uint16_t i2cdomotic::analogRead(uint8_t pin){
+uint16_t i2cgpio::analogRead(uint8_t pin){
 
   Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
   Wire.write(I2C_PWM_COMMAND);
