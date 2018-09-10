@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <ArduinoLog.h>
+#include "config.h"
 
 #define IBT_2_FULL   0
 #define IBT_2_2HALF 1
@@ -14,14 +15,6 @@
 #define BRAKEGND 3
 #define IS_THRESHOLD 1000
 
-#define R_PWM   10
-#define L_PWM   11
-#define R_EN    4
-#define L_EN    5
-#define R_IS    0
-#define L_IS    1
-
-#define NSAMPLE 5
 
 #ifndef ARDUINO_ARCH_ESP8266
 #include <avr/wdt.h>

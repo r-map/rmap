@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 i2cgpio::i2cgpio(unsigned short int address):
   _address(address)
 {
+  /*
   //Start I2C communication routines
   Wire.begin();
 
@@ -33,7 +34,7 @@ i2cgpio::i2cgpio(unsigned short int address):
   //digitalWrite( SCL, LOW);
   digitalWrite( SDA, HIGH);
   digitalWrite( SCL, HIGH);
-  
+  */  
 }
 
 

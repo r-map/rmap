@@ -34,26 +34,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "i2cibt_2.h"
 
+#define I2C_R_EN 1
+#define I2C_L_EN 2
+
+#define I2C_R_PWM 1
+#define I2C_L_PWM 2
+
+#define I2C_R_IS 1
+#define I2C_L_IS 2
+
+
 i2cibt_2::i2cibt_2(unsigned short int bridge,i2cgpio gpio):
   domotic(bridge),
   _bridge(bridge),
   _gpio(gpio)
-
 {
-  stop();
-  setrotation();
 }
-
-
+  
 void i2cibt_2::stop(unsigned short int bridge){
 
   if (bridge == IBT_2_FULL){
-    _gpio.digitalWrite(R_EN, LOW);
-    _gpio.digitalWrite(L_EN, LOW);
+    _gpio.digitalWrite(I2C_R_EN, LOW);
+    _gpio.digitalWrite(I2C_L_EN, LOW);
   } else if (bridge == IBT_2_R_HALF){
-    _gpio.digitalWrite(R_EN, LOW);
+    _gpio.digitalWrite(I2C_R_EN, LOW);
   } else if (bridge == IBT_2_L_HALF){
-    _gpio.digitalWrite(L_EN, LOW);
+    _gpio.digitalWrite(I2C_L_EN, LOW);
   }
 }
 
@@ -63,12 +69,12 @@ void i2cibt_2::start(unsigned short int bridge){
   //if (_bridge != IBT_2_FULL && bridge == IBT_2_FULL ) return;
   
   if (bridge == IBT_2_FULL){
-    _gpio.digitalWrite(R_EN, HIGH);
-    _gpio.digitalWrite(L_EN, HIGH);
+    _gpio.digitalWrite(I2C_R_EN, HIGH);
+    _gpio.digitalWrite(I2C_L_EN, HIGH);
   } else if (bridge == IBT_2_R_HALF){
-    _gpio.digitalWrite(R_EN, HIGH);
+    _gpio.digitalWrite(I2C_R_EN, HIGH);
   } else if (bridge == IBT_2_L_HALF){
-    _gpio.digitalWrite(L_EN, HIGH);
+    _gpio.digitalWrite(I2C_L_EN, HIGH);
   }
 }
 
@@ -78,16 +84,16 @@ void i2cibt_2::brake(unsigned short int brake){
   if (_bridge != IBT_2_FULL ) return;
   
   if (brake == BRAKEGND){
-    _gpio.digitalWrite(R_PWM, HIGH);
-    _gpio.digitalWrite(L_PWM, HIGH);
+    _gpio.analogWrite(I2C_R_PWM, 254);
+    _gpio.analogWrite(I2C_L_PWM, 254);
   } else if (brake == BRAKEVCC){
-    _gpio.digitalWrite(R_PWM, LOW);
-    _gpio.digitalWrite(L_PWM, LOW);
+    _gpio.analogWrite(I2C_R_PWM, 0);
+    _gpio.analogWrite(I2C_L_PWM, 0);
 
   }
 
-  _gpio.digitalWrite(R_EN, HIGH);
-  _gpio.digitalWrite(L_EN, HIGH);
+  _gpio.digitalWrite(I2C_R_EN, HIGH);
+  _gpio.digitalWrite(I2C_L_EN, HIGH);
 
 }
 
@@ -110,23 +116,25 @@ void i2cibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
   _wise = wise;
 
   if (_bridge != IBT_2_FULL ) return;
-  
-  if (_wise == CW)
+
+    if (_wise == CW)
     {
       // forward rotation
       _r_pwm= pwm;
       _l_pwm= 0;
       
-      _gpio.digitalWrite(L_PWM, _l_pwm);
-      _gpio.analogWrite(R_PWM, _r_pwm);
+      _gpio.analogWrite(I2C_L_PWM, _l_pwm);
+      _gpio.analogWrite (I2C_R_PWM, _r_pwm);
 
-    }  else {
-    // reverse rotation
-    _r_pwm= 0;
-    _l_pwm= pwm;
-    _gpio.digitalWrite(R_PWM, _r_pwm);
-    _gpio.analogWrite(L_PWM, _l_pwm);
-  }
+    }
+  else
+    {
+      // reverse rotation
+      _r_pwm= 0;
+      _l_pwm= pwm;
+      _gpio.analogWrite(I2C_R_PWM, _r_pwm);
+      _gpio.analogWrite (I2C_L_PWM, _l_pwm);
+    }
 }
 
 
@@ -136,12 +144,12 @@ void i2cibt_2::setpwm(unsigned short int pwm,unsigned short int bridge){
 
   if (_bridge == IBT_2_R_HALF) {
     _r_pwm= pwm;
-    _gpio.analogWrite(R_PWM, _r_pwm);
+    _gpio.analogWrite(I2C_R_PWM, _r_pwm);
     
   } else if (_bridge == IBT_2_L_HALF) {
     // reverse rotation
     _l_pwm= 0;
-    _gpio.analogWrite(L_PWM, _l_pwm);
+    _gpio.analogWrite(I2C_L_PWM, _l_pwm);
   }
 
 }
@@ -162,8 +170,8 @@ uint16_t i2cibt_2::get(domotic_bridge half) {
 
 bool i2cibt_2::readis(){
 
-    _r_is = _gpio.analogRead(R_IS);
-    _l_is = _gpio.analogRead(L_IS);
+    _r_is = _gpio.analogRead(I2C_R_IS);
+    _l_is = _gpio.analogRead(I2C_L_IS);
 }
 
 bool i2cibt_2::protect(){

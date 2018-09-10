@@ -19,37 +19,53 @@ void loop() {
   // activate the bridge
   hbridge.start();
   if (hbridge.protect()) Log.notice(F("ALARM!!" CR)); 
-  delay(5000);
+  delay(2000);
   if (hbridge.protect()) Log.notice(F("ALARM!!" CR)); 
   
   // dimmer from min to max to min clock wise
   int new_value= 0;
   int inc =1;
   while (new_value >= 0){
-    if (new_value == 255) inc =-1;
     Serial.println(new_value);
     hbridge.setrotation(new_value,CW);
     if (hbridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
-    Log.notice(F("Current: %d A" CR),hbridge.get(bridge_r_half)*0.0415);
+    hbridge.readis();
+    Log.notice(F("R Current: %d mA" CR),int(hbridge.get(bridge_r_half)*41.5));
+    Log.notice(F("L Current: %d mA" CR),int(hbridge.get(bridge_l_half)*41.5));
+    if (new_value == 255) {
+      inc =-1;
+      // brake to gnd
+      hbridge.brake();
+      delay(2000);
+      hbridge.stop();
+      delay(2000);
+      hbridge.start();
+    }
     new_value+= inc;
   }
 
   // dimmer from min to max to min reverse
   new_value= 0;
   inc =1;
-  while (new_value >= 0){
-    if (new_value == 255) inc =-1;
+  while (new_value >= 0){ 
     Serial.println(new_value);
     hbridge.setrotation(new_value,CCW);
     if (hbridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
-    Log.notice(F("Current: %d A" CR),hbridge.get(bridge_r_half)*0.0415);
+    hbridge.readis();
+    Log.notice(F("R Current: %d mA" CR),int(hbridge.get(bridge_r_half)*41.5));
+    Log.notice(F("L Current: %d mA" CR),int(hbridge.get(bridge_l_half)*41.5));
+    if (new_value == 255) {
+      inc =-1;
+      // brake to gnd
+      hbridge.brake();
+      delay(2000);
+      hbridge.stop();
+      delay(2000);
+      hbridge.start();
+    }
     new_value+= inc;
   }
 
-  // brake to gnd
-  hbridge.brake();
-  delay(5000);
-  hbridge.stop();
   
 }
 

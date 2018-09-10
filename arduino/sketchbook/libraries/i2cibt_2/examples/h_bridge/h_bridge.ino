@@ -4,16 +4,32 @@ example to use one h bridge with pwm with brake, clock wise and reverse
 
 
 #include <i2cibt_2.h>
-#include <i2cgpio.h>
 
-i2cgpio gpio(I2C_PWM_DEFAULTADDRESS);
+i2cgpio gpio;
 i2cibt_2 mybridge(IBT_2_FULL,gpio);
 
 void setup() {
+
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  Serial.begin(115200);
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
   Log.notice(F("Started" CR));  
+
+
+  //Start I2C communication routines
+  Wire.begin();
+
+  //The Wire library enables the internal pullup resistors for SDA and SCL.
+  //You can turn them off after Wire.begin()
+  // do not need this with patched Wire library
+  //digitalWrite( SDA, LOW);
+  //digitalWrite( SCL, LOW);
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
+
+  mybridge.stop();
+  mybridge.setrotation();
+  
 }
 
 void loop() {
@@ -31,8 +47,8 @@ void loop() {
     if (new_value == 255) inc =-1;
     Serial.println(new_value);
     mybridge.setrotation(new_value,CW);
-    if (mybridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
-    Log.notice(F("Current: %d A" CR),mybridge.get(bridge_r_half)*0.0415);
+    //if (mybridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
+    //    Log.notice(F("Current: %d A" CR),mybridge.get(bridge_r_half)*0.0415);
     new_value+= inc;
   }
 
@@ -43,8 +59,8 @@ void loop() {
     if (new_value == 255) inc =-1;
     Serial.println(new_value);
     mybridge.setrotation(new_value,CCW);
-    if (mybridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
-    Log.notice(F("Current: %d A" CR),mybridge.get(bridge_r_half)*0.0415);
+    //if (mybridge.protectdelay()) Log.notice(F("ALARM!!" CR)); 
+    //Log.notice(F("Current: %d A" CR),mybridge.get(bridge_r_half)*0.0415);
     new_value+= inc;
   }
 
@@ -52,7 +68,5 @@ void loop() {
   mybridge.brake();
   delay(5000);
   mybridge.stop();
-  
+
 }
-
-

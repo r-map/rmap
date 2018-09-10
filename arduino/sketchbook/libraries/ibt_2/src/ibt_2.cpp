@@ -190,7 +190,7 @@ void ibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
     // reverse rotation
     _r_pwm= 0;
     _l_pwm= pwm;
-    digitalWrite(R_PWM, _r_pwm);
+    digitalWrite(R_PWM,_r_pwm);
     analogWrite(L_PWM, _l_pwm);
   }
 }
