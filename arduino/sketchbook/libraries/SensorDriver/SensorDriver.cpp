@@ -131,7 +131,7 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #endif
 
       if (strcmp(driver, "SERI") == 0){
-#if defined (SDS011_ONESHOT)
+#if defined (SDS011_LOCALSERIAL)
 	if (strcmp(type, "SSD") == 0) {
 	  return new SensorDriverSDS011oneshotSerial();
 	} else 
@@ -2730,7 +2730,7 @@ int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
     SDSMICSstarted=true;
-    waittime= 14500ul;
+    waittime= 19500ul;
   }else{
     waittime= 1ul;
   }
@@ -2862,7 +2862,7 @@ int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_len
 }
 #endif
 
-
+#if defined (SDS011_LOCALSERIAL)
 // serial driver for SDS011
 
 /*
@@ -3046,7 +3046,7 @@ SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
   //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
   //delete _sdsSerial;
 }
-
+#endif
 
 #endif
 
@@ -3921,7 +3921,7 @@ int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
     Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-    waittime= 14500ul;
+    waittime= 19500ul;
   }else{
     waittime= 1ul;
   }

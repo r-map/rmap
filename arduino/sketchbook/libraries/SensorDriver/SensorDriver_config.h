@@ -64,9 +64,12 @@
 // include TH temperature/humidity driver REPORT MODE
 //#define TEMPERATUREHUMIDITY_REPORT
 
-#if defined(ARDUINO_ARCH_ESP8266)
 // include sds011 pm 2.5 and pm 10 driver SAMPLE MODE
 #define SDS011_ONESHOT
+
+#if defined(ARDUINO_ARCH_ESP8266)
+// include sds011 pm 2.5 and pm 10 in local SERIAL port mode
+#define SDS011_LOCALSERIAL
 
 #if defined(ARDUINO_ESP8266_NODEMCU)
 //luftdaten

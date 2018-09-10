@@ -506,7 +506,8 @@ class SensorDriverTmp : public SensorDriver
   #endif
 };
 
- class SensorDriverSDS011oneshotSerial : public SensorDriver
+#if defined (SDS011_LOCALSERIAL)
+class SensorDriverSDS011oneshotSerial : public SensorDriver
  {
  public:
    //SensorDriverSDS011oneshotSerial();
@@ -530,6 +531,7 @@ class SensorDriverTmp : public SensorDriver
     sds011::Sds011* _sds011=NULL;  
 };
 
+#endif
 #endif
 
 

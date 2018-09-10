@@ -77,6 +77,12 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 #include "EEPROMAnything.h"
 #include "Calibration.h"
+#include <ArduinoLog.h>
+
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)       //size of register map
 #define REG_PM_SIZE           sizeof(pm_t)                  //size of register map for pm
@@ -357,14 +363,7 @@ void receiveEvent( int bytesReceived)
           }
      }
 
-     if (bytesReceived == 2){
-       // check for a command
-       if (receivedCommands[0] == I2C_SDSMICS_COMMAND) {
-	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
-	 //if (new_command != 0) IF_SDEBUG(Serial.print("command overflow !"));
-	 new_command = receivedCommands[1]; return; }
-     }
-
+ 
      if (bytesReceived == 1){
        //read address for a given register
        //Addressing over the reg_map fallback to first byte
@@ -374,6 +373,16 @@ void receiveEvent( int bytesReceived)
        //IF_SDEBUG(Serial.print("set register:"));IF_SDEBUG(Serial.println(receivedCommands[0]));
        return;
      }
+
+
+    if (bytesReceived == 2){
+       // check for a command
+       if (receivedCommands[0] == I2C_SDSMICS_COMMAND) {
+	 //IF_SDEBUG(Serial.print("received command:"));IF_SDEBUG(Serial.println(receivedCommands[1]));
+	 //if (new_command != 0) IF_SDEBUG(Serial.print("command overflow !"));
+	 new_command = receivedCommands[1]; return; }
+     }
+
 
      //More than 1 byte was received, so there is definitely some data to write into a register
      //Check for writeable registers and discard data is it's not writeable
@@ -386,11 +395,11 @@ void receiveEvent( int bytesReceived)
        if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_SDSMICS_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
 	 //Writeable registers
 	 // the two buffer should be in sync
-	 ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_SDSMICS_MAP_WRITABLE;
+	 //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_SDSMICS_MAP_WRITABLE;
 	 ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_SDSMICS_MAP_WRITABLE;
 	 for (int a = 1; a < bytesReceived; a++) { 
 	   //IF_SDEBUG(Serial.print("write in writable buffer:"));IF_SDEBUG(Serial.println(a));IF_SDEBUG(Serial.println(receivedCommands[a]));
-	   *ptr1++ = receivedCommands[a];
+	   //*ptr1++ = receivedCommands[a];
 	   *ptr2++ = receivedCommands[a];
 	 }
 	 // new data written
@@ -418,8 +427,16 @@ void setup() {
   wdt_enable(WDTO_8S);
 
   IF_SDEBUG(Serial.begin(115200));        // connect to the serial port
-  IF_SDEBUG(Serial.print(F("Start firmware version: ")));
-  IF_SDEBUG(Serial.println(VERSION));
+  // Pass log level, whether to show log level, and print interface.
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, change #define LOG_LEVEL ....
+  //       this will significantly reduce your project size
+
+  // set runtime log level to the same of compile time
+  Log.begin(LOG_LEVEL, &Serial);
+
+  LOGN(F("Start firmware version: %s" CR),VERSION);
 
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
@@ -687,6 +704,149 @@ void setup() {
 
 }
 
+
+void mgr_command(){
+
+  static uint8_t _command;
+  
+  //Check for new incoming command on I2C
+  if (new_command != 0) {
+    _command = new_command;                                                   //save command byte for processing
+    new_command = 0;                                                          //clear it
+    //_command = _command & 0x0F;                                               //empty 4MSB bits   
+    switch (_command) {
+
+      /*
+    case I2C_PWM_COMMAND_TAKE:
+      {
+	LOGN(F("COMMAND: take" CR));
+      
+	//LOGN("writable buffer exchange"));
+	// disable interrupts for atomic operation
+	noInterrupts();
+
+	// copy writable registers
+	memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
+      */
+	/*
+	//exchange double buffer
+	i2c_writabledatasettmp=i2c_writabledataset1;
+	i2c_writabledataset1=i2c_writabledataset2;
+	i2c_writabledataset2=i2c_writabledatasettmp;
+	*/
+      /*
+	interrupts();
+	
+	take=true;
+	
+	break;
+      }
+    */
+    case I2C_SDSMICS_COMMAND_ONESHOT_START:
+      {
+	LOGN(F("COMMAND: oneshot start" CR));
+      
+	if (!i2c_writabledataset1->oneshot) break;
+	
+	start=true;
+	
+	//LOGN(F("reset registers to missing" CR));
+	uint8_t *ptr;
+	//Init to FF i2c_dataset1;
+  	ptr = (uint8_t *)&i2c_dataset1->pm;
+	for (int i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+
+	// disable interrupts for atomic operation
+	noInterrupts();
+	//exchange double buffer
+	LOGN(F("exchange double buffer" CR));
+	i2c_datasettmp=i2c_dataset1;
+	i2c_dataset1=i2c_dataset2;
+	i2c_dataset2=i2c_datasettmp;
+	interrupts();
+	// new data published
+	//Init to FF i2c_dataset1;
+  	ptr = (uint8_t *)&i2c_dataset1->pm;
+	for (int i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	break;
+      }
+    case I2C_SDSMICS_COMMAND_STOP:
+    case I2C_SDSMICS_COMMAND_ONESHOT_STOP:
+      {
+	LOGN(F("COMMAND: oneshot stop" CR));
+	
+	if (!i2c_writabledataset1->oneshot) break;
+	
+	// disable interrupts for atomic operation
+	noInterrupts();
+	//exchange double buffer
+	LOGN(F("exchange double buffer" CR));
+	i2c_datasettmp=i2c_dataset1;
+	i2c_dataset1=i2c_dataset2;
+	i2c_dataset2=i2c_datasettmp;
+	interrupts();
+	// new data published
+	
+	LOGN(F("clean buffer" CR));
+	uint8_t *ptr;
+	//Init to FF i2c_dataset1;
+  	ptr = (uint8_t *)&i2c_dataset1->pm;
+	for (int i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	
+	stop=true;
+	break;
+      }
+    case I2C_SDSMICS_COMMAND_SAVE:
+      {
+	LOGN(F("COMMAND: save" CR));
+      
+	// save configuration to eeprom
+	LOGN(F("save configuration to eeprom" CR));
+
+	int p=0;
+
+	// save configuration version on eeprom
+	p+=EEPROM_writeAnything(p, confver);
+	//save writable registers
+	i2c_writabledataset2->save(&p);
+
+	break;
+      }
+    default:
+      {
+	LOGN(F("WRONG command" CR));
+	break;
+      }	
+    } //switch  
+  }
+
+  if (!i2c_writabledataset1->oneshot){
+    // continuos mode
+    LOGN(F("expose new measure in continuos mode" CR));
+
+      // disable interrupts for atomic operation
+      noInterrupts();
+      //exchange double buffer
+      LOGN(F("exchange double buffer" CR));
+      i2c_datasettmp=i2c_dataset1;
+      i2c_dataset1=i2c_dataset2;
+      i2c_dataset2=i2c_datasettmp;
+      interrupts();
+      // new data published
+      
+      LOGN(F("clean buffer" CR));
+      uint8_t *ptr;
+      //Init to FF i2c_dataset1;
+      ptr = (uint8_t *)&i2c_dataset1->pm;
+      for (int i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}      
+  }
+  
+  //LOGN(F("oneshot : %T" CR),i2c_writabledataset2->oneshot);
+  //LOGN(F("oneshot start : %T" CR), start);
+  //LOGN(F("oneshot stop  : %T" CR)), stop);
+
+}
+
 void loop() {
 
   static uint8_t _command;
@@ -704,74 +864,7 @@ void loop() {
 
   wdt_reset();
 
-  //IF_SDEBUG(Serial.println("writable buffer exchange"));
-  // disable interrupts for atomic operation
-  noInterrupts();
-  //exchange double writable buffer
-  i2c_writabledatasettmp=i2c_writabledataset1;
-  i2c_writabledataset1=i2c_writabledataset2;
-  i2c_writabledataset2=i2c_writabledatasettmp;
-  interrupts();
-
-  //Check for new incoming command on I2C
-  if (new_command!=0) {
-    _command = new_command;                                                   //save command byte for processing
-    new_command = 0;                                                          //clear it
-    //_command = _command & 0x0F;                                               //empty 4MSB bits   
-    switch (_command) {
-    case I2C_SDSMICS_COMMAND_ONESHOT_START:
-      IF_SDEBUG(Serial.println(F("COMMAND: oneshot start")));
-      start=true;
-      break;          
-    case I2C_SDSMICS_COMMAND_ONESHOT_STOP:
-      IF_SDEBUG(Serial.println(F("COMMAND: oneshot stop")));
-      stop=true;
-      break;
-    case I2C_SDSMICS_COMMAND_STOP:
-      IF_SDEBUG(Serial.println(F("COMMAND: stop")));
-      stop=true;
-      break;
-    case I2C_SDSMICS_COMMAND_SAVE:
-      IF_SDEBUG(Serial.println(F("COMMAND: save")));
-
-      // save configuration to eeprom
-      IF_SDEBUG(Serial.println(F("save configuration to eeprom")));
-      int p=0;
-
-      // save configuration version on eeprom
-      p+=EEPROM_writeAnything(p, confver);
-      //save writable registers
-      i2c_writabledataset2->save(&p);
-
-      break;
-    } //switch  
-  }
-
-  //IF_SDEBUG(Serial.print(F("oneshot status: ")));IF_SDEBUG(Serial.println(oneshot));
-  //IF_SDEBUG(Serial.print(F("oneshot start : ")));IF_SDEBUG(Serial.println(start));
-  //IF_SDEBUG(Serial.print(F("oneshot stop  : ")));IF_SDEBUG(Serial.println(stop));
-
-
-  if (stop) {
-
-    // disable interrupts for atomic operation
-    noInterrupts();
-    //exchange double buffer
-    IF_SDEBUG(Serial.println(F("exchange double buffer")));
-    i2c_datasettmp=i2c_dataset1;
-    i2c_dataset1=i2c_dataset2;
-    i2c_dataset2=i2c_datasettmp;
-    interrupts();
-    // new data published
-
-    IF_SDEBUG(Serial.println(F("clean buffer")));
-    uint8_t *ptr;
-    //Init to FF i2c_dataset1;
-    ptr = (uint8_t *)&i2c_dataset1->pm;
-    for (i=0;i<REG_PM_SIZE+REG_CONO2_SIZE;i++) { *ptr |= 0xFF; ptr++;}
-
-    stop=false;
-  }
+  mgr_command();
   
   if (oneshot) {
     if (!start) return;
