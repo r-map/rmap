@@ -1,4 +1,5 @@
 # These can be overridden in platform.local.txt
+runtime.tools.avr-gcc.path= /usr
 compiler.c.extra_flags= -std=c11
 compiler.c.elf.extra_flags=
 compiler.S.extra_flags=
