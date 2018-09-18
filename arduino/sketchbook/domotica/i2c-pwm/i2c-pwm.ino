@@ -601,7 +601,7 @@ void loop() {
 	 && i2c_writabledataset1->pwm2 == 0
 	    && i2c_writabledataset1->onoff1 == 0
 	    && i2c_writabledataset1->onoff2 == 0
-	    && ++counter >= 500000
+	    && ++counter >= 50000
 	    )
     {
 
@@ -616,7 +616,7 @@ void loop() {
       sleep_disable();
       // enable watchdog with timeout to 8s
       wdt_enable(WDTO_8S);
-      LOGN(F("Wake up" CR));
+      LOGN(F(">>>>> Wake up" CR));
     }
   
 }
