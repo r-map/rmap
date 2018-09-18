@@ -72,6 +72,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "config.h"
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
+#include <avr/sleep.h>
 
 // logging level at compile time
 // Available levels are:
@@ -153,7 +154,7 @@ static bool stop=false;
 static bool take=false;
 
 boolean forcedefault=false;
-
+volatile unsigned long counter=0;
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
 // Handler for requesting data
@@ -181,7 +182,9 @@ void receiveEvent( int bytesReceived)
   //LOGN("receive event, bytes: %d" CR,bytesReceived);
   
   uint8_t  *ptr1, *ptr2;
-
+  counter = 0;
+  sleep_disable();
+ 
   for (int a = 0; a < bytesReceived; a++) {
     if (a < MAX_SENT_BYTES) {
       receivedCommands[a] = Wire.read();
@@ -591,7 +594,29 @@ void loop() {
     // nothing to do
     stop=false;
   }
-  
+
   digitalWrite(LED_PIN,!digitalRead(LED_PIN));  // blink Led
 
+  if (      i2c_writabledataset1->pwm1 == 0
+	 && i2c_writabledataset1->pwm2 == 0
+	    && i2c_writabledataset1->onoff1 == 0
+	    && i2c_writabledataset1->onoff2 == 0
+	    && ++counter >= 500000
+	    )
+    {
+
+      //LOGN(F("Sleep" CR));
+      //delay(10);
+      
+      set_sleep_mode(SLEEP_MODE_PWR_DOWN);  
+      // disable watchdog
+      wdt_disable();
+      sleep_enable();
+      sleep_cpu();
+      sleep_disable();
+      // enable watchdog with timeout to 8s
+      wdt_enable(WDTO_8S);
+      LOGN(F("Wake up" CR));
+    }
+  
 }
