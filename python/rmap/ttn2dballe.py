@@ -170,7 +170,7 @@ class ttn2dballe(object):
 
             # JSON: try and load the JSON string from payload             
             try:
-                st = json.loads(msg.payload)
+                st = json.loads(msg.payload.decode())
                 
                 metadata=st["metadata"]
                 #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
@@ -220,7 +220,11 @@ class ttn2dballe(object):
                 else:
                     logging.error("Unknown template %d " % numtemplate)
                     return
-            except:
+
+            except Exception as exception:
+                # log and retry on exception 
+                logging.error('Exception occured: ' + str(exception))
+                logging.error(traceback.format_exc())
                 logging.error("error decoding message: skip it and do nothing!")
                 #raise
                 return
