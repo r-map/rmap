@@ -53,7 +53,7 @@ i2cibt_2::i2cibt_2(unsigned short int bridge,i2cgpio gpio):
   
 void i2cibt_2::stop(unsigned short int bridge){
 
-  if (bridge == IBT_2_FULL){
+  if (bridge == IBT_2_FULL || IBT_2_2HALF){
     _gpio.digitalWrite(I2C_R_EN, LOW);
     _gpio.digitalWrite(I2C_L_EN, LOW);
   } else if (bridge == IBT_2_R_HALF){
@@ -68,7 +68,7 @@ void i2cibt_2::start(unsigned short int bridge){
   // with this commented full activate all half bridge
   //if (_bridge != IBT_2_FULL && bridge == IBT_2_FULL ) return;
   
-  if (bridge == IBT_2_FULL){
+  if (bridge == IBT_2_FULL ||  IBT_2_2HALF){
     _gpio.digitalWrite(I2C_R_EN, HIGH);
     _gpio.digitalWrite(I2C_L_EN, HIGH);
   } else if (bridge == IBT_2_R_HALF){

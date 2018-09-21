@@ -37,11 +37,12 @@
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
 #include <IRutils.h>
+#include <i2cibt_2.h>
 
 #include "config.h"
 
 // increment on change
-#define SOFTWARE_VERSION "2018-07-31T00:00"
+#define SOFTWARE_VERSION "2018-09-21T00:00"
 #define FIRMWARE_TYPE "DOMOTICA"
 
 // Define IR Receiver and Results Objects
@@ -60,19 +61,27 @@ WiFiClient espClient;
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
-unsigned short int displaypos;
+uint8_t displaypos;
 
 // create Objects
 ESP8266WebServer server ( 80 );
 DNSServer dnsServer;
 
-//unsigned short int togglestate1=0;
-//unsigned short int togglestate2=0;
-//unsigned short int togglestate3=0;
-//unsigned short int togglestate4=0;
-
 AlarmID_t alarmpowersave=0;
+short int lastkey=-1;
+int8_t lastvalue=0;
+uint8_t value7=10;
+uint8_t value8=10;
+uint8_t value9=10;
 
+bool status7=false;
+bool status8=false;
+bool status9=false;
+
+i2cgpio gpio1;
+i2cgpio gpio2(I2C_PWM_DEFAULTADDRESS+1);
+i2cibt_2 mybridgef(IBT_2_FULL,gpio1);
+i2cibt_2 mybridge2h(IBT_2_2HALF,gpio2);
 
 
 void firmware_upgrade() {
@@ -178,6 +187,7 @@ void updateGpio(){
     //LOGE(F("Err pin value: %d" CR),etat);    
   }
 
+  /*
   if (oledpresent) {
     //u8g2.clearBuffer();
     u8g2.setCursor(0, (ind+1)*10); 
@@ -188,7 +198,9 @@ void updateGpio(){
     u8g2.print(digitalRead(GPIOPIN[ind]));
     u8g2.sendBuffer();
   }
+  */
 
+  
   String json = "{\"gpio\":\"" + String(gpio) + "\",";
   json += "\"etat\":\"" + String(etat) + "\",";
   json += "\"success\":\"" + String(success) + "\"}";
@@ -291,6 +303,57 @@ void powersave(){
 }
 
 
+void display_status(){
+
+  if (oledpresent) {
+    u8g2.clearBuffer();
+    
+    u8g2.setCursor(0,10); 
+    u8g2.print(F("7: "));
+    if (status7){    
+      u8g2.print(F("On  "));
+    }else{
+      u8g2.print(F("Off "));
+    }
+    u8g2.print(F(" "));
+    u8g2.print(value7);
+    
+    u8g2.setCursor(0,20); 
+    u8g2.print(F("8: "));
+    if (status8){    
+      u8g2.print(F("On  "));
+    }else{
+      u8g2.print(F("Off "));
+    }
+    u8g2.print(F(" "));
+    u8g2.print(value8);
+    
+    u8g2.setCursor(0,30); 
+    u8g2.print(F("9: "));
+    if (status9){    
+      u8g2.print(F("On  "));
+    }else{
+      u8g2.print(F("Off "));
+    }
+    u8g2.print(F(" "));
+    u8g2.print(value9);
+    
+    u8g2.setCursor(0, 45);
+    for (uint8_t i=0; i<4; i++){
+      if (digitalRead(GPIOPIN[i])){    
+	u8g2.print(F(" On"));
+      }else{
+	u8g2.print(F(" Of"));
+      }
+    }
+
+    u8g2.sendBuffer();
+    u8g2.setPowerSave(0);
+    Alarm.free(alarmpowersave);
+    alarmpowersave=Alarm.timerOnce(TIMEON, powersave);
+  }
+}
+
 void setup() {
      
   Serial.begin ( 115200 );
@@ -316,6 +379,7 @@ void setup() {
     pinMode(GPIOPIN[x], OUTPUT);
   }
 
+  /*
 #ifdef I2CPULLUP
   //if you want to set the internal pullup
   digitalWrite( SDA, HIGH);
@@ -325,9 +389,11 @@ void setup() {
   digitalWrite( SDA, LOW);
   digitalWrite( SCL, LOW);
 #endif
-
+  */
+  
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
+  
   delay(100);
   
   // check return value of
@@ -373,6 +439,12 @@ void setup() {
   delay(1000);
   digitalWrite(LED_PIN,HIGH);
 
+  mybridgef.stop();
+  mybridgef.setrotation();
+  
+  mybridge2h.stop();
+  mybridge2h.setpwm(0,IBT_2_R_HALF);
+  mybridge2h.setpwm(0,IBT_2_L_HALF);
   
   LOGN(F("mounting FS..." CR));
   if (oledpresent) {
@@ -463,21 +535,11 @@ void setup() {
     delay(1000);
   }
 
-  if (oledpresent) {
-    u8g2.clearBuffer();
-    for ( int ind = 0 ; ind < 4 ; ind++ ) {
-      u8g2.setCursor(0, (ind+1)*10); 
-      u8g2.print(F("key "));
-      u8g2.print(ind+1);
-      //u8g2.setCursor(0, 20); 
-      u8g2.print(F(" : "));
-      u8g2.print(digitalRead(GPIOPIN[ind]));
-      u8g2.sendBuffer();
-      Alarm.timerOnce(TIMEON, powersave);
-    }
-  }
+  display_status();
+  
+  LOGN(F("END setup" CR));
 }
-
+  
 void loop() {
   // put your main code here, to run repeatedly:
   dnsServer.processNextRequest();
@@ -490,104 +552,180 @@ void loop() {
     //Serial.print(results.decode_type);
     //Serial.print(" : ");
     //Serial.println(NEC);
+
     if (results.decode_type == DECODETYPE) {
-      short int ind;
+      int8_t ind=-1;
+      int8_t key=-1;
+      int8_t value=0;
 
       switch(results.value){
-      case KEYPAD1: // 1 Keypad Button
+      case KEYPAD_1: // 1 Keypad Button
 	ind=0;
-	break;
-	
-      case KEYPAD2: // 2 Keypad Button
-	ind=1;
+	lastkey=-1;
 	break;
 
-      case KEYPAD3: // 3 Keypad Button
+      case KEYPAD_2: // 2 Keypad Button
+	ind=1;
+	lastkey=-1;
+	break;
+
+      case KEYPAD_3: // 3 Keypad Button
 	ind=2;
+	lastkey=-1;
+	break;
+
+      case KEYPAD_4: // 4 Keypad Button
+	ind=3;
+	lastkey=-1;
+	break;
+
+      case KEYPAD_7:
+	key=7;
+	lastkey=key;
+	break;
+
+      case KEYPAD_8:
+	key=8;
+	lastkey=key;
+	break;
+
+      case KEYPAD_9:
+	key=9;
+	lastkey=key;
 	break;
 	
-      case KEYPAD4: // 4 Keypad Button
-	ind=3;
+      case KEYPAD_MINUS:
+	value=-10;
+	lastvalue=value;
+	break;
+
+      case KEYPAD_PLUS:
+	value=10;
+	lastvalue=value;
+	break;
+	
+      case REPEAT: // REPEAT code
+	LOGN(F("received repeat value" CR));
+	value=lastvalue;
+	//key=lastkey;
+	break;
+
+      case KEYPAD_POWERDOWN:
+
+	if (oledpresent) {
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0,10); 
+	  u8g2.print(F("Power Down!"));
+	  u8g2.sendBuffer();
+	  u8g2.setPowerSave(0);
+	}
+	
+	mybridgef.stop();
+	mybridge2h.stop();
+	for ( int x = 0 ; x < 4 ; x++ ) {
+	  digitalWrite(GPIOPIN[x], LOW);
+	}
+
+	delay(5000);
+	if (oledpresent) u8g2.setPowerSave(1);
+	delay(100);
+	
+
+	while (true){
+	  ESP.deepSleep(ESP.deepSleepMax());
+	  delay(100);
+	}
 	break;
 	
       default:
-	ind=-1;	
+	LOGN(F("unknown key" CR));
+	lastkey=-1;
 	break;
       }
 
-      if (ind>=0){
-	// Toggle LED On or Off
-	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
-	LOGN(F("received key %d status %d" CR),ind+1,digitalRead(GPIOPIN[ind]));
-	if (oledpresent) {
-	  //u8g2.clearBuffer();
-	  u8g2.setCursor(0, (ind+1)*10); 
-	  u8g2.print(F("key "));
-	  u8g2.print(ind+1);
-	  //u8g2.setCursor(0, 20); 
-	  u8g2.print(F(" : "));
-	  u8g2.print(digitalRead(GPIOPIN[ind]));
-	  u8g2.sendBuffer();
-	  u8g2.setPowerSave(0);
-	  Alarm.free(alarmpowersave);
-	  alarmpowersave=Alarm.timerOnce(TIMEON, powersave);
+      if (results.repeat) LOGN(F("received repeat code" CR));
+      LOGN(F("key: %d  lastkey: %d value: %d lastvalue: %d" CR),key,lastkey,value,lastvalue);
+
+      
+      if (key > 0){
+	lastvalue=0;
+
+	switch(key){
+	case 7: // 7 Keypad Button
+	  status7=!status7;
+	  if (status7){
+	    mybridgef.start();
+	  }else{
+	    mybridgef.stop();
+	  }
+      	  
+	  break;
+
+	case 8: // 8 Keypad Button
+	  status8=!status8;
+	  if (status8){
+	    mybridge2h.start(IBT_2_L_HALF);
+	  }else{
+	    mybridge2h.stop(IBT_2_L_HALF);
+	  }	  
+
+	  break;
+
+	case 9: // 9 Keypad Button
+	  status9=!status9;
+	  if (status9){
+	    mybridge2h.start(IBT_2_R_HALF);
+	  }else{
+	    mybridge2h.stop(IBT_2_R_HALF);
+	  }
+      
+	  break;
+	  
 	}
       }
-    }
+      
+      if (value != 0){
+	switch(lastkey){
+	case 7: // 7 Keypad Button
+	  if (value > 0 && value7 < 250) value7+=value;
+	  if (value < 0 && value7 >= 10) value7+=value;
+	  if (value7 >= 245) value7=254;
+	  if (value7 <= 9) value7=10;	  
+	  mybridgef.setrotation(value7);
 
-    /*
-    switch (results.decode_type){
-    case NEC: 
-      Serial.println("NEC"); 
-      break;
-    case SONY: 
-      Serial.println("SONY"); 
-      break;
-    case RC5: 
-      Serial.println("RC5"); 
-      break;
-    case RC6: 
-      Serial.println("RC6"); 
-      break;
-    case DISH: 
-      Serial.println("DISH"); 
-      break;
-    case SHARP: 
-      Serial.println("SHARP"); 
-      break;
-    case JVC: 
-      Serial.println("JVC"); 
-      break;
-    case SANYO: 
-      Serial.println("SANYO"); 
-      break;
-    case MITSUBISHI: 
-      Serial.println("MITSUBISHI"); 
-      break;
-    case SAMSUNG: 
-      Serial.println("SAMSUNG"); 
-      break;
-    case LG: 
-      Serial.println("LG"); 
-      break;
-    case WHYNTER: 
-      Serial.println("WHYNTER"); 
-      break;
-    case AIWA_RC_T501: 
-      Serial.println("AIWA_RC_T501"); 
-      break;
-    case PANASONIC: 
-      Serial.println("PANASONIC"); 
-      break;
-    case DENON: 
-      Serial.println("DENON"); 
-      break;
-    default:
-    case UNKNOWN: 
-      Serial.println("UNKNOWN"); 
-      break;
+	  break;
+
+	case 8: // 8 Keypad Button
+	  if (value > 0 && value8 < 250) value8+=value;
+	  if (value < 0 && value8 >= 10) value8+=value;
+	  if (value8 >= 245) value8=254;
+	  if (value8 <= 9) value8=10;
+	  mybridge2h.setpwm(value8,IBT_2_L_HALF);
+
+	  break;
+	  
+	case 9: // 9 Keypad Button
+	  if (value > 0 && value9 < 250) value9+=value;
+	  if (value < 0 && value9 >= 10) value9+=value;
+	  if (value9 >= 245) value9=254;
+	  if (value9 <= 9) value9=10;
+	  mybridge2h.setpwm(value9,IBT_2_R_HALF);	  
+
+	  break;
+	  
+	}
+      }
+      
+
+      if (ind >= 0){
+	// Toggle PIN On or Off
+	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
+	LOGN(F("received key %d status %d" CR),ind+1,digitalRead(GPIOPIN[ind]));
+      }
+
+      display_status();
+      
     }
-    */
     
     irrecv.resume();
   }
@@ -596,4 +734,3 @@ void loop() {
   Alarm.delay(0);
 
 }
-

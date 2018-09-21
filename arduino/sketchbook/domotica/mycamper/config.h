@@ -29,7 +29,25 @@ const char* ota_server= "rmap.cc";
 
 // IR telecontrol CODE
 #define DECODETYPE NEC
-#define KEYPAD1 0xFF906F // 1 Keypad Button
-#define KEYPAD2 0xFFB847 // 2 Keypad Button
-#define KEYPAD3 0xFFF807 // 3 Keypad Button
-#define KEYPAD4 0xFFB04F // 4 Keypad Button
+#define KEYPAD_0     0xFF48B7 // 0 Keypad Button
+#define KEYPAD_1     0xFF906F // 1 Keypad Button
+#define KEYPAD_2     0xFFB847 // 2 Keypad Button
+#define KEYPAD_3     0xFFF807 // 3 Keypad Button
+#define KEYPAD_4     0xFFB04F // 4 Keypad Button
+#define KEYPAD_5     0xFF9867 // 5 Keypad Button
+#define KEYPAD_6     0xFFD827 // 6 Keypad Button
+#define KEYPAD_7     0xFF8877 // 7 Keypad Button
+#define KEYPAD_8     0xFFA857 // 8 Keypad Button
+#define KEYPAD_9     0xFFE817 // 9 Keypad Button
+#define KEYPAD_MINUS 0xFF50AF // Vol- Keypad Button
+#define KEYPAD_PLUS  0xFF7887 // Vol+ Keypad Button
+#define KEYPAD_DOWN  0xFF40BF // CH- Keypad Button
+#define KEYPAD_UP    0xFFA05F // CH+ Keypad Button
+#define KEYPAD_OK    0xFF02FD // full screen Keypad Button
+#define KEYPAD_POWERDOWN 0xFFB24D // powerdown Keypad Button
+
+#define MINUS 1
+#define PLUS  2
+#define DOWN  3
+#define UP    4
+#define OK    5
