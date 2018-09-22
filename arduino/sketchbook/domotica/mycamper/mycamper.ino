@@ -621,7 +621,10 @@ void loop() {
 	}
 	
 	mybridgef.stop();
+	mybridgef.setrotation();
 	mybridge2h.stop();
+	mybridge2h.setpwm(0,IBT_2_R_HALF);
+	mybridge2h.setpwm(0,IBT_2_L_HALF);
 	for ( int x = 0 ; x < 4 ; x++ ) {
 	  digitalWrite(GPIOPIN[x], LOW);
 	}
@@ -654,9 +657,11 @@ void loop() {
 	case 7: // 7 Keypad Button
 	  status7=!status7;
 	  if (status7){
+	    mybridgef.setrotation(value7);
 	    mybridgef.start();
 	  }else{
 	    mybridgef.stop();
+	    mybridgef.setrotation();
 	  }
       	  
 	  break;
@@ -664,9 +669,11 @@ void loop() {
 	case 8: // 8 Keypad Button
 	  status8=!status8;
 	  if (status8){
+	    mybridge2h.setpwm(value8,IBT_2_L_HALF);
 	    mybridge2h.start(IBT_2_L_HALF);
 	  }else{
 	    mybridge2h.stop(IBT_2_L_HALF);
+	    mybridge2h.setpwm(0,IBT_2_L_HALF);
 	  }	  
 
 	  break;
@@ -674,9 +681,11 @@ void loop() {
 	case 9: // 9 Keypad Button
 	  status9=!status9;
 	  if (status9){
+	    mybridge2h.setpwm(value9,IBT_2_R_HALF);
 	    mybridge2h.start(IBT_2_R_HALF);
 	  }else{
 	    mybridge2h.stop(IBT_2_R_HALF);
+	    mybridge2h.setpwm(0,IBT_2_R_HALF);
 	  }
       
 	  break;
