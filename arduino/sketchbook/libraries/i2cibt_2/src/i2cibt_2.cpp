@@ -55,6 +55,7 @@ void i2cibt_2::stop(unsigned short int bridge){
 
   if (bridge == IBT_2_FULL || IBT_2_2HALF){
     _gpio.digitalWrite(I2C_R_EN, LOW);
+    delay(10);
     _gpio.digitalWrite(I2C_L_EN, LOW);
   } else if (bridge == IBT_2_R_HALF){
     _gpio.digitalWrite(I2C_R_EN, LOW);
@@ -70,6 +71,7 @@ void i2cibt_2::start(unsigned short int bridge){
   
   if (bridge == IBT_2_FULL ||  IBT_2_2HALF){
     _gpio.digitalWrite(I2C_R_EN, HIGH);
+    delay(10);
     _gpio.digitalWrite(I2C_L_EN, HIGH);
   } else if (bridge == IBT_2_R_HALF){
     _gpio.digitalWrite(I2C_R_EN, HIGH);
@@ -85,14 +87,18 @@ void i2cibt_2::brake(unsigned short int brake){
   
   if (brake == BRAKEGND){
     _gpio.analogWrite(I2C_R_PWM, 254);
+    delay(10);
     _gpio.analogWrite(I2C_L_PWM, 254);
   } else if (brake == BRAKEVCC){
     _gpio.analogWrite(I2C_R_PWM, 0);
+    delay(10);
     _gpio.analogWrite(I2C_L_PWM, 0);
 
   }
 
+  delay(10);
   _gpio.digitalWrite(I2C_R_EN, HIGH);
+  delay(10);
   _gpio.digitalWrite(I2C_L_EN, HIGH);
 
 }
@@ -124,7 +130,8 @@ void i2cibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
       _l_pwm= 0;
       
       _gpio.analogWrite(I2C_L_PWM, _l_pwm);
-      _gpio.analogWrite (I2C_R_PWM, _r_pwm);
+      delay(10);
+      _gpio.analogWrite(I2C_R_PWM, _r_pwm);
 
     }
   else
@@ -133,7 +140,8 @@ void i2cibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
       _r_pwm= 0;
       _l_pwm= pwm;
       _gpio.analogWrite(I2C_R_PWM, _r_pwm);
-      _gpio.analogWrite (I2C_L_PWM, _l_pwm);
+      delay(10);
+      _gpio.analogWrite(I2C_L_PWM, _l_pwm);
     }
 }
 
@@ -142,13 +150,12 @@ void i2cibt_2::setpwm(unsigned short int pwm,unsigned short int bridge){
 
   if (_bridge != IBT_2_2HALF ) return;
 
-  if (_bridge == IBT_2_R_HALF) {
+  if (bridge == IBT_2_R_HALF) {
     _r_pwm= pwm;
     _gpio.analogWrite(I2C_R_PWM, _r_pwm);
     
-  } else if (_bridge == IBT_2_L_HALF) {
-    // reverse rotation
-    _l_pwm= 0;
+  } else if (bridge == IBT_2_L_HALF) {
+    _l_pwm= pwm;
     _gpio.analogWrite(I2C_L_PWM, _l_pwm);
   }
 
@@ -171,6 +178,7 @@ uint16_t i2cibt_2::get(domotic_bridge half) {
 bool i2cibt_2::readis(){
 
     _r_is = _gpio.analogRead(I2C_R_IS);
+    delay(10);
     _l_is = _gpio.analogRead(I2C_L_IS);
 }
 

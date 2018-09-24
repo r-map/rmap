@@ -7,7 +7,12 @@
 #define SDA D2
 #define RESET_PIN D3    // pin to connect to ground for reset wifi configuration
 #define LED_PIN D4
-const uint8_t GPIOPIN[4] = {D0,D6,D7,D8};  // output pins
+
+#define NPINOUT 3
+const uint8_t GPIOPIN[NPINOUT] = {D0,D6,D7};  // output pins
+
+#define NI2CGPIOPIN 2
+const uint8_t I2CGPIOPIN[NI2CGPIOPIN] = {1,2};  // i2c output pins
 
 #define WIFI_APMODE 1
 const char* ota_server= "rmap.cc";

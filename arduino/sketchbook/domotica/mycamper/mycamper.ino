@@ -74,12 +74,14 @@ uint8_t value7=10;
 uint8_t value8=10;
 uint8_t value9=10;
 
+bool status[NI2CGPIOPIN] = {false,false}; 
 bool status7=false;
 bool status8=false;
 bool status9=false;
 
 i2cgpio gpio1;
 i2cgpio gpio2(I2C_PWM_DEFAULTADDRESS+1);
+i2cgpio gpio3(I2C_PWM_DEFAULTADDRESS+2);
 i2cibt_2 mybridgef(IBT_2_FULL,gpio1);
 i2cibt_2 mybridge2h(IBT_2_2HALF,gpio2);
 
@@ -173,34 +175,20 @@ void updateGpio(){
   const char* cind = gpio.c_str(); 
   int ind = atoi(cind);
  
-  if ( ind >= 0 && ind <= 4 ) {
+  if ( ind >= 0 && ind <= NPINOUT ) {
     pin = GPIOPIN[ind];
   }
   LOGN(F("pin: %d" CR),pin);
 
   if ( etat == "1" ) {
-    digitalWrite(pin, HIGH);
-  } else if ( etat == "0" ) {
     digitalWrite(pin, LOW);
+  } else if ( etat == "0" ) {
+    digitalWrite(pin, HIGH);
   } else {
     success = "0";
     //LOGE(F("Err pin value: %d" CR),etat);    
   }
 
-  /*
-  if (oledpresent) {
-    //u8g2.clearBuffer();
-    u8g2.setCursor(0, (ind+1)*10); 
-    u8g2.print(F("key "));
-    u8g2.print(ind+1);
-    //u8g2.setCursor(0, 20); 
-    u8g2.print(F(" : "));
-    u8g2.print(digitalRead(GPIOPIN[ind]));
-    u8g2.sendBuffer();
-  }
-  */
-
-  
   String json = "{\"gpio\":\"" + String(gpio) + "\",";
   json += "\"etat\":\"" + String(etat) + "\",";
   json += "\"success\":\"" + String(success) + "\"}";
@@ -308,7 +296,7 @@ void display_status(){
   if (oledpresent) {
     u8g2.clearBuffer();
     
-    u8g2.setCursor(0,10); 
+    u8g2.setCursor(0,9); 
     u8g2.print(F("7: "));
     if (status7){    
       u8g2.print(F("On  "));
@@ -318,7 +306,7 @@ void display_status(){
     u8g2.print(F(" "));
     u8g2.print(value7);
     
-    u8g2.setCursor(0,20); 
+    u8g2.setCursor(0,18); 
     u8g2.print(F("8: "));
     if (status8){    
       u8g2.print(F("On  "));
@@ -328,7 +316,7 @@ void display_status(){
     u8g2.print(F(" "));
     u8g2.print(value8);
     
-    u8g2.setCursor(0,30); 
+    u8g2.setCursor(0,27); 
     u8g2.print(F("9: "));
     if (status9){    
       u8g2.print(F("On  "));
@@ -338,12 +326,21 @@ void display_status(){
     u8g2.print(F(" "));
     u8g2.print(value9);
     
-    u8g2.setCursor(0, 45);
-    for (uint8_t i=0; i<4; i++){
+    u8g2.setCursor(0, 36);
+    for (uint8_t i=0; i<NPINOUT; i++){
       if (digitalRead(GPIOPIN[i])){    
-	u8g2.print(F(" On"));
+	u8g2.print(F(" Off"));
       }else{
-	u8g2.print(F(" Of"));
+	u8g2.print(F(" On "));
+      }
+    }
+
+    u8g2.setCursor(0, 45);
+    for (uint8_t i=0; i<NI2CGPIOPIN; i++){
+      if (status[i]){    
+	u8g2.print(F(" Off"));
+      }else{
+	u8g2.print(F(" On "));
       }
     }
 
@@ -375,8 +372,9 @@ void setup() {
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
   
-  for ( int x = 0 ; x < 4 ; x++ ) {
+  for ( int x = 0 ; x < NPINOUT ; x++ ) {
     pinMode(GPIOPIN[x], OUTPUT);
+    digitalWrite(GPIOPIN[x], HIGH);
   }
 
   /*
@@ -439,11 +437,19 @@ void setup() {
   delay(1000);
   digitalWrite(LED_PIN,HIGH);
 
+  for ( int x = 0 ; x < NI2CGPIOPIN ; x++ ) {
+    gpio3.digitalWrite(I2CGPIOPIN[x], LOW);
+    delay(10);
+  }
+
   mybridgef.stop();
+  delay(10);
   mybridgef.setrotation();
   
   mybridge2h.stop();
+  delay(10);
   mybridge2h.setpwm(0,IBT_2_R_HALF);
+  delay(10);
   mybridge2h.setpwm(0,IBT_2_L_HALF);
   
   LOGN(F("mounting FS..." CR));
@@ -555,6 +561,7 @@ void loop() {
 
     if (results.decode_type == DECODETYPE) {
       int8_t ind=-1;
+      int8_t i2cind=-1;
       int8_t key=-1;
       int8_t value=0;
 
@@ -574,10 +581,22 @@ void loop() {
 	lastkey=-1;
 	break;
 
-      case KEYPAD_4: // 4 Keypad Button
+      case KEYPAD_4: // 1 Keypad Button
+	i2cind=0;
+	lastkey=-1;
+	break;
+
+      case KEYPAD_5: // 2 Keypad Button
+	i2cind=1;
+	lastkey=-1;
+	break;
+
+	/*
+      case KEYPAD_6: // 3 Keypad Button
 	ind=3;
 	lastkey=-1;
 	break;
+	*/
 
       case KEYPAD_7:
 	key=7;
@@ -621,12 +640,21 @@ void loop() {
 	}
 	
 	mybridgef.stop();
+	delay(10);
 	mybridgef.setrotation();
+	delay(10);
 	mybridge2h.stop();
+	delay(10);
 	mybridge2h.setpwm(0,IBT_2_R_HALF);
+	delay(10);
 	mybridge2h.setpwm(0,IBT_2_L_HALF);
-	for ( int x = 0 ; x < 4 ; x++ ) {
-	  digitalWrite(GPIOPIN[x], LOW);
+	for ( int x = 0 ; x < NPINOUT ; x++ ) {
+	  digitalWrite(GPIOPIN[x], HIGH);
+	}
+
+	for ( int x = 0 ; x < NI2CGPIOPIN ; x++ ) {
+	  gpio3.digitalWrite(I2CGPIOPIN[x], LOW);
+	  delay(10);
 	}
 
 	delay(5000);
@@ -658,9 +686,11 @@ void loop() {
 	  status7=!status7;
 	  if (status7){
 	    mybridgef.setrotation(value7);
+	    delay(10);
 	    mybridgef.start();
 	  }else{
 	    mybridgef.stop();
+	    delay(10);
 	    mybridgef.setrotation();
 	  }
       	  
@@ -670,9 +700,11 @@ void loop() {
 	  status8=!status8;
 	  if (status8){
 	    mybridge2h.setpwm(value8,IBT_2_L_HALF);
+	    delay(10);
 	    mybridge2h.start(IBT_2_L_HALF);
 	  }else{
 	    mybridge2h.stop(IBT_2_L_HALF);
+	    delay(10);
 	    mybridge2h.setpwm(0,IBT_2_L_HALF);
 	  }	  
 
@@ -682,9 +714,11 @@ void loop() {
 	  status9=!status9;
 	  if (status9){
 	    mybridge2h.setpwm(value9,IBT_2_R_HALF);
+	    delay(10);
 	    mybridge2h.start(IBT_2_R_HALF);
 	  }else{
 	    mybridge2h.stop(IBT_2_R_HALF);
+	    delay(10);
 	    mybridge2h.setpwm(0,IBT_2_R_HALF);
 	  }
       
@@ -725,13 +759,19 @@ void loop() {
 	}
       }
       
-
       if (ind >= 0){
 	// Toggle PIN On or Off
 	digitalWrite( GPIOPIN[ind] , !digitalRead(GPIOPIN[ind]));
 	LOGN(F("received key %d status %d" CR),ind+1,digitalRead(GPIOPIN[ind]));
       }
 
+      if (i2cind >= 0){
+	// Toggle PIN On or Off
+	status[i2cind]=!status[i2cind];	
+	gpio3.digitalWrite( I2CGPIOPIN[i2cind] , status[i2cind]);
+	LOGN(F("received i2ckey %d status %d" CR),i2cind,status[i2cind]);
+      }
+      
       display_status();
       
     }

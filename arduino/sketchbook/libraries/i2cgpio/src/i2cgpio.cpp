@@ -40,6 +40,11 @@ i2cgpio::i2cgpio(unsigned short int address):
 
 uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
 
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
   Wire.beginTransmission(_address);
   switch (pin)
     {
@@ -53,7 +58,7 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   Wire.write(value);
   if (Wire.endTransmission() != 0) return 1;
   
-  delay(1);
+  delay(10);
   Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_TAKE);
@@ -63,6 +68,11 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
 
 
 uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
 
   Wire.beginTransmission(_address);
   switch (pin)
@@ -76,7 +86,7 @@ uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
     }	      
   Wire.write(value);
   if (Wire.endTransmission() != 0) return 1;
-  delay(1);
+  delay(10);
   Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_TAKE);
@@ -85,6 +95,11 @@ uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 }
 
 uint16_t i2cgpio::analogRead(uint8_t pin){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
 
   Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
