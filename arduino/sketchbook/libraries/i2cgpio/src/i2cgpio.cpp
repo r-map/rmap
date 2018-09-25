@@ -40,7 +40,12 @@ i2cgpio::i2cgpio(unsigned short int address):
 
 uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
 
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
+  Wire.beginTransmission(_address);
   switch (pin)
     {
     case 1:
@@ -53,8 +58,8 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   Wire.write(value);
   if (Wire.endTransmission() != 0) return 1;
   
-  delay(1);
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  delay(10);
+  Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_TAKE);
   if (Wire.endTransmission() != 0) return 1;
@@ -64,7 +69,12 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
 
 uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+
+  Wire.beginTransmission(_address);
   switch (pin)
     {	    
     case 1:
@@ -76,8 +86,8 @@ uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
     }	      
   Wire.write(value);
   if (Wire.endTransmission() != 0) return 1;
-  delay(1);
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  delay(10);
+  Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_TAKE);
   if (Wire.endTransmission() != 0) return 1;
@@ -86,17 +96,22 @@ uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 
 uint16_t i2cgpio::analogRead(uint8_t pin){
 
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+
+  Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_ONESHOT_START);
   if (Wire.endTransmission() != 0) return 0xFFFFFFFF;
   delay(1000);
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return 0xFFFFFFFF;
   delay(10);
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  Wire.beginTransmission(_address);
   switch (pin)
     {
     case 1:
@@ -107,7 +122,7 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
       break;
     }
   if (Wire.endTransmission() != 0) return 0xFFFFFFFF;       
-  Wire.requestFrom(I2C_PWM_DEFAULTADDRESS,2);
+  Wire.requestFrom(_address,2);
   if (Wire.available() < 2)    // slave may send less than requested
     { 
       //Serial.println(F("no data available"));

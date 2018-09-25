@@ -5,7 +5,7 @@ example to use two half bridge for pwm output or solid state power switch
 #include <i2cibt_2.h>
 
 i2cgpio gpio(I2C_PWM_DEFAULTADDRESS);
-i2cibt_2 hbridge(IBT_2_FULL,gpio);
+i2cibt_2 hbridge(IBT_2_2HALF,gpio);
 
 void setup() {
   // put your setup code here, to run once:

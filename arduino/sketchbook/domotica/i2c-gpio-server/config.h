@@ -1,5 +1,5 @@
 //disable debug at compile time but call function anyway
-//#define DISABLE_LOGGING disable
+#define DISABLE_LOGGING true
 
 // set the I2C clock frequency 
 #define I2C_CLOCK 30418
@@ -13,6 +13,8 @@
 
 // pins definitions
 #define LED_PIN  13
+#define CHANGEADDRESS1 6     // add 1 to i2c address
+#define CHANGEADDRESS2 7     // add 2 to i2c address
 #define FORCEDEFAULTPIN 8
 #define PWM1_PIN  9
 #define PWM2_PIN  10

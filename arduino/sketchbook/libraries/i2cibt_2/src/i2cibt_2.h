@@ -10,7 +10,7 @@ class i2cibt_2: public domotic {
   i2cibt_2(unsigned short int bridge,i2cgpio gpio);
   void stop(unsigned short int bridge=IBT_2_FULL);
   void start(unsigned short int bridge=IBT_2_FULL);
-  void brake(unsigned short int brake=BRAKEGND);
+  void brake(unsigned short int brake=BRAKEVCC);
   void setrotation(unsigned short int pwm=0,unsigned short int wise=CW);
   void setpwm(unsigned short int pwm=0,unsigned short int bridge=IBT_2_R_HALF);
   uint16_t get(domotic_bridge half=bridge_r_half);

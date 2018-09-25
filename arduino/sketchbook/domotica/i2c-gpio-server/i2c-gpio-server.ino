@@ -72,6 +72,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "config.h"
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
+#include <avr/sleep.h>
 
 // logging level at compile time
 // Available levels are:
@@ -153,7 +154,7 @@ static bool stop=false;
 static bool take=false;
 
 boolean forcedefault=false;
-
+volatile unsigned long long counter=millis();
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
 // Handler for requesting data
@@ -168,6 +169,9 @@ void requestEvent()
        *((uint8_t *)(i2c_dataset2)+receivedCommands[0]+2),
        *((uint8_t *)(i2c_dataset2)+receivedCommands[0]+3));
   */
+
+  counter = millis();
+  sleep_disable();
   
   Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
@@ -181,7 +185,9 @@ void receiveEvent( int bytesReceived)
   //LOGN("receive event, bytes: %d" CR,bytesReceived);
   
   uint8_t  *ptr1, *ptr2;
-
+  counter = millis();
+  sleep_disable();
+ 
   for (int a = 0; a < bytesReceived; a++) {
     if (a < MAX_SENT_BYTES) {
       receivedCommands[a] = Wire.read();
@@ -466,7 +472,9 @@ void setup() {
 
 
   pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
-
+  pinMode(CHANGEADDRESS1, INPUT_PULLUP);
+  pinMode(CHANGEADDRESS2, INPUT_PULLUP);
+  
   pinMode(LED_PIN, OUTPUT);
   pinMode(PWM1_PIN, OUTPUT);
   pinMode(PWM2_PIN, OUTPUT);
@@ -509,13 +517,22 @@ void setup() {
 
   // copy writable registers
   memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
-
   
-  LOGN(F("i2c address: %X" CR),i2c_writabledataset1->i2c_address);
+  uint8_t i2c_address=i2c_writabledataset1->i2c_address;
+
+  if (digitalRead(CHANGEADDRESS1) == LOW) {
+    i2c_address += 1;
+  }
+  if (digitalRead(CHANGEADDRESS2) == LOW) {
+    i2c_address += 2;
+  }
+  
+  LOGN(F("i2c soft address: %X" CR),i2c_writabledataset1->i2c_address);
+  LOGN(F("i2c hard address: %X" CR),i2c_address);
   LOGN(F("oneshot: %T" CR),i2c_writabledataset1->oneshot);
   
   //Start I2C communication routines
-  Wire.begin(i2c_writabledataset1->i2c_address);
+  Wire.begin(i2c_address);
   
   //set the i2c clock 
   //TWBR = ((F_CPU / I2C_CLOCK) - 16) / 2;
@@ -527,12 +544,12 @@ void setup() {
   // do not need this with patched Wire library
   //digitalWrite( SDA, LOW);
   //digitalWrite( SCL, LOW);
-  //digitalWrite( SDA, HIGH);
-  //digitalWrite( SCL, HIGH);
+
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
-
 
   LOGN(F("end setup" CR));
 
@@ -571,9 +588,9 @@ void loop() {
 
     for (int i =0; i < NSAMPLE; i++){
       table1[i] = analogRead(ANALOG1_PIN);
-      //LOGN(F("read1: %d" CR),table1[i]);
+      LOGN(F("read1: %d" CR),table1[i]);
       table2[i] = analogRead(ANALOG2_PIN);
-      //LOGN(F("read2: %d" CR),table2[i]);
+      LOGN(F("read2: %d" CR),table2[i]);
       delay(10);
     }
 
@@ -591,7 +608,29 @@ void loop() {
     // nothing to do
     stop=false;
   }
-  
-  digitalWrite(LED_PIN,!digitalRead(LED_PIN));  // blink Led
 
+  digitalWrite(LED_PIN,HIGH);  //  Led on
+
+  if (      i2c_writabledataset1->pwm1 == 0
+	 && i2c_writabledataset1->pwm2 == 0
+	    && i2c_writabledataset1->onoff1 == 0
+	    && i2c_writabledataset1->onoff2 == 0
+	    && (millis()-counter) >= 3000
+	    )
+    {
+      counter=millis();
+      digitalWrite(LED_PIN,LOW);  //  Led off
+      LOGN(F("Sleep" CR));
+      delay(10);
+      
+      set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+      // disable watchdog
+      wdt_disable();
+      sleep_enable();
+      sleep_cpu();
+      sleep_disable();
+      // enable watchdog with timeout to 8s
+      wdt_enable(WDTO_8S);
+      LOGN(F(">>>>> Wake up" CR));
+    }
 }
