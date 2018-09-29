@@ -545,7 +545,7 @@ void setup() {
   
   LOGN(F("END setup" CR));
 }
-  
+
 void loop() {
   // put your main code here, to run repeatedly:
   dnsServer.processNextRequest();
