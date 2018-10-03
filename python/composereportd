@@ -87,9 +87,6 @@ def main(self):
 
 
         for mymeta in rmap.settings.sample_measurements:
-
-            # work on parameter requested for 60 sec mean 
-            if mymeta["trange"][0] != 0 or mymeta["trange"][1] != 0 or mymeta["trange"][2] != 60 : continue
             
             variable_list= mymeta["var"]
             level        = "%s,%s,%s,%s" % tuple(("" if v is None else str(v) for v in mymeta["level"]))
@@ -147,6 +144,34 @@ def main(self):
                 #    totalbody+=body
 
 
+                # work on parameter requested for 60 sec accumulation 
+                if mymeta["trange"][0] == 1 and mymeta["trange"][1] == 0 and mymeta["trange"][2] == 60 :
+
+                    logging.info("sample-> report")
+                    logging.info("cumulate 60sec a cumulate 15'")
+                    command=["v7d_transform","--input-format","dba","--output-format","BUFR",
+                                              "--variable-list",variable_list,"--level",level,"--timerange",'1,0,60',
+                                              "--start-date",starttime.isoformat(' ') ,
+                                              "--end-date",nexttime.isoformat(' '),
+                                              "--comp-start",starttime.isoformat(' ') ,
+                                              "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '1.', "--comp-stat-proc", '1:1',
+                                              rmap.settings.dsnsample_fixed,
+                                              filename]
+                    logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
+                    self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
+                    body,outerr=self.procs[0].communicate()
+
+                    status=self.procs[0].wait()
+                    if status != 0:
+                        logging.error("There were some errors executing v7d_transform: %s %s " % (status,outerr))
+                    else:
+                        totalbody+=body
+
+
+                # work on parameter requested for 60 sec mean 
+                if mymeta["trange"][0] != 0 or mymeta["trange"][1] != 0 or mymeta["trange"][2] != 60 : continue
+
+
                 # I DO NOT use AMQP here, direct copy !
                 logging.info("sample-> sample")
                 logging.info("istantanee a medie 60sec")
@@ -159,7 +184,7 @@ def main(self):
                                               "--comp-step", '0000000000 00:01:00.000', "--comp-frac-valid", '.0002', "--comp-stat-proc", '254:0',
                                               rmap.settings.dsnsample_fixed,
                                               rmap.settings.dsnsample_fixed]
-                print(str(command).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
                 self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
 
                 body,outerr=self.procs[0].communicate()
@@ -179,7 +204,7 @@ def main(self):
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:0',
                                               rmap.settings.dsnsample_fixed,
                                               filename]
-                print(str(command).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
                 self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
@@ -202,7 +227,7 @@ def main(self):
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:2',
                                               rmap.settings.dsnsample_fixed,
                                               filename]
-                print(str(command).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command).replace("', '","' '").replace("[","").replace("]",""))
                 self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
@@ -224,7 +249,7 @@ def main(self):
                                               "--comp-step", '0000000000 00:15:00.000', "--comp-frac-valid", '.9', "--comp-stat-proc", '0:3',
                                               rmap.settings.dsnsample_fixed,
                                               filename]
-                print(str(command).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info( str(command).replace("', '","' '").replace("[","").replace("]",""))
                 self.procs=[subprocess.Popen(command,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})]
                 body,outerr=self.procs[0].communicate()
 
@@ -255,8 +280,8 @@ def main(self):
                           filename,
                           filename]
 
-                print(str(command1).replace("', '","' '").replace("[","").replace("]",""))
-                print(str(command2).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command1).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command2).replace("', '","' '").replace("[","").replace("]",""))
                 p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
@@ -283,8 +308,8 @@ def main(self):
                           "yearmax",str(nexttime.year),"monthmax",str(nexttime.month),"daymax",str(nexttime.day),"hourmax",str(nexttime.hour),"minumax",str(nexttime.minute),"secmax",str(nexttime.second)]
                 command2=["dbadb","import","--dsn",rmap.settings.dsnreport_mobile]
 
-                print(str(command1).replace("', '","' '").replace("[","").replace("]",""))
-                print(str(command2).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command1).replace("', '","' '").replace("[","").replace("]",""))
+                logging.info(str(command2).replace("', '","' '").replace("[","").replace("]",""))
                 p1=subprocess.Popen(command1,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p2=subprocess.Popen(command2,stdin=p1.stdout,stdout=subprocess.PIPE,stderr=subprocess.PIPE,env={"LOG4C_PRIORITY":"info"})
                 p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.

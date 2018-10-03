@@ -688,6 +688,11 @@ sample_measurements=[
         "trange": (254, 0, 0),
     },
     {
+        "var": "B13215",
+        "level": (1, None, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
         "var": "B11001",
         "level": (103, 10000, None, None),
         "trange": (254, 0, 0),
@@ -700,7 +705,7 @@ sample_measurements=[
     {
         "var": "B13011",
         "level": (1, None, None, None),
-        "trange": (1, 0, 3600),
+        "trange": (1, 0, 60),
     },
     {
         "var": "B15198",
@@ -758,6 +763,11 @@ report_measurements=[
     {
         "var": "B13003",
         "level": (103, 2000, None, None),
+        "trange": (254, 0, 0),
+    },
+    {
+        "var": "B13215",
+        "level": (1, None, None, None),
         "trange": (254, 0, 0),
     },
     {
