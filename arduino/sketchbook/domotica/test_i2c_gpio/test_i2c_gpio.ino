@@ -92,6 +92,10 @@ void displayHelp()
   Serial.println();
   Serial.println(F("\tk = analog read 1"));
   Serial.println(F("\tl = analog read 2"));
+  Serial.println();
+  Serial.println(F("\tr = stepper relative steps "));
+  Serial.println(F("\ts = stepper goto "));
+  Serial.println(F("\tg = stepper get position "));
   Serial.println(F("\n\? = help - this page"));
   Serial.println();
 }
@@ -348,7 +352,115 @@ void loop() {
 	displayHelp();
 	break;
       }
+    case 'r':
+      {      
+	int new_value;
+
+  new_value= -32700;
+  while (new_value < -32000 || new_value > 32000){
+    Serial.println(F("digit new value (-32000 - 32000)"));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
 	
+	Serial.print("Stepper relative steps movement ");
+	Serial.println(new_value);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+
+	Wire.write(I2C_STEPPER_RELATIVE_STEPS);
+  Wire.write((byte)(new_value & 0xFFu));
+  Wire.write((byte)(new_value>>8)& 0xFFu);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.write(I2C_PWM_COMMAND);
+	Wire.write(I2C_STEPPER_COMMAND_RELATIVE_STEPS);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	Serial.println(F("Done"));
+	
+	displayHelp();
+	break;
+      }	
+    case 's':
+      {      
+
+	int new_value;
+
+	new_value= -32700;
+	while (new_value < -32000 || new_value > 32000){
+	  Serial.println(F("digit new value (-32000 - 32000)"));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
+	Serial.print("Stepper goto ");
+	Serial.println(new_value);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+
+	Wire.write(I2C_STEPPER_GOTO_POSITION);
+	Wire.write((byte)(new_value & 0xFFu));
+  Wire.write((byte)(new_value>>8)& 0xFFu);
+  
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1);
+	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.write(I2C_PWM_COMMAND);
+	Wire.write(I2C_STEPPER_COMMAND_GOTO);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	Serial.println(F("Done"));
+	
+	displayHelp();
+	break;
+      }	
+          case 'g':
+      {      
+
+
+
+  // wake up
+ // Wire.beginTransmission(_address);
+ // if (Wire.endTransmission() != 0) return 1;
+ // delay(10);
+  
+  int new_value;
+
+  Serial.print("Stepper get position ");
+  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_READ_POSITION);
+  if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+
+  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+  Wire.write(I2C_STEPPER_CURRENT_POSITION);
+  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));       
+  delay(10);
+  Wire.requestFrom(I2C_PWM_DEFAULTADDRESS,2);
+  if (Wire.available() < 2)    // slave may send less than requested
+    { 
+      Serial.println(F("no data available"));
+    }
+  byte LSB = Wire.read();
+  byte MSB = Wire.read();
+  
+  if ((MSB == 255) & (LSB ==255))
+    { 
+      Serial.println(F("missing value"));
+    }
+  
+  //it's a 16 bit
+  int value = ((MSB << 8) | LSB);  
+  
+  Serial.print(F("value: "));
+  Serial.println(value);
+  
+  Serial.println(F("Done"));
+  
+  displayHelp();
+  break;
+      } 
     case '?':
       displayHelp();
       break;

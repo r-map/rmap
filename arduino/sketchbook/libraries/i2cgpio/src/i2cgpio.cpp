@@ -66,6 +66,132 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   return 0;
 }
 
+uint8_t i2cgpio::stepper_poweroff(){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_POWEROFF);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
+
+uint8_t i2cgpio::stepper_goto_position(int16_t value){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_STEPPER_GOTO_POSITION);
+  Wire.write((byte)(value & 0xFFu));
+  Wire.write((byte)(value>>8)& 0xFFu);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_GOTO);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
+	
+uint8_t i2cgpio::stepper_read_position(int16_t& position){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_READ_POSITION);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_STEPPER_CURRENT_POSITION);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  Wire.requestFrom(_address,2);
+  if (Wire.available() < 2)    // slave may send less than requested
+    { 
+      //Serial.println(F("no data available"));
+      return 1;
+    }
+  byte LSB = Wire.read();
+  byte MSB = Wire.read();
+  
+  if ((MSB == 255) & (LSB ==255))
+    { 
+      //Serial.println(F("missing value"));
+      return 1;
+    }
+  
+  //it's a 16bit int
+  position = ((MSB << 8) | LSB); 
+  return 0;
+}
+
+uint8_t i2cgpio::stepper_relative_steps(int16_t value){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_STEPPER_RELATIVE_STEPS);
+  Wire.write((byte)(value & 0xFFu));
+  Wire.write((byte)(value>>8)& 0xFFu);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_RELATIVE_STEPS);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
+
+uint8_t i2cgpio::stepper_rotate(int16_t value){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_STEPPER_ROTATE_DIR);
+  Wire.write((byte)(value & 0xFFu));
+  Wire.write((byte)(value>>8)& 0xFFu);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_ROTATE);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
+
+uint8_t i2cgpio::stepper_gohome(){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_PWM_COMMAND);
+  Wire.write(I2C_STEPPER_COMMAND_GOHOME);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
 
 uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 
@@ -104,12 +230,12 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
   Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_ONESHOT_START);
-  if (Wire.endTransmission() != 0) return 0xFFFFFFFF;
+  if (Wire.endTransmission() != 0) return 0xFFFF;
   delay(1000);
   Wire.beginTransmission(_address);
   Wire.write(I2C_PWM_COMMAND);
   Wire.write(I2C_PWM_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return 0xFFFFFFFF;
+  if (Wire.endTransmission() != 0) return 0xFFFF;
   delay(10);
   Wire.beginTransmission(_address);
   switch (pin)
@@ -121,12 +247,12 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
       Wire.write(I2C_PWM_ANALOG2);
       break;
     }
-  if (Wire.endTransmission() != 0) return 0xFFFFFFFF;       
+  if (Wire.endTransmission() != 0) return 0xFFFF;       
   Wire.requestFrom(_address,2);
   if (Wire.available() < 2)    // slave may send less than requested
     { 
       //Serial.println(F("no data available"));
-      return 0xFFFFFFFF;
+      return 0xFFFF;
     }
   byte LSB = Wire.read();
   byte MSB = Wire.read();
@@ -134,7 +260,7 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
   if ((MSB == 255) & (LSB ==255))
     { 
       //Serial.println(F("missing value"));
-      return 0xFFFFFFFF;
+      return 0xFFFF;
     }
   
   //it's a 10bit int, from 0 to 1023

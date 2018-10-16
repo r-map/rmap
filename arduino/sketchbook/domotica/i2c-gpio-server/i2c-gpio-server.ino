@@ -46,7 +46,7 @@ How can I use PWM in power saving mode (ATmega328)?
 https://arduino.stackexchange.com/questions/46995/how-can-i-use-pwm-in-power-saving-mode-atmega328
 ossia quasi NO
 
-però posso andare in sleep quando tutti i PWM sono a 0 ossia la maggior parte del tempo;
+perï¿½ posso andare in sleep quando tutti i PWM sono a 0 ossia la maggior parte del tempo;
 
 buffer scrivibili da i2c
 viene scritto buffer2
@@ -73,11 +73,12 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
 #include <avr/sleep.h>
+#include <StepperLab3.h>
 
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
+#define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
@@ -98,12 +99,26 @@ typedef struct {
 } values_t;
 
 typedef struct {
+  uint16_t     current_position;
+} stepper_readable_t;
+
+typedef struct {
   //Status registers
   status_t     status;
   //analog data
-  values_t             analog;
-} I2C_REGISTERS;
+  values_t         analog;
+  stepper_readable_t        stepper;
+} I2C_REGISTERS; //Readable registers
 
+typedef struct {
+  int16_t              goto_position;
+  int16_t              speed;
+  int16_t              tourque;
+  int16_t              ramp_steps;
+  int16_t              mode;
+  int16_t              relative_steps;
+  int16_t              rotate_dir;
+} stepper_writable_t;
 
 typedef struct {
 
@@ -114,6 +129,7 @@ typedef struct {
   uint8_t               pwm2;                     // pwm 2 value
   uint8_t               onoff1;                   // on/off 1 value
   uint8_t               onoff2;                   // on/off 2 value
+  stepper_writable_t	stepper;		  // struct for writable stepper registers
 
   void save (int* p) volatile {                            // save to eeprom
     LOGN(F("oneshot: %T" CR),oneshot);
@@ -126,7 +142,7 @@ typedef struct {
   void load (int* p) volatile {                            // load from eeprom
     *p+=EEPROM_readAnything(*p, oneshot);
     *p+=EEPROM_readAnything(*p, i2c_address);
-  }
+  }  
 } I2C_WRITABLE_REGISTERS;
 
 
@@ -155,6 +171,9 @@ static bool take=false;
 
 boolean forcedefault=false;
 volatile unsigned long long counter=millis();
+
+StepperLab3 myStepper;
+
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
 // Handler for requesting data
@@ -236,6 +255,17 @@ void receiveEvent( int bytesReceived)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void go_home() {  // goto switch position
+
+  myStepper.absoluteSteps(0);
+  //while( myStepper.stepReady() == 0);
+  //delay(200);
+  //myStepper.rotate(1);
+  //myStepper.rotate(0);
+
+}
+
 
 void mgr_command(){
 
@@ -339,6 +369,47 @@ void mgr_command(){
 	i2c_writabledataset2->save(&p);
       
 	break;
+      }
+    case I2C_STEPPER_COMMAND_GOTO:
+      {
+      	LOGN(F("COMMAND: stepper goto position %d" CR),i2c_writabledataset2->stepper.goto_position);
+        myStepper.absoluteSteps(i2c_writabledataset2->stepper.goto_position);
+      break;
+      }
+    case I2C_STEPPER_COMMAND_READ_POSITION:
+      {
+      	LOGN(F("COMMAND: stepper read position" CR));
+        i2c_dataset2->stepper.current_position=myStepper.getSteps();
+	LOGN(F("Position: %d" CR),myStepper.getSteps());
+	LOGN(F("Position: %d" CR),i2c_dataset2->stepper.current_position);
+      break;
+      }
+    case I2C_STEPPER_COMMAND_POWEROFF:
+      {
+      	LOGN(F("COMMAND: stepper power off" CR));
+        digitalWrite(STEPPER_PIN1,LOW);
+	digitalWrite(STEPPER_PIN2,LOW);
+	digitalWrite(STEPPER_PIN3,LOW);
+	digitalWrite(STEPPER_PIN4,LOW);
+      break;
+      }
+    case I2C_STEPPER_COMMAND_RELATIVE_STEPS:
+      {
+      	LOGN(F("COMMAND: stepper move relative steps %d" CR),i2c_writabledataset2->stepper.relative_steps);
+        myStepper.relativeSteps(i2c_writabledataset2->stepper.relative_steps);
+      break;
+      }
+    case I2C_STEPPER_COMMAND_ROTATE:
+      {
+      	LOGN(F("COMMAND: stepper rotate %d" CR),i2c_writabledataset2->stepper.rotate_dir);
+        myStepper.rotate(i2c_writabledataset2->stepper.rotate_dir);
+      break;
+      }
+    case I2C_STEPPER_COMMAND_GOHOME:
+      {
+      	LOGN(F("COMMAND: stepper search home position" CR));
+        go_home();
+      break;
       }
     default:
       {
@@ -482,6 +553,12 @@ void setup() {
   pinMode(ONOFF2_PIN, OUTPUT);
   pinMode(ANALOG1_PIN, INPUT);
   pinMode(ANALOG2_PIN, INPUT);
+  
+  myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
+  
+  myStepper.setPower(1023);
+  myStepper.setSpeed(6000);
+  myStepper.setHalfStep();
 
   if (digitalRead(FORCEDEFAULTPIN) == LOW) {
     digitalWrite(LED_PIN, HIGH);
@@ -616,6 +693,7 @@ void loop() {
 	    && i2c_writabledataset1->onoff1 == 0
 	    && i2c_writabledataset1->onoff2 == 0
 	    && (millis()-counter) >= 3000
+	    && myStepper.stepReady()==1
 	    )
     {
       counter=millis();
