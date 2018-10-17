@@ -28,8 +28,8 @@ void setup() {
 
 
 void loop() {
-int steps=90;
-/*
+int steps=400;
+int position=0;
   Log.notice(F("digitalWrite" CR));  
   gpio.digitalWrite(1,HIGH);
   gpio.digitalWrite(2,HIGH);
@@ -62,15 +62,15 @@ int steps=90;
   Log.notice(F("PIN 2 value: %d" CR),gpio.analogRead(2));  
 
   delay(1000);
-  */
     
-  Log.notice(F("Stepper read position %d" CR), gpio.stepper_read_position()); 
+  gpio.stepper_read_position(position); 
+  Log.notice(F("Stepper read position %d" CR), position); 
   delay(1000);
 
   Log.notice(F("Stepper move relative steps %d" CR), steps); 
   gpio.stepper_relative_steps(steps);
   delay(1000);
-  Log.notice(F("Stepper relative steps %d" CR), gpio.stepper_read_position()); 
- 
+  gpio.stepper_read_position(position); 
+  Log.notice(F("Stepper read position %d" CR), position); 
   
 }
