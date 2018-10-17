@@ -1,0 +1,15 @@
+StepperLab3	KEYWORD1
+attach	KEYWORD2
+setMode	KEYWORD2
+setPower	KEYWORD2
+setSpeed	KEYWORD2
+setRampSteps	KEYWORD2
+setRefPosition	KEYWORD2
+setHalfStep	KEYWORD2
+setFullStep	KEYWORD2
+relativeSteps	KEYWORD2
+absoluteSteps	KEYWORD2
+
+rotate	KEYWORD2
+getSteps	KEYWORD2
+stepReady	KEYWORD2
