@@ -557,9 +557,10 @@ void setup() {
   myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
   
   myStepper.setPower(1023);
-  myStepper.setSpeed(6000);
+  myStepper.setSpeed(4096);
   myStepper.setHalfStep();
-
+  myStepper.setRampSteps(400);
+ 
   if (digitalRead(FORCEDEFAULTPIN) == LOW) {
     digitalWrite(LED_PIN, HIGH);
     forcedefault=true;
