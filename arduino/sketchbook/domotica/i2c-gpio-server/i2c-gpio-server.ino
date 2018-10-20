@@ -118,6 +118,8 @@ typedef struct {
   int16_t              mode;
   int16_t              relative_steps;
   int16_t              rotate_dir;
+  int16_t              power;
+  bool                 halfstep;
 } stepper_writable_t;
 
 typedef struct {
@@ -134,14 +136,21 @@ typedef struct {
   void save (int* p) volatile {                            // save to eeprom
     LOGN(F("oneshot: %T" CR),oneshot);
     LOGN(F("i2c address: %d" CR),i2c_address);
-
     *p+=EEPROM_writeAnything(*p, oneshot);
     *p+=EEPROM_writeAnything(*p, i2c_address);
+    *p+=EEPROM_writeAnything(*p, stepper.power);
+    *p+=EEPROM_writeAnything(*p, stepper.speed);
+    *p+=EEPROM_writeAnything(*p, stepper.ramp_steps);
+    *p+=EEPROM_writeAnything(*p, stepper.halfstep);
   }
   
   void load (int* p) volatile {                            // load from eeprom
     *p+=EEPROM_readAnything(*p, oneshot);
     *p+=EEPROM_readAnything(*p, i2c_address);
+    *p+=EEPROM_readAnything(*p, stepper.power);
+    *p+=EEPROM_readAnything(*p, stepper.speed);
+    *p+=EEPROM_readAnything(*p, stepper.ramp_steps);
+    *p+=EEPROM_readAnything(*p, stepper.halfstep);
   }  
 } I2C_WRITABLE_REGISTERS;
 
@@ -256,6 +265,8 @@ void receiveEvent( int bytesReceived)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/////////////////// !!!!!!!!!!    to be done !
+////  blocking function ??
 void go_home() {  // goto switch position
 
   myStepper.absoluteSteps(0);
@@ -555,12 +566,7 @@ void setup() {
   pinMode(ANALOG2_PIN, INPUT);
   
   myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
-  
-  myStepper.setPower(1023);
-  myStepper.setSpeed(4096);
-  myStepper.setHalfStep();
-  myStepper.setRampSteps(400);
- 
+   
   if (digitalRead(FORCEDEFAULTPIN) == LOW) {
     digitalWrite(LED_PIN, HIGH);
     forcedefault=true;
@@ -586,6 +592,10 @@ void setup() {
       // set default to oneshot
       i2c_writabledataset2->oneshot=true;
       i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
+      i2c_writabledataset2->stepper.power=STEPPER_POWER;
+      i2c_writabledataset2->stepper.speed=STEPPER_SPEED;
+      i2c_writabledataset2->stepper.ramp_steps=STEPPER_RAMPSTEPS;
+      i2c_writabledataset2->stepper.halfstep=STEPPER_HALFSTEP;
     }
 
   i2c_writabledataset2->pwm1 = 0;
@@ -593,6 +603,12 @@ void setup() {
   i2c_writabledataset2->onoff1 = 0;
   i2c_writabledataset2->onoff2 = 0;
 
+  myStepper.setPower(i2c_writabledataset2->stepper.power);
+  myStepper.setSpeed(i2c_writabledataset2->stepper.speed);
+  myStepper.setRampSteps(i2c_writabledataset2->stepper.ramp_steps);
+  if (i2c_writabledataset2->stepper.halfstep) myStepper.setHalfStep();
+  go_home();
+  
   // copy writable registers
   memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
   
@@ -651,6 +667,11 @@ void loop() {
     LOGN(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
     digitalWrite(ONOFF2_PIN, (i2c_writabledataset1->onoff2 == 0) ? LOW : HIGH );  
 
+    myStepper.setPower(i2c_writabledataset1->stepper.power);
+    myStepper.setSpeed(i2c_writabledataset1->stepper.speed);
+    myStepper.setRampSteps(i2c_writabledataset1->stepper.ramp_steps);
+    if (i2c_writabledataset1->stepper.halfstep) myStepper.setHalfStep();
+    
     take =false;
   }
 

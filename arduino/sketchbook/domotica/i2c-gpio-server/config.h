@@ -11,6 +11,12 @@
 // number of analog sample to do for average
 #define NSAMPLE 6
 
+// stepper default parameter
+#define STEPPER_POWER 1023
+#define STEPPER_SPEED 4096
+#define STEPPER_RAMPSTEPS 400
+#define STEPPER_HALFSTEP true
+
 // pins definitions
 #define LED_PIN  13
 #define CHANGEADDRESS1 6     // add 1 to i2c address

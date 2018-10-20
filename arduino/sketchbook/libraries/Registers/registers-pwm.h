@@ -36,14 +36,15 @@
 #define I2C_PWM_PWM2                  0x22      // pwm value
 #define I2C_PWM_ONOFF1                0x23      // on/off value
 #define I2C_PWM_ONOFF2                0x24      // on/off value
-#define I2C_STEPPER_GOTO_POSITION     0x25
-#define I2C_STEPPER_SPEED             0x27
-#define I2C_STEPPER_TORQUE            0x29
-#define I2C_STEPPER_RAMP_STEPS        0x2B
-#define I2C_STEPPER_MODE              0x2D
-#define I2C_STEPPER_RELATIVE_STEPS    0x2F
-#define I2C_STEPPER_ROTATE_DIR        0x31
-
+#define I2C_STEPPER_GOTO_POSITION     0x25      // 16 bits
+#define I2C_STEPPER_SPEED             0x27      // 16 bits
+#define I2C_STEPPER_TORQUE            0x29      // 16 bits
+#define I2C_STEPPER_RAMP_STEPS        0x2B      // 16 bits
+#define I2C_STEPPER_MODE              0x2D      // 16 bits
+#define I2C_STEPPER_RELATIVE_STEPS    0x2F      // 16 bits
+#define I2C_STEPPER_ROTATE_DIR        0x31      // 16 bits
+#define I2C_STEPPER_POWER             0x33      // 16 bits
+#define I2C_STEPPER_HALFSTEP          0x35      // bool
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 
