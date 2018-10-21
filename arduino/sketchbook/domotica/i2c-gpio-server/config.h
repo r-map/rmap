@@ -5,7 +5,8 @@
 #define I2C_CLOCK 30418
 
 // define the version of the configuration saved on eeprom
-// if you chenge this the board start with default configuration at boot
+// if you change this the board start with default configuration at boot
+// var CONFVER max lenght 10 char!
 #define CONFVER "confgpi00"
 
 // number of analog sample to do for average
