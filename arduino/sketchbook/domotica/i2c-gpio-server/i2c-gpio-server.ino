@@ -1,4 +1,4 @@
-G/**********************************************************************
+/**********************************************************************
 Copyright (C) 2018  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
@@ -82,11 +82,12 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
 
-#define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
-#define REG_VALUES_SIZE            sizeof(values_t)                     //size of register map for pwm
-#define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
+#define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of readable register map
+#define REG_ANALOG_SIZE         sizeof(analog_t)                     //size of register map for analog values
+#define REG_STEPPER_SIZE        sizeof(stepper_t)                    //size of register map for stepper values
+#define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of writable register map
 
-#define MAX_SENT_BYTES     0x0F   //maximum amount of data that I could receive from a master device (register, plus 15 byte)
+#define MAX_SENT_BYTES     0x0F   //maximum amount of data that I could receive from a master device 
 
 char confver[10] = CONFVER;       // version of configuration saved on eeprom
 
@@ -97,18 +98,21 @@ typedef struct {
 typedef struct {
   uint16_t     analog1;
   uint16_t     analog2;
-} values_t;
+} analog_t;
 
 typedef struct {
   uint16_t     current_position;
-} stepper_readable_t;
+} stepper_t;
+
+typedef struct {
+  analog_t     analog;
+  stepper_t    stepper;
+} values_t;
 
 typedef struct {
   //Status registers
   status_t     status;
-  //analog data
-  values_t         analog;
-  stepper_readable_t        stepper;
+  values_t     values;
 } I2C_REGISTERS; //Readable registers
 
 typedef struct {
@@ -324,8 +328,8 @@ void mgr_command(){
 	//LOGN(F("reset registers to missing" CR));
 	uint8_t *ptr;
 	//Init to FF i2c_dataset1;
-	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	ptr = (uint8_t *)&i2c_dataset1->values.analog;
+	for (int i=0;i<REG_ANALOG_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
 	// disable interrupts for atomic operation
 	noInterrupts();
@@ -337,8 +341,8 @@ void mgr_command(){
 	interrupts();
 	// new data published
 	//Init to FF i2c_dataset1;
-	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}	
+	ptr = (uint8_t *)&i2c_dataset1->values.analog;
+	for (int i=0;i<REG_ANALOG_SIZE;i++) { *ptr |= 0xFF; ptr++;}	
 	
 	break;
       }
@@ -361,8 +365,8 @@ void mgr_command(){
 	LOGN(F("clean buffer" CR));
 	uint8_t *ptr;
 	//Init to FF i2c_dataset1;
-	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	ptr = (uint8_t *)&i2c_dataset1->values.analog;
+	for (int i=0;i<REG_ANALOG_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 	
 	stop=true;
 	break;
@@ -391,10 +395,26 @@ void mgr_command(){
     case I2C_GPIO_STEPPER_COMMAND_READ_POSITION:
       {
       	LOGN(F("COMMAND: stepper read position" CR));
-        i2c_dataset2->stepper.current_position=myStepper.getSteps();
-	LOGN(F("Position: %d" CR),myStepper.getSteps());
-	LOGN(F("Position: %d" CR),i2c_dataset2->stepper.current_position);
-      break;
+        i2c_dataset1->values.stepper.current_position=myStepper.getSteps();
+	LOGN(F("Position: %d" CR),i2c_dataset1->values.stepper.current_position);
+
+	// disable interrupts for atomic operation
+	noInterrupts();
+	//exchange double buffer
+	LOGN(F("exchange double buffer" CR));
+	i2c_datasettmp=i2c_dataset1;
+	i2c_dataset1=i2c_dataset2;
+	i2c_dataset2=i2c_datasettmp;
+	interrupts();
+	// new data published
+	
+	LOGN(F("clean buffer" CR));
+	uint8_t *ptr;
+	//Init to FF i2c_dataset1;
+	ptr = (uint8_t *)&i2c_dataset1->values.stepper;
+	for (int i=0;i<REG_STEPPER_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	
+	break;
       }
     case I2C_GPIO_STEPPER_COMMAND_POWEROFF:
       {
@@ -448,8 +468,8 @@ void mgr_command(){
       LOGN(F("clean buffer" CR));
       uint8_t *ptr;
       //Init to FF i2c_dataset1;
-      ptr = (uint8_t *)&i2c_dataset1->analog;
-      for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+      ptr = (uint8_t *)&i2c_dataset1->values.analog;
+      for (int i=0;i<REG_ANALOG_SIZE;i++) { *ptr |= 0xFF; ptr++;}
   }
   
   //LOGN(F("oneshot : %T" CR),i2c_writabledataset2->oneshot);
@@ -680,8 +700,8 @@ void loop() {
 
     // start for oneshot or continuos mode
   
-    i2c_dataset1->analog.analog1=LONG_MAX;
-    i2c_dataset1->analog.analog2=LONG_MAX;
+    i2c_dataset1->values.analog.analog1=LONG_MAX;
+    i2c_dataset1->values.analog.analog2=LONG_MAX;
 
     unsigned int table1[NSAMPLE];
     unsigned int table2[NSAMPLE];
@@ -694,11 +714,11 @@ void loop() {
       delay(10);
     }
 
-    filter_data(NSAMPLE, table1,&i2c_dataset1->analog.analog1);
-    filter_data(NSAMPLE, table2,&i2c_dataset1->analog.analog2);
+    filter_data(NSAMPLE, table1,&i2c_dataset1->values.analog.analog1);
+    filter_data(NSAMPLE, table2,&i2c_dataset1->values.analog.analog2);
     
-    LOGN(F("analog1: %d" CR),i2c_dataset1->analog.analog1);
-    LOGN(F("analog2: %d" CR),i2c_dataset1->analog.analog2);
+    LOGN(F("analog1: %d" CR),i2c_dataset1->values.analog.analog1);
+    LOGN(F("analog2: %d" CR),i2c_dataset1->values.analog.analog2);
 
     start=false;
 
