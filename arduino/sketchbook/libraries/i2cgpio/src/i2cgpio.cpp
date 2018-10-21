@@ -49,10 +49,10 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   switch (pin)
     {
     case 1:
-      Wire.write(I2C_PWM_ONOFF1);
+      Wire.write(I2C_GPIO_ONOFF1);
       break;
     case 2:  
-      Wire.write(I2C_PWM_ONOFF2);
+      Wire.write(I2C_GPIO_ONOFF2);
       break;
     }
   Wire.write(value);
@@ -60,8 +60,8 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_PWM_COMMAND_TAKE);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_COMMAND_TAKE);
   if (Wire.endTransmission() != 0) return 1;
   return 0;
 }
@@ -74,8 +74,8 @@ uint8_t i2cgpio::stepper_poweroff(){
 
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_POWEROFF);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_POWEROFF);
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
@@ -88,15 +88,15 @@ uint8_t i2cgpio::stepper_goto_position(int16_t value){
   delay(10);
   
   Wire.beginTransmission(_address);
-  Wire.write(I2C_STEPPER_GOTO_POSITION);
+  Wire.write(I2C_GPIO_STEPPER_GOTO_POSITION);
   Wire.write((byte)(value & 0xFFu));
   Wire.write((byte)(value>>8)& 0xFFu);
   if (Wire.endTransmission() != 0) return 1;
 
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_GOTO);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_GOTO);
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
@@ -109,12 +109,12 @@ uint8_t i2cgpio::stepper_read_position(int16_t& position){
   delay(10);
 
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_READ_POSITION);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_READ_POSITION);
   if (Wire.endTransmission() != 0) return 1;
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_STEPPER_CURRENT_POSITION);
+  Wire.write(I2C_GPIO_STEPPER_CURRENT_POSITION);
   if (Wire.endTransmission() != 0) return 1;
   delay(10);
   Wire.requestFrom(_address,2);
@@ -145,15 +145,15 @@ uint8_t i2cgpio::stepper_relative_steps(int16_t value){
   delay(10);
   
   Wire.beginTransmission(_address);
-  Wire.write(I2C_STEPPER_RELATIVE_STEPS);
+  Wire.write(I2C_GPIO_STEPPER_RELATIVE_STEPS);
   Wire.write((byte)(value & 0xFFu));
   Wire.write((byte)(value>>8)& 0xFFu);
   if (Wire.endTransmission() != 0) return 1;
 
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_RELATIVE_STEPS);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_RELATIVE_STEPS);
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
@@ -166,15 +166,15 @@ uint8_t i2cgpio::stepper_rotate(int16_t value){
   delay(10);
   
   Wire.beginTransmission(_address);
-  Wire.write(I2C_STEPPER_ROTATE_DIR);
+  Wire.write(I2C_GPIO_STEPPER_ROTATE_DIR);
   Wire.write((byte)(value & 0xFFu));
   Wire.write((byte)(value>>8)& 0xFFu);
   if (Wire.endTransmission() != 0) return 1;
 
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_ROTATE);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_ROTATE);
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
@@ -187,8 +187,8 @@ uint8_t i2cgpio::stepper_gohome(){
 
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_GOHOME);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_GOHOME);
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
@@ -204,18 +204,18 @@ uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
   switch (pin)
     {	    
     case 1:
-      Wire.write(I2C_PWM_PWM1);
+      Wire.write(I2C_GPIO_PWM1);
       break;
     case 2:  
-      Wire.write(I2C_PWM_PWM2);
+      Wire.write(I2C_GPIO_PWM2);
       break;
     }	      
   Wire.write(value);
   if (Wire.endTransmission() != 0) return 1;
   delay(10);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_PWM_COMMAND_TAKE);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_COMMAND_TAKE);
   if (Wire.endTransmission() != 0) return 1;
   return 0;
 }
@@ -228,23 +228,23 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
   delay(10);
 
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_PWM_COMMAND_ONESHOT_START);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_COMMAND_ONESHOT_START);
   if (Wire.endTransmission() != 0) return 0xFFFF;
   delay(1000);
   Wire.beginTransmission(_address);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_PWM_COMMAND_ONESHOT_STOP);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_COMMAND_ONESHOT_STOP);
   if (Wire.endTransmission() != 0) return 0xFFFF;
   delay(10);
   Wire.beginTransmission(_address);
   switch (pin)
     {
     case 1:
-      Wire.write(I2C_PWM_ANALOG1);
+      Wire.write(I2C_GPIO_ANALOG1);
       break;
     case 2:  
-      Wire.write(I2C_PWM_ANALOG2);
+      Wire.write(I2C_GPIO_ANALOG2);
       break;
     }
   if (Wire.endTransmission() != 0) return 0xFFFF;       

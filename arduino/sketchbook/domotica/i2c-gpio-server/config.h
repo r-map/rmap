@@ -6,7 +6,7 @@
 
 // define the version of the configuration saved on eeprom
 // if you chenge this the board start with default configuration at boot
-#define CONFVER "confpwm00"
+#define CONFVER "confgpi00"
 
 // number of analog sample to do for average
 #define NSAMPLE 6

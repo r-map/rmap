@@ -29,7 +29,7 @@ void setup() {
 
 void loop() {
 int steps=400;
-int position=0;
+int16_t position=0;
   Log.notice(F("digitalWrite" CR));  
   gpio.digitalWrite(1,HIGH);
   gpio.digitalWrite(2,HIGH);

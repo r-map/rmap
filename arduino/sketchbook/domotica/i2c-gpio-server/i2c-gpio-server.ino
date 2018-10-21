@@ -1,4 +1,4 @@
-/**********************************************************************
+G/**********************************************************************
 Copyright (C) 2018  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Paruno <p.patruno@iperbole.bologna.it>
@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*********************************************************************
  *
- * This program implements PWM command over i2c interface.
+ * This program implements GPIO and stepper command over i2c interface.
  * 
 **********************************************************************/
 /*
@@ -61,14 +61,15 @@ viene sempre letto buffer2
 i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al comando stop
 */
 
-#define VERSION 01             //Software version for cross checking
+#define VERSION 02             //Software version for cross checking
+
 //#define HUGE 4294967296
 //#define SHUGE 2147483647
 
 #include <limits.h>
 #include <avr/wdt.h>
 #include "Wire.h"
-#include "registers-pwm.h"      //Register definitions
+#include "registers-gpio.h"      //Register definitions
 #include "config.h"
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
@@ -82,7 +83,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
-#define REG_PWM_SIZE            sizeof(values_t)                     //size of register map for pwm
+#define REG_VALUES_SIZE            sizeof(values_t)                     //size of register map for pwm
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
 
 #define MAX_SENT_BYTES     0x0F   //maximum amount of data that I could receive from a master device (register, plus 15 byte)
@@ -237,7 +238,7 @@ void receiveEvent( int bytesReceived)
   
   if (bytesReceived == 2){
     // check for a command
-    if (receivedCommands[0] == I2C_PWM_COMMAND) {
+    if (receivedCommands[0] == I2C_GPIO_COMMAND) {
       //LOGN("       received command: %X" CR,receivedCommands[1]);
       new_command = receivedCommands[1]; return; }
   }
@@ -247,12 +248,12 @@ void receiveEvent( int bytesReceived)
 
   //LOGN("         check  writable buffer: %X %X %X" CR,receivedCommands[0],I2C_PWM_MAP_WRITABLE,I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE);
   
-  if ((receivedCommands[0]>=I2C_PWM_MAP_WRITABLE) && (receivedCommands[0] < (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-    if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+  if ((receivedCommands[0]>=I2C_GPIO_MAP_WRITABLE) && (receivedCommands[0] < (I2C_GPIO_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
+    if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_GPIO_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
       //Writeable registers
       // the two buffer should be in sync
-      //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
-      ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_PWM_MAP_WRITABLE;
+      //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_GPIO_MAP_WRITABLE;
+      ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_GPIO_MAP_WRITABLE;
       for (int a = 1; a < bytesReceived; a++) { 
 	//LOGN("write in writable buffer: %X ,%X" CR,a,receivedCommands[a]);
 	//*ptr1++ = receivedCommands[a];
@@ -288,7 +289,7 @@ void mgr_command(){
     new_command = 0;                                                          //clear it
     //_command = _command & 0x0F;                                               //empty 4MSB bits   
     switch (_command) {
-    case I2C_PWM_COMMAND_TAKE:
+    case I2C_GPIO_COMMAND_TAKE:
       {
 	LOGN(F("COMMAND: take" CR));
       
@@ -312,7 +313,7 @@ void mgr_command(){
 	
 	break;
       }
-    case I2C_PWM_COMMAND_ONESHOT_START:
+    case I2C_GPIO_COMMAND_ONESHOT_START:
       {
 	LOGN(F("COMMAND: oneshot start" CR));
       
@@ -324,7 +325,7 @@ void mgr_command(){
 	uint8_t *ptr;
 	//Init to FF i2c_dataset1;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 
 	// disable interrupts for atomic operation
 	noInterrupts();
@@ -337,11 +338,11 @@ void mgr_command(){
 	// new data published
 	//Init to FF i2c_dataset1;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}	
+	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}	
 	
 	break;
       }
-    case I2C_PWM_COMMAND_ONESHOT_STOP:
+    case I2C_GPIO_COMMAND_ONESHOT_STOP:
       {
 	LOGN(F("COMMAND: oneshot stop" CR));
 	
@@ -361,12 +362,12 @@ void mgr_command(){
 	uint8_t *ptr;
 	//Init to FF i2c_dataset1;
 	ptr = (uint8_t *)&i2c_dataset1->analog;
-	for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 	
 	stop=true;
 	break;
       }
-    case I2C_PWM_COMMAND_SAVE:
+    case I2C_GPIO_COMMAND_SAVE:
       {
 	LOGN(F("COMMAND: save" CR));
       
@@ -381,13 +382,13 @@ void mgr_command(){
       
 	break;
       }
-    case I2C_STEPPER_COMMAND_GOTO:
+    case I2C_GPIO_STEPPER_COMMAND_GOTO:
       {
       	LOGN(F("COMMAND: stepper goto position %d" CR),i2c_writabledataset2->stepper.goto_position);
         myStepper.absoluteSteps(i2c_writabledataset2->stepper.goto_position);
       break;
       }
-    case I2C_STEPPER_COMMAND_READ_POSITION:
+    case I2C_GPIO_STEPPER_COMMAND_READ_POSITION:
       {
       	LOGN(F("COMMAND: stepper read position" CR));
         i2c_dataset2->stepper.current_position=myStepper.getSteps();
@@ -395,7 +396,7 @@ void mgr_command(){
 	LOGN(F("Position: %d" CR),i2c_dataset2->stepper.current_position);
       break;
       }
-    case I2C_STEPPER_COMMAND_POWEROFF:
+    case I2C_GPIO_STEPPER_COMMAND_POWEROFF:
       {
       	LOGN(F("COMMAND: stepper power off" CR));
         digitalWrite(STEPPER_PIN1,LOW);
@@ -404,19 +405,19 @@ void mgr_command(){
 	digitalWrite(STEPPER_PIN4,LOW);
       break;
       }
-    case I2C_STEPPER_COMMAND_RELATIVE_STEPS:
+    case I2C_GPIO_STEPPER_COMMAND_RELATIVE_STEPS:
       {
       	LOGN(F("COMMAND: stepper move relative steps %d" CR),i2c_writabledataset2->stepper.relative_steps);
         myStepper.relativeSteps(i2c_writabledataset2->stepper.relative_steps);
       break;
       }
-    case I2C_STEPPER_COMMAND_ROTATE:
+    case I2C_GPIO_STEPPER_COMMAND_ROTATE:
       {
       	LOGN(F("COMMAND: stepper rotate %d" CR),i2c_writabledataset2->stepper.rotate_dir);
         myStepper.rotate(i2c_writabledataset2->stepper.rotate_dir);
       break;
       }
-    case I2C_STEPPER_COMMAND_GOHOME:
+    case I2C_GPIO_STEPPER_COMMAND_GOHOME:
       {
       	LOGN(F("COMMAND: stepper search home position" CR));
         go_home();
@@ -448,7 +449,7 @@ void mgr_command(){
       uint8_t *ptr;
       //Init to FF i2c_dataset1;
       ptr = (uint8_t *)&i2c_dataset1->analog;
-      for (int i=0;i<REG_PWM_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+      for (int i=0;i<REG_VALUES_SIZE;i++) { *ptr |= 0xFF; ptr++;}
   }
   
   //LOGN(F("oneshot : %T" CR),i2c_writabledataset2->oneshot);
@@ -591,7 +592,7 @@ void setup() {
       LOGN(F("set default values for writable registers" CR));
       // set default to oneshot
       i2c_writabledataset2->oneshot=true;
-      i2c_writabledataset2->i2c_address = I2C_PWM_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_GPIO_DEFAULTADDRESS;
       i2c_writabledataset2->stepper.power=STEPPER_POWER;
       i2c_writabledataset2->stepper.speed=STEPPER_SPEED;
       i2c_writabledataset2->stepper.ramp_steps=STEPPER_RAMPSTEPS;

@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Wire.h"
 #include <Arduino.h>
-#include <registers-pwm.h>         //Register definitions
+#include <registers-gpio.h>         //Register definitions
 
 byte start_address = 1;
 byte end_address = 127;
@@ -137,21 +137,21 @@ void loop() {
 
 	new_address= -1;
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-pwm (1-127)"));
+	  Serial.println(F("digit new i2c address for i2c-gpio (1-127)"));
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
       
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_ADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_ADDRESS);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1);
 	
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_PWM_COMMAND_SAVE);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done; switch off"));
@@ -173,24 +173,24 @@ void loop() {
 	  Serial.println(new_value);
 	}
       
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 	switch (command)
 	  {
 	    
 	  case 'a':
-	    Wire.write(I2C_PWM_PWM1);
+	    Wire.write(I2C_GPIO_PWM1);
 	    break;
 	  case 'b':  
-	    Wire.write(I2C_PWM_PWM2);
+	    Wire.write(I2C_GPIO_PWM2);
 	    break;
 	  }	      
 	Wire.write(new_value);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_PWM_COMMAND_TAKE);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_COMMAND_TAKE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done"));
@@ -202,31 +202,31 @@ void loop() {
     case 'k':
     case 'l':
       {      
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_PWM_COMMAND_ONESHOT_START);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_COMMAND_ONESHOT_START);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));
        	delay(1000);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_PWM_COMMAND_ONESHOT_STOP);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_COMMAND_ONESHOT_STOP);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));
        	delay(10);
 
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 	switch (command)
 	  {
 	    
 	  case 'k':
-	    Wire.write(I2C_PWM_ANALOG1);
+	    Wire.write(I2C_GPIO_ANALOG1);
 	    break;
 	  case 'l':  
-	    Wire.write(I2C_PWM_ANALOG2);
+	    Wire.write(I2C_GPIO_ANALOG2);
 	    break;
 	  }
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));       
 	
-	Wire.requestFrom(I2C_PWM_DEFAULTADDRESS,2);
+	Wire.requestFrom(I2C_GPIO_DEFAULTADDRESS,2);
 	if (Wire.available() < 2)    // slave may send less than requested
 	  { 
 	    Serial.println(F("no data available"));
@@ -265,24 +265,24 @@ void loop() {
 
 	  Serial.println(new_value);
       
-	  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 	  switch (command)
 	    {
 	      
 	    case 'm':
-	      Wire.write(I2C_PWM_PWM1);
+	      Wire.write(I2C_GPIO_PWM1);
 	      break;
 	    case 'n':  
-	      Wire.write(I2C_PWM_PWM2);
+	      Wire.write(I2C_GPIO_PWM2);
 	      break;
 	    }	      
 	  Wire.write(new_value);
 	  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));               // End Write Transmission 
 	
 	  delay(1);
-	  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	  Wire.write(I2C_PWM_COMMAND);
-	  Wire.write(I2C_PWM_COMMAND_TAKE);
+	  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	  Wire.write(I2C_GPIO_COMMAND);
+	  Wire.write(I2C_GPIO_COMMAND_TAKE);
 	  if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));              // End Write Transmission 
 	  delay(1);	  
 
@@ -306,24 +306,24 @@ void loop() {
 	  Serial.println(new_value);
 	}
       
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 	switch (command)
 	  {
 	    
 	  case 'x':
-	    Wire.write(I2C_PWM_ONOFF1);
+	    Wire.write(I2C_GPIO_ONOFF1);
 	    break;
 	  case 'y':  
-	    Wire.write(I2C_PWM_ONOFF2);
+	    Wire.write(I2C_GPIO_ONOFF2);
 	    break;
 	  }
 	Wire.write(new_value);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_PWM_COMMAND_TAKE);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_COMMAND_TAKE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done"));
@@ -365,17 +365,17 @@ void loop() {
 	
 	Serial.print("Stepper relative steps movement ");
 	Serial.println(new_value);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 
-	Wire.write(I2C_STEPPER_RELATIVE_STEPS);
+	Wire.write(I2C_GPIO_STEPPER_RELATIVE_STEPS);
   Wire.write((byte)(new_value & 0xFFu));
   Wire.write((byte)(new_value>>8)& 0xFFu);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_STEPPER_COMMAND_RELATIVE_STEPS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_STEPPER_COMMAND_RELATIVE_STEPS);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done"));
@@ -396,18 +396,18 @@ void loop() {
 	}
 	Serial.print("Stepper goto ");
 	Serial.println(new_value);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
 
-	Wire.write(I2C_STEPPER_GOTO_POSITION);
+	Wire.write(I2C_GPIO_STEPPER_GOTO_POSITION);
 	Wire.write((byte)(new_value & 0xFFu));
   Wire.write((byte)(new_value>>8)& 0xFFu);
   
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	delay(1);
-	Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-	Wire.write(I2C_PWM_COMMAND);
-	Wire.write(I2C_STEPPER_COMMAND_GOTO);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_STEPPER_COMMAND_GOTO);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 	
 	Serial.println(F("Done"));
@@ -428,16 +428,16 @@ void loop() {
   int new_value;
 
   Serial.print("Stepper get position ");
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-  Wire.write(I2C_PWM_COMMAND);
-  Wire.write(I2C_STEPPER_COMMAND_READ_POSITION);
+  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_READ_POSITION);
   if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
 
-  Wire.beginTransmission(I2C_PWM_DEFAULTADDRESS);
-  Wire.write(I2C_STEPPER_CURRENT_POSITION);
+  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+  Wire.write(I2C_GPIO_STEPPER_CURRENT_POSITION);
   if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));       
   delay(10);
-  Wire.requestFrom(I2C_PWM_DEFAULTADDRESS,2);
+  Wire.requestFrom(I2C_GPIO_DEFAULTADDRESS,2);
   if (Wire.available() < 2)    // slave may send less than requested
     { 
       Serial.println(F("no data available"));
