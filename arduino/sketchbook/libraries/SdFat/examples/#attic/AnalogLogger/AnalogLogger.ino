@@ -2,6 +2,7 @@
 // uses RTClib from https://github.com/adafruit/RTClib
 #include <SPI.h>
 #include "SdFat.h"
+#include "sdios.h"
 #include "FreeStack.h"
 
 #define SD_CHIP_SELECT  SS  // SD chip select pin
@@ -97,8 +98,9 @@ void setup() {
   cout  << now << endl;
 #endif  // USE_DS1307
 
-  // initialize the SD card at SPI_HALF_SPEED to avoid bus errors with
-  if (!sd.begin(SD_CHIP_SELECT, SPI_HALF_SPEED)) {
+  // Initialize at the highest speed supported by the board that is
+  // not over 50 MHz. Try a lower speed if SPI errors occur.
+  if (!sd.begin(SD_CHIP_SELECT, SD_SCK_MHZ(50))) {
     sd.initErrorHalt();
   }
 

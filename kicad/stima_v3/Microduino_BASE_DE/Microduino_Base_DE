@@ -1,0 +1,14 @@
+Source,C:/PROGETTI_KICAD/Microduino_DE/Microduino_BASE_DE/Microduino_Base_DE.sch
+Kicad Rev,Eeschema 4.0.6
+Generated Date,31/07/2017 17:08:18
+
+Title,Microduino Base DE
+Company,Not Set
+Revision,0.0
+Date Issue,30 luglio 2017
+
+Reference,Value,Library,Library Ref
+P3,CONN_1x27,Libreria_SCH_mia,CONN_1x27
+P2,CONN_01X04,conn,CONN_01X04
+P1,CONN_01X02,conn,CONN_01X02
+GS1,GS4,Libreria_SCH_mia,GS4

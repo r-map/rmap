@@ -1,5051 +1,1960 @@
+/**@file SensorDriver.cpp */
+
+/*********************************************************************
+Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+authors:
+Paolo patruno <p.patruno@iperbole.bologna.it>
+Marco Baldinetti <m.baldinetti@digiteco.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**********************************************************************/
+
+#include <debug_config.h>
+
+/*!
+\def SERIAL_TRACE_LEVEL
+\brief Serial debug level for this library.
+*/
+#define SERIAL_TRACE_LEVEL SENSOR_DRIVER_SERIAL_TRACE_LEVEL
+
 #include "SensorDriver.h"
 
-//void SensorDriverInit()
-//{
-//  Wire.begin();                // join i2c bus as master
-//}
-
-
-int THcounter=0;
-int SDS011counter=0;
-bool SDSMICSstarted=false;
-bool HPMstarted=false;
-
-SensorDriver* SensorDriver::create(const char* driver,const char* type) {
-
-  IF_SDSDEBUG(SDDBGSERIAL.print(F("#NEW driver: ")));
-  IF_SDSDEBUG(SDDBGSERIAL.print(driver);SDDBGSERIAL.println(type));
-
-  if (strcmp(driver, "I2C") == 0)
-    {
-#if defined (TMPDRIVER)
-      if (strcmp(type, "TMP") == 0)
-	return new SensorDriverTmp();
-      else 
-#endif
-#if defined (ADTDRIVER)
-      if (strcmp(type, "ADT") == 0)
-	return new SensorDriverAdt7420();
-      else 
-#endif
-#if defined (HIHDRIVER)
-      if (strcmp(type, "HIH") == 0)
-	return new SensorDriverHih6100();
-      else
-#endif
-#if defined (HYTDRIVER)
-      if (strcmp(type, "HYT") == 0)
-	return new SensorDriverHyt271();
-      else
-#endif
-#if defined (HI7021DRIVER)
-      if (strcmp(type, "HI7") == 0)
-	return new SensorDriverSI7021();
-      else
-#endif
-#if defined (BMPDRIVER)
-      if (strcmp(type, "BMP") == 0)
-	return new SensorDriverBmp085();
-      else
-#endif
-#if defined (DAVISWIND1)
-      if (strcmp(type, "DW1") == 0)
-	return new SensorDriverDw1();
-      else
-#endif
-#if defined (TIPPINGBUCKETRAINGAUGE)
-      if (strcmp(type, "TBS") == 0)
-	return new SensorDriverTbr();
-      else
-      if (strcmp(type, "TBR") == 0)
-	return new SensorDriverTbr();
-      else
-#endif
-#if defined (TEMPERATUREHUMIDITY_ONESHOT)
-      if (strcmp(type, "STH") == 0)
-	return new SensorDriverTHoneshot();
-      else
-#endif
-
-#if defined (TEMPERATUREHUMIDITY_REPORT)
-      if (strcmp(type, "ITH") == 0)   // istantaneous
-	return new SensorDriverTH60mean();
-      else
-      if (strcmp(type, "MTH") == 0)   // mean
-	return new SensorDriverTHmean();
-      else
-      if (strcmp(type, "NTH") == 0)   // min
-	return new SensorDriverTHmin();
-      else
-      if (strcmp(type, "XTH") == 0)   //max
-	return new SensorDriverTHmax();
-      else
-#endif
-
-#if defined (SDS011_ONESHOT)
-      if (strcmp(type, "SSD") == 0)
-	return new SensorDriverSDS011oneshot();
-      else
-#endif
-#if defined (SDS011_REPORT)
-      if (strcmp(type, "ISD") == 0)   // istantaneous
-	return new SensorDriverSDS01160mean();
-      else
-      if (strcmp(type, "MSD") == 0)   // mean
-	return new SensorDriverSDS011mean();
-      else
-      if (strcmp(type, "NSD") == 0)   // min
-	return new SensorDriverSDS011min();
-      else
-      if (strcmp(type, "XSD") == 0)   //max
-	return new SensorDriverSDS011max();
-      else
-#endif
-#if defined (MICS4514_ONESHOT)
-      if (strcmp(type, "SMI") == 0)
-	return new SensorDriverMICS4514oneshot();
-      else
-#endif
-#if defined (MICS4514_REPORT)
-      if (strcmp(type, "IMI") == 0)   // istantaneous
-	return new SensorDriverMICS451460mean();
-      else
-      if (strcmp(type, "MMI") == 0)   // mean
-	return new SensorDriverMICS4514mean();
-      else
-      if (strcmp(type, "NMI") == 0)   // min
-	return new SensorDriverMICS4514min();
-      else
-      if (strcmp(type, "XMI") == 0)   //max
-	return new SensorDriverMICS4514max();
-      else
-#endif
-	
-	return NULL;
-    } else
-
-#if defined (RADIORF24)
-    if (strcmp(driver, "RF24") == 0){
-      return new SensorDriverRF24();
-    } else
-#endif
-
-      if (strcmp(driver, "SERI") == 0){
-#if defined (SDS011_LOCALSERIAL)
-	if (strcmp(type, "SSD") == 0) {
-	  return new SensorDriverSDS011oneshotSerial();
-	} else 
-#endif
-#if defined (HPM_ONESHOT)
-	  if (strcmp(type, "HPM") == 0) {
-	    return new SensorDriverHPMoneshotSerial();
-	  }
-#endif
-
-    } else
-    {
-      return NULL;
-    }
-
-  return NULL;
-
-}
-SensorDriver::~SensorDriver() {}
-
-#if defined (RADIORF24)
-  #if defined (AES)
-void SensorDriver::aes_enc( char* mainbuf, size_t* buflen){
-if ((*buflen % 16) != 0) *buflen = (int(*buflen/16)*16) + 16;
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#encode string  :")));
-  //IF_SDSDEBUG(SDDBGSERIAL.print(*buflen));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(mainbuf));
-  aes128_cbc_enc(_key, _iv, mainbuf, *buflen);
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#encoded string :")));
-  //IF_SDSDEBUG(SDDBGSERIAL.write(mainbuf,*buflen));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(F("#")));
-}
-
-void SensorDriver::aes_dec( char* mainbuf, size_t* buflen){
-if ((*buflen % 16) != 0) *buflen = (int(*buflen/16)*16) + 16;
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#decode string :")));
-  //IF_SDSDEBUG(SDDBGSERIAL.write(mainbuf,*buflen));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(F("#")));
-  aes128_cbc_dec(_key, _iv, mainbuf, *buflen);
-  //IF_SDSDEBUG(mainbuf[*buflen-1]='\0');
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#decoded string:")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(mainbuf));
-}
+namespace _SensorDriver {
+  #if (USE_SENSOR_ADT)
+  bool _is_adt_setted;
+  bool _is_adt_prepared;
   #endif
 
-int SensorDriver::setup(const char* driver, const int address, const int node, const char* type, char* mainbuf, size_t lenbuf, RF24Network* network
-  #if defined (AES)
-			, uint8_t key[] , uint8_t iv[]
-  #endif 
-)
-{
-  _node=node;
-  _driver=driver;
-  _type=type;
+  #if (USE_SENSOR_HIH)
+  bool _is_hih_setted;
+  bool _is_hih_prepared;
+  #endif
+
+  #if (USE_SENSOR_HYT)
+  bool _is_hyt_setted;
+  bool _is_hyt_prepared;
+  #endif
+
+  #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+  bool _is_tb_setted;
+  bool _is_tb_prepared;
+  #endif
+
+  #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+  bool _is_th_setted;
+  bool _is_th_prepared;
+  #endif
+
+  #if (USE_SENSOR_DW1)
+  bool _is_dw1_setted;
+  bool _is_dw1_prepared;
+  #endif
+
+  #if (USE_SENSOR_DEP)
+  bool _is_dep_setted;
+  bool _is_dep_prepared;
+  #endif
+}
+
+/*********************************************************************
+* SensorDriver
+*********************************************************************/
+
+SensorDriver::SensorDriver(const char* driver, const char* type) {
+  _driver = driver;
+  _type = type;
+}
+
+SensorDriver *SensorDriver::create(const char* driver, const char* type) {
+  if (strlen(driver) == 0 || strlen(type) == 0) {
+    SERIAL_ERROR(F("SensorDriver %s-%s create... [ %s ]\r\n--> driver or type is null.\r\n"), driver, type, FAIL_STRING);
+    return NULL;
+  }
+
+  #if (USE_SENSOR_ADT)
+  else if (strcmp(type, SENSOR_TYPE_ADT) == 0)
+  return new SensorDriverAdt7420(driver, type, &_SensorDriver::_is_adt_setted, &_SensorDriver::_is_adt_prepared);
+  #endif
+
+  #if (USE_SENSOR_HIH)
+  else if (strcmp(type, SENSOR_TYPE_HIH) == 0)
+  return new SensorDriverHih6100(driver, type, &_SensorDriver::_is_hih_setted, &_SensorDriver::_is_hih_prepared);
+  #endif
+
+  #if (USE_SENSOR_HYT)
+  else if (strcmp(type, SENSOR_TYPE_HYT) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_HI7)
+  else if (strcmp(type, SENSOR_TYPE_HI7) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_BMP)
+  else if (strcmp(type, SENSOR_TYPE_BMP) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_DW1)
+  else if (strcmp(type, SENSOR_TYPE_DW1) == 0)
+  return new SensorDriverDw1(driver, type, &_SensorDriver::_is_dw1_setted, &_SensorDriver::_is_dw1_prepared);
+  #endif
+
+  #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+  else if (strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
+  return new SensorDriverRain(driver, type, &_SensorDriver::_is_tb_setted, &_SensorDriver::_is_tb_prepared);
+  #endif
+
+  #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+  else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
+  return new SensorDriverTh(driver, type, &_SensorDriver::_is_th_setted, &_SensorDriver::_is_th_prepared);
+  #endif
+
+  #if (USE_SENSOR_SSD)
+  else if (strcmp(type, SENSOR_TYPE_SSD) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_ISD)
+  else if (strcmp(type, SENSOR_TYPE_ISD) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_MSD)
+  else if (strcmp(type, SENSOR_TYPE_MSD) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_NSD)
+  else if (strcmp(type, SENSOR_TYPE_NSD) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_XSD)
+  else if (strcmp(type, SENSOR_TYPE_XSD) == 0)
+  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  #endif
+
+  #if (USE_SENSOR_DEP)
+  else if (strcmp(type, SENSOR_TYPE_DEP) == 0)
+  return new SensorDriverDigitecoPower(driver, type, &_SensorDriver::_is_dep_setted, &_SensorDriver::_is_dep_prepared);
+  #endif
+
+  else {
+    SERIAL_ERROR(F("SensorDriver %s-%s create... [ FAIL ]\r\n--> driver or type not found.\r\n"), driver, type);
+    return NULL;
+  }
+}
+
+void SensorDriver::setup(const uint8_t address, const uint8_t node) {
   _address = address;
-  _mainbuf=mainbuf;
-  _lenbuf=lenbuf;
-  _network=network;
-  #if defined (AES)
-  _key=key;
-  _iv=iv;
-  #endif
-  _timing = 0;
-  _jsrpcid=0;
-
-  return 0;
+  _node = node;
+  _start_time_ms = 0;
 }
 
-#else
-
-int SensorDriver::setup(const char* driver, const int address, const int node, const char* type)
-{
-
-  _driver=driver;
-  _node=node;
-  _type=type;
-  _address = address;
-
-  _timing = 0;
-
-  return 0;
+const char *SensorDriver::getDriver() {
+  return _driver;
 }
 
-#endif
-
-
-
-
-
-#if defined (TMPDRIVER)
-int SensorDriverTmp::setup(const char* driver, const int address, const int node, const char* type
-                      #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf
-			   , RF24Network* network
-                        #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-                        #endif
-                      #endif
-			     )
-{
-
-  SensorDriver::setup(driver,address,node,type
-                      #if defined (RADIORF24)
-			   , mainbuf, lenbuf, network
-                        #if defined (AES)
-			   , key,iv
-                        #endif
-                      #endif
-			   );
-
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x01);            // Set the register pointer to (0x01)
-  Wire.write((byte)0xE1);            // Set resolution and SHUTDOWN MODE and one shot
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  
-  return SD_SUCCESS;
-  
+const char *SensorDriver::getType() {
+  return _type;
 }
 
-int SensorDriverTmp::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x01);            // Set the register pointer to (0x01)
-  Wire.write((byte)0xE1);            // Set resolution and SHUTDOWN MODE and one shot
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=millis();
-  waittime= 500ul;
-
-  return SD_SUCCESS;
-
+uint8_t SensorDriver::getAddress() {
+  return _address;
 }
 
-int SensorDriverTmp::get(long values[],size_t lenvalues)
-{
+uint8_t SensorDriver::getNode() {
+  return _node;
+}
 
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+uint32_t SensorDriver::getDelay() {
+  return _delay_ms;
+}
 
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x00);             // Set the register pointer to (0x00)
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  Wire.requestFrom(_address,2);
+uint32_t SensorDriver::getStartTime() {
+  return _start_time_ms;
+}
 
-  if (Wire.available() < 2)    // slave may send less than requested
-  { 
-    return SD_INTERNAL_ERROR;
+bool SensorDriver::isEnd() {
+  return _is_end;
+}
+
+bool SensorDriver::isSuccess() {
+  return _is_success;
+}
+
+bool SensorDriver::isReaded() {
+  return _is_readed;
+}
+
+void SensorDriver::createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count) {
+  sensors[*sensors_count] = SensorDriver::create(driver, type);
+  if (sensors[*sensors_count]) {
+    sensors[*sensors_count]->setup(address, node);
+    (*sensors_count)++;
   }
-  byte MSB = Wire.read();
-  byte LSB = Wire.read();
+}
 
-  if ((MSB == 255) & (LSB ==255))
-  { 
-    return SD_INTERNAL_ERROR;
+void SensorDriver::printInfo(const char* driver, const char* type, const uint8_t address, const uint8_t node) {
+  SERIAL_DEBUG(F("SensorDriver %s-%s"), driver, type);
+
+  if (address) {
+    SERIAL_DEBUG(F(" 0x%x (%d)"), address, address);
   }
 
-  //it's a 12bit int, using two's compliment for negative
-  int TemperatureSum = ((MSB << 8) | LSB) >> 4 & 0xFFF; 
-  //int TemperatureSum = ((MSB << 8) | LSB) >> 4 ; 
-
-  if (TemperatureSum & 0x800)
-  {
-    TemperatureSum=TemperatureSum - 0x1000;
+  if (node) {
+    SERIAL_DEBUG(F(" on node %d"), node);
   }
-  if (lenvalues >= 1)  values[0] = (long)(TemperatureSum*6.25 + 27315.) ;
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
 }
 
-#if defined (USEGETDATA)
-int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-  #if defined(USEAJSON)
-aJsonObject* SensorDriverTmp::getJson()
-{
-  long values[1];
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverTmp::get(values,1) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    // if you have a second value add here
-    //aJson.addNumberToObject(jsonvalues, "B12102", values2);      
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    // if you have a second value add here
-    //aJson.addNullToObject(jsonvalues, "B12102");
-  }
-  return jsonvalues;
-}
-  #endif
-#endif
-
-#if defined (ADTDRIVER)
-int SensorDriverAdt7420::setup(const char* driver, const int address, const int node, const char* type
-                         #if defined (RADIORF24)
-			       , char* mainbuf, size_t lenbuf, RF24Network* network
-                           #if defined (AES)
-			       , uint8_t key[] , uint8_t iv[]
-                           #endif 
-                         #endif
-			       )
-{
-
-  SensorDriver::setup(driver,address,node,type
-                  #if defined (RADIORF24)
-		      ,mainbuf,lenbuf,network
-                    #if defined (AES)
-		      , key,iv
-                    #endif
-                  #endif
-		      );
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x03);                              // Set the register pointer to (0x01)
-  Wire.write((byte)0x20);                              // Set resolution and one shot
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
+//------------------------------------------------------------------------------
+// ADT7420
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_ADT)
+bool SensorDriverAdt7420::isSetted() {
+  return *_is_setted;
 }
 
-int SensorDriverAdt7420::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x03);                              // Set the register pointer to (0x01)
-  Wire.write((byte)0x20);                              // Set resolution and one shot
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  waittime=250ul;
-  _timing=millis();
-
-  return SD_SUCCESS;
-
+bool SensorDriverAdt7420::isPrepared() {
+  return *_is_prepared;
 }
 
-int SensorDriverAdt7420::get(long values[],size_t lenvalues)
-{
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write((byte)0x00);                              // Set the register pointer to (0x00)
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  Wire.requestFrom(_address,2);
-
-  if (Wire.available() < 2)    // slave may send less than requested
-  { 
-    return SD_INTERNAL_ERROR;
-  }
-  byte MSB = Wire.read();
-  byte LSB = Wire.read();
-
-  if ((MSB == 255) & (LSB ==255))
-  { 
-    return SD_INTERNAL_ERROR;
-  }
-
-  //it's a 13bit int, using two's compliment for negative
-  int TemperatureSum = ((MSB << 8) | LSB) >> 3 & 0xFFF; 
-  //int TemperatureSum = ((MSB << 8) | LSB) >> 3 ; 
-
-  if (TemperatureSum & 0x800)
-  {
-    TemperatureSum=TemperatureSum - 0x1000;
-  }
-
-  if (lenvalues >= 1)  values[0] = (long)(TemperatureSum*6.25 + 27315.) ;
-  _timing=0;
-
-  return SD_SUCCESS;
-
+void SensorDriverAdt7420::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
 }
 
-#if defined (USEGETDATA)
-int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
-{
-  /*
-    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
-    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
-    data width (bits): The number of bits the element requires for representation in data
-  */
-
-  long values[1];
-  width=16;
-  const long reference=22315;
-  
-  if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
-    data=(values[0]-reference) ;// << (sizeof(values[1])-width);
-  }else{
-    data=0xFFFFFFFF;
-    return SD_INTERNAL_ERROR;
-  }
-  return SD_SUCCESS;
-}
-#endif
-
-  #if defined(USEAJSON)
-aJsonObject* SensorDriverAdt7420::getJson()
-{
-  long values[1];
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  
-  if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    // if you have a second value add here
-    //aJson.addNumberToObject(jsonvalues, "B12102", values2);      
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    // if you have a second value add here
-    //aJson.addNullToObject(jsonvalues, "B12102");
-  }
-  return jsonvalues;
-}
-  #endif
-
-#if defined(USEARDUINOJSON)
-int SensorDriverAdt7420::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[1];
-  StaticJsonBuffer<100> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,1) == SD_SUCCESS){
-    if (values[0] >= 0){
-      jsonvalues["B12101"]= values[0];      
-    }else{
-      jsonvalues["B12101"]=RawJson("null");
-    }
-
-  }else{
-    jsonvalues["B12101"]=RawJson("null");
-  }
-
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
-}
-#endif
-#endif
-
-#if defined (RADIORF24)
-
-int SensorDriverRF24::setup(const char* driver, const int address, const int node, const char* type
-			    , char* mainbuf, size_t lenbuf, RF24Network* network
-                         #if defined (AES)
-			    , uint8_t key[] , uint8_t iv[]
-                         #endif
-			    )
-{
-  // setup for remote sensor whould be done local (where you have sensors hard connected !)
-  SensorDriver::setup(driver,address,node,type, mainbuf, lenbuf, network
-                 #if defined (AES)
-			, key,iv
-                 #endif
-		      );
-  return SD_SUCCESS;  // do nothing
-}
-
-int SensorDriverRF24::prepare(unsigned long& waittime)
-{
-
-   IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... prepare")));
-
-  // Pump the network regularly
-  _network->update();
-
-  RF24NetworkHeader header(_node,0);
-  // example calling rpc:
-  // {"jsonrpc": "2.0", "method": "prepare", "params": {"driver":"TMP","node":1,"type":"TMP","address": 72}, "id": 0}
-
-  aJsonObject *rpc = aJson.createObject();
-  aJson.addStringToObject(rpc, "jsonrpc", "2.0");
-  aJson.addStringToObject(rpc, "method", "prepare");
-  aJsonObject *params = aJson.createObject();
-  aJson.addNumberToObject(params, "node", _node);
-  // on the remote node we change driver to local (i2c)
-  //aJson.addStringToObject(params, "driver","I2C");
-  aJson.addStringToObject(params, "driver", _driver);
-  aJson.addStringToObject(params, "type", _type);
-  aJson.addNumberToObject(params, "address", _address);
-  aJson.addItemToObject(rpc, "params", params);
-  aJson.addNumberToObject(rpc, "id", _jsrpcid);
-  aJson.print(rpc,_mainbuf, _lenbuf);
-  aJson.deleteItem(rpc);
-
-  _jsrpcid++;
-
-  //strcpy(_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"prepare\", \"params\": {\"type\":\"TMP\",\"address\": 72}, \"id\": 0}");
-
-  size_t buflen=strlen(_mainbuf)+1;
-  #if defined (AES)
-  SensorDriver::aes_enc(_mainbuf, &buflen);
-  #endif
-  bool ok = _network->write(header,_mainbuf,buflen);
-
-  if (!ok){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio prepare failed.")));
-    return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-
-  unsigned long start_at = millis();
-
-  while (true){
-    _network->update();
-    if (_network->available())              break;
-    if ( ( millis() - start_at) > 500 ) break;
-  }
-
-  size_t size = _network->read(header,_mainbuf,_lenbuf);
-  // manage json rpc messages
-  if (size <= 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#error getting rf24 response")));
-    return SD_INTERNAL_ERROR;
-  }
-
-  #if defined (AES)
-  SensorDriver::aes_dec(_mainbuf, &size);
-  #endif
-
-  _mainbuf[size-1]='\0';
-  IF_SDSDEBUG(SDDBGSERIAL.print(F("#receive: ")));
-  IF_SDSDEBUG(SDDBGSERIAL.println(_mainbuf));
-  
-  aJsonObject *nodemsg = aJson.parse(_mainbuf);
-  
-  if (!nodemsg){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#error getting json")));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-
-  // parse rpc information
-  aJsonObject* id = aJson.getObjectItem(nodemsg, "id");
-  if (!id){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#id not found")));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-    
-  aJsonObject* jsonrpc = aJson.getObjectItem(nodemsg, "jsonrpc");
-  if (!jsonrpc){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#jsonrpc not found")));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-
-  if (strcmp (jsonrpc->valuestring,"2.0" ) != 0) {
-    IF_SDSDEBUG(SDDBGSERIAL.print(F("#jsonrpc version is wrong:")));
-    IF_SDSDEBUG(SDDBGSERIAL.println(jsonrpc->valuestring));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-
-  // manage good message
-  IF_SDSDEBUG(SDDBGSERIAL.println(F("#its a valid response")));
-  aJsonObject* waittimeo = aJson.getObjectItem(nodemsg, "result");
-  if (!waittimeo){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#result not found")));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-  
-  aJsonObject* waittimei = aJson.getObjectItem(waittimeo,"waittime");
-  if (!waittimei) {
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#response not found")));
-    aJson.deleteItem(nodemsg);
-    return SD_INTERNAL_ERROR;
-  }
-
-  //waittime=250ul;
-  //waittime=(unsigned long)waittimei->valueint;
-  waittime=waittimei->valueint;
-  IF_SDSDEBUG(SDDBGSERIAL.print(F("#waittime: ")));
-  IF_SDSDEBUG(SDDBGSERIAL.println(waittime));
-  
-  aJson.deleteItem(nodemsg);
-  _timing=millis();
-  
-  return SD_SUCCESS;
-}
-
-  #if defined(USEAJSON)
-
-aJsonObject* SensorDriverRF24::getJson()
-{
-  
-  aJsonObject* jsonvalues;
-
-  // Pump the network regularly
-  _network->update();
-  
-  if (millis() - _timing > MAXDELAYFORREAD){
-    jsonvalues = aJson.createObject();
-    aJson.addNullToObject(jsonvalues, "RF24");
-    return jsonvalues; 
-  }
-  
-  IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... getJson")));
-  
-  // example calling rpc:
-  // {"jsonrpc": "2.0", "method": "getjson", "params": {"driver":"TMP","type":"TMP","address": 72}, "id": 0}
-  // {"jsonrpc": "2.0", "method": "getjson", "params": {"driver":"TMP","type":"ADT","address": 75}, "id": 0}
-  
-  //strcpy (_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"getvalues\", \"params\": {\"type\":\"TMP\",\"address\": 72}, \"id\": 0}");
-  // mmmmm strcpy (_mainbuf,"{\"jsonrpc\": \"2.0\", \"method\": \"getvalues\", \"params\": {}, \"id\": 0}");
-
-  aJsonObject *rpc = aJson.createObject();
-  aJson.addStringToObject(rpc, "jsonrpc", "2.0");
-  aJson.addStringToObject(rpc, "method", "getjson");
-  aJsonObject *params = aJson.createObject();
-  aJson.addNumberToObject(params, "node", _node);
-  // on the remote node we change driver to local (i2c)
-  //aJson.addStringToObject(params, "driver", "I2C");
-  aJson.addStringToObject(params, "driver", _driver);
-  aJson.addStringToObject(params, "type", _type);
-  aJson.addNumberToObject(params, "address", _address);
-  aJson.addItemToObject(rpc, "params", params);
-  aJson.addNumberToObject(rpc, "id", _jsrpcid);
-  aJson.print(rpc,_mainbuf, _lenbuf);
-  aJson.deleteItem(rpc);
-
-  RF24NetworkHeader header( _node,0);
-  size_t buflen=strlen(_mainbuf)+1;
-  #if defined (AES)
-  SensorDriver::aes_enc(_mainbuf, &buflen);
-  #endif
-  bool ok = _network->write(header,_mainbuf,buflen);
-  
-  if (!ok) {  
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#radio failed.")));
-    jsonvalues = aJson.createObject();
-    aJson.addNullToObject(jsonvalues, "RF24");
-    return jsonvalues; 
-  }
-  
-  unsigned long start_at = millis();
-
-  while (true){
-    _network->update();
-    if (_network->available())              break;
-    if ( ( millis() - start_at) > 500 ) break;
-  }
-
-  size_t size = _network->read(header,_mainbuf,_lenbuf);
-  
-  if (size >0){
-
-    #if defined (AES)
-    SensorDriver::aes_dec(_mainbuf, &size);
-    #endif
-
-    _mainbuf[size-1]='\0';
-    aJsonObject *noderesponse = aJson.parse(_mainbuf);
-    jsonvalues = aJson.detachItemFromObject(noderesponse,"result"); 
-
-    _timing=0;
-    aJson.deleteItem(noderesponse);
-    return jsonvalues;
-  // } else{
-  //   jsonvalues = aJson.createObject();
-  //   aJson.addNullToObject(jsonvalues, "RF24");
-  //   aJson.deleteItem(noderesponse);
-  //   return jsonvalues; 
-  }
-
-  return NULL;
-}
-
- #endif
-
-int SensorDriverRF24::get(long values[], size_t lenvalues)
-{
-    return SD_INTERNAL_ERROR;
-}
-    
-#endif
-
-
-#if defined (HIHDRIVER)
-int SensorDriverHih6100::setup(const char* driver, const int address, const int node, const char* type
-             #if defined (RADIORF24)
-			       , char* mainbuf, size_t lenbuf, RF24Network* network
-               #if defined (AES)
-			       , uint8_t key[] , uint8_t iv[]
-               #endif
-             #endif
-			       )
-{
-
-  SensorDriver::setup(driver,address,node,type
-             #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-               #if defined (AES)
-		      , key,iv
-               #endif
-             #endif
-		      );
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverHih6100::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=millis();
-  waittime= 40ul;   //The measurement cycle duration is typically 36.65 ms for temperature and humidity readings
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverHih6100::get(long values[],size_t lenvalues)
-{
-
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  
-  /*   python code
-    val = self.bus.read_i2c_block_data(self.address,0,4)
-    
-    status = (val[0] & 0xc0) >> 6
-    humid = float(((val[0] & 0x3f) << 8) + val[1])/0x3ffe*100.
-    temp =  float((val[2] << 6)  + ((val[3] & 0xfc) >> 2))/0x3ffe*165.-40.
-    
-    return {"B12101":nint(temp*100.+27315.),"B13003":nint(humid)}
-
-  */
-
-  uint8_t x, y, s;
-  uint16_t h;
-  uint16_t t;
-  
-  Wire.requestFrom(_address, 4);
-  if(Wire.available() >= 4) {
-    x = Wire.read();
-    s = (x & 0xc0 ) >> 6;
-    
-    switch(s) {
-    case 0:
-      // status 0 == OK  
-      // Normal Operation, Valid Data that has not been fetched since the last measurement cycle
-
-      y = Wire.read();
-      //IF_SDSDEBUG(SDDBGSERIAL.print(F("#hih read humidity x,y: ")));
-      //IF_SDSDEBUG(SDDBGSERIAL.print(x));
-      //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
-      //IF_SDSDEBUG(SDDBGSERIAL.println(y));
-
-      h = (((uint16_t) (x & 0x3f)) << 8) | y;
-
-      x = Wire.read();
-      y = Wire.read();
-      //IF_SDSDEBUG(SDDBGSERIAL.print(F("#hih read temperature x,y: ")));
-      //IF_SDSDEBUG(SDDBGSERIAL.print(x));
-      //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
-      //IF_SDSDEBUG(SDDBGSERIAL.println(y));
-
-      t = (((uint16_t) x) << 6) | ((y & 0xfc) >> 2);
-      
-      //Wire.endTransmission();
-      break;
-
-    default:
-      // status 1  
-      // Stale Data: Data that has already been
-      // fetched since the last measurement cycle, or
-      // data fetched before the first measurement
-      // has been completed
-
-      // status 2
-      // Device in Command Mode
-      // Command Mode is used for programming the sensor.
-      // This mode should not be seen during normal operation
-
-      // status 3
-      // Not Used
-
-      return SD_INTERNAL_ERROR;
-    }
-
-  }else{
-    return SD_INTERNAL_ERROR;
-  }
-
-  if (lenvalues >= 1)  values[0] = (long) round (float(h) / 16382. * 100.) ;
-  if (lenvalues >= 2)  values[1] = (long) round((float(t) / 16382. * 165. - 40.) * 100. + 27315.) ;
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
-{
-  /*
-    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
-    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
-    data width (bits): The number of bits the element requires for representation in data
-  */
-  
-  long values[1];
-  width=7;
-  const long reference=0;
-  
-  if (SensorDriverHih6100::get(values,1) == SD_SUCCESS){
-    data=(values[0]-reference);// << (sizeof(values[1])-width);
-  }else{
-    data=0xFFFFFFFF;
-    return SD_INTERNAL_ERROR;
-  }
-  return SD_SUCCESS;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverHih6100::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
-  if (SensorDriverHih6100::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
-
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
-#endif
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    aJson.addNullToObject(jsonvalues, "B13003");
-#endif
-  }
-  return jsonvalues;
-}
-#endif
-#if defined(USEARDUINOJSON)
-int SensorDriverHih6100::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[1];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,1) == SD_SUCCESS){
-    if (values[0] >= 0){
-      jsonvalues["B13003"]= values[0];      
-    }else{
-      jsonvalues["B13003"]=RawJson("null");
-    }
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    if (values[1] >= 0){
-      jsonvalues["B12101"]= values[1];      
-    }else{
-      jsonvalues["B12101"]=RawJson("null");
-    }
-#endif    
-  }else{
-    jsonvalues["B13003"]=RawJson("null");
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    jsonvalues["B12101"]=RawJson("null");
-#endif
-  }
-
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
-}
-#endif
-#endif
-
-#if defined (HYTDRIVER)
-int SensorDriverHyt271::setup(const char* driver, const int address, const int node, const char* type
-             #if defined (RADIORF24)
-			       , char* mainbuf, size_t lenbuf, RF24Network* network
-               #if defined (AES)
-			       , uint8_t key[] , uint8_t iv[]
-               #endif
-             #endif
-			       )
-{
-
-  SensorDriver::setup(driver,address,node,type
-             #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-               #if defined (AES)
-		      , key,iv
-               #endif
-             #endif
-		      );
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverHyt271::prepare(unsigned long &waittime) {
-	Wire.beginTransmission(_address);   	 //Open I2C line in write mode
-	
-	if (Wire.endTransmission())
-		return SD_INTERNAL_ERROR;			 //End Write Transmission 
-	
-	_timing = millis();
-	waittime = 100ul;   					 //The measurement cycle duration is typically 100 ms max for temperature and humidity readings
-	
-	return SD_SUCCESS;
-}
-
-int SensorDriverHyt271::get(long values[], size_t lenvalues) {
-	if (millis() - _timing > MAXDELAYFORREAD)
-		return SD_INTERNAL_ERROR;
-	
-	float humidity;
-	float temperature;
-	
-	Wire.requestFrom(_address, I2C_HYT271_READ_HT_DATA_LENGTH);
-	
-	if (Wire.available() == I2C_HYT271_READ_HT_DATA_LENGTH)
-		HYT271_getHT((unsigned long) Wire.read() << 24 | (unsigned long) Wire.read() << 16 | (unsigned long) Wire.read() << 8 | (unsigned long) Wire.read(), &humidity, &temperature);
-	else return SD_INTERNAL_ERROR;
-
-	if (lenvalues >= 1)
-		values[0] = (long) round(humidity);
-	
-	if (lenvalues >= 2)
-		values[1] = (long) round(temperature*100 + 27315);
-	
-	_timing = 0;
-	return SD_SUCCESS;
-}
-
-#if defined (USEGETDATA)
-int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverHyt271::getJson() {
-	long values[2];
-	aJsonObject* jsonvalues;
-	jsonvalues = aJson.createObject();
-	
-	if (SensorDriverHyt271::get(values,2) == SD_SUCCESS) {
-		aJson.addNumberToObject(jsonvalues, "B13003", values[0]);
-		aJson.addNumberToObject(jsonvalues, "B12101", values[1]);
-	}
-	else {
-		aJson.addNullToObject(jsonvalues, "B12101");
-		aJson.addNullToObject(jsonvalues, "B13003");
-	}
-	
-	return jsonvalues;
-}
-#endif
-#endif
-
-
-#if defined (BMPDRIVER)
-
-/*********************************************************************/
-
-uint8_t SensorDriverBmp085::read8(uint8_t a) {
-  uint8_t ret;
-
-  Wire.beginTransmission(_address); // start transmission to device 
-#if (ARDUINO >= 100)
-  Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
-  Wire.endTransmission(); // end transmission
-  
-  Wire.beginTransmission(_address); // start transmission to device 
-  Wire.requestFrom(_address, 1);// send data n-bytes read
-#if (ARDUINO >= 100)
-  ret = Wire.read(); // receive DATA
-#else
-  ret = Wire.receive(); // receive DATA
-#endif
-  Wire.endTransmission(); // end transmission
-
-  return ret;
-}
-
-uint16_t SensorDriverBmp085::read16(uint8_t a) {
-  uint16_t ret;
-
-  Wire.beginTransmission(_address); // start transmission to device 
-#if (ARDUINO >= 100)
-  Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
-  Wire.endTransmission(); // end transmission
-  
-  Wire.beginTransmission(_address); // start transmission to device 
-  Wire.requestFrom(_address, 2);// send data n-bytes read
-#if (ARDUINO >= 100)
-  ret = Wire.read(); // receive DATA
-  ret <<= 8;
-  ret |= Wire.read(); // receive DATA
-#else
-  ret = Wire.receive(); // receive DATA
-  ret <<= 8;
-  ret |= Wire.receive(); // receive DATA
-#endif
-  Wire.endTransmission(); // end transmission
-
-  return ret;
-}
-
-void SensorDriverBmp085::write8(uint8_t a, uint8_t d) {
-  Wire.beginTransmission(_address); // start transmission to device 
-#if (ARDUINO >= 100)
-  Wire.write(a); // sends register address to read from
-  Wire.write(d);  // write data
-#else
-  Wire.send(a); // sends register address to read from
-  Wire.send(d);  // write data
-#endif
-  Wire.endTransmission(); // end transmission
-}
-
-int32_t SensorDriverBmp085::computeB5(int32_t UT) {
-  int32_t X1 = (UT - (int32_t)ac6) * ((int32_t)ac5) >> 15;
-  int32_t X2 = ((int32_t)mc << 11) / (X1+(int32_t)md);
-  return X1 + X2;
-}
-
-uint16_t SensorDriverBmp085::readRawTemperature(void) {
-  write8(BMP085_CONTROL, BMP085_READTEMPCMD);
-  delay(10);
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("Raw temp: "); SDDBGSERIAL.println(read16(BMP085_TEMPDATA));
-#endif
-  return read16(BMP085_TEMPDATA);
-}
-
-uint32_t SensorDriverBmp085::readRawPressure(void) {
-  uint32_t raw;
-
-  write8(BMP085_CONTROL, BMP085_READPRESSURECMD + (oversampling << 6));
-
-  if (oversampling == BMP085_ULTRALOWPOWER) 
-    delay(10);
-  else if (oversampling == BMP085_STANDARD) 
-    delay(8);
-  else if (oversampling == BMP085_HIGHRES) 
-    delay(14);
-  else 
-    delay(26);
-
-  raw = read16(BMP085_PRESSUREDATA);
-
-  raw <<= 8;
-  raw |= read8(BMP085_PRESSUREDATA+2);
-  raw >>= (8 - oversampling);
-
- /* this pull broke stuff, look at it later?
-  if (oversampling==0) {
-    raw <<= 8;
-    raw |= read8(BMP085_PRESSUREDATA+2);
-    raw >>= (8 - oversampling);
-  }
- */
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("Raw pressure: "); SDDBGSERIAL.println(raw);
-#endif
-  return raw;
-}
-
-float SensorDriverBmp085::readTemperature(void) {
-  int32_t UT, B5;     // following ds convention
-  float temp;
-
-  UT = readRawTemperature();
-
-#if BMP085_DEBUG == 1
-  // use datasheet numbers!
-  UT = 27898;
-  ac6 = 23153;
-  ac5 = 32757;
-  mc = -8711;
-  md = 2868;
-#endif
-
-  B5 = computeB5(UT);
-  temp = (B5+8) >> 4;
-  temp /= 10;
-  return temp;
-
-}
-
-int32_t SensorDriverBmp085::readPressure(void) {
-  int32_t UT, UP, B3, B5, B6, X1, X2, X3, p;
-  uint32_t B4, B7;
-
-  UT = readRawTemperature();
-  UP = readRawPressure();
-
-#if BMP085_DEBUG == 1
-  // use datasheet numbers!
-  UT = 27898;
-  UP = 23843;
-  ac6 = 23153;
-  ac5 = 32757;
-  mc = -8711;
-  md = 2868;
-  b1 = 6190;
-  b2 = 4;
-  ac3 = -14383;
-  ac2 = -72;
-  ac1 = 408;
-  ac4 = 32741;
-  oversampling = 0;
-#endif
-
-  B5 = computeB5(UT);
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("X1 = "); SDDBGSERIAL.println(X1);
-  SDDBGSERIAL.print("X2 = "); SDDBGSERIAL.println(X2);
-  SDDBGSERIAL.print("B5 = "); SDDBGSERIAL.println(B5);
-#endif
-
-  // do pressure calcs
-  B6 = B5 - 4000;
-  X1 = ((int32_t)b2 * ( (B6 * B6)>>12 )) >> 11;
-  X2 = ((int32_t)ac2 * B6) >> 11;
-  X3 = X1 + X2;
-  B3 = ((((int32_t)ac1*4 + X3) << oversampling) + 2) / 4;
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("B6 = "); SDDBGSERIAL.println(B6);
-  SDDBGSERIAL.print("X1 = "); SDDBGSERIAL.println(X1);
-  SDDBGSERIAL.print("X2 = "); SDDBGSERIAL.println(X2);
-  SDDBGSERIAL.print("B3 = "); SDDBGSERIAL.println(B3);
-#endif
-
-  X1 = ((int32_t)ac3 * B6) >> 13;
-  X2 = ((int32_t)b1 * ((B6 * B6) >> 12)) >> 16;
-  X3 = ((X1 + X2) + 2) >> 2;
-  B4 = ((uint32_t)ac4 * (uint32_t)(X3 + 32768)) >> 15;
-  B7 = ((uint32_t)UP - B3) * (uint32_t)( 50000UL >> oversampling );
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("X1 = "); SDDBGSERIAL.println(X1);
-  SDDBGSERIAL.print("X2 = "); SDDBGSERIAL.println(X2);
-  SDDBGSERIAL.print("B4 = "); SDDBGSERIAL.println(B4);
-  SDDBGSERIAL.print("B7 = "); SDDBGSERIAL.println(B7);
-#endif
-
-  if (B7 < 0x80000000) {
-    p = (B7 * 2) / B4;
-  } else {
-    p = (B7 / B4) * 2;
-  }
-  X1 = (p >> 8) * (p >> 8);
-  X1 = (X1 * 3038) >> 16;
-  X2 = (-7357 * p) >> 16;
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("p = "); SDDBGSERIAL.println(p);
-  SDDBGSERIAL.print("X1 = "); SDDBGSERIAL.println(X1);
-  SDDBGSERIAL.print("X2 = "); SDDBGSERIAL.println(X2);
-#endif
-
-  p = p + ((X1 + X2 + (int32_t)3791)>>4);
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("p = "); SDDBGSERIAL.println(p);
-#endif
-  return p;
-}
-
- int SensorDriverBmp085::setup(const char* driver, const int address, const int node, const char* type
-             #if defined (RADIORF24)
-			       , char* mainbuf, size_t lenbuf, RF24Network* network
-               #if defined (AES)
-			       , uint8_t key[] , uint8_t iv[]
-               #endif 
-             #endif
-			       )
-			       {
-
-  SensorDriver::setup(driver,address,node,type
-             #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-               #if defined (AES)
-		      , key,iv
-               #endif
-             #endif
-		      );
-
-  uint8_t mode= BMP085_HIGHRES;
-
-  if (mode > BMP085_ULTRAHIGHRES) 
-    mode = BMP085_ULTRAHIGHRES;
-  oversampling = mode;
-
-  if (read8(0xD0) != 0x55) return false;
-
-  /* read calibration data */
-  ac1 = read16(BMP085_CAL_AC1);
-  ac2 = read16(BMP085_CAL_AC2);
-  ac3 = read16(BMP085_CAL_AC3);
-  ac4 = read16(BMP085_CAL_AC4);
-  ac5 = read16(BMP085_CAL_AC5);
-  ac6 = read16(BMP085_CAL_AC6);
-
-  b1 = read16(BMP085_CAL_B1);
-  b2 = read16(BMP085_CAL_B2);
-
-  mb = read16(BMP085_CAL_MB);
-  mc = read16(BMP085_CAL_MC);
-  md = read16(BMP085_CAL_MD);
-
-#if BMP085_DEBUG == 1
-  SDDBGSERIAL.print("ac1 = "); SDDBGSERIAL.println(ac1, DEC);
-  SDDBGSERIAL.print("ac2 = "); SDDBGSERIAL.println(ac2, DEC);
-  SDDBGSERIAL.print("ac3 = "); SDDBGSERIAL.println(ac3, DEC);
-  SDDBGSERIAL.print("ac4 = "); SDDBGSERIAL.println(ac4, DEC);
-  SDDBGSERIAL.print("ac5 = "); SDDBGSERIAL.println(ac5, DEC);
-  SDDBGSERIAL.print("ac6 = "); SDDBGSERIAL.println(ac6, DEC);
-
-  SDDBGSERIAL.print("b1 = "); SDDBGSERIAL.println(b1, DEC);
-  SDDBGSERIAL.print("b2 = "); SDDBGSERIAL.println(b2, DEC);
-
-  SDDBGSERIAL.print("mb = "); SDDBGSERIAL.println(mb, DEC);
-  SDDBGSERIAL.print("mc = "); SDDBGSERIAL.println(mc, DEC);
-  SDDBGSERIAL.print("md = "); SDDBGSERIAL.println(md, DEC);
-#endif
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverBmp085::prepare(unsigned long& waittime)
-{
-
-  _timing=millis();
-  waittime= 10ul;
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverBmp085::get(long values[],size_t lenvalues)
-{
-
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  if (lenvalues>=1) values[0] = (long) round(float(readPressure())/10.);
-  if (lenvalues>=2) values[1] = (long) round(readTemperature() * 100. + 27315.);
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverBmp085::getJson()
-{
-  long values[2];
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  //if (SensorDriverBmp085::get2(&pressure,&temperature) == SD_SUCCESS){
-  if (SensorDriverBmp085::get(values,2) == SD_SUCCESS){
-    // pressure
-    aJson.addNumberToObject(jsonvalues, "B10004", values[0]);      
-#if defined(SECONDARYPARAMETER)
-    // temperature
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
-#endif
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B10004");
-#if defined(SECONDARYPARAMETER)
-    aJson.addNullToObject(jsonvalues, "B12101");
-#endif
-  }
-  return jsonvalues;
-}
-#endif
-#endif
-
-
-#if defined (HI7021DRIVER)
-int SensorDriverSI7021::setup(const char* driver, const int address, const int node, const char* type
-             #if defined (RADIORF24)
-			       , char* mainbuf, size_t lenbuf, RF24Network* network
-               #if defined (AES)
-			       , uint8_t key[] , uint8_t iv[]
-               #endif
-             #endif
-			       )
-{
-
-  SensorDriver::setup(driver,address,node,type
-             #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-               #if defined (AES)
-		      , key,iv
-               #endif
-             #endif
-		      );
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSI7021::prepare(unsigned long& waittime)
-{
-  Wire.begin();
-  Wire.beginTransmission(_address);
-  Wire.endTransmission();
-  delay(300);
-  _timing=millis();
-  waittime= 50ul;
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSI7021::get(long values[],size_t lenvalues)
-{
-
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  unsigned int data[2];
-  Wire.beginTransmission(_address);
-  Wire.write(0xF5);
-  Wire.endTransmission();
-  delay(500);
-
-  Wire.requestFrom(_address, 2);
-
-  if(Wire.available() == 2)
-  {
-    data[0] = Wire.read();
-    data[1] = Wire.read();
-  }
-
-  float humidity  = ((data[0] * 256.0) + data[1]);
-  humidity = ((125 * humidity) / 65536.0) - 6;
-
-  Wire.beginTransmission(_address);
-  Wire.write(0xF3);
-  Wire.endTransmission();
-
-  delay(500);
-
-  Wire.requestFrom(_address, 2);
-
-  if(Wire.available() == 2)
-  {
-    data[0] = Wire.read();
-    data[1] = Wire.read();
-  }
-
-  long temperature  = ((data[0] * 256.0) + data[1]);
-  temperature =  (((175.72 * float(temperature)) / 65536.0) - 46.85) * 100. + 27315.;
-
-  if (lenvalues >= 1)  values[0] = round (humidity);
-  if (lenvalues >= 2)  values[1] = round(temperature);
-  _timing=0;
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSI7021::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
-  if (SensorDriverSI7021::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
-
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
-#endif
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-#if defined(SECONDARYPARAMETER)
-    // if you have a second value add here
-    aJson.addNullToObject(jsonvalues, "B13003");
-#endif
-  }
-  return jsonvalues;
-}
-#endif
-#endif
-
-
-#if defined (DAVISWIND1)
-int SensorDriverDw1::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif 
-  #endif 
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-  bool oneshot=true;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_WIND_ONESHOT);
-  Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_WIND_COMMAND);
-  Wire.write(I2C_WIND_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverDw1::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_WIND_COMMAND);
-  Wire.write(I2C_WIND_COMMAND_ONESHOT_START);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=millis();
-  // should be better to use SAMPLERATE in config file of i2c-wind
-  waittime= 3000ul;
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverDw1::get(long values[],size_t lenvalues)
-{
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_WIND_COMMAND);
-  Wire.write(I2C_WIND_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  // get DD
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_WIND_DD);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1)  values[0] = (int) lsb<<8 | msb ;
-
-  // get FF
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_WIND_FF);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2)  values[1] = (int) lsb<<8 | msb ;
-
-  // clean register to avoid to get old data next time
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_WIND_COMMAND);
-  Wire.write(I2C_WIND_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-  #if defined(USEAJSON)
-aJsonObject* SensorDriverDw1::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverDw1::get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B11001", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B11001");
-    }
-    // if you have a second value add here
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B11002", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B11002");
-    }
-  }else{
-    aJson.addNullToObject(jsonvalues, "B11001");
-    // if you have a second value add here
-    aJson.addNullToObject(jsonvalues, "B11002");
-  }
-  return jsonvalues;
-}
-  #endif
-#endif
-
-
-#if defined (TIPPINGBUCKETRAINGAUGE)
-int SensorDriverTbr::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=true;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_RAIN_ONESHOT);
-  Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_RAIN_COMMAND);
-  Wire.write(I2C_RAIN_COMMAND_START);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverTbr::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_RAIN_COMMAND);
-  Wire.write(I2C_RAIN_COMMAND_STARTSTOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=millis();
-  waittime= 1ul;
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTbr::get(long values[],size_t lenvalues)
-{
-  unsigned char msb, lsb;
-  //if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get tips
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_RAIN_TIPS);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1)  values[0] = ((int) lsb<<8 | msb) * RAINFORTIP ;
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTbr::getJson()
-{
-  long values[1];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverTbr::get(values,1) == SD_SUCCESS){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13011", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13011");
-    }
-  }else{
-    aJson.addNullToObject(jsonvalues, "B13011");
-  }
-  return jsonvalues;
-}
-#endif
-#endif
-
-
-#if defined (TEMPERATUREHUMIDITY_ONESHOT)
-int SensorDriverTHoneshot::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=true;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_ONESHOT);
-  Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverTHoneshot::prepare(unsigned long& waittime)
-{
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_ONESHOT_START);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  _timing=millis();
-  waittime= 500ul;
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
-{
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // command STOP
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  // get temperature
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_SAMPLE);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get humidity
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_SAMPLE);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTHoneshot::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverTHoneshot::get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
-    }
-
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13003");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B13003");
-  }
-  return jsonvalues;
-}
-#endif
-#endif
-
-#if defined (TEMPERATUREHUMIDITY_REPORT)
-
-
-int SensorDriverTH60mean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-    ntry--;
-    delay(1000);
+void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_setted) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_TH_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(0x03); // Set the register pointer to (0x01)
+    Wire.write(0x20); // Set resolution and one shot
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_START);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverTH60mean::prepare(unsigned long& waittime)
-{
-
-  if (THcounter < 0) THcounter=0;
-  THcounter++;
-  _timing=millis();
-
-  if (THcounter == 1) {
-    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_STOP_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_STOP_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTH60mean::get(long values[],size_t lenvalues)
-{
-  THcounter--;
-
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get temperature
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MEAN60);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-
-  // get humidity
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MEAN60);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (THcounter == 0) {
-    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTH60mean::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverTH60mean::get(values,2) != SD_SUCCESS){
-    delay(1000);
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean get retry ")));
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
-    }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13003");
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B13003");
+    *_is_setted = true;
+    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
   }
-  return jsonvalues;
+  else {
+    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), YES_STRING);
+  }
+
+  _delay_ms = 0;
+  *_is_setted = true;
 }
-#endif
 
+void SensorDriverAdt7420::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
 
-int SensorDriverTHmean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmean setup retry ")));
-    ntry--;
-    delay(1000);
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_TH_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(0x03); // Set the register pointer to (0x01)
+    Wire.write(0x20); // Set resolution and one shot
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_START);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverTHmean::prepare(unsigned long& waittime)
-{
-
-  if (THcounter < 0) THcounter=0;
-  THcounter++;
-  _timing=millis();
-
-  if (THcounter == 1) {
-    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_STOP_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_STOP_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTHmean::get(long values[],size_t lenvalues)
-{
-  THcounter--;
-
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get temperature
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MEAN);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get humidity
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MEAN);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-   if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (THcounter == 0) {
-    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTHmean::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverTHmean::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmean get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13003");      
-    }
+    *_is_prepared = true;
+    _delay_ms = 250;
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B13003");
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
   }
-  return jsonvalues;
-}
-#endif
-
-
-
-int SensorDriverTHmin::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmin setup retry ")));
-    delay(1000);
-    Wire.beginTransmission(_address);
-    Wire.write(I2C_TH_ONESHOT);
-    Wire.write(oneshot);
+  else {
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    _delay_ms = 0;
   }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_START);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
+  _start_time_ms = millis();
 }
 
-int SensorDriverTHmin::prepare(unsigned long& waittime)
-{
-
-  if (THcounter < 0) THcounter=0;
-  THcounter++;
-  _timing=millis();
-
-  if (THcounter == 1) {
-    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_STOP_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_STOP_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTHmin::get(long values[],size_t lenvalues)
-{
-  THcounter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get temperature
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MIN);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get humidity
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MIN);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (THcounter == 0) {
-    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTHmin::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverTHmin::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmin get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
-    }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13003");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B13003");
-  }
-  return jsonvalues;
-}
-#endif
-
-int SensorDriverTHmax::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_TH_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmax setup retry ")));
-    delay(1000);
-    Wire.beginTransmission(_address);
-    Wire.write(I2C_TH_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TH_COMMAND);
-  Wire.write(I2C_TH_COMMAND_START);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverTHmax::prepare(unsigned long& waittime)
-{
-
-  if (THcounter < 0) THcounter=0;
-  THcounter++;
-  _timing=millis();
-  if (THcounter == 1) {
-    // This driver should be the fist of the TH serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_STOP_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_STOP_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverTHmax::get(long values[],size_t lenvalues)
-{
-  THcounter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get temperature
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_TEMPERATURE_MAX);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get humidity
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_HUMIDITY_MAX);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (THcounter == 0) {
-    // This driver should be the last of the TH serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_TH_COMMAND);
-    Wire.write(I2C_TH_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#TH60mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_TH_COMMAND);
-      Wire.write(I2C_TH_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverTHmax::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverTHmax::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#THmax get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B12101");
-    }
-
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B13003");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B12101");
-    aJson.addNullToObject(jsonvalues, "B13003");
-  }
-  return jsonvalues;
-}
-#endif
-
-#endif
-
-
-#if defined (SDS011_ONESHOT)
-int SensorDriverSDS011oneshot::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=true;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
-{
-
-  if (! SDSMICSstarted) {
-    Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
-    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-    SDSMICSstarted=true;
-    waittime= 19500ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  _timing=millis();
-  return SD_SUCCESS;
-}
-
-int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
-{
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  if (SDSMICSstarted) {
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-    SDSMICSstarted=false;
-    delay(100);
-  }
-
-  // get pm25
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_PM25);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get pm10
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_PM10);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS011oneshot::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverSDS011oneshot::get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
-    }
-
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
-#endif
-#if defined(USEARDUINOJSON)
-int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      jsonvalues["B15198"]= values[0];      
-    }else{
-      jsonvalues["B15198"]=RawJson("null");
-    }
-
-    if (values[1] >= 0){
-      jsonvalues["B15195"]= values[1];
-    }else{
-      jsonvalues["B15195"]=RawJson("null");
-    }
-
-  }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
-  }
-
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
-}
-#endif
-
-#if defined (SDS011_LOCALSERIAL)
-// serial driver for SDS011
-
-/*
-SensorDriverSDS011oneshotSerial::SensorDriverSDS011oneshotSerial(){
-  //sdsSerial= new SoftwareSerial(2,3, false, 128);
-  _sds011 = new sds011::Sds011(*sdsSerial);
-  }
-*/
-
-int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
-{
-
-  SensorDriver::setup(driver,address,node,type);
-  //bool oneshot=true;
-
-  _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
-  _sdsSerial->begin(9600);
-  _sds011 = new sds011::Sds011(*_sdsSerial);
-  delay(1000);
- 
-  /*
-  switch (address)
-    {
-    case 0:                  // Serial 0
-      Serial.begin(9600);
-      _sds011 = sds011::Sds011(Serial); 
-      break;
-    case 1:                  // Serial 1
-      Serial1.begin(9600);
-      _sds011 = sds011::Sds011(Serial1);   
-      break;
-    case default:                 // software serial with pins defined by address
-      if (address > 10){
-	SoftwareSerial mySerial(address/10,address%10);
-	mySerial.begin(9600);
-	_sds011 = sds011::Sds011(myserial);   
-      }else{
-	return SD_INTERNAL_ERROR;
+void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
+  static int temperature;
+  uint8_t msb;
+  uint8_t lsb;
+
+  switch (_get_state) {
+    case INIT:
+    temperature = 0;
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+    _is_success = true;
+    _is_readed = false;
+    _is_end = false;
+
+    if (*_is_prepared && length >= 1) {
+      Wire.beginTransmission(_address);
+      Wire.write(0x00); // Set the register pointer to (0x00)
+
+      if (Wire.endTransmission()) {
+        _is_success = false;
       }
-      break;
     }
-  
-  */
+    else {
+      _is_success = false;
+    }
 
-  //sdsSerial->begin(9600);
+    if (_is_success) {
+      _get_state = READ;
+    }
+    else {
+      _get_state = END;
+    }
 
-  //_sds011->set_sleep(false);
-  IF_SDSDEBUG(SDDBGSERIAL.print(F("Sds011 firmware version: ")));
-  IF_SDSDEBUG(SDDBGSERIAL.println(_sds011->firmware_version()));
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
 
-  if (_sds011->set_mode(sds011::QUERY)){
-    //if (_sds011->set_sleep(sds011::SLEEP)){
+    case READ:
+    Wire.requestFrom(_address, (uint8_t) 2);
 
-      SDSMICSstarted=false;
-      _timing=millis();
+    if (Wire.available() < 2) {
+      _is_success = false;
+    }
+    else {
+      msb = Wire.read();
+      lsb = Wire.read();
 
-      return SD_SUCCESS;
-      //}
+      if ((msb == 255) && (lsb == 255)) {
+        _is_success = false;
+      }
+      else {
+        _is_success = true;
+      }
+
+      // it's a 13bit int, using two's compliment for negative
+      temperature = ((msb << 8) | lsb) >> 3 & 0xFFF;
+
+      if (temperature & 0x800) {
+        temperature -= 0x1000;
+      }
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _get_state = END;
+    break;
+
+    case END:
+    if (length >= 1) {
+      if (_is_success) {
+        values[0] = (temperature*6.25) + SENSOR_DRIVER_C_TO_K;
+      }
+      else {
+        values[0] = UINT16_MAX;
+      }
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  return SD_INTERNAL_ERROR;
 }
 
-int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
-{
-  //if (_sds011->set_sleep(sds011::WORK)) {
-    SDSMICSstarted=true;
-    _timing=millis();
-    //waittime= 30000ul;
-    waittime= 10ul;
-    return SD_SUCCESS;
-    //}else{
-    //return SD_INTERNAL_ERROR;
-    //}
-}
+#if (USE_JSON)
+void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverAdt7420::get(values, length);
 
-int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
-{
-  int pm25=0xFFFFFFFF;
-  int pm10=0xFFFFFFFF;
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
 
-  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
-  if (!SDSMICSstarted)  return SD_INTERNAL_ERROR;
-
-  SDSMICSstarted=false;  
-  _timing=0;
-  
-  if (_sds011->query_data_auto(&pm25, &pm10, SDSSAMPLES)) {
-    // get pm25
-    if (lenvalues >= 1) {
-      values[0] = pm25 ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B12101"] = values[0];
+      }
+      else json["B12101"] = RawJson("null");
     }
-    
-    // get pm10
-    if (lenvalues >= 2) {
-      values[1] = pm10 ;
-      //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-    }
-  }else{
-    values[0]=0xFFFFFFFF;
-    values[1]=0xFFFFFFFF;
-    //_sds011->set_sleep(sds011::SLEEP);
-    return SD_INTERNAL_ERROR;
+
+    json.printTo(json_buffer, json_buffer_length);
   }
-
-  //_sds011->set_sleep(sds011::SLEEP);
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverSDS011oneshotSerial::get(values,2) == SD_SUCCESS){
-    if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
-    }
-
-    if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
-#endif
-
-#if defined(USEARDUINOJSON)
-int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,2) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[0];      
-    }else{
-      jsonvalues["B15198"]=RawJson("null");
-    }
-
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[1];
-    }else{
-      jsonvalues["B15195"]=RawJson("null");
-    }
-
-  }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
-  }
-
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
-}
-#endif
-
-//destructor
-SensorDriverSDS011oneshotSerial::~SensorDriverSDS011oneshotSerial(){
-
-  delete _sds011;
-  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
-  //delete _sdsSerial;
 }
 #endif
 
 #endif
 
-#if defined (SDS011_REPORT)
+//------------------------------------------------------------------------------
+// HIH6100
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_HIH)
+bool SensorDriverHih6100::isSetted() {
+  return *_is_setted;
+}
 
+bool SensorDriverHih6100::isPrepared() {
+  return *_is_prepared;
+}
 
-int SensorDriverSDS01160mean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+void SensorDriverHih6100::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  _delay_ms = 0;
+  *_is_setted = true;
+}
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-    ntry--;
-    delay(1000);
+void SensorDriverHih6100::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSDS01160mean::prepare(unsigned long& waittime)
-{
-
-  if (SDS011counter < 0) SDS011counter=0;
-  SDS011counter++;
-  _timing=millis();
-
-  if (SDS011counter == 1) {
-    // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
+
+    *_is_prepared = true;
+    _delay_ms = 40;
+
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+  }
+  else {
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    _delay_ms = 0;
   }
 
-
-  return SD_SUCCESS;
+  _start_time_ms = millis();
 }
 
-int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
-{
-  SDS011counter--;
+void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
+  static uint16_t temperature;
+  static uint16_t humidity;
+  uint8_t x;
+  uint8_t y;
+  uint8_t s;
 
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+  switch (_get_state) {
+    case INIT:
+    temperature = 0;
+    humidity = 0;
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
 
-  // get PM25
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MEANPM25);
+    _is_success = true;
+    _is_readed = false;
+    _is_end = false;
 
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-
-  // get PM10
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MEANPM10);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (SDS011counter == 0) {
-    // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
+    if (*_is_prepared && length >= 1) {
+      _get_state = READ;
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    else {
+      _is_success = false;
+      _get_state = END;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+
+    case READ:
+    Wire.requestFrom(_address, (uint8_t) 4);
+
+    if (Wire.available() < 4) {
+      _is_success = false;
+    }
+    else {
+      x = Wire.read();
+      s = (x & 0xC0 ) >> 6;
+
+      if (s == 0) {
+        // status 0 == OK
+        // Normal Operation, Valid Data that has not been fetched since the last measurement cycle
+
+        y = Wire.read();
+        humidity = (((uint16_t) (x & 0x3F)) << 8) | y;
+
+        x = Wire.read();
+        y = Wire.read();
+
+        temperature = (((uint16_t) x) << 6) | ((y & 0xFC) >> 2);
+        _is_success = true;
+      }
+      else {
+        // status 1
+        // Stale Data: Data that has already been
+        // fetched since the last measurement cycle, or
+        // data fetched before the first measurement
+        // has been completed
+
+        // status 2
+        // Device in Command Mode
+        // Command Mode is used for programming the sensor.
+        // This mode should not be seen during normal operation
+
+        // status 3
+        // Not Used
+        _is_success = false;
+      }
+    }
+
+    if (Wire.endTransmission()) {
+      _is_success = false;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _get_state = END;
+    break;
+
+    case END:
+    if (length >= 1) {
+      if (_is_success) {
+        values[0] = round(float(humidity) / 16382. * 100);
+      }
+      else {
+        values[0] = UINT16_MAX;
+      }
+    }
+
+    if (length >= 2) {
+      if (_is_success) {
+        values[1] = round((float(temperature) / 16382. * 165. - 40.) * 100) + SENSOR_DRIVER_C_TO_K;
+      }
+      else {
+        values[1] = UINT16_MAX;
+      }
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+      }
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
 }
 
-#if defined (USEGETDATA)
-int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
+#if (USE_JSON)
+void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverHih6100::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B13003"] = values[0];
+      }
+      else json["B13003"] = RawJson("null");
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        json["B12101"] = values[1];
+      }
+      else json["B12101"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
 }
 #endif
 
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS01160mean::getJson()
-{
-  long values[2];
+#endif
 
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
+//------------------------------------------------------------------------------
+// HYT2X1
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_HYT)
+bool SensorDriverHyt2X1::isSetted() {
+  return *_is_setted;
+}
 
-  short unsigned int ntry=NTRY;
+bool SensorDriverHyt2X1::isPrepared() {
+  return *_is_prepared;
+}
 
-  while (ntry > 0 && SensorDriverSDS01160mean::get(values,2) != SD_SUCCESS){
-    delay(1000);
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean get retry ")));
-    ntry--;
+void SensorDriverHyt2X1::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  *_is_setted = true;
+  _delay_ms = 0;
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverHyt2X1::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_prepared) {
+    *_is_prepared = Hyt2X1::hyt_initRead(_address);
+    _delay_ms = HYT2X1_CONVERSION_TIME_MS;
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+  }
+  else {
+    _delay_ms = 0;
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
   }
 
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
+  _start_time_ms = millis();
+}
+
+void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
+  static float humidity;
+  static float temperature;
+
+  switch (_get_state) {
+    case INIT:
+    humidity = UINT16_MAX;
+    temperature = UINT16_MAX;
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+    _is_readed = false;
+    _is_end = false;
+
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = READ;
     }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
+    else {
+      _is_success = false;
+      _get_state = END;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+
+    case READ:
+    _is_success = Hyt2X1::hyt_read(_address, &humidity, &temperature);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _get_state = END;
+    break;
+
+    case END:
+    if (length >= 1) {
+      if (_is_success) {
+        values[0] = round(humidity);
+      }
+      else {
+        values[0] = UINT16_MAX;
+      }
+    }
+
+    if (length >= 2) {
+      if (_is_success) {
+        values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
+      }
+      else {
+        values[1] = UINT16_MAX;
+      }
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+      }
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  return jsonvalues;
+}
+
+#if (USE_JSON)
+void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverHyt2X1::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B13003"] = values[0];
+      }
+      else json["B13003"] = RawJson("null");
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        json["B12101"] = values[1];
+      }
+      else json["B12101"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
 }
 #endif
 
+#endif
 
-int SensorDriverSDS011mean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+//------------------------------------------------------------------------------
+// I2C-Wind
+// DW1: oneshot
+//------------------------------------------------------------------------------
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+#if (USE_SENSOR_DW1)
+void SensorDriverDw1::getSDfromUV(int32_t u, int32_t v, double *speed, double *direction) {
+  *speed = sqrt(pow(u, 2) + pow(v, 2));
+  *direction = atan2(-u, -v);
+  *direction *= 180 / M_PI;
+  *direction = 360 + round(*direction);
+  *direction = ((uint16_t) *direction) % 360;
+}
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011mean setup retry ")));
-    ntry--;
-    delay(1000);
+bool SensorDriverDw1::isSetted() {
+  return *_is_setted;
+}
+
+bool SensorDriverDw1::isPrepared() {
+  return *_is_prepared;
+}
+
+void SensorDriverDw1::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverDw1::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  *_is_setted = true;
+  _delay_ms = 0;
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverDw1::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_WINDSONIC_COMMAND);
+    Wire.write(I2C_WINDSONIC_COMMAND_STOP);
+    _delay_ms = 3000;
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSDS011mean::prepare(unsigned long& waittime)
-{
-
-  if (SDS011counter < 0) SDS011counter=0;
-  SDS011counter++;
-  _timing=millis();
-
-  if (SDS011counter == 1) {
-    // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
-{
-  SDS011counter--;
-
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get PM25
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MEANPM25);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get PM10
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MEANPM10);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-   if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (SDS011counter == 0) {
-    // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS011mean::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverSDS011mean::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011mean get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");      
+    *_is_prepared = true;
+
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+  }
+  else {
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    _delay_ms = 0;
+  }
+
+  _start_time_ms = millis();
+}
+
+void SensorDriverDw1::get(int32_t *values, uint8_t length) {
+  const float raddeg = 180 / M_PI;
+  static double speed = UINT16_MAX;
+  static double direction = UINT16_MAX;
+  uint16_t msb;
+  uint16_t lsb;
+
+  switch (_get_state) {
+    case INIT:
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+    _is_readed = false;
+    _is_end = false;
+
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = SET_MEANU_ADDRESS;
+    }
+    else {
+      _is_success = false;
+      _get_state = END;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
-#endif
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
 
-
-
-int SensorDriverSDS011min::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011min setup retry ")));
-    delay(1000);
+    case SET_MEANU_ADDRESS:
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_WINDSONIC_MEANU);
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSDS011min::prepare(unsigned long& waittime)
-{
-
-  if (SDS011counter < 0) SDS011counter=0;
-  SDS011counter++;
-  _timing=millis();
-
-  if (SDS011counter == 1) {
-    // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverSDS011min::get(long values[],size_t lenvalues)
-{
-  SDS011counter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get PM25
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MINPM25);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get PM10
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MINPM10);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (SDS011counter == 0) {
-    // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS011min::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverSDS011min::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011min get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
-    }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
+    if (Wire.endTransmission()) {
+      _is_success = false;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
-#endif
+    _delay_ms = 0;
+    _start_time_ms = millis();
 
-int SensorDriverSDS011max::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+    if (_is_success) {
+      _get_state = READ_MEANU;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+    case READ_MEANU:
+    Wire.requestFrom(_address, (uint8_t) 2);
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011max setup retry ")));
-    delay(1000);
+    if (Wire.available() < 2) {
+      _is_success = false;
+    }
+
+    if (_is_success) {
+      lsb = Wire.read();
+      msb = Wire.read();
+      values[0] = ((int) (msb << 8) | lsb);
+      if (isValid(values[0])) {
+        values[0] -= OFFSET;
+      }
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 2) {
+      _get_state = SET_MEANV_ADDRESS;
+    }
+    else {
+      _get_state = ELABORATE;
+    }
+    break;
+
+    case SET_MEANV_ADDRESS:
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_WINDSONIC_MEANV);
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverSDS011max::prepare(unsigned long& waittime)
-{
-
-  if (SDS011counter < 0) SDS011counter=0;
-  SDS011counter++;
-  _timing=millis();
-  if (SDS011counter == 1) {
-    // This driver should be the fist of the SDS011 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverSDS011max::get(long values[],size_t lenvalues)
-{
-  SDS011counter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get PM25
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MAXPM25);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get PM10
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MAXPM10);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (SDS011counter == 0) {
-    // This driver should be the last of the SDS011 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS01160mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverSDS011max::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverSDS011max::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#SDS011max get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
+    if (Wire.endTransmission()) {
+      _is_success = false;
     }
 
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_MEANV;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_MEANV:
+    Wire.requestFrom(_address, (uint8_t) 2);
+
+    if (Wire.available() < 2) {
+      _is_success = false;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
+    if (_is_success) {
+      lsb = Wire.read();
+      msb = Wire.read();
+      values[1] = ((uint16_t) (msb << 8) | lsb);
+      if (isValid(values[1])) {
+        values[1] -= OFFSET;
+      }
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    _get_state = ELABORATE;
+    break;
+
+    case ELABORATE:
+    if (isValid(values[0]) && isValid(values[1]) && length >= 2) {
+      if (values[0] || values[1]) {
+        SensorDriverDw1::getSDfromUV(values[0], values[1], &speed, &direction);
+
+        if (direction == 0) {
+          direction = 360;
+        }
+      }
+      else {
+        speed = 0;
+        direction = 0;
+      }
+    }
+    _get_state = END;
+    break;
+
+    case END:
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> mean u: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> mean u: ---\r\n"));
+      }
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        SERIAL_DEBUG(F("--> mean v: %u\r\n"), values[1]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> mean v: ---\r\n"));
+      }
+    }
+
+    if (isValid(values[0]) && isValid(values[1]) && length >= 2) {
+      values[0] = (int32_t) direction;
+      values[1] = (int32_t) round(speed);
+      SERIAL_DEBUG(F("--> direction: %u\r\n"), values[0]);
+      SERIAL_DEBUG(F("--> speed: %u\r\n"), values[1]);
+    } else {
+      SERIAL_DEBUG(F("--> direction: ---\r\n"));
+      SERIAL_DEBUG(F("--> speed: ---\r\n"));
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  return jsonvalues;
+}
+
+#if (USE_JSON)
+void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverDw1::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B11001"] = values[0];
+      }
+      else json["B11001"] = RawJson("null");
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        json["B11002"] = values[1];
+      }
+      else json["B11002"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
 }
 #endif
 
 #endif
 
+//------------------------------------------------------------------------------
+// I2C-Rain
+// TBS: oneshot
+// TBR: oneshot
+//------------------------------------------------------------------------------
 
-#if defined (MICS4514_ONESHOT)
-int SensorDriverMICS4514oneshot::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=true;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  delay(10);
-
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
+#if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+bool SensorDriverRain::isSetted() {
+  return *_is_setted;
 }
 
-int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
-{
+bool SensorDriverRain::isPrepared() {
+  return *_is_prepared;
+}
 
-  if (! SDSMICSstarted) {
+void SensorDriverRain::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverRain::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  *_is_setted = true;
+  _delay_ms = 0;
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverRain::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_START);
-    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_COMMAND_ID);
 
-    waittime= 19500ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  _timing=millis();
-  return SD_SUCCESS;
-}
-
-int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
-{
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  if (SDSMICSstarted) {
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_ONESHOT_STOP);
-    if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    SDSMICSstarted=false;
-    delay(100);
-  }
-
-  // get CO
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_CO);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get NO2
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_NO2);
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-
-  Wire.requestFrom(_address, 2);
-  if (Wire.available()<2){
-    return SD_INTERNAL_ERROR;
-  }
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverMICS4514oneshot::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverMICS4514oneshot::get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15196");
+    if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+      Wire.write(I2C_RAIN_COMMAND_ONESHOT_START_STOP);
+      _delay_ms = 0;
+    }
+    else {
+      _delay_ms = 0;
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15193");
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15196");
-    aJson.addNullToObject(jsonvalues, "B15193");
+    *_is_prepared = true;
+
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
   }
-  return jsonvalues;
-}
-#endif
-
-#if defined(USEARDUINOJSON)
-int SensorDriverMICS4514oneshot::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,2) == SD_SUCCESS){
-    if (values[0] >= 0){
-      jsonvalues["B15196"]= values[0];      
-    }else{
-      jsonvalues["B15196"]=RawJson("null");
-    }
-
-    if (values[1] >= 0){
-      jsonvalues["B15193"]= values[1];
-    }else{
-      jsonvalues["B15193"]=RawJson("null");
-    }
-
-  }else{
-    jsonvalues["B15196"]=RawJson("null");
-    jsonvalues["B15193"]=RawJson("null");
+  else {
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    _delay_ms = 0;
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
+  _start_time_ms = millis();
 }
-#endif
-#endif
 
-#if defined (MICS4514_REPORT)
+void SensorDriverRain::get(int32_t *values, uint8_t length) {
+  static uint8_t rain_data[I2C_RAIN_TIPS_LENGTH];
+  uint8_t data_length;
 
+  switch (_get_state) {
+    case INIT:
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+    memset(rain_data, UINT8_MAX, I2C_RAIN_TIPS_LENGTH);
 
-int SensorDriverMICS451460mean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+    _is_readed = false;
+    _is_end = false;
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = SET_RAIN_ADDRESS;
+    }
+    else {
+      _is_success = false;
+      _get_state = END;
+    }
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-    ntry--;
-    delay(1000);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+
+    case SET_RAIN_ADDRESS:
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverMICS451460mean::prepare(unsigned long& waittime)
-{
-
-  if (MICS4514counter < 0) MICS4514counter=0;
-  MICS4514counter++;
-  _timing=millis();
-
-  if (MICS4514counter == 1) {
-    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+      Wire.write(I2C_RAIN_TIPS_ADDRESS);
+      Wire.write(I2C_RAIN_TIPS_LENGTH);
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
+    else _is_success = false;
 
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
-{
-  MICS4514counter--;
-
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get CO
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MEANCO);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-
-  // get NO2
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MEANNO2);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (MICS4514counter == 0) {
-    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
+    if (Wire.endTransmission()) {
+      _is_success = false;
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_RAIN;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_RAIN:
+    if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+      data_length = I2C_RAIN_TIPS_LENGTH;
+    }
+    else _is_success = false;
+
+    Wire.requestFrom(_address, data_length);
+
+    if (Wire.available() < data_length) {
+      _is_success = false;
+    }
+
+    if (_is_success) {
+      for (uint8_t i=0; i<data_length; i++) {
+        rain_data[i] = Wire.read();
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = false;
+
+    if (_is_success) {
+      _get_state = END;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case END:
+    if (length >= 1) {
+      values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+      values[0] *= RAIN_FOR_TIP;
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> rain tips: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> rain tips: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 20;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
 }
 
-#if defined (USEGETDATA)
-int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
+#if (USE_JSON)
+void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverRain::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B13011"] = values[0];
+      }
+      else json["B13011"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
 }
 #endif
 
-#if defined(USEAJSON)
-aJsonObject* SensorDriverMICS451460mean::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverMICS451460mean::get(values,2) != SD_SUCCESS){
-    delay(1000);
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean get retry ")));
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
-    }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
 #endif
 
+//------------------------------------------------------------------------------
+// I2C-TH
+// STH: oneshot
+// ITH: continuous istantaneous
+// MTH: continuous average
+// NTH: continuous min
+// XTH: continuous max
+//------------------------------------------------------------------------------
 
-int SensorDriverMICS4514mean::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+#if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+bool SensorDriverTh::isSetted() {
+  return *_is_setted;
+}
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+bool SensorDriverTh::isPrepared() {
+  return *_is_prepared;
+}
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514mean setup retry ")));
-    ntry--;
-    delay(1000);
+void SensorDriverTh::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+
+  if (!*_is_setted) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_COMMAND_ID);
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverMICS4514mean::prepare(unsigned long& waittime)
-{
-
-  if (MICS4514counter < 0) MICS4514counter=0;
-  MICS4514counter++;
-  _timing=millis();
-
-  if (MICS4514counter == 1) {
-    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      Wire.write(I2C_TH_COMMAND_CONTINUOUS_START);
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
-{
-  MICS4514counter--;
-
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get CO
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MEANCO);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get NO2
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MEANNO2);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-   if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (MICS4514counter == 0) {
-    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
-    }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverMICS4514mean::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverMICS4514mean::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514mean get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15196");
+    else {
+      SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15193");      
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15196");
-    aJson.addNullToObject(jsonvalues, "B15193");
+    *_is_setted = true;
+
+    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
   }
-  return jsonvalues;
+  else {
+    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), YES_STRING);
+  }
 }
-#endif
 
+void SensorDriverTh::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
 
-
-int SensorDriverMICS4514min::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
-
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
-
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
- 
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514min setup retry ")));
-    delay(1000);
+  if (!*_is_prepared) {
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    Wire.write(I2C_COMMAND_ID);
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverMICS4514min::prepare(unsigned long& waittime)
-{
-
-  if (MICS4514counter < 0) MICS4514counter=0;
-  MICS4514counter++;
-  _timing=millis();
-
-  if (MICS4514counter == 1) {
-    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+      Wire.write(I2C_TH_COMMAND_ONESHOT_START_STOP);
+      _delay_ms = 150;
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
-{
-  MICS4514counter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get CO
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MINCO);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get NO2
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MINNO2);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-  
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (MICS4514counter == 0) {
-    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
+    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      Wire.write(I2C_TH_COMMAND_CONTINUOUS_START_STOP);
+      _delay_ms = 0;
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
-}
-
-#if defined (USEGETDATA)
-int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
-}
-#endif
-
-#if defined(USEAJSON)
-aJsonObject* SensorDriverMICS4514min::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverMICS4514min::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514min get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15196");
-    }
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15193");
+    else {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
     }
 
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15196");
-    aJson.addNullToObject(jsonvalues, "B15193");
+    if (Wire.endTransmission()) {
+      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      return;
+    }
+
+    *_is_prepared = true;
+
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
   }
-  return jsonvalues;
+  else {
+    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    _delay_ms = 0;
+  }
+
+  _start_time_ms = millis();
 }
-#endif
 
-int SensorDriverMICS4514max::setup(const char* driver, const int address, const int node, const char* type
-  #if defined (RADIORF24)
-			   , char* mainbuf, size_t lenbuf, RF24Network* network
-    #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
-    #endif
-  #endif
-			   )
-{
+void SensorDriverTh::get(int32_t *values, uint8_t length) {
+  static uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
+  static uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
+  uint8_t data_length;
 
-  SensorDriver::setup(driver,address,node,type
-  #if defined (RADIORF24)
-		      , mainbuf, lenbuf, network
-    #if defined (AES)
-		      , key,iv
-    #endif
-  #endif
-		      );
+  switch (_get_state) {
+    case INIT:
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+    memset(temperature_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
+    memset(humidity_data, UINT8_MAX, I2C_TH_HUMIDITY_DATA_MAX_LENGTH);
 
-  bool oneshot=false;
-  Wire.beginTransmission(_address);
-  Wire.write(I2C_SDSMICS_ONESHOT);
-  Wire.write(oneshot);
-  short unsigned int ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    ntry--;
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514max setup retry ")));
-    delay(1000);
+    _is_readed = false;
+    _is_end = false;
+
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = SET_TEMPERATURE_ADDRESS;
+    }
+    else {
+      _is_success = false;
+      _get_state = END;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+
+    case SET_TEMPERATURE_ADDRESS:
     Wire.beginTransmission(_address);
-    Wire.write(I2C_SDSMICS_ONESHOT);
-    Wire.write(oneshot);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
-  // command START
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDSMICS_COMMAND);
-  Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  ntry=NTRY;
-  while  (ntry>0 && Wire.endTransmission() != 0){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-    ntry--;
-    delay(1000);
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-  }
-  if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-
-  return SD_SUCCESS;
-
-}
-
-int SensorDriverMICS4514max::prepare(unsigned long& waittime)
-{
-
-  if (MICS4514counter < 0) MICS4514counter=0;
-  MICS4514counter++;
-  _timing=millis();
-  if (MICS4514counter == 1) {
-    // This driver should be the fist of the MICS4514 serie; we need to send COMMAND_STOP one time only !
-    // command STOP
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_STOP);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean prepare retry ")));
-      ntry--;
-      delay(1000);
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_STOP);
+    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+      Wire.write(I2C_TH_TEMPERATURE_SAMPLE_ADDRESS);
+      Wire.write(I2C_TH_TEMPERATURE_SAMPLE_LENGTH);
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-    waittime= 100ul;
-  }else{
-    waittime= 1ul;
-  }
-
-  return SD_SUCCESS;
-}
-
-int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
-{
-  MICS4514counter--;
-  unsigned char msb, lsb;
-  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
-
-  // get CO
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_MICS4514_MAXCO);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 1) {
-    values[0] = ((int) lsb<<8 | msb) ;
-    //if (values[0] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  // get NO2
-  Wire.beginTransmission(_address);   // Open I2C line in write mode
-  Wire.write(I2C_SDS011_MAXNO2);
-
-  if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
-  delay(10);
-  Wire.requestFrom(_address, 2);
-
-  //IF_SDSDEBUG(SDDBGSERIAL.print(F("#available: ")));
-  //IF_SDSDEBUG(SDDBGSERIAL.println(Wire.available()));
-
-  if (Wire.available()<2)return SD_INTERNAL_ERROR;
-  msb = Wire.read();
-  lsb = Wire.read();
-
-  if (lenvalues >= 2) {
-    values[1] = ((int) lsb<<8 | msb) ;
-    //if (values[1] == 0 ) return SD_INTERNAL_ERROR;
-  }
-
-  /*
-  if (MICS4514counter == 0) {
-    // This driver should be the last of the MICS4514 serie; we need to send COMMAND_START one time only !
-    // command START
-    Wire.beginTransmission(_address);   // Open I2C line in write mode
-    Wire.write(I2C_SDSMICS_COMMAND);
-    Wire.write(I2C_SDSMICS_COMMAND_START);
-    short unsigned int ntry=NTRY;
-    while  (ntry>0 && Wire.endTransmission() != 0){
-      IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS451460mean setup retry ")));
-      ntry--;
-      delay(1000);
-      // command START
-      Wire.beginTransmission(_address);   // Open I2C line in write mode
-      Wire.write(I2C_SDSMICS_COMMAND);
-      Wire.write(I2C_SDSMICS_COMMAND_START);
+    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+      Wire.write(I2C_TH_TEMPERATURE_MED60_ADDRESS);
+      Wire.write(I2C_TH_TEMPERATURE_MED60_LENGTH);
     }
-    if (ntry == 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
+    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+      Wire.write(I2C_TH_TEMPERATURE_MED_ADDRESS);
+      Wire.write(I2C_TH_TEMPERATURE_MED_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+      Wire.write(I2C_TH_TEMPERATURE_MIN_ADDRESS);
+      Wire.write(I2C_TH_TEMPERATURE_MIN_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      Wire.write(I2C_TH_TEMPERATURE_MAX_ADDRESS);
+      Wire.write(I2C_TH_TEMPERATURE_MAX_LENGTH);
+    }
+    else _is_success = false;
+
+    if (Wire.endTransmission()) {
+      _is_success = false;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_TEMPERATURE;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_TEMPERATURE:
+    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+      data_length = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+      data_length = I2C_TH_TEMPERATURE_MED60_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+      data_length = I2C_TH_TEMPERATURE_MED_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+      data_length = I2C_TH_TEMPERATURE_MIN_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      data_length = I2C_TH_TEMPERATURE_MAX_LENGTH;
+    }
+    else _is_success = false;
+
+    Wire.requestFrom(_address, data_length);
+
+    if (Wire.available() < data_length) {
+      _is_success = false;
+    }
+
+    if (_is_success) {
+      for (uint8_t i=0; i<data_length; i++) {
+        temperature_data[i] = Wire.read();
+      }
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 2) {
+      _get_state = SET_HUMIDITY_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_HUMIDITY_ADDRESS:
+    Wire.beginTransmission(_address);
+
+    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+      Wire.write(I2C_TH_HUMIDITY_SAMPLE_ADDRESS);
+      Wire.write(I2C_TH_HUMIDITY_SAMPLE_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+      Wire.write(I2C_TH_HUMIDITY_MED60_ADDRESS);
+      Wire.write(I2C_TH_HUMIDITY_MED60_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+      Wire.write(I2C_TH_HUMIDITY_MED_ADDRESS);
+      Wire.write(I2C_TH_HUMIDITY_MED_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+      Wire.write(I2C_TH_HUMIDITY_MIN_ADDRESS);
+      Wire.write(I2C_TH_HUMIDITY_MIN_LENGTH);
+    }
+    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      Wire.write(I2C_TH_HUMIDITY_MAX_ADDRESS);
+      Wire.write(I2C_TH_HUMIDITY_MAX_LENGTH);
+    }
+    else _is_success = false;
+
+    if (Wire.endTransmission()) {
+      _is_success = false;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_HUMIDITY;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_HUMIDITY:
+    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+      data_length = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+      data_length = I2C_TH_HUMIDITY_MED60_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+      data_length = I2C_TH_HUMIDITY_MED_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+      data_length = I2C_TH_HUMIDITY_MIN_LENGTH;
+    }
+    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      data_length = I2C_TH_HUMIDITY_MAX_LENGTH;
+    }
+    else _is_success = false;
+
+    Wire.requestFrom(_address, data_length);
+
+    if (Wire.available() < data_length) {
+      _is_success = false;
+    }
+
+    if (_is_success) {
+      for (uint8_t i=0; i<data_length; i++) {
+        humidity_data[i] = Wire.read();
+      }
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _get_state = END;
+    break;
+
+    case END:
+    if (length >= 1) {
+      if (_is_success) {
+        values[0] = ((uint16_t)(temperature_data[1] << 8) | (temperature_data[0]));
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 2) {
+      if (_is_success) {
+        values[1] = ((uint16_t)(humidity_data[1] << 8) | (humidity_data[0]));
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+      }
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[1]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
-  */
-
-  _timing=0;
-
-  return SD_SUCCESS;
-
 }
 
-#if defined (USEGETDATA)
-int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
-{
-  data=0xFFFFFFFF;
-  return SD_INTERNAL_ERROR;
+#if (USE_JSON)
+void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverTh::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B12101"] = values[0];
+      }
+      else json["B12101"] = RawJson("null");
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        json["B13003"] = values[1];
+      }
+      else json["B13003"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
 }
 #endif
 
-#if defined(USEAJSON)
-aJsonObject* SensorDriverMICS4514max::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-
-  short unsigned int ntry=NTRY;
-
-  while (ntry > 0 && SensorDriverMICS4514max::get(values,2) != SD_SUCCESS){
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#MICS4514max get retry ")));
-    delay(1000);
-    ntry--;
-  }
-
-  if (ntry > 0){
-    if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15196");
-    }
-
-    if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15193");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15196");
-    aJson.addNullToObject(jsonvalues, "B15193");
-  }
-  return jsonvalues;
-}
-#endif
 #endif
 
+//------------------------------------------------------------------------------
+// DigitEco Power
+//------------------------------------------------------------------------------
 
-#if defined (HPM_ONESHOT)
-
-int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
-{
-
-  SensorDriver::setup(driver,address,node,type);
-  //bool oneshot=true;
-
-  #if defined(ARDUINO_ARCH_ESP8266)
-  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX, false, 128);
-  #else
-  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX);
-  //_hpmSerial= &Serial1;
-  #endif
-
-  _hpmSerial->begin(9600);
-  _hpm = new hpm();
-  delay(1000);
-
-  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build HPM")));
-  
-  if(_hpm->init(_hpmSerial)){
-    if( _hpm->stopParticleMeasurement()){
-      HPMstarted=false;
-      _timing=millis();
-
-      return SD_SUCCESS;
-    }
-  }
-  return SD_INTERNAL_ERROR;
+#if (USE_SENSOR_DEP)
+bool SensorDriverDigitecoPower::isSetted() {
+  return *_is_setted;
 }
 
-int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
-{
-  if(_hpm->startParticleMeasurement()){
-    HPMstarted=true;
-    _timing=millis();
-    //waittime= 6000ul;
-    waittime= 14500ul;
-    return SD_SUCCESS;
-  }else{
-    return SD_INTERNAL_ERROR;
+bool SensorDriverDigitecoPower::isPrepared() {
+  return *_is_prepared;
+}
+
+void SensorDriverDigitecoPower::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  *_is_setted = true;
+  _delay_ms = 0;
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverDigitecoPower::prepare() {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  _delay_ms = 0;
+  *_is_prepared = true;
+  _start_time_ms = millis();
+  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
+  static float battery_charge;
+  static float battery_voltage;
+  static float battery_current;
+  static float input_voltage;
+  static float input_current;
+  static float output_voltage;
+
+  switch (_get_state) {
+    case INIT:
+    memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+    _is_readed = false;
+    _is_end = false;
+
+    if (*_is_prepared && length >= 1) {
+      _is_success = true;
+      _get_state = SET_BATTERY_CHARGE_ADDRESS;
+    }
+    else {
+      _is_success = false;
+      _get_state = END;
+    }
+
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    break;
+
+    case SET_BATTERY_CHARGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_BATTERY_CHARGE;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_BATTERY_CHARGE:
+    _is_success = DigitecoPower::de_read(_address, &battery_charge);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 2) {
+      _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_BATTERY_VOLTAGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_BATTERY_VOLTAGE;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_BATTERY_VOLTAGE:
+    _is_success = DigitecoPower::de_read(_address, &battery_voltage);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 3) {
+      _get_state = SET_BATTERY_CURRENT_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_BATTERY_CURRENT_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_BATTERY_CURRENT;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_BATTERY_CURRENT:
+    _is_success = DigitecoPower::de_read(_address, &battery_current);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 4) {
+      _get_state = SET_INPUT_VOLTAGE_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_INPUT_VOLTAGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_INPUT_VOLTAGE;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_INPUT_VOLTAGE:
+    _is_success = DigitecoPower::de_read(_address, &input_voltage);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 5) {
+      _get_state = SET_INPUT_CURRENT_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_INPUT_CURRENT_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_CURRENT_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_INPUT_CURRENT;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_INPUT_CURRENT:
+    _is_success = DigitecoPower::de_read(_address, &input_current);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 6) {
+      _get_state = SET_OUTPUT_VOLTAGE_ADDRESS;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case SET_OUTPUT_VOLTAGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_OUTPUT_VOLTAGE_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _get_state = READ_OUTPUT_VOLTAGE;
+    }
+    else {
+      _get_state = END;
+    }
+    break;
+
+    case READ_OUTPUT_VOLTAGE:
+    _is_success = DigitecoPower::de_read(_address, &output_voltage);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+    _get_state = END;
+    break;
+
+    case END:
+    if (length >= 1) {
+      if (_is_success) {
+        values[0] = battery_charge;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 2) {
+      if (_is_success) {
+        values[1] = battery_voltage * 10;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 3) {
+      if (_is_success) {
+        values[2] = battery_current;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 4) {
+      if (_is_success) {
+        values[3] = input_voltage * 10;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 5) {
+      if (_is_success) {
+        values[4] = input_current * 1000;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    if (length >= 6) {
+      if (_is_success) {
+        values[5] = output_voltage * 10;
+      }
+      else {
+        _is_success = false;
+      }
+    }
+
+    SensorDriver::printInfo(_driver, _type, _address, _node);
+    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        SERIAL_DEBUG(F("--> battery charge: %ld %%\r\n"), values[0]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> battery charge: ---\r\n"));
+      }
+    }
+
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        SERIAL_DEBUG(F("--> battery voltage: %ld V\r\n"), values[1]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> battery voltage: ---\r\n"));
+      }
+    }
+
+    if (length >= 3) {
+      if (isValid(values[2])) {
+        SERIAL_DEBUG(F("--> battery current: %ld mA\r\n"), values[2]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> battery current: ---\r\n"));
+      }
+    }
+
+    if (length >= 4) {
+      if (isValid(values[3])) {
+        SERIAL_DEBUG(F("--> input voltage: %ld V\r\n"), values[3]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> input voltage: ---\r\n"));
+      }
+    }
+
+    if (length >= 5) {
+      if (isValid(values[4])) {
+        SERIAL_DEBUG(F("--> input current: %ld mA\r\n"), values[4]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> input current: ---\r\n"));
+      }
+    }
+
+    if (length >= 6) {
+      if (isValid(values[5])) {
+        SERIAL_DEBUG(F("--> output voltage: %ld V\r\n"), values[5]);
+      }
+      else {
+        SERIAL_DEBUG(F("--> output voltage: ---\r\n"));
+      }
+    }
+
+    _start_time_ms = millis();
+    _delay_ms = 0;
+    _is_end = true;
+    _is_readed = false;
+    _get_state = INIT;
+    break;
   }
 }
 
-int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
-{
-  unsigned int pm25;
-  unsigned int pm10;
+#if (USE_JSON)
+void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverDigitecoPower::get(values, length);
 
-  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
-  if (!HPMstarted)  return SD_INTERNAL_ERROR;
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
 
-  HPMstarted=false;  
-  _timing=0;
-
-  // measure
-  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
-  _hpm->stopParticleMeasurement();
-
-  if (status){
-
-  // get pm25
-    if (lenvalues >= 1) {
-      values[0] = pm25*10 ;
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B25192"] = values[0];
+      }
+      else json["B25192"] = RawJson("null");
     }
 
-    // get pm10
-    if (lenvalues >= 2) {
-      values[1] = pm10*10 ;
+    if (length >= 2) {
+      if (isValid(values[1])) {
+        json["B25025"] = values[1];
+      }
+      else json["B25025"] = RawJson("null");
     }
 
-    return SD_SUCCESS;
-  } else {
-    IF_SDSDEBUG(SDDBGSERIAL.println(F("#hpm error")));
-    return SD_INTERNAL_ERROR;    
-  }
-}
+    if (length >= 3) {
+      if (isValid(values[2])) {
+        json["B25193"] = values[2];
+      }
+      else json["B25193"] = RawJson("null");
+    }
 
-#if defined (USEGETDATA)
-int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& width)
-{
+    if (length >= 4) {
+      if (isValid(values[3])) {
+        json["B00004"] = values[3];
+      }
+      else json["B00004"] = RawJson("null");
+    }
 
-  long values[1];
-  width=20;
-  const long reference=0;
-  
-  if (SensorDriverHPMoneshotSerial::get(values,1) == SD_SUCCESS){
-    data=(values[0]-reference);// << (sizeof(values[1])-width);
-  }else{
-    data=0xFFFFFFFF;
-    return SD_INTERNAL_ERROR;
+    if (length >= 5) {
+      if (isValid(values[4])) {
+        json["B00005"] = values[4];
+      }
+      else json["B00005"] = RawJson("null");
+    }
+
+    if (length >= 6) {
+      if (isValid(values[5])) {
+        json["B00006"] = values[5];
+      }
+      else json["B00006"] = RawJson("null");
+    }
+
+    json.printTo(json_buffer, json_buffer_length);
   }
-  return SD_SUCCESS;
-  
 }
 #endif
 
-#if defined(USEAJSON)
-aJsonObject* SensorDriverHPMoneshotSerial::getJson()
-{
-  long values[2];
-
-  aJsonObject* jsonvalues;
-  jsonvalues = aJson.createObject();
-  if (SensorDriverHPMoneshotSerial::get(values,2) == SD_SUCCESS){
-    if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15198");
-    }
-
-    if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
-    }else{
-      aJson.addNullToObject(jsonvalues, "B15195");
-    }
-
-  }else{
-    aJson.addNullToObject(jsonvalues, "B15198");
-    aJson.addNullToObject(jsonvalues, "B15195");
-  }
-  return jsonvalues;
-}
 #endif
-
-#if defined(USEARDUINOJSON)
-int SensorDriverHPMoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
-{
-  long values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
-
-  if (get(values,2) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[0];      
-    }else{
-      jsonvalues["B15198"]=RawJson("null");
-    }
-
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[1];
-    }else{
-      jsonvalues["B15195"]=RawJson("null");
-    }
-
-  }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
-  }
-
-  jsonvalues.printTo(json_buffer, json_buffer_length);
-  return SD_SUCCESS;
-}
-#endif
-
-//destructor
-SensorDriverHPMoneshotSerial::~SensorDriverHPMoneshotSerial(){
-
-  delete _hpm;
-  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
-  //delete _hpmSerial;
-}
-
-
-#endif
-
-
-
-
-

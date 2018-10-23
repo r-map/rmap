@@ -1,21 +1,26 @@
-/* FatLib Library
- * Copyright (C) 2013 by William Greiman
+/**
+ * Copyright (c) 2011-2018 Bill Greiman
+ * This file is part of the SdFat library for SD memory cards.
  *
- * This file is part of the FatLib Library
+ * MIT License
  *
- * This Library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * This Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with the FatLib Library.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 /**
  * \file
@@ -53,19 +58,6 @@
 #define USE_LONG_FILE_NAMES 1
 #endif  // USE_LONG_FILE_NAMES
 //------------------------------------------------------------------------------
-/** 
- * Set ARDUINO_FILE_USES_STREAM nonzero to use Stream as the base class
- * for the Arduino File class.  If ARDUINO_FILE_USES_STREAM is zero, Print
- * will be used as the base class for the Arduino File class.
- *
- * You can save some flash if you do not use Stream input functions such as
- * find(), findUntil(), readBytesUntil(), readString(), readStringUntil(), 
- * parseInt(), and parsefloat().
- */
-#ifndef ARDUINO_FILE_USES_STREAM
-#define ARDUINO_FILE_USES_STREAM 1
-#endif  // ARDUINO_FILE_USES_STREAM
-//------------------------------------------------------------------------------
 /**
  * Set USE_SEPARATE_FAT_CACHE non-zero to use a second 512 byte cache
  * for FAT table entries.  Improves performance for large writes that
@@ -91,6 +83,15 @@
 #define USE_MULTI_BLOCK_IO 1
 #endif  // RAMEND
 #endif  // USE_MULTI_BLOCK_IO
+//------------------------------------------------------------------------------
+/**
+ * Set MAINTAIN_FREE_CLUSTER_COUNT nonzero to keep the count of free clusters
+ * updated.  This will increase the speed of the freeClusterCount() call
+ * after the first call.  Extra flash will be required.
+ */
+#ifndef MAINTAIN_FREE_CLUSTER_COUNT
+#define MAINTAIN_FREE_CLUSTER_COUNT 0
+#endif  // MAINTAIN_FREE_CLUSTER_COUNT
 //------------------------------------------------------------------------------
 /**
  * Set DESTRUCTOR_CLOSES_FILE non-zero to close a file in its destructor.
@@ -133,7 +134,9 @@
 /**
  *  Enable Extra features for Arduino.
  */
+// #define ENABLE_ARDUINO_FEATURES 0  ////////////////////////FIX THIS /////////////////
 #ifndef ENABLE_ARDUINO_FEATURES
+#include <Arduino.h>
 #if defined(ARDUINO) || defined(PLATFORM_ID) || defined(DOXYGEN)
 #define ENABLE_ARDUINO_FEATURES 1
 #else  //  #if defined(ARDUINO) || defined(DOXYGEN)

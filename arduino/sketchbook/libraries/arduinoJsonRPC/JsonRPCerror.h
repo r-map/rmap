@@ -4,6 +4,7 @@
 enum _error
 {
     E_SUCCESS = 0,
+    E_BUSY = -1,
     E_PARSE_ERROR=-32700,
     E_INVALID_REQUEST=-32600,
     E_METHOD_NOT_FOUND=-32601,

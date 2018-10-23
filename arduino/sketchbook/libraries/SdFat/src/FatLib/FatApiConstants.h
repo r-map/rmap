@@ -1,67 +1,72 @@
-/* FatLib Library
- * Copyright (C) 2013 by William Greiman
+/**
+ * Copyright (c) 2011-2018 Bill Greiman
+ * This file is part of the SdFat library for SD memory cards.
  *
- * This file is part of the FatLib Library
+ * MIT License
  *
- * This Library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a
+ * copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation
+ * the rights to use, copy, modify, merge, publish, distribute, sublicense,
+ * and/or sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following conditions:
  *
- * This Library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included
+ * in all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with the FatLib Library.  If not, see
- * <http://www.gnu.org/licenses/>.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+ * OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+ * DEALINGS IN THE SOFTWARE.
  */
 #ifndef FatApiConstants_h
 #define FatApiConstants_h
 //------------------------------------------------------------------------------
 // use the gnu style oflag in open()
 /** open() oflag for reading */
-uint8_t const O_READ = 0X01;
+const uint8_t O_READ = 0X01;
 /** open() oflag - same as O_IN */
-uint8_t const O_RDONLY = O_READ;
+const uint8_t O_RDONLY = O_READ;
 /** open() oflag for write */
-uint8_t const O_WRITE = 0X02;
+const uint8_t O_WRITE = 0X02;
 /** open() oflag - same as O_WRITE */
-uint8_t const O_WRONLY = O_WRITE;
+const uint8_t O_WRONLY = O_WRITE;
 /** open() oflag for reading and writing */
-uint8_t const O_RDWR = (O_READ | O_WRITE);
+const uint8_t O_RDWR = (O_READ | O_WRITE);
 /** open() oflag mask for access modes */
-uint8_t const O_ACCMODE = (O_READ | O_WRITE);
+const uint8_t O_ACCMODE = (O_READ | O_WRITE);
 /** The file offset shall be set to the end of the file prior to each write. */
-uint8_t const O_APPEND = 0X04;
+const uint8_t O_APPEND = 0X04;
 /** synchronous writes - call sync() after each write */
-uint8_t const O_SYNC = 0X08;
+const uint8_t O_SYNC = 0X08;
 /** truncate the file to zero length */
-uint8_t const O_TRUNC = 0X10;
+const uint8_t O_TRUNC = 0X10;
 /** set the initial position at the end of the file */
-uint8_t const O_AT_END = 0X20;
+const uint8_t O_AT_END = 0X20;
 /** create the file if nonexistent */
-uint8_t const O_CREAT = 0X40;
+const uint8_t O_CREAT = 0X40;
 /** If O_CREAT and O_EXCL are set, open() shall fail if the file exists */
-uint8_t const O_EXCL = 0X80;
+const uint8_t O_EXCL = 0X80;
 
 // FatFile class static and const definitions
 // flags for ls()
 /** ls() flag for list all files including hidden. */
-uint8_t const LS_A = 1;
+const uint8_t LS_A = 1;
 /** ls() flag to print modify. date */
-uint8_t const LS_DATE = 2;
+const uint8_t LS_DATE = 2;
 /** ls() flag to print file size. */
-uint8_t const LS_SIZE = 4;
+const uint8_t LS_SIZE = 4;
 /** ls() flag for recursive list of subdirectories */
-uint8_t const LS_R = 8;
+const uint8_t LS_R = 8;
 
 // flags for timestamp
 /** set the file's last access date */
-uint8_t const T_ACCESS = 1;
+const uint8_t T_ACCESS = 1;
 /** set the file's creation date and time */
-uint8_t const T_CREATE = 2;
+const uint8_t T_CREATE = 2;
 /** Set the file's write date and time */
-uint8_t const T_WRITE = 4;
+const uint8_t T_WRITE = 4;
 #endif  // FatApiConstants_h

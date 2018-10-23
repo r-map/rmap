@@ -1,0 +1,51 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP CONN_1x27
+D Connettore Microduino
+$ENDCMP
+#
+$CMP ESDA6V1-5W6
+D Soppressore di disturbi
+$ENDCMP
+#
+$CMP FT232RL
+D USB to RS232 transceiver
+F http://www.ftdichip.com/Support/Documents/DataSheets/ICs/DS_FT232R.pdf
+$ENDCMP
+#
+$CMP GS4
+D Selettore 4 vie
+$ENDCMP
+#
+$CMP MIC29302-ADJ
+D High-Current Low Dropout Regulators in SOT Package SOT263-5
+F http://ww1.microchip.com/downloads/en/DeviceDoc/20005685A.pdf
+$ENDCMP
+#
+$CMP PCA9517
+D 5 channels I2C Hub, SO/TSSOP16
+K I2C Hub
+F http://www.nxp.com/documents/data_sheet/PCA9518.pdf
+$ENDCMP
+#
+$CMP PIC16F88
+D 8 bit microcontroller
+K PIC
+F http://ww1.microchip.com/downloads/en/DeviceDoc/30487D.pdf
+$ENDCMP
+#
+$CMP SIM-CARD
+D SIM-CARD telefonica
+$ENDCMP
+#
+$CMP SIM800C
+D MODULO GSM/GPRS 42 PIN
+K SIM800C
+$ENDCMP
+#
+$CMP TLV62569
+D High Efficiency Synchronous Buck Converter in SOT Package SOT23-5
+F http://www.ti.com/lit/ds/symlink/tlv62569.pdf
+$ENDCMP
+#
+#End Doc Library

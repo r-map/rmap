@@ -1,0 +1,30 @@
+Source,C:/PROGETTI_KICAD/Microduino_DE/Microduino_GSM_DE/SIM_shield_DE/Microduino_SIM_shield_DE.sch
+Kicad Rev,Eeschema 4.0.6
+Generated Date,07/12/2017 14:12:21
+
+Title,Microduino SIM shield DE
+Company,Not Set
+Revision,2.0
+Date Issue,04 dicembre 2017
+
+Reference,Value,Library,Library Ref
+P1,CONN_1x27,Libreria_SCH_mia,CONN_1x27
+P2,CONN_01X06,conn,CONN_01X06
+C8,100nF,device,C
+R3,560k,device,R
+R1,100k,device,R
+R4,50,device,R
+R5,50,device,R
+R6,50,device,R
+U2,ESDA6V1-5W6,Libreria_SCH_mia,ESDA6V1-5W6
+SIM1,SIM-CARD,Libreria_SCH_mia,SIM-CARD
+C7,100uF,device,CP
+C6,100uF,device,CP
+U1,TLV62569,Libreria_SCH_mia,TLV62569
+L1,1 uH,device,L
+C1,4,7uF,device,C
+C4,10uF,device,C
+C5,100nF,device,C
+R2,10k,device,R
+C2,100nF,device,C
+C3,10uF,device,C
