@@ -1,7 +1,7 @@
 # These can be overridden in platform.local.txt
 runtime.tools.avr-gcc.path= /usr
 compiler.c.extra_flags= -std=c11
-compiler.c.elf.extra_flags=
+compiler.c.elf.extra_flags=-Wl,-u,vfprintf -lprintf_flt
 compiler.S.extra_flags=
 compiler.cpp.extra_flags= -DSERIAL_TX_BUFFER_SIZE=192 -DSERIAL_RX_BUFFER_SIZE=192 -fno-strict-aliasing  -std=c++11
 compiler.ar.extra_flags=

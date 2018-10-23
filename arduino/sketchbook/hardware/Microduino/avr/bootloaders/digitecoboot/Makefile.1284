@@ -1,0 +1,18 @@
+atmega1284p: TARGET = atmega1284p
+atmega1284p: MCU_TARGET = atmega1284p
+atmega1284p: F_CPU = 16000000
+atmega1284p: BOOT_ADR = 0x1F000
+atmega1284p: BAUD_RATE = 115200
+atmega1284p: $(PROGRAM)_atmega1284p.hex
+atmega1284p: $(PROGRAM)_atmega1284p.lst
+
+atmega1284_isp: atmega1284p
+atmega1284_isp: TARGET = atmega1284p
+atmega1284_isp: MCU_TARGET = atmega1284p
+# 8192 byte boot
+atmega1284_isp: HFUSE ?= D8
+# Full Swing xtal (16MHz) 16KCK/14CK+65ms
+atmega1284_isp: LFUSE ?= F7
+# 2.7V brownout
+atmega1284_isp: EFUSE ?= FD
+atmega1284_isp: isp

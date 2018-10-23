@@ -53,6 +53,8 @@
                                  -1)                            
                                 
 #define digitalPinHasPWM(p)         ((p) == 4 ||(p) == 5 ||(p) == 6 ||(p) == 7 ||(p) == 8 ||(p) == 9 ||(p) == 10)
+#define digitalPinToInterrupt(p) ((p) == 2 ? 2 : ((p) == 3 ? 3 : ((p) == 5 ? 4 : ((p) == 6 ? 5 : ((p) == 18 ? 1 :((p) == 19 ? 0 : NOT_AN_INTERRUPT))))))
+
 
 const static uint8_t SCK  = 13;
 const static uint8_t MISO = 12;
@@ -61,7 +63,6 @@ const static uint8_t SS = 10;
 
 const static uint8_t SDA = 18;
 const static uint8_t SCL = 19;
-const static uint8_t LED = 13;
 
 const static uint8_t A0 = 14;
 const static uint8_t A1 = 15;
@@ -98,7 +99,7 @@ const static uint8_t A7 = 21;
                                 ( ((p) == 8) ? 6 : \
                                 ( ((p) == 7) ? 7 : \
                                 ( ((p) == 0) ? 0 : \
-                                0 ) ) ) ) ) ) )
+                                0 ) ) ) ) ) ) ))
 
 #ifdef ARDUINO_MAIN
 

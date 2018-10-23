@@ -144,6 +144,9 @@ extern const uint8_t PROGMEM analog_pin_to_channel_PGM[];
                                  ((p) == 4) ? 10 : \
                                  -1)                         
                                  
+#define digitalPinHasPWM(p)         ((p) == 3 || (p) == 4 || (p) == 5 || (p) == 6 || (p) == 7 || (p) == 8 || (p) == 9 || (p) == 19)
+#define digitalPinToInterrupt(p) ((p) == 0 ? 2 : ((p) == 1 ? 3 : ((p) == 2 ? 4 : ((p) == 18 ? 1 : ((p) == 19 ? 0 : NOT_AN_INTERRUPT)))))
+
 #ifdef ARDUINO_MAIN
 
 
@@ -286,5 +289,26 @@ const uint8_t PROGMEM digital_pin_to_timer_PGM[] = {
 #define SERIAL_PORT_USBVIRTUAL     Serial
 #define SERIAL_PORT_HARDWARE       Serial1
 #define SERIAL_PORT_HARDWARE_OPEN  Serial1
+
+// Alias SerialUSB to Serial
+#define SerialUSB SERIAL_PORT_USBVIRTUAL
+
+// Bootloader related fields
+// Old Caterian bootloader places the MAGIC key into unsafe RAM locations (it can be rewritten
+// by the running sketch before to actual reboot).
+// Newer bootloaders, recognizable by the LUFA "signature" at the end of the flash, can handle both
+// the usafe and the safe location. Check once (in USBCore.cpp) if the bootloader in new, then set the global
+// _updatedLUFAbootloader variable to true/false and place the magic key consequently
+#ifndef MAGIC_KEY
+#define MAGIC_KEY 0x7777
+#endif
+
+#ifndef MAGIC_KEY_POS
+#define MAGIC_KEY_POS 0x0800
+#endif
+
+#ifndef NEW_LUFA_SIGNATURE
+#define NEW_LUFA_SIGNATURE 0xDCFB
+#endif
 
 #endif /* Pins_Arduino_h */

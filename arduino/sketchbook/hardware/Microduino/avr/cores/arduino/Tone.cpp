@@ -96,6 +96,13 @@ volatile uint8_t timer5_pin_mask;
 const uint8_t PROGMEM tone_pin_to_timer_PGM[] = { 2 /*, 3, 4, 5, 1, 0 */ };
 static uint8_t tone_pins[AVAILABLE_TONE_PINS] = { 255 /*, 255, 255, 255, 255, 255 */ };
 
+#elif defined(__AVR_ATmega128RFA1__)
+
+#define AVAILABLE_TONE_PINS 6
+
+const uint8_t PROGMEM tone_pin_to_timer_PGM[] = { 5, 4, 0, 2, 1, 3 };
+static uint8_t tone_pins[AVAILABLE_TONE_PINS] = { 255, 255, 255, 255, 255, 255 };
+
 #elif defined(__AVR_ATmega8__)
 
 #define AVAILABLE_TONE_PINS 1
@@ -209,7 +216,7 @@ static int8_t toneBegin(uint8_t _pin)
         #if defined(WGM42)
           bitWrite(TCCR4B, WGM42, 1);
         #elif defined(CS43)
-          #warning this may not be correct
+          // TODO this may not be correct
           // atmega32u4
           bitWrite(TCCR4B, CS43, 1);
         #endif
@@ -485,6 +492,7 @@ void noTone(uint8_t _pin)
     if (tone_pins[i] == _pin) {
       _timer = pgm_read_byte(tone_pin_to_timer_PGM + i);
       tone_pins[i] = 255;
+      break;
     }
   }
   

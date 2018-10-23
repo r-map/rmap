@@ -1,0 +1,18 @@
+atmega644p: TARGET = atmega644p
+atmega644p: MCU_TARGET = atmega644p
+atmega644p: F_CPU = 8000000
+atmega644p: BOOT_ADR = 0xF000
+atmega644p: BAUD_RATE = 57600
+atmega644p: $(PROGRAM)_atmega644p.hex
+atmega644p: $(PROGRAM)_atmega644p.lst
+
+atmega644_isp: atmega644
+atmega644_isp: TARGET = atmega644p
+atmega644_isp: MCU_TARGET = atmega644p
+# 8192 byte boot
+atmega644_isp: HFUSE ?= D8
+# Full Swing xtal (16MHz) 16KCK/14CK+65ms
+atmega644_isp: LFUSE ?= FF
+# 2.7V brownout
+atmega644_isp: EFUSE ?= FD
+atmega644_isp: isp

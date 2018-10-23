@@ -17,6 +17,7 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
   Modified 2012 by Todd Krein (todd@krein.org) to implement repeated starts
+  Modified 2017 by Marco Baldinetti (m.baldinetti@digiteco.it) to solve multi-master communication
 */
 
 #include <math.h>
@@ -236,6 +237,17 @@ uint8_t twi_writeTo(uint8_t address, uint8_t* data, uint8_t length, uint8_t wait
   while(TWI_READY != twi_state){
     continue;
   }
+
+  // solve multi-master communication based on http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
+  // if bus is busy (SDA or SCL low state), wait till it gets free
+  uint32_t start_time_micros = micros();
+  uint32_t end_time_micros = (uint32_t)(2000000.0 / I2C_BUS_CLOCK) + (TWAR >> 1); // add extra delay based on address
+
+  while (micros() - start_time_micros <=  end_time_micros) {
+    if (digitalRead(SDA) == LOW || digitalRead(SCL) == LOW)
+      start_time_micros = micros();
+  }
+
   twi_state = TWI_MTX;
   twi_sendStop = sendStop;
   // reset error state (0xFF.. no error occured)
