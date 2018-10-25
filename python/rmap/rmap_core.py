@@ -971,7 +971,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
                         print("mybaudrate:",mybaudrate)
 
-                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5)
+                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5,sleep=5)
                         
                 except ObjectDoesNotExist:
                     print("transport serial not present for this board")
