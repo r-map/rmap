@@ -1,11 +1,13 @@
 # coding=utf-8
 
-__all__ = ["MapView", "MapMarker", "MapMarkerPopup", "MapLayer", "MarkerMapLayer"]
+__all__ = ["MapView", "MapMarker", "MapMarkerPopup", "MapLayer",
+           "MarkerMapLayer"]
 
 from os.path import join, dirname
 from kivy.clock import Clock
 from kivy.metrics import dp
 from kivy.uix.widget import Widget
+from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.uix.scatter import Scatter
 from kivy.uix.behaviors import ButtonBehavior
@@ -20,7 +22,9 @@ from mapview import MIN_LONGITUDE, MAX_LONGITUDE, MIN_LATITUDE, MAX_LATITUDE, \
     CACHE_DIR, Coordinate, Bbox
 from mapview.source import MapSource
 from mapview.utils import clamp
+from itertools import takewhile
 
+import webbrowser
 
 Builder.load_string("""
 <MapMarker>:
@@ -48,13 +52,14 @@ Builder.load_string("""
             size: self.size
         StencilPop
 
-    Label:
+    ClickableLabel:
         text: root.map_source.attribution if hasattr(root.map_source, "attribution") else ""
         size_hint: None, None
         size: self.texture_size[0] + sp(8), self.texture_size[1] + sp(4)
         font_size: "10sp"
         right: [root.right, self.center][0]
         color: 0, 0, 0, 1
+        markup: True
         canvas.before:
             Color:
                 rgba: .8, .8, .8, .8
@@ -79,7 +84,16 @@ Builder.load_string("""
 """)
 
 
+class ClickableLabel(Label):
+    def on_ref_press(self, *args):
+        webbrowser.open(str(args[0]), new=2)
+
+
 class Tile(Rectangle):
+    def __init__(self, *args, **kwargs):
+        super(Tile, self).__init__(*args, **kwargs)
+        self.cache_dir = kwargs.get('cache_dir', CACHE_DIR)
+
     @property
     def cache_fn(self):
         map_source = self.map_source
@@ -87,7 +101,7 @@ class Tile(Rectangle):
             image_ext=map_source.image_ext,
             cache_key=map_source.cache_key,
             **self.__dict__)
-        return join(CACHE_DIR, fn)
+        return join(self.cache_dir, fn)
 
     def set_source(self, cache_fn):
         self.source = cache_fn
@@ -120,6 +134,14 @@ class MapMarker(ButtonBehavior, Image):
     """Source of the marker, defaults to our own marker.png
     """
 
+    # (internal) reference to its layer
+    _layer = None
+
+    def detach(self):
+        if self._layer:
+            self._layer.remove_widget(self)
+            self._layer = None
+
 
 class MapMarkerPopup(MapMarker):
     is_open = BooleanProperty(False)
@@ -138,7 +160,7 @@ class MapMarkerPopup(MapMarker):
         if widget is not self.placeholder:
             self.placeholder.remove_widget(widget)
         else:
-            super(MarkerMapLayer, self).remove_widget(widget)
+            super(MapMarkerPopup, self).remove_widget(widget)
 
     def on_is_open(self, *args):
         self.refresh_open_status()
@@ -175,33 +197,51 @@ class MapLayer(Widget):
 class MarkerMapLayer(MapLayer):
     """A map layer for :class:`MapMarker`
     """
+    order_marker_by_latitude = BooleanProperty(True)
 
     def __init__(self, **kwargs):
         self.markers = []
         super(MarkerMapLayer, self).__init__(**kwargs)
 
+    def insert_marker(self, marker, **kwargs):
+        if self.order_marker_by_latitude:
+            before = list(takewhile(
+                lambda i, m: m.lat < marker.lat,
+                enumerate(self.children)
+            ))
+            if before:
+                kwargs['index'] = before[-1][0] + 1
+
+        super(MarkerMapLayer, self).add_widget(marker, **kwargs)
+
     def add_widget(self, marker):
+        marker._layer = self
         self.markers.append(marker)
-        super(MarkerMapLayer, self).add_widget(marker)
+        self.insert_marker(marker)
 
     def remove_widget(self, marker):
+        marker._layer = None
         if marker in self.markers:
             self.markers.remove(marker)
         super(MarkerMapLayer, self).remove_widget(marker)
 
     def reposition(self):
+        if not self.markers:
+            return
         mapview = self.parent
         set_marker_position = self.set_marker_position
-        bbox = mapview.get_bbox(dp(48))
-        for marker in self.markers:
+        bbox = None
+        latest_bbox_size = dp(48)
+        # reposition the markers depending the latitude
+        markers = sorted(self.markers, key=lambda x: -x.lat)
+        margin = max((max(marker.size) for marker in markers))
+        bbox = mapview.get_bbox(margin)
+        for marker in markers:
             if bbox.collide(marker.lat, marker.lon):
                 set_marker_position(mapview, marker)
-                if marker.parent:
-                    continue
-                super(MarkerMapLayer, self).add_widget(marker)
-            else:
                 if not marker.parent:
-                    continue
+                    self.insert_marker(marker)
+            else:
                 super(MarkerMapLayer, self).remove_widget(marker)
 
     def set_marker_position(self, mapview, marker):
@@ -221,7 +261,7 @@ class MapViewScatter(Scatter):
         self.parent.on_transform(self.transform)
 
     def collide_point(self, x, y):
-        #print "collide_point", x, y
+        # print "collide_point", x, y
         return True
 
 
@@ -251,10 +291,31 @@ class MapView(Widget):
     """If True, this will activate the double-tap to zoom.
     """
 
+    pause_on_action = BooleanProperty(True)
+    """Pause any map loading / tiles loading when an action is done.
+    This allow better performance on mobile, but can be safely deactivated on
+    desktop.
+    """
+
+    snap_to_zoom = BooleanProperty(True)
+    """When the user initiate a zoom, it will snap to the closest zoom for
+    better graphics. The map can be blur if the map is scaled between 2 zoom.
+    Default to True, even if it doesn't fully working yet.
+    """
+
+    animation_duration = NumericProperty(100)
+    """Duration to animate Tiles alpha from 0 to 1 when it's ready to show.
+    Default to 100 as 100ms. Use 0 to deactivate.
+    """
+
     delta_x = NumericProperty(0)
     delta_y = NumericProperty(0)
     background_color = ListProperty([181 / 255., 208 / 255., 208 / 255., 1])
+    cache_dir = StringProperty(CACHE_DIR)
     _zoom = NumericProperty(0)
+    _pause = BooleanProperty(False)
+    _scale = 1.
+    _disabled_count = 0
 
     __events__ = ["on_map_relocated"]
 
@@ -267,15 +328,18 @@ class MapView(Widget):
 
     @property
     def scale(self):
-        return self._scatter.scale
+        if self._invalid_scale:
+            self._invalid_scale = False
+            self._scale = self._scatter.scale
+        return self._scale
 
     def get_bbox(self, margin=0):
         """Returns the bounding box from the bottom/left (lat1, lon1) to
         top/right (lat2, lon2).
         """
         x1, y1 = self.to_local(0 - margin, 0 - margin)
-        x2, y2 = self.to_local((self.width + margin) / self.scale,
-                               (self.height + margin) / self.scale)
+        x2, y2 = self.to_local((self.width + margin),
+                               (self.height + margin))
         c1 = self.get_latlon_at(x1, y1)
         c2 = self.get_latlon_at(x2, y2)
         return Bbox((c1.lat, c1.lon, c2.lat, c2.lon))
@@ -291,11 +355,15 @@ class MapView(Widget):
     def get_window_xy_from(self, lat, lon, zoom):
         """Returns the x/y position in the widget absolute coordinates
         from a lat/lon"""
+        scale = self.scale
         vx, vy = self.viewport_pos
-        x = self.map_source.get_x(zoom, lon) - vx
-        y = self.map_source.get_y(zoom, lat) - vy
-        x *= self.scale
-        y *= self.scale
+        ms = self.map_source
+        x = ms.get_x(zoom, lon) - vx
+        y = ms.get_y(zoom, lat) - vy
+        x *= scale
+        y *= scale
+        x = x + self.pos[0]
+        y = y + self.pos[1]
         return x, y
 
     def center_on(self, *args):
@@ -319,6 +387,8 @@ class MapView(Widget):
         y = map_source.get_y(zoom, lat) - self.center_y / scale
         self.delta_x = -x
         self.delta_y = -y
+        self.lon = lon
+        self.lat = lat
         self._scatter.pos = 0, 0
         self.trigger_update(True)
 
@@ -330,7 +400,10 @@ class MapView(Widget):
                      self.map_source.get_min_zoom(),
                      self.map_source.get_max_zoom())
         if int(zoom) == int(self._zoom):
-            return
+            if scale is None:
+                return
+            elif scale == self.scale:
+                return
         scale = scale or 1.
 
         # first, rescale the scatter
@@ -338,8 +411,8 @@ class MapView(Widget):
         scale = clamp(scale, scatter.scale_min, scatter.scale_max)
         rescale = scale * 1.0 / scatter.scale
         scatter.apply_transform(Matrix().scale(rescale, rescale, rescale),
-                             post_multiply=True,
-                             anchor=scatter.to_local(x, y))
+                                post_multiply=True,
+                                anchor=scatter.to_local(x, y))
 
         # adjust position if the zoom changed
         c1 = self.map_source.get_col_count(self._zoom)
@@ -372,9 +445,10 @@ class MapView(Widget):
         if zoom is None:
             zoom = self._zoom
         vx, vy = self.viewport_pos
+        scale = self._scale
         return Coordinate(
-            lat=self.map_source.get_lat(zoom, y + vy),
-            lon=self.map_source.get_lon(zoom, x + vx))
+            lat=self.map_source.get_lat(zoom, y / scale + vy),
+            lon=self.map_source.get_lon(zoom, x / scale + vx))
 
     def add_marker(self, marker, layer=None):
         """Add a marker into the layer. If layer is None, it will be added in
@@ -393,9 +467,7 @@ class MapView(Widget):
     def remove_marker(self, marker):
         """Remove a marker from its layer
         """
-        layer = self._default_marker_layer
-        layer.remove_widget(marker)
-        #marker.detach()
+        marker.detach()
 
     def add_layer(self, layer, mode="window"):
         """Add a new layer to update at the same time the base tile layer.
@@ -406,9 +478,9 @@ class MapView(Widget):
         widget yourself: think as Z-sprite / billboard.
         Defaults to "window".
         """
-        assert(mode in ("scatter", "window"))
+        assert (mode in ("scatter", "window"))
         if self._default_marker_layer is None and \
-            isinstance(layer, MarkerMapLayer):
+                isinstance(layer, MarkerMapLayer):
             self._default_marker_layer = layer
         self._layers.append(layer)
         c = self.canvas
@@ -423,10 +495,11 @@ class MapView(Widget):
     def remove_layer(self, layer):
         """Remove the layer
         """
+        c = self.canvas
         self._layers.remove(layer)
         self.canvas = layer.canvas_parent
         super(MapView, self).remove_widget(layer)
-        #self.canvas = c
+        self.canvas = c
 
     def sync_to(self, other):
         """Reflect the lat/lon/zoom of the other MapView to the current one.
@@ -435,12 +508,12 @@ class MapView(Widget):
             self.set_zoom_at(other._zoom, *self.center)
         self.center_on(other.get_latlon_at(*self.center))
 
-
     # Private API
 
     def __init__(self, **kwargs):
         from kivy.base import EventLoop
         EventLoop.ensure_window()
+        self._invalid_scale = True
         self._tiles = []
         self._tiles_bg = []
         self._tilemap = {}
@@ -459,24 +532,39 @@ class MapView(Widget):
             self.canvas_layers_out = Canvas()
         self._scale_target_anim = False
         self._scale_target = 1.
+        self._touch_count = 0
+        self.map_source.cache_dir = self.cache_dir
         Clock.schedule_interval(self._animate_color, 1 / 60.)
         self.lat = kwargs.get("lat", self.lat)
         self.lon = kwargs.get("lon", self.lon)
         super(MapView, self).__init__(**kwargs)
 
     def _animate_color(self, dt):
-        for tile in self._tiles:
-            if tile.state != "need-animation":
-                continue
-            tile.g_color.a += dt * 10.  # 100ms
-            if tile.g_color.a >= 1:
-                tile.state = "animated"
-        for tile in self._tiles_bg:
-            if tile.state != "need-animation":
-                continue
-            tile.g_color.a += dt * 10.  # 100ms
-            if tile.g_color.a >= 1:
-                tile.state = "animated"
+        # fast path
+        d = self.animation_duration
+        if d == 0:
+            for tile in self._tiles:
+                if tile.state == "need-animation":
+                    tile.g_color.a = 1.
+                    tile.state = "animated"
+            for tile in self._tiles_bg:
+                if tile.state == "need-animation":
+                    tile.g_color.a = 1.
+                    tile.state = "animated"
+        else:
+            d = d / 1000.
+            for tile in self._tiles:
+                if tile.state != "need-animation":
+                    continue
+                tile.g_color.a += dt / d
+                if tile.g_color.a >= 1:
+                    tile.state = "animated"
+            for tile in self._tiles_bg:
+                if tile.state != "need-animation":
+                    continue
+                tile.g_color.a += dt / d
+                if tile.g_color.a >= 1:
+                    tile.state = "animated"
 
     def add_widget(self, widget):
         if isinstance(widget, MapMarker):
@@ -517,7 +605,10 @@ class MapView(Widget):
             self._scale_target -= diff
         self._scale_target_time -= dt
         self.diff_scale_at(diff, *self._scale_target_pos)
-        return self._scale_target != 0
+        ret = self._scale_target != 0
+        if not ret:
+            self._pause = False
+        return ret
 
     def diff_scale_at(self, d, x, y):
         scatter = self._scatter
@@ -529,26 +620,52 @@ class MapView(Widget):
         scale = clamp(scale, scatter.scale_min, scatter.scale_max)
         rescale = scale * 1.0 / scatter.scale
         scatter.apply_transform(Matrix().scale(rescale, rescale, rescale),
-                             post_multiply=True,
-                             anchor=scatter.to_local(x, y))
+                                post_multiply=True,
+                                anchor=scatter.to_local(x, y))
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return
-        if "button" in touch.profile and touch.button in ("scrolldown", "scrollup"):
+        if self.pause_on_action:
+            self._pause = True
+        if "button" in touch.profile and touch.button in (
+        "scrolldown", "scrollup"):
             d = 1 if touch.button == "scrollup" else -1
-            self.animated_diff_scale_at(d * 0.25, *touch.pos)
+            self.animated_diff_scale_at(d, *touch.pos)
             return True
         elif touch.is_double_tap and self.double_tap_zoom:
             self.animated_diff_scale_at(1, *touch.pos)
             return True
+        touch.grab(self)
+        self._touch_count += 1
+        if self._touch_count == 1:
+            self._touch_zoom = (self.zoom, self._scale)
         return super(MapView, self).on_touch_down(touch)
 
+    def on_touch_up(self, touch):
+        if touch.grab_current == self:
+            touch.ungrab(self)
+            self._touch_count -= 1
+            if self._touch_count == 0:
+                # animate to the closest zoom
+                zoom, scale = self._touch_zoom
+                cur_zoom = self.zoom
+                cur_scale = self._scale
+                if cur_zoom < zoom or cur_scale < scale:
+                    self.animated_diff_scale_at(1. - cur_scale, *touch.pos)
+                elif cur_zoom > zoom or cur_scale > scale:
+                    self.animated_diff_scale_at(2. - cur_scale, *touch.pos)
+                self._pause = False
+            return True
+        return super(MapView, self).on_touch_up(touch)
+
     def on_transform(self, *args):
+        self._invalid_scale = True
         if self._transform_lock:
             return
         self._transform_lock = True
         # recalculate viewport
+        map_source = self.map_source
         zoom = self._zoom
         scatter = self._scatter
         scale = scatter.scale
@@ -558,13 +675,53 @@ class MapView(Widget):
         elif scale < 1:
             zoom -= 1
             scale *= 2.
-        zoom = clamp(zoom, self.map_source.min_zoom, self.map_source.max_zoom)
+        zoom = clamp(zoom, map_source.min_zoom, map_source.max_zoom)
         if zoom != self._zoom:
             self.set_zoom_at(zoom, scatter.x, scatter.y, scale=scale)
             self.trigger_update(True)
         else:
-            self.trigger_update(False)
+            if zoom == map_source.min_zoom and scatter.scale < 1.:
+                scatter.scale = 1.
+                self.trigger_update(True)
+            else:
+                self.trigger_update(False)
+
+        if map_source.bounds:
+            self._apply_bounds()
         self._transform_lock = False
+        self._scale = self._scatter.scale
+
+    def _apply_bounds(self):
+        # if the map_source have any constraints, apply them here.
+        map_source = self.map_source
+        zoom = self._zoom
+        min_lon, min_lat, max_lon, max_lat = map_source.bounds
+        xmin = map_source.get_x(zoom, min_lon)
+        xmax = map_source.get_x(zoom, max_lon)
+        ymin = map_source.get_y(zoom, min_lat)
+        ymax = map_source.get_y(zoom, max_lat)
+
+        dx = self.delta_x
+        dy = self.delta_y
+        oxmin, oymin = self._scatter.to_local(self.x, self.y)
+        oxmax, oymax = self._scatter.to_local(self.right, self.top)
+        s = self._scale
+        cxmin = (oxmin - dx)
+        if cxmin < xmin:
+            self._scatter.x += (cxmin - xmin) * s
+        cymin = (oymin - dy)
+        if cymin < ymin:
+            self._scatter.y += (cymin - ymin) * s
+        cxmax = (oxmax - dx)
+        if cxmax > xmax:
+            self._scatter.x -= (xmax - cxmax) * s
+        cymax = (oymax - dy)
+        if cymax > ymax:
+            self._scatter.y -= (ymax - cymax) * s
+
+    def on__pause(self, instance, value):
+        if not value:
+            self.trigger_update(True)
 
     def trigger_update(self, full):
         self._need_redraw_full = full or self._need_redraw_full
@@ -573,12 +730,16 @@ class MapView(Widget):
 
     def do_update(self, dt):
         zoom = self._zoom
-        self.lon = self.map_source.get_lon(zoom, (self.center_x - self._scatter.x)/self.scale - self.delta_x)
-        self.lat = self.map_source.get_lat(zoom, (self.center_y - self._scatter.y)/self.scale - self.delta_y)
-
+        scale = self._scale
+        self.lon = self.map_source.get_lon(zoom,
+                                           (
+                                           self.center_x - self._scatter.x) / scale - self.delta_x)
+        self.lat = self.map_source.get_lat(zoom,
+                                           (
+                                           self.center_y - self._scatter.y) / scale - self.delta_y)
+        self.dispatch("on_map_relocated", zoom, Coordinate(self.lon, self.lat))
         for layer in self._layers:
             layer.reposition()
-        self.dispatch("on_map_relocated", zoom, Coordinate(self.lon, self.lat))
 
         if self._need_redraw_full:
             self._need_redraw_full = False
@@ -591,7 +752,7 @@ class MapView(Widget):
         # return a tile-bbox for the zoom
         map_source = self.map_source
         size = map_source.dp_tile_size
-        scale = self.scale
+        scale = self._scale
 
         max_x_end = map_source.get_col_count(zoom)
         max_y_end = map_source.get_row_count(zoom)
@@ -620,9 +781,9 @@ class MapView(Widget):
         size = map_source.dp_tile_size
 
         tile_x_first, tile_y_first, tile_x_last, tile_y_last, \
-            x_count, y_count = bbox_for_zoom(vx, vy, self.width, self.height, zoom)
+        x_count, y_count = bbox_for_zoom(vx, vy, self.width, self.height, zoom)
 
-        #print "Range {},{} to {},{}".format(
+        # print "Range {},{} to {},{}".format(
         #    tile_x_first, tile_y_first,
         #    tile_x_last, tile_y_last)
 
@@ -635,15 +796,15 @@ class MapView(Widget):
             w = self.width / f
             h = self.height / f
             btile_x_first, btile_y_first, btile_x_last, btile_y_last, \
-                _, _ = bbox_for_zoom(vx / f, vy / f, w, h, tile.zoom)
+            _, _ = bbox_for_zoom(vx / f, vy / f, w, h, tile.zoom)
 
             if tile_x < btile_x_first or tile_x >= btile_x_last or \
-               tile_y < btile_y_first or tile_y >= btile_y_last:
-               tile.state = "done"
-               self._tiles_bg.remove(tile)
-               self.canvas_map.before.remove(tile.g_color)
-               self.canvas_map.before.remove(tile)
-               continue
+                            tile_y < btile_y_first or tile_y >= btile_y_last:
+                tile.state = "done"
+                self._tiles_bg.remove(tile)
+                self.canvas_map.before.remove(tile.g_color)
+                self.canvas_map.before.remove(tile)
+                continue
 
             tsize = size * f
             tile.size = tsize, tsize
@@ -657,7 +818,7 @@ class MapView(Widget):
             tile_y = tile.tile_y
 
             if tile_x < tile_x_first or tile_x >= tile_x_last or \
-               tile_y < tile_y_first or tile_y >= tile_y_last:
+                            tile_y < tile_y_first or tile_y >= tile_y_last:
                 tile.state = "done"
                 self.tile_map_set(tile_x, tile_y, False)
                 self._tiles.remove(tile)
@@ -665,7 +826,8 @@ class MapView(Widget):
                 self.canvas_map.remove(tile.g_color)
             else:
                 tile.size = (size, size)
-                tile.pos = (tile_x * size + self.delta_x, tile_y * size + self.delta_y)
+                tile.pos = (
+                tile_x * size + self.delta_x, tile_y * size + self.delta_y)
 
         # Load new tiles if needed
         x = tile_x_first + x_count // 2 - 1
@@ -676,8 +838,8 @@ class MapView(Widget):
         while arm_size < arm_max:
             for i in range(arm_size):
                 if not self.tile_in_tile_map(x, y) and \
-                   y >= tile_y_first and y < tile_y_last and \
-                   x >= tile_x_first and x < tile_x_last:
+                                y >= tile_y_first and y < tile_y_last and \
+                                x >= tile_x_first and x < tile_x_last:
                     self.load_tile(x, y, size, zoom)
 
                 x += dirs[turn % 4 + 1]
@@ -689,7 +851,6 @@ class MapView(Widget):
             turn += 1
 
     def load_tile(self, x, y, size, zoom):
-        map_source = self.map_source
         if self.tile_in_tile_map(x, y) or zoom != self._zoom:
             return
         self.load_tile_for_source(self.map_source, 1., size, x, y, zoom)
@@ -697,7 +858,7 @@ class MapView(Widget):
         self.tile_map_set(x, y, True)
 
     def load_tile_for_source(self, map_source, opacity, size, x, y, zoom):
-        tile = Tile(size=(size, size))
+        tile = Tile(size=(size, size), cache_dir=self.cache_dir)
         tile.g_color = Color(1, 1, 1, 0)
         tile.tile_x = x
         tile.tile_y = y
@@ -705,7 +866,8 @@ class MapView(Widget):
         tile.pos = (x * size + self.delta_x, y * size + self.delta_y)
         tile.map_source = map_source
         tile.state = "loading"
-        map_source.fill_tile(tile)
+        if not self._pause:
+            map_source.fill_tile(tile)
         self.canvas_map.add(tile.g_color)
         self.canvas_map.add(tile)
         self._tiles.append(tile)
@@ -724,17 +886,17 @@ class MapView(Widget):
         while tiles:
             tile = tiles.pop()
             if tile.state == "loading":
-                tile.state == "done"
+                tile.state = "done"
                 continue
             btiles.append(tile)
 
         # clear the canvas
-        self.canvas_map.clear()
-        self.canvas_map.before.clear()
+        canvas_map.clear()
+        canvas_map.before.clear()
         self._tilemap = {}
 
         # unsure if it's really needed, i personnally didn't get issues right now
-        #btiles.sort(key=lambda z: -z.zoom)
+        # btiles.sort(key=lambda z: -z.zoom)
 
         # add all the btiles into the back canvas.
         # except for the tiles that are owned by the current zoom level
@@ -788,7 +950,8 @@ class MapView(Widget):
             cache_key, min_zoom, max_zoom, url, attribution, options = source
             self.map_source = MapSource(url=url, cache_key=cache_key,
                                         min_zoom=min_zoom, max_zoom=max_zoom,
-                                        attribution=attribution, **options)
+                                        attribution=attribution,
+                                        cache_dir=self.cache_dir, **options)
         elif isinstance(source, MapSource):
             self.map_source = source
         else:
