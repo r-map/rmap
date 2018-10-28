@@ -2,6 +2,8 @@ __pycache__
 *.pyc
 *\#
 .buildozer
+buildozer
+static
 bin
 cache
 django.mo
