@@ -1302,7 +1302,7 @@ class Rmap(App):
         #self.stop_service()
 
         self.mystation.on_stop()
-
+        osc.dontListen()
 
     def on_pause(self):
         '''

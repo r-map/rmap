@@ -41,7 +41,7 @@ version = 7.4
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,pika,pil
+requirements = python3crystax,sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,pika,pil
 #requirements = openssl,plyer,kivy,futures,requests,pyjnius
 
 # (str) Custom source folders for requirements
@@ -94,24 +94,22 @@ fullscreen = 0
 android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUETOOTH,BLUETOOTH,BLUETOOTH_ADMIN,WAKE_LOCK,CAMERA,WRITE_EXTERNAL_STORAGE
 
 # (int) Android API to use
-android.api = 18
+#android.api = 19
 
-# (int) Minimum API required (8 = Android 2.2 devices)
-android.minapi = 13
+# (int) Minimum API required
+#android.minapi = 9
 
 # (int) Android SDK version to use
-android.sdk = 24
-#android.sdk = 21
+#android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 10e
-android.ndk = 9d
+#android.ndk = 9c
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
+android.ndk_path = /opt/crystax-ndk-10.3.2
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -119,28 +117,22 @@ android.ndk = 9d
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
 
-# (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-android.p4a_dir = /home/pat1/git/python-for-android
-
-# (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
-
-# (str) Filename to the hook for p4a
-#p4a.hook =
-
-# (list) python-for-android whitelist
-#android.p4a_whitelist =
-
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
-# android.skip_update = False
-
-# (str) Bootstrap to use for android builds (android_new only)
-# android.bootstrap = sdl2
+android.skip_update = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
+
+# (list) Pattern to whitelist for the whole project
+#android.whitelist =
+
+# (str) Path to a custom whitelist file
+#android.whitelist_src =
+
+# (str) Path to a custom blacklist file
+#android.blacklist_src =
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
 # their classes. Don't add jars that you do not need, since extra jars can slow
@@ -152,9 +144,19 @@ android.p4a_dir = /home/pat1/git/python-for-android
 # directory containing the files)
 #android.add_src =
 
-# (str) python-for-android branch to use, if not master, useful to try
-# not yet merged features.
-#android.branch = master
+# (list) Android AAR archives to add (currently works only with sdl2_gradle
+# bootstrap)
+#android.add_aars =
+
+# (list) Gradle dependencies to add (currently works only with sdl2_gradle
+# bootstrap)
+#android.gradle_dependencies =
+
+# (list) Java classes to add as activities to the manifest.
+#android.add_activites = com.example.ExampleActivity
+
+# (str) python-for-android branch to use, defaults to stable
+#p4a.branch = stable
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -166,7 +168,10 @@ android.p4a_dir = /home/pat1/git/python-for-android
 # (str) XML file to include as an intent filters in <activity> tag
 #android.manifest.intent_filters =
 
-# (list) Android additionnal libraries to copy into libs/armeabi
+# (str) launchMode to set for the main activity
+#android.manifest.launch_mode = standard
+
+# (list) Android additional libraries to copy into libs/armeabi
 #android.add_libs_armeabi = libs/android/*.so
 #android.add_libs_armeabi_v7a = libs/android-v7/*.so
 #android.add_libs_x86 = libs/android-x86/*.so
@@ -191,6 +196,26 @@ android.logcat_filters = *:S python:D
 
 # (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86
 android.arch = armeabi-v7a
+
+#
+# Python for android (p4a) specific
+#
+
+# (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
+#p4a.source_dir =
+
+# (str) The directory in which python-for-android should look for your own build recipes (if any)
+#p4a.local_recipes =
+
+# (str) Filename to the hook for p4a
+#p4a.hook =
+
+# (str) Bootstrap to use for android builds
+# p4a.bootstrap = sdl2
+
+# (int) port number to specify an explicit --port= p4a argument (eg for bootstrap flask)
+#p4a.port =
+
 
 #
 # iOS specific
