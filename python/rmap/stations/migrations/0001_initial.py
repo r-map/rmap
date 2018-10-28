@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                 ('node', models.PositiveIntegerField(default=1, help_text='RF24Network node ddress', blank=True)),
                 ('timerange', models.CharField(default=b'254,0,0', help_text='Sensor metadata from rmap RFC', max_length=50)),
                 ('level', models.CharField(default=b'103,2000,-,-', help_text='Sensor metadata from rmap RFC', max_length=50)),
-                ('board', models.ForeignKey(to='stations.Board')),
+                ('board', models.ForeignKey(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['driver'],
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
                 ('mqttrootpath', models.CharField(default=b'rmap', help_text='root mqtt path for publish', max_length=100)),
                 ('mqttmaintpath', models.CharField(default=b'rmap', help_text='maint mqtt path for publish', max_length=100)),
                 ('category', models.CharField(help_text='Category of the station', max_length=50, choices=[(b'good', b'Beautifull & Good'), (b'bad', b'Bad & Wrong'), (b'test', b'Test & Bugs'), (b'unknown', b'Unknown & Missing')])),
-                ('ident', models.ForeignKey(to=settings.AUTH_USER_MODEL)),
+                ('ident', models.ForeignKey(to=settings.AUTH_USER_MODEL,on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['slug'],
@@ -93,7 +93,7 @@ class Migration(migrations.Migration):
                 ('queue', models.CharField(default=b'rmap', help_text='AMQP local queue name', max_length=50)),
                 ('amqpuser', models.CharField(default=b'', help_text='AMQP user', max_length=9, blank=True)),
                 ('amqppassword', models.CharField(default=b'', help_text='AMQP password', max_length=50, blank=True)),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
         ),
         migrations.CreateModel(
@@ -102,7 +102,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('active', models.BooleanField(default=False, help_text='Activate this transport for measurements', verbose_name='Active')),
                 ('name', models.CharField(help_text='bluetooth name', max_length=80)),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -119,7 +119,7 @@ class Migration(migrations.Migration):
                 ('mqttserver', models.CharField(default=b'mqttserver', help_text='MQTT server', max_length=50)),
                 ('mqttuser', models.CharField(default=b'', help_text='MQTT user', max_length=9, blank=True)),
                 ('mqttpassword', models.CharField(default=b'', help_text='MQTT password', max_length=50, blank=True)),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['mqttserver'],
@@ -136,7 +136,7 @@ class Migration(migrations.Migration):
                 ('channel', models.PositiveIntegerField(default=93, help_text='Channel number for RF24', choices=[(90, b'RF24 Network node channel 90'), (91, b'RF24 Network node channel 91'), (92, b'RF24 Network node channel 92'), (93, b'RF24 Network node channel 93'), (94, b'RF24 Network node channel 94'), (95, b'RF24 Network node channel 95')])),
                 ('key', models.CommaSeparatedIntegerField(blank=True, help_text='AES key', max_length=47, choices=[(b'0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 1'), (b'0,1,1,3,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 2'), (b'0,1,2,1,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 3'), (b'0,1,2,3,1,5,6,7,8,9,10,11,12,13,14,15', b'preset 4'), (b'0,1,2,3,4,1,6,7,8,9,10,11,12,13,14,15', b'preset 5'), (b'0,1,2,3,4,5,1,7,8,9,10,11,12,13,14,15', b'preset 6'), (b'0,1,2,3,4,5,6,1,8,9,10,11,12,13,14,15', b'preset 7'), (b'0,1,2,3,4,5,6,7,1,9,10,11,12,13,14,15', b'preset 8'), (b'0,1,2,3,4,5,6,7,8,1,10,11,12,13,14,15', b'preset 9')])),
                 ('iv', models.CommaSeparatedIntegerField(blank=True, help_text='AES cbc iv', max_length=47, choices=[(b'0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 1'), (b'0,1,1,3,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 2'), (b'0,1,2,1,4,5,6,7,8,9,10,11,12,13,14,15', b'preset 3'), (b'0,1,2,3,1,5,6,7,8,9,10,11,12,13,14,15', b'preset 4'), (b'0,1,2,3,4,1,6,7,8,9,10,11,12,13,14,15', b'preset 5'), (b'0,1,2,3,4,5,1,7,8,9,10,11,12,13,14,15', b'preset 6'), (b'0,1,2,3,4,5,6,1,8,9,10,11,12,13,14,15', b'preset 7'), (b'0,1,2,3,4,5,6,7,1,9,10,11,12,13,14,15', b'preset 8'), (b'0,1,2,3,4,5,6,7,8,1,10,11,12,13,14,15', b'preset 9')])),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['node'],
@@ -151,7 +151,7 @@ class Migration(migrations.Migration):
                 ('active', models.BooleanField(default=False, help_text='Activate this transport for measurements', verbose_name='Active')),
                 ('baudrate', models.PositiveIntegerField(default=9600, help_text='Baud rate', choices=[(9600, b'9600'), (19200, b'19200'), (38400, b'38400'), (11520, b'115200')])),
                 ('device', models.CharField(default=b'/dev/ttyACM0', help_text='Serial device', unique=True, max_length=30, choices=[(b'/dev/ttyACM0', b'ttyACM0'), (b'/dev/ttyUSB0', b'ttyUSB0'), (b'/dev/ttyACM1', b'ttyACM1'), (b'/dev/ttyUSB1', b'ttyUSB1'), (b'/dev/ttyACM2', b'ttyACM2'), (b'/dev/ttyUSB2', b'ttyUSB2'), (b'/dev/ttyACM3', b'ttyACM3'), (b'/dev/ttyUSB3', b'ttyUSB3'), (b'/dev/ttyACM4', b'ttyACM4'), (b'/dev/ttyUSB4', b'ttyUSB4'), (b'/dev/ttyACM5', b'ttyACM5'), (b'/dev/rfcomm0', b'rfcomm0'), (b'/dev/rfcomm1', b'rfcomm1'), (b'/dev/rfcomm2', b'rfcomm2')])),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['device'],
@@ -166,7 +166,7 @@ class Migration(migrations.Migration):
                 ('active', models.BooleanField(default=False, help_text='Activate this transport for measurements', verbose_name='Active')),
                 ('name', models.CharField(default=b'master', help_text='Name DSN solved (for master board only)', max_length=50, choices=[(b'master', b'master board 1'), (b'master2', b'master board 2'), (b'master3', b'master board 3'), (b'master4', b'master board 4')])),
                 ('ntpserver', models.CharField(default=b'ntpserver', help_text='Network time server (NTP)', max_length=50)),
-                ('board', models.OneToOneField(to='stations.Board')),
+                ('board', models.OneToOneField(to='stations.Board',on_delete=models.CASCADE)),
             ],
             options={
                 'ordering': ['name'],
@@ -180,17 +180,17 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('accepted_license', models.BooleanField(default=False, help_text='You need to accept ODBL license to provide your data', verbose_name='I accept ODBL license')),
                 ('certification', models.CharField(default=b'ARPA-ER', max_length=20)),
-                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL)),
+                ('user', models.OneToOneField(to=settings.AUTH_USER_MODEL,on_delete=models.CASCADE)),
             ],
         ),
         migrations.AddField(
             model_name='stationconstantdata',
             name='stationmetadata',
-            field=models.ForeignKey(to='stations.StationMetadata'),
+            field=models.ForeignKey(to='stations.StationMetadata',on_delete=models.CASCADE),
         ),
         migrations.AddField(
             model_name='board',
             name='stationmetadata',
-            field=models.ForeignKey(to='stations.StationMetadata'),
+            field=models.ForeignKey(to='stations.StationMetadata',on_delete=models.CASCADE),
         ),
     ]
