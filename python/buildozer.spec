@@ -7,7 +7,7 @@ title = Rmap
 package.name = rmap
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = org.rmap
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -41,8 +41,11 @@ version = 7.4
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = python3crystax,sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,pika,pil
-#requirements = openssl,plyer,kivy,futures,requests,pyjnius
+#this create apk but do not work
+requirements = python3crystax,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,pillow
+
+#this should work but do not create apk
+#requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,requests,pyserial,simplejson,django,configobj,pika,pil
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -100,10 +103,10 @@ android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUET
 #android.minapi = 9
 
 # (int) Android SDK version to use
-#android.sdk = 20
+android.sdk = 20
 
 # (str) Android NDK version to use
-#android.ndk = 9c
+android.ndk = 10.3.2
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
