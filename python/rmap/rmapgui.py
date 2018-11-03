@@ -933,7 +933,7 @@ class PresentwView(GridLayout):
 def to_background(*args):
     from jnius import cast
     from jnius import autoclass
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
     currentActivity.moveTaskToBack(True)
 

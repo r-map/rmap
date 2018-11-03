@@ -41,11 +41,7 @@ version = 7.4
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-#this create apk but do not work
-requirements = python3crystax,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,pillow
-
-#this should work but do not create apk
-#requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,requests,pyserial,simplejson,django,configobj,pika,pil
+requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,pillow,pytz,android,requests
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -159,7 +155,7 @@ android.skip_update = True
 #android.add_activites = com.example.ExampleActivity
 
 # (str) python-for-android branch to use, defaults to stable
-#p4a.branch = stable
+p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
