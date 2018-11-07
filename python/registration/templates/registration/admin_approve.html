@@ -1,14 +1,15 @@
 {% extends "base.html" %}
 {% load i18n %}
-{% block title %}{% trans "Activation Failure" %}{% endblock %}
+
+{% block title %}{% trans "Approval Failure" %}{% endblock %}
 
 {% block content %}
-<p>{% trans "Account activation failed." %}</p>
+<p>{% trans "Account Approval failed." %}</p>
 {% endblock %}
 
 
 {% comment %}
-**registration/activate.html**
+**registration/admin_approve.html**
 
 Used if account activation fails. With the default setup, has the following context:
 
