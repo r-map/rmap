@@ -30,7 +30,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
-version = 7.4
+version = 8.0
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -41,7 +41,7 @@ version = 7.4
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,pillow,pytz,android,requests
+requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,Pillow,pytz,requests,android
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -201,10 +201,8 @@ android.arch = armeabi-v7a
 #
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-#p4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
 
 # (str) Filename to the hook for p4a
 #p4a.hook =

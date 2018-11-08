@@ -17,8 +17,8 @@
 # 
 
 import sys, os
-sys.path = [os.path.join(os.getcwd(),"..")] + sys.path
-os.chdir("..")
+sys.path = [os.path.join(os.getcwd(),".")] + sys.path
+#os.chdir("..")
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 from django.conf import settings

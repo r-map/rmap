@@ -1605,7 +1605,7 @@ class Rmap(App):
                 self.updatelocation()
 
                 if token == ('sensors', 'station'):
-                    super(Rmap, self).close_settings()
+                    super(Rmap, self).close_settings(None)
                     self.destroy_settings()
                     self.open_settings()
 
@@ -1682,15 +1682,29 @@ class Rmap(App):
 
     def start_service(self,cmdservice="webserver"):
         if platform == 'android':
-            from android import AndroidService
-            self.service = AndroidService('rmap background',cmdservice)
-            self.service.start(cmdservice) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
+            #from android import AndroidService
+            #self.service = AndroidService('rmap background',cmdservice)
+            #self.service.start(cmdservice.encode()) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
 
+            import android
+            android.start_service(title=cmdservice.encode(),
+                                  description=cmdservice.encode(),
+                                  arg=cmdservice.encode())
+            self.service = cmdservice            
+            #package_name = cmdservice
+            #argument = ''
+            #from jnius import autoclass
+            #service = autoclass('{}.Service{}'.format(package_name, cmdservice))
+            #mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            #service.start(mActivity, argument)
+            
     def stop_service(self):
-        if self.service:
-            self.service.stop()
-            self.service = None
-
+        import android
+        android.stop_service()
+        self.service = None
+        #if self.service:
+        #    self.service.stop()
+        #    self.service = None
 
     def build_config(self, config):
 
@@ -1930,7 +1944,7 @@ class Rmap(App):
             rpcproxy.togglepin({"n":n,"s":status})
         except:
             self.popup(_("toggle\nrelay\nfailed!"))
-            
+            raise
 
     def resettodefault(self):
 
@@ -2104,14 +2118,13 @@ class Rmap(App):
 
     def rpcin(self, message, *args):
         print("RPC: ",message[2])
-        self.rpcin_message=message[2]
+        self.rpcin_message=message[2].decode()
 
     #def rpcout(self, *args):
     #    osc.sendMsg('/rpc', ["testinout",], port=3000)
 
     def rpcout(self, message):
-        osc.sendMsg('/rpc', [message,], port=3000)
-
+        osc.sendMsg('/rpc'.encode(), [message.encode(),], port=3000)
 
 
     def servicewebserver(self):
@@ -2192,22 +2205,25 @@ class Rmap(App):
 
         if self.servicename=="station":
 
-            print("send stop message to rpc")
-            self.rpcout("stop")
-            starttime= datetime.utcnow()            
-            osc.readQueue(self.oscid)
-            while self.rpcin_message != "stopped":
-                print(">>>>> ----- rpcin message: ", self.rpcin_message)
-                time.sleep(.1)
+            try:
+                print("send stop message to rpc")
+                self.rpcout("stop")
+                starttime= datetime.utcnow()            
                 osc.readQueue(self.oscid)
-                if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
-                    print("RPCIN timeout")
-                    break
-            print("if not timeout received stopped message from rpc")
-            self.stop_service()
-            self.rpcin_message = ""
-            self.servicename=None
-            os.remove("servicerunning")
+                while self.rpcin_message != "stopped":
+                    print(">>>>> ----- rpcin message: ", self.rpcin_message)
+                    time.sleep(.1)
+                    osc.readQueue(self.oscid)
+                    if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
+                        print("RPCIN timeout")
+                        break
+                print("if not timeout received stopped message from rpc")
+                self.stop_service()
+                self.rpcin_message = ""
+                self.servicename=None
+                os.remove("servicerunning")
+            except:
+                print ("ERROR stopping service station")
 
 
     def popup(self,message,exit=False):

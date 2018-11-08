@@ -1033,7 +1033,7 @@ class TransportBLUETOOTH(Transport):
             self.log( "bluetooth port (%s): >%s<" % ("SKIP",instring) )
 
         self.log( "bluetooth port (%s): %s" % ("SEND",string) )
-        self.send_stream.write(string+"\n")
+        self.send_stream.write((string+"\n").encode())
         self.send_stream.flush()
 
     def readline(self):
