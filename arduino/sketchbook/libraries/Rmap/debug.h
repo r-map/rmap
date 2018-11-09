@@ -94,7 +94,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \param[in] *fmt typo for vsnprintf function.
 \return pointer to data buffer filled with message by vsnprintf function.
 */
-char *serial_printf(char *ptr, const char *fmt, ...);
+char *serial_printf(bool is_add_hashtag, char *ptr, const char *fmt, ...);
 
 /*!
 \fn char *serial_printf(char *ptr, const __FlashStringHelper *fmt, ...)
@@ -103,7 +103,7 @@ char *serial_printf(char *ptr, const char *fmt, ...);
 \param[in] *fmt progmem for vsnprintf_P function.
 \return pointer to data buffer filled with message by vsnprintf function.
 */
-char *serial_printf(char *ptr, const __FlashStringHelper *fmt, ...);
+char *serial_printf(bool is_add_hashtag, char *ptr, const __FlashStringHelper *fmt, ...);
 
 
 /*!
@@ -115,7 +115,7 @@ char *serial_printf(char *ptr, const __FlashStringHelper *fmt, ...);
 \param[in] *fmt typo for vsnprintf function.
 \return pointer to data buffer filled with message by vsnprintf function.
 */
-char *serial_printf_array(void *data, int16_t length, uint8_t type, const __FlashStringHelper *fmt, ...);
+char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8_t type, const __FlashStringHelper *fmt, ...);
 
 #ifndef SERIAL_TRACE_LEVEL
 /*!
@@ -128,10 +128,12 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
 // Debug output redirection
 #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
   #ifndef _SERIAL_PRINT
-  #define _SERIAL_PRINT(...) Serial.print(serial_printf(__VA_ARGS__))
+  #define _SERIAL_PRINT(...) Serial.print(serial_printf(true, NULL, __VA_ARGS__))
+  #define _SERIAL_PRINT_CLEAN(...) Serial.print(serial_printf(false, NULL, __VA_ARGS__))
   #endif
   #ifndef _SERIAL_PRINT_ARRAY
-  #define _SERIAL_PRINT_ARRAY(...) Serial.print(serial_printf_array(__VA_ARGS__))
+  #define _SERIAL_PRINT_ARRAY(...) Serial.print(serial_printf_array(true, __VA_ARGS__))
+  #define _SERIAL_PRINT_ARRAY_CLEAN(...) Serial.print(serial_printf_array(false, __VA_ARGS__))
   #endif
   #ifndef SERIAL_BEGIN
   #define SERIAL_BEGIN(...) Serial.begin(__VA_ARGS__)
@@ -152,13 +154,15 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
 \def SERIAL_ERROR
 \brief Useful macro for print error message on serial port through serial print macro.
 */
-  #define SERIAL_ERROR(...) _SERIAL_PRINT(NULL, __VA_ARGS__)
+  #define SERIAL_ERROR(...) _SERIAL_PRINT( __VA_ARGS__)
+  #define SERIAL_ERROR_CLEAN(...) _SERIAL_PRINT_CLEAN( __VA_ARGS__)
 
   /*!
   \def SERIAL_ERROR_ARRAY
   \brief Useful macro for print array error message on serial port through serial print macro.
   */
   #define SERIAL_ERROR_ARRAY(...) _SERIAL_PRINT_ARRAY(__VA_ARGS__)
+  #define SERIAL_ERROR_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_ERROR(...)
   #define SERIAL_ERROR_ARRAY(...)
@@ -169,12 +173,14 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
    \def SERIAL_WARNING
    \brief Useful macro for print warning message on serial port through serial print macro.
    */
-   #define SERIAL_WARNING(...) _SERIAL_PRINT(NULL, __VA_ARGS__)
+   #define SERIAL_WARNING(...) _SERIAL_PRINT(__VA_ARGS__)
+   #define SERIAL_WARNING_CLEAN(...) _SERIAL_PRINT_CLEAN(__VA_ARGS__)
    /*!
    \def SERIAL_WARNING_ARRAY
    \brief Useful macro for print warning array error message on serial port through serial print macro.
    */
    #define SERIAL_WARNING_ARRAY(...) _SERIAL_PRINT_ARRAY(__VA_ARGS__)
+   #define SERIAL_WARNING_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_WARNING(...)
   #define SERIAL_WARNING_ARRAY(...)
@@ -185,13 +191,15 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
 \def SERIAL_INFO
 \brief Useful macro for print info message on serial port through serial print macro.
 */
-  #define SERIAL_INFO(...) _SERIAL_PRINT(NULL, __VA_ARGS__)
+  #define SERIAL_INFO(...) _SERIAL_PRINT(__VA_ARGS__)
+  #define SERIAL_INFO_CLEAN(...) _SERIAL_PRINT_CLEAN(__VA_ARGS__)
 
   /*!
   \def SERIAL_INFO_ARRAY
   \brief Useful macro for print info array error message on serial port through serial print macro.
   */
   #define SERIAL_INFO_ARRAY(...) _SERIAL_PRINT_ARRAY(__VA_ARGS__)
+  #define SERIAL_INFO_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_INFO(...)
   #define SERIAL_INFO_ARRAY(...)
@@ -202,13 +210,15 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
 \def SERIAL_DEBUG
 \brief Useful macro for print verbose message on serial port through serial print macro.
 */
-  #define SERIAL_DEBUG(...) _SERIAL_PRINT(NULL, __VA_ARGS__)
+  #define SERIAL_DEBUG(...) _SERIAL_PRINT(__VA_ARGS__)
+  #define SERIAL_DEBUG_CLEAN(...) _SERIAL_PRINT_CLEAN( __VA_ARGS__)
 
   /*!
   \def SERIAL_DEBUG_ARRAY
   \brief Useful macro for print verbose array error message on serial port through serial print macro.
   */
   #define SERIAL_DEBUG_ARRAY(...) _SERIAL_PRINT_ARRAY(__VA_ARGS__)
+  #define SERIAL_DEBUG_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_DEBUG(...)
   #define SERIAL_DEBUG_ARRAY(...)
@@ -219,13 +229,15 @@ char *serial_printf_array(void *data, int16_t length, uint8_t type, const __Flas
 \def SERIAL_TRACE
 \brief Useful macro for print all verbose message on serial port through serial print macro.
 */
-  #define SERIAL_TRACE(...) _SERIAL_PRINT(NULL, __VA_ARGS__)
+  #define SERIAL_TRACE(...) _SERIAL_PRINT(__VA_ARGS__)
+  #define SERIAL_TRACE_CLEAN(...) _SERIAL_PRINT_CLEAN(__VA_ARGS__)
 
   /*!
   \def SERIAL_TRACE_ARRAY
   \brief Useful macro for print all verbose array error message on serial port through serial print macro.
   */
   #define SERIAL_TRACE_ARRAY(...) _SERIAL_PRINT_ARRAY(__VA_ARGS__)
+  #define SERIAL_TRACE_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_TRACE(...)
   #define SERIAL_TRACE_ARRAY(...)
