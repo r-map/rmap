@@ -201,8 +201,10 @@ android.arch = armeabi-v7a
 #
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
+p4a.source_dir = /home/pat1/git/python-for-android_ssl
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
+p4a.local_recipes = /home/pat1/git/python-for-android_ssl/pythonforandroid/recipes
 
 # (str) Filename to the hook for p4a
 #p4a.hook =
