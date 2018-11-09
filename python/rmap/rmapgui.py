@@ -86,7 +86,10 @@ def queuedfilename():
     try:
         sfiles=sorted(files)
         print("found queued files:", sfiles)
-        return sfiles[0]
+        if len(sfiles) > 0:
+            return sfiles[0]
+        else:
+            return None
     except Exception as e:
         print(e)
         return None
@@ -1040,7 +1043,7 @@ class Rmap(App):
     use_kivy_settings = False
     trip=False
 
-    rpcin_message=""
+    rpcin_message=None
     #settings_cls=SettingsWithSidebar
     #settings_cls=SettingsWithSpinner
     #settings_cls=SettingsWithTabbedPanel
@@ -1114,7 +1117,7 @@ class Rmap(App):
 
         #self.start_service()
         osc.init()
-        self.oscid = osc.listen(port=3001)
+        self.oscid = osc.listen(ipAddr='0.0.0.0',port=3001)
         osc.bind(self.oscid, self.rpcin, '/rpc')
         #this seems do not work in on_resume environment
         #Clock.schedule_interval(lambda *x: osc.readQueue(self.oscid), 0)
@@ -2217,7 +2220,7 @@ class Rmap(App):
                     if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
                         print("RPCIN timeout")
                         break
-                print("if not timeout received stopped message from rpc")
+                print("not received <stopped> message from rpc: time out")
                 self.stop_service()
                 self.rpcin_message = ""
                 self.servicename=None
@@ -2778,7 +2781,7 @@ class Rmap(App):
 
                     print("send image: ",file)
                     # read image in memory.
-                    photo_file = open(file,"r")
+                    photo_file = open(file,"rb")
                     body = photo_file.read()
                     photo_file.close()
 

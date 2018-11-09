@@ -144,6 +144,7 @@ class station():
         self.maintprefix=mystation.mqttmaintpath
         self.network=mystation.network
         self.transport_name=None
+        self.transport=None
         self.active=mystation.active
 
         for cdata in mystation.stationconstantdata_set.all():
@@ -289,13 +290,13 @@ class station():
         Get a message from osc channel
         """
         print("RPC: ",message[2])
-        self.rpcin_message=message[2]
+        self.rpcin_message=message[2].decode()
 
     def rpcout(self,message,*args):
         """
         Send a message to osc channel
         """
-        osc.sendMsg('/rpc',[message, ],port=3001)
+        osc.sendMsg('/rpc'.encode(), [message.encode(),], port=3001)
 
     def on_stop(self):
         '''
@@ -321,6 +322,9 @@ class station():
         print("gps stopped")
 
         #self.br.stop()
+
+        print("osc stopped")
+        osc.dontListen()
 
         print("start save common parameters")
         with open( self.picklefile, "wb" ) as file:
@@ -742,7 +746,8 @@ class station():
         """
 
         try:
-            self.transport.close()
+            if not self.transport is None:
+                self.transport.close()
         except:
             print("ERROR closing transport")
             raise Exception("stop transport",1)

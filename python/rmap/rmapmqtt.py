@@ -257,10 +257,11 @@ class rmapmqtt:
             # retained only if the station is fixed
             retain = self.maintprefix != "mobile"
 
-            rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+            self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "disconn"}),
                                   qos=1,retain=retain)
-            if rc[0] != mqtt.MQTT_ERR_SUCCESS:
+            rc,self.mid=self.messageinfo
+            if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
 
             self.log("publish maint message mid: "+str(rc[1]))
