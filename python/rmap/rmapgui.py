@@ -59,7 +59,8 @@ from django.contrib.auth.models import User
 from .stations.models import StationMetadata,StationConstantData
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from kivy.lib import osc
+#from kivy.lib import osc
+from oscpy.server import OSCThreadServer
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
@@ -1116,9 +1117,10 @@ class Rmap(App):
                 os.remove("servicerunning")
 
         #self.start_service()
-        osc.init()
-        self.oscid = osc.listen(ipAddr='0.0.0.0',port=3001)
-        osc.bind(self.oscid, self.rpcin, '/rpc')
+        #osc.init()
+        self.osc = OSCThreadServer()
+        sock = self.osc.listen(port=3001, default=True)
+        self.osc.bind(b'/rpc', self.rpcin)
         #this seems do not work in on_resume environment
         #Clock.schedule_interval(lambda *x: osc.readQueue(self.oscid), 0)
         ##Clock.schedule_interval(self.rpcout, 5)
@@ -1305,7 +1307,7 @@ class Rmap(App):
         #self.stop_service()
 
         self.mystation.on_stop()
-        osc.dontListen()
+        self.osc.stop()
 
     def on_pause(self):
         '''
@@ -1947,7 +1949,6 @@ class Rmap(App):
             rpcproxy.togglepin({"n":n,"s":status})
         except:
             self.popup(_("toggle\nrelay\nfailed!"))
-            raise
 
     def resettodefault(self):
 
@@ -2119,15 +2120,16 @@ class Rmap(App):
 
 
 
-    def rpcin(self, message, *args):
-        print("RPC: ",message[2])
-        self.rpcin_message=message[2].decode()
+    def rpcin(self, message):
+        print("gui RPC: {}".format(message))
+        print(message)
+        self.rpcin_message=message
 
     #def rpcout(self, *args):
     #    osc.sendMsg('/rpc', ["testinout",], port=3000)
 
     def rpcout(self, message):
-        osc.sendMsg('/rpc'.encode(), [message.encode(),], port=3000)
+        self.osc.send_message(b'/rpc', [message,],ip_address='localhost', port=3000)
 
 
     def servicewebserver(self):
@@ -2210,25 +2212,24 @@ class Rmap(App):
 
             try:
                 print("send stop message to rpc")
-                self.rpcout("stop")
+                self.rpcout(b"stop")
                 starttime= datetime.utcnow()            
-                osc.readQueue(self.oscid)
-                while self.rpcin_message != "stopped":
+                #osc.readQueue(self.oscid)
+                while self.rpcin_message != b"stopped":
                     print(">>>>> ----- rpcin message: ", self.rpcin_message)
                     time.sleep(.1)
-                    osc.readQueue(self.oscid)
+                    #osc.readQueue(self.oscid)
                     if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
                         print("RPCIN timeout")
+                        print("not received <stopped> message from rpc: time out")
                         break
-                print("not received <stopped> message from rpc: time out")
                 self.stop_service()
-                self.rpcin_message = ""
+                self.rpcin_message = b""
                 self.servicename=None
                 os.remove("servicerunning")
             except:
                 print ("ERROR stopping service station")
-
-
+                
     def popup(self,message,exit=False):
 
         # open only one notification popup (the last)

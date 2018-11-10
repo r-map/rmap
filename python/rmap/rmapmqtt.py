@@ -264,7 +264,7 @@ class rmapmqtt:
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
 
-            self.log("publish maint message mid: "+str(rc[1]))
+            self.log("publish maint message mid: "+str(rc))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -273,11 +273,13 @@ class rmapmqtt:
             #this wait to send the last message
             #but we wait some time (timeout) for each message
             # so is possible this is not needed
-            self.messageinfo.wait_for_publish()
-            
+            if self.messageinfo.is_published() == False:
+                self.messageinfo.wait_for_publish()
+
             rc = self.mqttc.disconnect()
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("disconnect",rc)
+
             # see at https://github.com/r-map/rmap/issues/268
             self.mqttc.reinitialise()
             

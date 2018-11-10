@@ -372,6 +372,7 @@ setup(name='rmap',
                 'graphite-dballe.tags',
                 'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
+                'oscpy',
       ],
 
       package_data={

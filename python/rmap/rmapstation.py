@@ -33,7 +33,8 @@ from .gps import *
 from .bluetooth import *
 
 from plyer.compat import PY2
-from kivy.lib import osc    ####   osc IPC  ####
+#from kivy.lib import osc    ####   osc IPC  ####
+from oscpy.server import OSCThreadServer
 from kivy.utils import platform
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext as _
@@ -80,7 +81,7 @@ class station():
         self.datavarlist=[]
         self.bluetooth=None
         self.mqtt_status = _('Connect Status: disconnected')
-        self.rpcin_message = ""
+        self.rpcin_message = b""
         self.log = logfunc
         self.now=None
 
@@ -285,18 +286,20 @@ class station():
             print(self.drivers)
 
 
-    def rpcin(self, message, *args):
+    def rpcin(self, message):
         """
         Get a message from osc channel
         """
-        print("RPC: ",message[2])
-        self.rpcin_message=message[2].decode()
+        print("station RPC: {}".format(message))
+        print(message)
+        self.rpcin_message=message
 
-    def rpcout(self,message,*args):
+    def rpcout(self,message):
         """
         Send a message to osc channel
         """
-        osc.sendMsg('/rpc'.encode(), [message.encode(),], port=3001)
+        self.osc.send_message(b'/rpc', [message,],ip_address='localhost', port=3001)
+
 
     def on_stop(self):
         '''
@@ -322,9 +325,6 @@ class station():
         print("gps stopped")
 
         #self.br.stop()
-
-        print("osc stopped")
-        osc.dontListen()
 
         print("start save common parameters")
         with open( self.picklefile, "wb" ) as file:
@@ -758,9 +758,10 @@ class station():
         print("background boot station")
 
         ####   osc IPC   ####
-        osc.init()
-        self.oscid = osc.listen(ipAddr='0.0.0.0', port=3000)
-        osc.bind(self.oscid, self.rpcin, '/rpc')
+        #osc.init()
+        self.osc = OSCThreadServer()
+        sock = self.osc.listen(port=3000, default=True)
+        self.osc.bind(b'/rpc', self.rpcin)
 
         #force trip for mobile station in background
         self.trip=self.ismobile()
@@ -788,12 +789,11 @@ class station():
                 print("Error booting station")
                 time.sleep(5)
 
-                osc.readQueue(self.oscid)
-                if self.rpcin_message == "stop":
+                if self.rpcin_message == b"stop":
                     print("received stop message from rpc")
                     self.on_stop()
                     print("send stopped message to rpc")
-                    self.rpcout("stopped")
+                    self.rpcout(b"stopped")
                     raise SystemExit(0)
                     #time.sleep(60) # wait for kill from father
 
@@ -869,14 +869,12 @@ class station():
         #time.sleep(waitsec)
         stop=False
         while (datetime.utcnow() < nexttime):
-            osc.readQueue(self.oscid)
-            if self.rpcin_message == "stop":
+            if self.rpcin_message == b"stop":
                 stop=True
                 break
             time.sleep(.5)
 
-        osc.readQueue(self.oscid)
-        if self.rpcin_message == "stop":
+        if self.rpcin_message == b"stop":
             stop=True
 
         if (not stop):
@@ -891,8 +889,15 @@ class station():
         print("retuned from on_stop")
 
         print("RPC send stoppped")
-        self.rpcout("stopped")
+        self.rpcout(b"stopped")
         print("background exit")
+
+        try:
+            self.osc.stop()
+            print("osc stopped")
+        except:
+            pass
+
         raise SystemExit(0)
         #time.sleep(s30)
 
