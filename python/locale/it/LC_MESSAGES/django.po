@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-06-26 15:10+0200\n"
-"PO-Revision-Date: 2018-06-27 12:38+0200\n"
+"POT-Creation-Date: 2018-11-13 15:13+0000\n"
+"PO-Revision-Date: 2018-11-13 15:50+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: Poedit 1.8.12\n"
+"X-Generator: Poedit 1.8.8\n"
 
 #: firmware_updater/models.py:54
 msgid "Firmware name"
@@ -71,7 +71,7 @@ msgstr "Reimposta filtro"
 
 #: geoimage/templates/geoimage/georefencedimage_list.html:45
 #: insertdata/templates/insertdata/form.html:51
-#: insertdata/templates/insertdata/manualdataform.html:47
+#: insertdata/templates/insertdata/manualdataform.html:52
 #: insertdata/templates/insertdata/newstationform.html:50
 #: insertdata/templates/insertdata/rainbodataform.html:183
 msgid "Submit"
@@ -138,20 +138,20 @@ msgid "Error on publish data; retry"
 msgstr "Errore pubblicando i dati; riprova"
 
 #: insertdata/templates/insertdata/form.html:20
-#: insertdata/templates/insertdata/manualdataform.html:21
+#: insertdata/templates/insertdata/manualdataform.html:26
 msgid "Select coordinates from your stations"
 msgstr "Seleziona le coordinate dalle tue stazioni"
 
 #: insertdata/templates/insertdata/form.html:28
 #: insertdata/templates/insertdata/form.html:40
-#: insertdata/templates/insertdata/manualdataform.html:27
-#: insertdata/templates/insertdata/manualdataform.html:37
+#: insertdata/templates/insertdata/manualdataform.html:32
+#: insertdata/templates/insertdata/manualdataform.html:42
 #: insertdata/templates/insertdata/newstationform.html:40
 msgid "Select"
 msgstr "Seleziona"
 
 #: insertdata/templates/insertdata/form.html:32
-#: insertdata/templates/insertdata/manualdataform.html:31
+#: insertdata/templates/insertdata/manualdataform.html:36
 #: insertdata/templates/insertdata/newstationform.html:34
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
@@ -160,7 +160,11 @@ msgstr "Seleziona le coordinate dall'indirizzo"
 msgid "Select coordinate from map and upload your image"
 msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
 
-#: insertdata/templates/insertdata/manualdataform.html:43
+#: insertdata/templates/insertdata/manualdataform.html:22
+msgid "OK, data published"
+msgstr "Ottimo, dati pubblicati"
+
+#: insertdata/templates/insertdata/manualdataform.html:48
 #: insertdata/templates/insertdata/rainbodataform.html:31
 msgid "Select coordinate from map and insert your actual data"
 msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
