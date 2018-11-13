@@ -160,6 +160,14 @@
 
     
     {% block footer %}
+
+    <div class="panel panel-default" style="width: 90%; margin: 0 auto;">
+      <!-- <div class="panel-heading"><strong>{% trans "Terms of Service" %}</strong></div> -->
+      <div class="panel-body">
+	<a href="{% url 'network:networkmetadata-list' %}" >{% trans "Copyright RMAP contributors" %}</a> 
+      </div>
+    </div>
+
     <script type="text/javascript" src="{% static "rmap/libs/rmap/js/form_handler.js" %}"></script> 
     {% endblock %}
   </body>
