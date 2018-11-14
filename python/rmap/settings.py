@@ -589,6 +589,7 @@ TEMPLATES= [
 ROOT_URLCONF = 'rmap.urls'
 
 INSTALLED_APPS = [
+    'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -601,7 +602,6 @@ INSTALLED_APPS = [
     'rmap',
     'rmap.stations',
     'rmap.network',
-    'registration',
 ]
 
 # if not android :

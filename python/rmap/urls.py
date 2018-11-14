@@ -30,7 +30,7 @@ urlpatterns = [
 
     url(r'^', include('rmap.stations.urls')),
 
-    url(r'^registrazione/', include('django.contrib.auth.urls')),
+#    url(r'^registrazione/', include('django.contrib.auth.urls')),
 #    override default register form
 #    url(r'^registrazione/register/$', RegistrationView.as_view(form_class=RegistrationFormTermsOfService), name='registration_register'),
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
