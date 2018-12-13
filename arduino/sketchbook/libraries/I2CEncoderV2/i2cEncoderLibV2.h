@@ -21,6 +21,12 @@
 #include <WProgram.h>
 #endif
 
+#include <limits.h>
+#include <float.h>
+
+#define EC_INTERNAL_ERROR 1
+#define EC_SUCCESS 0
+
 /*Encoder register definition*/
 #define REG_GCONF     0x00
 #define REG_GP1CONF   0x01
@@ -128,7 +134,8 @@
 
 union Data_v {
   float fval;
-  int32_t val;
+  int16_t val;
+  int32_t lval;
   uint8_t bval[4];
 };
 
@@ -136,7 +143,7 @@ class i2cEncoderLibV2
 {
   public:
     i2cEncoderLibV2(uint8_t add);
-    void begin( uint8_t conf);
+    uint8_t begin( uint8_t conf);
 
     /**    Read functions   **/
     /** Configuration function **/
@@ -196,56 +203,55 @@ class i2cEncoderLibV2
     int32_t readEncoderLong(uint8_t reg);
 
     /******    Write functions   ********/
-    void writeGP1conf(uint8_t gp1);
-    void writeGP2conf(uint8_t gp2);
-    void writeGP3conf(uint8_t gp3);
-    void writeInterruptConfig(uint8_t interrupt);
+    uint8_t writeGP1conf(uint8_t gp1);
+    uint8_t writeGP2conf(uint8_t gp2);
+    uint8_t writeGP3conf(uint8_t gp3);
+    uint8_t writeInterruptConfig(uint8_t interrupt);
 
     /** Encoder functions **/
-    void writeCounter(int32_t counter);
-    void writeCounter(float counter);
+    uint8_t writeCounter(int32_t counter);
+    uint8_t writeCounter(float counter);
 
-    void writeMax(int32_t max);
-    void writeMax(float max);
+    uint8_t writeMax(int32_t max);
+    uint8_t writeMax(float max);
 
-    void writeMin(int32_t min);
-    void writeMin(float min);
+    uint8_t writeMin(int32_t min);
+    uint8_t writeMin(float min);
 
-    void writeStep(int32_t step);
-    void writeStep(float step);
+    uint8_t writeStep(int32_t step);
+    uint8_t writeStep(float step);
 
     /** RGB LED Functions **/
-    void writeLEDR(uint8_t rled);
-    void writeLEDG(uint8_t gled);
-    void writeLEDB(uint8_t bled);
-    void writeRGBCode(uint32_t rgb);
+    uint8_t writeLEDR(uint8_t rled);
+    uint8_t writeLEDG(uint8_t gled);
+    uint8_t writeLEDB(uint8_t bled);
+    uint8_t writeRGBCode(uint32_t rgb);
 
     /** GP LED Functions **/
-    void writeGP1(uint8_t gp1);
-    void writeGP2(uint8_t gp2);
-    void writeGP3(uint8_t gp3);
+    uint8_t writeGP1(uint8_t gp1);
+    uint8_t writeGP2(uint8_t gp2);
+    uint8_t writeGP3(uint8_t gp3);
 
     /** Timing registers **/
-    void writeAntibouncingPeriod(uint8_t bounc);
-    void writeDoublePushPeriod(uint8_t dperiod);
-    void writeFadeRGB(uint8_t fade);
-    void writeFadeGP(uint8_t fade);
+    uint8_t writeAntibouncingPeriod(uint8_t bounc);
+    uint8_t writeDoublePushPeriod(uint8_t dperiod);
+    uint8_t writeFadeRGB(uint8_t fade);
+    uint8_t writeFadeGP(uint8_t fade);
 
     /** EEPROM register **/
-    void writeEEPROM(uint8_t add, uint8_t data);
+    uint8_t writeEEPROM(uint8_t add, uint8_t data);
 
   private:
     uint8_t _add = 0x00;
     uint8_t _stat = 0x00;
     uint8_t _stat2 = 0x00;
     uint8_t _gconf = 0x00;
-    union Data_v _tem_data;
 
     float readEncoderFloat(uint8_t reg);
-    void writeEncoder(uint8_t reg, uint8_t data);
-    void writeEncoder(uint8_t reg, int32_t data);
-    void writeEncoder(uint8_t reg, float data);
-    void writeEncoder24bit(uint8_t reg, uint32_t data);
+    uint8_t writeEncoder(uint8_t reg, uint8_t data);
+    uint8_t writeEncoder(uint8_t reg, int32_t data);
+    uint8_t writeEncoder(uint8_t reg, float data);
+    uint8_t writeEncoder24bit(uint8_t reg, uint32_t data);
 
 };
 

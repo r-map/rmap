@@ -25,6 +25,9 @@ void setup(void)
 
   Serial.begin(115200);
   Serial.println("**** I2C Encoder V2 basic example ****");
+
+  Wire.begin();
+
   /*
       INT_DATA= The register are considered integer.
       WRAP_DISABLE= The WRAP option is disabled
@@ -52,6 +55,7 @@ void setup(void)
 }
 
 void loop() {
+  delay(100);
   uint8_t enc_cnt;
   if (digitalRead(IntPin) == LOW) {
     if ( Encoder.updateStatus()) {
