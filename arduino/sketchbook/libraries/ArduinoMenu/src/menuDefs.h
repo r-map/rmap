@@ -5,8 +5,8 @@
 #define MENU_ASYNC
 #define MENU_FMT_WRAPS
 // #define USE_PGM
-#define USE_RAM
-#define MENU_DEBUG
+// #define USE_RAM
+// #define MENU_DEBUG
 
 #include "menuBase.h"
 #include "shadows.h"
