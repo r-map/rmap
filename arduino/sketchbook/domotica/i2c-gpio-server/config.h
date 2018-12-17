@@ -18,6 +18,19 @@
 #define STEPPER_RAMPSTEPS 400
 #define STEPPER_HALFSTEP true
 
+// button parameter
+// this activate button as default configuration
+// when button is active sleep is disables so more power is needed
+#define BUTTONACTIVEFORDEFAULT false
+// dbTime: Debounce time in milliseconds. Defaults  25ms (unsigned long)
+#define BUTTONDBTIME 25
+// puEnable: true to enable the microcontroller's internal pull-up resistor, else false. Defaults to true. (bool)
+#define BUTTONPUENABLE  true
+// invert: false interprets a high logic level to mean the button is pressed, true interprets a low level as pressed. true should be used when a pull-up resistor is employed, false for a pull-down resistor. Defaults to true. (bool)
+#define BUTTONINVERT true
+// we define a "long press" time in milliseconds
+#define BUTTONLONG_PRESS 1000
+
 // pins definitions
 #define LED_PIN  13
 #define CHANGEADDRESS1 6     // add 1 to i2c address
@@ -33,4 +46,5 @@
 #define STEPPER_PIN2 10
 #define STEPPER_PIN3 11
 #define STEPPER_PIN4 9
+#define BUTTON1PIN   3
 

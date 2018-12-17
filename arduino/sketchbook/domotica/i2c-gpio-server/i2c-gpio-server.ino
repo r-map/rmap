@@ -70,11 +70,13 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include <avr/wdt.h>
 #include "Wire.h"
 #include "registers-gpio.h"      //Register definitions
+#include "registers-manager.h"      //Register definitions
 #include "config.h"
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
 #include <avr/sleep.h>
 #include <StepperLab3.h>
+#include <JC_Button.h>          // https://github.com/JChristensen/JC_Button
 
 // logging level at compile time
 // Available levels are:
@@ -105,8 +107,14 @@ typedef struct {
 } stepper_t;
 
 typedef struct {
+  bool          active ;
+  unsigned int  long_press;
+} button_t;
+
+typedef struct {
   analog_t     analog;
   stepper_t    stepper;
+  button_t     button;
 } values_t;
 
 typedef struct {
@@ -137,6 +145,7 @@ typedef struct {
   uint8_t               onoff1;                   // on/off 1 value
   uint8_t               onoff2;                   // on/off 2 value
   stepper_writable_t	stepper;		  // struct for writable stepper registers
+  button_t              button;		          // struct for button registers
 
   void save (int* p) volatile {                            // save to eeprom
     LOGN(F("oneshot: %T" CR),oneshot);
@@ -147,6 +156,8 @@ typedef struct {
     *p+=EEPROM_writeAnything(*p, stepper.speed);
     *p+=EEPROM_writeAnything(*p, stepper.ramp_steps);
     *p+=EEPROM_writeAnything(*p, stepper.halfstep);
+    *p+=EEPROM_writeAnything(*p, button.active);
+    *p+=EEPROM_writeAnything(*p, button.long_press);
   }
   
   void load (int* p) volatile {                            // load from eeprom
@@ -156,6 +167,8 @@ typedef struct {
     *p+=EEPROM_readAnything(*p, stepper.speed);
     *p+=EEPROM_readAnything(*p, stepper.ramp_steps);
     *p+=EEPROM_readAnything(*p, stepper.halfstep);
+    *p+=EEPROM_readAnything(*p, button.active);
+    *p+=EEPROM_readAnything(*p, button.long_press);
   }  
 } I2C_WRITABLE_REGISTERS;
 
@@ -172,7 +185,7 @@ volatile static I2C_WRITABLE_REGISTERS  i2c_writablebuffer2;
 
 volatile static I2C_WRITABLE_REGISTERS* i2c_writabledataset1;
 volatile static I2C_WRITABLE_REGISTERS* i2c_writabledataset2;
-volatile static I2C_WRITABLE_REGISTERS* i2c_writabledatasettmp;
+//volatile static I2C_WRITABLE_REGISTERS* i2c_writabledatasettmp;
 
 volatile static uint8_t         receivedCommands[MAX_SENT_BYTES];
 volatile static uint8_t         new_command;                        //new command received (!=0)
@@ -187,6 +200,8 @@ boolean forcedefault=false;
 volatile unsigned long long counter=millis();
 
 StepperLab3 myStepper;
+
+Button myBtn(BUTTON1PIN, BUTTONDBTIME, BUTTONPUENABLE, BUTTONINVERT);
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -217,7 +232,7 @@ void receiveEvent( int bytesReceived)
 
   //LOGN("receive event, bytes: %d" CR,bytesReceived);
   
-  uint8_t  *ptr1, *ptr2;
+  uint8_t  *ptr2;
   counter = millis();
   sleep_disable();
  
@@ -233,7 +248,7 @@ void receiveEvent( int bytesReceived)
   if (bytesReceived == 1){
     //read address for a given register
     //Addressing over the reg_map fallback to first byte
-    if(bytesReceived == 1 && ( (receivedCommands[0] < 0) || (receivedCommands[0] >= REG_MAP_SIZE))) {
+    if(bytesReceived == 1 && (receivedCommands[0] >= REG_MAP_SIZE)) {
       receivedCommands[0]=0;
     }
     //LOGN("set register: %X" CR,receivedCommands[0]);
@@ -610,13 +625,15 @@ void setup() {
     {
       LOGN(F("EEPROM data not useful or set pin activated" CR));
       LOGN(F("set default values for writable registers" CR));
-      // set default to oneshot
+      // set default
       i2c_writabledataset2->oneshot=true;
       i2c_writabledataset2->i2c_address = I2C_GPIO_DEFAULTADDRESS;
       i2c_writabledataset2->stepper.power=STEPPER_POWER;
       i2c_writabledataset2->stepper.speed=STEPPER_SPEED;
       i2c_writabledataset2->stepper.ramp_steps=STEPPER_RAMPSTEPS;
       i2c_writabledataset2->stepper.halfstep=STEPPER_HALFSTEP;
+      i2c_writabledataset2->button.active=BUTTONACTIVEFORDEFAULT;
+      i2c_writabledataset2->button.long_press=BUTTONLONG_PRESS;
     }
 
   i2c_writabledataset2->pwm1 = 0;
@@ -666,13 +683,80 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
+  myBtn.begin();              // initialize the button object
+  
   LOGN(F("end setup" CR));
 
 }
 
+
+void shortpressed(){
+  LOGN(F("short pressed" CR));
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.write(I2C_MANAGER_COMMAND);
+  Wire.write(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
+  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+}
+
+void longpressed(){
+  LOGN(F("long pressed" CR));
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.write(I2C_MANAGER_COMMAND);
+  Wire.write(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
+  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+}
+
+
+// sequence of states,  ONOFF --> SHORTRELEASED --> LONGPRESSED --> LONGRELEASED
+enum button_states_t {ONOFF, SHORTRELEASED, LONGPRESSED, LONGRELEASED};
+
+static button_states_t BUTTON_STATE;      // current state machine state
+
+void myBtnsm()
+{
+
+    myBtn.read();               // read the button
+
+    switch (BUTTON_STATE)
+    {
+        // this state watches for short and long presses, switches the LED for
+        // short presses, and moves to the TO_BLINK state for long presses.
+        case ONOFF:
+            if (myBtn.wasReleased())
+                BUTTON_STATE = SHORTRELEASED;
+            else if (myBtn.pressedFor(i2c_writabledataset2->button.long_press))
+                BUTTON_STATE = LONGPRESSED;
+            break;
+
+        case SHORTRELEASED:
+	    BUTTON_STATE = ONOFF;
+	    shortpressed();
+            break;
+	    
+        // this is a transition state where we start the fast blink as feedback to the user,
+        // but we also need to wait for the user to release the button, i.e. end the
+        // long press, before moving to the BLINK state.
+        case LONGPRESSED:
+            if (myBtn.wasReleased())
+                BUTTON_STATE = LONGRELEASED;
+            break;
+
+        // this is a transition state where we just wait for the user to release the button
+        // before moving back to the ONOFF state.
+        case LONGRELEASED:
+	    BUTTON_STATE = ONOFF;
+            longpressed();
+            break;
+    }
+}
+
+
+
 void loop() {
 
   wdt_reset();
+
+  if (i2c_writabledataset1->button.active) myBtnsm();
   
   mgr_command();
 
@@ -699,9 +783,8 @@ void loop() {
   if (start || !i2c_writabledataset1->oneshot) {
 
     // start for oneshot or continuos mode
-  
-    i2c_dataset1->values.analog.analog1=LONG_MAX;
-    i2c_dataset1->values.analog.analog2=LONG_MAX;
+    i2c_dataset1->values.analog.analog1=UINT_MAX;
+    i2c_dataset1->values.analog.analog2=UINT_MAX;
 
     unsigned int table1[NSAMPLE];
     unsigned int table2[NSAMPLE];
@@ -737,6 +820,7 @@ void loop() {
 	    && i2c_writabledataset1->onoff2 == 0
 	    && (millis()-counter) >= 3000
 	    && myStepper.stepReady()==1
+	    && !i2c_writabledataset1->button.active
 	    )
     {
       counter=millis();

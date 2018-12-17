@@ -45,6 +45,8 @@
 #define I2C_GPIO_STEPPER_ROTATE_DIR           0x31      // 16 bits
 #define I2C_GPIO_STEPPER_POWER                0x33      // 16 bits
 #define I2C_GPIO_STEPPER_HALFSTEP             0x35      // bool
+#define I2C_GPIO_BUTTON_ACTIVE                0x36      // bool
+#define I2C_GPIO_BUTTON_LONG_TIME             0x37      // 16bits
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 
