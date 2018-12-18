@@ -430,6 +430,16 @@ function map_init(map, options)
 		    var e = new L.Icon.MarkerCluster();
 		    e.stats = cluster.stats;
 		    e.population = cluster.population;
+
+		    //this try to make the little values more visible (no less of 5%)
+		    for (var i = 0, l = e.stats.length; i < l; ++i) {
+			if ((e.stats[i] > 0) && ((e.stats[i]/e.population) < 0.1)){
+			  var inc=(e.population*0.05) - e.stats[i];
+			  e.stats[i]+=inc;
+			  e.population+=inc;
+			}
+		    }
+
 		    return e;
 		};
 		////////////
