@@ -77,6 +77,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include <avr/sleep.h>
 #include <StepperLab3.h>
 #include <JC_Button.h>          // https://github.com/JChristensen/JC_Button
+#include <Rotary.h>
 
 // logging level at compile time
 // Available levels are:
@@ -202,6 +203,8 @@ volatile unsigned long long counter=millis();
 StepperLab3 myStepper;
 
 Button myBtn(BUTTON1PIN, BUTTONDBTIME, BUTTONPUENABLE, BUTTONINVERT);
+
+Rotary encoder = Rotary(ENCODERA, ENCODERB);
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -693,13 +696,41 @@ void setup() {
 void shortpressed(){
   LOGN(F("short pressed" CR));
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.endTransmission();
+
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
   if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 }
 
+void encoderright(){
+  LOGN(F("encoder one step right" CR));
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.endTransmission();
+
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.write(I2C_MANAGER_COMMAND);
+  Wire.write(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
+  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+}
+
+void encoderleft(){
+  LOGN(F("encoder one step left" CR));
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.endTransmission();
+
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.write(I2C_MANAGER_COMMAND);
+  Wire.write(I2C_MANAGER_COMMAND_ENCODER_LEFT);
+  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+}
+
 void longpressed(){
   LOGN(F("long pressed" CR));
+  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  Wire.endTransmission();
+  
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
@@ -750,13 +781,23 @@ void myBtnsm()
     }
 }
 
-
+void myencoder(unsigned char result)
+{
+  if (result == DIR_CW) {
+    encoderright();    
+  }else{
+    encoderleft();
+  }
+}
 
 void loop() {
 
   wdt_reset();
 
   if (i2c_writabledataset1->button.active) myBtnsm();
+
+  unsigned char result = encoder.process();
+  if (result) myencoder(result);
   
   mgr_command();
 

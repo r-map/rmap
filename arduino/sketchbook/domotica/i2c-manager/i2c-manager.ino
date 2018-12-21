@@ -159,6 +159,7 @@ void receiveEvent( int bytesReceived)
   //LOGN("receive event, bytes: %d" CR,bytesReceived);
   
   uint8_t  *ptr2;
+
   counter = millis();
   sleep_disable();
  
@@ -183,7 +184,7 @@ void receiveEvent( int bytesReceived)
   
   if (bytesReceived == 2){
     // check for a command
-    if (receivedCommands[0] == I2C_GPIO_COMMAND) {
+    if (receivedCommands[0] == I2C_MANAGER_COMMAND) {
       //LOGN("       received command: %X" CR,receivedCommands[1]);
       new_command = receivedCommands[1]; return; }
   }
@@ -193,12 +194,12 @@ void receiveEvent( int bytesReceived)
 
   //LOGN("         check  writable buffer: %X %X %X" CR,receivedCommands[0],I2C_PWM_MAP_WRITABLE,I2C_PWM_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE);
   
-  if ((receivedCommands[0]>=I2C_GPIO_MAP_WRITABLE) && (receivedCommands[0] < (I2C_GPIO_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
-    if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_GPIO_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
+  if ((receivedCommands[0]>=I2C_MANAGER_MAP_WRITABLE) && (receivedCommands[0] < (I2C_MANAGER_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE))) {    
+    if ((receivedCommands[0]+(unsigned int)(bytesReceived-1)) <= (I2C_MANAGER_MAP_WRITABLE+REG_WRITABLE_MAP_SIZE)) {
       //Writeable registers
       // the two buffer should be in sync
-      //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_GPIO_MAP_WRITABLE;
-      ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_GPIO_MAP_WRITABLE;
+      //ptr1 = (uint8_t *)i2c_writabledataset1+receivedCommands[0]-I2C_MANAGER_MAP_WRITABLE;
+      ptr2 = (uint8_t *)i2c_writabledataset2+receivedCommands[0]-I2C_MANAGER_MAP_WRITABLE;
       for (int a = 1; a < bytesReceived; a++) { 
 	//LOGN("write in writable buffer: %X ,%X" CR,a,receivedCommands[a]);
 	//*ptr1++ = receivedCommands[a];
@@ -221,6 +222,22 @@ void mgr_command(){
     new_command = 0;                                                          //clear it
     //_command = _command & 0x0F;                                               //empty 4MSB bits   
     switch (_command) {
+    case I2C_MANAGER_COMMAND_SAVE:
+      {
+	LOGN(F("COMMAND: save" CR));
+      
+	// save configuration to eeprom
+	LOGN(F("save configuration to eeprom" CR));
+	int p=0;
+	
+	// save configuration version on eeprom
+	p+=EEPROM_writeAnything(p, confver);
+	//save writable registers
+	i2c_writabledataset2->save(&p);
+      
+	break;
+      }
+
     case I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED:
       {
 	LOGN(F("COMMAND: button 1 short pressed" CR));
@@ -246,19 +263,21 @@ void mgr_command(){
 	break;
       }
 
-    case I2C_MANAGER_COMMAND_SAVE:
+    case I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED:
       {
-	LOGN(F("COMMAND: save" CR));
-      
-	// save configuration to eeprom
-	LOGN(F("save configuration to eeprom" CR));
-	int p=0;
-	
-	// save configuration version on eeprom
-	p+=EEPROM_writeAnything(p, confver);
-	//save writable registers
-	i2c_writabledataset2->save(&p);
-      
+	LOGN(F("COMMAND: BUTTON1_LONGPRESSED" CR));
+	break;
+      }
+
+    case I2C_MANAGER_COMMAND_ENCODER_RIGHT:
+      {
+	LOGN(F("COMMAND: ENCODER_RIGHT" CR));
+	break;
+      }
+
+    case I2C_MANAGER_COMMAND_ENCODER_LEFT:
+      {
+	LOGN(F("COMMAND: ENCODER_LEFT" CR));
 	break;
       }
 
@@ -283,12 +302,13 @@ void mgr_command(){
       i2c_dataset2=i2c_datasettmp;
       interrupts();
       // new data published
-      
+      /*
       LOGN(F("clean buffer" CR));
       uint8_t *ptr;
       //Init to FF i2c_dataset1;
       ptr = (uint8_t *)&i2c_dataset1->values.analog;
       for (int i=0;i<REG_ANALOG_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+      */
   }
   
   //LOGN(F("oneshot : %T" CR),i2c_writabledataset2->oneshot);
@@ -395,7 +415,7 @@ void setup() {
       LOGN(F("set default values for writable registers" CR));
       // set default
       i2c_writabledataset2->oneshot=true;
-      i2c_writabledataset2->i2c_address = I2C_GPIO_DEFAULTADDRESS;
+      i2c_writabledataset2->i2c_address = I2C_MANAGER_DEFAULTADDRESS;
       i2c_writabledataset2->button.active=true;
       i2c_writabledataset2->button.long_press=1000;
     }
@@ -446,6 +466,7 @@ void loop() {
 
   mgr_command();
 
+  /*
   if (take) {
     
     LOGN(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
@@ -453,21 +474,26 @@ void loop() {
 
     take =false;
   }
+  */
 
   digitalWrite(LED_PIN,HIGH);  //  Led on
-  counter=millis();
-  digitalWrite(LED_PIN,LOW);  //  Led off
-  LOGN(F("Sleep" CR));
-  delay(10);
-      
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-  // disable watchdog
-  wdt_disable();
-  sleep_enable();
-  sleep_cpu();
-  sleep_disable();
-  // enable watchdog with timeout to 8s
-  wdt_enable(WDTO_8S);
-  LOGN(F(">>>>> Wake up" CR));
 
+  if ((millis()-counter) >= 3000)
+    {
+      counter=millis();
+
+      digitalWrite(LED_PIN,LOW);  //  Led off
+      LOGN(F("Sleep" CR));
+      delay(10);
+      
+      set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+      // disable watchdog
+      wdt_disable();
+      sleep_enable();
+      sleep_cpu();
+      sleep_disable();
+      // enable watchdog with timeout to 8s
+      wdt_enable(WDTO_8S);
+      LOGN(F(">>>>> Wake up" CR));
+    }
 }

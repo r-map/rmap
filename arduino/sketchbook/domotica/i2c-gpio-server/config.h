@@ -21,7 +21,7 @@
 // button parameter
 // this activate button as default configuration
 // when button is active sleep is disables so more power is needed
-#define BUTTONACTIVEFORDEFAULT false
+#define BUTTONACTIVEFORDEFAULT true
 // dbTime: Debounce time in milliseconds. Defaults  25ms (unsigned long)
 #define BUTTONDBTIME 25
 // puEnable: true to enable the microcontroller's internal pull-up resistor, else false. Defaults to true. (bool)
@@ -47,4 +47,7 @@
 #define STEPPER_PIN3 11
 #define STEPPER_PIN4 9
 #define BUTTON1PIN   3
+#define ENCODERA CHANGEADDRESS1
+#define ENCODERB CHANGEADDRESS2
+
 
