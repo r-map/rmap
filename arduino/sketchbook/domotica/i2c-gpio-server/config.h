@@ -18,6 +18,9 @@
 #define STEPPER_RAMPSTEPS 400
 #define STEPPER_HALFSTEP true
 
+// set software pullup for encoder input A & B 
+#define ENCODERPULLUP true
+
 // button parameter
 // this activate button as default configuration
 // when button is active sleep is disables so more power is needed
@@ -47,7 +50,7 @@
 #define STEPPER_PIN3 11
 #define STEPPER_PIN4 9
 #define BUTTON1PIN   3
-#define ENCODERA CHANGEADDRESS1
-#define ENCODERB CHANGEADDRESS2
+#define ENCODERA CHANGEADDRESS1      // use same pin for two function: to be changed !
+#define ENCODERB CHANGEADDRESS2      // use same pin for two function: to be changed !
 
 

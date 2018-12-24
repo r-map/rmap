@@ -541,6 +541,8 @@ void setup() {
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
 
+
+  encoder.begin(ENCODERPULLUP);
   
   Serial.begin(115200);        // connect to the serial port
 

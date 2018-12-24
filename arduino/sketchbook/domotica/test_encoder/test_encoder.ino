@@ -10,14 +10,17 @@
 
 #include <Rotary.h>
 
-Rotary r = Rotary(2, 3);
+Rotary r = Rotary(D6, D7);
 
 void setup() {
-  Serial.begin(9600);
-  r.begin(true);
+  Serial.begin(115200);
+  Serial.println("Started");
+  r.begin();
+
 }
 
 void loop() {
+
   unsigned char result = r.process();
   if (result) {
     Serial.println(result == DIR_CW ? "Right" : "Left");
