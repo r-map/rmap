@@ -79,6 +79,9 @@
 // wemos
 #define SDS_PIN_RX D5
 #define SDS_PIN_TX D6
+#else
+#define HPM_PIN_RX 4
+#define HPM_PIN_TX 5
 #endif
 #endif
 
@@ -107,8 +110,8 @@
 #define HPM_PIN_RX D5
 #define HPM_PIN_TX D6
 #else
-#define HPM_PIN_RX D4
-#define HPM_PIN_TX D5
+#define HPM_PIN_RX 4
+#define HPM_PIN_TX 5
 #endif
 
 #define HPMSAMPLES 3

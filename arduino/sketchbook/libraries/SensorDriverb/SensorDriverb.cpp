@@ -152,6 +152,17 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 }
 SensorDriver::~SensorDriver() {}
 
+
+#if defined (USEGETDATA)
+int SensorDriver::getdata(unsigned long& data,unsigned short& width)
+{
+  data=0xFFFFFFFF;
+  width=0xFFFF;
+  return SD_INTERNAL_ERROR;
+}
+#endif
+
+
 #if defined (RADIORF24)
   #if defined (AES)
 void SensorDriver::aes_enc( char* mainbuf, size_t* buflen){
@@ -308,6 +319,7 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
 int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -430,6 +442,7 @@ int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
     data=(values[0]-reference) ;// << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
+    width=0xFFFF;
     return SD_INTERNAL_ERROR;
   }
   return SD_SUCCESS;
@@ -854,6 +867,7 @@ int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
     data=(values[0]-reference);// << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
+    width=0xFFFF;
     return SD_INTERNAL_ERROR;
   }
   return SD_SUCCESS;
@@ -983,6 +997,7 @@ int SensorDriverHyt271::get(long values[], size_t lenvalues) {
 int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -1316,6 +1331,7 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
 int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -1433,6 +1449,7 @@ int SensorDriverSI7021::get(long values[],size_t lenvalues)
 int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -1574,6 +1591,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
 int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -1689,6 +1707,7 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
 int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -1825,6 +1844,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
 int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2029,6 +2049,7 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
 int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2232,6 +2253,7 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
 int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2438,6 +2460,7 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
 int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2639,6 +2662,7 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
 int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2801,6 +2825,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
 int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -2977,6 +3002,7 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -3221,6 +3247,7 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
 int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -3424,6 +3451,7 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
 int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -3630,6 +3658,7 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
 int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -3831,6 +3860,7 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
 int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -3991,6 +4021,7 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
 int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -4225,6 +4256,7 @@ int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
 int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -4428,6 +4460,7 @@ int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
 int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -4634,6 +4667,7 @@ int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
 int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -4835,6 +4869,7 @@ int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
 int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
 {
   data=0xFFFFFFFF;
+  width=0xFFFF;
   return SD_INTERNAL_ERROR;
 }
 #endif
@@ -4969,6 +5004,7 @@ int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& wi
     data=(values[0]-reference);// << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
+    width=0xFFFF;
     return SD_INTERNAL_ERROR;
   }
   return SD_SUCCESS;
