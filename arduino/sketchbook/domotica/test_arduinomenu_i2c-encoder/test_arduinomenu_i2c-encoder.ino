@@ -10,41 +10,38 @@ Based on example from Rui Azevedo - ruihfazevedo(@rrob@)gmail.com
 Original from: https://github.com/christophepersoz
 
 menu on U8G2 device
-output: microduino OLED Shield (SSD1306 I2C) + Serial
-input: Serial + encoder
-mcu: nano328p
+input:  Serial + encoder
+output: wemos OLED Shield (SSD1306 I2C) + Serial
+mcu: esp8266 wemos D1 mini
 
 */
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
-#include <menuIO/encoderIn.h>
+#include <menuIO/I2C_RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
 #include <menuIO/serialOut.h>
 #include <menuIO/serialIn.h>
 #include <Wire.h>
 
-//using namespace Menu;
-
-#define LEDPIN LED_BUILTIN
-
 // rotary encoder pins
-#define encA    5
-#define encB    6
-#define encBtn  7
+#define encBtn  D5
+#define encA    D6
+#define encB    D7
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
 #define fontY 8
-#define offsetX 0
+#define offsetX 1
 #define offsetY 1
 #define U8_Width 64
 #define U8_Height 48
-#define fontMarginX 0
-#define fontMarginY 0
+#define fontMarginX 1
+#define fontMarginY 1
 
-//U8X8_SSD1306_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
+#define I2C_ADDRESS 0x06
+
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
 
@@ -143,42 +140,34 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
 
 #define MAX_DEPTH 2
 
-//encoderIn<encA,encB> encoder;//simple quad encoder driver
-//encoderInStream<encA,encB> encStream(encoder,4);// simple quad encoder fake Stream
+encoderIn<encA,encB> encoder;//simple quad encoder driver
+encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
 
 //a keyboard with only one key as the encoder button
-//keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
-//keyIn<1> encButton(encBtn_map);//1 is the number of keys
+keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
+keyIn<1> encButton(encBtn_map);//1 is the number of keys
 
 //menuIn* inputsList[]={&encButton};
 //chainStream<1> in(inputsList);//1 is the number of inputs
 
 serialIn serial(Serial);
-menuIn* inputsList[]={&serial};
-chainStream<1> in(inputsList);//1 is the number of inputs
+//menuIn* inputsList[]={&serial};
+//chainStream<1> in(inputsList);//1 is the number of inputs
 
+MENU_INPUTS(in,&encStream,&encButton,&serial);
 
-//MENU_INPUTS(&serial);
-//MENU_INPUTS(in,&encButton,&serial);
-//MENU_INPUTS(in,&encStream,&encButton,&serial);
-
-//MENU_OUTPUTS(out,MAX_DEPTH
-//	     ,SERIAL_OUT(Serial)
-//	     ,U8X8_OUT(u8x8,{0,0,10,6}));
-	     
-//MENU_OUTPUTS(out,MAX_DEPTH
-//,U8G2_OUT(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY})
-//,SERIAL_OUT(Serial)
-//);
-
-
+/*
+MENU_OUTPUTS(out,MAX_DEPTH
+,U8G2_OUT(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY})
+,SERIAL_OUT(Serial)
+);
+*/
 /*
 MENU_OUTPUTS(out,MAX_DEPTH
   ,U8G2_OUT(u8g2,colors,fontX,fontY,offsetX,offsetY,{0,0,U8_Width/fontX,U8_Height/fontY})
   ,SERIAL_OUT(Serial)
 );
 */
-
 
 //define output device serial
 idx_t serialTops[MAX_DEPTH]={0};
@@ -225,19 +214,14 @@ result idle(menuOut& o,idleEvent e) {
   return proceed;
 }
 
-
-
 void setup() {
   Serial.begin(115200);
   while(!Serial);
   Serial.println("menu 4.x test");Serial.flush();
-  // encButton.begin();
-  // encoder.begin();
-  // pinMode(LEDPIN,OUTPUT);//cant use pin 13 when using hw spi
-  // and on esp12 i2c can be on pin 2, and that is also led pin
-  // so check first if this is adequate for your board
 
-  Wire.begin();
+  //Start I2C communication routines
+  //Wire.pins(SDA, SCL);
+  Wire.begin(I2C_ADDRESS);
 
   delay(1000);
   #define OLEDI2CADDRESS 0X3C
@@ -250,11 +234,15 @@ void setup() {
   u8g2.print(F("Starting up!"));
   u8g2.sendBuffer();
 
+  encoder.begin();
+  encButton.begin();
   
-  //u8x8.setFont(u8x8_font_chroma48medium8_r);
-  //u8g2.drawString(0,0,"Menu 4.x");
   delay(1000);
 
+  // encoder with interrupt on the A & B pins
+  //attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
+  //attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
+  
   // disable second option
   //mainMenu[1].enabled=disabledStatus;
   //nav.idleTask=idle;//point a function to be used when menu is suspended
@@ -263,22 +251,15 @@ void setup() {
 }
 
 void loop() {
-  delay(100);//simulate other tasks delay
+
+  // if we do not use interrupt we can poll A & B pins but we need non blocking firmware
+  //encoder.process();  // update encoder status
 
   //nav.poll();
 
   nav.doInput();
-  // digitalWrite(LEDPIN, !ledCtrl);//no led on this board
   if (nav.changed(0)) {//only draw if menu changed for gfx device
     u8g2.firstPage();
     do nav.doOutput(); while(u8g2.nextPage());
-  }
-
-  /*
-  u8g2.clearBuffer();
-  u8g2.setCursor(0, 20); 
-  u8g2.print(F("loop"));
-  u8g2.sendBuffer();
-  */
-
+  }  
 }
