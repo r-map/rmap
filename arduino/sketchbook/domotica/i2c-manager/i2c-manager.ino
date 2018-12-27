@@ -346,7 +346,7 @@ void setup() {
   // set runtime log level to the same of compile time
   Log.begin(LOG_LEVEL, &Serial);
 
-  LOGN(F("Start firmware version: %s" CR),VERSION);
+  LOGN(F("Start firmware version: %d" CR),VERSION);
 
   // inizialize double buffer
   i2c_dataset1=&i2c_buffer1;
