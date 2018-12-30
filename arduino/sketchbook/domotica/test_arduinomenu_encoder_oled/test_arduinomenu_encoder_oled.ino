@@ -19,6 +19,7 @@ mcu: esp8266 wemos D1 mini
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
 #include <menuIO/RotaryIn.h>
+#include <menuIO/IRremoteIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
 #include <menuIO/serialOut.h>
@@ -29,6 +30,8 @@ mcu: esp8266 wemos D1 mini
 #define encBtn  D5
 #define encA    D6
 #define encB    D7
+
+#define IR_PIN D0
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -141,6 +144,9 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
 encoderIn<encA,encB> encoder;//simple quad encoder driver
 encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
 
+irIn<IR_PIN> ir;
+irInStream<IR_PIN> irStream(ir);// simple IR Stream
+
 //a keyboard with only one key as the encoder button
 keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
 keyIn<1> encButton(encBtn_map);//1 is the number of keys
@@ -152,7 +158,7 @@ serialIn serial(Serial);
 //menuIn* inputsList[]={&serial};
 //chainStream<1> in(inputsList);//1 is the number of inputs
 
-MENU_INPUTS(in,&encStream,&encButton,&serial);
+MENU_INPUTS(in,&irStream,&encStream,&encButton,&serial);
 
 /*
 MENU_OUTPUTS(out,MAX_DEPTH
@@ -236,6 +242,7 @@ void setup() {
   u8g2.sendBuffer();
 
   encoder.begin();
+  ir.begin();
   encButton.begin();
   
   delay(1000);
@@ -255,7 +262,7 @@ void loop() {
 
   // if we do not use interrupt we can poll A & B pins but we need non blocking firmware
   //encoder.process();  // update encoder status
-
+  ir.process();
   //nav.poll();
 
   nav.doInput();
