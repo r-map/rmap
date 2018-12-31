@@ -249,6 +249,7 @@ bool publish_maint() {
     
   if (!mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
     LOGE(F("Error connecting MQTT" CR));
+    LOGE(F("Error status %d" CR),mqttclient.state());
     return false;
   }
   LOGN(F("MQTT connected" CR));

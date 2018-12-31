@@ -8,7 +8,7 @@
 #define PubSubClient_h
 
 #include <Arduino.h>
-
+#include "IPAddress.h"
 // if use sim800 client
 //#include "sim800Client.h"
 //#define TCPCLIENT sim800Client
@@ -17,9 +17,6 @@
 #include "Client.h"
 #include "Stream.h"
 #define TCPCLIENT Client
-
-
-#include "IPAddress.h"
 
 #define MQTT_VERSION_3_1      3
 #define MQTT_VERSION_3_1_1    4
@@ -32,7 +29,7 @@
 
 // MQTT_MAX_PACKET_SIZE : Maximum packet size
 #ifndef MQTT_MAX_PACKET_SIZE
-#define MQTT_MAX_PACKET_SIZE 128
+#define MQTT_MAX_PACKET_SIZE 254
 #endif
 
 // MQTT_KEEPALIVE : keepAlive interval in Seconds
