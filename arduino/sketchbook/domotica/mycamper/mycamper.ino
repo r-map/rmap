@@ -80,8 +80,8 @@ bool status8=false;
 bool status9=false;
 
 i2cgpio gpio1;
-i2cgpio gpio2(I2C_PWM_DEFAULTADDRESS+1);
-i2cgpio gpio3(I2C_PWM_DEFAULTADDRESS+2);
+i2cgpio gpio2(I2C_GPIO_DEFAULTADDRESS+1);
+i2cgpio gpio3(I2C_GPIO_DEFAULTADDRESS+2);
 i2cibt_2 mybridgef(IBT_2_FULL,gpio1);
 i2cibt_2 mybridge2h(IBT_2_2HALF,gpio2);
 
