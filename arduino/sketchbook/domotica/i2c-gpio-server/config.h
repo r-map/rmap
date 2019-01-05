@@ -56,26 +56,26 @@ External interrupt support, a total of 2:
 */
 
 // pins definitions
-//                      D0     // RX
-//                      D1     // TX
-#define BUTTON1PIN      D2     // input button 1 (INT0 not used)
-#define PWM1_PIN        D3     // output PWM 1
-#define STEPPER_PIN1    D4     // output stepper 1
-#define ONOFF1_PIN      D5     // output on/off 1
-#define ONOFF2_PIN      D6     // output on/off 2
-#define STEPPER_PIN2    D7     // output stepper 2
-#define FORCEDEFAULTPIN D8     // input force default
-//                      D9     // output stepper PWM 1
-//                      D10    // output stepper PWM 2
-#define PWM2_PIN        D11    // output PWM 2
-#define STEPPER_PIN3    D12    // output stepper 3
-#define STEPPER_PIN4    D13    // output stepper 4
+//                      0     // RX
+//                      1     // TX
+#define BUTTON1PIN      2     // input button 1 (INT0 not used)
+#define PWM1_PIN        3     // output PWM 1
+#define STEPPER_PIN1    4     // output stepper 1
+#define ONOFF1_PIN      5     // output on/off 1
+#define ONOFF2_PIN      6     // output on/off 2
+#define STEPPER_PIN2    7     // output stepper 2
+#define FORCEDEFAULTPIN 8     // input force default
+//                      9     // output stepper PWM 1
+//                      10    // output stepper PWM 2
+#define PWM2_PIN        11    // output PWM 2
+#define STEPPER_PIN3    12    // output stepper 3
+#define STEPPER_PIN4    13    // output stepper 4
 #define ANALOG1_PIN     A0     // D14  analog input 1
 #define ANALOG2_PIN     A1     // D15  analog input 2
-#define ENCODERA        D16    // input decoder A
-#define ENCODERB        D17    // input decoder B
-//                      D18    // SDA
-//                      D19    // SCL
-#define CHANGEADDRESS1  D20    // input add 1 to i2c address  
-#define CHANGEADDRESS2  D21    // input add 2 to i2c address
+#define ENCODERA        16    // input decoder A
+#define ENCODERB        17    // input decoder B
+//                      18    // SDA
+//                      19    // SCL
+#define CHANGEADDRESS1  20    // input add 1 to i2c address  
+#define CHANGEADDRESS2  21    // input add 2 to i2c address
 
