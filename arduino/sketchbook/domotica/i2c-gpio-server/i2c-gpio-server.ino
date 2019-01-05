@@ -598,7 +598,6 @@ void setup() {
   pinMode(CHANGEADDRESS1, INPUT_PULLUP);
   pinMode(CHANGEADDRESS2, INPUT_PULLUP);
   
-  pinMode(LED_PIN, OUTPUT);
   pinMode(PWM1_PIN, OUTPUT);
   pinMode(PWM2_PIN, OUTPUT);
   pinMode(ONOFF1_PIN, OUTPUT);
@@ -609,7 +608,6 @@ void setup() {
   myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
    
   if (digitalRead(FORCEDEFAULTPIN) == LOW) {
-    digitalWrite(LED_PIN, HIGH);
     forcedefault=true;
   }
 
@@ -855,8 +853,6 @@ void loop() {
     stop=false;
   }
 
-  digitalWrite(LED_PIN,HIGH);  //  Led on
-
   if (      i2c_writabledataset1->pwm1 == 0
 	 && i2c_writabledataset1->pwm2 == 0
 	    && i2c_writabledataset1->onoff1 == 0
@@ -867,7 +863,6 @@ void loop() {
 	    )
     {
       counter=millis();
-      digitalWrite(LED_PIN,LOW);  //  Led off
       LOGN(F("Sleep" CR));
       delay(10);
       
