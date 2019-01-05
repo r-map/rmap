@@ -79,7 +79,6 @@ Rotary::Rotary(char _pin1, char _pin2) {
 void Rotary::begin(bool pullup) {
 
   if (pullup){
-    Serial.println("pullup");
     // Enable weak pullups
     pinMode(pin1,INPUT_PULLUP);
     pinMode(pin2,INPUT_PULLUP);
@@ -93,7 +92,6 @@ void Rotary::begin(bool pullup) {
 unsigned char Rotary::process() {
   // Grab state of input pins.
   unsigned char pinstate = (digitalRead(pin2) << 1) | digitalRead(pin1);
-  //Serial.println(pinstate,BIN);
   // Determine new state from the pins and state table.
   state = ttable[state & 0xf][pinstate];
   // Return emit bits, ie the generated event.
