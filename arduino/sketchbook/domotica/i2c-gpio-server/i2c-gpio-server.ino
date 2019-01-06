@@ -79,6 +79,14 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include <JC_Button.h>          // https://github.com/JChristensen/JC_Button
 #include <Rotary.h>
 
+#ifdef IRREMOTE
+#include <IRremote.h>
+IRsend irsend;
+IRrecv irrecv(RECV_PIN);
+decode_results results;
+int8_t lastkey=-1;      
+#endif
+
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
@@ -137,6 +145,13 @@ typedef struct {
 } stepper_writable_t;
 
 typedef struct {
+  uint8_t              model;
+  uint32_t             code;
+  uint8_t              bit;
+  uint8_t              repeat;
+} irremote_writable_t;
+
+typedef struct {
 
 //sample mode
   bool                  oneshot;                  // one shot active
@@ -147,7 +162,8 @@ typedef struct {
   uint8_t               onoff2;                   // on/off 2 value
   stepper_writable_t	stepper;		  // struct for writable stepper registers
   button_t              button;		          // struct for button registers
-
+  irremote_writable_t   irremote;                 // struct for irremote send
+  
   void save (int* p) volatile {                            // save to eeprom
     LOGN(F("oneshot: %T" CR),oneshot);
     LOGN(F("i2c address: %d" CR),i2c_address);
@@ -597,9 +613,14 @@ void setup() {
   pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
   pinMode(CHANGEADDRESS1, INPUT_PULLUP);
   pinMode(CHANGEADDRESS2, INPUT_PULLUP);
-  
+
+#ifdef IRREMOTE
+  irrecv.enableIRIn(); // Start the receiver
+#else
   pinMode(PWM1_PIN, OUTPUT);
   pinMode(PWM2_PIN, OUTPUT);
+#endif
+  
   pinMode(ONOFF1_PIN, OUTPUT);
   pinMode(ONOFF2_PIN, OUTPUT);
   pinMode(ANALOG1_PIN, INPUT);
@@ -790,6 +811,22 @@ void myencoder(unsigned char result)
   }
 }
 
+void goto_sleep(){
+  counter=millis();
+  LOGN(F("Sleep" CR));
+  delay(10);
+  
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  // disable watchdog
+  wdt_disable();
+  sleep_enable();
+  sleep_cpu();
+  sleep_disable();
+  // enable watchdog with timeout to 8s
+  wdt_enable(WDTO_8S);
+  LOGN(F(">>>>> Wake up" CR));
+}
+
 void loop() {
 
   wdt_reset();
@@ -803,11 +840,6 @@ void loop() {
 
   if (take) {
     
-    LOGN(F("pwm1: %d" CR),i2c_writabledataset1->pwm1);
-    analogWrite(PWM1_PIN, i2c_writabledataset1->pwm1);  
-    LOGN(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
-    analogWrite(PWM2_PIN, i2c_writabledataset1->pwm2);  
-
     LOGN(F("onoff1: %T" CR),i2c_writabledataset1->onoff1);
     digitalWrite(ONOFF1_PIN, (i2c_writabledataset1->onoff1 == 0) ? LOW : HIGH );  
     LOGN(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
@@ -817,6 +849,27 @@ void loop() {
     myStepper.setSpeed(i2c_writabledataset1->stepper.speed);
     myStepper.setRampSteps(i2c_writabledataset1->stepper.ramp_steps);
     if (i2c_writabledataset1->stepper.halfstep) myStepper.setHalfStep();
+
+#ifdef IRREMOTE
+    // TODO i2c_writabledataset1->irremote.repeat  when needed
+    switch (i2c_writabledataset1->irremote.model) {
+    case IR_SONY:
+      irsend.sendSony(i2c_writabledataset1->irremote.code, i2c_writabledataset1->irremote.bit);
+      break;
+    case IR_PANASONIC:
+      irsend.sendPanasonic(i2c_writabledataset1->irremote.code, i2c_writabledataset1->irremote.bit);
+      break;
+    default:
+      LOGN(F("unknown remote model" CR));
+      break;
+    } 
+
+#else
+    LOGN(F("pwm1: %d" CR),i2c_writabledataset1->pwm1);
+    analogWrite(PWM1_PIN, i2c_writabledataset1->pwm1);  
+    LOGN(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
+    analogWrite(PWM2_PIN, i2c_writabledataset1->pwm2);  
+#endif
     
     take =false;
   }
@@ -853,6 +906,128 @@ void loop() {
     stop=false;
   }
 
+#ifdef IRREMOTE
+
+  if (irrecv.decode(&results)) {
+    //Serial.println(results.value, HEX);
+    //Serial.print(results.decode_type);
+
+    uint8_t key;
+    
+    if (results.decode_type == DECODETYPE) {
+      
+      switch(results.value){
+	/*
+      case KEYPAD_1: // 1 Keypad Button
+	key=1;
+	lastkey=key;
+	break;
+
+      case KEYPAD_2: // 2 Keypad Button
+	key=2;
+	lastkey=key;
+	break;
+
+      case KEYPAD_3: // 3 Keypad Button
+	key=3;
+	lastkey=key;
+	break;
+
+      case KEYPAD_4: // 1 Keypad Button
+	key=4;
+	lastkey=key;
+	break;
+
+      case KEYPAD_5: // 2 Keypad Button
+	key=5;
+	lastkey=key;
+	break;
+
+      case KEYPAD_6: // 3 Keypad Button
+	key=6;
+	lastkey=key;
+	break;
+
+      case KEYPAD_7:
+	key=7;
+	lastkey=key;
+	break;
+
+      case KEYPAD_8:
+	key=8;
+	lastkey=key;
+	break;
+
+      case KEYPAD_9:
+	key=9;
+	lastkey=key;
+	break;
+	*/
+      case KEYPAD_DOWN:
+      case KEYPAD_MINUS:
+	key=MINUS;
+	lastkey=key;
+	break;
+
+      case KEYPAD_UP:
+      case KEYPAD_PLUS:
+	key=PLUS;
+	lastkey=key;
+	break;
+
+      case KEYPAD_OK:
+	key=OK;
+	lastkey=key;
+	break;
+
+      case KEYPAD_0:
+	key=OKKAY;
+	lastkey=key;
+	break;
+  
+      case REPEAT: // REPEAT code
+	LOGN(F("received repeat value" CR));
+	key=lastkey;
+	break;
+
+      case KEYPAD_POWERDOWN:
+	lastkey=-1;
+	goto_sleep();
+	break;
+
+      default:
+	LOGN(F("unknown key" CR));
+	lastkey=-1;
+	break;
+ 
+      }
+    }
+    irrecv.resume(); // Receive the next value
+
+    switch (key) {
+    case DOWN:
+    case MINUS:
+      encoderleft();
+      break;
+    case UP:
+    case PLUS:
+      encoderright();
+      break;
+    case OK:
+      shortpressed();
+      break;
+    case OKKAY:
+      longpressed();
+      break;
+    default:
+      LOGN(F("unknown action" CR));
+      break;
+    }
+
+  }
+  
+#else
+  
   if (      i2c_writabledataset1->pwm1 == 0
 	 && i2c_writabledataset1->pwm2 == 0
 	    && i2c_writabledataset1->onoff1 == 0
@@ -862,18 +1037,7 @@ void loop() {
 	    && !i2c_writabledataset1->button.active
 	    )
     {
-      counter=millis();
-      LOGN(F("Sleep" CR));
-      delay(10);
-      
-      set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-      // disable watchdog
-      wdt_disable();
-      sleep_enable();
-      sleep_cpu();
-      sleep_disable();
-      // enable watchdog with timeout to 8s
-      wdt_enable(WDTO_8S);
-      LOGN(F(">>>>> Wake up" CR));
+      goto_sleep();
     }
+#endif
 }

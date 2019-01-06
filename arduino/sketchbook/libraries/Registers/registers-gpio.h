@@ -46,7 +46,11 @@
 #define I2C_GPIO_STEPPER_POWER                0x33      // 16 bits
 #define I2C_GPIO_STEPPER_HALFSTEP             0x35      // bool
 #define I2C_GPIO_BUTTON_ACTIVE                0x36      // bool
-#define I2C_GPIO_BUTTON_LONG_TIME             0x37      // 16bits
+#define I2C_GPIO_BUTTON_LONG_TIME             0x37      // 16 bits
+#define I2C_GPIO_IRREMOTE_MODEL               0x39      // 8 bits
+#define I2C_GPIO_IRREMOTE_CODE                0x3A      // 32 bits
+#define I2C_GPIO_IRREMOTE_BIT                 0x3E      // 8 bits
+#define I2C_GPIO_IRREMOTE_REPEAT              0x3F      // 8 bits
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 

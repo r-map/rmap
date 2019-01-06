@@ -9,6 +9,9 @@
 // var CONFVER max lenght 10 char!
 #define CONFVER "confgpi00"
 
+// define if you want use IRremote as alternative to PWM1 and PWM2 output
+//#define IRREMOTE
+
 // number of analog sample to do for average
 #define NSAMPLE 6
 
@@ -59,7 +62,11 @@ External interrupt support, a total of 2:
 //                      0     // RX
 //                      1     // TX
 #define BUTTON1PIN      2     // input button 1 (INT0 not used)
+#ifdef IRREMOTE
+//#define               3     // output IR transmitter hardware defined in lib
+#else
 #define PWM1_PIN        3     // output PWM 1
+#endif
 #define STEPPER_PIN1    4     // output stepper 1
 #define ONOFF1_PIN      5     // output on/off 1
 #define ONOFF2_PIN      6     // output on/off 2
@@ -67,7 +74,11 @@ External interrupt support, a total of 2:
 #define FORCEDEFAULTPIN 8     // input force default
 //                      9     // output stepper PWM 1
 //                      10    // output stepper PWM 2
+#ifdef IRREMOTE
+#define RECV_PIN        11    // input IR receiver
+#else
 #define PWM2_PIN        11    // output PWM 2
+#endif
 #define STEPPER_PIN3    12    // output stepper 3
 #define STEPPER_PIN4    13    // output stepper 4
 #define ANALOG1_PIN     A0     // D14  analog input 1
@@ -79,3 +90,33 @@ External interrupt support, a total of 2:
 #define CHANGEADDRESS1  20    // input add 1 to i2c address  
 #define CHANGEADDRESS2  21    // input add 2 to i2c address
 
+
+
+// IR telecontrol CODE
+#define DECODETYPE NEC
+#define KEYPAD_0     0xFF48B7 // 0 Keypad Button
+#define KEYPAD_1     0xFF906F // 1 Keypad Button
+#define KEYPAD_2     0xFFB847 // 2 Keypad Button
+#define KEYPAD_3     0xFFF807 // 3 Keypad Button
+#define KEYPAD_4     0xFFB04F // 4 Keypad Button
+#define KEYPAD_5     0xFF9867 // 5 Keypad Button
+#define KEYPAD_6     0xFFD827 // 6 Keypad Button
+#define KEYPAD_7     0xFF8877 // 7 Keypad Button
+#define KEYPAD_8     0xFFA857 // 8 Keypad Button
+#define KEYPAD_9     0xFFE817 // 9 Keypad Button
+#define KEYPAD_MINUS 0xFF50AF // Vol- Keypad Button
+#define KEYPAD_PLUS  0xFF7887 // Vol+ Keypad Button
+#define KEYPAD_DOWN  0xFF40BF // CH- Keypad Button
+#define KEYPAD_UP    0xFFA05F // CH+ Keypad Button
+#define KEYPAD_OK    0xFF02FD // full screen Keypad Button
+#define KEYPAD_POWERDOWN 0xFFB24D // powerdown Keypad Button
+
+#define IR_SONY      1  // send type for IR
+#define IR_PANASONIC 2  // send type for IR
+
+#define MINUS 10
+#define PLUS  11
+#define DOWN  12
+#define UP    13
+#define OK    14
+#define OKKAY 15
