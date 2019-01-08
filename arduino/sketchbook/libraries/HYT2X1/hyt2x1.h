@@ -86,6 +86,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define HYT2X1_HUMIDITY_MAX         (100)
 
 /*!
+\def HYT2X1_READ_MAX
+\brief Maximum readed value: error.
+*/
+#define HYT2X1_READ_MAX             (0xFFFFFFFF)
+
+/*!
+\def HYT2X1_READ_IN
+\brief Minimum readed value: error.
+*/
+#define HYT2X1_READ_MIN             (0x40000001)
+
+/*!
 \namespace Hyt2X1
 \brief HYT2X1 namespace.
 */
