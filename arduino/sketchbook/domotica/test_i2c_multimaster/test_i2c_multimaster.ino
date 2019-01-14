@@ -25,15 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define VERSION 01             //Software version for cross checking
 
-#define PRIMO
-
-#ifdef PRIMO
-#define I2C_MY_ADDRESS 8
-#define I2C_OTHER_ADDRESS 7
-#else
 #define I2C_MY_ADDRESS 7
-#define I2C_OTHER_ADDRESS 8
-#endif
+#define I2C_OTHER_ADDRESS 6
 
 // set the I2C clock frequency 
 #define I2C_CLOCK 30418
@@ -41,7 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Wire.h"
 #include <ArduinoLog.h>
 #include <avr/sleep.h>
-
+extern "C" {
+    #include "utility/twi.h"
+}
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
@@ -104,6 +99,8 @@ void received_data(){
 void send_data(){
   LOGN(F("Send Data" CR));
 
+  digitalWrite(3,HIGH);
+
   Wire.beginTransmission(I2C_OTHER_ADDRESS);
   Wire.write(0X01);
   Wire.write(0X02);
@@ -115,7 +112,14 @@ void send_data(){
   Wire.write(0X02);
   Wire.write(0X01);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
-  if (status != 0)   LOGE(F("Wire error %d" CR),status);
+  if (status != 0){
+    LOGE(F("Wire error %d" CR),status);
+    //twi_stop();
+    twi_init();
+    twi_setAddress(I2C_MY_ADDRESS);
+    twi_setFrequency(I2C_CLOCK);
+  }
+  digitalWrite(3,LOW);
 }
 
 void request_data(){
@@ -141,6 +145,13 @@ void setup() {
   Log.begin(LOG_LEVEL, &Serial);
 
   LOGN(F("Start i2c-manager-firmware version: %d" CR),VERSION);
+
+
+  pinMode(3,OUTPUT);
+  pinMode(4,OUTPUT);
+
+  digitalWrite(3,LOW);
+  digitalWrite(4,LOW);
 
   //Start I2C communication routines
   Wire.begin(I2C_MY_ADDRESS);
@@ -168,11 +179,8 @@ void setup() {
 
 void loop() {
 
-  //#ifdef PRIMO
   received_data();
-  //#else
   send_data();
   request_data();
-  //#endif
   
 }
