@@ -37,27 +37,21 @@ extern "C" {
 // If result==0, address was found, otherwise, address wasn't found
 // (can use result to potentially get other status on the I2C bus, see twi.c)
 // Assumes Wire.begin() has already been called
-void scanI2CBus(byte from_addr, byte to_addr, 
-                void(*callback)(byte address, byte result) ) 
+void scanI2CBus(byte from_addr, byte to_addr)
 {
   byte rc;
   byte data = 0; // not used, just an address to feed to twi_writeTo()
   for( byte addr = from_addr; addr <= to_addr; addr++ ) {
-    rc = twi_writeTo(addr, &data, 0, 1, 0);
-    callback( addr, rc );
+    //twi_init();
+    rc = twi_writeTo(addr, &data, 1, 1, 1);
+    if (rc==0){
+      Serial.print("addr: ");
+      Serial.print(addr,HEX);
+      Serial.print(" ");
+      Serial.print(addr);
+      Serial.println( " Found!");
+    }
   }
-}
-
-// Called when address is found in scanI2CBus()
-// Feel free to change this as needed
-// (like adding I2C comm code to figure out what kind of I2C device is there)
-void scanFunc( byte addr, byte result ) {
-  Serial.print("addr: ");
-  Serial.print(addr,HEX);
-  Serial.print(" ");
-  Serial.print(addr);
-  Serial.print( (result==0) ? " Found!":"       ");
-  Serial.print( (addr%4) ? "\t":"\n\r");
 }
 
 
@@ -93,9 +87,11 @@ void displayHelp()
   Serial.println(F("\tk = analog read 1"));
   Serial.println(F("\tl = analog read 2"));
   Serial.println();
-  Serial.println(F("\tr = stepper relative steps "));
-  Serial.println(F("\ts = stepper goto "));
-  Serial.println(F("\tg = stepper get position "));
+  Serial.println(F("\tr = stepper relative steps"));
+  Serial.println(F("\ts = stepper goto"));
+  Serial.println(F("\tg = stepper get position"));
+  Serial.println(F("\tp = stepper power off"));
+  Serial.println(F("\te = stepper rotate"));
   Serial.println(F("\n\? = help - this page"));
   Serial.println();
 }
@@ -118,6 +114,9 @@ void setup() {
   digitalWrite( SDA, HIGH);
   digitalWrite( SCL, HIGH);
 
+  pinMode(3, OUTPUT);
+  pinMode(4, OUTPUT);
+  
   displayHelp();
   
 }
@@ -345,7 +344,7 @@ void loop() {
 	Serial.println("...Hex");
 	
 	// start the scan, will call "scanFunc()" on result from each address
-	scanI2CBus( start_address, end_address, scanFunc );
+	scanI2CBus( start_address, end_address);
       
 	Serial.println("\ndone");
 	
@@ -400,7 +399,7 @@ void loop() {
 
 	Wire.write(I2C_GPIO_STEPPER_GOTO_POSITION);
 	Wire.write((byte)(new_value & 0xFFu));
-  Wire.write((byte)(new_value>>8)& 0xFFu);
+	Wire.write((byte)(new_value>>8)& 0xFFu);
   
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
 	
@@ -461,6 +460,36 @@ void loop() {
   displayHelp();
   break;
       } 
+
+
+          case 'p':
+      {      
+
+  Serial.print("Stepper power off");
+  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_POWEROFF);
+  if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission   
+  Serial.println(F("Done"));
+  
+  displayHelp();
+  break;
+      } 
+
+          case 'e':
+      {      
+
+  Serial.print("Stepper rotate");
+  Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_STEPPER_COMMAND_ROTATE);
+  if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission   
+  Serial.println(F("Done"));
+  
+  displayHelp();
+  break;
+      } 
+
     case '?':
       displayHelp();
       break;
