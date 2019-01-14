@@ -19,7 +19,7 @@
 #define STEPPER_POWER 1023
 #define STEPPER_SPEED 4096
 #define STEPPER_RAMPSTEPS 400
-#define STEPPER_HALFSTEP true
+#define STEPPER_HALFSTEP false
 
 // set software pullup for encoder input A & B 
 #define ENCODERPULLUP true
@@ -81,15 +81,14 @@ External interrupt support, a total of 2:
 #endif
 #define STEPPER_PIN3    12    // output stepper 3
 #define STEPPER_PIN4    13    // output stepper 4
-#define ANALOG1_PIN     A0     // D14  analog input 1
-#define ANALOG2_PIN     A1     // D15  analog input 2
+#define CHANGEADDRESS1  14    // input add 1 to i2c address  
+#define CHANGEADDRESS2  15    // input add 2 to i2c address
 #define ENCODERA        16    // input decoder A
 #define ENCODERB        17    // input decoder B
 //                      18    // SDA
 //                      19    // SCL
-#define CHANGEADDRESS1  20    // input add 1 to i2c address  
-#define CHANGEADDRESS2  21    // input add 2 to i2c address
-
+#define ANALOG1_PIN     A6    // D20  analog input 1  (only input)
+#define ANALOG2_PIN     A7    // D21  analog input 2  (only input)
 
 
 // IR telecontrol CODE

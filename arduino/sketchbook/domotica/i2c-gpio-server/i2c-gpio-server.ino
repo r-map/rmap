@@ -716,46 +716,51 @@ void setup() {
 
 void shortpressed(){
   LOGN(F("short pressed" CR));
-  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
-  Wire.endTransmission();
+
+  //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  //Wire.endTransmission();
 
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+  uint8_t status=Wire.endTransmission(); // End Write Transmission 
+  if (status != 0)   LOGN(F("Wire error %d" CR),status);
 }
 
 void encoderright(){
   LOGN(F("encoder one step right" CR));
-  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
-  Wire.endTransmission();
+  //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  //Wire.endTransmission();
 
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+  uint8_t status=Wire.endTransmission(); // End Write Transmission 
+  if (status != 0)   LOGN(F("Wire error %d" CR),status);
 }
 
 void encoderleft(){
   LOGN(F("encoder one step left" CR));
-  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
-  Wire.endTransmission();
+  //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  //Wire.endTransmission();
 
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_LEFT);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+  uint8_t status=Wire.endTransmission(); // End Write Transmission 
+  if (status != 0)   LOGN(F("Wire error %d" CR),status);
 }
 
 void longpressed(){
   LOGN(F("long pressed" CR));
-  Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
-  Wire.endTransmission();
+  //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
+  //Wire.endTransmission();
   
   Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+  uint8_t status=Wire.endTransmission(); // End Write Transmission 
+  if (status != 0)   LOGN(F("Wire error %d" CR),status);
 }
 
 
