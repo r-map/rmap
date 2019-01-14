@@ -20,12 +20,23 @@
   Modified 2017 by Marco Baldinetti (m.baldinetti@digiteco.it) to solve multi-master communication
 */
 
+//http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
+#ifndef I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP
+     #define I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP     4
+     /* A value of 0 turns off this feature. */
+     /* Greater values are slower but more reliable. */
+#endif
+
+unsigned char gI2CCheckBusyAfterStop = 0; /* global */
+
+
 #include <math.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <compat/twi.h>
+#include <util/delay.h>
 #include "Arduino.h" // for digitalWrite
 
 #ifndef cbi
@@ -59,6 +70,33 @@ static uint8_t twi_rxBuffer[TWI_BUFFER_LENGTH];
 static volatile uint8_t twi_rxBufferIndex;
 
 static volatile uint8_t twi_error;
+
+
+#define MULTIMASTERPROBLEM_DELAY_US  100
+
+//Nirea. Time Out
+static volatile unsigned long twi_toutc;
+//#define clockCyclesPerMillisecond ( F_CPU / 1000L )
+
+bool twi_tout(bool ini)
+{
+  if (ini) {
+    twi_toutc=0;
+  } else {
+    // wait until 10 millis
+    if (twi_toutc++ >1000UL) {
+      //twi_toutc=0;
+      twi_init();
+      //digitalWrite(3,LOW);
+      return true;
+    }
+    // 10 millis delay
+    _delay_us(10);
+    // __builtin_avr_delay_cycles(clockCyclesPerMillisecond);
+  }
+  return false;  
+}
+
 
 /* 
  * Function twi_init
@@ -155,8 +193,9 @@ uint8_t twi_readFrom(uint8_t address, uint8_t* data, uint8_t length, uint8_t sen
   }
 
   // wait until twi is ready, become master receiver
+  twi_tout(true);//Ini TimeOut
   while(TWI_READY != twi_state){
-    continue;
+  	if (twi_tout(false)) return 0;
   }
   twi_state = TWI_MRX;
   twi_sendStop = sendStop;
@@ -184,17 +223,40 @@ uint8_t twi_readFrom(uint8_t address, uint8_t* data, uint8_t length, uint8_t sen
     // up. Also, don't enable the START interrupt. There may be one pending from the 
     // repeated start that we sent ourselves, and that would really confuse things.
     twi_inRepStart = false;			// remember, we're dealing with an ASYNC ISR
+    twi_tout(true);
     do {
       TWDR = twi_slarw;
+      if (twi_tout(false)) return 0;
     } while(TWCR & _BV(TWWC));
     TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN) | _BV(TWIE);	// enable INTs, but not START
   }
   else
-    // send start condition
-    TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
+    { // send start condition
+    
+      //http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
+      // Manual Bus Check: Add this in your idle code and before issuing a start command.
+      while ( gI2CCheckBusyAfterStop > 0 ) // Call repeatedly while(gI2CCheckBusyAfterStop>0)
+	{
+	  if ( digitalRead(SDA) == LOW || digitalRead(SCL) == LOW)
+	    {
+	      gI2CCheckBusyAfterStop = I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP;
+	      // Bus is busy. Start the countdown all over again.
+	    }
+	  else
+	    {
+	      gI2CCheckBusyAfterStop--; // Good. The bus is quiet. Count down!
+	    }
+	  // __builtin_avr_delay_cycles(clockCyclesPerMillisecond/10);
+	  //delayMicroseconds(MULTIMASTERPROBLEM_DELAY_US);
+	  _delay_us(MULTIMASTERPROBLEM_DELAY_US);
+	}
 
+      TWCR = _BV(TWEN) | _BV(TWIE) | _BV(TWEA) | _BV(TWINT) | _BV(TWSTA);
+    }
   // wait for read operation to complete
+  twi_tout(true);
   while(TWI_MRX == twi_state){
+  	if (twi_tout(false)) return 0;
     continue;
   }
 
@@ -234,20 +296,24 @@ uint8_t twi_writeTo(uint8_t address, uint8_t* data, uint8_t length, uint8_t wait
   }
 
   // wait until twi is ready, become master transmitter
+  twi_tout(true);
   while(TWI_READY != twi_state){
+  	if (twi_tout(false)) return 5;
     continue;
   }
 
   // solve multi-master communication based on http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
   // if bus is busy (SDA or SCL low state), wait till it gets free
-  uint32_t start_time_micros = micros();
-  uint32_t end_time_micros = (uint32_t)(2000000.0 / I2C_BUS_CLOCK) + (TWAR >> 1); // add extra delay based on address
-
-  while (micros() - start_time_micros <=  end_time_micros) {
-    if (digitalRead(SDA) == LOW || digitalRead(SCL) == LOW)
-      start_time_micros = micros();
-  }
-
+  //uint32_t start_time_micros = micros();
+  //uint32_t end_time_micros = (uint32_t)(2000000.0 / I2C_BUS_CLOCK) + (TWAR >> 1); // add extra delay based on address
+  //uint32_t start_time_millis = millis();
+  //uint32_t end_time_millis =  (uint32_t)((2000000.0 / I2C_BUS_CLOCK) + (TWAR >> 1))/1000; // add extra delay based on address
+  //
+  //while (millis() - start_time_millis <=  end_time_millis) {
+  //  if (digitalRead(SDA) == LOW || digitalRead(SCL) == LOW)
+  //    start_time_millis = millis();
+  //
+  
   twi_state = TWI_MTX;
   twi_sendStop = sendStop;
   // reset error state (0xFF.. no error occured)
@@ -277,17 +343,36 @@ uint8_t twi_writeTo(uint8_t address, uint8_t* data, uint8_t length, uint8_t wait
     // up. Also, don't enable the START interrupt. There may be one pending from the 
     // repeated start that we sent outselves, and that would really confuse things.
     twi_inRepStart = false;			// remember, we're dealing with an ASYNC ISR
+    twi_tout(true);
     do {
       TWDR = twi_slarw;				
+      if (twi_tout(false)) return 5;
     } while(TWCR & _BV(TWWC));
-    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN) | _BV(TWIE);	// enable INTs, but not START
-  }
-  else
-    // send start condition
-    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN) | _BV(TWIE) | _BV(TWSTA);	// enable INTs
 
+    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN) | _BV(TWIE);	// enable INTs, but not START
+  }  else {
+    // send start condition
+    
+    // Manual Bus Check: Add this in your idle code and before issuing a start command.
+    while ( gI2CCheckBusyAfterStop > 0 ) // Call repeatedly while(gI2CCheckBusyAfterStop>0)
+      {
+	if ( digitalRead(SDA) == LOW || digitalRead(SCL) == LOW)
+	  {
+	    gI2CCheckBusyAfterStop = I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP;
+	    // Bus is busy. Start the countdown all over again.
+	  }
+	else
+	  {
+	    gI2CCheckBusyAfterStop--; // Good. The bus is quiet. Count down!
+	  }
+	  _delay_us(MULTIMASTERPROBLEM_DELAY_US);
+      }
+    TWCR = _BV(TWINT) | _BV(TWEA) | _BV(TWEN) | _BV(TWIE) | _BV(TWSTA);	// enable INTs
+  }
   // wait for write operation to complete
+  twi_tout(true);
   while(wait && (TWI_MTX == twi_state)){
+  	if (twi_tout(false)) return 5;
     continue;
   }
   
@@ -385,7 +470,9 @@ void twi_stop(void)
 
   // wait for stop condition to be exectued on bus
   // TWINT is not set after a stop condition!
+  twi_tout(true);
   while(TWCR & _BV(TWSTO)){
+  	if (twi_tout(false)) return;
     continue;
   }
 
@@ -518,6 +605,9 @@ ISR(TWI_vect)
       twi_onSlaveReceive(twi_rxBuffer, twi_rxBufferIndex);
       // since we submit rx buffer to "wire" library, we can reset it
       twi_rxBufferIndex = 0;
+
+      //http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
+      gI2CCheckBusyAfterStop = I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP;
       break;
     case TW_SR_DATA_NACK:       // data received, returned nack
     case TW_SR_GCALL_DATA_NACK: // data received generally, returned nack
