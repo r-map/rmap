@@ -22,19 +22,15 @@ Rotary incremental encoder using Rotary library
       //int pinA,pinB;
       //encoderIn<pinA,pinB>(int a,int b):pinA(a),pinB(b) {}
       void begin() {
-	Serial.println("prima begin");
 	r.begin();
-	Serial.println("dopo  begin");	
       }
 
       void process() {
 	unsigned char result = r.process();
 	if (result) {
 	  if (result == DIR_CW ){
-	    Serial.println("Right");
 	    pos+=1;
 	  }else{
-	    Serial.println("Left");
 	    pos-=1;
 	  }
 	}

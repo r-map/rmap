@@ -80,35 +80,35 @@ namespace Menu {
 
 	case I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED:
 	  {
-	    Serial.println(F("COMMAND: button 1 short pressed"));	
+	    //Serial.println(F("COMMAND: button 1 short pressed"));	
 	    return options->navCodes[enterCmd].ch;
 	    break;
 	  }
 	  
 	case I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED:
 	  {
-	    Serial.println(F("COMMAND: BUTTON1_LONGPRESSED"));
+	    //Serial.println(F("COMMAND: BUTTON1_LONGPRESSED"));
 	    return options->navCodes[escCmd].ch;
 	    break;
 	  }
 
 	case  I2C_MANAGER_COMMAND_ENCODER_RIGHT:
 	  {
-	    Serial.println(F("COMMAND: ENCODER_RIGHT"));
+	    //Serial.println(F("COMMAND: ENCODER_RIGHT"));
 	    return options->navCodes[upCmd].ch;
 	    break;
 	  }
 	
 	case I2C_MANAGER_COMMAND_ENCODER_LEFT:
 	  {
-	    Serial.println(F("COMMAND: ENCODER_LEFT"));
+	    //Serial.println(F("COMMAND: ENCODER_LEFT"));
 	    return options->navCodes[downCmd].ch;
 	    break;
 	  }
 	  
 	default:
 	  {
-	    Serial.println(F("WRONG command"));
+	    //Serial.println(F("WRONG command"));
 	    return -1;
 	    break;
 	  }	
@@ -127,35 +127,35 @@ namespace Menu {
 
 	case I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED:
 	  {
-	    Serial.println(F("COMMAND: button 1 short pressed"));	
+	    //Serial.println(F("COMMAND: button 1 short pressed"));	
 	    return options->navCodes[enterCmd].ch;
 	    break;
 	  }
 	  
 	case I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED:
 	  {
-	    Serial.println(F("COMMAND: BUTTON1_LONGPRESSED"));
+	    //Serial.println(F("COMMAND: BUTTON1_LONGPRESSED"));
 	    return options->navCodes[escCmd].ch;
 	    break;
 	  }
 
 	case I2C_MANAGER_COMMAND_ENCODER_RIGHT:
 	  {
-	    Serial.println(F("COMMAND: ENCODER_RIGHT"));
+	    //Serial.println(F("COMMAND: ENCODER_RIGHT"));
 	    return options->navCodes[upCmd].ch;	    
 	    break;
 	  }
 	
 	case I2C_MANAGER_COMMAND_ENCODER_LEFT:
 	  {
-	    Serial.println(F("COMMAND: ENCODER_LEFT"));
+	    //Serial.println(F("COMMAND: ENCODER_LEFT"));
 	    return options->navCodes[downCmd].ch;
 	    break;
 	  }
 	  
 	default:
 	  {
-	    Serial.println(F("WRONG command"));
+	    //Serial.println(F("WRONG command"));
 	    return -1;
 	    break;
 	  }	
