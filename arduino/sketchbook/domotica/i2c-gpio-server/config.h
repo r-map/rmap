@@ -21,6 +21,9 @@
 #define STEPPER_RAMPSTEPS 400
 #define STEPPER_HALFSTEP false
 
+// use i2c in multimaster mode (encoder and button push mode)
+//#define MULTIMASTER 
+
 // set software pullup for encoder input A & B 
 #define ENCODERPULLUP true
 

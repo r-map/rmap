@@ -96,6 +96,7 @@ int8_t lastkey=-1;
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of readable register map
 #define REG_ANALOG_SIZE         sizeof(analog_t)                     //size of register map for analog values
 #define REG_STEPPER_SIZE        sizeof(stepper_t)                    //size of register map for stepper values
+#define REG_COMMAND_SIZE        sizeof(command_t)                    //size of register map for command values
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of writable register map
 
 #define MAX_SENT_BYTES     0x0F   //maximum amount of data that I could receive from a master device 
@@ -121,9 +122,15 @@ typedef struct {
 } button_t;
 
 typedef struct {
+  bool          newcommand ;
+  uint8_t       lastcommand;
+} command_t;
+
+typedef struct {
   analog_t     analog;
   stepper_t    stepper;
   button_t     button;
+  command_t    command;
 } values_t;
 
 typedef struct {
@@ -243,6 +250,7 @@ void requestEvent()
   Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+  if (receivedCommands[0] == I2C_GPIO_NEWCOMMAND) i2c_dataset2->values.command.newcommand=false;
 }
 
 //Handler for receiving data
@@ -714,9 +722,36 @@ void setup() {
 }
 
 
+void mgrlastcommand(uint8_t lastcommand){
+
+  i2c_dataset1->values.command.lastcommand=lastcommand;
+  i2c_dataset1->values.command.newcommand=true;
+  LOGN(F("last command: %d" CR),i2c_dataset1->values.command.lastcommand);
+  
+  // disable interrupts for atomic operation
+  noInterrupts();
+  //exchange double buffer
+  LOGN(F("exchange double buffer" CR));
+  i2c_datasettmp=i2c_dataset1;
+  i2c_dataset1=i2c_dataset2;
+  i2c_dataset2=i2c_datasettmp;
+  interrupts();
+  // new data published
+  
+  LOGN(F("clean buffer" CR));
+  uint8_t *ptr;
+  //Init to FF i2c_dataset1;
+  ptr = (uint8_t *)&i2c_dataset1->values.command.lastcommand;
+  for (int i=0;i<REG_COMMAND_SIZE;i++) { *ptr |= 0xFF; ptr++;}
+	
+}
+
+
 void shortpressed(){
   LOGN(F("short pressed" CR));
-
+  mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
+  
+#ifdef MULTIMASTER  
   //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   //Wire.endTransmission();
 
@@ -725,10 +760,14 @@ void shortpressed(){
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
   if (status != 0)   LOGN(F("Wire error %d" CR),status);
+#endif
 }
 
 void encoderright(){
   LOGN(F("encoder one step right" CR));
+  mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
+  
+#ifdef MULTIMASTER  
   //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   //Wire.endTransmission();
 
@@ -737,10 +776,14 @@ void encoderright(){
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
   if (status != 0)   LOGN(F("Wire error %d" CR),status);
+#endif
 }
 
 void encoderleft(){
   LOGN(F("encoder one step left" CR));
+  mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_LEFT);
+  
+#ifdef MULTIMASTER  
   //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   //Wire.endTransmission();
 
@@ -749,10 +792,14 @@ void encoderleft(){
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_LEFT);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
   if (status != 0)   LOGN(F("Wire error %d" CR),status);
+#endif
 }
 
 void longpressed(){
   LOGN(F("long pressed" CR));
+  mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
+  
+#ifdef MULTIMASTER  
   //Wire.beginTransmission(I2C_MANAGER_DEFAULTADDRESS);
   //Wire.endTransmission();
   
@@ -761,6 +808,7 @@ void longpressed(){
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
   if (status != 0)   LOGN(F("Wire error %d" CR),status);
+#endif
 }
 
 
@@ -809,9 +857,8 @@ void myBtnsm()
 
 void myencoder(unsigned char result)
 {
-  if (result == DIR_CW) {
-    encoderright();    
-  }else{
+  if (result == DIR_CW) { 
+ }else{
     encoderleft();
   }
 }

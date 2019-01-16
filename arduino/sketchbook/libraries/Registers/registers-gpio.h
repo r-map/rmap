@@ -28,6 +28,8 @@
 #define I2C_GPIO_ANALOG1                      0x01      // analog value1
 #define I2C_GPIO_ANALOG2                      0x03      // analog value2
 #define I2C_GPIO_STEPPER_CURRENT_POSITION     0x05
+#define I2C_GPIO_NEWCOMMAND                   0x07
+#define I2C_GPIO_LAST_COMMAND                 0x08
 
 #define I2C_GPIO_MAP_WRITABLE                 0x1F
 #define I2C_GPIO_ONESHOT                      0x1F      // sample mode (bool)

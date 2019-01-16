@@ -18,7 +18,8 @@ mcu: esp8266 wemos D1 mini
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
-#include <menuIO/I2C_RotaryIn.h>
+//#include <menuIO/I2C_RotaryIn.h>
+#include <menuIO/I2C_RotaryPollIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
 #include <menuIO/serialOut.h>
@@ -60,7 +61,7 @@ const colorDef<uint8_t> colors[] MEMMODE={
 
 result doAlert(eventMask e, prompt &item);
 
-int test=55;
+float test=20.;
 int ledCtrl=HIGH;
 
 result myLedOn() {
@@ -125,8 +126,7 @@ char buf1[]="0x11";
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,OP("Op1",doNothing,noEvent)
   ,OP("Op2",doNothing,noEvent)
-  //,FIELD(test,"Test","%",0,100,10,1,doNothing,noEvent,wrapStyle)
-  ,SUBMENU(tempo)
+  ,FIELD(test,"Temp"," C",0.,40.,1.0,0.1,doNothing,noEvent,noStyle)
   ,SUBMENU(subMenu)
   ,SUBMENU(setLed)
   ,OP("LED On",myLedOn,enterEvent)
@@ -134,6 +134,7 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,SUBMENU(selMenu)
   ,SUBMENU(chooseMenu)
   ,OP("Alert test",doAlert,enterEvent)
+  ,SUBMENU(tempo)
   ,EDIT("Hex",buf1,hexNr,doNothing,noEvent,noStyle)
   ,EXIT("<Exit")
 );
@@ -154,7 +155,8 @@ serialIn serial(Serial);
 //menuIn* inputsList[]={&serial};
 //chainStream<1> in(inputsList);//1 is the number of inputs
 
-MENU_INPUTS(in,&encStream,&encButton,&serial);
+//MENU_INPUTS(in,&encStream,&encButton,&serial);
+MENU_INPUTS(in,&encStream,&encButton);
 
 /*
 MENU_OUTPUTS(out,MAX_DEPTH
@@ -179,7 +181,8 @@ PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
 u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
 
 //define outputs controller
-menuOut* outputs[]{&outSerial,&oledOut};//list of output devices
+//menuOut* outputs[]{&outSerial,&oledOut};//list of output devices
+menuOut* outputs[]{&oledOut};//list of output devices
 outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
 
 
