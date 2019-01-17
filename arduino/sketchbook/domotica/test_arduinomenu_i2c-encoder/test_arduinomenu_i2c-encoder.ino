@@ -27,9 +27,9 @@ mcu: esp8266 wemos D1 mini
 #include <Wire.h>
 
 // rotary encoder pins
-#define encBtn  D5
-#define encA    D6
-#define encB    D7
+#define encBtn  D6
+#define encA    D7
+#define encB    D8
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -141,6 +141,7 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
 
 #define MAX_DEPTH 2
 
+//rotary encoder
 encoderIn<encA,encB> encoder;//simple quad encoder driver
 encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
 
@@ -151,7 +152,7 @@ keyIn<1> encButton(encBtn_map);//1 is the number of keys
 //menuIn* inputsList[]={&encButton};
 //chainStream<1> in(inputsList);//1 is the number of inputs
 
-serialIn serial(Serial);
+//serialIn serial(Serial);
 //menuIn* inputsList[]={&serial};
 //chainStream<1> in(inputsList);//1 is the number of inputs
 
@@ -172,8 +173,8 @@ MENU_OUTPUTS(out,MAX_DEPTH
 */
 
 //define output device serial
-idx_t serialTops[MAX_DEPTH]={0};
-serialOut outSerial(*(Print*)&Serial,serialTops);
+//idx_t serialTops[MAX_DEPTH]={0};
+//serialOut outSerial(*(Print*)&Serial,serialTops);
 
 idx_t gfx_tops[MAX_DEPTH];
 
@@ -225,8 +226,12 @@ void setup() {
   //Start I2C communication routines
   //Wire.pins(SDA, SCL);
   Wire.begin(I2C_ADDRESS);
-
-  delay(1000);
+  //Wire.setClock(10);
+  //Wire.setClockStretchLimit(1500);
+  
+  encoder.begin();
+  encButton.begin();
+  
   #define OLEDI2CADDRESS 0X3C
   u8g2.setI2CAddress(OLEDI2CADDRESS*2);
   u8g2.begin();
@@ -235,11 +240,7 @@ void setup() {
   u8g2.clearBuffer();
   u8g2.setCursor(0, 10); 
   u8g2.print(F("Starting up!"));
-  u8g2.sendBuffer();
-
-  encoder.begin();
-  encButton.begin();
-  
+  u8g2.sendBuffer();  
   delay(1000);
 
   // encoder with interrupt on the A & B pins

@@ -12,13 +12,14 @@
 
 // registers
 #define I2C_MANAGER_COMMAND                         0xFF
+#define I2C_MANAGER_NOCOMMAND                       0X00
 #define I2C_MANAGER_COMMAND_SAVE                    0X01
 #define I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED    0x02
 #define I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED     0x03
 //#define I2C_MANAGER_COMMAND_BUTTON2_SHORTPRESSED    0x04
 //#define I2C_MANAGER_COMMAND_BUTTON2_LONGPRESSED     0x05
 #define I2C_MANAGER_COMMAND_ENCODER_RIGHT           0x06      // button 1 last command
-#define I2C_MANAGER_COMMAND_ENCODER_LEFT             0x07      // button 1 last command
+#define I2C_MANAGER_COMMAND_ENCODER_LEFT            0x07      // button 1 last command
 
 #define I2C_MANAGER_VERSION                         0x00      // Version		   
 #define I2C_MANAGER_ENCODER_COUNT                   0x01      // encoder counter

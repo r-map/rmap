@@ -118,18 +118,16 @@ typedef struct {
 
 typedef struct {
   bool          active ;
-  unsigned int  long_press;
+  uint16_t      long_press;
 } button_t;
 
 typedef struct {
-  bool          newcommand ;
   uint8_t       lastcommand;
 } command_t;
 
 typedef struct {
   analog_t     analog;
   stepper_t    stepper;
-  button_t     button;
   command_t    command;
 } values_t;
 
@@ -247,10 +245,17 @@ void requestEvent()
   counter = millis();
   sleep_disable();
   
+  //LOGN("request event: %d : %d  " CR,
+  //     receivedCommands[0], *((uint8_t *)(i2c_dataset2)+receivedCommands[0]));
+    
   Wire.write(((uint8_t *)i2c_dataset2)+receivedCommands[0],32);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
   //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
-  if (receivedCommands[0] == I2C_GPIO_NEWCOMMAND) i2c_dataset2->values.command.newcommand=false;
+
+  //Serial.print(receivedCommands[0]);
+  //Serial.println(*(((uint8_t *)i2c_dataset2)+receivedCommands[0]));
+  // if the last request is for command set it as done
+  if (receivedCommands[0] == I2C_GPIO_LAST_COMMAND) i2c_dataset2->values.command.lastcommand=I2C_MANAGER_NOCOMMAND;
 }
 
 //Handler for receiving data
@@ -725,30 +730,29 @@ void setup() {
 void mgrlastcommand(uint8_t lastcommand){
 
   i2c_dataset1->values.command.lastcommand=lastcommand;
-  i2c_dataset1->values.command.newcommand=true;
-  LOGN(F("last command: %d" CR),i2c_dataset1->values.command.lastcommand);
+  //LOGN(F("last command: %d" CR),i2c_dataset1->values.command.lastcommand);
   
   // disable interrupts for atomic operation
   noInterrupts();
   //exchange double buffer
-  LOGN(F("exchange double buffer" CR));
+  //LOGN(F("exchange double buffer" CR));
   i2c_datasettmp=i2c_dataset1;
   i2c_dataset1=i2c_dataset2;
   i2c_dataset2=i2c_datasettmp;
   interrupts();
   // new data published
   
-  LOGN(F("clean buffer" CR));
+  //LOGN(F("clean buffer" CR));
   uint8_t *ptr;
   //Init to FF i2c_dataset1;
-  ptr = (uint8_t *)&i2c_dataset1->values.command.lastcommand;
+  ptr = (uint8_t *)&i2c_dataset1->values.command;
   for (int i=0;i<REG_COMMAND_SIZE;i++) { *ptr |= 0xFF; ptr++;}
 	
 }
 
 
 void shortpressed(){
-  LOGN(F("short pressed" CR));
+  //LOGN(F("short pressed" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
   
 #ifdef MULTIMASTER  
@@ -764,7 +768,7 @@ void shortpressed(){
 }
 
 void encoderright(){
-  LOGN(F("encoder one step right" CR));
+  //LOGN(F("encoder one step right" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
   
 #ifdef MULTIMASTER  
@@ -780,7 +784,7 @@ void encoderright(){
 }
 
 void encoderleft(){
-  LOGN(F("encoder one step left" CR));
+  //LOGN(F("encoder one step left" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_LEFT);
   
 #ifdef MULTIMASTER  
@@ -796,7 +800,7 @@ void encoderleft(){
 }
 
 void longpressed(){
-  LOGN(F("long pressed" CR));
+  //LOGN(F("long pressed" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
   
 #ifdef MULTIMASTER  
@@ -858,6 +862,7 @@ void myBtnsm()
 void myencoder(unsigned char result)
 {
   if (result == DIR_CW) { 
+    encoderright();
  }else{
     encoderleft();
   }
