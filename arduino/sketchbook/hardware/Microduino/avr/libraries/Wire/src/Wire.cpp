@@ -35,6 +35,10 @@ uint8_t TwoWire::rxBuffer[BUFFER_LENGTH];
 uint8_t TwoWire::rxBufferIndex = 0;
 uint8_t TwoWire::rxBufferLength = 0;
 
+uint8_t TwoWire::rqBuffer[BUFFER_LENGTH];
+uint8_t TwoWire::rqBufferIndex = 0;
+uint8_t TwoWire::rqBufferLength = 0;
+
 uint8_t TwoWire::txAddress = 0;
 uint8_t TwoWire::txBuffer[BUFFER_LENGTH];
 uint8_t TwoWire::txBufferIndex = 0;
@@ -43,6 +47,8 @@ uint8_t TwoWire::txBufferLength = 0;
 uint8_t TwoWire::transmitting = 0;
 void (*TwoWire::user_onRequest)(void);
 void (*TwoWire::user_onReceive)(int);
+
+bool request;
 
 // Constructors ////////////////////////////////////////////////////////////////
 
@@ -57,8 +63,13 @@ void TwoWire::begin(void)
   rxBufferIndex = 0;
   rxBufferLength = 0;
 
+  rqBufferIndex = 0;
+  rqBufferLength = 0;
+
   txBufferIndex = 0;
   txBufferLength = 0;
+
+  request=false;
 
   twi_init();
   twi_attachSlaveTxEvent(onRequestService); // default callback must exist
@@ -111,10 +122,11 @@ uint8_t TwoWire::requestFrom(uint8_t address, uint8_t quantity, uint32_t iaddres
     quantity = BUFFER_LENGTH;
   }
   // perform blocking read into buffer
-  uint8_t read = twi_readFrom(address, rxBuffer, quantity, sendStop);
-  // set rx buffer iterator vars
-  rxBufferIndex = 0;
-  rxBufferLength = read;
+  uint8_t read = twi_readFrom(address, rqBuffer, quantity, sendStop);
+  // set rq buffer iterator vars
+  rqBufferIndex = 0;
+  rqBufferLength = read;
+  request=true;
 
   return read;
 }
@@ -235,20 +247,57 @@ size_t TwoWire::write(const uint8_t *data, size_t quantity)
 // or after requestFrom(address, numBytes)
 int TwoWire::available(void)
 {
-  return rxBufferLength - rxBufferIndex;
+  if (request){
+    return requestavailable();    
+  }else{
+    return rxBufferLength - rxBufferIndex;
+  }
 }
+
+
+// must be called in:
+// slave rx event callback
+// or after requestFrom(address, numBytes)
+int TwoWire::requestavailable(void)
+{
+  return rqBufferLength - rqBufferIndex;
+}
+
 
 // must be called in:
 // slave rx event callback
 // or after requestFrom(address, numBytes)
 int TwoWire::read(void)
 {
+
+  if (request) {
+
+    return requestread();
+    
+  }else{
+    int value = -1;
+  
+    // get each successive byte on each call
+    if(rxBufferIndex < rxBufferLength){
+      value = rxBuffer[rxBufferIndex];
+      ++rxBufferIndex;
+    }
+
+    return value;
+  }
+}
+
+// must be called in:
+// slave rx event callback
+// or after requestFrom(address, numBytes)
+int TwoWire::requestread(void)
+{
   int value = -1;
   
   // get each successive byte on each call
-  if(rxBufferIndex < rxBufferLength){
-    value = rxBuffer[rxBufferIndex];
-    ++rxBufferIndex;
+  if(rqBufferIndex < rqBufferLength){
+    value = rqBuffer[rqBufferIndex];
+    ++rqBufferIndex;
   }
 
   return value;
@@ -283,9 +332,12 @@ void TwoWire::onReceiveService(uint8_t* inBytes, int numBytes)
   // don't bother if rx buffer is in use by a master requestFrom() op
   // i know this drops data, but it allows for slight stupidity
   // meaning, they may not have read all the master requestFrom() data yet
-  if(rxBufferIndex < rxBufferLength){
-    return;
-  }
+  //if(rxBufferIndex < rxBufferLength){
+  //  return;
+  //}
+
+  request=false;
+  
   // copy twi rx buffer into local read buffer
   // this enables new reads to happen in parallel
   for(uint8_t i = 0; i < numBytes; ++i){

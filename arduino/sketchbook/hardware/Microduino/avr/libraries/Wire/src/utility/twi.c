@@ -22,7 +22,7 @@
 
 //http://www.robotroom.com/Atmel-AVR-TWI-I2C-Multi-Master-Problem.html
 #ifndef I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP
-     #define I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP     4
+     #define I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP     8
      /* A value of 0 turns off this feature. */
      /* Greater values are slower but more reliable. */
 #endif
@@ -72,7 +72,7 @@ static volatile uint8_t twi_rxBufferIndex;
 static volatile uint8_t twi_error;
 
 
-#define MULTIMASTERPROBLEM_DELAY_US  100
+#define MULTIMASTERPROBLEM_DELAY_US  1000
 
 //Nirea. Time Out
 static volatile unsigned long twi_toutc;
@@ -90,13 +90,12 @@ bool twi_tout(bool ini)
       //digitalWrite(3,LOW);
       return true;
     }
-    // 10 millis delay
+    // 10 micros delay
     _delay_us(10);
     // __builtin_avr_delay_cycles(clockCyclesPerMillisecond);
   }
   return false;  
 }
-
 
 /* 
  * Function twi_init
@@ -114,7 +113,7 @@ void twi_init(void)
   // activate internal pullups for twi.
   //digitalWrite(SDA, 1);
   //digitalWrite(SCL, 1);
-
+  
   // initialize twi prescaler and bit rate
   cbi(TWSR, TWPS0);
   cbi(TWSR, TWPS1);
