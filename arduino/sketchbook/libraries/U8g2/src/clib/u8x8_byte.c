@@ -61,6 +61,25 @@ uint8_t u8x8_byte_EndTransfer(u8x8_t *u8x8)
   return u8x8->byte_cb(u8x8, U8X8_MSG_BYTE_END_TRANSFER, 0, NULL);
 }
 
+/*=========================================*/
+
+uint8_t u8x8_byte_empty(U8X8_UNUSED u8x8_t *u8x8, uint8_t msg, U8X8_UNUSED uint8_t arg_int, U8X8_UNUSED void *arg_ptr)
+{
+  switch(msg)
+  {
+    case U8X8_MSG_BYTE_SEND:
+    case U8X8_MSG_BYTE_INIT:
+    case U8X8_MSG_BYTE_SET_DC:
+    case U8X8_MSG_BYTE_START_TRANSFER:
+    case U8X8_MSG_BYTE_END_TRANSFER:
+      break;	/* do nothing */
+  }
+  return 1;	/* always succeed */
+}
+
+
+/*=========================================*/
+
 
 /*
   Uses:
@@ -314,7 +333,7 @@ void u8x8_byte_set_ks0108_cs(u8x8_t *u8x8, uint8_t arg)
   u8x8_gpio_SetCS(u8x8, arg&1);
   arg = arg >> 1;
   u8x8_gpio_call(u8x8, U8X8_MSG_GPIO_CS1, arg&1);
-  arg = arg >> 2;
+  arg = arg >> 1;
   u8x8_gpio_call(u8x8, U8X8_MSG_GPIO_CS2, arg&1);
 }
 
@@ -398,7 +417,8 @@ uint8_t u8x8_byte_sed1520(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_
 	
 	u8x8_gpio_Delay(u8x8, U8X8_MSG_DELAY_NANO, u8x8->display_info->data_setup_time_ns);
 	u8x8_gpio_call(u8x8, enable_pin, 1);
-	u8x8_gpio_Delay(u8x8, U8X8_MSG_DELAY_NANO, u8x8->display_info->write_pulse_width_ns);
+	u8x8_gpio_Delay(u8x8, U8X8_MSG_DELAY_NANO, 200);		/* KS0108 requires 450 ns, use 200 here */
+	u8x8_gpio_Delay(u8x8, U8X8_MSG_DELAY_NANO, u8x8->display_info->write_pulse_width_ns);  /* expect 250 here */
 	u8x8_gpio_call(u8x8, enable_pin, 0);
       }
       break;
@@ -554,75 +574,15 @@ static void i2c_write_byte(u8x8_t *u8x8, uint8_t b)
   i2c_read_bit(u8x8);
 }
 
-
-
-#ifdef OBSOLETE_HANDLED_BY_CAD_PROCEDURE
-uint8_t u8x8_byte_ssd13xx_sw_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
-{
-  uint8_t *data;
-  static uint8_t last_dc = 0;
-  static uint8_t is_send_dc = 0;	/* instruction, whether i2c-start including dc has to be sent */
- 
-  switch(msg)
-  {
-    case U8X8_MSG_BYTE_SEND:
-      data = (uint8_t *)arg_ptr;
-    
-      if ( is_send_dc != 0 )
-      {
-	
-	i2c_start(u8x8);
-	i2c_write_byte(u8x8, 0x078);		/* write slave adr and read/write bit */
-	
-	if ( last_dc == 0 )
-	  i2c_write_byte(u8x8, 0);
-	else
-	  i2c_write_byte(u8x8, 0x040);
-	is_send_dc = 0;
-      }
-    
-      while( arg_int > 0 )
-      {
-	i2c_write_byte(u8x8, *data);
-	data++;
-	arg_int--;
-      }
-      
-      break;
-      
-    case U8X8_MSG_BYTE_INIT:
-      i2c_init(u8x8);
-      break;
-    case U8X8_MSG_BYTE_SET_DC:
-      if ( last_dc != arg_int )
-      {
-	last_dc = arg_int;
-	is_send_dc = 1;
-      }
-      break;
-    case U8X8_MSG_BYTE_START_TRANSFER:
-      last_dc = 0;
-      is_send_dc = 1;
-      break;
-    case U8X8_MSG_BYTE_END_TRANSFER:
-      i2c_stop(u8x8);
-      break;
-    default:
-      return 0;
-  }
-  return 1;
-}
-#endif
-
 uint8_t u8x8_byte_sw_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
   uint8_t *data;
- 
+
   switch(msg)
   {
     case U8X8_MSG_BYTE_SEND:
       data = (uint8_t *)arg_ptr;
-      
+    
       while( arg_int > 0 )
       {
 	i2c_write_byte(u8x8, *data);
@@ -651,3 +611,56 @@ uint8_t u8x8_byte_sw_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_p
   return 1;
 }
 
+/*=========================================*/
+
+/* alternative i2c byte procedure */
+#ifdef ALTERNATIVE_I2C_BYTE_PROCEDURE
+
+
+void i2c_transfer(u8x8_t *u8x8, uint8_t adr, uint8_t cnt, uint8_t *data)
+{
+  uint8_t i;
+  i2c_start(u8x8);
+  i2c_write_byte(u8x8, adr);
+  for( i = 0; i < cnt; i++ )
+    i2c_write_byte(u8x8, data[i]);
+  i2c_stop(u8x8);  
+}
+
+
+uint8_t u8x8_byte_sw_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
+{
+  static uint8_t buffer[32];		/* u8g2/u8x8 will never send more than 32 bytes */
+  static uint8_t buf_idx;
+  uint8_t *data;
+ 
+  switch(msg)
+  {
+    case U8X8_MSG_BYTE_SEND:
+      data = (uint8_t *)arg_ptr;      
+      while( arg_int > 0 )
+      {
+	buffer[buf_idx++] = *data;
+	data++;
+	arg_int--;
+      }      
+      break;
+    case U8X8_MSG_BYTE_INIT:
+      i2c_init(u8x8);			/* init i2c communication */
+      break;
+    case U8X8_MSG_BYTE_SET_DC:
+      /* ignored for i2c */
+      break;
+    case U8X8_MSG_BYTE_START_TRANSFER:
+      buf_idx = 0;
+      break;
+    case U8X8_MSG_BYTE_END_TRANSFER:
+      i2c_transfer(u8x8, u8x8_GetI2CAddress(u8x8), buf_idx, buffer);
+      break;
+    default:
+      return 0;
+  }
+  return 1;
+}
+
+#endif
