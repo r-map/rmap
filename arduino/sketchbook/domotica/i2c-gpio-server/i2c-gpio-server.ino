@@ -87,11 +87,6 @@ decode_results results;
 int8_t lastkey=-1;      
 #endif
 
-// logging level at compile time
-// Available levels are:
-// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_VERBOSE
-
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of readable register map
 #define REG_ANALOG_SIZE         sizeof(analog_t)                     //size of register map for analog values
@@ -730,19 +725,19 @@ void setup() {
 void mgrlastcommand(uint8_t lastcommand){
 
   i2c_dataset1->values.command.lastcommand=lastcommand;
-  //LOGN(F("last command: %d" CR),i2c_dataset1->values.command.lastcommand);
+  LOGV(F("last command: %d" CR),i2c_dataset1->values.command.lastcommand);
   
   // disable interrupts for atomic operation
   noInterrupts();
   //exchange double buffer
-  //LOGN(F("exchange double buffer" CR));
+  LOGV(F("exchange double buffer" CR));
   i2c_datasettmp=i2c_dataset1;
   i2c_dataset1=i2c_dataset2;
   i2c_dataset2=i2c_datasettmp;
   interrupts();
   // new data published
   
-  //LOGN(F("clean buffer" CR));
+  LOGV(F("clean buffer" CR));
   uint8_t *ptr;
   //Init to FF i2c_dataset1;
   ptr = (uint8_t *)&i2c_dataset1->values.command;
@@ -752,7 +747,7 @@ void mgrlastcommand(uint8_t lastcommand){
 
 
 void shortpressed(){
-  //LOGN(F("short pressed" CR));
+  LOGV(F("short pressed" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
   
 #ifdef MULTIMASTER  
@@ -763,12 +758,12 @@ void shortpressed(){
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_SHORTPRESSED);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
-  if (status != 0)   LOGN(F("Wire error %d" CR),status);
+  if (status != 0)   LOGE(F("Wire error %d" CR),status);
 #endif
 }
 
 void encoderright(){
-  //LOGN(F("encoder one step right" CR));
+  LOGV(F("encoder one step right" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
   
 #ifdef MULTIMASTER  
@@ -779,12 +774,12 @@ void encoderright(){
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_RIGHT);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
-  if (status != 0)   LOGN(F("Wire error %d" CR),status);
+  if (status != 0)   LOGE(F("Wire error %d" CR),status);
 #endif
 }
 
 void encoderleft(){
-  //LOGN(F("encoder one step left" CR));
+  LOGV(F("encoder one step left" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_ENCODER_LEFT);
   
 #ifdef MULTIMASTER  
@@ -795,12 +790,12 @@ void encoderleft(){
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_ENCODER_LEFT);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
-  if (status != 0)   LOGN(F("Wire error %d" CR),status);
+  if (status != 0)   LOGE(F("Wire error %d" CR),status);
 #endif
 }
 
 void longpressed(){
-  //LOGN(F("long pressed" CR));
+  LOGV(F("long pressed" CR));
   mgrlastcommand(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
   
 #ifdef MULTIMASTER  
@@ -811,7 +806,7 @@ void longpressed(){
   Wire.write(I2C_MANAGER_COMMAND);
   Wire.write(I2C_MANAGER_COMMAND_BUTTON1_LONGPRESSED);
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
-  if (status != 0)   LOGN(F("Wire error %d" CR),status);
+  if (status != 0)   LOGE(F("Wire error %d" CR),status);
 #endif
 }
 
@@ -870,7 +865,7 @@ void myencoder(unsigned char result)
 
 void goto_sleep(){
   counter=millis();
-  LOGN(F("Sleep" CR));
+  LOGV(F("Sleep" CR));
   delay(10);
   
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -881,7 +876,7 @@ void goto_sleep(){
   sleep_disable();
   // enable watchdog with timeout to 8s
   wdt_enable(WDTO_8S);
-  LOGN(F(">>>>> Wake up" CR));
+  LOGV(F(">>>>> Wake up" CR));
 }
 
 void loop() {
@@ -897,9 +892,9 @@ void loop() {
 
   if (take) {
     
-    LOGN(F("onoff1: %T" CR),i2c_writabledataset1->onoff1);
+    LOGV(F("onoff1: %T" CR),i2c_writabledataset1->onoff1);
     digitalWrite(ONOFF1_PIN, (i2c_writabledataset1->onoff1 == 0) ? LOW : HIGH );  
-    LOGN(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
+    LOGV(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
     digitalWrite(ONOFF2_PIN, (i2c_writabledataset1->onoff2 == 0) ? LOW : HIGH );  
 
     myStepper.setPower(i2c_writabledataset1->stepper.power);
@@ -917,14 +912,14 @@ void loop() {
       irsend.sendPanasonic(i2c_writabledataset1->irremote.code, i2c_writabledataset1->irremote.bit);
       break;
     default:
-      LOGN(F("unknown remote model" CR));
+      LOGE(F("unknown remote model" CR));
       break;
     } 
 
 #else
-    LOGN(F("pwm1: %d" CR),i2c_writabledataset1->pwm1);
+    LOGV(F("pwm1: %d" CR),i2c_writabledataset1->pwm1);
     analogWrite(PWM1_PIN, i2c_writabledataset1->pwm1);  
-    LOGN(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
+    LOGV(F("pwm2: %d" CR),i2c_writabledataset1->pwm2);
     analogWrite(PWM2_PIN, i2c_writabledataset1->pwm2);  
 #endif
     
@@ -951,8 +946,8 @@ void loop() {
     filter_data(NSAMPLE, table1,&i2c_dataset1->values.analog.analog1);
     filter_data(NSAMPLE, table2,&i2c_dataset1->values.analog.analog2);
     
-    LOGN(F("analog1: %d" CR),i2c_dataset1->values.analog.analog1);
-    LOGN(F("analog2: %d" CR),i2c_dataset1->values.analog.analog2);
+    LOGV(F("analog1: %d" CR),i2c_dataset1->values.analog.analog1);
+    LOGV(F("analog2: %d" CR),i2c_dataset1->values.analog.analog2);
 
     start=false;
 
@@ -1043,7 +1038,7 @@ void loop() {
 	break;
   
       case REPEAT: // REPEAT code
-	LOGN(F("received repeat value" CR));
+	LOGV(F("received repeat value" CR));
 	key=lastkey;
 	break;
 
@@ -1053,7 +1048,7 @@ void loop() {
 	break;
 
       default:
-	LOGN(F("unknown key" CR));
+	LOGE(F("unknown key" CR));
 	lastkey=-1;
 	break;
  
@@ -1077,7 +1072,7 @@ void loop() {
       longpressed();
       break;
     default:
-      LOGN(F("unknown action" CR));
+      LOGE(F("unknown action" CR));
       break;
     }
 

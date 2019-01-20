@@ -21,6 +21,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * This program implements management of remote input over I2C
  * 
+
+
+ Require multimaster I2C configuration to use the i2c remote encoder
+
+ use: https://github.com/r-map/rmap/tree/master/arduino/sketchbook/domotica/i2c-gpio-server
+ activate MULTIMASTER in:
+ https://github.com/r-map/rmap/blob/master/arduino/sketchbook/domotica/i2c-gpio-server/config.h
+
+ register include file are:
+ https://github.com/r-map/rmap/blob/master/arduino/sketchbook/libraries/Registers/registers-gpio.h
+ https://github.com/r-map/rmap/blob/master/arduino/sketchbook/libraries/Registers/registers-manager.h
+
 **********************************************************************/
 
 #ifndef RSITE_ARDUINO_MENU_I2C_ROTARY_ENCODER
@@ -35,20 +47,23 @@ volatile static uint8_t         new_command;                        //new comman
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
-  //LOGN("receive event, bytes: %d" CR,bytesReceived);
+  Serial.print("receive event, bytes: ");
+  Serial.println(bytesReceived);
 
   if (bytesReceived == 2){
     // check for a command
     if (Wire.read() == I2C_MANAGER_COMMAND) {
-      //LOGN("       received command: %X" CR,receivedCommands[1]);
-      new_command = Wire.read(); return; }
+      new_command = Wire.read();
+      Serial.print("received command: ");
+      Serial.println(new_command);
+      return;
+    }
   }  
 }
 
 namespace Menu {
 
-  template<uint8_t pinA,uint8_t pinB>
-  class encoderIn {
+  class i2cencoderIn {
   public:
     volatile int pos=0;
 
@@ -58,14 +73,12 @@ namespace Menu {
 
   };
 
-  //emulate a stream based on encoderIn movement returning +/- for every steps
-  //buffer not needer because we have an accumulator
-  template<uint8_t pinA,uint8_t pinB>
-    class encoderInStream:public menuIn {
+  //emulate a stream based on i2cencoderIn movement returning +/- for every steps
+  class i2cencoderInStream:public menuIn {
   public:
-    encoderIn<pinA,pinB> &enc;//associated hardware encoderIn
+    i2cencoderIn &enc;//associated hardware i2cencoderIn
     int oldPos=0;
-  encoderInStream(encoderIn<pinA,pinB> &enc):enc(enc) {}
+    i2cencoderInStream(i2cencoderIn &enc):enc(enc) {}
 
     int available(void) {
       if (new_command == 0) return 0;

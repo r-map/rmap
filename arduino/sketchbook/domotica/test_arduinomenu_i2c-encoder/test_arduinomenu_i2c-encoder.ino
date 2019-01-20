@@ -1,35 +1,26 @@
 #include <Arduino.h>
 
 /********************
-Arduino generic menu system
-U8G2 menu example
-U8G2: https://github.com/olikraus/u8g2
-
-Oct. 2016 Stephen Denne https://github.com/datacute
-Based on example from Rui Azevedo - ruihfazevedo(@rrob@)gmail.com
-Original from: https://github.com/christophepersoz
-
 menu on U8G2 device
-input:  Serial + encoder
-output: wemos OLED Shield (SSD1306 I2C) + Serial
+input:  i2cencoder +i2cpollencoder
+output: wemos OLED Shield (SSD1306 I2C)
 mcu: esp8266 wemos D1 mini
+
+require i2c-gpio-server encoder:
+https://github.com/r-map/rmap/tree/master/arduino/sketchbook/domotica/i2c-gpio-server
 
 */
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
-//#include <menuIO/I2C_RotaryIn.h>
-#include <menuIO/I2C_RotaryPollIn.h>
+#include <menuIO/I2C_RotaryIn.h>
+//#include <menuIO/I2C_RotaryPollIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
-#include <menuIO/serialOut.h>
-#include <menuIO/serialIn.h>
 #include <Wire.h>
 
-// rotary encoder pins
-#define encBtn  D6
-#define encA    D7
-#define encB    D8
+// rotary encoder address for i2cpollencoder
+#define i2caddress  I2C_MANAGER_DEFAULTADDRESS
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -41,6 +32,7 @@ mcu: esp8266 wemos D1 mini
 #define fontMarginX 1
 #define fontMarginY 1
 
+// this is my i2c address required for multimaster use with i2cencoder (push mode)
 #define I2C_ADDRESS 0x06
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
@@ -93,16 +85,6 @@ CHOOSE(chooseTest,chooseMenu,"Choose",doNothing,noEvent,noStyle
   ,VALUE("Last",-1,doNothing,noEvent)
 );
 
-// //customizing a prompt look!
-// //by extending the prompt class
-// class altPrompt:public prompt {
-// public:
-//   altPrompt(constMEM promptShadow& p):prompt(p) {}
-//   Used printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,idx_t panelNr) override {
-//     return out.printRaw(F("special prompt!"),len);;
-//   }
-// };
-
 MENU(subMenu,"Sub-Menu",doNothing,noEvent,noStyle
   ,OP("Sub1",doNothing,noEvent)
   // ,altOP(altPrompt,"",doNothing,noEvent)
@@ -141,40 +123,16 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
 
 #define MAX_DEPTH 2
 
-//rotary encoder
-encoderIn<encA,encB> encoder;//simple quad encoder driver
-encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
+//rotary encoder i2c push
+i2cencoderIn i2cencoder;//simple quad encoder driver
+i2cencoderInStream i2cencStream(i2cencoder);// simple encoder Stream
 
-//a keyboard with only one key as the encoder button
-keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
-keyIn<1> encButton(encBtn_map);//1 is the number of keys
+//rotary encoder i2c poll
+//i2cpollencoderIn<i2caddress> i2cpollencoder;//simple quad encoder driver
+//i2cpollencoderInStream<i2caddress> i2cpollencStream(i2cpollencoder);// simple encoder Stream
 
-//menuIn* inputsList[]={&encButton};
-//chainStream<1> in(inputsList);//1 is the number of inputs
-
-//serialIn serial(Serial);
-//menuIn* inputsList[]={&serial};
-//chainStream<1> in(inputsList);//1 is the number of inputs
-
-//MENU_INPUTS(in,&encStream,&encButton,&serial);
-MENU_INPUTS(in,&encStream,&encButton);
-
-/*
-MENU_OUTPUTS(out,MAX_DEPTH
-,U8G2_OUT(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY})
-,SERIAL_OUT(Serial)
-);
-*/
-/*
-MENU_OUTPUTS(out,MAX_DEPTH
-  ,U8G2_OUT(u8g2,colors,fontX,fontY,offsetX,offsetY,{0,0,U8_Width/fontX,U8_Height/fontY})
-  ,SERIAL_OUT(Serial)
-);
-*/
-
-//define output device serial
-//idx_t serialTops[MAX_DEPTH]={0};
-//serialOut outSerial(*(Print*)&Serial,serialTops);
+//MENU_INPUTS(in,&i2cencStream,&i2cpollencStream);
+MENU_INPUTS(in,&i2cencStream);
 
 idx_t gfx_tops[MAX_DEPTH];
 
@@ -182,13 +140,10 @@ PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
 u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
 
 //define outputs controller
-//menuOut* outputs[]{&outSerial,&oledOut};//list of output devices
 menuOut* outputs[]{&oledOut};//list of output devices
 outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
 
-
 NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
-
 
 result alert(menuOut& o,idleEvent e) {
   if (e==idling) {
@@ -229,9 +184,6 @@ void setup() {
   //Wire.setClock(10);
   //Wire.setClockStretchLimit(1500);
   
-  encoder.begin();
-  encButton.begin();
-  
   #define OLEDI2CADDRESS 0X3C
   u8g2.setI2CAddress(OLEDI2CADDRESS*2);
   u8g2.begin();
@@ -243,23 +195,17 @@ void setup() {
   u8g2.sendBuffer();  
   delay(1000);
 
-  // encoder with interrupt on the A & B pins
-  //attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
-  //attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
+  i2cencoder.begin();
+  //i2cpollencoder.begin();
   
   // disable second option
   //mainMenu[1].enabled=disabledStatus;
-  //nav.idleTask=idle;//point a function to be used when menu is suspended
+  nav.idleTask=idle;//point a function to be used when menu is suspended
 
   Serial.println("setup done.");Serial.flush();
 }
 
 void loop() {
-
-  // if we do not use interrupt we can poll A & B pins but we need non blocking firmware
-  //encoder.process();  // update encoder status
-
-  //nav.poll();
 
   nav.doInput();
   if (nav.changed(0)) {//only draw if menu changed for gfx device

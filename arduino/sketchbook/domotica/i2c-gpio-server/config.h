@@ -1,6 +1,12 @@
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING true
 
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
+
+
 // set the I2C clock frequency 
 #define I2C_CLOCK 30418
 

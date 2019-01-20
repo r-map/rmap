@@ -19,47 +19,56 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*********************************************************************
  *
- * This program implements management of remote input over I2C
+ * This program implements management of remote input encoder over I2C
  * 
+
+ Do not require multimaster I2C and poll the i2c remote encoder
+
+use: https://github.com/r-map/rmap/tree/master/arduino/sketchbook/domotica/i2c-gpio-server
+
+register include file are:
+https://github.com/r-map/rmap/blob/master/arduino/sketchbook/libraries/Registers/registers-gpio.h
+https://github.com/r-map/rmap/blob/master/arduino/sketchbook/libraries/Registers/registers-manager.h
+
 **********************************************************************/
 
-#ifndef RSITE_ARDUINO_MENU_I2C_ROTARY_ENCODER
-  #define RSITE_ARDUINO_MENU_I2C_ROTARY_ENCODER
+#ifndef RSITE_ARDUINO_MENU_I2C_ROTARYPOLL_ENCODER
+  #define RSITE_ARDUINO_MENU_I2C_ROTARYPOLL_ENCODER
 
 #include "Wire.h"
 #include "registers-gpio.h"      //Register definitions
 #include "registers-manager.h"      //Register definitions
 
-void stepClock(void){
-  for (int i = 0; i < 8; i++) {
-    pinMode(SCL, OUTPUT);
-    digitalWrite(SCL, LOW);
-    delayMicroseconds(6);
-    pinMode(SCL, INPUT);
-    delayMicroseconds(6);
-  }
-}
 
+
+/**
+ * This routine turns off the I2C bus and clears it
+ * on return SCA and SCL pins are tri-state inputs.
+ * You need to call Wire.begin() after this to re-enable I2C
+ * This routine does NOT use the Wire library at all.
+ *
+ * returns 0 if bus cleared
+ *         1 if SCL held low.
+ *         2 if SDA held low by slave clock stretch for > 2sec
+ *         3 if SDA held low after 20 clocks.
+ */
 
 namespace Menu {
 
-  template<uint8_t pinA,uint8_t pinB>
-  class encoderIn {
+  template<uint8_t i2caddress=I2C_GPIO_DEFAULTADDRESS>
+  class i2cpollencoderIn {
+    
   public:
-
     void begin() {
-      //Wire.onReceive(receiveEvent);          // Set up event handlers
     }
-
   };
 
-  //emulate a stream based on encoderIn movement returning +/- for every steps
-  //buffer not needer because we have an accumulator
-  template<uint8_t pinA,uint8_t pinB>
-    class encoderInStream:public menuIn {
+  //emulate a stream based on i2cpollencoderIn movement returning +/- for every steps
+  template<uint8_t i2caddress>
+    class i2cpollencoderInStream:public menuIn {
   public:
-    encoderIn<pinA,pinB> &enc;//associated hardware encoderIn
-  encoderInStream(encoderIn<pinA,pinB> &enc):enc(enc) {}
+    i2cpollencoderIn<i2caddress> &enc;//associated hardware i2cpollencoderIn
+    i2cpollencoderInStream(i2cpollencoderIn<i2caddress> &enc):enc(enc) {}
     uint8_t      lastcommand;                 //command received
     uint8_t      navail=0;                    //number of command in queue
 
@@ -67,11 +76,10 @@ namespace Menu {
 
       if (navail > 0) return navail;
       //Serial.println(F("Read command"));             
-      Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+      Wire.beginTransmission(i2caddress);
       Wire.write(I2C_GPIO_LAST_COMMAND);
       if (Wire.endTransmission() != 0) {
 	Serial.println(F("Wire Error"));
-	stepClock();
       } else {
 	Wire.requestFrom(I2C_GPIO_DEFAULTADDRESS,1);
 	if (Wire.available() < 1)    // slave may send less than requested
