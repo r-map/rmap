@@ -80,7 +80,9 @@ typedef void (*printfunction)(Print*);
 
 
 // default log level
-#define LOG_LEVEL LOG_WARNING
+#ifndef LOG_LEVEL
+#define LOG_LEVEL LOG_LEVEL_VERBOSE
+#endif
 
 // macro definitions for compile time
 // LOGF, LOGE, LOGW, LOGN, LOGT, LOGV/LOGD
