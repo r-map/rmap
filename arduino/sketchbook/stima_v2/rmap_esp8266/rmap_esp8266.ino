@@ -30,6 +30,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define OLEDI2CADDRESS 0X3C
 
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
+
 
 #if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
@@ -79,10 +84,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <U8g2lib.h>
 #include "time.h"
 
-// logging level at compile time
-// Available levels are:
-// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
@@ -150,7 +151,7 @@ void saveConfigCallback () {
 unsigned int coordCharToInt(char* lat){
   String mylat(lat);
 
-  char* sep=".";
+  char sep[]=".";
   // without "." or ","
   if (mylat.indexOf(".") < 0 ) {
     if (mylat.indexOf(".") < 0 ) return 0;
@@ -166,7 +167,7 @@ unsigned int coordCharToInt(char* lat){
   mylat=mylat.substring(mylat.indexOf(sep)+1);
   mylat.trim();
   mylat=mylat.substring(0,5);
-  for (int i = 0; i < (5-mylat.length()); i++){
+  for (uint8_t i = 0; i < (5-mylat.length()); i++){
     mylat+= String("0");
   }
   return latdegree*100000+mylat.toInt();
@@ -454,7 +455,7 @@ int  rmap_config(String payload){
     status = 3;
     JsonArray& array = jsonBuffer.parseArray(payload);
     if (array.success()){
-      for (int i = 0; i < array.size(); i++) {
+      for (uint8_t i = 0; i < array.size(); i++) {
 	if  (array[i]["model"] == "stations.stationmetadata"){
 	  if (array[i]["fields"]["active"]){
 	    LOGN(F("station metadata found!" CR));
@@ -494,7 +495,7 @@ int  rmap_config(String payload){
 	      LOGN(F("address: %d" CR),sensors[ii].address);
 	      
 	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
-	      if (sd[ii] == NULL){
+	      if (sd[ii] == 0){
 		LOGN(F("%s:%s driver not created !" CR),sensors[ii].driver,sensors[ii].type);
 	      }else{		
 		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
@@ -664,7 +665,7 @@ void repeats() {
   
   // prepare sensors to measure
   for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == NULL){
+    if (!sd[i] == 0){
       LOGN(F("prepare sd %d" CR),i);
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=_max(maxwaittime,waittime);
@@ -719,7 +720,7 @@ void repeats() {
 
   for (int i = 0; i < SENSORS_LEN; i++) {
     yield();
-    if (!sd[i] == NULL){
+    if (!sd[i] == 0){
       LOGN(F("getJson sd %d" CR),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 	if(publish_data(values,sensors[i].timerange,sensors[i].level)){
