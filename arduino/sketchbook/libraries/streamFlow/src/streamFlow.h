@@ -3,7 +3,7 @@
 
 #include <Stream.h>
 //#include <avr/pgmspace.h>
-#include <HardwareSerial.h>
+//#include <HardwareSerial.h>
 
 //#define endl "\n\r"
 //#define tab "\t"
