@@ -5133,9 +5133,8 @@ int SensorDriverPMSoneshotSerial::prepare(unsigned long& waittime)
 
 int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
 {
-  unsigned int pm25;
-  unsigned int pm10;
   bool status = false;
+  uint16_t data[13];
 
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!PMSstarted)  return SD_INTERNAL_ERROR;
@@ -5146,16 +5145,12 @@ int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
   // measure
   while (_pms->available()){
 
-    uint16_t data[13];
     Pmsx003::PmsStatus pstatus = _pms->read(data, 13);
     
     switch (pstatus) {
     case Pmsx003::OK:
-      
-      pm25=data[4];
-      pm10=data[5];
-      status = true;
-      
+     
+      status = true; 
       //for (uint8_t i = 0; i < 13; ++i) {
       //Serial.println(data[i]);
       //}
@@ -5172,14 +5167,49 @@ int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
     
     // get pm25
     if (lenvalues >= 1) {
-      values[0] = pm25*10 ;
+      values[0] = data[4]*10 ;
     }
 
     // get pm10
     if (lenvalues >= 2) {
-      values[1] = pm10*10 ;
+      values[1] = data[5]*10 ;
     }
 
+    // get pm1
+    if (lenvalues >= 3) {
+      values[2] = data[3]*10 ;
+    }
+
+    // Data 6  indicates the number of particles with diameter beyond 0.3  um in 0.1 L of air.
+    if (lenvalues >= 4) {
+      values[3] = data[6]*10 ;
+    }
+    
+    // Data 7  indicates the number of particles with diameter beyond 0.5  um in 0.1 L of air.
+    if (lenvalues >= 5) {
+      values[4] = data[7]*10 ;
+    }
+    
+    // Data 8  indicates the number of particles with diameter beyond 1.0  um in 0.1 L of air.
+    if (lenvalues >= 6) {
+      values[5] = data[8]*10 ;
+    }
+    
+    // Data 9  indicates the number of particles with diameter beyond 2.5  um in 0.1 L of air.
+    if (lenvalues >= 7) {
+      values[6] = data[9]*10 ;
+    }
+    
+    // Data 10 indicates the number of particles with diameter beyond 5.0  um in 0.1 L of air.
+    if (lenvalues >= 8) {
+      values[7] = data[10]*10 ;
+    }
+    
+    // Data 11 indicates the number of particles with diameter beyond 10.0 um in 0.1 L of air.
+    if (lenvalues >= 9) {
+      values[8] = data[11]*10 ;
+    }
+    
     return SD_SUCCESS;
   } else {
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#pms error")));
