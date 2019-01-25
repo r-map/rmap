@@ -128,11 +128,11 @@
 
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
 //wemos
-#define PMS_PIN_RX D3
-#define PMS_PIN_TX D4
+#define PMS_PIN_RX D5
+#define PMS_PIN_TX D6
 #else
-#define PMS_PIN_RX D3
-#define PMS_PIN_TX D4
+#define PMS_PIN_RX 4
+#define PMS_PIN_TX 5
 #endif
 
 
