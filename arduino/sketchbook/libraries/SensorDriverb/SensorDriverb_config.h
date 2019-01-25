@@ -80,8 +80,8 @@
 #define SDS_PIN_RX D5
 #define SDS_PIN_TX D6
 #else
-#define HPM_PIN_RX 4
-#define HPM_PIN_TX 5
+#define SDS_PIN_RX 4
+#define SDS_PIN_TX 5
 #endif
 #endif
 
@@ -116,6 +116,24 @@
 
 #define HPMSAMPLES 3
 //#endif
+
+
+// include Platower  pms pm 2.5 and pm 10 driver SAMPLE MODE
+#define PMS_ONESHOT
+
+#if defined(ARDUINO_ESP8266_NODEMCU)
+//luftdaten
+#define PMS_PIN_RX D1
+#define PMS_PIN_TX D2
+
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+//wemos
+#define PMS_PIN_RX D3
+#define PMS_PIN_TX D4
+#else
+#define PMS_PIN_RX D3
+#define PMS_PIN_TX D4
+#endif
 
 
 #if defined (TEMPERATUREHUMIDITY_ONESHOT)

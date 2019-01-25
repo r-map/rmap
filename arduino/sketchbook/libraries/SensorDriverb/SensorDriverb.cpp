@@ -10,6 +10,7 @@ int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
 bool HPMstarted=false;
+bool PMSstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -139,6 +140,11 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #if defined (HPM_ONESHOT)
 	  if (strcmp(type, "HPM") == 0) {
 	    return new SensorDriverHPMoneshotSerial();
+	  } else
+#endif
+#if defined (PMS_ONESHOT)
+	  if (strcmp(type, "PMS") == 0) {
+	    return new SensorDriverPMSoneshotSerial();
 	  }
 #endif
 
@@ -5082,6 +5088,189 @@ SensorDriverHPMoneshotSerial::~SensorDriverHPMoneshotSerial(){
 #endif
 
 
+#if defined (PMS_ONESHOT)
 
+int SensorDriverPMSoneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+{
 
+  SensorDriver::setup(driver,address,node,type);
+  //bool oneshot=true;
 
+  #if defined(ARDUINO_ARCH_ESP8266)
+  _pmsSerial=new SoftwareSerial(PMS_PIN_RX, PMS_PIN_TX, false, 128);
+  #else
+  _pmsSerial=new SoftwareSerial(PMS_PIN_RX, PMS_PIN_TX);
+  //_pmsSerial= &Serial1;
+  #endif
+
+  _pmsSerial->begin(9600);
+  _pms = new Pmsx003();
+
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build PMS")));
+  
+  _pms->begin(_pmsSerial);
+  _pms->cmd(Pmsx003::cmdWakeup);
+  delay(2500);
+  _pms->cmd(Pmsx003::cmdModePassive);
+  delay(2500);
+  
+  PMSstarted=false;
+  _timing=millis();
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverPMSoneshotSerial::prepare(unsigned long& waittime)
+{
+  _pms->cmd(Pmsx003::cmdReadData);
+  
+  PMSstarted=true;
+  _timing=millis();
+  //waittime= 6000ul;
+  waittime= 2500ul;
+  return SD_SUCCESS;
+}
+
+int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
+{
+  unsigned int pm25;
+  unsigned int pm10;
+  bool status = false;
+
+  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
+  if (!PMSstarted)  return SD_INTERNAL_ERROR;
+
+  PMSstarted=false;  
+  _timing=0;
+
+  // measure
+  while (_pms->available()){
+
+    uint16_t data[13];
+    Pmsx003::PmsStatus pstatus = _pms->read(data, 13);
+    
+    switch (pstatus) {
+    case Pmsx003::OK:
+      
+      pm25=data[4];
+      pm10=data[5];
+      status = true;
+      
+      //for (uint8_t i = 0; i < 13; ++i) {
+      //Serial.println(data[i]);
+      //}
+      break;
+    default:
+      //Serial.print(F("Error status: "));
+      //Serial.println(status);
+      goto endwhile;   // skip other broken messages
+    }
+  }
+ endwhile: ;
+
+  if (status){
+    
+    // get pm25
+    if (lenvalues >= 1) {
+      values[0] = pm25*10 ;
+    }
+
+    // get pm10
+    if (lenvalues >= 2) {
+      values[1] = pm10*10 ;
+    }
+
+    return SD_SUCCESS;
+  } else {
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#pms error")));
+    return SD_INTERNAL_ERROR;    
+  }
+}
+
+#if defined (USEGETDATA)
+int SensorDriverPMSoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+{
+
+  long values[1];
+  width=20;
+  const long reference=0;
+  
+  if (SensorDriverPMSoneshotSerial::get(values,1) == SD_SUCCESS){
+    data=(values[0]-reference);// << (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    width=0xFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+  
+}
+#endif
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverPMSoneshotSerial::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverPMSoneshotSerial::get(values,2) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15195");
+  }
+  return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B15198"]= values[0];      
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B15195"]= values[1];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverPMSoneshotSerial::~SensorDriverPMSoneshotSerial(){
+
+  delete _pms;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+  //delete _pmsSerial;
+}
+
+#endif

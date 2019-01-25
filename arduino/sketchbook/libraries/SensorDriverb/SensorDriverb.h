@@ -37,6 +37,11 @@
 #include <SoftwareSerial.h>
 #endif
 
+#if defined (PMS_ONESHOT)
+#include "pms.h"
+#include <SoftwareSerial.h>
+#endif
+
 // initialize the I2C interface
 //void SensorDriverInit();
 
@@ -843,6 +848,34 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
 
 #endif
 
+
+#if defined (PMS_ONESHOT)
+
+ class SensorDriverPMSoneshotSerial : public SensorDriver
+ {
+ public:
+   //SensorDriverPMSoneshotSerial();
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined (USEGETDATA)
+    virtual int getdata(unsigned long& data,unsigned short& width);
+  #endif
+    virtual ~SensorDriverPMSoneshotSerial();
+
+#if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+    
+   protected:
+    SoftwareSerial* _pmsSerial=NULL;
+    Pmsx003* _pms=NULL;  
+};
+
+#endif
 
 #define SD_INTERNAL_ERROR 1
 #define SD_SUCCESS 0
