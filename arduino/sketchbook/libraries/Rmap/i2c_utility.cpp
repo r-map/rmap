@@ -22,6 +22,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "i2c_utility.h"
 
+uint8_t crc8 (uint8_t *ptr, uint8_t length) {
+  const uint8_t generator = 0x7;
+  uint8_t crc = 0;
+
+  if (ptr == NULL) {
+    return 0xFF;
+  }
+
+  while (length--) {
+    crc ^= *ptr++;
+
+    for (uint8_t k = 0; k < 8; k++) {
+      if ((crc & 0x80) != 0) {
+        crc = (uint8_t)((crc << 1) ^ generator);
+      }
+      else {
+        crc <<= 1;
+      }
+    }
+  }
+
+  return crc;
+}
+
 // http://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
 /**
 * This routine turns off the I2C bus and clears it
