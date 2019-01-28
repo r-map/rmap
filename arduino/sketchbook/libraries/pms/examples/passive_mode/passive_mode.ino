@@ -23,13 +23,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
 Plantower                           WEMOS
- PIN4     RX    Giallo    PIN_TX    D4
- PIN5     TX    Marrone   PIN_RX    D3
+ PIN4     RX    Giallo    PIN_TX    D6
+ PIN5     TX    Marrone   PIN_RX    D5
  PIN3     SLEEP Arancione PIN_SLEEP D2   
  PIN6     RESET Bianco    PIN_RESET D1
 */
-#define PIN_TX    D4
-#define PIN_RX    D3
+#define PIN_TX    D6
+#define PIN_RX    D5
 #define PIN_SLEEP D2
 #define PIN_RESET D1
 

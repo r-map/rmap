@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2018-05-24T00:00"
+#define SOFTWARE_VERSION "2019-01-29T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -47,6 +47,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define SDS_PIN_TX D2
 
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define LED_PIN D4
+// those are defined in SensorDriverb_config.h
+//#define SDS_PIN_RX D5
+//#define SDS_PIN_TX D6
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
