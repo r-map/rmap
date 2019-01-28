@@ -15,16 +15,16 @@
 #define I2C_ADDRESS_3               (3)
 #define I2C_ADDRESS_4               (4)
 
-#define I2C_MY_ADDRESS              I2C_ADDRESS_1
+#define I2C_MY_ADDRESS              I2C_ADDRESS_4
 
 #define I2C_MAX_ERROR_COUNT         (10)
 #define I2C_CHECK_DELAY_MS          (5000)
 
-#define I2C_REQUEST_MIN_DELAY_MS    (UINT32_MAX)
-#define I2C_REQUEST_MAX_DELAY_MS    (UINT32_MAX)
+#define I2C_REQUEST_MIN_DELAY_MS    (100)
+#define I2C_REQUEST_MAX_DELAY_MS    (4000)
 
-#define I2C_SEND_DATA_MIN_DELAY_MS  (10)
-#define I2C_SEND_DATA_MAX_DELAY_MS  (20)
+#define I2C_SEND_DATA_MIN_DELAY_MS  (100)
+#define I2C_SEND_DATA_MAX_DELAY_MS  (4000)
 
 #define PRINT_STATUS_DELAY_MS       (1000)
 
@@ -579,12 +579,12 @@ void loop() {
 
       // 1 --> 2 --> 3 --> 4 --> 1
       switch (I2C_MY_ADDRESS) {
-        // case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_2; break;
-        // case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_3; break;
-        // case I2C_ADDRESS_3: i2c_other_address = I2C_ADDRESS_4; break;
-        // case I2C_ADDRESS_4: i2c_other_address = I2C_ADDRESS_1; break;
         case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_2; break;
-        case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_1; break;
+        case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_3; break;
+        case I2C_ADDRESS_3: i2c_other_address = I2C_ADDRESS_4; break;
+        case I2C_ADDRESS_4: i2c_other_address = I2C_ADDRESS_1; break;
+        // case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_2; break;
+        // case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_1; break;
       }
 
       send_data(write_data_length, i2c_other_address);
@@ -628,12 +628,12 @@ void loop() {
 
       // 4 --> 3 --> 2 --> 1 --> 4
       switch (I2C_MY_ADDRESS) {
-        // case I2C_ADDRESS_4: i2c_other_address = I2C_ADDRESS_3; break;
-        // case I2C_ADDRESS_3: i2c_other_address = I2C_ADDRESS_2; break;
-        // case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_1; break;
-        // case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_4; break;
-        case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_2; break;
+        case I2C_ADDRESS_4: i2c_other_address = I2C_ADDRESS_3; break;
+        case I2C_ADDRESS_3: i2c_other_address = I2C_ADDRESS_2; break;
         case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_1; break;
+        case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_4; break;
+        // case I2C_ADDRESS_1: i2c_other_address = I2C_ADDRESS_2; break;
+        // case I2C_ADDRESS_2: i2c_other_address = I2C_ADDRESS_1; break;
       }
 
       request_data(length, i2c_other_address);
