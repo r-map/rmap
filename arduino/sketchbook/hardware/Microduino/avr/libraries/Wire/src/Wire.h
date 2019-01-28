@@ -40,7 +40,7 @@ class TwoWire : public Stream
     static uint8_t rqBuffer[];
     static uint8_t rqBufferIndex;
     static uint8_t rqBufferLength;
-    
+
     static uint8_t txAddress;
     static uint8_t txBuffer[];
     static uint8_t txBufferIndex;
@@ -69,9 +69,9 @@ class TwoWire : public Stream
     uint8_t requestFrom(int, int, int);
     virtual size_t write(uint8_t);
     virtual size_t write(const uint8_t *, size_t);
-    virtual int requestavailable(void);
+    virtual int requestAvailable(void);
     virtual int available(void);
-    virtual int requestread(void);
+    virtual int requestRead(void);
     virtual int read(void);
     virtual int peek(void);
     virtual void flush(void);
@@ -88,4 +88,3 @@ class TwoWire : public Stream
 extern TwoWire Wire;
 
 #endif
-

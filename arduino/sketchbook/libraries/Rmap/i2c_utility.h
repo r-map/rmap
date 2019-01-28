@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <Arduino.h>
 
+uint8_t crc8 (uint8_t *ptr, uint8_t length);
+
 uint8_t I2C_ClearBus();
 
 #endif

@@ -33,6 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MAX_DATA_LENGTH
 \brief Max length in bytes for i2c bus data buffer.
 */
-#define I2C_MAX_DATA_LENGTH             (32)
+#define I2C_MAX_DATA_LENGTH             (31)
 
 #endif
