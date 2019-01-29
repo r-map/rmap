@@ -83,6 +83,8 @@ void Pmsx003::begin(Stream *serial) {
 size_t Pmsx003::available(void) {
   while (this->pmsSerial->available()) {
     if (this->pmsSerial->peek() != sig[0]) {
+      //Serial.print(F("skip: "));
+      //Serial.println(this->pmsSerial->read());
       this->pmsSerial->read();
     } else {
       break;
@@ -198,11 +200,12 @@ void Pmsx003::cmd(const PmsCmd cmd) {
     _sumBuffer(&sum, sig, sizeof(sig));
     _sumBuffer(&sum, (uint8_t*)&cmd, 3);
     swapEndianBig16(&sum);
+    this->pmsSerial->flush();
     this->pmsSerial->write((uint8_t*)&sum, sizeof(sum)); 
     break;
   }
 
-  //if ((cmd != cmdReadData) && (cmd != cmdWakeup)) {
+  if ((cmd != cmdReadData) && (cmd != cmdWakeup)) {
     this->pmsSerial->flush();
-  //}
+  }
 }
