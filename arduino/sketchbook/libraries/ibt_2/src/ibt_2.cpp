@@ -211,9 +211,6 @@ void ibt_2::setpwm(uint8_t pwm,uint8_t bridge){
 
   if (bridge == IBT_2_R_HALF) {
     _r_pwm= pwm;
-    Serial.print(_r_pwm_pin);
-    Serial.print(" : ");
-    Serial.println(_r_pwm);
     analogWrite(_r_pwm_pin, _r_pwm);
     
   } else if (bridge == IBT_2_L_HALF) {
