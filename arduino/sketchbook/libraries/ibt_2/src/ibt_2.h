@@ -28,13 +28,13 @@ enum domotic_bridge {
 
 class domotic {
  public:
-  domotic (unsigned short int bridge);
-  virtual void     stop(unsigned short int bridge)=0;
-  virtual void     start(unsigned short int bridge)=0;
-  virtual void     brake(unsigned short int brake)=0;
-  virtual void     setrotation(unsigned short int pwm,unsigned short int wise)=0;
-  virtual void     setpwm(unsigned short int pwm,unsigned short int bridge)=0;
-  virtual bool     readis()=0;
+  domotic (uint8_t bridge, uint8_t r_pwm=R_PWM, uint8_t l_pwm=L_PWM, uint8_t r_en=R_EN, uint8_t l_en=L_EN, uint8_t r_is=R_IS, uint8_t l_is=L_IS);
+  virtual void     stop(uint8_t bridge)=0;
+  virtual void     start(uint8_t bridge)=0;
+  virtual void     brake(uint8_t brake)=0;
+  virtual void     setrotation(uint8_t pwm,uint8_t wise)=0;
+  virtual void     setpwm(uint8_t pwm,uint8_t bridge)=0;
+  virtual void     readis()=0;
   virtual uint16_t get(domotic_bridge half)=0;
   virtual bool     protect()=0;
   virtual bool     protectdelay(unsigned long int stoptime)=0;
@@ -46,20 +46,26 @@ class domotic {
   uint8_t _wise;
   uint8_t _r_pwm;
   uint8_t _l_pwm;
+  uint8_t _r_pwm_pin;
+  uint8_t _l_pwm_pin;
+  uint8_t _r_en_pin;
+  uint8_t _l_en_pin;
+  uint8_t _r_is_pin;
+  uint8_t _l_is_pin;
 };
 
 
 class ibt_2: public domotic {
 
  public:
-  ibt_2(unsigned short int bridge);
-  void stop(unsigned short int bridge=IBT_2_FULL);
-  void start(unsigned short int bridge=IBT_2_FULL);
-  void brake(unsigned short int brake=BRAKEGND);
-  void setrotation(unsigned short int pwm=0,unsigned short int wise=CW);
-  void setpwm(unsigned short int pwm=0,unsigned short int bridge=IBT_2_R_HALF);
+  ibt_2(uint8_t bridge, uint8_t r_pwm=R_PWM, uint8_t l_pwm=L_PWM, uint8_t r_en=R_EN, uint8_t l_en=L_EN, uint8_t r_is=R_IS, uint8_t l_is=L_IS);
+  void stop(uint8_t bridge=IBT_2_FULL);
+  void start(uint8_t bridge=IBT_2_FULL);
+  void brake(uint8_t brake=BRAKEGND);
+  void setrotation(uint8_t pwm=0,uint8_t wise=CW);
+  void setpwm(uint8_t pwm=0,uint8_t bridge=IBT_2_R_HALF);
   uint16_t get(domotic_bridge half=bridge_r_half);
-  bool readis();
+  void readis();
   bool protect();
   bool protectdelay(unsigned long int stoptime=5000);  
 };

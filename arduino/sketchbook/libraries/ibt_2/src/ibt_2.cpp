@@ -13,7 +13,8 @@ but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License
+You should have received a copy of the
+ GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
@@ -64,7 +65,7 @@ void filter_is(unsigned int n, unsigned int *table,  uint16_t *value)
 
     value_sum = value_min = value_max = table[0];
 
-    for (int i=1; i<n; i++) {
+    for (uint8_t i=1; i<n; i++) {
         if (table[i] < value_min) {
             value_min = table[i];
         }
@@ -85,80 +86,88 @@ void filter_is(unsigned int n, unsigned int *table,  uint16_t *value)
 
 
 
-domotic::domotic(unsigned short int bridge):
+domotic::domotic(uint8_t bridge, uint8_t r_pwm, uint8_t l_pwm, uint8_t r_en, uint8_t l_en, uint8_t r_is, uint8_t l_is):
+
   _r_is(0xFFFFFFFF),
   _l_is(0xFFFFFFFF),
+  _bridge(bridge),
   _wise(CW),
   _r_pwm(0),
   _l_pwm(0),
-  _bridge(bridge)
+  _r_pwm_pin(r_pwm),
+  _l_pwm_pin(l_pwm),
+  _r_en_pin(r_en),
+  _l_en_pin(l_en),
+  _r_is_pin(r_is),
+  _l_is_pin(l_is)
+  
 {
 }
 
 
-ibt_2::ibt_2(unsigned short int bridge):
-  domotic(bridge)
+ibt_2::ibt_2(uint8_t bridge, uint8_t r_pwm, uint8_t l_pwm, uint8_t r_en, uint8_t l_en, uint8_t r_is, uint8_t l_is):
+  domotic(bridge, r_pwm, l_pwm, r_en, l_en, r_is, l_is)
 {
-  pinMode(R_PWM, OUTPUT);
-  pinMode(L_PWM, OUTPUT);
-  pinMode(R_EN, OUTPUT);
-  pinMode(L_EN, OUTPUT);
-  pinMode(R_IS, INPUT);
-  pinMode(L_IS, INPUT);
+  pinMode(_r_pwm_pin, OUTPUT);
+  pinMode(_l_pwm_pin, OUTPUT);
+  pinMode(_r_en_pin, OUTPUT);
+  pinMode(_l_en_pin, OUTPUT);
+  pinMode(_r_is_pin, INPUT);
+  pinMode(_l_is_pin, INPUT);
 
   stop();
   setrotation();
 }
 
 
-void ibt_2::stop(unsigned short int bridge){
+void ibt_2::stop(uint8_t bridge){
 
   if (bridge == IBT_2_FULL){
-    digitalWrite(R_EN, LOW);
-    digitalWrite(L_EN, LOW);
+    digitalWrite(_r_en_pin, LOW);
+    digitalWrite(_l_en_pin, LOW);
   } else if (bridge == IBT_2_R_HALF){
-    digitalWrite(R_EN, LOW);
+    digitalWrite(_r_en_pin, LOW);
   } else if (bridge == IBT_2_L_HALF){
-    digitalWrite(L_EN, LOW);
+    digitalWrite(_l_en_pin, LOW);
   }
 }
 
-void ibt_2::start(unsigned short int bridge){
+void ibt_2::start(uint8_t bridge){
 
   // with this commented full activate all half bridge
   //if (_bridge != IBT_2_FULL && bridge == IBT_2_FULL ) return;
   
   if (bridge == IBT_2_FULL){
-    digitalWrite(R_EN, HIGH);
-    digitalWrite(L_EN, HIGH);
+    digitalWrite(_r_en_pin, HIGH);
+    digitalWrite(_l_en_pin, HIGH);
   } else if (bridge == IBT_2_R_HALF){
-    digitalWrite(R_EN, HIGH);
+    digitalWrite(_r_en_pin, HIGH);
   } else if (bridge == IBT_2_L_HALF){
-    digitalWrite(L_EN, HIGH);
+    digitalWrite(_l_en_pin, HIGH);
   }
 }
 
 
-void ibt_2::brake(unsigned short int brake){
+void ibt_2::brake(uint8_t brake){
 
   if (_bridge != IBT_2_FULL ) return;
   
   if (brake == BRAKEGND){
-    digitalWrite(R_PWM, HIGH);
-    digitalWrite(L_PWM, HIGH);
+    digitalWrite(_r_pwm_pin, HIGH);
+    digitalWrite(_l_pwm_pin, HIGH);
   } else if (brake == BRAKEVCC){
-    digitalWrite(R_PWM, LOW);
-    digitalWrite(L_PWM, LOW);
+    digitalWrite(_r_pwm_pin, LOW);
+    digitalWrite(_l_pwm_pin, LOW);
 
   }
 
-  digitalWrite(R_EN, HIGH);
-  digitalWrite(L_EN, HIGH);
+  digitalWrite(_r_en_pin, HIGH);
+  digitalWrite(_l_en_pin, HIGH);
 
 }
 
 
-void ibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
+void ibt_2::setrotation(uint8_t pwm,uint8_t wise){
 
 
   /*
@@ -183,31 +192,33 @@ void ibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
       _r_pwm= pwm;
       _l_pwm= 0;
       
-      digitalWrite(L_PWM, _l_pwm);
-      analogWrite(R_PWM, _r_pwm);
+      digitalWrite(_l_pwm_pin, _l_pwm);
+      analogWrite(_r_pwm_pin, _r_pwm);
 
     }  else {
     // reverse rotation
     _r_pwm= 0;
     _l_pwm= pwm;
-    digitalWrite(R_PWM,_r_pwm);
-    analogWrite(L_PWM, _l_pwm);
+    digitalWrite(_r_pwm_pin,_r_pwm);
+    analogWrite(_l_pwm_pin, _l_pwm);
   }
 }
 
 
-void ibt_2::setpwm(unsigned short int pwm,unsigned short int bridge){
+void ibt_2::setpwm(uint8_t pwm,uint8_t bridge){
 
   if (_bridge != IBT_2_2HALF ) return;
 
-  if (_bridge == IBT_2_R_HALF) {
+  if (bridge == IBT_2_R_HALF) {
     _r_pwm= pwm;
-    analogWrite(R_PWM, _r_pwm);
+    Serial.print(_r_pwm_pin);
+    Serial.print(" : ");
+    Serial.println(_r_pwm);
+    analogWrite(_r_pwm_pin, _r_pwm);
     
-  } else if (_bridge == IBT_2_L_HALF) {
-    // reverse rotation
-    _l_pwm= 0;
-    analogWrite(L_PWM, _l_pwm);
+  } else if (bridge == IBT_2_L_HALF) {
+    _l_pwm= pwm;
+    analogWrite(_l_pwm_pin, _l_pwm);
   }
 
 }
@@ -226,16 +237,16 @@ uint16_t ibt_2::get(domotic_bridge half) {
   return 0xFFFF;
 }
 
-bool ibt_2::readis(){
+void ibt_2::readis(){
 
 
     unsigned int table1[NSAMPLE];
     unsigned int table2[NSAMPLE];
 
     for (int i =0; i < NSAMPLE; i++){
-      table1[i] = analogRead(R_IS);
+      table1[i] = analogRead(_r_is_pin);
       //LOGN(F("read1: %d" CR),table1[i]);
-      table2[i] = analogRead(L_IS);
+      table2[i] = analogRead(_l_is_pin);
       //LOGN(F("read2: %d" CR),table2[i]);
       delay(10);
     }
