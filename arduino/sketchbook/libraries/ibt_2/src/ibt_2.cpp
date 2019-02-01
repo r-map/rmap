@@ -108,12 +108,12 @@ domotic::domotic(uint8_t bridge, uint8_t r_pwm, uint8_t l_pwm, uint8_t r_en, uin
 ibt_2::ibt_2(uint8_t bridge, uint8_t r_pwm, uint8_t l_pwm, uint8_t r_en, uint8_t l_en, uint8_t r_is, uint8_t l_is):
   domotic(bridge, r_pwm, l_pwm, r_en, l_en, r_is, l_is)
 {
-  pinMode(_r_pwm_pin, OUTPUT);
-  pinMode(_l_pwm_pin, OUTPUT);
-  pinMode(_r_en_pin, OUTPUT);
-  pinMode(_l_en_pin, OUTPUT);
-  pinMode(_r_is_pin, INPUT);
-  pinMode(_l_is_pin, INPUT);
+  if (_r_pwm_pin != 0XFF) pinMode(_r_pwm_pin, OUTPUT);
+  if (_l_pwm_pin != 0XFF) pinMode(_l_pwm_pin, OUTPUT);
+  if (_r_en_pin  != 0XFF) pinMode(_r_en_pin, OUTPUT);
+  if (_l_en_pin  != 0XFF) pinMode(_l_en_pin, OUTPUT);
+  if (_r_is_pin  != 0XFF) pinMode(_r_is_pin, INPUT);
+  if (_l_is_pin  != 0XFF) pinMode(_l_is_pin, INPUT);
 
   stop();
   setrotation();
@@ -123,12 +123,12 @@ ibt_2::ibt_2(uint8_t bridge, uint8_t r_pwm, uint8_t l_pwm, uint8_t r_en, uint8_t
 void ibt_2::stop(uint8_t bridge){
 
   if (bridge == IBT_2_FULL){
-    digitalWrite(_r_en_pin, LOW);
-    digitalWrite(_l_en_pin, LOW);
+    if (_r_en_pin != 0XFF) digitalWrite(_r_en_pin, LOW);
+    if (_l_en_pin != 0XFF) digitalWrite(_l_en_pin, LOW);
   } else if (bridge == IBT_2_R_HALF){
-    digitalWrite(_r_en_pin, LOW);
+    if (_r_en_pin != 0XFF) digitalWrite(_r_en_pin, LOW);
   } else if (bridge == IBT_2_L_HALF){
-    digitalWrite(_l_en_pin, LOW);
+    if (_l_en_pin != 0XFF) digitalWrite(_l_en_pin, LOW);
   }
 }
 
@@ -138,12 +138,12 @@ void ibt_2::start(uint8_t bridge){
   //if (_bridge != IBT_2_FULL && bridge == IBT_2_FULL ) return;
   
   if (bridge == IBT_2_FULL){
-    digitalWrite(_r_en_pin, HIGH);
-    digitalWrite(_l_en_pin, HIGH);
+    if (_r_en_pin != 0XFF) digitalWrite(_r_en_pin, HIGH);
+    if (_l_en_pin != 0XFF) digitalWrite(_l_en_pin, HIGH);
   } else if (bridge == IBT_2_R_HALF){
-    digitalWrite(_r_en_pin, HIGH);
+    if (_r_en_pin != 0XFF) digitalWrite(_r_en_pin, HIGH);
   } else if (bridge == IBT_2_L_HALF){
-    digitalWrite(_l_en_pin, HIGH);
+    if (_l_en_pin != 0XFF) digitalWrite(_l_en_pin, HIGH);
   }
 }
 
@@ -153,16 +153,16 @@ void ibt_2::brake(uint8_t brake){
   if (_bridge != IBT_2_FULL ) return;
   
   if (brake == BRAKEGND){
-    digitalWrite(_r_pwm_pin, HIGH);
-    digitalWrite(_l_pwm_pin, HIGH);
+    if (_r_pwm_pin != 0XFF) digitalWrite(_r_pwm_pin, HIGH);
+    if (_l_pwm_pin != 0XFF) digitalWrite(_l_pwm_pin, HIGH);
   } else if (brake == BRAKEVCC){
-    digitalWrite(_r_pwm_pin, LOW);
-    digitalWrite(_l_pwm_pin, LOW);
+    if (_r_pwm_pin != 0XFF) digitalWrite(_r_pwm_pin, LOW);
+    if (_l_pwm_pin != 0XFF) digitalWrite(_l_pwm_pin, LOW);
 
   }
 
-  digitalWrite(_r_en_pin, HIGH);
-  digitalWrite(_l_en_pin, HIGH);
+  if (_r_en_pin != 0XFF) digitalWrite(_r_en_pin, HIGH);
+  if (_l_en_pin != 0XFF) digitalWrite(_l_en_pin, HIGH);
 
 }
 
@@ -191,17 +191,18 @@ void ibt_2::setrotation(uint8_t pwm,uint8_t wise){
       // forward rotation
       _r_pwm= pwm;
       _l_pwm= 0;
-      
-      digitalWrite(_l_pwm_pin, _l_pwm);
-      analogWrite(_r_pwm_pin, _r_pwm);
+      if (_l_pwm_pin != 0XFF) digitalWrite(_l_pwm_pin, _l_pwm);
+      if (_r_pwm_pin != 0XFF) analogWrite(_r_pwm_pin, _r_pwm);
 
-    }  else {
-    // reverse rotation
-    _r_pwm= 0;
-    _l_pwm= pwm;
-    digitalWrite(_r_pwm_pin,_r_pwm);
-    analogWrite(_l_pwm_pin, _l_pwm);
-  }
+    }
+  else
+    {
+      // reverse rotation
+      _r_pwm= 0;
+      _l_pwm= pwm;
+      if (_r_pwm_pin != 0XFF) digitalWrite(_r_pwm_pin,_r_pwm);
+      if (_l_pwm_pin != 0XFF) analogWrite(_l_pwm_pin, _l_pwm);
+    }
 }
 
 
@@ -211,11 +212,11 @@ void ibt_2::setpwm(uint8_t pwm,uint8_t bridge){
 
   if (bridge == IBT_2_R_HALF) {
     _r_pwm= pwm;
-    analogWrite(_r_pwm_pin, _r_pwm);
+    if (_r_pwm_pin != 0XFF) analogWrite(_r_pwm_pin, _r_pwm);
     
   } else if (bridge == IBT_2_L_HALF) {
     _l_pwm= pwm;
-    analogWrite(_l_pwm_pin, _l_pwm);
+    if (_l_pwm_pin != 0XFF) analogWrite(_l_pwm_pin, _l_pwm);
   }
 
 }
@@ -241,16 +242,16 @@ void ibt_2::readis(){
     unsigned int table2[NSAMPLE];
 
     for (int i =0; i < NSAMPLE; i++){
-      table1[i] = analogRead(_r_is_pin);
+      if (_r_is_pin != 0XFF) table1[i] = analogRead(_r_is_pin);
       //LOGN(F("read1: %d" CR),table1[i]);
-      table2[i] = analogRead(_l_is_pin);
+      if (_l_is_pin != 0XFF) table2[i] = analogRead(_l_is_pin);
       //LOGN(F("read2: %d" CR),table2[i]);
       delay(10);
     }
 
   
-    filter_is(NSAMPLE, table1,&_r_is);
-    filter_is(NSAMPLE, table2,&_l_is);
+    if (_r_is_pin != 0XFF) filter_is(NSAMPLE, table1,&_r_is);
+    if (_r_is_pin != 0XFF) filter_is(NSAMPLE, table2,&_l_is);
   
 
 }
