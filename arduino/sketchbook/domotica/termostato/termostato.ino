@@ -1,12 +1,12 @@
 
 #define SENSORS_LEN 1
 #define LENVALUES 2
-#define MR_PWM   D5
-#define ML_PWM   D6
-#define MR_EN    D3
-#define ML_EN    D4
-#define MR_IS    A0
-#define ML_IS    A0
+#define MR_PWM   D3
+#define ML_PWM   0XFF
+#define MR_EN    D4
+#define ML_EN    0XFF
+#define MR_IS    0XFF
+#define ML_IS    0XFF
 #define SCL D1
 #define SDA D2
 // rotary encoder pins
@@ -14,6 +14,19 @@
 #define encA    D6
 #define encB    D7
 
+
+// logging level at compile time
+// Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
+
+//disable debug at compile time but call function anyway
+//#define DISABLE_LOGGING disable
+
+#define FILETERMOSTATO "/termostato.json"
+
+#include <FS.h>                   //this needs to be first, or it all crashes and burns...
+#include <ArduinoLog.h>
 #include <Wire.h>
 #include <SensorDriverb.h>
 #include <PID_v1.h>
@@ -24,6 +37,8 @@
 #include <menuIO/RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
+#include <menuIO/serialOut.h>
+#include <menuIO/serialIn.h>
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -79,9 +94,9 @@ const colorDef<uint8_t> colors[] MEMMODE={
   {{1,1},{1,0,0}},//titleColor
 };
 
-int ledCtrl=HIGH;
+int ventCtrl=HIGH;
 
-TOGGLE(ledCtrl,setLed,"Led: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
+TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
   ,VALUE("On",HIGH,doNothing,noEvent)
   ,VALUE("Off",LOW,doNothing,noEvent)
 );
@@ -91,7 +106,7 @@ float temperature=20.;
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,FIELD(temperature,"Tem","C",0,100,10,1,doNothing,noEvent,wrapStyle)
-  ,SUBMENU(setLed)
+  ,SUBMENU(setVent)
   ,EXIT("<Exit")
 );
 
@@ -105,27 +120,59 @@ encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
 keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
 keyIn<1> encButton(encBtn_map);//1 is the number of keys
 
-MENU_INPUTS(in,&encStream,&encButton);
+serialIn serial(Serial);
+
+MENU_INPUTS(in,&encStream,&encButton,&serial);
 
 idx_t gfx_tops[MAX_DEPTH];
 
 PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
 u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
+idx_t serialTops[MAX_DEPTH]={0};
+serialOut outSerial(*(Print*)&Serial,serialTops);
 
 //define outputs controller
-menuOut* outputs[]{&oledOut};//list of output devices
+menuOut* outputs[]{&oledOut,&outSerial};//list of output devices
 outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
 
 
 NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
 
+bool displaydata=false;
+
+
 //when menu is suspended
 result idle(menuOut& o,idleEvent e) {
   o.clear();
   switch(e) {
-    case idleStart:o.println("suspending menu!");break;
-    case idling:o.println("suspended...");break;
-    case idleEnd:o.println("resuming menu.");break;
+  case idleStart:
+    o.println("suspending menu!");
+    {
+      StaticJsonBuffer<500> jsonBuffer;
+      JsonObject& json = jsonBuffer.createObject();
+    
+      LOGN(F("temperature %D" CR),temperature);
+      json["temperature"] = temperature;
+  
+      File configFile = SPIFFS.open(FILETERMOSTATO, "w");
+      if (!configFile) {
+	LOGN(F("failed to open config file for writing" CR));
+      }else{
+	//json.printTo(Serial);
+	json.printTo(configFile);
+	configFile.close();
+	LOGN(F("saved parameter" CR));
+      }
+    }
+    break;
+  case idling:
+    o.println("suspended...");
+    displaydata=true;
+    break;
+  case idleEnd:
+    o.println("resuming menu.");
+    displaydata=false;
+    break;
   }
   return proceed;
 }
@@ -135,30 +182,52 @@ void encoderprocess (){
   encoder.process();
 }
 
+String read_savedparams() {
+
+  LOGN(F("mounted file system" CR));
+  if (SPIFFS.exists(FILETERMOSTATO)) {
+    //file exists, reading and loading
+    LOGN(F("reading config file" CR));
+    File configFile = SPIFFS.open(FILETERMOSTATO, "r");
+    if (configFile) {
+      LOGN(F("opened config file" CR));
+
+      //size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      //std::unique_ptr<char[]> buf(new char[size]);
+      //configfile.readBytes(buf.get(), size);
+
+      return configFile.readString();
+      
+    } else {
+      LOGE(F("error reading params file" CR));	
+    }
+  } else {
+    LOGN(F("params file do not exist" CR));
+  }
+  //end read
+  return String();  
+}
 
 
 void setup()
 {
-  hbridge.start(IBT_2_R_HALF);
-  hbridge.setpwm(255,IBT_2_L_HALF);
-  
-  //turn the PID on
-  myPID.SetMode(AUTOMATIC);
 
-  strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"HIH");
-  sensors[0].address=39;
-  // 39	0x27
-  // 73	0x49
-  
   // start up the serial interface
   Serial.begin(115200);
-  Serial.println("PID started");
-  Serial.println(Kp);
-  Serial.println(Ki);
-  Serial.println(Kd);
- 
-  // start up the i2c interface
+  // Pass log level, whether to show log level, and print interface.
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, change #define LOG_LEVEL ....
+  //       this will significantly reduce your project size
+
+  // set runtime log level to the same of compile time
+  Log.begin(LOG_LEVEL, &Serial);
+  LOGN(F("Started" CR));
+  LOGN(F("PID: %D %D %D" CR),Kp,Ki,Kd);
+
+
+ // start up the i2c interface
   Wire.begin(SDA,SCL);
 
   delay(1000);
@@ -172,28 +241,84 @@ void setup()
   u8g2.print(F("Starting up!"));
   u8g2.sendBuffer();
 
+  delay(1000);
+  
+  //read configuration from FS json
+  LOGN(F("mounting FS..." CR));
+  if (!SPIFFS.begin()) {
+    LOGN(F("failed to mount FS" CR));
+    LOGN(F("Reformat SPIFFS" CR));
+    SPIFFS.format();
+    if (!SPIFFS.begin()) {
+      LOGN(F("failed to mount FS" CR));
+    }
+    u8g2.clearBuffer();
+    u8g2.setCursor(0, 10); 
+    u8g2.print(F("Mount FS"));
+    u8g2.setCursor(0, 20); 
+    u8g2.print(F("Failed"));
+    u8g2.setCursor(0, 30); 
+    u8g2.print(F("RESET"));
+    u8g2.setCursor(0, 40); 
+    u8g2.print(F("parameters"));
+    u8g2.sendBuffer();
+    delay(3000);
+  }
+
+  String savedparams=read_savedparams();
+  if ( savedparams== String()) {
+    LOGN(F("station configuration not found!" CR));
+  }else{
+    //Serial.println(savedparams);
+    StaticJsonBuffer<500> jsonBuffer;
+    JsonObject& json =jsonBuffer.parseObject(savedparams);
+    if (!json.success()) {
+      LOGE(F("reading json data" CR));
+    }else{
+	temperature=json["temperature"];
+	LOGN(F("temperature %D" CR),temperature);
+    }
+  }
+  
+  hbridge.start(IBT_2_R_HALF);
+  hbridge.setpwm(255,IBT_2_L_HALF);
+  
+  //turn the PID on
+  myPID.SetMode(AUTOMATIC);
+
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"HIH");
+  sensors[0].address=39;
+  // 39	0x27
+  // 73	0x49
+  
+ 
   encoder.begin();
   encButton.begin();
   
-  delay(1000);
 
   // encoder with interrupt on the A & B pins
   attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
   
   for (int i = 0; i < SENSORS_LEN; i++) {
-
+    
     sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
     if (sd[i] == 0){
-      Serial.print(sensors[i].driver);
-      Serial.println(": driver not created !");
+      LOGN(F("%s: driver not created !" CR),sensors[i].driver);
     }else{
       sd[i]->setup(sensors[i].driver,sensors[i].address);
     }
   }
 
-  Serial.println("setup done.");
+  nav.idleTask=idle;//point a function to be used when menu is suspended
+  
+  LOGN(F("setup done." CR));
 
+  Serial.println("Menu 4.x");
+  Serial.println("Use keys + - * /");
+  Serial.println("to control the menu navigation");
+  
 }
 
 void loop()
@@ -211,10 +336,7 @@ void loop()
         //Serial.println(" : Prepare OK");
 	maxwaittime=max(maxwaittime,waittime);
       }else{
-	Serial.print(sensors[i].driver);
-        Serial.print(" : ");
-        Serial.print(sensors[i].type);
-	Serial.println(" : Prepare failed !");
+	LOGN(F("%s : %s : Prepare failed!" CR),sensors[i].driver, sensors[i].type);
       }
     }
   }
@@ -235,24 +357,34 @@ void loop()
 	//}
 
 	Input = (float(values[1])/100.)-273.15;
-	Serial.print("Setpoint: ");
-	Serial.print(Setpoint); 
-	Serial.print("  Temperatura: ");
-	Serial.print(Input);
-	Serial.print(" ");
       
 	myPID.Compute();
-	Serial.print("PID command: ");
-	Serial.println(Output);
 	hbridge.setpwm(int(Output),IBT_2_R_HALF);
 
+	LOGV(F("Setpoint: %D  Temperatura: %D PID output: %D" CR),Setpoint, Input, Output);
+
+	if (displaydata){
+	  //u8g2.setFont(fontName);
+	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print(Input);
+	  u8g2.setCursor(0, 20); 
+	  u8g2.print(Setpoint);
+	  u8g2.setCursor(0, 30); 
+	  u8g2.print(Output);
+	  u8g2.sendBuffer();
+	}
+	//delay(1000);
+	//analogWriteFreq(1);
+	
       }else{
 	Serial.println("Error");
       }
     }
   }
 
-  if (ledCtrl) {
+  if (ventCtrl) {
     hbridge.start(IBT_2_L_HALF);
   }else{
     hbridge.stop(IBT_2_L_HALF);
