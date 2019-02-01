@@ -1,6 +1,8 @@
 
 #define SENSORS_LEN 1
 #define LENVALUES 2
+#define OLEDI2CADDRESS 0X3C
+
 #define MR_PWM   D3
 #define ML_PWM   0XFF
 #define MR_EN    D4
@@ -14,6 +16,7 @@
 #define encA    D6
 #define encB    D7
 
+//#define USESERIAL
 
 // logging level at compile time
 // Available levels are:
@@ -37,8 +40,11 @@
 #include <menuIO/RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
+
+#ifdef USESERIAL
 #include <menuIO/serialOut.h>
 #include <menuIO/serialIn.h>
+#endif
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -59,16 +65,14 @@ struct sensor_t
 SensorDriver* sd[SENSORS_LEN];
 
 char* json;
-//aJsonObject* aj;
 
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
-//Specify the links and initial tuning parameters
 
+//Specify the links and initial tuning parameters
 double gain=10./127.;
 double ct=60.;
 double tau=30;
-
 
 double Kp=1.2*ct/(gain*tau);
 double Ki=Kp/(2.*tau);
@@ -105,7 +109,7 @@ TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,n
 float temperature=20.;
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
-  ,FIELD(temperature,"Tem","C",0,100,10,1,doNothing,noEvent,wrapStyle)
+  ,FIELD(temperature,"Tem","C",0.0,100.0,1.0,0.1,doNothing,noEvent,wrapStyle)
   ,SUBMENU(setVent)
   ,EXIT("<Exit")
 );
@@ -120,19 +124,27 @@ encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
 keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
 keyIn<1> encButton(encBtn_map);//1 is the number of keys
 
+#ifdef USESERIAL
 serialIn serial(Serial);
-
 MENU_INPUTS(in,&encStream,&encButton,&serial);
+#else
+MENU_INPUTS(in,&encStream,&encButton);
+#endif
 
 idx_t gfx_tops[MAX_DEPTH];
 
 PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
 u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
+
+#ifdef USESERIAL
 idx_t serialTops[MAX_DEPTH]={0};
 serialOut outSerial(*(Print*)&Serial,serialTops);
-
 //define outputs controller
 menuOut* outputs[]{&oledOut,&outSerial};//list of output devices
+#else
+menuOut* outputs[]{&oledOut};//list of output devices
+#endif
+
 outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
 
 
@@ -156,7 +168,7 @@ result idle(menuOut& o,idleEvent e) {
   
       File configFile = SPIFFS.open(FILETERMOSTATO, "w");
       if (!configFile) {
-	LOGN(F("failed to open config file for writing" CR));
+	LOGE(F("failed to open config file for writing" CR));
       }else{
 	//json.printTo(Serial);
 	json.printTo(configFile);
@@ -231,7 +243,6 @@ void setup()
   Wire.begin(SDA,SCL);
 
   delay(1000);
-  #define OLEDI2CADDRESS 0X3C
   u8g2.setI2CAddress(OLEDI2CADDRESS*2);
   u8g2.begin();
   u8g2.setFont(fontName);
@@ -246,7 +257,7 @@ void setup()
   //read configuration from FS json
   LOGN(F("mounting FS..." CR));
   if (!SPIFFS.begin()) {
-    LOGN(F("failed to mount FS" CR));
+    LOGE(F("failed to mount FS" CR));
     LOGN(F("Reformat SPIFFS" CR));
     SPIFFS.format();
     if (!SPIFFS.begin()) {
@@ -312,12 +323,18 @@ void setup()
   }
 
   nav.idleTask=idle;//point a function to be used when menu is suspended
-  
+
+  analogWriteRange(255);
+  analogWriteFreq(100);
+    
   LOGN(F("setup done." CR));
 
   Serial.println("Menu 4.x");
+
+#ifdef USESERIAL
   Serial.println("Use keys + - * /");
   Serial.println("to control the menu navigation");
+#endif
   
 }
 
@@ -359,6 +376,7 @@ void loop()
 	Input = (float(values[1])/100.)-273.15;
       
 	myPID.Compute();
+	
 	hbridge.setpwm(int(Output),IBT_2_R_HALF);
 
 	LOGV(F("Setpoint: %D  Temperatura: %D PID output: %D" CR),Setpoint, Input, Output);
@@ -367,19 +385,32 @@ void loop()
 	  //u8g2.setFont(fontName);
 	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
 	  u8g2.clearBuffer();
+
 	  u8g2.setCursor(0, 10); 
+	  u8g2.print("TEMP:");
+	  u8g2.setCursor(30, 10); 
 	  u8g2.print(Input);
+	  
 	  u8g2.setCursor(0, 20); 
+	  u8g2.print("SET:");
+	  u8g2.setCursor(30, 20); 
 	  u8g2.print(Setpoint);
+
 	  u8g2.setCursor(0, 30); 
+	  u8g2.print("PWM:");
+	  u8g2.setCursor(30, 30); 
 	  u8g2.print(Output);
+
 	  u8g2.sendBuffer();
 	}
-	//delay(1000);
 	//analogWriteFreq(1);
 	
       }else{
 	Serial.println("Error");
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print("Error Sensor");
+	  u8g2.sendBuffer();
       }
     }
   }
