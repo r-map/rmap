@@ -40,6 +40,7 @@
 #include <menuIO/RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
+#include <math.h>
 
 #ifdef USESERIAL
 #include <menuIO/serialOut.h>
@@ -80,7 +81,7 @@ double Ki=Kp/(2.*tau);
 double Kd=(0.5*tau)/Kp;
 
 PID tempPID(&T_Input, &T_Output, &T_Setpoint, Kp, Ki, Kd, DIRECT);
-PID umidPID(&U_Input, &U_Output, &U_Setpoint, Kp, Ki, Kd, REVERSE);
+//PID umidPID(&U_Input, &U_Output, &U_Setpoint, Kp, Ki, Kd, REVERSE);
 
 ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
 
@@ -121,7 +122,7 @@ TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,n
 
 
 float umid=80.;
-float tempmin=0.;
+//float tempmin=0.;
 float tempmax=21.;
 float vent=100.;
 
@@ -134,16 +135,22 @@ result save() {
   JsonObject& json = jsonBuffer.createObject();
   
   LOGN(F("umid %D" CR),umid);
-  LOGN(F("tempmin %D" CR),tempmin);
-  LOGN(F("tempmax %D" CR),tempmax);
-  LOGN(F("vent %D" CR),vent);
+  //  LOGN(F("tempmin %D" CR),tempmin);
+  LOGN(F("tempmax  %D" CR),tempmax);
+  LOGN(F("vent     %D" CR),vent);
   LOGN(F("ventctrl %D" CR),ventCtrl);
+  LOGN(F("PID gain %D" CR),gain);
+  LOGN(F("PID ct   %D" CR),ct);
+  LOGN(F("PID tau  %D" CR),tau);
     
   json["umid"] = umid;
-  json["tempmin"] = tempmin;
+  //json["tempmin"] = tempmin;
   json["tempmax"] = tempmax;
   json["vent"] = vent;
   json["ventctrl"] = ventCtrl;
+  json["gain"] = gain;
+  json["ct"] = ct;
+  json["tau"] = tau;
   
   File configFile = SPIFFS.open(FILETERMOSTATO, "w");
   if (!configFile) {
@@ -158,11 +165,14 @@ result save() {
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
      ,OP("Save!",save,enterEvent)
-     ,FIELD(tempmin,"Temp min","%", 0.0, 20,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tempmax,"Temp max","%",21.0,100,10,1,doNothing,noEvent,wrapStyle)
      ,FIELD(umid,"Umid    ","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
      ,SUBMENU(setVent)
+     ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
+     //,FIELD(tempmin,"Temp min","%", 0.0, 20,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tempmax,"Temp max","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(gain,"Gain"," ",0.0,10,0.1,0.01,doNothing,noEvent,wrapStyle)
+     ,FIELD(ct,"Ct"," ",0.0,180,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tau,"Tau"," ",0.0,180,10,1,doNothing,noEvent,wrapStyle)
      ,EXIT("<Exit")
      );
 
@@ -255,6 +265,31 @@ String read_savedparams() {
   return String();  
 }
 
+/*
+calcolare la temperatura per avere una umidità relativa Uv dati umidità relativa Um, temperatura T e pressione P e potendo midificare solo la temperatura;
+
+Um= esat(tr)/ esat(t)
+esat(tr)= Um*esat(t)
+
+Uv = esat(tr)/esat(tv)
+esat(tv)= esat(tr)/Uv
+esat(tv)= (Um*esat(t))/Uv
+esat(tv) = Um/Uv * esat(t)
+
+
+quindi :
+tv=Tsat(Um/Uv *Psat(T))
+
+*/
+
+double Psat ( float T){
+  return 610.78 * exp((17.27 * T)/(T + 237.3));
+}
+
+double Tsat (float P){
+  return (241.88 * log(P/610.78))/(17.558 - log(P/610.78));
+}
+
 
 void setup()
 {
@@ -321,16 +356,22 @@ void setup()
       LOGE(F("reading json data" CR));
     }else{
       if (json.containsKey("umid"))     umid=json["umid"];
-      if (json.containsKey("tempmin"))  tempmin=json["tempmin"];
+      //if (json.containsKey("tempmin"))  tempmin=json["tempmin"];
       if (json.containsKey("tempmax"))  tempmax=json["tempmax"];
       if (json.containsKey("vent"))     vent=json["vent"];
       if (json.containsKey("ventctrl")) ventCtrl=json["ventctrl"];
-
-      LOGN(F("umid %D" CR),umid);
-      LOGN(F("tempmin %D" CR),tempmin);
-      LOGN(F("tempmax %D" CR),tempmax);
-      LOGN(F("vent %D" CR),vent);
+      if (json.containsKey("gain")) gain=json["gain"];
+      if (json.containsKey("ct")) ct=json["ct"];
+      if (json.containsKey("tau")) gain=json["tau"];
+      
+      LOGN(F("umid     %D" CR),umid);
+      //LOGN(F("tempmin %D" CR),tempmin);
+      LOGN(F("tempmax  %D" CR),tempmax);
+      LOGN(F("vent     %D" CR),vent);
       LOGN(F("ventctrl %D" CR),ventCtrl);
+      LOGN(F("PID gain %D" CR),gain);
+      LOGN(F("PID ct   %D" CR),ct);
+      LOGN(F("PID tau  %D" CR),tau);
     }
   }
   
@@ -345,7 +386,7 @@ void setup()
   }
   
   //turn the PID on
-  umidPID.SetMode(AUTOMATIC);
+  //umidPID.SetMode(AUTOMATIC);
   tempPID.SetMode(AUTOMATIC);
 
   strcpy(sensors[0].driver,"I2C");
@@ -429,9 +470,17 @@ void loop()
 	U_Input = (float(values[0]));
 	T_Input = (float(values[1])/100.)-273.15;
 
-	umidPID.Compute();
+	//umidPID.Compute();
+	//T_Setpoint=((float(tempmax)-float(tempmin))*(float(U_Output)/255.0))+float(tempmin);
 
-	T_Setpoint=((float(tempmax)-float(tempmin))*(float(U_Output)/255.0))+float(tempmin);
+
+	T_Setpoint=Tsat(U_Input/U_Setpoint * Psat(T_Input));
+	if (T_Setpoint > float(tempmax)) T_Setpoint = float(tempmax);	
+
+
+	Kp=1.2*ct/(gain*tau);
+	Ki=Kp/(2.*tau);
+	Kd=(0.5*tau)/Kp;
 
 	tempPID.Compute();
 	
@@ -454,11 +503,6 @@ void loop()
 	  u8g2.print("SET:");
 	  u8g2.setCursor(25, 14); 
 	  u8g2.print(U_Setpoint);
-
-	  u8g2.setCursor(0, 21); 
-	  u8g2.print("PWM:");
-	  u8g2.setCursor(25, 21); 
-	  u8g2.print(U_Output);
 
 	  u8g2.setCursor(0, 28); 
 	  u8g2.print("TEMP:");
