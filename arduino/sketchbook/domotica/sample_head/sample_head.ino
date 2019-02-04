@@ -21,7 +21,7 @@
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_NOTICE
+#define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
@@ -68,7 +68,8 @@ SensorDriver* sd[SENSORS_LEN];
 char* json;
 
 //Define Variables we'll be connecting to
-double U_Setpoint, U_Input, U_Output;
+//double U_Setpoint, U_Input, U_Output;
+double U_Setpoint, U_Input;
 double T_Setpoint, T_Input, T_Output;
 
 //Specify the links and initial tuning parameters
@@ -122,7 +123,7 @@ TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,n
 
 
 float umid=80.;
-//float tempmin=0.;
+float tempmin=0.;
 float tempmax=21.;
 float vent=100.;
 
@@ -165,12 +166,12 @@ result save() {
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
      ,OP("Save!",save,enterEvent)
-     ,FIELD(umid,"Umid    ","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(umid,"Umid    ","%",10.0,100,10,1,doNothing,noEvent,wrapStyle)
      ,SUBMENU(setVent)
      ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
      //,FIELD(tempmin,"Temp min","%", 0.0, 20,10,1,doNothing,noEvent,wrapStyle)
      ,FIELD(tempmax,"Temp max","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(gain,"Gain"," ",0.0,10,0.1,0.01,doNothing,noEvent,wrapStyle)
+     ,FIELD(gain,"Gain"," ",0.0,2.0,0.1,0.01,doNothing,noEvent,wrapStyle)
      ,FIELD(ct,"Ct"," ",0.0,180,10,1,doNothing,noEvent,wrapStyle)
      ,FIELD(tau,"Tau"," ",0.0,180,10,1,doNothing,noEvent,wrapStyle)
      ,EXIT("<Exit")
@@ -362,7 +363,7 @@ void setup()
       if (json.containsKey("ventctrl")) ventCtrl=json["ventctrl"];
       if (json.containsKey("gain")) gain=json["gain"];
       if (json.containsKey("ct")) ct=json["ct"];
-      if (json.containsKey("tau")) gain=json["tau"];
+      if (json.containsKey("tau")) tau=json["tau"];
       
       LOGN(F("umid     %D" CR),umid);
       //LOGN(F("tempmin %D" CR),tempmin);
@@ -475,8 +476,8 @@ void loop()
 
 
 	T_Setpoint=Tsat(U_Input/U_Setpoint * Psat(T_Input));
-	if (T_Setpoint > float(tempmax)) T_Setpoint = float(tempmax);	
-
+	if (T_Setpoint < tempmin) T_Setpoint = tempmin;	
+	if (T_Setpoint > tempmax) T_Setpoint = tempmax;	
 
 	Kp=1.2*ct/(gain*tau);
 	Ki=Kp/(2.*tau);
@@ -486,7 +487,8 @@ void loop()
 	
 	hbridge.setpwm(int(T_Output),IBT_2_R_HALF);
 
-	LOGV(F("U_Setpoint: %D  Umid: %D PID output: %D" CR),U_Setpoint, U_Input, U_Output);
+	//LOGV(F("U_Setpoint: %D  Umid: %D PID output: %D" CR),U_Setpoint, U_Input, U_Output);
+	//LOGV(F("U_Setpoint: %D  Umid: %D" CR),U_Setpoint, U_Input);
 	LOGV(F("T_Setpoint: %D  Temp: %D PID output: %D" CR),T_Setpoint, T_Input, T_Output);
 
 	if (displaydata){
