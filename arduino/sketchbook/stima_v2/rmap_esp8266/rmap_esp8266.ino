@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2019-01-29T00:00"
+#define SOFTWARE_VERSION "2019-02-09T21:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -123,7 +123,7 @@ char rmap_mqttmaintpath[10] = "maint";
 #define SENSORDRIVER_DRIVER_LEN 5
 #define SENSORDRIVER_TYPE_LEN 5
 #define SENSORDRIVER_META_LEN 30
-#define MAX_VALUES_FOR_SENSOR 3
+#define MAX_VALUES_FOR_SENSOR 9
 
 // sensor information
 struct sensor_t
@@ -277,7 +277,7 @@ bool publish_maint() {
 bool publish_data(const char* values, const char* timerange, const char* level) {
   
   char topic[100]="";
-  StaticJsonBuffer<200> jsonBuffer;
+  StaticJsonBuffer<500> jsonBuffer;
 
   char longitude [10];
   char latitude [10];
@@ -618,7 +618,7 @@ void writeconfig() {;
 
 void display_values(const char* values) {
   
-  StaticJsonBuffer<200> jsonBuffer;
+  StaticJsonBuffer<500> jsonBuffer;
 
   JsonObject& json =jsonBuffer.parseObject(values);
   if (json.success()){

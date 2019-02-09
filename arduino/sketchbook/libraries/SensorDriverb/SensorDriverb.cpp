@@ -5182,32 +5182,32 @@ int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
 
     // Data 6  indicates the number of particles with diameter beyond 0.3  um in 0.1 L of air.
     if (lenvalues >= 4) {
-      values[3] = data[6]*10 ;
+      values[3] = data[6] ;
     }
     
     // Data 7  indicates the number of particles with diameter beyond 0.5  um in 0.1 L of air.
     if (lenvalues >= 5) {
-      values[4] = data[7]*10 ;
+      values[4] = data[7] ;
     }
     
     // Data 8  indicates the number of particles with diameter beyond 1.0  um in 0.1 L of air.
     if (lenvalues >= 6) {
-      values[5] = data[8]*10 ;
+      values[5] = data[8] ;
     }
     
     // Data 9  indicates the number of particles with diameter beyond 2.5  um in 0.1 L of air.
     if (lenvalues >= 7) {
-      values[6] = data[9]*10 ;
+      values[6] = data[9] ;
     }
     
     // Data 10 indicates the number of particles with diameter beyond 5.0  um in 0.1 L of air.
     if (lenvalues >= 8) {
-      values[7] = data[10]*10 ;
+      values[7] = data[10] ;
     }
     
     // Data 11 indicates the number of particles with diameter beyond 10.0 um in 0.1 L of air.
     if (lenvalues >= 9) {
-      values[8] = data[11]*10 ;
+      values[8] = data[11] ;
     }
     
     return SD_SUCCESS;
@@ -5240,11 +5240,11 @@ int SensorDriverPMSoneshotSerial::getdata(unsigned long& data,unsigned short& wi
 #if defined(USEAJSON)
 aJsonObject* SensorDriverPMSoneshotSerial::getJson()
 {
-  long values[2];
+  long values[9];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverPMSoneshotSerial::get(values,2) == SD_SUCCESS){
+  if (SensorDriverPMSoneshotSerial::get(values,9) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
     }else{
@@ -5257,9 +5257,54 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
       aJson.addNullToObject(jsonvalues, "B15195");
     }
 
+    if (values[2] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15203", values[2]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15203");
+    }
+
+    if (values[3] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15250", values[3]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15250");
+    }
+    if (values[4] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15251", values[4]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15251");
+    }
+    if (values[5] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15252", values[5]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15252");
+    }
+    if (values[6] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15253", values[6]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15253");
+    }
+    if (values[7] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15254", values[7]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15254");
+    }
+    if (values[8] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15255", values[8]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15255");
+    }
+    
+    
   }else{
     aJson.addNullToObject(jsonvalues, "B15198");
     aJson.addNullToObject(jsonvalues, "B15195");
+    aJson.addNullToObject(jsonvalues, "B15203");
+    aJson.addNullToObject(jsonvalues, "B15250");
+    aJson.addNullToObject(jsonvalues, "B15251");
+    aJson.addNullToObject(jsonvalues, "B15252");
+    aJson.addNullToObject(jsonvalues, "B15253");
+    aJson.addNullToObject(jsonvalues, "B15254");
+    aJson.addNullToObject(jsonvalues, "B15255");
   }
   return jsonvalues;
 }
@@ -5268,11 +5313,11 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  long values[9];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
-  if (get(values,2) == SD_SUCCESS){
+  if (get(values,9) == SD_SUCCESS){
     if ((unsigned long)values[0] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[0];      
     }else{
@@ -5285,9 +5330,53 @@ int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_
       jsonvalues["B15195"]=RawJson("null");
     }
 
+    if ((unsigned long) values[2] != 0xFFFFFFFF){
+      jsonvalues["B15203"]= values[2];
+    }else{
+      jsonvalues["B15203"]=RawJson("null");
+    }
+
+    if ((unsigned long) values[3] != 0xFFFFFFFF){
+      jsonvalues["B15250"]= values[3];
+    }else{
+      jsonvalues["B15250"]=RawJson("null");
+    }
+    if ((unsigned long) values[4] != 0xFFFFFFFF){
+      jsonvalues["B15251"]= values[4];
+    }else{
+      jsonvalues["B15251"]=RawJson("null");
+    }
+    if ((unsigned long) values[5] != 0xFFFFFFFF){
+      jsonvalues["B15252"]= values[5];
+    }else{
+      jsonvalues["B15252"]=RawJson("null");
+    }
+    if ((unsigned long) values[6] != 0xFFFFFFFF){
+      jsonvalues["B15253"]= values[6];
+    }else{
+      jsonvalues["B15253"]=RawJson("null");
+    }
+    if ((unsigned long) values[7] != 0xFFFFFFFF){
+      jsonvalues["B15254"]= values[7];
+    }else{
+      jsonvalues["B15254"]=RawJson("null");
+    }
+    if ((unsigned long) values[8] != 0xFFFFFFFF){
+      jsonvalues["B15255"]= values[8];
+    }else{
+      jsonvalues["B15255"]=RawJson("null");
+    }
+    
   }else{
     jsonvalues["B15198"]=RawJson("null");
     jsonvalues["B15195"]=RawJson("null");
+    jsonvalues["B15203"]=RawJson("null");
+    jsonvalues["B15250"]=RawJson("null");
+    jsonvalues["B15251"]=RawJson("null");
+    jsonvalues["B15252"]=RawJson("null");
+    jsonvalues["B15253"]=RawJson("null");
+    jsonvalues["B15254"]=RawJson("null");
+    jsonvalues["B15255"]=RawJson("null");
   }
 
   jsonvalues.printTo(json_buffer, json_buffer_length);
