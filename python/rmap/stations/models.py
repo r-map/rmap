@@ -162,7 +162,7 @@ class Sensor(models.Model):
         # TODO unique will be unique for each timerange, level, station !
         unique_together = (('name', 'board'),)
 
-    def __unicode__(self):
+    def __str__(self):
         #return u'%s-%s-%s-%s-%d-%s-%s-%s' % (self.name,self.active,self.driver,self.type,self.address,self.timerange,self.level,self.board)
         return '%s-%s-%s' % (self.name,self.active,self.driver)
 
@@ -223,7 +223,7 @@ class SensorType(models.Model):
         verbose_name_plural = 'Sensors Type' 
         #unique_together = (('name', 'type'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s-%s-%s' % (self.name,self.active,self.type)
 
 
@@ -270,7 +270,7 @@ class Bcode(models.Model):
         else:
             return self.bcode
         
-    def __unicode__(self):
+    def __str__(self):
         return '%s-%s-%s' % (self.bcode,self.description,self.unit)
 
 
@@ -337,7 +337,7 @@ class TransportRF24Network(models.Model):
         verbose_name = 'RF24 Network node' 
         verbose_name_plural = 'RF24 Network nodes' 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.node)
 
 
@@ -373,7 +373,7 @@ class TransportMqtt(models.Model):
         verbose_name = 'MQTT transport'
         verbose_name_plural = 'MQTT transport'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.mqttserver)
 
 
@@ -429,7 +429,7 @@ class TransportTcpip(models.Model):
         verbose_name = 'tcp/ip DNS resoved name' 
         verbose_name_plural = 'tcp/ip DNS resoved names' 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
 
 class TransportSerialManager(models.Manager):
@@ -504,7 +504,7 @@ class TransportSerial(models.Model):
         verbose_name = 'serial transport'
         verbose_name_plural = 'serial transports'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.device)
 
 
@@ -535,7 +535,7 @@ class TransportBluetooth(models.Model):
         verbose_name = 'bluetooth transport'
         verbose_name_plural = 'bluetooth transport'
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
 
 
@@ -566,7 +566,7 @@ class TransportAmqp(models.Model):
 
     natural_key.dependencies = ['stations.board']
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.amqpserver)
 
 
@@ -619,7 +619,7 @@ class Board(models.Model):
         verbose_name_plural = 'hardware boards'
         unique_together = (('slug', 'stationmetadata'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.slug)
 
 class BoardFirmwareMetadata(models.Model):
@@ -673,7 +673,7 @@ class StationConstantData(models.Model):
         verbose_name_plural = 'Station constant metadata'
         unique_together = (('btable', 'stationmetadata'),)
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.btable)
 
 class StationMetadataManager(models.Manager):
@@ -783,7 +783,7 @@ class StationMetadata(models.Model):
         unique_together = (('slug', 'ident'),)
 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s/%s' % (self.slug,self.ident)
 
 
