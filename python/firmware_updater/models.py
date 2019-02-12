@@ -64,7 +64,7 @@ class Name(models.Model):
         verbose_name = 'Firmware name' 
         verbose_name_plural = 'Firmware names' 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.name)
 
 
@@ -87,5 +87,5 @@ class Firmware(models.Model):
         verbose_name = 'Firmware' 
         verbose_name_plural = 'Firmware' 
 
-    def __unicode__(self):
+    def __str__(self):
         return '%s' % (self.firmware)
