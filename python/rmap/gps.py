@@ -56,7 +56,7 @@ class plyergps():
         ''' start use GPS'''
 
         try:
-            self.gps.start()
+            self.gps.start(minDistance=10)
             self.status="Starting GPS: wait ..."
             self.connected = True
             self.geo=geoid()

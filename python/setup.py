@@ -264,7 +264,7 @@ try:
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
 except OSError as e:
-    if (e[0] == errno.EACCES):
+    if (e.errno == errno.EACCES):
        print("You do not have root permissions to install files in /etc !", file=sys.stderr)
     else:
         print("There are some problems to install files in /etc !", file=sys.stderr)
@@ -372,6 +372,7 @@ setup(name='rmap',
                 'graphite-dballe.tags',
                 'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
+                'oscpy',
       ],
 
       package_data={

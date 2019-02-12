@@ -19,14 +19,16 @@ import io
 
 
 class MBTilesMapSource(MapSource):
-    def __init__(self, filename):
-        super(MBTilesMapSource, self).__init__()
+    def __init__(self, filename, **kwargs):
+        super(MBTilesMapSource, self).__init__(**kwargs)
         self.filename = filename
         self.db = sqlite3.connect(filename)
 
         # read metadata
         c = self.db.cursor()
         metadata = dict(c.execute("SELECT * FROM metadata"))
+        if metadata["format"] == "pbf":
+            raise ValueError("Only raster maps are supported, not vector maps.")
         self.min_zoom = int(metadata["minzoom"])
         self.max_zoom = int(metadata["maxzoom"])
         self.attribution = metadata.get("attribution", "")
@@ -34,9 +36,9 @@ class MBTilesMapSource(MapSource):
         cx = cy = 0.
         cz = 5
         if "bounds" in metadata:
-            self.bounds = bounds = list(map(float, metadata["bounds"].split(",")))
+            self.bounds = bounds = map(float, metadata["bounds"].split(","))
         if "center" in metadata:
-            cx, cy, cz = list(map(float, metadata["center"].split(",")))
+            cx, cy, cz = map(float, metadata["center"].split(","))
         elif self.bounds:
             cx = (bounds[2] + bounds[0]) / 2.
             cy = (bounds[3] + bounds[1]) / 2.
@@ -44,11 +46,13 @@ class MBTilesMapSource(MapSource):
         self.default_lon = cx
         self.default_lat = cy
         self.default_zoom = int(cz)
+        self.projection = metadata.get("projection", "")
+        self.is_xy = (self.projection == "xy")
 
     def fill_tile(self, tile):
         if tile.state == "done":
             return
-        Downloader.instance().submit(self._load_tile, tile)
+        Downloader.instance(self.cache_dir).submit(self._load_tile, tile)
 
     def _load_tile(self, tile):
         # global db context cannot be shared across threads.
@@ -62,6 +66,7 @@ class MBTilesMapSource(MapSource):
             ("SELECT tile_data FROM tiles WHERE "
             "zoom_level=? AND tile_column=? AND tile_row=?"),
             (tile.zoom, tile.tile_x, tile.tile_y))
+        # print "fetch", tile.zoom, tile.tile_x, tile.tile_y
         row = c.fetchone()
         if not row:
             tile.state = "done"
@@ -87,3 +92,23 @@ class MBTilesMapSource(MapSource):
     def _load_tile_done(self, tile, im):
         tile.texture = im.texture
         tile.state = "need-animation"
+
+    def get_x(self, zoom, lon):
+        if self.is_xy:
+            return lon
+        return super(MBTilesMapSource, self).get_x(zoom, lon)
+
+    def get_y(self, zoom, lat):
+        if self.is_xy:
+            return lat
+        return super(MBTilesMapSource, self).get_y(zoom, lat)
+
+    def get_lon(self, zoom, x):
+        if self.is_xy:
+            return x
+        return super(MBTilesMapSource, self).get_lon(zoom, x)
+
+    def get_lat(self, zoom, y):
+        if self.is_xy:
+            return y
+        return super(MBTilesMapSource, self).get_lat(zoom, y)

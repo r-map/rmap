@@ -98,8 +98,8 @@ FileOutputStream = autoclass('java.io.FileOutputStream')
 Rect = autoclass('android.graphics.Rect')
 ArrayList = autoclass('java.util.ArrayList')
 Parameters = autoclass('android.hardware.Camera$Parameters')
-PythonActivity = autoclass('org.renpy.android.PythonActivity')
-theActivity = cast('org.renpy.android.PythonActivity', PythonActivity.mActivity)
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
+theActivity = cast('org.kivy.android.PythonActivity', PythonActivity.mActivity)
 
 # Make sure the user controls the volume of the audio stream we're actually using
 AudioManager = autoclass('android.media.AudioManager')

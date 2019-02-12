@@ -59,7 +59,8 @@ from django.contrib.auth.models import User
 from .stations.models import StationMetadata,StationConstantData
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from kivy.lib import osc
+#from kivy.lib import osc
+from oscpy.server import OSCThreadServer
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
@@ -86,7 +87,10 @@ def queuedfilename():
     try:
         sfiles=sorted(files)
         print("found queued files:", sfiles)
-        return sfiles[0]
+        if len(sfiles) > 0:
+            return sfiles[0]
+        else:
+            return None
     except Exception as e:
         print(e)
         return None
@@ -933,7 +937,7 @@ class PresentwView(GridLayout):
 def to_background(*args):
     from jnius import cast
     from jnius import autoclass
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
     currentActivity.moveTaskToBack(True)
 
@@ -1040,7 +1044,7 @@ class Rmap(App):
     use_kivy_settings = False
     trip=False
 
-    rpcin_message=""
+    rpcin_message=None
     #settings_cls=SettingsWithSidebar
     #settings_cls=SettingsWithSpinner
     #settings_cls=SettingsWithTabbedPanel
@@ -1113,9 +1117,10 @@ class Rmap(App):
                 os.remove("servicerunning")
 
         #self.start_service()
-        osc.init()
-        self.oscid = osc.listen(port=3001)
-        osc.bind(self.oscid, self.rpcin, '/rpc')
+        #osc.init()
+        self.osc = OSCThreadServer()
+        sock = self.osc.listen(port=3001, default=True)
+        self.osc.bind(b'/rpc', self.rpcin)
         #this seems do not work in on_resume environment
         #Clock.schedule_interval(lambda *x: osc.readQueue(self.oscid), 0)
         ##Clock.schedule_interval(self.rpcout, 5)
@@ -1302,7 +1307,7 @@ class Rmap(App):
         #self.stop_service()
 
         self.mystation.on_stop()
-
+        self.osc.stop()
 
     def on_pause(self):
         '''
@@ -1605,7 +1610,7 @@ class Rmap(App):
                 self.updatelocation()
 
                 if token == ('sensors', 'station'):
-                    super(Rmap, self).close_settings()
+                    super(Rmap, self).close_settings(None)
                     self.destroy_settings()
                     self.open_settings()
 
@@ -1682,15 +1687,29 @@ class Rmap(App):
 
     def start_service(self,cmdservice="webserver"):
         if platform == 'android':
-            from android import AndroidService
-            self.service = AndroidService('rmap background',cmdservice)
-            self.service.start(cmdservice) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
+            #from android import AndroidService
+            #self.service = AndroidService('rmap background',cmdservice)
+            #self.service.start(cmdservice.encode()) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
 
+            import android
+            android.start_service(title=cmdservice.encode(),
+                                  description=cmdservice.encode(),
+                                  arg=cmdservice.encode())
+            self.service = cmdservice            
+            #package_name = cmdservice
+            #argument = ''
+            #from jnius import autoclass
+            #service = autoclass('{}.Service{}'.format(package_name, cmdservice))
+            #mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            #service.start(mActivity, argument)
+            
     def stop_service(self):
-        if self.service:
-            self.service.stop()
-            self.service = None
-
+        import android
+        android.stop_service()
+        self.service = None
+        #if self.service:
+        #    self.service.stop()
+        #    self.service = None
 
     def build_config(self, config):
 
@@ -1930,7 +1949,6 @@ class Rmap(App):
             rpcproxy.togglepin({"n":n,"s":status})
         except:
             self.popup(_("toggle\nrelay\nfailed!"))
-            
 
     def resettodefault(self):
 
@@ -2102,16 +2120,16 @@ class Rmap(App):
 
 
 
-    def rpcin(self, message, *args):
-        print("RPC: ",message[2])
-        self.rpcin_message=message[2]
+    def rpcin(self, message):
+        print("gui RPC: {}".format(message))
+        print(message)
+        self.rpcin_message=message
 
     #def rpcout(self, *args):
     #    osc.sendMsg('/rpc', ["testinout",], port=3000)
 
     def rpcout(self, message):
-        osc.sendMsg('/rpc', [message,], port=3000)
-
+        self.osc.send_message(b'/rpc', [message,],ip_address='localhost', port=3000)
 
 
     def servicewebserver(self):
@@ -2192,24 +2210,26 @@ class Rmap(App):
 
         if self.servicename=="station":
 
-            print("send stop message to rpc")
-            self.rpcout("stop")
-            starttime= datetime.utcnow()            
-            osc.readQueue(self.oscid)
-            while self.rpcin_message != "stopped":
-                print(">>>>> ----- rpcin message: ", self.rpcin_message)
-                time.sleep(.1)
-                osc.readQueue(self.oscid)
-                if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
-                    print("RPCIN timeout")
-                    break
-            print("if not timeout received stopped message from rpc")
-            self.stop_service()
-            self.rpcin_message = ""
-            self.servicename=None
-            os.remove("servicerunning")
-
-
+            try:
+                print("send stop message to rpc")
+                self.rpcout(b"stop")
+                starttime= datetime.utcnow()            
+                #osc.readQueue(self.oscid)
+                while self.rpcin_message != b"stopped":
+                    print(">>>>> ----- rpcin message: ", self.rpcin_message)
+                    time.sleep(.1)
+                    #osc.readQueue(self.oscid)
+                    if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
+                        print("RPCIN timeout")
+                        print("not received <stopped> message from rpc: time out")
+                        break
+                self.stop_service()
+                self.rpcin_message = b""
+                self.servicename=None
+                os.remove("servicerunning")
+            except:
+                print ("ERROR stopping service station")
+                
     def popup(self,message,exit=False):
 
         # open only one notification popup (the last)
@@ -2762,7 +2782,7 @@ class Rmap(App):
 
                     print("send image: ",file)
                     # read image in memory.
-                    photo_file = open(file,"r")
+                    photo_file = open(file,"rb")
                     body = photo_file.read()
                     photo_file.close()
 

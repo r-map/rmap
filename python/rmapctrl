@@ -61,7 +61,8 @@ def initdb(cwd):
     if (options.syncdb):
         #management.call_command("migrate",no_initial_data=True,app_label="auth",migration_name="0001_initial" )
         #management.call_command("migrate",no_initial_data=True,app_label="admin",migration_name="0001_initial" )
-        management.call_command("migrate",no_initial_data=True )
+        #management.call_command("migrate",no_initial_data=True )
+        management.call_command("migrate")
 
         #from django.core.management import call_command
         #call_command("createsuperuser",username="rmap",email="rmap@rmap.cc",interactive=False) 
