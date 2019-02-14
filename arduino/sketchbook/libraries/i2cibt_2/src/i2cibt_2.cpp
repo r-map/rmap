@@ -44,14 +44,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_L_IS 2
 
 
-i2cibt_2::i2cibt_2(unsigned short int bridge,i2cgpio gpio):
+i2cibt_2::i2cibt_2(uint8_t bridge,i2cgpio gpio):
   domotic(bridge),
   _bridge(bridge),
   _gpio(gpio)
 {
 }
   
-void i2cibt_2::stop(unsigned short int bridge){
+void i2cibt_2::stop(uint8_t bridge){
 
   if (bridge == IBT_2_FULL || bridge == IBT_2_2HALF){
     _gpio.digitalWrite(I2C_R_EN, LOW);
@@ -64,7 +64,7 @@ void i2cibt_2::stop(unsigned short int bridge){
   }
 }
 
-void i2cibt_2::start(unsigned short int bridge){
+void i2cibt_2::start(uint8_t bridge){
 
   // with this commented full activate all half bridge
   //if (_bridge != IBT_2_FULL && bridge == IBT_2_FULL ) return;
@@ -81,7 +81,7 @@ void i2cibt_2::start(unsigned short int bridge){
 }
 
 
-void i2cibt_2::brake(unsigned short int brake){
+void i2cibt_2::brake(uint8_t brake){
 
   if (_bridge != IBT_2_FULL ) return;
   
@@ -104,7 +104,7 @@ void i2cibt_2::brake(unsigned short int brake){
 }
 
 
-void i2cibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
+void i2cibt_2::setrotation(uint8_t pwm,uint8_t wise){
 
 
   /*
@@ -146,7 +146,7 @@ void i2cibt_2::setrotation(unsigned short int pwm,unsigned short int wise){
 }
 
 
-void i2cibt_2::setpwm(unsigned short int pwm,unsigned short int bridge){
+void i2cibt_2::setpwm(uint8_t pwm,uint8_t bridge){
 
   if (_bridge != IBT_2_2HALF ) return;
 
@@ -175,7 +175,7 @@ uint16_t i2cibt_2::get(domotic_bridge half) {
   return 0xFFFF;
 }
 
-bool i2cibt_2::readis(){
+void i2cibt_2::readis(){
 
     _r_is = _gpio.analogRead(I2C_R_IS);
     delay(10);

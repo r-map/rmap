@@ -34,6 +34,7 @@
 #include <SensorDriverb.h>
 #include <PID_v1.h>
 #include <ibt_2.h>
+//#include <i2cibt_2.h>g
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
@@ -85,6 +86,8 @@ PID tempPID(&T_Input, &T_Output, &T_Setpoint, Kp, Ki, Kd, DIRECT);
 //PID umidPID(&U_Input, &U_Output, &U_Setpoint, Kp, Ki, Kd, REVERSE);
 
 ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
+//i2cgpio gpio(I2C_GPIO_DEFAULTADDRESS);
+//i2cibt_2 hbridge(IBT_2_2HALF,gpio);
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
