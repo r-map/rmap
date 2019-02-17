@@ -75,7 +75,6 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "EEPROMAnything.h"
 #include <ArduinoLog.h>
 #include <avr/sleep.h>
-#include <StepperLab3.h>
 #include <JC_Button.h>          // https://github.com/JChristensen/JC_Button
 #include <Rotary.h>
 
@@ -85,6 +84,15 @@ IRsend irsend;
 IRrecv irrecv(RECV_PIN);
 decode_results results;
 int8_t lastkey=-1;      
+#endif
+
+#ifdef SERVO
+#include <PWMServo.h>
+PWMServo myservo1;  // create servo object to control a servo
+PWMServo myservo2;  // create servo object to control a servo
+#else
+#include <StepperLab3.h>
+StepperLab3 myStepper;
 #endif
 
 
@@ -151,6 +159,13 @@ typedef struct {
   uint8_t              repeat;
 } irremote_writable_t;
 
+
+typedef struct {
+  int16_t              goto_position;
+  int16_t              min;
+  int16_t              max;
+} servo_writable_t;
+
 typedef struct {
 
 //sample mode
@@ -163,6 +178,8 @@ typedef struct {
   stepper_writable_t	stepper;		  // struct for writable stepper registers
   button_t              button;		          // struct for button registers
   irremote_writable_t   irremote;                 // struct for irremote send
+  servo_writable_t	servo1;	        	  // struct for writable stepper registers
+  servo_writable_t	servo2;		          // struct for writable stepper registers
   
   void save (int* p) volatile {                            // save to eeprom
     LOGN(F("oneshot: %T" CR),oneshot);
@@ -215,8 +232,6 @@ static bool take=false;
 
 boolean forcedefault=false;
 volatile unsigned long long counter=millis();
-
-StepperLab3 myStepper;
 
 Button myBtn(BUTTON1PIN, BUTTONDBTIME, BUTTONPUENABLE, BUTTONINVERT);
 
@@ -312,6 +327,7 @@ void receiveEvent( int bytesReceived)
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+#ifndef SERVO
 /////////////////// !!!!!!!!!!    to be done !
 ////  blocking function ??
 void go_home() {  // goto switch position
@@ -323,7 +339,7 @@ void go_home() {  // goto switch position
   //myStepper.rotate(0);
 
 }
-
+#endif
 
 void mgr_command(){
 
@@ -428,6 +444,16 @@ void mgr_command(){
       
 	break;
       }
+#ifdef SERVO
+    case I2C_GPIO_SERVO_COMMAND_GOTO:
+      {
+      	LOGN(F("COMMAND: servo 1 goto position %d" CR),i2c_writabledataset2->servo1.goto_position);
+        myservo1.write(i2c_writabledataset2->servo1.goto_position);
+      	LOGN(F("COMMAND: servo 2 goto position %d" CR),i2c_writabledataset2->servo2.goto_position);
+        myservo2.write(i2c_writabledataset2->servo2.goto_position);
+      break;
+      }
+#else
     case I2C_GPIO_STEPPER_COMMAND_GOTO:
       {
       	LOGN(F("COMMAND: stepper goto position %d" CR),i2c_writabledataset2->stepper.goto_position);
@@ -485,6 +511,7 @@ void mgr_command(){
         go_home();
       break;
       }
+#endif      
     default:
       {
 	LOGN(F("WRONG command" CR));
@@ -620,22 +647,12 @@ void setup() {
 
   pinMode(FORCEDEFAULTPIN, INPUT_PULLUP);
   pinMode(CHANGEADDRESS1, INPUT_PULLUP);
-  pinMode(CHANGEADDRESS2, INPUT_PULLUP);
-
-#ifdef IRREMOTE
-  irrecv.enableIRIn(); // Start the receiver
-#else
-  pinMode(PWM1_PIN, OUTPUT);
-  pinMode(PWM2_PIN, OUTPUT);
-#endif
-  
+  pinMode(CHANGEADDRESS2, INPUT_PULLUP);  
   pinMode(ONOFF1_PIN, OUTPUT);
   pinMode(ONOFF2_PIN, OUTPUT);
   pinMode(ANALOG1_PIN, INPUT);
   pinMode(ANALOG2_PIN, INPUT);
-  
-  myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
-   
+     
   if (digitalRead(FORCEDEFAULTPIN) == LOW) {
     forcedefault=true;
   }
@@ -666,19 +683,42 @@ void setup() {
       i2c_writabledataset2->stepper.halfstep=STEPPER_HALFSTEP;
       i2c_writabledataset2->button.active=BUTTONACTIVEFORDEFAULT;
       i2c_writabledataset2->button.long_press=BUTTONLONG_PRESS;
+      i2c_writabledataset2->servo1.min=SERVO1_MIN;
+      i2c_writabledataset2->servo1.max=SERVO1_MAX;
+      i2c_writabledataset2->servo2.min=SERVO2_MIN;
+      i2c_writabledataset2->servo2.max=SERVO2_MAX;
     }
 
   i2c_writabledataset2->pwm1 = 0;
   i2c_writabledataset2->pwm2 = 0;
   i2c_writabledataset2->onoff1 = 0;
   i2c_writabledataset2->onoff2 = 0;
+  i2c_writabledataset2->servo1.goto_position=90;
+  i2c_writabledataset2->servo2.goto_position=90;
+
+#ifdef IRREMOTE
+  irrecv.enableIRIn(); // Start the receiver
+#else  
+  pinMode(PWM1_PIN, OUTPUT);
+  pinMode(PWM2_PIN, OUTPUT);
+#endif
+
+
+#ifdef SERVO  
+  myservo1.attach(SERVO1_PIN,i2c_writabledataset2->servo1.min,i2c_writabledataset2->servo1.max);  // attaches the servo on SERVO_PIN to the servo object
+  myservo2.attach(SERVO2_PIN,i2c_writabledataset2->servo2.min,i2c_writabledataset2->servo2.max);  // attaches the servo on SERVO_PIN to the servo object
+#else  
+  myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
 
   myStepper.setPower(i2c_writabledataset2->stepper.power);
   myStepper.setSpeed(i2c_writabledataset2->stepper.speed);
   myStepper.setRampSteps(i2c_writabledataset2->stepper.ramp_steps);
   if (i2c_writabledataset2->stepper.halfstep) myStepper.setHalfStep();
   go_home();
+#endif
   
+  myBtn.begin();              // initialize the button object
+    
   // copy writable registers
   memcpy ( (void *)i2c_writabledataset1, (void *)i2c_writabledataset2, REG_WRITABLE_MAP_SIZE );
   
@@ -715,8 +755,6 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
-  myBtn.begin();              // initialize the button object
-  
   LOGN(F("end setup" CR));
 
 }
@@ -897,11 +935,18 @@ void loop() {
     LOGV(F("onoff2: %T" CR),i2c_writabledataset1->onoff2);
     digitalWrite(ONOFF2_PIN, (i2c_writabledataset1->onoff2 == 0) ? LOW : HIGH );  
 
+#ifdef SERVO
+    LOGV(F("servo1: %d" CR),i2c_writabledataset1->servo1.goto_position);
+    myservo1.write(i2c_writabledataset1->servo1.goto_position);  
+    LOGV(F("servo2: %d" CR),i2c_writabledataset1->servo2.goto_position);
+    myservo2.write(i2c_writabledataset1->servo2.goto_position);  
+#else
     myStepper.setPower(i2c_writabledataset1->stepper.power);
     myStepper.setSpeed(i2c_writabledataset1->stepper.speed);
     myStepper.setRampSteps(i2c_writabledataset1->stepper.ramp_steps);
     if (i2c_writabledataset1->stepper.halfstep) myStepper.setHalfStep();
-
+#endif
+    
 #ifdef IRREMOTE
     // TODO i2c_writabledataset1->irremote.repeat  when needed
     switch (i2c_writabledataset1->irremote.model) {
@@ -1085,7 +1130,9 @@ void loop() {
 	    && i2c_writabledataset1->onoff1 == 0
 	    && i2c_writabledataset1->onoff2 == 0
 	    && (millis()-counter) >= 3000
+#ifndef SERVO
 	    && myStepper.stepReady()==1
+#endif
 	    && !i2c_writabledataset1->button.active
 	    )
     {

@@ -23,6 +23,7 @@
 #define I2C_GPIO_STEPPER_COMMAND_RELATIVE_STEPS	 8
 #define I2C_GPIO_STEPPER_COMMAND_ROTATE	         9
 #define I2C_GPIO_STEPPER_COMMAND_GOHOME	        10
+#define I2C_GPIO_SERVO_COMMAND_GOTO		11
 
 #define I2C_GPIO_VERSION                      0x00      // Version		   
 #define I2C_GPIO_ANALOG1                      0x01      // analog value1
@@ -52,6 +53,8 @@
 #define I2C_GPIO_IRREMOTE_CODE                0x3A      // 32 bits
 #define I2C_GPIO_IRREMOTE_BIT                 0x3E      // 8 bits
 #define I2C_GPIO_IRREMOTE_REPEAT              0x3F      // 8 bits
+#define I2C_GPIO_SERVO1_GOTO_POSITION         0x40      // 16 bits
+#define I2C_GPIO_SERVO2_GOTO_POSITION         0x42      // 16 bits
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // End register definition 

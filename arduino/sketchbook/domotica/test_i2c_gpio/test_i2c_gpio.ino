@@ -92,6 +92,7 @@ void displayHelp()
   Serial.println(F("\tg = stepper get position"));
   Serial.println(F("\tp = stepper power off"));
   Serial.println(F("\te = stepper rotate"));
+  Serial.println(F("\tz = server goto"));
   Serial.println(F("\n\? = help - this page"));
   Serial.println();
 }
@@ -489,6 +490,39 @@ void loop() {
   displayHelp();
   break;
       } 
+
+    case 'z':
+      {      
+
+	int new_value;
+
+	new_value= -32700;
+	while (new_value < 0 || new_value > 180){
+	  Serial.println(F("digit new value (0 - 180)"));
+	  new_value=Serial.parseInt();
+	  Serial.println(new_value);
+	}
+	Serial.print("Servo goto ");
+	Serial.println(new_value);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+
+	Wire.write(I2C_GPIO_SERVO1_GOTO_POSITION);
+	Wire.write((byte)(new_value & 0xFFu));
+	Wire.write((byte)(new_value>>8)& 0xFFu);
+  
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	delay(1);
+	Wire.beginTransmission(I2C_GPIO_DEFAULTADDRESS);
+	Wire.write(I2C_GPIO_COMMAND);
+	Wire.write(I2C_GPIO_SERVO_COMMAND_GOTO);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission 
+	
+	Serial.println(F("Done"));
+	
+	displayHelp();
+	break;
+      }	
 
     case '?':
       displayHelp();

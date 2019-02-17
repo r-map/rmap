@@ -15,8 +15,16 @@
 // var CONFVER max lenght 10 char!
 #define CONFVER "confgpi00"
 
-// define if you want use IRremote as alternative to PWM1 and PWM2 output
+// define if you want to use IRremote as alternative to PWM1 and PWM2 output
 //#define IRREMOTE
+
+// define if you want to use two servo motors  as alternative to one STEPPER motor
+#define SERVO
+
+#define SERVO1_MIN 900                  // servo 1 Model SM-S2309S
+#define SERVO1_MAX 2100
+#define SERVO2_MIN 544                  // servo 2 default parameters
+#define SERVO2_MAX 2400
 
 // number of analog sample to do for average
 #define NSAMPLE 6
@@ -81,12 +89,17 @@ External interrupt support, a total of 2:
 #define ONOFF2_PIN      6     // output on/off 2
 #define STEPPER_PIN2    7     // output stepper 2
 #define FORCEDEFAULTPIN 8     // input force default
-//                      9     // output stepper PWM 1
-//                      10    // output stepper PWM 2
-#ifdef IRREMOTE
-#define RECV_PIN        11    // input IR receiver
+#ifdef SERVO
+  #define SERVO1_PIN    9     // output PWM for servo
+  #define SERVO2_PIN    10    // output PWM for servo
 #else
-#define PWM2_PIN        11    // output PWM 2
+  //                    9     // output stepper PWM 1
+  //                    10    // output stepper PWM 2
+#endif
+#ifdef IRREMOTE
+  #define RECV_PIN      11    // input IR receiver
+#else
+  #define PWM2_PIN      11    // output PWM 2
 #endif
 #define STEPPER_PIN3    12    // output stepper 3
 #define STEPPER_PIN4    13    // output stepper 4
