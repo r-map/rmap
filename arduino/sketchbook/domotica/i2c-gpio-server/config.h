@@ -19,10 +19,10 @@
 //#define IRREMOTE
 
 // define if you want to use two servo motors  as alternative to one STEPPER motor
-#define SERVO
+//#define SERVO
 
-#define SERVO1_MIN 900                  // servo 1 Model SM-S2309S
-#define SERVO1_MAX 2100
+#define SERVO1_MIN 930                  // servo 1 Model SM-S2309S   (0 - 120 degree)
+#define SERVO1_MAX 3000
 #define SERVO2_MIN 544                  // servo 2 default parameters
 #define SERVO2_MAX 2400
 

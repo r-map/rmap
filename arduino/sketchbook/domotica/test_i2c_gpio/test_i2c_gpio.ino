@@ -92,7 +92,7 @@ void displayHelp()
   Serial.println(F("\tg = stepper get position"));
   Serial.println(F("\tp = stepper power off"));
   Serial.println(F("\te = stepper rotate"));
-  Serial.println(F("\tz = server goto"));
+  Serial.println(F("\tz = servo goto"));
   Serial.println(F("\n\? = help - this page"));
   Serial.println();
 }

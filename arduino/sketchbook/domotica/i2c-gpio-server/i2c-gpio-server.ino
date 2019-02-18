@@ -693,8 +693,8 @@ void setup() {
   i2c_writabledataset2->pwm2 = 0;
   i2c_writabledataset2->onoff1 = 0;
   i2c_writabledataset2->onoff2 = 0;
-  i2c_writabledataset2->servo1.goto_position=90;
-  i2c_writabledataset2->servo2.goto_position=90;
+  i2c_writabledataset2->servo1.goto_position=0;
+  i2c_writabledataset2->servo2.goto_position=0;
 
 #ifdef IRREMOTE
   irrecv.enableIRIn(); // Start the receiver
@@ -707,6 +707,10 @@ void setup() {
 #ifdef SERVO  
   myservo1.attach(SERVO1_PIN,i2c_writabledataset2->servo1.min,i2c_writabledataset2->servo1.max);  // attaches the servo on SERVO_PIN to the servo object
   myservo2.attach(SERVO2_PIN,i2c_writabledataset2->servo2.min,i2c_writabledataset2->servo2.max);  // attaches the servo on SERVO_PIN to the servo object
+  myservo1.write(i2c_writabledataset1->servo1.goto_position);  
+  myservo2.write(i2c_writabledataset1->servo2.goto_position);  
+
+
 #else  
   myStepper.attach(STEPPER_PIN1,STEPPER_PIN2,STEPPER_PIN3,STEPPER_PIN4);
 
