@@ -5,6 +5,7 @@
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <registers-gpio.h>         //Register definitions
+#include <config.h>
 
 class i2cgpio {
 
@@ -19,6 +20,7 @@ public:
   uint8_t stepper_relative_steps(int16_t value);
   uint8_t stepper_rotate(int16_t value);
   uint8_t stepper_gohome();
+  uint8_t servo_goto_position(uint8_t motor,int16_t value);
     
 private:
   uint8_t _address;

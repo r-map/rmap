@@ -63,6 +63,20 @@ int16_t position=0;
 
   delay(1000);
     
+#ifdef SERVO
+
+  position=0;
+  Log.notice(F("Servo 1 goto position %d" CR), position); 
+  gpio.servo_goto_position(1, position); 
+  delay(5000);
+  
+  position=180;
+  Log.notice(F("Servo 1 goto position %d" CR), position); 
+  gpio.servo_goto_position(1, position); 
+  delay(5000);
+
+#else
+
   gpio.stepper_read_position(position); 
   Log.notice(F("Stepper read position %d" CR), position); 
   delay(1000);
@@ -72,5 +86,7 @@ int16_t position=0;
   delay(1000);
   gpio.stepper_read_position(position); 
   Log.notice(F("Stepper read position %d" CR), position); 
+
+#endif
   
 }

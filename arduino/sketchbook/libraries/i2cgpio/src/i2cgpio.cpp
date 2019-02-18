@@ -66,6 +66,41 @@ uint8_t i2cgpio::digitalWrite(uint8_t pin, uint8_t value){
   return 0;
 }
 
+#ifdef SERVO
+
+uint8_t i2cgpio::servo_goto_position(uint8_t motor,int16_t value){
+
+  // wake up
+  Wire.beginTransmission(_address);
+  if (Wire.endTransmission() != 0) return 1;
+  delay(10);
+  
+  Wire.beginTransmission(_address);
+
+  switch (motor)
+    {
+    case 1:
+      Wire.write(I2C_GPIO_SERVO1_GOTO_POSITION);
+      break;
+    case 2:
+      Wire.write(I2C_GPIO_SERVO2_GOTO_POSITION);
+      break;
+    }
+  Wire.write((byte)(value & 0xFFu));
+  Wire.write((byte)(value>>8)& 0xFFu);
+  if (Wire.endTransmission() != 0) return 1;
+
+  delay(10);
+  Wire.beginTransmission(_address);
+  Wire.write(I2C_GPIO_COMMAND);
+  Wire.write(I2C_GPIO_SERVO_COMMAND_GOTO);
+  if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
+  return 0;
+}
+
+#else
+
+
 uint8_t i2cgpio::stepper_poweroff(){
 
   // wake up
@@ -100,7 +135,7 @@ uint8_t i2cgpio::stepper_goto_position(int16_t value){
   if (Wire.endTransmission() != 0)  return 1;             // End Write Transmission 
   return 0;
 }
-	
+
 uint8_t i2cgpio::stepper_read_position(int16_t& position){
 
   // wake up
@@ -193,6 +228,8 @@ uint8_t i2cgpio::stepper_gohome(){
   return 0;
 }
 
+#endif
+
 uint8_t i2cgpio::analogWrite(uint8_t pin, uint8_t value){
 
   // wake up
@@ -268,4 +305,3 @@ uint16_t i2cgpio::analogRead(uint8_t pin){
 	
   return value;
 }
-
