@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.4 -s
 # GPL. (C) 2017 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -52,7 +52,7 @@ def main():
         # Legge un file.
         logging.debug('Read file: %s' % inputfile)
 
-        with open (inputfile) as infile:
+        with open (inputfile,"rb") as infile:
             totalbody = infile.read()
 
         logging.debug('message: %s' % totalbody)
@@ -94,8 +94,8 @@ def main():
         return 0
 
     except:
-        logging.warning("There were some errors executing toamqp")
-        return 1
+        logging.error("There were some errors executing toamqp")    	
+        return 0
 
 if __name__ == '__main__':
 
