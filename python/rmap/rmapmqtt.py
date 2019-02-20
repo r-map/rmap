@@ -105,10 +105,8 @@ class rmapmqtt:
                             qos=1, retain=retain)
 
         try:
-            print("start connect")
             #self.mqttc.connect_async(self.host,self.port,self.timeout)
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
-            print("end connect")
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
@@ -264,7 +262,7 @@ class rmapmqtt:
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
 
-            self.log("publish maint message mid: "+str(rc))
+            self.log("publish maint message mid: "+str(self.mid))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -273,8 +271,12 @@ class rmapmqtt:
             #this wait to send the last message
             #but we wait some time (timeout) for each message
             # so is possible this is not needed
-            if self.messageinfo.is_published() == False:
-                self.messageinfo.wait_for_publish()
+
+            while self.messageinfo.is_published() == False:
+                if (not self.loop_started):
+                    self.loop(.1)
+                else:
+                    self.messageinfo.wait_for_publish()
 
             rc = self.mqttc.disconnect()
             if rc != mqtt.MQTT_ERR_SUCCESS:
