@@ -5264,34 +5264,34 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
     }
 
     if (values[3] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15250", values[3]);      
+      aJson.addNumberToObject(jsonvalues, "B49192", values[3]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15250");
+      aJson.addNullToObject(jsonvalues, "B49192");
     }
     if (values[4] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15251", values[4]);      
+      aJson.addNumberToObject(jsonvalues, "B49193", values[4]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15251");
+      aJson.addNullToObject(jsonvalues, "B49193");
     }
     if (values[5] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15252", values[5]);      
+      aJson.addNumberToObject(jsonvalues, "B49194", values[5]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15252");
+      aJson.addNullToObject(jsonvalues, "B49194");
     }
     if (values[6] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15253", values[6]);      
+      aJson.addNumberToObject(jsonvalues, "B49195", values[6]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15253");
+      aJson.addNullToObject(jsonvalues, "B49195");
     }
     if (values[7] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15254", values[7]);      
+      aJson.addNumberToObject(jsonvalues, "B49196", values[7]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15254");
+      aJson.addNullToObject(jsonvalues, "B49196");
     }
     if (values[8] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15255", values[8]);      
+      aJson.addNumberToObject(jsonvalues, "B49197", values[8]);      
     }else{
-      aJson.addNullToObject(jsonvalues, "B15255");
+      aJson.addNullToObject(jsonvalues, "B49197");
     }
     
     
@@ -5299,12 +5299,12 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
     aJson.addNullToObject(jsonvalues, "B15198");
     aJson.addNullToObject(jsonvalues, "B15195");
     aJson.addNullToObject(jsonvalues, "B15203");
-    aJson.addNullToObject(jsonvalues, "B15250");
-    aJson.addNullToObject(jsonvalues, "B15251");
-    aJson.addNullToObject(jsonvalues, "B15252");
-    aJson.addNullToObject(jsonvalues, "B15253");
-    aJson.addNullToObject(jsonvalues, "B15254");
-    aJson.addNullToObject(jsonvalues, "B15255");
+    aJson.addNullToObject(jsonvalues, "B49192");
+    aJson.addNullToObject(jsonvalues, "B49193");
+    aJson.addNullToObject(jsonvalues, "B49194");
+    aJson.addNullToObject(jsonvalues, "B49195");
+    aJson.addNullToObject(jsonvalues, "B49196");
+    aJson.addNullToObject(jsonvalues, "B49197");
   }
   return jsonvalues;
 }
@@ -5337,46 +5337,46 @@ int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_
     }
 
     if ((unsigned long) values[3] != 0xFFFFFFFF){
-      jsonvalues["B15250"]= values[3];
+      jsonvalues["B49192"]= values[3];
     }else{
-      jsonvalues["B15250"]=RawJson("null");
+      jsonvalues["B49192"]=RawJson("null");
     }
     if ((unsigned long) values[4] != 0xFFFFFFFF){
-      jsonvalues["B15251"]= values[4];
+      jsonvalues["B49193"]= values[4];
     }else{
-      jsonvalues["B15251"]=RawJson("null");
+      jsonvalues["B49193"]=RawJson("null");
     }
     if ((unsigned long) values[5] != 0xFFFFFFFF){
-      jsonvalues["B15252"]= values[5];
+      jsonvalues["B49194"]= values[5];
     }else{
-      jsonvalues["B15252"]=RawJson("null");
+      jsonvalues["B49194"]=RawJson("null");
     }
     if ((unsigned long) values[6] != 0xFFFFFFFF){
-      jsonvalues["B15253"]= values[6];
+      jsonvalues["B49195"]= values[6];
     }else{
-      jsonvalues["B15253"]=RawJson("null");
+      jsonvalues["B49195"]=RawJson("null");
     }
     if ((unsigned long) values[7] != 0xFFFFFFFF){
-      jsonvalues["B15254"]= values[7];
+      jsonvalues["B49196"]= values[7];
     }else{
-      jsonvalues["B15254"]=RawJson("null");
+      jsonvalues["B49196"]=RawJson("null");
     }
     if ((unsigned long) values[8] != 0xFFFFFFFF){
-      jsonvalues["B15255"]= values[8];
+      jsonvalues["B49197"]= values[8];
     }else{
-      jsonvalues["B15255"]=RawJson("null");
+      jsonvalues["B49197"]=RawJson("null");
     }
     
   }else{
     jsonvalues["B15198"]=RawJson("null");
     jsonvalues["B15195"]=RawJson("null");
     jsonvalues["B15203"]=RawJson("null");
-    jsonvalues["B15250"]=RawJson("null");
-    jsonvalues["B15251"]=RawJson("null");
-    jsonvalues["B15252"]=RawJson("null");
-    jsonvalues["B15253"]=RawJson("null");
-    jsonvalues["B15254"]=RawJson("null");
-    jsonvalues["B15255"]=RawJson("null");
+    jsonvalues["B49192"]=RawJson("null");
+    jsonvalues["B49193"]=RawJson("null");
+    jsonvalues["B49194"]=RawJson("null");
+    jsonvalues["B49195"]=RawJson("null");
+    jsonvalues["B49196"]=RawJson("null");
+    jsonvalues["B49197"]=RawJson("null");
   }
 
   jsonvalues.printTo(json_buffer, json_buffer_length);
