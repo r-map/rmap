@@ -75,7 +75,9 @@ void loop() {
          // enable watchdog
          init_wdt(WDT_TIMER);
 
-         state = TASKS_EXECUTION;
+        start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
+
+        state = TASKS_EXECUTION;
       break;
       #endif
 
@@ -88,6 +90,14 @@ void loop() {
          if (is_event_command_task) {
             command_task();
             wdt_reset();
+         }
+
+         // I2C Bus Check
+         if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
+           start_i2c_check_ms = millis();
+           SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+           init_wire();
+           wdt_reset();
          }
 
          if (ready_tasks_count == 0) {
@@ -184,33 +194,12 @@ void init_pins() {
 }
 
 void init_wire() {
-   // clear the I2C bus first before calling Wire.begin()
-   uint8_t i2c_bus_state = I2C_ClearBus();
-
-   if (i2c_bus_state) {
-      SERIAL_ERROR(F("I2C bus error: Could not clear!!!\r\n"));
-      // wait for watchdog reboot
-      while(1);
-   }
-
-   switch (i2c_bus_state) {
-      case 1:
-         SERIAL_ERROR(F("SCL clock line held low\r\n"));
-      break;
-
-      case 2:
-         SERIAL_ERROR(F("SCL clock line held low by slave clock stretch\r\n"));
-      break;
-
-      case 3:
-         SERIAL_ERROR(F("SDA data line held low\r\n"));
-      break;
-   }
-
-   Wire.begin(configuration.i2c_address);
-   Wire.setClock(I2C_BUS_CLOCK);
-   Wire.onRequest(i2c_request_interrupt_handler);
-   Wire.onReceive(i2c_receive_interrupt_handler);
+  i2c_error = 0;
+  Wire.end();
+  Wire.begin(configuration.i2c_address);
+  Wire.setClock(I2C_BUS_CLOCK);
+  Wire.onRequest(i2c_request_interrupt_handler);
+  Wire.onReceive(i2c_receive_interrupt_handler);
 }
 
 void init_spi() {
@@ -305,50 +294,53 @@ void i2c_request_interrupt_handler() {
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
-   bool is_i2c_data_ok = false;
+  bool is_i2c_data_ok = false;
 
-   // read rx_data_length bytes of data from i2c bus
-   for (uint8_t i=0; i<rx_data_length; i++) {
-      i2c_rx_data[i] = Wire.read();
-   }
+  // read rx_data_length bytes of data from i2c bus
+  for (uint8_t i=0; i<rx_data_length; i++) {
+    i2c_rx_data[i] = Wire.read();
+  }
 
-   // it is a registers read?
-   if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
-      // offset in readable_data_read_ptr buffer
-      readable_data_address = i2c_rx_data[0];
+  // it is a registers read?
+  if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
+    // offset in readable_data_read_ptr buffer
+    readable_data_address = i2c_rx_data[0];
 
-      // length (in bytes) of data to be read in readable_data_read_ptr
-      readable_data_length = i2c_rx_data[1];
-   }
-   // it is a command?
-   else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
-      // enable Command task
-      if (!is_event_command_task) {
-         is_event_command_task = true;
-         ready_tasks_count++;
-      }
-      interrupts();
-   }
-   // it is a registers write?
-   else if (is_writable_register(i2c_rx_data[0])) {
-      if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == (I2C_RAIN_ADDRESS_LENGTH+2)) {
-         is_i2c_data_ok = true;
-      }
-      else if (i2c_rx_data[0] == I2C_RAIN_ONESHOT_ADDRESS && rx_data_length == (I2C_RAIN_ONESHOT_LENGTH+2)) {
-         is_i2c_data_ok = true;
-      }
-      else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == (I2C_RAIN_CONTINUOUS_LENGTH+2)) {
-         is_i2c_data_ok = true;
-      }
+    // length (in bytes) of data to be read in readable_data_read_ptr
+    readable_data_length = i2c_rx_data[1];
+  }
+  // it is a command?
+  else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
+    noInterrupts();
+    // enable Command task
+    if (!is_event_command_task) {
+      is_event_command_task = true;
+      ready_tasks_count++;
+    }
+    interrupts();
+  }
+  // it is a registers write?
+  else if (is_writable_register(i2c_rx_data[0])) {
+    if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == (I2C_RAIN_ADDRESS_LENGTH+2)) {
+      is_i2c_data_ok = true;
+    }
+    else if (i2c_rx_data[0] == I2C_RAIN_ONESHOT_ADDRESS && rx_data_length == (I2C_RAIN_ONESHOT_LENGTH+2)) {
+      is_i2c_data_ok = true;
+    }
+    else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == (I2C_RAIN_CONTINUOUS_LENGTH+2)) {
+      is_i2c_data_ok = true;
+    }
 
-      if (is_i2c_data_ok) {
-         for (uint8_t i=2; i<rx_data_length; i++) {
-            // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-            ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS] = i2c_rx_data[i];
-         }
+    if (is_i2c_data_ok) {
+      for (uint8_t i=2; i<rx_data_length; i++) {
+        // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
+        ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS] = i2c_rx_data[i];
       }
-   }
+    }
+  } else {
+    readable_data_length = 0;
+    i2c_error++;
+  }
 }
 
 void tipping_bucket_task () {
@@ -446,6 +438,14 @@ void command_task() {
          commands();
       break;
 
+      case I2C_RAIN_COMMAND_TEST_READ:
+         #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+         strcpy(buffer, "TEST READ");
+         #endif
+         is_test_read = true;
+         tests();
+      break;
+
       case I2C_RAIN_COMMAND_SAVE:
          SERIAL_DEBUG(F("Execute [ %s ]\r\n"), SAVE_STRING);
          is_oneshot = false;
@@ -470,6 +470,14 @@ void command_task() {
    is_event_command_task = false;
    ready_tasks_count--;
    interrupts();
+}
+
+void tests() {
+  noInterrupts();
+  readable_data_write_ptr->rain.tips_count = rain.tips_count;
+  exchange_buffers();
+  is_test_read = false;
+  interrupts();
 }
 
 void commands() {

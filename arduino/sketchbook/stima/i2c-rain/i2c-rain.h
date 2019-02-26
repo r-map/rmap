@@ -168,6 +168,18 @@ volatile uint8_t readable_data_length;
 volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 
 /*!
+\var i2c_error
+\brief Number of i2c error.
+*/
+volatile uint8_t i2c_error;
+
+/*!
+\var start_i2c_check_ms
+\brief System time (in millisecond) when the system has check the bus for error.
+*/
+uint32_t start_i2c_check_ms;
+
+/*!
 \var ready_tasks_count
 \brief Number of tasks ready to execute.
 */
@@ -202,6 +214,12 @@ bool is_oneshot;
 \brief Received command is in continuous mode.
 */
 bool is_continuous;
+
+/*!
+\var is_test_read
+\brief Received command is for reading value for test.
+*/
+bool is_test_read;
 
 /*!
 \var rain_tips_event_occurred_time_ms
@@ -340,6 +358,13 @@ void save_configuration(bool);
 \return void.
 */
 void commands(void);
+
+/*!
+\fn void tests(void)
+\brief Performs tests operations based on the received command.
+\return void.
+*/
+void tests(void);
 
 /*!
 \fn void reset_buffers(void)

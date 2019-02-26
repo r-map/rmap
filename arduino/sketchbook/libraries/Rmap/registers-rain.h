@@ -55,6 +55,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_RAIN_COMMAND_ONESHOT_START_STOP   (0x04)
 
+/*!
+\def I2C_RAIN_COMMAND_TEST_READ
+\brief Read testo command for i2c-rain module.
+*/
+#define I2C_RAIN_COMMAND_TEST_READ            (0x05)
+
 /*********************************************************************
 * Readable registers: Specifying the length in bytes of the data by I2C_{MODULE_NAME}_{DATA_NAME}_LENGTH, the corresponding address is calculated automatically
 *********************************************************************/
