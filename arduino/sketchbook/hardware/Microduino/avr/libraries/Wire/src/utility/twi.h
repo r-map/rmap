@@ -15,16 +15,12 @@
   You should have received a copy of the GNU Lesser General Public
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
-
-  Modified 2017 by Marco Baldinetti (m.baldinetti@digiteco.it) to solve multi-master communication
 */
 
 #ifndef twi_h
 #define twi_h
 
   #include <inttypes.h>
-  #include <hardware_config.h>
-
   //#define ATMEGA8
 
   #ifndef TWI_FREQ
