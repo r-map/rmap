@@ -1,4 +1,4 @@
-/**@file rmap-config.h */
+/**@file stima-config.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,8 +20,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _RMAP_CONFIG_H
-#define _RMAP_CONFIG_H
+#ifndef _STIMA_CONFIG_H
+#define _STIMA_CONFIG_H
 
 #include <stima_module.h>
 #include <sensors_config.h>
@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_TIMER_1
 \brief Timer 1 support instead of RTC.
 */
-#define USE_TIMER_1                                   (USE_RTC == false ? true : false)
+#define USE_TIMER_1                                   (!USE_RTC)
 
 /*!
 \def USE_RPC_METHOD_CONFIGURE
@@ -379,6 +379,18 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Waiting for reading between two attempts.
 */
 #define SENSORS_RETRY_DELAY_MS                        (50)
+
+/*!
+\def SENSORS_READING_RETRY_COUNT_MAX
+\brief Maximum number of retry for sensors reading task with i2c error.
+*/
+#define SENSORS_READING_RETRY_COUNT_MAX               (1)
+
+/*!
+\def SENSORS_TESTING_DELAY_MS
+\brief Waiting for reading between two attempts.
+*/
+#define SENSORS_TESTING_DELAY_S                       (60)
 
 /*!
 \def DATA_PROCESSING_RETRY_COUNT_MAX

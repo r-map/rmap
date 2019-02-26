@@ -415,6 +415,24 @@ SensorDriver *sensors[USE_SENSORS_COUNT];
 bool is_first_run;
 
 /*!
+\var do_reset_first_run
+\brief If true, the first reading of the sensors was performed.
+*/
+bool do_reset_first_run;
+
+/*!
+\var is_first_test
+\brief If true, the first reading of the sensors was performed.
+*/
+bool is_first_test;
+
+/*!
+\var is_test
+\brief If true, reading value from sensors for testing purpose.
+*/
+bool is_test;
+
+/*!
 \var is_time_set
 \brief If true, the time was readed from rtc or ntp and was setted in system.
 */
@@ -521,6 +539,12 @@ int32_t values_readed_from_sensor[USE_SENSORS_COUNT][VALUES_TO_READ_FROM_SENSOR_
 volatile time_t next_ptr_time_for_sensors_reading;
 
 /*!
+\var next_ptr_time_for_testing_sensors
+\brief Next scheduled time (in seconds since 01/01/1970 00:0:00) for sensors reading.
+*/
+volatile time_t next_ptr_time_for_testing_sensors;
+
+/*!
 \var sensor_reading_time
 \brief Date and time corresponding to the last reading of the sensors.
 */
@@ -565,6 +589,24 @@ ethernet_state_t ethernet_state;
 gsm_state_t gsm_state;
 
 #endif
+
+/*!
+\var sensors_reading_retry;
+\brief Number of sensors reading retry with i2c error.
+*/
+uint8_t sensors_reading_retry;
+
+/*!
+\var i2c_error
+\brief Number of i2c error.
+*/
+uint8_t i2c_error;
+
+/*!
+\var start_i2c_check_ms
+\brief System time (in millisecond) when the system has check the bus for error.
+*/
+uint32_t start_i2c_check_ms;
 
 /*!
 \var time_state

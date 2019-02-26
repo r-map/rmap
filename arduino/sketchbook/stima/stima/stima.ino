@@ -26,13 +26,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def SERIAL_TRACE_LEVEL
 \brief Serial debug level for this sketch.
 */
-#define SERIAL_TRACE_LEVEL    (RMAP_SERIAL_TRACE_LEVEL)
+#define SERIAL_TRACE_LEVEL    (STIMA_SERIAL_TRACE_LEVEL)
 
 /*!
 \def LCD_TRACE_LEVEL
 \brief LCD debug level for this sketch.
 */
-#define LCD_TRACE_LEVEL       (RMAP_LCD_TRACE_LEVEL)
+#define LCD_TRACE_LEVEL       (STIMA_LCD_TRACE_LEVEL)
 
 #include "stima.h"
 
@@ -77,6 +77,9 @@ void loop() {
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
          init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+
+         start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
+
          state = TASKS_EXECUTION;
       break;
       #endif
@@ -135,10 +138,28 @@ void loop() {
             wdt_reset();
          }
 
-         if (ready_tasks_count == 0 && !is_event_rpc) {
-            wdt_reset();
-            state = END;
-         }
+        // I2C Bus Check
+        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
+          start_i2c_check_ms = millis();
+          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          init_wire();
+          LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
+
+          noInterrupts();
+          if (is_event_sensors_reading && (sensors_reading_retry < SENSORS_READING_RETRY_COUNT_MAX)) {
+            sensors_reading_state = SENSORS_READING_INIT;
+            sensors_reading_retry++;
+          }
+          interrupts();
+
+          wdt_reset();
+        }
+
+        if (ready_tasks_count == 0 && !is_event_rpc) {
+          sensors_reading_retry = 0;
+          wdt_reset();
+          state = END;
+        }
       break;
 
       case END:
@@ -263,27 +284,29 @@ void init_pins() {
 }
 
 void init_wire() {
-   uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+   // uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+   //
+   // if (i2c_bus_state) {
+   //    SERIAL_ERROR(F("I2C bus error: Could not clear!!!\r\n"));
+   //    while(1);
+   // }
+   //
+   // switch (i2c_bus_state) {
+   //    case 1:
+   //       SERIAL_ERROR(F("SCL clock line held low\r\n"));
+   //    break;
+   //
+   //    case 2:
+   //       SERIAL_ERROR(F("SCL clock line held low by slave clock stretch\r\n"));
+   //    break;
+   //
+   //    case 3:
+   //       SERIAL_ERROR(F("SDA data line held low\r\n"));
+   //    break;
+   // }
 
-   if (i2c_bus_state) {
-      SERIAL_ERROR(F("I2C bus error: Could not clear!!!\r\n"));
-      while(1);
-   }
-
-   switch (i2c_bus_state) {
-      case 1:
-         SERIAL_ERROR(F("SCL clock line held low\r\n"));
-      break;
-
-      case 2:
-         SERIAL_ERROR(F("SCL clock line held low by slave clock stretch\r\n"));
-      break;
-
-      case 3:
-         SERIAL_ERROR(F("SDA data line held low\r\n"));
-      break;
-   }
-
+   i2c_error = 0;
+   Wire.end();
    Wire.begin();
    Wire.setClock(I2C_BUS_CLOCK);
 }
@@ -382,31 +405,37 @@ void rtc_interrupt_handler() {
 #endif
 
 void init_sensors () {
-   is_first_run = true;
-   uint8_t sensors_count = 0;
+  sensors_reading_retry = 0;
+  do_reset_first_run = false;
+  is_first_run = true;
+  is_first_test = true;
+  is_test = false;
+  uint8_t sensors_count = 0;
+  uint8_t sensors_error_count = 0;
 
    LCD_INFO(&lcd, false, true, F("--- www.rmap.cc ---"));
    LCD_INFO(&lcd, false, true, F("%s v. %u.%u"), stima_name, readable_configuration.module_main_version, readable_configuration.module_minor_version);
 
    LCD_INFO(&lcd, false, true, F("Sensors count %u"), readable_configuration.sensors_count);
 
-   if (readable_configuration.sensors_count) {
-      // read sensors configuration, create and setup
-      for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
-         SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
-         SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: %s\t [ %s ]\r\n"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-         if (!sensors[i]->isSetted()) {
-           LCD_INFO(&lcd, false, true, F("%s %s"), readable_configuration.sensors[i].type, FAIL_STRING);
-         }
+  if (readable_configuration.sensors_count) {
+    // read sensors configuration, create and setup
+    for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
+      SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
+      SERIAL_INFO(F("--> %u: %s-%s [ 0x%x ]: %s\t [ %s ]\r\n"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
+      if (!sensors[i]->isSetted()) {
+        sensors_error_count++;
+        LCD_INFO(&lcd, false, true, F("%s %s"), readable_configuration.sensors[i].type, FAIL_STRING);
       }
+    }
 
       SERIAL_INFO(F("\r\n"));
    }
 }
 
-void setNextTimeForSensorReading (time_t *next_time) {
-   time_t counter = (now() / readable_configuration.report_seconds);
-   *next_time = (time_t) ((++counter) * readable_configuration.report_seconds);
+void setNextTimeForSensorReading (time_t *next_time, uint16_t time_s) {
+   time_t counter = (now() / time_s);
+   *next_time = (time_t) ((++counter) * time_s);
 }
 
 #if (USE_MQTT)
@@ -911,42 +940,55 @@ int reboot(JsonObject &params, JsonObject &result) {
 #endif
 
 void interrupt_task_1s () {
-   #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
-   if (is_time_set && now() >= next_ptr_time_for_sensors_reading && next_ptr_time_for_sensors_reading) {
+  #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
+  if (is_time_set && now() >= next_ptr_time_for_sensors_reading && next_ptr_time_for_sensors_reading) {
 
-      sensor_reading_time.Day = day(next_ptr_time_for_sensors_reading);
-      sensor_reading_time.Month = month(next_ptr_time_for_sensors_reading);
-      sensor_reading_time.Year = CalendarYrToTm(year(next_ptr_time_for_sensors_reading));
-      sensor_reading_time.Hour = hour(next_ptr_time_for_sensors_reading);
-      sensor_reading_time.Minute = minute(next_ptr_time_for_sensors_reading);
-      sensor_reading_time.Second = second(next_ptr_time_for_sensors_reading);
+    sensor_reading_time.Day = day(next_ptr_time_for_sensors_reading);
+    sensor_reading_time.Month = month(next_ptr_time_for_sensors_reading);
+    sensor_reading_time.Year = CalendarYrToTm(year(next_ptr_time_for_sensors_reading));
+    sensor_reading_time.Hour = hour(next_ptr_time_for_sensors_reading);
+    sensor_reading_time.Minute = minute(next_ptr_time_for_sensors_reading);
+    sensor_reading_time.Second = second(next_ptr_time_for_sensors_reading);
 
-      setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading);
-      is_time_for_sensors_reading_updated = true;
+    setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
+    is_time_for_sensors_reading_updated = true;
+    do_reset_first_run = true;
 
-      noInterrupts();
-      if (!is_event_sensors_reading) {
-         is_event_sensors_reading = true;
-         ready_tasks_count++;
-      }
-
-      #if (USE_MQTT)
-      if (is_event_mqtt) {
-         is_event_mqtt_paused = true;
-         is_event_mqtt = false;
-         ready_tasks_count--;
-      }
-      #endif
-      interrupts();
-   }
-   #endif
-
-   noInterrupts();
-   if (!is_event_rtc) {
-      is_event_rtc = true;
+    noInterrupts();
+    if (!is_event_sensors_reading) {
+      is_test = false;
+      is_event_sensors_reading = true;
       ready_tasks_count++;
-   }
-   interrupts();
+    }
+
+    #if (USE_MQTT)
+    if (is_event_mqtt) {
+      is_event_mqtt_paused = true;
+      is_event_mqtt = false;
+      ready_tasks_count--;
+    }
+    #endif
+    interrupts();
+  }
+
+  if (is_time_set && now() >= next_ptr_time_for_testing_sensors && next_ptr_time_for_testing_sensors) {
+    setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
+    noInterrupts();
+    if (!is_event_sensors_reading) {
+      is_test = !is_first_test;
+      is_event_sensors_reading = true;
+      ready_tasks_count++;
+    }
+    interrupts();
+  }
+  #endif
+
+  noInterrupts();
+  if (!is_event_rtc) {
+    is_event_rtc = true;
+    ready_tasks_count++;
+  }
+  interrupts();
 }
 
 void supervisor_task() {
@@ -1105,7 +1147,11 @@ void supervisor_task() {
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
          if (is_supervisor_first_run && is_time_set) {
             if (readable_configuration.report_seconds) {
-               setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading);
+               setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
+
+               // testing sensors
+               setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
+
                SERIAL_INFO(F("Acquisition scheduling...\r\n"));
                SERIAL_INFO(F("--> observations every %u minutes\r\n"), OBSERVATIONS_MINUTES);
             }
@@ -1125,8 +1171,12 @@ void supervisor_task() {
             }
 
             if (next_ptr_time_for_sensors_reading) {
-               SERIAL_INFO(F("--> starting at: %02u:%02u:%02u\r\n\r\n"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+               SERIAL_INFO(F("--> starting at: %02u:%02u:%02u\r\n"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
                LCD_INFO(&lcd, false, true, F("start acq %02u:%02u:%02u"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+            }
+
+            if (next_ptr_time_for_testing_sensors) {
+               SERIAL_INFO(F("--> testing at: %02u:%02u:%02u\r\n\r\n"), hour(next_ptr_time_for_testing_sensors), minute(next_ptr_time_for_testing_sensors), second(next_ptr_time_for_testing_sensors));
             }
          }
          #endif
@@ -1354,6 +1404,10 @@ void time_task() {
          is_set_rtc_ok &= Pcf8563::setTime(hour(), minute(), second());
          is_set_rtc_ok &= Pcf8563::enable();
 
+         if (!is_set_rtc_ok) {
+           i2c_error++;
+         }
+
          if (is_set_rtc_ok) {
             retry = 0;
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
@@ -1370,9 +1424,9 @@ void time_task() {
          }
          // fail
          else {
-            retry = 0;
-            time_state = TIME_SET_SYNC_RTC_PROVIDER;
-            SERIAL_TRACE(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER\r\n"));
+           retry = 0;
+           time_state = TIME_SET_SYNC_RTC_PROVIDER;
+           SERIAL_TRACE(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER\r\n"));
          }
          #endif
       break;
@@ -1760,7 +1814,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_PREPARE:
-         sensors[i]->prepare();
+         sensors[i]->prepare(is_test);
          delay_ms = sensors[i]->getDelay();
          start_time_ms = sensors[i]->getStartTime();
 
@@ -1795,6 +1849,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          }
          // retry
          else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+            i2c_error++;
             delay_ms = SENSORS_RETRY_DELAY_MS;
             start_time_ms = millis();
             state_after_wait = SENSORS_READING_PREPARE;
@@ -1816,19 +1871,25 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_GET:
-         sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0]);
-         delay_ms = sensors[i]->getDelay();
-         start_time_ms = sensors[i]->getStartTime();
+        if (is_test) {
+          sensors[i]->get(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT);
+        }
+        else {
+          sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0]);
+        }
 
-         if (delay_ms) {
-            state_after_wait = SENSORS_READING_IS_GETTED;
-            sensors_reading_state = SENSORS_READING_WAIT_STATE;
-            SERIAL_TRACE(F("SENSORS_READING_GET ---> SENSORS_READING_WAIT_STATE\r\n"));
-         }
-         else {
-            sensors_reading_state = SENSORS_READING_IS_GETTED;
-            SERIAL_TRACE(F("SENSORS_READING_GET ---> SENSORS_READING_IS_GETTED\r\n"));
-         }
+        delay_ms = sensors[i]->getDelay();
+        start_time_ms = sensors[i]->getStartTime();
+
+        if (delay_ms) {
+          state_after_wait = SENSORS_READING_IS_GETTED;
+          sensors_reading_state = SENSORS_READING_WAIT_STATE;
+          SERIAL_TRACE(F("SENSORS_READING_GET ---> SENSORS_READING_WAIT_STATE\r\n"));
+        }
+        else {
+          sensors_reading_state = SENSORS_READING_IS_GETTED;
+          SERIAL_TRACE(F("SENSORS_READING_GET ---> SENSORS_READING_IS_GETTED\r\n"));
+        }
       break;
 
       case SENSORS_READING_IS_GETTED:
@@ -1842,6 +1903,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             }
             // retry
             else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+               i2c_error++;
                delay_ms = SENSORS_RETRY_DELAY_MS;
                start_time_ms = millis();
                state_after_wait = SENSORS_READING_GET;
@@ -1883,9 +1945,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       // success: all sensors readed
       else {
         // first time: read ptr data from sdcard
-        if (is_first_run) {
-          is_first_run = false;
-
+        if (is_first_run && !is_test) {
           #if (USE_MQTT)
           noInterrupts();
           if (!is_event_supervisor && is_event_mqtt_paused) {
@@ -1895,8 +1955,10 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
           interrupts();
           #endif
         }
-        // other time: save data to sdcard
-        else {
+
+        // other time but not in test: save data to sdcard
+        // normal AND NOT test: save
+        if (!is_first_run && !is_test) {
           #if (USE_SDCARD)
           noInterrupts();
           if (!is_event_data_saving) {
@@ -1905,14 +1967,17 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
           }
           interrupts();
           #endif
+        }
 
+        // normal OR test: print
+        if (!is_first_run || is_test) {
           #if (LCD_TRACE_LEVEL >= LCD_TRACE_LEVEL_INFO)
           for (i = 0; i < LCD_ROWS; i++) {
             lcd_count[i] = 0;
           }
 
           for (i = 0; i < readable_configuration.sensors_count; i++) {
-            if (strcmp(sensors[i]->getType(), "ITH") == 0) {
+            if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0)) {
               if (isValid(values_readed_from_sensor[i][0])) {
                 lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "%.1fC ", ((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0));
               }
@@ -1971,18 +2036,25 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_END:
-         noInterrupts();
-         if (is_event_sensors_reading) {
-            is_event_sensors_reading = false;
-            ready_tasks_count--;
-         }
+        is_first_test = false;
 
-         if (is_event_sensors_reading_rpc) {
-            is_event_sensors_reading_rpc = false;
-         }
-         interrupts();
-         sensors_reading_state = SENSORS_READING_INIT;
-         SERIAL_TRACE(F("SENSORS_READING_END ---> SENSORS_READING_INIT\r\n"));
+        if (do_reset_first_run) {
+          is_first_run = false;
+        }
+
+        noInterrupts();
+        if (is_event_sensors_reading) {
+          is_event_sensors_reading = false;
+          ready_tasks_count--;
+        }
+
+        if (is_event_sensors_reading_rpc) {
+          is_event_sensors_reading_rpc = false;
+        }
+        interrupts();
+
+        sensors_reading_state = SENSORS_READING_INIT;
+        SERIAL_TRACE(F("SENSORS_READING_END ---> SENSORS_READING_INIT\r\n"));
       break;
 
       case SENSORS_READING_WAIT_STATE:
