@@ -162,15 +162,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_RAIN_SERIAL_TRACE_LEVEL       (SERIAL_TRACE_LEVEL_INFO)
 
 /*!
-\def RMAP_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for rmap sketch.
+\def STIMA_SERIAL_TRACE_LEVEL
+\brief Serial trace level debug for stima sketch.
 */
-#define RMAP_SERIAL_TRACE_LEVEL           (SERIAL_TRACE_LEVEL_INFO)
+#define STIMA_SERIAL_TRACE_LEVEL           (SERIAL_TRACE_LEVEL_INFO)
 
 /*!
-\def RMAP_LCD_TRACE_LEVEL
-\brief Lcd trace level debug for rmap sketch.
+\def STIMA_LCD_TRACE_LEVEL
+\brief Lcd trace level debug for stima sketch.
 */
-#define RMAP_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
+#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
 
 #endif

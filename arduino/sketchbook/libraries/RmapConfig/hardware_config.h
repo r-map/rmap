@@ -35,4 +35,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_MAX_DATA_LENGTH             (31)
 
+/*!
+\def I2C_MAX_ERROR_COUNT
+\brief Max error count on i2c bus for re-init.
+*/
+#define I2C_MAX_ERROR_COUNT             (10)
+
+/*!
+\def I2C_CHECK_DELAY_MS
+\brief Delay in ms to check for re-init.
+*/
+#define I2C_CHECK_DELAY_MS              (5000)
+
 #endif
