@@ -216,7 +216,7 @@ void SensorDriver::printInfo(const char* driver, const char* type, const uint8_t
   }
 
   if (node) {
-    SERIAL_DEBUG(F(" on node %d"), node);
+    SERIAL_DEBUG(F(" on node %d\r\n"), node);
   }
 }
 
@@ -262,7 +262,7 @@ void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
   *_is_setted = true;
 }
 
-void SensorDriverAdt7420::prepare() {
+void SensorDriverAdt7420::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -433,7 +433,7 @@ void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node) {
   *_is_setted = true;
 }
 
-void SensorDriverHih6100::prepare() {
+void SensorDriverHih6100::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -639,7 +639,7 @@ void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
   SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
 }
 
-void SensorDriverHyt2X1::prepare() {
+void SensorDriverHyt2X1::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -801,7 +801,7 @@ void SensorDriverDw1::setup(const uint8_t address, const uint8_t node) {
   SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
 }
 
-void SensorDriverDw1::prepare() {
+void SensorDriverDw1::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -1056,7 +1056,7 @@ void SensorDriverRain::setup(const uint8_t address, const uint8_t node) {
   SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
 }
 
-void SensorDriverRain::prepare() {
+void SensorDriverRain::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -1064,7 +1064,12 @@ void SensorDriverRain::prepare() {
     Wire.write(I2C_COMMAND_ID);
 
     if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
-      Wire.write(I2C_RAIN_COMMAND_ONESHOT_START_STOP);
+      if (is_test) {
+        Wire.write(I2C_RAIN_COMMAND_TEST_READ);
+      }
+      else {
+        Wire.write(I2C_RAIN_COMMAND_ONESHOT_START_STOP);
+      }
       _delay_ms = 0;
     }
     else {
@@ -1271,7 +1276,7 @@ void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
   }
 }
 
-void SensorDriverTh::prepare() {
+void SensorDriverTh::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
 
   if (!*_is_prepared) {
@@ -1283,7 +1288,12 @@ void SensorDriverTh::prepare() {
       _delay_ms = 150;
     }
     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-      Wire.write(I2C_TH_COMMAND_CONTINUOUS_START_STOP);
+      if (is_test) {
+        Wire.write(I2C_TH_COMMAND_TEST_READ);
+      }
+      else {
+        Wire.write(I2C_TH_COMMAND_CONTINUOUS_START_STOP);
+      }
       _delay_ms = 0;
     }
     else {
@@ -1595,7 +1605,7 @@ void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node)
   SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
 }
 
-void SensorDriverDigitecoPower::prepare() {
+void SensorDriverDigitecoPower::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   _delay_ms = 0;
   *_is_prepared = true;

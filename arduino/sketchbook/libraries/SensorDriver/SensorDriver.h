@@ -106,7 +106,7 @@ public:
    \brief Prepare sensor.
    \return void.
    */
-   virtual void prepare();
+   virtual void prepare(bool is_test = false);
 
    /*!
    \fn void get(int32_t *values, uint8_t length)
@@ -301,7 +301,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
@@ -338,7 +338,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
@@ -376,7 +376,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
@@ -415,7 +415,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %S ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
    void getSDfromUV(int32_t u, int32_t v, double *speed, double *direction);
 
@@ -458,7 +458,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
@@ -497,7 +497,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %S ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
@@ -538,7 +538,7 @@ public:
       SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
-   void prepare();
+   void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
    #if (USE_JSON)
