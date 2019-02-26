@@ -85,6 +85,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_TH_COMMAND_CONTINUOUS_START_STOP    (0x07)
 
+/*!
+\def I2C_TH_COMMAND_READ_TEST
+\brief Continuous start-stop command for i2c-th module.
+*/
+#define I2C_TH_COMMAND_TEST_READ                (0x08)
+
 /*********************************************************************
 * Readable registers: Specifying the length in bytes of the data by I2C_{MODULE_NAME}_{DATA_NAME}_LENGTH, the corresponding address is calculated automatically
 *********************************************************************/

@@ -69,9 +69,11 @@ void loop() {
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
-         //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
-         init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
-         state = TASKS_EXECUTION;
+        //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
+        init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+        state = TASKS_EXECUTION;
+
+        start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
       break;
       #endif
 
@@ -86,10 +88,18 @@ void loop() {
             wdt_reset();
          }
 
-         if (ready_tasks_count == 0) {
-            wdt_reset();
-            state = END;
-         }
+        // I2C Bus Check
+        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
+          start_i2c_check_ms = millis();
+          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          init_wire();
+          wdt_reset();
+        }
+
+        if (ready_tasks_count == 0) {
+          wdt_reset();
+          state = END;
+        }
       break;
 
       case END:
@@ -180,33 +190,12 @@ void init_pins() {
 }
 
 void init_wire() {
-   //! clear the I2C bus first before calling Wire.begin()
-   uint8_t i2c_bus_state = I2C_ClearBus();
-
-   if (i2c_bus_state) {
-      SERIAL_ERROR(F("I2C bus error: Could not clear!!!\r\n"));
-      //! wait for watchdog reboot
-      while(1);
-   }
-
-   switch (i2c_bus_state) {
-      case 1:
-         SERIAL_ERROR(F("SCL clock line held low\r\n"));
-      break;
-
-      case 2:
-         SERIAL_ERROR(F("SCL clock line held low by slave clock stretch\r\n"));
-      break;
-
-      case 3:
-         SERIAL_ERROR(F("SDA data line held low\r\n"));
-      break;
-   }
-
-   Wire.begin(configuration.i2c_address);
-   Wire.setClock(I2C_BUS_CLOCK);
-   Wire.onRequest(i2c_request_interrupt_handler);
-   Wire.onReceive(i2c_receive_interrupt_handler);
+  i2c_error = 0;
+  Wire.end();
+  Wire.begin(configuration.i2c_address);
+  Wire.setClock(I2C_BUS_CLOCK);
+  Wire.onRequest(i2c_request_interrupt_handler);
+  Wire.onReceive(i2c_receive_interrupt_handler);
 }
 
 void init_spi() {
@@ -368,6 +357,18 @@ ISR(TIMER1_OVF_vect) {
 }
 
 void i2c_request_interrupt_handler() {
+  if (is_test_read) {
+    switch(readable_data_address) {
+      case I2C_TH_TEMPERATURE_MED60_ADDRESS:
+        readable_data_address = I2C_TH_TEMPERATURE_SAMPLE_ADDRESS;
+      break;
+
+      case I2C_TH_HUMIDITY_MED60_ADDRESS:
+        readable_data_address = I2C_TH_HUMIDITY_SAMPLE_ADDRESS;
+      break;
+    }
+  }
+
    //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
    Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
 }
@@ -422,6 +423,9 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
         ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS] = i2c_rx_data[i];
       }
     }
+  } else {
+    readable_data_length = 0;
+    i2c_error++;
   }
 }
 
@@ -698,6 +702,7 @@ void sensors_reading_task () {
          }
          //! retry
          else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+            i2c_error++;
             delay_ms = SENSORS_RETRY_DELAY_MS;
             start_time_ms = millis();
             state_after_wait = SENSORS_READING_PREPARE;
@@ -735,6 +740,7 @@ void sensors_reading_task () {
             }
             //! retry
             else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+               i2c_error++;
                delay_ms = SENSORS_RETRY_DELAY_MS;
                start_time_ms = millis();
                state_after_wait = SENSORS_READING_GET;
@@ -936,24 +942,32 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
+        #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+        strcpy(buffer, "CONTINUOUS START-STOP");
+        #endif
+        is_oneshot = false;
+        is_continuous = true;
+        is_start = true;
+        is_stop = true;
+        commands();
+      break;
+
+      case I2C_TH_COMMAND_TEST_READ:
          #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
-         strcpy(buffer, "CONTINUOUS START-STOP");
+         strcpy(buffer, "TEST READ");
          #endif
-         is_oneshot = false;
-         is_continuous = true;
-         is_start = true;
-         is_stop = true;
-         commands();
+         is_test_read = true;
+         tests();
       break;
 
       case I2C_TH_COMMAND_SAVE:
-         is_oneshot = false;
-         is_continuous = false;
-         is_start = false;
-         is_stop = false;
-         SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
-         save_configuration(CONFIGURATION_CURRENT);
-         init_wire();
+        is_oneshot = false;
+        is_continuous = false;
+        is_start = false;
+        is_stop = false;
+        SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+        save_configuration(CONFIGURATION_CURRENT);
+        init_wire();
       break;
    }
 
@@ -970,6 +984,21 @@ void command_task() {
    is_event_command_task = false;
    ready_tasks_count--;
    interrupts();
+}
+
+void tests() {
+  if (is_test_read) {
+    noInterrupts();
+
+    if (isValid(temperature_samples.values[temperature_samples.count-1]) || isValid(humidity_samples.values[humidity_samples.count-1])) {
+      readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values[temperature_samples.count-1];
+      readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values[humidity_samples.count-1];
+      SERIAL_DEBUG(F("%.0f\t \t \t \t \t%.0f\t \t \t \t \t%u\t%u\t%s\r\n"), temperature_samples.values[temperature_samples.count-1], humidity_samples.values[humidity_samples.count-1], temperature_samples.count, humidity_samples.count, "T");
+      exchange_buffers();
+    }
+
+    interrupts();
+  }
 }
 
 void commands() {
