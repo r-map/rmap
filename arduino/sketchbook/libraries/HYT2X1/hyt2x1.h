@@ -87,15 +87,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def HYT2X1_READ_MAX
-\brief Maximum readed value: error.
+\brief Maximum acceptable readable value.
 */
-#define HYT2X1_READ_MAX             (0xFFFFFFFF)
-
-/*!
-\def HYT2X1_READ_IN
-\brief Minimum readed value: error.
-*/
-#define HYT2X1_READ_MIN             (0x40000001)
+#define HYT2X1_READ_MAX             (0x3FFF)
 
 /*!
 \namespace Hyt2X1

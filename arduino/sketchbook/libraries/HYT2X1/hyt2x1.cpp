@@ -31,28 +31,40 @@ namespace Hyt2X1 {
   }
 
   bool hyt_read(int8_t address, float *humidity, float *temperature) {
-    uint32_t raw_data = HYT2X1_READ_MAX;
+    uint16_t humidity_raw_data = UINT16_MAX;
+    uint16_t temperature_raw_data = UINT16_MAX;
+
+    *humidity = UINT16_MAX;
+    *temperature = UINT16_MAX;
 
     //! Request 4 bytes: 2 bytes for Humidity and 2 bytes for Temperature
     Wire.requestFrom(address, HYT2X1_READ_HT_DATA_LENGTH);
 
     if (Wire.available() < HYT2X1_READ_HT_DATA_LENGTH) {
-      // return false;
-    }
-
-    //! read 4 bytes of raw data
-    raw_data = (uint32_t) Wire.read() << 24 | (uint32_t) Wire.read() << 16 | (uint32_t) Wire.read() << 8 | (uint32_t) Wire.read();
-
-    //! reading error!
-    if (raw_data == HYT2X1_READ_MAX || raw_data == HYT2X1_READ_MIN) {
       return false;
     }
 
-    //! extract 14 bit humidity right adjusted (bit 0-14)
-    *humidity = 100.0 / 0x3FFF * (raw_data >> 16 & 0x3FFF);
+    humidity_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
+    temperature_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
 
-    //! extract 14 bit temperature left adjusted (bit 2-16)
-    *temperature = 165.0 / 0x3FFF * (((unsigned int) raw_data) >> 2) - 40;
+    //! sensor in command mode or without new data
+    if (humidity_raw_data >> 14) {
+      return false;
+    }
+
+    if (humidity_raw_data > HYT2X1_READ_MAX) {
+      return false;
+    }
+
+    humidity_raw_data &= HYT2X1_READ_MAX;
+    temperature_raw_data >>= 2;
+
+    if (temperature_raw_data >= HYT2X1_READ_MAX) {
+      return false;
+    }
+
+    *humidity = (100.0 / HYT2X1_READ_MAX) * humidity_raw_data;
+    *temperature = (165.0 / HYT2X1_READ_MAX) * temperature_raw_data - 40.0;
 
     return true;
   }
