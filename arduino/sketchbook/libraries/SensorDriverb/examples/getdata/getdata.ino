@@ -102,11 +102,16 @@ void setup()
   sensors[0].address=I2C_TH_ADDRESS;
   */
 
-
+  /*
   strcpy(sensors[0].driver,"SERI");
   strcpy(sensors[0].type,"HPM");
   sensors[0].address=73;
+  */
 
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"SCD");
+  sensors[0].address=SCD30_ADDRESS;
+  
   // start up the serial interface
   Serial.begin(19200);
   Serial.println("started");
@@ -166,7 +171,7 @@ void loop()
       
       
       // get integers values 
-#define LENVALUES 2
+#define LENVALUES 3
       long values[LENVALUES];
       size_t lenvalues=LENVALUES;
 

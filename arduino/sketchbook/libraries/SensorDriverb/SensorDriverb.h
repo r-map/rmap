@@ -42,6 +42,10 @@
 #include <SoftwareSerial.h>
 #endif
 
+#if defined (SCD_ONESHOT)
+#include "SparkFun_SCD30_Arduino_Library.h" 
+#endif
+
 // initialize the I2C interface
 //void SensorDriverInit();
 
@@ -877,8 +881,34 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
 
 #endif
 
+#if defined (SCD_ONESHOT)
+
+ class SensorDriverSCDoneshotSerial : public SensorDriver
+ {
+ public:
+   //SensorDriverSCDoneshotSerial();
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined (USEGETDATA)
+    virtual int getdata(unsigned long& data,unsigned short& width);
+  #endif
+    virtual ~SensorDriverSCDoneshotSerial();
+
+#if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+    
+   protected:
+    SCD30* _scd=NULL;  
+};
+
+#endif
+
 #define SD_INTERNAL_ERROR 1
 #define SD_SUCCESS 0
 
 #endif
-

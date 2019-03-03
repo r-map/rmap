@@ -11,6 +11,7 @@ int SDS011counter=0;
 bool SDSMICSstarted=false;
 bool HPMstarted=false;
 bool PMSstarted=false;
+bool SCDstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -121,7 +122,12 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	return new SensorDriverMICS4514max();
       else
 #endif
-	
+
+#if defined (SCD_ONESHOT)
+	if (strcmp(type, "SCD") == 0) {
+	  return new SensorDriverSCDoneshotSerial();
+	} else
+#endif
 	return NULL;
     } else
 
@@ -145,9 +151,9 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 #if defined (PMS_ONESHOT)
 	  if (strcmp(type, "PMS") == 0) {
 	    return new SensorDriverPMSoneshotSerial();
-	  }
+	  } 
 #endif
-
+	
     } else
     {
       return NULL;
@@ -5392,4 +5398,202 @@ SensorDriverPMSoneshotSerial::~SensorDriverPMSoneshotSerial(){
   //delete _pmsSerial;
 }
 
+#endif
+
+
+
+#if defined (SCD_ONESHOT)
+
+int SensorDriverSCDoneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  //bool oneshot=true;
+
+  _scd = new SCD30();
+
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SCD")));
+  
+  _scd->begin(address);  //This will cause readings to occur every two seconds
+
+  /*
+    Maximal I2C speed is 100 kHz and the master has to support clock
+    stretching. Clock stretching period in write- and read- frames is 12
+    ms, however, due to internal calibration processes a maximal clock
+    stretching of 150 ms may occur once per day.  For detailed information
+    to the I2C protocol, refer to NXP I2C-bus specification 1 . SCD30 does
+    not support repeated start condition. Clock stretching is necessary to
+    start the microcontroller and might occur before every ACK. I2C master
+    clock stretching needs to be implemented according to the NXP
+    specification. The boot-up time is < 2 s.
+  */
+  _scd->sendCommand(COMMAND_SOFT_RESET);
+  //delay(xx);  ??? not explained in documentation
+  if(_scd->beginMeasuring() != true) //Start continuous measurements
+    {
+      return SD_INTERNAL_ERROR;
+    }
+  _scd->setMeasurementInterval(2); //2 seconds between measurements
+  _scd->setAutoSelfCalibration(true); //Enable auto-self-calibration
+
+  SCDstarted=false;
+  _timing=millis();
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverSCDoneshotSerial::prepare(unsigned long& waittime)
+{
+  
+  SCDstarted=true;
+  _timing=millis();
+  //waittime= 6000ul;
+
+  // clear previous measurements
+  _scd->getCO2();
+  _scd->getTemperature();
+  _scd->getHumidity();
+  
+  //_scd->beginMeasuring();
+    
+  waittime= 2500ul;
+  return SD_SUCCESS;
+}
+
+int SensorDriverSCDoneshotSerial::get(long values[],size_t lenvalues)
+{
+  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
+  if (!SCDstarted)  return SD_INTERNAL_ERROR;
+  
+  SCDstarted=false;  
+  _timing=0;
+
+  if (_scd->dataAvailable()){
+  
+      // measure
+      // get CO2
+      if (lenvalues >= 1) {
+	values[0] =  _scd->getCO2();
+      }
+      
+      // get temperature
+      if (lenvalues >= 2) {
+	values[1] = _scd->getTemperature()*100+27315 ;
+      }
+      
+      // get humidity
+      if (lenvalues >= 3) {
+	values[2] = _scd->getHumidity() ;
+      }
+
+      //_scd->sendCommand(COMMAND_STOP_CONTINUOS_MEASUREMENT);
+      
+      return SD_SUCCESS;
+    } else {
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#scd error")));
+    return SD_INTERNAL_ERROR;    
+  }
+}
+
+#if defined (USEGETDATA)
+int SensorDriverSCDoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+{
+
+  long values[1];
+  width=20;   // todo
+  const long reference=0;
+  
+  if (SensorDriverSCDoneshotSerial::get(values,1) == SD_SUCCESS){
+    data=(values[0]-reference);// << (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    width=0xFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+  
+}
+#endif
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSCDoneshotSerial::getJson()
+{
+  long values[3];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverSCDoneshotSerial::get(values,3) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15242", values[0]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15242");
+    }
+
+    if (values[1] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B12101");
+    }
+
+    if (values[2] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B13003", values[2]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B13003");
+    }
+
+  }else{
+    aJson.addNullToObject(jsonvalues, "B15242");
+    aJson.addNullToObject(jsonvalues, "B12101");
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverSCDoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[3];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,3) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B15242"]= values[0];      
+    }else{
+      jsonvalues["B15242"]=RawJson("null");
+    }
+
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B12101"]= values[1];
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+
+    if ((unsigned long) values[2] != 0xFFFFFFFF){
+      jsonvalues["B13003"]= values[2];
+    }else{
+      jsonvalues["B13003"]=RawJson("null");
+    }
+
+  }else{
+    jsonvalues["B15242"]=RawJson("null");
+    jsonvalues["B12101"]=RawJson("null");
+    jsonvalues["B13003"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverSCDoneshotSerial::~SensorDriverSCDoneshotSerial(){
+
+  // _scd->sendCommand(COMMAND_STOP_CONTINUOS_MEASUREMENT);
+
+  delete _scd;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+  //delete _pmsSerial;
+}
 #endif
