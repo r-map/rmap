@@ -343,7 +343,8 @@ template_choices = [
     "stima_sm",    "stima_th",    "stima_y",    "stima_ths",    "stima_thsm",    "stima_thw",    "stima_thp",    "stima_yp",
     "stima_thwr",    "stima_thwrp",
     "stima_rf24_t",    "stima_rf24_h",    "stima_rf24_w",    "stima_rf24_r",    "stima_rf24_p",    "stima_rf24_th",    "stima_rf24_y",
-    "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp", "luftdaten", "airquality",
+    "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp",
+    "airquality_sds", "airquality_pms", "airquality_hpm",
     "stima_thd", "stima_thdm",
     "stima_report_thp","stima_report_thpb", "stima_report_thpwb", "stima_report_p",
     "stima_indirect_t",    "stima_indirect_h",    "stima_indirect_r",    "stima_indirect_p",    "stima_indirect_s", "stima_indirect_m",
@@ -667,17 +668,23 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="rf24 Pressure",driver="RF24",
                   type="BMP",address=119,timerange="254,0,0",level="1,-,-,-")
 
-    if (template == "luftdaten"):
+    if (template == "airquality_sds"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
                   type="SSD",address=36,timerange="254,0,0",level="103,2000,-,-")
 
-    if (template == "airquality"):
+    if (template == "airquality_pms"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
-                  type="HPM",address=36,timerange="254,0,0",level="103,2000,-,-")
+                  type="PMS",address=36,timerange="254,0,0",level="103,2000,-,-")
+
+    if (template == "airquality_hpm"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="SERI",
+                  type="hpm",address=36,timerange="254,0,0",level="103,2000,-,-")
         
     if (template == "stima_report_p"):
         print("setting template:", template)
