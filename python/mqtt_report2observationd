@@ -53,14 +53,14 @@ mqtt_report2observationd = daemon.Daemon(
 
 
 # catch signal to terminate the process
-#class GracefulKiller:
-#    kill_now = False
-#    def __init__(self):
-#        signal.signal(signal.SIGINT, self.exit_gracefully)
-#        signal.signal(signal.SIGTERM, self.exit_gracefully)
-#
-#    def exit_gracefully(self,signum, frame):
-#        self.kill_now = True
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
+
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
 
 
 
@@ -72,7 +72,7 @@ def main (self):
     import traceback
 
     #arm the signal handler
-#    killer = GracefulKiller()
+    killer = GracefulKiller()
     
     # configure the logger
 #    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(thread)d - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
@@ -87,7 +87,13 @@ def main (self):
     logging.info('Starting up mqtt_report2observationd')
 
     try:
-        Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug, terminate)
+        #Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug, terminate)
+        while True:
+            if killer.kill_now:
+                logging.info("killed by signal\n")
+                #terminate.set()
+                break
+
 
     except Exception as exception:
         # log and retry on exception 
@@ -101,7 +107,7 @@ def main (self):
         # terminate on keyboard interrupt
         sys.stdout.write("keyboard interrupt\n")
         logging.info("keyboard interrupt\n")
-        terminate.set()
+        #terminate.set()
     finally:
         # check if we have to terminate together with other exceptions
         #terminate.set()
