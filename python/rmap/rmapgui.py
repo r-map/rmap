@@ -1384,7 +1384,7 @@ class Rmap(App):
 
 
 
-    def close_settings(self,settings):
+    def close_settings(self,settings=None):
         """ The settings panel has been closed. """
         print("Setting was closed")
         self.questionactivatestation()
