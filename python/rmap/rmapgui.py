@@ -61,6 +61,7 @@ from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 #from kivy.lib import osc
 from oscpy.server import OSCThreadServer
+from oscpy.client import send_message
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
@@ -2129,7 +2130,7 @@ class Rmap(App):
     #    osc.sendMsg('/rpc', ["testinout",], port=3000)
 
     def rpcout(self, message):
-        self.osc.send_message(b'/rpc', [message,],ip_address='localhost', port=3000)
+        send_message(b'/rpc', [message,],ip_address='localhost', port=3000)
 
 
     def servicewebserver(self):
@@ -2227,7 +2228,9 @@ class Rmap(App):
                 self.rpcin_message = b""
                 self.servicename=None
                 os.remove("servicerunning")
-            except:
+            except Exception as e:
+                print(e)
+                traceback.print_exc()                
                 print ("ERROR stopping service station")
                 
     def popup(self,message,exit=False):

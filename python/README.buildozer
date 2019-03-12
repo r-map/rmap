@@ -125,22 +125,20 @@ buildozer android debug
 #python-for-android/src/blacklist.txt
 
 #clean locale files:
-find ../buildozer/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.mo -exec rm \{\} \;
-find ../buildozer/android/platform/build/build/python-installs/rmap/django  -name \*.mo -exec rm \{\} \;
-find ../buildozer/android/app/registration   -name \*.mo -exec rm \{\} \;
+find ../buildbuildozer_old/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.mo -exec rm \{\} \;
+find ../buildbuildozer_old/android/platform/build/build/python-installs/rmap/django  -name \*.mo -exec rm \{\} \;
+find ../buildbuildozer_old/android/app/registration   -name \*.mo -exec rm \{\} \;
 
-find ../buildozer/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.po -exec rm \{\} \;
-find ../buildozer/android/platform/build/build/python-installs/rmap/django  -name \*.po -exec rm \{\} \;
-find ../buildozer/android/app/registration   -name \*.po -exec rm \{\} \;
-
-android/app/registration
+find ../buildbuildozer_old/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.po -exec rm \{\} \;
+find ../buildbuildozer_old/android/platform/build/build/python-installs/rmap/django  -name \*.po -exec rm \{\} \;
+find ../buildbuildozer_old/android/app/registration   -name \*.po -exec rm \{\} \;
 
 #clean static files:
-find ../buildozer/android/app  -name "static" -exec rm \-rf \{\} \;
+find ../buildbuildozer_old/android/app  -name "static" -exec rm \-rf \{\} \;
 
 #clean others:
 rm ltmain.sh
-find ../buildozer/android/app  -name "static" -exec rm \-rf \{\} \;
+find ../buildbuildozer_old/android/app  -name "static" -exec rm \-rf \{\} \;
 
 # to rebuild android package
 buildozer android release

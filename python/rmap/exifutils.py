@@ -8,6 +8,7 @@ import sys
 from . import piexif
 from datetime import datetime
 import io
+import traceback
 
 class Rational:
     """A simple fraction class. Python 2.6 could use the inbuilt Fraction class."""
@@ -161,10 +162,14 @@ def photo_manage(filename):
     try:
         try:
             from PIL import Image as PILImage
-        except:
+        except Exception as e:        
+            print(e)
+            traceback.print_exc()
             import Image as PILImage
-    except:
-        print("To use this program, you need to install Python Imaging Library PILLOW")
+    except Exception as e:        
+        print(e)
+        traceback.print_exc()
+        print("To use this program, you need to install Python Imaging Library PILLOW or PIL")
         sys.exit(1)
 
     im = PILImage.open(filename)

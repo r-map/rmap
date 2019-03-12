@@ -99,7 +99,7 @@ android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUET
 #android.minapi = 9
 
 # (int) Android SDK version to use
-android.sdk = 20
+android.sdk = 22
 
 # (str) Android NDK version to use
 android.ndk = 10.3.2
@@ -240,7 +240,7 @@ log_level = 2
 warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
-build_dir = ../buildozer
+build_dir = ../buildbuildozer_old
 
 # (str) Path to build output (i.e. .apk, .ipa) storage
 # bin_dir = ./bin

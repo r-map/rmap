@@ -35,6 +35,7 @@ from .bluetooth import *
 from plyer.compat import PY2
 #from kivy.lib import osc    ####   osc IPC  ####
 from oscpy.server import OSCThreadServer
+from oscpy.server import send_message
 from kivy.utils import platform
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import ugettext as _
@@ -298,7 +299,7 @@ class station():
         """
         Send a message to osc channel
         """
-        self.osc.send_message(b'/rpc', [message,],ip_address='localhost', port=3001)
+        send_message(b'/rpc', [message,],ip_address='localhost', port=3001,safer=True)
 
 
     def on_stop(self):
