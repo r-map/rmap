@@ -641,29 +641,26 @@ void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
 
 void SensorDriverHyt2X1::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
-
-  if (!*_is_prepared) {
-    *_is_prepared = Hyt2X1::hyt_initRead(_address);
-    _delay_ms = HYT2X1_CONVERSION_TIME_MS;
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
-  }
-  else {
-    _delay_ms = 0;
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
-  }
-
+  *_is_prepared = Hyt2X1::hyt_initRead(_address);
+  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), *_is_prepared ? OK_STRING : FAIL_STRING);
+  _delay_ms = HYT2X1_CONVERSION_TIME_MS;
   _start_time_ms = millis();
 }
 
 void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
   static float humidity;
   static float temperature;
+  static float humidity_confirmation;
+  static float temperature_confirmation;
+  uint8_t status = HYT2X1_ERROR;
 
   switch (_get_state) {
     case INIT:
-    humidity = UINT16_MAX;
-    temperature = UINT16_MAX;
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+      humidity = UINT16_MAX;
+      temperature = UINT16_MAX;
+      humidity_confirmation = UINT16_MAX;
+      temperature_confirmation = UINT16_MAX;
+      memset(values, UINT8_MAX, length * sizeof(int32_t));
 
     _is_readed = false;
     _is_end = false;
@@ -682,57 +679,89 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
     break;
 
     case READ:
-    _is_success = Hyt2X1::hyt_read(_address, &humidity, &temperature);
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    _get_state = END;
+      status = Hyt2X1::hyt_read(_address, &humidity, &temperature);
+      if (status == HYT2X1_SUCCESS) {
+        _is_success = true;
+        _get_state = READ_CONFIRMATION;
+      }
+      else {
+        _is_success = false;
+        _get_state = END;
+      }
+      _delay_ms = 0;
+      _start_time_ms = millis();
+    break;
+
+    case READ_CONFIRMATION:
+      status = Hyt2X1::hyt_read(_address, &humidity_confirmation, &temperature_confirmation);
+      if ((status == HYT2X1_SUCCESS) || (status == HYT2X1_NO_NEW_DATA)) {
+        // max 1% variation
+        if ((abs(humidity - humidity_confirmation) <= 1.0) && (abs(temperature - temperature_confirmation) <= 0.5)) {
+          _is_success = true;
+        }
+        else {
+          _is_success = false;
+        }
+      }
+      else {
+        _is_success = false;
+      }
+      _delay_ms = 0;
+      _start_time_ms = millis();
+      _get_state = END;
     break;
 
     case END:
-    if (length >= 1) {
+      if (length >= 1) {
+        if (_is_success) {
+          values[0] = round(humidity);
+        }
+        else {
+          values[0] = UINT16_MAX;
+        }
+      }
+
+      if (length >= 2) {
+        if (_is_success) {
+          values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
+        }
+        else {
+          values[1] = UINT16_MAX;
+        }
+      }
+
+      SensorDriver::printInfo(_driver, _type, _address, _node);
+      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+      if (length >= 1) {
+        if (isValid(values[0])) {
+          SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
+        }
+        else {
+          SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+        }
+      }
+
+      if (length >= 2) {
+        if (isValid(values[1])) {
+          SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
+        }
+        else {
+          SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+        }
+      }
+
       if (_is_success) {
-        values[0] = round(humidity);
+        _delay_ms = 0;
       }
       else {
-        values[0] = UINT16_MAX;
+        _delay_ms = HYT2X1_CONVERSION_TIME_MS;
       }
-    }
 
-    if (length >= 2) {
-      if (_is_success) {
-        values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
-      }
-      else {
-        values[1] = UINT16_MAX;
-      }
-    }
-
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
-
-    if (length >= 1) {
-      if (isValid(values[0])) {
-        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
-      }
-      else {
-        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
-      }
-    }
-
-    if (length >= 2) {
-      if (isValid(values[1])) {
-        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
-      }
-      else {
-        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
-      }
-    }
-
-    _start_time_ms = millis();
-    _delay_ms = 0;
-    _is_end = true;
-    _is_readed = false;
-    _get_state = INIT;
+      _start_time_ms = millis();
+      _is_end = true;
+      _is_readed = false;
+      _get_state = INIT;
     break;
   }
 }
