@@ -75,9 +75,7 @@ void loop() {
          // enable watchdog
          init_wdt(WDT_TIMER);
 
-        start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
-
-        state = TASKS_EXECUTION;
+         state = TASKS_EXECUTION;
       break;
       #endif
 
@@ -93,8 +91,7 @@ void loop() {
          }
 
          // I2C Bus Check
-         if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
-           start_i2c_check_ms = millis();
+         if ((i2c_error > I2C_MAX_ERROR_COUNT) && (ready_tasks_count == 0)) {
            SERIAL_ERROR(F("Restart I2C BUS\r\n"));
            init_wire();
            wdt_reset();
