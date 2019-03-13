@@ -591,22 +591,10 @@ gsm_state_t gsm_state;
 #endif
 
 /*!
-\var sensors_reading_retry;
-\brief Number of sensors reading retry with i2c error.
-*/
-uint8_t sensors_reading_retry;
-
-/*!
 \var i2c_error
 \brief Number of i2c error.
 */
 uint8_t i2c_error;
-
-/*!
-\var start_i2c_check_ms
-\brief System time (in millisecond) when the system has check the bus for error.
-*/
-uint32_t start_i2c_check_ms;
 
 /*!
 \var time_state
