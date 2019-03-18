@@ -118,6 +118,15 @@ configspec['ttn2dballed']['user']     = "string(default=None)"
 configspec['ttn2dballed']['group']    = "string(default=None)"
 configspec['ttn2dballed']['mapfile'] = "string(default='ttnmap')"
 
+configspec['report2observationd']={}
+
+configspec['report2observationd']['logfile']  = "string(default='/tmp/report2observationd.log')"
+configspec['report2observationd']['errfile']  = "string(default='/tmp/report2observationd.err')"
+configspec['report2observationd']['lockfile'] = "string(default='/tmp/report2observationd.lock')"
+configspec['report2observationd']['user']     = "string(default=None)"
+configspec['report2observationd']['group']    = "string(default=None)"
+configspec['report2observationd']['mapfile'] = "string(default='ttnmap')"
+
 
 configspec['amqp2dballed']={}
 configspec['amqp2dballed']['logfile']  = "string(default='/tmp/amqp2dballed.log')"
@@ -389,6 +398,14 @@ lockfilettn2dballed             = config['ttn2dballed']['lockfile']
 userttn2dballed                 = config['ttn2dballed']['user']
 groupttn2dballed                = config['ttn2dballed']['group']
 mapfilettn2dballed              = config['ttn2dballed']['mapfile']
+
+# section report2observationd
+logfilereport2observationd              = config['report2observationd']['logfile']
+errfilereport2observationd              = config['report2observationd']['errfile']
+lockfilereport2observationd             = config['report2observationd']['lockfile']
+userreport2observationd                 = config['report2observationd']['user']
+groupreport2observationd                = config['report2observationd']['group']
+mapfilereport2observationd              = config['report2observationd']['mapfile']
 
 
 

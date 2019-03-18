@@ -57,10 +57,12 @@ class Rmapdonotexist(Exception):
 
 class rmapmqtt:
 
-    def __init__(self,ident="-",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test"):
+    def __init__(self,ident="-",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None):
 
         self.ident=ident
-        self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
+        self.lonlat=lonlat
+        if self.lonlat is None:
+            self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
         self.network=network
         self.host=host
         self.port=port
@@ -310,14 +312,12 @@ class rmapmqtt:
             except Exception as inst:
                 self.error(inst)
 
-        print("--------------------------------> connected")
         self.connected=True
 
 
     def on_disconnect(self,mosq, userdata, rc):
         self.log("disconnect rc: "+str(rc))
 
-        print("--------------------------------> disconnected")
         self.connected=False
 
         #if rc == 1 :

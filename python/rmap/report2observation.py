@@ -15,7 +15,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 
 __author__ = "Paolo Patruno"
-__copyright__ = "Copyright (C) 2017 by Paolo Patruno"
+__copyright__ = "Copyright (C) 2019 by Paolo Patruno"
 
 
 import rmap.settings
@@ -27,13 +27,16 @@ import json
 import signal
 from rmap import rmapmqtt
 import traceback
+from  rmap import rmap_core
 
 
 class report2observation(object):
 
-  def __init__(self,mqtt_host,mqttuser, mqttpassword ):
+  def __init__(self,mqtt_host,mqttuser, mqttpassword, subtopics, terminate ):
 
     self.mqtt_host=mqtt_host
+    self.subtopics=subtopics
+    self.client_id = "report2observation_%d" % (os.getpid())
     self.mqttc = paho.Client(self.client_id, clean_session=True)
     self.terminateevent=terminate
 
@@ -48,8 +51,6 @@ class report2observation(object):
     # set timezone to GMT
     os.environ['TZ'] = 'GMT'
     time.tzset()
-
-#    self.mqttc.will_set("clients/" + self.client_id, payload="Adios!", qos=0, retain=False)
 
 
   def cleanup(self,signum, frame):
@@ -72,9 +73,7 @@ class report2observation(object):
   def on_connect(self,mosq, userdata, flags, rc):
     logging.info("Connected to broker at %s as %s" % (self.mqtt_host, self.client_id))
 
-#    self.mqttc.publish("clients/" + self.client_id, "Online")
-
-    for topic in self.map:
+    for topic in self.subtopics:
         logging.debug("Subscribing to topic %s" % topic)
         self.mqttc.subscribe(topic, 0)
 
@@ -84,122 +83,83 @@ class report2observation(object):
 
   def on_message(self,mosq, userdata, msg):
 
-    now = int(time.time())
+    # JSON: try and load the JSON string from payload             
+    try:
+
+      # "report/digiteco/1208611,4389056/fixed/0,0,900/103,2000,-,-/B12101 {"v":null,"t":"2019-03-16T08:15:00"}"
+      # "report/+/+/+/+/+"
+
+
+      topics=msg.topic.split("/")
+      prefix= topics[0]
+      ident = topics[1]
+      lonlat=topics[2]
+      network=topics[3]
+
+      st = json.loads(msg.payload.decode())
+      dt=st.get("t")
+
+      try:
+        logging.info("try to decode with table d")
+
+        d=st["d"]
+        timerange=topics[4]
+        level=topics[5]
+        bcodes=rmap_core.dtable[str(d)]
+        timeranges=[]
+        levels=[]
+        for bcode in bcodes:
+          timeranges.append(timerange)
+          levels.append(level)
+
+        
+      except:
+        try:
+          logging.info("Error; try to decode with table e")
+          e=st["e"]
+          numtemplate=int(e)
+          #if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
+          mytemplate=rmap_core.ttntemplate[numtemplate]
+          bcodes=[]
+          timeranges=[]
+          levels=[]
+          for bcode,param in list(mytemplate.items()):
+            bcodes.append(bcode)
+            timeranges.append(param["timerange"])
+            levels.append(param["level"])
+        except:
+          logging.error("skip message: %s : %s"% (msg.topic,msg.payload))
+          return
+
+      logging.info("ident=%s username=%s password=%s lonlat=%s network=fixed host=localhost prefix=sample maintprefix=maint" % (ident,rmap.settings.mqttuser,"fakepassword",lonlat))
+      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host="rmap.cc",prefix=prefix,maintprefix="maint",logfunc=logging.debug)
+
+      dindex=0
+      for val in st["p"]:
+        bcode=bcodes[dindex]
+        timerange=timeranges[dindex]
+        level=levels[dindex]
+        datavar={bcode:{"t": dt,"v": val}}
+
+        logging.info("timerange=%s level=%s bcode=%s val=%d" % (timerange,level,bcode,val))
+        mqtt.data(timerange=timerange,level=level,datavar=datavar)
+        dindex+=1
+      
+      mqtt.disconnect()
+
+    except Exception as exception:
+      logging.error("Topic %s error decoding or publishing; payload: [%s]" %
+                    (msg.topic, msg.payload))
+      logging.error('Exception occured: ' + str(exception))
+      logging.error(traceback.format_exc())
+
+      # if some exception occour here, ask to terminate
+      #self.terminateevent.exit_gracefully()
+
+    finally:
+      return
+
     
-    # Find out how to handle the topic in this message: slurp through our map 
-    # this is not needed if all things are right; I cannot receive topics that I have not subscribed
-    for t in self.map:
-        if paho.topic_matches_sub(t, msg.topic):
-            # print "%s matches MAP(%s) => %s" % (msg.topic, t, self.map[t])
-
-            (user, slug) = self.map[t]
-
-            # JSON: try and load the JSON string from payload             
-            try:
-                st = json.loads(msg.payload.decode())
-                
-                metadata=st["metadata"]
-                #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
-                mytime=metadata.pop("time",time.strftime("%Y-%m-%dT%H:%M:%S",time.gmtime(now))).split(".")[0]
-                dt=datetime.datetime.strptime(mytime,"%Y-%m-%dT%H:%M:%S")                
-            
-                payload=base64.b64decode(st["payload_raw"])
-                #print "payload: ",payload
-                logging.debug("hex: %s" % binascii.hexlify(payload))
-                
-                nbits=len(binascii.hexlify(payload))*4
-                template=int(binascii.hexlify(payload),16)
-                
-                #temp=int(binascii.hexlify(payload),16)
-                #template=0
-                #for i in xrange(0,nbits):
-                    #    if (testBit(temp,i)!=0):
-                #        template=setBit(template,nbits-i-1)
-                    
-                logging.debug("int: %d" %template)
-                logging.debug("bynary: {0:b}".format(template))
-                #print "bynary:",bin(template)
-                
-                nbit=8
-                start=nbits-nbit
-                numtemplate=bitextract(template,start,nbit)
-                
-                #                             TEMPLATE NUMBER 1
-                if numtemplate > 0 and numtemplate < len(rmap_core.ttntemplate):
-
-                    try:
-
-                        #close django connection to DB to be sure we have a new active connection handler
-                        try:
-                            connection.close()
-                        except Exception as e:
-                            print(("django connection close error",e))
-                        
-                        mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
-                    except ObjectDoesNotExist :
-                        logging.error("StationMetadata matching query does not exist")
-                        return
-                    if not mystation.active:
-                        logging.error("disactivated station: %s %s ; do nothing!" % (slug,user) )
-                        return
-
-                else:
-                    logging.error("Unknown template %d " % numtemplate)
-                    return
-
-            except Exception as exception:
-                # log and retry on exception 
-                logging.error('Exception occured: ' + str(exception))
-                logging.error(traceback.format_exc())
-                logging.error("error decoding message: skip it and do nothing!")
-                #raise
-                return
-
-            try:
-                #print "ident=",user,"username=",rmap.settings.mqttuser,"password=",rmap.settings.mqttpassword,"lon=",mystation.lon,"lat=",mystation.lat,"network=","fixed","host=","rmap.cc","prefix=","sample","maintprefix=","maint"                    
-                logging.info("ident=%s username=%s password=%s lon=%f lat=%f network=fixed host=localhost prefix=sample maintprefix=maint" % (user,rmap.settings.mqttuser,"fakepassword",mystation.lon,mystation.lat))
-                mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="localhost",prefix="sample",maintprefix="maint",logfunc=logging.debug)
-                
-                mytemplate=rmap_core.ttntemplate[numtemplate]
-                for bcode,param in list(mytemplate.items()):
-                    
-                    nbit=param["nbit"]
-                    start-=nbit
-                    bval=bitextract(template,  start, nbit)
-                    if (bval != ((1 << nbit) - 1)):
-                        #val=(bval+param["offset"])/float(param["scale"])
-                        val=bval+param["offset"]
-                        datavar={bcode:{"t": dt,"v": val}}
-                        #print "datavar=",datavar
-                        logging.info("timerange=%s level=%s bcode=%s val=%d" % (param["timerange"],param["level"],bcode,val))
-                        mqtt.data(timerange=param["timerange"],level=param["level"],datavar=datavar)
-
-                mqtt.disconnect()
-                #if mqtt.mqttc._sock:
-                #    mqtt.mqttc._sock.close()
-                #if mqtt.mqttc._sockpairW:
-                #    mqtt.mqttc._sockpairW.close()
-                #if mqtt.mqttc._sockpairR:
-                #    mqtt.mqttc._sockpairR.close()
-                    
-            except Exception as exception:
-                logging.error("Topic %s error decoding or publishing; payload: [%s]" %
-                             (msg.topic, msg.payload))
-                logging.error('Exception occured: ' + str(exception))
-                logging.error(traceback.format_exc())
-
-                # if some exception occour here, ask to terminate; if not the thread will stall forever
-                self.terminateevent.set()
-
-            finally:
-                return
-
-    logging.error("Message topic do not match any topics that I have subcribed [%s]", t)
-    # somethings go wrong here; I cannot receive topics that I have not subscribed
-    self.terminateevent.set()
-    
-
-  
   def on_subscribe(self,mosq, userdata, mid, granted_qos):
     logging.debug("Subscribed: "+str(mid)+" "+str(granted_qos))
 
@@ -223,7 +183,7 @@ class report2observation(object):
         
     self.mqttc.loop_start()
 
-    while not self.terminateevent.isSet():
+    while not self.terminateevent.kill_now:
         time.sleep(5)
 
     self.terminate()
@@ -231,10 +191,28 @@ class report2observation(object):
         
 if __name__ == '__main__':
 
-    MQTT_HOST = os.environ.get('MQTT_HOST', 'eu.thethings.network')
+    import logging,logging.handlers
+
+    #formatter=logging.Formatter("%(asctime)s%(thread)d-%(levelname)s- %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    #handler = logging.handlers.RotatingFileHandler("report2observation.log", maxBytes=5000000, backupCount=10)
+    #handler.setFormatter(formatter)
     
-    m2g=report2observation(MQTT_HOST,mqttuser, mqttpassword)
-    m2g.run()
-        
+    # Add the log message handler to the root logger
+    #logging.getLogger().addHandler(handler)
+    #logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger("report2observation")
+    logging.basicConfig(level=logging.DEBUG)
+
+    logging.info('Starting up report2observation')
+
+  
+    MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
+    subtopics=["test/+/+/+","test/+/+/+/+/+"]
+    mqttuser="pat1"
+    mqttpassword="1password"    
+    
+    r2o=report2observation(MQTT_HOST,mqttuser, mqttpassword ,subtopics)
+    r2o.run()
+
 
     

@@ -18,7 +18,6 @@
 __author__ = "Paolo Patruno"
 __copyright__ = "Copyright (C) 2019 by Paolo Patruno"
 
-#from multiprocessing import Pool
 
 import signal
 import os
@@ -35,11 +34,11 @@ from rmap.report2observation import report2observation
 MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
 
 
-logfile=rmap.settings.logfilettn2dballed
-errfile=rmap.settings.errfilettn2dballed
-lockfile=rmap.settings.lockfilettn2dballed
-user=rmap.settings.userttn2dballed
-group=rmap.settings.groupttn2dballed
+logfile=rmap.settings.logfilereport2observationd
+errfile=rmap.settings.errfilereport2observationd
+lockfile=rmap.settings.lockfilereport2observationd
+user=rmap.settings.userreport2observationd
+group=rmap.settings.groupreport2observationd
 
 
 mqtt_report2observationd = daemon.Daemon(
@@ -87,12 +86,17 @@ def main (self):
     logging.info('Starting up mqtt_report2observationd')
 
     try:
-        #Threaded_ttn2dballe(MQTT_HOST,mqttuser, mqttpassword , (topic,), user, slug, terminate)
-        while True:
-            if killer.kill_now:
-                logging.info("killed by signal\n")
-                #terminate.set()
-                break
+
+        subtopics=["test/+/+/+","test/+/+/+/+/+"]
+        
+        r2o=report2observation(MQTT_HOST,rmap.settings.mqttuser, rmap.settings.mqttpassword ,subtopics,killer)
+        r2o.run()
+        
+        #while True:
+        #    if killer.kill_now:
+        #        logging.info("killed by signal\n")
+        #        #terminate.set()
+        #        break
 
 
     except Exception as exception:
@@ -129,7 +133,6 @@ if __name__ == '__main__':
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
 
         main(mqtt_report2observationd)  # (this code was run as script)
-        #maindirecttodballe(ttn2dballed) # use this if you do not have arkimet and rabbitmq
             
         for proc in mqtt_report2observationd.procs:
             proc.wait()
