@@ -206,12 +206,6 @@ volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 volatile uint8_t i2c_error;
 
 /*!
-\var start_i2c_check_ms
-\brief System time (in millisecond) when the system has check the bus for error.
-*/
-uint32_t start_i2c_check_ms;
-
-/*!
 \var ready_tasks_count
 \brief Number of tasks ready to execute.
 */

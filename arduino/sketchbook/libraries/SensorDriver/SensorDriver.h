@@ -394,6 +394,7 @@ protected:
    enum {
       INIT,
       READ,
+      READ_CONFIRMATION,
       END
    } _get_state;
 };

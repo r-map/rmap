@@ -72,8 +72,6 @@ void loop() {
         //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
         init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
         state = TASKS_EXECUTION;
-
-        start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
       break;
       #endif
 
@@ -89,8 +87,7 @@ void loop() {
          }
 
         // I2C Bus Check
-        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
-          start_i2c_check_ms = millis();
+        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (ready_tasks_count == 0)) {
           SERIAL_ERROR(F("Restart I2C BUS\r\n"));
           init_wire();
           wdt_reset();
@@ -450,7 +447,7 @@ bool make_observation_from_samples(bool is_force_processing, sample_t *sample, o
     is_processing_end = (sample->count >= (SENSORS_SAMPLE_COUNT_MIN - SENSORS_SAMPLE_COUNT_TOLERANCE));
   }
   //! normal behavior: processing when correct measure sample count + error measure sample count == samples_count
-  else is_processing_end = (sample->count == samples_count);
+  else is_processing_end = ((sample->count + sample->error_count) == samples_count);
 
   if (is_processing_end) {
     med = 0;
@@ -695,24 +692,22 @@ void sensors_reading_task () {
       break;
 
       case SENSORS_READING_IS_PREPARED:
-         //! success
-         if (sensors[i]->isPrepared()) {
-            retry = 0;
-            sensors_reading_state = SENSORS_READING_GET;
-         }
-         //! retry
-         else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
-            i2c_error++;
-            delay_ms = SENSORS_RETRY_DELAY_MS;
-            start_time_ms = millis();
-            state_after_wait = SENSORS_READING_PREPARE;
-            sensors_reading_state = SENSORS_READING_WAIT_STATE;
-         }
-         //! fail
-         else {
-            retry = 0;
-            sensors_reading_state = SENSORS_READING_GET;
-         }
+        //! success
+        if (sensors[i]->isPrepared()) {
+          sensors_reading_state = SENSORS_READING_GET;
+        }
+        //! retry
+        else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+          i2c_error++;
+          delay_ms = sensors[i]->getDelay();
+          start_time_ms = sensors[i]->getStartTime();
+          state_after_wait = SENSORS_READING_PREPARE;
+          sensors_reading_state = SENSORS_READING_WAIT_STATE;
+        }
+        //! fail
+        else {
+          sensors_reading_state = SENSORS_READING_GET;
+        }
       break;
 
       case SENSORS_READING_GET:
@@ -731,31 +726,29 @@ void sensors_reading_task () {
       break;
 
       case SENSORS_READING_IS_GETTED:
-         //! end of internal sensor state (finished read)
-         if (sensors[i]->isEnd() && !sensors[i]->isReaded()) {
-            //! success
-            if (sensors[i]->isSuccess()) {
-               retry = 0;
-               sensors_reading_state = SENSORS_READING_READ;
-            }
-            //! retry
-            else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
-               i2c_error++;
-               delay_ms = SENSORS_RETRY_DELAY_MS;
-               start_time_ms = millis();
-               state_after_wait = SENSORS_READING_GET;
-               sensors_reading_state = SENSORS_READING_WAIT_STATE;
-            }
-            //! fail
-            else {
-               retry = 0;
-               sensors_reading_state = SENSORS_READING_READ;
-            }
-         }
-         //! process other internal sensor state
-         else {
-            sensors_reading_state = SENSORS_READING_GET;
-         }
+        //! end of internal sensor state (finished read)
+        if (sensors[i]->isEnd() && !sensors[i]->isReaded()) {
+          //! success
+          if (sensors[i]->isSuccess()) {
+            sensors_reading_state = SENSORS_READING_READ;
+          }
+          //! retry
+          else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+            i2c_error++;
+            delay_ms = sensors[i]->getDelay();
+            start_time_ms = sensors[i]->getStartTime();
+            state_after_wait = SENSORS_READING_PREPARE;
+            sensors_reading_state = SENSORS_READING_WAIT_STATE;
+          }
+          //! fail
+          else {
+            sensors_reading_state = SENSORS_READING_READ;
+          }
+        }
+        //! process other internal sensor state
+        else {
+          sensors_reading_state = SENSORS_READING_GET;
+        }
       break;
 
       case SENSORS_READING_READ:

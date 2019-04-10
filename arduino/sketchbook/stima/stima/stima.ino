@@ -77,9 +77,6 @@ void loop() {
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
          init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
-
-         start_i2c_check_ms = -I2C_CHECK_DELAY_MS;
-
          state = TASKS_EXECUTION;
       break;
       #endif
@@ -139,24 +136,14 @@ void loop() {
          }
 
         // I2C Bus Check
-        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (millis() - start_i2c_check_ms >= I2C_CHECK_DELAY_MS)) {
-          start_i2c_check_ms = millis();
+        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (ready_tasks_count == 0)) {
           SERIAL_ERROR(F("Restart I2C BUS\r\n"));
           init_wire();
           LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
-
-          noInterrupts();
-          if (is_event_sensors_reading && (sensors_reading_retry < SENSORS_READING_RETRY_COUNT_MAX)) {
-            sensors_reading_state = SENSORS_READING_INIT;
-            sensors_reading_retry++;
-          }
-          interrupts();
-
           wdt_reset();
         }
 
-        if (ready_tasks_count == 0 && !is_event_rpc) {
-          sensors_reading_retry = 0;
+        if ((ready_tasks_count == 0) && (!is_event_rpc)) {
           wdt_reset();
           state = END;
         }
@@ -405,7 +392,6 @@ void rtc_interrupt_handler() {
 #endif
 
 void init_sensors () {
-  sensors_reading_retry = 0;
   do_reset_first_run = false;
   is_first_run = true;
   is_first_test = true;
