@@ -32,7 +32,7 @@ using namespace calibration;
  */
 
 
-bool Calibration::setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints)
+bool Calibration::setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints,uint8_t function_type)
 { 
 	
   if (numPoints > MAX_POINTS) 
@@ -43,6 +43,7 @@ bool Calibration::setCalibrationPoints(float calValues[], float calConcentration
     }
 
   numPoints= numberPoints;
+  func_type=function_type;
   
   // Store the calibration values
   for (int i = 0; i < numPoints; i++)
@@ -85,31 +86,66 @@ bool Calibration::getConcentration(float input,float *concentration)
 	float intersection;
 
 	// If the input is in a range, we calculate in the slope 
-	// and the intersection of the logaritmic function
+	// and the intersection of the function
 	if (inRange) 
 	{
-	        IF_CASDEBUG(CADBGSERIAL.println(F("Value is in range ")));
+	        IF_CASDEBUG(CADBGSERIAL.println(F("Value is in range")));
 
-		// Slope of the logarithmic function 
-		slope = (values[i] - values[i+1]) / (log10(concentrations[i]) - log10(concentrations[i+1]));
-		// Intersection of the logarithmic function
-		intersection = values[i] - slope * log10(concentrations[i]);	
+		switch (func_type)
+		  {
+		  case 0: 
+		    IF_CASDEBUG(CADBGSERIAL.println(F("LOG function")));
+		    // Slope of the logarithmic function 
+		    slope = (values[i] - values[i+1]) / (log10(concentrations[i]) - log10(concentrations[i+1]));
+		    // Intersection of the logarithmic function
+		    intersection = values[i] - slope * log10(concentrations[i]);
+		    break;
+		  case 1:
+		    IF_CASDEBUG(CADBGSERIAL.println(F("LIN function")));
+		    // Slope of the linear function 
+		    slope = (values[i+1] - values[i]) / (concentrations[i+1] - concentrations[i]);
+		    // Intersection of the linear function
+		    intersection = values[i] + slope * concentrations[i];
+		    break;
+		  }		  
 	}
-	// Else, we calculate the logarithmic function with the nearest point
+	// Else, we calculate the function with the nearest point
 	else
 	{
-	        IF_CASDEBUG(CADBGSERIAL.println(F("Value is not in range ")));
-		if (fabs(input - values[0]) < fabs(input - values[numPoints-1])) {
-			// Slope of the logarithmic function
-			slope = (values[1] - values[0]) / (log10(concentrations[1]) - log10(concentrations[0]));
-			// Intersection of the logarithmic function
-			intersection = values[0] - slope * log10(concentrations[0]);
-		} else {
-			// Slope of the logarithmic function
-			slope = (values[numPoints-1] - values[numPoints-2]) / (log10(concentrations[numPoints-1]) - log10(concentrations[numPoints-2]));
-			// Intersection of the logarithmic function
-			intersection = values[numPoints-1] - slope * log10(concentrations[numPoints-1]);
-		}
+	  IF_CASDEBUG(CADBGSERIAL.println(F("Value is not in range ")));
+	  if (fabs(input - values[0]) < fabs(input - values[numPoints-1])) {
+	    switch (func_type)
+	      {
+	      case 0:
+		// Slope of the logarithmic function
+		slope = (values[1] - values[0]) / (log10(concentrations[1]) - log10(concentrations[0]));
+		// Intersection of the logarithmic function
+		intersection = values[0] - slope * log10(concentrations[0]);
+		break;
+	      case 1:
+		// Slope of the linear function
+		slope = (values[1] - values[0]) / (concentrations[1] - concentrations[0]);
+		// Intersection of the linear function
+		intersection = values[0] - slope * concentrations[0];
+		break;
+	      }
+	  } else {
+	    switch (func_type)
+	      {
+	      case 0:
+		// Slope of the logarithmic function
+		slope = (values[numPoints-1] - values[numPoints-2]) / (log10(concentrations[numPoints-1]) - log10(concentrations[numPoints-2]));
+		// Intersection of the logarithmic function
+		intersection = values[numPoints-1] - slope * log10(concentrations[numPoints-1]);
+		break;
+	      case 1:
+		// Slope of the linear function
+		slope = (values[numPoints-1] - values[numPoints-2]) / (concentrations[numPoints-1] - concentrations[numPoints-2]);
+		// Intersection of the linear function
+		intersection = values[numPoints-1] - slope * concentrations[numPoints-1];
+		break;
+	      }
+	  }
 	}
 	
 	// Return the value of the concetration
@@ -120,8 +156,15 @@ bool Calibration::getConcentration(float input,float *concentration)
 	IF_CASDEBUG(CADBGSERIAL.print(F("slope: ")));
 	IF_CASDEBUG(CADBGSERIAL.println(slope));
 	
-	*concentration = pow(10, ((input - intersection) / slope));
-	
+	switch (func_type)
+	  {
+	  case 0: 
+	    *concentration = pow(10, ((input - intersection) / slope));
+	    break;
+	  case 1: 
+	    *concentration = (input - intersection) / slope;
+	    break;
+	  }
 	return true;
 
 }

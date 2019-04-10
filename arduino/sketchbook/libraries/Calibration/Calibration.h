@@ -37,7 +37,7 @@ namespace calibration {
         public:
 
       //Calibration();
-      bool setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints);
+      bool setCalibrationPoints(float calValues[], float calConcentrations[], uint8_t numberPoints, uint8_t function_type=0);
       bool getConcentration(float input,float *concentration);
 	      
         private:
@@ -46,7 +46,7 @@ namespace calibration {
       float values[MAX_POINTS]; 
       float concentrations[MAX_POINTS];
       uint8_t numPoints;
-
+      uint8_t func_type;
     };
 }
 #endif
