@@ -42,6 +42,9 @@
 #include <menuIO/chainStream.h>
 #include <math.h>
 #include "Calibration.h"
+#include "FloatBuffer.h"
+#include <Time.h>
+#include <TimeAlarms.h>
 
 #ifdef USESERIAL
 #include <menuIO/serialOut.h>
@@ -61,7 +64,15 @@
 
 #define calibrationPoints 3
 
+#define SAMPLERATE    1
+#define SAMPLEPERIOD 60
+#define NSAMPLE SAMPLEPERIOD/SAMPLERATE
 
+FloatBuffer t;
+FloatBuffer u;
+float tmean;
+float umean;
+	 
 struct sensor_t
 {
   char driver[5];         // driver name
@@ -296,6 +307,113 @@ String read_savedparams() {
 }
 
 
+void do_measure(){
+  long unsigned int waittime,maxwaittime=0;
+
+  // prepare sensors to measure
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == 0){
+      if (sd[i]->prepare(waittime) == SD_SUCCESS){
+        //Serial.print(sensors[i].driver);
+        //Serial.print(" : ");
+        //Serial.print(sensors[i].type);
+        //Serial.println(" : Prepare OK");
+	maxwaittime=max(maxwaittime,waittime);
+      }else{
+	LOGN(F("%s : %s : Prepare failed!" CR),sensors[i].driver, sensors[i].type);
+      }
+    }
+  }
+
+  //wait sensors to go ready
+  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+  delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
+
+
+  if (displaydata){
+    u8g2.setFont(fontNameB);
+    //u8g2.setFontMode(0); // enable transparent mode, which is faster
+    u8g2.clearBuffer();
+  }
+  
+  for (int i = 0; i < SENSORS_LEN; i++) {
+    if (!sd[i] == 0){
+      // get integers values 
+      long values[LENVALUES];
+      size_t lenvalues=LENVALUES;
+      
+      if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
+	//for (size_t ii = 0; ii < lenvalues; ii++) {
+	//  Serial.println(values[ii]);
+	//}
+	
+	if (i == 0){
+	  hcal.getConcentration(float(values[0]),&U_Input);
+	  tcal.getConcentration(float(values[1])/100.-273.15,&T_Input);
+	  //U_Input=float(values[0]);
+	  //T_Input=float(values[1])/100.-273.15;
+	   
+
+	  u8g2.setCursor(0, 12); 
+	  u8g2.print("U:");
+	  u8g2.setCursor(25, 12); 
+
+	  u.autoput(U_Input);
+	  if (u.getSize() == u.getCapacity()){
+	    umean=0;
+	    for ( uint8_t i=0 ; i < u.getCapacity() ; i++)  {
+	      umean += (u.peek(i) - umean) / (i+1);
+	    }
+	    u8g2.print(umean);
+	  }else{
+	    u8g2.print("wait");
+	  }
+
+	  
+	  u8g2.setCursor(0, 36); 
+	  u8g2.print("t:");
+	  u8g2.setCursor(25, 36); 
+	  u8g2.print(T_Input);	    	    
+	}
+
+	if (i == 1){
+	  T_Input=float(values[0])/100.-273.15;
+
+	  u8g2.setCursor(0, 24); 
+	  u8g2.print("T:");
+	  u8g2.setCursor(25, 24); 
+	  
+	  t.autoput(T_Input);
+	  if (t.getSize() == t.getCapacity()){
+	    tmean=0;
+	    for ( uint8_t i=0 ; i < t.getCapacity() ; i++)  {
+	      tmean += (t.peek(i) - tmean) / (i+1);
+	    }
+	    u8g2.print(tmean);	    	    
+	  } else{
+	    u8g2.print("wait");	    	    
+	  }
+	}
+	
+      }else{
+      
+	if (displaydata){
+	  Serial.println("Error");
+	  Serial.println("Disable");
+	  u8g2.clearBuffer();
+	  u8g2.setCursor(0, 10); 
+	  u8g2.print("Error Sensor");
+	  u8g2.setCursor(0, 20); 
+	  u8g2.print("Disable");
+	}
+
+	return;
+      }  
+    }
+  }
+
+}
+
 void setup()
 {
 
@@ -432,6 +550,11 @@ void setup()
     LOGN(F("hrawmeasures %F : %d\n"),hrawmeasures[i],i);
     LOGN(F("hmeasures    %F : %d\n"),hmeasures[i],i);
   }
+
+  t.init(NSAMPLE);
+  u.init(NSAMPLE);
+
+  Alarm.timerRepeat(SAMPLERATE, do_measure);            // timer for every second    
   
   LOGN(F("setup done." CR));
 
@@ -446,85 +569,9 @@ void setup()
 
 void loop()
 {
-  long unsigned int waittime,maxwaittime=0;
 
-  // prepare sensors to measure
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      if (sd[i]->prepare(waittime) == SD_SUCCESS){
-        //Serial.print(sensors[i].driver);
-        //Serial.print(" : ");
-        //Serial.print(sensors[i].type);
-        //Serial.println(" : Prepare OK");
-	maxwaittime=max(maxwaittime,waittime);
-      }else{
-	LOGN(F("%s : %s : Prepare failed!" CR),sensors[i].driver, sensors[i].type);
-      }
-    }
-  }
+  Alarm.delay(0);
 
-  //wait sensors to go ready
-  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
-  delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
-
-
-  if (displaydata){
-    u8g2.setFont(fontNameB);
-    //u8g2.setFontMode(0); // enable transparent mode, which is faster
-    u8g2.clearBuffer();
-  }
-  
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      // get integers values 
-      long values[LENVALUES];
-      size_t lenvalues=LENVALUES;
-      
-      if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
-	//for (size_t ii = 0; ii < lenvalues; ii++) {
-	//  Serial.println(values[ii]);
-	//}
-	
-	if (i == 0){
-	  hcal.getConcentration(float(values[0]),&U_Input);
-	  tcal.getConcentration(float(values[1])/100.-273.15,&T_Input);
-	  //U_Input=float(values[0]);
-	  //T_Input=float(values[1])/100.-273.15;
-	   
-	  u8g2.setCursor(0, 12); 
-	  u8g2.print("U:");
-	  u8g2.setCursor(25, 12); 
-	  u8g2.print(U_Input);
-	  
-	  u8g2.setCursor(0, 36); 
-	  u8g2.print("t:");
-	  u8g2.setCursor(25, 36); 
-	  u8g2.print(T_Input);	    	    
-	}
-
-	if (i == 1){
-	  T_Input=float(values[0])/100.-273.15;
-	   
-	  u8g2.setCursor(0, 24); 
-	  u8g2.print("T:");
-	  u8g2.setCursor(25, 24); 
-	  u8g2.print(T_Input);	    	    
-	}
-	
-      }else{
-      
-	if (displaydata){
-	  Serial.println("Error");
-	  Serial.println("Disable");
-	  u8g2.clearBuffer();
-	  u8g2.setCursor(0, 10); 
-	  u8g2.print("Error Sensor");
-	  u8g2.setCursor(0, 20); 
-	  u8g2.print("Disable");
-	}
-      }  
-    }
-  }
 
   if (displaydata){
     u8g2.setFont(fontNameS);
@@ -536,7 +583,7 @@ void loop()
     u8g2.print(ventCtrl);
     u8g2.sendBuffer();
   }
-
+  
   hbridge.setpwm(int(vent*255.0/100.0),IBT_2_L_HALF);
 
   nav.doInput();
