@@ -7,12 +7,19 @@ based on WebServer:
 
 Dec. 2016 Rui Azevedo - ruihfazevedo(@rrob@)gmail.com
 
-menu on web browser served by esp8266 device (experimental)
+menu on web browser served by esp8266 device
 output: ESP8266WebServer -> Web browser
 input: ESP8266WebSocket <- Web browser
-format: xml
+format: xml, json
 
+IMPORTANT!:
 this requires the data folder to be stored on esp8266 spiff
+Extra libraries should be present
+
+arduinoWebSockets - https://github.com/Links2004/arduinoWebSockets
+ESP8266WiFi - https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WiFi
+ESP8266WebServer - https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer
+
 for development purposes some files are left external,
 therefor requiring an external webserver to provide them (just for dev purposes)
 i'm using nodejs http-server (https://www.npmjs.com/package/http-server)
@@ -20,16 +27,20 @@ to static serve content from the data folder. This allows me to quick change
 the files without having to upload them to SPIFFS
 also gateway ssid and password are stored on this code (bellow),
 so don't forget to change it.
-'dynamic' list of detected wi-fi and password request would require the new
-added textField (also experimental).
 
 */
+
 #include <menu.h>
 #include <menuIO/esp8266Out.h>
 #include <menuIO/xmlFmt.h>//to write a menu has html page
 #include <menuIO/serialIn.h>
-// #include <Streaming.h>
-#include <streamFlow.h>
+#include <menuIO/xmlFmt.h>//to write a menu has xml page
+#include <menuIO/jsonFmt.h>//to write a menu has xml page
+#ifndef ARDUINO_STREAMING
+  #include <streamFlow.h>//https://github.com/neu-rah/streamFlow
+#else
+  #include <Streaming.h>//https://github.com/scottdky/Streaming
+#endif
 //#include <menuIO/jsFmt.h>//to send javascript thru web socket (live update)
 #include <FS.h>
 #include <Hash.h>
@@ -39,7 +50,41 @@ extern "C" {
 
 using namespace Menu;
 
+#ifdef WEB_DEBUG
+  // on debug mode I put aux files on external server to allow changes without SPIFF update
+  // on this mode the browser MUST be instructed to accept cross domain files
+  String xslt("http://neurux:8080/");
+#else
+  String xslt("");
+#endif
+
+menuOut& operator<<(menuOut& o,unsigned long int i) {
+  o.print(i);
+  return o;
+}
+menuOut& operator<<(menuOut& o,endlObj) {
+  o.println();
+  return o;
+}
+
+//this version numbers MUST be the same as data/1.2
+#define CUR_VERSION "1.5"
+#define APName "WebMenu"
+
+int ledCtrl=LOW;
+//on my esp12e led pin is 2
+#define LEDPIN 2
+//this is ok on other boards
+// #define LEDPIN LED_BUILTIN
+void updLed() {
+  _trace(Serial<<"update led state!"<<endl);
+  digitalWrite(LEDPIN,!ledCtrl);
+}
+
 #define ANALOG_PIN 4
+
+// constexpr size_t wifiSSIDLen=64;
+// constexpr size_t wifiPwdLen=32;
 
 #ifndef MENU_SSID
   #error "need to define WiFi SSID here"
@@ -50,33 +95,25 @@ using namespace Menu;
   #define MENU_PASS ""
 #endif
 
+// char wifiSSID[wifiSSIDLen+1];//="                                ";
+// char wifiPwd [wifiPwdLen+1];//="                                ";
+
 const char* ssid = MENU_SSID;
 const char* password = MENU_PASS;
 const char* serverName="192.168.1.79";
-#ifdef DEBUG
-  // on debug mode I put aux files on external server to allow changes without SPIFF update
-  // on this mode the browser MUST be instructed to accept cross domain files
-  #define xslt "http://neurux:8080/menu.xslt"
-#else
-  #define xslt "/menu.xslt"
-  #define endl "\r\n"
-  menuOut& operator<<(menuOut&o, long unsigned int i) {
-    o.print(i);
-    return o;
-  }
-#endif
 
 #define HTTP_PORT 80
 #define WS_PORT 81
 #define USE_SERIAL Serial
-// ESP8266WiFiMulti WiFiMulti;
 ESP8266WebServer server(80);
 WebSocketsServer webSocket(81);
 
 #define MAX_DEPTH 2
-idx_t tops[MAX_DEPTH];
-PANELS(webPanels,{0,0,30,20});
-xmlFmt<esp8266_WebServerOut> serverOut(server,tops,webPanels);
+idx_t web_tops[MAX_DEPTH];
+PANELS(webPanels,{0,0,80,100});
+xmlFmt<esp8266_WebServerStreamOut> serverOut(server,web_tops,webPanels);
+jsonFmt<esp8266_WebServerStreamOut> jsonOut(server,web_tops,webPanels);
+jsonFmt<esp8266BufferedOut> wsOut(web_tops,webPanels);
 
 //menu action functions
 result action1(eventMask event, navNode& nav, prompt &item) {
@@ -90,15 +127,13 @@ result action2(eventMask event, navNode& nav, prompt &item) {
   return proceed;
 }
 
-int ledCtrl=LOW;
-#define LEDPIN LED_BUILTIN
-void updLed() {
-  digitalWrite(LEDPIN,!ledCtrl);
+void debugLedUpd() {
+  _trace(Serial<<"debug led update! "<<ledCtrl<<endl);
 }
 
-TOGGLE(ledCtrl,setLed,"Led: ",updLed,enterEvent,noStyle//,doExit,enterEvent,noStyle
-  ,VALUE("On",HIGH,doNothing,noEvent)
+TOGGLE(ledCtrl,setLed,"Led: ",updLed,(Menu::eventMask)(updateEvent|enterEvent),noStyle
   ,VALUE("Off",LOW,doNothing,noEvent)
+  ,VALUE("On",HIGH,doNothing,noEvent)
 );
 
 int selTest=0;
@@ -116,19 +151,62 @@ CHOOSE(chooseTest,chooseMenu,"Choose",doNothing,noEvent,noStyle
   ,VALUE("Last",-1,doNothing,noEvent)
 );
 
-int timeOn=50;
+int duty=50;//%
+int timeOn=50;//ms
 void updAnalog() {
-  analogWrite(ANALOG_PIN,map(timeOn,0,100,0,255/*PWMRANGE*/));
+  // analogWrite(ANALOG_PIN,map(timeOn,0,100,0,255/*PWMRANGE*/));
+  analogWrite(ANALOG_PIN,map(duty,0,100,0,255/*PWMRANGE*/));
 }
+
+char* constMEM alphaNum MEMMODE=" 0123456789.ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz,\\|!\"#$%&/()=?~*^+-{}[]€";
+char* constMEM alphaNumMask[] MEMMODE={alphaNum};
+char name[]="                                                  ";
+
+uint16_t year=2017;
+uint16_t month=10;
+uint16_t day=7;
+
+//define a pad style menu (single line menu)
+//here with a set of fields to enter a date in YYYY/MM/DD format
+//altMENU(menu,birthDate,"Birth",doNothing,noEvent,noStyle,(systemStyles)(_asPad|Menu::_menuData|Menu::_canNav|_parentDraw)
+PADMENU(birthDate,"Birth",doNothing,noEvent,noStyle
+  ,FIELD(year,"","/",1900,3000,20,1,doNothing,noEvent,noStyle)
+  ,FIELD(month,"","/",1,12,1,0,doNothing,noEvent,wrapStyle)
+  ,FIELD(day,"","",1,31,1,0,doNothing,noEvent,wrapStyle)
+);
+
+//customizing a prompt look!
+//by extending the prompt class
+class altPrompt:public prompt {
+public:
+  // altPrompt(constMEM promptShadow& p):prompt(p) {}
+  using prompt::prompt;
+  Used printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,idx_t) override {
+    return out.printRaw(F("special prompt!"),len);
+  }
+};
+
+MENU(subMenu,"Sub-Menu",doNothing,noEvent,noStyle
+  ,OP("Sub1",doNothing,noEvent)
+  ,OP("Sub2",doNothing,noEvent)
+  ,OP("Sub3",doNothing,noEvent)
+  ,altOP(altPrompt,"",doNothing,noEvent)
+  ,EXIT("<Back")
+);
 
 //the menu
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,SUBMENU(setLed)
   ,OP("Action A",action1,enterEvent)
   ,OP("Action B",action2,enterEvent)
-  ,FIELD(timeOn,"On","ms",0,100,10,1, updAnalog, anyEvent, noStyle)
+  ,FIELD(duty,"Duty","%",0,100,10,1, updAnalog, anyEvent, noStyle)
+  // ,FIELD(timeOn,"On","ms",0,100,10,1, updAnalog, anyEvent, noStyle)
+  ,EDIT("Name",name,alphaNumMask,doNothing,noEvent,noStyle)
+  ,SUBMENU(birthDate)
   ,SUBMENU(selMenu)
   ,SUBMENU(chooseMenu)
+  ,SUBMENU(subMenu)
+  ,EXIT("Exit!")
 );
 
 result idle(menuOut& o,idleEvent e) {
@@ -138,9 +216,32 @@ result idle(menuOut& o,idleEvent e) {
   return quit;
 }
 
+template<typename T>//some utill to help us calculate array sizes (known at compile time)
+constexpr inline size_t len(T& o) {return sizeof(o)/sizeof(decltype(o[0]));}
+
+//serial menu navigation
 MENU_OUTLIST(out,&serverOut);
 serialIn serial(Serial);
 NAVROOT(nav,mainMenu,MAX_DEPTH,serial,out);
+
+//xml+http navigation control
+noInput none;//web uses its own API
+menuOut* web_outputs[]={&serverOut};
+outputsList web_out(web_outputs,len(web_outputs));
+navNode web_cursors[MAX_DEPTH];
+navRoot webNav(mainMenu, web_cursors, MAX_DEPTH, none, web_out);
+
+//json+http navigation control
+menuOut* json_outputs[]={&jsonOut};
+outputsList json_out(json_outputs,len(json_outputs));
+navNode json_cursors[MAX_DEPTH];
+navRoot jsonNav(mainMenu, json_cursors, MAX_DEPTH, none, json_out);
+
+//websockets navigation control
+menuOut* ws_outputs[]={&wsOut};
+outputsList ws_out(ws_outputs,len(ws_outputs));
+navNode ws_cursors[MAX_DEPTH];
+navRoot wsNav(mainMenu, ws_cursors, MAX_DEPTH, none, ws_out);
 
 //config myOptions('*','-',defaultNavCodes,false);
 
@@ -155,10 +256,22 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         webSocket.sendTXT(num, "console.log('ArduinoMenu Connected')");
       }
       break;
-    case WStype_TEXT:
-      //USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
-      nav.async((const char*)payload);//this is slow!!!!!!!!
-      break;
+    case WStype_TEXT: {
+        //USE_SERIAL.printf("[%u] get Text: %s\n", num, payload);
+        // nav.async((const char*)payload);//this is slow!!!!!!!!
+        __trace(Serial.printf("[%u] get Text: %s\n", num, payload));
+        char*s=(char*)payload;
+        _trace(Serial<<"serve websocket menu"<<endl);
+        wsOut.response.remove(0);
+        wsOut<<"{\"output\":\"";
+        wsNav.async((const char*)payload);
+        wsOut<<"\",\n\"menu\":";
+        wsNav.doOutput();
+        wsOut<<"\n}";
+        webSocket.sendTXT(num,wsOut.response);
+        // wsOut.response.remove(0);
+        // jsonEnd();
+      } break;
     case WStype_BIN: {
         USE_SERIAL<<"[WSc] get binary length:"<<length<<"[";
         for(int c=0;c<length;c++) {
@@ -182,96 +295,82 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         //Serial<<endl;
       }
       break;
+    default:break;
   }
 }
 
 void pageStart() {
-  server.sendHeader("Cache-Control","no-cache, no-store, must-revalidate");
-  server.sendHeader("Pragma","no-cache");
-  server.sendHeader("Expires","0");
-  serverOut
-    <<"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\r\n"
-      "<?xml-stylesheet type=\"text/xsl\" href=\""
-      xslt
-      "\"?>\r\n<menuLib>\r\n"
-      "<sourceURL>"
-    <<serverName
-    <<"</sourceURL>";
+  _trace(Serial<<"pasgeStart!"<<endl);
+  serverOut<<"HTTP/1.1 200 OK\r\n"
+    <<"Content-Type: text/xml\r\n"
+    <<"Connection: close\r\n"
+    <<"Expires: 0\r\n"
+    <<"\r\n";
+  serverOut<<"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\r\n"
+    "<?xml-stylesheet type=\"text/xsl\" href=\"";
+  serverOut<<xslt;
+  serverOut<<CUR_VERSION"/device.xslt";
+  serverOut<<"\"?>\r\n<menuLib"
+    #ifdef WEB_DEBUG
+      <<" debug=\"yes\""
+    #endif
+    <<" host=\"";
+    serverOut.print(APName);
+    serverOut<<"\">\r\n<sourceURL ver=\"" CUR_VERSION "/\">";
+  if (server.hasHeader("host"))
+    serverOut.print(server.header("host"));
+  else
+    serverOut.print(APName);
+  serverOut<<"</sourceURL>";
 }
 
 void pageEnd() {
   serverOut<<"</menuLib>";
-  server.send(200, "text/xml", serverOut.response);
+  server.client().stop();
 }
 
-void handleNotFound(){
-  //digitalWrite(led, 1);
-  Serial.println("404 not found");
-  String message = "File Not Found\n\n";
-  message += "URI: ";
-  message += server.uri();
-  message += "\nMethod: ";
-  message += (server.method() == HTTP_GET)?"GET":"POST";
-  message += "\nArguments: ";
-  message += server.args();
-  message += "\n";
-  for (uint8_t i=0; i<server.args(); i++){
-    message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
-  }
-  server.send(404, "text/plain", message);
-  USE_SERIAL.println(message);
-  //digitalWrite(led, 0);
+void jsonStart() {
+  _trace(Serial<<"jsonStart!"<<endl);
+  serverOut<<"HTTP/1.1 200 OK\r\n"
+    <<"Content-Type: application/json; charset=utf-8\r\n"
+    <<"Connection: close\r\n"
+    <<"Expires: 0\r\n"
+    <<"\r\n";
 }
 
-String getContentType(String filename){
-  if(server.hasArg("download")) return "application/octet-stream";
-  else if(filename.endsWith(".htm")) return "text/html";
-  else if(filename.endsWith(".html")) return "text/html";
-  else if(filename.endsWith(".css")) return "text/css";
-  else if(filename.endsWith(".js")) return "application/javascript";
-  else if(filename.endsWith(".png")) return "image/png";
-  else if(filename.endsWith(".gif")) return "image/gif";
-  else if(filename.endsWith(".jpg")) return "image/jpeg";
-  else if(filename.endsWith(".ico")) return "image/x-icon";
-  else if(filename.endsWith(".xml")) return "text/xml";
-  else if(filename.endsWith(".xsl")) return "text/xml";
-  else if(filename.endsWith(".xslt")) return "text/xsl";
-  else if(filename.endsWith(".pdf")) return "application/x-pdf";
-  else if(filename.endsWith(".zip")) return "application/x-zip";
-  else if(filename.endsWith(".gz")) return "application/x-gzip";
-  return "text/plain";
+void jsonEnd() {
+  server.client().stop();
 }
 
-bool handleFileRead(String path){
-  if(path.endsWith("/")) path += "index.html";
-  String contentType = getContentType(path);
-  String pathWithGz = path + ".gz";
-  if(SPIFFS.exists(pathWithGz) || SPIFFS.exists(path)){
-    if(SPIFFS.exists(pathWithGz))
-      path += ".gz";
-    File file = SPIFFS.open(path, "r");
-    size_t sent = server.streamFile(file, contentType);
-    file.close();
-    return true;
-  }
-  // Serial<<"file not found "<<path<<endl;
-  return false;
+bool handleMenu(navRoot& nav){
+  _trace(
+    uint32_t free = system_get_free_heap_size();
+    Serial.print(F("free memory:"));
+    Serial.print(free);
+    Serial.print(F(" handleMenu "));
+    Serial.println(server.arg("at").c_str());
+  );
+  String at=server.arg("at");
+  bool r;
+  r=nav.async(server.hasArg("at")?at.c_str():"/");
+  return r;
 }
 
-inline void notfound() {
-  server.send(404, "text/plain", "FileNotFound"+server.uri());
-}
-
-bool handleMenu(){
+//redirect to version folder,
+//this allows agressive caching with no need to cache reset on version change
+auto mainPage= []() {
+  _trace(Serial<<"serving main page from root!"<<endl);
+  server.sendHeader("Location", CUR_VERSION "/index.html", true);
+  server.send ( 302, "text/plain", "");
   if (server.hasArg("at"))
-    return nav.async(server.arg("at").c_str());
-  return true;
-}
+    nav.async(server.arg("at").c_str());
+};
 
 void setup(){
+  //check your pins before activating this
   pinMode(LEDPIN,OUTPUT);
   updLed();
-  analogWriteRange(1023);
+  // analogWriteRange(1023);
   pinMode(ANALOG_PIN,OUTPUT);
   updAnalog();
   //options=&myOptions;//menu options
@@ -281,6 +380,14 @@ void setup(){
   Serial.println();
   Serial.println();
   Serial.println();
+
+  // #ifndef MENU_DEBUG
+    //do not allow web heads to exit, they wont be able to return (for now)
+    //we should resume this heads on async requests!
+    webNav.canExit=false;
+    jsonNav.canExit=false;
+    wsNav.canExit=false;
+  // #endif
 
   for(uint8_t t = 4; t > 0; t--) {
       Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
@@ -298,13 +405,9 @@ void setup(){
 
   SPIFFS.begin();
 
-  //WiFi.hostname(serverName);//not good
-
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  // WiFiMulti.addAP(ssid, password);
-  // while(WiFiMulti.run() != WL_CONNECTED) delay(100);
   WiFi.begin(ssid, password);
   // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
@@ -320,45 +423,45 @@ void setup(){
 
   webSocket.begin();
 
-  // if (MDNS.begin("esp8266")) {
-  //   Serial.println("MDNS responder started");
-  // }
-
   nav.idleTask=idle;//point a function to be used when menu is suspended
 
-  //we have none, so do not ask again! use a standard...
-  server.on("/favicon.ico",handleNotFound);
+  server.on("/",HTTP_GET,mainPage);
 
-  server.on("/", HTTP_GET, []() {
-    handleMenu();//no output will be done on this mode
-    if(!handleFileRead("/index.html")) notfound();}//static page
-  );
-
-  //menu xml server
+  //menu xml server over http
   server.on("/menu", HTTP_GET, []() {
-    handleMenu();
-    String r(serverOut.response);
-    serverOut.response.remove(0);
     pageStart();
-    nav.doOutput();
-    serverOut<<"<output>";
-    serverOut<<r;
-    serverOut<<"</output>";
+    serverOut<<"<output state=\""<<((int)&webNav.idleTask)<<"\"><![CDATA[";
+    _trace(Serial<<"output count"<<webNav.out.cnt<<endl);
+    handleMenu(webNav);//do navigation (read input) and produce output messages or reports
+    serverOut<<"]]></output>";
+    webNav.doOutput();
     pageEnd();
-    delay(1);
   });
 
-  //file server, if MDNS handler not found.
-  //so, do not put sensitive info in the data files
-  server.onNotFound([](){if (!handleFileRead(server.uri())) notfound();});
+  //menu json server over http
+  server.on("/json", HTTP_GET, []() {
+    _trace(Serial<<"json request!"<<endl);
+    jsonStart();
+    serverOut<<"{\"output\":\"";
+    handleMenu(jsonNav);
+    serverOut<<"\",\n\"menu\":";
+    jsonNav.doOutput();
+    serverOut<<"\n}";
+    jsonEnd();
+  });
 
   server.begin();
   Serial.println("HTTP server started");
   Serial.println("Serving ArduinoMenu example.");
+  #ifdef MENU_DEBUG
+    server.serveStatic("/", SPIFFS, "/","max-age=30");
+  #else
+    server.serveStatic("/", SPIFFS, "/","max-age=31536000");
+  #endif
 }
 
 void loop(void){
-  serverOut.response.remove(0);
+  wsOut.response.remove(0);//clear websocket json buffer
   webSocket.loop();
   server.handleClient();
   delay(1);

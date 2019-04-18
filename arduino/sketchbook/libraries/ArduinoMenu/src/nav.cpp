@@ -125,8 +125,7 @@ void navRoot::initPath(idx_t d) {
     path[n].root=this;
 }
 void navRoot::useMenu(menuNode &menu) {
-  navFocus=&menu;
-  path[0].target=&menu;
+  path[0].useMenu(menu);
   reset();
   refresh();
 }
@@ -161,7 +160,7 @@ void navRoot::doOutput() {
     bool c=idleChanged;
     idleChanged=false;//turn it off here so that sleepTask can force it on again
     out.idle(sleepTask,idling,c);
-    #ifdef MENU_IDLE_BKGND
+    #ifdef MENU_IDLE_BKGND//cascade menu sysrtem idle behind user idle task
       if (idleTask!=sleepTask) out.idle(idleTask,idling);
     #endif
   }
@@ -201,6 +200,7 @@ navCmd navRoot::enter() {
         menuNode* dest=(menuNode*)&selected();
         level++;
         node().target=dest;
+        //if (node().has(_menuData))
         node().sel=0;
         active().dirty=true;
         sel.sysHandler(enterEvent,node(),selected());
@@ -216,6 +216,7 @@ navCmd navRoot::enter() {
       navFocus->dirty=true;
       if (!isMenu) in.fieldOn();
     }
+    //node().event(activateEvent);//item is active.. not here, root info is not set yet
     return rCmd;
   }
   return noCmd;
@@ -238,6 +239,7 @@ navCmd navRoot::exit() {
   }
   active().dirty=true;
   navFocus=&active();
+  if (navFocus->asPad()) exit();
   return escCmd;
 }
 
@@ -301,13 +303,16 @@ bool navRoot::changed(const menuOut& out) {
 //     return e.seek(++uri,--len);
 //   } else return NULL;
 // }
-void navRoot::escTo(idx_t lvl) {
+idx_t navRoot::escTo(idx_t lvl) {
   assert(lvl>=0);
   // if (lvl<0) return;
+  idx_t cnt=0;
   while(level>lvl) {
     trace(MENU_DEBUG_OUT<<"escaping "<<level<<endl);
     doNav(escCmd);
+    cnt++;
   }
+  return cnt;
 }
 bool navRoot::async(const char* at) {
   trace(MENU_DEBUG_OUT<<"navRoot::async "<<at<<endl);

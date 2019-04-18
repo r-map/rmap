@@ -99,7 +99,9 @@
         void useMenu(menuNode &menu);
         inline void reset() {
           level=0;
-          path[0].sel=0;
+          navFocus=path[level].target;
+          path[level].reset();
+          refresh();
         }
         inline void refresh() {out.refresh();}
         inline navNode& node() const {return path[level];}
@@ -108,7 +110,7 @@
         bool changed(const menuOut& out);
         inline bool changed(idx_t n) {return changed(out[n]);}
         #ifdef MENU_ASYNC
-          void escTo(idx_t lvl);
+          idx_t escTo(idx_t lvl);
           // prompt* seek(idx_t* uri,idx_t len);
           bool async(const char* at);
           menuOut& printPath(menuOut& o,menuNode*) const;

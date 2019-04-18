@@ -8,6 +8,11 @@
 #ifndef __AVR_ARCH__
   #define MENU_USERAM
 #endif
+#if defined(ESP8266)
+  #define MENU_ASYNC
+  #define MENU_FMT_WRAPS
+  #define MENU_IDLE_BKGND
+#endif
 #if defined(ESP8266) | defined(CORE_TEENSY)
   #define typeof(x) __typeof__(x)
 #endif
@@ -41,9 +46,9 @@
   #define memIdx(src) (src)
   #define memStrLen strlen
   #define memEnum(addr) (*addr)
-  #ifndef F
+  // #ifndef F
     #define F(x) (x)
-  #endif
+  // #endif
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
@@ -79,6 +84,7 @@
 #define LIQUIDCRYSTAL_OUT(...) ON(LIQUIDCRYSTAL_OUT,__COUNTER__,__VA_ARGS__)
 #define LCD_OUT(...) ON(LCD_OUT,__COUNTER__,__VA_ARGS__)
 #define ADAGFX_OUT(...) ON(ADAGFX_OUT,__COUNTER__,__VA_ARGS__)
+#define TFT_eSPI_OUT(...) ON(TFT_eSPI_OUT,__COUNTER__,__VA_ARGS__)
 #define TFT_OUT(...) ON(TFT_OUT,__COUNTER__,__VA_ARGS__)
 #define U8GLIB_OUT(...) ON(U8GLIB_OUT,__COUNTER__,__VA_ARGS__)
 #define U8G2_OUT(...) ON(U8G2_OUT,__COUNTER__,__VA_ARGS__)
@@ -115,6 +121,11 @@ Menu::lcdOut id##n(&device,id##Tops##n,id##Panels##n);
 Menu::idx_t id##Tops##n[md];\
 PANELS(id##Panels##n,__VA_ARGS__);\
 Menu::adaGfxOut id##n(gfx,color,id##Tops##n,id##Panels##n,fontW,fontH);
+
+#define VAR_TFT_eSPI_OUT(id,md,n,gfx,color,fontW,fontH,...)\
+Menu::idx_t id##Tops##n[md];\
+PANELS(id##Panels##n,__VA_ARGS__);\
+Menu::TFT_eSPIOut id##n(gfx,color,id##Tops##n,id##Panels##n,fontW,fontH);
 
 #define VAR_TFT_OUT(id,md,n,gfx,color,fontW,fontH,...)\
 Menu::idx_t id##Tops##n[md];\
@@ -157,6 +168,7 @@ Menu::utftOut id##n(gfx,color,id##Tops##n,id##Panels##n,fontW,fontH);
 #define REF_LIQUIDCRYSTAL_OUT(id,md,n,...) &id##n,
 #define REF_LCD_OUT(id,md,n,...) &id##n,
 #define REF_ADAGFX_OUT(id,md,n,...) &id##n,
+#define REF_TFT_eSPI_OUT(id,md,n,...) &id##n,
 #define REF_U8GLIB_OUT(id,md,n,...) &id##n,
 #define REF_U8G2_OUT(id,md,n,...) &id##n,
 #define REF_UART_OUT(id,md,n,...) &id##n,

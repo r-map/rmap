@@ -46,9 +46,22 @@ namespace Menu {
 
   template<typename T>
   void menuField<T>::parseInput(navNode& nav,menuIn& in) {
-    if (strchr(numericChars,in.peek())) {//a numeric value was entered
+    //TODO: on a cmd based nav (not streams) this mess will be pushed to stream input only
+    //can not enter negative number literals by serial, using steps or web is ok
+    bool neg=false;
+    char nc=in.peek();
+    if (nc=='-') {
+      in.read();
+      if (!strchr(numericChars,in.peek())) {
+        doNav(nav,downCmd);
+        return;
+      }
+      // Serial.println("NEGATIVE NUMBER PARSE THEN!");
+      neg=true;
+    }
+    if (neg||strchr(numericChars,nc)) {//a numeric value was entered
       if (in.numValueInput) {
-        target()=(T)in.parseFloat();//TODO: use template specialization and proper convertion
+        target()=(T)((neg?-1:1)*in.parseFloat());//TODO: use template specialization and proper convertion
         tunning=true;
         doNav(nav,enterCmd);
       } else doNav(nav,idxCmd);
@@ -107,20 +120,29 @@ namespace Menu {
     const char* toggle<T>::typeName() const {return "toggle";}
     template<typename T>
     bool toggle<T>::async(const char*uri,navRoot& root,idx_t lvl) {
-      trace(MENU_DEBUG_OUT<<(*(prompt*)this)<<" toggle::async! uri:"<<uri<<endl);
+      _trace(MENU_DEBUG_OUT<<(*(prompt*)this)<<" toggle::async! uri:"<<uri<<endl);
       if(uri[0]) {
-        trace("selecting value by index!");
+        _trace(Serial<<"selecting value by index!"<<endl);
         idx_t n=menuNode::parseUriNode(uri);
-        trace(MENU_DEBUG_OUT<<"n:"<<n<<" sel:"<<root.path[lvl].sel<<endl);
-        menuVariant<T>::sync(n);
+        _trace(MENU_DEBUG_OUT<<"n:"<<n<<" sel:"<<root.path[lvl].sel<<endl);
+        menuVariant<T>::sync(n);//sync to index n!
+        // root.node().event(root.useUpdateEvent?updateEvent:enterEvent);
         return true;
       }
+      //if not by index then do the toggle
+      _trace(Serial<<"toggle proceed..."<<endl);
+      // root.doNav(navCmd(enterCmd));
+      // return true;
+      // bool r=prompt::async(uri,root,lvl);
+      // root.node().event(root.useUpdateEvent?updateEvent:enterEvent);
+      // return r;
       return prompt::async(uri,root,lvl);
     }
   #endif
 
   template<typename T>
   result toggle<T>::sysHandler(SYS_FUNC_PARAMS) {
+    _trace(Serial<<"toggle sysHandler!"<<endl;);
     switch(event) {
         case activateEvent: {
         idx_t at=menuVariant<T>::sync();
@@ -146,7 +168,7 @@ namespace Menu {
     for(idx_t i=0;i<sz();i++)
       if (((menuValue<T>*)&operator[](i))->target()==target()) return i;
     #ifdef MENU_DEBUG
-      MENU_DEBUG_OUT.print(F("value out of range "));
+      MENU_DEBUG_OUT.print("value out of range ");
       MENU_DEBUG_OUT.println(target());MENU_DEBUG_OUT.flush();
       assert(false);
     #endif
@@ -157,7 +179,7 @@ namespace Menu {
     #ifdef MENU_DEBUG
       if (!(i>=0&&i<sz())){
         print_P(MENU_DEBUG_OUT,getText());
-        MENU_DEBUG_OUT.print(F(" : value out of range "));
+        MENU_DEBUG_OUT.print(" : value out of range ");
         MENU_DEBUG_OUT.println(i);
       }
       assert(i>=0&&i<sz());

@@ -89,15 +89,29 @@ void loop() {
 - can be confined to a display area (numeric fields can still overflow the area, user should take account for them)
 - Tested on Arduino AVR's & ARM, Teensy, ESP8266, Esp32, nRF52, STM32
 
-## Version 2.x videos
+## Videos
 [![IMAGE ALT TEXT](https://img.youtube.com/vi/wHv5sU-HXVI/2.jpg)](https://youtu.be/wHv5sU-HXVI "Arduino menu 2.0 fields video") [![IMAGE ALT TEXT](https://img.youtube.com/vi/W-TRCziF67g/2.jpg)](https://youtu.be/W-TRCziF67g "Arduino menu basic features video")[![IMAGE ALT TEXT](https://img.youtube.com/vi/27KEUTpCHfg/2.jpg)](https://youtu.be/27KEUTpCHfg "Arduino menu 4.x")
+
+## Plugins
+
+Plugins are particular menu combinations or item customized behaviors and/or drawing.
+
+Some plugins might be platform specific or require some hardware.
+
+- barField - displays a bar for numeric field on LCD
+- cancelField - allows to restore previous numeric value on escape.
+- SDMenu - full automated SD Card file picker, using standard Arduino SD lib.
+- SdFatMenu - full automated SD Card file picker, using standard SdFat (https://github.com/greiman/SdFat).
 
 ## Applications
 
 Some applications using ArduinoMenu, (current and older versions).  
 Do you have another? please let me know on gitter or email me.
 
-**ServoBox** Servo tester & monitor
+**Reloading powder hopper level gauge and alarm**  
+https://github.com/nathandarnell/Reloading-Powder-Hopper-Level-Gauge-and-Alarm
+
+**ServoBox** Servo tester & monitor  
 https://github.com/jarkman/ServoBox
 
 **PANOBOT** A Panorama robot  
@@ -190,6 +204,14 @@ https://github.com/greiman/SSD1306Ascii
 
 - OLED Screens based on SSD1306 controller
 
+**TFT_eSPI**
+
+An Arduino IDE compatible graphics and fonts library for ESP8266 and ESP32  
+https://github.com/Bodmer/TFT_eSPI
+
+- ILI9341, ILI9163, ST7735, S6D02A1, ILI9481, ILI9486, ILI9488, HX8357D, ST7789, ILI9486
+- Waveshare 2 and 3 colour SPI ePaper displays
+
 **TFT_HX8357 driver**
 
 https://github.com/Bodmer/TFT_HX8357
@@ -241,9 +263,23 @@ https://github.com/neu-rah/AnsiStream
 
 - Unix terminal
 
-**Web browser** _(experimental)_
+**Web browser**
 
-- ESP8266 Web Server
+- ESP8266 (builtin)  
+
+**Web JSON**
+
+- ESP8266 (builtin)  
+
+**Websockets**
+
+- ESP8266 (builtin)  
+
+**note:** esp8266 will require a streaming library even if not using web interface, along with `#include <menuIO/esp8266Out.h>`
+
+depending on your output driver it may be one of (can install both)
+- https://github.com/neu-rah/streamFlow
+- https://github.com/scottdky/Streaming
 
 ### Input devices
 
@@ -314,6 +350,12 @@ multiple stream packing for input to mix encoder stream with encoder keyboard (u
 ## History
 
 ### 4.0
+  - SdFat plugin and example
+  - EscControl examle
+  - support Bodmer/TFT_eSPI
+  - SDCard file picker plugin
+  - Allow virtual/dynamic data custom menus
+  - alternative key driver with explicit pin modes
   - More examples
   - Text edit fields with validation *
   - Pad style menus (horizontal list)

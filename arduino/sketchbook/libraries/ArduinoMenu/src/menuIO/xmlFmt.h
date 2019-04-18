@@ -1,11 +1,10 @@
 /* -*- C++ -*- */
 
-
 #ifndef RSITE_ARDUINO_MENU_XMLFMT
   #define RSITE_ARDUINO_MENU_XMLFMT
 
-  #include "../menuDefs.h"
   #ifdef MENU_FMT_WRAPS
+  #include "../menuDefs.h"
   #include "../items.h"
   #include "esp8266Out.h"
 
@@ -127,6 +126,10 @@
                   *this<<"\"><![CDATA[";
                 } else *this<<"]]></fld>";
                 break;
+              case menuOut::fmtEditCursor:
+                if (start) *this<<"<ec><![CDATA[";
+                else *this<<"]]></ec>";
+                break;
               case menuOut::fmtTextField:
                 if (start) *this<<"<fv><![CDATA[";
                 else *this<<"]]></fv>";
@@ -136,6 +139,8 @@
                 else *this<<"]]></idx>";
                 break;
               case menuOut::fmtCursor:
+              case menuOut::fmtCursorOpen:
+              case menuOut::fmtCursorClose:
                 if (start) *this<<"<cur><![CDATA[";
                 else *this<<"]]></cur>";
                 break;

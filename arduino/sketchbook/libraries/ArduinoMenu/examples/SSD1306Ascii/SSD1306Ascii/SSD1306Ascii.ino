@@ -34,6 +34,9 @@
 
 #include <Arduino.h>
 
+constexpr int OLED_SDA=4;
+constexpr int OLED_SDC=5;
+
 #define I2C_ADDRESS 0x3C
 // #include <Wire.h>
 #include "SSD1306Ascii.h"
@@ -42,6 +45,8 @@
 #include <menu.h>
 #include <menuIO/SSD1306AsciiOut.h>
 #include <menuIO/serialIO.h>
+//enable this include if using esp8266
+// #include <menuIO/esp8266Out.h>
 using namespace Menu;
 
 //Define your font here. Default font: lcd5x7

@@ -1,6 +1,7 @@
-#include "xmlFmt.h"
-
+#include "../menuDefs.h"
 #ifdef MENU_FMT_WRAPS
+  #include "xmlFmt.h"
+
   namespace Menu {
     void outputOptions(menuOut& o,navNode &nav,menuNode& node,idx_t idx) {
       o<<"<node>";

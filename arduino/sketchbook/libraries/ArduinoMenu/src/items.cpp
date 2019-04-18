@@ -55,7 +55,7 @@ Used prompt::printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,id
   idx_t prompt::selected() const {return 0;}
   const char* prompt::typeName() const {return "prompt";}
   bool prompt::async(const char*uri,navRoot& root,idx_t lvl) {
-    trace(MENU_DEBUG_OUT<<"prompt::async ["<<uri<<"]"<<endl;);
+    _trace(MENU_DEBUG_OUT<<"prompt::async ["<<uri<<"]"<<endl;);
     return true;
   }
   idx_t menuNode::parseUriNode(const char*&uri) {
@@ -92,11 +92,27 @@ Used prompt::printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,id
     assert(strchr(numericChars,uri[0]));
     int n=parseUriNode(uri);
     trace(MENU_DEBUG_OUT<<"n:"<<n<<" sel:"<<root.path[lvl].sel<<endl);
-    if (!(root.path[lvl].sel==n&&root.path[lvl+1].target==&operator[](n)&&root.level>lvl)) {
+    _trace(Serial<<"root.level>lvl:"<<(root.level>lvl)<<endl);
+    _trace(Serial<<"root.path[lvl].sel==n:"<<(root.path[lvl].sel==n)<<endl);
+    _trace(Serial<<"root.path[lvl+1].target==&operator[](n))):"<<(root.path[lvl+1].target==&operator[](n))<<endl);
+    _trace(Serial<<"operator[](n).type()==toggleClass:"<<(operator[](n).type()==toggleClass)<<endl);
+    bool toggleUpdate=operator[](n).type()==toggleClass&&strchr(uri,'/');
+    if (!(
+        //if updating a toggle to not toggle the value, was deffault action
+        //but as we can't enter toggles this action would be preceeding every update otherwise.
+        toggleUpdate
+        ||(root.level>lvl&&root.path[lvl].sel==n&&root.path[lvl+1].target==&operator[](n))
+      )) {
+      _trace(Serial<<"menuNode, escTo "<<lvl<<endl);
       root.escTo(lvl/*+(lvl&&root.path[lvl].sel==n?-1:0)*/);
+      _trace(Serial<<"menuNode, doNav "<<n<<endl);
       root.doNav(navCmd(idxCmd,n));
     }
-    return operator[](n).async(uri,root,lvl+1);
+    _trace(Serial<<"menuNode, proceed async"<<endl);
+    operator[](n).async(uri,root,lvl+1);
+    if (toggleUpdate)
+      root.node().event(root.useUpdateEvent?updateEvent:enterEvent,n);
+    return true;
   }
   const char* navTarget::typeName() const {return "navTarget";}
 #endif
@@ -145,6 +161,7 @@ void textField::doNav(navNode& nav,navCmd cmd) {
         dirty=true;
       } else {
         if(cursor<(idx_t)strlen(buffer())-1) cursor++;
+        // if(cursor<sz()) cursor++;
         edited=false;
       }
       dirty=true;
@@ -174,30 +191,38 @@ Used textField::printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len
   bool editing=this==root.navFocus;
   trace(MENU_DEBUG_OUT<<"editing:"<<editing<<" len:"<<len;)
   idx_t l=navTarget::printTo(root,sel,out,idx,len,panelNr);
+  #ifdef MENU_FMT_WRAPS
+    out.fmtStart(*this,menuOut::fmtEditCursor,root.node(),idx);
+  #endif
   if (l<len) {
     out.write(editing?":":" ");
     l++;
   }
+  #ifdef MENU_FMT_WRAPS
+    out.fmtEnd(*this,menuOut::fmtEditCursor,root.node(),idx);
+  #endif
   // idx_t c=l;
   //idx_t top=out.tops[root.level];
   #ifdef MENU_FMT_WRAPS
     out.fmtStart(*this,menuOut::fmtTextField,root.node(),idx);
   #endif
   idx_t tit=hasTitle(root.node())?1:0;
+  idx_t c=l+1;//initial cursor, after label
   idx_t line=idx+tit;//-out.tops[root.level];
-  idx_t c=l+1;
-  idx_t w=len-l;
-  idx_t at=cursor>=w?cursor-w:0;
-  trace(MENU_DEBUG_OUT<<"at:"<<at<<" tit:"<<tit<<" line:"<<line<<" cursor:"<<cursor<<" l:"<<l<<" len:"<<len);//<<endl;)
-  while(buffer()[at]&&l++<len)
-    if (at==cursor&&editing) {
-      // MENU_DEBUG_OUT<<"idx:"<<idx<<" line:"<<line<<" at:"<<at<<" l:"<<l<<endl;
-      // c=l+1;
-      l+=out.startCursor(root,l,line,charEdit);//draw textual cursor or color code start
+  idx_t ew=len-c;//editable width
+  idx_t at=cursor>=ew?cursor-ew:0;//adjust print start
+  while(buffer()[at]&&l++<len) {//while not string terminated or buffer length reached
+    trace(if (editing) MENU_DEBUG_OUT<<endl<<"{"<<at<<"}");
+    if (at==cursor&&editing) {//edit cursor
+      trace(MENU_DEBUG_OUT<<"ew:"<<ew<<" cursor:"<<cursor<<" l:"<<l<<" len:"<<len<<endl);
+      c=l;//store cursor position
+      l+=out.startCursor(root,l,line,charEdit);//draw text cursor or color code start
       out.write(buffer()[at++]);//draw focused character
-      l+=out.endCursor(root,l,line,charEdit);//draw textual cursor or color code end
-    } else out.write(buffer()[at++]);
-  out.editCursor(root,c+cursor,line,editing,charEdit);//reposition a non text cursor
+      l+=out.endCursor(root,l,line,charEdit);//draw text cursor or color code end
+    } else out.write(buffer()[at++]);//just the character
+  }
+  //this is the cursor frame
+  out.editCursor(root,c,line,editing,charEdit);//reposition a gfx cursor
   #ifdef MENU_FMT_WRAPS
     out.fmtEnd(*this,menuOut::fmtTextField,root.node(),idx);
   #endif
@@ -303,6 +328,7 @@ bool textField::async(const char*uri,navRoot& root,idx_t lvl=0) {
   if ((!*uri)||(uri[0]=='/'&&!uri[1])) return true;
   if (uri[0]=='/') {
     StringStream i(++uri);
+    memset(buffer(), validator(0)[0], (idx_t)strlen(buffer()));//clear buffer
     while(i.available()) parseInput(root.node(), i);
     trace(MENU_DEBUG_OUT<<"textField::enterCmd"<<endl);
     doNav(root.node(),escCmd);
@@ -434,7 +460,7 @@ idx_t menuVariantBase::togglePrintTo(navRoot &root,bool sel,menuOut& out, idx_t 
     l+=operator[](at).printRaw(out,len-l);
     #ifdef MENU_FMT_WRAPS
   out.fmtEnd(*this,menuOut::fmtToggle,root.node(),idx);
-    #endif
+    #endif-
   }
   return l;
 }

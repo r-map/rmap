@@ -2,12 +2,13 @@
 #pragma once
 
 #include <Arduino.h>
-#define MENU_ASYNC
-#define MENU_FMT_WRAPS
+// #define MENU_ASYNC
+// #define MENU_FMT_WRAPS
 // #define USE_PGM
 // #define USE_RAM
 // #define MENU_DEBUG
 
+#include "macros.h"
 #include "menuBase.h"
 #include "shadows.h"
 
@@ -20,10 +21,14 @@ using namespace Menu;
 #endif
 
 #if defined(MENU_DEBUG) || defined(MENU_ASYNC)
-  #ifndef ARDUINO_STREAMING
-    #include <streamFlow.h>
-  #else
-    #include <Streaming.h>
+  #ifndef ios_h
+    #ifndef ARDUINO_STREAMING
+      //https://github.com/neu-rah/streamFlow
+      #include <streamFlow.h>
+    #else
+      //https://github.com/scottdky/Streaming
+      #include <Streaming.h>
+    #endif
   #endif
 #endif
 

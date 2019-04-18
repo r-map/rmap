@@ -192,6 +192,9 @@ void outputsList::clearChanged(navNode& nav) const {
 void outputsList::clear() {
   for(int n=0;n<cnt;n++) ((menuOut*)memPtr(outs[n]))->clear();
 }
+// void outputsList::reset() {
+//   for(int n=0;n<cnt;n++) ((menuOut*)memPtr(outs[n]))->reset();
+// }
 void outputsList::doNav(navCmd cmd,class navNode &nav) {
   for(int n=0;n<cnt;n++) ((menuOut*)memPtr(outs[n]))->doNav(cmd,nav);
 }
@@ -401,13 +404,15 @@ Used menuOut::printMenu(navNode &nav,idx_t panelNr) {
         #endif
         //------> cursorStart
         #ifdef MENU_FMT_WRAPS
-          fmtStart(p,fmtCursor,nav,i);
+          fmtStart(p,fmtCursorOpen,nav,i);
+          // fmtStart(p,fmtCursor,nav,i);
         #endif
         if (asPad&&selected) print("[");
         else drawCursor(ist,selected,p.enabled,ed,panelNr);//assuming only one character
         //<------ cursorEnd
         #ifdef MENU_FMT_WRAPS
-          fmtEnd(p,fmtCursor,nav,i);
+          fmtEnd(p,fmtCursorOpen,nav,i);
+          // fmtEnd(p,fmtCursor,nav,i);
         #endif
         len--;
         //---->opBodyStart
@@ -419,11 +424,13 @@ Used menuOut::printMenu(navNode &nav,idx_t panelNr) {
         if (len>0) {
           if (asPad) {
             #ifdef MENU_FMT_WRAPS
-              fmtStart(p,fmtCursor,nav,i);
+              // fmtStart(p,fmtCursor,nav,i);
+              fmtStart(p,fmtCursorClose,nav,i);
             #endif
             print(selected?"]":"");
             #ifdef MENU_FMT_WRAPS
-              fmtEnd(p,fmtCursor,nav,i);
+              fmtEnd(p,fmtCursorClose,nav,i);
+              // fmtEnd(p,fmtCursor,nav,i);
             #endif
             len--;
           }
@@ -457,6 +464,7 @@ Used menuOut::printMenu(navNode &nav,idx_t panelNr) {
   #ifdef MENU_FMT_WRAPS
     fmtEnd(*nav.target,fmtPanel,nav,-1);
   #endif
+  trace(MENU_DEBUG_OUT<<"ENDING menuOut::printMenu(navNode &nav,idx_t panelNr)"<<endl);
   return 0;
 }
 
