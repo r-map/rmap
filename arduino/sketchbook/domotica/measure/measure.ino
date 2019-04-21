@@ -26,8 +26,12 @@
 //disable debug at compile time but call function anyway
 //#define DISABLE_LOGGING disable
 
-#define FILETERMOSTATO "/termostato.json"
+#define FILESAVEDDATA "/saveddata.json"
 
+#include <limits>
+#include <ESP8266WiFi.h>
+#include <DNSServer.h>
+#include <ESP8266WebServer.h>
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
 #include <ArduinoLog.h>
 #include <Wire.h>
@@ -70,8 +74,8 @@
 
 FloatBuffer t;
 FloatBuffer u;
-float tmean;
-float umean;
+float tmean=NAN;
+float umean=NAN;
 	 
 struct sensor_t
 {
@@ -82,9 +86,6 @@ struct sensor_t
 SensorDriver* sd[SENSORS_LEN];
 
 char* json;
-
-float U_Input;
-float T_Input;
 
 float trawmeasures[]={-50.,0.,50.};
 float tmeasures[]={-50.,0.,50.};
@@ -98,6 +99,11 @@ calibration::Calibration tcal,hcal;
 ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
 //i2cgpio gpio(I2C_GPIO_DEFAULTADDRESS);
 //i2cibt_2 hbridge(IBT_2_2HALF,gpio);
+
+IPAddress apIP(192, 168, 4, 1);
+DNSServer dnsServer;
+const byte DNS_PORT = 53;
+ESP8266WebServer server(80);
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
@@ -114,6 +120,21 @@ const colorDef<uint8_t> colors[] MEMMODE={
   {{0,1},{0,0,1}},//cursorColor
   {{1,1},{1,0,0}},//titleColor
 };
+
+// sensors state machine
+unsigned long s_start_wait;
+enum s_states {
+	     PREPARE
+	     ,WAIT
+	     ,GET
+	     ,IDLE
+} s_state= IDLE;
+
+enum s_events {
+	     START
+	     ,START_WAIT
+	     ,NONE
+}s_event=NONE;
 
 int ventCtrl=HIGH;
 
@@ -176,7 +197,7 @@ result save() {
     jsonhmeasures.add(hmeasures[i]);
   }
   
-  File configFile = SPIFFS.open(FILETERMOSTATO, "w");
+  File configFile = SPIFFS.open(FILESAVEDDATA, "w");
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }else{
@@ -282,10 +303,10 @@ void encoderprocess (){
 String read_savedparams() {
 
   LOGN(F("mounted file system" CR));
-  if (SPIFFS.exists(FILETERMOSTATO)) {
+  if (SPIFFS.exists(FILESAVEDDATA)) {
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
-    File configFile = SPIFFS.open(FILETERMOSTATO, "r");
+    File configFile = SPIFFS.open(FILESAVEDDATA, "r");
     if (configFile) {
       LOGN(F("opened config file" CR));
 
@@ -307,111 +328,268 @@ String read_savedparams() {
 }
 
 
-void do_measure(){
+void start_measure(){
+  s_event=START;
+}
+
+void s_machine(){
   long unsigned int waittime,maxwaittime=0;
 
-  // prepare sensors to measure
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      if (sd[i]->prepare(waittime) == SD_SUCCESS){
-        //Serial.print(sensors[i].driver);
-        //Serial.print(" : ");
-        //Serial.print(sensors[i].type);
-        //Serial.println(" : Prepare OK");
-	maxwaittime=max(maxwaittime,waittime);
-      }else{
-	LOGN(F("%s : %s : Prepare failed!" CR),sensors[i].driver, sensors[i].type);
+  switch(s_state) {
+  case IDLE:
+    switch(s_event) {
+    case START:
+      s_event = NONE;
+      s_state = PREPARE;
+      break;
+    default:
+      return;
+      break;
+    }
+    break;
+
+  case PREPARE:
+    // prepare sensors to measure
+    for (int i = 0; i < SENSORS_LEN; i++) {
+      if (!sd[i] == 0){
+	if (sd[i]->prepare(waittime) == SD_SUCCESS){
+	  //Serial.print(sensors[i].driver);
+	  //Serial.print(" : ");
+	  //Serial.print(sensors[i].type);
+	  //Serial.println(" : Prepare OK");
+	  maxwaittime=max(maxwaittime,waittime);
+	}else{
+	  LOGN(F("%s : %s : Prepare failed!" CR),sensors[i].driver, sensors[i].type);
+	}
       }
     }
-  }
+   
+    s_state = WAIT;
+    s_event = START_WAIT;
+    break;
+ 
+  case WAIT:
+    switch(s_event) {
+    case START_WAIT:
+      s_event = NONE;
+      s_start_wait=millis();
+      break;
+    default:
 
-  //wait sensors to go ready
-  //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
-  delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
-
-
-  if (displaydata){
-    u8g2.setFont(fontNameB);
-    //u8g2.setFontMode(0); // enable transparent mode, which is faster
-    u8g2.clearBuffer();
-  }
-  
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    if (!sd[i] == 0){
-      // get integers values 
-      long values[LENVALUES];
-      size_t lenvalues=LENVALUES;
+      //wait sensors to go ready
+      //Serial.print("# wait sensors for ms:");  Serial.println(maxwaittime);
+      //delay(maxwaittime);  // 500 for tmp and 250 for adt and 2500 for davis
       
-      if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
-	//for (size_t ii = 0; ii < lenvalues; ii++) {
-	//  Serial.println(values[ii]);
-	//}
-	
-	if (i == 0){
-	  hcal.getConcentration(float(values[0]),&U_Input);
-	  tcal.getConcentration(float(values[1])/100.-273.15,&T_Input);
-	  //U_Input=float(values[0]);
-	  //T_Input=float(values[1])/100.-273.15;
-	   
-
-	  u8g2.setCursor(0, 12); 
-	  u8g2.print("U:");
-	  u8g2.setCursor(25, 12); 
-
-	  u.autoput(U_Input);
-	  if (u.getSize() == u.getCapacity()){
-	    umean=0;
-	    for ( uint8_t i=0 ; i < u.getCapacity() ; i++)  {
-	      umean += (u.peek(i) - umean) / (i+1);
-	    }
-	    u8g2.print(umean);
-	  }else{
-	    u8g2.print("wait");
-	  }
-
-	  
-	  u8g2.setCursor(0, 36); 
-	  u8g2.print("t:");
-	  u8g2.setCursor(25, 36); 
-	  u8g2.print(T_Input);	    	    
-	}
-
-	if (i == 1){
-	  T_Input=float(values[0])/100.-273.15;
-
-	  u8g2.setCursor(0, 24); 
-	  u8g2.print("T:");
-	  u8g2.setCursor(25, 24); 
-	  
-	  t.autoput(T_Input);
-	  if (t.getSize() == t.getCapacity()){
-	    tmean=0;
-	    for ( uint8_t i=0 ; i < t.getCapacity() ; i++)  {
-	      tmean += (t.peek(i) - tmean) / (i+1);
-	    }
-	    u8g2.print(tmean);	    	    
-	  } else{
-	    u8g2.print("wait");	    	    
-	  }
-	}
-	
-      }else{
-      
-	if (displaydata){
-	  Serial.println("Error");
-	  Serial.println("Disable");
-	  u8g2.clearBuffer();
-	  u8g2.setCursor(0, 10); 
-	  u8g2.print("Error Sensor");
-	  u8g2.setCursor(0, 20); 
-	  u8g2.print("Disable");
-	}
-
-	return;
-      }  
+      if ((millis()-s_start_wait) >= maxwaittime) {
+	s_state = GET;
+      }
+      return;
+      break;
     }
-  }
+    break;
 
+  case GET:
+    
+    if (displaydata){
+      u8g2.setFont(fontNameB);
+      //u8g2.setFontMode(0); // enable transparent mode, which is faster
+      u8g2.clearBuffer();
+    }
+  
+    for (int i = 0; i < SENSORS_LEN; i++) {
+      if (!sd[i] == 0){
+	// get integers values 
+	long values[LENVALUES];
+	size_t lenvalues=LENVALUES;
+	
+	if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
+	  for (size_t ii = 0; ii < lenvalues; ii++) {
+	    LOGN(F("sensor:%d element:%d value:%d " CR),i,ii,values[ii]);
+	  }
+	  
+	  if (i == 0){
+	    float U_Input;
+	    float T_Input;
+	    
+	    //U_Input=float(values[0]);	   
+	    hcal.getConcentration(float(values[0]),&U_Input);
+	    T_Input=float(values[1])/100.-273.15;
+	    
+	    LOGN(F("calibrated U: %F" CR),U_Input);
+	    
+	    u8g2.setCursor(0, 12); 
+	    u8g2.print("U:");
+	    u8g2.setCursor(25, 12); 
+	    
+	    u.autoput(U_Input);
+	    LOGN(F("U size %d" CR),u.getSize());
+	    
+	    if (u.getSize() == u.getCapacity()){
+	      umean=0;
+	      for ( uint8_t i=0 ; i < u.getCapacity() ; i++)  {
+		LOGN(F("U ele %d %F" CR),i,u.peek(i));
+		umean += (u.peek(i) - umean) / (i+1);
+	      }
+	      u8g2.print(round(umean),0);
+	    }else{
+	    u8g2.print("wait");
+	    }
+	    
+	    
+	    u8g2.setCursor(0, 36); 
+	    u8g2.print("t:");
+	    u8g2.setCursor(25, 36); 
+	    u8g2.print(round(T_Input*10.)/10.,1);	    	    
+	  }
+	  
+	  if (i == 1){
+	    float T_Input;
+	    tcal.getConcentration(float(values[0])/100.-273.15,&T_Input);
+	    LOGN(F("calibrated T: %F" CR),T_Input);
+	    
+	    u8g2.setCursor(0, 24); 
+	    u8g2.print("T:");
+	    u8g2.setCursor(25, 24); 
+	    
+	    t.autoput(T_Input);
+	    if (t.getSize() == t.getCapacity()){
+	      tmean=0;
+	      for ( uint8_t i=0 ; i < t.getCapacity() ; i++)  {
+		tmean += (t.peek(i) - tmean) / (i+1);
+	      }
+	      u8g2.print(round(tmean*10.)/10.,1);	    	    
+	    } else{
+	      u8g2.print("wait");	    	    
+	    }
+	  }
+	  
+	}else{
+	  
+	  if (displaydata){
+	    LOGE(F("Error on sensor: disable" CR));
+	    u8g2.clearBuffer();
+	    u8g2.setCursor(0, 10); 
+	    u8g2.print("Error Sensor");
+	    u8g2.setCursor(0, 20); 
+	    u8g2.print("Disable");
+	  }
+	  
+	  return;
+	}  
+      }
+    }
+
+    s_state = IDLE;
+    break;
+    
+  default:
+    LOGN(F("Something go wrong in s_machine"));
+    break;
+    
+  }
+  return;
+}
+
+void handle_OnConnect() {
+
+  server.send(200, "text/html", SendHTML(tmean,umean)); 
+}
+
+void handle_NotFound(){
+  server.send(404, "text/plain", "Not found");
+}
+
+String SendHTML(float Temperaturestat,float Humiditystat){
+  String ptr = "<!DOCTYPE html> <html>\n";
+  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
+  ptr +="<title>Senamhi EUAID Weather Report</title>\n";
+  ptr +="<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n";
+  ptr +="body{margin-top: 50px;}\n";
+  ptr +="h1 {margin: 50px auto 30px;}\n";
+  ptr +=".side-by-side{display: inline-block;vertical-align: middle;position: relative;}\n";
+  ptr +=".humidity-icon{background-color: #3498db;width: 30px;height: 30px;border-radius: 50%;line-height: 36px;}\n";
+  ptr +=".humidity-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
+  ptr +=".humidity{font-weight: 300;font-size: 60px;color: #3498db;}\n";
+  ptr +=".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n";
+  ptr +=".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
+  ptr +=".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n";
+  ptr +=".superscript{font-size: 17px;font-weight: 600;position: absolute;right: -20px;top: 15px;}\n";
+  ptr +=".data{padding: 10px;}\n";
+  ptr +="</style>\n";
+  ptr +="<script>\n";
+  ptr +="setInterval(loadDoc,200);\n";
+  ptr +="function loadDoc() {\n";
+  ptr +="var xhttp = new XMLHttpRequest();\n";
+  ptr +="xhttp.onreadystatechange = function() {\n";
+  ptr +="if (this.readyState == 4 && this.status == 200) {\n";
+  ptr +="document.getElementById(\"webpage\").innerHTML =this.responseText}\n";
+  ptr +="};\n";
+  ptr +="xhttp.open(\"GET\", \"/\", true);\n";
+  ptr +="xhttp.send();\n";
+  ptr +="}\n";
+  ptr +="</script>\n";
+  ptr +="</head>\n";
+  ptr +="<body>\n";
+  
+  ptr +="<div id=\"webpage\">\n";
+  
+  ptr +="<h1>Senamhi EUAID Weather Report</h1>\n";
+  ptr +="<div class=\"data\">\n";
+  ptr +="<div class=\"side-by-side temperature-icon\">\n";
+  ptr +="<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
+  ptr +="width=\"9.915px\" height=\"22px\" viewBox=\"0 0 9.915 22\" enable-background=\"new 0 0 9.915 22\" xml:space=\"preserve\">\n";
+  ptr +="<path fill=\"#FFFFFF\" d=\"M3.498,0.53c0.377-0.331,0.877-0.501,1.374-0.527C5.697-0.04,6.522,0.421,6.924,1.142\n";
+  ptr +="c0.237,0.399,0.315,0.871,0.311,1.33C7.229,5.856,7.245,9.24,7.227,12.625c1.019,0.539,1.855,1.424,2.301,2.491\n";
+  ptr +="c0.491,1.163,0.518,2.514,0.062,3.693c-0.414,1.102-1.24,2.038-2.276,2.594c-1.056,0.583-2.331,0.743-3.501,0.463\n";
+  ptr +="c-1.417-0.323-2.659-1.314-3.3-2.617C0.014,18.26-0.115,17.104,0.1,16.022c0.296-1.443,1.274-2.717,2.58-3.394\n";
+  ptr +="c0.013-3.44,0-6.881,0.007-10.322C2.674,1.634,2.974,0.955,3.498,0.53z\"/>\n";
+  ptr +="</svg>\n";
+  ptr +="</div>\n";
+  ptr +="<div class=\"side-by-side temperature-text\">Temperature</div>\n";
+  ptr +="<div class=\"side-by-side temperature\">";
+  ptr +=round(Temperaturestat*10.)/10.;
+  ptr +="<span class=\"superscript\">°C</span></div>\n";
+  ptr +="</div>\n";
+  ptr +="<div class=\"data\">\n";
+  ptr +="<div class=\"side-by-side humidity-icon\">\n";
+  ptr +="<svg version=\"1.1\" id=\"Layer_2\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n\"; width=\"12px\" height=\"17.955px\" viewBox=\"0 0 13 17.955\" enable-background=\"new 0 0 13 17.955\" xml:space=\"preserve\">\n";
+  ptr +="<path fill=\"#FFFFFF\" d=\"M1.819,6.217C3.139,4.064,6.5,0,6.5,0s3.363,4.064,4.681,6.217c1.793,2.926,2.133,5.05,1.571,7.057\n";
+  ptr +="c-0.438,1.574-2.264,4.681-6.252,4.681c-3.988,0-5.813-3.107-6.252-4.681C-0.313,11.267,0.026,9.143,1.819,6.217\"></path>\n";
+  ptr +="</svg>\n";
+  ptr +="</div>\n";
+  ptr +="<div class=\"side-by-side humidity-text\">Humidity</div>\n";
+  ptr +="<div class=\"side-by-side humidity\">";
+  ptr +=round(Humiditystat);
+  ptr +="<span class=\"superscript\">%</span></div>\n";
+  ptr +="</div>\n";
+  
+  ptr +="</div>\n";
+  ptr +="</body>\n";
+  ptr +="</html>\n";
+  return ptr;
+}
+
+void do_display(){
+  if (displaydata){
+    u8g2.setFont(fontNameS);
+    u8g2.setCursor(0, 49); 
+    u8g2.print("Vent:");
+    u8g2.setCursor(25, 49); 
+    u8g2.print(vent);
+    u8g2.setCursor(55, 49); 
+    u8g2.print(ventCtrl);
+    u8g2.sendBuffer();
+  }
+}
+
+void do_etc(){
+  hbridge.setpwm(int(vent*255.0/100.0),IBT_2_L_HALF);
+
+  nav.doInput();
+  if (nav.changed(0)) {//only draw if menu changed for gfx device
+    u8g2.firstPage();
+    do nav.doOutput(); while(u8g2.nextPage());
+  }  
 }
 
 void setup()
@@ -554,7 +732,23 @@ void setup()
   t.init(NSAMPLE);
   u.init(NSAMPLE);
 
-  Alarm.timerRepeat(SAMPLERATE, do_measure);            // timer for every second    
+  WiFi.mode(WIFI_AP);
+  WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+  WiFi.softAP("Senamhi-EUAID");
+
+  dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
+  
+  // if DNSServer is started with "*" for domain name, it will reply with
+  // provided IP to all DNS request
+  dnsServer.start(DNS_PORT, "*", apIP);
+
+  server.on("/", handle_OnConnect);
+  server.onNotFound(handle_NotFound);
+  
+  server.begin();
+  LOGN(F("HTTP server started" CR));
+
+  Alarm.timerRepeat(SAMPLERATE, start_measure);            // timer for every second    
   
   LOGN(F("setup done." CR));
 
@@ -569,27 +763,10 @@ void setup()
 
 void loop()
 {
-
   Alarm.delay(0);
-
-
-  if (displaydata){
-    u8g2.setFont(fontNameS);
-    u8g2.setCursor(0, 49); 
-    u8g2.print("Vent:");
-    u8g2.setCursor(25, 49); 
-    u8g2.print(vent);
-    u8g2.setCursor(55, 49); 
-    u8g2.print(ventCtrl);
-    u8g2.sendBuffer();
-  }
-  
-  hbridge.setpwm(int(vent*255.0/100.0),IBT_2_L_HALF);
-
-  nav.doInput();
-  if (nav.changed(0)) {//only draw if menu changed for gfx device
-    u8g2.firstPage();
-    do nav.doOutput(); while(u8g2.nextPage());
-  }  
-
+  s_machine();
+  server.handleClient();
+  dnsServer.processNextRequest();
+  do_display();
+  do_etc();
 }
