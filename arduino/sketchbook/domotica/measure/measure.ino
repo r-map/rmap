@@ -1,3 +1,33 @@
+/**********************************************************************
+Copyright (C) 2019  Paolo Paruno <p.patruno@iperbole.bologna.it>
+authors:
+Paolo Paruno <p.patruno@iperbole.bologna.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of 
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**********************************************************************/
+
+/*********************************************************************
+ *
+ * This program implements measuremets of temperature and humidity
+ * - calibration if required
+ * - compute obsevation from samples
+ * - show it on display
+ * - serve a webserver over wifi and AP
+ * - use an encoder for user interaction
+ * 
+**********************************************************************/
+
 
 #define SENSORS_LEN 2
 #define LENVALUES 2
@@ -80,7 +110,7 @@ float umean=NAN;
 struct sensor_t
 {
   char driver[5];         // driver name
-  char type[5];         // driver name
+  char type[5];           // driver name
   int address;            // i2c address
 } sensors[SENSORS_LEN];
 SensorDriver* sd[SENSORS_LEN];
@@ -108,8 +138,8 @@ ESP8266WebServer server(80);
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
 
-// define menu colors --------------------------------------------------------
-//each color is in the format:
+// define menu colors
+// each color is in the format:
 //  {{disabled normal,disabled selected},{enabled normal,enabled selected, enabled editing}}
 // this is a monochromatic color table
 const colorDef<uint8_t> colors[] MEMMODE={
@@ -124,16 +154,18 @@ const colorDef<uint8_t> colors[] MEMMODE={
 // sensors state machine
 unsigned long s_start_wait;
 enum s_states {
-	     PREPARE
-	     ,WAIT
-	     ,GET
-	     ,IDLE
-} s_state= IDLE;
+	       UNKNOWN
+	       ,SETUP
+	       ,PREPARE
+	       ,WAIT
+	       ,GET
+	       ,IDLE
+} s_state= UNKNOWN;
 
 enum s_events {
-	     START
-	     ,START_WAIT
-	     ,NONE
+	       START_MEASURE
+	       ,START_WAIT
+	       ,NONE
 }s_event=NONE;
 
 int ventCtrl=HIGH;
@@ -329,16 +361,31 @@ String read_savedparams() {
 
 
 void start_measure(){
-  s_event=START;
+  s_event=START_MEASURE;
 }
 
-void s_machine(){
+void sensor_machine(){
   long unsigned int waittime,maxwaittime=0;
 
   switch(s_state) {
+  case UNKNOWN:
+
+    for (int i = 0; i < SENSORS_LEN; i++) {
+      
+      sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
+      if (sd[i] == 0){
+	LOGN(F("%s: driver not created !" CR),sensors[i].driver);
+      }else{
+	sd[i]->setup(sensors[i].driver,sensors[i].address);
+      }
+    }
+
+    s_state = IDLE;
+    break;
+    
   case IDLE:
     switch(s_event) {
-    case START:
+    case START_MEASURE:
       s_event = NONE;
       s_state = PREPARE;
       break;
@@ -483,7 +530,7 @@ void s_machine(){
     break;
     
   default:
-    LOGN(F("Something go wrong in s_machine"));
+    LOGN(F("Something go wrong in sensor_machine"));
     break;
     
   }
@@ -499,10 +546,13 @@ void handle_NotFound(){
   server.send(404, "text/plain", "Not found");
 }
 
+
+//https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
+// todo: manage missed ajax update 
 String SendHTML(float Temperaturestat,float Humiditystat){
   String ptr = "<!DOCTYPE html> <html>\n";
   ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr +="<title>Senamhi EUAID Weather Report</title>\n";
+  ptr +="<title>Senamhi EUAV Weather Report</title>\n";
   ptr +="<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n";
   ptr +="body{margin-top: 50px;}\n";
   ptr +="h1 {margin: 50px auto 30px;}\n";
@@ -521,8 +571,10 @@ String SendHTML(float Temperaturestat,float Humiditystat){
   ptr +="function loadDoc() {\n";
   ptr +="var xhttp = new XMLHttpRequest();\n";
   ptr +="xhttp.onreadystatechange = function() {\n";
-  ptr +="if (this.readyState == 4 && this.status == 200) {\n";
-  ptr +="document.getElementById(\"webpage\").innerHTML =this.responseText}\n";
+  ptr +="if (this.readyState == 4 && this.status == 200)\n";
+  ptr +="{document.getElementById(\"webpage\").innerHTML =this.responseText}\n";
+  ptr +="if (this.readyState == 4 && this.status != 200)\n";
+  ptr +="{document.getElementById(\"webpage\").innerHTML =\"not connected\"}\n";
   ptr +="};\n";
   ptr +="xhttp.open(\"GET\", \"/\", true);\n";
   ptr +="xhttp.send();\n";
@@ -533,7 +585,7 @@ String SendHTML(float Temperaturestat,float Humiditystat){
   
   ptr +="<div id=\"webpage\">\n";
   
-  ptr +="<h1>Senamhi EUAID Weather Report</h1>\n";
+  ptr +="<h1>Senamhi EUAV Weather Report</h1>\n";
   ptr +="<div class=\"data\">\n";
   ptr +="<div class=\"side-by-side temperature-icon\">\n";
   ptr +="<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
@@ -702,16 +754,6 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
   
-  for (int i = 0; i < SENSORS_LEN; i++) {
-    
-    sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
-    if (sd[i] == 0){
-      LOGN(F("%s: driver not created !" CR),sensors[i].driver);
-    }else{
-      sd[i]->setup(sensors[i].driver,sensors[i].address);
-    }
-  }
-
   nav.idleTask=idle;//point a function to be used when menu is suspended
   nav.timeOut=10;
   nav.exit();
@@ -734,7 +776,7 @@ void setup()
 
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP("Senamhi-EUAID");
+  WiFi.softAP("Senamhi-EUAV");
 
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   
@@ -748,6 +790,8 @@ void setup()
   server.begin();
   LOGN(F("HTTP server started" CR));
 
+  sensor_machine();
+  
   Alarm.timerRepeat(SAMPLERATE, start_measure);            // timer for every second    
   
   LOGN(F("setup done." CR));
@@ -764,7 +808,7 @@ void setup()
 void loop()
 {
   Alarm.delay(0);
-  s_machine();
+  sensor_machine();
   server.handleClient();
   dnsServer.processNextRequest();
   do_display();
