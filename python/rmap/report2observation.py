@@ -132,7 +132,7 @@ class report2observation(object):
           return
 
       logging.info("ident=%s username=%s password=%s lonlat=%s network=fixed host=localhost prefix=sample maintprefix=maint" % (ident,rmap.settings.mqttuser,"fakepassword",lonlat))
-      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host="rmap.cc",prefix=prefix,maintprefix="maint",logfunc=logging.debug)
+      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host="rmap.cc",prefix=prefix,maintprefix="maint",logfunc=logging.debug,qos=0)  # attention qos 0 for fast publish
 
       dindex=0
       for val in st["p"]:

@@ -81,7 +81,7 @@ def main (self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.DEBUG)
+    logging.getLogger().setLevel(logging.INFO)
 
     logging.info('Starting up mqtt_report2observationd')
 
