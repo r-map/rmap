@@ -810,16 +810,16 @@ class TransportSERIAL(Transport):
         """write data to Serial port """
         self.ser.flushInput()
         self.log( "serial port (%s): %s" % ("SEND",string) )
-        self.ser.write(string+"\n")
+        self.ser.write(str.encode(string+"\n"))
 
     def recv(self):
         """read data from Serial port """
 
         #string=str(self.ser.read(size=80))
-        string=self.ser.readline()
+        string=self.ser.readline().decode()
         self.log( "serial port (%s): %s" % ("RECEIVE",string) )
         while string.startswith("#"):
-            string=self.ser.readline()
+            string=self.ser.readline().decode()
             self.log( "serial port (%s): %s" % ("RECEIVE",string) )
 
         self.ser.flushInput()  # del buffer in timeout case
