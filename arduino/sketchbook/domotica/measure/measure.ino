@@ -1,7 +1,7 @@
 /**********************************************************************
 Copyright (C) 2019  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
-Paolo Paruno <p.patruno@iperbole.bologna.it>
+Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -28,24 +28,31 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
 **********************************************************************/
 
-
+// sensor definition
 #define SENSORS_LEN 2
 #define LENVALUES 2
+
+//display definition
 #define OLEDI2CADDRESS 0X3C
 
+// H bridge
 #define MR_PWM   D3
 #define ML_PWM   D0
 #define MR_EN    D4
 #define ML_EN    D8
 #define MR_IS    0XFF
 #define ML_IS    0XFF
+
+// I2C BUS
 #define SCL D1
 #define SDA D2
+
 // rotary encoder pins
 #define encBtn  D5
 #define encA    D6
 #define encB    D7
 
+// define this if serial menu is required
 //#define USESERIAL
 
 // logging level at compile time
@@ -53,16 +60,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
-//disable debug at compile time but call function anyway
+// disable debug at compile time but call function anyway
+// this may significantly reduce your sketch/library size.
 //#define DISABLE_LOGGING disable
 
+// file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
 
 #include <limits>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
-#include <FS.h>                   //this needs to be first, or it all crashes and burns...
+#include <FS.h>
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <SensorDriverb.h>
@@ -85,6 +94,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <menuIO/serialIn.h>
 #endif
 
+// display definitions
 #define fontNameS u8g2_font_tom_thumb_4x6_tf
 #define fontNameB u8g2_font_t0_11_tf
 #define fontX 5
@@ -96,12 +106,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define fontMarginX 1
 #define fontMarginY 1
 
+// calibration definitions
 #define calibrationPoints 3
 
+// sensor sample definitions
 #define SAMPLERATE    1
 #define SAMPLEPERIOD 60
 #define NSAMPLE SAMPLEPERIOD/SAMPLERATE
 
+
+// global variables for sensors measure
 FloatBuffer t;
 FloatBuffer u;
 float tmean=NAN;
@@ -115,28 +129,35 @@ struct sensor_t
 } sensors[SENSORS_LEN];
 SensorDriver* sd[SENSORS_LEN];
 
-char* json;
+//char* json;
 
+// global variables for calibration
 float trawmeasures[]={-50.,0.,50.};
 float tmeasures[]={-50.,0.,50.};
 
 float hrawmeasures[]={0.,50.,100.};
 float hmeasures[]={0.,50.,100.};
 
-// Sensor calibration
 calibration::Calibration tcal,hcal;
 
+
+// global variables H bridge
 ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
 //i2cgpio gpio(I2C_GPIO_DEFAULTADDRESS);
 //i2cibt_2 hbridge(IBT_2_2HALF,gpio);
 
+
+// global variable for network (apn, dns server and web server)
 IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
-ESP8266WebServer server(80);
+ESP8266WebServer webserver(80);
+
+// global variables for display
+
+bool displaydata=false;
 
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
-
 
 // define menu colors
 // each color is in the format:
@@ -151,7 +172,8 @@ const colorDef<uint8_t> colors[] MEMMODE={
   {{1,1},{1,0,0}},//titleColor
 };
 
-// sensors state machine
+
+// global variables for sensors state machine
 unsigned long s_start_wait;
 enum s_states {
 	       UNKNOWN
@@ -168,27 +190,102 @@ enum s_events {
 	       ,NONE
 }s_event=NONE;
 
+// global variables for manual control of ventilation
 int ventCtrl=HIGH;
+float vent=100.;
 
-result ventOn(){
-  LOGN(F("vent ON" CR));
-  hbridge.start(IBT_2_L_HALF);
-  return proceed;
-}
-result ventOff(){
-  LOGN(F("vent OFF" CR));
-  hbridge.stop(IBT_2_L_HALF);
-  return proceed;
-}
+// global definition for menu
 
+#define MAX_DEPTH 2
+
+result ventOn();
+result ventOff();
+result save();
 
 TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
   ,VALUE("On",HIGH,ventOn,noEvent)
   ,VALUE("Off",LOW,ventOff,noEvent)
 );
 
-float vent=100.;
+MENU(tempMenu,"Temperature",doNothing,noEvent,noStyle
+     ,FIELD(trawmeasures[0],"uncal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[0],   "  cal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(trawmeasures[1],"uncal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[1],   "  cal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(trawmeasures[2],"uncal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[2],   "  cal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,EXIT("<Back")
+     );
 
+MENU(humidMenu,"Humidity",doNothing,noEvent,noStyle
+     ,FIELD(hrawmeasures[0],"uncal1","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(hmeasures[0],   "  cal1","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(hrawmeasures[1],"uncal2","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(hmeasures[1],   "  cal2","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(hrawmeasures[2],"uncal3","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,FIELD(hmeasures[2],   "  cal3","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
+     ,EXIT("<Back")
+     );
+
+MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
+     ,OP("Save!",save,enterEvent)
+     //,FIELD(umid,"Umid    ","%",10.0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,SUBMENU(tempMenu)
+     ,SUBMENU(humidMenu)
+     ,SUBMENU(setVent)
+     ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,EXIT("<Exit")
+     );
+
+encoderIn<encA,encB> encoder;//simple quad encoder driver
+encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
+
+
+//a keyboard with only one key as the encoder button
+keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
+keyIn<1> encButton(encBtn_map);//1 is the number of keys
+
+#ifdef USESERIAL
+serialIn serial(Serial);
+MENU_INPUTS(in,&encStream,&encButton,&serial);
+#else
+MENU_INPUTS(in,&encStream,&encButton);
+#endif
+
+idx_t gfx_tops[MAX_DEPTH];
+
+PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
+u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
+
+#ifdef USESERIAL
+idx_t serialTops[MAX_DEPTH]={0};
+serialOut outSerial(*(Print*)&Serial,serialTops);
+//define outputs controller
+menuOut* outputs[]{&oledOut,&outSerial};//list of output devices
+#else
+menuOut* outputs[]{&oledOut};//list of output devices
+#endif
+
+outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
+
+NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
+
+
+// power on the ventilation
+result ventOn(){
+  LOGN(F("vent ON" CR));
+  hbridge.start(IBT_2_L_HALF);
+  return proceed;
+}
+
+// power off the ventilation
+result ventOff(){
+  LOGN(F("vent OFF" CR));
+  hbridge.stop(IBT_2_L_HALF);
+  return proceed;
+}
+
+// save configuration
 result save() {
 
   LOGN(F("Save config" CR));
@@ -240,98 +337,6 @@ result save() {
   }
 }
 
-MENU(tempMenu,"Temperature",doNothing,noEvent,noStyle
-     ,FIELD(trawmeasures[0],"uncal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[0],   "  cal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(trawmeasures[1],"uncal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[1],   "  cal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(trawmeasures[2],"uncal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[2],   "  cal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,EXIT("<Back")
-     );
-
-MENU(humidMenu,"Humidity",doNothing,noEvent,noStyle
-     ,FIELD(hrawmeasures[0],"uncal1","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(hmeasures[0],   "  cal1","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(hrawmeasures[1],"uncal2","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(hmeasures[1],   "  cal2","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(hrawmeasures[2],"uncal3","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,FIELD(hmeasures[2],   "  cal3","%",0.,100.,10,1,doNothing,noEvent,wrapStyle)
-     ,EXIT("<Back")
-     );
-
-MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
-     ,OP("Save!",save,enterEvent)
-     //,FIELD(umid,"Umid    ","%",10.0,100,10,1,doNothing,noEvent,wrapStyle)
-     ,SUBMENU(tempMenu)
-     ,SUBMENU(humidMenu)
-     ,SUBMENU(setVent)
-     ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
-     ,EXIT("<Exit")
-     );
-
-#define MAX_DEPTH 2
-
-encoderIn<encA,encB> encoder;//simple quad encoder driver
-encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
-
-
-//a keyboard with only one key as the encoder button
-keyMap encBtn_map[]={{-encBtn,defaultNavCodes[enterCmd].ch}};//negative pin numbers use internal pull-up, this is on when low
-keyIn<1> encButton(encBtn_map);//1 is the number of keys
-
-#ifdef USESERIAL
-serialIn serial(Serial);
-MENU_INPUTS(in,&encStream,&encButton,&serial);
-#else
-MENU_INPUTS(in,&encStream,&encButton);
-#endif
-
-idx_t gfx_tops[MAX_DEPTH];
-
-PANELS(gfxPanels,{0,0,U8_Width/fontX,U8_Height/fontY});
-u8g2Out oledOut(u8g2,colors,gfx_tops,gfxPanels,fontX,fontY,offsetX,offsetY,fontMarginX,fontMarginY);
-
-#ifdef USESERIAL
-idx_t serialTops[MAX_DEPTH]={0};
-serialOut outSerial(*(Print*)&Serial,serialTops);
-//define outputs controller
-menuOut* outputs[]{&oledOut,&outSerial};//list of output devices
-#else
-menuOut* outputs[]{&oledOut};//list of output devices
-#endif
-
-outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list controller
-
-
-NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
-
-bool displaydata=false;
-
-//when menu is suspended
-result idle(menuOut& o,idleEvent e) {
-  o.clear();
-  switch(e) {
-  case idleStart:
-    o.println("suspending menu!");
-    break;
-  case idling:
-    o.println("suspended...");
-    displaydata=true;
-    break;
-  case idleEnd:
-    o.println("resuming menu.");
-    displaydata=false;
-    break;
-  }
-  return proceed;
-}
-
-// ISR for encoder management
-void encoderprocess (){
-  encoder.process();
-}
-
 String read_savedparams() {
 
   LOGN(F("mounted file system" CR));
@@ -360,10 +365,38 @@ String read_savedparams() {
 }
 
 
+//when menu is suspended
+result idle(menuOut& o,idleEvent e) {
+  o.clear();
+  switch(e) {
+  case idleStart:
+    o.println("suspending menu!");
+    break;
+  case idling:
+    o.println("suspended...");
+    displaydata=true;
+    break;
+  case idleEnd:
+    o.println("resuming menu.");
+    displaydata=false;
+    break;
+  }
+  return proceed;
+}
+
+// ISR for encoder management
+void encoderprocess (){
+  encoder.process();
+}
+
+
+// set start measure event on sensor machine
 void start_measure(){
   s_event=START_MEASURE;
 }
 
+
+// sensor machine
 void sensor_machine(){
   long unsigned int waittime,maxwaittime=0;
 
@@ -537,18 +570,19 @@ void sensor_machine(){
   return;
 }
 
-void handle_OnConnect() {
 
-  server.send(200, "text/html", SendHTML(tmean,umean)); 
+// web server response function
+void handle_OnConnect() {
+  webserver.send(200, "text/html", SendHTML(tmean,umean)); 
 }
 
 void handle_NotFound(){
-  server.send(404, "text/plain", "Not found");
+  webserver.send(404, "text/plain", "Not found");
 }
 
 
+// function to prepare HTML response
 //https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-// todo: manage missed ajax update 
 String SendHTML(float Temperaturestat,float Humiditystat){
   String ptr = "<!DOCTYPE html> <html>\n";
   ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
@@ -621,6 +655,7 @@ String SendHTML(float Temperaturestat,float Humiditystat){
   return ptr;
 }
 
+// update the display about ventilation
 void do_display(){
   if (displaydata){
     u8g2.setFont(fontNameS);
@@ -634,6 +669,7 @@ void do_display(){
   }
 }
 
+// management of H bridge and update display
 void do_etc(){
   hbridge.setpwm(int(vent*255.0/100.0),IBT_2_L_HALF);
 
@@ -659,10 +695,12 @@ void setup()
   Log.begin(LOG_LEVEL, &Serial);
   LOGN(F("Started" CR));
 
- // start up the i2c interface
+  // start up the i2c interface
   Wire.begin(SDA,SCL);
 
   delay(1000);
+
+  // start up display
   u8g2.setI2CAddress(OLEDI2CADDRESS*2);
   u8g2.begin();
   u8g2.setFont(fontNameS);
@@ -674,7 +712,7 @@ void setup()
 
   delay(1000);
   
-  //read configuration from FS json
+  //read configuration from FS in json format
   LOGN(F("mounting FS..." CR));
   if (!SPIFFS.begin()) {
     LOGE(F("failed to mount FS" CR));
@@ -683,6 +721,7 @@ void setup()
     if (!SPIFFS.begin()) {
       LOGN(F("failed to mount FS" CR));
     }
+    // messages on display
     u8g2.clearBuffer();
     u8g2.setCursor(0, 10); 
     u8g2.print(F("Mount FS"));
@@ -727,7 +766,8 @@ void setup()
       LOGN(F("ventctrl %D" CR),ventCtrl);
     }
   }
-  
+
+  // start up H bridge
   hbridge.start(IBT_2_R_HALF);
 
   if (ventCtrl) {
@@ -737,30 +777,39 @@ void setup()
     LOGN(F("vent OFF" CR));
     hbridge.stop(IBT_2_L_HALF);
   }
-  
+
+  // define which sensors are connected
+
+  // HIH humidity and temperature sensor
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"HIH");
   sensors[0].address=39;
 
+  // ADT humidity and temperature sensor
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"ADT");
   sensors[1].address=73;
   
+  // start up encoder
   encoder.begin();
+
+  // start up button
   encButton.begin();
   
-
   // encoder with interrupt on the A & B pins
   attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
-  
+
+  // setup menu
   nav.idleTask=idle;//point a function to be used when menu is suspended
   nav.timeOut=10;
   nav.exit();
-  
+
+  // setup PWM
   analogWriteRange(255);
   //analogWriteFreq(100);
 
+  // setup calibration
   tcal.setCalibrationPoints(trawmeasures,tmeasures, calibrationPoints, 1);
   hcal.setCalibrationPoints(hrawmeasures,hmeasures, calibrationPoints, 1);
 
@@ -774,30 +823,34 @@ void setup()
   t.init(NSAMPLE);
   u.init(NSAMPLE);
 
+  // setup AP
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP("Senamhi-EUAV");
 
+  // setup DNS
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   
   // if DNSServer is started with "*" for domain name, it will reply with
   // provided IP to all DNS request
   dnsServer.start(DNS_PORT, "*", apIP);
 
-  server.on("/", handle_OnConnect);
-  server.onNotFound(handle_NotFound);
+  // setup web server
+  webserver.on("/", handle_OnConnect);
+  webserver.onNotFound(handle_NotFound);
   
-  server.begin();
+  webserver.begin();
   LOGN(F("HTTP server started" CR));
 
+  // start sensor machine
   sensor_machine();
-  
+
+  // setup alarms
   Alarm.timerRepeat(SAMPLERATE, start_measure);            // timer for every second    
   
   LOGN(F("setup done." CR));
 
   Serial.println("Menu 4.x");
-
 #ifdef USESERIAL
   Serial.println("Use keys + - * /");
   Serial.println("to control the menu navigation");
@@ -809,7 +862,7 @@ void loop()
 {
   Alarm.delay(0);
   sensor_machine();
-  server.handleClient();
+  webserver.handleClient();
   dnsServer.processNextRequest();
   do_display();
   do_etc();
