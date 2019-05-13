@@ -31,8 +31,8 @@
 #include <jansson.h>
 
 #define IDENT_RE "([^/]+)"
-#define LON_RE   "([0-9]+)"
-#define LAT_RE   "([0-9]+)"
+#define LON_RE   "([-,0-9]+)"
+#define LAT_RE   "([-,0-9]+)"
 #define REP_RE   "([^/]+)"
 #define LT1_RE   "([0-9]+|-)"
 #define L1_RE    "([0-9]+|-)"
