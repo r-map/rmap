@@ -178,7 +178,14 @@ unsigned int coordCharToInt(char* lat){
   for (uint8_t i = 0; i < (5-mylat.length()); i++){
     mylat+= String("0");
   }
-  return latdegree*100000+mylat.toInt();
+  if ( latdegree > 0)
+    {
+      return latdegree*100000+mylat.toInt();
+    }
+  else
+    {
+      return latdegree*100000-mylat.toInt();
+    }
 }
 
 const char* coordIntToChar(int lat){
