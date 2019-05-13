@@ -1099,7 +1099,10 @@ class Rmap(App):
         self.location=self.config.get('location','name')
         self.lon=float(self.config.get('location','lon'))
         self.lat=float(self.config.get('location','lat'))
-        self.height=float(self.config.get('location','height'))
+        height=self.config.get('location','height')
+        if height == "None":
+            height="0"
+        self.height=float(height)
         self.board_status=_("Transport Status: OFF")
         self.service = None
         self.servicename = None
@@ -1308,8 +1311,12 @@ class Rmap(App):
         #self.stop_service()
 
         self.mystation.on_stop()
-        self.osc.stop()
-
+        try:
+            self.osc.stop()
+        except Exception as e:
+            print(e)
+            print ("continue anyway")
+            
     def on_pause(self):
         '''
         called on application pause
@@ -2359,7 +2366,10 @@ class Rmap(App):
         '''
 
         self.root.ids["marker"].location(self.lat,self.lon)
-        self.root.ids["markerlabel"].text= self.str_lat_lon_height % (self.location,self.lat,self.lon,self.height)
+        height=self.height
+        if height is None:
+            height=0
+        self.root.ids["markerlabel"].text= self.str_lat_lon_height % (self.location,self.lat,self.lon,height)
 
         self.root.ids["mapview"].do_update(10)
         height=self.height
@@ -2844,6 +2854,8 @@ class Rmap(App):
 
         self.gps_location = _("GPS: new coordinate acquired")
         self.root.ids["mapview"].center_on(lat,lon)
+        if (height is None):
+            height=0        
         self.root.ids["height"].text= self.str_Height.format(height)
 
         if self.trip and kwargs["gpsfix"]:
