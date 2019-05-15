@@ -175,7 +175,8 @@ unsigned int coordCharToInt(char* lat){
   mylat=mylat.substring(mylat.indexOf(sep)+1);
   mylat.trim();
   mylat=mylat.substring(0,5);
-  for (uint8_t i = 0; i < (5-mylat.length()); i++){
+  uint8_t missed0=5-mylat.length();
+  for (uint8_t i = 0; i < (missed0); i++){
     mylat+= String("0");
   }
   if ( latdegree > 0)
