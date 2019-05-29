@@ -87,7 +87,7 @@ def main (self):
 
     try:
 
-        subtopics=["test/+/+/+","test/+/+/+/+/+"]
+        subtopics=["report/+/+/+","report/+/+/+/+/+"]
         
         r2o=report2observation(MQTT_HOST,rmap.settings.mqttuser, rmap.settings.mqttpassword ,subtopics,killer)
         r2o.run()
