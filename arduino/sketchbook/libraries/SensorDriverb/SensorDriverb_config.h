@@ -148,7 +148,7 @@
 #endif
 
 // include SCD CO2 sensor SAMPLE MODE
-#define SCD_ONESHOT
+//#define SCD_ONESHOT
   
 #if defined (TEMPERATUREHUMIDITY_ONESHOT)
 #if defined (TEMPERATUREHUMIDITY_REPORT)
