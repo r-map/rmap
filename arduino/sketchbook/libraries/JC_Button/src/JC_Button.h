@@ -31,6 +31,9 @@ class Button
         // the sketch is responsive to user input.
         bool read();
 
+        // Set debounce time runtime
+        void setDbTime(uint32_t dbTime);
+  
         // Returns true if the button state was pressed at the last call to read().
         // Does not cause the button to be read.
         bool isPressed();

@@ -35,6 +35,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //display definition
 #define OLEDI2CADDRESS 0X3C
 
+// Precipitations
+#define PRECPIN   D3  //IO, 10k Pull-up
+
 // H bridge
 #define MR_PWM   D3
 #define ML_PWM   D0
@@ -55,14 +58,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // define this if serial menu is required
 //#define USESERIAL
 
+// define this if hbridge is required
+//#define HBRIDGE
+
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_VERBOSE
+//#define LOG_LEVEL   LOG_LEVEL_VERBOSE
 
 // disable debug at compile time but call function anyway
 // this may significantly reduce your sketch/library size.
-//#define DISABLE_LOGGING disable
+#define DISABLE_LOGGING disable
 
 // file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
@@ -75,8 +81,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <SensorDriverb.h>
+
+#ifdef HBRIDGE
 #include <ibt_2.h>
 //#include <i2cibt_2.h>g
+#else
+#include <JC_Button.h> // https://github.com/JChristensen/JC_Button
+#endif
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
@@ -141,11 +152,16 @@ float hmeasures[]={0.,50.,100.};
 calibration::Calibration tcal,hcal;
 
 
+#ifdef HBRIDGE
 // global variables H bridge
 ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
 //i2cgpio gpio(I2C_GPIO_DEFAULTADDRESS);
 //i2cibt_2 hbridge(IBT_2_2HALF,gpio);
-
+#else
+unsigned long debounce=25;
+Button precBtn(PRECPIN,debounce); // define the button
+volatile uint8_t prec=0;
+#endif
 
 // global variable for network (apn, dns server and web server)
 IPAddress apIP(192, 168, 4, 1);
@@ -190,22 +206,32 @@ enum s_events {
 	       ,NONE
 }s_event=NONE;
 
+#ifdef HBRIDGE
 // global variables for manual control of ventilation
 int ventCtrl=HIGH;
 float vent=100.;
 
 // global definition for menu
-
-#define MAX_DEPTH 2
-
 result ventOn();
 result ventOff();
-result save();
 
 TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
   ,VALUE("On",HIGH,ventOn,noEvent)
   ,VALUE("Off",LOW,ventOff,noEvent)
 );
+#else
+void ICACHE_RAM_ATTR button1changed()
+{
+  precBtn.read();
+  if (precBtn.wasReleased()) prec++;
+}
+
+#endif
+result save();
+result resetprec();
+result changeDebounce();
+
+#define MAX_DEPTH 2
 
 MENU(tempMenu,"Temperature",doNothing,noEvent,noStyle
      ,FIELD(trawmeasures[0],"uncal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
@@ -229,11 +255,14 @@ MENU(humidMenu,"Humidity",doNothing,noEvent,noStyle
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
      ,OP("Save!",save,enterEvent)
-     //,FIELD(umid,"Umid    ","%",10.0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,OP("reset prec",resetprec,enterEvent)
+     ,FIELD(debounce,"DB t","ms",10,200,10,1,changeDebounce,enterEvent,wrapStyle)
      ,SUBMENU(tempMenu)
      ,SUBMENU(humidMenu)
+#ifdef HBRIDGE
      ,SUBMENU(setVent)
      ,FIELD(vent,"Vent","%",0.0,100,10,1,doNothing,noEvent,wrapStyle)
+#endif
      ,EXIT("<Exit")
      );
 
@@ -270,7 +299,7 @@ outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list control
 
 NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
 
-
+#ifdef HBRIDGE
 // power on the ventilation
 result ventOn(){
   LOGN(F("vent ON" CR));
@@ -283,6 +312,18 @@ result ventOff(){
   LOGN(F("vent OFF" CR));
   hbridge.stop(IBT_2_L_HALF);
   return proceed;
+}
+#endif
+
+// reset precipitation count
+result resetprec() {
+  prec=0;
+}
+
+// chenge debounce runtime
+result changeDebounce() {
+  LOGN(F("changedebounce %d" CR),debounce);
+  precBtn.setDbTime(debounce);
 }
 
 // save configuration
@@ -299,15 +340,22 @@ result save() {
     LOGN(F("hrawmeasures %F : %d\n"),hrawmeasures[i],i);
     LOGN(F("hmeasures    %F : %d\n"),hmeasures[i],i);
   }
-  
+
+  LOGN(F("debounce   : %d\n"),debounce);
+
   StaticJsonBuffer<500> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
   
+#ifdef HBRIDGE
   LOGN(F("vent     %D" CR),vent);
   LOGN(F("ventctrl %D" CR),ventCtrl);
-    
+  
   json["vent"] = vent;
   json["ventctrl"] = ventCtrl;
+#endif
+
+  json["debounce"] = debounce;
+  
   JsonArray& jsontrawmeasures =json.createNestedArray("trawmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
     jsontrawmeasures.add(trawmeasures[i]);
@@ -385,7 +433,7 @@ result idle(menuOut& o,idleEvent e) {
 }
 
 // ISR for encoder management
-void encoderprocess (){
+void ICACHE_RAM_ATTR encoderprocess (){
   encoder.process();
 }
 
@@ -497,10 +545,11 @@ void sensor_machine(){
 	    
 	    LOGN(F("calibrated U: %F" CR),U_Input);
 	    
-	    u8g2.setCursor(0, 12); 
-	    u8g2.print("U:");
-	    u8g2.setCursor(25, 12); 
-	    
+	    if (displaydata){
+	      u8g2.setCursor(0, 12); 
+	      u8g2.print("U:");
+	      u8g2.setCursor(25, 12); 
+	    }
 	    u.autoput(U_Input);
 	    LOGN(F("U size %d" CR),u.getSize());
 	    
@@ -510,16 +559,17 @@ void sensor_machine(){
 		LOGN(F("U ele %d %F" CR),i,u.peek(i));
 		umean += (u.peek(i) - umean) / (i+1);
 	      }
-	      u8g2.print(round(umean),0);
+	      if (displaydata) u8g2.print(round(umean),0);
 	    }else{
-	    u8g2.print("wait");
+	    if (displaydata) u8g2.print("wait");
 	    }
 	    
-	    
-	    u8g2.setCursor(0, 36); 
-	    u8g2.print("t:");
-	    u8g2.setCursor(25, 36); 
-	    u8g2.print(round(T_Input*10.)/10.,1);	    	    
+	    if (displaydata){
+	      //u8g2.setCursor(0, 36); 
+	      //u8g2.print("t:");
+	      //u8g2.setCursor(25, 36); 
+	      //u8g2.print(round(T_Input*10.)/10.,1);
+	    }
 	  }
 	  
 	  if (i == 1){
@@ -527,19 +577,20 @@ void sensor_machine(){
 	    tcal.getConcentration(float(values[0])/100.-273.15,&T_Input);
 	    LOGN(F("calibrated T: %F" CR),T_Input);
 	    
-	    u8g2.setCursor(0, 24); 
-	    u8g2.print("T:");
-	    u8g2.setCursor(25, 24); 
-	    
+	    if (displaydata) {
+	      u8g2.setCursor(0, 24); 
+	      u8g2.print("T:");
+	      u8g2.setCursor(25, 24); 
+	    }
 	    t.autoput(T_Input);
 	    if (t.getSize() == t.getCapacity()){
 	      tmean=0;
 	      for ( uint8_t i=0 ; i < t.getCapacity() ; i++)  {
 		tmean += (t.peek(i) - tmean) / (i+1);
 	      }
-	      u8g2.print(round(tmean*10.)/10.,1);	    	    
+	      if (displaydata) u8g2.print(round(tmean*10.)/10.,1);	    	    
 	    } else{
-	      u8g2.print("wait");	    	    
+	      if (displaydata) u8g2.print("wait");	    	    
 	    }
 	  }
 	  
@@ -573,7 +624,7 @@ void sensor_machine(){
 
 // web server response function
 void handle_OnConnect() {
-  webserver.send(200, "text/html", SendHTML(tmean,umean)); 
+  webserver.send(200, "text/html", SendHTML(tmean,umean,prec)); 
 }
 
 void handle_NotFound(){
@@ -583,7 +634,7 @@ void handle_NotFound(){
 
 // function to prepare HTML response
 //https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-String SendHTML(float Temperaturestat,float Humiditystat){
+String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
   String ptr = "<!DOCTYPE html> <html>\n";
   ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
   ptr +="<title>Senamhi EUAV Weather Report</title>\n";
@@ -647,14 +698,20 @@ String SendHTML(float Temperaturestat,float Humiditystat){
   ptr +="<div class=\"side-by-side humidity\">";
   ptr +=round(Humiditystat);
   ptr +="<span class=\"superscript\">%</span></div>\n";
+
+  ptr +="<div class=\"side-by-side humidity-text\">Precipitation</div>\n";
+  ptr +="<div class=\"side-by-side humidity\">";
+  ptr +=Prec;
+  ptr +="<span class=\"superscript\">N</span></div>\n";
+
   ptr +="</div>\n";
-  
   ptr +="</div>\n";
   ptr +="</body>\n";
   ptr +="</html>\n";
   return ptr;
 }
 
+#ifdef HBRIDGE
 // update the display about ventilation
 void do_display(){
   if (displaydata){
@@ -668,10 +725,26 @@ void do_display(){
     u8g2.sendBuffer();
   }
 }
+#else
+void do_display_prec(){
+  if (displaydata){
+    u8g2.setFont(fontNameB);
+    u8g2.setCursor(0, 40); 
+    u8g2.print("P:");
+    u8g2.setCursor(25, 40); 
+    u8g2.print(prec);	    	    
+    u8g2.setFont(fontNameS);
+    u8g2.sendBuffer();
+  }
+}
+#endif
 
 // management of H bridge and update display
 void do_etc(){
+
+#ifdef HBRIDGE
   hbridge.setpwm(int(vent*255.0/100.0),IBT_2_L_HALF);
+#endif
 
   nav.doInput();
   if (nav.changed(0)) {//only draw if menu changed for gfx device
@@ -745,9 +818,16 @@ void setup()
     if (!json.success()) {
       LOGE(F("reading json data" CR));
     }else{
+#ifdef HBRIDGE      
       if (json.containsKey("vent"))     vent=json["vent"];
       if (json.containsKey("ventctrl")) ventCtrl=json["ventctrl"];      
+      LOGN(F("vent     %D" CR),vent);
+      LOGN(F("ventctrl %D" CR),ventCtrl);
+#endif
 
+      if (json.containsKey("debounce")) debounce=json["debounce"];      
+      LOGN(F("debounce     %D" CR),debounce);
+      
       if (json.containsKey("trawmeasures") && json.containsKey("tmeasures")) {
 	for (int i = 0; i < calibrationPoints; i++) {
 	  trawmeasures[i]=json["trawmeasures"][i];
@@ -761,12 +841,10 @@ void setup()
 	  hmeasures[i]=json["hmeasures"][i];
 	}
       }
-      
-      LOGN(F("vent     %D" CR),vent);
-      LOGN(F("ventctrl %D" CR),ventCtrl);
     }
   }
 
+#ifdef HBRIDGE
   // start up H bridge
   hbridge.start(IBT_2_R_HALF);
 
@@ -777,6 +855,12 @@ void setup()
     LOGN(F("vent OFF" CR));
     hbridge.stop(IBT_2_L_HALF);
   }
+#else
+  // Configuramos los pines de interrupciones para que
+  // detecten un cambio
+  precBtn.begin(); // initialize the button object
+  attachInterrupt(digitalPinToInterrupt(PRECPIN),button1changed , CHANGE);
+#endif
 
   // define which sensors are connected
 
@@ -864,6 +948,10 @@ void loop()
   sensor_machine();
   webserver.handleClient();
   dnsServer.processNextRequest();
+#ifdef HBRIDGE
   do_display();
+#else
+  do_display_prec();
+#endif
   do_etc();
 }

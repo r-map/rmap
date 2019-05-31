@@ -20,6 +20,14 @@ void Button::begin()
 }
 
 /*----------------------------------------------------------------------*
+/ Set debounce time runtime                                             *
+/-----------------------------------------------------------------------*/
+void Button::setDbTime(uint32_t dbTime)
+{
+  m_dbTime=dbTime;
+}
+
+/*----------------------------------------------------------------------*
 / returns the state of the button, true if pressed, false if released.  *
 / does debouncing, captures and maintains times, previous state, etc.   *
 /-----------------------------------------------------------------------*/
