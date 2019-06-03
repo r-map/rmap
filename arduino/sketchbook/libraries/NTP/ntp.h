@@ -54,9 +54,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def NTP_VALID_START_TIME_S
-\brief seconds for 00:00:00 01/01/2017 since 00:00:00 01/01/1970.
+\brief seconds for 00:00:00 01/01/2019 since 00:00:00 01/01/1970.
 */
-#define NTP_VALID_START_TIME_S         (1483228800UL)
+#define NTP_VALID_START_TIME_S         (1546300800UL)
 
 /*!
 \def NTP_TIMEZONE
