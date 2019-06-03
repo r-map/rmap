@@ -165,7 +165,9 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
   #define SERIAL_ERROR_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_ERROR(...)
+  #define SERIAL_ERROR_CLEAN(...)
   #define SERIAL_ERROR_ARRAY(...)
+  #define SERIAL_ERROR_ARRAY_CLEAN(...)
 #endif
 
 #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_WARNING)
@@ -183,7 +185,9 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
    #define SERIAL_WARNING_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_WARNING(...)
+  #define SERIAL_WARNING_CLEAN(...)
   #define SERIAL_WARNING_ARRAY(...)
+  #define SERIAL_WARNING_ARRAY_CLEAN(...)
 #endif
 
 #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
@@ -202,7 +206,9 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
   #define SERIAL_INFO_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_INFO(...)
+  #define SERIAL_INFO_CLEAN(...)
   #define SERIAL_INFO_ARRAY(...)
+  #define SERIAL_INFO_ARRAY_CLEAN(...)
 #endif
 
 #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
@@ -211,7 +217,7 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
 \brief Useful macro for print verbose message on serial port through serial print macro.
 */
   #define SERIAL_DEBUG(...) _SERIAL_PRINT(__VA_ARGS__)
-  #define SERIAL_DEBUG_CLEAN(...) _SERIAL_PRINT_CLEAN( __VA_ARGS__)
+  #define SERIAL_DEBUG_CLEAN(...) _SERIAL_PRINT_CLEAN(__VA_ARGS__)
 
   /*!
   \def SERIAL_DEBUG_ARRAY
@@ -221,7 +227,9 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
   #define SERIAL_DEBUG_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_DEBUG(...)
+  #define SERIAL_DEBUG_CLEAN(...)
   #define SERIAL_DEBUG_ARRAY(...)
+  #define SERIAL_DEBUG_ARRAY_CLEAN(...)
 #endif
 
 #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
@@ -240,7 +248,9 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
   #define SERIAL_TRACE_ARRAY_CLEAN(...) _SERIAL_PRINT_ARRAY_CLEAN(__VA_ARGS__)
 #else
   #define SERIAL_TRACE(...)
+  #define SERIAL_TRACE_CLEAN(...)
   #define SERIAL_TRACE_ARRAY(...)
+  #define SERIAL_TRACE_ARRAY_CLEAN(...)
 #endif
 
 // Default Debug level

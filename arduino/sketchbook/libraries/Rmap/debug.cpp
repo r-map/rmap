@@ -79,6 +79,11 @@ char *serial_printf_array(bool is_add_hashtag, void *data, int16_t length, uint8
   bool _is_add_hashtag = is_add_hashtag;
   char *serial_buffer_ptr = serial_buffer_print;
 
+  if (length > SERIAL_PRINTF_BUFFER_LENGTH) {
+    length = SERIAL_PRINTF_BUFFER_LENGTH;
+  }
+
+  // real data may > of length
   for (int i=0; i<length; i++) {
     if (i > 0) {
       _is_add_hashtag = false;
@@ -159,6 +164,7 @@ char *lcd_printf(LiquidCrystal_I2C *lcd, bool do_clear, bool go_to_next_line, ch
 
    if (do_clear) {
       lcd->clear();
+      lcd->backlight();
       lcd_current_row = 0;
    }
 
