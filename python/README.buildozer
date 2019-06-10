@@ -1,0 +1,146 @@
+# change cross compile option for python
+# https://github.com/kivy/python-for-android/issues/746
+# remove "-mtune=generic' '-m64', '-fstack-clash-protection', '-fcf-protection'
+# in:
+#/usr/lib64/python2.7/_sysconfigdata.py
+#/usr/lib64/python3.6/_sysconfigdata_m_linux_x86_64-linux-gnu.py
+
+
+#patch buildozer
+
+diff --git a/buildozer/targets/android.py b/buildozer/targets/android.py
+index 0f4090f..7de9ef6 100644
+--- a/buildozer/targets/android.py
++++ b/buildozer/targets/android.py
+@@ -83,7 +83,7 @@ class TargetAndroid(Target):
+         version = self.buildozer.config.getdefault('app', 'android.ndk',
+                                                    self.android_ndk_version)
+         return join(self.buildozer.global_platform_dir,
+-                    'android-ndk-r{0}'.format(version))
++                    'android-ndk-{0}'.format(version))
+ 
+     @property
+     def apache_ant_dir(self):
+@@ -244,13 +244,13 @@ class TargetAndroid(Target):
+ 
+         self.buildozer.info('Android SDK is missing, downloading')
+         if platform in ('win32', 'cygwin'):
+-            archive = 'android-sdk_r{0}-windows.zip'
++            archive = 'android-sdk_{0}-windows.zip'
+             unpacked = 'android-sdk-windows'
+         elif platform in ('darwin', ):
+-            archive = 'android-sdk_r{0}-macosx.zip'
++            archive = 'android-sdk_{0}-macosx.zip'
+             unpacked = 'android-sdk-macosx'
+         elif platform.startswith('linux'):
+-            archive = 'android-sdk_r{0}-linux.tgz'
++            archive = 'android-sdk_{0}-linux.tgz'
+             unpacked = 'android-sdk-linux'
+         else:
+             raise SystemError('Unsupported platform: {0}'.format(platform))
+@@ -284,27 +284,27 @@ class TargetAndroid(Target):
+         if platform in ('win32', 'cygwin'):
+             # Checking of 32/64 bits at Windows from: http://stackoverflow.com/a/1405971/798575
+             import struct
+-            archive = 'android-ndk-r{0}-windows-{1}.zip'
++            archive = 'android-ndk-{0}-windows-{1}.zip'
+             is_64 = (8 * struct.calcsize("P") == 64)
+ 
+         elif platform in ('darwin', ):
+             if int(_version) > 9:
+-                archive = 'android-ndk-r{0}-darwin-{1}.bin'
++                archive = 'android-ndk-{0}-darwin-{1}.bin'
+             else:
+-                archive = 'android-ndk-r{0}-darwin-{1}.tar.bz2'
++                archive = 'android-ndk-{0}-darwin-{1}.tar.bz2'
+             is_64 = (os.uname()[4] == 'x86_64')
+ 
+         elif platform.startswith('linux'):
+             if int(_version) > 9:  # if greater than 9, take it as .bin file
+-                archive = 'android-ndk-r{0}-linux-{1}.bin'
++                archive = 'android-ndk-{0}-linux-{1}.bin'
+             else:
+-                archive = 'android-ndk-r{0}-linux-{1}.tar.bz2'
++                archive = 'android-ndk-{0}-linux-{1}.tar.bz2'
+             is_64 = (os.uname()[4] == 'x86_64')
+         else:
+             raise SystemError('Unsupported platform: {0}'.format(platform))
+ 
+         architecture = 'x86_64' if is_64 else 'x86'
+-        unpacked = 'android-ndk-r{0}'
++        unpacked = 'android-ndk-{0}'
+         archive = archive.format(self.android_ndk_version, architecture)
+         unpacked = unpacked.format(self.android_ndk_version)
+         url = 'http://dl.google.com/android/ndk/'
+@@ -480,7 +480,7 @@ class TargetAndroid(Target):
+             'ANDROIDNDK': self.android_ndk_dir,
+             'ANDROIDAPI': self.android_api,
+             'ANDROIDMINAPI': self.android_minapi,
+-            'ANDROIDNDKVER': 'r{}'.format(self.android_ndk_version)
++            'ANDROIDNDKVER': '{}'.format(self.android_ndk_version)
+         })
+ 
+     def _install_p4a(self):
+@@ -521,7 +521,7 @@ class TargetAndroid(Target):
+         try:
+             with open(join(self.pa_dir, "setup.py")) as fd:
+                 setup = fd.read()
+-                deps = re.findall("^install_reqs = (\[[^\]]*\])", setup, re.DOTALL | re.MULTILINE)[0]
++                deps = re.findall("install_reqs = (\[[^\]]*\])", setup, re.DOTALL | re.MULTILINE)[0]
+                 deps = ast.literal_eval(deps)
+         except IOError:
+             self.buildozer.error('Failed to read python-for-android setup.py at {}'.format(
+
+
+# download and install crystax-ndk-10.3.2 in /opt
+# https://www.crystax.net/en/download
+
+git clone https://github.com/JonasT/python-for-android.git ~/git/python-for-android_ssl/
+cd ~/git/python-for-android_ssl/
+git checkout tlsfix
+
+https://stackoverflow.com/questions/24331705/source-value-1-5-is-obsolete-and-will-be-removed-in-a-future-release
+in 
+<android-sdk>\tools\ant\build.xml
+change to this value:
+<property name="java.target" value="7" />
+
+--- /home/pat1/.buildozer/android/platform/android-sdk-20/tools/ant/build.xml	2018-11-06 00:10:35.120152391 +0100
++++ /home/pat1/.buildozer/android/platform/android-sdk-20/tools/ant/build.xml~	2018-10-29 09:24:22.118007140 +0100
+@@ -68,8 +68,8 @@
+ 
+     <!-- compilation options -->
+     <property name="java.encoding" value="UTF-8" />
+-    <property name="java.target" value="7" />
+-    <property name="java.source" value="7" />
++    <property name="java.target" value="1.5" />
++    <property name="java.source" value="1.5" />
+     <property name="java.compilerargs" value="" />
+     <property name="java.compiler.classpath" value="" />
+
+
+buildozer android debug
+
+#comment wsgiref in
+#python-for-android/src/blacklist.txt
+
+#clean locale files:
+find ../buildbuildozer_old/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.mo -exec rm \{\} \;
+find ../buildbuildozer_old/android/platform/build/build/python-installs/rmap/django  -name \*.mo -exec rm \{\} \;
+find ../buildbuildozer_old/android/app/registration   -name \*.mo -exec rm \{\} \;
+
+find ../buildbuildozer_old/android/platform/build/dists/rmap/crystax_python/crystax_python/site-packages/django -name \*.po -exec rm \{\} \;
+find ../buildbuildozer_old/android/platform/build/build/python-installs/rmap/django  -name \*.po -exec rm \{\} \;
+find ../buildbuildozer_old/android/app/registration   -name \*.po -exec rm \{\} \;
+
+#clean static files:
+find ../buildbuildozer_old/android/app  -name "static" -exec rm \-rf \{\} \;
+
+#clean others:
+rm ltmain.sh
+find ../buildbuildozer_old/android/app  -name "static" -exec rm \-rf \{\} \;
+
+# to rebuild android package
+buildozer android release
+./sign.sh
+

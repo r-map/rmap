@@ -21,11 +21,11 @@ logger = logging.getLogger(__name__)
 # Devo convertire gli id in bcode. Alcuni mancano o non sono in grado io di
 # stabilire una corrispondenza...
 VARIABLE_BCODES = {
-    "temperature": {"bcode":"B12101","a":1.,"b":273.15},
-    "humidity": {"bcode":"B13003","a":1.,"b":0.},
-    "P1":{"bcode":"B15195","a":0.000000001,"b":0.},
-    "P2": {"bcode":"B15198","a":0.000000001,"b":0.},
-    "others": {"bcode":None,"a":0.000000001,"b":0.}
+    "temperature": {"bcode":"B12101","a":1.,"b":273.15,"level":(265, 1),"trange":(254, 0, 0)},
+    "humidity": {"bcode":"B13003","a":1.,"b":0.,"level":(265, 1),"trange":(254, 0, 0)},
+    "P1":{"bcode":"B15195","a":0.000000001,"b":0.,"level":(103, 2000),"trange":(254, 0, 0)},
+    "P2": {"bcode":"B15198","a":0.000000001,"b":0.,"level":(103, 2000),"trange":(254, 0, 0)},
+    "others": {"bcode":None,"a":0.000000001,"b":0.,"level":(103, 2000),"trange":(254, 0, 0)}
 }
 
 current=0
@@ -86,23 +86,23 @@ def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,lat
                 try:
                     bcode =var["bcode"]
                     rec[bcode] = float(sensordatavalues["value"])*var["a"]+var["b"]
+                    rec["level"] = var["level"]
+                    rec["trange"] = var["trange"]
                     havetowrite=True
                     
                 except Exception as e:
                     logging.exception(e)
                     rec[bcode]=None
 
-        if havetowrite:
+            if havetowrite:
                     
-            rec["level"] = (103, 2000)
-            rec["trange"] = (254, 0, 0)
-            rec["date"] = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
+                rec["date"] = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
 
-            try:
-                db.insert_data(rec, can_replace=True)
-            except Exception as e:
-                logging.exception(e)
-                print rec
+                try:
+                    db.insert_data(rec, can_replace=True)
+                except Exception as e:
+                    logging.exception(e)
+                    print rec
 
     db.export_to_file(dballe.Record(datemin=datetimemin,lonmin=lonmin,latmin=latmin,lonmax=lonmax,latmax=latmax), filename=outfile,
                       format="BUFR", generic=True)
