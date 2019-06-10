@@ -1,4 +1,4 @@
-/*! \mainpage STIMA Readme
+\mainpage STIMA Readme
 \section introduction Introduction
 software to collect weather data contributed by citizens; to make
 these data available for weather services and homeland security; to
