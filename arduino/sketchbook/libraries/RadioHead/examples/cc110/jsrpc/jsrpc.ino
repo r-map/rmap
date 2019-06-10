@@ -175,7 +175,7 @@ int setdid(aJsonObject* params)
   aJson.deleteItemFromObject(serialmsg, "method");
   
   aJsonObject* myparams = aJson.detachItemFromObject(serialmsg, "params");
-  aJsonObject* didParam = aJson.getObjectItem(myparams, "did");
+  aJsonObject* didParam = aJson.getObjectItem(myparams, "d");
   if (didParam){
     int did = didParam -> valueint;
     configuration.did=did;
@@ -225,7 +225,7 @@ int changedidserver(aJsonObject* params)
     int olddid = olddidParam -> valueint;
     if (olddid == configuration.did || olddid == 0 ){
 
-      aJsonObject* didParam = aJson.getObjectItem(params, "did");
+      aJsonObject* didParam = aJson.getObjectItem(params, "d");
       if (didParam){
 	int did = didParam -> valueint;
 	configuration.did=did;
@@ -244,7 +244,7 @@ int changedidserver(aJsonObject* params)
 int saveserver(aJsonObject* params)
 {
 
-  aJsonObject* didParam = aJson.getObjectItem(params, "did");
+  aJsonObject* didParam = aJson.getObjectItem(params, "d");
   if (didParam){
     int did = didParam -> valueint;
     if (did == configuration.did || did == 0 ){     //my did or broadcast
@@ -267,19 +267,19 @@ int saveserver(aJsonObject* params)
 
 int singleserver(aJsonObject* params)
 {
-  //{"jsonrpc":"2.0","method":"single","params":{"did":1,"dstunit":1,"onoff":true},"id":0}
+  //{"jsonrpc":"2.0","method":"single","params":{"d":1,"u":1,"o":true},"id":0}
   
-  aJsonObject* didParam = aJson.getObjectItem(params, "did");
+  aJsonObject* didParam = aJson.getObjectItem(params, "d");
   if (didParam){
     int did = didParam -> valueint;
     if (did == configuration.did || did == 0 ){     //my did or broadcast
     
-      aJsonObject* dstunitParam = aJson.getObjectItem(params, "dstunit");
+      aJsonObject* dstunitParam = aJson.getObjectItem(params, "u");
       if (dstunitParam){
 	int dstunit = dstunitParam -> valueint;
 
 	if (dstunit >= 0 && dstunit < sizeof(pins)/sizeof(*pins)){
-	  aJsonObject* onoffParam = aJson.getObjectItem(params, "onoff");
+	  aJsonObject* onoffParam = aJson.getObjectItem(params, "o");
 	  if (onoffParam){
 	    boolean onoff = onoffParam -> valuebool;
 	    IF_SDEBUG(DBGSERIAL.print(F("#did: ")));
@@ -417,7 +417,7 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
 
   cc110.setTxPower(RH_CC110::TransmitPower0dBm);
   //cc110.setModemConfig(RH_CC110::GFSK_Rb4_8Fd25_4);  // Giacomo
-  //cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);    // Pat1
+  cc110.setModemConfig(RH_CC110::GFSK_Rb100Fd47);    // Pat1
 
   // For 26MHz crystals
   //PROGMEM static const RH_CC110::ModemConfig GFSK_R1_2Fd25_4 =
@@ -426,7 +426,7 @@ Canale 	Frequenza (MHz) Canale 	Frequenza (MHz)	Canale 	Frequenza (MHz)
   {0x06, 0x00, 0xC5, 0x83, 0x13, 0x40, 0x16, 0x6c, 0x43, 0x40, 0x91, 0x56, 0x10, 0xe9, 0x2a, 0x00, 0x1f, 0x81, 0x35, 0x09}; // GFSK_R1_2Fd47 GFSK, Data Rate: 1.2kBaud, Dev: 47kHz, RX BW 325kHz, optimised for sensitivity
   //{0x06, 0x00, 0xc7, 0x83, 0x13, 0x40, 0x16, 0x6c, 0x43, 0x40, 0x91, 0x56, 0x10, 0xe9, 0x2a, 0x00, 0x1f, 0x81, 0x35, 0x09}; // GFSK_Rb4_8Fd25_4
 
-  cc110.setModemRegisters(&GFSK_R1_2Fd25_4);
+  //cc110.setModemRegisters(&GFSK_R1_2Fd25_4);
   
   cc110.setFrequency(434.0+FREQCORR);
 
