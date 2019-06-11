@@ -16,10 +16,10 @@ channel = connection.channel()
 
 #channel.queue_declare(queue=queue)
 
-print ' [*] Waiting for messages. To exit press CTRL+C'
+print(' [*] Waiting for messages. To exit press CTRL+C')
 
 def callback(ch, method, properties, body):
-    print " [x] Received %r" % (body,)
+    print(" [x] Received %r" % (body,))
 
     out_file = open("outfile","w")
     out_file.write(body)

@@ -16,14 +16,14 @@ try:
     import dballe
     dballepresent=True
 except ImportError:
-    print "dballe utilities disabled"
+    print("dballe utilities disabled")
     dballepresent=False
 
 try:
     from django.contrib.gis.geos import Point
     gdalpresent=True
 except:
-    print "gdal utilities disabled"
+    print("gdal utilities disabled")
     gdalpresent=False
 
     
@@ -96,7 +96,7 @@ class Sensor(models.Model):
 
     driver = models.CharField(max_length=4,default="I2C",null=False,blank=False,choices=SENSOR_DRIVER_CHOICES,help_text=ugettext_lazy("Driver to use"))
 
-    type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"))
+    type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"),on_delete=models.CASCADE)
 
     i2cbus=models.PositiveIntegerField(default=1,null=False,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
     address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C ddress (decimal)"))
@@ -105,7 +105,7 @@ class Sensor(models.Model):
     timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
     level = models.CharField(max_length=50,unique=False,default="103,2000,-,-",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
     
-    board = models.ForeignKey('Board')
+    board = models.ForeignKey('Board',on_delete=models.CASCADE)
 
 
     def clean(self):
@@ -162,9 +162,9 @@ class Sensor(models.Model):
         # TODO unique will be unique for each timerange, level, station !
         unique_together = (('name', 'board'),)
 
-    def __unicode__(self):
+    def __str__(self):
         #return u'%s-%s-%s-%s-%d-%s-%s-%s' % (self.name,self.active,self.driver,self.type,self.address,self.timerange,self.level,self.board)
-        return u'%s-%s-%s' % (self.name,self.active,self.driver)
+        return '%s-%s-%s' % (self.name,self.active,self.driver)
 
 
 
@@ -223,8 +223,8 @@ class SensorType(models.Model):
         verbose_name_plural = 'Sensors Type' 
         #unique_together = (('name', 'type'),)
 
-    def __unicode__(self):
-        return u'%s-%s-%s' % (self.name,self.active,self.type)
+    def __str__(self):
+        return '%s-%s-%s' % (self.name,self.active,self.type)
 
 
 
@@ -270,8 +270,8 @@ class Bcode(models.Model):
         else:
             return self.bcode
         
-    def __unicode__(self):
-        return u'%s-%s-%s' % (self.bcode,self.description,self.unit)
+    def __str__(self):
+        return '%s-%s-%s' % (self.bcode,self.description,self.unit)
 
 
     
@@ -323,7 +323,7 @@ class TransportRF24Network(models.Model):
     key=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES key"))
     iv=models.CharField(validators=[validate_comma_separated_integer_list],max_length=47,null=False,blank=True, choices=RF24_KEYIV_CHOICES,help_text=ugettext_lazy("AES cbc iv"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key TransportRF24Network"
@@ -337,8 +337,8 @@ class TransportRF24Network(models.Model):
         verbose_name = 'RF24 Network node' 
         verbose_name_plural = 'RF24 Network nodes' 
 
-    def __unicode__(self):
-        return u'%s' % (self.node)
+    def __str__(self):
+        return '%s' % (self.node)
 
 
 class TransportMqttManager(models.Manager):
@@ -359,7 +359,7 @@ class TransportMqtt(models.Model):
     mqttuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT user"))
     mqttpassword= models.CharField(max_length=50,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT password"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -373,8 +373,8 @@ class TransportMqtt(models.Model):
         verbose_name = 'MQTT transport'
         verbose_name_plural = 'MQTT transport'
 
-    def __unicode__(self):
-        return u'%s' % (self.mqttserver)
+    def __str__(self):
+        return '%s' % (self.mqttserver)
 
 
 class TransportTcpipManager(models.Manager):
@@ -415,7 +415,7 @@ class TransportTcpip(models.Model):
 
     ntpserver = models.CharField(max_length=50,default="ntpserver",null=False,blank=False,help_text=ugettext_lazy("Network time server (NTP)"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -429,8 +429,8 @@ class TransportTcpip(models.Model):
         verbose_name = 'tcp/ip DNS resoved name' 
         verbose_name_plural = 'tcp/ip DNS resoved names' 
 
-    def __unicode__(self):
-        return u'%s' % (self.name)
+    def __str__(self):
+        return '%s' % (self.name)
 
 class TransportSerialManager(models.Manager):
     def get_by_natural_key(self, board):
@@ -490,7 +490,7 @@ class TransportSerial(models.Model):
     baudrate = models.PositiveIntegerField(default=9600,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=ugettext_lazy("Baud rate"))
     device = models.CharField(max_length=30,unique=False,default="/dev/ttyUSB0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=ugettext_lazy("Serial device"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -504,8 +504,8 @@ class TransportSerial(models.Model):
         verbose_name = 'serial transport'
         verbose_name_plural = 'serial transports'
 
-    def __unicode__(self):
-        return u'%s' % (self.device)
+    def __str__(self):
+        return '%s' % (self.device)
 
 
 class TransportBluetoothManager(models.Manager):
@@ -521,7 +521,7 @@ class TransportBluetooth(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
     name = models.CharField(max_length=80,help_text=ugettext_lazy("bluetooth name"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -535,8 +535,8 @@ class TransportBluetooth(models.Model):
         verbose_name = 'bluetooth transport'
         verbose_name_plural = 'bluetooth transport'
 
-    def __unicode__(self):
-        return u'%s' % (self.name)
+    def __str__(self):
+        return '%s' % (self.name)
 
 
 class TransportAmqpManager(models.Manager):
@@ -557,7 +557,7 @@ class TransportAmqp(models.Model):
     amqpuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("AMQP user"))
     amqppassword= models.CharField(max_length=50,default="",null=False,blank=True,help_text=ugettext_lazy("AMQP password"))
 
-    board = models.OneToOneField("Board")
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -566,8 +566,8 @@ class TransportAmqp(models.Model):
 
     natural_key.dependencies = ['stations.board']
 
-    def __unicode__(self):
-        return u'%s' % (self.amqpserver)
+    def __str__(self):
+        return '%s' % (self.amqpserver)
 
 
 class BoardManager(models.Manager):
@@ -592,7 +592,7 @@ class Board(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate the board for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
     category = models.CharField(max_length=50, blank=False,choices=BOARD_CATEGORY_CHOICES)
-    stationmetadata = models.ForeignKey('StationMetadata')
+    stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
     
 #    def changeform_link(self):
 #        if self.id:
@@ -619,8 +619,8 @@ class Board(models.Model):
         verbose_name_plural = 'hardware boards'
         unique_together = (('slug', 'stationmetadata'),)
 
-    def __unicode__(self):
-        return u'%s' % (self.slug)
+    def __str__(self):
+        return '%s' % (self.slug)
 
 class BoardFirmwareMetadata(models.Model):
     """Board metadata for firmware management."""
@@ -658,7 +658,7 @@ class StationConstantData(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate this metadata"))
     btable = models.CharField(max_length=6,unique=False,blank=False,choices=BTABLE_CHOICES,help_text=ugettext_lazy("A code to define the metadata. See rmap RFC"))
     value=models.CharField(max_length=32,null=False,blank=False,help_text=ugettext_lazy("value for associated B table"))
-    stationmetadata = models.ForeignKey('StationMetadata')
+    stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
 
     def natural_key(self):
         #print "natural key"
@@ -673,8 +673,8 @@ class StationConstantData(models.Model):
         verbose_name_plural = 'Station constant metadata'
         unique_together = (('btable', 'stationmetadata'),)
 
-    def __unicode__(self):
-        return u'%s' % (self.btable)
+    def __str__(self):
+        return '%s' % (self.btable)
 
 class StationMetadataManager(models.Manager):
     def get_by_natural_key(self, slug, ident):
@@ -703,7 +703,7 @@ class StationMetadata(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
 
-    ident = models.ForeignKey(User)
+    ident = models.ForeignKey(User,on_delete=models.CASCADE)
     #ident = models.ForeignKey(User, limit_choices_to={'is_staff': True})
 
 #    ident = models.CharField(max_length=9,unique=False,null=False,blank=True, help_text=ugettext_lazy("station identifier (should be equal to your username)"))
@@ -747,7 +747,7 @@ class StationMetadata(models.Model):
 
     @property
     def popupContent(self):
-        return  u'\
+        return  '\
         <p>\
            ident: <a href="/stationsonmap/{}">{}\
            </a>\
@@ -783,8 +783,8 @@ class StationMetadata(models.Model):
         unique_together = (('slug', 'ident'),)
 
 
-    def __unicode__(self):
-        return u'%s/%s' % (self.slug,self.ident)
+    def __str__(self):
+        return '%s/%s' % (self.slug,self.ident)
 
 
 from django.contrib.auth.models import User
@@ -800,7 +800,7 @@ class UserProfile(models.Model):
     objects = UserProfileManager()
 
     # This field is required.
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User,on_delete=models.CASCADE)
 
     # Other fields here
     accepted_license = models.BooleanField(ugettext_lazy("I accept ODBL license"),default=False,null=False,blank=False,help_text=ugettext_lazy("You need to accept ODBL license to provide your data"))

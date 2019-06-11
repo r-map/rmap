@@ -8,9 +8,9 @@
 
 <body>
 <p>
-    {% blocktrans %}
+    {% blocktrans with site_name=site.name %}
     You (or someone pretending to be you) have asked to register an account at
-    {{ site.name }}.  If this wasn't you, please ignore this email
+    {{ site_name }}.  If this wasn't you, please ignore this email
     and your address will be removed from our records.
     {% endblocktrans %}
 </p>
@@ -27,9 +27,9 @@
     </a>
 </p>
 <p>
-    {% blocktrans %}
+    {% blocktrans with site_name=site.name %}
     Sincerely,
-    {{ site.name }} Management
+    {{ site_name }} Management
     {% endblocktrans %}
 </p>
 </body>
@@ -56,7 +56,7 @@ following context:
     depending on whether ``django.contrib.sites`` is installed, this
     may be an instance of either ``django.contrib.sites.models.Site``
     (if the sites application is installed) or
-    ``django.contrib.sites.models.RequestSite`` (if not). Consult `the
+    ``django.contrib.sites.requests.RequestSite`` (if not). Consult `the
     documentation for the Django sites framework
     <http://docs.djangoproject.com/en/dev/ref/contrib/sites/>`_ for
     details regarding these objects' interfaces.
@@ -68,9 +68,6 @@ following context:
     ``HttpRequest`` instance for better flexibility.
     For example it can be used to compute absolute register URL:
 
-        http{% if request.is_secure %}s{% endif %}://{{ request.get_host }}{% url 'registration_activate' activation_key %}
-
-    or when using Django >= 1.7:
 
         {{ request.scheme }}://{{ request.get_host }}{% url 'registration_activate' activation_key %}
 {% endcomment %}

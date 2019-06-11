@@ -1,6 +1,6 @@
 import smbus
 import time
-from utils import nint
+from .utils import nint
 
 def signInteger(value, bitcount):
     if value & (1<<(bitcount-1)):
@@ -47,8 +47,8 @@ def main():
     t2=tmp(address=0x4f)
 
     while True:
-        print t1.get_temp()
-        print t2.get_temp()
+        print(t1.get_temp())
+        print(t2.get_temp())
         time.sleep(1)
 
 

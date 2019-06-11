@@ -32,7 +32,7 @@ DEFAULTS = {
 
 SHOWDATA = getattr(settings, 'SHOWDATA', {})
 
-for name, default in DEFAULTS.items():
+for name, default in list(DEFAULTS.items()):
     for dsn in SHOWDATA:
         if name not in SHOWDATA[dsn]:
             SHOWDATA[dsn][name] = default

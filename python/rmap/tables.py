@@ -41,7 +41,7 @@ class Table(OrderedDict):
             self[entry.code]=entry
 
     def output(self, fileobj=sys.stdout):
-        for entry in tmp.iterkeys():
+        for entry in tmp.keys():
             self[entry].output(fileobj)
 
 def main():
@@ -50,9 +50,9 @@ def main():
     table = Table("tables/present_weather.txt")
     table.output()
 
-    print "------------------------------"
+    print("------------------------------")
 
-    print  table[171]
+    print(table[171])
 
 if __name__ == '__main__':
     main()  # (this code was run as script)

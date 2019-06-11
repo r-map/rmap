@@ -62,7 +62,7 @@ class TaggedSeries(object):
   def format(tags):
     return tags.get('name', '') + ''.join(sorted([
       ';%s=%s' % (tag, value)
-      for tag, value in tags.items()
+      for tag, value in list(tags.items())
       if tag != 'name'
     ]))
 

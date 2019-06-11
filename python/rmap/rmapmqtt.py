@@ -26,18 +26,18 @@ try:
     from plyer.compat import PY2
     from plyer import notification
 except:
-    print "plyer not available"
+    print("plyer not available")
 
 #import threading # https://github.com/kivy/kivy/wiki/Working-with-Python-threads-inside-a-Kivy-application
 
-import settings
+from . import settings
 import json
 from datetime import datetime, timedelta
 import time
 import codecs
 #import mosquitto
 import paho.mqtt.client as mqtt
-from utils import nint,log_stdout
+from .utils import nint,log_stdout
 
 # Encoder per la data
 class JSONEncoder(json.JSONEncoder):
@@ -57,10 +57,12 @@ class Rmapdonotexist(Exception):
 
 class rmapmqtt:
 
-    def __init__(self,ident="-",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test"):
+    def __init__(self,ident="-",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None,qos=1):
 
         self.ident=ident
-        self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
+        self.lonlat=lonlat
+        if self.lonlat is None:
+            self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
         self.network=network
         self.host=host
         self.port=port
@@ -74,6 +76,7 @@ class rmapmqtt:
         self.mid=-1
         self.loop_started=False
         self.messageinfo=None
+        self.qos=qos
         
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
@@ -102,13 +105,11 @@ class rmapmqtt:
         # mando stato di connessione della stazione con segnalazione di sconnessione gestita male com will
         self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                     payload=dumps({"v": "error01"}),
-                            qos=1, retain=retain)
+                            qos=self.qos, retain=retain)
 
         try:
-            print "start connect"
             #self.mqttc.connect_async(self.host,self.port,self.timeout)
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
-            print "end connect"
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
 
@@ -127,18 +128,18 @@ class rmapmqtt:
         except Exception as inst:
             self.error(inst)
 
-    def publish(self,topic,payload,qos=0,retain=False,timeout=15.):
+    def publish(self,topic,payload,retain=False,timeout=15.):
         ''' 
         bloking publish
         with qos > 0 we wait for ack
         '''
         self.mqttc.loop()
         self.puback=False
-        self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=qos,retain=retain)
+        self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=self.qos,retain=retain)
         rc,self.mid=self.messageinfo
         if rc != mqtt.MQTT_ERR_SUCCESS:
             return rc
-        if (qos == 0 ):
+        if (self.qos == 0 ):
             return rc
 
         self.log("publish message mid: "+str(self.mid))
@@ -167,10 +168,9 @@ class rmapmqtt:
             # retained only if the station is fixed
             retain = self.prefix != "mobile"
 
-            for key,val in anavar.iteritems():
+            for key,val in anavar.items():
                 rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
-                                      payload=dumps(val),
-                                      qos=1,retain=retain)
+                                      payload=dumps(val),retain=retain)
                 if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish ana",rc)
 
@@ -192,11 +192,10 @@ class rmapmqtt:
             if prefix is None:
                 prefix=self.prefix
                 
-            for key,val in datavar.iteritems():
+            for key,val in datavar.items():
                 rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
-                                      qos=1,
                                       retain=False
                                   )
             
@@ -257,13 +256,14 @@ class rmapmqtt:
             # retained only if the station is fixed
             retain = self.maintprefix != "mobile"
 
-            rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+            self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "disconn"}),
-                                  qos=1,retain=retain)
-            if rc[0] != mqtt.MQTT_ERR_SUCCESS:
+                                  qos=self.qos,retain=retain)
+            rc,self.mid=self.messageinfo
+            if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)
 
-            self.log("publish maint message mid: "+str(rc[1]))
+            self.log("publish maint message mid: "+str(self.mid))
 
             #rc = self.mqttc.loop()
             #if rc != mqtt.MQTT_ERR_SUCCESS:
@@ -272,11 +272,17 @@ class rmapmqtt:
             #this wait to send the last message
             #but we wait some time (timeout) for each message
             # so is possible this is not needed
-            self.messageinfo.wait_for_publish()
-            
+
+            while self.messageinfo.is_published() == False:
+                if (not self.loop_started):
+                    self.loop(.1)
+                else:
+                    self.messageinfo.wait_for_publish()
+
             rc = self.mqttc.disconnect()
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("disconnect",rc)
+
             # see at https://github.com/r-map/rmap/issues/268
             self.mqttc.reinitialise()
             
@@ -295,7 +301,7 @@ class rmapmqtt:
 
                 rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                              payload=dumps({ "v": "conn"}),
-                                      qos=1,retain=retain)
+                                      qos=self.qos,retain=retain)
 
                 if rc[0] != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish status",rc)
@@ -305,14 +311,12 @@ class rmapmqtt:
             except Exception as inst:
                 self.error(inst)
 
-        print "--------------------------------> connected"
         self.connected=True
 
 
     def on_disconnect(self,mosq, userdata, rc):
         self.log("disconnect rc: "+str(rc))
 
-        print "--------------------------------> disconnected"
         self.connected=False
 
         #if rc == 1 :
@@ -370,8 +374,8 @@ def do_notify(message="",title="Notification"):
     try:
         notification.notify(**kwargs)
     except exception as e:
-        print e
-        print "error on notify message:",title, message
+        print(e)
+        print("error on notify message:",title, message)
         traceback.print_exc()
 
 def main():

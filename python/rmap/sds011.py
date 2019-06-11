@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # coding=utf-8
 # "DATASHEET": http://cl.ly/ekot
-from __future__ import print_function
+
 import serial, struct, sys, time
 
 DEBUG = 1

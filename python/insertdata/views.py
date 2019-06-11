@@ -42,8 +42,8 @@ class scelta_present_weather(object):
         self.iter=self.table.__iter__()
         return self
 
-    def next(self):
-        entry=self.iter.next()
+    def __next__(self):
+        entry=next(self.iter)
         return (self.table[entry].code,self.table[entry].description)
 
 
@@ -58,13 +58,13 @@ class scelta_stations(object):
         self.first=True
         return self
 
-    def next(self):
+    def __next__(self):
 
         if self.first:
             self.first=False
             return ("","-------")
 
-        station=self.stations.next()
+        station=next(self.stations)
         #return (station["slug"],str(station["lat"])+str(station["lon"]))
         return (station.slug,station.name)
 
@@ -310,7 +310,7 @@ def insertDataRainboImpactData(request):
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
 
-                    print "<",slug,">","prefix:",prefix
+                    print("<",slug,">","prefix:",prefix)
 
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
@@ -357,14 +357,14 @@ def insertDataRainboWeatherData(request):
                     prefix=rmap.settings.topicreport
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
-                    print user,password,network,prefix
-                    print "<",slug,">","prefix:",prefix
+                    print(user,password,network,prefix)
+                    print("<",slug,">","prefix:",prefix)
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
                     form = RainboWeatherForm() # An unbound Rainbo form
                 except Exception as e:
-                    print e
+                    print(e)
                     return render(request, html_template,{'form': form,"error":True})
 
             return render(request, html_template,{'form': form ,"success":True})
@@ -459,7 +459,7 @@ def insertDataManualData(request):
                 value=int(value/10)
                 datavar["B20001"]={"t": dt,"v": str(value)}
 
-            print "datavar:",datavar
+            print("datavar:",datavar)
             if (len(datavar)>0):
                 try:
 
@@ -473,7 +473,7 @@ def insertDataManualData(request):
                     else:
                         network="mobile"
 
-                    print "<",slug,">","prefix:",prefix
+                    print("<",slug,">","prefix:",prefix)
 
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
@@ -487,7 +487,7 @@ def insertDataManualData(request):
 
         else:
 
-            print "invalid form"
+            print("invalid form")
             form = ManualForm() # An unbound form
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
@@ -542,13 +542,13 @@ def insertNewStation(request):
             if name:
                 try:
                     try:
-                        print "del station:", ident,slug,ident
+                        print("del station:", ident,slug,ident)
                         mystation=StationMetadata.objects.get(slug__exact=slug,ident__username=ident)
                         mystation.delete()
                     except Exception as e:
-                        print e
+                        print(e)
                     
-                    print "new station:", name,ident,lon,lat
+                    print("new station:", name,ident,lon,lat)
 
                     mystation=StationMetadata(slug=slug,name=name)
                     user=User.objects.get(username=ident)
@@ -575,14 +575,14 @@ def insertNewStation(request):
                         ,template=template)
                     
                 except Exception as e:
-                    print e
+                    print(e)
                     return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True})
 
             return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"station":mystation})
 
         else:
 
-            print "invalid form"
+            print("invalid form")
             form = NewStationForm() # An unbound form
             return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"invalid":True})
 

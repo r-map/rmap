@@ -11,7 +11,7 @@ class TestUtils(TestCase):
         response = c.get("/borinud/api/v1/geojson/*/*/*/*/*/*/summaries")
         geojson = json.loads(response.content.decode("utf-8"))
         self.assertTrue("type" in geojson)
-        self.assertEquals(geojson["type"], "FeatureCollection")
+        self.assertEqual(geojson["type"], "FeatureCollection")
         self.assertTrue("features" in geojson)
         self.assertTrue(len(geojson["features"]) > 0)
 

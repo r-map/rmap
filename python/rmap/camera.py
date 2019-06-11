@@ -9,7 +9,7 @@ get surprised it you get it with data=None, and/or out of order.
 
 I've stripped down some of my code to make it simpler and am attaching
 a short example for a camera preview class. Not perfect, but I hope it
-helps.  My code has two possible handlers for the JPEG callback,m one
+helps.	My code has two possible handlers for the JPEG callback,m one
 for simply saving it to file, the other for loading it into a Texture
 - I currently use the first one but left the other one in just in
 case.
@@ -25,48 +25,48 @@ case, I've patched PythonActivity.java as follows:
     class):
 
     protected void onCreateBeforeSDLSurface() {
-            mFrameLayout = new FrameLayout(this);
-            mCameraView = new SurfaceView(this);
-            mCameraView.setZOrderOnTop(false);
-            mCameraView.setFocusable(false);
-            mCameraSurfaceHolder = mCameraView.getHolder();
-            mCameraSurfaceHolder.addCallback(this);
-            mCameraSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-            mFrameLayout.addView(mCameraView);
-            mCameraView.setVisibility(View.VISIBLE);
-        } 
+	    mFrameLayout = new FrameLayout(this);
+	    mCameraView = new SurfaceView(this);
+	    mCameraView.setZOrderOnTop(false);
+	    mCameraView.setFocusable(false);
+	    mCameraSurfaceHolder = mCameraView.getHolder();
+	    mCameraSurfaceHolder.addCallback(this);
+	    mCameraSurfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	    mFrameLayout.addView(mCameraView);
+	    mCameraView.setVisibility(View.VISIBLE);
+	} 
 
  
 
     Call this function instead of setContentView(mView), pass mView to the function:
 
-        protected void onCreateAfterSurface(SurfaceView mView) {
-            mView.setZOrderOnTop(true);    // necessary
-            mView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
-            mFrameLayout.addView(mView);
-            setContentView(mFrameLayout);
-        }
+	protected void onCreateAfterSurface(SurfaceView mView) {
+	    mView.setZOrderOnTop(true);	   // necessary
+	    mView.getHolder().setFormat(PixelFormat.TRANSLUCENT);
+	    mFrameLayout.addView(mView);
+	    setContentView(mFrameLayout);
+	}
 
     Implement the SurfaceHolder.Callback interface:
 
-        public void surfaceCreated(SurfaceHolder holder) {
-            mCameraSurfaceReady = true;
-        }
+	public void surfaceCreated(SurfaceHolder holder) {
+	    mCameraSurfaceReady = true;
+	}
 
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-        }
+	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+	}
 
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            mCameraSurfaceReady = false;
-        }
+	public void surfaceDestroyed(SurfaceHolder holder) {
+	    mCameraSurfaceReady = false;
+	}
 
     Add this function: 
 
-        public SurfaceHolder getCameraSurfaceHolder() {
-            if (mCameraSurfaceReady)
-                return mCameraSurfaceHolder;
-            return null;
-        }
+	public SurfaceHolder getCameraSurfaceHolder() {
+	    if (mCameraSurfaceReady)
+		return mCameraSurfaceHolder;
+	    return null;
+	}
 
 
 Hope it helps :)
@@ -98,8 +98,8 @@ FileOutputStream = autoclass('java.io.FileOutputStream')
 Rect = autoclass('android.graphics.Rect')
 ArrayList = autoclass('java.util.ArrayList')
 Parameters = autoclass('android.hardware.Camera$Parameters')
-PythonActivity = autoclass('org.renpy.android.PythonActivity')
-theActivity = cast('org.renpy.android.PythonActivity', PythonActivity.mActivity)
+PythonActivity = autoclass('org.kivy.android.PythonActivity')
+theActivity = cast('org.kivy.android.PythonActivity', PythonActivity.mActivity)
 
 # Make sure the user controls the volume of the audio stream we're actually using
 AudioManager = autoclass('android.media.AudioManager')
@@ -114,7 +114,7 @@ def map_List(func, l):
 	if l is not None:
 		it = l.iterator()
 		while it.hasNext():
-			res.append(func(it.next()))
+			res.append(func(next(it)))
 	return res
 	
 
@@ -246,13 +246,13 @@ class CameraPreview(Widget):
 		''' Translate a rect defined by (possibly rotated) pixel center (x,y) and size (w,h) into
 			[0,1] range left,top,right,bottom relating to rotation=0
 		'''
-		sw, sh = map(float, wsize)
-		x, y = map(float, center)
-		w, h = map(float, rsize)
+		sw, sh = list(map(float, wsize))
+		x, y = list(map(float, center))
+		w, h = list(map(float, rsize))
 		# translate from openGL space to android, [0,1] range
 		b = partial(boundary, minvalue=0., maxvalue=1.)
-		left, top = map(b, [(x - w / 2) / sw, (sh - (y + h / 2)) / sh])
-		w, h = map(b, [w / sw, h / sh])
+		left, top = list(map(b, [(x - w / 2) / sw, (sh - (y + h / 2)) / sh]))
+		w, h = list(map(b, [w / sw, h / sh]))
 		right, bottom = left + w, top + h
 		# transpose if rotated
 		if self.rotation in [90]:
@@ -267,7 +267,7 @@ class CameraPreview(Widget):
 		''' Save data from the camera's JPEG callback into a file '''
 		filename = 'sample.jpg'
 
-                Logger.info('CameraPreview: trying to save jpeg file (%s)' % filename)
+		Logger.info('CameraPreview: trying to save jpeg file (%s)' % filename)
 
 		try:
 			with open(filename, 'wb') as f:
@@ -288,8 +288,8 @@ class CameraPreview(Widget):
 		self.dispatch('on_capture_completed', self.captured_filename, self.captured_size)
 
 	def on_capture_completed(self, filename_or_texture, size):
-                Logger.info('CameraPreview: saved jpeg file %s size %s' % (filename_or_texture,str(size)))
-                
+		Logger.info('CameraPreview: saved jpeg file %s size %s' % (filename_or_texture,str(size)))
+		
 		
 	def load_jpeg_to_tex_data(self, data):
 		''' Load data from the camera's JPEG callback into a kivy texture '''
@@ -327,12 +327,12 @@ class CameraPreview(Widget):
 	def do_capture(self):
 		''' Call this to capture an image '''
 
-                Logger.info('CameraPreview: do_capture')
+		Logger.info('CameraPreview: do_capture')
 
 		if not self.camera:
 			return
 
-                Logger.info('CameraPreview: cameratakepicture')
+		Logger.info('CameraPreview: cameratakepicture')
 
 		# Don't use raw or post-view calbacks since they are not always supported
 		self.camera.takePicture(
@@ -355,16 +355,16 @@ class CameraPreview(Widget):
 					array.add(CameraArea(Rect(*area), self.default_focus_weight))
 					return array
 				# get translated rect and convert to focus range
-				focus_area = map(to_focus_space, self._rect_to_relative(fpoint, msize, size))
+				focus_area = list(map(to_focus_space, self._rect_to_relative(fpoint, msize, size)))
 				try:
 					self.camera.cancelAutoFocus()
 					self.params.setFocusMode(Parameters.FOCUS_MODE_AUTO)
 					if self.metering_areas_supported:
-						metering_area = map(to_focus_space, self._rect_to_relative(
+						metering_area = list(map(to_focus_space, self._rect_to_relative(
 							fpoint,
-							map(operator.mul, msize, [self.metering_area_factor] * 2),
+							list(map(operator.mul, msize, [self.metering_area_factor] * 2)),
 							size)
-						)
+						))
 						self.params.setMeteringAreas(get_ArrayList(metering_area))
 					self.params.setFocusAreas(get_ArrayList(focus_area))
 					self.camera.setParameters(self.params)
@@ -525,7 +525,7 @@ class CameraPreview(Widget):
 		degrees = self._rotation_to_degrees[rotation]
 		if self.info.facing == CameraInfo.CAMERA_FACING_FRONT:
 			result = (self.info.orientation + degrees) % 360
-			result = (360 - result) % 360;  # compensate the mirror
+			result = (360 - result) % 360;	# compensate the mirror
 		else: # back-facing
 			result = (self.info.orientation - degrees + 360) % 360
 		self.rotation = result
@@ -554,9 +554,9 @@ class CameraPreview(Widget):
 
 
 	def on_capture_completed(self):
-                pass
+		pass
 
-        def on_focus_completed(self):
-                pass
+	def on_focus_completed(self):
+		pass
 
 

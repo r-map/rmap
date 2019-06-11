@@ -1,4 +1,4 @@
-#!/bin/python
+#!/usr/bin/python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -33,10 +33,10 @@ class  mydaemon(daemon.Daemon):
 
     def optionparser(self):
         op = super(mydaemon, self).optionparser()
-	op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
-	op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
-	#op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
-	#op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
+        op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
+        op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
+        #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
+        #op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
         return op 	  				 
 
 mqtt2dballed = mydaemon(
@@ -97,12 +97,12 @@ def maindirecttodballe(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     
-    if not (self.options.datalevel in dsndict.keys()):
+    if not (self.options.datalevel in list(dsndict.keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
 
-    if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
@@ -115,12 +115,12 @@ def maindirecttodballe(self):
     topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
 
-    if not (self.options.datalevel in topicdict.keys()):
+    if not (self.options.datalevel in list(topicdict.keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
 
-    if not (self.options.stationtype in topicdict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(topicdict[self.options.datalevel].keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
@@ -173,6 +173,7 @@ def maindirecttodballe(self):
                     while True:
                         try:
                             line = p1.stderr.readline()
+                            line = line.decode('ascii')
                         except:
                             line=""
                         if line:
@@ -186,6 +187,7 @@ def maindirecttodballe(self):
                     while True:
                         try:
                             line = p2.stderr.readline()
+                            line = line.decode('ascii')
                         except:
                             line=""
                         if line:
@@ -199,6 +201,7 @@ def maindirecttodballe(self):
                     while True:
                         try:
                             line = p2.stdout.readline()
+                            line = line.decode('ascii')
                         except:
                             line=""
                         if line:
@@ -279,12 +282,12 @@ def main(self):
     dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
 
     
-    if not (self.options.datalevel in dsndict.keys()):
+    if not (self.options.datalevel in list(dsndict.keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
 
-    if not (self.options.stationtype in dsndict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
         logging.error('Invalid dsn')
         sys.stdout.write("Invalid dsn\n")
         return False
@@ -297,12 +300,12 @@ def main(self):
     topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
 
-    if not (self.options.datalevel in topicdict.keys()):
+    if not (self.options.datalevel in list(topicdict.keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
 
-    if not (self.options.stationtype in topicdict[self.options.datalevel].keys()):
+    if not (self.options.stationtype in list(topicdict[self.options.datalevel].keys())):
         logging.error('Invalid topic')
         sys.stdout.write("Invalid topic\n")
         return False
@@ -346,8 +349,7 @@ def main(self):
 
             while p1.poll() is None:
                 #p2 = subprocess.Popen(["arki-scan", "--inline", "bufr:-"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-		p2 = subprocess.Popen(["arki-query", "--inline","", "bufr:-"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
-                #p2 = subprocess.Popen(["arki-query", "--stdin=bufr","--inline",""],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
+                p2 = subprocess.Popen(["arki-query", "--stdin=bufr","--inline",""],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p2 = subprocess.Popen(["dbamsg","dump"],cwd=self.cwd, stdin=p1.stdout, stdout=subprocess.PIPE,stderr=subprocess.PIPE)
                 #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits. Do not use inside this while loop
 
@@ -365,6 +367,7 @@ def main(self):
                         while True:
                             try:
                                 line = p1.stderr.readline()
+                                line = line.decode('ascii')
                             except:
                                 line=""
                             if line:
@@ -378,6 +381,7 @@ def main(self):
                         while True:
                             try:
                                 line = p2.stderr.readline()
+                                line = line.decode('ascii')
                             except:
                                 line=""
                             if line:
@@ -391,6 +395,7 @@ def main(self):
                         while True:
                             try:
                                 line = p3.stderr.readline()
+                                line = line.decode('ascii')
                             except:
                                 line=""
                             if line:
@@ -404,6 +409,7 @@ def main(self):
                         while True:
                             try:
                                 line = p3.stdout.readline()
+                                line = line.decode('ascii')
                             except:
                                 line=""
                             if line:

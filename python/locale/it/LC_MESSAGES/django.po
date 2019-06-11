@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: rmap\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-11-13 15:13+0000\n"
-"PO-Revision-Date: 2018-11-13 15:50+0100\n"
+"POT-Creation-Date: 2018-11-13 19:00+0000\n"
+"PO-Revision-Date: 2018-11-13 20:20+0100\n"
 "Last-Translator: Paolo Patruno <p.patruno@iperbole.bologna.it>\n"
 "Language-Team: \n"
 "Language: it\n"
@@ -17,30 +17,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Poedit 1.8.8\n"
 
-#: firmware_updater/models.py:54
+#: build/lib/firmware_updater/models.py:54 firmware_updater/models.py:54
 msgid "Firmware name"
 msgstr "Nome del firmware"
 
-#: firmware_updater/models.py:55
+#: build/lib/firmware_updater/models.py:55 firmware_updater/models.py:55
 msgid "Firmware description"
 msgstr "Descrizione del firmware"
 
-#: firmware_updater/models.py:75
+#: build/lib/firmware_updater/models.py:75 firmware_updater/models.py:75
 msgid "File"
 msgstr ""
 
-#: firmware_updater/models.py:76
+#: build/lib/firmware_updater/models.py:76 firmware_updater/models.py:76
 msgid "The firmware file to upload"
 msgstr ""
 
-#: firmware_updater/models.py:77
+#: build/lib/firmware_updater/models.py:77 firmware_updater/models.py:77
 msgid "Build date"
 msgstr ""
 
-#: firmware_updater/models.py:78
+#: build/lib/firmware_updater/models.py:78 firmware_updater/models.py:78
 msgid "When the firmware was done"
 msgstr ""
 
+#: build/lib/firmware_updater/models.py:79 build/lib/geoimage/models.py:53
+#: build/lib/rmap/stations/models.py:94 build/lib/rmap/stations/models.py:204
+#: build/lib/rmap/stations/models.py:318 build/lib/rmap/stations/models.py:355
+#: build/lib/rmap/stations/models.py:413 build/lib/rmap/stations/models.py:489
+#: build/lib/rmap/stations/models.py:521 build/lib/rmap/stations/models.py:552
+#: build/lib/rmap/stations/models.py:592 build/lib/rmap/stations/models.py:658
+#: build/lib/rmap/stations/models.py:703
+#: build/lib/rmap/templates/profile_details.html:19
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:27
 #: firmware_updater/models.py:79 geoimage/models.py:53
 #: rmap/stations/models.py:94 rmap/stations/models.py:204
 #: rmap/stations/models.py:318 rmap/stations/models.py:355
@@ -52,47 +61,60 @@ msgstr ""
 msgid "Active"
 msgstr "Attivo"
 
-#: firmware_updater/models.py:80
+#: build/lib/firmware_updater/models.py:80 firmware_updater/models.py:80
 msgid "Activate the firmware for upgrade"
 msgstr "Attivare il firmware per aggiornarlo"
 
-#: geoimage/models.py:53
+#: build/lib/geoimage/models.py:53 geoimage/models.py:53
 msgid "Activate this geoimage"
 msgstr "Attiva questa immagine georeferenziata"
 
+#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:15
+#: build/lib/rmap/templates/stations/stationsonmap.html:14
 #: geoimage/templates/geoimage/georefencedimage_list.html:15
 #: rmap/templates/stations/stationsonmap.html:14
 msgid "Selected user"
 msgstr "Utente selezionato"
 
+#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:15
 #: geoimage/templates/geoimage/georefencedimage_list.html:15
 msgid "Reset filter"
 msgstr "Reimposta filtro"
 
+#: build/lib/geoimage/templates/geoimage/georefencedimage_list.html:45
+#: build/lib/insertdata/templates/insertdata/form.html:51
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:47
+#: build/lib/insertdata/templates/insertdata/newstationform.html:50
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:183
 #: geoimage/templates/geoimage/georefencedimage_list.html:45
 #: insertdata/templates/insertdata/form.html:51
-#: insertdata/templates/insertdata/manualdataform.html:52
+#: insertdata/templates/insertdata/manualdataform.html:50
 #: insertdata/templates/insertdata/newstationform.html:50
 #: insertdata/templates/insertdata/rainbodataform.html:183
 msgid "Submit"
 msgstr "Invia"
 
-#: geoimage/views.py:17
+#: build/lib/geoimage/views.py:17 geoimage/views.py:17
 msgid "Starting date"
 msgstr "Data iniziale"
 
-#: geoimage/views.py:17
+#: build/lib/geoimage/views.py:17 geoimage/views.py:17
 msgid "Elaborate starting from this date"
 msgstr "Data iniziale elaborazione:"
 
-#: geoimage/views.py:19
+#: build/lib/geoimage/views.py:19 geoimage/views.py:19
 msgid "Ending date"
 msgstr "Data finale"
 
-#: geoimage/views.py:19
+#: build/lib/geoimage/views.py:19 geoimage/views.py:19
 msgid "Elaborate ending to this date"
 msgstr "Data finale elaborazione"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:7
+#: build/lib/insertdata/templates/insertdata/form.html:13
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:14
+#: build/lib/insertdata/templates/insertdata/newstationform.html:14
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:16
 #: insertdata/templates/insertdata/delstationform.html:7
 #: insertdata/templates/insertdata/form.html:13
 #: insertdata/templates/insertdata/manualdataform.html:14
@@ -101,35 +123,47 @@ msgstr "Data finale elaborazione"
 msgid "Invalid data; retry"
 msgstr "Dati invalidi; riprova"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:8
+#: build/lib/insertdata/templates/insertdata/delstationform.html:23
 #: insertdata/templates/insertdata/delstationform.html:8
 #: insertdata/templates/insertdata/delstationform.html:23
 msgid "Return to station list"
 msgstr "Ritorna alla lista stazioni"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:12
 #: insertdata/templates/insertdata/delstationform.html:12
 msgid "The station is not your own; cannot remove!"
 msgstr "La stazione non è tua; non puoi rimuoverla!"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:16
 #: insertdata/templates/insertdata/delstationform.html:16
 msgid "Error deleting station; retry"
 msgstr "Errore cancellazione stazione; riprova"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:22
 #: insertdata/templates/insertdata/delstationform.html:22
 msgid "Station removed"
 msgstr "Stazione rimossa"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:27
 #: insertdata/templates/insertdata/delstationform.html:27
 msgid "Are you sure to delete station ?"
 msgstr "Sei sicuro di voler cancellare la stazione?"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:30
 #: insertdata/templates/insertdata/delstationform.html:30
 msgid "Cancel"
 msgstr "Annulla"
 
+#: build/lib/insertdata/templates/insertdata/delstationform.html:33
 #: insertdata/templates/insertdata/delstationform.html:33
 msgid "Remove"
 msgstr "Rimuovere"
 
+#: build/lib/insertdata/templates/insertdata/form.html:17
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:18
+#: build/lib/insertdata/templates/insertdata/newstationform.html:18
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:20
 #: insertdata/templates/insertdata/form.html:17
 #: insertdata/templates/insertdata/manualdataform.html:18
 #: insertdata/templates/insertdata/newstationform.html:18
@@ -137,74 +171,99 @@ msgstr "Rimuovere"
 msgid "Error on publish data; retry"
 msgstr "Errore pubblicando i dati; riprova"
 
+#: build/lib/insertdata/templates/insertdata/form.html:20
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:21
 #: insertdata/templates/insertdata/form.html:20
-#: insertdata/templates/insertdata/manualdataform.html:26
+#: insertdata/templates/insertdata/manualdataform.html:24
 msgid "Select coordinates from your stations"
 msgstr "Seleziona le coordinate dalle tue stazioni"
 
+#: build/lib/insertdata/templates/insertdata/form.html:28
+#: build/lib/insertdata/templates/insertdata/form.html:40
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:27
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:37
+#: build/lib/insertdata/templates/insertdata/newstationform.html:40
 #: insertdata/templates/insertdata/form.html:28
 #: insertdata/templates/insertdata/form.html:40
-#: insertdata/templates/insertdata/manualdataform.html:32
-#: insertdata/templates/insertdata/manualdataform.html:42
+#: insertdata/templates/insertdata/manualdataform.html:30
+#: insertdata/templates/insertdata/manualdataform.html:40
 #: insertdata/templates/insertdata/newstationform.html:40
 msgid "Select"
 msgstr "Seleziona"
 
+#: build/lib/insertdata/templates/insertdata/form.html:32
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:31
+#: build/lib/insertdata/templates/insertdata/newstationform.html:34
 #: insertdata/templates/insertdata/form.html:32
-#: insertdata/templates/insertdata/manualdataform.html:36
+#: insertdata/templates/insertdata/manualdataform.html:34
 #: insertdata/templates/insertdata/newstationform.html:34
 msgid "Select coordinate from address"
 msgstr "Seleziona le coordinate dall'indirizzo"
 
+#: build/lib/insertdata/templates/insertdata/form.html:44
 #: insertdata/templates/insertdata/form.html:44
 msgid "Select coordinate from map and upload your image"
 msgstr "Seleziona le coordinate dalla mappa e carica l'immagine"
 
-#: insertdata/templates/insertdata/manualdataform.html:22
-msgid "OK, data published"
-msgstr "Ottimo, dati pubblicati"
-
-#: insertdata/templates/insertdata/manualdataform.html:48
+#: build/lib/insertdata/templates/insertdata/manualdataform.html:43
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:31
+#: insertdata/templates/insertdata/manualdataform.html:46
 #: insertdata/templates/insertdata/rainbodataform.html:31
 msgid "Select coordinate from map and insert your actual data"
 msgstr "Seleziona le coordinate dalla mappa e inserisci i tuo dati attuali"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:23
 #: insertdata/templates/insertdata/newstationform.html:23
 msgid "Station insert completed successfully"
 msgstr "Inserimento della stazione completato con successo"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:24
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:15
 #: insertdata/templates/insertdata/newstationform.html:24
 #: rainbo/templates/rainbo/section_contacts.html:15
 msgid "Name"
 msgstr "Nome"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:25
 #: insertdata/templates/insertdata/newstationform.html:25
 msgid "Slug"
 msgstr "Slug (nome della risorsa)"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:26
+#: build/lib/rmap/form.py:35 build/lib/rmap/stations/models.py:712
 #: insertdata/templates/insertdata/newstationform.html:26 rmap/form.py:35
 #: rmap/stations/models.py:712
 msgid "Longitude"
 msgstr "Longitudine"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:27
+#: build/lib/rmap/form.py:34 build/lib/rmap/stations/models.py:711
 #: insertdata/templates/insertdata/newstationform.html:27 rmap/form.py:34
 #: rmap/stations/models.py:711
 msgid "Latitude"
 msgstr "Latitudine"
 
+#: build/lib/insertdata/templates/insertdata/newstationform.html:46
 #: insertdata/templates/insertdata/newstationform.html:46
 msgid "Select coordinate from map and insert your new station"
 msgstr "Seleziona le coordinate dalla mappa e inserisci la tua nuova stazione"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:24
 #: insertdata/templates/insertdata/rainbodataform.html:24
 msgid "Data succesfully added"
 msgstr "Dato aggiunto con successo"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:118
+#: build/lib/rainbo/templates/rainbo/service_detail_0.html:16
 #: insertdata/templates/insertdata/rainbodataform.html:118
 #: rainbo/templates/rainbo/service_detail_0.html:16
 msgid "No phenomenon in progress"
 msgstr "Nessun fenomeno in atto"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:125
+#: build/lib/rainbo/templates/rainbo/section_dati.html:21
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:16
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:24
 #: insertdata/templates/insertdata/rainbodataform.html:125
 #: rainbo/templates/rainbo/section_dati.html:21
 #: rainbo/templates/rainbo/service_detail_1.html:16
@@ -212,6 +271,10 @@ msgstr "Nessun fenomeno in atto"
 msgid "Visibility"
 msgstr "Visibilità"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:132
+#: build/lib/rainbo/templates/rainbo/section_dati.html:34
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:16
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:30
 #: insertdata/templates/insertdata/rainbodataform.html:132
 #: rainbo/templates/rainbo/section_dati.html:34
 #: rainbo/templates/rainbo/service_detail_2.html:16
@@ -219,6 +282,10 @@ msgstr "Visibilità"
 msgid "Rain"
 msgstr "Pioggia"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:139
+#: build/lib/rainbo/templates/rainbo/section_dati.html:48
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:16
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:36
 #: insertdata/templates/insertdata/rainbodataform.html:139
 #: rainbo/templates/rainbo/section_dati.html:48
 #: rainbo/templates/rainbo/service_detail_3.html:16
@@ -226,6 +293,10 @@ msgstr "Pioggia"
 msgid "Snow"
 msgstr "Neve"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:146
+#: build/lib/rainbo/templates/rainbo/section_dati.html:62
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:16
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:42
 #: insertdata/templates/insertdata/rainbodataform.html:146
 #: rainbo/templates/rainbo/section_dati.html:62
 #: rainbo/templates/rainbo/service_detail_4.html:16
@@ -233,6 +304,11 @@ msgstr "Neve"
 msgid "Thunderstorm"
 msgstr "Temporale"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:153
+#: build/lib/rainbo/templates/rainbo/section_dati.html:76
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:16
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:23
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:48
 #: insertdata/templates/insertdata/rainbodataform.html:153
 #: rainbo/templates/rainbo/section_dati.html:76
 #: rainbo/templates/rainbo/service_detail_5.html:16
@@ -241,15 +317,22 @@ msgstr "Temporale"
 msgid "Tornado"
 msgstr "Tromba d'aria"
 
+#: build/lib/insertdata/templates/insertdata/rainbodataform.html:170
 #: insertdata/templates/insertdata/rainbodataform.html:170
 msgid "Impact type"
 msgstr "Tipo d'impatto"
 
+#: build/lib/rainbo/templates/rainbo/base.html:69
+#: build/lib/rainbo/templates/rainbo/landing_page.html:56
 #: rainbo/templates/rainbo/base.html:69
 #: rainbo/templates/rainbo/landing_page.html:56
 msgid "Show Data"
 msgstr "Visualizza"
 
+#: build/lib/rainbo/templates/rainbo/base.html:72
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:4
+#: build/lib/rainbo/templates/rainbo/landing_page.html:59
+#: build/lib/rainbo/templates/rainbo/section_partecipa.html:7
 #: rainbo/templates/rainbo/base.html:72
 #: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:4
 #: rainbo/templates/rainbo/landing_page.html:59
@@ -257,39 +340,59 @@ msgstr "Visualizza"
 msgid "Partecipate"
 msgstr "Partecipa"
 
+#: build/lib/rainbo/templates/rainbo/base.html:75
+#: build/lib/rainbo/templates/rainbo/landing_page.html:65
 #: rainbo/templates/rainbo/base.html:75
 #: rainbo/templates/rainbo/landing_page.html:65
 msgid "Contacts"
 msgstr "Contatti"
 
-#: rainbo/templates/rainbo/base.html:82 rainbo/templates/rainbo/base.html:90
+#: build/lib/rainbo/templates/rainbo/base.html:82
+#: build/lib/rainbo/templates/rainbo/base.html:90
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_users.html:11
+#: build/lib/rmap/templates/base.html:136 rainbo/templates/rainbo/base.html:82
+#: rainbo/templates/rainbo/base.html:90
 #: rainbo/templates/rainbo/base_service/section_service_nav_users.html:11
 #: rmap/templates/base.html:136
 msgid "Log in"
 msgstr "Entra"
 
-#: rainbo/templates/rainbo/base.html:87
+#: build/lib/rainbo/templates/rainbo/base.html:87
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_users.html:5
+#: build/lib/rmap/templates/base.html:134 rainbo/templates/rainbo/base.html:87
 #: rainbo/templates/rainbo/base_service/section_service_nav_users.html:5
 #: rmap/templates/base.html:134
 msgid "Log out"
 msgstr "Esci"
 
-#: rainbo/templates/rainbo/base.html:88 rmap/templates/base.html:133
+#: build/lib/rainbo/templates/rainbo/base.html:88
+#: build/lib/rmap/templates/base.html:133 rainbo/templates/rainbo/base.html:88
+#: rmap/templates/base.html:133
 msgid "Change password"
 msgstr "Cambia password"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_home.html:4
 #: rainbo/templates/rainbo/base_service/section_service_nav_home.html:4
 msgid "Home"
 msgstr ""
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:9
 #: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:9
 msgid "Add present weather"
 msgstr "Aggiungi tempo presente"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:15
 #: rainbo/templates/rainbo/base_service/section_service_nav_partecipa.html:15
 msgid "Add Impact"
 msgstr "Aggiungi impatto"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:4
+#: build/lib/rainbo/templates/rainbo/button_get_damage.html:5
+#: build/lib/rainbo/templates/rainbo/button_get_rain.html:5
+#: build/lib/rainbo/templates/rainbo/button_get_snow.html:5
+#: build/lib/rainbo/templates/rainbo/button_get_thunderstorm.html:5
+#: build/lib/rainbo/templates/rainbo/button_get_tornado.html:5
+#: build/lib/rainbo/templates/rainbo/button_get_visibility.html:5
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:4
 #: rainbo/templates/rainbo/button_get_damage.html:5
 #: rainbo/templates/rainbo/button_get_rain.html:5
@@ -300,95 +403,131 @@ msgstr "Aggiungi impatto"
 msgid "Show"
 msgstr "Visualizza"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:9
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:121
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:9
 #: showdata/templates/showdata/rainbospatialseries.html:121
 msgid "Visibility Data"
 msgstr "Dati Visibilità"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:14
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:126
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:14
 #: showdata/templates/showdata/rainbospatialseries.html:126
 msgid "Rain Data"
 msgstr "Dati Pioggia"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:19
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:131
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:19
 #: showdata/templates/showdata/rainbospatialseries.html:131
 msgid "Snow Data"
 msgstr "Dati Pioggia"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:24
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:136
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:24
 #: showdata/templates/showdata/rainbospatialseries.html:136
 msgid "Thunderstorm Data"
 msgstr "Dati Temporale"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:29
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:141
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:29
 #: showdata/templates/showdata/rainbospatialseries.html:141
 msgid "Tornado Data"
 msgstr "Dati Tromba d'aria"
 
+#: build/lib/rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:34
 #: rainbo/templates/rainbo/base_service/section_service_nav_visualizza.html:34
 msgid "Impact Data"
 msgstr "Dati Impatto"
 
+#: build/lib/rainbo/templates/rainbo/button_close.html:3
 #: rainbo/templates/rainbo/button_close.html:3
 msgid "Close"
 msgstr "Chiudi"
 
+#: build/lib/rainbo/templates/rainbo/button_insert_impact.html:4
+#: build/lib/rainbo/templates/rainbo/button_insert_weather.html:4
 #: rainbo/templates/rainbo/button_insert_impact.html:4
 #: rainbo/templates/rainbo/button_insert_weather.html:4
 msgid "Insert observation"
 msgstr "Inserisci osservazione"
 
+#: build/lib/rainbo/templates/rainbo/landing_page.html:53
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:7
 #: rainbo/templates/rainbo/landing_page.html:53
 #: rainbo/templates/rainbo/section_welcome.html:7
 msgid "Welcome"
 msgstr "Benvenuto"
 
+#: build/lib/rainbo/templates/rainbo/landing_page.html:62
 #: rainbo/templates/rainbo/landing_page.html:62
 msgid "Partners"
 msgstr ""
 
+#: build/lib/rainbo/templates/rainbo/section_about.html:6
 #: rainbo/templates/rainbo/section_about.html:6
 msgid "About"
 msgstr ""
 
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:6
 #: rainbo/templates/rainbo/section_contacts.html:6
 msgid "Contact Us"
 msgstr "Contatti"
 
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:22
 #: rainbo/templates/rainbo/section_contacts.html:22
 msgid "Email adress"
 msgstr "Email"
 
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:29
 #: rainbo/templates/rainbo/section_contacts.html:29
 msgid "Telephone"
 msgstr "Telefono"
 
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:36
 #: rainbo/templates/rainbo/section_contacts.html:36
 msgid "Message"
 msgstr "Messaggio"
 
+#: build/lib/rainbo/templates/rainbo/section_contacts.html:45
 #: rainbo/templates/rainbo/section_contacts.html:45
 msgid "Send"
 msgstr "Invia"
 
+#: build/lib/rainbo/templates/rainbo/section_dati.html:8
 #: rainbo/templates/rainbo/section_dati.html:8
 msgid "Show observed weather"
 msgstr "Visualizza tempo presente"
 
+#: build/lib/rainbo/templates/rainbo/section_dati.html:89
 #: rainbo/templates/rainbo/section_dati.html:89
 msgid "Show Impact"
 msgstr "Visualizza impatto"
 
+#: build/lib/rainbo/templates/rainbo/section_dati.html:102
+#: build/lib/rainbo/templates/rainbo/section_partecipa.html:33
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:16
 #: rainbo/templates/rainbo/section_dati.html:102
 #: rainbo/templates/rainbo/section_partecipa.html:33
 #: rainbo/templates/rainbo/service_push_impact.html:16
 msgid "Impact"
 msgstr "Impatto"
 
+#: build/lib/rainbo/templates/rainbo/section_partecipa.html:12
 #: rainbo/templates/rainbo/section_partecipa.html:12
 msgid "What are you observing?"
 msgstr "Cosa stai osservando"
 
+#: build/lib/rainbo/templates/rainbo/section_partecipa.html:19
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:16
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:120
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:125
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:130
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:135
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:140
 #: rainbo/templates/rainbo/section_partecipa.html:19
 #: rainbo/templates/rainbo/service_push_weather.html:16
 #: showdata/templates/showdata/rainbospatialseries.html:120
@@ -399,6 +538,7 @@ msgstr "Cosa stai osservando"
 msgid "Present Weather"
 msgstr "Tempo presente"
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:13
 #: rainbo/templates/rainbo/section_welcome.html:13
 msgid ""
 "Welcome to Rmap4RainBO crowdsourcing application developed by <a "
@@ -415,6 +555,7 @@ msgstr ""
 "www.arpae.it/'>ARPAE</a> partendo dall’applicazione <a target='_blank' "
 "href='http://rmap.cc/'>Rmap</a>."
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:15
 #: rainbo/templates/rainbo/section_welcome.html:15
 msgid ""
 "The purpose is to involve citizens in uploading the observed meteorological "
@@ -432,6 +573,7 @@ msgstr ""
 "il territorio fosse ricoperto da una fitta rete di sensori sul tempo "
 "presente. "
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:17
 #: rainbo/templates/rainbo/section_welcome.html:17
 msgid ""
 "The Rmap4RainBO application is moreover an experimental platform addressing "
@@ -463,6 +605,7 @@ msgstr ""
 "href='https://www.wmo.int/pages/index_en.html'>WMO – World Meteorological "
 "Organization</a>. "
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:20
 #: rainbo/templates/rainbo/section_welcome.html:20
 msgid ""
 "The visualization of the geolocation information ('SHOW DATA' section) is "
@@ -473,6 +616,7 @@ msgstr ""
 "utile per capire dove si stanno verificando fenomeni significativi e quali "
 "danni sono stati riportati. "
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:23
 #: rainbo/templates/rainbo/section_welcome.html:23
 msgid ""
 "To access the section 'PARTICIPATE' you need to log in after a registration "
@@ -481,6 +625,7 @@ msgstr ""
 "Per accedere alla sezione PARTECIPA è necessario effettuare la registrazione "
 "nella sezione LOGIN/Register fornendo username, password e indirizzo email. "
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:26
 #: rainbo/templates/rainbo/section_welcome.html:26
 msgid ""
 "At <a target='_blank' href='https://www.rainbolife.eu/node/72'>this link</"
@@ -489,14 +634,17 @@ msgstr ""
 "A <a target='_blank' href='https://www.rainbolife.eu/node/72'>questo link</"
 "a> &egrave disponibile un breve manuale d’uso dell’applicazione web."
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:29
 #: rainbo/templates/rainbo/section_welcome.html:29
 msgid "Thanks for your partecipation!"
 msgstr "Grazie per la vostra partecipazione!"
 
+#: build/lib/rainbo/templates/rainbo/section_welcome.html:32
 #: rainbo/templates/rainbo/section_welcome.html:32
 msgid "The RainBO Staff"
 msgstr "Lo Staff di progetto RainBO"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_0.html:23
 #: rainbo/templates/rainbo/service_detail_0.html:23
 msgid ""
 "If no meteorological phenomenon is in progress among the above mentioned "
@@ -513,10 +661,17 @@ msgstr ""
 "dati attendibili in qualsiasi momento e sarà utile averne riscontro per "
 "conoscere la presenza o meno di fenomeni significativi."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:23
 #: rainbo/templates/rainbo/service_detail_1.html:23
 msgid "Haze"
 msgstr "Foschia"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:24
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:33
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:18
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:18
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:18
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:24
 #: rainbo/templates/rainbo/service_detail_1.html:24
 #: rainbo/templates/rainbo/service_detail_1.html:33
 #: rainbo/templates/rainbo/service_detail_2.html:18
@@ -526,6 +681,8 @@ msgstr "Foschia"
 msgid "Definition"
 msgstr "Definizione"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:24
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:33
 #: rainbo/templates/rainbo/service_detail_1.html:24
 #: rainbo/templates/rainbo/service_detail_1.html:33
 msgid ""
@@ -537,6 +694,12 @@ msgstr ""
 "microscopiche, o di particelle igroscopiche, le quali riducono la "
 "visibilit&agrave; alla superficie terrestre."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:25
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:34
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:46
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:44
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:47
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:27
 #: rainbo/templates/rainbo/service_detail_1.html:25
 #: rainbo/templates/rainbo/service_detail_1.html:34
 #: rainbo/templates/rainbo/service_detail_2.html:46
@@ -546,6 +709,7 @@ msgstr ""
 msgid "Comment"
 msgstr "Commento"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:25
 #: rainbo/templates/rainbo/service_detail_1.html:25
 msgid ""
 "the term 'haze' or light fog is used when the horizontal visibility is "
@@ -559,10 +723,12 @@ msgstr ""
 "nebbia la quale, per il resto, ha la stessa costituzione. La foschia forma "
 "un velo abbastanza sottile di aspetto grigiastro che copre il paesaggio."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:32
 #: rainbo/templates/rainbo/service_detail_1.html:32
 msgid "Fog"
 msgstr "Nebbia"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:34
 #: rainbo/templates/rainbo/service_detail_1.html:34
 msgid ""
 "the reduction of visibility depends on the structure of the fog; especially "
@@ -583,10 +749,12 @@ msgstr ""
 "pu&ograve; comunque prendere, quando mischiato con polvere o fumo, una "
 "debole colorazione."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:35
 #: rainbo/templates/rainbo/service_detail_1.html:35
 msgid "Note"
 msgstr "Note"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_1.html:35
 #: rainbo/templates/rainbo/service_detail_1.html:35
 msgid ""
 "on the earth's surface, at temperatures below -10 ° C, the fog can be "
@@ -598,6 +766,7 @@ msgstr ""
 "da cristalli di ghiaccio i quali, come la polvere di diamante, danno origine "
 "a fenomeni ottici."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:18
 #: rainbo/templates/rainbo/service_detail_2.html:18
 msgid ""
 "The intensity of a liquid precipitation is measured in mm per hour and "
@@ -608,30 +777,37 @@ msgstr ""
 "corrisponde alla quantit&agrave; di gocce che giungono a terra: pi&ugrave; "
 "sono fitte, pi&ugrave; &egrave; intensa."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:20
 #: rainbo/templates/rainbo/service_detail_2.html:20
 msgid "Referring to the official meteorology classification:"
 msgstr "Rifacendosi alla classificazione ufficiale in meteorologia:"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:26
 #: rainbo/templates/rainbo/service_detail_2.html:26
 msgid "drizzle"
 msgstr "pioviggine"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:26
 #: rainbo/templates/rainbo/service_detail_2.html:26
 msgid " intensity lesser than 1 mm/h"
 msgstr "per precipitazioni fino a 1 mm all'ora"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:32
 #: rainbo/templates/rainbo/service_detail_2.html:32
 msgid "rain, from weak to heavy"
 msgstr "pioggia, da debole a forte"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:32
 #: rainbo/templates/rainbo/service_detail_2.html:32
 msgid "intensity is between 1 and 10 mm/h"
 msgstr "se l'intensit&agrave; &egrave; compresa tra 1 e 10 mm/h"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:38
 #: rainbo/templates/rainbo/service_detail_2.html:38
 msgid "freezing on the ground"
 msgstr "congelantesi al suolo"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:38
 #: rainbo/templates/rainbo/service_detail_2.html:38
 msgid ""
 "when temperatures reach zero and precipitation takes on a snow character"
@@ -639,14 +815,17 @@ msgstr ""
 "quando le temperature arrivano allo zero e le precipitazioni assumono "
 "carattere di neve"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:44
 #: rainbo/templates/rainbo/service_detail_2.html:44
 msgid "very heavy rain"
 msgstr "pioggia violenta o nubifragio"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:44
 #: rainbo/templates/rainbo/service_detail_2.html:44
 msgid "intensity is over 50 mm/h"
 msgstr "se oltre i 50 mm all'ora"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_2.html:46
 #: rainbo/templates/rainbo/service_detail_2.html:46
 msgid ""
 "The intensity of a liquid precipitation is measured in mm per hour (mm / h) "
@@ -657,6 +836,7 @@ msgstr ""
 "corrisponde alla quantit&agrave; di gocce che giungono a terra: pi&ugrave; "
 "sono fitte, pi&ugrave; &egrave; intensa."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:18
 #: rainbo/templates/rainbo/service_detail_3.html:18
 msgid ""
 "precipitation of ice crystals, single or agglomerated in flakes, which falls "
@@ -665,14 +845,17 @@ msgstr ""
 "precipitazione di cristalli di ghiaccio, singoli o agglomerati in fiocchi, "
 "che cade da una nube."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:20
 #: rainbo/templates/rainbo/service_detail_3.html:20
 msgid "The snowy precipitation could be"
 msgstr "La precipitazione nevosa pu&ograve; essere:"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:25
 #: rainbo/templates/rainbo/service_detail_3.html:25
 msgid "weak"
 msgstr "debole"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:25
 #: rainbo/templates/rainbo/service_detail_3.html:25
 msgid ""
 "Intensity < 1 mm/h, if you fall a few flakes of snow or 2 or 3 snowflakes on "
@@ -681,10 +864,12 @@ msgstr ""
 "(intensit&agrave; minore di 1mm/h), se cade qualche fiocco di neve ovvero 2 "
 "o 3 fiocchi su un palmo di mano, se la esponi all'aperto per un minuto"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:32
 #: rainbo/templates/rainbo/service_detail_3.html:32
 msgid "moderate"
 msgstr "moderato"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:33
 #: rainbo/templates/rainbo/service_detail_3.html:33
 msgid ""
 "Intensity between 1 and 5 mm/h, If the number and/or size and/or speed "
@@ -694,10 +879,12 @@ msgstr ""
 "fiocchi e/o la dimensione e/o la velocità con cui cade (sulla mano raccogli "
 "più di 3 fiocchi)"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:40
 #: rainbo/templates/rainbo/service_detail_3.html:40
 msgid "heavy"
 msgstr "forte"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:41
 #: rainbo/templates/rainbo/service_detail_3.html:41
 msgid ""
 "Intensity greater than 5 mm/h, if precipitation is intense (the exposed hand "
@@ -706,6 +893,7 @@ msgstr ""
 "(intensit&agrave; maggiore di 5 mm/h),  se la precipitazione &egrave; "
 "intensa, ovvero la mano esposta si ricopre di fiocchi di neve"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_3.html:45
 #: rainbo/templates/rainbo/service_detail_3.html:45
 msgid ""
 "the shape, the size and the concentration of the snow crystals differ "
@@ -723,6 +911,7 @@ msgstr ""
 "A temperature maggiori di -5 &deg;C, i cristalli di ghiaccio sono "
 "generalmente riuniti in fiocchi di neve."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:19
 #: rainbo/templates/rainbo/service_detail_4.html:19
 msgid ""
 " When one or more abrupt discharges of electricity occur with a short and "
@@ -735,22 +924,27 @@ msgstr ""
 "o un sordo brontolio (tuono). I temporali si sviluppano con più frequenza "
 "tra i mesi di aprile e ottobre."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:21
 #: rainbo/templates/rainbo/service_detail_4.html:21
 msgid "The observed thunderstorms could be"
 msgstr "Il temporale osservato pu&ograve; essere:"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:27
 #: rainbo/templates/rainbo/service_detail_4.html:27
 msgid "weak or moderate with rain"
 msgstr "debole o moderato con pioggia"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:27
 #: rainbo/templates/rainbo/service_detail_4.html:27
 msgid "if not intense and without hail, with thunder in the distance"
 msgstr "se poco intenso e senza grandine, con tuoni in lontananza"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:33
 #: rainbo/templates/rainbo/service_detail_4.html:33
 msgid "weak or moderate with hail"
 msgstr "debole o moderato con grandine"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:33
 #: rainbo/templates/rainbo/service_detail_4.html:33
 msgid ""
 "if not intense but with hail, low intensity and with not well audible "
@@ -759,10 +953,12 @@ msgstr ""
 "se poco intenso ma accompagnato da grandine, di bassa intensità e con tuoni "
 "non bene udibili"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:39
 #: rainbo/templates/rainbo/service_detail_4.html:39
 msgid "heavy with rain"
 msgstr "forte con pioggia"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:39
 #: rainbo/templates/rainbo/service_detail_4.html:39
 msgid ""
 "with heavy rainfall, accompanied by intense wind in general, lightning and "
@@ -771,14 +967,17 @@ msgstr ""
 "se con precipitazioni intense, accompagnate da forte vento in genere, lampi "
 "e tuoni ben udibili e ad alta intensità"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:45
 #: rainbo/templates/rainbo/service_detail_4.html:45
 msgid "heavy with hail"
 msgstr "forte con grandine"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:45
 #: rainbo/templates/rainbo/service_detail_4.html:45
 msgid "as described above, but with hail instead of rain"
 msgstr "come descritto sopra, ma con grandine al posto della pioggia"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_4.html:48
 #: rainbo/templates/rainbo/service_detail_4.html:48
 msgid ""
 "Thunderstorms are associated with convective clouds and are often "
@@ -791,6 +990,7 @@ msgstr ""
 "sotto forma di rovesci di pioggia, neve, neve tonda, grandine, spesso "
 "associate a forti raffiche di vento."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:26
 #: rainbo/templates/rainbo/service_detail_5.html:26
 msgid ""
 "This phenomenon consists of a wind turbidity that is often violent, revealed "
@@ -806,6 +1006,7 @@ msgstr ""
 "superficie del mare o di polvere, sabbia o detriti sollevati dalla "
 "superficie del suolo."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_5.html:28
 #: rainbo/templates/rainbo/service_detail_5.html:28
 msgid ""
 "the axis of the funnel cloud is vertical, inclined or sometimes sinuous. Not "
@@ -821,10 +1022,12 @@ msgstr ""
 "dell'imbuto e del \"cespo\". Pi&ugrave; lontano, l'aria &egrave; spesso "
 "assai calma."
 
+#: build/lib/rainbo/templates/rainbo/service_detail_6.html:16
 #: rainbo/templates/rainbo/service_detail_6.html:16
 msgid "Impacts"
 msgstr "Impatti"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_6.html:23
 #: rainbo/templates/rainbo/service_detail_6.html:23
 msgid ""
 "Report this impact if you look at <b>fallen trees </b> on the road or in "
@@ -835,6 +1038,7 @@ msgstr ""
 "zone adiacenti, sia nel caso in cui si siano sradicati sia nel caso in cui "
 "si siano spezzati  (anche solo un suo ramo gruppo)"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_6.html:30
 #: rainbo/templates/rainbo/service_detail_6.html:30
 msgid ""
 "When you observe a smooth and compact slab, although very thin, of <b>ice, "
@@ -848,6 +1052,7 @@ msgstr ""
 "di pioggia sopraffuse su oggetti la cui temperatura superficiale e`sotto o "
 "leggermente sopra 0 &deg;C"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_6.html:37
 #: rainbo/templates/rainbo/service_detail_6.html:37
 msgid ""
 "Flooding is the temporary <b> flooding </b> of areas that are usually not "
@@ -870,6 +1075,7 @@ msgstr ""
 "non riescano a contenere l'acqua piovana in eccesso, causando allagamenti "
 "diffusi e problemi alla circolazione stradale"
 
+#: build/lib/rainbo/templates/rainbo/service_detail_6.html:44
 #: rainbo/templates/rainbo/service_detail_6.html:44
 msgid ""
 "A <b>Pothole</b> is a structural failure in a <b> road </b> surface, caused "
@@ -883,6 +1089,7 @@ msgstr ""
 "traffico che la attraversa. Gli eventi di precipitazione intensa e/o "
 "duraturi ne rappresentano la causa più frequente."
 
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:18
 #: rainbo/templates/rainbo/service_push_impact.html:18
 msgid ""
 "In this section you can upload information on observed impacts that can be "
@@ -893,22 +1100,27 @@ msgstr ""
 "possono essere ricondotti a fenomeni metereologici, in particolare, "
 "riteniamo di particolare importanza le seguenti categorie:"
 
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:24
 #: rainbo/templates/rainbo/service_push_impact.html:24
 msgid "flooding"
 msgstr "allagamento"
 
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:30
 #: rainbo/templates/rainbo/service_push_impact.html:30
 msgid "fallen tree"
 msgstr "albero caduto"
 
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:36
 #: rainbo/templates/rainbo/service_push_impact.html:36
 msgid "icy road"
 msgstr "strada ghiacciata"
 
+#: build/lib/rainbo/templates/rainbo/service_push_impact.html:42
 #: rainbo/templates/rainbo/service_push_impact.html:42
 msgid "pothole"
 msgstr "buca in strada"
 
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:18
 #: rainbo/templates/rainbo/service_push_weather.html:18
 msgid ""
 "In this section you can load the present weather you are observing in terms "
@@ -917,11 +1129,14 @@ msgstr ""
 "In questa sezione puoi caricare il tempo presente che stai osservando in "
 "termini di"
 
-#: rainbo/templates/rainbo/service_push_weather.html:50 rmap/rmapgui.py:1347
-#: rmap/rmapgui.py:2229
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:50
+#: build/lib/rmap/rmapgui.py:1347 build/lib/rmap/rmapgui.py:2229
+#: rainbo/templates/rainbo/service_push_weather.html:50 rmap/rmapgui.py:1352
+#: rmap/rmapgui.py:2249
 msgid "Warning"
 msgstr "Attenzione"
 
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:51
 #: rainbo/templates/rainbo/service_push_weather.html:51
 msgid ""
 "the observation of the phenomenon must be relative to the time of sending, "
@@ -936,6 +1151,7 @@ msgstr ""
 "quello pi&ugrave; significativo (ovvero quello pi&ugrave; in basso o a "
 "destra della lista)"
 
+#: build/lib/rainbo/templates/rainbo/service_push_weather.html:53
 #: rainbo/templates/rainbo/service_push_weather.html:53
 msgid ""
 "If <b>no meteorological phenomena are in progress </b> among the above "
@@ -952,114 +1168,130 @@ msgstr ""
 "dati attendibili in qualsiasi momento e sarà utile averne riscontro per "
 "conoscere la presenza o meno di fenomeni significativi."
 
-#: rmap/form.py:22
+#: build/lib/rmap/form.py:22 rmap/form.py:22
 msgid "station to configure"
 msgstr "Stazione da confgurare"
 
-#: rmap/form.py:26
+#: build/lib/rmap/form.py:26 rmap/form.py:26
 msgid "Your username"
 msgstr "Il tuo nome utente"
 
-#: rmap/form.py:27 rmap/stations/form.py:17
+#: build/lib/rmap/form.py:27 build/lib/rmap/stations/form.py:17 rmap/form.py:27
+#: rmap/stations/form.py:17
 msgid "Enter a valid username."
 msgstr "Inserisci un nome utente valido."
 
-#: rmap/form.py:30 rmap/form.py:44
+#: build/lib/rmap/form.py:30 build/lib/rmap/form.py:44 rmap/form.py:30
+#: rmap/form.py:44
 msgid "Password"
 msgstr ""
 
+#: build/lib/rmap/form.py:32 build/lib/rmap/templates/profile.html:31
+#: build/lib/rmap/templates/profile_details.html:10
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:22
 #: rmap/form.py:32 rmap/templates/profile.html:31
 #: rmap/templates/profile_details.html:10
 #: rmap/templates/stations/stationmetadata_detail.html:22
 msgid "Station name"
 msgstr "Nome stazione"
 
-#: rmap/form.py:37
+#: build/lib/rmap/form.py:37 rmap/form.py:37
 msgid "Station height (m.)"
 msgstr "Altezza stazione (m)"
 
-#: rmap/form.py:42
+#: build/lib/rmap/form.py:42 rmap/form.py:42
 msgid "SSID of your wifi network"
 msgstr "SSID della tua rete wifi"
 
-#: rmap/network/models.py:6
+#: build/lib/rmap/network/models.py:6 rmap/network/models.py:6
 msgid "Network name"
 msgstr "Nome della rete"
 
-#: rmap/network/models.py:7
+#: build/lib/rmap/network/models.py:7 rmap/network/models.py:7
 msgid "Network description"
 msgstr "Descrizione della rete"
 
-#: rmap/network/models.py:8
+#: build/lib/rmap/network/models.py:8 rmap/network/models.py:8
 msgid "Data provider"
 msgstr "Fornitore dati"
 
-#: rmap/network/models.py:9
+#: build/lib/rmap/network/models.py:9 rmap/network/models.py:9
 msgid "Main site of the data provider"
 msgstr "Sito principale del fornitore"
 
-#: rmap/network/models.py:10
+#: build/lib/rmap/network/models.py:10 rmap/network/models.py:10
 msgid "Data licenze"
 msgstr "Licenza dati"
 
-#: rmap/network/models.py:11
+#: build/lib/rmap/network/models.py:11 rmap/network/models.py:11
 msgid "Data licenze url"
 msgstr "url licenza dati"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:8
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:8
 #: rmap/network/templates/network/networkmetadata_detail.html:8
 #: rmap/network/templates/network/networkmetadata_list.html:8
 msgid "Network"
 msgstr "Rete"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:14
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:14
 #: rmap/network/templates/network/networkmetadata_detail.html:14
 #: rmap/network/templates/network/networkmetadata_list.html:14
 msgid "Short name"
 msgstr "Nome abbreviato"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:15
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:15
 #: rmap/network/templates/network/networkmetadata_detail.html:15
 #: rmap/network/templates/network/networkmetadata_list.html:15
 msgid "Description"
 msgstr "Descrizione"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:16
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:16
 #: rmap/network/templates/network/networkmetadata_detail.html:16
 #: rmap/network/templates/network/networkmetadata_list.html:16
 msgid "Provider"
 msgstr "Fornitore"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_detail.html:17
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:17
 #: rmap/network/templates/network/networkmetadata_detail.html:17
 #: rmap/network/templates/network/networkmetadata_list.html:17
 msgid "Licenze"
 msgstr "licenza"
 
+#: build/lib/rmap/network/templates/network/networkmetadata_list.html:29
 #: rmap/network/templates/network/networkmetadata_list.html:29
 msgid "No network yet."
 msgstr "Non ci sono ancora reti"
 
-#: rmap/rmapgui.py:1088
+#: build/lib/rmap/rmapgui.py:1088 rmap/rmapgui.py:1092
 msgid "Start GPS to get location updates"
 msgstr "Avvia GPS per aggiornare la posizione"
 
-#: rmap/rmapgui.py:1089
+#: build/lib/rmap/rmapgui.py:1089 rmap/rmapgui.py:1093
 msgid "wait for location"
 msgstr "attendi nuova posizione"
 
-#: rmap/rmapgui.py:1091
+#: build/lib/rmap/rmapgui.py:1091 rmap/rmapgui.py:1095
 msgid "Connect Status: DISCONNECTED"
 msgstr "Stato Connessione: DISCONNESSO"
 
-#: rmap/rmapgui.py:1092
+#: build/lib/rmap/rmapgui.py:1092 rmap/rmapgui.py:1096
 msgid "Board Status: DISCONNECTED"
 msgstr "Sato Board: DISCONNESSA"
 
-#: rmap/rmapgui.py:1098
+#: build/lib/rmap/rmapgui.py:1098 rmap/rmapgui.py:1102
 msgid "Transport Status: OFF"
 msgstr "Stato Trasporto: SPENTO"
 
-#: rmap/rmapgui.py:1149
+#: build/lib/rmap/rmapgui.py:1149 rmap/rmapgui.py:1154
 msgid "Start"
 msgstr "Avvia"
 
-#: rmap/rmapgui.py:1150
+#: build/lib/rmap/rmapgui.py:1150 rmap/rmapgui.py:1155
 msgid "help manual intro"
 msgstr ""
 "Questo programma permette la pubblicazione di dati ambientali sul server "
@@ -1089,7 +1321,7 @@ msgstr ""
 "\n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1151
+#: build/lib/rmap/rmapgui.py:1151 rmap/rmapgui.py:1156
 msgid "help manual setup"
 msgstr ""
 "[b]\"Impostazioni\"[/b]\n"
@@ -1140,7 +1372,7 @@ msgstr ""
 " \n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1152
+#: build/lib/rmap/rmapgui.py:1152 rmap/rmapgui.py:1157
 msgid "help manual page 1"
 msgstr ""
 "[b]Prima pagina \"Avvia\"[/b]\n"
@@ -1153,7 +1385,7 @@ msgstr ""
 "\n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1153
+#: build/lib/rmap/rmapgui.py:1153 rmap/rmapgui.py:1158
 msgid "help manual page 2"
 msgstr ""
 "[b]Pagina \"Posizione\"[/b]\n"
@@ -1186,7 +1418,7 @@ msgstr ""
 "\n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1154
+#: build/lib/rmap/rmapgui.py:1154 rmap/rmapgui.py:1159
 msgid "help manual page 3"
 msgstr ""
 "[b]Pagina \"Inserisci dati\"[/b]\n"
@@ -1213,7 +1445,7 @@ msgstr ""
 "\n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1155
+#: build/lib/rmap/rmapgui.py:1155 rmap/rmapgui.py:1160
 msgid "help manual page 4"
 msgstr ""
 "[b]Pagina \"Dati automatici\"[/b]\n"
@@ -1237,7 +1469,7 @@ msgstr ""
 "eventualmente configurati.\n"
 "                           Continua -->"
 
-#: rmap/rmapgui.py:1156
+#: build/lib/rmap/rmapgui.py:1156 rmap/rmapgui.py:1161
 msgid "help manual page 5"
 msgstr ""
 "[b]Pagina \"Pubblica\"[/b]\n"
@@ -1280,99 +1512,99 @@ msgstr ""
 "collegati, trasporti etc. Dimenticatevelo se non sapete esattamente cosa "
 "state facendo..."
 
-#: rmap/rmapgui.py:1157
+#: build/lib/rmap/rmapgui.py:1157 rmap/rmapgui.py:1162
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: rmap/rmapgui.py:1158
+#: build/lib/rmap/rmapgui.py:1158 rmap/rmapgui.py:1163
 msgid "Select Location"
 msgstr "Posizione"
 
-#: rmap/rmapgui.py:1159
+#: build/lib/rmap/rmapgui.py:1159 rmap/rmapgui.py:1164
 msgid "Subsequent"
 msgstr "Successivo"
 
-#: rmap/rmapgui.py:1160
+#: build/lib/rmap/rmapgui.py:1160 rmap/rmapgui.py:1165
 msgid "switch ON relay"
 msgstr "commuta a ACCESO il relay"
 
-#: rmap/rmapgui.py:1161
+#: build/lib/rmap/rmapgui.py:1161 rmap/rmapgui.py:1166
 msgid "switch OFF relay"
 msgstr "commuta a SPENTO il relay"
 
-#: rmap/rmapgui.py:1162
+#: build/lib/rmap/rmapgui.py:1162 rmap/rmapgui.py:1167
 msgid "Camera"
 msgstr "Fotocamera"
 
-#: rmap/rmapgui.py:1163
+#: build/lib/rmap/rmapgui.py:1163 rmap/rmapgui.py:1168
 msgid "Comment your photo"
 msgstr "Commenta la foto"
 
-#: rmap/rmapgui.py:1164
+#: build/lib/rmap/rmapgui.py:1164 rmap/rmapgui.py:1169
 msgid "Take Photo"
 msgstr "Fai una foto"
 
-#: rmap/rmapgui.py:1165
+#: build/lib/rmap/rmapgui.py:1165 rmap/rmapgui.py:1170
 msgid "Start GPS"
 msgstr "Avvia GPS"
 
-#: rmap/rmapgui.py:1166
+#: build/lib/rmap/rmapgui.py:1166 rmap/rmapgui.py:1171
 msgid "Stop"
 msgstr ""
 
-#: rmap/rmapgui.py:1167
+#: build/lib/rmap/rmapgui.py:1167 rmap/rmapgui.py:1172
 msgid "Stop GPS"
 msgstr "Stop GPS"
 
-#: rmap/rmapgui.py:1168
+#: build/lib/rmap/rmapgui.py:1168 rmap/rmapgui.py:1173
 msgid "Start Trip"
 msgstr "Inizia Viaggio"
 
-#: rmap/rmapgui.py:1169
+#: build/lib/rmap/rmapgui.py:1169 rmap/rmapgui.py:1174
 msgid "Stop Trip"
 msgstr "Fine viaggio"
 
-#: rmap/rmapgui.py:1170
+#: build/lib/rmap/rmapgui.py:1170 rmap/rmapgui.py:1175
 msgid "Save Location"
 msgstr "Salva posizione"
 
-#: rmap/rmapgui.py:1171
+#: build/lib/rmap/rmapgui.py:1171 rmap/rmapgui.py:1176
 msgid "Height: {:4.0f}"
 msgstr "Altezza: {:4.0f}"
 
-#: rmap/rmapgui.py:1172
+#: build/lib/rmap/rmapgui.py:1172 rmap/rmapgui.py:1177
 msgid "Previous"
 msgstr "Precedente"
 
-#: rmap/rmapgui.py:1173
+#: build/lib/rmap/rmapgui.py:1173 rmap/rmapgui.py:1178
 msgid "Insert data"
 msgstr "Inserisci dati"
 
-#: rmap/rmapgui.py:1174
+#: build/lib/rmap/rmapgui.py:1174 rmap/rmapgui.py:1179
 msgid "Queue data to be published"
 msgstr "Accoda dati per pubblicazione"
 
-#: rmap/rmapgui.py:1175
+#: build/lib/rmap/rmapgui.py:1175 rmap/rmapgui.py:1180
 msgid "Meteo"
 msgstr ""
 
-#: rmap/rmapgui.py:1176
+#: build/lib/rmap/rmapgui.py:1176 rmap/rmapgui.py:1181
 msgid "Snow height(cm.)"
 msgstr "Altezza neve (cm)"
 
-#: rmap/rmapgui.py:1177
+#: build/lib/rmap/rmapgui.py:1177 rmap/rmapgui.py:1182
 msgid "Visibility(m.)"
 msgstr "Visibilità (m)"
 
-#: rmap/rmapgui.py:1178
+#: build/lib/rmap/rmapgui.py:1178 rmap/rmapgui.py:1183
 msgid "Air Quality"
 msgstr "Qualità aria"
 
-#: rmap/rmapgui.py:1179
+#: build/lib/rmap/rmapgui.py:1179 rmap/rmapgui.py:1184
 msgid "Water Quality"
 msgstr "Qualità acqua"
 
-#: rmap/rmapgui.py:1180
+#: build/lib/rmap/rmapgui.py:1180 rmap/rmapgui.py:1185
 msgid ""
 "Air Quality tab content area\n"
 " to be done"
@@ -1380,7 +1612,7 @@ msgstr ""
 "Area per qualità dell'aria\n"
 "lavori in corso..."
 
-#: rmap/rmapgui.py:1181
+#: build/lib/rmap/rmapgui.py:1181 rmap/rmapgui.py:1186
 msgid ""
 "Water Quality tab content area\n"
 " to be done"
@@ -1388,83 +1620,84 @@ msgstr ""
 "Area per qualità delle acque\n"
 "lavori in corso..."
 
-#: rmap/rmapgui.py:1182
+#: build/lib/rmap/rmapgui.py:1182 rmap/rmapgui.py:1187
 msgid "Automatic data"
 msgstr "Dati automatici"
 
-#: rmap/rmapgui.py:1183
+#: build/lib/rmap/rmapgui.py:1183 rmap/rmapgui.py:1188
 msgid "Setup"
 msgstr "Configura"
 
-#: rmap/rmapgui.py:1184
+#: build/lib/rmap/rmapgui.py:1184 rmap/rmapgui.py:1189
 msgid "Advanced Management"
 msgstr "Gestione Avanzata"
 
-#: rmap/rmapgui.py:1185
+#: build/lib/rmap/rmapgui.py:1185 rmap/rmapgui.py:1190
 msgid "Run background"
 msgstr "Esegui in background"
 
-#: rmap/rmapgui.py:1186
+#: build/lib/rmap/rmapgui.py:1186 rmap/rmapgui.py:1191
 msgid "Stop background"
 msgstr ""
 
-#: rmap/rmapgui.py:1187
+#: build/lib/rmap/rmapgui.py:1187 rmap/rmapgui.py:1192
 msgid "Getdata"
 msgstr "Prendi dati"
 
-#: rmap/rmapgui.py:1188
+#: build/lib/rmap/rmapgui.py:1188 rmap/rmapgui.py:1193
 msgid "Start transport"
 msgstr "Avvia il trasporto"
 
-#: rmap/rmapgui.py:1189
+#: build/lib/rmap/rmapgui.py:1189 rmap/rmapgui.py:1194
 msgid "Stop transport"
 msgstr "Ferma il trasporto"
 
-#: rmap/rmapgui.py:1190
+#: build/lib/rmap/rmapgui.py:1190 rmap/rmapgui.py:1195
 msgid "Sample ON"
 msgstr "Campionamento ON"
 
-#: rmap/rmapgui.py:1191
+#: build/lib/rmap/rmapgui.py:1191 rmap/rmapgui.py:1196
 msgid "Sample OFF"
 msgstr "Campionamento OFF"
 
-#: rmap/rmapgui.py:1192 rmap/rmapgui.py:1203
+#: build/lib/rmap/rmapgui.py:1192 build/lib/rmap/rmapgui.py:1203
+#: rmap/rmapgui.py:1197 rmap/rmapgui.py:1208
 msgid "Publish"
 msgstr "Pubblica"
 
-#: rmap/rmapgui.py:1193
+#: build/lib/rmap/rmapgui.py:1193 rmap/rmapgui.py:1198
 msgid "Register"
 msgstr "Registrazione"
 
-#: rmap/rmapgui.py:1194
+#: build/lib/rmap/rmapgui.py:1194 rmap/rmapgui.py:1199
 msgid "View graph"
 msgstr "Visualizzazione grafici"
 
-#: rmap/rmapgui.py:1195
+#: build/lib/rmap/rmapgui.py:1195 rmap/rmapgui.py:1200
 msgid "Connect"
 msgstr "Connetti"
 
-#: rmap/rmapgui.py:1196
+#: build/lib/rmap/rmapgui.py:1196 rmap/rmapgui.py:1201
 msgid "Disconnect"
 msgstr "Disconnetti"
 
-#: rmap/rmapgui.py:1197
+#: build/lib/rmap/rmapgui.py:1197 rmap/rmapgui.py:1202
 msgid "Clean Queue"
 msgstr "Pulisci Coda"
 
-#: rmap/rmapgui.py:1198
+#: build/lib/rmap/rmapgui.py:1198 rmap/rmapgui.py:1203
 msgid "Queue status"
 msgstr "Stato della coda"
 
-#: rmap/rmapgui.py:1199
+#: build/lib/rmap/rmapgui.py:1199 rmap/rmapgui.py:1204
 msgid "Present weather"
 msgstr "Tempo presente"
 
-#: rmap/rmapgui.py:1200
+#: build/lib/rmap/rmapgui.py:1200 rmap/rmapgui.py:1205
 msgid "Manual measurements"
 msgstr "Misure manuali"
 
-#: rmap/rmapgui.py:1201
+#: build/lib/rmap/rmapgui.py:1201 rmap/rmapgui.py:1206
 #, python-format
 msgid ""
 "[b]%s\n"
@@ -1477,11 +1710,12 @@ msgstr ""
 "Lon: %4.5f\n"
 "Altezza: %d[/b]"
 
-#: rmap/rmapgui.py:1202
+#: build/lib/rmap/rmapgui.py:1202 rmap/rmapgui.py:1207
 msgid "Location"
 msgstr "Posizione"
 
-#: rmap/rmapgui.py:1290 rmap/rmapgui.py:1463
+#: build/lib/rmap/rmapgui.py:1290 build/lib/rmap/rmapgui.py:1463
+#: rmap/rmapgui.py:1295 rmap/rmapgui.py:1468
 msgid ""
 "data not\n"
 "synced with server"
@@ -1489,7 +1723,7 @@ msgstr ""
 "dati non\n"
 "sincronizzati col server"
 
-#: rmap/rmapgui.py:1339
+#: build/lib/rmap/rmapgui.py:1339 rmap/rmapgui.py:1344
 msgid ""
 "Station is\n"
 "running in\n"
@@ -1499,7 +1733,7 @@ msgstr ""
 "è in esecuzione\n"
 "in background"
 
-#: rmap/rmapgui.py:1340
+#: build/lib/rmap/rmapgui.py:1340 rmap/rmapgui.py:1345
 msgid ""
 "Stop background\n"
 "station"
@@ -1507,7 +1741,7 @@ msgstr ""
 "Ferma la stazione\n"
 "in background"
 
-#: rmap/rmapgui.py:1341
+#: build/lib/rmap/rmapgui.py:1341 rmap/rmapgui.py:1346
 msgid ""
 "Sorry,\n"
 "I don't want\n"
@@ -1517,37 +1751,41 @@ msgstr ""
 "non volevo\n"
 "disturbare"
 
-#: rmap/rmapgui.py:1392 rmap/rmapgui.py:1394 rmap/rmapgui.py:1396
-#: rmap/rmapgui.py:2101 rmap/rmapgui.py:2746
+#: build/lib/rmap/rmapgui.py:1392 build/lib/rmap/rmapgui.py:1394
+#: build/lib/rmap/rmapgui.py:1396 build/lib/rmap/rmapgui.py:2101
+#: build/lib/rmap/rmapgui.py:2746 rmap/rmapgui.py:1397 rmap/rmapgui.py:1399
+#: rmap/rmapgui.py:1401 rmap/rmapgui.py:2119 rmap/rmapgui.py:2766
 msgid "Station"
 msgstr "Stazione"
 
-#: rmap/rmapgui.py:1392
+#: build/lib/rmap/rmapgui.py:1392 rmap/rmapgui.py:1397
 msgid " active"
 msgstr "Attiva"
 
-#: rmap/rmapgui.py:1394 rmap/rmapgui.py:1396 rmap/rmapgui.py:2101
-#: rmap/rmapgui.py:2746
+#: build/lib/rmap/rmapgui.py:1394 build/lib/rmap/rmapgui.py:1396
+#: build/lib/rmap/rmapgui.py:2101 build/lib/rmap/rmapgui.py:2746
+#: rmap/rmapgui.py:1399 rmap/rmapgui.py:1401 rmap/rmapgui.py:2119
+#: rmap/rmapgui.py:2766
 msgid " disactive"
 msgstr "Disattiva"
 
-#: rmap/rmapgui.py:1400
+#: build/lib/rmap/rmapgui.py:1400 rmap/rmapgui.py:1405
 msgid "Activate Station?"
 msgstr "Attiva la Stazione?"
 
-#: rmap/rmapgui.py:1401
+#: build/lib/rmap/rmapgui.py:1401 rmap/rmapgui.py:1406
 msgid "Yes"
 msgstr "Si"
 
-#: rmap/rmapgui.py:1402
+#: build/lib/rmap/rmapgui.py:1402 rmap/rmapgui.py:1407
 msgid "No"
 msgstr "No"
 
-#: rmap/rmapgui.py:1408
+#: build/lib/rmap/rmapgui.py:1408 rmap/rmapgui.py:1413
 msgid "Question"
 msgstr "Domanda"
 
-#: rmap/rmapgui.py:1622
+#: build/lib/rmap/rmapgui.py:1622 rmap/rmapgui.py:1627
 msgid ""
 "Restart APP\n"
 "needed"
@@ -1555,7 +1793,7 @@ msgstr ""
 "E' necessario\n"
 "un riavvio dell'APP"
 
-#: rmap/rmapgui.py:1676
+#: build/lib/rmap/rmapgui.py:1676 rmap/rmapgui.py:1681
 msgid ""
 "Error\n"
 "setting station"
@@ -1563,15 +1801,15 @@ msgstr ""
 "Errore impostazione\n"
 "stazione"
 
-#: rmap/rmapgui.py:1702
+#: build/lib/rmap/rmapgui.py:1702 rmap/rmapgui.py:1721
 msgid "your user"
 msgstr "il tuo utente"
 
-#: rmap/rmapgui.py:1703
+#: build/lib/rmap/rmapgui.py:1703 rmap/rmapgui.py:1722
 msgid "your password"
 msgstr "la tua password"
 
-#: rmap/rmapgui.py:1932
+#: build/lib/rmap/rmapgui.py:1932 rmap/rmapgui.py:1951
 msgid ""
 "toggle\n"
 "relay\n"
@@ -1581,15 +1819,15 @@ msgstr ""
 "relay\n"
 "fallita!"
 
-#: rmap/rmapgui.py:1990
+#: build/lib/rmap/rmapgui.py:1990 rmap/rmapgui.py:2008
 msgid "Transport Status: CONFIG OK"
 msgstr "Stato Trasporto: CONFIGURAZIONE OK"
 
-#: rmap/rmapgui.py:2009
+#: build/lib/rmap/rmapgui.py:2009 rmap/rmapgui.py:2027
 msgid "Transport Status: CONFIG ERROR"
 msgstr "Stato Trasporto: ERRORE CONFIGURAZIONE"
 
-#: rmap/rmapgui.py:2010
+#: build/lib/rmap/rmapgui.py:2010 rmap/rmapgui.py:2028
 msgid ""
 "ERROR configure\n"
 "board"
@@ -1597,7 +1835,8 @@ msgstr ""
 "Errore configurazione\n"
 "board "
 
-#: rmap/rmapgui.py:2020 rmap/rmapgui.py:2452
+#: build/lib/rmap/rmapgui.py:2020 build/lib/rmap/rmapgui.py:2452
+#: rmap/rmapgui.py:2038 rmap/rmapgui.py:2472
 msgid ""
 "travel with\n"
 "GPS not fixed!\n"
@@ -1607,20 +1846,24 @@ msgstr ""
 "GPS non fixed!\n"
 "riprova"
 
-#: rmap/rmapgui.py:2022 rmap/rmapgui.py:2047 rmap/rmapgui.py:2055
+#: build/lib/rmap/rmapgui.py:2022 build/lib/rmap/rmapgui.py:2047
+#: build/lib/rmap/rmapgui.py:2055 rmap/rmapgui.py:2040 rmap/rmapgui.py:2065
+#: rmap/rmapgui.py:2073
 msgid "Transport Status: ERROR"
 msgstr "Stato Trasporto: ERRORE"
 
-#: rmap/rmapgui.py:2022 rmap/rmapgui.py:2040 rmap/rmapgui.py:2047
-#: rmap/rmapgui.py:2055
+#: build/lib/rmap/rmapgui.py:2022 build/lib/rmap/rmapgui.py:2040
+#: build/lib/rmap/rmapgui.py:2047 build/lib/rmap/rmapgui.py:2055
+#: rmap/rmapgui.py:2040 rmap/rmapgui.py:2058 rmap/rmapgui.py:2065
+#: rmap/rmapgui.py:2073
 msgid " err: "
 msgstr " err:"
 
-#: rmap/rmapgui.py:2040
+#: build/lib/rmap/rmapgui.py:2040 rmap/rmapgui.py:2058
 msgid "Transport Status: OK"
 msgstr "Stato Trasporto: ATTIVO"
 
-#: rmap/rmapgui.py:2045
+#: build/lib/rmap/rmapgui.py:2045 rmap/rmapgui.py:2063
 msgid ""
 "ERROR getting\n"
 "data"
@@ -1628,7 +1871,7 @@ msgstr ""
 "ERRORE prendendo\n"
 "i dati"
 
-#: rmap/rmapgui.py:2053
+#: build/lib/rmap/rmapgui.py:2053 rmap/rmapgui.py:2071
 msgid ""
 "ERROR no data\n"
 "returned"
@@ -1636,7 +1879,7 @@ msgstr ""
 "Errore nessun\n"
 "dato restituito"
 
-#: rmap/rmapgui.py:2084
+#: build/lib/rmap/rmapgui.py:2084 rmap/rmapgui.py:2102
 msgid ""
 "Cannot connect.\n"
 "Station disabled!"
@@ -1644,7 +1887,8 @@ msgstr ""
 "Non posso connetermi.\n"
 "Stazione disabilitata!"
 
-#: rmap/rmapgui.py:2147 rmap/rmapgui.py:2184
+#: build/lib/rmap/rmapgui.py:2147 build/lib/rmap/rmapgui.py:2184
+#: rmap/rmapgui.py:2165 rmap/rmapgui.py:2202
 msgid ""
 "service\n"
 "already\n"
@@ -1654,7 +1898,8 @@ msgstr ""
 "già\n"
 "attivi!"
 
-#: rmap/rmapgui.py:2164 rmap/rmapgui.py:2659
+#: build/lib/rmap/rmapgui.py:2164 build/lib/rmap/rmapgui.py:2659
+#: rmap/rmapgui.py:2182 rmap/rmapgui.py:2679
 msgid ""
 "not supported\n"
 "on this\n"
@@ -1664,15 +1909,15 @@ msgstr ""
 "su questa\n"
 "piattaforma"
 
-#: rmap/rmapgui.py:2223
+#: build/lib/rmap/rmapgui.py:2223 rmap/rmapgui.py:2243
 msgid "Close!"
 msgstr "Chiudi!"
 
-#: rmap/rmapgui.py:2247
+#: build/lib/rmap/rmapgui.py:2247 rmap/rmapgui.py:2267
 msgid "Info"
 msgstr ""
 
-#: rmap/rmapgui.py:2282
+#: build/lib/rmap/rmapgui.py:2282 rmap/rmapgui.py:2302
 msgid ""
 "the station in\n"
 "use is not of\n"
@@ -1682,7 +1927,7 @@ msgstr ""
 "uso non è del\n"
 "tipo mobile"
 
-#: rmap/rmapgui.py:2304
+#: build/lib/rmap/rmapgui.py:2304 rmap/rmapgui.py:2324
 msgid ""
 "GPS not\n"
 "implemented on\n"
@@ -1692,7 +1937,7 @@ msgstr ""
 "implementato su\n"
 "questa piattaforma"
 
-#: rmap/rmapgui.py:2385
+#: build/lib/rmap/rmapgui.py:2385 rmap/rmapgui.py:2405
 msgid ""
 "travel active\n"
 "cannot save\n"
@@ -1702,19 +1947,20 @@ msgstr ""
 "Non posso salvare\n"
 "Riprova"
 
-#: rmap/rmapgui.py:2434
+#: build/lib/rmap/rmapgui.py:2434 rmap/rmapgui.py:2454
 msgid "CONSTANT STATION DATA QUEUED:"
 msgstr "DATI COSTATI STAZIONE IN CODA:"
 
-#: rmap/rmapgui.py:2436 rmap/rmapgui.py:2443
+#: build/lib/rmap/rmapgui.py:2436 build/lib/rmap/rmapgui.py:2443
+#: rmap/rmapgui.py:2456 rmap/rmapgui.py:2463
 msgid "SHOW ONLY LAST"
 msgstr "Mostra solo l'ultimo"
 
-#: rmap/rmapgui.py:2441
+#: build/lib/rmap/rmapgui.py:2441 rmap/rmapgui.py:2461
 msgid "STATION DATA QUEUED:"
 msgstr "DATI STAZIONE IN CODA:"
 
-#: rmap/rmapgui.py:2582
+#: build/lib/rmap/rmapgui.py:2582 rmap/rmapgui.py:2602
 msgid ""
 "problems with\n"
 "Camera!"
@@ -1722,15 +1968,15 @@ msgstr ""
 "problemi con\n"
 "la fotocamera"
 
-#: rmap/rmapgui.py:2615
+#: build/lib/rmap/rmapgui.py:2615 rmap/rmapgui.py:2635
 msgid "Wait"
 msgstr "Attendi"
 
-#: rmap/rmapgui.py:2656
+#: build/lib/rmap/rmapgui.py:2656 rmap/rmapgui.py:2676
 msgid "Start Camera!"
 msgstr "Attiva Fotocamera!"
 
-#: rmap/rmapgui.py:2807
+#: build/lib/rmap/rmapgui.py:2807 rmap/rmapgui.py:2827
 msgid ""
 "error sending\n"
 "image to server!"
@@ -1738,75 +1984,84 @@ msgstr ""
 "errore invio\n"
 "immagine al server!"
 
-#: rmap/rmapgui.py:2822
+#: build/lib/rmap/rmapgui.py:2822 rmap/rmapgui.py:2842
 msgid "GPS: new coordinate acquired"
 msgstr "GPS: acquisite nuove coordinate"
 
-#: rmap/rmapstation.py:82 rmap/rmapstation.py:634 rmap/rmapstation.py:658
+#: build/lib/rmap/rmapstation.py:82 build/lib/rmap/rmapstation.py:634
+#: build/lib/rmap/rmapstation.py:658 rmap/rmapstation.py:83
+#: rmap/rmapstation.py:638 rmap/rmapstation.py:662
 msgid "Connect Status: disconnected"
 msgstr "Stato connessione: disconnesso"
 
-#: rmap/rmapstation.py:537
+#: build/lib/rmap/rmapstation.py:537 rmap/rmapstation.py:541
 msgid "Connect Status: ERROR, you have to define a location !"
 msgstr "Stato connessione: ERRORE, bisogna definire un posizione!"
 
-#: rmap/rmapstation.py:542
+#: build/lib/rmap/rmapstation.py:542 rmap/rmapstation.py:546
 msgid "Connect Status: connecting"
 msgstr "Stato Connessione: in connessione"
 
-#: rmap/rmapstation.py:592 rmap/rmapstation.py:606 rmap/rmapstation.py:613
+#: build/lib/rmap/rmapstation.py:592 build/lib/rmap/rmapstation.py:606
+#: build/lib/rmap/rmapstation.py:613 rmap/rmapstation.py:596
+#: rmap/rmapstation.py:610 rmap/rmapstation.py:617
 msgid "Connect Status: ERROR on Publish"
 msgstr "Stato connessione: ERRORE pubblicazione"
 
-#: rmap/rmapstation.py:602
+#: build/lib/rmap/rmapstation.py:602 rmap/rmapstation.py:606
 msgid "Connect Status: Published"
 msgstr "Stato connessione: Pubblicato"
 
-#: rmap/rmapstation.py:610
+#: build/lib/rmap/rmapstation.py:610 rmap/rmapstation.py:614
 msgid "Connect Status: ERROR on Publish, not connected"
 msgstr "Stato connessione: ERRORE pubblicazione, non connesso"
 
-#: rmap/rmapstation.py:656
+#: build/lib/rmap/rmapstation.py:656 rmap/rmapstation.py:660
 msgid "Connect Status: OK connected"
 msgstr "Stato connessione: OK connesso"
 
-#: rmap/stations/form.py:15
+#: build/lib/rmap/stations/form.py:15 rmap/stations/form.py:15
 msgid "Required: max 9 lowercase alphanumeric characters"
 msgstr "Richiesta: al massimo 9 caratteri alfanumerici in minuscolo"
 
+#: build/lib/rmap/stations/models.py:94 build/lib/rmap/stations/models.py:204
 #: rmap/stations/models.py:94 rmap/stations/models.py:204
 msgid "Activate this sensor to take measurements"
 msgstr "Attiva questo sensore per rilevare le misure"
 
-#: rmap/stations/models.py:95 rmap/stations/models.py:205
-#: rmap/stations/models.py:242
+#: build/lib/rmap/stations/models.py:95 build/lib/rmap/stations/models.py:205
+#: build/lib/rmap/stations/models.py:242 rmap/stations/models.py:95
+#: rmap/stations/models.py:205 rmap/stations/models.py:242
 msgid "Descriptive text"
 msgstr "Testo descrittivo"
 
-#: rmap/stations/models.py:97
+#: build/lib/rmap/stations/models.py:97 rmap/stations/models.py:97
 msgid "Driver to use"
 msgstr "Driver da usare"
 
+#: build/lib/rmap/stations/models.py:99 build/lib/rmap/stations/models.py:207
 #: rmap/stations/models.py:99 rmap/stations/models.py:207
 msgid "Type of sensor"
 msgstr "Tipo del sensore"
 
-#: rmap/stations/models.py:101
+#: build/lib/rmap/stations/models.py:101 rmap/stations/models.py:101
 msgid "I2C bus number (for raspberry only)"
 msgstr ""
 
-#: rmap/stations/models.py:102
+#: build/lib/rmap/stations/models.py:102 rmap/stations/models.py:102
 msgid "I2C ddress (decimal)"
 msgstr ""
 
-#: rmap/stations/models.py:103
+#: build/lib/rmap/stations/models.py:103 rmap/stations/models.py:103
 msgid "RF24Network node ddress"
 msgstr ""
 
+#: build/lib/rmap/stations/models.py:105 build/lib/rmap/stations/models.py:106
 #: rmap/stations/models.py:105 rmap/stations/models.py:106
 msgid "Sensor metadata from rmap RFC"
 msgstr "Metadati del sensore dal RFC rmap"
 
+#: build/lib/rmap/stations/models.py:118 build/lib/rmap/stations/models.py:738
 #: rmap/stations/models.py:118 rmap/stations/models.py:738
 msgid ""
 "Station and sensor have different data level; change mqttrootpath or active "
@@ -1815,321 +2070,334 @@ msgstr ""
 "Statione e sensore hanno data level differente; cambia mqttrootpath o i "
 "sensori attivi."
 
-#: rmap/stations/models.py:209
+#: build/lib/rmap/stations/models.py:209 rmap/stations/models.py:209
 msgid "Data Level as defined by WMO (Sensor metadata from rmap RFC)"
 msgstr "Data Level come dfinito dal WMO (Sensor metadata come da RMAP RFC)"
 
-#: rmap/stations/models.py:211
+#: build/lib/rmap/stations/models.py:211 rmap/stations/models.py:211
 msgid "Bcode variable definition"
 msgstr ""
 
-#: rmap/stations/models.py:241
+#: build/lib/rmap/stations/models.py:241 rmap/stations/models.py:241
 msgid "Bcode as defined in dballe btable"
 msgstr ""
 
-#: rmap/stations/models.py:243
+#: build/lib/rmap/stations/models.py:243 rmap/stations/models.py:243
 msgid "Units of measure"
 msgstr "Unità di misura"
 
-#: rmap/stations/models.py:244
+#: build/lib/rmap/stations/models.py:244 rmap/stations/models.py:244
 msgid "Offset coeficent to convert units"
 msgstr "Coefficiente offset di conversione delle unità di misura"
 
-#: rmap/stations/models.py:245
+#: build/lib/rmap/stations/models.py:245 rmap/stations/models.py:245
 msgid "Scale coeficent to convert units"
 msgstr "Fattore di scala di conversione delle unità di misura"
 
-#: rmap/stations/models.py:246
+#: build/lib/rmap/stations/models.py:246 rmap/stations/models.py:246
 msgid "units of measure"
 msgstr "unità di misura"
 
+#: build/lib/rmap/stations/models.py:318 build/lib/rmap/stations/models.py:355
+#: build/lib/rmap/stations/models.py:413 build/lib/rmap/stations/models.py:489
+#: build/lib/rmap/stations/models.py:521 build/lib/rmap/stations/models.py:552
 #: rmap/stations/models.py:318 rmap/stations/models.py:355
 #: rmap/stations/models.py:413 rmap/stations/models.py:489
 #: rmap/stations/models.py:521 rmap/stations/models.py:552
 msgid "Activate this transport for measurements"
 msgstr "Attiva questo trasporto per le misure"
 
-#: rmap/stations/models.py:319
+#: build/lib/rmap/stations/models.py:319 rmap/stations/models.py:319
 msgid "Node ID for RF24 Network"
 msgstr ""
 
-#: rmap/stations/models.py:320
+#: build/lib/rmap/stations/models.py:320 rmap/stations/models.py:320
 msgid "Channel number for RF24"
 msgstr "Numero canale per RF24"
 
-#: rmap/stations/models.py:323
+#: build/lib/rmap/stations/models.py:323 rmap/stations/models.py:323
 msgid "AES key"
 msgstr ""
 
-#: rmap/stations/models.py:324
+#: build/lib/rmap/stations/models.py:324 rmap/stations/models.py:324
 msgid "AES cbc iv"
 msgstr ""
 
-#: rmap/stations/models.py:357
+#: build/lib/rmap/stations/models.py:357 rmap/stations/models.py:357
 msgid "interval in seconds for publish"
 msgstr "intervallo in secondi per la pubblicazione"
 
-#: rmap/stations/models.py:358
+#: build/lib/rmap/stations/models.py:358 rmap/stations/models.py:358
 msgid "MQTT server"
 msgstr ""
 
-#: rmap/stations/models.py:359
+#: build/lib/rmap/stations/models.py:359 rmap/stations/models.py:359
 msgid "MQTT user"
 msgstr ""
 
-#: rmap/stations/models.py:360
+#: build/lib/rmap/stations/models.py:360 rmap/stations/models.py:360
 msgid "MQTT password"
 msgstr ""
 
-#: rmap/stations/models.py:414
+#: build/lib/rmap/stations/models.py:414 rmap/stations/models.py:414
 msgid "Name DSN solved (for master board only)"
 msgstr "Nome risolto dal DNS (solo per la board master)"
 
-#: rmap/stations/models.py:416
+#: build/lib/rmap/stations/models.py:416 rmap/stations/models.py:416
 msgid "Network time server (NTP)"
 msgstr ""
 
-#: rmap/stations/models.py:490
+#: build/lib/rmap/stations/models.py:490 rmap/stations/models.py:490
 msgid "Baud rate"
 msgstr ""
 
-#: rmap/stations/models.py:491
+#: build/lib/rmap/stations/models.py:491 rmap/stations/models.py:491
 msgid "Serial device"
 msgstr ""
 
-#: rmap/stations/models.py:522
+#: build/lib/rmap/stations/models.py:522 rmap/stations/models.py:522
 msgid "bluetooth name"
 msgstr "Nome Bluetooth"
 
-#: rmap/stations/models.py:554
+#: build/lib/rmap/stations/models.py:554 rmap/stations/models.py:554
 msgid "AMQP server"
 msgstr "Server AMQP"
 
-#: rmap/stations/models.py:555
+#: build/lib/rmap/stations/models.py:555 rmap/stations/models.py:555
 msgid "AMQP remote exchange name"
 msgstr "Noe dell'exchange remoto AMQP"
 
-#: rmap/stations/models.py:556
+#: build/lib/rmap/stations/models.py:556 rmap/stations/models.py:556
 msgid "AMQP local queue name"
 msgstr "Nome della coda locale AMQP "
 
-#: rmap/stations/models.py:557
+#: build/lib/rmap/stations/models.py:557 rmap/stations/models.py:557
 msgid "AMQP user"
 msgstr "User AMQP"
 
-#: rmap/stations/models.py:558
+#: build/lib/rmap/stations/models.py:558 rmap/stations/models.py:558
 msgid "AMQP password"
 msgstr "Password AMQP"
 
+#: build/lib/rmap/stations/models.py:591 build/lib/rmap/stations/models.py:702
 #: rmap/stations/models.py:591 rmap/stations/models.py:702
 msgid "station name"
 msgstr "nome stazione"
 
-#: rmap/stations/models.py:592
+#: build/lib/rmap/stations/models.py:592 rmap/stations/models.py:592
 msgid "Activate the board for measurements"
 msgstr "Attiva la board per le misure"
 
+#: build/lib/rmap/stations/models.py:593 build/lib/rmap/stations/models.py:704
 #: rmap/stations/models.py:593 rmap/stations/models.py:704
 msgid "Auto-generated from name."
 msgstr "Autogenerato dal nome."
 
-#: rmap/stations/models.py:630
+#: build/lib/rmap/stations/models.py:630 rmap/stations/models.py:630
 msgid "MAC address"
 msgstr "MAC address"
 
-#: rmap/stations/models.py:631
+#: build/lib/rmap/stations/models.py:631 rmap/stations/models.py:631
 msgid "Software version"
 msgstr "Versione del software"
 
-#: rmap/stations/models.py:632
+#: build/lib/rmap/stations/models.py:632 rmap/stations/models.py:632
 msgid "Software last update date"
 msgstr "Data ultimo aggiornamento software"
 
-#: rmap/stations/models.py:658
+#: build/lib/rmap/stations/models.py:658 rmap/stations/models.py:658
 msgid "Activate this metadata"
 msgstr "Attiva questo metadato"
 
-#: rmap/stations/models.py:659
+#: build/lib/rmap/stations/models.py:659 rmap/stations/models.py:659
 msgid "A code to define the metadata. See rmap RFC"
 msgstr "Codice per definire il metadato. Vedi rmap RFC"
 
-#: rmap/stations/models.py:660
+#: build/lib/rmap/stations/models.py:660 rmap/stations/models.py:660
 msgid "value for associated B table"
 msgstr "valore per la tabella B associata"
 
-#: rmap/stations/models.py:703
+#: build/lib/rmap/stations/models.py:703 rmap/stations/models.py:703
 msgid "Activate the station for measurements"
 msgstr "Attiva la stazione per le misure"
 
-#: rmap/stations/models.py:711
+#: build/lib/rmap/stations/models.py:711 rmap/stations/models.py:711
 msgid "Precise Latitude of the station"
 msgstr "Latitudine precisa della stazione"
 
-#: rmap/stations/models.py:712
+#: build/lib/rmap/stations/models.py:712 rmap/stations/models.py:712
 msgid "Precise Longitude of the station"
 msgstr "Longitudine precisa della stazione"
 
-#: rmap/stations/models.py:714
+#: build/lib/rmap/stations/models.py:714 rmap/stations/models.py:714
 msgid "station network"
 msgstr "rete stazione"
 
-#: rmap/stations/models.py:716
+#: build/lib/rmap/stations/models.py:716 rmap/stations/models.py:716
 msgid "root mqtt path for publish"
 msgstr ""
 
-#: rmap/stations/models.py:717
+#: build/lib/rmap/stations/models.py:717 rmap/stations/models.py:717
 msgid "maint mqtt path for publish"
 msgstr "percorso di pubblicazione mqtt per amministrazione"
 
-#: rmap/stations/models.py:718
+#: build/lib/rmap/stations/models.py:718 rmap/stations/models.py:718
 msgid "Category of the station"
 msgstr "Categoria della stazione"
 
-#: rmap/stations/models.py:806
+#: build/lib/rmap/stations/models.py:806 rmap/stations/models.py:806
 msgid "I accept ODBL license"
 msgstr "Accetto la licenza ODBL"
 
-#: rmap/stations/models.py:806
+#: build/lib/rmap/stations/models.py:806 rmap/stations/models.py:806
 msgid "You need to accept ODBL license to provide your data"
 msgstr "Per fornire i tuoi dati devi necessariamente accettare la licenza ODBL"
 
-#: rmap/templates/base.html:61
+#: build/lib/rmap/templates/base.html:61 rmap/templates/base.html:61
 msgid "Data"
 msgstr "Dati"
 
-#: rmap/templates/base.html:63
+#: build/lib/rmap/templates/base.html:63 rmap/templates/base.html:63
 msgid "Maps and graph of main parameters"
 msgstr "Mappe e grafici dei principali parametri"
 
-#: rmap/templates/base.html:64
+#: build/lib/rmap/templates/base.html:64 rmap/templates/base.html:64
 msgid "Maps and graph for all parameters (old style)"
 msgstr "Mappe e grafici di tutti i parametri (vecchio stile)"
 
-#: rmap/templates/base.html:65
+#: build/lib/rmap/templates/base.html:65 rmap/templates/base.html:65
 msgid "Georeferenced image on a map"
 msgstr "Immagini gereferenziate su mappa"
 
-#: rmap/templates/base.html:66
+#: build/lib/rmap/templates/base.html:66 rmap/templates/base.html:66
 msgid "Graph with  Graphite"
 msgstr "Grafici con Graphite"
 
-#: rmap/templates/base.html:67
+#: build/lib/rmap/templates/base.html:67 rmap/templates/base.html:67
 msgid "Sample Dashboard"
 msgstr "Lavagna di esempio"
 
-#: rmap/templates/base.html:68
+#: build/lib/rmap/templates/base.html:68 rmap/templates/base.html:68
 msgid "Extract historical data"
 msgstr "Estrazione dati storici"
 
-#: rmap/templates/base.html:69
+#: build/lib/rmap/templates/base.html:69 rmap/templates/base.html:69
 msgid "Data providers"
 msgstr "Fornitori dati"
 
+#: build/lib/rmap/templates/base.html:73
+#: build/lib/rmap/templates/stations/stationmetadata_list.html:8
 #: rmap/templates/base.html:73
 #: rmap/templates/stations/stationmetadata_list.html:8
 msgid "Stations"
 msgstr "Stazioni"
 
-#: rmap/templates/base.html:75
+#: build/lib/rmap/templates/base.html:75 rmap/templates/base.html:75
 msgid "Show RMAP stations"
 msgstr "Mostra le stazioni RMAP"
 
-#: rmap/templates/base.html:76
+#: build/lib/rmap/templates/base.html:76 rmap/templates/base.html:76
 msgid "Show all stations"
 msgstr "Mostra tutte le stazioni"
 
-#: rmap/templates/base.html:78
+#: build/lib/rmap/templates/base.html:78 rmap/templates/base.html:78
 msgid "Your RMAP stations"
 msgstr "Le tue stazioni RMAP"
 
-#: rmap/templates/base.html:79
+#: build/lib/rmap/templates/base.html:79 rmap/templates/base.html:79
 msgid "All your stations"
 msgstr "Tutte le tue stazioni"
 
-#: rmap/templates/base.html:84
+#: build/lib/rmap/templates/base.html:84 rmap/templates/base.html:84
 msgid "Join us"
 msgstr "Partecipa"
 
-#: rmap/templates/base.html:86
+#: build/lib/rmap/templates/base.html:86 rmap/templates/base.html:86
 msgid "Register a new sation"
 msgstr "Registra una nuova stazione"
 
-#: rmap/templates/base.html:87
+#: build/lib/rmap/templates/base.html:87 rmap/templates/base.html:87
 msgid "Add manual data observations"
 msgstr "aggiungi osservazioni manuali"
 
-#: rmap/templates/base.html:88
+#: build/lib/rmap/templates/base.html:88 rmap/templates/base.html:88
 msgid "Add georeferenced image"
 msgstr "Aggiungi immagini georeferenziate"
 
-#: rmap/templates/base.html:89
+#: build/lib/rmap/templates/base.html:89 rmap/templates/base.html:89
 msgid "Dowload RMAP App for Android"
 msgstr "Scarica lApp RMAP per Android"
 
-#: rmap/templates/base.html:90
+#: build/lib/rmap/templates/base.html:90 rmap/templates/base.html:90
 msgid "Install RMAP App son other operative systems"
 msgstr "Installa l'App RMAPper altri sistemi operativi"
 
-#: rmap/templates/base.html:91
+#: build/lib/rmap/templates/base.html:91 rmap/templates/base.html:91
 msgid "Publish data on http for MQTT broker"
 msgstr "Publica i dati in http sul broker MQTT"
 
-#: rmap/templates/base.html:97
+#: build/lib/rmap/templates/base.html:97 rmap/templates/base.html:97
 msgid "Documentation"
 msgstr "Documentazione"
 
-#: rmap/templates/base.html:99
+#: build/lib/rmap/templates/base.html:99 rmap/templates/base.html:99
 msgid "The project on RaspiBO site"
 msgstr "Il progetto sul sito di RaspiBO"
 
-#: rmap/templates/base.html:105
+#: build/lib/rmap/templates/base.html:105 rmap/templates/base.html:105
 msgid "Develop"
 msgstr "Sviluppo"
 
-#: rmap/templates/base.html:107
+#: build/lib/rmap/templates/base.html:107 rmap/templates/base.html:107
 msgid "Overview"
 msgstr "Panoramica"
 
-#: rmap/templates/base.html:110
+#: build/lib/rmap/templates/base.html:110 rmap/templates/base.html:110
 msgid "Become beta tester for RMAP App for Android"
 msgstr "Diventa beta tester per l'App RMAP per Android"
 
-#: rmap/templates/base.html:115
+#: build/lib/rmap/templates/base.html:115 rmap/templates/base.html:115
 msgid "Admin"
 msgstr "Amministrazione"
 
-#: rmap/templates/base.html:116
+#: build/lib/rmap/templates/base.html:116 rmap/templates/base.html:116
 msgid "Manage processes"
 msgstr "Gestisci i processi"
 
-#: rmap/templates/base.html:117
+#: build/lib/rmap/templates/base.html:117 rmap/templates/base.html:117
 msgid "Django admin"
 msgstr "Amministrazione Django"
 
-#: rmap/templates/base.html:118
+#: build/lib/rmap/templates/base.html:118 rmap/templates/base.html:118
 msgid "Rabbitmq admin"
 msgstr "Amministrazione RabbitMQ"
 
-#: rmap/templates/base.html:126
+#: build/lib/rmap/templates/base.html:126 rmap/templates/base.html:126
 msgid "My RMAP"
 msgstr "Il mio RMAP"
 
-#: rmap/templates/base.html:132
+#: build/lib/rmap/templates/base.html:132 rmap/templates/base.html:132
 msgid "Your personal page"
 msgstr "La tua pagina personale"
 
-#: rmap/templates/profile.html:8
+#: build/lib/rmap/templates/profile.html:8 rmap/templates/profile.html:8
 msgid "Here your personal data"
 msgstr "Questi i tuoi dati personali"
 
-#: rmap/templates/profile.html:10 rmap/templates/profile.html:11
+#: build/lib/rmap/templates/profile.html:10
+#: build/lib/rmap/templates/profile.html:11 rmap/templates/profile.html:10
+#: rmap/templates/profile.html:11
 msgid "Your images"
 msgstr "Le tue immagini"
 
-#: rmap/templates/profile.html:14
+#: build/lib/rmap/templates/profile.html:14 rmap/templates/profile.html:14
 msgid "Your stations"
 msgstr "Le tue stazioni"
 
+#: build/lib/rmap/templates/profile.html:15
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:32
+#: build/lib/rmap/templates/stations/stationmetadata_list.html:10
+#: build/lib/rmap/templates/stations/stationmetadata_list.html:21
 #: rmap/templates/profile.html:15
 #: rmap/templates/stations/stationmetadata_detail.html:32
 #: rmap/templates/stations/stationmetadata_list.html:10
@@ -2137,167 +2405,233 @@ msgstr "Le tue stazioni"
 msgid "View on the map"
 msgstr "Visualizza sulla mappa"
 
+#: build/lib/rmap/templates/profile.html:45
+#: build/lib/rmap/templates/stations/stationmetadata_list.html:36
 #: rmap/templates/profile.html:45
 #: rmap/templates/stations/stationmetadata_list.html:36
 msgid "No station yet."
 msgstr "Non ci sono stazioni."
 
+#: build/lib/rmap/templates/profile_details.html:8
 #: rmap/templates/profile_details.html:8
 msgid "Here your personal data details"
 msgstr "Questi i tuoi dati personali in dettaglio"
 
+#: build/lib/rmap/templates/profile_details.html:12
 #: rmap/templates/profile_details.html:12
 msgid "Remove station"
 msgstr "Cancella stazione"
 
+#: build/lib/rmap/templates/profile_details.html:20
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:28
 #: rmap/templates/profile_details.html:20
 #: rmap/templates/stations/stationmetadata_detail.html:28
 msgid "Ident"
 msgstr "identificativo"
 
+#: build/lib/rmap/templates/profile_details.html:21
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:29
 #: rmap/templates/profile_details.html:21
 #: rmap/templates/stations/stationmetadata_detail.html:29
 msgid "Lat"
 msgstr ""
 
+#: build/lib/rmap/templates/profile_details.html:22
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:30
 #: rmap/templates/profile_details.html:22
 #: rmap/templates/stations/stationmetadata_detail.html:30
 msgid "Lon"
 msgstr ""
 
+#: build/lib/rmap/templates/profile_details.html:23
 #: rmap/templates/profile_details.html:23
 msgid "Locate"
 msgstr "Mappa"
 
+#: build/lib/rmap/templates/profile_details.html:24
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:31
 #: rmap/templates/profile_details.html:24
 #: rmap/templates/stations/stationmetadata_detail.html:31
 msgid "Category"
 msgstr "Categoria"
 
+#: build/lib/rmap/templates/profile_details.html:44
 #: rmap/templates/profile_details.html:44
 msgid "Show station details"
 msgstr "Mostra i dettagli stazione"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:22
 #: rmap/templates/stations/stationmetadata_detail.html:22
 msgid "Data level:"
 msgstr "livello dati:"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:52
 #: rmap/templates/stations/stationmetadata_detail.html:52
 msgid "Delete"
 msgstr "Rimuovi"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:54
 #: rmap/templates/stations/stationmetadata_detail.html:54
 msgid "Display graph"
 msgstr "Visualizzazione grafici"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:62
 #: rmap/templates/stations/stationmetadata_detail.html:62
 msgid "Board name"
 msgstr "Nome scheda"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:63
 #: rmap/templates/stations/stationmetadata_detail.html:63
 msgid "Firmware version"
 msgstr "Versione del Firmware"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:63
 #: rmap/templates/stations/stationmetadata_detail.html:63
 msgid "Last firmware update"
 msgstr "Ultimo aggiornamento firmware"
 
+#: build/lib/rmap/templates/stations/stationmetadata_detail.html:70
 #: rmap/templates/stations/stationmetadata_detail.html:70
 msgid "Variable"
 msgstr "Variabile"
 
+#: build/lib/rmap/templates/stations/stationsonmap.html:14
 #: rmap/templates/stations/stationsonmap.html:14
 msgid "Reset ident filter"
 msgstr "Annulla filtro su IDENT"
 
+#: build/lib/rmap/templates/stations/stationsonmap.html:18
 #: rmap/templates/stations/stationsonmap.html:18
 msgid "Selected slug"
 msgstr "SLUG selezionato"
 
+#: build/lib/rmap/templates/stations/stationsonmap.html:18
 #: rmap/templates/stations/stationsonmap.html:18
 msgid "Reset slug filter"
 msgstr "Annulla filtro su SLUG"
 
+#: build/lib/rmap/templates/wizard_done.html:12
 #: rmap/templates/wizard_done.html:12
 msgid "Profile"
 msgstr "Profilo"
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:112
 #: showdata/templates/showdata/rainbospatialseries.html:112
 msgid "Observerd Impact"
 msgstr "Impatto osservato"
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:159
 #: showdata/templates/showdata/rainbospatialseries.html:159
 msgid "for day "
 msgstr "per il giorno "
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:167
+#: build/lib/showdata/templates/showdata/spatialseries.html:108
+#: build/lib/showdata/templates/showdata/timeseries.html:49
 #: showdata/templates/showdata/rainbospatialseries.html:167
 #: showdata/templates/showdata/spatialseries.html:108
 #: showdata/templates/showdata/timeseries.html:49
 msgid "Prev"
 msgstr "Prima"
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:172
+#: build/lib/showdata/templates/showdata/spatialseries.html:113
+#: build/lib/showdata/templates/showdata/timeseries.html:54
 #: showdata/templates/showdata/rainbospatialseries.html:172
 #: showdata/templates/showdata/spatialseries.html:113
 #: showdata/templates/showdata/timeseries.html:54
 msgid "Next"
 msgstr "Dopo"
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:179
+#: build/lib/showdata/templates/showdata/spatialseries.html:129
 #: showdata/templates/showdata/rainbospatialseries.html:179
 #: showdata/templates/showdata/spatialseries.html:129
 msgid "Loading data"
 msgstr "Caricamento dati"
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:180
+#: build/lib/showdata/templates/showdata/spatialseries.html:130
+#: build/lib/showdata/templates/showdata/stations.html:73
 #: showdata/templates/showdata/rainbospatialseries.html:180
 #: showdata/templates/showdata/spatialseries.html:130
 #: showdata/templates/showdata/stations.html:73
 msgid "Please wait ..."
 msgstr "Attendere per favore..."
 
+#: build/lib/showdata/templates/showdata/rainbospatialseries.html:233
+#: build/lib/showdata/templates/showdata/spatialseries.html:250
+#: build/lib/showdata/templates/showdata/stations.html:127
 #: showdata/templates/showdata/rainbospatialseries.html:233
 #: showdata/templates/showdata/spatialseries.html:250
 #: showdata/templates/showdata/stations.html:127
 msgid "Please Wait..."
 msgstr "Attendere per favore..."
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:100
+#: build/lib/showdata/templates/showdata/timeseries.html:41
 #: showdata/templates/showdata/spatialseries.html:100
 #: showdata/templates/showdata/timeseries.html:41
 msgid "More"
 msgstr "Di più"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:121
+#: build/lib/showdata/templates/showdata/timeseries.html:62
 #: showdata/templates/showdata/spatialseries.html:121
 #: showdata/templates/showdata/timeseries.html:62
 msgid "Less"
 msgstr "Meno"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:291
 #: showdata/templates/showdata/spatialseries.html:291
 msgid "Graph for mobile station"
 msgstr "Grafico per stazione mobile"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:301
 #: showdata/templates/showdata/spatialseries.html:301
 msgid "Graph data for station"
 msgstr "Grafico della stazione"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:576
 #: showdata/templates/showdata/spatialseries.html:576
 msgid "Show all stations on a map"
 msgstr "Mostra tutte le stazioni sulla mappa"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:591
 #: showdata/templates/showdata/spatialseries.html:591
 msgid "Show all values on a graph"
 msgstr "Mostra tutti i valori in grafico"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:604
 #: showdata/templates/showdata/spatialseries.html:604
 msgid "Show all coordinates on a map"
 msgstr "Mostra tutte le coordinate su una mappa"
 
+#: build/lib/showdata/templates/showdata/spatialseries.html:618
+#: build/lib/showdata/templates/showdata/stations.html:269
+#: build/lib/showdata/templates/showdata/timeseries.html:116
 #: showdata/templates/showdata/spatialseries.html:618
 #: showdata/templates/showdata/stations.html:269
 #: showdata/templates/showdata/timeseries.html:116
 msgid "Download data"
 msgstr "Scarica i dati"
 
+#: build/lib/showdata/templates/showdata/timeseries.html:94
 #: showdata/templates/showdata/timeseries.html:94
 msgid "Show values on a map"
 msgstr "Mostra valori sulla mappa"
+
+#: insertdata/templates/insertdata/manualdataform.html:22
+msgid "OK, data published"
+msgstr "Ottimo, dati pubblicati"
+
+#: rmap/templates/base.html:165
+msgid "Terms of Service"
+msgstr "Termini di servizio"
+
+#: rmap/templates/base.html:167
+msgid "Copyright RMAP contributors"
+msgstr ""
 
 #, fuzzy
 #~| msgid ""

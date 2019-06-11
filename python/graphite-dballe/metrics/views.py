@@ -33,7 +33,7 @@ try:
     import dballe
     dballepresent=True
 except ImportError:
-    print "dballe utilities disabled"
+    print("dballe utilities disabled")
     dballepresent=False
 
 def toint(level):
@@ -211,10 +211,10 @@ def expand_view(request):
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:
-    for query, matches in results.items():
+    for query, matches in list(results.items()):
       results[query] = sorted(matches)
   else:
-    results = sorted( reduce(set.union, results.values(), set()) )
+    results = sorted( reduce(set.union, list(results.values()), set()) )
 
   result = {
     'results' : results
@@ -347,10 +347,10 @@ def tree_json(nodes, base_path, wildcards=False):
           varinfo=dballe.varinfo(node.name)
           text = varinfo.desc.lower()+" "+varinfo.unit
       else:
-        text = urllib.unquote_plus(str(node.name))
+        text = urllib.parse.unquote_plus(str(node.name))
 
     else:
-      text = urllib.unquote_plus(str(node.name))
+      text = urllib.parse.unquote_plus(str(node.name))
 
     resultNode = {
         'text' : text,

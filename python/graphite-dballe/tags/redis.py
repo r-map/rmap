@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 
 import re
 import bisect
@@ -227,7 +227,7 @@ class RedisTagDB(BaseTagDB):
     with self.r.pipeline() as pipe:
       pipe.sadd('series', path)
 
-      for tag, value in parsed.tags.items():
+      for tag, value in list(parsed.tags.items()):
         pipe.hset('series:' + path + ':tags', tag, value)
 
         pipe.sadd('tags', tag)
@@ -250,7 +250,7 @@ class RedisTagDB(BaseTagDB):
 
       pipe.delete('series:' + path + ':tags')
 
-      for tag, value in parsed.tags.items():
+      for tag, value in list(parsed.tags.items()):
         pipe.srem('tags:' + tag + ':series', path)
         pipe.srem('tags:' + tag + ':values:' + value, path)
 

@@ -39,18 +39,18 @@ def compact(mytemplate,mydata):
     totbit+=nbit
 
     #insert data
-    for bcode,meta in rmap_core.ttntemplate[mytemplate].items():
-        print "insert: ", bcode
+    for bcode,meta in list(rmap_core.ttntemplate[mytemplate].items()):
+        print("insert: ", bcode)
         if bcode in mydata:
             bit=int(mydata[bcode]*meta["scale"]-meta["offset"])
         else:
-            print "missed data"
+            print("missed data")
             bit=(1<<meta["nbit"])-1
         template=bitprepend(template,bit,meta["nbit"])
         totbit+=meta["nbit"]
 
-    print "totbit: ",totbit
-    print bin(template)
+    print("totbit: ",totbit)
+    print(bin(template))
 
     #create a list of bytes
     data=bit2bytelist(template,totbit)
@@ -71,20 +71,20 @@ server = jsonrpc.ServerProxy(jsonrpc.JsonRpc20(radio=False,notification=False), 
 
 # configure parameter for join
 #Note: Use lsb notation for deveui var, use lsb/msb switch button on ttn web page for format adjustement
-print server.set(deveui=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08))
+print(server.set(deveui=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08)))
 #Note: Use lsb notation for appeui var, use lsb/msb switch button on ttn web page for format adjustement
-print server.set(appeui=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08))
+print(server.set(appeui=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08)))
 #Note: Use msb notation for appkey var, use lsb/msb switch button on ttn web page for format adjustement
-print server.set(appkey=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16))
+print(server.set(appkey=(0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16)))
 
 # set other parameter
 #  "reset" "sampletime" "ack" "mobile" "template" "sf" "template" "deveui" "appeui" "appkey" "netid" "devaddr" "seqnoUp" "seqnoDn" "nwkkey" "artkey" return "ok"
-print server.set(sampletime=1800,ack=1,sf=12,mobile=False)
+print(server.set(sampletime=1800,ack=1,sf=12,mobile=False))
 
 # set or read sf
 # parameter "sf" return "sf"
-print server.sf(sf=12)
-print server.sf()
+print(server.sf(sf=12))
+print(server.sf())
 
 # save configuration parameter to eeprom; if executed after join save session parameter and use it on next reboot
 # parameter "eeprom" return "ok"
@@ -92,15 +92,15 @@ print server.sf()
 
 # (save parameter and sleep waiting for interrupt)
 # parameter none return none
-print server.shutdown()
+print(server.shutdown())
 
 
 # send data
 mytemplate=1
 mydata={"B12101":278.5,"B13003":55.}
 data=compact(mytemplate,mydata)
-print data
-print [format(value, '02x') for value in data]
+print(data)
+print([format(value, '02x') for value in data])
 # parameter "payload" return "payloadlen" "status" "ack"
-print server.send(payload=data)
+print(server.send(payload=data))
 

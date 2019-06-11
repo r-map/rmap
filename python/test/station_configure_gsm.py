@@ -40,7 +40,7 @@ rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
 
 time.sleep(1)
 
-print "start configuration"
+print("start configuration")
 
 status=False
 while ( not status):
@@ -48,7 +48,7 @@ while ( not status):
         status = rpcproxy.configure(reset=True )
     except:
         status = False
-    print "reset:",status
+    print("reset:",status)
     time.sleep(1)
 
 
@@ -58,7 +58,7 @@ while ( not status):
         status = rpcproxy.configure(mqttrootpath="meteo/-/1012345,4412345/rmap/")
     except:
         status = False
-    print "mqttrootpath:",status
+    print("mqttrootpath:",status)
     time.sleep(1)
 
 status=False
@@ -67,7 +67,7 @@ while ( not status):
         status = rpcproxy.configure(mqttsampletime=10,mqttserver="rmap.cc")
     except:
         status = False
-    print "mqttserver:",status
+    print("mqttserver:",status)
     time.sleep(1)
 
 
@@ -77,7 +77,7 @@ while ( not status):
         status = rpcproxy.configure(mqttuser="",mqttpassword="")
     except:
         status = False
-    print "mqtt user and password:",status
+    print("mqtt user and password:",status)
     time.sleep(1)
 
 
@@ -99,7 +99,7 @@ while ( not status):
         status = rpcproxy.configure(save=True )
     except:
         status = False
-    print "save",status
+    print("save",status)
     time.sleep(1)
 
 

@@ -27,11 +27,11 @@ from ..user_util import getProfileByUsername
 from ..util import json, unpickle, pickle, msgpack, BytesIO
 from ..storage import extractForwardHeaders
 from ..logger import log
-from evaluator import evaluateTarget
-from attime import parseATTime
+from .evaluator import evaluateTarget
+from .attime import parseATTime
 from ..functions import loadFunctions, PieFunction
-from hashing import hashRequest, hashData
-from glyph import GraphTypes
+from .hashing import hashRequest, hashData
+from .glyph import GraphTypes
 from ..tags.models import Series, Tag, TagValue, SeriesTag  # noqa # pylint: disable=unused-import
 
 from django.http import HttpResponseServerError, HttpResponseRedirect
@@ -215,9 +215,9 @@ def renderViewJson(requestOptions, data):
           for r in range(1, valuesToLose):
             del series[0]
           series.consolidate(valuesPerPoint)
-          timestamps = range(int(series.start), int(series.end) + 1, int(secondsPerPoint))
+          timestamps = list(range(int(series.start), int(series.end) + 1, int(secondsPerPoint)))
         else:
-          timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+          timestamps = list(range(int(series.start), int(series.end) + 1, int(series.step)))
         datapoints = list(zip(series, timestamps))
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
   elif 'noNullPoints' in requestOptions and any(data):
@@ -231,7 +231,7 @@ def renderViewJson(requestOptions, data):
         series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
   else:
     for series in data:
-      timestamps = range(int(series.start), int(series.end) + 1, int(series.step))
+      timestamps = list(range(int(series.start), int(series.end) + 1, int(series.step)))
       datapoints = list(zip(series, timestamps))
       series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
 
@@ -285,7 +285,7 @@ def renderViewDygraph(requestOptions, data):
 def renderViewRickshaw(requestOptions, data):
   series_data = []
   for series in data:
-    timestamps = range(series.start, series.end, series.step)
+    timestamps = list(range(series.start, series.end, series.step))
     datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
     series_data.append( dict(target=series.name, datapoints=datapoints) )
 
@@ -365,7 +365,7 @@ def parseOptions(request):
     requestOptions['targets'].append(target)
 
   template = dict()
-  for key, val in queryParams.items():
+  for key, val in list(queryParams.items()):
     if key.startswith("template["):
       template[key[9:-1]] = val
   requestOptions['template'] = template
@@ -550,13 +550,13 @@ def renderMyGraphView(request,username,graphName):
     if query_string:
       url_params = parse_qs(query_string)
       # Remove lists so that we can do an update() on the dict
-      for param, value in url_params.items():
+      for param, value in list(url_params.items()):
         if isinstance(value, list) and param != 'target':
           url_params[param] = value[-1]
       url_params.update(request_params)
       # Handle 'target' being a list - we want duplicate &target params out of it
       url_param_pairs = []
-      for key,val in url_params.items():
+      for key,val in list(url_params.items()):
         if isinstance(val, list):
           for v in val:
             url_param_pairs.append( (key,v) )

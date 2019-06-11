@@ -72,7 +72,7 @@ class Btable(dict):
 
 
     def output(self, fileobj=sys.stdout):
-        for entry in self.iterkeys():
+        for entry in self.keys():
             self[entry].output(fileobj)
 
 
@@ -83,9 +83,9 @@ def main():
     table = Btable()
     table.output()
 
-    print "------------------------------"
+    print("------------------------------")
 
-    print  table["B12101"]
+    print(table["B12101"])
 
 if __name__ == '__main__':
     main()  # (this code was run as script)

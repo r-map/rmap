@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData,BoardFirmwareMetadata
+from .models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData,BoardFirmwareMetadata
 from django import forms
 from django.utils.translation import ugettext_lazy
 import rmap.settings
@@ -144,7 +144,7 @@ admin.site.register(StationMetadata, StationMetadataAdmin)
 
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
-from models import UserProfile
+from .models import UserProfile
 
 # Define an inline admin descriptor for UserProfile model
 # which acts a bit like a singleton

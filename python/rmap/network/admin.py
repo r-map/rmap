@@ -1,5 +1,5 @@
 from django.contrib import admin
-from models import NetworkMetadata
+from .models import NetworkMetadata
 
 class NetworkAdmin(admin.ModelAdmin):
 

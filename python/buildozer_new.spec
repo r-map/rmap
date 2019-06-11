@@ -7,7 +7,7 @@ title = Rmap
 package.name = rmap
 
 # (str) Package domain (needed for android/ios packaging)
-package.domain = org.test
+package.domain = org.rmap
 
 # (str) Source code where the main.py live
 source.dir = .
@@ -22,15 +22,15 @@ source.dir = .
 source.exclude_exts = spec
 
 # (list) List of directory to exclude (let empty to not exclude anything)
-source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient, test, global_static, amatyr, graphite-dballe, borinud, geoimage, http2mqtt, insertdata, showdata, static, testdata
+source.exclude_dirs = tests, bin, cache, media, data, man, build, dist, doc, PubSubClient, test, global_static, amatyr, graphite-dballe, borinud, geoimage, http2mqtt, insertdata, showdata, static, testdata, rainbo
 
 # (list) List of exclusions using pattern matching
 #source.exclude_patterns = license,images/*/*.jpg
-source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmapgui,amqp2amqp_identvalidationd,amqp2amqp_json2bufr,borinudd,mqtt2dballed,rmapctrl,mqtt2graphited,rmapweb,servicerunning,poweroffd,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3
+source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.sh,README,setup.py,rmap.egg-info,*~,*.jpg,*.jpgnew,*.log,\#*,rmap.sqlite3,amqp2amqp_identvalidationd,amqp2amqp_json2bufrd,amqp2arkimetd,amqp2dballed,amqp2djangod,amqp2geoimaged,amqp2mqttd,buildozer_new.spec,buildozer.spec,composereportd,dballe2arkimet,dumpstation.py,manage.py,mqtt2dballed,mqtt2graphited,poweroffd,README*,rmap-configure,rmapctrl,rmapgui,rmapweb,rmap.wsgi,setup.py,sign.sh,stationd,station_jsonrpc.py
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
-version = 6.28
+version = 8.0
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -41,8 +41,7 @@ version = 6.28
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = sqlite3,openssl,plyer,kivy,futures,requests,pyserial,pyjnius,simplejson,django,configobj,pika,pil
-#requirements = openssl,plyer,kivy,futures,requests,pyjnius
+requirements = python3,kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,Pillow,pytz,requests,android
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -93,25 +92,26 @@ fullscreen = 0
 # (list) Permissions
 android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUETOOTH,BLUETOOTH,BLUETOOTH_ADMIN,WAKE_LOCK,CAMERA,WRITE_EXTERNAL_STORAGE
 
-# (int) Android API to use
-android.api = 19
+# (int) Target Android API, should be as high as possible.
+#android.api = 27
 
-# (int) Minimum API required (8 = Android 2.2 devices)
-android.minapi = 19
+# (int) Minimum API your APK will support.
+#android.minapi = 21
 
 # (int) Android SDK version to use
-android.sdk = 24
-#android.sdk = 21
+#android.sdk = 22
 
 # (str) Android NDK version to use
-android.ndk = 10e
-#android.ndk = 9c
+#android.ndk = 10.3.2
+
+# (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
+#android.ndk_api = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-#android.ndk_path =
+#android.ndk_path = /opt/crystax-ndk-10.3.2
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -119,28 +119,28 @@ android.ndk = 10e
 # (str) ANT directory (if empty, it will be automatically downloaded.)
 #android.ant_path =
 
-# (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-android.p4a_dir = /home/pat1/git/python-for-android
-
-# (str) The directory in which python-for-android should look for your own build recipes (if any)
-#p4a.local_recipes =
-
-# (str) Filename to the hook for p4a
-#p4a.hook =
-
-# (list) python-for-android whitelist
-#android.p4a_whitelist =
-
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
 # android.skip_update = False
 
-# (str) Bootstrap to use for android builds (android_new only)
-# android.bootstrap = sdl2
+# (bool) If True, then automatically accept SDK license
+# agreements. This is intended for automation only. If set to False,
+# the default, you will be shown the license when first running
+# buildozer.
+# android.accept_sdk_license = False
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
+
+# (list) Pattern to whitelist for the whole project
+#android.whitelist =
+
+# (str) Path to a custom whitelist file
+#android.whitelist_src =
+
+# (str) Path to a custom blacklist file
+#android.blacklist_src =
 
 # (list) List of Java .jar files to add to the libs so that pyjnius can access
 # their classes. Don't add jars that you do not need, since extra jars can slow
@@ -152,9 +152,19 @@ android.p4a_dir = /home/pat1/git/python-for-android
 # directory containing the files)
 #android.add_src =
 
-# (str) python-for-android branch to use, if not master, useful to try
-# not yet merged features.
-android.branch = recipe-django
+# (list) Android AAR archives to add (currently works only with sdl2_gradle
+# bootstrap)
+#android.add_aars =
+
+# (list) Gradle dependencies to add (currently works only with sdl2_gradle
+# bootstrap)
+#android.gradle_dependencies =
+
+# (list) Java classes to add as activities to the manifest.
+#android.add_activites = com.example.ExampleActivity
+
+# (str) python-for-android branch to use, defaults to master
+#p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -166,7 +176,10 @@ android.branch = recipe-django
 # (str) XML file to include as an intent filters in <activity> tag
 #android.manifest.intent_filters =
 
-# (list) Android additionnal libraries to copy into libs/armeabi
+# (str) launchMode to set for the main activity
+#android.manifest.launch_mode = standard
+
+# (list) Android additional libraries to copy into libs/armeabi
 #android.add_libs_armeabi = libs/android/*.so
 #android.add_libs_armeabi_v7a = libs/android-v7/*.so
 #android.add_libs_x86 = libs/android-x86/*.so
@@ -184,13 +197,33 @@ android.wakelock = True
 #android.library_references =
 
 # (str) Android logcat filters to use
-android.logcat_filters = *:S python:D
+#android.logcat_filters = *:S python:D
 
 # (bool) Copy library instead of making a libpymodules.so
 #android.copy_libs = 1
 
-# (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86
+# (str) The Android arch to build for, choices: armeabi-v7a, arm64-v8a, x86, x86_64
 android.arch = armeabi-v7a
+
+#
+# Python for android (p4a) specific
+#
+
+# (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
+p4a.source_dir = /home/pat1/git/python-for-android
+
+# (str) The directory in which python-for-android should look for your own build recipes (if any)
+#p4a.local_recipes =
+
+# (str) Filename to the hook for p4a
+#p4a.hook =
+
+# (str) Bootstrap to use for android builds
+# p4a.bootstrap = sdl2
+
+# (int) port number to specify an explicit --port= p4a argument (eg for bootstrap flask)
+#p4a.port =
+
 
 #
 # iOS specific
@@ -198,6 +231,16 @@ android.arch = armeabi-v7a
 
 # (str) Path to a custom kivy-ios folder
 #ios.kivy_ios_dir = ../kivy-ios
+# Alternately, specify the URL and branch of a git checkout:
+ios.kivy_ios_url = https://github.com/kivy/kivy-ios
+ios.kivy_ios_branch = master
+
+# Another platform dependency: ios-deploy
+# Uncomment to use a custom checkout
+#ios.ios_deploy_dir = ../ios_deploy
+# Or specify URL and branch
+ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
+ios.ios_deploy_branch = 1.7.0
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
@@ -216,7 +259,7 @@ log_level = 2
 warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
-build_dir = ../buildozer
+build_dir = ../buildbuildozer
 
 # (str) Path to build output (i.e. .apk, .ipa) storage
 # bin_dir = ./bin

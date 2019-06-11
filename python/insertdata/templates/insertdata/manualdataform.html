@@ -21,8 +21,6 @@
 {% if success  %}
 <div class="alert alert-success" role="alert">{% trans 'OK, data published' %}</div>
 {% endif %}
-
-
 <h3 id="striped-rows">{% trans 'Select coordinates from your stations' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}

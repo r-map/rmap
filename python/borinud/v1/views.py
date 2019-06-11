@@ -53,9 +53,9 @@ class dbajson:
         else:
             self.handle = get_db(dsn=self.dsn,last=self.last).query_data(self.q)
 
-        return self.next()
+        return next(self)
 
-    def next(self):
+    def __next__(self):
 
         if self.format == "geojson" :
             features=[]

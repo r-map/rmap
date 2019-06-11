@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
@@ -45,10 +45,10 @@ def poweroff():
     p.Stop()
 
 def signal_handler(interface,properties,arg0):
-    print "signal received"
-    print "interface=",interface
-    for prop in properties.keys():
-        print prop, properties[prop]
+    print("signal received")
+    print("interface=",interface)
+    for prop in list(properties.keys()):
+        print(prop, properties[prop])
         if prop == "Status" and properties[prop] == 0 :
             poweroff()
     #print arg0
@@ -74,7 +74,7 @@ def main(self):
     #pin 18 in
     properties_manager.Set('org.gpio.myboard.pins.channel18','Pull',"up")
     properties_manager.Set('org.gpio.myboard.pins.channel18','Mode',"in")
-    print "18 status=", properties_manager.Get('org.gpio.myboard.pins.channel18','Status')
+    print("18 status=", properties_manager.Get('org.gpio.myboard.pins.channel18','Status'))
 
     bus.add_signal_receiver(signal_handler, dbus_interface = dbus.PROPERTIES_IFACE, signal_name = "PropertiesChanged")
 

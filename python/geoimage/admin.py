@@ -1,6 +1,6 @@
 from leaflet.admin import LeafletGeoAdmin
 from django.contrib import admin
-from models import GeorefencedImage
+from .models import GeorefencedImage
 
 #from imagekit.admin import AdminThumbnail
 #

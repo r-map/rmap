@@ -136,7 +136,7 @@ else:
 
 
 def enableDebug():
-  for name,obj in globals().items():
+  for name,obj in list(globals().items()):
     try:
       obj.setName(name)
       obj.setDebug(True)

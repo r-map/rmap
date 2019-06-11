@@ -31,5 +31,5 @@ channel.basic_publish(exchange=exchange,
                       body=body,
                       properties=properties)
 
-print " [x] Sent ",body
+print(" [x] Sent ",body)
 connection.close()

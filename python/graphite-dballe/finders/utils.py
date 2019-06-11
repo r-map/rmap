@@ -36,10 +36,7 @@ class FindQuery(object):
             self.pattern, startString, endString)
 
 
-class BaseFinder(object):
-    __metaclass__ = abc.ABCMeta
-
-    # Set to False if this is a remote finder.
+class BaseFinder(object, metaclass=abc.ABCMeta):
     local = True
     # set to True if this finder shouldn't be used
     disabled = False

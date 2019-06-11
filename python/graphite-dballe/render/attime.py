@@ -115,7 +115,7 @@ def parseTimeReference(ref, tzinfo=None, now=None):
       refDate += timedelta(days=1)
 
   elif ref.count('/') == 2: # MM/DD/YY[YY]
-    m,d,y = map(int,ref.split('/'))
+    m,d,y = list(map(int,ref.split('/')))
     if y < 1900: y += 1900
     if y < 1970: y += 100
     refDate = datetime(year=y,month=m,day=d,hour=hour,minute=minute)

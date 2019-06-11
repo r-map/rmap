@@ -118,6 +118,15 @@ configspec['ttn2dballed']['user']     = "string(default=None)"
 configspec['ttn2dballed']['group']    = "string(default=None)"
 configspec['ttn2dballed']['mapfile'] = "string(default='ttnmap')"
 
+configspec['report2observationd']={}
+
+configspec['report2observationd']['logfile']  = "string(default='/tmp/report2observationd.log')"
+configspec['report2observationd']['errfile']  = "string(default='/tmp/report2observationd.err')"
+configspec['report2observationd']['lockfile'] = "string(default='/tmp/report2observationd.lock')"
+configspec['report2observationd']['user']     = "string(default=None)"
+configspec['report2observationd']['group']    = "string(default=None)"
+configspec['report2observationd']['mapfile'] = "string(default='ttnmap')"
+
 
 configspec['amqp2dballed']={}
 configspec['amqp2dballed']['logfile']  = "string(default='/tmp/amqp2dballed.log')"
@@ -213,7 +222,7 @@ for entry in flatten_errors(config, test):
     section_string = ', '.join(section_list)
     if error == False:
         error = 'Missing value or section.'
-    print section_string, ' = ', error
+    print(section_string, ' = ', error)
     raise error
 
 # section django
@@ -389,6 +398,14 @@ lockfilettn2dballed             = config['ttn2dballed']['lockfile']
 userttn2dballed                 = config['ttn2dballed']['user']
 groupttn2dballed                = config['ttn2dballed']['group']
 mapfilettn2dballed              = config['ttn2dballed']['mapfile']
+
+# section report2observationd
+logfilereport2observationd              = config['report2observationd']['logfile']
+errfilereport2observationd              = config['report2observationd']['errfile']
+lockfilereport2observationd             = config['report2observationd']['lockfile']
+userreport2observationd                 = config['report2observationd']['user']
+groupreport2observationd                = config['report2observationd']['group']
+mapfilereport2observationd              = config['report2observationd']['mapfile']
 
 
 
@@ -589,6 +606,7 @@ TEMPLATES= [
 ROOT_URLCONF = 'rmap.urls'
 
 INSTALLED_APPS = [
+    'registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
@@ -601,7 +619,6 @@ INSTALLED_APPS = [
     'rmap',
     'rmap.stations',
     'rmap.network',
-    'registration',
 ]
 
 # if not android :
@@ -1349,8 +1366,8 @@ if LOAD_OPTIONAL_APPS:
                     imp.find_module(moduletree[1], module.__path__) # __path__ is already a list
 
             except ImportError:
-                print "import error: ", app["import"]
-                print "disable     : ", app.get("apps", ())
+                print("import error: ", app["import"])
+                print("disable     : ", app.get("apps", ()))
             else:
                 #print "enable      : ", app.get("apps", ())
                 INSTALLED_APPS += app.get("apps", ())
@@ -1369,7 +1386,7 @@ if not android :
                 'level': 'DEBUG',
                 'class': 'logging.handlers.RotatingFileHandler',
                 'filename': '/tmp/django_rot.log',
-                'maxBytes': '16777216', # 16megabytes
+                'maxBytes': 16777216, # 16megabytes
                 'formatter': 'verbose'
             },
         },

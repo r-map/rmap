@@ -1,6 +1,6 @@
 from django.contrib import admin
-from models import Firmware
-from models import Name
+from .models import Firmware
+from .models import Name
 
 class FirmwareInline(admin.TabularInline):
     model = Firmware

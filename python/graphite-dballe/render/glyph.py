@@ -594,7 +594,7 @@ class Graph:
       r,g,b = value
     elif value in colorAliases:
       r,g,b = colorAliases[value]
-    elif type(value) in (str,unicode) and len(value) >= 6:
+    elif type(value) in (str,str) and len(value) >= 6:
       s = value
       if s[0] == '#': s = s[1:]
       if s[0:3] == '%23': s = s[3:]
@@ -985,7 +985,7 @@ class LineGraph(Graph):
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
     else:
-      params['yUnitSystem'] = unicode(params['yUnitSystem']).lower()
+      params['yUnitSystem'] = str(params['yUnitSystem']).lower()
       if params['yUnitSystem'] not in UnitSystems:
         params['yUnitSystem'] = 'si'
 
@@ -1044,11 +1044,11 @@ class LineGraph(Graph):
     self.setColor( self.foregroundColor )
 
     if params.get('title'):
-      self.drawTitle( unicode( unquote_plus(params['title']) ) )
+      self.drawTitle( str( unquote_plus(params['title']) ) )
     if params.get('vtitle'):
-      self.drawVTitle( unicode( unquote_plus(params['vtitle']) ) )
+      self.drawVTitle( str( unquote_plus(params['vtitle']) ) )
     if self.secondYAxis and params.get('vtitleRight'):
-      self.drawVTitle( unicode( unquote_plus(params['vtitleRight']) ), rightAlign=True )
+      self.drawVTitle( str( unquote_plus(params['vtitleRight']) ), rightAlign=True )
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
@@ -1855,7 +1855,7 @@ class PieGraph(Graph):
         if slice['value'] < 10 and slice['value'] != int(slice['value']):
           label = "%.2f" % slice['value']
         else:
-          label = unicode(int(slice['value']))
+          label = str(int(slice['value']))
       theta = slice['midAngle']
       x = self.x0 + (self.radius / 2.0 * math.cos(theta))
       y = self.y0 + (self.radius / 2.0 * math.sin(theta))

@@ -23,7 +23,7 @@ try:
     django.setup()
 
 except:
-    print "error setting django env"
+    print("error setting django env")
 
 class distclean(Command):
     description = "remove man pages and *.mo files"
@@ -60,7 +60,7 @@ class distclean(Command):
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in files:
                 if name.endswith('.pyc') and os.path.isfile(os.path.join(root, name)):
-                    print 'removing: %s' % os.path.join(root, name)
+                    print('removing: %s' % os.path.join(root, name))
                     if not(self.dry_run): os.remove(os.path.join(root, name))
 
 
@@ -183,7 +183,7 @@ class djangocollectstatic(Command):
 
     def run(self):
 
-        print "execute django collectstatic files"
+        print("execute django collectstatic files")
 
         from django.core import management
         management.call_command("collectstatic", verbosity=0, interactive=False)
@@ -264,10 +264,10 @@ try:
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
 except OSError as e:
-    if (e[0] == errno.EACCES):
-       print >> sys.stderr, "You do not have root permissions to install files in /etc !"
+    if (e.errno == errno.EACCES):
+       print("You do not have root permissions to install files in /etc !", file=sys.stderr)
     else:
-        print >> sys.stderr, "There are some problems to install files in /etc !"
+        print("There are some problems to install files in /etc !", file=sys.stderr)
 
 for dirpath, dirnames, filenames in os.walk('rmap/static'):
     if filenames:
@@ -372,6 +372,7 @@ setup(name='rmap',
                 'graphite-dballe.tags',
                 'graphite-dballe.functions',
                 'firmware_updater','firmware_updater.migrations',
+                'oscpy',
       ],
 
       package_data={
@@ -397,10 +398,10 @@ setup(name='rmap',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ 'Django>=1.11.18',"configobj","plyer","pika","simplejson","futures","requests","pyserial","django-leaflet","django-jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","python-six","python-scandir"],
+      install_requires= [ 'django>=1.9,<1.11.99',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","cookielaw","django-tagging","pytz","six","scandir"],
       extras_require = {
           'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
-                      'django-classy-tags','django_cookie_law']
+                      'classytags','cookielaw']
       },
       #install_requires= [ "django","Cython","pil","pysdl2","kivy","plyer","configobj","pika","simplejson"],
       #setup_requires= [ "django","configobj"],

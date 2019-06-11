@@ -6,8 +6,8 @@ from django.core import validators
 from django import forms
 import re
 import decimal
-from stations.models import StationMetadata
-import settings
+from .stations.models import StationMetadata
+from . import settings
 
 def get_stations():
     stations=[]

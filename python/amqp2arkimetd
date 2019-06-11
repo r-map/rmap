@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # GPL. (C) 2014 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify
@@ -42,7 +42,7 @@ amqp2arkimetd = daemon.Daemon(
 )
 
 def callback(ch, method, properties, body):
-    print " [x] Received message"
+    print(" [x] Received message")
 
 
     try:
@@ -51,14 +51,14 @@ def callback(ch, method, properties, body):
 
 	r = amqp2arkimetd.procs[0].wait()
         if r != 0:
-            print "There were some errors executing arki-scan ({})".format(r)
-            print "----\n{}\n---".format(body)
+            print("There were some errors executing arki-scan ({})".format(r))
+            print("----\n{}\n---".format(body))
             raise arkimet_error
     except:
-        print "There were some errors executing arki-scan"
+        print("There were some errors executing arki-scan")
         # raise TODO: enqueue in error
 
-    print " [x] Done"
+    print(" [x] Done")
     ch.basic_ack(delivery_tag = method.delivery_tag)
 
     # TODO how we can pass procs to daemon ?
@@ -74,7 +74,7 @@ def main(self):
 
     #channel.queue_declare(queue=queue)
 
-    print ' [*] Waiting for messages. To exit press CTRL+C'
+    print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
     channel.basic_consume(callback,

@@ -39,18 +39,18 @@ def compact(mytemplate,mydata):
     totbit+=nbit
 
     #insert data
-    for bcode,meta in rmap_core.ttntemplate[mytemplate].items():
-        print "insert: ", bcode
+    for bcode,meta in list(rmap_core.ttntemplate[mytemplate].items()):
+        print("insert: ", bcode)
         if bcode in mydata:
             bit=int(mydata[bcode]*meta["scale"]-meta["offset"])
         else:
-            print "missed data"
+            print("missed data")
             bit=(1<<meta["nbit"])-1
         template=bitprepend(template,bit,meta["nbit"])
         totbit+=meta["nbit"]
 
-    print "totbit: ",totbit
-    print bin(template)
+    print("totbit: ",totbit)
+    print(bin(template))
 
     #create a list of bytes
     data=bit2bytelist(template,totbit)
@@ -74,6 +74,6 @@ mytemplate=1
 mydata={"B12101":278.5,"B13003":55.}
 
 data=compact(mytemplate,mydata)
-print data
+print(data)
     
-print server.send(payload=data)
+print(server.send(payload=data))

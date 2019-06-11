@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import sys
 import os
@@ -17,7 +17,7 @@ import rmap.rmap_core
 if __name__ == '__main__':
 
     if len(sys.argv) < 2:
-        print "usage: ",sys.argv[0],"station_slug"
+        print(("usage: ",sys.argv[0],"station_slug"))
         sys.exit(1)
 
     objects=[]
@@ -77,5 +77,5 @@ if __name__ == '__main__':
     body = rmap.rmap_core.export2json(objects)
 
 
-    print body
+    print(body)
 

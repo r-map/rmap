@@ -54,7 +54,7 @@ class GeorefencedImage(models.Model):
     geom = PointField()
     comment = models.TextField()
     #image = DeletingImageField()
-    ident = models.ForeignKey(User)
+    ident = models.ForeignKey(User,on_delete=models.CASCADE)
     date=models.DateTimeField(auto_now=False, auto_now_add=False)
     category = models.CharField(max_length=50, blank=False,choices=CATEGORY_CHOICES)
 
@@ -73,7 +73,7 @@ class GeorefencedImage(models.Model):
     @property
     def popupContent(self):
         return \
-            u'\
+            '\
             <p>\
             <a href="#" onClick="window.open(\'/geoimage/{}/{}\',\'geoimage\', \'width=800, height=620\').focus(); return false;" >\
             <img src="/{}" style="float:right;">\

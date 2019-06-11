@@ -43,16 +43,16 @@ class wifi():
 
       status=proc.wait()
       if status != 0:
-         print "There were some errors setting wifi: ",status,self.stderr
+         print("There were some errors setting wifi: ",status,self.stderr)
 
       return status
 
 def main():
    net=wifi()
    stato=net.create(ssid="pat",password="test")
-   print "stato:",stato
-   print "stdout=",net.stdout
-   print "stderr=",net.stderr
+   print("stato:",stato)
+   print("stdout=",net.stdout)
+   print("stderr=",net.stderr)
 
 if __name__ == '__main__':
    main()  # (this code was run as script)

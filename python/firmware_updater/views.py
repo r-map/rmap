@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import FileResponse
-from models import Firmware
+from .models import Firmware
 import os
 import hashlib
 import json
@@ -44,8 +44,8 @@ def update(request,name):
     chip_size  = request.META.get('HTTP_X_ESP8266_CHIP_SIZE')
     sdk_version= request.META.get('HTTP_X_ESP8266_SDK_VERSION')
 
-    print "sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version"
-    print sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version
+    print("sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version")
+    print(sta_mac,ap_mac,free_space,sketch_size,sketch_md5,chip_size,sdk_version)
     
     if sta_mac is None\
        or ap_mac is None\
@@ -59,13 +59,13 @@ def update(request,name):
         
 
     if request.META.get('HTTP_USER_AGENT') != 'ESP8266-http-Update':
-        print "403 Forbidden only for ESP8266 updater!"
+        print("403 Forbidden only for ESP8266 updater!")
         return HttpResponse("403 Forbidden only for ESP8266 updater!",status=403)
 
     try:
         firmware=Firmware.objects.filter(firmware__name=name,active=True,).order_by('date').reverse()[0]
     except:
-        print ' 500 no version for ESP firmware name'
+        print(' 500 no version for ESP firmware name')
         return HttpResponse(' 500 no version for ESP firmware name',status=500)
 
     try:
@@ -73,22 +73,22 @@ def update(request,name):
         swversion=json.loads(request.META.get('HTTP_X_ESP8266_VERSION'))
         swdate = dateutil.parser.parse(swversion["ver"])
     except:
-        print ' 300 No valid version!'
+        print(' 300 No valid version!')
         return HttpResponse(' 300 No valid version!',status=300)
 
     try:
-        print "user: ",swversion["user"]
+        print("user: ",swversion["user"])
     except:
-        print "no user in version"
+        print("no user in version")
     try:
-        print "slug: ",swversion["slug"]
+        print("slug: ",swversion["slug"])
     except:
-        print "no slug in version"
+        print("no slug in version")
 
     try:
-        print "boardslug: ",swversion["bslug"]
+        print("boardslug: ",swversion["bslug"])
     except:
-        print "no board slug in version; set default"
+        print("no board slug in version; set default")
         swversion["bslug"]="default"
 
     try:
@@ -98,35 +98,35 @@ def update(request,name):
 
         if hasattr(myboard, 'boardfirmwaremetadata'):
             if not myboard.boardfirmwaremetadata.mac:
-                print "update missed mac in firmware updater"
+                print("update missed mac in firmware updater")
                 myboard.boardfirmwaremetadata.mac=make_password(sta_mac)
                 myboard.boardfirmwaremetadata.save(update_fields=['mac',])
         else:
-            print "add firmware metadata to board"
+            print("add firmware metadata to board")
             bfm=BoardFirmwareMetadata(board=myboard,mac=make_password(sta_mac))
             myboard.boardfirmwaremetadata=bfm
             myboard.save()
         if check_password(sta_mac, myboard.boardfirmwaremetadata.mac):
-            print "update firmware metadata"
+            print("update firmware metadata")
             myboard.boardfirmwaremetadata.swversion=swversion["ver"]
             myboard.boardfirmwaremetadata.swlastupdate=django.utils.timezone.now()            
             myboard.boardfirmwaremetadata.save()
         else:
-            print "WARNING! mac mismach in firmware updater"
+            print("WARNING! mac mismach in firmware updater")
             
     except:
-        print "user/station/board not present on DB; ignore it"
+        print("user/station/board not present on DB; ignore it")
         traceback.print_exc()
 
     if swdate >= firmware.date.replace(tzinfo=None):
-        print ' 304 No new firmware'
+        print(' 304 No new firmware')
         return HttpResponse(' 304 No new firmware',status=304)
     
     mymd5=md5(firmware.file.path)
     mysize=os.path.getsize(firmware.file.path)
 
     if sketch_md5 == mymd5:
-        print ' 304 Not Modified'
+        print(' 304 Not Modified')
         return HttpResponse(' 304 Not Modified',status=304)
     
     response=FileResponse(open(firmware.file.path,'rb'))    
@@ -136,6 +136,6 @@ def update(request,name):
     #https://tools.ietf.org/html/rfc1864#section-2
     response['x-MD5']= mymd5 
 
-    print "send new firmware"
+    print("send new firmware")
     return response
     

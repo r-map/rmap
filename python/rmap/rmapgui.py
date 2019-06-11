@@ -37,7 +37,7 @@ from kivy.lang import Builder
 from kivy.adapters.dictadapter import DictAdapter
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.listview import ListView, ListItemButton
-from gps import *
+from .gps import *
 from kivy.properties import StringProperty
 from kivy.clock import Clock, mainthread
 import re,os
@@ -46,25 +46,27 @@ import webbrowser
 import random
 import time
 from datetime import datetime, timedelta
-import rmapstation
-import btable
-import tables
-import jsonrpc
-from sensordriver import SensorDriver
+from . import rmapstation
+from . import btable
+from . import tables
+from . import jsonrpc
+from .sensordriver import SensorDriver
 from mapview import MapMarkerPopup
 from mapview import MapView
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.contrib.auth.models import User
-from stations.models import StationMetadata,StationConstantData
+from .stations.models import StationMetadata,StationConstantData
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from kivy.lib import osc
+#from kivy.lib import osc
+from oscpy.server import OSCThreadServer
+from oscpy.client import send_message
 from kivy.utils import platform
 from kivy.uix.widget import Widget
 import traceback
 from glob import glob
-from utils import nint
+from .utils import nint
 import rmap.rmap_core
 from rmap import exifutils
 import rmap.settings
@@ -76,19 +78,22 @@ QUEUEDIMAGES="queuedphoto_*.jpg"
 def queuednewfilename():
     i = 0
     while os.path.exists("queuedphoto_%3.3d.jpg" % i):
-        print "search for new filename; found file: queuedphoto_%3.3d.jpg" % i
+        print("search for new filename; found file: queuedphoto_%3.3d.jpg" % i)
         i += 1
-    print "new filename: queuedphoto_%3.3d.jpg" % i
+    print("new filename: queuedphoto_%3.3d.jpg" % i)
     return "queuedphoto_%3.3d.jpg" % i
 
 def queuedfilename():
     files = glob(QUEUEDIMAGES)
     try:
         sfiles=sorted(files)
-        print "found queued files:", sfiles
-        return sfiles[0]
+        print("found queued files:", sfiles)
+        if len(sfiles) > 0:
+            return sfiles[0]
+        else:
+            return None
     except Exception as e:
-        print e
+        print(e)
         return None
 
 if platform == 'android':
@@ -105,11 +110,11 @@ elif platform == 'macosx':
     station_default= "BT_fixed"
     board_default= "BT_fixed_OSX"
 elif platform == 'ios':
-    print "ios platform not tested !!!!!"
+    print("ios platform not tested !!!!!")
     station_default= "BT_fixed"
     board_default= "BT_fixed_IOS"
 else:
-    print "platform unknown !!!!"
+    print("platform unknown !!!!")
     station_default= "BT_fixed"
     board_default= "BT_fixed"
 
@@ -880,11 +885,11 @@ class values(tables.Table):
         self.value = None
 
         if len(list_adapter.selection) > 0:
-            for key,item in self.iteritems():
+            for key,item in self.items():
                 if str(item) == list_adapter.selection[0].text:
                     self.value = item.code
 
-        print "table values changed to: ",self.value
+        print("table values changed to: ",self.value)
 
 
 class PresentwView(GridLayout):
@@ -933,7 +938,7 @@ class PresentwView(GridLayout):
 def to_background(*args):
     from jnius import cast
     from jnius import autoclass
-    PythonActivity = autoclass('org.renpy.android.PythonActivity')
+    PythonActivity = autoclass('org.kivy.android.PythonActivity')
     currentActivity = cast('android.app.Activity', PythonActivity.mActivity)
     currentActivity.moveTaskToBack(True)
 
@@ -1040,7 +1045,7 @@ class Rmap(App):
     use_kivy_settings = False
     trip=False
 
-    rpcin_message=""
+    rpcin_message=None
     #settings_cls=SettingsWithSidebar
     #settings_cls=SettingsWithSpinner
     #settings_cls=SettingsWithTabbedPanel
@@ -1094,7 +1099,10 @@ class Rmap(App):
         self.location=self.config.get('location','name')
         self.lon=float(self.config.get('location','lon'))
         self.lat=float(self.config.get('location','lat'))
-        self.height=float(self.config.get('location','height'))
+        height=self.config.get('location','height')
+        if height == "None":
+            height="0"
+        self.height=float(height)
         self.board_status=_("Transport Status: OFF")
         self.service = None
         self.servicename = None
@@ -1109,13 +1117,14 @@ class Rmap(App):
                 self.servicename=fhandle.read()
                 fhandle.close()
             except:
-                print "ERROR reading servicerunning file"
+                print("ERROR reading servicerunning file")
                 os.remove("servicerunning")
 
         #self.start_service()
-        osc.init()
-        self.oscid = osc.listen(port=3001)
-        osc.bind(self.oscid, self.rpcin, '/rpc')
+        #osc.init()
+        self.osc = OSCThreadServer()
+        sock = self.osc.listen(port=3001, default=True)
+        self.osc.bind(b'/rpc', self.rpcin)
         #this seems do not work in on_resume environment
         #Clock.schedule_interval(lambda *x: osc.readQueue(self.oscid), 0)
         ##Clock.schedule_interval(self.rpcout, 5)
@@ -1123,10 +1132,10 @@ class Rmap(App):
         Clock.schedule_once(self.backorfore, 0)
 
         self.username=self.config.get('rmap','user')
-        print "updateusername"
+        print("updateusername")
         if rmap.rmap_core.updateusername(newusername=self.username) > 0:
-            print "out of sync"
-            print "sync data from config to db" # and preserve active status ?
+            print("out of sync")
+            print("sync data from config to db") # and preserve active status ?
             self.config2db()
 
         root= Builder.load_string(kv)
@@ -1211,13 +1220,13 @@ class Rmap(App):
 
         try:
 
-            print "trip=",self.trip\
-                        ,"username=",self.config.get('rmap','user')
-            print "station=",self.config.get('sensors','station')\
+            print("trip=",self.trip\
+                        ,"username=",self.config.get('rmap','user'))
+            print("station=",self.config.get('sensors','station')\
                         ,"board=",self.config.get('sensors','board')\
                         ,"template=",self.config.get('sensors','template')\
                         ,"remote board=",self.config.get('sensors','remote_board')\
-                        ,"template=",self.config.get('sensors','remote_template')
+                        ,"template=",self.config.get('sensors','remote_template'))
 
 
             self.mystation=rmapstation.station(trip=self.trip,gps=self.gps,
@@ -1250,7 +1259,7 @@ class Rmap(App):
 
             #except:
 
-            print "restart everithings with default"
+            print("restart everithings with default")
             self.resettodefault()
 
         self.stationstatus()
@@ -1284,8 +1293,8 @@ class Rmap(App):
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
             except Exception as e:
-                print e
-                print "WARNING: data not synced with server"
+                print(e)
+                print("WARNING: data not synced with server")
                 traceback.print_exc()
                 self.popup(_("data not\nsynced with server"))
 
@@ -1297,19 +1306,23 @@ class Rmap(App):
         called on appication stop
         Here you can save data if needed
         '''
-        print ">>>>>>>>> called on appication stop"
+        print(">>>>>>>>> called on appication stop")
 
         #self.stop_service()
 
         self.mystation.on_stop()
-
-
+        try:
+            self.osc.stop()
+        except Exception as e:
+            print(e)
+            print ("continue anyway")
+            
     def on_pause(self):
         '''
         called on application pause
         Here you can save data if needed
         '''
-        print ">>>>>>>>> called on application pause"
+        print(">>>>>>>>> called on application pause")
 
         if self.mqtt_connected:
             self.mqtt_reconnectonresume=True
@@ -1327,7 +1340,7 @@ class Rmap(App):
 
     def backorfore(self,dt):
         if self.servicename == "station" and platform == 'android':
-            print self.servicename,"lock screen"
+            print(self.servicename,"lock screen")
 
             def stopstation(*args):
                 self.stopservicestation()
@@ -1351,7 +1364,7 @@ class Rmap(App):
             popup.open()
 
         if self.servicename == "webserver" and platform == 'android':
-            print self.servicename," stop service"
+            print(self.servicename," stop service")
             self.stop_service()
 
 
@@ -1360,18 +1373,18 @@ class Rmap(App):
         called on appication resume
         Here you can check if any data needs replacing (usually nothing)
         '''
-        print ">>>>>>>>> called on appication resume"
+        print(">>>>>>>>> called on appication resume")
 
         self.backorfore(0)
         self.mystation.on_resume()
 
 
         if self.mqtt_reconnectonresume :
-            print "start mqtt"
+            print("start mqtt")
             self.startmqtt()
 
         if self.gps_reconnectonresume :
-            print "start gps"
+            print("start gps")
             self.gps.start()
 
 
@@ -1379,9 +1392,9 @@ class Rmap(App):
 
 
 
-    def close_settings(self,settings):
+    def close_settings(self,settings=None):
         """ The settings panel has been closed. """
-        print "Setting was closed"
+        print("Setting was closed")
         self.questionactivatestation()
         super(Rmap, self).close_settings(settings)
 
@@ -1415,12 +1428,12 @@ class Rmap(App):
 
     def activatestation(self,*args):
         #activate station
-        print "activate station"
+        print("activate station")
 
 
         connected=self.mqtt_connected
         if connected:
-            print "disconnect MQTT with old parameter"
+            print("disconnect MQTT with old parameter")
             self.stopmqtt()
 
         self.config2db(activate=True)
@@ -1440,11 +1453,11 @@ class Rmap(App):
             self.stationstatus()
 
         except Exception as e:
-            print e
-            print "ERROR recreating rmapstaton.station"
+            print(e)
+            print("ERROR recreating rmapstaton.station")
 
         if connected:
-            print "reconnect MQTT with new parameter"
+            print("reconnect MQTT with new parameter")
             self.startmqtt()
 
         self.questionpopup.dismiss()
@@ -1457,14 +1470,14 @@ class Rmap(App):
                     password=self.config.get('rmap','password'),
                     host=self.config.get('rmap','server'))
             except Exception as e:
-                print e
-                print "WARNING: data not synced with server"
+                print(e)
+                print("WARNING: data not synced with server")
                 traceback.print_exc()
                 self.popup(_("data not\nsynced with server"))
 
     def disablestation(self,*args):
         #none station
-        print "disable station"
+        print("disable station")
         #self.config2db(activate=False)
         rmap.rmap_core.activatestation(username=self.config.get('rmap','user'),
                              station=self.config.get('sensors','station'),
@@ -1494,45 +1507,45 @@ class Rmap(App):
             token = (section, key)
 
             if token == ('general', 'language'):
-                print('language have been changed to', value)
+                print(('language have been changed to', value))
                 languagechanged = True
 
             elif token == ('rmap', 'server'):
-                print('server have been changed to', value)
+                print(('server have been changed to', value))
                 rmapchanged = True
             elif token == ('rmap', 'user'):
-                print('user have been changed to', value)
-                print "updateusername"
+                print(('user have been changed to', value))
+                print("updateusername")
                 rmap.rmap_core.updateusername(oldusername=self.username,newusername=value)
                 self.username=value
                 rmapchanged = True
             elif token == ('rmap', 'password'):
-                print('password have been changed to', value)
+                print(('password have been changed to', value))
                 rmap.rmap_core.updateusername(oldusername=self.username,newusername=self.username,newpassword=value)
                 rmapchanged = True
             elif token == ('rmap', 'samplerate'):
-                print('samplerate have been changed to', value)
+                print(('samplerate have been changed to', value))
                 rmapchanged = True
             elif token == ('location', 'name'):
-                print('location name have been changed to', value)
+                print(('location name have been changed to', value))
                 locationchanged = True
             elif token == ('location', 'mobile'):
-                print('location mobile have been changed to', value)
+                print(('location mobile have been changed to', value))
                 locationchanged = True
             elif token == ('location', 'lat'):
-                print('lat have been changed to', value)
+                print(('lat have been changed to', value))
                 locationchanged = True
             elif token == ('location', 'lon'):
-                print('lon have been changed to', value)
+                print(('lon have been changed to', value))
                 locationchanged = True
             elif token == ('location', 'height'):
-                print('height have been changed to', value)
+                print(('height have been changed to', value))
                 locationchanged = True
             elif token == ('sensors', 'name'):
-                print('sensors name have been changed to', value)
+                print(('sensors name have been changed to', value))
                 sensorschanged = True
             elif token == ('sensors', 'station'):
-                print('sensors station have been changed to', value)
+                print(('sensors station have been changed to', value))
                 mystation=StationMetadata.objects.get(slug=self.config.get('sensors','station'),ident__username=self.config.get('rmap','user'))
 
                 self.stationstatus()
@@ -1541,22 +1554,22 @@ class Rmap(App):
                     config.set('sensors', 'board', str(board.slug))
                     config.set('sensors', 'remote_board', str(board.slug))
                 except:
-                    print "No board and remote board for:", mystation
+                    print("No board and remote board for:", mystation)
                     config.set('sensors', 'board',None)
                     config.set('sensors', 'remote_board', None)
 
                 sensorschanged = True
 
             elif token == ('sensors', 'board'):
-                print('sensors board have been changed to', value)
+                print(('sensors board have been changed to', value))
                 sensorschanged = True
 
             elif token == ('sensors', 'template'):
-                print('sensors template have been changed to', value)
+                print(('sensors template have been changed to', value))
                 sensorschanged = True
 
             elif token == ('sensors', 'remote_template'):
-                print('sensors remote_template have been changed to', value)
+                print(('sensors remote_template have been changed to', value))
                 #rmap.rmap_core.addsensors_by_template(
                 #    station_slug=self.config.get('sensors','station')
                 #    ,username=self.config.get('rmap','user')
@@ -1566,7 +1579,7 @@ class Rmap(App):
 
 
             if locationchanged:
-                print "update location with new parameter"
+                print("update location with new parameter")
 
                 ##self.config2db(activate=True)
                 #rmap.rmap_core.activatestation(username=self.config.get('rmap','user'),
@@ -1605,7 +1618,7 @@ class Rmap(App):
                 self.updatelocation()
 
                 if token == ('sensors', 'station'):
-                    super(Rmap, self).close_settings()
+                    super(Rmap, self).close_settings(None)
                     self.destroy_settings()
                     self.open_settings()
 
@@ -1671,7 +1684,7 @@ class Rmap(App):
                 ,template=self.config.get('sensors','remote_template'))
 
         except Exception as e:
-            print e
+            print(e)
             traceback.print_exc()
             self.popup(_("Error\nsetting station"))
 
@@ -1682,15 +1695,29 @@ class Rmap(App):
 
     def start_service(self,cmdservice="webserver"):
         if platform == 'android':
-            from android import AndroidService
-            self.service = AndroidService('rmap background',cmdservice)
-            self.service.start(cmdservice) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
+            #from android import AndroidService
+            #self.service = AndroidService('rmap background',cmdservice)
+            #self.service.start(cmdservice.encode()) # Argument to pass to a service, through the environment variable PYTHON_SERVICE_ARGUMENT.
 
+            import android
+            android.start_service(title=cmdservice.encode(),
+                                  description=cmdservice.encode(),
+                                  arg=cmdservice.encode())
+            self.service = cmdservice            
+            #package_name = cmdservice
+            #argument = ''
+            #from jnius import autoclass
+            #service = autoclass('{}.Service{}'.format(package_name, cmdservice))
+            #mActivity = autoclass('org.kivy.android.PythonActivity').mActivity
+            #service.start(mActivity, argument)
+            
     def stop_service(self):
-        if self.service:
-            self.service.stop()
-            self.service = None
-
+        import android
+        android.stop_service()
+        self.service = None
+        #if self.service:
+        #    self.service.stop()
+        #    self.service = None
 
     def build_config(self, config):
 
@@ -1917,7 +1944,7 @@ class Rmap(App):
             self.mystation.stoptransport()
             self.board_status='Transport Status: OFF'
         except:
-            print "error in stoptransport"
+            print("error in stoptransport")
             self.board_status='Transport Status: ERROR'
 
 
@@ -1930,12 +1957,11 @@ class Rmap(App):
             rpcproxy.togglepin({"n":n,"s":status})
         except:
             self.popup(_("toggle\nrelay\nfailed!"))
-            
 
     def resettodefault(self):
 
         try:
-            print "restart everithings with default"
+            print("restart everithings with default")
             self.config.set('sensors', 'station',station_default)
             self.config.set('sensors', 'board',board_default)
             self.config.set('sensors', 'template',template_default)
@@ -1960,9 +1986,9 @@ class Rmap(App):
                                                logfunc=jsonrpc.log_stdout)
             
         except Exception as e:
-            print e
-            print "ERROR: cannot get a good station from DB !"
-            print "WARNING: data not synced with server"
+            print(e)
+            print("ERROR: cannot get a good station from DB !")
+            print("WARNING: data not synced with server")
             traceback.print_exc()
             #raise SystemExit(0)
             raise
@@ -2003,8 +2029,8 @@ class Rmap(App):
 
             #self.mystation.stoptransport()
         except Exception as e:
-            print e
-            print "ERROR configure board"
+            print(e)
+            print("ERROR configure board")
             traceback.print_exc()
             self.board_status=_("Transport Status: CONFIG ERROR")
             self.popup(_("ERROR configure\nboard"))
@@ -2027,7 +2053,7 @@ class Rmap(App):
             datavars=self.mystation.getdata_loop(trip=self.trip)
             message=""
             for datavar in datavars:
-                for bcode,data in datavar.iteritems():
+                for bcode,data in datavar.items():
                     message += str(self.table[bcode])+": "+ data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
 
             self.boardmessage.append(message)
@@ -2040,7 +2066,7 @@ class Rmap(App):
             self.board_status=_("Transport Status: OK")+_(" err: ")+ str(self.getdataerror)
 
         except:
-            print "ERROR executing getdata"
+            print("ERROR executing getdata")
 
             self.popup(_("ERROR getting\ndata"))
             self.getdataerror+=1
@@ -2048,7 +2074,7 @@ class Rmap(App):
         
         else:
             if not datavars:
-                print "ERROR executing getdata: no data returned"
+                print("ERROR executing getdata: no data returned")
 
                 self.popup(_("ERROR no data\nreturned"))
                 self.getdataerror+=1
@@ -2102,16 +2128,16 @@ class Rmap(App):
 
 
 
-    def rpcin(self, message, *args):
-        print "RPC: ",message[2]
-        self.rpcin_message=message[2]
+    def rpcin(self, message):
+        print("gui RPC: {}".format(message))
+        print(message)
+        self.rpcin_message=message
 
     #def rpcout(self, *args):
     #    osc.sendMsg('/rpc', ["testinout",], port=3000)
 
     def rpcout(self, message):
-        osc.sendMsg('/rpc', [message,], port=3000)
-
+        send_message(b'/rpc', [message,],ip_address='localhost', port=3000)
 
 
     def servicewebserver(self):
@@ -2192,24 +2218,28 @@ class Rmap(App):
 
         if self.servicename=="station":
 
-            print "send stop message to rpc"
-            self.rpcout("stop")
-            starttime= datetime.utcnow()            
-            osc.readQueue(self.oscid)
-            while self.rpcin_message != "stopped":
-                print ">>>>> ----- rpcin message: ", self.rpcin_message
-                time.sleep(.1)
-                osc.readQueue(self.oscid)
-                if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
-                    print "RPCIN timeout"
-                    break
-            print "if not timeout received stopped message from rpc"
-            self.stop_service()
-            self.rpcin_message = ""
-            self.servicename=None
-            os.remove("servicerunning")
-
-
+            try:
+                print("send stop message to rpc")
+                self.rpcout(b"stop")
+                starttime= datetime.utcnow()            
+                #osc.readQueue(self.oscid)
+                while self.rpcin_message != b"stopped":
+                    print(">>>>> ----- rpcin message: ", self.rpcin_message)
+                    time.sleep(.1)
+                    #osc.readQueue(self.oscid)
+                    if (datetime.utcnow()-starttime) > timedelta(seconds=15) :
+                        print("RPCIN timeout")
+                        print("not received <stopped> message from rpc: time out")
+                        break
+                self.stop_service()
+                self.rpcin_message = b""
+                self.servicename=None
+                os.remove("servicerunning")
+            except Exception as e:
+                print(e)
+                traceback.print_exc()                
+                print ("ERROR stopping service station")
+                
     def popup(self,message,exit=False):
 
         # open only one notification popup (the last)
@@ -2277,7 +2307,7 @@ class Rmap(App):
             webbrowser.open("http://"+self.config.get('rmap','server')+"/stations/"+self.config.get('rmap','user')+"/"+self.config.get('sensors','station').split("/")[0])
 
     def starttrip(self):
-        print "network: ",self.mystation.network
+        print("network: ",self.mystation.network)
         if not self.mystation.ismobile():
             self.popup(_("the station in\nuse is not of\ntype mobile"))
             self.root.ids["trip"].state="normal"
@@ -2336,7 +2366,10 @@ class Rmap(App):
         '''
 
         self.root.ids["marker"].location(self.lat,self.lon)
-        self.root.ids["markerlabel"].text= self.str_lat_lon_height % (self.location,self.lat,self.lon,self.height)
+        height=self.height
+        if height is None:
+            height=0
+        self.root.ids["markerlabel"].text= self.str_lat_lon_height % (self.location,self.lat,self.lon,height)
 
         self.root.ids["mapview"].do_update(10)
         height=self.height
@@ -2385,7 +2418,7 @@ class Rmap(App):
             self.popup(_("travel active\ncannot save\nretry"))
 
         else:
-            print "save new location in config"
+            print("save new location in config")
 
             self.movelocation()
 
@@ -2435,14 +2468,14 @@ class Rmap(App):
         if (len(self.mystation.anavarlist) > maxshowqueue) :
              stringa+=">>"+_("SHOW ONLY LAST")+" "+str(maxshowqueue)+"\n"
         for item in self.mystation.anavarlist[-maxshowqueue:]:
-            for bcode,data in item["anavar"].iteritems():
+            for bcode,data in item["anavar"].items():
                 stringa += str(self.table[bcode])+" {:4.5f}".format(item["coord"]["lat"])+",{:4.5f} ".format(item["coord"]["lon"])+" -> "+str(data["v"])+"\n"
 
         stringa+=">> "+_("STATION DATA QUEUED:")+" "+str(len(self.mystation.datavarlist))+"\n"
         if (len(self.mystation.datavarlist) > maxshowqueue) :
              stringa+=">>"+_("SHOW ONLY LAST")+" "+str(maxshowqueue)+"\n"
         for item in self.mystation.datavarlist[-maxshowqueue:]:
-            for bcode,data in item["datavar"].iteritems():
+            for bcode,data in item["datavar"].items():
                 stringa += str(self.table[bcode])+" {:4.5f}".format(item["coord"]["lat"])+",{:4.5f} ".format(item["coord"]["lon"])+data["t"].strftime("%d/%m/%y %H:%M:%S")+" -> "+str(data["v"])+"\n"
         return stringa
 
@@ -2479,7 +2512,7 @@ class Rmap(App):
 
 
         try:
-            print self.present_weather_table.value
+            print(self.present_weather_table.value)
             if self.present_weather_table.value is not None:
                 value=self.present_weather_table.value
                 datavar={"B20003":{"t": datetime.utcnow(),"v": str(value)}}
@@ -2497,7 +2530,7 @@ class Rmap(App):
         self.present_weather_table.value=None
 
 
-        print self.mystation.datavarlist
+        print(self.mystation.datavarlist)
         self.root.ids["queue"].text=self.queue2str()
 
         if os.path.isfile(PHOTOIMAGE):
@@ -2576,8 +2609,8 @@ class Rmap(App):
 
 
             except Exception as e:
-                print e
-                print "WARNING: photo not queued"
+                print(e)
+                print("WARNING: photo not queued")
                 traceback.print_exc()
                 self.popup(_("problems with\nCamera!"))
                 #os.rename(PHOTOIMAGE,QUEUEDIMAGE)
@@ -2636,7 +2669,7 @@ class Rmap(App):
             try:
                 os.makedirs(dir)
             except:
-                print "error makedirs:",dir
+                print("error makedirs:",dir)
 
             fn = dir + '/rmap_picture.jpg'
             if os.path.isfile(fn):
@@ -2666,7 +2699,7 @@ class Rmap(App):
 
 
     def photo_done(self, filename): #receive filename as the image location
-        print "photo is in: ",filename
+        print("photo is in: ",filename)
 
         import shutil
         shutil.copyfile(filename, PHOTOIMAGE)
@@ -2710,7 +2743,7 @@ class Rmap(App):
         '''
         This function manage jsonrpc messages.
         '''
-        print "call in getdata_loop"
+        print("call in getdata_loop")
 
         self.getdata()
 
@@ -2724,14 +2757,14 @@ class Rmap(App):
         '''
         This function publish mqtt messages.
         '''
-        print "call in publishmqtt_loop"
+        print("call in publishmqtt_loop")
 
         if self.mystation.active:
             try:
                 self.mystation.publishmqtt_loop()
 
             except:
-                print "error in publishmqtt_loop"
+                print("error in publishmqtt_loop")
 
             self.root.ids["queue"].text=self.queue2str()
 
@@ -2751,7 +2784,7 @@ class Rmap(App):
         '''
         This function publish photo to amqp broker.
         '''
-        print "call in publishphoto_loop"
+        print("call in publishphoto_loop")
 
         try:
 
@@ -2760,9 +2793,9 @@ class Rmap(App):
 
                     #self.notify(_("Wait"))
 
-                    print "send image: ",file
+                    print("send image: ",file)
                     # read image in memory.
-                    photo_file = open(file,"r")
+                    photo_file = open(file,"rb")
                     body = photo_file.read()
                     photo_file.close()
 
@@ -2821,6 +2854,8 @@ class Rmap(App):
 
         self.gps_location = _("GPS: new coordinate acquired")
         self.root.ids["mapview"].center_on(lat,lon)
+        if (height is None):
+            height=0        
         self.root.ids["height"].text= self.str_Height.format(height)
 
         if self.trip and kwargs["gpsfix"]:

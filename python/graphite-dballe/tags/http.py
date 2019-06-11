@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 
 from binascii import b2a_base64
 import sys
@@ -31,7 +31,7 @@ class HttpTagDB(BaseTagDB):
       headers['Authorization'] = 'Basic ' + user_pw_b64
 
     req_fields = []
-    for (field, value) in fields.items():
+    for (field, value) in list(fields.items()):
       if value is None:
         continue
 
@@ -60,7 +60,7 @@ class HttpTagDB(BaseTagDB):
     headers = [
       header + '=' + value
       for (header, value)
-      in (requestContext.get('forwardHeaders', {}) if requestContext else {}).items()
+      in list((requestContext.get('forwardHeaders', {}) if requestContext else {}).items())
     ]
 
     return 'TagDB.find_series:' + ':'.join(sorted(tags)) + ':' + ':'.join(sorted(headers))

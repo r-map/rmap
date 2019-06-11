@@ -23,10 +23,12 @@ import dballe
 import json
 from datetime import datetime
 import tempfile
+import codecs
+from itertools import groupby
 
 try:
-    from urllib import quote
-    from urllib2 import urlopen
+    from urllib.parse import quote
+    from urllib.request import urlopen
 except ImportError:
     from urllib.request import urlopen
     from urllib.parse import quote
@@ -38,7 +40,7 @@ def get_db(dsn="report",last=True):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
-            k: v for k, v in i.items() if k != "class"
+            k: v for k, v in list(i.items()) if k != "class"
         })
         for i in (BORINUDLAST[dsn]["SOURCES"] if last else BORINUD[dsn]["SOURCES"])
     ]
@@ -81,18 +83,75 @@ class DB(object):
         raise NotImplementedError()
 
 
+
+class MergeDBfake(DB):
+    """Container for DB."""
+
+    def __init__(self, dbs):
+        self.dbs=dbs
+
+    def __open_db(self,rec):
+        """Open the database."""
+        memdb = dballe.DB.connect_from_url("mem:")
+        for db in self.dbs:
+            print ("copydb: ",db,rec)
+            db.fill_db(rec,memdb)
+        return memdb
+
+    def query_stations(self, rec):
+        db = self.__open_db(rec)
+        return db.query_station_data(rec)
+
+    def query_summary(self, rec):
+        db = self.__open_db(rec)
+        rec["query"] = "details"
+        return db.query_summary(rec)
+
+    def query_data(self, rec):
+        db = self.__open_db(rec)
+        return db.query_data(rec)
+
+    def fill_db(self, rec, memdb):
+        for r in self.query_data(rec):
+            del r["ana_id"]
+            del r["data_id"]
+            memdb.insert_data(r, True, True)
+
+
 class MergeDB(DB):
     """Container for DB."""
     def __init__(self, dbs):
         self.dbs = dbs
 
     def unique_record_key(self, rec):
-        return tuple(map(rec.get, (
-            "ident", "lon", "lat", "rep_memo", "var", "level", "trange",
+        """Create a string from a record, based on ident, lon, lat, rep_memo,
+        trange, level and var values. Null values are encoded as "-"."""
+        def if_null(value, default="-"):
+            return value if value is not None else default
+
+        return (
+            "{}/"
+            "{},{}/"
+            "{}/"
+            "{},{},{}/"
+            "{},{},{},{}/"
+            "{}"
+        ).format(*map(if_null, (
+            rec.get("ident"),
+            rec.key("lon").enqi(),
+            rec.key("lat").enqi(),
+            rec.get("rep_memo"),
+            rec.get("trange")[0],
+            rec.get("trange")[1],
+            rec.get("trange")[2],
+            rec.get("level")[0],
+            rec.get("level")[1],
+            rec.get("level")[2],
+            rec.get("level")[3],
+            rec.get("var"),
         )))
 
     def get_unique_records(self, funcname, rec, reducer):
-        from itertools import groupby
         for k, g in groupby(sorted([
             r.copy() for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
@@ -100,13 +159,13 @@ class MergeDB(DB):
 
     def query_stations(self, rec):
         for r in self.get_unique_records(
-            "query_stations", rec, lambda g: g.next()
+            "query_stations", rec, lambda g: next(g)
         ):
             yield r.copy()
 
     def query_summary(self, rec):
         def reducer(g):
-            rec = g.next()
+            rec = next(g)
             for r in g:
                 if r["datemin"] < rec["datemin"]:
                     rec["datemin"] = r["datemin"]
@@ -178,8 +237,8 @@ class SummaryCacheDB(DB):
             "lon": o.key("lon").enqi(),
             "lat": o.key("lat").enqi(),
             "rep_memo": o.get("rep_memo"),
-            "level": o.get("level"),
-            "trange": o.get("trange"),
+            "level": list(map(o.get, ("leveltype1", "l1", "leveltype2", "l2"))),
+            "trange": list(map(o.get, ("pindicator", "p1", "p2"))),
             "bcode": o.get("var"),
             "date": o.date_extremes(),
         } for o in res]
@@ -246,10 +305,10 @@ class SummaryCacheDB(DB):
         return self.db.query_stations(rec)
 
     def query_summary(self, rec):
-        return filter(
+        return list(filter(
             self.get_filter_summary(rec),
             self.get_cached_summary()
-        )
+        ))
 
     def query_data(self, rec):
             return self.db.query_data(rec)
@@ -316,13 +375,13 @@ class ArkimetVm2DB(DB):
 
         q["reftime"] = ",".join(q["reftime"])
         q["area"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"].items()
         ]))
         q["product"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["product"].iteritems()
+            "{}={}".format(k, v) for k, v in q["product"].items()
         ]))
 
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
 
         return arkiquery
 
@@ -333,7 +392,7 @@ class ArkimetVm2DB(DB):
                 "style": "postprocess",
                 "command": "json",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         for f in json.load(r)["features"]:
             p = f["properties"]
@@ -360,7 +419,7 @@ class ArkimetVm2DB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "json",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         for i in json.load(r)["items"]:
             if not "va" in  i["area"] or not "va" in i["product"]:
@@ -441,8 +500,10 @@ class ArkimetBufrDB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "json",
                 "query": query,
-            }.iteritems()]))
-        r = urlopen(url)
+            }.items()]))
+
+        reader = codecs.getreader("utf-8")
+        r = reader(urlopen(url))
         for i in json.load(r)["items"]:
             for m in self.measurements:
                 if all([
@@ -491,7 +552,8 @@ class ArkimetBufrDB(DB):
                                                           "pindicator", "p1", "p2",
                                                           "var"]]),
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
+
 
         return urlopen(url)
 
@@ -526,7 +588,7 @@ class ArkimetBufrDB(DB):
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "data",
                 "query": query,
-            }.iteritems()]))
+            }.items()]))
         r = urlopen(url)
         db.load(r, "BUFR")
 
@@ -564,9 +626,9 @@ class ArkimetBufrDB(DB):
         q["reftime"] = ",".join(q["reftime"])
 
         q["area"] = "GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"]["fixed"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"]["fixed"].items()
         ])) + " or GRIB:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"]["mobile"].iteritems()
+            "{}={}".format(k, v) for k, v in q["area"]["mobile"].items()
         ]))
 
         if "lonmin" in rec and "latmin" in rec and "lonmax" in rec and "latmax" in rec:
@@ -574,5 +636,5 @@ class ArkimetBufrDB(DB):
                 rec["lonmin"],rec["latmin"],rec["lonmin"],rec["latmax"],rec["lonmax"],rec["latmax"],rec["lonmin"],rec["latmin"]
             )
 
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.iteritems())
+        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
         return arkiquery

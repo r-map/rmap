@@ -22,22 +22,22 @@ ttntransport=jsonrpc.TransportTTN(appid=appid,devid=devid,password=password,conf
     
 with  jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),ttntransport) as rpcproxy:
     if (rpcproxy is None):
-        print ">>>>>>> Error building ttn transport"
+        print(">>>>>>> Error building ttn transport")
         raise SystemExit(1)
     else:
 
-        print ">>>>>>> execute ttn JSRPC"
+        print(">>>>>>> execute ttn JSRPC")
 
 
         mydata=[{"n":7,"s":True},{"n":5,"s":False},{"n":4,"s":True},{"n":8,"s":False}]
         mydata=[{"n":7,"s":True},{"n":5,"s":False}]
         data=rmap_core.compact(2,mydata)
-        print data
+        print(data)
         
         payload_raw=base64.encodestring(data)
         
-        print "pinonoff",rpcproxy.pinonoff(payload_raw=payload_raw )
+        print("pinonoff",rpcproxy.pinonoff(payload_raw=payload_raw ))
     
-        print "END of ttn JSRPC"
+        print("END of ttn JSRPC")
 
 

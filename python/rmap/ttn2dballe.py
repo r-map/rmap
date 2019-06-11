@@ -31,9 +31,9 @@ import base64
 from rmap import rmapmqtt
 import datetime
 import threading
-import thread
+import _thread
 import traceback
-from stations.models import StationMetadata
+from .stations.models import StationMetadata
 from django.core.exceptions import ObjectDoesNotExist
 from rmap import rmap_core
 import _strptime #https://stackoverflow.com/questions/32245560/module-object-has-no-attribute-strptime-with-several-threads-python
@@ -97,7 +97,7 @@ class ttn2dballe(object):
 
   def __init__(self,mqtt_host,mqttuser, mqttpassword , topics, user, slug,terminate):
 
-    self.client_id = "ttn2dballe_%d_%d" % (os.getpid(), thread.get_ident())
+    self.client_id = "ttn2dballe_%d_%d" % (os.getpid(), _thread.get_ident())
     self.mqtt_host=mqtt_host
     self.mqttc = paho.Client(self.client_id, clean_session=True)
     self.map = {}
@@ -170,7 +170,7 @@ class ttn2dballe(object):
 
             # JSON: try and load the JSON string from payload             
             try:
-                st = json.loads(msg.payload)
+                st = json.loads(msg.payload.decode())
                 
                 metadata=st["metadata"]
                 #remove string part after second  (  2017-12-22T09:52:30.245940879Z  )
@@ -207,7 +207,7 @@ class ttn2dballe(object):
                         try:
                             connection.close()
                         except Exception as e:
-                            print ("django connection close error",e)
+                            print(("django connection close error",e))
                         
                         mystation=StationMetadata.objects.get(slug=slug,ident__username=user)
                     except ObjectDoesNotExist :
@@ -220,7 +220,11 @@ class ttn2dballe(object):
                 else:
                     logging.error("Unknown template %d " % numtemplate)
                     return
-            except:
+
+            except Exception as exception:
+                # log and retry on exception 
+                logging.error('Exception occured: ' + str(exception))
+                logging.error(traceback.format_exc())
                 logging.error("error decoding message: skip it and do nothing!")
                 #raise
                 return
@@ -231,7 +235,7 @@ class ttn2dballe(object):
                 mqtt=rmapmqtt.rmapmqtt(ident=user,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lon=mystation.lon,lat=mystation.lat,network="fixed",host="localhost",prefix="sample",maintprefix="maint",logfunc=logging.debug)
                 
                 mytemplate=rmap_core.ttntemplate[numtemplate]
-                for bcode,param in mytemplate.items():
+                for bcode,param in list(mytemplate.items()):
                     
                     nbit=param["nbit"]
                     start-=nbit
