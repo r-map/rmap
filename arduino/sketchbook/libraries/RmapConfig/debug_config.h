@@ -150,6 +150,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SIM800_SERIAL_TRACE_LEVEL         (SERIAL_TRACE_LEVEL_INFO)
 
 /*!
+\def OPC_SERIAL_TRACE_LEVEL
+\brief Serial trace level debug for Opcxx library.
+*/
+#define OPC_SERIAL_TRACE_LEVEL            (SERIAL_TRACE_LEVEL_INFO)
+
+/*!
 \def I2C_TH_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for i2c-th sketch.
 */
@@ -160,6 +166,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Serial trace level debug for i2c-rain sketch.
 */
 #define I2C_RAIN_SERIAL_TRACE_LEVEL       (SERIAL_TRACE_LEVEL_INFO)
+
+/*!
+\def I2C_OPC_SERIAL_TRACE_LEVEL
+\brief Serial trace level debug for i2c-opc sketch.
+*/
+#define I2C_OPC_SERIAL_TRACE_LEVEL        (SERIAL_TRACE_LEVEL_DEBUG)
 
 /*!
 \def STIMA_SERIAL_TRACE_LEVEL

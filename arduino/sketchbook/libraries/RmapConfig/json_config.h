@@ -27,6 +27,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def JSON_BUFFER_LENGTH
 \brief Length in bytes for JSON data buffer.
 */
-#define JSON_BUFFER_LENGTH        (70)
+#define JSON_BUFFER_LENGTH        (400)
 
 #endif

@@ -1,4 +1,4 @@
-/**@file hardware_config.h */
+/**@file i2c_config.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -33,12 +33,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MAX_DATA_LENGTH
 \brief Max length in bytes for i2c bus data buffer.
 */
-#define I2C_MAX_DATA_LENGTH             (31)
+#define I2C_MAX_DATA_LENGTH             (32)
 
 /*!
 \def I2C_MAX_ERROR_COUNT
-\brief Max error count on i2c bus for re-init.
+\brief Max i2c error for bus restart.
 */
-#define I2C_MAX_ERROR_COUNT             (6)
+#define I2C_MAX_ERROR_COUNT             (5)
 
 #endif
