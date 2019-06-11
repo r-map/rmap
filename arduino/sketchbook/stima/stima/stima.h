@@ -23,11 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _STIMA_H
 #define _STIMA_H
 
+#include <stima_module.h>
 #include "stima-config.h"
 #include <typedef.h>
 #include <registers.h>
 #include <debug.h>
-#include <hardware_config.h>
+#include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
 #include <lcd_config.h>
@@ -48,10 +49,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ntp.h>
 #endif
 
+#include <rmap_utility.h>
+#if (USE_JSON)
+#include <json_utility.h>
+#endif
 #include <TimeLib.h>
 #include <SensorDriver.h>
 #include <eeprom_utility.h>
-#include <rmap_utility.h>
 #include <i2c_utility.h>
 #include <arduinoJsonRPC.h>
 
@@ -147,6 +151,7 @@ typedef enum {
    SUPERVISOR_WAIT_CONNECTION_LEVEL_TASK,    //!< enable hardware related tasks for doing connection
    SUPERVISOR_TIME_LEVEL_TASK,               //!< enable time task for sync time with ntp server
    SUPERVISOR_MANAGE_LEVEL_TASK,             //!< enable tasks for manage data (mqtt)
+   SUPERVISOR_TEST_SDCARD,
    SUPERVISOR_END,                           //!< performs end operations and deactivate task
    SUPERVISOR_WAIT_STATE                     //!< non-blocking waiting time
 } supervisor_state_t;
@@ -338,6 +343,12 @@ File read_data_file;
 \brief File structure for write data stored on SD-Card.
 */
 File write_data_file;
+
+/*!
+\var write_data_file
+\brief File structure for write data stored on SD-Card.
+*/
+File test_file;
 #endif
 
 #if (USE_MQTT)
@@ -533,6 +544,12 @@ char json_sensors_data[USE_SENSORS_COUNT][JSON_BUFFER_LENGTH];
 int32_t values_readed_from_sensor[USE_SENSORS_COUNT][VALUES_TO_READ_FROM_SENSOR_COUNT];
 
 /*!
+\var system_time
+\brief System time since 01/01/1970 00:00:00.
+*/
+volatile time_t system_time;
+
+/*!
 \var next_ptr_time_for_sensors_reading
 \brief Next scheduled time (in seconds since 01/01/1970 00:0:00) for sensors reading.
 */
@@ -632,6 +649,8 @@ rpc_state_t rpc_state;
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
+void reboot();
+uint32_t getSystemTime();
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.
@@ -775,9 +794,10 @@ void set_default_configuration(void);
 \fn void setNextTimeForSensorReading(time_t *next_time)
 \brief Calculate next hour, minute and second for sensors reading.
 \param *next_time: Pointer to next scheduled time for sensors reading
+\param time_s: next time in seconds
 \return void.
 */
-void setNextTimeForSensorReading(time_t *next_time);
+void setNextTimeForSensorReading(time_t *next_time, uint16_t time_s);
 
 #if (USE_MQTT)
 /*!
