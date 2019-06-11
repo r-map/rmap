@@ -54,6 +54,60 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_DEP           ("DEP")
 
 /*!
+\def SENSOR_TYPE_OA2
+\brief Sensor driver's OA2 sensor type for OPC-N2: PM1, PM2.5, PM10 average continuos values.
+*/
+#define SENSOR_TYPE_OA2           ("OA2")
+
+/*!
+\def SENSOR_TYPE_OB2
+\brief Sensor driver's OB2 sensor type for OPC-N2: PM1, PM2.5, PM10 standard deviation continuos values.
+*/
+#define SENSOR_TYPE_OB2           ("OB2")
+
+/*!
+\def SENSOR_TYPE_OC2
+\brief Sensor driver's OC2 sensor type for OPC-N2: BINS average continuos values.
+*/
+#define SENSOR_TYPE_OC2           ("OC2")
+
+/*!
+\def SENSOR_TYPE_OD2
+\brief Sensor driver's OD2 sensor type for OPC-N2: BINS standard deviation continuos values.
+*/
+#define SENSOR_TYPE_OD2           ("OD2")
+
+/*!
+\def SENSOR_TYPE_OA3
+\brief Sensor driver's OA3 sensor type for OPC-N3: PM1, PM2.5, PM10 average continuos values.
+*/
+#define SENSOR_TYPE_OA3           ("OA3")
+
+/*!
+\def SENSOR_TYPE_OB3
+\brief Sensor driver's OB3 sensor type for OPC-N3: PM1, PM2.5, PM10 standard deviation continuos values.
+*/
+#define SENSOR_TYPE_OB3           ("OB3")
+
+/*!
+\def SENSOR_TYPE_OC3
+\brief Sensor driver's OC3 sensor type for OPC-N3: BINS average continuos values.
+*/
+#define SENSOR_TYPE_OC3           ("OC3")
+
+/*!
+\def SENSOR_TYPE_OD3
+\brief Sensor driver's OD3 sensor type for OPC-N3: BINS standard deviation continuos values.
+*/
+#define SENSOR_TYPE_OD3           ("OD3")
+
+/*!
+\def SENSOR_TYPE_OE3
+\brief Sensor driver's OE3 sensor type for OPC-N3: temperature and humidity average continuos values.
+*/
+#define SENSOR_TYPE_OE3           ("OE3")
+
+/*!
 \def SENSOR_TYPE_HI7
 \brief Sensor driver's HI7 sensor type for SI7021.
 */
