@@ -25,12 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "i2c-rain-config.h"
 #include <debug.h>
-#include <hardware_config.h>
+#include <i2c_config.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 #include <i2c_utility.h>
 #include <rmap_utility.h>
+#if (USE_JSON)
+#include <json_utility.h>
+#endif
 #include <eeprom_utility.h>
 #include <Wire.h>
 #include <typedef.h>

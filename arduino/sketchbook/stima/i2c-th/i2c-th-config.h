@@ -197,10 +197,4 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SENSORS_RETRY_COUNT_MAX                       (3)
 
-/*!
-\def SENSORS_RETRY_DELAY_MS
-\brief Waiting for reading between two attempts.
-*/
-#define SENSORS_RETRY_DELAY_MS                        (50)
-
 #endif

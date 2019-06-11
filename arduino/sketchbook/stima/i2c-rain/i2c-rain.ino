@@ -80,27 +80,27 @@ void loop() {
       #endif
 
       case TASKS_EXECUTION:
-         if (is_event_tipping_bucket) {
-            tipping_bucket_task();
-            wdt_reset();
-         }
+        // I2C Bus Check
+        if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          init_wire();
+          wdt_reset();
+        }
 
-         if (is_event_command_task) {
-            command_task();
-            wdt_reset();
-         }
+        if (is_event_tipping_bucket) {
+          tipping_bucket_task();
+          wdt_reset();
+        }
 
-         // I2C Bus Check
-         if ((i2c_error > I2C_MAX_ERROR_COUNT) && (ready_tasks_count == 0)) {
-           SERIAL_ERROR(F("Restart I2C BUS\r\n"));
-           init_wire();
-           wdt_reset();
-         }
+        if (is_event_command_task) {
+          command_task();
+          wdt_reset();
+        }
 
-         if (ready_tasks_count == 0) {
-            wdt_reset();
-            state = END;
-         }
+        if (ready_tasks_count == 0) {
+          wdt_reset();
+          state = END;
+        }
       break;
 
       case END:
@@ -244,9 +244,9 @@ void save_configuration(bool is_default) {
    }
    else {
       SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
-      configuration.i2c_address = writable_data.i2c_address;
-      configuration.is_oneshot = writable_data.is_oneshot;
-      configuration.is_continuous = writable_data.is_continuous;
+      configuration.i2c_address = writable_data_ptr->i2c_address;
+      configuration.is_oneshot = writable_data_ptr->is_oneshot;
+      configuration.is_continuous = writable_data_ptr->is_continuous;
    }
 
    // write configuration to eeprom
@@ -293,45 +293,54 @@ void i2c_request_interrupt_handler() {
 void i2c_receive_interrupt_handler(int rx_data_length) {
   bool is_i2c_data_ok = false;
 
+  readable_data_length = 0;
+
   // read rx_data_length bytes of data from i2c bus
   for (uint8_t i=0; i<rx_data_length; i++) {
     i2c_rx_data[i] = Wire.read();
   }
 
-  // it is a registers read?
-  if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
-    // offset in readable_data_read_ptr buffer
-    readable_data_address = i2c_rx_data[0];
+  //! check crc: ok
+  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
+    rx_data_length--;
 
-    // length (in bytes) of data to be read in readable_data_read_ptr
-    readable_data_length = i2c_rx_data[1];
-  }
-  // it is a command?
-  else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-    noInterrupts();
-    // enable Command task
-    if (!is_event_command_task) {
-      is_event_command_task = true;
-      ready_tasks_count++;
-    }
-    interrupts();
-  }
-  // it is a registers write?
-  else if (is_writable_register(i2c_rx_data[0])) {
-    if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == (I2C_RAIN_ADDRESS_LENGTH+2)) {
-      is_i2c_data_ok = true;
-    }
-    else if (i2c_rx_data[0] == I2C_RAIN_ONESHOT_ADDRESS && rx_data_length == (I2C_RAIN_ONESHOT_LENGTH+2)) {
-      is_i2c_data_ok = true;
-    }
-    else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == (I2C_RAIN_CONTINUOUS_LENGTH+2)) {
-      is_i2c_data_ok = true;
-    }
+    // it is a registers read?
+    if (rx_data_length == 2 && is_readable_register(i2c_rx_data[0])) {
+      // offset in readable_data_read_ptr buffer
+      readable_data_address = i2c_rx_data[0];
 
-    if (is_i2c_data_ok) {
-      for (uint8_t i=2; i<rx_data_length; i++) {
-        // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-        ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS] = i2c_rx_data[i];
+      // length (in bytes) of data to be read in readable_data_read_ptr
+      readable_data_length = i2c_rx_data[1];
+    }
+    // it is a command?
+    else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
+      noInterrupts();
+      // enable Command task
+      if (!is_event_command_task) {
+        is_event_command_task = true;
+        ready_tasks_count++;
+      }
+      interrupts();
+    }
+    // it is a registers write?
+    else if (is_writable_register(i2c_rx_data[0])) {
+      rx_data_length -= 2;
+
+      if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == I2C_RAIN_ADDRESS_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_RAIN_ONESHOT_ADDRESS && rx_data_length == I2C_RAIN_ONESHOT_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == I2C_RAIN_CONTINUOUS_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+
+      if (is_i2c_data_ok) {
+        for (uint8_t i = 0; i < rx_data_length; i++) {
+          // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
+          ((uint8_t *)(writable_data_ptr))[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 2];
+        }
       }
     }
   } else {

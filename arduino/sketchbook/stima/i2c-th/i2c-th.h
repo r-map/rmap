@@ -25,12 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "i2c-th-config.h"
 #include <debug.h>
-#include <hardware_config.h>
+#include <i2c_config.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 #include <i2c_utility.h>
 #include <rmap_utility.h>
+#if (USE_JSON)
+#include <json_utility.h>
+#endif
 #include <eeprom_utility.h>
 #include <Wire.h>
 #include <TimeLib.h>
@@ -83,8 +86,9 @@ typedef struct {
 \brief Samples values for measured temperature and humidity
 */
 typedef struct {
-   uint16_t values[SENSORS_SAMPLE_COUNT_MAX];   //!< buffer containing the measured samples
-   uint8_t count;                               //!< number of samples
+   float values;          //!< buffer containing the measured samples
+   uint8_t count;         //!< number of good samples
+   uint8_t error_count;   //!< number of bad samples
 } sample_t;
 
 /*!
@@ -462,10 +466,15 @@ void reset_observations_buffer(void);
 */
 void exchange_buffers(void);
 
-void resetObservation(observation_t *buffer, uint16_t length);
-void resetBackObservation(observation_t *buffer, uint16_t length);
-void addObservation(observation_t *buffer, uint16_t length, uint16_t value);
-uint16_t readBackObservation(observation_t *buffer, uint16_t length);
+template<typename sample_g, typename observation_g, typename value_v> void addSample(sample_g *sample, observation_g *observation, value_v value);
+
+template<typename observation_g, typename value_v> value_v readCurrentObservation(observation_g *buffer);
+template<typename observation_g, typename value_v> void writeCurrentObservation(observation_g *buffer, value_v value);
+template<typename observation_g, typename length_v> void resetObservation(observation_g *buffer, length_v length);
+template<typename observation_g, typename length_v> void resetBackPmObservation(observation_g *buffer, length_v length);
+template<typename observation_g, typename length_v> void incrementObservation(observation_g *buffer, length_v length);
+template<typename observation_g, typename length_v, typename value_v> void addObservation(observation_g *buffer, length_v length, value_v value);
+template<typename observation_g, typename length_v, typename value_v> value_v readBackObservation(observation_g *buffer, length_v length);
 
 /*!
 \fn void samples_processing(bool is_force_processing)
@@ -480,7 +489,7 @@ void samples_processing(bool is_force_processing);
 \brief Main routine for processing the observations to calculate a value for report.
 \return void.
 */
-void observations_processing(void);
+bool observations_processing(void);
 
 /*!
 \fn bool make_observation_from_samples(bool is_force_processing, sample_t *sample, observation_t *observation)
@@ -490,7 +499,7 @@ void observations_processing(void);
 \param *observation output observation.
 \return void.
 */
-bool make_observation_from_samples(bool is_force_processing, sample_t *sample, observation_t *observation);
+template<typename sample_g, typename observation_g> bool make_observation_from_samples(bool is_force_processing, sample_g *sample, observation_g *observation);
 
 /*!
 \fn bool make_value_from_samples_and_observations(sample_t *sample, observation_t *observation, volatile value_t *value)
@@ -500,7 +509,7 @@ bool make_observation_from_samples(bool is_force_processing, sample_t *sample, o
 \param *value output value for report.
 \return void.
 */
-bool make_value_from_samples_and_observations(sample_t *sample, observation_t *observation, volatile value_t *value);
+template<typename sample_g, typename observation_g, typename value_v, typename val_v> bool make_value_from_samples_and_observations(sample_g *sample, observation_g *observation, value_v *value);
 
 /*********************************************************************
 * TASKS
