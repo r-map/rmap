@@ -59,7 +59,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def HYT2X1_CONVERSION_TIME_MS
 \brief Conversion time in milliseconds.
 */
-#define HYT2X1_CONVERSION_TIME_MS   (100)
+#define HYT2X1_CONVERSION_TIME_MS     (200)
 
 /*!
 \def HYT2X1_TEMPERATURE_MIN
@@ -89,7 +89,49 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def HYT2X1_READ_MAX
 \brief Maximum acceptable readable value.
 */
-#define HYT2X1_READ_MAX             (0x3FFF)
+#define HYT2X1_READ_MAX               (0x3FFF)
+
+/*!
+\def HYT2X1_COMMAND_MODE_BIT_MASK
+\brief Masks for command mode bit status.
+*/
+#define HYT2X1_COMMAND_MODE_BIT_MASK  (0x8000)
+
+/*!
+\def HYT2X1_NO_NEW_DATA_BIT_MASK
+\brief Masks for no new data bit status.
+*/
+#define HYT2X1_NO_NEW_DATA_BIT_MASK   (0x4000)
+
+/*!
+\def HYT2X1_HUMIDITY_MASK
+\brief last 2 MSB bit = 0.
+*/
+#define HYT2X1_HUMIDITY_MASK          (0x3FFF)
+
+/*!
+\def HYT2X1_TEMPERATURE_MASK
+\brief first 2 LSB bit = 0.
+*/
+#define HYT2X1_TEMPERATURE_MASK       (0xFFFC)
+
+/*!
+\def HYT2X1_ERROR
+\brief returning error value.
+*/
+#define HYT2X1_ERROR                  (0)
+
+/*!
+\def HYT2X1_SUCCESS
+\brief returning success value.
+*/
+#define HYT2X1_SUCCESS                (1)
+
+/*!
+\def HYT2X1_NO_NEW_DATA
+\brief returning no new data value.
+*/
+#define HYT2X1_NO_NEW_DATA            (2)
 
 /*!
 \namespace Hyt2X1
@@ -144,9 +186,9 @@ namespace Hyt2X1 {
   \param[in] address sensor i2c address.
   \param[out] *humidity pointer to readed humidity variable.
   \param[out] *temperature pointer to readed temperature variable.
-  \return true if success.
+  \return 0 if success, 1 data valid but already readed, 2 data invalid (error).
   */
-  bool hyt_read(int8_t address, float *humidity, float *temperature);
+  uint8_t hyt_read(int8_t address, float *humidity, float *temperature);
 
   /*!
   \fn void hyt_send(int8_t address, uint8_t data_0, uint8_t data_1, uint8_t data_2)
