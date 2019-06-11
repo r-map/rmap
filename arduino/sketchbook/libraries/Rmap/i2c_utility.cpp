@@ -22,20 +22,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "i2c_utility.h"
 
-uint8_t crc8 (uint8_t *ptr, uint8_t length) {
-  const uint8_t generator = 0x7;
+uint8_t crc8 (uint8_t *array, uint8_t length) {
   uint8_t crc = 0;
 
-  if (ptr == NULL) {
+  if (array == NULL) {
     return 0xFF;
   }
 
-  while (length--) {
-    crc ^= *ptr++;
+  for (uint8_t i = 0; i < length; i++) {
+    crc ^= (uint8_t) array[i];
 
     for (uint8_t k = 0; k < 8; k++) {
-      if ((crc & 0x80) != 0) {
-        crc = (uint8_t)((crc << 1) ^ generator);
+      if (crc & 0x80) {
+        crc = (uint8_t)((crc << 1) ^ CRC8_GENERATOR);
       }
       else {
         crc <<= 1;
@@ -43,6 +42,28 @@ uint8_t crc8 (uint8_t *ptr, uint8_t length) {
     }
   }
 
+  return crc;
+}
+
+uint16_t crc16(uint8_t *array, uint8_t length) {
+  uint16_t crc = 0xFFFF;
+
+  if (array == NULL) {
+    return 0xFFFF;
+  }
+
+  for (uint8_t i = 0; i < length; i++) {
+    crc ^= (uint16_t) array[i];
+
+    for (uint8_t k = 0; k < 8; k++) {
+      if (crc & 1) {
+        crc = (uint16_t)((crc >> 1) ^ CRC16_GENERATOR);
+      }
+      else {
+        crc >>= 1;
+      }
+    }
+  }
   return crc;
 }
 
