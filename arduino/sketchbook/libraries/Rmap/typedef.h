@@ -38,12 +38,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define TYPE_LENGTH         (5)
 
 /*!
-\def OPC_BINS_LENGTH
-\brief OPC bin's buffer length.
-*/
-#define OPC_BINS_LENGTH     (16)
-
-/*!
 \struct sensor_t
 \brief Sensor struct for storing sensor configuration parameter.
 */
@@ -75,23 +69,5 @@ typedef struct {
   uint16_t min;    //!< minium values of observations
   uint16_t sigma;  //!< standard deviation of observations
 } value_t;
-
-typedef struct {
-  float sample; //!< last sample
-  // float med60;  //!< last observation
-  float med;    //!< average values of observations
-  // float max;    //!< maximum values of observations
-  // float min;    //!< minium values of observations
-  float sigma;  //!< standard deviation of observations
-} pm_value_t;
-
-typedef struct {
-  uint16_t sample; //!< last sample
-  // uint16_t med60;  //!< last observation
-  uint16_t med;    //!< average values of observations
-  // uint16_t max;    //!< maximum values of observations
-  // uint16_t min;    //!< minium values of observations
-  uint16_t sigma;  //!< standard deviation of observations
-} bin_value_t;
 
 #endif
