@@ -90,6 +90,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define STIMA_MODULE_TYPE_PASSIVE      (9)
 
 /*!
+\def STIMA_MODULE_TYPE_OPC
+\brief This module acquire air particle.
+*/
+#define STIMA_MODULE_TYPE_OPC          (10)
+
+/*!
 \def STIMA_MODULE_NAME_SAMPLE_ETH
 \brief The module'name for sending sample over ethernet.
 */
@@ -142,5 +148,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief The module'name for acquiring temperature and humidity.
 */
 #define STIMA_MODULE_NAME_TH          ("i2c-th")
+
+/*!
+\def STIMA_MODULE_NAME_OPC
+\brief The module'name for acquiring air particle.
+*/
+#define STIMA_MODULE_NAME_OPC          ("i2c-opc")
 
 #endif
