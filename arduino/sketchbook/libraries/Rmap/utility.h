@@ -1,4 +1,4 @@
-/**@file rmap_utility.h */
+/**@file utility.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,32 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _RMAP_UTILITY_H
-#define _RMAP_UTILITY_H
+#ifndef _UTILITY_H
+#define _UTILITY_H
 
-#include <string.h>
-#include <stdlib.h>
 #include <stdint.h>
-#include "stima_module.h"
+#include <string.h>
 
-#define isValid(v)      ((uint16_t) v != UINT16_MAX)
+uint16_t getUINT16FromUINT8(uint8_t *buffer);
+uint16_t getUINT16FromUINT8(uint8_t byte_0, uint8_t byte_1);
 
-/*!
-\fn void getStimaNameByType(char *name, uint8_t type)
-\brief Return a STIMA's name starting from a module type stored in configuration.
-\param[out] *name STIMA's name.
-\param[in] *type module type stored in configuration.
-\return void.
-*/
-void getStimaNameByType(char *name, uint8_t type);
+uint32_t getUINT32FromUINT8(uint8_t *buffer);
+uint32_t getUINT32FromUINT8(uint8_t byte_0, uint8_t byte_1, uint8_t byte_2, uint8_t byte_3);
 
-/*!
-fn bool executeTimerTaskEach(uint16_t counter, uint16_t desidered, uint16_t offset)
-\param[in] uint16_t counter counter ms.
-\param[in] uint16_t desidered desidered ms for return a true value.
-\param[in] uint16_t offset offset ms for increment counter.
-\brief Return true or false if current == desidered calculated in each offset.
-*/
-bool executeTimerTaskEach(uint16_t counter, uint16_t desidered, uint16_t offset);
+float getIEE754FloatFrom4UINT8(uint8_t *buffer);
+float getIEE754FloatFrom4UINT8(uint8_t byte_0, uint8_t byte_1, uint8_t byte_2, uint8_t byte_3);
 
 #endif
