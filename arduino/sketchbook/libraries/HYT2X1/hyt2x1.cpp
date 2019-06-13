@@ -30,9 +30,10 @@ namespace Hyt2X1 {
     return true;
   }
 
-  bool hyt_read(int8_t address, float *humidity, float *temperature) {
+  uint8_t hyt_read(int8_t address, float *humidity, float *temperature) {
     uint16_t humidity_raw_data = UINT16_MAX;
     uint16_t temperature_raw_data = UINT16_MAX;
+    bool is_new_data = true;
 
     *humidity = UINT16_MAX;
     *temperature = UINT16_MAX;
@@ -40,33 +41,42 @@ namespace Hyt2X1 {
     //! Request 4 bytes: 2 bytes for Humidity and 2 bytes for Temperature
     Wire.requestFrom(address, HYT2X1_READ_HT_DATA_LENGTH);
 
+    //! not enough data
     if (Wire.available() < HYT2X1_READ_HT_DATA_LENGTH) {
-      return false;
+      return HYT2X1_ERROR;
     }
 
     humidity_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
     temperature_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
 
-    //! sensor in command mode or without new data
-    if (humidity_raw_data >> 14) {
-      return false;
+    //! command mode
+    if ((humidity_raw_data & HYT2X1_COMMAND_MODE_BIT_MASK) >> 15) {
+      return HYT2X1_ERROR;
     }
 
-    if (humidity_raw_data > HYT2X1_READ_MAX) {
-      return false;
+    //! no new data
+    if ((humidity_raw_data & HYT2X1_NO_NEW_DATA_BIT_MASK) >> 14) {
+      is_new_data = false;
     }
 
-    humidity_raw_data &= HYT2X1_READ_MAX;
+    //! data not valid
+    if (is_new_data && (humidity_raw_data > HYT2X1_READ_MAX)) {
+      return HYT2X1_ERROR;
+    }
+
+    humidity_raw_data &= HYT2X1_HUMIDITY_MASK;
+    temperature_raw_data &= HYT2X1_TEMPERATURE_MASK;
     temperature_raw_data >>= 2;
 
-    if (temperature_raw_data >= HYT2X1_READ_MAX) {
-      return false;
-    }
-
     *humidity = (100.0 / HYT2X1_READ_MAX) * humidity_raw_data;
-    *temperature = (165.0 / HYT2X1_READ_MAX) * temperature_raw_data - 40.0;
+    *temperature = ((165.0 / HYT2X1_READ_MAX) * temperature_raw_data) - 40.0;
 
-    return true;
+    if (is_new_data) {
+      return HYT2X1_SUCCESS;
+    }
+    else {
+      return HYT2X1_NO_NEW_DATA;
+    }
   }
 
   void hyt_send(int8_t address, uint8_t data_0, uint8_t data_1, uint8_t data_2) {

@@ -1,4 +1,4 @@
-/**@file i2c-th.h */
+/**@file i2c-opc.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,10 +20,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _I2C_TH_H
-#define _I2C_TH_H
+#ifndef _I2C_OPC_H
+#define _I2C_OPC_H
 
-#include "i2c-th-config.h"
+#include "i2c-opc-config.h"
 #include <debug.h>
 #include <i2c_config.h>
 #include <avr/sleep.h>
@@ -38,8 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <TimeLib.h>
 #include <typedef.h>
-#include <registers-th.h>
-#include <SensorDriver.h>
+#include <registers-opc.h>
+#include <opcxx.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -54,19 +54,84 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
-   uint8_t i2c_temperature_address;    //!< i2c address of temperature sensor
-   uint8_t i2c_humidity_address;       //!< i2c address of humidity sensor
+   // uint8_t configuration_variables[OPCXX_CONFIGURATION_VARIABLES_LENGTH];
+   // uint8_t configuration_variables_2[OPCXX_CONFIGURATION_VARIABLES_2_LENGTH];
 } configuration_t;
+
+#if (USE_SENSOR_OE3)
+/*!
+\struct value_t
+\brief Value struct for storing sample, observation and minium, average and maximum measurement.
+*/
+typedef struct {
+  float sample; //!< last sample
+  // float med60;  //!< last observation
+  float med;    //!< average values of observations
+  // float max;    //!< maximum values of observations
+  // float min;    //!< minium values of observations
+  float sigma;  //!< standard deviation of observations
+} temperature_value_t;
+
+typedef struct {
+  float sample; //!< last sample
+  // float med60;  //!< last observation
+  float med;    //!< average values of observations
+  // float max;    //!< maximum values of observations
+  // float min;    //!< minium values of observations
+  float sigma;  //!< standard deviation of observations
+} humidity_value_t;
+#endif
+
+typedef struct {
+  float sample; //!< last sample
+  // float med60;  //!< last observation
+  float med;    //!< average values of observations
+  // float max;    //!< maximum values of observations
+  // float min;    //!< minium values of observations
+  float sigma;  //!< standard deviation of observations
+} pm_value_t;
+
+typedef struct {
+  uint16_t sample; //!< last sample
+  // uint16_t med60;  //!< last observation
+  uint16_t med;    //!< average values of observations
+  // uint16_t max;    //!< maximum values of observations
+  // uint16_t min;    //!< minium values of observations
+  uint16_t sigma;  //!< standard deviation of observations
+} bin_value_t;
 
 /*!
 \struct readable_data_t
 \brief Readable data through i2c bus.
 */
 typedef struct {
-   uint8_t module_type;                //!< module version
-   uint8_t module_version;             //!< module type
-   value_t temperature;                //!< temperature data for report
-   value_t humidity;                   //!< humidity data for report
+   uint8_t module_type;                 //!< module version
+   uint8_t module_version;              //!< module type
+
+   float pm_sample[OPCXX_PM_LENGTH];
+   float pm_med[OPCXX_PM_LENGTH];
+   float pm_sigma[OPCXX_PM_LENGTH];
+
+   uint16_t bins_med[OPCN3_BINS_LENGTH];
+   uint16_t bins_sigma[OPCN3_BINS_LENGTH];
+
+   #if (USE_SENSOR_OE3)
+   float temperature_sample;
+   float humidity_sample;
+
+   float temperature_med;
+   float humidity_med;
+   #endif
+
+   pm_value_t pm1;                      //!< pm1 data for report
+   pm_value_t pm25;                     //!< pm25 data for report
+   pm_value_t pm10;                     //!< pm10 data for report
+   bin_value_t bins[OPC_BINS_LENGTH];   //!< bins array data for report
+
+   #if (USE_SENSOR_OE3)
+   temperature_value_t temperature;
+   humidity_value_t humidity;
+   #endif
 } readable_data_t;
 
 /*!
@@ -77,30 +142,35 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
-   uint8_t i2c_temperature_address;    //!< i2c address of temperature sensor
-   uint8_t i2c_humidity_address;       //!< i2c address of humidity sensor
 } writable_data_t;
 
 /*!
 \struct sample_t
-\brief Samples values for measured temperature and humidity
+\brief Samples values for measured opc data
 */
 typedef struct {
-   float values;          //!< buffer containing the measured samples
-   uint8_t count;         //!< number of good samples
-   uint8_t error_count;   //!< number of bad samples
+  float values;          //!< buffer containing the measured samples
+  uint8_t count;         //!< number of good samples
+  uint8_t error_count;   //!< number of bad samples
 } sample_t;
 
 /*!
 \struct observation_t
-\brief Observations values for temperature and humidity
+\brief Observations values for opc
 */
 typedef struct {
-   uint16_t med[OBSERVATION_COUNT];    //!< buffer containing the mean values calculated on a one sample buffer respectively
-   uint16_t count;                     //!< number of observations
-   uint16_t *read_ptr;                 //!< reader pointer to buffer (read observations for calculate report value)
-   uint16_t *write_ptr;                //!< writer pointer to buffer (add new observation)
-} observation_t;
+   float med[OBSERVATION_COUNT];        //!< buffer containing the mean values calculated on a one sample buffer respectively
+   uint16_t count;                      //!< number of observations
+   float *read_ptr;                     //!< reader pointer to buffer (read observations for calculate report value)
+   float *write_ptr;                    //!< writer pointer to buffer (add new observation)
+} float_observation_t;
+
+typedef struct {
+   uint16_t med[OBSERVATION_COUNT];        //!< buffer containing the mean values calculated on a one sample buffer respectively
+   uint16_t count;                      //!< number of observations
+   uint16_t *read_ptr;                     //!< reader pointer to buffer (read observations for calculate report value)
+   uint16_t *write_ptr;                    //!< writer pointer to buffer (add new observation)
+} uint16_observation_t;
 
 /*********************************************************************
 * TYPEDEF for Finite State Machine
@@ -119,20 +189,24 @@ typedef enum {
 } state_t;
 
 /*!
-\enum sensors_reading_state_t
-\brief Sensors reading task finite state machine.
+\enum opc_state_t
+\brief OPC setup and reading task finite state machine.
 */
 typedef enum {
-   SENSORS_READING_INIT,            //!< init task variables
-   SENSORS_READING_PREPARE,         //!< prepare sensor
-   SENSORS_READING_IS_PREPARED,     //!< check if the sensor has been prepared
-   SENSORS_READING_GET,             //!< read and get values from sensor
-   SENSORS_READING_IS_GETTED,       //!< check if the sensor has been readed
-   SENSORS_READING_READ,            //!< intermediate state (future implementation...)
-   SENSORS_READING_NEXT,            //!< go to next sensor
-   SENSORS_READING_END,             //!< performs end operations and deactivate task
-   SENSORS_READING_WAIT_STATE       //!< non-blocking waiting time
-} sensors_reading_state_t;
+  OPC_INIT,
+  OPC_SWITCH_ON,
+  OPC_SEND_COMMAND_FAN_DAC,
+  OPC_WAIT_RESULT_FAN_DAC,
+  OPC_SEND_COMMAND_FAN_ON,
+  OPC_WAIT_RESULT_FAN_ON,
+  OPC_SEND_COMMAND_LASER_ON,
+  OPC_WAIT_RESULT_LASER_ON,
+  OPC_SEND_COMMAND_READ_HISTOGRAM,
+  OPC_WAIT_RESULT_READ_HISTOGRAM,
+  OPC_READ_HISTOGRAM,
+  OPC_END,             //!< performs end operations and deactivate task
+  OPC_WAIT_STATE       //!< non-blocking waiting time
+} opc_state_t;
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -246,46 +320,37 @@ bool is_oneshot;
 bool is_continuous;
 
 /*!
-\var is_test_read
+\var is_continuous
 \brief Received command is in continuous mode.
 */
-bool is_test_read;
+// bool is_read_configuration_variable;
 
 /*!
-\var sensors
-\brief SensorDriver buffer for storing sensors parameter.
+\var opc_samples
+\brief OPC samples: PM1, PM2.5, PM10, BINS[0-15].
 */
-SensorDriver *sensors[USE_SENSORS_COUNT];
-
-/*!
-\var sensors_count
-\brief Configured sensors number.
-*/
-uint8_t sensors_count;
-
-/*!
-\var temperature_samples
-\brief Temperature samples.
-*/
+// sample_t opc_samples;
+sample_t pm1_samples;
+sample_t pm25_samples;
+sample_t pm10_samples;
+sample_t bins_samples[OPC_BINS_LENGTH];
+#if (USE_SENSOR_OE3)
 sample_t temperature_samples;
-
-/*!
-\var temperature_observations
-\brief Temperature observations.
-*/
-observation_t temperature_observations;
-
-/*!
-\var humidity_samples
-\brief Humidity samples.
-*/
 sample_t humidity_samples;
+#endif
 
 /*!
-\var humidity_observations
-\brief Humidity observations.
+\var opc_observations
+\brief OPC observations: PM1, PM2.5, PM10, BINS[0-15].
 */
-observation_t humidity_observations;
+float_observation_t pm1_observations;
+float_observation_t pm25_observations;
+float_observation_t pm10_observations;
+uint16_observation_t bins_observations[OPC_BINS_LENGTH];
+#if (USE_SENSOR_OE3)
+float_observation_t temperature_observations;
+float_observation_t humidity_observations;
+#endif
 
 /*!
 \var samples_count
@@ -312,10 +377,26 @@ volatile uint16_t timer_counter;
 state_t state;
 
 /*!
-\var sensors_reading_state
+\var opc_state
 \brief Current sensors reading task state.
 */
-sensors_reading_state_t sensors_reading_state;
+opc_state_t opc_state;
+
+bool is_opc_setted;
+bool is_opc_first_read;
+uint8_t histogram_error_count;
+
+/*!
+\var opcn
+\brief Alphasense OPC-N2 or OPC-N3 sensor
+*/
+#if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2)
+Opcn2 opcn(OPC_CHIP_SELECT, OPC_POWER_PIN, OPC_SPI_POWER_PIN, SENSORS_SAMPLE_TIME_MS / 1000);
+#endif
+
+#if (USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
+Opcn3 opcn(OPC_CHIP_SELECT, OPC_POWER_PIN, OPC_SPI_POWER_PIN, SENSORS_SAMPLE_TIME_MS / 1000);
+#endif
 
 /*********************************************************************
 * FUNCTIONS
@@ -457,7 +538,7 @@ void reset_samples_buffer(void);
 \brief Reset observations buffers to default value.
 \return void.
 */
-void reset_observations_buffer(void);
+// void reset_observations_buffer(void);
 
 /*!
 \fn void exchange_buffers(void)
@@ -466,7 +547,7 @@ void reset_observations_buffer(void);
 */
 void exchange_buffers(void);
 
-template<typename sample_g, typename observation_g, typename value_v> void addSample(sample_g *sample, observation_g *observation, value_v value);
+template<typename sample_g, typename observation_g, typename values_v, typename value_v> void addSample(sample_g *sample, observation_g *observation, values_v *values, value_v value);
 
 template<typename observation_g, typename value_v> value_v readCurrentObservation(observation_g *buffer);
 template<typename observation_g, typename value_v> void writeCurrentObservation(observation_g *buffer, value_v value);
@@ -475,6 +556,7 @@ template<typename observation_g, typename length_v> void resetBackPmObservation(
 template<typename observation_g, typename length_v> void incrementObservation(observation_g *buffer, length_v length);
 template<typename observation_g, typename length_v, typename value_v> void addObservation(observation_g *buffer, length_v length, value_v value);
 template<typename observation_g, typename length_v, typename value_v> value_v readBackObservation(observation_g *buffer, length_v length);
+
 
 /*!
 \fn void samples_processing(bool is_force_processing)
@@ -492,7 +574,7 @@ void samples_processing(bool is_force_processing);
 bool observations_processing(void);
 
 /*!
-\fn bool make_observation_from_samples(bool is_force_processing, sample_t *sample, observation_t *observation)
+\fn bool make_pm_observation_from_samples(bool is_force_processing, sample_t *sample, observation_t *observation)
 \brief Processing the samples to calculate an observation when the number of the samples reaches the exact samples_count value.
 \param is_force_processing if is true, force the calculation of the observation provided there is a minimum number of samples.
 \param *sample input samples.
@@ -500,6 +582,7 @@ bool observations_processing(void);
 \return void.
 */
 template<typename sample_g, typename observation_g> bool make_observation_from_samples(bool is_force_processing, sample_g *sample, observation_g *observation);
+
 
 /*!
 \fn bool make_value_from_samples_and_observations(sample_t *sample, observation_t *observation, volatile value_t *value)
@@ -515,18 +598,18 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
 * TASKS
 *********************************************************************/
 /*!
-\var is_event_sensors_reading
-\brief Enable or disable the Sensors reading task.
+\var is_event_opc_task
+\brief Enable or disable the OPC task.
 */
-volatile bool is_event_sensors_reading;
+volatile bool is_event_opc_task;
 
 /*!
-\fn void sensors_reading_task(void)
-\brief Sensors reading Task.
-Read data from sensors.
+\fn void opc_task(void)
+\brief Opc setup and reading Task.
+Read data from OPC.
 \return void.
 */
-void sensors_reading_task(void);
+void opc_task(void);
 
 /*!
 \var is_event_command_task

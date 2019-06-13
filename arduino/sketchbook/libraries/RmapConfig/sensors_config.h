@@ -51,7 +51,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_SENSOR_DEP
 \brief Enable if you want use DigitEco Power sensor.
 */
-#define USE_SENSOR_DEP              (false)
+#define USE_SENSOR_DEP              (true)
+
+/*!
+\def USE_SENSOR_OA2
+\brief Enable if you want use OPC PM1, PM2.5, PM10 continuous average value.
+*/
+#define USE_SENSOR_OA2              (false)
+#define USE_SENSOR_OA3              (true)
+
+/*!
+\def USE_SENSOR_OB2
+\brief Enable if you want use OPC PM1, PM2.5, PM10 continuous standard deviation value.
+*/
+#define USE_SENSOR_OB2              (false)
+#define USE_SENSOR_OB3              (true)
+
+/*!
+\def USE_SENSOR_OC2
+\brief Enable if you want use OPC BINS continuous average value.
+*/
+#define USE_SENSOR_OC2              (false)
+#define USE_SENSOR_OC3              (true)
+
+/*!
+\def USE_SENSOR_OD2
+\brief Enable if you want use OPC BINS continuous standard deviation value.
+*/
+#define USE_SENSOR_OD2              (false)
+#define USE_SENSOR_OD3              (true)
+
+/*!
+\def USE_SENSOR_OD2
+\brief Enable if you want use OPC BINS continuous standard deviation value.
+*/
+#define USE_SENSOR_OE3              (true)
+
+/*!
+\def USE_SENSOR_LWT
+\brief Enable if you want use leaf wetness time continuous value.
+*/
+#define USE_SENSOR_LWT              (false)
 
 /*!
 \def USE_SENSOR_HI7
@@ -189,7 +229,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
-#define VALUES_TO_READ_FROM_SENSOR_COUNT     (3)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (24)
+#define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
 
 // sampling every 3-15 seconds --> watchdog timer (SENSORS_SAMPLE_TIME_S in relative modules)
 // observations with processing every 1-10 minutes (minutes for processing sampling)
@@ -221,7 +262,7 @@ Maximum number of values to be read by the sensors.
 \def OBSERVATION_COUNT_TOLLERANCE
 \brief Tolerance of observations for generating a valid report.
 */
-#define OBSERVATION_COUNT_TOLLERANCE         (2)
+#define OBSERVATION_COUNT_TOLLERANCE         (1)
 
 #if (OBSERVATION_COUNT < STATISTICAL_DATA_COUNT)
 #error OBSERVATION_COUNT must be major of STATISTICAL_DATA_COUNT !!!

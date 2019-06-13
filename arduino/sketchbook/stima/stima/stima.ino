@@ -82,64 +82,64 @@ void loop() {
       #endif
 
       case TASKS_EXECUTION:
-         if (is_event_rtc) {
-            rtc_task();
-            wdt_reset();
-         }
-
-         if (is_event_supervisor) {
-            supervisor_task();
-            wdt_reset();
-         }
-
-         #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
-         if (is_event_ethernet) {
-            ethernet_task();
-            wdt_reset();
-         }
-
-         #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
-         if (is_event_gsm) {
-            gsm_task();
-            wdt_reset();
-         }
-
-         #endif
-
-         if (is_event_sensors_reading) {
-            sensors_reading_task();
-            wdt_reset();
-         }
-
-         #if (USE_SDCARD)
-         if (is_event_data_saving) {
-            data_saving_task();
-            wdt_reset();
-         }
-         #endif
-
-         #if (USE_MQTT)
-         if (is_event_mqtt) {
-            mqtt_task();
-            wdt_reset();
-         }
-         #endif
-
-         if (is_event_time) {
-            time_task();
-            wdt_reset();
-         }
-
-         streamRpc.parseStream(&is_event_rpc, &Serial);
-         if (is_event_rpc) {
-            wdt_reset();
-         }
-
         // I2C Bus Check
-        if ((i2c_error > I2C_MAX_ERROR_COUNT) && (ready_tasks_count == 0)) {
+        if (i2c_error >= I2C_MAX_ERROR_COUNT) {
           SERIAL_ERROR(F("Restart I2C BUS\r\n"));
           init_wire();
-          LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
+          // LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
+          wdt_reset();
+        }
+
+        if (is_event_rtc) {
+          rtc_task();
+          wdt_reset();
+        }
+
+        if (is_event_supervisor) {
+          supervisor_task();
+          wdt_reset();
+        }
+
+        #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
+        if (is_event_ethernet) {
+          ethernet_task();
+          wdt_reset();
+        }
+
+        #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
+        if (is_event_gsm) {
+          gsm_task();
+          wdt_reset();
+        }
+
+        #endif
+
+        if (is_event_sensors_reading) {
+          sensors_reading_task();
+          wdt_reset();
+        }
+
+        #if (USE_SDCARD)
+        if (is_event_data_saving) {
+          data_saving_task();
+          wdt_reset();
+        }
+        #endif
+
+        #if (USE_MQTT)
+        if (is_event_mqtt) {
+          mqtt_task();
+          wdt_reset();
+        }
+        #endif
+
+        if (is_event_time) {
+          time_task();
+          wdt_reset();
+        }
+
+        streamRpc.parseStream(&is_event_rpc, &Serial);
+        if (is_event_rpc) {
           wdt_reset();
         }
 
@@ -244,6 +244,7 @@ void init_tasks() {
 
    do_ntp_sync = false;
    is_time_set = false;
+   system_time = 0;
    last_ntp_sync = -NTP_TIME_FOR_RESYNC_S;
 
    last_lcd_begin = 0;
@@ -399,10 +400,10 @@ void init_sensors () {
   uint8_t sensors_count = 0;
   uint8_t sensors_error_count = 0;
 
-   LCD_INFO(&lcd, false, true, F("--- www.rmap.cc ---"));
-   LCD_INFO(&lcd, false, true, F("%s v. %u.%u"), stima_name, readable_configuration.module_main_version, readable_configuration.module_minor_version);
+  LCD_INFO(&lcd, false, true, F("--- www.rmap.cc ---"));
+  LCD_INFO(&lcd, false, true, F("%s v. %u.%u"), stima_name, readable_configuration.module_main_version, readable_configuration.module_minor_version);
 
-   LCD_INFO(&lcd, false, true, F("Sensors count %u"), readable_configuration.sensors_count);
+  LCD_INFO(&lcd, false, true, F("Sensors count %u"), readable_configuration.sensors_count);
 
   if (readable_configuration.sensors_count) {
     // read sensors configuration, create and setup
@@ -438,7 +439,7 @@ bool mqttConnect(char *username, char *password) {
    data.password.cstring = password;
    data.cleansession = false;
 
-   SERIAL_DEBUG(F("MQTT clientID: %s\r\n"), data.clientID.cstring);
+   // SERIAL_DEBUG(F("MQTT clientID: %s\r\n"), data.clientID.cstring);
    // SERIAL_DEBUG(F("MQTT will message: %s\r\n"), data.will.message.cstring);
    // SERIAL_DEBUG(F("MQTT will topic: %s\r\n"), data.will.topicName.cstring);
 
@@ -458,11 +459,11 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
 
 void mqttRxCallback(MQTT::MessageData &md) {
    MQTT::Message &rx_message = md.message;
-   SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
-   SERIAL_DEBUG(F("--> qos %u\r\n"), rx_message.qos);
-   SERIAL_DEBUG(F("--> retained %u\r\n"), rx_message.retained);
-   SERIAL_DEBUG(F("--> dup %u\r\n"), rx_message.dup);
-   SERIAL_DEBUG(F("--> id %u\r\n"), rx_message.id);
+   // SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
+   // SERIAL_DEBUG(F("--> qos %u\r\n"), rx_message.qos);
+   // SERIAL_DEBUG(F("--> retained %u\r\n"), rx_message.retained);
+   // SERIAL_DEBUG(F("--> dup %u\r\n"), rx_message.dup);
+   // SERIAL_DEBUG(F("--> id %u\r\n"), rx_message.id);
 }
 #endif
 
@@ -671,7 +672,7 @@ int configure(JsonObject &params, JsonObject &result) {
          Pcf8563::setTime(it->value.as<JsonArray>()[3].as<int>(), it->value.as<JsonArray>()[4].as<int>(), it->value.as<JsonArray>()[5].as<int>());
          Pcf8563::enable();
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
-         setSyncProvider(Pcf8563::getTime);
+         setSyncProvider(getSystemTime);
          #elif (USE_TIMER_1)
          setTime(it->value.as<JsonArray>()[3].as<int>(), it->value.as<JsonArray>()[4].as<int>(), it->value.as<JsonArray>()[5].as<int>(), it->value.as<JsonArray>()[2].as<int>(), it->value.as<JsonArray>()[1].as<int>(), it->value.as<JsonArray>()[0].as<int>() - 2000);
          #endif
@@ -915,6 +916,15 @@ int prepandget(JsonObject &params, JsonObject &result) {
 }
 #endif
 
+uint32_t getSystemTime() {
+  return system_time;
+}
+
+void reboot() {
+  init_wdt(WDTO_1S);
+  while(true);
+}
+
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject &params, JsonObject &result) {
    LCD_INFO(&lcd, false, true, F("Reboot"));
@@ -926,6 +936,9 @@ int reboot(JsonObject &params, JsonObject &result) {
 #endif
 
 void interrupt_task_1s () {
+  system_time++;
+  setTime(system_time);
+
   #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
   if (is_time_set && now() >= next_ptr_time_for_sensors_reading && next_ptr_time_for_sensors_reading) {
 
@@ -985,6 +998,8 @@ void supervisor_task() {
 
    static bool is_supervisor_first_run = true;
    static bool is_time_updated;
+
+   bool is_sdcard_ok = false;
 
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    bool *is_event_client = &is_event_ethernet;
@@ -1202,15 +1217,34 @@ void supervisor_task() {
 
          #endif
 
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
-         delay_ms = DEBUG_WAIT_FOR_SLEEP_MS;
-         start_time_ms = millis();
-         state_after_wait = SUPERVISOR_END;
-         supervisor_state = SUPERVISOR_WAIT_STATE;
-         #else
-         supervisor_state = SUPERVISOR_END;
-         #endif
-         SERIAL_TRACE(F("SUPERVISOR_MANAGE_LEVEL_TASK ---> SUPERVISOR_END\r\n"));
+         supervisor_state = SUPERVISOR_TEST_SDCARD;
+      break;
+
+      case SUPERVISOR_TEST_SDCARD:
+        #if (USE_SDCARD)
+        if (is_supervisor_first_run) {
+          if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
+            if (sdcard_open_file(&SD, &test_file, SDCARD_TEST_FILE_NAME, O_RDWR | O_CREAT | O_APPEND)) {
+              is_sdcard_ok = test_file.close();
+            }
+          }
+
+          if (!is_sdcard_ok) {
+            SERIAL_ERROR(F("SD Card... [ %s ]\r\n--> is card inserted?\r\n--> there is a valid FAT32 filesystem?\r\n\r\n"), FAIL_STRING);
+            LCD_INFO(&lcd, false, true, F("SD Card %s"), FAIL_STRING);
+          }
+        }
+        #endif
+
+        #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
+        delay_ms = DEBUG_WAIT_FOR_SLEEP_MS;
+        start_time_ms = millis();
+        state_after_wait = SUPERVISOR_END;
+        supervisor_state = SUPERVISOR_WAIT_STATE;
+        #else
+        supervisor_state = SUPERVISOR_END;
+        #endif
+        SERIAL_TRACE(F("SUPERVISOR_MANAGE_LEVEL_TASK ---> SUPERVISOR_END\r\n"));
       break;
 
       case SUPERVISOR_END:
@@ -1233,31 +1267,20 @@ void supervisor_task() {
 }
 
 void rtc_task() {
-   if (is_time_set) {
-      #if (USE_RTC)
-      uint32_t current_time = Pcf8563::getTime();
-      if (current_time - now() <= 10) {
-         setTime(current_time);
-         noInterrupts();
-         is_event_rtc = false;
-         ready_tasks_count--;
-         interrupts();
-      }
-      #elif (USE_TIMER_1)
-      noInterrupts();
-      is_event_rtc = false;
-      ready_tasks_count--;
-      interrupts();
-      #endif
+  if (is_time_set) {
+    noInterrupts();
+    is_event_rtc = false;
+    ready_tasks_count--;
+    interrupts();
 
-      #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
-      if (is_time_for_sensors_reading_updated) {
-         is_time_for_sensors_reading_updated = false;
-         SERIAL_INFO(F("Next acquisition scheduled at: %02u:%02u:%02u\r\n"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
-         LCD_INFO(&lcd, true, true, F("next acq %02u:%02u:%02u"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
-      }
-      #endif
-   }
+    #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
+    if (is_time_for_sensors_reading_updated) {
+      is_time_for_sensors_reading_updated = false;
+      SERIAL_INFO(F("Next acquisition scheduled at: %02u:%02u:%02u\r\n"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+      LCD_INFO(&lcd, true, true, F("next acq %02u:%02u:%02u"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+    }
+    #endif
+  }
 }
 
 void time_task() {
@@ -1269,6 +1292,7 @@ void time_task() {
    #if (USE_NTP)
    static bool is_set_rtc_ok;
    static time_t current_ntp_time;
+   time_t diff_ntp_time;
    bool is_ntp_request_ok;
    #endif
 
@@ -1348,9 +1372,18 @@ void time_task() {
 
          #endif
 
-         if (current_ntp_time > NTP_VALID_START_TIME_S) {
+         if (is_time_set && (system_time > current_ntp_time)) {
+           diff_ntp_time = system_time - current_ntp_time;
+         } else if (is_time_set) {
+           diff_ntp_time = current_ntp_time - system_time;
+         } else {
+           diff_ntp_time = 0;
+         }
+
+         if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
             retry = 0;
-            setTime(current_ntp_time);
+            system_time = current_ntp_time;
+            setTime(system_time);
             last_ntp_sync = current_ntp_time;
             SERIAL_DEBUG(F("Current NTP date and time: %02u/%02u/%04u %02u:%02u:%02u\r\n"), day(), month(), year(), hour(), minute(), second());
             #if (USE_RTC)
@@ -1419,8 +1452,8 @@ void time_task() {
 
       case TIME_SET_SYNC_RTC_PROVIDER:
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
-         setSyncProvider(Pcf8563::getTime);
-         SERIAL_DEBUG(F("Current RTC date and time: %02u/%02u/%04u %02u:%02u:%02u\r\n"), day(), month(), year(), hour(), minute(), second());
+         setSyncProvider(getSystemTime);
+         SERIAL_DEBUG(F("Current System date and time: %02u/%02u/%04u %02u:%02u:%02u\r\n"), day(), month(), year(), hour(), minute(), second());
          time_state = TIME_END;
          SERIAL_TRACE(F("TIME_SET_SYNC_RTC_PROVIDER --> TIME_END\r\n"));
       break;
@@ -1922,104 +1955,124 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_NEXT:
-      // next sensor
-      if ((++i) < readable_configuration.sensors_count) {
-        retry = 0;
-        sensors_reading_state = SENSORS_READING_PREPARE;
-        SERIAL_TRACE(F("SENSORS_READING_NEXT ---> SENSORS_READING_PREPARE\r\n"));
-      }
-      // success: all sensors readed
-      else {
-        // first time: read ptr data from sdcard
-        if (is_first_run && !is_test) {
-          #if (USE_MQTT)
-          noInterrupts();
-          if (!is_event_supervisor && is_event_mqtt_paused) {
-            is_event_supervisor = true;
-            ready_tasks_count++;
-          }
-          interrupts();
-          #endif
+        // next sensor
+        if ((++i) < readable_configuration.sensors_count) {
+          retry = 0;
+          sensors_reading_state = SENSORS_READING_PREPARE;
+          SERIAL_TRACE(F("SENSORS_READING_NEXT ---> SENSORS_READING_PREPARE\r\n"));
         }
-
-        // other time but not in test: save data to sdcard
-        // normal AND NOT test: save
-        if (!is_first_run && !is_test) {
-          #if (USE_SDCARD)
-          noInterrupts();
-          if (!is_event_data_saving) {
-            is_event_data_saving = true;
-            ready_tasks_count++;
+        // success: all sensors readed
+        else {
+          // first time: read ptr data from sdcard
+          if (is_first_run && !is_test) {
+            #if (USE_MQTT)
+            noInterrupts();
+            if (!is_event_supervisor && is_event_mqtt_paused) {
+              is_event_supervisor = true;
+              ready_tasks_count++;
+            }
+            interrupts();
+            #endif
           }
-          interrupts();
-          #endif
+
+          // other time but not in test: save data to sdcard
+          // normal AND NOT test: save
+          if (!is_first_run && !is_test) {
+            #if (USE_SDCARD)
+            noInterrupts();
+            if (!is_event_data_saving) {
+              is_event_data_saving = true;
+              ready_tasks_count++;
+            }
+            interrupts();
+            #endif
+          }
+
+          // normal OR test: print
+          if (!is_first_run || is_test) {
+            #if (LCD_TRACE_LEVEL >= LCD_TRACE_LEVEL_INFO)
+            for (i = 0; i < LCD_ROWS; i++) {
+              lcd_count[i] = 0;
+            }
+
+            for (i = 0; i < readable_configuration.sensors_count; i++) {
+              SERIAL_DEBUG(F("JSON <-- %s\r\n"), &json_sensors_data[i][0]);
+
+              // SERIAL_DEBUG(F("Valori: %ld %ld %ld\t%s\r\n"), values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2], json_sensors_data[i]);
+
+              if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "%.1fC ", ((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0));
+                }
+                else {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "--.-C ");
+                }
+
+                if (isValid(values_readed_from_sensor[i][1])) {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%ld%% ", values_readed_from_sensor[i][1]);
+                }
+                else {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "---%% ");
+                }
+              }
+              else if (strcmp(sensors[i]->getType(), "OA3") == 0) {
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f %.0f %.0f ug/m3", values_readed_from_sensor[i][0]/10.0, values_readed_from_sensor[i][1]/10.0, values_readed_from_sensor[i][2]/10.0);
+                }
+                else {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--- --- --- ug/m3");
+                }
+              }
+              else if (strcmp(sensors[i]->getType(), "TBR") == 0) {
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fmm ", (values_readed_from_sensor[i][0]/10.0));
+                }
+                else {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-mm ");
+                }
+              }
+              else if (strcmp(sensors[i]->getType(), "LWT") == 0) {
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f'", (values_readed_from_sensor[i][0]*10.0/60.0));
+                }
+                else {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--'");
+                }
+              }
+              else if (strcmp(sensors[i]->getType(), "DW1") == 0) {
+                if (isValid(values_readed_from_sensor[i][1])) {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[i][1]/10.0));
+                }
+                else {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
+                }
+
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[i][0], 0b11011111);
+                }
+                else {
+                  lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "---%c", 0b11011111);
+                }
+              }
+              else if (strcmp(sensors[i]->getType(), "DEP") == 0) {
+                if (isValid(values_readed_from_sensor[i][0])) {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%.1fV", (values_readed_from_sensor[i][1]/10.0));
+                }
+                else {
+                  lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "--.-V");
+                }
+              }
+            }
+            for (i = 0; i < 2; i++) {
+              LCD_INFO(&lcd, (i == 0), true, F("%s"), lcd_buffer[i]);
+            }
+            #endif
+          }
+
+          sensors_reading_state = SENSORS_READING_END;
+          SERIAL_TRACE(F("SENSORS_READING_NEXT ---> SENSORS_READING_END\r\n"));
         }
-
-        // normal OR test: print
-        if (!is_first_run || is_test) {
-          #if (LCD_TRACE_LEVEL >= LCD_TRACE_LEVEL_INFO)
-          for (i = 0; i < LCD_ROWS; i++) {
-            lcd_count[i] = 0;
-          }
-
-          for (i = 0; i < readable_configuration.sensors_count; i++) {
-            if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0)) {
-              if (isValid(values_readed_from_sensor[i][0])) {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "%.1fC ", ((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0));
-              }
-              else {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "--.-C ");
-              }
-
-              if (isValid(values_readed_from_sensor[i][1])) {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%ld%% ", values_readed_from_sensor[i][1]);
-              }
-              else {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "---%% ");
-              }
-            }
-            else if (strcmp(sensors[i]->getType(), "TBR") == 0) {
-              if (isValid(values_readed_from_sensor[i][0])) {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fmm ", (values_readed_from_sensor[i][0]/10.0));
-              }
-              else {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-mm ");
-              }
-            }
-            else if (strcmp(sensors[i]->getType(), "DW1") == 0) {
-              if (isValid(values_readed_from_sensor[i][1])) {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[i][1]/10.0));
-              }
-              else {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
-              }
-
-              if (isValid(values_readed_from_sensor[i][0])) {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[i][0], 0b11011111);
-              }
-              else {
-                lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "---%c", 0b11011111);
-              }
-            }
-            else if (strcmp(sensors[i]->getType(), "DEP") == 0) {
-              if (isValid(values_readed_from_sensor[i][0])) {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%.1fV", (values_readed_from_sensor[i][1]/10.0));
-              }
-              else {
-                lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "--.-V");
-              }
-            }
-          }
-          for (i = 0; i < 2; i++) {
-            LCD_INFO(&lcd, (i == 0), true, F("%s"), lcd_buffer[i]);
-          }
-          #endif
-        }
-
-        sensors_reading_state = SENSORS_READING_END;
-        SERIAL_TRACE(F("SENSORS_READING_NEXT ---> SENSORS_READING_END\r\n"));
-      }
-      break;
+        break;
 
       case SENSORS_READING_END:
         is_first_test = false;
@@ -2234,8 +2287,8 @@ void mqtt_task() {
    static uint16_t mqtt_data_count;
    static uint8_t data_count;
    static char sd_buffer[MQTT_SENSOR_TOPIC_LENGTH + MQTT_MESSAGE_LENGTH];
-   static char topic_buffer[VALUES_TO_READ_FROM_SENSOR_COUNT][MQTT_SENSOR_TOPIC_LENGTH];
-   static char message_buffer[VALUES_TO_READ_FROM_SENSOR_COUNT][MQTT_MESSAGE_LENGTH];
+   static char topic_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_SENSOR_TOPIC_LENGTH];
+   static char message_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_MESSAGE_LENGTH];
    static char full_topic_buffer[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
    static bool is_mqtt_error;
    static bool is_mqtt_processing_sdcard;

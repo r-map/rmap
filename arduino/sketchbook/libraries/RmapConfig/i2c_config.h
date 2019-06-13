@@ -1,4 +1,4 @@
-/**@file json_config.h */
+/**@file i2c_config.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,13 +20,25 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _JSON_CONFIG_H
-#define _JSON_CONFIG_H
+#ifndef _HARDWARE_CONFIG_H
+#define _HARDWARE_CONFIG_H
 
 /*!
-\def JSON_BUFFER_LENGTH
-\brief Length in bytes for JSON data buffer.
+\def I2C_BUS_CLOCK
+\brief I2C bus clock in Hertz.
 */
-#define JSON_BUFFER_LENGTH        (400)
+#define I2C_BUS_CLOCK                   (50000L)
+
+/*!
+\def I2C_MAX_DATA_LENGTH
+\brief Max length in bytes for i2c bus data buffer.
+*/
+#define I2C_MAX_DATA_LENGTH             (32)
+
+/*!
+\def I2C_MAX_ERROR_COUNT
+\brief Max i2c error for bus restart.
+*/
+#define I2C_MAX_ERROR_COUNT             (5)
 
 #endif

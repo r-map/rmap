@@ -25,7 +25,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <debug.h>
 #include "SensorDriverSensors.h"
-#include <sensors_config.h>
+#include "sensors_config.h"
+#include "i2c_config.h"
+#include "i2c_utility.h"
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -274,6 +276,14 @@ protected:
    \brief Internal sensor's variable for save is readed.
    */
    bool _is_readed;
+
+   /*!
+   \var buffer
+   \brief buffer.
+   */
+   uint8_t _buffer[I2C_MAX_DATA_LENGTH];
+
+   bool _is_test;
 
    /*!
    \fn void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0)
@@ -568,6 +578,46 @@ protected:
       READ_INPUT_CURRENT,
       SET_OUTPUT_VOLTAGE_ADDRESS,
       READ_OUTPUT_VOLTAGE,
+      END
+   } _get_state;
+};
+#endif
+
+#if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
+#include "registers-opc.h"
+class SensorDriverOpc : public SensorDriver {
+public:
+   SensorDriverOpc(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
+      _is_setted = is_setted;
+      _is_prepared = is_prepared;
+
+      *_is_setted = false;
+      *_is_prepared = false;
+
+      SensorDriver::printInfo(driver, type);
+      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+   };
+   void setup(const uint8_t address, const uint8_t node = 0);
+   void prepare(bool is_test = false);
+   void get(int32_t *values, uint8_t length);
+
+   #if (USE_JSON)
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   #endif
+
+   bool isSetted();
+   bool isPrepared();
+   void resetPrepared();
+
+protected:
+   bool *_is_setted;
+   bool *_is_prepared;
+
+   enum {
+      INIT,
+      SET_ADDRESS,
+      READ_VALUE,
+      GET_VALUE,
       END
    } _get_state;
 };

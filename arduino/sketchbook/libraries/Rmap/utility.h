@@ -1,4 +1,4 @@
-/**@file hardware_config.h */
+/**@file utility.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,25 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _HARDWARE_CONFIG_H
-#define _HARDWARE_CONFIG_H
+#ifndef _UTILITY_H
+#define _UTILITY_H
 
-/*!
-\def I2C_BUS_CLOCK
-\brief I2C bus clock in Hertz.
-*/
-#define I2C_BUS_CLOCK                   (50000L)
+#include <stdint.h>
+#include <string.h>
 
-/*!
-\def I2C_MAX_DATA_LENGTH
-\brief Max length in bytes for i2c bus data buffer.
-*/
-#define I2C_MAX_DATA_LENGTH             (31)
+uint16_t getUINT16FromUINT8(uint8_t *buffer);
+uint16_t getUINT16FromUINT8(uint8_t byte_0, uint8_t byte_1);
 
-/*!
-\def I2C_MAX_ERROR_COUNT
-\brief Max error count on i2c bus for re-init.
-*/
-#define I2C_MAX_ERROR_COUNT             (6)
+uint32_t getUINT32FromUINT8(uint8_t *buffer);
+uint32_t getUINT32FromUINT8(uint8_t byte_0, uint8_t byte_1, uint8_t byte_2, uint8_t byte_3);
+
+float getIEE754FloatFrom4UINT8(uint8_t *buffer);
+float getIEE754FloatFrom4UINT8(uint8_t byte_0, uint8_t byte_1, uint8_t byte_2, uint8_t byte_3);
 
 #endif
