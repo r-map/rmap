@@ -136,7 +136,7 @@ if __name__ == '__main__':
                               "(default: %(default)s)"),
                         type=int, default=1883)
     parser.add_argument("-t", "--topic", metavar="TOPIC",
-                        nargs="*", default=[],
+                        action="append", default=[],
                         help=("MQTT topic to subscribe to (may be repeated "
                               "multiple times"))
     parser.add_argument("-u", "--username", metavar="NAME",
@@ -149,7 +149,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     mqttclient = mqtt.Client(userdata={
-        "topics": args.topic,
         "debug": args.debug,
     })
 
@@ -167,6 +166,8 @@ if __name__ == '__main__':
     importer = dballe.Importer("BUFR")
     with importer.from_file(sys.stdin) as f:
         for topic, payload, is_station in convert_to_mqtt(f):
-            publish_to_mqtt(mqttclient, topic, payload, is_station)
+            for basetopic in args.topic:
+                t = basetopic + topic
+                publish_to_mqtt(mqttclient, t, payload, is_station)
 
     mqttclient.loop_stop()
