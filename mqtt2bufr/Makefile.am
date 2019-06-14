@@ -39,7 +39,11 @@ bufr2mqtt.1: bufr2mqtt
 storedjson2bufr.1: storedjson2bufr.cc
 	$(HELP2MAN) --no-info --name="Convert stored JSON to generic BUFR" --output=$@ ./storedjson2bufr
 
+
+check-local:
+	python3 test_mqtt2bufr.py
+
 EXTRA_DIST = \
-	     parser.h mqtt2bufr.spec mqtt2bufr.py bufr2mqtt.py
+			 parser.h mqtt2bufr.spec mqtt2bufr.py bufr2mqtt.py test_mqtt2bufr.py
 
 CLEANFILES = mqtt2bufr bufr2mqtt
