@@ -196,7 +196,7 @@ if __name__ == '__main__':
                               "(default: %(default)s)"),
                         type=int, default=1883)
     parser.add_argument("-t", "--topic", metavar="TOPIC",
-                        nargs="*", default=[],
+                        action="append", default=[],
                         help=("MQTT topic to subscribe to (may be repeated "
                               "multiple times"))
     parser.add_argument("-u", "--username", metavar="NAME",
