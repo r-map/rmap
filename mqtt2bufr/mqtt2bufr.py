@@ -151,8 +151,8 @@ def on_message(client, userdata, message):
         msg.set(m["level"], m["trange"], var)
 
         exporter = dballe.Exporter(encoding="BUFR")
-        sys.stdout.buffer.write(exporter.to_binary(msg))
-        sys.stdout.buffer.flush()
+        userdata["outfile"].write(exporter.to_binary(msg))
+        userdata["outfile"].flush()
     except Exception:
         import traceback
         traceback.print_exc()
@@ -172,6 +172,29 @@ def handle_signals(mqttclient):
     signal.signal(signal.SIGHUP, cleanup_on_signal)
     signal.signal(signal.SIGTERM, cleanup_on_signal)
     signal.signal(signal.SIGINT, cleanup_on_signal)
+
+
+def main(host, keepalive, port, topics, username, password, debug,
+         overwrite_date, outfile):
+    mqttclient = mqtt.Client(userdata={
+        "topics": topics,
+        "debug": debug,
+        "overwrite_date": overwrite_date,
+        "outfile": outfile,
+    })
+
+    if username:
+        mqttclient.username_pw_set(username, password)
+
+    mqttclient.on_log = on_log
+    mqttclient.on_connect = on_connect
+    mqttclient.on_message = on_message
+
+    mqttclient.connect(host, port=port, keepalive=keepalive)
+
+    handle_signals(mqttclient)
+
+    mqttclient.loop_forever()
 
 
 if __name__ == '__main__':
@@ -211,21 +234,10 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    mqttclient = mqtt.Client(userdata={
-        "topics": args.topic,
-        "debug": args.debug,
-        "overwrite_date": args.overwrite_date,
-    })
-
-    if args.username:
-        mqttclient.username_pw_set(args.username, password=args.pw)
-
-    mqttclient.on_log = on_log
-    mqttclient.on_connect = on_connect
-    mqttclient.on_message = on_message
-
-    mqttclient.connect(args.host, port=args.port, keepalive=args.keepalive)
-
-    handle_signals(mqttclient)
-
-    mqttclient.loop_forever()
+    # def main(host, keepalive, port, topics, username, password, debug, overwrite_date)
+    main(
+        host=args.host, keepalive=args.keepalive, port=args.port,
+        topics=args.topic, username=args.username, password=args.pw,
+        debug=args.debug, overwrite_date=args.overwrite_date,
+        outfile=sys.stdout.buffer,
+    )
