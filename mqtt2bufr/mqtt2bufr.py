@@ -234,7 +234,6 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # def main(host, keepalive, port, topics, username, password, debug, overwrite_date)
     main(
         host=args.host, keepalive=args.keepalive, port=args.port,
         topics=args.topic, username=args.username, password=args.pw,
