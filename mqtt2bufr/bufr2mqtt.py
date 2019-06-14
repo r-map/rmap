@@ -114,6 +114,32 @@ def handle_signals(mqttclient):
     signal.signal(signal.SIGINT, cleanup_on_signal)
 
 
+def main(host, keepalive, port, topics, username, password, debug, infile):
+    mqttclient = mqtt.Client(userdata={
+        "debug": debug,
+    })
+
+    if username:
+        mqttclient.username_pw_set(username, password)
+
+    mqttclient.on_log = on_log
+
+    mqttclient.connect(host, port=port, keepalive=keepalive)
+
+    handle_signals(mqttclient)
+
+    mqttclient.loop_start()
+
+    importer = dballe.Importer("BUFR")
+    with importer.from_file(infile) as f:
+        for topic, payload, is_station in convert_to_mqtt(f):
+            for basetopic in topics:
+                t = basetopic + topic
+                publish_to_mqtt(mqttclient, t, payload, is_station)
+
+    mqttclient.loop_stop()
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="bufr2mqtt", add_help=False,
                                      epilog="Report bugs to {}".format(
@@ -148,26 +174,8 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    mqttclient = mqtt.Client(userdata={
-        "debug": args.debug,
-    })
-
-    if args.username:
-        mqttclient.username_pw_set(args.username, password=args.pw)
-
-    mqttclient.on_log = on_log
-
-    mqttclient.connect(args.host, port=args.port, keepalive=args.keepalive)
-
-    handle_signals(mqttclient)
-
-    mqttclient.loop_start()
-
-    importer = dballe.Importer("BUFR")
-    with importer.from_file(sys.stdin) as f:
-        for topic, payload, is_station in convert_to_mqtt(f):
-            for basetopic in args.topic:
-                t = basetopic + topic
-                publish_to_mqtt(mqttclient, t, payload, is_station)
-
-    mqttclient.loop_stop()
+    main(
+        host=args.host, keepalive=args.keepalive, port=args.port,
+        topics=args.topic, username=args.username, password=args.pw,
+        debug=args.debug, infile=sys.stdin,
+    )
