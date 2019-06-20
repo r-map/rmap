@@ -82,8 +82,8 @@ bool status9=false;
 i2cgpio gpio1;
 i2cgpio gpio2(I2C_GPIO_DEFAULTADDRESS+1);
 i2cgpio gpio3(I2C_GPIO_DEFAULTADDRESS+2);
-i2cibt_2 mybridgef(IBT_2_FULL,gpio1);
 i2cibt_2 mybridge2h(IBT_2_2HALF,gpio2);
+i2cibt_2 mybridgef(IBT_2_FULL,gpio3);
 
 
 void firmware_upgrade() {
@@ -168,26 +168,90 @@ void reboot() {
 void updateGpio(){
   String gpio = server.arg("id");
   String etat = server.arg("etat");
-  String success = "1";
-  int pin = GPIOPIN[0];
+  String success;
 
   Serial.println(gpio);  
   const char* cind = gpio.c_str(); 
   int ind = atoi(cind);
- 
-  if ( ind >= 0 && ind <= NPINOUT ) {
-    pin = GPIOPIN[ind];
-  }
-  LOGN(F("pin: %d" CR),pin);
+
+  LOGN(F("ind: %d %s" CR),ind,etat.c_str());
 
   if ( etat == "1" ) {
-    digitalWrite(pin, LOW);
+    success = "1";
   } else if ( etat == "0" ) {
-    digitalWrite(pin, HIGH);
+    success = "1";
   } else {
     success = "0";
-    //LOGE(F("Err pin value: %d" CR),etat);    
   }
+  
+  if ( ind >= 0 && ind < NPINOUT ) {
+    int pin = GPIOPIN[ind];
+    LOGN(F("pin: %d" CR),pin);
+
+    if ( etat == "1" ) {
+      digitalWrite(pin, LOW);
+    } else if ( etat == "0" ) {
+      digitalWrite(pin, HIGH);
+    }
+  }
+
+  switch(ind){
+    
+  case 3:
+    if ( etat == "1" ){
+      mybridge2h.setpwm(value8,IBT_2_L_HALF);
+      delay(10);
+      mybridge2h.start(IBT_2_L_HALF);
+    }else{
+      mybridge2h.stop(IBT_2_L_HALF);
+    }	  
+    
+    break;
+    
+  case 4:
+    if ( etat == "1" ){
+      mybridge2h.setpwm(value9,IBT_2_R_HALF);
+      delay(10);
+      mybridge2h.start(IBT_2_R_HALF);
+    }else{
+      mybridge2h.stop(IBT_2_R_HALF);
+    }	  
+    
+    break;
+
+  case 5:
+    if ( etat == "1" ){
+      mybridgef.setrotation(value7);
+      delay(10);
+      mybridgef.start();
+    }else{
+      mybridgef.stop();
+      delay(10);
+      mybridgef.setrotation();
+    }
+    
+    break;
+
+  case 6:
+    if ( etat == "1" ){
+      gpio1.digitalWrite( I2CGPIOPIN[0], true);
+    }else{
+      gpio1.digitalWrite( I2CGPIOPIN[0], false);
+    }
+    
+    break;
+
+  case 7:
+    if ( etat == "1" ){
+      gpio1.digitalWrite( I2CGPIOPIN[1], true);
+    }else{
+      gpio1.digitalWrite( I2CGPIOPIN[1], false);
+    }
+    
+    break;
+    
+  }
+  
 
   String json = "{\"gpio\":\"" + String(gpio) + "\",";
   json += "\"etat\":\"" + String(etat) + "\",";
@@ -438,7 +502,7 @@ void setup() {
   digitalWrite(LED_PIN,HIGH);
 
   for ( int x = 0 ; x < NI2CGPIOPIN ; x++ ) {
-    gpio3.digitalWrite(I2CGPIOPIN[x], LOW);
+    gpio1.digitalWrite(I2CGPIOPIN[x], LOW);
     delay(10);
   }
 
@@ -653,7 +717,7 @@ void loop() {
 	}
 
 	for ( int x = 0 ; x < NI2CGPIOPIN ; x++ ) {
-	  gpio3.digitalWrite(I2CGPIOPIN[x], LOW);
+	  gpio1.digitalWrite(I2CGPIOPIN[x], LOW);
 	  delay(10);
 	}
 
@@ -743,6 +807,9 @@ void loop() {
 	  if (value < 0 && value8 >= 10) value8+=value;
 	  if (value8 >= 245) value8=254;
 	  if (value8 <= 9) value8=10;
+
+	  LOGN(F("set i2c pwm L %d" CR),value8);
+
 	  mybridge2h.setpwm(value8,IBT_2_L_HALF);
 
 	  break;
@@ -752,6 +819,9 @@ void loop() {
 	  if (value < 0 && value9 >= 10) value9+=value;
 	  if (value9 >= 245) value9=254;
 	  if (value9 <= 9) value9=10;
+
+	  LOGN(F("set i2c pwm R %d" CR),value9);
+
 	  mybridge2h.setpwm(value9,IBT_2_R_HALF);	  
 
 	  break;
@@ -768,7 +838,7 @@ void loop() {
       if (i2cind >= 0){
 	// Toggle PIN On or Off
 	status[i2cind]=!status[i2cind];	
-	gpio3.digitalWrite( I2CGPIOPIN[i2cind] , status[i2cind]);
+	gpio1.digitalWrite( I2CGPIOPIN[i2cind] , status[i2cind]);
 	LOGN(F("received i2ckey %d status %d" CR),i2cind,status[i2cind]);
       }
       
