@@ -21,8 +21,7 @@ const char* ota_server= "rmap.cc";
 #define OLEDI2CADDRESS 0X3C
 
 // set the frequency
-// 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
-#define I2C_CLOCK 30418
+#define I2C_CLOCK 10000
 
 // logging level at compile time
 // Available levels are:
@@ -31,6 +30,9 @@ const char* ota_server= "rmap.cc";
 
 // time to stay on before to go in sleep mode in seconds
 #define TIMEON  30
+
+// delay on display updates
+#define TIMEDISPLAY  1
 
 // IR telecontrol CODE
 #define DECODETYPE NEC
