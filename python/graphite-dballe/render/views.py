@@ -586,6 +586,6 @@ def buildResponse(imageData, content_type="image/png"):
 
 
 def errorPage(message):
-  template = loader.get_template('500.html')
+  template = loader.get_template('my500.html')
   context = Context(dict(message=message))
   return HttpResponseServerError( template.render(context) )
