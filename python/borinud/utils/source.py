@@ -547,7 +547,7 @@ class ArkimetBufrDB(DB):
             "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
                                                            "leveltype2", "l2",
                                                            "pindicator", "p1", "p2"]])
-        if (rec.has_key("var"):
+        if (rec.has_key("var")):
             filter+= " var={}".fomat(rec.get("var"))
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
