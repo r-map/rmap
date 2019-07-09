@@ -548,7 +548,7 @@ class ArkimetBufrDB(DB):
                                                            "leveltype2", "l2",
                                                            "pindicator", "p1", "p2"]])
         myvar=rec.get("var",None)
-        if (!(myvar is None)):
+        if (not myvar is None):
             filter+= " var={}".format(myvar)
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
