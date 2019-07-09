@@ -543,14 +543,16 @@ class ArkimetBufrDB(DB):
     def get_datastream(self, rec):
 
         query = self.record_to_arkiquery(rec)
+        filter= " ".join([
+            "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
+                                                           "leveltype2", "l2",
+                                                           "pindicator", "p1", "p2"]])
+        if (rec.has_key("var"):
+            filter+= " var={}".fomat(rec.get("var"))
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "postprocess",
-                "command": "bufr-filter "+" ".join([
-                    "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
-                                                          "leveltype2", "l2",
-                                                          "pindicator", "p1", "p2",
-                                                          "var"]]),
+                "command": "bufr-filter "+filter,
                 "query": query,
             }.items()]))
 
