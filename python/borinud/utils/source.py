@@ -547,15 +547,14 @@ class ArkimetBufrDB(DB):
             "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
                                                            "leveltype2", "l2",
                                                            "pindicator", "p1", "p2"]])
-        if (rec.has_key("var")):
-            filter+= " var={}".fomat(rec.get("var"))
+        myvar=rec.get("var",None)
+        if (!(myvar is None)):
+            filter+= " var={}".format(myvar)
         url = "{}/query?{}".format(self.dataset, "&".join([
             "{}={}".format(k, quote(v)) for k, v in {
                 "style": "postprocess",
                 "command": "bufr-filter "+filter,
-                "query": query,
-            }.items()]))
-
+                "query": query }.items()]))
 
         return urlopen(url)
 
