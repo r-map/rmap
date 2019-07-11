@@ -32,7 +32,7 @@ void loop()
       Serial.print("BUTTON B: ");
       Serial.println(keyString[button.BUTTON_B]);
     }
+    Serial.print(".");
   }
-
   delay(100);
 }

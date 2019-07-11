@@ -91,7 +91,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <SensorDriverb.h>
 #include <U8g2lib.h>
 #include "time.h"
-
+#include <LOLIN_I2C_BUTTON.h>
 
 // watchdog is enabled by default on ESP
 // https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
@@ -149,6 +149,11 @@ SensorDriver* sd[SENSORS_LEN];
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
 unsigned short int displaypos;
+
+// i2c butto for wemos OLED version 2.1.0
+I2C_BUTTON button; //I2C address 0x31
+// I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
+// I2C_BUTTON button(your_address); //using customize I2C address
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
@@ -858,9 +863,21 @@ void setup() {
   WiFiManager wifiManager;
 
   configTime(0, 0, "0.europe.pool.ntp.org");
+
+  // manage reset button in hardware (RESET_PIN) or in software (I2C)
+  bool reset=digitalRead(RESET_PIN) == LOW;
+  if (button.get() == 0)
+  {
+    if (button.BUTTON_A)
+    {
+      //String keyString[] = {"None", "Press", "Long Press", "Double Press", "Hold"};
+      //LOGN(F("BUTTON A: %s" CR),keyString[button.BUTTON_A].c_str());
+      if (button.BUTTON_A == KEY_VALUE_HOLD) reset=true;
+    }
+  }
   
-  if (digitalRead(RESET_PIN) == LOW) {
-    LOGN(F("clean FS"));
+  if (reset) {
+    LOGN(F("clean FS" CR));
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
