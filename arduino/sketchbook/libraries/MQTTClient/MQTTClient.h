@@ -15,7 +15,6 @@
  *    Ian Craggs - fix for bug 458512 - QoS 2 messages
  *    Ian Craggs - fix for bug 460389 - send loop uses wrong length
  *******************************************************************************/
-
 #if !defined(MQTTCLIENT_H)
 #define MQTTCLIENT_H
 
@@ -23,6 +22,7 @@
 #include "MQTTPacket.h"
 #include "stdio.h"
 #include "MQTTLogging.h"
+#include "MQTTFormat.h"
 
 #if !defined(MQTTCLIENT_QOS1)
     #define MQTTCLIENT_QOS1 1
@@ -48,7 +48,7 @@ struct Message
     bool dup;
     unsigned short id;
     void *payload;
-    size_t payloadlen;
+    int payloadlen;
 };
 
 
@@ -389,7 +389,6 @@ int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::readPacket(Timer& tim
     int len = 0;
     int rem_len = 0;
 	int read = 0;
-
     /* 1. read the header byte.  This has the packet type in it */
     if (ipstack.read(readbuf, 1, timer.left_ms()) != 1)
         goto exit;
@@ -515,7 +514,6 @@ template<class Network, class Timer, int MAX_MQTT_PACKET_SIZE, int b>
 int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::cycle(Timer& timer)
 {
     /* get one piece of work off the wire and one pass through */
-
     // read the socket, see what work is due
     int packet_type = readPacket(timer);
 
@@ -859,6 +857,7 @@ int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::publish(const char* t
 
     len = MQTTSerialize_publish(sendbuf, MAX_MQTT_PACKET_SIZE, 0, qos, retained, id,
               topicString, (unsigned char*)payload, payloadlen);
+    
     if (len <= 0)
         goto exit;
 
@@ -874,7 +873,6 @@ int MQTT::Client<Network, Timer, MAX_MQTT_PACKET_SIZE, b>::publish(const char* t
 #endif
     }
 #endif
-
     rc = publish(len, timer, qos);
 exit:
     return rc;

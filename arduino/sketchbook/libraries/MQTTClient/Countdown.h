@@ -25,33 +25,33 @@ public:
 		interval_end_ms = 0L;
     }
     
-    Countdown(unsigned long int ms)
+    Countdown(int ms)
     {
         countdown_ms(ms);   
     }
     
     bool expired()
     {
-        return (interval_end_ms > 0L) && (millis() >= interval_end_ms);
+      return (interval_end_ms > 0L) && (millis() >= interval_end_ms);
     }
     
-    void countdown_ms(unsigned long int ms)  
+    void countdown_ms(unsigned long ms)  
     {
         interval_end_ms = millis() + ms;
     }
     
     void countdown(int seconds)
     {
-        countdown_ms((unsigned long int)seconds * 1000L);
+        countdown_ms((unsigned long)seconds * 1000L);
     }
     
-    unsigned long int left_ms()
+    int left_ms()
     {
         return interval_end_ms - millis();
     }
     
 private:
-    unsigned long int interval_end_ms; 
+    unsigned long interval_end_ms; 
 };
 
 #endif

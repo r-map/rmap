@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014 IBM Corp.
+ * Copyright (c) 2014, 2017 IBM Corp.
  *
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
@@ -18,7 +18,9 @@
 #if !defined(IPSTACK_H)
 #define IPSTACK_H
 
-#include <SPI.h>
+#ifndef WiFi_h
+  #include <SPI.h>
+#endif
 
 #include <Client.h>
 
@@ -59,7 +61,7 @@ public:
 
     int write(unsigned char* buffer, int len, int timeout)
     {
-      // client->setTimeout(timeout);
+        client->setTimeout(timeout);
 		return client->write((uint8_t*)buffer, len);
     }
 
