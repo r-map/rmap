@@ -709,6 +709,7 @@ void setup() {
   
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
+  u8g2.setBusClock(I2C_CLOCK); //https://github.com/olikraus/u8g2/issues/769
   
   delay(100);
   
