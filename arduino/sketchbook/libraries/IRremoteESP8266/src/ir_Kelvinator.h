@@ -2,6 +2,18 @@
 //
 // Copyright 2016 David Conran
 
+// Supports:
+//   Brand: Kelvinator,  Model: YALIF Remote
+//   Brand: Kelvinator,  Model: KSV26CRC A/C
+//   Brand: Kelvinator,  Model: KSV26HRC A/C
+//   Brand: Kelvinator,  Model: KSV35CRC A/C
+//   Brand: Kelvinator,  Model: KSV35HRC A/C
+//   Brand: Kelvinator,  Model: KSV53HRC A/C
+//   Brand: Kelvinator,  Model: KSV62HRC A/C
+//   Brand: Kelvinator,  Model: KSV70CRC A/C
+//   Brand: Kelvinator,  Model: KSV70HRC A/C
+//   Brand: Kelvinator,  Model: KSV80HRC A/C
+
 #ifndef IR_KELVINATOR_H_
 #define IR_KELVINATOR_H_
 
@@ -9,33 +21,41 @@
 #include <stdint.h>
 #ifndef UNIT_TEST
 #include <Arduino.h>
-#else
-#include <string>
 #endif
 #include "IRremoteESP8266.h"
 #include "IRsend.h"
-
-// KK  KK EEEEEEE LL     VV     VV IIIII NN   NN   AAA   TTTTTTT  OOOOO  RRRRRR
-// KK KK  EE      LL     VV     VV  III  NNN  NN  AAAAA    TTT   OO   OO RR   RR
-// KKKK   EEEEE   LL      VV   VV   III  NN N NN AA   AA   TTT   OO   OO RRRRRR
-// KK KK  EE      LL       VV VV    III  NN  NNN AAAAAAA   TTT   OO   OO RR  RR
-// KK  KK EEEEEEE LLLLLLL   VVV    IIIII NN   NN AA   AA   TTT    OOOO0  RR   RR
+#ifdef UNIT_TEST
+#include "IRsend_test.h"
+#endif
 
 // Constants
-#define KELVINATOR_AUTO                        0U
-#define KELVINATOR_COOL                        1U
-#define KELVINATOR_DRY                         2U
-#define KELVINATOR_FAN                         3U
-#define KELVINATOR_HEAT                        4U
-#define KELVINATOR_BASIC_FAN_MAX               3U
-#define KELVINATOR_FAN_AUTO                    0U
-#define KELVINATOR_FAN_MAX                     5U
-#define KELVINATOR_MIN_TEMP                   16U  // 16C
-#define KELVINATOR_MAX_TEMP                   30U  // 30C
-#define KELVINATOR_AUTO_TEMP                  25U  // 25C
+const uint8_t kKelvinatorAuto = 0;
+const uint8_t kKelvinatorCool = 1;
+const uint8_t kKelvinatorDry = 2;
+const uint8_t kKelvinatorFan = 3;
+const uint8_t kKelvinatorHeat = 4;
+const uint8_t kKelvinatorBasicFanMax = 3;
+const uint8_t kKelvinatorFanAuto = 0;
+const uint8_t kKelvinatorFanMax = 5;
+const uint8_t kKelvinatorMinTemp = 16;   // 16C
+const uint8_t kKelvinatorMaxTemp = 30;   // 30C
+const uint8_t kKelvinatorAutoTemp = 25;  // 25C
+
+// Legacy defines (Deprecated)
+#define KELVINATOR_MIN_TEMP kKelvinatorMinTemp
+#define KELVINATOR_MAX_TEMP kKelvinatorMaxTemp
+#define KELVINATOR_HEAT kKelvinatorHeat
+#define KELVINATOR_FAN_MAX kKelvinatorFanMax
+#define KELVINATOR_FAN_AUTO kKelvinatorFanAuto
+#define KELVINATOR_FAN kKelvinatorFan
+#define KELVINATOR_DRY kKelvinatorDry
+#define KELVINATOR_COOL kKelvinatorCool
+#define KELVINATOR_BASIC_FAN_MAX kKelvinatorBasicFanMax
+#define KELVINATOR_AUTO_TEMP kKelvinatorAutoTemp
+#define KELVINATOR_AUTO kKelvinatorAuto
 
 /*
-	Kelvinator AC map
+        Kelvinator AC map
 
   (header mark and space)
   byte 0 = Basic Modes
@@ -115,54 +135,58 @@ class IRKelvinatorAC {
  public:
   explicit IRKelvinatorAC(uint16_t pin);
 
-  void stateReset();
+  void stateReset(void);
 #if SEND_KELVINATOR
-  void send();
+  void send(const uint16_t repeat = kKelvinatorDefaultRepeat);
+  uint8_t calibrate(void) { return _irsend.calibrate(); }
 #endif  // SEND_KELVINATOR
-  void begin();
-  void on();
-  void off();
-  void setPower(bool state);
-  bool getPower();
-  void setTemp(uint8_t temp);
-  uint8_t getTemp();
-  void setFan(uint8_t fan);
-  uint8_t getFan();
-  void setMode(uint8_t mode);
-  uint8_t getMode();
-  void setSwingVertical(bool state);
-  bool getSwingVertical();
-  void setSwingHorizontal(bool state);
-  bool getSwingHorizontal();
-  void setQuiet(bool state);
-  bool getQuiet();
-  void setIonFilter(bool state);
-  bool getIonFilter();
-  void setLight(bool state);
-  bool getLight();
-  void setXFan(bool state);
-  bool getXFan();
-  void setTurbo(bool state);
-  bool getTurbo();
-  uint8_t* getRaw();
-  void setRaw(uint8_t new_code[]);
+  void begin(void);
+  void on(void);
+  void off(void);
+  void setPower(const bool on);
+  bool getPower(void);
+  void setTemp(const uint8_t degrees);
+  uint8_t getTemp(void);
+  void setFan(const uint8_t speed);
+  uint8_t getFan(void);
+  void setMode(const uint8_t mode);
+  uint8_t getMode(void);
+  void setSwingVertical(const bool on);
+  bool getSwingVertical(void);
+  void setSwingHorizontal(const bool on);
+  bool getSwingHorizontal(void);
+  void setQuiet(const bool on);
+  bool getQuiet(void);
+  void setIonFilter(const bool on);
+  bool getIonFilter(void);
+  void setLight(const bool on);
+  bool getLight(void);
+  void setXFan(const bool on);
+  bool getXFan(void);
+  void setTurbo(const bool on);
+  bool getTurbo(void);
+  uint8_t* getRaw(void);
+  void setRaw(const uint8_t new_code[]);
   static uint8_t calcBlockChecksum(
-      const uint8_t *block,
-      const uint16_t length = KELVINATOR_STATE_LENGTH / 2);
+      const uint8_t* block, const uint16_t length = kKelvinatorStateLength / 2);
   static bool validChecksum(const uint8_t state[],
-                            const uint16_t length = KELVINATOR_STATE_LENGTH);
-#ifdef ARDUINO
-  String toString();
-#else
-  std::string toString();
-#endif
+                            const uint16_t length = kKelvinatorStateLength);
+  uint8_t convertMode(const stdAc::opmode_t mode);
+  static stdAc::opmode_t toCommonMode(const uint8_t mode);
+  static stdAc::fanspeed_t toCommonFanSpeed(const uint8_t speed);
+  stdAc::state_t toCommon(void);
+  String toString(void);
+#ifndef UNIT_TEST
 
  private:
-  // The state of the IR remote in IR code form.
-  uint8_t remote_state[KELVINATOR_STATE_LENGTH];
-  void checksum(const uint16_t length = KELVINATOR_STATE_LENGTH);
-  void fixup();
   IRsend _irsend;
+#else
+  IRsendTest _irsend;
+#endif
+  // The state of the IR remote in IR code form.
+  uint8_t remote_state[kKelvinatorStateLength];
+  void checksum(const uint16_t length = kKelvinatorStateLength);
+  void fixup(void);
 };
 
 #endif  // IR_KELVINATOR_H_

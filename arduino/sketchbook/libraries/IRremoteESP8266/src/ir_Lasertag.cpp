@@ -1,25 +1,20 @@
 // Copyright 2017 David Conran
+// Lasertag
 
 #include <algorithm>
 #include "IRrecv.h"
 #include "IRsend.h"
 #include "IRutils.h"
 
-//   LL        AAA    SSSSS  EEEEEEE RRRRRR  TTTTTTT   AAA     GGGG
-//   LL       AAAAA  SS      EE      RR   RR   TTT    AAAAA   GG  GG
-//   LL      AA   AA  SSSSS  EEEEE   RRRRRR    TTT   AA   AA GG
-//   LL      AAAAAAA      SS EE      RR  RR    TTT   AAAAAAA GG   GG
-//   LLLLLLL AA   AA  SSSSS  EEEEEEE RR   RR   TTT   AA   AA  GGGGGG
-
 // Constants
-#define MIN_LASERTAG_SAMPLES       13U
-#define LASERTAG_TICK             333U
-#define LASERTAG_MIN_GAP       100000UL  // Completely made up amount.
-#define LASERTAG_TOLERANCE          0U   // Percentage error margin
-#define LASERTAG_EXCESS             0U   // See MARK_EXCESS
-#define LASERTAG_DELTA            150U   // Use instead of EXCESS and TOLERANCE.
-const int16_t kSPACE = 1;
-const int16_t kMARK = 0;
+const uint16_t kLasertagMinSamples = 13;
+const uint16_t kLasertagTick = 333;
+const uint32_t kLasertagMinGap = kDefaultMessageGap;  // Just a guess.
+const uint8_t kLasertagTolerance = 0;     // Percentage error margin.
+const uint16_t kLasertagExcess = 0;       // See kMarkExcess.
+const uint16_t kLasertagDelta = 150;  // Use instead of Excess and Tolerance.
+const int16_t kSpace = 1;
+const int16_t kMark = 0;
 
 #if SEND_LASERTAG
 // Send a Lasertag packet.
@@ -32,10 +27,8 @@ const int16_t kMARK = 0;
 //
 // Status: STABLE / Working.
 //
-
 void IRsend::sendLasertag(uint64_t data, uint16_t nbits, uint16_t repeat) {
-  if (nbits > sizeof(data) * 8)
-    return;  // We can't send something that big.
+  if (nbits > sizeof(data) * 8) return;  // We can't send something that big.
 
   // Set 36kHz IR carrier frequency & a 1/4 (25%) duty cycle.
   // NOTE: duty cycle is not confirmed. Just guessing based on RC5/6 protocols.
@@ -44,15 +37,15 @@ void IRsend::sendLasertag(uint64_t data, uint16_t nbits, uint16_t repeat) {
   for (uint16_t i = 0; i <= repeat; i++) {
     // Data
     for (uint64_t mask = 1ULL << (nbits - 1); mask; mask >>= 1)
-      if (data & mask) {  // 1
-        space(LASERTAG_TICK);  // 1 is space, then mark.
-        mark(LASERTAG_TICK);
-      } else {  // 0
-        mark(LASERTAG_TICK);  // 0 is mark, then space.
-        space(LASERTAG_TICK);
+      if (data & mask) {       // 1
+        space(kLasertagTick);  // 1 is space, then mark.
+        mark(kLasertagTick);
+      } else {                // 0
+        mark(kLasertagTick);  // 0 is mark, then space.
+        space(kLasertagTick);
       }
     // Footer
-    space(LASERTAG_MIN_GAP);
+    space(kLasertagMinGap);
   }
 }
 #endif  // SEND_LASERTAG
@@ -76,12 +69,12 @@ void IRsend::sendLasertag(uint64_t data, uint16_t nbits, uint16_t repeat) {
 //   https://en.wikipedia.org/wiki/Manchester_code
 bool IRrecv::decodeLasertag(decode_results *results, uint16_t nbits,
                             bool strict) {
-  if (results->rawlen < MIN_LASERTAG_SAMPLES) return false;
+  if (results->rawlen < kLasertagMinSamples) return false;
 
   // Compliance
-  if (strict && nbits != LASERTAG_BITS) return false;
+  if (strict && nbits != kLasertagBits) return false;
 
-  uint16_t offset = OFFSET_START;
+  uint16_t offset = kStartOffset;
   uint16_t used = 0;
   uint64_t data = 0;
   uint16_t actual_bits = 0;
@@ -90,19 +83,19 @@ bool IRrecv::decodeLasertag(decode_results *results, uint16_t nbits,
 
   // Data
   for (; offset <= results->rawlen; actual_bits++) {
-    int16_t levelA = getRClevel(results, &offset, &used, LASERTAG_TICK,
-                                LASERTAG_TOLERANCE, LASERTAG_EXCESS,
-                                LASERTAG_DELTA);
-    int16_t levelB = getRClevel(results, &offset, &used, LASERTAG_TICK,
-                                LASERTAG_TOLERANCE, LASERTAG_EXCESS,
-                                LASERTAG_DELTA);
-    if (levelA == kSPACE && levelB == kMARK) {
+    int16_t levelA =
+        getRClevel(results, &offset, &used, kLasertagTick, kLasertagTolerance,
+                   kLasertagExcess, kLasertagDelta);
+    int16_t levelB =
+        getRClevel(results, &offset, &used, kLasertagTick, kLasertagTolerance,
+                   kLasertagExcess, kLasertagDelta);
+    if (levelA == kSpace && levelB == kMark) {
       data = (data << 1) | 1;  // 1
     } else {
-      if (levelA == kMARK && levelB == kSPACE) {
+      if (levelA == kMark && levelB == kSpace) {
         data <<= 1;  // 0
       } else {
-      break;
+        break;
       }
     }
   }
@@ -110,7 +103,7 @@ bool IRrecv::decodeLasertag(decode_results *results, uint16_t nbits,
 
   // Compliance
   if (actual_bits < nbits) return false;  // Less data than we expected.
-  if (strict && actual_bits != LASERTAG_BITS) return false;
+  if (strict && actual_bits != kLasertagBits) return false;
 
   // Success
   results->decode_type = LASERTAG;

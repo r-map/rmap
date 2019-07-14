@@ -9,7 +9,7 @@
  * For more codes, visit: https://irdb.globalcache.com/
  *
  * How to use this program:
- *   1) Update "ssid" and "password" below for your WIFI network.
+ *   1) Update "kSsid" and "kPassword" below for your WIFI network.
  *   2) Compile and upload the sketch to your ESP8266 module.
  *   3) (Optional) Use the serial connection to confirm it started and get the
  *      IP address.
@@ -37,17 +37,20 @@
  * can check your wifi router for it's address.
  */
 
-#ifndef UNIT_TEST
 #include <Arduino.h>
-#endif
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
+#endif  // ESP8266
+#if defined(ESP32)
+#include <WiFi.h>
+#endif  // ESP32
 #include <IRremoteESP8266.h>
 #include <IRsend.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
 
-const char* ssid = "...";  // Put your WIFI SSID here.
-const char* password = "...";  // Put your WIFI password here.
+const char* kSsid = "...";  // Put your WIFI SSID here.
+const char* kPassword = "...";  // Put your WIFI Password here.
 
 WiFiServer server(4998);  // Uses port 4998.
 WiFiClient client;
@@ -103,7 +106,7 @@ void setup() {
   delay(100);
   Serial.println(" ");
   Serial.println("IR TCP Server");
-  WiFi.begin(ssid, password);
+  WiFi.begin(kSsid, kPassword);
   while (WiFi.status() != WL_CONNECTED) {
     delay(900);
     Serial.print(".");
