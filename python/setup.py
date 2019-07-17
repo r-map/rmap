@@ -165,6 +165,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/amqp2djangod.1"])
             subprocess.check_call(["help2man","--no-discard-stderr","-N","-o","man/man1/dballe2arkimet.1","./dballe2arkimet"])
             subprocess.check_call(["gzip", "-f","man/man1/dballe2arkimet.1"])
+            subprocess.check_call(["help2man","--no-discard-stderr","-N","-o","man/man1/report2observationd.1","./report2observationd"])
+            subprocess.check_call(["gzip", "-f","man/man1/report2observationd.1"])
 
         except:
             pass
@@ -395,7 +397,7 @@ setup(name='rmap',
       scripts=[
           'stationd','mqtt2graphited','mqtt2dballed','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_json2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
-          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet'],
+          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'django>=1.9,<1.11.99',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","cookielaw","django-tagging","pytz","six","scandir"],
