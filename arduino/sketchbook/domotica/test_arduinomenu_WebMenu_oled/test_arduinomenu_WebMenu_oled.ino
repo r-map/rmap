@@ -45,17 +45,11 @@ so don't forget to change it.
 #include <menuIO/serialOut.h>
 #include <menuIO/xmlFmt.h>//to write a menu has xml page
 #include <menuIO/jsonFmt.h>//to write a menu has xml page
-#ifndef ARDUINO_STREAMING
-  #include <streamFlow.h>//https://github.com/neu-rah/streamFlow
-#else
-  #include <Streaming.h>//https://github.com/scottdky/Streaming
-#endif
+#include <streamFlow.h>//https://github.com/neu-rah/streamFlow
 #include <menuIO/jsFmt.h>//to send javascript thru web socket (live update)
 #include <FS.h>
 #include <Hash.h>
-extern "C" {
-  #include "user_interface.h"
-}
+#include "user_interface.h"
 
 // display definitions
 #include <U8g2lib.h>
@@ -85,7 +79,7 @@ DNSServer dnsServer;
 const byte DNS_PORT = 53;
 
 // global variables for display
-
+bool displayredraw=false;
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
 // define menu colors
@@ -117,8 +111,6 @@ keyIn<1> encButton(encBtn_map);//1 is the number of keys
 void ICACHE_RAM_ATTR encoderprocess (){
   encoder.process();
 }
-
-using namespace Menu;
 
 #ifdef WEB_DEBUG
   // on debug mode I put aux files on external server to allow changes without SPIFF update
@@ -168,13 +160,13 @@ jsonFmt<esp8266BufferedOut> wsOut(web_tops,webPanels);
 result action1(eventMask event, navNode& nav, prompt &item) {
   Serial.println(" ");
   Serial.println("action A called!");
-  serverOut<<"This is action <b>A</b> web report "<<(millis()%1000)<<"<br/>";
+  server.sendContent("This is action A web report");
   return proceed;
 }
 result action2(eventMask event, navNode& nav, prompt &item) {
   Serial.println(" ");
   Serial.println("action B called!");
-  serverOut<<"This is action <b>B</b> web report "<<(millis()%1000)<<"<br/>";
+  server.sendContent("This is action B web report");
   return proceed;
 }
 
@@ -228,46 +220,6 @@ PADMENU(birthDate,"Birth",doNothing,noEvent,noStyle
   ,FIELD(day,"","",1,31,1,0,doNothing,noEvent,wrapStyle)
 );
 
-//customizing a prompt look!
-//by extending the prompt class
-class altPrompt:public prompt {
-public:
-  // altPrompt(constMEM promptShadow& p):prompt(p) {}
-  using prompt::prompt;
-  Used printTo(navRoot &root,bool sel,menuOut& out, idx_t idx,idx_t len,idx_t) override {
-    return out.printRaw(F("special prompt!"),len);
-  }
-};
-
-/*
-Exception 3: LoadStoreError: Processor internal physical address or data error during load or store
-PC: 0x40218725: Menu::menuOut::printRaw(char const*, short) at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/menuIo.cpp line 49
-EXCVADDR: 0x40253710
-
-Decoding stack results
-0x40201030: altPrompt::printTo(Menu::navRoot&, bool, Menu::menuOut&, short, short, short) at /home/pat1/git/rmap/arduino/sketchbook/domotica/test_arduinomenu_WebMenu/test_arduinomenu_WebMenu.ino line 174
-0x40206f8b: Menu::menuOut::printMenu(Menu::navNode&, short) at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/menuIo.cpp line 424
-0x40215fd8: _umm_free(void*) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/umm_malloc/umm_malloc.cpp line 1304
-0x402071f0: Menu::menuOut::printMenu(Menu::navNode&) at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/menuIo.cpp line 272
-0x40215fd8: _umm_free(void*) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/umm_malloc/umm_malloc.cpp line 1304
-0x402166fc: free(void*) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/umm_malloc/umm_malloc.cpp line 1764
-0x402072b9: Menu::outputsList::printMenu(Menu::navNode&) const at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/menuIo.cpp line 145
-0x4020b3a8: FunctionRequestHandler::handle(ESP8266WebServer&, HTTPMethod, String) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WebServer/src/detail/RequestHandlersImpl.h line 37
-0x4020741c: Menu::navRoot::printMenu() const at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/nav.cpp line 137
-0x40207450: Menu::navRoot::doOutput() at /home/pat1/git/rmap/arduino/sketchbook/libraries/ArduinoMenu/src/nav.cpp line 158
-0x40202e84: std::_Function_handler ::_M_invoke(const std::_Any_data &) at /home/pat1/git/rmap/arduino/sketchbook/domotica/test_arduinomenu_WebMenu/test_arduinomenu_WebMenu.ino line 443
-0x40209eb4: String::operator!=(String const&) const at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/WString.h line 188
-0x401000c9: std::function ::operator()() const at /home/pat1/.arduino15/packages/esp8266/tools/xtensa-lx106-elf-gcc/2.5.0-3-20ed2b9/xtensa-lx106-elf/include/c++/4.8.2/functional line 2465
-0x4020b3e4: FunctionRequestHandler::handle(ESP8266WebServer&, HTTPMethod, String) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WebServer/src/detail/RequestHandlersImpl.h line 43
-0x4020eabc: String::String(String const&) at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/WString.cpp line 41
-0x4020b4a2: ESP8266WebServer::_handleRequest() at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WebServer/src/ESP8266WebServer.cpp line 599
-0x401001f6: millis() at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/core_esp8266_wiring.cpp line 186
-0x4020b895: ESP8266WebServer::handleClient() at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/libraries/ESP8266WebServer/src/ESP8266WebServer.cpp line 308
-0x40209d2d: WebSocketsServer::loop() at /home/pat1/git/rmap/arduino/sketchbook/libraries/WebSockets/src/WebSocketsServer.cpp line 134
-0x402032cd: loop() at /home/pat1/git/rmap/arduino/sketchbook/domotica/test_arduinomenu_WebMenu/test_arduinomenu_WebMenu.ino line 472
-0x4020faa0: loop_wrapper() at /home/pat1/.arduino15/packages/esp8266/hardware/esp8266/2.5.2/cores/esp8266/core_esp8266_main.cpp line 125
-*/
-
 MENU(subMenu,"Sub-Menu",doNothing,noEvent,noStyle
   ,OP("Sub1",doNothing,noEvent)
   ,OP("Sub2",doNothing,noEvent)
@@ -290,12 +242,20 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,EXIT("Exit!")
 );
 
+
+
+//when menu is suspended
 result idle(menuOut& o,idleEvent e) {
-  //if (e==idling)
-  Serial.println("suspended");
-  o<<"suspended..."<<endl<<"press [select]"<<endl<<"to continue"<<endl<<(millis()%1000);
+  o.clear();
+  switch(e) {
+    case idleStart:o.println("suspending menu!");break;
+    case idling:o.println("suspended...");break;
+    case idleEnd:o.println("resuming menu.");break;
+  }
+  return proceed;
   return quit;
 }
+
 
 //template<typename T>//some utill to help us calculate array sizes (known at compile time)
 //constexpr inline size_t len(T& o) {return sizeof(o)/sizeof(decltype(o[0]));}
@@ -361,8 +321,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
         // wsOut.response.remove(0);
         // jsonEnd();
 
-	u8g2.firstPage();
-	do nav.doOutput(); while(u8g2.nextPage());
+	displayredraw=true;
 	
     } break;
     case WStype_BIN: {
@@ -508,18 +467,6 @@ void setup(){
     wsNav.canExit=false;
   // #endif
 
-    //  for(uint8_t t = 4; t > 0; t--) {
-    //      Serial.printf("[SETUP] BOOT WAIT %d...\n", t);
-    //      Serial.flush();
-    //      delay(1000);
-    //  }
-
-  // Serial.setDebugOutput(1);
-  // Serial.setDebugOutput(0);
-  // while(!Serial);
-  // delay(10);
-  // wifi_station_set_hostname((char*)serverName);
-
   SPIFFS.begin();
   
   WiFi.mode(WIFI_AP);
@@ -532,23 +479,6 @@ void setup(){
   // provided IP to all DNS request
   dnsServer.start(DNS_PORT, "*", apIP);
  
-/*
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-
-  WiFi.begin(ssid, password);
-  // Wait for connection
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("Connected.");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-
-*/
-
-  
   IPAddress myIP = WiFi.softAPIP();
   Serial.print("AP IP address: ");
   Serial.println(myIP);
@@ -598,11 +528,17 @@ void loop(void){
   webSocket.loop();
   server.handleClient();
   dnsServer.processNextRequest();
+
   nav.doInput();
-  if (nav.changed(0)) {//only draw if menu changed for gfx device
+  if (nav.changed(0)) displayredraw=true;
+
+  if (displayredraw) {//only draw if menu changed for gfx device
+    displayredraw=false;
     u8g2.firstPage();
-    do nav.doOutput();
+    do
+      nav.doOutput();
     while(u8g2.nextPage());
-  } 
+    nav.printMenu(serialout);
+  }
  
 }
