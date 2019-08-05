@@ -1,0 +1,33 @@
+#######################################
+# Syntax Coloring Map For arduino-sps
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+sps_get_driver_version	KEYWORD2
+sps30_probe	KEYWORD2
+sps30_get_serial	KEYWORD2
+sps30_start_measurement	KEYWORD2
+sps30_stop_measurement	KEYWORD2
+sps30_read_data_ready	KEYWORD2
+sps30_read_measurement	KEYWORD2
+sps30_get_fan_auto_cleaning_interval	KEYWORD2
+sps30_set_fan_auto_cleaning_interval	KEYWORD2
+sps30_get_fan_auto_cleaning_interval_days	KEYWORD2
+sps30_set_fan_auto_cleaning_interval_days	KEYWORD2
+sps30_reset	KEYWORD2
+
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
