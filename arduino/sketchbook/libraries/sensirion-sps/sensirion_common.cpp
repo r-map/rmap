@@ -126,7 +126,7 @@ s16 sensirion_i2c_read_words(u8 address, u16 *data_words, u16 num_words) {
 s16 sensirion_i2c_write_cmd(u8 address, u16 command) {
     u8 buf[SENSIRION_COMMAND_SIZE];
 
-    sensirion_fill_cmd_send_buf(buf, command, (uint16_t *)NULL, 0);
+    sensirion_fill_cmd_send_buf(buf, command, (u16 *)NULL, 0);
     return sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
 }
 
@@ -144,7 +144,7 @@ s16 sensirion_i2c_delayed_read_cmd(u8 address, u16 cmd, u32 delay_us,
     s16 ret;
     u8 buf[SENSIRION_COMMAND_SIZE];
 
-    sensirion_fill_cmd_send_buf(buf, cmd, (uint16_t *)NULL, 0);
+    sensirion_fill_cmd_send_buf(buf, cmd, (u16 *)NULL, 0);
     ret = sensirion_i2c_write(address, buf, SENSIRION_COMMAND_SIZE);
     if (ret != STATUS_OK)
         return ret;

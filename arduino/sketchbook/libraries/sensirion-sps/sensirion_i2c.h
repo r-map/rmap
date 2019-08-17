@@ -41,7 +41,7 @@ void sensirion_i2c_init(void);
 
 s8 sensirion_i2c_read(u8 address, u8* data, u16 count);
 
-s8 sensirion_i2c_write(u8 address, const u8* data, u16 count);
+s8 sensirion_i2c_write(u8 address, u8* data, u16 count);
 
 void sensirion_sleep_usec(u32 useconds);
 
