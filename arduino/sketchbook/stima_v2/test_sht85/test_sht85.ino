@@ -1,43 +1,35 @@
 #include <Wire.h>
-
 #include "SHTSensor.h"
 
-//SHTSensor sht;
-// To use a specific sensor instead of probing the bus use this command:
-SHTSensor sht(SHTSensor::SHT3X);
+SHTI2cSensor sht;
 
 void setup() {
-  // put your setup code here, to run once:
 
+  Serial.begin(115200);
+  
   Wire.begin();
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
-  Serial.begin(9600);
-  delay(1000); // let serial console settle
-
-  if (sht.init()) {
-      Serial.print("init(): success\n");
-  } else {
-      Serial.print("init(): failed\n");
-  }
-  sht.setAccuracy(SHTSensor::SHT_ACCURACY_MEDIUM); // only supported by SHT3x
-
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
+  
+  //sht.setAccuracy(SHTI2cSensor::SHT_ACCURACY_MEDIUM);
+  sht.softreset();
+  delay(10);
+  sht.clearstatusregister();
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  
   if (sht.readSample()) {
-      Serial.print("SHT:\n");
-      Serial.print("  RH: ");
-      Serial.print(sht.getHumidity(), 2);
-      Serial.print("\n");
-      Serial.print("  T:  ");
-      Serial.print(sht.getTemperature(), 2);
-      Serial.print("\n");
+    Serial.print("SHT:\n");
+    Serial.print("  RH: ");
+    Serial.print(sht.getHumidity(), 2);
+    Serial.print("\n");
+    Serial.print("  T:  ");
+    Serial.print(sht.getTemperature(), 2);
+    Serial.print("\n");
   } else {
-      Serial.print("Error in readSample()\n");
+    Serial.print("Error in readSample()\n");
   }
-
+  
   delay(1000);
 }

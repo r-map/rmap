@@ -32,21 +32,6 @@
 
 #include "SHTSensor.h"
 
-
-//
-// class SHTSensorDriver
-//
-
-SHTSensorDriver::~SHTSensorDriver()
-{
-}
-
-bool SHTSensorDriver::readSample()
-{
-  return false;
-}
-
-
 //
 // class SHTI2cSensor
 //
@@ -54,43 +39,149 @@ bool SHTSensorDriver::readSample()
 const uint8_t SHTI2cSensor::CMD_SIZE             = 2;
 const uint8_t SHTI2cSensor::EXPECTED_DATA_SIZE   = 6;
 
-bool SHTI2cSensor::readFromI2c(uint8_t i2cAddress,
-                               const uint8_t *i2cCommand,
-                               uint8_t commandLength, uint8_t *data,
-                               uint8_t dataLength,
-                               uint8_t duration)
+
+SHTI2cSensor::SHTI2cSensor(uint8_t i2cAddress, SHTI2cSensor::SHTAccuracy accuracy)
 {
-  Wire.beginTransmission(i2cAddress);
+  mI2cAddress=i2cAddress;
+  setAccuracy(accuracy);
+}
+
+
+
+bool SHTI2cSensor::sendcommand(const uint8_t *i2cCommand,
+                               uint8_t commandLength)
+{
+  Wire.beginTransmission(mI2cAddress);
   for (int i = 0; i < commandLength; ++i) {
     if (Wire.write(i2cCommand[i]) != 1) {
+      //Serial.println("error write");
       return false;
     }
   }
 
   if (Wire.endTransmission(false) != 0) {
+    //Serial.println("error end");
     return false;
-  }
-
-  delay(duration);
-
-  Wire.requestFrom(i2cAddress, dataLength);
-
-  // check if the same number of bytes are received that are requested.
-  if (Wire.available() != dataLength) {
-    return false;
-  }
-
-  for (int i = 0; i < dataLength; ++i) {
-    data[i] = Wire.read();
   }
   return true;
 }
+
+bool SHTI2cSensor::softreset()
+{
+  uint8_t cmd[CMD_SIZE];
+  
+   cmd[0]=0x30;
+  cmd[1]=0xA2;
+  if (  !sendcommand(cmd,CMD_SIZE)) {
+    //Serial.println("error send reset");
+    return false;
+  }
+  return true;
+}
+
+bool SHTI2cSensor::clearstatusregister()
+{
+  uint8_t cmd[CMD_SIZE];
+  
+  cmd[0]=0x30;
+  cmd[1]=0x41;
+  if (  !sendcommand(cmd,CMD_SIZE)) {
+    //Serial.println("error send clear status");
+    return false;
+  }
+  return true;
+}
+
+bool SHTI2cSensor::checkcommand()
+{
+  uint8_t cmd[CMD_SIZE];
+  
+  uint8_t data[EXPECTED_DATA_SIZE];
+  const uint8_t C_EXPECTED_DATA_SIZE   = 3;
+  
+  cmd[0]=0xF3;
+  cmd[1]=0x2D;
+  if (  !sendcommand(cmd,2)) {
+    //Serial.println("error send verification");
+    return false;
+  }
+  
+  Wire.requestFrom(mI2cAddress, C_EXPECTED_DATA_SIZE);
+  
+  // check if the same number of bytes are received that are requested.
+  if (Wire.available() != C_EXPECTED_DATA_SIZE) {
+    //Serial.println("error request");
+    return false;
+  }
+  
+  for (int i = 0; i < C_EXPECTED_DATA_SIZE; ++i) {
+    data[i] = Wire.read();
+  }
+
+  // check CRC
+  if (crc8(&data[0], 2) != data[2]) {
+    //Serial.println("error crc");
+    return false;
+  }
+
+  uint16_t val;
+  val = ((data[0] << 8) + data[1]) & 0xFC1F;
+  //Serial.print(" byte  error status:");
+  //Serial.println(val,BIN);
+
+  if (val != 0){
+    return false;
+  }
+  
+  //Serial.println("OK");
+  
+  return true;
+  
+}
+
+
+bool SHTI2cSensor::getvalues()
+{
+  uint8_t data[EXPECTED_DATA_SIZE];
+  
+  Wire.requestFrom(mI2cAddress, EXPECTED_DATA_SIZE);
+  
+  // check if the same number of bytes are received that are requested.
+  if (Wire.available() != EXPECTED_DATA_SIZE) {
+    //Serial.println("error request");
+    return false;
+  }
+  
+  for (int i = 0; i < EXPECTED_DATA_SIZE; ++i) {
+    data[i] = Wire.read();
+  }
+  //Serial.println("OK");
+  
+  // -- Important: assuming each 2 byte of data is followed by 1 byte of CRC
+  
+  // check CRC for both RH and T
+  if (crc8(&data[0], 2) != data[2] || crc8(&data[3], 2) != data[5]) {
+    //Serial.println("error crc");
+    return false;
+  }
+  
+  // convert to Temperature/Humidity
+  uint16_t val;
+  val = (data[0] << 8) + data[1];
+  mTemperature = -45. + 175. * (val / 65535.);
+  
+  val = (data[3] << 8) + data[4];
+  mHumidity = 100. * (val / 65535.);
+  
+  return true;
+}
+
 
 uint8_t SHTI2cSensor::crc8(const uint8_t *data, uint8_t len)
 {
   // adapted from SHT21 sample code from
   // http://www.sensirion.com/en/products/humidity-temperature/download-center/
-
+  
   uint8_t crc = 0xff;
   uint8_t byteCtr;
   for (byteCtr = 0; byteCtr < len; ++byteCtr) {
@@ -107,193 +198,58 @@ uint8_t SHTI2cSensor::crc8(const uint8_t *data, uint8_t len)
 }
 
 
+bool SHTI2cSensor::setAccuracy(SHTI2cSensor::SHTAccuracy newAccuracy)
+{
+  switch (newAccuracy) {
+  case SHTI2cSensor::SHT_ACCURACY_HIGH:
+    mI2cCommand = SHTI2cSensor::SHT_ACCURACY_HIGH_COMMAND;
+    mDuration = SHTI2cSensor::SHT_ACCURACY_HIGH_DURATION;
+    break;
+  case SHTI2cSensor::SHT_ACCURACY_MEDIUM:
+    mI2cCommand = SHTI2cSensor::SHT_ACCURACY_MEDIUM_COMMAND;
+    mDuration = SHTI2cSensor::SHT_ACCURACY_MEDIUM_DURATION;
+    break;
+  case SHTI2cSensor::SHT_ACCURACY_LOW:
+    mI2cCommand = SHTI2cSensor::SHT_ACCURACY_LOW_COMMAND;
+    mDuration = SHTI2cSensor::SHT_ACCURACY_LOW_DURATION;
+    break;
+  default:
+    return false;
+  }
+  return true;
+}
+
+
 bool SHTI2cSensor::readSample()
 {
-  uint8_t data[EXPECTED_DATA_SIZE];
   uint8_t cmd[CMD_SIZE];
-
+  
   cmd[0] = mI2cCommand >> 8;
   cmd[1] = mI2cCommand & 0xff;
-
-  if (!readFromI2c(mI2cAddress, cmd, CMD_SIZE, data,
-                   EXPECTED_DATA_SIZE, mDuration)) {
-    return false;
-  }
-
-  // -- Important: assuming each 2 byte of data is followed by 1 byte of CRC
-
-  // check CRC for both RH and T
-  if (crc8(&data[0], 2) != data[2] || crc8(&data[3], 2) != data[5]) {
-    return false;
-  }
-
-  // convert to Temperature/Humidity
-  uint16_t val;
-  val = (data[0] << 8) + data[1];
-  mTemperature = mA + mB * (val / mC);
-
-  val = (data[3] << 8) + data[4];
-  mHumidity = mX * (val / mY);
-
-  return true;
-}
-
-
-//
-// class SHTC1Sensor
-//
-
-class SHTC1Sensor : public SHTI2cSensor
-{
-public:
-    SHTC1Sensor()
-        // clock stretching disabled, high precision, T first
-        : SHTI2cSensor(0x70, 0x7866, 15, -45, 175, 65535, 100, 65535)
-    {
-    }
-};
-
-
-//
-// class SHT3xSensor
-//
-
-class SHT3xSensor : public SHTI2cSensor
-{
-private:
-  static const uint16_t SHT3X_ACCURACY_HIGH    = 0x2400;
-  static const uint16_t SHT3X_ACCURACY_MEDIUM  = 0x240b;
-  static const uint16_t SHT3X_ACCURACY_LOW     = 0x2416;
-
-  static const uint8_t SHT3X_ACCURACY_HIGH_DURATION   = 15;
-  static const uint8_t SHT3X_ACCURACY_MEDIUM_DURATION = 6;
-  static const uint8_t SHT3X_ACCURACY_LOW_DURATION    = 4;
-
-public:
-  static const uint8_t SHT3X_I2C_ADDRESS_44 = 0x44;
-  static const uint8_t SHT3X_I2C_ADDRESS_45 = 0x45;
-
-  SHT3xSensor(uint8_t i2cAddress = SHT3X_I2C_ADDRESS_44)
-      : SHTI2cSensor(i2cAddress, SHT3X_ACCURACY_HIGH,
-                     SHT3X_ACCURACY_HIGH_DURATION,
-                     -45, 175, 65535, 100, 65535)
-  {
-  }
-
-  virtual bool setAccuracy(SHTSensor::SHTAccuracy newAccuracy)
-  {
-    switch (newAccuracy) {
-      case SHTSensor::SHT_ACCURACY_HIGH:
-        mI2cCommand = SHT3X_ACCURACY_HIGH;
-        mDuration = SHT3X_ACCURACY_HIGH_DURATION;
-        break;
-      case SHTSensor::SHT_ACCURACY_MEDIUM:
-        mI2cCommand = SHT3X_ACCURACY_MEDIUM;
-        mDuration = SHT3X_ACCURACY_MEDIUM_DURATION;
-        break;
-      case SHTSensor::SHT_ACCURACY_LOW:
-        mI2cCommand = SHT3X_ACCURACY_LOW;
-        mDuration = SHT3X_ACCURACY_LOW_DURATION;
-        break;
-      default:
-        return false;
-    }
-    return true;
-  }
-};
-
-
-//
-// class SHT3xAnalogSensor
-//
-
-float SHT3xAnalogSensor::readHumidity()
-{
-  float max_adc = (float)((1 << mReadResolutionBits) - 1);
-  return -12.5f + 125 * (analogRead(mHumidityAdcPin) / max_adc);
-}
-
-float SHT3xAnalogSensor::readTemperature()
-{
-  float max_adc = (float)((1 << mReadResolutionBits) - 1);
-  return -66.875f + 218.75f * (analogRead(mTemperatureAdcPin) / max_adc);
-}
-
-
-//
-// class SHTSensor
-//
-
-const SHTSensor::SHTSensorType SHTSensor::AUTO_DETECT_SENSORS[] = {
-  SHT3X,
-  SHT3X_ALT,
-  SHTC1
-};
-const float SHTSensor::TEMPERATURE_INVALID = NAN;
-const float SHTSensor::HUMIDITY_INVALID = NAN;
-
-bool SHTSensor::init()
-{
-  if (mSensor != NULL) {
-    cleanup();
-  }
-
-  switch(mSensorType) {
-    case SHT3X:
-      mSensor = new SHT3xSensor();
-      break;
-
-    case SHT3X_ALT:
-      mSensor = new SHT3xSensor(SHT3xSensor::SHT3X_I2C_ADDRESS_45);
-      break;
-
-    case SHTW1:
-    case SHTW2:
-    case SHTC1:
-      mSensor = new SHTC1Sensor();
-      break;
-
-    case AUTO_DETECT:
-    {
-      bool detected = false;
-      for (unsigned int i = 0;
-           i < sizeof(AUTO_DETECT_SENSORS) / sizeof(AUTO_DETECT_SENSORS[0]);
-           ++i) {
-        mSensorType = AUTO_DETECT_SENSORS[i];
-        if (init() && readSample()) {
-          detected = true;
-          break;
-        }
+  //Serial.println("sendcommand");
+  if (sendcommand(cmd,CMD_SIZE)){
+    delay(20);
+    //Serial.println("getvalues");  
+    if (getvalues()){
+      //Serial.println("checkcommand");
+      if (checkcommand()){
+	return true;
       }
-      if (!detected) {
-        cleanup();
-      }
-      break;
     }
   }
-  return (mSensor != NULL);
+
+  return false;
 }
 
-bool SHTSensor::readSample()
-{
-  if (!mSensor || !mSensor->readSample())
-    return false;
-  mTemperature = mSensor->mTemperature;
-  mHumidity = mSensor->mHumidity;
-  return true;
+
+float SHTI2cSensor::getHumidity() {
+  return mHumidity;
 }
 
-bool SHTSensor::setAccuracy(SHTAccuracy newAccuracy)
-{
-  if (!mSensor)
-    return false;
-  return mSensor->setAccuracy(newAccuracy);
+float SHTI2cSensor::getTemperature() {
+  return mTemperature;
 }
 
-void SHTSensor::cleanup()
-{
-  if (mSensor) {
-    delete mSensor;
-    mSensor = NULL;
-  }
-}
+//const float SHTSensor::TEMPERATURE_INVALID = NAN;
+//const float SHTSensor::HUMIDITY_INVALID = NAN;
+
