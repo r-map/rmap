@@ -18,8 +18,17 @@ I have not been able to find a good source for that and was glad to buy the Spar
 
 <br> May 2019 : there is also a library available for Raspberry Pi (https://github.com/paulvha/sps30_on_raspberry)
 
-## Prerequisites
-Examples 4, 5, 7,8 and 10 have a dependency on other libraries. Documented in sketch
+## About typical particle size (TPS)
+<br>  An answer on the typical size from Sensirion:
+
+The typical particle size (TPS) is not a function of the other SPS30 outputs,
+but an independent output. It gives an indication on the average particle diameter
+in the sample aerosol. Such output correlates with the weighted average of the number
+concentration bins measured with a TSI 3330 optical particle sizer.
+Following this definition, lighter aerosols will have smaller TPS values than heavier aerosols.
+The reactiveness of this output increases with the particle statistics: a larger number of
+particles in the environment will generate more rapidly meaningful
+TPS values than a smaller number of particles (i.e., clean air).
 
 ## Software installation
 Obtain the zip and install like any other
@@ -29,6 +38,9 @@ Obtain the zip and install like any other
 Please see the description in the top of the sketch and read the documentation (odt)
 
 ## Versioning
+
+### version 1.1 / August 2019
+ * Simplified for RMAP and no blocking use
 
 ### version 1.0 / January 2019
  * Initial version Arduino, ESP32, UNO
@@ -85,5 +97,5 @@ This project is licensed under the GNU GENERAL PUBLIC LICENSE 3.0
 Make sure to read the datasheet from Sensirion. While draft it does provide good starting point.<br>
 In case you are new to electronics and  wonder about pull-up resistors for I2C, see below (thanks to Shane Diller)
 
-![Uno and SP30](extras/sensirion.png)
+![Uno and SP30](doc/sensirion.png)
 

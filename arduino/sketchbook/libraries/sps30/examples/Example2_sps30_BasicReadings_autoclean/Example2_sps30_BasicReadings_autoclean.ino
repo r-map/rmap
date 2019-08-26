@@ -140,23 +140,14 @@
 /*define communication channel to use for SPS30
  valid options:
  *   I2C_COMMS              use I2C communication
- *   SOFTWARE_SERIAL        Arduino variants and ESP8266 (NOTE)
  *   SERIALPORT             ONLY IF there is NO monitor attached
- *   SERIALPORT1            Arduino MEGA2560, Sparkfun ESP32 Thing : MUST define new pins as defaults are used for flash memory)
- *   SERIALPORT2            Arduino MEGA2560 and ESP32
- *   SERIALPORT3            Arduino MEGA2560 only for now
 
  * NOTE: Softserial has been left in as an option, but as the SPS30 is only
  * working on 115K the connection will probably NOT work on any device.*/
 /////////////////////////////////////////////////////////////
-#define SP30_COMMS SERIALPORT1
 
-/////////////////////////////////////////////////////////////
-/* define RX and TX pin for softserial and Serial1 on ESP32
- * can be set to zero if not applicable / needed           */
-/////////////////////////////////////////////////////////////
-#define TX_PIN 26
-#define RX_PIN 25
+#define SP30_COMMS I2C_COMMS
+
 
 ///////////////////////////////////////////////////////////////
 /* define new AUTO Clean interval
@@ -174,14 +165,6 @@
  *  0 = NO */
 //////////////////////////////////////////////////////////////
 #define PERFORMCLEANNOW 0
-
-/////////////////////////////////////////////////////////////
-/* define driver debug
- * 0 : no messages
- * 1 : request sending and receiving
- * 2 : request sending and receiving + show protocol errors */
- //////////////////////////////////////////////////////////////
-#define DEBUG 0
 
 ///////////////////////////////////////////////////////////////
 /////////// NO CHANGES BEYOND THIS POINT NEEDED ///////////////
@@ -201,16 +184,10 @@ SPS30 sps30;
 void setup() {
 
   Serial.begin(115200);
-
-  serialTrigger("SPS30-Example2: Basic reading + clean. press <enter> to start");
-
-  Serial.println(F("Trying to connect"));
-
-  // set driver debug level
-  sps30.EnableDebugging(DEBUG);
-
-  // set pins to use for softserial and Serial1 on ESP32
-  if (TX_PIN != 0 && RX_PIN != 0) sps30.SetSerialPin(RX_PIN,TX_PIN);
+  
+  Wire.begin();
+  
+  Serial.println(F("Trying to connect\n"));
 
   // Begin communication channel;
   if (sps30.begin(SP30_COMMS) == false) {

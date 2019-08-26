@@ -6,29 +6,14 @@
  *
  *  =========================  Highlevel description ================================
  *
- *  In this invidual reading example you can select which data AND in which order you
- *  want the data to be displayed.
+ *  This basic reading example sketch will connect to an SPS30 for getting data and
+ *  display the available data
  *
  *  =========================  Hardware connections =================================
  *  /////////////////////////////////////////////////////////////////////////////////
  *  ## UART UART UART UART UART UART UART UART UART UART UART UART UART UART UART  ##
  *  /////////////////////////////////////////////////////////////////////////////////
  *
- *  Sucessfully test has been performed on an ESP32:
- *
- *  Using serial port1, setting the RX-pin(25) and TX-pin(26)
- *  Different setup can be configured in the sketch.
- *
- *  SPS30 pin     ESP32
- *  1 VCC -------- VUSB
- *  2 RX  -------- TX  pin 26
- *  3 TX  -------- RX  pin 25
- *  4 Select      (NOT CONNECTED)
- *  5 GND -------- GND
- *
- *  Also successfully tested on Serial2 (default pins TX:17, RX: 16)
- *  NO level shifter is needed as the SPS30 is TTL 5V and LVTTL 3.3V compatible
- *  ..........................................................
  *  Successfully tested on ATMEGA2560
  *  Used SerialPort2. No need to set/change RX or TX pin
  *  SPS30 pin     ATMEGA
@@ -43,11 +28,9 @@
  *  Failed testing on UNO
  *  Had to use softserial as there is not a separate serialport. But as the SPS30
  *  is only working on 115K the connection failed all the time with CRC errors.
- *  It also had low memory, despite the autodetection for LOWFOOTPRINT setting in SPS30.h
  *
  *  Not tested ESP8266
- *  As the power is only 3V3 (the SPS30 needs 5V)and one has to use softserial,
- *  I have not tested this.
+ *  As the power is only 3V3 (the SPS30 needs 5V)and one has to use softserial
  *
  *  //////////////////////////////////////////////////////////////////////////////////
  *  ## I2C I2C I2C  I2C I2C I2C  I2C I2C I2C  I2C I2C I2C  I2C I2C I2C  I2C I2C I2C ##
@@ -74,7 +57,7 @@
  *  4 Select ----- GND (select I2c)
  *  5 GND -------- GND
  *
- * The pull-up resistors should be to 3V3
+ *  The pull-up resistors should be to 3V3
  *  ..........................................................
  *  Successfully tested on ATMEGA2560
  *
@@ -113,7 +96,7 @@
  *
  *  ================================= PARAMETERS =====================================
  *
- *  From line 141 there are configuration parameters for the program
+ *  From line 139 there are configuration parameters for the program
  *
  *  ================================== SOFTWARE ======================================
  *  Sparkfun ESP32
@@ -136,74 +119,28 @@
  *  NO support, delivered as is, have fun, good luck !!
  */
 
+#include  <ArduinoLog.h>
 #include "sps30.h"
 
 /////////////////////////////////////////////////////////////
 /*define communication channel to use for SPS30
  valid options:
  *   I2C_COMMS              use I2C communication
- *   SOFTWARE_SERIAL        Arduino variants and ESP8266 (NOTE)
+ *   SOFTWARE_SERIAL        Arduino variants (NOTE)
  *   SERIALPORT             ONLY IF there is NO monitor attached
  *   SERIALPORT1            Arduino MEGA2560, Sparkfun ESP32 Thing : MUST define new pins as defaults are used for flash memory)
  *   SERIALPORT2            Arduino MEGA2560 and ESP32
  *   SERIALPORT3            Arduino MEGA2560 only for now
 
  * NOTE: Softserial has been left in as an option, but as the SPS30 is only
- * working on 115K the connection will probably NOT work on any device.*/
+ * working on 115K the connection will probably NOT work on any device. */
 /////////////////////////////////////////////////////////////
-#define SP30_COMMS SERIALPORT1
 
-/////////////////////////////////////////////////////////////
-/* define RX and TX pin for softserial and Serial1 on ESP32
- * can be set to zero if not applicable / needed           */
-/////////////////////////////////////////////////////////////
-#define TX_PIN 26
-#define RX_PIN 25
-
-/////////////////////////////////////////////////////////////
-/* determine order of data to display
-    MassPM1     1
-    MassPM2     2
-    MassPM4     3
-    MassPM10    4
-    NumPM0      5
-    NumPM1      6
-    NumPM2      7
-    NumPM4      8
-    NumPM10     9
-    PartSize    10
-    Terminate   0
-
-    Set the number of the selected data in the wanted order
-    you want it to display and null terminate
-    e.g dsp[SELECTSIZE] = {1,5,2,7,0} will display
-    MassPM1, NumPM1, MassPM2, NumPM2
-
-    NOTE : With I2C communication , depending on the buffersize
-    in wire.h maybe ONLY the MassPMX info will be available.
-    See remarks in top of this sketch */
-////////////////////////////////////////////////////////////
-#define SELECTSIZE 11
-uint8_t dsp[SELECTSIZE] = {1,5,2,7,0};
-
-/////////////////////////////////////////////////////////////
-/* define driver debug
- * 0 : no messages
- * 1 : request sending and receiving
- * 2 : request sending and receiving + show protocol errors */
- //////////////////////////////////////////////////////////////
-#define DEBUG 0
+#define SP30_COMMS I2C_COMMS
 
 ///////////////////////////////////////////////////////////////
 /////////// NO CHANGES BEYOND THIS POINT NEEDED ///////////////
 ///////////////////////////////////////////////////////////////
-
-// function prototypes (sometimes the pre-processor does not create prototypes themself on ESPxx)
-void serialTrigger(char * mess);
-void ErrtoMess(char *mess, uint8_t r);
-void Errorloop(char *mess, uint8_t r);
-void GetDeviceInfo();
-bool read_all();
 
 // create constructor
 SPS30 sps30;
@@ -212,57 +149,66 @@ void setup() {
 
   Serial.begin(115200);
 
-  serialTrigger("SPS30-Example3: Basic reading individual. press <enter> to start");
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_TRACE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, uncomment #define DISABLE_LOGGING in Logging.h
+  //       this will significantly reduce your project size
 
-  Serial.println(F("Trying to connect"));
+  Log.begin(LOG_LEVEL_ERROR, &Serial);
 
-  // set driver debug level
-  sps30.EnableDebugging(DEBUG);
-
-  // set pins to use for softserial and Serial1 on ESP32
-  if (TX_PIN != 0 && RX_PIN != 0) sps30.SetSerialPin(RX_PIN,TX_PIN);
+  
+  Wire.begin();
+  
+  LOGN(F("Trying to connect\n"));
 
   // Begin communication channel;
   if (sps30.begin(SP30_COMMS) == false) {
-    Errorloop("could not initialize communication channel.", 0);
+    ErrtoMess("could not initialize communication channel.", 0);
   }
 
   // check for SPS30 connection
   if (sps30.probe() == false) {
-    Errorloop("could not probe / connect with SPS30", 0);
+    ErrtoMess("could not probe / connect with SPS30.", 0);
   }
   else
-    Serial.println(F("Detected SPS30"));
+    LOGN(F("Detected SPS30.\n"));
 
   // reset SPS30 connection
   if (sps30.reset() == false) {
-    Errorloop("could not reset.", 0);
+    ErrtoMess("could not reset.", 0);
   }
 
   // read device info
   GetDeviceInfo();
 
-  // start measurement
-  if (sps30.start() == true)
-    Serial.println(F("Measurement started"));
-  else
-    Errorloop("Could NOT start measurement", 0);
-
-  serialTrigger("Hit <enter> to continue reading");
-
   if (SP30_COMMS == I2C_COMMS) {
     if (sps30.I2C_expect() == 4)
-      Serial.println(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!! \n"));
+      LOGN(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!! \n"));
   }
 }
 
 void loop() {
+  // start measurement
+  if (sps30.start() == true)
+    LOGN(F("Measurement started\n"));
+  else
+    ErrtoMess("Could NOT start measurement", 0);
+
+  // 8 sec to start the fan  and 1 sec to measure
+  
+  delay(10000);
   read_all();
-  delay(3000);
+
+  if (sps30.stop() == true)
+    LOGN(F("Measurement stopped\n"));
+  else
+    ErrtoMess("Could NOT stop measurement", 0);
+
+  delay(30000);
 }
 
 /**
- * @brief: read and display device info
+ * @brief : read and display device info
  */
 void GetDeviceInfo()
 {
@@ -277,11 +223,11 @@ void GetDeviceInfo()
     else Serial.println(F("not available"));
   }
   else
-    ErrtoMess("could not get serial number SPS30.", ret);
+    ErrtoMess("could not get serial number", ret);
 
   // try to get product name
   ret = sps30.GetProductName(buf, 32);
-  if (ret == ERR_OK) {
+  if (ret == ERR_OK)  {
     Serial.print(F("Product name  : "));
 
     if(strlen(buf) > 0)  Serial.println(buf);
@@ -292,7 +238,7 @@ void GetDeviceInfo()
 
   // try to get article code
   ret = sps30.GetArticleCode(buf, 32);
-  if (ret == ERR_OK) {
+  if (ret == ERR_OK)  {
     Serial.print(F("Article code  : "));
 
     if(strlen(buf) > 0)  Serial.println(buf);
@@ -303,7 +249,7 @@ void GetDeviceInfo()
 }
 
 /**
- * @brief: read and display all values
+ * @brief : read and display all values
  */
 bool read_all()
 {
@@ -311,117 +257,50 @@ bool read_all()
   uint8_t ret, error_cnt = 0;
   struct sps_values val;
 
-  // print header first
-  if (header)
-  {
-    for(byte i=0; i< SELECTSIZE; i++){
+  // loop to get data
+  ret = sps30.GetValues(&val);
 
-      switch(dsp[i]) {
-        case 0:
-            Serial.print(F("\n"));
-            i = SELECTSIZE;
-            break;
-        case v_MassPM1:
-            Serial.print(F("MassPM1\t"));
-            break;
-        case v_MassPM2:
-            Serial.print(F("MassPM2\t"));
-            break;
-        case v_MassPM4:
-            Serial.print(F("MassPM4\t"));
-            break;
-        case v_MassPM10:
-            Serial.print(F("MassPM10\t"));
-            break;
-         case v_NumPM0:
-            Serial.print(F("NumPM0\t"));
-            break;
-        case v_NumPM1:
-            Serial.print(F("NumPM1\t"));
-            break;
-        case v_NumPM2:
-            Serial.print(F("NumPM2\t"));
-            break;
-        case v_NumPM4:
-            Serial.print(F("NumPM4\t"));
-            break;
-        case v_NumPM10:
-            Serial.print(F("NumPM10\t"));
-            break;
-        case v_PartSize:
-            Serial.print(F("Prtsize\t"));
-            break;
-      }
-    }
+  // data might not have been ready
+  if (ret == ERR_DATALENGTH){
 
+    ErrtoMess("Error during reading values: ",ret);
+    return(false);
+  }
+  
+  // if other error
+  else if(ret != ERR_OK) {
+    ErrtoMess("Error during reading values: ",ret);
+    return(false);
+  }
+  
+  // only print header first time
+  if (header) {
+    Serial.println(F("-------------Mass -----------    ------------- Number --------------   -Average-"));
+    Serial.println(F("     Concentration [μg/m3]             Concentration [#/cm3]             [μm]"));
+    Serial.println(F("P1.0\tP2.5\tP4.0\tP10\tP0.5\tP1.0\tP2.5\tP4.0\tP10\tPartSize\n"));
     header = false;
   }
 
-  // get values
-  for(byte i=0; i< SELECTSIZE; i++) {
-
-    switch(dsp[i]) {
-      case 0:
-          Serial.print(F("\n"));
-          return(true);
-          break;
-      case v_MassPM1:
-          Serial.print(sps30.GetMassPM1());
-          Serial.print(F("\t"));
-          break;
-      case v_MassPM2:
-          Serial.print(sps30.GetMassPM2());
-          Serial.print(F("\t"));
-          break;
-      case v_MassPM4:
-          Serial.print(sps30.GetMassPM4());
-          Serial.print(F("\t"));
-          break;
-      case v_MassPM10:
-          Serial.print(sps30.GetMassPM10());
-          Serial.print(F("\t"));
-          break;
-       case v_NumPM0:
-          Serial.print(sps30.GetNumPM0());
-          Serial.print(F("\t"));
-          break;
-      case v_NumPM1:
-          Serial.print(sps30.GetNumPM1());
-          Serial.print(F("\t"));
-          break;
-      case v_NumPM2:
-          Serial.print(sps30.GetNumPM2());
-          Serial.print(F("\t"));
-          break;
-      case v_NumPM4:
-          Serial.print(sps30.GetNumPM4());
-          Serial.print(F("\t"));
-          break;
-      case v_NumPM10:
-          Serial.print(sps30.GetNumPM10());
-          Serial.print(F("\t"));
-          break;
-      case v_PartSize:
-          Serial.print(sps30.GetPartSize());
-          Serial.print(F("\t"));
-          break;
-    }
-  }
-}
-
-/**
- *  @brief : continued loop after fatal error
- *  @param mess : message to display
- *  @param r : error code
- *
- *  if r is zero, it will only display the message
- */
-void Errorloop(char *mess, uint8_t r)
-{
-  if (r) ErrtoMess(mess, r);
-  else Serial.println(mess);
-  Serial.println(F("Program on hold"));
-  for(;;) delay(100000);
+  Serial.print(val.MassPM1);
+  Serial.print(F("\t"));
+  Serial.print(val.MassPM2);
+  Serial.print(F("\t"));
+  Serial.print(val.MassPM4);
+  Serial.print(F("\t"));
+  Serial.print(val.MassPM10);
+  Serial.print(F("\t"));
+  Serial.print(val.NumPM0);
+  Serial.print(F("\t"));
+  Serial.print(val.NumPM1);
+  Serial.print(F("\t"));
+  Serial.print(val.NumPM2);
+  Serial.print(F("\t"));
+  Serial.print(val.NumPM4);
+  Serial.print(F("\t"));
+  Serial.print(val.NumPM10);
+  Serial.print(F("\t"));
+  Serial.print(val.PartSize);
+  Serial.print(F("\n"));
 }
 
 /**
@@ -434,25 +313,9 @@ void ErrtoMess(char *mess, uint8_t r)
 {
   char buf[80];
 
-  Serial.print(mess);
+  LOGE(mess);
 
   sps30.GetErrDescription(r, buf, 80);
-  Serial.println(buf);
+  LOGE(buf);
 }
 
-/**
- * serialTrigger prints repeated message, then waits for enter
- * to come in from the serial port.
- */
-void serialTrigger(char * mess)
-{
-  Serial.println();
-
-  while (!Serial.available()) {
-    Serial.println(mess);
-    delay(2000);
-  }
-
-  while (Serial.available())
-    Serial.read();
-}

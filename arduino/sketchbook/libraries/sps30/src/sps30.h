@@ -20,6 +20,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  **********************************************************************
+ * Version 1.1 / August 2019
+ * Simplified for RMAP and no blocking use
+ *
  * Version 1.0   / January 2019
  * - Initial version by paulvha
  *
@@ -44,53 +47,18 @@
 #ifndef SPS30_H
 #define SPS30_H
 
-/**
- * To EXCLUDE I2C communication, maybe for resource reasons,
- * comment out the line below.
- */
-#define INCLUDE_I2C   1
-
-/**
- * To EXCLUDE the serial communication, maybe for resource reasons
- * as you board does not have a seperate serial, comment out the line below
- * It will also exclude Software_serial
- */
-#define INCLUDE_UART 1
-
-/**
- * On some IDE / boards software Serial is not available
- * comment out line below in that case
- *
- */
-#define INCLUDE_SOFTWARE_SERIAL 1
-
-/**
- * If the platform is an ESP32 AND it is planned to connect an SCD30,
- * you have to remove the comments from the line below
- *
- * The standard I2C on an ESP32 does NOT support clock stretching
- * which is needed for the SCD30. You must have SCD30 library downloaded
- * from https://github.com/paulvha/scd30 and included in your sketch
- * (see examples)
- *
- * If you do not plan the SPS30 to run on I2C you can exclude the I2C in total
- */
-//#define SOFTI2C_ESP32 1
+#include "config.h"
 
 #include "Arduino.h"                // Needed for Stream
-#include "printf.h"
 
-/**
- *  Auto detect that some boards have low memory. (like Uno)
- */
-#if defined (__AVR_ATmega328__) || defined(__AVR_ATmega328P__) || defined(__AVR_ATmega32U4__) || defined(__AVR_ATmega16U4__)
-    #define SMALLFOOTPRINT 1
-
-    #if defined INCLUDE_UART
-        #undef INCLUDE_UART
-    #endif //INCLUDE_UART
-
-#endif // AVR definition check
+#ifndef USEARDUINOLOGLIB
+#define SPS30LOGV(x, ...)
+#define SPS30LOGD(x, ...)
+#else
+#include <ArduinoLog.h>
+#define SPS30LOGV(x, ...) ({Log.verbose(x, ##__VA_ARGS__);})
+#define SPS30LOGD(x, ...) ({Log.verbose(x, ##__VA_ARGS__);})
+#endif
 
 #if defined INCLUDE_I2C
 
@@ -134,40 +102,32 @@
 
 #endif // INCLUDE_I2C
 
-#if defined INCLUDE_UART
-
-    #if defined INCLUDE_SOFTWARE_SERIAL
-
-        /* version 1.3.2 added support for SAMD SERCOM detection */
-      #if not defined ARDUINO_ARCH_SAMD  && not defined ARDUINO_ARCH_SAM21D      // NO softserial on SAMD
-         #include <SoftwareSerial.h>        // softserial
-      #endif // not defined ARDUINO_ARCH_SAMD
-
-    #endif // INCLUDE_SOFTWARE_SERIAL
-
-#endif // INCLUDE_UART
+//#if defined INCLUDE_UART
+//
+//    #if defined INCLUDE_SOFTWARE_SERIAL
+//
+//        /* version 1.3.2 added support for SAMD SERCOM detection */
+//      #if not defined ARDUINO_ARCH_SAMD  && not defined ARDUINO_ARCH_SAM21D      // NO softserial on SAMD
+//         #include <SoftwareSerial.h>        // softserial
+//      #endif // not defined ARDUINO_ARCH_SAMD
+//
+//    #endif // INCLUDE_SOFTWARE_SERIAL
+//
+//#endif // INCLUDE_UART
 
 /**
  *  The communication it can be :
  *   I2C_COMMS              use I2C communication
- *   SOFTWARE_SERIAL        Arduino variants and ESP8266 (On ESP32 software Serial is NOT very stable)
- *   SERIALPORT             ONLY IF there is NO monitor attached
- *   SERIALPORT1            Arduino MEGA2560, Sparkfun ESP32 Thing : MUST define new pins as defaults are used for flash memory)
- *   SERIALPORT2            Arduino MEGA2560 and ESP32
- *   SERIALPORT3            Arduino MEGA2560 only for now
+ *   SERIALPORT             use UART communication
  *   NONE                   No port defined
  *
  * Softserial has been left in as an option, but as the SPS30 is only
  * working on 115K the connection will probably NOT work on any device.
  */
 typedef enum serial_port {
-    I2C_COMMS = 0,
-    SOFTWARE_SERIAL = 1,
-    SERIALPORT = 2,
-    SERIALPORT1 = 3,
-    SERIALPORT2 = 4,
-    SERIALPORT3 = 5,
-    NONE = 6
+			  NONE = 0,
+			  I2C_COMMS = 1,
+			  SERIALPORT = 2
 };
 
 /* structure to return all values */
@@ -183,19 +143,21 @@ typedef struct sps_values
     float   NumPM4;         // Number Concentration PM4.0 [#/cm3]
     float   NumPM10;        // Number Concentration PM4.0 [#/cm3]
     float   PartSize;       // Typical Particle Size [μm]
-};
 
-/* used to get single value */
-#define v_MassPM1 1
-#define v_MassPM2 2
-#define v_MassPM4 3
-#define v_MassPM10 4
-#define v_NumPM0 5
-#define v_NumPM1 6
-#define v_NumPM2 7
-#define v_NumPM4 8
-#define v_NumPM10 9
-#define v_PartSize 10
+  /*
+   *  An answer on the typical size from Sensirion:
+   *
+   *  The typical particle size (TPS) is not a function of the other SPS30 outputs,
+   *  but an independent output. It gives an indication on the average particle diameter
+   *  in the sample aerosol. Such output correlates with the weighted average of the number
+   *  concentration bins measured with a TSI 3330 optical particle sizer.
+   *  Following this definition, lighter aerosols will have smaller TPS values than heavier aerosols.
+   *  The reactiveness of this output increases with the particle statistics: a larger number of
+   *  particles in the environment will generate more rapidly meaningful
+   *  TPS values than a smaller number of particles (i.e., clean air).
+   *
+   */
+};
 
 /* needed for conversion float IEE754 */
 typedef union {
@@ -221,10 +183,30 @@ typedef union {
 #define ERR_TIMEOUT     0x50
 #define ERR_PROTOCOL    0x51
 
+
+#if not defined SMALLFOOTPRINT
+
 typedef struct Description {
     uint8_t code;
     char    desc[80];
 };
+
+/* error descripton */
+struct Description ERR_desc[10] =
+{
+  {ERR_OK, "All good"},
+  {ERR_DATALENGTH, "Wrong data length for this command (too much or little data)"},
+  {ERR_UNKNOWNCMD, "Unknown command"},
+  {ERR_ACCESSRIGHT, "No access right for command"},
+  {ERR_PARAMETER, "Illegal command parameter or parameter out of allowed range"},
+  {ERR_OUTOFRANGE, "Internal function argument out of range"},
+  {ERR_CMDSTATE, "Command not allowed in current state"},
+  {ERR_TIMEOUT, "No response received within timeout period"},
+  {ERR_PROTOCOL, "Protocol error"},
+  {0xff, "Unknown Error"}
+};
+#endif // SMALLFOOTPRINT
+
 
 /* Receive buffer length. Expected is 40 bytes max
  * but you never know in the future.. */
@@ -275,31 +257,18 @@ class SPS30
 {
   public:
 
+#if defined INCLUDE_UART
+    SPS30(Stream *serial=NULL);
+#else
     SPS30(void);
-
-    /**
-     * @brief : set RX and TX pin for softserial and Serial1 on ESP32
-     * Setting both to 8 (tx=rx=8) will force a Serial1 communication
-     * on any device (assuming the pins are hard coded)
-     */
-    void SetSerialPin(uint8_t rx, uint8_t tx);
-
-    /**
-    * @brief  Enable or disable the printing of sent/response HEX values.
-    *
-    * @param act : level of debug to set
-    *  0 : no debug message
-    *  1 : sending and receiving data
-    *  2 : 1 +  protocol progress
-    */
-    void EnableDebugging(uint8_t act);
+#endif
 
     /**
      * @brief Initialize the communication port
      *
      * @param port : communication channel to be used (see sps30.h)
      */
-    bool begin(serial_port port = SERIALPORT2); //If user doesn't specify Serial2 will be used
+    bool begin(serial_port port = I2C_COMMS); //If user doesn't specify I2C will be used
 
     /**
      * @brief : Perform SPS-30 instructions
@@ -333,20 +302,6 @@ class SPS30
      */
     uint8_t GetValues(struct sps_values *v);
 
-    /**
-     * @brief : retrieve a specific value from the SPS-30
-     */
-    float GetMassPM1()  {return(Get_Single_Value(v_MassPM1));}
-    float GetMassPM2()  {return(Get_Single_Value(v_MassPM2));}
-    float GetMassPM4()  {return(Get_Single_Value(v_MassPM4));}
-    float GetMassPM10() {return(Get_Single_Value(v_MassPM10));}
-    float GetNumPM0()   {return(Get_Single_Value(v_NumPM0));}
-    float GetNumPM1()   {return(Get_Single_Value(v_NumPM1));}
-    float GetNumPM2()   {return(Get_Single_Value(v_NumPM2));}
-    float GetNumPM4()   {return(Get_Single_Value(v_NumPM4));}
-    float GetNumPM10()  {return(Get_Single_Value(v_NumPM10));}
-    float GetPartSize() {return(Get_Single_Value(v_PartSize));}
-
 #if defined INCLUDE_I2C
     /**
      * @brief : Return the expected number of valid values read from device
@@ -368,14 +323,11 @@ class SPS30
     uint8_t _Receive_BUF_Length;
     uint8_t _Send_BUF_Length;
     serial_port _Sensor_Comms;  // comunication channel to use
-    int _SPS30_Debug;           // program debug level
     bool _started;              // indicate the measurement has started
-    uint8_t Reported[11];       // use as cache indicator single value
 
     /** shared supporting routines */
     uint8_t Get_Device_info(uint8_t type, char *ser, uint8_t len);
     bool Instruct(uint8_t type);
-    float Get_Single_Value(uint8_t value);
     float byte_to_float(int x);
     uint32_t byte_to_U32(int x);
     uint8_t Serial_RX = 0, Serial_TX = 0; // softserial or Serial1 on ESP32
