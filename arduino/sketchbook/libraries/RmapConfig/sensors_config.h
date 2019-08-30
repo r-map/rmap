@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
 */
-#define USE_JSON                    (false)
+#define USE_JSON                    (true)
 
 /*!
 \def USE_SENSOR_ADT
@@ -51,41 +51,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_SENSOR_DEP
 \brief Enable if you want use DigitEco Power sensor.
 */
-#define USE_SENSOR_DEP              (true)
+#define USE_SENSOR_DEP              (false)
 
 /*!
 \def USE_SENSOR_OA2
 \brief Enable if you want use OPC PM1, PM2.5, PM10 continuous average value.
 */
 #define USE_SENSOR_OA2              (false)
-#define USE_SENSOR_OA3              (true)
+#define USE_SENSOR_OA3              (false)
 
 /*!
 \def USE_SENSOR_OB2
 \brief Enable if you want use OPC PM1, PM2.5, PM10 continuous standard deviation value.
 */
 #define USE_SENSOR_OB2              (false)
-#define USE_SENSOR_OB3              (true)
+#define USE_SENSOR_OB3              (false)
 
 /*!
 \def USE_SENSOR_OC2
 \brief Enable if you want use OPC BINS continuous average value.
 */
 #define USE_SENSOR_OC2              (false)
-#define USE_SENSOR_OC3              (true)
+#define USE_SENSOR_OC3              (false)
 
 /*!
 \def USE_SENSOR_OD2
 \brief Enable if you want use OPC BINS continuous standard deviation value.
 */
 #define USE_SENSOR_OD2              (false)
-#define USE_SENSOR_OD3              (true)
+#define USE_SENSOR_OD3              (false)
 
 /*!
 \def USE_SENSOR_OD2
 \brief Enable if you want use OPC BINS continuous standard deviation value.
 */
-#define USE_SENSOR_OE3              (true)
+#define USE_SENSOR_OE3              (false)
 
 /*!
 \def USE_SENSOR_LWT
@@ -229,7 +229,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (24)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (3)
 #define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
 
 // sampling every 3-15 seconds --> watchdog timer (SENSORS_SAMPLE_TIME_S in relative modules)
