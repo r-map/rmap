@@ -47,6 +47,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NTP_1_HOUR_SECONDS             (3600UL)
 
 /*!
+\def NTP_1_YEAR_SECONDS
+\brief seconds in one year.
+*/
+#define NTP_1_YEAR_SECONDS             (31556926UL)
+
+/*!
 \def NTP_70_YEARS_SECONDS
 \brief seconds in 70 years.
 */
