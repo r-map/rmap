@@ -5473,7 +5473,14 @@ int SensorDriverSCDoneshotSerial::get(long values[],size_t lenvalues)
       // measure
       // get CO2
       if (lenvalues >= 1) {
-	values[0] =  _scd->getCO2();
+
+	// Campo di misura di uno strumento tipco da 0 a 10000 ppm CO₂ Risoluzione 1 ppm CO₂
+	//https://www.lenntech.com/calculators/ppm/converter-parts-per-million.htm 1.938   ?????
+	// 1,800009 coefficiente di conversione ppm-> mg/m3   (riferito a 25°C e 760 mm Hg)
+	// quindi assumioamo 0-0.020 Kg/m3 con risoluzione 0.000002  circa
+	// in interi fattore di scala in tabella B 10**6 quindi mg/m3
+
+	values[0] =  _scd->getCO2()* 1.8;
       }
       
       // get temperature
