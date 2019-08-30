@@ -65,7 +65,6 @@ uint8_t jsonToMqtt(const char *json, const char *mqtt_sensor, char topic[][MQTT_
 
   for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
     if (strcmp(it->key, "d") == 0) {
-      // memcpy(&topic[i][0], mqtt_sensor, strlen(mqtt_sensor) - 1);
       snprintf(&topic[i][0], MQTT_SENSOR_TOPIC_LENGTH, "%s", mqtt_sensor);
       snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"d\":%ld,\"p\":", it->value.as<int32_t>());
     }
