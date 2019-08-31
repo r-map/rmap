@@ -5536,6 +5536,7 @@ aJsonObject* SensorDriverSCDoneshotSerial::getJson()
       aJson.addNullToObject(jsonvalues, "B15242");
     }
 
+#if defined(SECONDARYPARAMETER)
     if (values[1] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
     }else{
@@ -5547,11 +5548,14 @@ aJsonObject* SensorDriverSCDoneshotSerial::getJson()
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
-
+#endif
+    
   }else{
     aJson.addNullToObject(jsonvalues, "B15242");
+#if defined(SECONDARYPARAMETER)
     aJson.addNullToObject(jsonvalues, "B12101");
     aJson.addNullToObject(jsonvalues, "B13003");
+#endif    
   }
   return jsonvalues;
 }
@@ -5571,6 +5575,7 @@ int SensorDriverSCDoneshotSerial::getJson(char *json_buffer, size_t json_buffer_
       jsonvalues["B15242"]=RawJson("null");
     }
 
+#if defined(SECONDARYPARAMETER)
     if ((unsigned long) values[1] != 0xFFFFFFFF){
       jsonvalues["B12101"]= values[1];
     }else{
@@ -5582,11 +5587,14 @@ int SensorDriverSCDoneshotSerial::getJson(char *json_buffer, size_t json_buffer_
     }else{
       jsonvalues["B13003"]=RawJson("null");
     }
+#endif
 
   }else{
     jsonvalues["B15242"]=RawJson("null");
+#if defined(SECONDARYPARAMETER)
     jsonvalues["B12101"]=RawJson("null");
     jsonvalues["B13003"]=RawJson("null");
+#endif
   }
 
   jsonvalues.printTo(json_buffer, json_buffer_length);
