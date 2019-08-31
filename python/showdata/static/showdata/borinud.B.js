@@ -179,7 +179,131 @@
         "B15209": {
             "description": "[SIM] Concentration of sulfate in PM10", 
             "unit": "KG/M**3"
-        }, 
+        },
+	"B15242": {
+            "description": "CO2 Concentration", 
+            "unit": "KG/M**3"
+        },
+	"B49192": {
+            "description": "Number of particles with diameter <= 0.3 um", 
+            "unit": "NUMERIC"
+        },
+	"B49193": {
+            "description": "Number of particles with diameter > 0.3 <= 0.5 um", 
+            "unit": "NUMERIC"
+        },
+	"B49194": {
+            "description": "Number of particles with diameter > 0.5 <= 1.0 um", 
+            "unit": "NUMERIC"
+        },
+	"B49195": {
+            "description": "Number of particles with diameter > 1.0 <= 2.5 um", 
+            "unit": "NUMERIC"
+        },
+	"B49196": {
+            "description": "Number of particles with diameter > 2.5 <= 5.0 um", 
+            "unit": "NUMERIC"
+        },
+	"B49197 ": {
+            "description": "Number of particles with diameter > 5.0 <= 10.0 um", 
+            "unit": "NUMERIC"
+        },
+	"B49198": {
+            "description": "Density of particles with diameter > 0.35 <= 0.46 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49199": {
+            "description": "Density of particles with diameter > 0.46 <= 0.66 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49200": {
+            "description": "Density of particles with diameter > 0.66 <= 1.0 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49201": {
+            "description": "Density of particles with diameter > 1.0 <= 1.3 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49202": {
+            "description": "Density of particles with diameter > 1.3 <= 1.7 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49203": {
+            "description": "Density of particles with diameter > 1.7 <= 2.3 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49204": {
+            "description": "Density of particles with diameter > 2.3 <= 3.0 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49205": {
+            "description": "Density of particles with diameter > 3.0 <= 4.0 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49206": {
+            "description": "Density of particles with diameter > 4.0 <= 5.2 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49207": {
+            "description": "Density of particles with diameter > 5.2 <= 6.5 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49208": {
+	    "description": "Density of particles with diameter > 6.5 <= 8.0 um", 
+	    "unit": "NUMERIC/M**3"
+	},
+	"B49209": {
+            "description": "Density of particles with diameter > 8.0 <= 10.0 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49210": {
+            "description": "Density of particles with diameter > 10 <= 12 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49211": {
+            "description": "Density of particles with diameter > 12 <= 14 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49212": {
+            "description": "Density of particles with diameter > 14 <= 16 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49213": {
+            "description": "Density of particles with diameter > 16 <= 18 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49214": {
+            "description": "Density of particles with diameter > 18 <= 20 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49215": {
+            "description": "Density of particles with diameter > 20 <= 22 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49216": {
+            "description": "Density of particles with diameter > 22 <= 25 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49217": {
+            "description": "Density of particles with diameter > 25 <= 28 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49218": {
+            "description": "Density of particles with diameter > 28 <= 31 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49219": {
+	    "description": "Density of particles with diameter > 31 <= 34 um", 
+	    "unit": "NUMERIC/M**3"
+        },
+	"B49220": {
+            "description": "Density of particles with diameter > 34 <= 37 um", 
+            "unit": "NUMERIC/M**3"
+        },
+	"B49221": {
+            "description": "Density of particles with diameter > 37 <= 40 um", 
+            "unit": "NUMERIC/M**3"
+        },
         "B10063": {
             "description": "CHARACTERISTIC OF PRESSURE TENDENCY", 
             "unit": "CODE TABLE 10063"
