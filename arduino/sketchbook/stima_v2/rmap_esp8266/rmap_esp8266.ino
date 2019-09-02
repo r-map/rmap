@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 // increment on change
-#define SOFTWARE_VERSION "2019-02-09T21:00"
+#define SOFTWARE_VERSION "2019-09-01T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -472,7 +472,7 @@ int  rmap_config(String payload){
   int ii = 0;
 
   if (! (payload == String())) {
-    StaticJsonBuffer<2500> jsonBuffer;
+    StaticJsonBuffer<2900> jsonBuffer;
     status = 3;
     JsonArray& array = jsonBuffer.parseArray(payload);
     if (array.success()){
