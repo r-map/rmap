@@ -1,1 +1,0 @@
-{"cpu":{"fqbn":"arduino:avr:uno","name":"Arduino/Genuino Uno","port":""},"included_libs":[{"name":"Time","version":"1.5.0"}],"secrets":[]}
