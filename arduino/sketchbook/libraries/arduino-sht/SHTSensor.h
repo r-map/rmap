@@ -42,38 +42,52 @@ public:
   static const uint8_t EXPECTED_DATA_SIZE;
   
   uint8_t mI2cAddress;
-  uint16_t mI2cCommand;
+  uint16_t mI2cPCommand;
+  uint16_t mI2cSSCommand;
   uint8_t mDuration;
   float mTemperature;
   float mHumidity;
+
+
+  /**
+   * mps setting of measurement for Periodic Data Acquisition Mode
+   */
+  enum SHTmps {
+		    SHT_MPS_05,
+		    SHT_MPS_1,
+		    SHT_MPS_2,
+		    SHT_MPS_4,
+		    SHT_MPS_10
+  };
+
   
   /**
-   * Accuracy setting of measurement.
-   * Not all sensors support changing the sampling accuracy.
+   * Repeatability setting of measurement.
    */
-  enum SHTAccuracy {
+  enum SHTRepeatibility {
 		    /** Highest repeatability at the cost of slower measurement */
-		    SHT_ACCURACY_HIGH,
+		    SHT_REPEATABILITY_HIGH,
 		    /** Balanced repeatability and speed of measurement */
-		    SHT_ACCURACY_MEDIUM,
+		    SHT_REPEATABILITY_MEDIUM,
 		    /** Fastest measurement but lowest repeatability */
-		    SHT_ACCURACY_LOW
+		    SHT_REPEATABILITY_LOW
   };
   
   /** Highest repeatability at the cost of slower measurement */
-  const uint16_t SHT_ACCURACY_HIGH_COMMAND=0x2400;
+  const uint16_t SHT_SINGLESHOT_REPEATABILITY_HIGH_COMMAND=0x2400;
   /** Balanced repeatability and speed of measurement */
-  const uint16_t SHT_ACCURACY_MEDIUM_COMMAND=0x240B;
+  const uint16_t SHT_SINGLESHOT_REPEATABILITY_MEDIUM_COMMAND=0x240B;
   /** Fastest measurement but lowest repeatability */
-  const uint16_t SHT_ACCURACY_LOW_COMMAND=0x2416;
+  const uint16_t SHT_SINGLESHOT_REPEATABILITY_LOW_COMMAND=0x2416;
 
   
+  //  duration is the duration in milliseconds of one measurement
   /** Highest repeatability at the cost of slower measurement */
-  const uint16_t SHT_ACCURACY_HIGH_DURATION=5;
+  const uint8_t SHT_REPEATABILITY_HIGH_DURATION=16;
   /** Balanced repeatability and speed of measurement */
-  const uint16_t SHT_ACCURACY_MEDIUM_DURATION=7;
+  const uint8_t SHT_REPEATABILITY_MEDIUM_DURATION=7;
   /** Fastest measurement but lowest repeatability */
-  const uint16_t SHT_ACCURACY_LOW_DURATION=16;
+  const uint8_t SHT_REPEATABILITY_LOW_DURATION=5;
   
   
   /**
@@ -85,41 +99,43 @@ public:
    * and the values `x' and `y' to convert the fixed-point humidity value
    * received by the sensor to a floating point value using the formula:
    * humidity = x * (rawHumidity / y)
-   * duration is the duration in milliseconds of one measurement
    */
-  SHTI2cSensor(uint8_t i2cAddress=0x44, SHTAccuracy accuracy=SHT_ACCURACY_HIGH);
+
+  SHTI2cSensor(uint8_t i2cAddress=0x44, SHTRepeatibility repeatibility=SHT_REPEATABILITY_HIGH, SHTmps mps=SHT_MPS_1);
   
   /**
    * Change the sensor accurancy, if supported by the sensor
-   * Returns true if the accuracy was changed
+   * Returns true if the repeatability was changed
    */
-  bool setAccuracy(SHTAccuracy newAccuracy);
-  bool sendcommand(const uint8_t *i2cCommand,
+  bool setRepeatability(SHTRepeatibility newRepeatability, SHTmps newmps);
+  bool sendCommand(const uint8_t *i2cCommand,
 		   uint8_t commandLength);
-  bool checkcommand();
-  bool getvalues();
+  bool checkStatus();
+  bool singleShotDataAcquisition();
+  bool periodicDataAcquisition();
+  bool ART();
+  bool stopPeriodicDataAcquisition();
+  bool fetchData();
+  bool getValues();
   bool readSample();
-  bool softreset();
-  bool clearstatusregister();
+  bool softReset();
+  bool heaterEnable();
+  bool heaterDisable();  
+  bool clearStatusRegister();
   
   /**
    * Get the relative humidity in percent read from the last sample
-   * Use readSample() to trigger a new sensor reading
+   * Use getValues() to trigger a new sensor reading
    */
   float getHumidity();
   
   /**
    * Get the humidity in percent read from the last sample
-   * Use readSample() to trigger a new sensor reading
+   * Use getValues() to trigger a new sensor reading
    */
   float getTemperature();
   
 private:
-  
-  /** Value reported by getHumidity() when the sensor is not initialized */
-  static const float HUMIDITY_INVALID;
-  /** Value reported by getTemperature() when the sensor is not initialized */
-  static const float TEMPERATURE_INVALID;
   static uint8_t crc8(const uint8_t *data, uint8_t len);
 };
   
