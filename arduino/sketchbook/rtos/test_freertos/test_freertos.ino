@@ -1,15 +1,16 @@
-#include <FreeRTOS.h>
+#include <Arduino_FreeRTOS.h>
 
 
 void setup() {
  
   Serial.begin(112500);
   delay(1000);
+  Serial.println("Started");
  
   xTaskCreate(
                     taskOne,          /* Task function. */
                     "TaskOne",        /* String with name of task. */
-                    10000,            /* Stack size in bytes. */
+                    128,            /* Stack size in bytes. */
                     NULL,             /* Parameter passed as input of the task */
                     1,                /* Priority of the task. */
                     NULL);            /* Task handle. */
@@ -17,7 +18,7 @@ void setup() {
   xTaskCreate(
                     taskTwo,          /* Task function. */
                     "TaskTwo",        /* String with name of task. */
-                    10000,            /* Stack size in bytes. */
+                    128,            /* Stack size in bytes. */
                     NULL,             /* Parameter passed as input of the task */
                     1,                /* Priority of the task. */
                     NULL);            /* Task handle. */
@@ -25,7 +26,7 @@ void setup() {
 }
  
 void loop() {
-  delay(1000);
+  // Empty. Things are done in Tasks.
 }
  
 void taskOne( void * parameter )
