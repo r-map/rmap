@@ -46,6 +46,11 @@
 #include "SparkFun_SCD30_Arduino_Library.h" 
 #endif
 
+#if defined (SHTDRIVER)
+#include "SHTSensor.h"
+#endif
+
+
 // initialize the I2C interface
 //void SensorDriverInit();
 
@@ -883,17 +888,17 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
 
 #if defined (SCD_ONESHOT)
 
- class SensorDriverSCDoneshotSerial : public SensorDriver
+ class SensorDriverSCDoneshot : public SensorDriver
  {
  public:
-   //SensorDriverSCDoneshotSerial();
+   //SensorDriverSCDoneshot();
    virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
   #if defined (USEGETDATA)
     virtual int getdata(unsigned long& data,unsigned short& width);
   #endif
-    virtual ~SensorDriverSCDoneshotSerial();
+    virtual ~SensorDriverSCDoneshot();
 
 #if defined(USEAJSON)
     virtual aJsonObject* getJson();
@@ -905,6 +910,36 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
    protected:
     SCD30* _scd=NULL;  
 };
+
+
+#if defined (SHTDRIVER)
+
+ class SensorDriverSHT85 : public SensorDriver
+ {
+ public:
+   //SensorDriverSHT85();
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined (USEGETDATA)
+    virtual int getdata(unsigned long& data,unsigned short& width);
+  #endif
+    virtual ~SensorDriverSHT85();
+
+#if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+    
+   protected:
+    SHTI2cSensor* _sht=NULL;  
+};
+
+#endif
+
+
 
 #endif
 

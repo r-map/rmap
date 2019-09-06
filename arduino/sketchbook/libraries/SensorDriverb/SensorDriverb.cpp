@@ -6,12 +6,14 @@
 //}
 
 
+//  TO BE changed !!!  no global variable
 int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
 bool HPMstarted=false;
 bool PMSstarted=false;
 bool SCDstarted=false;
+bool SHTstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -125,10 +127,17 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
 #if defined (SCD_ONESHOT)
 	if (strcmp(type, "SCD") == 0) {
-	  return new SensorDriverSCDoneshotSerial();
+	  return new SensorDriverSCDoneshot();
 	} else
 #endif
-	return NULL;
+
+#if defined (SHTDRIVER)
+	if (strcmp(type, "SHT") == 0) {
+	  return new SensorDriverSHT85();
+        } else
+#endif
+
+      return NULL;
     } else
 
 #if defined (RADIORF24)
@@ -5404,7 +5413,7 @@ SensorDriverPMSoneshotSerial::~SensorDriverPMSoneshotSerial(){
 
 #if defined (SCD_ONESHOT)
 
-int SensorDriverSCDoneshotSerial::setup(const char* driver, const int address, const int node, const char* type)
+int SensorDriverSCDoneshot::setup(const char* driver, const int address, const int node, const char* type)
 {
 
   SensorDriver::setup(driver,address,node,type);
@@ -5442,7 +5451,7 @@ int SensorDriverSCDoneshotSerial::setup(const char* driver, const int address, c
   return SD_SUCCESS;
 }
 
-int SensorDriverSCDoneshotSerial::prepare(unsigned long& waittime)
+int SensorDriverSCDoneshot::prepare(unsigned long& waittime)
 {
   
   SCDstarted=true;
@@ -5460,7 +5469,7 @@ int SensorDriverSCDoneshotSerial::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSCDoneshotSerial::get(long values[],size_t lenvalues)
+int SensorDriverSCDoneshot::get(long values[],size_t lenvalues)
 {
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!SCDstarted)  return SD_INTERNAL_ERROR;
@@ -5503,14 +5512,14 @@ int SensorDriverSCDoneshotSerial::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSCDoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSCDoneshot::getdata(unsigned long& data,unsigned short& width)
 {
 
   long values[1];
   width=20;   // todo
   const long reference=0;
   
-  if (SensorDriverSCDoneshotSerial::get(values,1) == SD_SUCCESS){
+  if (SensorDriverSCDoneshot::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
   }else{
     data=0xFFFFFFFF;
@@ -5523,13 +5532,13 @@ int SensorDriverSCDoneshotSerial::getdata(unsigned long& data,unsigned short& wi
 #endif
 
 #if defined(USEAJSON)
-aJsonObject* SensorDriverSCDoneshotSerial::getJson()
+aJsonObject* SensorDriverSCDoneshot::getJson()
 {
   long values[3];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverSCDoneshotSerial::get(values,3) == SD_SUCCESS){
+  if (SensorDriverSCDoneshot::get(values,3) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B15242", values[0]);      
     }else{
@@ -5562,7 +5571,7 @@ aJsonObject* SensorDriverSCDoneshotSerial::getJson()
 #endif
 
 #if defined(USEARDUINOJSON)
-int SensorDriverSCDoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
+int SensorDriverSCDoneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
   long values[3];
   StaticJsonBuffer<200> jsonBuffer;
@@ -5603,7 +5612,7 @@ int SensorDriverSCDoneshotSerial::getJson(char *json_buffer, size_t json_buffer_
 #endif
 
 //destructor
-SensorDriverSCDoneshotSerial::~SensorDriverSCDoneshotSerial(){
+SensorDriverSCDoneshot::~SensorDriverSCDoneshot(){
 
   // _scd->sendCommand(COMMAND_STOP_CONTINUOS_MEASUREMENT);
 
@@ -5611,4 +5620,167 @@ SensorDriverSCDoneshotSerial::~SensorDriverSCDoneshotSerial(){
   //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
   //delete _pmsSerial;
 }
+#endif
+
+
+
+
+
+
+
+#if defined (SHTDRIVER)
+int SensorDriverSHT85::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  //bool oneshot=true;
+
+  _sht = new SHTI2cSensor();
+
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SHT85")));
+
+  //  WARNING !!!!! address is not used; sensirion have only one address
+  _sht->softReset();
+  delay(10);
+  
+  if(_sht->clearStatusRegister() != true) //Start continuous measurements
+    {
+      return SD_INTERNAL_ERROR;
+    }
+
+  SHTstarted=false;
+  _timing=millis();
+
+  return SD_SUCCESS;
+}
+
+int SensorDriverSHT85::prepare(unsigned long& waittime)
+{
+  
+  SHTstarted=true;
+  _timing=millis();
+
+  if (!_sht->singleShotDataAcquisition())
+    {
+      waittime= 1ul;
+      return SD_INTERNAL_ERROR;
+    }
+  
+  waittime= _sht->mDuration;
+  return SD_SUCCESS;
+}
+
+int SensorDriverSHT85::get(long values[],size_t lenvalues)
+{
+
+  if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
+
+  if (!_sht->getValues()){
+    return SD_INTERNAL_ERROR;
+  }
+
+  if (!_sht->checkStatus()){
+    return SD_INTERNAL_ERROR;
+  }
+
+  if (lenvalues >= 1)  values[0] = (long) round(_sht->getTemperature() * 100. + 27315.) ;
+  if (lenvalues >= 2)  values[1] = (long) round (_sht->getHumidity()) ;
+  _timing=0;
+
+  return SD_SUCCESS;
+
+}
+
+#if defined (USEGETDATA)
+int SensorDriverSHT85::getdata(unsigned long& data,unsigned short& width)
+{
+  /*
+    scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
+    reference value: A number to be subtracted from the element, after scaling (if any), and prior to encoding 
+    data width (bits): The number of bits the element requires for representation in data
+  */
+  
+  long values[2];
+  
+  if (SensorDriverSHT85::get(values,2) == SD_SUCCESS){
+    long reference=22315;  
+    data=(values[0]-reference) ;// << (sizeof(values[1])-width);
+    width=16;
+
+    reference=0;
+    data |=(values[1]-reference)<< (sizeof(values[1])-width);   //   da controllare
+    width+=7;
+
+
+    
+  }else{
+    data=0xFFFFFFFF;
+    width=0xFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+}
+#endif
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSHT85::getJson()
+{
+  long values[2];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
+  if (SensorDriverSHT85::get(values,2) == SD_SUCCESS){
+    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+
+    // if you have a second value add here
+    aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+  }else{
+    aJson.addNullToObject(jsonvalues, "B12101");
+    // if you have a second value add here
+    aJson.addNullToObject(jsonvalues, "B13003");
+  }
+  return jsonvalues;
+}
+#endif
+#if defined(USEARDUINOJSON)
+int SensorDriverSHT85::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[1];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,1) == SD_SUCCESS){
+    if (values[0] >= 0){
+      jsonvalues["B12101"]= values[0];      
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+    // if you have a second value add here
+    if (values[1] >= 0){
+      jsonvalues["B13003"]= values[1];      
+    }else{
+      jsonvalues["B13003"]=RawJson("null");
+    }
+  }else{
+    jsonvalues["B13003"]=RawJson("null");
+    // if you have a second value add here
+    jsonvalues["B12101"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverSHT85::~SensorDriverSHT85(){
+
+  // _scd->sendCommand(COMMAND_STOP_CONTINUOS_MEASUREMENT);
+
+  delete _sht;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+  //delete _pmsSerial;
+}
+
 #endif
