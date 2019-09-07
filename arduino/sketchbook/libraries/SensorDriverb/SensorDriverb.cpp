@@ -14,6 +14,7 @@ bool HPMstarted=false;
 bool PMSstarted=false;
 bool SCDstarted=false;
 bool SHTstarted=false;
+bool SPSstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -136,6 +137,11 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	  return new SensorDriverSHT85();
         } else
 #endif
+#if defined (SPS_ONESHOT)
+	  if (strcmp(type, "SPS") == 0) {
+	    return new SensorDriverSPSoneshot();
+	  } 
+#endif
 
       return NULL;
     } else
@@ -161,8 +167,7 @@ SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 	  if (strcmp(type, "PMS") == 0) {
 	    return new SensorDriverPMSoneshotSerial();
 	  } 
-#endif
-	
+#endif	
     } else
     {
       return NULL;
@@ -5784,3 +5789,308 @@ SensorDriverSHT85::~SensorDriverSHT85(){
 }
 
 #endif
+
+#if defined (SPS_ONESHOT)
+
+/*
+void ErrtoMess(uint8_t r)
+{
+  char buf[80];
+  _sps30->GetErrDescription(r, buf, 80);
+  LOGE(buf);
+}
+*/
+
+int SensorDriverSPSoneshot::setup(const char* driver, const int address, const int node, const char* type)
+{
+
+  SensorDriver::setup(driver,address,node,type);
+  //bool oneshot=true;
+
+  _sps30 = new SPS30();
+
+  IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SPS")));
+  
+  if (_sps30->begin(SP30_COMMS)){
+    if (_sps30->probe()){
+      if (_sps30->reset()){
+  	
+	SPSstarted=false;
+	_timing=millis();
+	
+	return SD_SUCCESS;
+      }
+    }
+  }
+
+  return SD_INTERNAL_ERROR;
+}
+
+int SensorDriverSPSoneshot::prepare(unsigned long& waittime)
+{
+  if(!_sps30->start()){
+    return SD_INTERNAL_ERROR;
+  }
+  
+  SPSstarted=true;
+  _timing=millis();
+  waittime= 10000ul;
+  return SD_SUCCESS;
+}
+
+int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
+{
+  // measure
+  struct sps_values val;
+
+  if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
+  if (!SPSstarted)  return SD_INTERNAL_ERROR;
+
+  SPSstarted=false;  
+  _timing=0;
+
+  for (size_t i=0; i<lenvalues; i++)
+    {
+      values[i]=0xFFFFFFFF;
+    }
+  
+  // get data
+  // data might not have been ready
+  if (_sps30->GetValues(&val) != ERR_OK){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps getvalues error")));
+    return SD_INTERNAL_ERROR;    
+  }
+  if (!_sps30->stop()){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps stop error")));
+    return SD_INTERNAL_ERROR;    
+  }
+  
+  // get pm1
+  if (lenvalues >= 1) {
+    values[0] = val.MassPM1 ;
+  }
+
+  // get pm2
+  if (lenvalues >= 2) {
+    values[1] = val.MassPM2 ;
+  }
+  
+  // get pm4
+  if (lenvalues >= 3) {
+    values[2] = val.MassPM4 ;
+  }
+  
+  // get pm10
+  if (lenvalues >= 4) {
+    values[3] = val.MassPM10 ;
+  }
+    
+  if ((SP30_COMMS == I2C_COMMS) && (_sps30->I2C_expect() == 4)){
+    IF_SDSDEBUG(SDDBGSERIAL.println(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!! \n")));
+  }else{
+  
+    // number of particles with diameter 0.3 to 0.5 um in 0.1 L of air.
+    if (lenvalues >= 5) {
+      values[4] = val.NumPM0 *1000.;
+    }
+
+    // number of particles with diameter 0.5 to 1.0  um in 0.1 L of air.
+    if (lenvalues >= 6) {
+      values[5] = (val.NumPM1-val.NumPM0)*1000. ;
+    }
+  
+    // number of particles with diameter 1.0 to 2.5 um in 0.1 L of air.
+    if (lenvalues >= 7) {
+      values[6] = (val.NumPM2-val.NumPM1)*1000. ;
+    }
+  
+    // number of particles with diameter 2.5 to 5.0 (4.0) um in 0.1 L of air.
+    if (lenvalues >= 8) {
+      values[7] = (val.NumPM4-val.NumPM2)*1000. ;
+    }
+  
+    // number of particles with diameter 5.0 to 10 um in 0.1 L of air.
+    if (lenvalues >= 9) {
+      values[8] = (val.NumPM10-val.NumPM4)*1000. ;
+    }
+
+    /*
+    // get particulte size
+    if (lenvalues >= 10) {
+    values[9] = val.PartSize ;
+    }
+    */
+  }
+  return SD_SUCCESS;
+}
+
+#if defined (USEGETDATA)
+int SensorDriverSPSoneshot::getdata(unsigned long& data,unsigned short& width)
+{
+
+  long values[2];
+  width=20;
+  const long reference=0;
+  
+  if (SensorDriverSPSoneshot::get(values,2) == SD_SUCCESS){
+    data=(values[1]-reference);// << (sizeof(values[1])-width);
+  }else{
+    data=0xFFFFFFFF;
+    width=0xFFFF;
+    return SD_INTERNAL_ERROR;
+  }
+  return SD_SUCCESS;
+  
+}
+#endif
+
+#if defined(USEAJSON)
+aJsonObject* SensorDriverSPSoneshot::getJson()
+{
+  long values[10];
+
+  aJsonObject* jsonvalues;
+  jsonvalues = aJson.createObject();
+  if (SensorDriverSPSoneshot::get(values,10) == SD_SUCCESS){
+    if (values[0] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15203", values[0]);    //PM1  
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15203");
+    }
+    if (values[1] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15198", values[1]);   //PM2.5
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15198");
+    }
+    if (values[2] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15202", values[2]);   //PM5 (4)
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15202");
+    }
+    if (values[3] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B15195", values[3]);   //PM10
+    }else{
+      aJson.addNullToObject(jsonvalues, "B15195");
+    }
+    if (values[4] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B49193", values[4]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B49193");
+    }
+    if (values[5] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B49194", values[5]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B49194");
+    }
+    if (values[6] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B49195", values[6]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B49195");
+    }
+    if (values[7] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B49196", values[7]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B49196");
+    }
+    if (values[8] != 0xFFFFFFFF){
+      aJson.addNumberToObject(jsonvalues, "B49197", values[8]);      
+    }else{
+      aJson.addNullToObject(jsonvalues, "B49197");
+    }
+    
+  }else{
+    
+    aJson.addNullToObject(jsonvalues, "B15203");
+    aJson.addNullToObject(jsonvalues, "B15198");
+    aJson.addNullToObject(jsonvalues, "B15202");
+    aJson.addNullToObject(jsonvalues, "B15195");
+    aJson.addNullToObject(jsonvalues, "B49193");
+    aJson.addNullToObject(jsonvalues, "B49194");
+    aJson.addNullToObject(jsonvalues, "B49195");
+    aJson.addNullToObject(jsonvalues, "B49196");
+    aJson.addNullToObject(jsonvalues, "B49197");
+  }
+  return jsonvalues;
+}
+#endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverSPSoneshot::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[9];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,9) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B15203"]= values[0];      
+    }else{
+      jsonvalues["B15203"]=RawJson("null");
+    }
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B15198"]= values[1];
+    }else{
+      jsonvalues["B15198"]=RawJson("null");
+    }
+    if ((unsigned long) values[2] != 0xFFFFFFFF){
+      jsonvalues["B15202"]= values[2];
+    }else{
+      jsonvalues["B15202"]=RawJson("null");
+    }
+    if ((unsigned long) values[3] != 0xFFFFFFFF){
+      jsonvalues["B15195"]= values[3];
+    }else{
+      jsonvalues["B15195"]=RawJson("null");
+    }    
+    if ((unsigned long) values[4] != 0xFFFFFFFF){
+      jsonvalues["B49193"]= values[4];
+    }else{
+      jsonvalues["B49193"]=RawJson("null");
+    }
+    if ((unsigned long) values[5] != 0xFFFFFFFF){
+      jsonvalues["B49194"]= values[5];
+    }else{
+      jsonvalues["B49194"]=RawJson("null");
+    }
+    if ((unsigned long) values[6] != 0xFFFFFFFF){
+      jsonvalues["B49195"]= values[6];
+    }else{
+      jsonvalues["B49195"]=RawJson("null");
+    }
+    if ((unsigned long) values[7] != 0xFFFFFFFF){
+      jsonvalues["B49196"]= values[7];
+    }else{
+      jsonvalues["B49196"]=RawJson("null");
+    }
+    if ((unsigned long) values[8] != 0xFFFFFFFF){
+      jsonvalues["B49197"]= values[8];
+    }else{
+      jsonvalues["B49197"]=RawJson("null");
+    }
+    */
+  }else{
+    jsonvalues["B15203"]=RawJson("null");
+    jsonvalues["B15198"]=RawJson("null");
+    jsonvalues["B15202"]=RawJson("null");
+    jsonvalues["B15195"]=RawJson("null");
+    jsonvalues["B49193"]=RawJson("null");
+    jsonvalues["B49194"]=RawJson("null");
+    jsonvalues["B49195"]=RawJson("null");
+    jsonvalues["B49196"]=RawJson("null");
+    jsonvalues["B49197"]=RawJson("null");
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
+
+//destructor
+SensorDriverSPSoneshot::~SensorDriverSPSoneshot(){
+
+  delete _sps30;
+  //warning: deleting object of polymorphic class type 'SoftwareSerial' which has non-virtual destructor might cause undefined behaviour [-Wdelete-non-virtual-dtor]
+}
+
+#endif
+

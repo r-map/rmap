@@ -50,6 +50,9 @@
 #include "SHTSensor.h"
 #endif
 
+#if defined (SPS_ONESHOT)
+#include "sps30.h"
+#endif
 
 // initialize the I2C interface
 //void SensorDriverInit();
@@ -940,6 +943,34 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
 #endif
 
 
+#if defined (SPS_ONESHOT)
+
+#define SP30_COMMS I2C_COMMS
+
+ class SensorDriverSPSoneshot : public SensorDriver
+ {
+ public:
+   //SensorDriverSPSoneshot();
+   virtual int setup(const char* driver, const int address, const int node, const char* type);
+    virtual int prepare(unsigned long& waittime);
+    virtual int get(long values[],size_t lenvalues);
+  #if defined (USEGETDATA)
+    virtual int getdata(unsigned long& data,unsigned short& width);
+  #endif
+    virtual ~SensorDriverSPSoneshot();
+
+#if defined(USEAJSON)
+    virtual aJsonObject* getJson();
+  #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
+    
+   protected:
+    SPS30* _sps30=NULL;  
+};
+
+#endif
 
 #endif
 
