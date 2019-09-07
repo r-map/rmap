@@ -1,0 +1,23 @@
+[
+
+    {
+        "model": "stations.sensortype",
+        "fields": {
+            "active": true,
+            "name": "Sensirion SPS30 PM sensor one shot mode",
+            "type": "SPS",
+	    "datalevel": "sample",
+            "bcodes": [
+		["B15203"],
+		["B15198"],
+		["B15202"],
+		["B15195"],
+		["B49193"],
+		["B49194"],
+		["B49195"],
+		["B49196"],
+		["B49197"]
+	    ]
+        }
+    }
+]
