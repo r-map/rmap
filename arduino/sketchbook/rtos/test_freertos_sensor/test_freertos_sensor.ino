@@ -2,17 +2,22 @@
 #include <semphr.h>  // add the FreeRTOS functions for Semaphores (or Flags).
 #include <Wire.h>
 #include "SHTSensor.h"
+#include "sps30.h"
 // Include the AVR LibC functions for power reduction.
 // https://create.arduino.cc/projecthub/feilipu/battery-powered-arduino-applications-through-freertos-3b7401
 #include <avr/power.h>
+#include <avr/sleep.h>
 
 // Declare a mutex Semaphore Handle which we will use to manage the Serial Port.
 // It will be used to ensure only only one Task is accessing this resource at any time.
 SemaphoreHandle_t xSensorSemaphore;
+SemaphoreHandle_t xSerialSemaphore;
 
 // initialize sht with default values
 SHTI2cSensor sht;
 
+#define SP30_COMMS I2C_COMMS
+SPS30 sps30;
 
 void setup() {
 
@@ -82,32 +87,72 @@ void setup() {
     if ( ( xSensorSemaphore ) != NULL )
       xSemaphoreGive( ( xSensorSemaphore ) );  // Make the Serial Port available for use, by "Giving" the Semaphore.
   }
+
+  if ( xSerialSemaphore == NULL )  // Check to confirm that the Serial Semaphore has not already been created.
+  {
+    xSerialSemaphore = xSemaphoreCreateMutex();  // Create a mutex semaphore we will use to manage the Serial Port
+    if ( ( xSerialSemaphore ) != NULL )
+      xSemaphoreGive( ( xSerialSemaphore ) );  // Make the Serial Port available for use, by "Giving" the Semaphore.
+  }
+
   
   Wire.begin();
+
+  //SHT
   //reset and clear status
   sht.softReset();
   delay(10);
   sht.clearStatusRegister();
 
+  //SPS
+  // Begin communication channel;
+  if (sps30.begin(SP30_COMMS) == false) {
+    Serial.println(F("could not initialize communication channel."));
+  }
+
+  // check for SPS30 connection
+  if (sps30.probe() == false) {
+    Serial.println(F("could not probe / connect with SPS30."));
+  }
+  else
+    Serial.println(F("Detected SPS30."));
+
+  // reset SPS30 connection
+  if (sps30.reset() == false) {
+    Serial.println(F("could not reset."));
+  }
+
+  if (sps30.start() == true)
+    Serial.println(F("Measurement started\n"));
+  else
+    Serial.println(F("Could NOT start measurement"));
+  
+
+  xTaskCreate(
+	      taskOne,          // Task function.
+	      "Task SHT",        // String with name of task.
+	      300,              // Stack size in bytes.
+	      NULL,             // Parameter passed as input of the task
+	      1,                // Priority of the task.
+	      NULL);            // Task handle.
   
   xTaskCreate(
-                    taskOne,          /* Task function. */
-                    "TaskOne",        /* String with name of task. */
-                    128,            /* Stack size in bytes. */
-                    NULL,             /* Parameter passed as input of the task */
-                    1,                /* Priority of the task. */
-                    NULL);            /* Task handle. */
- 
-  xTaskCreate(
-                    taskTwo,          /* Task function. */
-                    "TaskTwo",        /* String with name of task. */
-                    128,            /* Stack size in bytes. */
-                    NULL,             /* Parameter passed as input of the task */
-                    1,                /* Priority of the task. */
-                    NULL);            /* Task handle. */
- 
+	      taskTwo,          // Task function.
+	      "Task SPS",        // String with name of task.
+	      300,              // Stack size in bytes.
+	      NULL,             // Parameter passed as input of the task
+	      1,                // Priority of the task.
+	      NULL);            // Task handle.
+  
 }
- 
+/*
+// no sleep loop
+void loop() {
+  // Empty. Things are done in Tasks.
+  // Remember that loop() is simply the FreeRTOS idle task. Something to do, when there's nothing else to do.
+}
+*/
+
 void loop() {
   // Empty. Things are done in Tasks.
   // Remember that loop() is simply the FreeRTOS idle task. Something to do, when there's nothing else to do.
@@ -123,7 +168,7 @@ void loop() {
   // SLEEP_MODE_STANDBY
   // SLEEP_MODE_EXT_STANDBY
   
-  set_sleep_mode( SLEEP_MODE_PWR_DOWN );
+  set_sleep_mode( SLEEP_MODE_IDLE );
  
   portENTER_CRITICAL();
 
@@ -148,28 +193,40 @@ void loop() {
 void taskOne( void * parameter )
 {
 
+  Serial.println("task one started");
   for (;;) {
-    vTaskDelay( 1000 / portTICK_PERIOD_MS ); // wait for one second
 
-    // See if we can obtain or "Take" the Serial Semaphore.
+    // See if we can obtain or "Take" the Sensor Semaphore.
     // If the semaphore is not available, wait 5 ticks of the Scheduler to see if it becomes free.
     if ( xSemaphoreTake( xSensorSemaphore, ( TickType_t ) 5 ) == pdTRUE )
-    {
-      // We were able to obtain or "Take" the semaphore and can now access the shared resource.
-
-      // do and read one measure in blocking mode
-      if (sht.readSample()) {
-	Serial.println("1 SHT single shot:");
-	Serial.print("1   RH: ");
-	Serial.println(sht.getHumidity(), 2);
-	Serial.print("1   T:  ");
-	Serial.println(sht.getTemperature(), 2);
-      } else {
-	Serial.print("1 Error in readSample()\n");
-	break;
+      {
+	// We were able to obtain or "Take" the semaphore and can now access the shared resource.
+	
+	// do and read one measure in blocking mode
+	bool status=sht.readSample();
+	
+	xSemaphoreGive( xSensorSemaphore ); // Now free or "Give" the Sensor Port for others.
+	
+	
+	// See if we can obtain or "Take" the Serial Semaphore.
+	// If the semaphore is not available, wait 5 ticks of the Scheduler to see if it becomes free.
+	if ( xSemaphoreTake( xSerialSemaphore, ( TickType_t ) 5 ) == pdTRUE )
+	  {
+	      if (status) {
+	      Serial.println("SHT single shot:");
+	      Serial.print("  RH: ");
+	      Serial.println(sht.getHumidity(), 2);
+	      Serial.print("  T:  ");
+	      Serial.println(sht.getTemperature(), 2);
+	      } else {
+	      Serial.print("Error in readSample()\n");
+	      xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.	    
+	      break;
+	      }
+	    xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.	    
+	  }
+	vTaskDelay( 1000 / portTICK_PERIOD_MS ); // wait for one second
       }
-      xSemaphoreGive( xSensorSemaphore ); // Now free or "Give" the Serial Port for others.
-    }
   }
   
   Serial.println("Ending task 1");
@@ -181,25 +238,64 @@ void taskTwo( void * parameter)
  
   for (;;) {
 
-    // See if we can obtain or "Take" the Serial Semaphore.
+    // See if we can obtain or "Take" the Sensor Semaphore.
     // If the semaphore is not available, wait 5 ticks of the Scheduler to see if it becomes free.
     if ( xSemaphoreTake( xSensorSemaphore, ( TickType_t ) 5 ) == pdTRUE )
       {
 	// We were able to obtain or "Take" the semaphore and can now access the shared resource.
 	// do and read one measure in blocking mode
-	if (sht.readSample()) {
-	  Serial.println("2 SHT single shot:");
-	  Serial.print("2   RH: ");
-	  Serial.println(sht.getHumidity(), 2);
-	  Serial.print("2   T:  ");
-	  Serial.println(sht.getTemperature(), 2);
-	} else {
-	  Serial.print("2 Error in readSample()\n");
-	  break;
-	}
-	xSemaphoreGive( xSensorSemaphore ); // Now free or "Give" the Serial Port for others.
-      }      
-    vTaskDelay( 1000 / portTICK_PERIOD_MS ); // wait for one second
+
+	// loop to get data
+	static bool header = true;
+	struct sps_values val;
+	uint8_t ret = sps30.GetValues(&val);
+	xSemaphoreGive( xSensorSemaphore ); // Now free or "Give" the Sensor Port for others.
+
+	// See if we can obtain or "Take" the Serial Semaphore.
+	// If the semaphore is not available, wait 5 ticks of the Scheduler to see if it becomes free.
+	if ( xSemaphoreTake( xSerialSemaphore, ( TickType_t ) 5 ) == pdTRUE )
+	  {
+
+	    // data might not have been ready
+	    if (ret != ERR_OK){
+	      Serial.println(F("Error during reading values"));
+	      xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.	    
+	      break;
+	    }
+	    
+	    // only print header first time
+	    if (header) {
+	      Serial.println(F("-------------Mass -----------    ------------- Number --------------   -Average-"));
+	      Serial.println(F("     Concentration [μg/m3]             Concentration [#/cm3]             [μm]"));
+	      Serial.println(F("P1.0\tP2.5\tP4.0\tP10\tP0.5\tP1.0\tP2.5\tP4.0\tP10\tPartSize\n"));
+	      header = false;
+	    }
+	    
+	    Serial.print(val.MassPM1);
+	    Serial.print(F("\t"));
+	    Serial.print(val.MassPM2);
+	    Serial.print(F("\t"));
+	    Serial.print(val.MassPM4);
+	    Serial.print(F("\t"));
+	    Serial.print(val.MassPM10);
+	    Serial.print(F("\t"));
+	    Serial.print(val.NumPM0);
+	    Serial.print(F("\t"));
+	    Serial.print(val.NumPM1);
+	    Serial.print(F("\t"));
+	    Serial.print(val.NumPM2);
+	    Serial.print(F("\t"));
+	    Serial.print(val.NumPM4);
+	    Serial.print(F("\t"));
+	    Serial.print(val.NumPM10);
+	    Serial.print(F("\t"));
+	    Serial.println(val.PartSize);
+
+	    xSemaphoreGive( xSerialSemaphore ); // Now free or "Give" the Serial Port for others.
+	    
+	  }
+	vTaskDelay( 2000 / portTICK_PERIOD_MS ); // wait for two second
+      }
   }
   
   Serial.println("Ending task 2");
