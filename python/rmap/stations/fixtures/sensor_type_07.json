@@ -1,6 +1,18 @@
 [
 
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B15202",
+            "description": "PM5 Concentration",
+            "unit": "KG/M**3",
+            "offset": 0.0,
+            "scale": 1e9,
+            "userunit": "ug/m**3"
+        }
+    },
+        
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
