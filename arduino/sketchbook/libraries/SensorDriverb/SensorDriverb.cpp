@@ -1062,7 +1062,6 @@ uint8_t SensorDriverBmp085::read8(uint8_t a) {
   
   Wire.requestFrom(_address, 1);// send data n-bytes read
   ret = Wire.read(); // receive DATA
-  Wire.endTransmission(); // end transmission
 
   return ret;
 }
