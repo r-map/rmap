@@ -1684,10 +1684,6 @@ void GPS_latlon_read(int32_t* lat,int32_t* lon)
 
   Wire.requestFrom(I2C_GPS_ADDRESS, 8);
 
-  long start=millis();
-  while((millis()-start) < 100){
-    if (Wire.available()>=8) break;
-  }
   if (Wire.available()<8){
     IF_SDEBUG(DBGSERIAL.println(F("#error getting I2CGPS LON LAT"))) ;
     *lat=0;
@@ -1705,8 +1701,6 @@ void GPS_latlon_read(int32_t* lat,int32_t* lon)
   *lon = *lon | ((int32_t)Wire.read())<<16 ;
   *lon = *lon | ((int32_t)Wire.read())<<24 ;
 
-  Wire.endTransmission();
-  
 }
 #endif
 

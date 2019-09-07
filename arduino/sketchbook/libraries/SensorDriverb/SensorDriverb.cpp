@@ -1057,20 +1057,11 @@ uint8_t SensorDriverBmp085::read8(uint8_t a) {
   uint8_t ret;
 
   Wire.beginTransmission(_address); // start transmission to device 
-#if (ARDUINO >= 100)
   Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
   Wire.endTransmission(); // end transmission
   
-  Wire.beginTransmission(_address); // start transmission to device 
   Wire.requestFrom(_address, 1);// send data n-bytes read
-#if (ARDUINO >= 100)
   ret = Wire.read(); // receive DATA
-#else
-  ret = Wire.receive(); // receive DATA
-#endif
   Wire.endTransmission(); // end transmission
 
   return ret;
@@ -1080,25 +1071,13 @@ uint16_t SensorDriverBmp085::read16(uint8_t a) {
   uint16_t ret;
 
   Wire.beginTransmission(_address); // start transmission to device 
-#if (ARDUINO >= 100)
   Wire.write(a); // sends register address to read from
-#else
-  Wire.send(a); // sends register address to read from
-#endif
   Wire.endTransmission(); // end transmission
   
-  Wire.beginTransmission(_address); // start transmission to device 
   Wire.requestFrom(_address, 2);// send data n-bytes read
-#if (ARDUINO >= 100)
   ret = Wire.read(); // receive DATA
   ret <<= 8;
   ret |= Wire.read(); // receive DATA
-#else
-  ret = Wire.receive(); // receive DATA
-  ret <<= 8;
-  ret |= Wire.receive(); // receive DATA
-#endif
-  Wire.endTransmission(); // end transmission
 
   return ret;
 }
