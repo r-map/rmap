@@ -697,13 +697,13 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
-                  type="sps",address=105,timerange="254,0,0",level="103,2000,-,-")
+                  type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
 
     if (template == "airquality_sps_sht"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
-                  type="sps",address=105,timerange="254,0,0",level="103,2000,-,-")
+                  type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
 
@@ -711,7 +711,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
-                  type="sps",address=105,timerange="254,0,0",level="103,2000,-,-")
+                  type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="CO2",driver="I2C",
@@ -721,7 +721,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Dust",driver="I2C",
-                  type="sps",address=105,timerange="254,0,0",level="103,2000,-,-")
+                  type="SPS",address=105,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Temperature_Humidity",driver="I2C",
                   type="SHT",address=68,timerange="254,0,0",level="103,2000,-,-")
 
