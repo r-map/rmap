@@ -157,7 +157,7 @@ void setup() {
   Log.begin(LOG_LEVEL_ERROR, &Serial);
 
   
-  Wire.begin();
+  Wire.begin(D2,D1);
   
   LOGN(F("Trying to connect\n"));
 

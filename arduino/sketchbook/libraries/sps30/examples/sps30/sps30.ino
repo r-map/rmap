@@ -119,13 +119,18 @@
  *  NO support, delivered as is, have fun, good luck !!
  */
 
+//#include  <ArduinoLog.h>
 #include "sps30.h"
 
 /////////////////////////////////////////////////////////////
 /*define communication channel to use for SPS30
  valid options:
  *   I2C_COMMS              use I2C communication
+ *   SOFTWARE_SERIAL        Arduino variants (NOTE)
  *   SERIALPORT             ONLY IF there is NO monitor attached
+ *   SERIALPORT1            Arduino MEGA2560, Sparkfun ESP32 Thing : MUST define new pins as defaults are used for flash memory)
+ *   SERIALPORT2            Arduino MEGA2560 and ESP32
+ *   SERIALPORT3            Arduino MEGA2560 only for now
 
  * NOTE: Softserial has been left in as an option, but as the SPS30 is only
  * working on 115K the connection will probably NOT work on any device. */
@@ -142,11 +147,19 @@ SPS30 sps30;
 
 void setup() {
 
-  Serial.begin(115200);
+  Serial.begin(9600);
+
+  // Available levels are:
+  // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_TRACE, LOG_LEVEL_VERBOSE
+  // Note: if you want to fully remove all logging code, uncomment #define DISABLE_LOGGING in Logging.h
+  //       this will significantly reduce your project size
+
+  //Log.begin(LOG_LEVEL_ERROR, &Serial);
+
   
   Wire.begin();
   
-  Serial.println(F("Trying to connect\n"));
+  //LOGN(F("Trying to connect\n"));
 
   // Begin communication channel;
   if (sps30.begin(SP30_COMMS) == false) {
@@ -158,8 +171,8 @@ void setup() {
     ErrtoMess("could not probe / connect with SPS30.", 0);
   }
   else
-    Serial.println(F("Detected SPS30."));
-
+    //LOGN(F("Detected SPS30.\n"));
+    Serial.println(F("Detected SPS30"));
   // reset SPS30 connection
   if (sps30.reset() == false) {
     ErrtoMess("could not reset.", 0);
@@ -170,13 +183,15 @@ void setup() {
 
   if (SP30_COMMS == I2C_COMMS) {
     if (sps30.I2C_expect() == 4)
-      Serial.println(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!! \n"));
+      //LOGN(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!! \n"));
+      Serial.println(F(" !!! Due to I2C buffersize only the SPS30 MASS concentration is available !!!"));
   }
 }
 
 void loop() {
   // start measurement
   if (sps30.start() == true)
+    //LOGN(F("Measurement started\n"));
     Serial.println(F("Measurement started\n"));
   else
     ErrtoMess("Could NOT start measurement", 0);
@@ -187,6 +202,7 @@ void loop() {
   read_all();
 
   if (sps30.stop() == true)
+    //LOGN(F("Measurement stopped\n"));
     Serial.println(F("Measurement stopped\n"));
   else
     ErrtoMess("Could NOT stop measurement", 0);
@@ -300,9 +316,10 @@ void ErrtoMess(char *mess, uint8_t r)
 {
   char buf[80];
 
-  Serial.print(mess);
-
+  //LOGE(mess);
+  Serial.println(mess);
   sps30.GetErrDescription(r, buf, 80);
+  //LOGE(buf);
   Serial.println(buf);
 }
 

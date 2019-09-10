@@ -543,7 +543,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SoftwareSerial* _sdsSerial=NULL;
     sds011::Sds011* _sds011=NULL;  
 };
@@ -853,7 +853,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SoftwareSerial* _hpmSerial=NULL;
     hpm* _hpm=NULL;  
 };
@@ -882,7 +882,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SoftwareSerial* _pmsSerial=NULL;
     Pmsx003* _pms=NULL;  
 };
@@ -894,7 +894,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
  class SensorDriverSCDoneshot : public SensorDriver
  {
  public:
-   //SensorDriverSCDoneshot();
+   SensorDriverSCDoneshot();
    virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
@@ -910,7 +910,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SCD30* _scd=NULL;  
 };
 
@@ -920,7 +920,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
  class SensorDriverSHT85 : public SensorDriver
  {
  public:
-   //SensorDriverSHT85();
+   SensorDriverSHT85();
    virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
@@ -936,7 +936,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SHTI2cSensor* _sht=NULL;  
 };
 
@@ -950,7 +950,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
  class SensorDriverSPSoneshot : public SensorDriver
  {
  public:
-   //SensorDriverSPSoneshot();
+   SensorDriverSPSoneshot();
    virtual int setup(const char* driver, const int address, const int node, const char* type);
     virtual int prepare(unsigned long& waittime);
     virtual int get(long values[],size_t lenvalues);
@@ -966,7 +966,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     virtual int getJson(char *json_buffer, size_t json_buffer_length);
   #endif
     
-   protected:
+   private:
     SPS30* _sps30=NULL;  
 };
 

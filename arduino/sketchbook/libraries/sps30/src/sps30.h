@@ -210,11 +210,13 @@ struct Description ERR_desc[10] =
 
 /* Receive buffer length. Expected is 40 bytes max
  * but you never know in the future.. */
-#if defined SMALLFOOTPRINT
-#define MAXRECVBUFLENGTH 50         // for light boards
-#else
-#define MAXRECVBUFLENGTH 128
-#endif
+//#if defined SMALLFOOTPRINT
+//#define MAXRECVBUFLENGTH 50         // for light boards
+//#else
+//#define MAXRECVBUFLENGTH 128
+//#endif
+
+#define MAXRECVBUFLENGTH 40
 
 /*************************************************************/
 /* SERIAL COMMUNICATION INFORMATION */

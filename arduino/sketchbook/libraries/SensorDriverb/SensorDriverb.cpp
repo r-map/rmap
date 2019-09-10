@@ -5396,13 +5396,16 @@ SensorDriverPMSoneshotSerial::~SensorDriverPMSoneshotSerial(){
 
 #if defined (SCD_ONESHOT)
 
+SensorDriverSCDoneshot::SensorDriverSCDoneshot()
+{
+  _scd = new SCD30();
+}
+
 int SensorDriverSCDoneshot::setup(const char* driver, const int address, const int node, const char* type)
 {
 
   SensorDriver::setup(driver,address,node,type);
   //bool oneshot=true;
-
-  _scd = new SCD30();
 
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SCD")));
   
@@ -5419,19 +5422,25 @@ int SensorDriverSCDoneshot::setup(const char* driver, const int address, const i
     clock stretching needs to be implemented according to the NXP
     specification. The boot-up time is < 2 s.
   */
-  _scd->sendCommand(COMMAND_SOFT_RESET);
-  //delay(xx);  ??? not explained in documentation
-  if(_scd->beginMeasuring() != true) //Start continuous measurements
-    {
-      return SD_INTERNAL_ERROR;
+   _scd->sendCommand(COMMAND_SOFT_RESET);
+  delay(50);  // ??? not explained in documentation
+  if(_scd->beginMeasuring()) { //Start continuous measurements
+    IF_SDSDEBUG(SDDBGSERIAL.println(F("# scd beginMeasuring ok")));
+    if(_scd->setMeasurementInterval(2)) { //2 seconds between measurements
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("# scd setMeasurementInterval ok")));
+      if (_scd->setAutoSelfCalibration(true)) { //Enable auto-self-calibration
+	IF_SDSDEBUG(SDDBGSERIAL.println(F("# scd setAutoSelfCalibration ok")));
+
+	SCDstarted=false;
+	_timing=millis();
+
+	return SD_SUCCESS;
+      }
     }
-  _scd->setMeasurementInterval(2); //2 seconds between measurements
-  _scd->setAutoSelfCalibration(true); //Enable auto-self-calibration
+  }
 
-  SCDstarted=false;
-  _timing=millis();
+  return SD_INTERNAL_ERROR;
 
-  return SD_SUCCESS;
 }
 
 int SensorDriverSCDoneshot::prepare(unsigned long& waittime)
@@ -5607,18 +5616,20 @@ SensorDriverSCDoneshot::~SensorDriverSCDoneshot(){
 
 
 
-
-
-
-
 #if defined (SHTDRIVER)
+
+SensorDriverSHT85::SensorDriverSHT85()
+{
+  _sht = new SHTI2cSensor();
+}
+
+
 int SensorDriverSHT85::setup(const char* driver, const int address, const int node, const char* type)
 {
 
   SensorDriver::setup(driver,address,node,type);
-  //bool oneshot=true;
 
-  _sht = new SHTI2cSensor();
+  //_sht = new SHTI2cSensor();
 
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SHT85")));
 
@@ -5729,11 +5740,11 @@ aJsonObject* SensorDriverSHT85::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSHT85::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[1];
+  long values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
-  if (get(values,1) == SD_SUCCESS){
+  if (get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
       jsonvalues["B12101"]= values[0];      
     }else{
@@ -5746,9 +5757,9 @@ int SensorDriverSHT85::getJson(char *json_buffer, size_t json_buffer_length)
       jsonvalues["B13003"]=RawJson("null");
     }
   }else{
-    jsonvalues["B13003"]=RawJson("null");
-    // if you have a second value add here
     jsonvalues["B12101"]=RawJson("null");
+    // if you have a second value add here
+    jsonvalues["B13003"]=RawJson("null");
   }
 
   jsonvalues.printTo(json_buffer, json_buffer_length);
@@ -5779,20 +5790,37 @@ void ErrtoMess(uint8_t r)
 }
 */
 
+
+SensorDriverSPSoneshot::SensorDriverSPSoneshot()
+{
+  _sps30 = new SPS30();
+}
+
+
 int SensorDriverSPSoneshot::setup(const char* driver, const int address, const int node, const char* type)
 {
 
   SensorDriver::setup(driver,address,node,type);
-  //bool oneshot=true;
-
-  _sps30 = new SPS30();
 
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SPS")));
   
   if (_sps30->begin(SP30_COMMS)){
     if (_sps30->probe()){
       if (_sps30->reset()){
-  	
+
+	delay(10);
+
+	//try to read serial number
+	char buf[32];
+	if (_sps30->GetSerialNumber(buf, 32) == ERR_OK) {
+	  IF_SDSDEBUG(SDDBGSERIAL.print(F("#SP30 Serial number : ")));
+	  if(strlen(buf) > 0) {
+	    IF_SDSDEBUG(SDDBGSERIAL.println(buf));
+	  }else {
+	    IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS cannot get serialnumber")));
+	  }
+	}
+	
 	SPSstarted=false;
 	_timing=millis();
 	
@@ -5836,31 +5864,32 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   // data might not have been ready
   if (_sps30->GetValues(&val) != ERR_OK){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps getvalues error")));
+    _sps30->stop());
     return SD_INTERNAL_ERROR;    
   }
   if (!_sps30->stop()){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps stop error")));
     return SD_INTERNAL_ERROR;    
   }
-  
+
   // get pm1
   if (lenvalues >= 1) {
-    values[0] = val.MassPM1 ;
+    values[0] = round(val.MassPM1*10.) ;
   }
 
   // get pm2
   if (lenvalues >= 2) {
-    values[1] = val.MassPM2 ;
+    values[1] = round(val.MassPM2*10.) ;
   }
   
   // get pm4
   if (lenvalues >= 3) {
-    values[2] = val.MassPM4 ;
+    values[2] = round(val.MassPM4*10.) ;
   }
   
   // get pm10
   if (lenvalues >= 4) {
-    values[3] = val.MassPM10 ;
+    values[3] = round(val.MassPM10*10.) ;
   }
     
   if ((SP30_COMMS == I2C_COMMS) && (_sps30->I2C_expect() == 4)){
@@ -5869,27 +5898,27 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   
     // number of particles with diameter 0.3 to 0.5 um in 0.1 L of air.
     if (lenvalues >= 5) {
-      values[4] = val.NumPM0 *1000.;
+      values[4] = round(val.NumPM0 *1000.);
     }
 
     // number of particles with diameter 0.5 to 1.0  um in 0.1 L of air.
     if (lenvalues >= 6) {
-      values[5] = (val.NumPM1-val.NumPM0)*1000. ;
+      values[5] = round((val.NumPM1-val.NumPM0)*1000.) ;
     }
   
     // number of particles with diameter 1.0 to 2.5 um in 0.1 L of air.
     if (lenvalues >= 7) {
-      values[6] = (val.NumPM2-val.NumPM1)*1000. ;
+      values[6] = round((val.NumPM2-val.NumPM1)*1000.) ;
     }
   
     // number of particles with diameter 2.5 to 5.0 (4.0) um in 0.1 L of air.
     if (lenvalues >= 8) {
-      values[7] = (val.NumPM4-val.NumPM2)*1000. ;
+      values[7] = round((val.NumPM4-val.NumPM2)*1000.) ;
     }
   
     // number of particles with diameter 5.0 to 10 um in 0.1 L of air.
     if (lenvalues >= 9) {
-      values[8] = (val.NumPM10-val.NumPM4)*1000. ;
+      values[8] = round((val.NumPM10-val.NumPM4)*1000.) ;
     }
 
     /*
@@ -5899,6 +5928,7 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
     }
     */
   }
+
   return SD_SUCCESS;
 }
 
@@ -5925,11 +5955,11 @@ int SensorDriverSPSoneshot::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSPSoneshot::getJson()
 {
-  long values[10];
+  long values[9];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
-  if (SensorDriverSPSoneshot::get(values,10) == SD_SUCCESS){
+  if (SensorDriverSPSoneshot::get(values,9) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
       aJson.addNumberToObject(jsonvalues, "B15203", values[0]);    //PM1  
     }else{
@@ -5999,7 +6029,8 @@ int SensorDriverSPSoneshot::getJson(char *json_buffer, size_t json_buffer_length
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
-  if (get(values,9) == SD_SUCCESS){
+  if (SensorDriverSPSoneshot::get(values,9) == SD_SUCCESS){
+
     if ((unsigned long)values[0] != 0xFFFFFFFF){
       jsonvalues["B15203"]= values[0];      
     }else{
@@ -6045,7 +6076,6 @@ int SensorDriverSPSoneshot::getJson(char *json_buffer, size_t json_buffer_length
     }else{
       jsonvalues["B49197"]=RawJson("null");
     }
-    */
   }else{
     jsonvalues["B15203"]=RawJson("null");
     jsonvalues["B15198"]=RawJson("null");

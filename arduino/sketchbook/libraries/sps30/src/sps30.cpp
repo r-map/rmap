@@ -377,29 +377,35 @@ void SPS30::GetErrDescription(uint8_t code, char *buf, int len)
  */
 uint8_t SPS30::GetValues(struct sps_values *v)
 {
-  uint8_t ret, loop;
+  uint8_t ret;
   uint8_t offset;
 
   // measurement started already?
   if (_started == false) {
-    if (start() == false) return(ERR_CMDSTATE);
+    return(ERR_CMDSTATE);
   }
 #if defined INCLUDE_I2C
   if (_Sensor_Comms == I2C_COMMS) {
     
     offset = 0;
-    
+
+    // ATTENTION
+    // this do not work; on esp8266 (sometimes) after I2C_Check_data_ready
+    // READ_MEASURED_VALUE return a crc error !
     // if new data available
-    if (I2C_Check_data_ready()) {
+    //if (I2C_Check_data_ready()) {
       I2C_fill_buffer(I2C_READ_MEASURED_VALUE);
       
       // I2C will provide maximum data bytes depending on
       // the I2C read_buffer.
+
+      ret = I2C_SetPointer_Read(I2C_Max_bytes);      
       
-      ret = I2C_SetPointer_Read(I2C_Max_bytes);
-    } else {	  
-      return(ERR_TIMEOUT);
-    }
+      if (ret != ERR_OK) return (ret);
+
+      //} else {	  
+      //return(ERR_TIMEOUT);
+      //}
   }  else
 #endif // INCLUDE_I2C
 #if defined INCLUDE_UART
@@ -425,7 +431,7 @@ uint8_t SPS30::GetValues(struct sps_values *v)
     {}
 #endif // INCLUDE_UART
 
-    memset(v,0x0,sizeof(struct sps_values));
+    memset(v,0xF,sizeof(struct sps_values));
 
     // get data
     v->MassPM1 = byte_to_float(offset);
@@ -531,7 +537,7 @@ uint8_t SPS30::ByteUnStuff(uint8_t b)
         case 0x5e: return(0x7e);
 
         default:
-	  SPS30LOGD  (F("Incorrect byte Unstuffing. Got: 0x%02X\n"),b);
+	  SPS30LOGD  (F("Incorrect byte Unstuffing. Got: %X\n"),b);
 	  return(0);
     }
 }
@@ -648,7 +654,7 @@ uint8_t SPS30::SendToSerial()
 
       SPS30LOGD  (F("Sending: "));
       for(i = 0; i < _Send_BUF_Length; i++)
-	SPS30LOGD(F(" 0x%02X"), _Send_BUF[i]);
+	SPS30LOGD(F(" %X"), _Send_BUF[i]);
       SPS30LOGD  (F("\n"));
 
     for (i = 0 ; i <_Send_BUF_Length; i++)
@@ -693,7 +699,7 @@ uint8_t SPS30::ReadFromSerial()
     ret = SHDLC_calc_CRC(_Receive_BUF, 1,_Receive_BUF_Length-2);
     if (_Receive_BUF[_Receive_BUF_Length-1] != ret)
     {
-      SPS30LOGD(F("CRC error. expected 0x%02X, got 0x%02X\n"),_Receive_BUF[_Receive_BUF_Length-1], ret);
+      SPS30LOGD(F("CRC error. expected %X, got %X\n"),_Receive_BUF[_Receive_BUF_Length-1], ret);
       return(ERR_PROTOCOL);
     }
 
@@ -738,7 +744,7 @@ uint8_t SPS30::SerialToBuffer()
 
                 if (_Receive_BUF[i] != SHDLC_IND){
 
-		  SPS30LOGD(F("Incorrect Header. Expected 0x7E got 0x02X\n"), _Receive_BUF[i]);
+		  SPS30LOGD(F("Incorrect Header. Expected 0x7E got %X\n"), _Receive_BUF[i]);
 		  return(ERR_PROTOCOL);
                 }
             }
@@ -761,7 +767,7 @@ uint8_t SPS30::SerialToBuffer()
 
                     _Receive_BUF_Length = i;
 		    SPS30LOGD(F("Received: "));
-		    for(i = 0; i < _Receive_BUF_Length+1; i++) SPS30LOGD(F("0x%02X "),_Receive_BUF[i]);
+		    for(i = 0; i < _Receive_BUF_Length+1; i++) SPS30LOGD(F("%X "),_Receive_BUF[i]);
 		    SPS30LOGD(F("length: %d\n\n"),_Receive_BUF_Length);
                     return(ERR_OK);
                 }
@@ -816,7 +822,7 @@ void SPS30::I2C_init()
  */
 void SPS30::I2C_fill_buffer(uint16_t cmd, uint32_t interval)
 {
-    memset(_Send_BUF,0x0,sizeof(_Send_BUF));
+    memset(_Send_BUF,0xF,sizeof(_Send_BUF));
     _Send_BUF_Length = 0;
 
     int i = 0 ;
@@ -862,7 +868,7 @@ uint8_t SPS30::I2C_SetPointer()
 
     SPS30LOGD(F("I2C Sending: "));
     for(byte i = 0; i < _Send_BUF_Length; i++)
-      SPS30LOGD(F(" 0x%02X"), _Send_BUF[i]);
+      SPS30LOGD(F(" %X"), _Send_BUF[i]);
     SPS30LOGD(F("\n"));
 
     Wire.beginTransmission(SPS30_ADDRESS);
@@ -895,11 +901,11 @@ uint8_t SPS30::I2C_SetPointer_Read(uint8_t cnt, bool chk_zero)
     ret = I2C_ReadToBuffer(cnt, chk_zero);
 
     SPS30LOGD(F("I2C Received: "));
-    for(byte i = 0; i < _Receive_BUF_Length; i++) SPS30LOGD(F("0x%02X "),_Receive_BUF[i]);
+    for(byte i = 0; i < _Receive_BUF_Length; i++) SPS30LOGD(F("%X "),_Receive_BUF[i]);
     SPS30LOGD(F("length: %d\n\n"),_Receive_BUF_Length);
 
     if (ret != ERR_OK) {
-      SPS30LOGD(F("Error during reading from I2C: 0x%02X\n"), ret);
+      SPS30LOGD(F("Error during reading from I2C: %X\n"), ret);
     }
     return(ret);
 }
@@ -929,14 +935,24 @@ uint8_t SPS30::I2C_ReadToBuffer(uint8_t count, bool chk_zero)
 
         data[i++] = Wire.read();
 
+	//Serial.print(i-1);
+	//Serial.print(" : ");
+	//Serial.println(data[i-1],HEX);
+	
         // 2 bytes RH, 1 CRC
         if( i == 3) {
 
             if (data[2] != I2C_calc_CRC(&data[0])){
-	      SPS30LOGD(F("I2C CRC error: Expected 0x%02X, calculated 0x%02X\n"),data[2] & 0xff,I2C_calc_CRC(&data[0]) &0xff);
-                return(ERR_PROTOCOL);
+	      SPS30LOGD(F("I2C CRC error: Expected %X, calculated %X\n"),data[2], I2C_calc_CRC(&data[0]));
+	      return(ERR_PROTOCOL);
             }
 
+            if(_Receive_BUF_Length >= MAXRECVBUFLENGTH)
+            {
+	      SPS30LOGD(F("\nReceive buffer full\n"));
+	      return(ERR_PROTOCOL);
+            }
+	    
             _Receive_BUF[_Receive_BUF_Length++] = data[0];
             _Receive_BUF[_Receive_BUF_Length++] = data[1];
 

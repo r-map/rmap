@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2017  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2019  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -17,8 +17,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+/*
+Standard compilation options:
+scheda: lolin (wemos) D1 R2 & mini
+flash size: 4M (1M SPIFFS)
+debug port: disabled
+debug level nessuno
+lwIP variant: V2 lower memory
+Vtables: "flash"
+exceptions: disabled
+SSL support: Basic SSL"
+*/
+
+
 // increment on change
-#define SOFTWARE_VERSION "2019-09-01T00:00"
+#define SOFTWARE_VERSION "2019-09-08T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -68,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // set the frequency
 // 30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
-#define I2C_CLOCK 30418
+#define I2C_CLOCK 10000
 // #define I2CPULLUP define this if you want software pullup on I2C
 
 //disable debug at compile time but call function anyway
@@ -150,7 +163,7 @@ U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 bool oledpresent=false;
 unsigned short int displaypos;
 
-// i2c butto for wemos OLED version 2.1.0
+// i2c button for wemos OLED version 2.1.0
 I2C_BUTTON button; //I2C address 0x31
 // I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
 // I2C_BUTTON button(your_address); //using customize I2C address
@@ -472,7 +485,8 @@ int  rmap_config(String payload){
   int ii = 0;
 
   if (! (payload == String())) {
-    StaticJsonBuffer<2900> jsonBuffer;
+    //StaticJsonBuffer<2900> jsonBuffer;
+    DynamicJsonBuffer jsonBuffer(4000);
     status = 3;
     JsonArray& array = jsonBuffer.parseArray(payload);
     if (array.success()){
