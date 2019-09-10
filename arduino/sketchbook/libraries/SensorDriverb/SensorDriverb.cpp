@@ -5864,7 +5864,7 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   // data might not have been ready
   if (_sps30->GetValues(&val) != ERR_OK){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps getvalues error")));
-    _sps30->stop());
+    _sps30->stop();
     return SD_INTERNAL_ERROR;    
   }
   if (!_sps30->stop()){
