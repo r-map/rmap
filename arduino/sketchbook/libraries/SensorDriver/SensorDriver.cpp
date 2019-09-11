@@ -1480,7 +1480,6 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
           _is_success = false;
         }
       }
-    }
 
     _delay_ms = 0;
     _start_time_ms = millis();
@@ -2036,14 +2035,14 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
        }
        else json["B00004"] = RawJson("null");
      }
-    
+
      if (length >= 5) {
        if (isValid(values[4])) {
          json["B00005"] = values[4];
        }
        else json["B00005"] = RawJson("null");
      }
-    
+
      if (length >= 6) {
        if (isValid(values[5])) {
          json["B00006"] = values[5];
