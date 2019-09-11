@@ -300,6 +300,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Chip select pin for SD-Card module.
 */
 #define SDCARD_CHIP_SELECT_PIN                        (7)
+
+/*!
+\def SDCARD_TEST_FILE_NAME
+\brief Chip select pin for SD-Card module.
+*/
+#define SDCARD_TEST_FILE_NAME                        ("temp.txt")
 #endif
 
 /*********************************************************************
@@ -470,6 +476,8 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Maximum seconds for resync time over ntp.
 */
 #define NTP_TIME_FOR_RESYNC_S                         (SECS_PER_WEEK)
+
+#define NTP_MAX_DIFF_VALID_TIME_S                     (SECS_PER_DAY)
 
 /*!
 \def LCD_TIME_FOR_REINITIALIZE_S
