@@ -39,7 +39,7 @@ SSL support: Basic SSL"
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
-#define SAMPLETIME 60
+#define SAMPLETIME 10
 
 #define OLEDI2CADDRESS 0X3C
 
@@ -738,12 +738,6 @@ void repeats() {
     }
   }
 
-  while ((float(maxwaittime)-float(millis()-now)) >0.) {
-    //LOGN(F("delay" CR));
-    mqttclient.loop();;
-    yield();
-  }
-
   if (oledpresent) {
     u8g2.clearBuffer();
     u8g2.setCursor(0, 20); 
@@ -753,6 +747,12 @@ void repeats() {
     u8g2.clearBuffer();
   }
 
+  while ((float(maxwaittime)-float(millis()-now)) >0.) {
+    //LOGN(F("delay" CR));
+    mqttclient.loop();;
+    yield();
+  }
+  
   for (int i = 0; i < SENSORS_LEN; i++) {
     yield();
     if (!sd[i] == 0){
