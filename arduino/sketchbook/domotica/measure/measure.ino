@@ -28,8 +28,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
 **********************************************************************/
 
+// define sensors in use
+#define SENSOR_TEMPLATE_HIHADT 1
+#define SENSOR_TEMPLATE_SHT    2
+
+#define SENSOR_TEMPLATE SENSOR_TEMPLATE_SHT
+
 // sensor definition
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 #define SENSORS_LEN 2
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
+#define SENSORS_LEN 1
+#endif
+
 #define LENVALUES 2
 
 //display definition
@@ -537,11 +548,14 @@ void sensor_machine(){
 	  
 	  if (i == 0){
 	    float U_Input;
-	    float T_Input;
 	    
-	    //U_Input=float(values[0]);	   
+	    //U_Input=float(values[0]);
+
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 	    hcal.getConcentration(float(values[0]),&U_Input);
-	    T_Input=float(values[1])/100.-273.15;
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
+	    hcal.getConcentration(float(values[1]),&U_Input);
+#endif
 	    
 	    LOGN(F("calibrated U: %F" CR),U_Input);
 	    
@@ -570,9 +584,10 @@ void sensor_machine(){
 	      //u8g2.setCursor(25, 36); 
 	      //u8g2.print(round(T_Input*10.)/10.,1);
 	    }
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 	  }
-	  
 	  if (i == 1){
+#endif
 	    float T_Input;
 	    tcal.getConcentration(float(values[0])/100.-273.15,&T_Input);
 	    LOGN(F("calibrated T: %F" CR),T_Input);
@@ -864,6 +879,8 @@ void setup()
 
   // define which sensors are connected
 
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
+
   // HIH humidity and temperature sensor
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"HIH");
@@ -873,6 +890,20 @@ void setup()
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"ADT");
   sensors[1].address=73;
+
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
+
+  // SHT humidity and temperature sensor
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"SHT");
+  sensors[0].address=0;
+
+#endif
+
+  // SPS PM sensor
+  // strcpy(sensors[1].driver,"I2C");
+  // strcpy(sensors[1].type,"SPS");
+  // sensors[1].address=0;
   
   // start up encoder
   encoder.begin();

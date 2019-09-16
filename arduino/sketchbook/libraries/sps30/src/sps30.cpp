@@ -45,7 +45,7 @@ SPS30::SPS30(void)
 #endif
   _Send_BUF_Length = 0;
   _Receive_BUF_Length = 0;
-  _Sensor_Comms = NONE;
+  _Sensor_Comms = NONE_COMMS;
   _started = false;
 
 #if defined INCLUDE_I2C                      // added with version 1.3.0

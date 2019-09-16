@@ -119,13 +119,13 @@
  *  The communication it can be :
  *   I2C_COMMS              use I2C communication
  *   SERIALPORT             use UART communication
- *   NONE                   No port defined
+ *   NONE_COMMS             No port defined
  *
  * Softserial has been left in as an option, but as the SPS30 is only
  * working on 115K the connection will probably NOT work on any device.
  */
 typedef enum serial_port {
-			  NONE = 0,
+			  NONE_COMMS = 0,
 			  I2C_COMMS = 1,
 			  SERIALPORT = 2
 };
