@@ -394,6 +394,8 @@ uint8_t SPS30::GetValues(struct sps_values *v)
     // READ_MEASURED_VALUE return a crc error !
     // if new data available
     //if (I2C_Check_data_ready()) {
+      start();  // for the same I have to put this before read measured values
+      delay(1);
       I2C_fill_buffer(I2C_READ_MEASURED_VALUE);
       
       // I2C will provide maximum data bytes depending on
@@ -1024,4 +1026,29 @@ uint8_t SPS30::I2C_calc_CRC(uint8_t data[2])
 
     return crc;
 }
+
+/*
+// sample code by sensirion
+uint8_t SHT3X_CalcCrc(uint8_t data[], uint8_t nbrOfBytes)
+{
+  uint8_t bit;        // bit mask
+  uint8_t crc = 0xFF; // calculated checksum
+  uint8_t byteCtr;    // byte counter
+  
+  // calculates 8-Bit checksum with given polynomial
+  for(byteCtr = 0; byteCtr < nbrOfBytes; byteCtr++)
+  {
+    crc ^= (data[byteCtr]);
+    for(bit = 8; bit > 0; --bit)
+    {
+      if(crc & 0x80) crc = (crc << 1) ^ POLYNOMIAL;
+      else           crc = (crc << 1);
+    }
+  }
+  
+  return crc;
+}
+*/
+
+
 #endif // INCLUDE_I2C

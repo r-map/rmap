@@ -1,5 +1,5 @@
 ﻿// activate debug on serial port
-//#define SDDEBUGONSERIAL
+#define SDDEBUGONSERIAL
 
 
 // add secondary to primary parameters to send in multiparameter sensors 

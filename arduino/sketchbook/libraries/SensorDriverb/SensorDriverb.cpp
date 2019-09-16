@@ -5844,7 +5844,7 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
 
 	return SD_SUCCESS;
 #else
-	delay(1);
+	delay(10);
 	if(_sps30->start()){
 	  SPSstarted=true;
 	  _timing=millis();
@@ -5861,17 +5861,17 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
 
 int SensorDriverSPSoneshot::prepare(unsigned long& waittime)
 {
+  
 #ifdef ONESHOT_SWITCHOFF
   if(!_sps30->start()){
     return SD_INTERNAL_ERROR;
   }
-  
-  SPSstarted=true;
   waittime= 10000ul;
 #else
-  SPSstarted=true;
   waittime= 1000ul;
 #endif
+
+  SPSstarted=true;
   _timing=millis();
   return SD_SUCCESS;
 }
@@ -5896,7 +5896,9 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   // data might not have been ready
   if (_sps30->GetValues(&val) != ERR_OK){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps getvalues error")));
+#ifdef ONESHOT_SWITCHOFF
     _sps30->stop();
+#endif
     return SD_INTERNAL_ERROR;    
   }
 #ifdef ONESHOT_SWITCHOFF
