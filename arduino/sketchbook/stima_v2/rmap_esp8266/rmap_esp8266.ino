@@ -931,10 +931,10 @@ void repeats() {
   }
 
   temperature= NAN;
-  humidity=NAN;
-  pm2=NAN;
-  pm10=NAN;
-  co2=NAN;
+  humidity=-999;
+  pm2=-999;
+  pm10=-999;
+  co2=-999;
   
   for (int i = 0; i < SENSORS_LEN; i++) {
     yield();
