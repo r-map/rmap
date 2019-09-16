@@ -29,19 +29,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 // define sensors in use
-#define SENSOR_TEMPLATE_HIHADT 1
-#define SENSOR_TEMPLATE_SHT    2
+#define SENSOR_TEMPLATE_HIHADT        1
+#define SENSOR_TEMPLATE_SHT           2
+#define SENSOR_TEMPLATE_SHT_SPS_SCD   3
 
-#define SENSOR_TEMPLATE SENSOR_TEMPLATE_SHT
+#define SENSOR_TEMPLATE SENSOR_TEMPLATE_SHT_SPS_SCD
 
 // sensor definition
 #if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 #define SENSORS_LEN 2
 #elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
 #define SENSORS_LEN 1
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT_SPS_SCD
+#define SENSORS_LEN 3
 #endif
 
-#define LENVALUES 2
+#define LENVALUES 4
 
 //display definition
 #define OLEDI2CADDRESS 0X3C
@@ -75,7 +78,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // logging level at compile time
 // Available levels are:
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-//#define LOG_LEVEL   LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 // disable debug at compile time but call function anyway
 // this may significantly reduce your sketch/library size.
@@ -83,6 +86,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
+
+// set the I2C frequency
+#define I2C_CLOCK 10000
+// #define I2CPULLUP define this if you want software pullup on I2C
 
 #include <limits>
 #include <ESP8266WiFi.h>
@@ -132,7 +139,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define calibrationPoints 3
 
 // sensor sample definitions
-#define SAMPLERATE    1
+#define SAMPLERATE    5
 #define SAMPLEPERIOD 60
 #define NSAMPLE SAMPLEPERIOD/SAMPLERATE
 
@@ -142,14 +149,15 @@ FloatBuffer t;
 FloatBuffer u;
 float tmean=NAN;
 float umean=NAN;
-	 
+long pm2=-999,pm10=-999,co2=-999;
+
 struct sensor_t
 {
   char driver[5];         // driver name
   char type[5];           // driver name
   int address;            // i2c address
 } sensors[SENSORS_LEN];
-SensorDriver* sd[SENSORS_LEN];
+static SensorDriver* sd[SENSORS_LEN];
 
 //char* json;
 
@@ -201,7 +209,7 @@ const colorDef<uint8_t> colors[] MEMMODE={
 
 
 // global variables for sensors state machine
-unsigned long s_start_wait;
+static unsigned long s_start_wait;
 enum s_states {
 	       UNKNOWN
 	       ,SETUP
@@ -451,24 +459,32 @@ void ICACHE_RAM_ATTR encoderprocess (){
 
 // set start measure event on sensor machine
 void start_measure(){
+  LOGN(F("event START_MEASURE" CR));
   s_event=START_MEASURE;
 }
 
 
 // sensor machine
 void sensor_machine(){
-  long unsigned int waittime,maxwaittime=0;
+  unsigned long waittime;
+  static unsigned long maxwaittime=0;
 
   switch(s_state) {
   case UNKNOWN:
 
     for (int i = 0; i < SENSORS_LEN; i++) {
+
+      LOGN(F("driver: %s" CR),sensors[i].driver);
+      LOGN(F("type: %s" CR),sensors[i].type);      
       
       sd[i]=SensorDriver::create(sensors[i].driver,sensors[i].type);
       if (sd[i] == 0){
 	LOGN(F("%s: driver not created !" CR),sensors[i].driver);
       }else{
-	sd[i]->setup(sensors[i].driver,sensors[i].address);
+
+	if (!(sd[i]->setup(sensors[i].driver, sensors[i].address, -1, sensors[i].type) == SD_SUCCESS)) {
+	  LOGE(F("sensor not present or broken" CR));
+	}		
       }
     }
 
@@ -502,7 +518,9 @@ void sensor_machine(){
 	}
       }
     }
-   
+
+    LOGN(F("max wait time: %d" CR), maxwaittime);
+
     s_state = WAIT;
     s_event = START_WAIT;
     break;
@@ -528,7 +546,11 @@ void sensor_machine(){
     break;
 
   case GET:
-    
+
+    pm2=-999;
+    pm10=-999;
+    co2=-999;
+
     if (displaydata){
       u8g2.setFont(fontNameB);
       //u8g2.setFontMode(0); // enable transparent mode, which is faster
@@ -553,7 +575,7 @@ void sensor_machine(){
 
 #if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 	    hcal.getConcentration(float(values[0]),&U_Input);
-#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT_SPS_SCD
 	    hcal.getConcentration(float(values[1]),&U_Input);
 #endif
 	    
@@ -562,7 +584,7 @@ void sensor_machine(){
 	    if (displaydata){
 	      u8g2.setCursor(0, 12); 
 	      u8g2.print("U:");
-	      u8g2.setCursor(25, 12); 
+	      u8g2.setCursor(30, 12); 
 	    }
 	    u.autoput(U_Input);
 	    LOGN(F("U size %d" CR),u.getSize());
@@ -581,10 +603,10 @@ void sensor_machine(){
 	    if (displaydata){
 	      //u8g2.setCursor(0, 36); 
 	      //u8g2.print("t:");
-	      //u8g2.setCursor(25, 36); 
+	      //u8g2.setCursor(30, 36); 
 	      //u8g2.print(round(T_Input*10.)/10.,1);
 	    }
-#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE__HIHADT
 	  }
 	  if (i == 1){
 #endif
@@ -595,7 +617,7 @@ void sensor_machine(){
 	    if (displaydata) {
 	      u8g2.setCursor(0, 24); 
 	      u8g2.print("T:");
-	      u8g2.setCursor(25, 24); 
+	      u8g2.setCursor(30, 24); 
 	    }
 	    t.autoput(T_Input);
 	    if (t.getSize() == t.getCapacity()){
@@ -608,23 +630,57 @@ void sensor_machine(){
 	      if (displaydata) u8g2.print("wait");	    	    
 	    }
 	  }
+
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT_SPS_SCD
+
+	  if (i == 1){
+
+	    pm2=round(values[1]/10.);
+	    pm10=round(values[3]/10.);
+	    if (displaydata) {
+	      u8g2.setCursor(0, 36); 
+	      u8g2.print("PM2:");
+	      u8g2.setCursor(30, 36); 
+	      u8g2.print(round(values[1]/10.),0);	    	    
+	      /*
+	      u8g2.setCursor(0, 48); 
+	      u8g2.print("PM10:");
+	      u8g2.setCursor(30, 48); 
+	      u8g2.print(round(values[3]/10.),0);	    	    
+	      */
+	    }
+	  }
+
+	  if (i == 2){
+	    co2=round(values[0]/1.8);
+	    if (displaydata) {
+	      u8g2.setCursor(0, 48); 
+	      u8g2.print("CO2:");
+	      u8g2.setCursor(30, 48); 
+	      u8g2.print(round(values[0]/1.8),0);	    	    
+	    }
+	  }
 	  
+#endif
 	}else{
 	  
 	  if (displaydata){
 	    LOGE(F("Error on sensor: disable" CR));
-	    u8g2.clearBuffer();
+	    //u8g2.clearBuffer();
 	    u8g2.setCursor(0, 10); 
 	    u8g2.print("Error Sensor");
-	    u8g2.setCursor(0, 20); 
-	    u8g2.print("Disable");
-	  }
-	  
-	  return;
+	    //u8g2.setCursor(0, 20); 
+	    //u8g2.print("Disable");
+	  }	  
+
 	}  
       }
     }
 
+    if (displaydata){
+      u8g2.sendBuffer();
+      u8g2.setFont(fontNameS);
+    }
     s_state = IDLE;
     break;
     
@@ -639,7 +695,7 @@ void sensor_machine(){
 
 // web server response function
 void handle_OnConnect() {
-  webserver.send(200, "text/html", SendHTML(tmean,umean,prec)); 
+  webserver.send(200, "text/html", SendHTML()); 
 }
 
 void handle_NotFound(){
@@ -649,10 +705,10 @@ void handle_NotFound(){
 
 // function to prepare HTML response
 //https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
+String SendHTML(){
   String ptr = "<!DOCTYPE html> <html>\n";
   ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr +="<title>Senamhi EUAV Weather Report</title>\n";
+  ptr +="<title>Data Report</title>\n";
   ptr +="<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n";
   ptr +="body{margin-top: 50px;}\n";
   ptr +="h1 {margin: 50px auto 30px;}\n";
@@ -663,7 +719,7 @@ String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
   ptr +=".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n";
   ptr +=".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
   ptr +=".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n";
-  ptr +=".superscript{font-size: 17px;font-weight: 600;position: absolute;right: -20px;top: 15px;}\n";
+  ptr +=".superscript{font-size: 17px;font-weight: 600;position: relative;right: -20px;top: -10px;}\n";
   ptr +=".data{padding: 10px;}\n";
   ptr +="</style>\n";
   ptr +="<script>\n";
@@ -685,7 +741,7 @@ String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
   
   ptr +="<div id=\"webpage\">\n";
   
-  ptr +="<h1>Senamhi EUAV Weather Report</h1>\n";
+  ptr +="<h1>Data Report</h1>\n";
   ptr +="<div class=\"data\">\n";
   ptr +="<div class=\"side-by-side temperature-icon\">\n";
   ptr +="<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
@@ -699,7 +755,7 @@ String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
   ptr +="</div>\n";
   ptr +="<div class=\"side-by-side temperature-text\">Temperature</div>\n";
   ptr +="<div class=\"side-by-side temperature\">";
-  ptr +=round(Temperaturestat*10.)/10.;
+  ptr +=round(tmean*10.)/10.;
   ptr +="<span class=\"superscript\">°C</span></div>\n";
   ptr +="</div>\n";
   ptr +="<div class=\"data\">\n";
@@ -711,15 +767,38 @@ String SendHTML(float Temperaturestat,float Humiditystat,uint8_t Prec){
   ptr +="</div>\n";
   ptr +="<div class=\"side-by-side humidity-text\">Humidity</div>\n";
   ptr +="<div class=\"side-by-side humidity\">";
-  ptr +=round(Humiditystat);
+  ptr +=round(umean);
   ptr +="<span class=\"superscript\">%</span></div>\n";
+  ptr +="</div>\n";
 
+  ptr +="<div class=\"data\">\n";
   ptr +="<div class=\"side-by-side humidity-text\">Precipitation</div>\n";
   ptr +="<div class=\"side-by-side humidity\">";
-  ptr +=Prec;
+  ptr +=prec;
   ptr +="<span class=\"superscript\">N</span></div>\n";
-
   ptr +="</div>\n";
+
+  ptr +="<div class=\"data\">\n";
+  ptr +="<div class=\"side-by-side temperature-text\">PM2.5</div>\n";
+  ptr +="<div class=\"side-by-side temperature\">";
+  ptr +=pm2;
+  ptr +="<span class=\"superscript\">ug/m3</span></div>\n";
+  ptr +="</div>\n";
+
+  ptr +="<div class=\"data\">\n";
+  ptr +="<div class=\"side-by-side temperature-text\">PM10</div>\n";
+  ptr +="<div class=\"side-by-side temperature\">";
+  ptr +=pm10;
+  ptr +="<span class=\"superscript\">ug/m3</span></div>\n";
+  ptr +="</div>\n";
+
+  ptr +="<div class=\"data\">\n";
+  ptr +="<div class=\"side-by-side temperature-text\">CO2</div>\n";
+  ptr +="<div class=\"side-by-side temperature\">";
+  ptr +=co2;
+  ptr +="<span class=\"superscript\">ppm</span></div>\n";
+  ptr +="</div>\n";
+
   ptr +="</div>\n";
   ptr +="</body>\n";
   ptr +="</html>\n";
@@ -746,7 +825,7 @@ void do_display_prec(){
     u8g2.setFont(fontNameB);
     u8g2.setCursor(0, 40); 
     u8g2.print("P:");
-    u8g2.setCursor(25, 40); 
+    u8g2.setCursor(30, 40); 
     u8g2.print(prec);	    	    
     u8g2.setFont(fontNameS);
     u8g2.sendBuffer();
@@ -783,8 +862,19 @@ void setup()
   Log.begin(LOG_LEVEL, &Serial);
   LOGN(F("Started" CR));
 
+#ifdef I2CPULLUP
+  //if you want to set the internal pullup
+  digitalWrite( SDA, HIGH);
+  digitalWrite( SCL, HIGH);
+#else
+  // here we enforce we do not want pullup
+  digitalWrite( SDA, LOW);
+  digitalWrite( SCL, LOW);
+#endif
+  
   // start up the i2c interface
   Wire.begin(SDA,SCL);
+  Wire.setClock(I2C_CLOCK);
 
   delay(1000);
 
@@ -896,8 +986,23 @@ void setup()
   // SHT humidity and temperature sensor
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"SHT");
-  sensors[0].address=0;
+  sensors[0].address=68;
 
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT_SPS_SCD
+
+  // SHT humidity and temperature sensor
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"SHT");
+  sensors[0].address=68;
+  
+  strcpy(sensors[1].driver,"I2C");
+  strcpy(sensors[1].type,"SPS");
+  sensors[1].address=105;
+
+  strcpy(sensors[2].driver,"I2C");
+  strcpy(sensors[2].type,"SCD");
+  sensors[2].address=97;
+  
 #endif
 
   // SPS PM sensor
@@ -941,7 +1046,7 @@ void setup()
   // setup AP
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP("Senamhi-EUAV");
+  WiFi.softAP("stima-WiFi");
 
   // setup DNS
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -982,7 +1087,9 @@ void loop()
 #ifdef HBRIDGE
   do_display();
 #else
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT 
   do_display_prec();
+#endif
 #endif
   do_etc();
 }

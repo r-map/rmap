@@ -5822,38 +5822,42 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build SPS")));
   
   if (_sps30->begin(SP30_COMMS)){
-    if (_sps30->probe()){
-      if (_sps30->reset()){
+    if (!_sps30->probe()){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS probe error")));
+    }
+      
+    if (!_sps30->reset()){
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS reset error")));
+    }
+    delay(100);
 
-	delay(10);
-
-	//try to read serial number
-	char buf[32];
-	if (_sps30->GetSerialNumber(buf, 32) == ERR_OK) {
-	  IF_SDSDEBUG(SDDBGSERIAL.print(F("#SP30 Serial number : ")));
-	  if(strlen(buf) > 0) {
-	    IF_SDSDEBUG(SDDBGSERIAL.println(buf));
-	  }else {
-	    IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS cannot get serialnumber")));
-	  }
-	}
+    //try to read serial number
+    char buf[32];
+    if (_sps30->GetSerialNumber(buf, 32) == ERR_OK) {
+      IF_SDSDEBUG(SDDBGSERIAL.print(F("#SP30 Serial number : ")));
+      if(strlen(buf) > 0) {
+	IF_SDSDEBUG(SDDBGSERIAL.println(buf));
+      }else {
+	IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS cannot get serialnumber")));
+      }
+    }else{
+      IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS GetSerialNumber error")));      
+    }
 
 #ifdef ONESHOT_SWITCHOFF	
-	SPSstarted=false;
-        _timing=millis();
+    SPSstarted=false;
+    _timing=millis();
 
-	return SD_SUCCESS;
+    return SD_SUCCESS;
 #else
-	delay(10);
-	if(_sps30->start()){
-	  SPSstarted=true;
-	  _timing=millis();
+    delay(10);
+    if(_sps30->start()){
+      SPSstarted=true;
+      _timing=millis();
 	
-	  return SD_SUCCESS;
-	}
-#endif
-      }
+      return SD_SUCCESS;
     }
+#endif
   }
 
   return SD_INTERNAL_ERROR;
