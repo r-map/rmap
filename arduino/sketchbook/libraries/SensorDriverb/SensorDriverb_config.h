@@ -5,6 +5,12 @@
 // add secondary to primary parameters to send in multiparameter sensors 
 //#define SECONDARYPARAMETER
 
+//there are some sensor that require more time to startup
+// if you do hight frequency measure you do not
+// require to switch off the sensor
+// otherwise in some cases is better to switch off and wait the sensor to go ready
+//#define ONESHOT_SWITCHOFF
+
 //those ms after a prepare the measure will be too old to be considered valid
 
 // this the value for mqtt and sample/observation

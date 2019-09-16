@@ -10,11 +10,6 @@
 int THcounter=0;
 int SDS011counter=0;
 bool SDSMICSstarted=false;
-bool HPMstarted=false;
-bool PMSstarted=false;
-bool SCDstarted=false;
-bool SHTstarted=false;
-bool SPSstarted=false;
 
 SensorDriver* SensorDriver::create(const char* driver,const char* type) {
 
@@ -2758,7 +2753,15 @@ int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
     if (Wire.endTransmission() != 0) return SD_INTERNAL_ERROR;             // End Write Transmission 
 
     SDSMICSstarted=true;
+
+#ifdef ONESHOT_SWITCHOFF
+    //if you stop measure every get
     waittime= 19500ul;
+#else
+    //if you do not stop measure every get
+    waittime= 3000ul;
+#endif
+
   }else{
     waittime= 1ul;
   }
@@ -2772,6 +2775,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
+#ifdef ONESHOT_SWITCHOFF
   if (SDSMICSstarted) {
     // command STOP
     Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -2782,6 +2786,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
     SDSMICSstarted=false;
     delay(100);
   }
+#endif
 
   // get pm25
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -4939,8 +4944,13 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build HPM")));
   
   if(_hpm->init(_hpmSerial)){
+#ifdef ONESHOT_SWITCHOFF
     if( _hpm->stopParticleMeasurement()){
       HPMstarted=false;
+#else
+    if( _hpm->startParticleMeasurement()){
+      HPMstarted=true;
+#endif
       _timing=millis();
 
       return SD_SUCCESS;
@@ -4951,6 +4961,7 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
 
 int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
 {
+#ifdef ONESHOT_SWITCHOFF
   if(_hpm->startParticleMeasurement()){
     HPMstarted=true;
     _timing=millis();
@@ -4960,6 +4971,10 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
   }else{
     return SD_INTERNAL_ERROR;
   }
+#else
+  _timing=millis();  
+  return SD_SUCCESS;  
+#endif
 }
 
 int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
@@ -4975,7 +4990,9 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 
   // measure
   bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
+#ifdef ONESHOT_SWITCHOFF
   _hpm->stopParticleMeasurement();
+#endif
 
   if (status){
 
@@ -5820,11 +5837,21 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
 	    IF_SDSDEBUG(SDDBGSERIAL.println(F("SPS cannot get serialnumber")));
 	  }
 	}
-	
+
+#ifdef ONESHOT_SWITCHOFF	
 	SPSstarted=false;
-	_timing=millis();
-	
+        _timing=millis();
+
 	return SD_SUCCESS;
+#else
+	delay(1);
+	if(_sps30->start()){
+	  SPSstarted=true;
+	  _timing=millis();
+	
+	  return SD_SUCCESS;
+	}
+#endif
       }
     }
   }
@@ -5834,13 +5861,18 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
 
 int SensorDriverSPSoneshot::prepare(unsigned long& waittime)
 {
+#ifdef ONESHOT_SWITCHOFF
   if(!_sps30->start()){
     return SD_INTERNAL_ERROR;
   }
   
   SPSstarted=true;
-  _timing=millis();
   waittime= 10000ul;
+#else
+  SPSstarted=true;
+  waittime= 1000ul;
+#endif
+  _timing=millis();
   return SD_SUCCESS;
 }
 
@@ -5867,10 +5899,12 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
     _sps30->stop();
     return SD_INTERNAL_ERROR;    
   }
+#ifdef ONESHOT_SWITCHOFF
   if (!_sps30->stop()){
     IF_SDSDEBUG(SDDBGSERIAL.println(F("#sps stop error")));
     return SD_INTERNAL_ERROR;    
   }
+#endif
 
   // get pm1
   if (lenvalues >= 1) {

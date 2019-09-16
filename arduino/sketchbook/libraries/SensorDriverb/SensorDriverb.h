@@ -856,6 +856,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
    private:
     SoftwareSerial* _hpmSerial=NULL;
     hpm* _hpm=NULL;  
+    bool HPMstarted=false;
 };
 
 #endif
@@ -885,7 +886,8 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
    private:
     SoftwareSerial* _pmsSerial=NULL;
     Pmsx003* _pms=NULL;  
-};
+    bool PMSstarted=false;
+ };
 
 #endif
 
@@ -912,6 +914,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     
    private:
     SCD30* _scd=NULL;  
+    bool SCDstarted=false;
 };
 
 
@@ -938,6 +941,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     
    private:
     SHTI2cSensor* _sht=NULL;  
+    bool SHTstarted=false;
 };
 
 #endif
@@ -968,6 +972,7 @@ class SensorDriverSDS011oneshotSerial : public SensorDriver
     
    private:
     SPS30* _sps30=NULL;  
+    bool SPSstarted=false;
 };
 
 #endif
