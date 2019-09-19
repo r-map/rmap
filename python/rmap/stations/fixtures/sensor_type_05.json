@@ -19,7 +19,7 @@
             "description": "Number of particles with diameter < 0.3 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },
@@ -31,7 +31,7 @@
             "description": "Number of particles with diameter > 0.3 < 0.5 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },
@@ -43,7 +43,7 @@
             "description": "Number of particles with diameter > 0.5 < 1.0 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },
@@ -55,7 +55,7 @@
             "description": "Number of particles with diameter > 1.0 < 2.5 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },
@@ -67,7 +67,7 @@
             "description": "Number of particles with diameter > 2.5 < 5.0 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },   
@@ -79,7 +79,7 @@
             "description": "Number of particles with diameter > 5.0 < 10.0 um",
             "unit": "number/ml",
             "offset": 0.0,
-            "scale": 0,
+            "scale": 1,
             "userunit": "number/ml"
         }
     },
