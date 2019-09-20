@@ -46,6 +46,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define LENVALUES 4
 
+#define APName"stima-WiFi"
+
 //display definition
 #define OLEDI2CADDRESS 0X3C
 
@@ -69,6 +71,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define encA    D6
 #define encB    D7
 
+#define HTTP_PORT 80
+#define WS_PORT 81
+
 // define this if serial menu is required
 //#define USESERIAL
 
@@ -82,7 +87,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // disable debug at compile time but call function anyway
 // this may significantly reduce your sketch/library size.
-#define DISABLE_LOGGING disable
+//#define DISABLE_LOGGING disable
 
 // file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
@@ -95,6 +100,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
+#include <WebSocketsServer.h>
 #include <FS.h>
 #include <ArduinoLog.h>
 #include <Wire.h>
@@ -107,11 +113,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <JC_Button.h> // https://github.com/JChristensen/JC_Button
 #endif
 #include <U8g2lib.h>
+#include "EspHtmlTemplateProcessor.h"
 #include <menu.h>
+#include <menuIO/esp8266Out.h>
 #include <menuIO/u8g2Out.h>
 #include <menuIO/RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
+#include <menuIO/xmlFmt.h>//to write a menu has html page
+#include <menuIO/jsonFmt.h>//to write a menu has xml page
+#include <streamFlow.h>//https://github.com/neu-rah/streamFlow
+#include <menuIO/jsFmt.h>//to send javascript thru web socket (live update)
 #include <math.h>
 #include "Calibration.h"
 #include "FloatBuffer.h"
@@ -143,6 +155,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAMPLEPERIOD 60
 #define NSAMPLE SAMPLEPERIOD/SAMPLERATE
 
+// MENU
+#define CUR_VERSION "1.0"  // this version numbers MUST be the same as SPIFFS data/1.0
+#define MAX_DEPTH 2
 
 // global variables for sensors measure
 FloatBuffer t;
@@ -186,12 +201,20 @@ volatile uint8_t prec=0;
 IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
-ESP8266WebServer webserver(80);
+ESP8266WebServer webserver(HTTP_PORT);
+WebSocketsServer webSocket(WS_PORT);
+EspHtmlTemplateProcessor templateProcessor(&webserver);
+
+// WEB menu
+idx_t web_tops[MAX_DEPTH];
+PANELS(webPanels,{0,0,80,100});
+xmlFmt<esp8266_WebServerStreamOut> serverOut(webserver,web_tops,webPanels);
+jsonFmt<esp8266_WebServerStreamOut> jsonOut(webserver,web_tops,webPanels);
+jsonFmt<esp8266BufferedOut> wsOut(web_tops,webPanels);
 
 // global variables for display
-
 bool displaydata=false;
-
+bool displayredraw=false;
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 
 // define menu colors
@@ -246,19 +269,17 @@ void ICACHE_RAM_ATTR button1changed()
 }
 
 #endif
-result save();
-result resetprec();
+result actionsave(eventMask event, navNode& nav, prompt &item);
+result actionresetprec(eventMask event, navNode& nav, prompt &item);
 result changeDebounce();
 
-#define MAX_DEPTH 2
-
 MENU(tempMenu,"Temperature",doNothing,noEvent,noStyle
-     ,FIELD(trawmeasures[0],"uncal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[0],   "  cal1","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(trawmeasures[1],"uncal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[1],   "  cal2","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(trawmeasures[2],"uncal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
-     ,FIELD(tmeasures[2],   "  cal3","%",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(trawmeasures[0],"uncal1","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[0],   "  cal1","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(trawmeasures[1],"uncal2","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[1],   "  cal2","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(trawmeasures[2],"uncal3","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
+     ,FIELD(tmeasures[2],   "  cal3","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
      ,EXIT("<Back")
      );
 
@@ -273,8 +294,8 @@ MENU(humidMenu,"Humidity",doNothing,noEvent,noStyle
      );
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
-     ,OP("Save!",save,enterEvent)
-     ,OP("reset prec",resetprec,enterEvent)
+     ,OP("Save!",actionsave,enterEvent)
+     ,OP("reset prec",actionresetprec,enterEvent)
      ,FIELD(debounce,"DB t","ms",10,200,10,1,changeDebounce,enterEvent,wrapStyle)
      ,SUBMENU(tempMenu)
      ,SUBMENU(humidMenu)
@@ -318,6 +339,153 @@ outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list control
 
 NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
 
+
+//xml+http navigation control
+noInput none;//web uses its own API
+menuOut* web_outputs[]={&serverOut};
+outputsList web_out(web_outputs,sizeof(web_outputs)/sizeof(decltype(web_outputs[0])));
+navNode web_cursors[MAX_DEPTH];
+navRoot webNav(mainMenu, web_cursors, MAX_DEPTH, none, web_out);
+
+//json+http navigation control
+menuOut* json_outputs[]={&jsonOut};
+outputsList json_out(json_outputs,sizeof(json_outputs)/sizeof(decltype(json_outputs[0])));
+navNode json_cursors[MAX_DEPTH];
+navRoot jsonNav(mainMenu, json_cursors, MAX_DEPTH, none, json_out);
+
+//websockets navigation control
+menuOut* ws_outputs[]={&wsOut};
+		    outputsList ws_out(ws_outputs,sizeof(ws_outputs)/sizeof(decltype(ws_outputs[0])));
+navNode ws_cursors[MAX_DEPTH];
+navRoot wsNav(mainMenu, ws_cursors, MAX_DEPTH, none, ws_out);
+
+
+
+
+void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
+  switch(type) {
+    case WStype_DISCONNECTED:
+      //Serial.printf("[%u] Disconnected!\n", num);
+      break;
+    case WStype_CONNECTED: {
+        IPAddress ip = webSocket.remoteIP(num);
+        //Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
+        webSocket.sendTXT(num, "console.log('ArduinoMenu Connected')");
+      }
+      break;
+    case WStype_TEXT: {
+        Serial.printf("[%u] get Text: %s\n", num, payload);
+        // nav.async((const char*)payload);//this is slow!!!!!!!!
+        __trace(Serial.printf("[%u] get Text: %s\n", num, payload));
+        char*s=(char*)payload;
+        _trace(Serial<<"serve websocket menu"<<endl);
+        wsOut.response.remove(0);
+        wsOut<<"{\"output\":\"";
+        wsNav.async((const char*)payload);
+        wsOut<<"\",\n\"menu\":";
+        wsNav.doOutput();
+        wsOut<<"\n}";
+        webSocket.sendTXT(num,wsOut.response);
+        // wsOut.response.remove(0);
+        // jsonEnd();
+
+	displayredraw=true;
+	
+    } break;
+    case WStype_BIN: {
+        Serial<<"[WSc] get binary length:"<<length<<"[";
+        for(int c=0;c<length;c++) {
+          Serial.print(*(char*)(payload+c),HEX);
+          Serial.write(',');
+        }
+        Serial<<"]"<<endl;
+        uint16_t id=*(uint16_t*) payload++;
+        idx_t len=*((idx_t*)++payload);
+        idx_t* pathBin=(idx_t*)++payload;
+        const char* inp=(const char*)(payload+len);
+        //Serial<<"id:"<<id<<endl;
+        if (id==nav.active().hash()) {
+          //Serial<<"id ok."<<endl;Serial.flush();
+          //Serial<<"input:"<<inp<<endl;
+          //StringStream inStr(inp);
+          //while(inStr.available())
+          nav.doInput(inp);
+          webSocket.sendTXT(num, "binBusy=false;");//send javascript to unlock the state
+        } //else Serial<<"id not ok!"<<endl;
+        //Serial<<endl;
+      }
+      break;
+    default:break;
+  }
+}
+
+void pageStart() {
+  _trace(Serial<<"pasgeStart!"<<endl);
+  serverOut<<"HTTP/1.1 200 OK\r\n"
+    <<"Content-Type: text/xml\r\n"
+    <<"Connection: close\r\n"
+    <<"Expires: 0\r\n"
+    <<"\r\n";
+  serverOut<<"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\r\n"
+    "<?xml-stylesheet type=\"text/xsl\" href=\"";
+  serverOut<<CUR_VERSION"/device.xslt";
+  serverOut<<"\"?>\r\n<menuLib"
+    #ifdef WEB_DEBUG
+      <<" debug=\"yes\""
+    #endif
+    <<" host=\"";
+    serverOut.print(APName);
+    serverOut<<"\">\r\n<sourceURL ver=\"" CUR_VERSION "/\">";
+  if (webserver.hasHeader("host"))
+    serverOut.print(webserver.header("host"));
+  else
+    serverOut.print(APName);
+  serverOut<<"</sourceURL>";
+}
+
+void pageEnd() {
+  serverOut<<"</menuLib>";
+  webserver.client().stop();
+}
+
+void jsonStart() {
+  _trace(Serial<<"jsonStart!"<<endl);
+  serverOut<<"HTTP/1.1 200 OK\r\n"
+    <<"Content-Type: application/json; charset=utf-8\r\n"
+    <<"Connection: close\r\n"
+    <<"Expires: 0\r\n"
+    <<"\r\n";
+}
+
+void jsonEnd() {
+  webserver.client().stop();
+}
+
+bool handleMenu(navRoot& nav){
+  _trace(
+    uint32_t free = system_get_free_heap_size();
+    Serial.print(F("free memory:"));
+    Serial.print(free);
+    Serial.print(F(" handleMenu "));
+    Serial.println(webserver.arg("at").c_str());
+  );
+  String at=webserver.arg("at");
+  bool r;
+  r=nav.async(webserver.hasArg("at")?at.c_str():"/");
+  return r;
+}
+
+//redirect to version folder,
+//this allows agressive caching with no need to cache reset on version change
+auto mainPage= []() {
+  _trace(Serial<<"serving main page from root!"<<endl);
+  webserver.sendHeader("Location", CUR_VERSION "/index.html", true);
+  webserver.send ( 302, "text/plain", "");
+  if (webserver.hasArg("at"))
+    nav.async(webserver.arg("at").c_str());
+};
+
+
 #ifdef HBRIDGE
 // power on the ventilation
 result ventOn(){
@@ -334,9 +502,20 @@ result ventOff(){
 }
 #endif
 
+//menu action functions
+result actionresetprec(eventMask event, navNode& nav, prompt &item) {
+  Serial.println(" ");
+  Serial.println("action resetprec called!");
+  webserver.sendContent("Reset precipitation DONE");
+
+  resetprec();
+
+  return proceed;
+}
+
 // reset precipitation count
 result resetprec() {
-  prec=0;
+  prec=0;  
 }
 
 // chenge debounce runtime
@@ -344,6 +523,18 @@ result changeDebounce() {
   LOGN(F("changedebounce %d" CR),debounce);
   precBtn.setDbTime(debounce);
 }
+
+//menu action functions
+result actionsave(eventMask event, navNode& nav, prompt &item) {
+  Serial.println(" ");
+  Serial.println("action save called!");
+  webserver.sendContent("Save configuration DONE");
+
+  save();
+
+  return proceed;
+}
+
 
 // save configuration
 result save() {
@@ -442,6 +633,8 @@ result idle(menuOut& o,idleEvent e) {
   case idling:
     o.println("suspended...");
     displaydata=true;
+    t.init(NSAMPLE);
+    u.init(NSAMPLE);
     break;
   case idleEnd:
     o.println("resuming menu.");
@@ -460,7 +653,7 @@ void ICACHE_RAM_ATTR encoderprocess (){
 // set start measure event on sensor machine
 void start_measure(){
   LOGN(F("event START_MEASURE" CR));
-  s_event=START_MEASURE;
+  if (displaydata) s_event=START_MEASURE;
 }
 
 
@@ -693,116 +886,30 @@ void sensor_machine(){
 }
 
 
-// web server response function
-void handle_OnConnect() {
-  webserver.send(200, "text/html", SendHTML()); 
-}
-
 void handle_NotFound(){
   webserver.send(404, "text/plain", "Not found");
 }
 
 
-// function to prepare HTML response
-//https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
-String SendHTML(){
-  String ptr = "<!DOCTYPE html> <html>\n";
-  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr +="<title>Data Report</title>\n";
-  ptr +="<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n";
-  ptr +="body{margin-top: 50px;}\n";
-  ptr +="h1 {margin: 50px auto 30px;}\n";
-  ptr +=".side-by-side{display: inline-block;vertical-align: middle;position: relative;}\n";
-  ptr +=".humidity-icon{background-color: #3498db;width: 30px;height: 30px;border-radius: 50%;line-height: 36px;}\n";
-  ptr +=".humidity-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
-  ptr +=".humidity{font-weight: 300;font-size: 60px;color: #3498db;}\n";
-  ptr +=".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n";
-  ptr +=".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
-  ptr +=".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n";
-  ptr +=".superscript{font-size: 17px;font-weight: 600;position: relative;right: -20px;top: -10px;}\n";
-  ptr +=".data{padding: 10px;}\n";
-  ptr +="</style>\n";
-  ptr +="<script>\n";
-  ptr +="setInterval(loadDoc,200);\n";
-  ptr +="function loadDoc() {\n";
-  ptr +="var xhttp = new XMLHttpRequest();\n";
-  ptr +="xhttp.onreadystatechange = function() {\n";
-  ptr +="if (this.readyState == 4 && this.status == 200)\n";
-  ptr +="{document.getElementById(\"webpage\").innerHTML =this.responseText}\n";
-  ptr +="if (this.readyState == 4 && this.status != 200)\n";
-  ptr +="{document.getElementById(\"webpage\").innerHTML =\"not connected\"}\n";
-  ptr +="};\n";
-  ptr +="xhttp.open(\"GET\", \"/\", true);\n";
-  ptr +="xhttp.send();\n";
-  ptr +="}\n";
-  ptr +="</script>\n";
-  ptr +="</head>\n";
-  ptr +="<body>\n";
+const char* reportKeyProcessor(const String& key)
+{
+  //LOGN(F("KEY:>%s<"),key.c_str());
+  static char cvalue[21];
   
-  ptr +="<div id=\"webpage\">\n";
-  
-  ptr +="<h1>Data Report</h1>\n";
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side temperature-icon\">\n";
-  ptr +="<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
-  ptr +="width=\"9.915px\" height=\"22px\" viewBox=\"0 0 9.915 22\" enable-background=\"new 0 0 9.915 22\" xml:space=\"preserve\">\n";
-  ptr +="<path fill=\"#FFFFFF\" d=\"M3.498,0.53c0.377-0.331,0.877-0.501,1.374-0.527C5.697-0.04,6.522,0.421,6.924,1.142\n";
-  ptr +="c0.237,0.399,0.315,0.871,0.311,1.33C7.229,5.856,7.245,9.24,7.227,12.625c1.019,0.539,1.855,1.424,2.301,2.491\n";
-  ptr +="c0.491,1.163,0.518,2.514,0.062,3.693c-0.414,1.102-1.24,2.038-2.276,2.594c-1.056,0.583-2.331,0.743-3.501,0.463\n";
-  ptr +="c-1.417-0.323-2.659-1.314-3.3-2.617C0.014,18.26-0.115,17.104,0.1,16.022c0.296-1.443,1.274-2.717,2.58-3.394\n";
-  ptr +="c0.013-3.44,0-6.881,0.007-10.322C2.674,1.634,2.974,0.955,3.498,0.53z\"/>\n";
-  ptr +="</svg>\n";
-  ptr +="</div>\n";
-  ptr +="<div class=\"side-by-side temperature-text\">Temperature</div>\n";
-  ptr +="<div class=\"side-by-side temperature\">";
-  ptr +=round(tmean*10.)/10.;
-  ptr +="<span class=\"superscript\">°C</span></div>\n";
-  ptr +="</div>\n";
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side humidity-icon\">\n";
-  ptr +="<svg version=\"1.1\" id=\"Layer_2\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n\"; width=\"12px\" height=\"17.955px\" viewBox=\"0 0 13 17.955\" enable-background=\"new 0 0 13 17.955\" xml:space=\"preserve\">\n";
-  ptr +="<path fill=\"#FFFFFF\" d=\"M1.819,6.217C3.139,4.064,6.5,0,6.5,0s3.363,4.064,4.681,6.217c1.793,2.926,2.133,5.05,1.571,7.057\n";
-  ptr +="c-0.438,1.574-2.264,4.681-6.252,4.681c-3.988,0-5.813-3.107-6.252-4.681C-0.313,11.267,0.026,9.143,1.819,6.217\"></path>\n";
-  ptr +="</svg>\n";
-  ptr +="</div>\n";
-  ptr +="<div class=\"side-by-side humidity-text\">Humidity</div>\n";
-  ptr +="<div class=\"side-by-side humidity\">";
-  ptr +=round(umean);
-  ptr +="<span class=\"superscript\">%</span></div>\n";
-  ptr +="</div>\n";
+  if (key == "TEMPERATURE") snprintf(cvalue,20,"%.1f",tmean);
+  else if (key == "HUMIDITY") snprintf(cvalue,20,"%.0f",umean);
+  else if (key == "PM2") snprintf(cvalue,20,"%d",pm2);
+  else if (key == "PM10") snprintf(cvalue,20,"%d",pm10);
+  else if (key == "CO2") snprintf(cvalue,20,"%d",co2);
+  else if (key == "PRECIPITATION") snprintf(cvalue,20,"%d",prec);
+  else   strcpy(cvalue,"ERROR: Key not found");
 
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side humidity-text\">Precipitation</div>\n";
-  ptr +="<div class=\"side-by-side humidity\">";
-  ptr +=prec;
-  ptr +="<span class=\"superscript\">N</span></div>\n";
-  ptr +="</div>\n";
+  return cvalue;
+}
 
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side temperature-text\">PM2.5</div>\n";
-  ptr +="<div class=\"side-by-side temperature\">";
-  ptr +=pm2;
-  ptr +="<span class=\"superscript\">ug/m3</span></div>\n";
-  ptr +="</div>\n";
-
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side temperature-text\">PM10</div>\n";
-  ptr +="<div class=\"side-by-side temperature\">";
-  ptr +=pm10;
-  ptr +="<span class=\"superscript\">ug/m3</span></div>\n";
-  ptr +="</div>\n";
-
-  ptr +="<div class=\"data\">\n";
-  ptr +="<div class=\"side-by-side temperature-text\">CO2</div>\n";
-  ptr +="<div class=\"side-by-side temperature\">";
-  ptr +=co2;
-  ptr +="<span class=\"superscript\">ppm</span></div>\n";
-  ptr +="</div>\n";
-
-  ptr +="</div>\n";
-  ptr +="</body>\n";
-  ptr +="</html>\n";
-  return ptr;
+void handleReport()
+{
+  templateProcessor.processAndSend("/report.html", reportKeyProcessor);
 }
 
 #ifdef HBRIDGE
@@ -841,11 +948,21 @@ void do_etc(){
 #endif
 
   nav.doInput();
-  if (nav.changed(0)) {//only draw if menu changed for gfx device
+  if (nav.changed(0)) displayredraw=true;
+
+  if (displayredraw) {//only draw if menu changed for gfx device
+    displayredraw=false;
     u8g2.firstPage();
-    do nav.doOutput(); while(u8g2.nextPage());
-  }  
+    do
+      nav.doOutput();
+    while(u8g2.nextPage());
+#ifdef USESERIAL
+    nav.printMenu(serialout);
+#endif
+  }
+
 }
+
 
 void setup()
 {
@@ -1020,6 +1137,15 @@ void setup()
   attachInterrupt(digitalPinToInterrupt(encA), encoderprocess, CHANGE);
   attachInterrupt(digitalPinToInterrupt(encB), encoderprocess, CHANGE);
 
+  //do not allow web heads to exit, they wont be able to return (for now)
+  //we should resume this heads on async requests!
+  webNav.canExit=false;
+  jsonNav.canExit=false;
+  wsNav.canExit=false;
+
+  webSocket.begin();
+  webSocket.onEvent(webSocketEvent);
+  
   // setup menu
   nav.idleTask=idle;//point a function to be used when menu is suspended
   nav.timeOut=10;
@@ -1046,7 +1172,7 @@ void setup()
   // setup AP
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-  WiFi.softAP("stima-WiFi");
+  WiFi.softAP(APName);
 
   // setup DNS
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
@@ -1056,8 +1182,34 @@ void setup()
   dnsServer.start(DNS_PORT, "*", apIP);
 
   // setup web server
-  webserver.on("/", handle_OnConnect);
+  webserver.on("/report.html", handleReport);
   webserver.onNotFound(handle_NotFound);
+  webserver.on("/",HTTP_GET,mainPage);
+
+  //menu xml server over http
+  webserver.on("/menu", HTTP_GET, []() {
+    pageStart();
+    serverOut<<"<output state=\""<<((int)&webNav.idleTask)<<"\"><![CDATA[";
+    _trace(Serial<<"output count"<<webNav.out.cnt<<endl);
+    handleMenu(webNav);//do navigation (read input) and produce output messages or reports
+    serverOut<<"]]></output>";
+    webNav.doOutput();
+    pageEnd();
+  });
+
+  //menu json server over http
+  webserver.on("/json", HTTP_GET, []() {
+    _trace(Serial<<"json request!"<<endl);
+    jsonStart();
+    serverOut<<"{\"output\":\"";
+    handleMenu(jsonNav);
+    serverOut<<"\",\n\"menu\":";
+    jsonNav.doOutput();
+    serverOut<<"\n}";
+    jsonEnd();
+  });
+
+  webserver.serveStatic("/", SPIFFS, "/","max-age=31536000");
   
   webserver.begin();
   LOGN(F("HTTP server started" CR));
@@ -1082,6 +1234,8 @@ void loop()
 {
   Alarm.delay(0);
   sensor_machine();
+  wsOut.response.remove(0);     //clear websocket json buffer
+  webSocket.loop();
   webserver.handleClient();
   dnsServer.processNextRequest();
 #ifdef HBRIDGE
