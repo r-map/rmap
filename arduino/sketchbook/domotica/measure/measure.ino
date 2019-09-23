@@ -29,14 +29,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 // define sensors in use
-#define SENSOR_TEMPLATE_HIHADT        1
-#define SENSOR_TEMPLATE_SHT           2
-#define SENSOR_TEMPLATE_SHT_SPS_SCD   3
+#define SENSOR_TEMPLATE_PREC          1
+#define SENSOR_TEMPLATE_HIHADT        2
+#define SENSOR_TEMPLATE_SHT           3
+#define SENSOR_TEMPLATE_SHT_SPS_SCD   4
 
-#define SENSOR_TEMPLATE SENSOR_TEMPLATE_SHT_SPS_SCD
+#define SENSOR_TEMPLATE SENSOR_TEMPLATE_PREC
 
 // sensor definition
-#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_PREC
+#define SENSORS_LEN 0
+#elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT
 #define SENSORS_LEN 2
 #elif SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT
 #define SENSORS_LEN 1
@@ -127,6 +130,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <math.h>
 #include "Calibration.h"
 #include "FloatBuffer.h"
+#include "LongIntBuffer.h"
 #include <Time.h>
 #include <TimeAlarms.h>
 
@@ -153,7 +157,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // sensor sample definitions
 #define SAMPLERATE    5
 #define SAMPLEPERIOD 60
+#define SAMPLERATEPREC 1      // time intervall fron two ticks in prec
 #define NSAMPLE SAMPLEPERIOD/SAMPLERATE
+#define NSAMPLEPREC SAMPLEPERIOD/SAMPLERATEPREC
 
 // MENU
 #define CUR_VERSION "1.0"  // this version numbers MUST be the same as SPIFFS data/1.0
@@ -162,8 +168,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // global variables for sensors measure
 FloatBuffer t;
 FloatBuffer u;
+LongIntBuffer p;
 float tmean=NAN;
 float umean=NAN;
+float rrate=NAN;
+time_t sprec=NAN;
+float symmetry=NAN;
 long pm2=-999,pm10=-999,co2=-999;
 
 struct sensor_t
@@ -193,6 +203,7 @@ ibt_2 hbridge(IBT_2_2HALF,MR_PWM,ML_PWM,MR_EN ,ML_EN ,MR_IS ,ML_IS);
 //i2cibt_2 hbridge(IBT_2_2HALF,gpio);
 #else
 unsigned long debounce=25;
+float resolution=0.1;
 Button precBtn(PRECPIN,debounce); // define the button
 volatile uint8_t prec=0;
 #endif
@@ -262,16 +273,28 @@ TOGGLE(ventCtrl,setVent,"Vent: ",doNothing,noEvent,noStyle//,doExit,enterEvent,n
   ,VALUE("Off",LOW,ventOff,noEvent)
 );
 #else
-void ICACHE_RAM_ATTR button1changed()
+ICACHE_RAM_ATTR void button1changed()
 {
   precBtn.read();
-  if (precBtn.wasReleased()) prec++;
+  if (precBtn.wasReleased()){
+    p.autoput(millis());
+    prec++;
+  }
 }
 
 #endif
 result actionsave(eventMask event, navNode& nav, prompt &item);
 result actionresetprec(eventMask event, navNode& nav, prompt &item);
 result changeDebounce();
+result changeResolution();
+
+
+
+MENU(precMenu,"Precipitation",doNothing,noEvent,noStyle
+     ,FIELD(resolution,"res","Kg/m2",0.05,2,0.1,0.01,changeResolution,enterEvent,wrapStyle)
+     ,FIELD(debounce,"DB t","ms",10,200,10,1,changeDebounce,enterEvent,wrapStyle)
+     ,EXIT("<Back")
+     );
 
 MENU(tempMenu,"Temperature",doNothing,noEvent,noStyle
      ,FIELD(trawmeasures[0],"uncal1","C",-50.,50.,1.,.1,doNothing,noEvent,wrapStyle)
@@ -296,7 +319,7 @@ MENU(humidMenu,"Humidity",doNothing,noEvent,noStyle
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
      ,OP("Save!",actionsave,enterEvent)
      ,OP("reset prec",actionresetprec,enterEvent)
-     ,FIELD(debounce,"DB t","ms",10,200,10,1,changeDebounce,enterEvent,wrapStyle)
+     ,SUBMENU(precMenu)
      ,SUBMENU(tempMenu)
      ,SUBMENU(humidMenu)
 #ifdef HBRIDGE
@@ -359,8 +382,11 @@ menuOut* ws_outputs[]={&wsOut};
 navNode ws_cursors[MAX_DEPTH];
 navRoot wsNav(mainMenu, ws_cursors, MAX_DEPTH, none, ws_out);
 
-
-
+void circularbuffer_clear(){
+  t.clear();
+  u.clear();
+  p.clear();
+}
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
   switch(type) {
@@ -409,7 +435,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
           //Serial<<"input:"<<inp<<endl;
           //StringStream inStr(inp);
           //while(inStr.available())
-          nav.doInput(inp);
+
+	  // refresh other menu
+	  nav.doInput(inp);
+
+	  // reset circularbuffer on menu change
+	  circularbuffer_clear();
+
           webSocket.sendTXT(num, "binBusy=false;");//send javascript to unlock the state
         } //else Serial<<"id not ok!"<<endl;
         //Serial<<endl;
@@ -515,13 +547,19 @@ result actionresetprec(eventMask event, navNode& nav, prompt &item) {
 
 // reset precipitation count
 result resetprec() {
-  prec=0;  
+  prec=0;
+  p.clear();
 }
 
-// chenge debounce runtime
+// change debounce runtime
 result changeDebounce() {
   LOGN(F("changedebounce %d" CR),debounce);
   precBtn.setDbTime(debounce);
+}
+
+// change resolution
+result changeResolution() {
+  LOGN(F("changeresolution %.2f" CR),resolution);
 }
 
 //menu action functions
@@ -552,6 +590,7 @@ result save() {
   }
 
   LOGN(F("debounce   : %d\n"),debounce);
+  LOGN(F("resolution : %.2f\n"),resolution);
 
   StaticJsonBuffer<500> jsonBuffer;
   JsonObject& json = jsonBuffer.createObject();
@@ -565,6 +604,7 @@ result save() {
 #endif
 
   json["debounce"] = debounce;
+  json["resolution"] = resolution;
   
   JsonArray& jsontrawmeasures =json.createNestedArray("trawmeasures");
   for (int i = 0; i < calibrationPoints; i++) {
@@ -633,8 +673,7 @@ result idle(menuOut& o,idleEvent e) {
   case idling:
     o.println("suspended...");
     displaydata=true;
-    t.init(NSAMPLE);
-    u.init(NSAMPLE);
+    circularbuffer_clear();
     break;
   case idleEnd:
     o.println("resuming menu.");
@@ -645,7 +684,7 @@ result idle(menuOut& o,idleEvent e) {
 }
 
 // ISR for encoder management
-void ICACHE_RAM_ATTR encoderprocess (){
+ICACHE_RAM_ATTR void encoderprocess (){
   encoder.process();
 }
 
@@ -743,12 +782,6 @@ void sensor_machine(){
     pm2=-999;
     pm10=-999;
     co2=-999;
-
-    if (displaydata){
-      u8g2.setFont(fontNameB);
-      //u8g2.setFontMode(0); // enable transparent mode, which is faster
-      u8g2.clearBuffer();
-    }
   
     for (int i = 0; i < SENSORS_LEN; i++) {
       if (!sd[i] == 0){
@@ -774,11 +807,6 @@ void sensor_machine(){
 	    
 	    LOGN(F("calibrated U: %F" CR),U_Input);
 	    
-	    if (displaydata){
-	      u8g2.setCursor(0, 12); 
-	      u8g2.print("U:");
-	      u8g2.setCursor(30, 12); 
-	    }
 	    u.autoput(U_Input);
 	    LOGN(F("U size %d" CR),u.getSize());
 	    
@@ -788,17 +816,10 @@ void sensor_machine(){
 		LOGN(F("U ele %d %F" CR),i,u.peek(i));
 		umean += (u.peek(i) - umean) / (i+1);
 	      }
-	      if (displaydata) u8g2.print(round(umean),0);
 	    }else{
-	    if (displaydata) u8g2.print("wait");
+	      umean=NAN;
 	    }
 	    
-	    if (displaydata){
-	      //u8g2.setCursor(0, 36); 
-	      //u8g2.print("t:");
-	      //u8g2.setCursor(30, 36); 
-	      //u8g2.print(round(T_Input*10.)/10.,1);
-	    }
 #if SENSOR_TEMPLATE == SENSOR_TEMPLATE__HIHADT
 	  }
 	  if (i == 1){
@@ -807,20 +828,14 @@ void sensor_machine(){
 	    tcal.getConcentration(float(values[0])/100.-273.15,&T_Input);
 	    LOGN(F("calibrated T: %F" CR),T_Input);
 	    
-	    if (displaydata) {
-	      u8g2.setCursor(0, 24); 
-	      u8g2.print("T:");
-	      u8g2.setCursor(30, 24); 
-	    }
 	    t.autoput(T_Input);
 	    if (t.getSize() == t.getCapacity()){
 	      tmean=0;
 	      for ( uint8_t i=0 ; i < t.getCapacity() ; i++)  {
 		tmean += (t.peek(i) - tmean) / (i+1);
 	      }
-	      if (displaydata) u8g2.print(round(tmean*10.)/10.,1);	    	    
 	    } else{
-	      if (displaydata) u8g2.print("wait");	    	    
+	      tmean=NAN;
 	    }
 	  }
 
@@ -830,28 +845,10 @@ void sensor_machine(){
 
 	    pm2=round(values[1]/10.);
 	    pm10=round(values[3]/10.);
-	    if (displaydata) {
-	      u8g2.setCursor(0, 36); 
-	      u8g2.print("PM2:");
-	      u8g2.setCursor(30, 36); 
-	      u8g2.print(round(values[1]/10.),0);	    	    
-	      /*
-	      u8g2.setCursor(0, 48); 
-	      u8g2.print("PM10:");
-	      u8g2.setCursor(30, 48); 
-	      u8g2.print(round(values[3]/10.),0);	    	    
-	      */
-	    }
 	  }
 
 	  if (i == 2){
 	    co2=round(values[0]/1.8);
-	    if (displaydata) {
-	      u8g2.setCursor(0, 48); 
-	      u8g2.print("CO2:");
-	      u8g2.setCursor(30, 48); 
-	      u8g2.print(round(values[0]/1.8),0);	    	    
-	    }
 	  }
 	  
 #endif
@@ -859,21 +856,17 @@ void sensor_machine(){
 	  
 	  if (displaydata){
 	    LOGE(F("Error on sensor: disable" CR));
-	    //u8g2.clearBuffer();
+	    u8g2.clearBuffer();
 	    u8g2.setCursor(0, 10); 
 	    u8g2.print("Error Sensor");
-	    //u8g2.setCursor(0, 20); 
-	    //u8g2.print("Disable");
+	    u8g2.sendBuffer();
+	    delay(3000);
 	  }	  
 
 	}  
       }
     }
-
-    if (displaydata){
-      u8g2.sendBuffer();
-      u8g2.setFont(fontNameS);
-    }
+    
     s_state = IDLE;
     break;
     
@@ -891,55 +884,204 @@ void handle_NotFound(){
 }
 
 
-const char* reportKeyProcessor(const String& key)
+const char* reportKeyProcessor(const char* key)
 {
-  //LOGN(F("KEY:>%s<"),key.c_str());
+  //LOGN(F("KEY:>%s<" CR),key.c_str());
+  LOGN(F("KEY:>%s<" CR),key);
   static char cvalue[21];
+
+  // attention floating value print have round here?
+
+
+  if (strcmp(key,"TEMP")==0) snprintf(cvalue,20,"%.1f",tmean);
+  else if (strcmp(key, "HUMID")==0) snprintf(cvalue,20,"%.0f",umean);
+  else if (strcmp(key, "PM2")==0) snprintf(cvalue,20,"%d",pm2);
+  else if (strcmp(key, "PM10")==0) snprintf(cvalue,20,"%d",pm10);
+  else if (strcmp(key, "CO2")==0) snprintf(cvalue,20,"%d",co2);
+  else if (strcmp(key, "PREC")==0) snprintf(cvalue,20,"%.2f",prec*resolution);
+  else if (strcmp(key, "RATE")==0) snprintf(cvalue,20,"%.2f",rrate*resolution);
+  else if (strcmp(key, "RSYM")==0) snprintf(cvalue,20,"%.1f",symmetry);
+  else   strcpy(cvalue,"ERROR: Key not found");
   
-  if (key == "TEMPERATURE") snprintf(cvalue,20,"%.1f",tmean);
-  else if (key == "HUMIDITY") snprintf(cvalue,20,"%.0f",umean);
+
+  /*
+  if (key == "TEMP") snprintf(cvalue,20,"%.1f",tmean);
+  else if (key == "HUMID") snprintf(cvalue,20,"%.0f",umean);
   else if (key == "PM2") snprintf(cvalue,20,"%d",pm2);
   else if (key == "PM10") snprintf(cvalue,20,"%d",pm10);
   else if (key == "CO2") snprintf(cvalue,20,"%d",co2);
-  else if (key == "PRECIPITATION") snprintf(cvalue,20,"%d",prec);
+  else if (key == "PREC") snprintf(cvalue,20,"%.2f",prec*resolution);
+  else if (key == "RATE") snprintf(cvalue,20,"%.2f",rrate*resolution);
+  else if (key == "RSYM") snprintf(cvalue,20,"%.1f",symmetry);
   else   strcpy(cvalue,"ERROR: Key not found");
-
+  */
   return cvalue;
 }
 
 void handleReport()
 {
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_PREC
+  templateProcessor.processAndSend("/rreport.html", reportKeyProcessor);
+#else
   templateProcessor.processAndSend("/report.html", reportKeyProcessor);
+#endif
+}
+
+void do_display_sensors(){
+  if (displaydata){
+    u8g2.setFont(fontNameB);
+      
+    u8g2.setCursor(0, 12); 
+    u8g2.print("U:");
+    u8g2.setCursor(30, 12); 
+    if (isnan(umean)){
+      u8g2.print("wait");
+    }else{
+      u8g2.print(round(umean),0);
+    }
+    
+    u8g2.setCursor(0, 24); 
+    u8g2.print("T:");
+    u8g2.setCursor(30, 24); 
+    if (isnan(tmean)){
+      u8g2.print("wait");
+    }else{
+      u8g2.print(round(tmean*10.)/10.,1);	    	    
+    }
+
+    u8g2.setCursor(0, 36); 
+    u8g2.print("PM2:");
+
+    u8g2.setCursor(30, 36); 
+    u8g2.print(pm2);	    	    
+
+    /*
+      u8g2.setCursor(0, 48); 
+      u8g2.print("PM10:");
+      u8g2.setCursor(30, 48); 
+      u8g2.print(pm10);	    	    
+    */
+
+    u8g2.setCursor(0, 48); 
+    u8g2.print("CO2:");
+    u8g2.setCursor(30, 48); 
+    u8g2.print(co2);	    	    
+  }   
 }
 
 #ifdef HBRIDGE
 // update the display about ventilation
-void do_display(){
-  if (displaydata){
-    u8g2.setFont(fontNameS);
-    u8g2.setCursor(0, 49); 
-    u8g2.print("Vent:");
-    u8g2.setCursor(25, 49); 
-    u8g2.print(vent);
-    u8g2.setCursor(55, 49); 
-    u8g2.print(ventCtrl);
-    u8g2.sendBuffer();
-  }
+void do_display_vent(){
+  u8g2.setFont(fontNameS);
+  u8g2.setCursor(0, 49); 
+  u8g2.print("Vent:");
+  u8g2.setCursor(25, 49); 
+  u8g2.print(vent);
+  u8g2.setCursor(55, 49); 
+  u8g2.print(ventCtrl);
+  u8g2.sendBuffer();
 }
 #else
 void do_display_prec(){
-  if (displaydata){
-    u8g2.setFont(fontNameB);
-    u8g2.setCursor(0, 40); 
-    u8g2.print("P:");
-    u8g2.setCursor(30, 40); 
-    u8g2.print(prec);	    	    
-    u8g2.setFont(fontNameS);
-    u8g2.sendBuffer();
-  }
+  u8g2.setFont(fontNameB);
+  u8g2.setCursor(0, 40); 
+  u8g2.print("P:");
+  u8g2.setCursor(30, 40); 
+  u8g2.print(prec*resolution,2);	    	    
+  u8g2.setFont(fontNameS);
+  u8g2.sendBuffer();
+}
+
+void do_display_prec_rate(){
+  u8g2.setFont(fontNameB);
+  
+  u8g2.setCursor(0, 12); 
+  u8g2.print("P:");
+  u8g2.setCursor(20, 12); 
+  u8g2.print(prec*resolution,2);	    	    
+
+  u8g2.setCursor(0, 24); 
+  u8g2.print("R:");
+  u8g2.setCursor(20, 24); 
+  u8g2.print(round(rrate*resolution*100.)/100.,2);	    	    
+  
+  u8g2.setCursor(0, 36); 
+  u8g2.print("S:");
+  u8g2.setCursor(20, 36); 
+  u8g2.print(round(symmetry*10.)/10.,2);	    	    
 }
 #endif
 
+
+void do_display(){
+  if (displaydata){
+
+    u8g2.setFontMode(0); // enable transparent mode, which is faster
+    u8g2.clearBuffer();
+  
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_PREC
+    do_display_prec_rate();
+#else
+    do_display_sensors();
+#endif
+  
+#ifdef HBRIDGE
+    do_display_vent();
+#else
+#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT 
+    do_display_prec();
+#endif
+#endif
+    
+    u8g2.sendBuffer();
+    u8g2.setFont(fontNameS);
+  }
+}
+
+
+void compute1(){
+#ifndef HBRIDGE
+
+  //uint8_t i=p.getCapacity();
+
+  if (p.getSize() > 1){  
+    //LOGN(F("P ele %d %l" CR),0,p.peek(0));
+    //0LOGN(F("P ele %d %l" CR),1,p.peek(1));
+
+    noInterrupts();
+    rrate=60000/(p.peek(0)-p.peek(1));
+    interrupts();
+    
+  }else{
+    rrate=NAN;
+  }
+
+  if (p.getSize() > 2){  
+    //LOGN(F("S ele %d %l" CR),0,p.peek(0));
+    //LOGN(F("S ele %d %l" CR),1,p.peek(1));
+    //LOGN(F("S ele %d %l" CR),2,p.peek(2));
+
+    noInterrupts();
+    symmetry=round((float(p.peek(0)-p.peek(1))/float(p.peek(1)-p.peek(2)))*100.);
+    interrupts();
+    
+  }else{
+    symmetry=NAN;
+  }
+
+
+#endif
+}
+
+void compute60(){
+#ifndef HBRIDGE
+
+  //symmetry++;
+  
+#endif
+}
+ 
+  
 // management of H bridge and update display
 void do_etc(){
 
@@ -1049,6 +1191,9 @@ void setup()
 
       if (json.containsKey("debounce")) debounce=json["debounce"];      
       LOGN(F("debounce     %D" CR),debounce);
+
+      if (json.containsKey("resolution")) resolution=json["resolution"];      
+      LOGN(F("resolution   %.2F" CR),resolution);
       
       if (json.containsKey("trawmeasures") && json.containsKey("tmeasures")) {
 	for (int i = 0; i < calibrationPoints; i++) {
@@ -1166,9 +1311,11 @@ void setup()
     LOGN(F("hmeasures    %F : %d\n"),hmeasures[i],i);
   }
 
+
   t.init(NSAMPLE);
   u.init(NSAMPLE);
-
+  p.init(NSAMPLEPREC);
+  
   // setup AP
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
@@ -1218,7 +1365,10 @@ void setup()
   sensor_machine();
 
   // setup alarms
-  Alarm.timerRepeat(SAMPLERATE, start_measure);            // timer for every second    
+  Alarm.timerRepeat(SAMPLERATE, start_measure);            // timer for measures    
+  Alarm.timerRepeat(1, do_display);                        // timer for display every second    
+  Alarm.timerRepeat(1, compute1);                          // timer for compute every second    
+  Alarm.timerRepeat(60, compute60);                        // timer for compute every 60 second    
   
   LOGN(F("setup done." CR));
 
@@ -1238,12 +1388,5 @@ void loop()
   webSocket.loop();
   webserver.handleClient();
   dnsServer.processNextRequest();
-#ifdef HBRIDGE
-  do_display();
-#else
-#if SENSOR_TEMPLATE == SENSOR_TEMPLATE_HIHADT || SENSOR_TEMPLATE == SENSOR_TEMPLATE_SHT 
-  do_display_prec();
-#endif
-#endif
   do_etc();
 }
