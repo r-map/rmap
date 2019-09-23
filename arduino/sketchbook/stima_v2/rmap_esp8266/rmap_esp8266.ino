@@ -31,7 +31,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-09-16T12:00"
+#define SOFTWARE_VERSION "2019-09-23T12:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -228,7 +228,7 @@ String SendHTML(){
   ptr +=".data{padding: 10px;}\n";
   ptr +="</style>\n";
   ptr +="<script>\n";
-  ptr +="setInterval(loadDoc,200);\n";
+  ptr +="setInterval(loadDoc,5000);\n";
   ptr +="function loadDoc() {\n";
   ptr +="var xhttp = new XMLHttpRequest();\n";
   ptr +="xhttp.onreadystatechange = function() {\n";
