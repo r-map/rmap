@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TEMPLATE_SHT           3
 #define SENSOR_TEMPLATE_SHT_SPS_SCD   4
 
-#define SENSOR_TEMPLATE SENSOR_TEMPLATE_PREC
+#define SENSOR_TEMPLATE SENSOR_TEMPLATE_SHT_SPS_SCD
 
 // sensor definition
 #if SENSOR_TEMPLATE == SENSOR_TEMPLATE_PREC
@@ -90,7 +90,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // disable debug at compile time but call function anyway
 // this may significantly reduce your sketch/library size.
-//#define DISABLE_LOGGING disable
+#define DISABLE_LOGGING disable
 
 // file for saved configurations
 #define FILESAVEDDATA "/saveddata.json"
@@ -928,7 +928,6 @@ void handleReport()
 }
 
 void do_display_sensors(){
-  if (displaydata){
     u8g2.setFont(fontNameB);
       
     u8g2.setCursor(0, 12); 
@@ -966,7 +965,6 @@ void do_display_sensors(){
     u8g2.print("CO2:");
     u8g2.setCursor(30, 48); 
     u8g2.print(co2);	    	    
-  }   
 }
 
 #ifdef HBRIDGE
@@ -1099,7 +1097,7 @@ void do_etc(){
       nav.doOutput();
     while(u8g2.nextPage());
 #ifdef USESERIAL
-    nav.printMenu(serialout);
+      nav.printMenu(outSerial);
 #endif
   }
 
