@@ -393,9 +393,9 @@ uint8_t SPS30::GetValues(struct sps_values *v)
     // this do not work; on esp8266 (sometimes) after I2C_Check_data_ready
     // READ_MEASURED_VALUE return a crc error !
     // if new data available
-    //if (I2C_Check_data_ready()) {
-      start();  // for the same I have to put this before read measured values
-      delay(1);
+    if (I2C_Check_data_ready()) {
+    //start();  // for the same I have to put this before read measured values
+    //  delay(1);
       I2C_fill_buffer(I2C_READ_MEASURED_VALUE);
       
       // I2C will provide maximum data bytes depending on
@@ -405,9 +405,9 @@ uint8_t SPS30::GetValues(struct sps_values *v)
       
       if (ret != ERR_OK) return (ret);
 
-      //} else {	  
-      //return(ERR_TIMEOUT);
-      //}
+    } else {	  
+      return(ERR_TIMEOUT);
+    }
   }  else
 #endif // INCLUDE_I2C
 #if defined INCLUDE_UART
