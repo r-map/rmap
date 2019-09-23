@@ -40,17 +40,15 @@ bool EspHtmlTemplateProcessor::processAndSend(const String& filePath, GetKeyValu
       }
 
       lastCurlyBracePosition = reader.getCurrentPosition();
-      buffer[index] = ch;
-      index++;
-
+      buffer[index++] = ch;
+      
       // Read the 2 next char to detect templating syntax
       for (unsigned int i = 0; i < 2 && reader.readChar(ch) ; i++)
       {
-        buffer[index] = ch;
-        index++;
+        buffer[index++] = ch;
       }
 
-      // Wen we encounter two opening curly braces, it a template syntax that we must handle
+      // When we encounter two opening curly braces, it a template syntax that we must handle
       if (index >= 3 && buffer[index - 2] == OPENING_CURLY_BRACKET_CHAR && buffer[index - 3] == OPENING_CURLY_BRACKET_CHAR)
       {
         // if the last char is an escape char, remove it form the template and don't do the substitution
@@ -60,15 +58,16 @@ bool EspHtmlTemplateProcessor::processAndSend(const String& filePath, GetKeyValu
         }
         else
         {
-          // if the buffer contain more than the last 3 chars, clear it omitting the last 3 chars 
+
+	  // if the buffer contain more than the last 3 chars, send it omitting the last 3 chars 
           if (index > 3)
           {
             buffer[index - 3] = '\0';
             mServer->sendContent(buffer);
-            // Set the first char of the key into the buffer as it was not an escape char
-            buffer[0] = ch;
-            index = 1;
           }
+	  // Set the first char of the key into the buffer as it was not an escape char
+	  index = 0;
+	  buffer[index++] = ch;
 
           // Extract the key for substitution
           bool found = false;
@@ -80,8 +79,7 @@ bool EspHtmlTemplateProcessor::processAndSend(const String& filePath, GetKeyValu
               found = true;
             else if (ch != CLOSING_CURLY_BRACKET_CHAR)
             {
-              buffer[index] = ch;
-              index++;
+              buffer[index++] = ch;
             }
 
             lastChar = ch;
@@ -96,15 +94,14 @@ bool EspHtmlTemplateProcessor::processAndSend(const String& filePath, GetKeyValu
 
           // Get key value
           buffer[index] = '\0';
-          mServer->sendContent(getKeyValueCallback(buffer));
+	  mServer->sendContent(getKeyValueCallback(buffer));
           index = 0;
         }
       }
     }
     else 
     {
-      buffer[index] = ch;
-      index++;
+      buffer[index++] = ch;
 
       if (index >= BUFFER_SIZE-1)
       {
@@ -130,5 +127,4 @@ void EspHtmlTemplateProcessor::sendError(const String& errorDescription) const
 {
   mServer->sendContent("<br/><b>Error:</b> " + errorDescription);
   mServer->sendContent("");
-  Serial.println("Error : " + errorDescription);
 }

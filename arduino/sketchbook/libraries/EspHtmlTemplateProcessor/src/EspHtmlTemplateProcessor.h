@@ -15,7 +15,7 @@
 #define ESCAPE_CHAR 92 // char: '\'
 #define BUFFER_SIZE 100 // Buffer size for file reading
 
-typedef const char* (*const GetKeyValueCallback) (const String& key);
+typedef const char* (*const GetKeyValueCallback) (const char* key);
 
 class EspHtmlTemplateProcessor
 {
