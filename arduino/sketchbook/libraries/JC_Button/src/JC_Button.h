@@ -8,6 +8,12 @@
 
 #include <Arduino.h>
 
+#if defined(ESP8266) || defined(ESP32)
+  #define ISR_PREFIX ICACHE_RAM_ATTR
+#else
+  #define ISR_PREFIX
+#endif
+
 class Button
 {
     public:
@@ -29,38 +35,38 @@ class Button
         // Returns the current debounced button state, true for pressed,
         // false for released. Call this function frequently to ensure
         // the sketch is responsive to user input.
-        bool read();
+        ISR_PREFIX bool read();
 
         // Set debounce time runtime
         void setDbTime(uint32_t dbTime);
   
         // Returns true if the button state was pressed at the last call to read().
         // Does not cause the button to be read.
-        bool isPressed();
+        ISR_PREFIX bool isPressed();
 
         // Returns true if the button state was released at the last call to read().
         // Does not cause the button to be read.
-        bool isReleased();
+        ISR_PREFIX bool isReleased();
 
         // Returns true if the button state at the last call to read() was pressed,
         // and this was a change since the previous read.
-        bool wasPressed();
+        ISR_PREFIX bool wasPressed();
 
         // Returns true if the button state at the last call to read() was released,
         // and this was a change since the previous read.
-        bool wasReleased();
+        ISR_PREFIX bool wasReleased();
 
         // Returns true if the button state at the last call to read() was pressed,
         // and has been in that state for at least the given number of milliseconds.
-        bool pressedFor(uint32_t ms);
+        ISR_PREFIX bool pressedFor(uint32_t ms);
 
         // Returns true if the button state at the last call to read() was released,
         // and has been in that state for at least the given number of milliseconds.
-        bool releasedFor(uint32_t ms);
+        ISR_PREFIX bool releasedFor(uint32_t ms);
 
         // Returns the time in milliseconds (from millis) that the button last
         // changed state.
-        uint32_t lastChange();
+        ISR_PREFIX uint32_t lastChange();
 
     private:
         uint8_t m_pin;          // arduino pin number connected to button

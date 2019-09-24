@@ -74,7 +74,7 @@ int LongIntBuffer::put(long int in){
 
 
 
-int LongIntBuffer::autoput(long int in){
+ISR_PREFIX int LongIntBuffer::autoput(long int in){
   if(length >= capacity){
     length--;
     // return failure

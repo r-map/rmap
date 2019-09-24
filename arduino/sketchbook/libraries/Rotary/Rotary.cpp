@@ -89,7 +89,7 @@ void Rotary::begin(bool pullup) {
   }
 }
 
-unsigned char Rotary::process() {
+ISR_PREFIX unsigned char Rotary::process() {
   // Grab state of input pins.
   unsigned char pinstate = (digitalRead(pin2) << 1) | digitalRead(pin1);
   // Determine new state from the pins and state table.

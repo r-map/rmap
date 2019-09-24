@@ -28,6 +28,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 #include "WProgram.h"
 #endif
 
+#if defined(ESP8266) || defined(ESP32)
+  #define ISR_PREFIX ICACHE_RAM_ATTR
+#else
+  #define ISR_PREFIX
+#endif
+
 class LongIntBuffer
 {
 public:
@@ -54,7 +60,7 @@ public:
 	//
 	// Put methods, either a regular put in back or put in front
 	// 
-	int autoput(long int in);     // put in front and remove if needed from back
+	ISR_PREFIX int autoput(long int in);     // put in front and remove if needed from back
 	int putInFront(long int in);
 	int put(long int in);
 

@@ -31,7 +31,7 @@ void Button::setDbTime(uint32_t dbTime)
 / returns the state of the button, true if pressed, false if released.  *
 / does debouncing, captures and maintains times, previous state, etc.   *
 /-----------------------------------------------------------------------*/
-bool Button::read()
+ISR_PREFIX bool Button::read()
 {
     uint32_t ms = millis();
     bool pinVal = digitalRead(m_pin);
@@ -56,12 +56,12 @@ bool Button::read()
  * read, and return false (0) or true (!=0) accordingly.                *
  * These functions do not cause the button to be read.                  *
  *----------------------------------------------------------------------*/
-bool Button::isPressed()
+ISR_PREFIX bool Button::isPressed()
 {
     return m_state;
 }
 
-bool Button::isReleased()
+ISR_PREFIX bool Button::isReleased()
 {
     return !m_state;
 }
@@ -72,12 +72,12 @@ bool Button::isReleased()
  * true (!=0) accordingly.                                              *
  * These functions do not cause the button to be read.                  *
  *----------------------------------------------------------------------*/
-bool Button::wasPressed()
+ISR_PREFIX bool Button::wasPressed()
 {
     return m_state && m_changed;
 }
 
-bool Button::wasReleased()
+ISR_PREFIX bool Button::wasReleased()
 {
     return !m_state && m_changed;
 }
@@ -88,12 +88,12 @@ bool Button::wasReleased()
  * time in milliseconds. Returns false (0) or true (!=0) accordingly.   *
  * These functions do not cause the button to be read.                  *
  *----------------------------------------------------------------------*/
-bool Button::pressedFor(uint32_t ms)
+ISR_PREFIX bool Button::pressedFor(uint32_t ms)
 {
     return m_state && m_time - m_lastChange >= ms;
 }
 
-bool Button::releasedFor(uint32_t ms)
+ISR_PREFIX bool Button::releasedFor(uint32_t ms)
 {
     return !m_state && m_time - m_lastChange >= ms;
 }
@@ -102,7 +102,7 @@ bool Button::releasedFor(uint32_t ms)
  * lastChange() returns the time the button last changed state,         *
  * in milliseconds.                                                     *
  *----------------------------------------------------------------------*/
-uint32_t Button::lastChange()
+ISR_PREFIX uint32_t Button::lastChange()
 {
     return m_lastChange;
 }

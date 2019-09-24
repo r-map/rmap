@@ -18,11 +18,18 @@
 // Counter-clockwise step.
 #define DIR_CCW 0x20
 
+
+#if defined(ESP8266) || defined(ESP32)
+  #define ISR_PREFIX ICACHE_RAM_ATTR
+#else
+  #define ISR_PREFIX
+#endif
+
 class Rotary
 {
   public:
     Rotary(char, char);
-    unsigned char process();
+    ISR_PREFIX unsigned char process();
     void begin(bool pullup=true);
   private:
     unsigned char state;
