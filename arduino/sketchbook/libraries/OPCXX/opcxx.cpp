@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for this library.
+\brief Serial debug level for this library.
 */
 #define SERIAL_TRACE_LEVEL OPC_SERIAL_TRACE_LEVEL
 
@@ -240,10 +240,11 @@ opcxx_state_t Opcn2::sendCommand() {
         }
       }
 
-      for (uint8_t k = 0; k < length; k++) {
-        SERIAL_TRACE(F("%0x"), *getResponse(k));
+      SERIAL_TRACE_CLEAN(F(""));
+      for (uint16_t k = 0; k < length; k++) {
+        SERIAL_TRACE_CLEAN(F("%0x"), *getResponse(k));
       }
-      SERIAL_TRACE(F("\r\n"));
+      SERIAL_TRACE_CLEAN(F("\r\n"));
 
       // success
       if (!is_error) {
@@ -287,14 +288,17 @@ uint8_t Opcn2::getLaserDac() {
   return status.laser_dac;
 }
 
-uint16_t Opcn2::getBinAtIndex(uint16_t index) {
+float Opcn2::getBinAtIndex(uint16_t index) {
   return histogram.bins[index];
 }
 
-uint16_t Opcn2::getBinNormalizedAtIndex(uint16_t index) {
-  float bin = (float) histogram.bins[index];
-  bin = (bin / histogram.sample_flow_rate) * 10.0;
-  return (uint16_t) (bin);
+float Opcn2::getBinNormalizedAtIndex(uint16_t index) {
+  float bin = (float) UINT16_MAX;
+  if (isValid(histogram.bins[index])) {
+    bin = (float) histogram.bins[index];
+    bin = (bin / histogram.sample_flow_rate);
+  }
+  return bin;
 }
 
 float Opcn2::getPm1() {
@@ -620,14 +624,17 @@ uint8_t Opcn3::getLaserDac() {
   return status.laser_dac;
 }
 
-uint16_t Opcn3::getBinAtIndex(uint16_t index) {
+float Opcn3::getBinAtIndex(uint16_t index) {
   return histogram.bins[index];
 }
 
-uint16_t Opcn3::getBinNormalizedAtIndex(uint16_t index) {
-  float bin = (float) histogram.bins[index];
-  bin = (bin / histogram.sample_flow_rate) * 10.0;
-  return (uint16_t) (bin);
+float Opcn3::getBinNormalizedAtIndex(uint16_t index) {
+  float bin = (float) UINT16_MAX;
+  if (isValid(histogram.bins[index])) {
+    bin = (float) histogram.bins[index];
+    bin = (bin / histogram.sample_flow_rate);
+  }
+  return bin;
 }
 
 float Opcn3::getPm1() {
@@ -714,6 +721,10 @@ void Opcn3::fanOnCmd() {
 }
 
 void Opcn3::fanOffCmd() {
+  resetCommand(3, 3);
+  setCommand(0, 0x03, 0x31);
+  setCommand(1, 0x03, 0xF3);
+  setCommand(2, 0x02, 0x03);
 }
 
 void Opcn3::laserOnCmd() {
@@ -724,6 +735,10 @@ void Opcn3::laserOnCmd() {
 }
 
 void Opcn3::laserOffCmd() {
+  resetCommand(3, 3);
+  setCommand(0, 0x03, 0x31);
+  setCommand(1, 0x03, 0xF3);
+  setCommand(2, 0x06, 0x03);
 }
 
 void Opcn3::laserSwitchOnCmd() {
@@ -763,13 +778,12 @@ void Opcn3::readHistogramCmd() {
 }
 
 void Opcn3::resetHistogram() {
-  memset(&histogram, 0, sizeof(opcn3_histogram_t));
-  memset(histogram.bins, UINT8_MAX, sizeof(uint16_t) * OPCN3_BINS_LENGTH);
-  histogram.pm1 = UINT16_MAX;
-  histogram.pm25 = UINT16_MAX;
-  histogram.pm10 = UINT16_MAX;
-  histogram.temperature = UINT16_MAX;
-  histogram.humidity = UINT16_MAX;
+  memset(&histogram, UINT8_MAX, sizeof(opcn3_histogram_t));
+  histogram.pm1 = (float) UINT16_MAX;
+  histogram.pm25 = (float) UINT16_MAX;
+  histogram.pm10 = (float) UINT16_MAX;
+  histogram.temperature = (float) UINT16_MAX;
+  histogram.humidity = (float) UINT16_MAX;
 }
 
 opcxx_state_t Opcn3::readHistogramRst() {
@@ -780,7 +794,7 @@ opcxx_state_t Opcn3::readHistogramRst() {
   bool is_reading_error = false;
 
   if (opcxx_state == OPCXX_OK) {
-    memset(&histogram, 0, sizeof(opcn3_histogram_t));
+    resetHistogram();
     uint8_t index = 2;
 
     for (uint8_t i = 0; i < OPCN3_BINS_LENGTH; i++) {
@@ -799,10 +813,12 @@ opcxx_state_t Opcn3::readHistogramRst() {
     histogram.sample_flow_rate = getUINT16FromUINT8(getResponse(index));
     index += 2;
 
-    histogram.temperature = getUINT16FromUINT8(getResponse(index));
+    // histogram.temperature = getUINT16FromUINT8(getResponse(index));
+    histogram.temperature = getTemperatureFromRaw(getUINT16FromUINT8(getResponse(index)));
     index += 2;
 
-    histogram.humidity = getUINT16FromUINT8(getResponse(index));
+    // histogram.humidity = getUINT16FromUINT8(getResponse(index));
+    histogram.humidity = getHumidityFromRaw(getUINT16FromUINT8(getResponse(index)));
     index += 2;
 
     histogram.pm1 = getIEE754FloatFrom4UINT8(getResponse(index));
@@ -839,18 +855,29 @@ opcxx_state_t Opcn3::readHistogramRst() {
     histogram.sampling_period *= 2.0;
     histogram.sample_flow_rate /= 100.0;
 
-    histogram.temperature = getTemperatureFromRaw(histogram.temperature);
-    histogram.humidity = getHumidityFromRaw(histogram.humidity);
+    // histogram.temperature = getTemperatureFromRaw(histogram.temperature);
+    // histogram.humidity = getHumidityFromRaw(histogram.humidity);
 
     checksum = crc16(getResponse(2), 84);
 
     if (sampling_period_s) {
       sampling_period_error_percentage = abs((histogram.sampling_period / sampling_period_s) * 100.0 - 100);
       is_sampling_period_error = (sampling_period_error_percentage >= 10);
+    }
+
+    if (histogram.laser_status <= OPCN3_LASER_STATUS_OFF) {
       is_reading_error = true;
     }
 
-    if (histogram.checksum != checksum || is_sampling_period_error || is_reading_error) {
+    if (histogram.reject_count_long_tof > 0 && histogram.reject_count_out_of_range > 50) {
+      is_reading_error = true;
+    }
+
+    if (histogram.checksum != checksum) {
+      is_reading_error = true;
+    }
+
+    if (is_reading_error || is_sampling_period_error) {
       opcxx_state = OPCXX_ERROR_RESULT;
     }
   }
@@ -896,7 +923,7 @@ opcxx_state_t Opcn3::readHistogramRst() {
     SERIAL_DEBUG(F("--> Reject count Ratio\t\t[ %u ]\r\n"), histogram.reject_count_ratio);
     SERIAL_DEBUG(F("--> Reject count Out of Range\t[ %u ]\r\n"), histogram.reject_count_out_of_range);
     SERIAL_DEBUG(F("--> Fan rev count\t\t[ %u ]\r\n"), histogram.fan_rev_count);
-    SERIAL_DEBUG(F("--> Laser Status\t\t[ %u ]\r\n"), histogram.laser_status);
+    SERIAL_DEBUG(F("--> Laser Status\t\t[ %u ] [ %s ]\r\n"), histogram.laser_status, histogram.laser_status <= 60 ? OFF_STRING : ON_STRING);
     SERIAL_DEBUG(F("--> Checksum\t\t[ 0x%X 0x%X ] [ %s ]\r\n"), histogram.checksum, checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
     #endif
   }

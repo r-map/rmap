@@ -29,21 +29,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "i2c_utility.h"
 #include "sensors_config.h"
 
-#define OPCXX_SPI_BUS_FREQUENCY_HZ                (400000ul)
+#define OPCXX_SPI_BUS_FREQUENCY_HZ                (300000ul)
 
-#define OPCXX_SWITCH_ON_DELAY_MS                  (1500)
+#define OPCXX_SWITCH_ON_DELAY_MS                  (3000)
 #define OPCXX_GENERIC_OPERATION_DELAY_MS          (500)
-#define OPCXX_FAN_POWER_DELAY_MS                  (500)
-#define OPCXX_FAN_LASER_DELAY_MS                  (1000)
+#define OPCXX_FAN_ON_DELAY_MS                     (5000)
+#define OPCXX_FAN_OFF_DELAY_MS                    (500)
+#define OPCXX_LASER_ON_DELAY_MS                   (1000)
+#define OPCXX_LASER_OFF_DELAY_MS                  (500)
 #define OPCXX_RETRY_DELAY_MS                      (500)
 
-#define OPCXX_CMD_GENERIC_DELAY_MS                (10)
+#define OPCXX_CMD_GENERIC_DELAY_MS                (20)
 #define OPCXX_PARA_GENERIC_DELAY_US               (10)
 
 #define OPCXX_FAN_DAC_MAX                         (0xFF)
 #define OPCXX_FAN_DAC_MIN                         (0x00)
 
-#define OPCXX_BINS_LENGTH                         (16)
+#define OPCN2_CONFIGURATION_VARIABLES_LENGTH      (257)
+#define OPCN2_CONFIGURATION_VARIABLES_2_LENGTH    (10)
 
 #define OPCXX_PM_LENGTH                           (3)
 
@@ -56,6 +59,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define getBinXMToFToUS(binx_mtof)                ((float) (binx_mtof / 3.0))
 
 #define OPCN3_BUSY_COUNT_MAX                      (20)
+
+#define OPCN3_LASER_STATUS_OFF                    (100)
 
 #define OPCXX_READ_INFORMATION_STRING_COMMAND     (0x3F)
 #define OPCXX_READ_INFORMATION_STRING_RESULT      (0xF3)
@@ -79,6 +84,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if (USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3)
 #define OPCNXX_STRING                             (OPCN3_STRING)
 #endif
+
+#define isValid(v)                                (((uint16_t) v != UINT16_MAX) && (!isnan(v)))
 
 /*!
 \enum opcxx_command_state_t
@@ -245,8 +252,8 @@ public:
 
   void setSamplingPeriod(const float sampling_period_s = 0);
 
-  virtual uint16_t getBinAtIndex(uint16_t index) = 0;
-  virtual uint16_t getBinNormalizedAtIndex(uint16_t index) = 0;
+  virtual float getBinAtIndex(uint16_t index) = 0;
+  virtual float getBinNormalizedAtIndex(uint16_t index) = 0;
   virtual float getPm1() = 0;
   virtual float getPm25() = 0;
   virtual float getPm10() = 0;
@@ -313,8 +320,8 @@ public:
   uint8_t getFanDac();
   uint8_t getLaserDac();
 
-  uint16_t getBinAtIndex(uint16_t index);
-  uint16_t getBinNormalizedAtIndex(uint16_t index);
+  float getBinAtIndex(uint16_t index);
+  float getBinNormalizedAtIndex(uint16_t index);
   float getPm1();
   float getPm25();
   float getPm10();
@@ -360,8 +367,8 @@ public:
   uint8_t getFanDac();
   uint8_t getLaserDac();
 
-  uint16_t getBinAtIndex(uint16_t index);
-  uint16_t getBinNormalizedAtIndex(uint16_t index);
+  float getBinAtIndex(uint16_t index);
+  float getBinNormalizedAtIndex(uint16_t index);
   float getPm1();
   float getPm25();
   float getPm10();
