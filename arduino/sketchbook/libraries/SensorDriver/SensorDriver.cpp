@@ -2131,15 +2131,8 @@ void SensorDriverOpc::prepare(bool is_test) {
     if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0) || (strcmp(_type, SENSOR_TYPE_OE3) == 0)) {
       is_i2c_write = true;
       _buffer[i++] = I2C_COMMAND_ID;
-
-      if (_is_test) {
-        _buffer[i++] = I2C_OPC_COMMAND_TEST_READ;
-        _buffer[i] = crc8(_buffer, i++);
-      }
-      else {
-        _buffer[i++] = I2C_OPC_COMMAND_CONTINUOUS_START_STOP;
-        _buffer[i] = crc8(_buffer, i++);
-      }
+      _buffer[i++] = I2C_OPC_COMMAND_CONTINUOUS_START_STOP;
+      _buffer[i] = crc8(_buffer, i++);
       _delay_ms = 0;
     }
 
@@ -2163,7 +2156,7 @@ void SensorDriverOpc::prepare(bool is_test) {
 }
 
 void SensorDriverOpc::get(int32_t *values, uint8_t length) {
-  static uint8_t opc_variable_length;
+  static uint8_t variable_length;
   static uint8_t data_length;
   static uint8_t data[VALUES_TO_READ_FROM_SENSOR_COUNT];
 
@@ -2173,41 +2166,25 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
   bool is_i2c_write;
   uint8_t i;
 
-  #if (USE_SENSOR_OA2 || USE_SENSOR_OA3 || USE_SENSOR_OB2 || USE_SENSOR_OB3)
-  float pm;
-  uint8_t *pm_ptr;
-  #endif
-
-  #if (USE_SENSOR_OC2 || USE_SENSOR_OC3 || USE_SENSOR_OD2 || USE_SENSOR_OD3)
-  uint16_t bin;
-  uint8_t *bin_ptr;
-  #endif
-
-  #if (USE_SENSOR_OE3)
   float val;
   uint8_t *val_ptr;
-  #endif
 
   switch (_get_state) {
     case INIT:
       memset(values, UINT8_MAX, length * sizeof(int32_t));
-      memset(data, UINT8_MAX, VALUES_TO_READ_FROM_SENSOR_COUNT * sizeof(uint8_t));
+      val = UINT16_MAX;
 
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
-        pm = UINT16_MAX;
-        opc_variable_length = 3;
+        variable_length = 3;
       }
       else if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OD2) == 0)) {
-        bin = UINT16_MAX;
-        opc_variable_length = 16;
+        variable_length = 16;
       }
       else if ((strcmp(_type, SENSOR_TYPE_OC3) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
-        bin = UINT16_MAX;
-        opc_variable_length = 24;
+        variable_length = 24;
       }
       else if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
-        val = UINT16_MAX;
-        opc_variable_length = 2;
+        variable_length = 2;
       }
 
       variable_count = 0;
@@ -2238,16 +2215,9 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         is_i2c_write = true;
-
-        if (_is_test) {
-          _buffer[i++] = I2C_OPC_PM_SAMPLE_ADDRESS;
-          _buffer[i++] = I2C_OPC_PM_SAMPLE_LENGTH;
-        }
-        else {
-          _buffer[i++] = I2C_OPC_PM_MED_ADDRESS;
-          _buffer[i++] = I2C_OPC_PM_MED_LENGTH;
-        }
-
+        data_length = I2C_OPC_PM_MED_LENGTH;
+        _buffer[i++] = I2C_OPC_PM_MED_ADDRESS;
+        _buffer[i++] = I2C_OPC_PM_MED_LENGTH;
         _buffer[i] = crc8(_buffer, i++);
       }
       #endif
@@ -2255,6 +2225,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OB2 || USE_SENSOR_OB3)
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         is_i2c_write = true;
+        data_length = I2C_OPC_PM_SIGMA_LENGTH;
         _buffer[i++] = I2C_OPC_PM_SIGMA_ADDRESS;
         _buffer[i++] = I2C_OPC_PM_SIGMA_LENGTH;
         _buffer[i] = crc8(_buffer, i++);
@@ -2265,20 +2236,29 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         is_i2c_write = true;
 
-        // BIN [16-23]
-        if (variable_count >= 16) {
-          _buffer[i++] = I2C_OPC_BIN_16_23_MED_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_16_23_MED_LENGTH;
+        // BIN [18-23]
+        if (variable_count >= 18) {
+          data_length = I2C_OPC_BIN_18_23_MED_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_18_23_MED_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_18_23_MED_LENGTH;
         }
-        // BIN [8-15]
-        else if (variable_count >= 8) {
-          _buffer[i++] = I2C_OPC_BIN_8_15_MED_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_8_15_MED_LENGTH;
+        // BIN [12-17]
+        else if (variable_count >= 12) {
+          data_length = I2C_OPC_BIN_12_17_MED_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_12_17_MED_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_12_17_MED_LENGTH;
         }
-        // BIN [0-7]
+        // BIN [6-11]
+        else if (variable_count >= 6) {
+          data_length = I2C_OPC_BIN_6_11_MED_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_6_11_MED_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_6_11_MED_LENGTH;
+        }
+        // BIN [0-5]
         else if (variable_count >= 0) {
-          _buffer[i++] = I2C_OPC_BIN_0_7_MED_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_0_7_MED_LENGTH;
+          data_length = I2C_OPC_BIN_0_5_MED_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_0_5_MED_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_0_5_MED_LENGTH;
         }
 
         _buffer[i] = crc8(_buffer, i++);
@@ -2289,20 +2269,29 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         is_i2c_write = true;
 
-        // BIN [16-23]
-        if (variable_count >= 16) {
-          _buffer[i++] = I2C_OPC_BIN_16_23_SIGMA_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_16_23_SIGMA_LENGTH;
+        // BIN [18-23]
+        if (variable_count >= 18) {
+          data_length = I2C_OPC_BIN_18_23_SIGMA_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_18_23_SIGMA_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_18_23_SIGMA_LENGTH;
         }
-        // BIN [8-15]
-        else if (variable_count >= 8) {
-          _buffer[i++] = I2C_OPC_BIN_8_15_SIGMA_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_8_15_SIGMA_LENGTH;
+        // BIN [12-17]
+        else if (variable_count >= 12) {
+          data_length = I2C_OPC_BIN_12_17_SIGMA_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_12_17_SIGMA_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_12_17_SIGMA_LENGTH;
         }
-        // BIN [0-7]
+        // BIN [6-11]
+        else if (variable_count >= 6) {
+          data_length = I2C_OPC_BIN_6_11_SIGMA_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_6_11_SIGMA_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_6_11_SIGMA_LENGTH;
+        }
+        // BIN [0-5]
         else if (variable_count >= 0) {
-          _buffer[i++] = I2C_OPC_BIN_0_7_SIGMA_ADDRESS;
-          _buffer[i++] = I2C_OPC_BIN_0_7_SIGMA_LENGTH;
+          data_length = I2C_OPC_BIN_0_5_SIGMA_LENGTH;
+          _buffer[i++] = I2C_OPC_BIN_0_5_SIGMA_ADDRESS;
+          _buffer[i++] = I2C_OPC_BIN_0_5_SIGMA_LENGTH;
         }
 
         _buffer[i] = crc8(_buffer, i++);
@@ -2312,19 +2301,12 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OE3)
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         is_i2c_write = true;
-
-        if (_is_test) {
-          _buffer[i++] = I2C_OPC_TH_SAMPLE_ADDRESS;
-          _buffer[i++] = I2C_OPC_TH_SAMPLE_LENGTH;
-        } else {
-          _buffer[i++] = I2C_OPC_TH_MED_ADDRESS;
-          _buffer[i++] = I2C_OPC_TH_MED_LENGTH;
-        }
+        data_length = I2C_OPC_TH_MED_LENGTH;
+        _buffer[i++] = I2C_OPC_TH_MED_ADDRESS;
+        _buffer[i++] = I2C_OPC_TH_MED_LENGTH;
         _buffer[i] = crc8(_buffer, i++);
       }
       #endif
-
-      // SERIAL_INFO(F("%s SET_ADDRESS %u length %u\r\n"), _type, _buffer[0], _buffer[1]);
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
@@ -2347,68 +2329,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       break;
 
     case READ_VALUE:
-      #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
-      if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
-        if (_is_test) {
-          data_length = I2C_OPC_PM_SAMPLE_LENGTH;
-        }
-        else {
-          data_length = I2C_OPC_PM_MED_LENGTH;
-        }
-      }
-      #endif
-
-      #if (USE_SENSOR_OB2 || USE_SENSOR_OB3)
-      if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
-        data_length = I2C_OPC_PM_SIGMA_LENGTH;
-      }
-      #endif
-
-      #if (USE_SENSOR_OC2 || USE_SENSOR_OC3)
-      if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
-        // BIN [16-23]
-        if (variable_count >= 16) {
-          data_length = I2C_OPC_BIN_16_23_MED_LENGTH;
-        }
-        // BIN [8-15]
-        else if (variable_count >= 8) {
-          data_length = I2C_OPC_BIN_8_15_MED_LENGTH;
-        }
-        // BIN [0-7]
-        else if (variable_count >= 0) {
-          data_length = I2C_OPC_BIN_0_7_MED_LENGTH;
-        }
-      }
-      #endif
-
-      #if (USE_SENSOR_OD2 || USE_SENSOR_OD3)
-      if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
-        // BIN [16-23]
-        if (variable_count >= 16) {
-          data_length = I2C_OPC_BIN_16_23_SIGMA_LENGTH;
-        }
-        // BIN [8-15]
-        else if (variable_count >= 8) {
-          data_length = I2C_OPC_BIN_8_15_SIGMA_LENGTH;
-        }
-        // BIN [0-7]
-        else if (variable_count >= 0) {
-          data_length = I2C_OPC_BIN_0_7_SIGMA_LENGTH;
-        }
-      }
-      #endif
-
-      #if (USE_SENSOR_OE3)
-      if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
-        if (_is_test) {
-          data_length = I2C_OPC_TH_SAMPLE_LENGTH;
-        }
-        else {
-          data_length = I2C_OPC_TH_MED_LENGTH;
-        }
-      }
-      #endif
-
+      
       if (_is_success) {
         Wire.requestFrom(_address, data_length + 1);
         if (Wire.available() < (data_length + 1)) {
@@ -2417,11 +2338,12 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       }
 
       if (_is_success) {
+        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
         for (i = 0; i < data_length; i++) {
-          data[i] = Wire.read();
+          _buffer[i] = Wire.read();
         }
 
-        if (crc8(data, data_length) != Wire.read()) {
+        if (crc8(_buffer, data_length) != Wire.read()) {
           _is_success = false;
         }
       }
@@ -2441,14 +2363,14 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3 || USE_SENSOR_OB2 || USE_SENSOR_OB3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= variable_count + 1) {
-          pm_ptr = (uint8_t*) &pm;
+          val_ptr = (uint8_t*) &val;
 
           for (i = 0; i < 4; i++) {
-            *(pm_ptr + i) = data[offset + i];
+            *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(pm)) {
-            values[variable_count] = (int32_t) round(pm * 10.0);
+          if (_is_success && isValid(val)) {
+            values[variable_count] = (int32_t) round(val * 10.0);
           }
           else {
             values[variable_count] = UINT16_MAX;
@@ -2463,21 +2385,37 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OC2 || USE_SENSOR_OC3 || USE_SENSOR_OD2 || USE_SENSOR_OD3)
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0) || (strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= variable_count + 1) {
-          bin_ptr = (uint8_t*) &bin;
+          val_ptr = (uint8_t*) &val;
 
-          for (i = 0; i < 2; i++) {
-            *(bin_ptr + i) = data[offset + i];
+          for (i = 0; i < 4; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(bin)) {
-            values[variable_count] = (int32_t) bin;
+          if (_is_success && isValid(val)) {
+            if (variable_count >= 13) {
+              val = val * 100000.0;
+            }
+            else if (variable_count >= 8) {
+              val = val * 10000.0;
+            }
+            else if (variable_count >= 5) {
+              val = val * 1000.0;
+            }
+            else if (variable_count >= 3) {
+              val = val * 100.0;
+            }
+            else if (variable_count >= 2) {
+              val = val * 10.0;
+            }
+
+            values[variable_count] = (int32_t) round(val);
           }
           else {
             values[variable_count] = UINT16_MAX;
             _is_success = false;
           }
 
-          offset += 2;
+          offset += 4;
         }
       }
       #endif
@@ -2488,7 +2426,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
           val_ptr = (uint8_t*) &val;
 
           for (i = 0; i < 4; i++) {
-            *(val_ptr + i) = data[offset + i];
+            *(val_ptr + i) = _buffer[offset + i];
           }
 
           if (_is_success && isValid(val)) {
@@ -2511,15 +2449,13 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 
       variable_count++;
 
-      // SERIAL_INFO(F("%s GET_VALUE variable_count %u %u %u\r\n"), _type, variable_count, length, opc_variable_length);
-
       _delay_ms = 0;
       _start_time_ms = millis();
 
-      if ((variable_count >= length) || (variable_count >= opc_variable_length)) {
+      if ((variable_count >= length) || (variable_count >= variable_length)) {
         _get_state = END;
       }
-      else if (variable_count == 8 || variable_count == 16 || variable_count == 24) {
+      else if (variable_count == 6 || variable_count == 12 || variable_count == 18 || variable_count == 24) {
         _get_state = SET_ADDRESS;
       }
       break;
@@ -2594,13 +2530,13 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
           if (isValid(values[0])) {
-            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), opc_variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, opc_variable_length, INT32, F("%ld "));
+            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), variable_length - 1);
+            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
           }
           else {
-            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), opc_variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, opc_variable_length, INT32, F("- "));
+            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), variable_length - 1);
+            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("- "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
           }
         }
@@ -2611,13 +2547,13 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
           if (isValid(values[0])) {
-            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), opc_variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, opc_variable_length, INT32, F("%ld "));
+            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), variable_length - 1);
+            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
           }
           else {
-            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), opc_variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, opc_variable_length, INT32, F("- "));
+            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), variable_length - 1);
+            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("- "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
           }
         }
@@ -2658,7 +2594,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 #if (USE_JSON)
 void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
   SensorDriverOpc::get(values, length);
-  static uint8_t opc_variable_length;
+  static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
     StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
@@ -2691,19 +2627,19 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
 
     #if (USE_SENSOR_OC2 || USE_SENSOR_OC3)
     if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OD2) == 0)) {
-      opc_variable_length = 16;
+      variable_length = 16;
     }
     else if ((strcmp(_type, SENSOR_TYPE_OC3) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
-      opc_variable_length = 24;
+      variable_length = 13;
     }
 
     if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0) || (strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
       if (length >= 1) {
-        json["d"] = 50;
+        json["d"] = 52;
 
         JsonArray &p = json.createNestedArray("p");
 
-        for (uint8_t i = 0; i < opc_variable_length; i++) {
+        for (uint8_t i = 0; i < variable_length; i++) {
           if (isValid(values[i])) {
             p.add(values[i]);
           }
