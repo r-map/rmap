@@ -926,6 +926,12 @@ void handleReport()
 #endif
 }
 
+void handleData()
+{
+  templateProcessor.processAndSend("/data.json", reportKeyProcessor);
+}
+
+
 void do_display_sensors(){
     u8g2.setFont(fontNameB);
       
@@ -1327,6 +1333,7 @@ void setup()
 
   // setup web server
   webserver.on("/report.html", handleReport);
+  webserver.on("/data.json", handleData);
   webserver.onNotFound(handle_NotFound);
   webserver.on("/",HTTP_GET,mainPage);
 

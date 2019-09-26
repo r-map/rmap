@@ -30,8 +30,8 @@
         <title>ArduinoMenu&lt;web&gt;</title>
         <!-- <script src="{$auxFilesSrc}/jquery-3.3.1.min.js"></script> -->
         <script
-          src="{$auxFilesSrc}/jquery-3.3.1.slim.min.js"
-          integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+          src="{$auxFilesSrc}/jquery-3.4.1.min.js"
+          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
           crossorigin="anonymous"></script>
 
         <!-- Latest compiled and minified CSS -->

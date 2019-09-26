@@ -42,7 +42,6 @@ so don't forget to change it.
 #include <menuIO/RotaryIn.h>
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
-#include <menuIO/xmlFmt.h>//to write a menu has html page
 #include <menuIO/serialIn.h>
 #include <menuIO/serialOut.h>
 #include <menuIO/xmlFmt.h>//to write a menu has xml page
@@ -244,7 +243,6 @@ MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
   ,SUBMENU(subMenu)
   ,EXIT("Exit!")
 );
-
 
 
 //when menu is suspended
@@ -561,11 +559,11 @@ void setup(){
     jsonEnd();
   });
 
+  server.on("/report.html", handleReport);
+  
   server.begin();
   Serial.println("HTTP server started");
   Serial.println("Serving ArduinoMenu example.");
-
-  server.on("/report.html", handleReport);
   
   #ifdef MENU_DEBUG
     server.serveStatic("/", SPIFFS, "/","max-age=30");

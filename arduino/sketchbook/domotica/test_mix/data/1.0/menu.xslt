@@ -30,8 +30,8 @@
         <title>ArduinoMenu&lt;web&gt;</title>
         <!-- <script src="{$auxFilesSrc}/jquery-3.3.1.min.js"></script> -->
         <script
-          src="{$auxFilesSrc}/jquery-3.3.1.slim.min.js"
-          integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+          src="{$auxFilesSrc}/jquery-3.4.1.min.js"
+          integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
           crossorigin="anonymous"></script>
 
         <!-- Latest compiled and minified CSS -->
@@ -65,8 +65,8 @@
                             <ul class="nav masthead-nav">
                               <li><a href="/" id="start">Home</a></li>
                               <li class="active"><a href="/menu?at=/" id="menu">Menu</a></li>
+                              <li><a href="https://rmap.cc" id="rmap" target="_blank">Server RMAP</a></li>
                               <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo/HowTo" id="howto" target="_blank">HowTo</a></li>
-                              <li><a href="http://www.rmap.cc" id="contact" target="_blank">Contact</a></li>
                             </ul>
                           </nav>
                 </div>
