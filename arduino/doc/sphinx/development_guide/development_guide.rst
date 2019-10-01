@@ -42,134 +42,87 @@ Ogni task del sistema è composto da:
 
 Per implementare un ipotetico task di esempio, è necessario creare:
 
-1. Una variabile globale booleana indicante se il task è in esecuzione:
+1. Una variabile globale booleana indicante se il task è in esecuzione::
 
-bool is_event_esempio = false;
+     bool is_event_esempio = false;
 
-1. Un nuovo tipo di variabile definendo i vari stati necessari ad
-   implementare le funzionalità del task, come enumerazioni:
+2. Un nuovo tipo di variabile definendo i vari stati necessari ad
+   implementare le funzionalità del task, come enumerazioni::
 
-typedef enum {
+    typedef enum {
+      ESEMPIO_INIT,
+      .
+      ESEMPIO_END,
+      ESEMPIO_WAIT_STATE
+    } esempio_state_t;
 
- ESEMPIO_INIT,
+3. Una variabile globale del tipo appena definito::
 
-.
+     esempio_state_t esempio_state = ESEMPIO_INIT;
 
- ESEMPIO_END,
+4. La funzione implementante il task::
 
- ESEMPIO_WAIT_STATE
-
-} esempio_state_t;
-
-1. Una variabile globale del tipo appena definito:
-
-esempio_state_t esempio_state = ESEMPIO_INIT;
-
-1. La funzione implementante il task:
-
-void esempio_task () {
-
-   static esempio_state_t state_after_wait;
-
-..
-
-   static uint32_t delay_ms;
-
-   static uint32_t start_time_ms;
-
-..
-
-   switch (esempio_state) {
-
-case ESEMPIO_INIT:
-
-   state_after_wait = ESEMPIO_INIT;
-
-..
-
-   esempio_state = “stato successivo”;
-
-break;
-
-.
-
-.
-
-.
-
-case ESEMPIO_END:
-
-   noInterrupts();
-
-..
-
-   is_event_esempio = false;
-
-   ready_tasks_count--;
-
-..
-
-   interrupts();
-
-   esempio_state = ESEMPIO_INIT;
-
-break;
-
-case ESEMPIO_WAIT_STATE:
-
-   if (millis() - start_time_ms > delay_ms) {
-
-esempio_state = state_after_wait;
-
-   }
-
-break;
-
-   }
-
-}
+     void esempio_task () {
+       static esempio_state_t state_after_wait;
+       ..
+       static uint32_t delay_ms;
+       static uint32_t start_time_ms;
+       ..
+       switch (esempio_state) {
+       case ESEMPIO_INIT:
+         state_after_wait = ESEMPIO_INIT;
+         ..
+         esempio_state = “stato successivo”;
+         break;
+       .
+       .
+       .
+       case ESEMPIO_END:
+         noInterrupts();
+         ..
+         is_event_esempio = false;
+         ready_tasks_count--;
+         ..
+         interrupts();
+         esempio_state = ESEMPIO_INIT;
+         break;
+       case ESEMPIO_WAIT_STATE:
+         if (millis() - start_time_ms > delay_ms) {
+         esempio_state = state_after_wait;
+         }
+         break;
+       }
+     }
 
 Se nel corso dell’esecuzione del task è necessario attendere un certo
 intervallo di tempo attraverso lo stato di attesa non bloccante è
-possibile farlo mediante:
+possibile farlo mediante::
 
-delay_ms = 10;
-
-start_time_ms = millis();
-
-state_after_wait = “stato successivo allo scadere del timeout di 10 ms”;
-
-esempio_state = ESEMPIO_WAIT_STATE;
+  delay_ms = 10;
+  start_time_ms = millis();
+  state_after_wait = “stato successivo allo scadere del timeout di 10 ms”;
+  esempio_state = ESEMPIO_WAIT_STATE;
 
 La chiamata al task viene fatta nel loop() e implementata mediante la
-forma:
+forma::
 
-if (is_event_esempio) {
-
-   esempio_task();
-
-..
-
-   wdt_reset();
-
-}
+  if (is_event_esempio) {
+    esempio_task();
+    ..
+    wdt_reset();
+  }
 
 Per attivare il task in un punto qualsiasi del codice, è possibile
-adottare la forma:
+adottare la forma::
 
-<noInterrupts();
+  noInterrupts();
+  if (!is_event_esempio) {
+    is_event_esempio = true;
+    ..
+    ready_tasks_count++;
+  }
 
-if (!is_event_esempio) {
-
-   is_event_esempio = true;
-
-..
-
-   ready_tasks_count++;
-
-}
-
-interrupts();
+  interrupts();
 
 SensorDriver
 ------------
@@ -341,25 +294,30 @@ data antecedente a quella del puntatore ai dati correnti, è sufficiente
 un aggiornamento di tale puntatore con la data desiderata: sarà compito
 del software ricercare il primo dato utile successivo a tale data.
 
-Nello specifico, ogni file di dati assume il nome nel formato
-aaaa_mm_gg.txt in cui:
+Nello specifico, ogni file di dati assume il nome nel formato::
 
--  
+  aaaa_mm_gg.txt
 
-   a. 
+in cui:
 
-      -  aaaa: anno con 4 cifre
-      -  mm: mese con 2 cifre
-      -  gg: giorno con 2 cifre
+======= =============================
+Simbolo Descrizione
+======= =============================
+aaaa    anno con 4 cifre
+mm      mese con 2 cifre
+gg      giorno con 2 cifre
+======= =============================
 
 In ogni file, ogni riga corrisponde ad un dato di un sensore ed in
-particolare, ogni riga è della lunghezza di MQTT_SENSOR_TOPIC_LENGTH +
-MQTT_MESSAGE_LENGTH bytes. Tali valori sono delle #define situate nel
-file mqtt_config.h nella cartella
-arduino/sketchbook/libraries/RmapConfig.
+particolare, ogni riga è della lunghezza di::
 
-Ogni riga è salvata nel formato: TRANGE/LEVEL/VAR {“v”: VALUE, “t”:
-TIME}
+  MQTT_SENSOR_TOPIC_LENGTH + MQTT_MESSAGE_LENGTH bytes
+
+Tali valori sono delle #define situate nel
+file mqtt_config.h nella cartella arduino/sketchbook/libraries/RmapConfig.
+
+Ogni riga è salvata nel formato::
+  TRANGE/LEVEL/VAR {“v”: VALUE, “t”:TIME}
 
 Il file contenente il puntatore all’ultimo dato trasmetto assume il nome
 mqtt_ptr.txt e contiene un dato binario della dimensione di 4 bytes

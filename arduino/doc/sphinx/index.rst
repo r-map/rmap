@@ -7,11 +7,17 @@ Benvetuti alla documentazione di Stima
 ======================================
 
 .. toctree::
+   :maxdepth: 2
+
    howto_stima_v3/howto_stima_v3
    development_guide/development_guide
    stimacode
-   
-Indici e tabelle
-================
 
+The C++ API documentation is also available as `doxgen documentation`__.
+
+__ doxygen/index.html
+
+==================
+
+* :ref:`genindex`
 * :ref:`search`

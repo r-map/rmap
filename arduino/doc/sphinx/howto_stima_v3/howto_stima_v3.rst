@@ -1,15 +1,12 @@
-Sommario
-
 Howto per Stima versione 3
 ==========================
 
--  .. rubric:: Caratteristiche hardware dei singoli moduli
-      :name: caratteristiche-hardware-dei-singoli-moduli
+Caratteristiche hardware dei singoli moduli
+-------------------------------------------
 
--  .. rubric:: |image0|\ Stima core+644 e Stima core+1284
-      :name: stima-core644-e-stima-core1284
-
-|image1|
+Stima core+644 e Stima core+1284
+................................
+|image0|\ |image1|
 
 Le due board Stima core+644 e Stima core+1284 sono realizzate sul
 medesimo circuito stampato, appositamente progettato per accogliere
@@ -28,8 +25,8 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_Core+_DE
 
--  .. rubric:: Stima I2C-Base
-      :name: stima-i2c-base
+Stima I2C-Base
+..............
 
 |image2|\ |image3|
 
@@ -75,10 +72,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_BASE_DE
 
--  .. rubric:: |image4|\ Stima I2C-Digital
-      :name: stima-i2c-digital
+Stima I2C-Digital
+.................
 
-|image5|
+|image4|\ |image5|
 
 Il modulo in oggetto, realizza le funzioni di input o output di segnali
 digitali. Basato sullo standard UPIN-27, sarà dotato di un connettore a
@@ -98,10 +95,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_DIGITALE_DE
 
--  .. rubric:: |image6|\ Stima I2C-RTC
-      :name: stima-i2c-rtc
+Stima I2C-RTC
+.............
 
-|image7|
+|image6|\ |image7|
 
 Tale modulo, compatibile con lo standard UPIN-27, assolve le funzioni di
 mantenimento della data ed ora nel tempo, attraverso l’adozione del Real
@@ -129,10 +126,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_RTC_DE
 
--  .. rubric:: |image8|\ Stima I2C-FT232RL
-      :name: stima-i2c-ft232rl
+Stima I2C-FT232RL
+.................
 
-|image9|
+|image8|\ |image9|
 
 Il modulo in questione, permette di collegare la porta seriale zero del
 microcontrollore ad un bus USB (ad esempio, quello di un computer) in
@@ -155,8 +152,8 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_FT232R_DE
 
--  .. rubric:: Stima SD-Card
-      :name: stima-sd-card
+Stima SD-Card
+.............
 
 |image10|\ |image11|
 
@@ -170,10 +167,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_SD_DE
 
--  .. rubric:: |image12|\ Stima SIM800C Power
-      :name: stima-sim800c-power
+Stima SIM800C Power
+...................
 
-|image13|
+|image12|\ |image13|
 
 Il modulo SIM800C Power costituisce il modulo di alimentazione per il
 modulo GSM/GPRS SIM800C ed include il connettore per la SIM Card in
@@ -196,10 +193,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_GSM_DE/SIM_shield_DE
 
--  .. rubric:: |image14|\ Stima SIM800C Module
-      :name: stima-sim800c-module
+Stima SIM800C Module
+....................
 
-|image15|
+|image14|\ |image15|
 
 In tale modulo basato sul connettore UPIN-27, trova alloggio il modulo
 GSM/GPRS SIM800C, due led di funzionamento ed il connettore SMA per il
@@ -218,18 +215,17 @@ Il modulo è provvisto di due led di stato che forniscono indicazioni sul
 funzionamento e sullo stato della rete. In particolare, osservando il
 modulo frontalmente, il led di sinistra:
 
--  Acceso: il modulo è acceso ed è in funzionamento
--  Spento: il modulo è spento
+*  Acceso: il modulo è acceso ed è in funzionamento
+*  Spento: il modulo è spento
 
 Il led di destra:
 
--  Spento: il modulo è spento
-
--  Acceso per 64ms e spento per 800ms: il modulo non è registrato sulla
+*  Spento: il modulo è spento
+*  Acceso per 64ms e spento per 800ms: il modulo non è registrato sulla
    rete
--  Acceso per 64ms e spento per 3000ms: il modulo è registrato sulla
+*  Acceso per 64ms e spento per 3000ms: il modulo è registrato sulla
    rete
--  Acceso per 64ms e spento per 300ms: comunicazione GPRS in corso
+*  Acceso per 64ms e spento per 300ms: comunicazione GPRS in corso
 
 Si consiglia quindi di impilare per prima la board Stima SIM800C Power,
 di interporre un’ulteriore fila di pin del connettore UPIN-27 e di
@@ -240,10 +236,10 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_GSM_DE/SIM800C_DE
 
--  .. rubric:: |image16|\ Stima I2C-HUB
-      :name: stima-i2c-hub
+Stima I2C-HUB
+.............
 
-|image17|
+|image16|\ |image17|
 
 Il modulo Stima I2C-HUB garantisce la massima modularità dell’intero
 progetto della stazione meteorologica Stima, preservando la
@@ -292,9 +288,8 @@ github rmap al seguente link:
 
 kicad/r-map_v3/Microduino_HUB_DE
 
--  .. rubric:: Regolatore di tensione e carica della batteria con bus
-      I\ :sup:`2`\ C DigitecoPower
-      :name: regolatore-di-tensione-e-carica-della-batteria-con-bus-i2c-digitecopower
+Regolatore di tensione e carica della batteria con bus I\ :sup:`2`\ C DigitecoPower
+...................................................................................
 
 Il regolatore di alimentazione DigitecoPower, di tipo switching, è
 progettato per garantire un uso efficiente della batteria con
@@ -311,22 +306,22 @@ alla porta a quattro pin in ingresso al HUB.
 In particolare, i valori monitorabili ed acquisiti attraverso la
 libreria DigitecoPower implementata nella libreria SensorDriver, sono:
 
--  Tensione di alimentazione
--  Corrente di alimentazione
--  Tensione di batteria
--  Corrente di batteria
--  Percentuale di carica della batteria
--  Tensione a 5V
+*  Tensione di alimentazione
+*  Corrente di alimentazione
+*  Tensione di batteria
+*  Corrente di batteria
+*  Percentuale di carica della batteria
+*  Tensione a 5V
 
 Per la verifica istantanea del funzionamento, è presente un led di
 notifica tri-colore (rosso, giallo, verde) in grado di indicare la
 carica o meno della batteria ed il livello di energia della stessa:
 
--  Led rosso: batteria scarica
--  Led giallo: batteria mediamente carica
--  Led verde: batteria carica
--  Led lampeggiante lentamente: batteria in scarica
--  Led lampeggiante velocemente: batteria in carica
+*  Led rosso: batteria scarica
+*  Led giallo: batteria mediamente carica
+*  Led verde: batteria carica
+*  Led lampeggiante lentamente: batteria in scarica
+*  Led lampeggiante velocemente: batteria in carica
 
 Ad esempio, un led rosso con un lampeggio veloce indica che la batteria
 è scarica e si sta caricando, diversamente, un led verde con lampeggio
@@ -335,20 +330,24 @@ lento, indica che la batteria è carica ma si sta scaricando.
 Per l’interfacciamento di tale modulo, si faccia riferimento al seguente
 schema di collegamento:
 
--  
+============ ========  ====================================================
+Collegamento Nome      Descrizione
+============ ========  ====================================================
+1            VCC_IN    ingresso alimentazione 12-30V DC VCC (+)
+2            GND_IN    ingresso alimentazione 12-30V DC GND (-)
+3            VCC_BAT   uscita alimentazione batteria 12V DC VCC (+)
+4            GND_BAT   uscita alimentazione batteria 12V DC GND (-)
+5            LED       LED di stato
+6            VCC_OUT   uscita tensione di alimentazione HUB 5V DC VCC (+)
+7            SCL       I2C SCL HUB
+8            SDA       I2C SDA HUB
+9            GND_OUT   uscita tensione di alimentazione HUB 5V DC GND (-)
+============ ========  ====================================================
 
-   1) VCC_IN: ingresso alimentazione 12-30V DC VCC (+)
-   2) GND_IN: ingresso alimentazione 12-30V DC GND (-)
-   3) VCC_BAT: uscita alimentazione batteria 12V DC VCC (+)
-   4) GND_BAT: uscita alimentazione batteria 12V DC GND (-)
-   5) LED di stato
-   6) VCC_OUT: uscita tensione di alimentazione HUB 5V DC VCC (+)
-   7) SCL: I2C SCL HUB
-   8) SDA: I2C SDA HUB
-   9) GND_OUT: uscita tensione di alimentazione HUB 5V DC GND (-)
 
--  .. rubric:: Display LCD 20x4 con interfaccia I2C
-      :name: display-lcd-20x4-con-interfaccia-i2c
+
+Display LCD 20x4 con interfaccia I2C
+....................................
 
 Il display consente di visualizzare lo stato della stazione: prossimo
 orario di acquisizione, stato del salvataggio dei dati su sd-card, stato
@@ -359,17 +358,19 @@ funzionamento della strumentazione.
 Inoltre, è provvisto di un pulsante per l’accensione temporanea della
 retroilluminazione, evitando inutilmente il consumo della batteria.
 
--  .. rubric:: Configurazioni hardware dei moduli Stima
-      :name: configurazioni-hardware-dei-moduli-stima
+Configurazioni hardware dei moduli Stima
+----------------------------------------
 
--  .. rubric:: Modulo Stima Ethernet
-      :name: modulo-stima-ethernet
+Modulo Stima Ethernet
+.....................
+
+|image18|\
 
 Il modulo Stima Ethernet consente la connessione della stazione
 attraverso Ethernet con eventuale alimentazione PoE ed è realizzabile
 assemblando i seguenti moduli (dal basso verso l’alto):
 
-1. |image18|\ Stima I2C-Base @ 5V
+1. Stima I2C-Base @ 5V
 2. Microduino Ethernet WIZ
 3. Microduino RJ45
 4. Stima core+1284 @ 5V
@@ -380,19 +381,21 @@ assemblando i seguenti moduli (dal basso verso l’alto):
 Successivamente sarà necessario fornire connettività Ethernet e
 alimentazione attraverso una delle seguenti modalità:
 
--  Power over ethernet (PoE)
--  Connettore micro USB posto sulla board Stima FT232RL
--  Connettore a quattro pin posto sulla board Stima I2C-Base
--  Collegando il modulo a Stima I2C-HUB
+*  Power over ethernet (PoE)
+*  Connettore micro USB posto sulla board Stima FT232RL
+*  Connettore a quattro pin posto sulla board Stima I2C-Base
+*  Collegando il modulo a Stima I2C-HUB
 
--  .. rubric:: Modulo Stima GSM/GPRS
-      :name: modulo-stima-gsmgprs
+Modulo Stima GSM/GPRS
+.....................
+
+|image19|\
 
 Il modulo Stima GSM/GPRS consente la connessione della stazione
 attraverso GPRS ed è realizzabile assemblando i seguenti moduli (dal
 basso verso l’alto):
 
-1. |image19|\ Stima I2C-Base @ 5V
+1. Stima I2C-Base @ 5V
 2. Stima SIM800C Power
 3. Stima SIM800C Module
 4. Stima core+1284 @ 5V
@@ -404,12 +407,12 @@ Infine, è necessario collegare un’antenna GPRS Dual Band 850/1900 MHz
 attraverso il connettore SMA posto sulla board Stima SIM800C Module e
 fornire alimentazione attraverso una delle seguenti modalità:
 
--  Connettore micro USB posto sulla board Stima FT232RL
--  Connettore a quattro pin posto sulla board Stima I2C-Base
--  Collegando il modulo a Stima I2C-HUB
+*  Connettore micro USB posto sulla board Stima FT232RL
+*  Connettore a quattro pin posto sulla board Stima I2C-Base
+*  Collegando il modulo a Stima I2C-HUB
 
--  .. rubric:: Modulo Stima Passivo
-      :name: modulo-stima-passivo
+Modulo Stima Passivo
+....................
 
 Tale modulo passivo permette di acquisire i sensori collegati su bus
 I\ :sup:`2`\ C e di esporre i dati ad un altro modulo “attivo”
@@ -424,22 +427,24 @@ seguenti moduli (dal basso verso l’alto):
 A tale modulo, è possibile fornire alimentazione attraverso una delle
 seguenti modalità:
 
--  Connettore micro USB posto sulla board Stima FT232RL
--  Connettore a quattro pin posto sulla board Stima I2C-Base
--  Collegando il modulo a Stima I2C-HUB
+*  Connettore micro USB posto sulla board Stima FT232RL
+*  Connettore a quattro pin posto sulla board Stima I2C-Base
+*  Collegando il modulo a Stima I2C-HUB
 
--  .. rubric:: Modulo Stima I2C-TH
-      :name: modulo-stima-i2c-th
+Modulo Stima I2C-TH
+...................
 
 Acquisisce i dati dai sensori di temperatura e umidità collegati su bus
 I\ :sup:`2`\ C fornendo elaborazioni relative a valori istantanei,
 minimi, medi e massimi. Tali dati potranno essere acquisiti da uno dei
 moduli atti a tale operazione, attraverso la libreria SensorDriver.
 
+|image20|\
+
 Nello specifico, assemblare il modulo con le seguenti board (dal basso
 verso l’alto):
 
-1. |image20|\ Stima I2C-Base @ 3.3V
+1. Stima I2C-Base @ 3.3V
 2. Stima core+644 @ 3.3V
 3. Stima FT232RL
 4. Stima SD-Card
@@ -458,14 +463,16 @@ Al termine delle operazioni di acquisizione dei sensori, il
 microcontrollore torna in risparmio energetico attendendo il successivo
 istante di acquisizione.
 
--  .. rubric:: Modulo Stima I2C-Rain
-      :name: modulo-stima-i2c-rain
+Modulo Stima I2C-Rain
+.....................
 
 Effettua un conteggio del numero di basculate di un pluviometro
 nell’arco di tempo desiderato. Tale dato sarà acquisito da uno dei
 moduli atti a tale operazione, attraverso la libreria SensorDriver.
 
-|image21|\ Nello specifico, assemblare il modulo con le seguenti board
+|image21|\
+
+Nello specifico, assemblare il modulo con le seguenti board
 (dal basso verso l’alto):
 
 1. Stima I2C-Base @ 3.3V
@@ -485,11 +492,11 @@ I2C-Rain è perennemente posto in risparmio energetico profondo e
 risvegliato all’occorrenza da un interrupt scaturito dalla basculata del
 pluviometro.
 
--  .. rubric:: Configurazioni software dei moduli Stima
-      :name: configurazioni-software-dei-moduli-stima
+Configurazioni software dei moduli Stima
+----------------------------------------
 
--  .. rubric:: Configurazione dell’IDE Arduino
-      :name: configurazione-dellide-arduino
+Configurazione dell’IDE Arduino
+...............................
 
 Per la compilazione del software è necessario settare lo sketchbook del
 progetto rmap nell’ide Arduino cliccando su File  Impostazioni e
@@ -497,8 +504,8 @@ selezionando la cartella dello sketchbook facendo click su sfoglia in
 alto a destra. Successivamente cliccare su ok, chiudere l’ide per poi
 riaprirlo.
 
--  .. rubric:: Modulo Stima Ethernet
-      :name: modulo-stima-ethernet-1
+Modulo Stima Ethernet
+.....................
 
 1. Aprire lo sketch stima.ino nella cartella
    arduino/sketchbook/stima_v3/stima
@@ -534,8 +541,8 @@ riaprirlo.
 Per la configurazione è possibile fare riferimento al seguente link:
 http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_5
 
--  .. rubric:: Modulo Stima GSM/GPRS
-      :name: modulo-stima-gsmgprs-1
+Modulo Stima GSM/GPRS
+.....................
 
 1. Aprire lo sketch stima.ino nella cartella
    arduino/sketchbook/stima_v3/stima
@@ -584,13 +591,13 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_5
 Per la configurazione è possibile fare riferimento al seguente link:
 http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
 
--  .. rubric:: Modulo Stima Passive
-      :name: modulo-stima-passive
+Modulo Stima Passive
+....................
 
 1. Aprire lo sketch stima.ino nella cartella
    arduino/sketchbook/stima_v3/stima
 2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima:
-
+   
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_PASSIVE per definire una stazione di tipo
       passivo
@@ -603,28 +610,22 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
       seconda dei sensori che si vuole abilitare o disabilitare
    -  Impostare il valore in decimi di mm di pioggia per ogni basculata
       del pluviometro nella #define RAIN_FOR_TIP
-
-1. 
-
    -  Impostare il numero di valori da leggere per ogni singolo sensore
       nella #define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori
       a disposizione, inserire quello più alto)
-
-1. 
-
    -  Impostare il valore in minuti per il calcolo di un’osservazione
       nella #define OBSERVATIONS_MINUTES (in genere 1)
    -  Impostare il numero di osservazioni necessarie a produrre un dato
       utile per il report nella #define STATISTICAL_DATA_COUNT (in
       genere 15)
 
-2. Impostare il microcontrollore su core+1284 a 5V
-3. Compilare il firmware e caricarlo attraverso il cavo USB
-4. Inserire il jumper sulla board Stima I2C-Base, configurare la
+4. Impostare il microcontrollore su core+1284 a 5V
+5. Compilare il firmware e caricarlo attraverso il cavo USB
+6. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata
 
--  .. rubric:: Modulo Stima I2C-TH
-      :name: modulo-stima-i2c-th-1
+Modulo Stima I2C-TH
+...................
 
 1. Aprire lo sketch i2c-th.ino nella cartella
    arduino/sketchbook/stima_v3/i2c-th
@@ -634,15 +635,9 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
    -  Settare la #define USE_JSON con il valore false
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
       seconda dei sensori che si vuole abilitare o disabilitare
-
-1. 
-
    -  Impostare il numero di valori da leggere per ogni singolo sensore
       nella #define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori
       a disposizione, inserire quello più alto)
-
-1. 
-
    -  Impostare il valore in minuti per il calcolo di un’osservazione
       nella #define OBSERVATIONS_MINUTES (in genere 1 o in accordo con
       quanto impostato per la compilazione dello sketch stima.ino)
@@ -651,13 +646,13 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
       genere 15 o in accordo con quanto impostato per la compilazione
       dello sketch stima.ino)
 
-2. Impostare il microcontrollore su core+644 a 3.3V
-3. Compilare il firmware e caricarlo attraverso il cavo USB
-4. Configurare il suddetto modulo attraverso lo sketch sensor_config
+3. Impostare il microcontrollore su core+644 a 3.3V
+4. Compilare il firmware e caricarlo attraverso il cavo USB
+5. Configurare il suddetto modulo attraverso lo sketch sensor_config
    presente nella cartella arduino\sketchbook\stima_v3
 
--  .. rubric:: Modulo Stima I2C-Rain
-      :name: modulo-stima-i2c-rain-1
+Modulo Stima I2C-Rain
+.....................
 
 1. Aprire lo sketch i2c-rain.ino nella cartella
    arduino/sketchbook/stima_v3/i2c- rain
@@ -667,37 +662,29 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
    -  Settare la #define USE_JSON con il valore false
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
       seconda dei sensori che si vuole abilitare o disabilitare
-
-1. 
-
    -  Impostare il numero di valori da leggere per ogni singolo sensore
       nella #define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori
       a disposizione, inserire quello più alto)
-
-1. 
-
    -  Impostare la quantità di pioggia espressa in decimi di millimetro
       da conteggiare per ogni basculata del pluviometro nella #define
       RAIN_FOR_TIP
 
-2. Impostare il microcontrollore su core+644 a 3.3V
-3. Compilare il firmware e caricarlo attraverso il cavo USB
-4. Configurare il suddetto modulo attraverso lo sketch sensor_config
+3. Impostare il microcontrollore su core+644 a 3.3V
+4. Compilare il firmware e caricarlo attraverso il cavo USB
+5. Configurare il suddetto modulo attraverso lo sketch sensor_config
    presente nella cartella arduino\sketchbook\stima_v3
 
--  .. rubric:: Compilazione e caricamento del bootloader Digitecoboot
-      :name: compilazione-e-caricamento-del-bootloader-digitecoboot
+Compilazione e caricamento del bootloader Digitecoboot
+------------------------------------------------------
 
 1. Aprire il file avr_conf nella cartella digitecoboot
 2. Editare la variabile AVR_DIR inserendo il percorso corretto per la
    directory AVR
 3. Nella cartella digitecoboot compilare il bootloader attraverso
-
    -  make atmega644p
    -  make atmega1284p
 
 4. La compilazione produce i seguenti files:
-
    -  digitecoboot_atmega644p.hex: booatloader per core+644
    -  digitecoboot_atmega1284p.hex: booatloader per core+1284
 
@@ -705,8 +692,8 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
    seguenti parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended
    fuse 0xFF, High fuse 0xD8
 
--  .. rubric:: Compilazione del firmware in formato binario
-      :name: compilazione-del-firmware-in-formato-binario
+Compilazione del firmware in formato binario
+--------------------------------------------
 
 1. Compilare il firmware per i moduli Stima secondo quanto scritto ai
    punti precedenti
@@ -720,9 +707,8 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
 
    -  avr-objcopy -I ihex -O binary NOME_SKETCH.ino.elf FIRMWARE.BIN
 
--  .. rubric:: Upload del firmware tramite micro SD-Card attraverso
-      Digitecoboot
-      :name: upload-del-firmware-tramite-micro-sd-card-attraverso-digitecoboot
+Upload del firmware tramite micro SD-Card attraverso Digitecoboot
+-----------------------------------------------------------------
 
 1. Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32
 2. Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima
@@ -735,8 +721,8 @@ http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
    del modulo
 6. Alimentare il modulo
 
--  .. rubric:: Assemblaggio stazione Stima
-      :name: assemblaggio-stazione-stima
+Assemblaggio stazione Stima
+---------------------------
 
 Per assemblare una stazione Stima, è necessario disporre di:
 
@@ -750,14 +736,14 @@ Per assemblare una stazione Stima, è necessario disporre di:
 -  Pluviometro Digiteco PL005 o Digiteco PL010 o qualsiasi altro
    pluviometro con uscita a contatto
 -  Cavi di collegamento:
-
+   
    -  per sensore di temperatura e umidità Digiteco TU022: cavo 4 poli
       con connettore a vite lato sensore e connettore 4 pin lato HUB
    -  o per sensori ADT7420 e HIH6100 con cavi a 4 poli per sensore a
       saldare lato sensore e connettore 4 pin lato HUB
    -  per pluviometro a contatto: cavo a 2 poli con connettore 4 pin
       lato modulo Stima I2C-Rain
-
+      
 -  Antenna dual/quad band GPRS con connettore SMA per stazione GSM/GPRS
 -  Contenitore stagno IP66 310x425x160
 -  Batteria sigillata al piombo 12V e relativi cavi di collegamento con
