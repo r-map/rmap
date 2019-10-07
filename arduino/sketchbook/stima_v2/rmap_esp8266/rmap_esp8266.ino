@@ -31,7 +31,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-09-26T12:00"
+#define SOFTWARE_VERSION "2019-10-07T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -136,7 +136,7 @@ char rmap_network[31] = "";
 char rmap_server[41]= "rmap.cc";
 char rmap_user[10]="";
 char rmap_password[31]="";
-char rmap_slug[31]="stimaesp";
+char rmap_slug[31]="stimawifi";
 char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
@@ -207,112 +207,147 @@ void handle_Data() {
   webserver.send(200, "text/html", Data()); 
 }
 
+void handle_Json() {
+  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
+  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
+  webserver.send(200, "text/html", Json()); 
+}
+
 void handle_NotFound(){
   webserver.send(404, "text/plain", "Not found");
 }
 
 
+String Json(){
+
+  String str ="{"
+    "\"TEMP\":\"";
+  str +=temperature;
+  str +="\","
+    "\"HUMID\":\"";
+  str +=humidity;
+  str +="\","
+    "\"PM2\":\"";
+  str +=pm2;
+  str +="\","
+    "\"PM10\":\"";
+  str +=pm10;
+  str +="\","
+    "\"CO2\":\"";
+  str +=co2;
+  str +="\","
+    "\"STAT\":\"";
+  if (mqttclient.connected()){
+    str +="Connected";
+  }else{
+    str +="Not connected";
+  }
+  str +="\"}";
+  
+  return str;
+}
+
 // function to prepare HTML response
 //https://lastminuteengineers.com/esp8266-dht11-dht22-web-server-tutorial/
 
 String Data(){
-  String str ="<h1>StimaWifi Report</h1>\n";
-  str +="<div class=\"data\">\n";
-  str +="<div class=\"side-by-side temperature-icon\">\n";
-  str +="<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
-  str +="width=\"9.915px\" height=\"22px\" viewBox=\"0 0 9.915 22\" enable-background=\"new 0 0 9.915 22\" xml:space=\"preserve\">\n";
-  str +="<path fill=\"#FFFFFF\" d=\"M3.498,0.53c0.377-0.331,0.877-0.501,1.374-0.527C5.697-0.04,6.522,0.421,6.924,1.142\n";
-  str +="c0.237,0.399,0.315,0.871,0.311,1.33C7.229,5.856,7.245,9.24,7.227,12.625c1.019,0.539,1.855,1.424,2.301,2.491\n";
-  str +="c0.491,1.163,0.518,2.514,0.062,3.693c-0.414,1.102-1.24,2.038-2.276,2.594c-1.056,0.583-2.331,0.743-3.501,0.463\n";
-  str +="c-1.417-0.323-2.659-1.314-3.3-2.617C0.014,18.26-0.115,17.104,0.1,16.022c0.296-1.443,1.274-2.717,2.58-3.394\n";
-  str +="c0.013-3.44,0-6.881,0.007-10.322C2.674,1.634,2.974,0.955,3.498,0.53z\"></path>\n";
-  str +="</svg>\n";
-  str +="</div>\n";
-  str +="<div class=\"side-by-side temperature-text\">Temperature</div>\n";
-  str +="<div class=\"side-by-side temperature\">";
+  String str ="<h1>StimaWifi Report</h1>\n"
+    "<div class=\"data\">\n"
+    "<div class=\"side-by-side temperature-icon\">\n"
+    "<svg version=\"1.1\" id=\"Layer_1\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n"
+    "width=\"9.915px\" height=\"22px\" viewBox=\"0 0 9.915 22\" enable-background=\"new 0 0 9.915 22\" xml:space=\"preserve\">\n"
+    "<path fill=\"#FFFFFF\" d=\"M3.498,0.53c0.377-0.331,0.877-0.501,1.374-0.527C5.697-0.04,6.522,0.421,6.924,1.142\n"
+    "c0.237,0.399,0.315,0.871,0.311,1.33C7.229,5.856,7.245,9.24,7.227,12.625c1.019,0.539,1.855,1.424,2.301,2.491\n"
+    "c0.491,1.163,0.518,2.514,0.062,3.693c-0.414,1.102-1.24,2.038-2.276,2.594c-1.056,0.583-2.331,0.743-3.501,0.463\n"
+    "c-1.417-0.323-2.659-1.314-3.3-2.617C0.014,18.26-0.115,17.104,0.1,16.022c0.296-1.443,1.274-2.717,2.58-3.394\n"
+    "c0.013-3.44,0-6.881,0.007-10.322C2.674,1.634,2.974,0.955,3.498,0.53z\"></path>\n"
+    "</svg>\n"
+    "</div>\n"
+    "<div class=\"side-by-side temperature-text\">Temperature</div>\n"
+    "<div class=\"side-by-side temperature\">";
   str +=temperature;
-  str +="<span class=\"superscript\">°C</span></div>\n";
-  str +="</div>\n";
-  str +="<div class=\"data\">\n";
-  str +="<div class=\"side-by-side humidity-icon\">\n";
-  str +="<svg version=\"1.1\" id=\"Layer_2\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n";
-  str +="width=\"12px\" height=\"17.955px\" viewBox=\"0 0 13 17.955\" enable-background=\"new 0 0 13 17.955\" xml:space=\"preserve\">\n";
-  str +="<path fill=\"#FFFFFF\" d=\"M1.819,6.217C3.139,4.064,6.5,0,6.5,0s3.363,4.064,4.681,6.217c1.793,2.926,2.133,5.05,1.571,7.057\n";
-  str +="c-0.438,1.574-2.264,4.681-6.252,4.681c-3.988,0-5.813-3.107-6.252-4.681C-0.313,11.267,0.026,9.143,1.819,6.217\"></path>\n";
-  str +="</svg>\n";
-  str +="</div>\n";
-  str +="<div class=\"side-by-side humidity-text\">Humidity</div>\n";
-  str +="<div class=\"side-by-side humidity\">";
+  str +="<span class=\"superscript\">°C</span></div>\n"
+    "</div>\n"
+    "<div class=\"data\">\n"
+    "<div class=\"side-by-side humidity-icon\">\n"
+    "<svg version=\"1.1\" id=\"Layer_2\" xmlns=\"http://www.w3.org/2000/svg\" xmlns:xlink=\"http://www.w3.org/1999/xlink\" x=\"0px\" y=\"0px\"\n"
+    "width=\"12px\" height=\"17.955px\" viewBox=\"0 0 13 17.955\" enable-background=\"new 0 0 13 17.955\" xml:space=\"preserve\">\n"
+    "<path fill=\"#FFFFFF\" d=\"M1.819,6.217C3.139,4.064,6.5,0,6.5,0s3.363,4.064,4.681,6.217c1.793,2.926,2.133,5.05,1.571,7.057\n"
+    "c-0.438,1.574-2.264,4.681-6.252,4.681c-3.988,0-5.813-3.107-6.252-4.681C-0.313,11.267,0.026,9.143,1.819,6.217\"></path>\n"
+    "</svg>\n"
+    "</div>\n"
+    "<div class=\"side-by-side humidity-text\">Humidity</div>\n"
+    "<div class=\"side-by-side humidity\">";
   str +=humidity;
-  str +="<span class=\"superscript\">%</span></div>\n";
-  str +="</div>\n";
-
-  str +="<div class=\"data\">\n";
-  str +="<div class=\"side-by-side temperature-text\">PM2.5</div>\n";
-  str +="<div class=\"side-by-side temperature\">";
+  str +="<span class=\"superscript\">%</span></div>\n"
+    "</div>\n"
+  
+    "<div class=\"data\">\n"
+    "<div class=\"side-by-side temperature-text\">PM2.5</div>\n"
+    "<div class=\"side-by-side temperature\">";
   str +=pm2;
-  str +="<span class=\"superscript\">ug/m3</span></div>\n";
-  str +="</div>\n";
+  str +="<span class=\"superscript\">ug/m3</span></div>\n"
+    "</div>\n"
 
-  str +="<div class=\"data\">\n";
-  str +="<div class=\"side-by-side temperature-text\">PM10</div>\n";
-  str +="<div class=\"side-by-side temperature\">";
+    "<div class=\"data\">\n"
+    "<div class=\"side-by-side temperature-text\">PM10</div>\n"
+    "<div class=\"side-by-side temperature\">";
   str +=pm10;
-  str +="<span class=\"superscript\">ug/m3</span></div>\n";
-  str +="</div>\n";
-
-  str +="<div class=\"data\">\n";
-  str +="<div class=\"side-by-side temperature-text\">CO2</div>\n";
-  str +="<div class=\"side-by-side temperature\">";
+  str +="<span class=\"superscript\">ug/m3</span></div>\n"
+    "</div>\n"
+    
+    "<div class=\"data\">\n"
+    "<div class=\"side-by-side temperature-text\">CO2</div>\n"
+    "<div class=\"side-by-side temperature\">";
   str +=co2;
-  str +="<span class=\"superscript\">ppm</span></div>\n";
-  str +="</div>\n";
+  str +="<span class=\"superscript\">ppm</span></div>\n"
+    "</div>\n";
 
   return str;
 }
 
 String FullPage(){
-  String ptr = "<!DOCTYPE html> <html>\n";
-  ptr +="<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n";
-  ptr +="<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n";
-  ptr +="<title>StimaWiFI Report</title>\n";
-  ptr +="<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n";
-  ptr +="body{margin-top: 50px;}\n";
-  ptr +="h1 {margin: 50px auto 30px;}\n";
-  ptr +=".side-by-side{display: inline-block;vertical-align: middle;position: relative;}\n";
-  ptr +=".humidity-icon{background-color: #3498db;width: 30px;height: 30px;border-radius: 50%;line-height: 36px;}\n";
-  ptr +=".humidity-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
-  ptr +=".humidity{font-weight: 300;font-size: 60px;color: #3498db;}\n";
-  ptr +=".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n";
-  ptr +=".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n";
-  ptr +=".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n";
-  ptr +=".superscript{font-size: 17px;font-weight: 600;position: relative;right: -20px;top: -10px;}\n";
-  ptr +=".data{padding: 10px;}\n";
-  ptr +="</style>\n";
-  ptr +="<script>\n";
-  ptr +="setInterval(loadDoc,5000);\n";
-  ptr +="function loadDoc() {\n";
-  ptr +="var xhttp = new XMLHttpRequest();\n";
-  ptr +="xhttp.onreadystatechange = function() {\n";
-  ptr +="if (this.readyState == 4 && this.status == 200)\n";
-  ptr +="{document.getElementById(\"data\").innerHTML =this.responseText}\n";
-  ptr +="if (this.readyState == 4 && this.status != 200)\n";
-  ptr +="{document.getElementById(\"data\").innerHTML =\"not connected\"}\n";
-  ptr +="};\n";
-  ptr +="xhttp.open(\"GET\", \"/data\", true);\n";
-  ptr +="xhttp.send();\n";
-  ptr +="}\n";
-  ptr +="</script>\n";
-  ptr +="</head>\n";
-  ptr +="<body>\n";
-  
-  ptr +="<div id=\"data\">\n";
+  String ptr = "<!DOCTYPE html> <html>\n"
+    "<head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, user-scalable=no\">\n"
+    "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"/>\n"
+    "<title>StimaWiFI Report</title>\n"
+    "<style>html { display: block; margin: 0px auto; text-align: center;color: #333333;}\n"
+    "body{margin-top: 50px;}\n"
+    "h1 {margin: 50px auto 30px;}\n"
+    ".side-by-side{display: inline-block;vertical-align: middle;position: relative;}\n"
+    ".humidity-icon{background-color: #3498db;width: 30px;height: 30px;border-radius: 50%;line-height: 36px;}\n"
+    ".humidity-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n"
+    ".humidity{font-weight: 300;font-size: 60px;color: #3498db;}\n"
+    ".temperature-icon{background-color: #f39c12;width: 30px;height: 30px;border-radius: 50%;line-height: 40px;}\n"
+    ".temperature-text{font-weight: 600;padding-left: 15px;font-size: 19px;width: 160px;text-align: left;}\n"
+    ".temperature{font-weight: 300;font-size: 60px;color: #f39c12;}\n"
+    ".superscript{font-size: 17px;font-weight: 600;position: relative;right: -20px;top: -10px;}\n"
+    ".data{padding: 10px;}\n"
+    "</style>\n"
+    "<script>\n"
+    "setInterval(loadDoc,5000);\n"
+    "function loadDoc() {\n"
+    "var xhttp = new XMLHttpRequest();\n"
+    "xhttp.onreadystatechange = function() {\n"
+    "if (this.readyState == 4 && this.status == 200)\n"
+    "{document.getElementById(\"data\").innerHTML =this.responseText}\n"
+    "if (this.readyState == 4 && this.status != 200)\n"
+    "{document.getElementById(\"data\").innerHTML =\"not connected\"}\n"
+    "};\n"
+    "xhttp.open(\"GET\", \"/data\", true);\n"
+    "xhttp.send();\n"
+    "}\n"
+    "</script>\n"
+    "</head>\n"
+    "<body>\n"
+    
+    "<div id=\"data\">\n";
 
   ptr +=Data();  
-
-  ptr +="</div>\n";
-  ptr +="</body>\n";
-  ptr +="</html>\n";
+  
+  ptr +="</div>\n"
+    "</body>\n"
+    "</html>\n";
   return ptr;
 }
 
@@ -921,7 +956,7 @@ void repeats() {
 	analogWrite(LED_PIN,512);
 	delay(5000);
 	digitalWrite(LED_PIN,HIGH);
-	return;
+	//return;
       }
     }
   }
@@ -1279,7 +1314,7 @@ void setup() {
   //   the fully-qualified domain name is "stimawifi.local"
   // - second argument is the IP address to advertise
   //   we send our IP address on the WiFi network
-  while (!MDNS.begin("stimawifi")) {
+  while (!MDNS.begin(rmap_slug)) {
     LOGN(F("Error setting up MDNS responder!"));
     delay(1000);
   }
@@ -1289,6 +1324,7 @@ void setup() {
   // setup web server
   webserver.on("/", handle_FullPage);
   webserver.on("/data", handle_Data);
+  webserver.on("/data.json", handle_Json);
   webserver.onNotFound(handle_NotFound);
   
   webserver.begin();

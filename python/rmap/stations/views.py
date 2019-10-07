@@ -69,6 +69,11 @@ def mystationmetadata_detail(request,ident,slug):
     mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
     return render(request, 'stations/stationmetadata_detail.html',{"object":mystation,"year":year,"month":month,"day":day,"hour":hour})
 
+def mystation_localdata(request,ident,slug):
+    mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
+    return render(request, 'stations/stationlocaldata.html',{"object":mystation})
+
+
 def mystationmetadata_json(request,ident,slug):
     return HttpResponse(rmap_core.dumpstation(slug,ident), content_type="application/json")
 

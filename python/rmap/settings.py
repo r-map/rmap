@@ -687,6 +687,21 @@ if not android :
             }
         }
 
+## CORS management
+#CORS_ORIGIN_WHITELIST = [
+#    "http://rmap.it"
+#]
+#
+#CORS_ORIGIN_ALLOW_ALL=True
+#
+#CORS_ORIGIN_REGEX_WHITELIST = [
+#    r"^http://\w+\.local$",
+#]
+#
+#CSRF_TRUSTED_ORIGINS = [
+#    'local',
+#]
+
 
 sample_measurements=[
     {
@@ -1326,6 +1341,7 @@ if LOAD_OPTIONAL_APPS:
 
         #{"import": module, "apps":(app,), "condition": bool, "middleware":(index,middle,), "context_processors": (processor,) }
         {"import": 'django_hosts', "apps":('django_hosts',), "middleware":((0,'django_hosts.middleware.HostsRequestMiddleware'),(90,'django_hosts.middleware.HostsResponseMiddleware'))},
+        {"import": 'corsheaders',"apps":('corsheaders',),"middleware":((1,'corsheaders.middleware.CorsMiddleware'),)},
         {"import": 'leaflet',   "apps": ('leaflet',)},
         {"import": 'djgeojson', "apps": ('djgeojson' ,)},
         {"import": 'geoimage',  "apps": ('geoimage'  ,)},
@@ -1369,7 +1385,7 @@ if LOAD_OPTIONAL_APPS:
                 print("import error: ", app["import"])
                 print("disable     : ", app.get("apps", ()))
             else:
-                #print "enable      : ", app.get("apps", ())
+                #print("enable      : ", app.get("apps", ()))
                 INSTALLED_APPS += app.get("apps", ())
                 for ind,middleware in app.get("middleware", ()):
                     MIDDLEWARE_CLASSES.insert(ind,middleware)

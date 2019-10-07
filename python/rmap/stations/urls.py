@@ -6,6 +6,7 @@ from rmap.stations.views import mystationmetadata_list
 from rmap.stations.views import mystationmetadata_detail
 from rmap.stations.views import mystationmetadata_json
 from rmap.stations.views import mystationmetadata_del
+from rmap.stations.views import mystation_localdata
 
 urlpatterns = [
 
@@ -31,6 +32,9 @@ urlpatterns = [
                        url(r'^delstation/(?P<ident>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_del, name='mystationmetadata-del'),
 
+                       url(r'^stationlocaldata/(?P<ident>[-_\w]+)/(?P<slug>[-_\w]+)/$',
+                           mystation_localdata, name='mystation-localdata'),
+    
                        url(r'^stationsonmap/$', StationsOnMap
                            ,name='stationsonmap' ),
 
