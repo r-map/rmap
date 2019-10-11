@@ -1,13 +1,15 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
 #include "Deserialization/JsonParser.hpp"
 
 namespace ArduinoJson {
-namespace Internals {
 template <typename TDerived>
 class JsonBufferBase : public JsonBuffer {
  public:
@@ -26,8 +28,8 @@ class JsonBufferBase : public JsonBuffer {
   // JsonArray& parseArray(TString);
   // TString = const std::string&, const String&
   template <typename TString>
-  typename Internals::EnableIf<!Internals::IsArray<TString>::value,
-                               JsonArray &>::type
+  typename TypeTraits::EnableIf<!TypeTraits::IsArray<TString>::value,
+                                JsonArray &>::type
   parseArray(const TString &json,
              uint8_t nestingLimit = ARDUINOJSON_DEFAULT_NESTING_LIMIT) {
     return Internals::makeParser(that(), json, nestingLimit).parseArray();
@@ -63,8 +65,8 @@ class JsonBufferBase : public JsonBuffer {
   // JsonObject& parseObject(TString);
   // TString = const std::string&, const String&
   template <typename TString>
-  typename Internals::EnableIf<!Internals::IsArray<TString>::value,
-                               JsonObject &>::type
+  typename TypeTraits::EnableIf<!TypeTraits::IsArray<TString>::value,
+                                JsonObject &>::type
   parseObject(const TString &json,
               uint8_t nestingLimit = ARDUINOJSON_DEFAULT_NESTING_LIMIT) {
     return Internals::makeParser(that(), json, nestingLimit).parseObject();
@@ -92,8 +94,8 @@ class JsonBufferBase : public JsonBuffer {
   // JsonVariant parse(TString);
   // TString = const std::string&, const String&
   template <typename TString>
-  typename Internals::EnableIf<!Internals::IsArray<TString>::value,
-                               JsonVariant>::type
+  typename TypeTraits::EnableIf<!TypeTraits::IsArray<TString>::value,
+                                JsonVariant>::type
   parse(const TString &json,
         uint8_t nestingLimit = ARDUINOJSON_DEFAULT_NESTING_LIMIT) {
     return Internals::makeParser(that(), json, nestingLimit).parseVariant();
@@ -123,5 +125,4 @@ class JsonBufferBase : public JsonBuffer {
     return static_cast<TDerived *>(this);
   }
 };
-}  // namespace Internals
-}  // namespace ArduinoJson
+}

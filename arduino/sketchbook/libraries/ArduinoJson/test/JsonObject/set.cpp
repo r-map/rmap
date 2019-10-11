@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
@@ -9,6 +12,17 @@
 TEST_CASE("JsonObject::set()") {
   DynamicJsonBuffer jb;
   JsonObject& _object = jb.createObject();
+
+  SECTION("SizeIncreased_WhenValuesAreAdded") {
+    _object.set("hello", 42);
+    REQUIRE(1 == _object.size());
+  }
+
+  SECTION("SizeUntouched_WhenSameValueIsAdded") {
+    _object["hello"] = 1;
+    _object["hello"] = 2;
+    REQUIRE(1 == _object.size());
+  }
 
   SECTION("int") {
     _object.set("hello", 123);
@@ -80,59 +94,17 @@ TEST_CASE("JsonObject::set()") {
     REQUIRE(42 == _object["a"]);
   }
 
-  SECTION("returns true when allocation succeeds") {
+  SECTION("ShouldReturnTrue_WhenAllocationSucceeds") {
     StaticJsonBuffer<JSON_OBJECT_SIZE(1) + 15> jsonBuffer;
     JsonObject& obj = jsonBuffer.createObject();
 
     REQUIRE(true == obj.set(std::string("hello"), std::string("world")));
   }
 
-  SECTION("returns false when allocation fails") {
+  SECTION("ShouldReturnFalse_WhenAllocationFails") {
     StaticJsonBuffer<JSON_OBJECT_SIZE(1) + 10> jsonBuffer;
     JsonObject& obj = jsonBuffer.createObject();
 
     REQUIRE(false == obj.set(std::string("hello"), std::string("world")));
-  }
-
-  SECTION("should not duplicate const char*") {
-    _object.set("hello", "world");
-    const size_t expectedSize = JSON_OBJECT_SIZE(1);
-    REQUIRE(expectedSize == jb.size());
-  }
-
-  SECTION("should duplicate char* value") {
-    _object.set("hello", const_cast<char*>("world"));
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 6;
-    REQUIRE(expectedSize == jb.size());
-  }
-
-  SECTION("should duplicate char* key") {
-    _object.set(const_cast<char*>("hello"), "world");
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 6;
-    REQUIRE(expectedSize == jb.size());
-  }
-
-  SECTION("should duplicate char* key&value") {
-    _object.set(const_cast<char*>("hello"), const_cast<char*>("world"));
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 12;
-    REQUIRE(expectedSize <= jb.size());
-  }
-
-  SECTION("should duplicate std::string value") {
-    _object.set("hello", std::string("world"));
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 6;
-    REQUIRE(expectedSize == jb.size());
-  }
-
-  SECTION("should duplicate std::string key") {
-    _object.set(std::string("hello"), "world");
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 6;
-    REQUIRE(expectedSize == jb.size());
-  }
-
-  SECTION("should duplicate std::string key&value") {
-    _object.set(std::string("hello"), std::string("world"));
-    const size_t expectedSize = JSON_OBJECT_SIZE(1) + 12;
-    REQUIRE(expectedSize <= jb.size());
   }
 }

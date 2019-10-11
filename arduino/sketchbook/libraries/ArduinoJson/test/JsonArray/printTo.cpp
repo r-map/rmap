@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
@@ -8,10 +11,10 @@
 static void check(JsonArray &array, std::string expected) {
   std::string actual;
   size_t actualLen = array.printTo(actual);
-  REQUIRE(expected == actual);
-  REQUIRE(actualLen == expected.size());
   size_t measuredLen = array.measureLength();
-  REQUIRE(measuredLen == expected.size());
+  CHECK(actualLen == expected.size());
+  CHECK(measuredLen == expected.size());
+  REQUIRE(expected == actual);
 }
 
 TEST_CASE("JsonArray::printTo()") {
@@ -67,20 +70,10 @@ TEST_CASE("JsonArray::printTo()") {
     check(array, "[1,2]");
   }
 
-  SECTION("RawJson(const char*)") {
+  SECTION("RawJson") {
     array.add(RawJson("{\"key\":\"value\"}"));
 
     check(array, "[{\"key\":\"value\"}]");
-  }
-
-  SECTION("RawJson(char*)") {
-    DynamicJsonBuffer jb2;
-    JsonArray &arr = jb2.createArray();
-
-    char tmp[] = "{\"key\":\"value\"}";
-    arr.add(RawJson(tmp));
-
-    check(arr, "[{\"key\":\"value\"}]");
   }
 
   SECTION("OneIntegerOverCapacity") {

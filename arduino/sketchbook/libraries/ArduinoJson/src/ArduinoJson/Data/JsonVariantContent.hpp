@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -23,5 +26,5 @@ union JsonVariantContent {
   JsonArray* asArray;    // asArray cannot be null
   JsonObject* asObject;  // asObject cannot be null
 };
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}

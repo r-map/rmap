@@ -1,11 +1,12 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
-
-using namespace ArduinoJson::Internals;
 
 TEST_CASE("StaticJsonBuffer::startString()") {
   SECTION("WorksWhenBufferIsBigEnough") {

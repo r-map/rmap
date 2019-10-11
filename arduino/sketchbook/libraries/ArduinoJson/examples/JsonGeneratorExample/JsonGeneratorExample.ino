@@ -1,21 +1,23 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
 //
-// This example shows how to generate a JSON document with ArduinoJson.
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 
 void setup() {
-  // Initialize Serial port
   Serial.begin(9600);
-  while (!Serial) continue;
+  while (!Serial) {
+    // wait serial port initialization
+  }
 
   // Memory pool for JSON object tree.
   //
   // Inside the brackets, 200 is the size of the pool in bytes.
-  // Don't forget to change this value to match your JSON document.
-  // Use arduinojson.org/assistant to compute the capacity.
+  // If the JSON object is more complex, you need to increase that value.
+  // See https://bblanchon.github.io/ArduinoJson/assistant/
   StaticJsonBuffer<200> jsonBuffer;
 
   // StaticJsonBuffer allocates memory on the stack, it can be
@@ -66,16 +68,3 @@ void setup() {
 void loop() {
   // not used in this example
 }
-
-// See also
-// --------
-//
-// https://arduinojson.org/ contains the documentation for all the functions
-// used above. It also includes an FAQ that will help you solve any
-// serialization problem.
-//
-// The book "Mastering ArduinoJson" contains a tutorial on serialization.
-// It begins with a simple example, like the one above, and then adds more
-// features like serializing directly to a file or an HTTP request.
-// Learn more at https://arduinojson.org/book/
-// Use the coupon code TWENTY for a 20% discount ❤❤❤❤❤

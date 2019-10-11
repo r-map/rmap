@@ -1,13 +1,15 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
 #include "JsonBufferBase.hpp"
 
 namespace ArduinoJson {
-namespace Internals {
 
 class StaticJsonBufferBase : public JsonBufferBase<StaticJsonBufferBase> {
  public:
@@ -91,7 +93,6 @@ class StaticJsonBufferBase : public JsonBufferBase<StaticJsonBufferBase> {
   size_t _capacity;
   size_t _size;
 };
-}  // namespace Internals
 
 #if defined(__clang__)
 #pragma clang diagnostic push
@@ -107,15 +108,14 @@ class StaticJsonBufferBase : public JsonBufferBase<StaticJsonBufferBase> {
 // The template paramenter CAPACITY specifies the capacity of the buffer in
 // bytes.
 template <size_t CAPACITY>
-class StaticJsonBuffer : public Internals::StaticJsonBufferBase {
+class StaticJsonBuffer : public StaticJsonBufferBase {
  public:
-  explicit StaticJsonBuffer()
-      : Internals::StaticJsonBufferBase(_buffer, CAPACITY) {}
+  explicit StaticJsonBuffer() : StaticJsonBufferBase(_buffer, CAPACITY) {}
 
  private:
   char _buffer[CAPACITY];
 };
-}  // namespace ArduinoJson
+}
 
 #if defined(__clang__)
 #pragma clang diagnostic pop

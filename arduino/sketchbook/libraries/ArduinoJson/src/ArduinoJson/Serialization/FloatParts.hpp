@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -56,7 +59,7 @@ struct FloatParts {
   }
 
   static int16_t normalize(TFloat& value) {
-    typedef FloatTraits<TFloat> traits;
+    typedef TypeTraits::FloatTraits<TFloat> traits;
     int16_t powersOf10 = 0;
 
     int8_t index = sizeof(TFloat) == 8 ? 8 : 5;
@@ -85,5 +88,5 @@ struct FloatParts {
     return powersOf10;
   }
 };
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}

@@ -1,19 +1,21 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
 //
-// This example shows the different ways you can use Flash strings with
-// ArduinoJson.
-//
-// Use Flash strings sparingly, because ArduinoJson duplicates them in the
-// JsonBuffer. Prefer plain old char*, as they are more efficient in term of
-// code size, speed, and memory usage.
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 
-void setup() {
-#ifdef PROGMEM  // <- check that Flash strings are supported
+// About
+// -----
+// This example shows the different ways you can use PROGMEM with ArduinoJson.
+// Please don't see this as an invitation to use PROGMEM.
+// On the contrary, you should always use char[] when possible, it's much more
+// efficient in term of code size, speed and memory usage.
 
+void setup() {
+#ifdef PROGMEM
   DynamicJsonBuffer jsonBuffer;
 
   // You can use a Flash String as your JSON input.
@@ -37,9 +39,6 @@ void setup() {
   // JsonBuffer.
   root["sensor"] = F("gps");
 
-  // It works with RawJson too:
-  root["sensor"] = RawJson(F("\"gps\""));
-
   // You can compare the content of a JsonVariant to a Flash String
   if (root["sensor"] == F("gps")) {
     // ...
@@ -55,16 +54,3 @@ void setup() {
 void loop() {
   // not used in this example
 }
-
-// See also
-// --------
-//
-// https://arduinojson.org/ contains the documentation for all the functions
-// used above. It also includes an FAQ that will help you solve any memory
-// problem.
-//
-// The book "Mastering ArduinoJson" contains a quick C++ course that explains
-// how your microcontroller stores strings in memory. It also tells why you
-// should not abuse Flash strings with ArduinoJson.
-// Learn more at https://arduinojson.org/book/
-// Use the coupon code TWENTY for a 20% discount ❤❤❤❤❤

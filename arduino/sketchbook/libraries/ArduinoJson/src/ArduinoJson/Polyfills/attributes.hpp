@@ -1,12 +1,15 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
 #ifdef _MSC_VER  // Visual Studio
 
-#define FORCE_INLINE  // __forceinline causes C4714 when returning std::string
+#define FORCE_INLINE __forceinline
 #define NO_INLINE __declspec(noinline)
 #define DEPRECATED(msg) __declspec(deprecated(msg))
 

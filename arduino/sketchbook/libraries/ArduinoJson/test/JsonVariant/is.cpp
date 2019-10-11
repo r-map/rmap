@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
@@ -58,7 +61,6 @@ void checkIsInteger(JsonVariant var) {
 
 void checkIsString(JsonVariant var) {
   REQUIRE(var.is<const char*>());
-  REQUIRE(var.is<std::string>());
 
   REQUIRE_FALSE(var.is<bool>());
   REQUIRE_FALSE(var.is<int>());

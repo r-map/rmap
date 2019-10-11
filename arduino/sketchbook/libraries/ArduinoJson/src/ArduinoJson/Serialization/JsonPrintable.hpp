@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -29,8 +32,9 @@ template <typename T>
 class JsonPrintable {
  public:
   template <typename Print>
-  typename EnableIf<!StringTraits<Print>::has_append, size_t>::type printTo(
-      Print &print) const {
+  typename TypeTraits::EnableIf<!TypeTraits::IsString<Print>::value,
+                                size_t>::type
+  printTo(Print &print) const {
     JsonWriter<Print> writer(print);
     JsonSerializer<JsonWriter<Print> >::serialize(downcast(), writer);
     return writer.bytesWritten();
@@ -55,8 +59,8 @@ class JsonPrintable {
   }
 
   template <typename TString>
-  typename EnableIf<StringTraits<TString>::has_append, size_t>::type printTo(
-      TString &str) const {
+  typename TypeTraits::EnableIf<StringTraits<TString>::has_append, size_t>::type
+  printTo(TString &str) const {
     DynamicStringBuilder<TString> sb(str);
     return printTo(sb);
   }
@@ -78,14 +82,15 @@ class JsonPrintable {
   }
 
   template <typename Print>
-  typename EnableIf<!StringTraits<Print>::has_append, size_t>::type
+  typename TypeTraits::EnableIf<!TypeTraits::IsString<Print>::value,
+                                size_t>::type
   prettyPrintTo(Print &print) const {
     IndentedPrint<Print> indentedPrint(print);
     return prettyPrintTo(indentedPrint);
   }
 
   template <typename TString>
-  typename EnableIf<StringTraits<TString>::has_append, size_t>::type
+  typename TypeTraits::EnableIf<StringTraits<TString>::has_append, size_t>::type
   prettyPrintTo(TString &str) const {
     DynamicStringBuilder<TString> sb(str);
     return prettyPrintTo(sb);
@@ -113,5 +118,5 @@ inline std::ostream &operator<<(std::ostream &os, const JsonPrintable<T> &v) {
   return v.printTo(os);
 }
 #endif
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}

@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -79,14 +82,14 @@ class JsonWriter {
 
   template <typename TFloat>
   void writeFloat(TFloat value) {
-    if (isNaN(value)) return writeRaw("NaN");
+    if (Polyfills::isNaN(value)) return writeRaw("NaN");
 
     if (value < 0.0) {
       writeRaw('-');
       value = -value;
     }
 
-    if (isInfinity(value)) return writeRaw("Infinity");
+    if (Polyfills::isInfinity(value)) return writeRaw("Infinity");
 
     FloatParts<TFloat> parts(value);
 
@@ -151,5 +154,5 @@ class JsonWriter {
  private:
   JsonWriter &operator=(const JsonWriter &);  // cannot be assigned
 };
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}

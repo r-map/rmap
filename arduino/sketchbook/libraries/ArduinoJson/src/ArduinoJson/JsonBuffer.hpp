@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -38,21 +41,20 @@ class JsonBuffer : Internals::NonCopyable {
 
   // Duplicates a string
   //
-  // const char* strdup(TValue);
+  // char* strdup(TValue);
   // TValue = const std::string&, const String&,
   template <typename TString>
-  DEPRECATED("char* are duplicated, you don't need strdup() anymore")
-  typename Internals::EnableIf<!Internals::IsArray<TString>::value,
-                               const char *>::type strdup(const TString &src) {
+  typename TypeTraits::EnableIf<!TypeTraits::IsArray<TString>::value,
+                                char *>::type
+  strdup(const TString &src) {
     return Internals::StringTraits<TString>::duplicate(src, this);
   }
   //
-  // const char* strdup(TValue);
-  // TValue = char*, const char*, const FlashStringHelper*
+  // char* strdup(TValue);
+  // TValue = const char*, const char[N], const FlashStringHelper*
   template <typename TString>
-  DEPRECATED("char* are duplicated, you don't need strdup() anymore")
-  const char *strdup(TString *src) {
-    return Internals::StringTraits<TString *>::duplicate(src, this);
+  char *strdup(const TString *src) {
+    return Internals::StringTraits<const TString *>::duplicate(src, this);
   }
 
   // Allocates n bytes in the JsonBuffer.
@@ -75,4 +77,4 @@ class JsonBuffer : Internals::NonCopyable {
 #endif
   }
 };
-}  // namespace ArduinoJson
+}

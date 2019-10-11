@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -8,7 +11,7 @@
 #include "./ctype.hpp"
 
 namespace ArduinoJson {
-namespace Internals {
+namespace Polyfills {
 
 inline bool isFloat(const char* s) {
   if (!s) return false;
@@ -34,5 +37,5 @@ inline bool isFloat(const char* s) {
 
   return *s == '\0';
 }
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}

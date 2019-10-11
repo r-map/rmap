@@ -1,6 +1,9 @@
-// ArduinoJson - arduinojson.org
-// Copyright Benoit Blanchon 2014-2019
+// Copyright Benoit Blanchon 2014-2017
 // MIT License
+//
+// Arduino JSON library
+// https://bblanchon.github.io/ArduinoJson/
+// If you like this project, please add a star!
 
 #pragma once
 
@@ -30,35 +33,26 @@ struct CharPointerTraits {
   };
 
   static bool equals(const TChar* str, const char* expected) {
-    const char* actual = reinterpret_cast<const char*>(str);
-    if (!actual || !expected) return actual == expected;
-    return strcmp(actual, expected) == 0;
+    return strcmp(reinterpret_cast<const char*>(str), expected) == 0;
   }
-
-  static bool is_null(const TChar* str) {
-    return !str;
-  }
-
-  typedef const char* duplicate_t;
 
   template <typename Buffer>
-  static duplicate_t duplicate(const TChar* str, Buffer* buffer) {
+  static char* duplicate(const TChar* str, Buffer* buffer) {
     if (!str) return NULL;
     size_t size = strlen(reinterpret_cast<const char*>(str)) + 1;
     void* dup = buffer->alloc(size);
     if (dup != NULL) memcpy(dup, str, size);
-    return static_cast<duplicate_t>(dup);
+    return static_cast<char*>(dup);
   }
 
   static const bool has_append = false;
   static const bool has_equals = true;
-  static const bool should_duplicate = !IsConst<TChar>::value;
+  static const bool should_duplicate = false;
 };
 
-// char*, unsigned char*, signed char*
-// const char*, const unsigned char*, const signed char*
 template <typename TChar>
-struct StringTraits<TChar*, typename EnableIf<IsChar<TChar>::value>::type>
+struct StringTraits<TChar*, typename TypeTraits::EnableIf<
+                                TypeTraits::IsChar<TChar>::value>::type>
     : CharPointerTraits<TChar> {};
-}  // namespace Internals
-}  // namespace ArduinoJson
+}
+}
