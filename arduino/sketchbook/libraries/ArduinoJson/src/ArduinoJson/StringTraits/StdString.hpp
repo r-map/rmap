@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -22,13 +19,20 @@ namespace Internals {
 
 template <typename TString>
 struct StdStringTraits {
+  typedef const char* duplicate_t;
+
   template <typename Buffer>
-  static char* duplicate(const TString& str, Buffer* buffer) {
+  static duplicate_t duplicate(const TString& str, Buffer* buffer) {
     if (!str.c_str()) return NULL;  // <- Arduino string can return NULL
     size_t size = str.length() + 1;
     void* dup = buffer->alloc(size);
     if (dup != NULL) memcpy(dup, str.c_str(), size);
-    return static_cast<char*>(dup);
+    return static_cast<duplicate_t>(dup);
+  }
+
+  static bool is_null(const TString& str) {
+    // Arduino's String::c_str() can return NULL
+    return !str.c_str();
   }
 
   struct Reader : CharPointerTraits<char>::Reader {
@@ -36,7 +40,10 @@ struct StdStringTraits {
   };
 
   static bool equals(const TString& str, const char* expected) {
-    return 0 == strcmp(str.c_str(), expected);
+    // Arduino's String::c_str() can return NULL
+    const char* actual = str.c_str();
+    if (!actual || !expected) return actual == expected;
+    return 0 == strcmp(actual, expected);
   }
 
   static void append(TString& str, char c) {
@@ -64,7 +71,7 @@ struct StringTraits<StringSumHelper, void> : StdStringTraits<StringSumHelper> {
 template <>
 struct StringTraits<std::string, void> : StdStringTraits<std::string> {};
 #endif
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
 
 #endif

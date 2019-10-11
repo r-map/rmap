@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #define ARDUINOJSON_ENABLE_DEPRECATED 1
 
@@ -105,5 +102,39 @@ TEST_CASE("Deprecated functions") {
     REQUIRE(true == obj["hello"].is<double>());
     REQUIRE(false == obj["hello"].is<long>());
     REQUIRE(123.45 == obj["hello"].as<double>());
+  }
+}
+
+TEST_CASE("DynamicJsonBuffer::strdup()") {
+  DynamicJsonBuffer buffer;
+
+  SECTION("char*") {
+    char original[] = "hello";
+    const char* copy = buffer.strdup(original);
+    strcpy(original, "world");
+    REQUIRE(std::string("hello") == copy);
+  }
+
+  SECTION("unsigned char*") {
+    unsigned char value[] = "world";
+
+    DynamicJsonBuffer jsonBuffer;
+    const char* dup = jsonBuffer.strdup(value);
+
+    REQUIRE(static_cast<const void*>(value) != static_cast<const void*>(dup));
+    REQUIRE(std::string("world") == dup);
+  }
+
+  SECTION("std::string") {
+    std::string original("hello");
+    const char* copy = buffer.strdup(original);
+    original[0] = 'w';
+    REQUIRE(std::string("hello") == copy);
+  }
+
+  SECTION("NULL") {
+    const char* original = NULL;
+    const char* copy = buffer.strdup(original);
+    REQUIRE(0 == copy);
   }
 }

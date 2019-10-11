@@ -1,12 +1,11 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
+
+static const char* null = 0;
 
 template <typename T>
 void checkEquals(JsonVariant a, T b) {
@@ -99,9 +98,25 @@ TEST_CASE("JsonVariant comparisons") {
     checkComparisons<unsigned short>(122, 123, 124);
   }
 
+  SECTION("null") {
+    JsonVariant variant = null;
+
+    REQUIRE(variant == variant);
+    REQUIRE_FALSE(variant != variant);
+
+    REQUIRE(variant == null);
+    REQUIRE_FALSE(variant != null);
+
+    REQUIRE(variant != "null");
+    REQUIRE_FALSE(variant == "null");
+  }
+
   SECTION("StringLiteral") {
     DynamicJsonBuffer jsonBuffer;
     JsonVariant variant = jsonBuffer.parse("\"hello\"");
+
+    REQUIRE(variant == variant);
+    REQUIRE_FALSE(variant != variant);
 
     REQUIRE(variant == "hello");
     REQUIRE_FALSE(variant != "hello");
@@ -109,16 +124,25 @@ TEST_CASE("JsonVariant comparisons") {
     REQUIRE(variant != "world");
     REQUIRE_FALSE(variant == "world");
 
+    REQUIRE(variant != null);
+    REQUIRE_FALSE(variant == null);
+
     REQUIRE("hello" == variant);
     REQUIRE_FALSE("hello" != variant);
 
     REQUIRE("world" != variant);
     REQUIRE_FALSE("world" == variant);
+
+    REQUIRE(null != variant);
+    REQUIRE_FALSE(null == variant);
   }
 
   SECTION("String") {
     DynamicJsonBuffer jsonBuffer;
     JsonVariant variant = jsonBuffer.parse("\"hello\"");
+
+    REQUIRE(variant == variant);
+    REQUIRE_FALSE(variant != variant);
 
     REQUIRE(variant == std::string("hello"));
     REQUIRE_FALSE(variant != std::string("hello"));
@@ -126,11 +150,17 @@ TEST_CASE("JsonVariant comparisons") {
     REQUIRE(variant != std::string("world"));
     REQUIRE_FALSE(variant == std::string("world"));
 
+    REQUIRE(variant != null);
+    REQUIRE_FALSE(variant == null);
+
     REQUIRE(std::string("hello") == variant);
     REQUIRE_FALSE(std::string("hello") != variant);
 
     REQUIRE(std::string("world") != variant);
     REQUIRE_FALSE(std::string("world") == variant);
+
+    REQUIRE(null != variant);
+    REQUIRE_FALSE(null == variant);
   }
 
   SECTION("IntegerInVariant") {

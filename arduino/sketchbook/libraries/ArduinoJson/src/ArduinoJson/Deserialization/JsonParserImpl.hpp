@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -20,18 +17,9 @@ inline bool ArduinoJson::Internals::JsonParser<TReader, TWriter>::eat(
 }
 
 template <typename TReader, typename TWriter>
-inline bool ArduinoJson::Internals::JsonParser<
-    TReader, TWriter>::parseAnythingTo(JsonVariant *destination) {
-  if (_nestingLimit == 0) return false;
-  _nestingLimit--;
-  bool success = parseAnythingToUnsafe(destination);
-  _nestingLimit++;
-  return success;
-}
-
-template <typename TReader, typename TWriter>
-inline bool ArduinoJson::Internals::JsonParser<
-    TReader, TWriter>::parseAnythingToUnsafe(JsonVariant *destination) {
+inline bool
+ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseAnythingTo(
+    JsonVariant *destination) {
   skipSpacesAndComments(_reader);
 
   switch (_reader.current()) {
@@ -49,6 +37,9 @@ inline bool ArduinoJson::Internals::JsonParser<
 template <typename TReader, typename TWriter>
 inline ArduinoJson::JsonArray &
 ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseArray() {
+  if (_nestingLimit == 0) return JsonArray::invalid();
+  _nestingLimit--;
+
   // Create an empty array
   JsonArray &array = _buffer->createArray();
 
@@ -70,6 +61,7 @@ ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseArray() {
 
 SUCCESS_EMPTY_ARRAY:
 SUCCES_NON_EMPTY_ARRAY:
+  _nestingLimit++;
   return array;
 
 ERROR_INVALID_VALUE:
@@ -92,6 +84,9 @@ inline bool ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseArrayTo(
 template <typename TReader, typename TWriter>
 inline ArduinoJson::JsonObject &
 ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseObject() {
+  if (_nestingLimit == 0) return JsonObject::invalid();
+  _nestingLimit--;
+
   // Create an empty object
   JsonObject &object = _buffer->createObject();
 
@@ -118,6 +113,7 @@ ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseObject() {
 
 SUCCESS_EMPTY_OBJECT:
 SUCCESS_NON_EMPTY_OBJECT:
+  _nestingLimit++;
   return object;
 
 ERROR_INVALID_KEY:
@@ -142,8 +138,7 @@ inline bool ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseObjectTo(
 template <typename TReader, typename TWriter>
 inline const char *
 ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseString() {
-  typename TypeTraits::RemoveReference<TWriter>::type::String str =
-      _writer.startString();
+  typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
   skipSpacesAndComments(_reader);
   char c = _reader.current();
@@ -169,7 +164,7 @@ ArduinoJson::Internals::JsonParser<TReader, TWriter>::parseString() {
     }
   } else {  // no quotes
     for (;;) {
-      if (!isLetterOrNumber(c)) break;
+      if (!canBeInNonQuotedString(c)) break;
       _reader.move();
       str.append(c);
       c = _reader.current();

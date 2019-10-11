@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
@@ -11,11 +8,6 @@
 TEST_CASE("JsonArray::add()") {
   DynamicJsonBuffer _jsonBuffer;
   JsonArray& _array = _jsonBuffer.createArray();
-
-  SECTION("SizeIncreased_WhenValuesAreAdded") {
-    _array.add("hello");
-    REQUIRE(1U == _array.size());
-  }
 
   SECTION("int") {
     _array.add(123);
@@ -41,7 +33,7 @@ TEST_CASE("JsonArray::add()") {
   SECTION("const char*") {
     const char* str = "hello";
     _array.add(str);
-    REQUIRE(str == _array[0].as<const char*>());
+    REQUIRE(str == _array[0].as<std::string>());
     REQUIRE(_array[0].is<const char*>());
     REQUIRE_FALSE(_array[0].is<int>());
   }
@@ -84,5 +76,35 @@ TEST_CASE("JsonArray::add()") {
     _array.add(obj["x"]);
 
     REQUIRE(str == _array[0]);
+  }
+
+  SECTION("should not duplicate const char*") {
+    _array.add("world");
+    const size_t expectedSize = JSON_ARRAY_SIZE(1);
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should duplicate char*") {
+    _array.add(const_cast<char*>("world"));
+    const size_t expectedSize = JSON_ARRAY_SIZE(1) + 6;
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should duplicate std::string") {
+    _array.add(std::string("world"));
+    const size_t expectedSize = JSON_ARRAY_SIZE(1) + 6;
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should not duplicate RawJson(const char*)") {
+    _array.add(RawJson("{}"));
+    const size_t expectedSize = JSON_ARRAY_SIZE(1);
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should duplicate RawJson(char*)") {
+    _array.add(RawJson(const_cast<char*>("{}")));
+    const size_t expectedSize = JSON_ARRAY_SIZE(1) + 3;
+    REQUIRE(expectedSize == _jsonBuffer.size());
   }
 }

@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -12,39 +9,28 @@
 #include "../TypeTraits/EnableIf.hpp"
 #include "../TypeTraits/IsBaseOf.hpp"
 #include "../TypeTraits/IsChar.hpp"
+#include "../TypeTraits/IsConst.hpp"
 #include "../TypeTraits/RemoveReference.hpp"
 
 namespace ArduinoJson {
 namespace Internals {
 
 template <typename TString, typename Enable = void>
-struct StringTraits {};
+struct StringTraits {
+  static const bool has_append = false;
+  static const bool has_equals = false;
+};
 
 template <typename TString>
 struct StringTraits<const TString, void> : StringTraits<TString> {};
 
 template <typename TString>
 struct StringTraits<TString&, void> : StringTraits<TString> {};
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
 
 #include "ArduinoStream.hpp"
 #include "CharPointer.hpp"
 #include "FlashString.hpp"
 #include "StdStream.hpp"
 #include "StdString.hpp"
-
-namespace ArduinoJson {
-namespace TypeTraits {
-template <typename T, typename Enable = void>
-struct IsString {
-  static const bool value = false;
-};
-
-template <typename T>
-struct IsString<T, typename TypeTraits::EnableIf<
-                       Internals::StringTraits<T>::has_equals>::type> {
-  static const bool value = Internals::StringTraits<T>::has_equals;
-};
-}
-}

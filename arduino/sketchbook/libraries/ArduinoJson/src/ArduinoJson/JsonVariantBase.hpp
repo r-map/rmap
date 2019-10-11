@@ -1,23 +1,24 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 #include "JsonVariantCasts.hpp"
 #include "JsonVariantComparisons.hpp"
+#include "JsonVariantOr.hpp"
 #include "JsonVariantSubscripts.hpp"
 #include "Serialization/JsonPrintable.hpp"
 
 namespace ArduinoJson {
+namespace Internals {
 
 template <typename TImpl>
-class JsonVariantBase : public Internals::JsonPrintable<TImpl>,
+class JsonVariantBase : public JsonPrintable<TImpl>,
                         public JsonVariantCasts<TImpl>,
                         public JsonVariantComparisons<TImpl>,
+                        public JsonVariantOr<TImpl>,
                         public JsonVariantSubscripts<TImpl>,
-                        public TypeTraits::JsonVariantTag {};
-}
+                        public JsonVariantTag {};
+}  // namespace Internals
+}  // namespace ArduinoJson

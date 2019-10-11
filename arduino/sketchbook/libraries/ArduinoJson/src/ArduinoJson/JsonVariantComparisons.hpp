@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -12,6 +9,7 @@
 #include "TypeTraits/IsVariant.hpp"
 
 namespace ArduinoJson {
+namespace Internals {
 
 template <typename TImpl>
 class JsonVariantComparisons {
@@ -23,10 +21,8 @@ class JsonVariantComparisons {
   }
 
   template <typename TComparand>
-  friend
-      typename TypeTraits::EnableIf<!TypeTraits::IsVariant<TComparand>::value,
-                                    bool>::type
-      operator==(TComparand comparand, const JsonVariantComparisons &variant) {
+  friend typename EnableIf<!IsVariant<TComparand>::value, bool>::type
+  operator==(TComparand comparand, const JsonVariantComparisons &variant) {
     return variant.equals(comparand);
   }
 
@@ -37,10 +33,8 @@ class JsonVariantComparisons {
   }
 
   template <typename TComparand>
-  friend
-      typename TypeTraits::EnableIf<!TypeTraits::IsVariant<TComparand>::value,
-                                    bool>::type
-      operator!=(TComparand comparand, const JsonVariantComparisons &variant) {
+  friend typename EnableIf<!IsVariant<TComparand>::value, bool>::type
+  operator!=(TComparand comparand, const JsonVariantComparisons &variant) {
     return !variant.equals(comparand);
   }
 
@@ -97,7 +91,7 @@ class JsonVariantComparisons {
   }
 
   template <typename T>
-  const typename Internals::JsonVariantAs<T>::type as() const {
+  const typename JsonVariantAs<T>::type as() const {
     return impl()->template as<T>();
   }
 
@@ -107,17 +101,16 @@ class JsonVariantComparisons {
   }
 
   template <typename TString>
-  typename TypeTraits::EnableIf<TypeTraits::IsString<TString>::value,
-                                bool>::type
-  equals(const TString &comparand) const {
+  typename EnableIf<StringTraits<TString>::has_equals, bool>::type equals(
+      const TString &comparand) const {
     const char *value = as<const char *>();
-    return Internals::StringTraits<TString>::equals(comparand, value);
+    return StringTraits<TString>::equals(comparand, value);
   }
 
   template <typename TComparand>
-  typename TypeTraits::EnableIf<!TypeTraits::IsVariant<TComparand>::value &&
-                                    !TypeTraits::IsString<TComparand>::value,
-                                bool>::type
+  typename EnableIf<!IsVariant<TComparand>::value &&
+                        !StringTraits<TComparand>::has_equals,
+                    bool>::type
   equals(const TComparand &comparand) const {
     return as<TComparand>() == comparand;
   }
@@ -136,9 +129,11 @@ class JsonVariantComparisons {
     if (is<JsonObject>() && right.template is<JsonObject>())
       return as<JsonObject>() == right.template as<JsonObject>();
     if (is<char *>() && right.template is<char *>())
-      return strcmp(as<char *>(), right.template as<char *>()) == 0;
+      return StringTraits<const char *>::equals(as<char *>(),
+                                                right.template as<char *>());
 
     return false;
   }
 };
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
