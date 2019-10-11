@@ -1,15 +1,13 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 // Small or big machine?
 #ifndef ARDUINOJSON_EMBEDDED_MODE
-#if defined(ARDUINO) || defined(__IAR_SYSTEMS_ICC__)
+#if defined(ARDUINO) || defined(__IAR_SYSTEMS_ICC__) || defined(__XC) || \
+    defined(__ARMCC_VERSION)
 #define ARDUINOJSON_EMBEDDED_MODE 1
 #else
 #define ARDUINOJSON_EMBEDDED_MODE 0

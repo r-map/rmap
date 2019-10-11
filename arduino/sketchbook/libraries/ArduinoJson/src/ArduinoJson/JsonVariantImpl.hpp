@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -26,6 +23,7 @@ inline JsonVariant::JsonVariant(const JsonArray &array) {
     _content.asArray = const_cast<JsonArray *>(&array);
   } else {
     _type = Internals::JSON_UNDEFINED;
+    _content.asArray = 0;  // <- prevent warning 'maybe-uninitialized'
   }
 }
 
@@ -35,6 +33,7 @@ inline JsonVariant::JsonVariant(const JsonObject &object) {
     _content.asObject = const_cast<JsonObject *>(&object);
   } else {
     _type = Internals::JSON_UNDEFINED;
+    _content.asObject = 0;  // <- prevent warning 'maybe-uninitialized'
   }
 }
 
@@ -61,7 +60,7 @@ inline T JsonVariant::variantAsInteger() const {
       return T(~_content.asInteger + 1);
     case JSON_STRING:
     case JSON_UNPARSED:
-      return Polyfills::parseInteger<T>(_content.asString);
+      return parseInteger<T>(_content.asString);
     default:
       return T(_content.asFloat);
   }
@@ -89,7 +88,7 @@ inline T JsonVariant::variantAsFloat() const {
       return -static_cast<T>(_content.asInteger);
     case JSON_STRING:
     case JSON_UNPARSED:
-      return Polyfills::parseFloat<T>(_content.asString);
+      return parseFloat<T>(_content.asString);
     default:
       return static_cast<T>(_content.asFloat);
   }
@@ -109,7 +108,7 @@ inline bool JsonVariant::variantIsInteger() const {
   using namespace Internals;
 
   return _type == JSON_POSITIVE_INTEGER || _type == JSON_NEGATIVE_INTEGER ||
-         (_type == JSON_UNPARSED && Polyfills::isInteger(_content.asString));
+         (_type == JSON_UNPARSED && isInteger(_content.asString));
 }
 
 inline bool JsonVariant::variantIsFloat() const {
@@ -117,7 +116,7 @@ inline bool JsonVariant::variantIsFloat() const {
 
   return _type == JSON_FLOAT || _type == JSON_POSITIVE_INTEGER ||
          _type == JSON_NEGATIVE_INTEGER ||
-         (_type == JSON_UNPARSED && Polyfills::isFloat(_content.asString));
+         (_type == JSON_UNPARSED && isFloat(_content.asString));
 }
 
 #if ARDUINOJSON_ENABLE_STD_STREAM

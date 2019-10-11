@@ -1,14 +1,11 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 namespace ArduinoJson {
-namespace Polyfills {
+namespace Internals {
 
 inline bool isdigit(char c) {
   return '0' <= c && c <= '9';
@@ -17,5 +14,5 @@ inline bool isdigit(char c) {
 inline bool issign(char c) {
   return '-' == c || c == '+';
 }
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson

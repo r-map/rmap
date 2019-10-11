@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -67,5 +64,5 @@ class IndentedPrint {
   static const int MAX_LEVEL = 15;    // because it's only 4 bits
   static const int MAX_TAB_SIZE = 7;  // because it's only 3 bits
 };
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson

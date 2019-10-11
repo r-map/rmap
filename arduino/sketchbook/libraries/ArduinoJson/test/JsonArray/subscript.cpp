@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <stdint.h>
@@ -13,11 +10,6 @@ TEST_CASE("JsonArray::operator[]") {
   DynamicJsonBuffer _jsonBuffer;
   JsonArray& _array = _jsonBuffer.createArray();
   _array.add(0);
-
-  SECTION("SizeIsUnchanged") {
-    _array[0] = "hello";
-    REQUIRE(1U == _array.size());
-  }
 
   SECTION("int") {
     _array[0] = 123;
@@ -105,5 +97,23 @@ TEST_CASE("JsonArray::operator[]") {
     _array[0] = obj["x"];
 
     REQUIRE(str == _array[0]);
+  }
+
+  SECTION("should not duplicate const char*") {
+    _array[0] = "world";
+    const size_t expectedSize = JSON_ARRAY_SIZE(1);
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should duplicate char*") {
+    _array[0] = const_cast<char*>("world");
+    const size_t expectedSize = JSON_ARRAY_SIZE(1) + 6;
+    REQUIRE(expectedSize == _jsonBuffer.size());
+  }
+
+  SECTION("should duplicate std::string") {
+    _array[0] = std::string("world");
+    const size_t expectedSize = JSON_ARRAY_SIZE(1) + 6;
+    REQUIRE(expectedSize == _jsonBuffer.size());
   }
 }

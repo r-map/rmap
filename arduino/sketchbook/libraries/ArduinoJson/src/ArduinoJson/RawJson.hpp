@@ -1,23 +1,46 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 namespace ArduinoJson {
 
+namespace Internals {
 // A special type of data that can be used to insert pregenerated JSON portions.
-class RawJson {
+template <typename T>
+class RawJsonString {
  public:
-  explicit RawJson(const char* str) : _str(str) {}
-  operator const char*() const {
+  explicit RawJsonString(T str) : _str(str) {}
+  operator T() const {
     return _str;
   }
 
  private:
-  const char* _str;
+  T _str;
 };
+
+template <typename String>
+struct StringTraits<RawJsonString<String>, void> {
+  static bool is_null(RawJsonString<String> source) {
+    return StringTraits<String>::is_null(static_cast<String>(source));
+  }
+
+  typedef RawJsonString<const char*> duplicate_t;
+
+  template <typename Buffer>
+  static duplicate_t duplicate(RawJsonString<String> source, Buffer* buffer) {
+    return duplicate_t(StringTraits<String>::duplicate(source, buffer));
+  }
+
+  static const bool has_append = false;
+  static const bool has_equals = false;
+  static const bool should_duplicate = StringTraits<String>::should_duplicate;
+};
+}  // namespace Internals
+
+template <typename T>
+inline Internals::RawJsonString<T> RawJson(T str) {
+  return Internals::RawJsonString<T>(str);
 }
+}  // namespace ArduinoJson

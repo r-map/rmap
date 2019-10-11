@@ -1,18 +1,18 @@
-# Copyright Benoit Blanchon 2014-2017
+# ArduinoJson - arduinojson.org
+# Copyright Benoit Blanchon 2014-2019
 # MIT License
-# 
-# Arduino JSON library
-# https://bblanchon.github.io/ArduinoJson/
-# If you like this project, please add a star!
 
 add_executable(MiscTests 
+	empty.cpp
 	deprecated.cpp
 	FloatParts.cpp
 	std_stream.cpp
 	std_string.cpp
 	StringBuilder.cpp
+	StringTraits.cpp
 	TypeTraits.cpp
 	unsigned_char.cpp
+	version.cpp
 	vla.cpp
 )
 

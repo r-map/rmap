@@ -1,16 +1,13 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 #include "IsSame.hpp"
 
 namespace ArduinoJson {
-namespace TypeTraits {
+namespace Internals {
 
 // A meta-function that returns true if T is a charater
 template <typename T>
@@ -22,5 +19,5 @@ struct IsChar {
 
 template <typename T>
 struct IsChar<const T> : IsChar<T> {};
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson

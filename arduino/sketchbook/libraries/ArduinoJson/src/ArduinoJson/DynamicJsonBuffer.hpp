@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -22,6 +19,7 @@
 #endif
 
 namespace ArduinoJson {
+namespace Internals {
 class DefaultAllocator {
  public:
   void* allocate(size_t size) {
@@ -154,6 +152,7 @@ class DynamicJsonBufferBase
   Block* _head;
   size_t _nextBlockCapacity;
 };
+}  // namespace Internals
 
 #if defined(__clang__)
 #pragma clang diagnostic pop
@@ -166,5 +165,6 @@ class DynamicJsonBufferBase
 // Implements a JsonBuffer with dynamic memory allocation.
 // You are strongly encouraged to consider using StaticJsonBuffer which is much
 // more suitable for embedded systems.
-typedef DynamicJsonBufferBase<DefaultAllocator> DynamicJsonBuffer;
-}
+typedef Internals::DynamicJsonBufferBase<Internals::DefaultAllocator>
+    DynamicJsonBuffer;
+}  // namespace ArduinoJson

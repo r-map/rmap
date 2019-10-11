@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
@@ -34,23 +31,31 @@ struct StringTraits<const __FlashStringHelper*, void> {
   };
 
   static bool equals(const __FlashStringHelper* str, const char* expected) {
-    return strcmp_P(expected, (const char*)str) == 0;
+    const char* actual = reinterpret_cast<const char*>(str);
+    if (!actual || !expected) return actual == expected;
+    return strcmp_P(expected, actual) == 0;
   }
 
+  static bool is_null(const __FlashStringHelper* str) {
+    return !str;
+  }
+
+  typedef const char* duplicate_t;
+
   template <typename Buffer>
-  static char* duplicate(const __FlashStringHelper* str, Buffer* buffer) {
+  static duplicate_t duplicate(const __FlashStringHelper* str, Buffer* buffer) {
     if (!str) return NULL;
     size_t size = strlen_P((const char*)str) + 1;
     void* dup = buffer->alloc(size);
     if (dup != NULL) memcpy_P(dup, (const char*)str, size);
-    return static_cast<char*>(dup);
+    return static_cast<duplicate_t>(dup);
   }
 
   static const bool has_append = false;
   static const bool has_equals = true;
   static const bool should_duplicate = true;
 };
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
 
 #endif

@@ -1,9 +1,6 @@
-# Copyright Benoit Blanchon 2014-2017
+# ArduinoJson - arduinojson.org
+# Copyright Benoit Blanchon 2014-2019
 # MIT License
-# 
-# Arduino JSON library
-# https://bblanchon.github.io/ArduinoJson/
-# If you like this project, please add a star!
 
 add_executable(JsonArrayTests 
 	add.cpp
@@ -16,6 +13,7 @@ add_executable(JsonArrayTests
 	printTo.cpp
 	remove.cpp
 	set.cpp
+	size.cpp
 	subscript.cpp
 )
 

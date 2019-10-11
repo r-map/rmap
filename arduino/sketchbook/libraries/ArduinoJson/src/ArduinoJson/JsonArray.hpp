@@ -1,16 +1,13 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #pragma once
 
 #include "Data/JsonBufferAllocated.hpp"
 #include "Data/List.hpp"
 #include "Data/ReferenceType.hpp"
-#include "Data/ValueSetter.hpp"
+#include "Data/ValueSaver.hpp"
 #include "JsonVariant.hpp"
 #include "Serialization/JsonPrintable.hpp"
 #include "StringTraits/StringTraits.hpp"
@@ -29,7 +26,9 @@ namespace ArduinoJson {
 // Forward declarations
 class JsonObject;
 class JsonBuffer;
+namespace Internals {
 class JsonArraySubscript;
+}
 
 // An array of JsonVariant.
 //
@@ -50,28 +49,26 @@ class JsonArray : public Internals::JsonPrintable<JsonArray>,
       : Internals::List<JsonVariant>(buffer) {}
 
   // Gets the value at the specified index
-  const JsonArraySubscript operator[](size_t index) const;
+  const Internals::JsonArraySubscript operator[](size_t index) const;
 
   // Gets or sets the value at specified index
-  JsonArraySubscript operator[](size_t index);
+  Internals::JsonArraySubscript operator[](size_t index);
 
   // Adds the specified value at the end of the array.
   //
   // bool add(TValue);
   // TValue = bool, long, int, short, float, double, RawJson, JsonVariant,
-  //          const std::string&, const String&,
-  //          const JsonArray&, const JsonObject&
+  //          std::string, String, JsonArray, JsonObject
   template <typename T>
-  typename TypeTraits::EnableIf<!TypeTraits::IsArray<T>::value, bool>::type add(
-      const T &value) {
+  bool add(const T &value) {
     return add_impl<const T &>(value);
   }
   //
   // bool add(TValue);
-  // TValue = const char*, const char[N], const FlashStringHelper*
+  // TValue = char*, const char*, const FlashStringHelper*
   template <typename T>
-  bool add(const T *value) {
-    return add_impl<const T *>(value);
+  bool add(T *value) {
+    return add_impl<T *>(value);
   }
   //
   // bool add(TValue value, uint8_t decimals);
@@ -84,28 +81,25 @@ class JsonArray : public Internals::JsonPrintable<JsonArray>,
 
   // Sets the value at specified index.
   //
-  // bool add(size_t index, TValue);
+  // bool add(size_t index, const TValue&);
   // TValue = bool, long, int, short, float, double, RawJson, JsonVariant,
-  //          const std::string&, const String&,
-  //          const JsonArray&, const JsonObject&
+  //          std::string, String, JsonArray, JsonObject
   template <typename T>
-  typename TypeTraits::EnableIf<!TypeTraits::IsArray<T>::value, bool>::type set(
-      size_t index, const T &value) {
+  bool set(size_t index, const T &value) {
     return set_impl<const T &>(index, value);
   }
   //
   // bool add(size_t index, TValue);
-  // TValue = const char*, const char[N], const FlashStringHelper*
+  // TValue = char*, const char*, const FlashStringHelper*
   template <typename T>
-  bool set(size_t index, const T *value) {
-    return set_impl<const T *>(index, value);
+  bool set(size_t index, T *value) {
+    return set_impl<T *>(index, value);
   }
   //
   // bool set(size_t index, TValue value, uint8_t decimals);
   // TValue = float, double
   template <typename T>
-  typename TypeTraits::EnableIf<TypeTraits::IsFloatingPoint<T>::value,
-                                bool>::type
+  typename Internals::EnableIf<Internals::IsFloatingPoint<T>::value, bool>::type
   set(size_t index, T value, uint8_t decimals) {
     return set_impl<const JsonVariant &>(index, JsonVariant(value, decimals));
   }
@@ -211,14 +205,14 @@ class JsonArray : public Internals::JsonPrintable<JsonArray>,
   bool set_impl(size_t index, TValueRef value) {
     iterator it = begin() += index;
     if (it == end()) return false;
-    return Internals::ValueSetter<TValueRef>::set(_buffer, *it, value);
+    return Internals::ValueSaver<TValueRef>::save(_buffer, *it, value);
   }
 
   template <typename TValueRef>
   bool add_impl(TValueRef value) {
     iterator it = Internals::List<JsonVariant>::add();
     if (it == end()) return false;
-    return Internals::ValueSetter<TValueRef>::set(_buffer, *it, value);
+    return Internals::ValueSaver<TValueRef>::save(_buffer, *it, value);
   }
 };
 
@@ -229,5 +223,5 @@ struct JsonVariantDefault<JsonArray> {
     return JsonArray::invalid();
   }
 };
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson

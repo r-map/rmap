@@ -1,9 +1,6 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - arduinojson.org
+// Copyright Benoit Blanchon 2014-2019
 // MIT License
-//
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
 
 #include <ArduinoJson.h>
 #include <catch.hpp>
@@ -242,12 +239,5 @@ TEST_CASE("std::string") {
     size_t sizeAfter = jb.size();
 
     REQUIRE(sizeBefore == sizeAfter);
-  }
-
-  SECTION("JsonBuffer_strdup") {
-    std::string original("hello");
-    char *copy = jb.strdup(original);
-    original[0] = 'w';
-    REQUIRE(std::string("hello") == copy);
   }
 }
