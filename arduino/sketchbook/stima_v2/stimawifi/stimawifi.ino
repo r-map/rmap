@@ -178,24 +178,11 @@ I2C_BUTTON button; //I2C address 0x31
 // I2C_BUTTON button(DEFAULT_I2C_BUTTON_ADDRESS); //I2C address 0x31
 // I2C_BUTTON button(your_address); //using customize I2C address
 
+String webjsondata;
 
 static float temperature=NAN;
 static int humidity=-999,pm2=-999,pm10=-999,co2=-999;
 
-/*
-const char* reportKeyProcessor(const String& key)
-{
-  if (key == "TEMPERATURE") return "28.5";
-  else if (key == "HUMIDITY") return "55.6";
-
-  return "ERROR: Key not found";
-}
-
-void handleReport()
-{
-  templateProcessor.processAndSend("/report.html", reportKeyProcessor);
-}
-*/
 
 
 // web server response function
@@ -219,32 +206,7 @@ void handle_NotFound(){
 
 
 String Json(){
-
-  String str ="{"
-    "\"TEMP\":\"";
-  str +=temperature;
-  str +="\","
-    "\"HUMID\":\"";
-  str +=humidity;
-  str +="\","
-    "\"PM2\":\"";
-  str +=pm2;
-  str +="\","
-    "\"PM10\":\"";
-  str +=pm10;
-  str +="\","
-    "\"CO2\":\"";
-  str +=co2;
-  str +="\","
-    "\"STAT\":\"";
-  if (mqttclient.connected()){
-    str +="Connected";
-  }else{
-    str +="Not connected";
-  }
-  str +="\"}";
-  
-  return str;
+  return webjsondata;
 }
 
 // function to prepare HTML response
@@ -827,38 +789,6 @@ void writeconfig() {;
   LOGN(F("saved config parameter" CR));
 }
 
-
-void web_values(const char* values) {
-  
-  StaticJsonBuffer<500> jsonBuffer;
-
-  JsonObject& json =jsonBuffer.parseObject(values);
-  if (json.success()){
-    for (JsonPair& pair : json) {
-
-      if (pair.value.as<char*>() == NULL) continue;
-      float val=pair.value.as<float>();
-
-      if (strcmp(pair.key,"B12101")==0){
-	temperature=round((val-27315)/10.)/10;
-      }
-      if (strcmp(pair.key,"B13003")==0){
-	humidity=round(val);
-      }
-      if (strcmp(pair.key,"B15198")==0){
-	pm2=round(val/10.);
-      }
-      if (strcmp(pair.key,"B15195")==0){
-	pm10=round(val/10.);
-      }
-      if (strcmp(pair.key,"B15242")==0){
-	co2=round(val/1.8);
-      }
-    }
-  }
-}
-
-
 void display_values(const char* values) {
   
   StaticJsonBuffer<500> jsonBuffer;
@@ -978,6 +908,10 @@ void repeats() {
     yield();
   }
 
+  webjsondata="";
+  DynamicJsonBuffer jsonBuffer(4000);
+  JsonObject& jsondata = jsonBuffer.createObject();
+
   temperature= NAN;
   humidity=-999;
   pm2=-999;
@@ -990,7 +924,19 @@ void repeats() {
       LOGN(F("getJson sd %d" CR),i);
       if (sd[i]->getJson(values,lenvalues) == SD_SUCCESS){
 	if(publish_data(values,sensors[i].timerange,sensors[i].level)){
-	  web_values(values);
+
+
+	  JsonObject& jsonvalues =jsonBuffer.parseObject(jsonBuffer.strdup(values));
+	  if (jsonvalues.success()){
+	    for (JsonPair& pair : jsonvalues) {
+	      
+	      if (pair.value.as<char*>() == NULL) continue;
+	      long int val=pair.value.as<long int>();
+	      
+	      jsondata.set(jsonBuffer.strdup(pair.key),val);
+	    }
+	  }
+	 
 	  if (oledpresent) {
 	    display_values(values);
 	  }
@@ -1013,6 +959,8 @@ void repeats() {
       }
     }
   }
+
+  jsondata.printTo(webjsondata);
   
   if (oledpresent) u8g2.sendBuffer();
   digitalWrite(LED_PIN,HIGH);
