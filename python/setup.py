@@ -1,5 +1,6 @@
 from distutils.core import setup
 import os,errno,sys
+from sys import platform
 
 from distutils.command.build import build as build_
 from setuptools.command.develop import develop as develop_
@@ -251,25 +252,28 @@ for dirpath, dirnames, filenames in os.walk('geoid_heights'):
         data_files.append(['share/rmap/'+dirpath, [os.path.join(dirpath, f) for f in filenames]])
 
 
-try:
-    if (os.path.isdir("/etc/rmap/")):
-        os.mkdir('/etc/rmap/tmp')
-        os.rmdir('/etc/rmap/tmp')
-    else:
-        os.mkdir('/etc/rmap')
-        os.rmdir('/etc/rmap')
+#try:
+#    if (os.path.isdir("/etc/rmap/")):
+#        os.mkdir('/etc/rmap/tmp')
+#        os.rmdir('/etc/rmap/tmp')
+#    else:
+#        os.mkdir('/etc/rmap')
+#        os.rmdir('/etc/rmap')
+#
+#    add here installation file in /etc/
+#
+#except OSError as e:
+#    if (e.errno == errno.EACCES):
+#       print("You do not have root permissions to install files in /etc !", file=sys.stderr)
+#    else:
+#        print("There are some problems to install files in /etc !", file=sys.stderr)
 
+if (platform != 'android') :
     data_files.append(('/etc/rmap',['rmap-site.cfg']))
     data_files.append(('/etc/rmap',['map']))
     data_files.append(('/etc/rmap',['ttnmap']))
     data_files.append(('/etc/rmap',['dashboard.conf']))
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
-
-except OSError as e:
-    if (e.errno == errno.EACCES):
-       print("You do not have root permissions to install files in /etc !", file=sys.stderr)
-    else:
-        print("There are some problems to install files in /etc !", file=sys.stderr)
 
 for dirpath, dirnames, filenames in os.walk('rmap/static'):
     if filenames:

@@ -35,7 +35,7 @@ configspec['django']['TIME_ZONE']="string(default='GMT')"
 configspec['django']['LANGUAGE_CODE']="string(default='en-us')"
 configspec['django']['SITE_ID']="integer(default=1)"
 configspec['django']['USE_I18N']="boolean(default=True)"
-configspec['django']['LOCALE_PATHS']="list(default=list('locale',))"
+configspec['django']['LOCALE_PATHS']="list(default=list('%s/locale',))"  % os.getcwd()
 configspec['django']['ADMINS']="list(default=list('',))"
 configspec['django']['MANAGERS']="list(default=list('',))"
 configspec['django']['MEDIA_ROOT']="string(default='%s/media/')" % os.getcwd()
@@ -248,6 +248,12 @@ LANGUAGE_CODE           = config['django']['LANGUAGE_CODE']
 SITE_ID                 = config['django']['SITE_ID']
 USE_I18N                = config['django']['USE_I18N']
 LOCALE_PATHS            = config['django']['LOCALE_PATHS']
+NEWLOCALE_PATHS=[]
+for LOCALE in LOCALE_PATHS:
+    if "%s" in LOCALE:
+        LOCALE = LOCALE  % os.getcwd()
+        NEWLOCALE_PATHS.append(LOCALE)
+LOCALE_PATHS=NEWLOCALE_PATHS
 ADMINS                  = config['django']['ADMINS']
 MANAGERS                = config['django']['MANAGERS']
 MEDIA_ROOT              = config['django']['MEDIA_ROOT']
