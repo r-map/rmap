@@ -94,7 +94,7 @@ class MergeDBfake(DB):
         """Open the database."""
         memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
-            print ("copydb: ",db,rec)
+            #print ("copydb: ",db,rec)
             db.fill_db(rec,memdb)
         return memdb
 
@@ -137,18 +137,18 @@ class MergeDB(DB):
             "{},{},{},{}/"
             "{}"
         ).format(*map(if_null, (
-            rec.get("ident"),
-            rec.key("lon").enqi(),
-            rec.key("lat").enqi(),
-            rec.get("rep_memo"),
-            rec.get("trange")[0],
-            rec.get("trange")[1],
-            rec.get("trange")[2],
-            rec.get("level")[0],
-            rec.get("level")[1],
-            rec.get("level")[2],
-            rec.get("level")[3],
-            rec.get("var"),
+            rec["ident"],
+            rec.enqi("lon"),
+            rec.enqi("lat"),
+            rec["rep_memo"],
+            rec["trange"].pind,
+            rec["trange"].p1,
+            rec["trange"].p2,
+            rec["level"].ltype1,
+            rec["level"].l1,
+            rec["level"].ltype2,
+            rec["level"].l2,
+            rec["var"],
         )))
 
     def get_unique_records(self, funcname, rec, reducer):
@@ -185,7 +185,8 @@ class MergeDB(DB):
             db.fill_db(rec,memdb)
 
         for r in memdb.query_data(rec):
-            yield r.copy()
+            #TODO yield r.copy()
+            yield r
 
 
 class DballeDB(DB):
@@ -209,12 +210,14 @@ class DballeDB(DB):
 
     def query_data(self, rec):
         db = self.__open_db()
+
+        print(rec)
         return db.query_data(rec)
 
     def fill_db(self, rec, memdb):
         for r in self.query_data(rec):
-            del r["ana_id"]
-            del r["data_id"]
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
             memdb.insert_data(r, True, True)
 
 class SummaryCacheDB(DB):
@@ -231,16 +234,16 @@ class SummaryCacheDB(DB):
         self.dsn=dsn
 
     def set_cached_summary(self):
-        res = self.db.query_summary(dballe.Record())
+        res = self.db.query_summary({})
         summary = [{
-            "ident": o.get("ident"),
-            "lon": o.key("lon").enqi(),
-            "lat": o.key("lat").enqi(),
-            "rep_memo": o.get("rep_memo"),
-            "level": list(map(o.get, ("leveltype1", "l1", "leveltype2", "l2"))),
-            "trange": list(map(o.get, ("pindicator", "p1", "p2"))),
-            "bcode": o.get("var"),
-            "date": o.date_extremes(),
+            "ident": o["ident"],
+            "lon": o.enqi("lon"),
+            "lat": o.enqi("lat"),
+            "rep_memo": o["rep_memo"],
+            "level": [o["leveltype1"], o["l1"], o["leveltype2"], o["l2"]],
+            "trange": [o["pindicator"], o["p1"], o["p2"]],
+            "bcode": o["var"],
+            "date": [o["datetimemin"],o["datetimemax"]]
         } for o in res]
         self.cache.set('borinud-summary-cache-%s' % self.dsn, summary, self.timeout)
         return summary
@@ -252,7 +255,7 @@ class SummaryCacheDB(DB):
         if summary is None:
             summary = self.set_cached_summary()
 
-        return tuple(dballe.Record(**{
+        return tuple({
             "ident": None if i["ident"] is None else i["ident"],
             "lon": i["lon"],
             "lat": i["lat"],
@@ -262,7 +265,7 @@ class SummaryCacheDB(DB):
             "var": i["bcode"],
             "datemin": i["date"][0],
             "datemax": i["date"][1],
-        }) for i in summary)
+        } for i in summary)
 
     def get_filter_summary(self, rec):
         """Return a filter function based on dballe.Record `rec`.

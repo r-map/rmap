@@ -2,7 +2,7 @@ import dballe
 
 
 def params2record(p):
-    q = dballe.Record(**{
+    q = {
         k2: p.get(k1) if p.get(k1) != "-" else None
         for k1, k2 in (
             ("ident", "ident"),
@@ -19,5 +19,13 @@ def params2record(p):
             ("var", "var")
         )
         if k1 in p and p.get(k1) != "*"
-    })
+    }
+
+    for k,v in q.items():
+        if k in ("ident","lon","lat","pindicator","p1", "p2","leveltype1", "l1","leveltype2","l2"):
+            try:
+                q[k]=int(v)
+            except:
+                pass
+
     return q

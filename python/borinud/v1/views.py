@@ -69,32 +69,32 @@ class dbajson:
 
                 if self.stations:
                     properties= {
-                        "ident": self.s.get("ident"),
-                        "lon": self.s.key("lon").enqi(),
-                        "lat": self.s.key("lat").enqi(),
+                        "ident": self.s["ident"],
+                        "lon": self.s.enqd("lon"),
+                        "lat": self.s.enqd("lat"),
                         "network": self.s["rep_memo"],
                         "var": self.s["var"],
-                        "val": self.s[self.s["var"]]
+                        "val": self.s.enqd(self.s["var"])
                     }
 
                 else:
                     properties= {
-                        "ident": self.s.get("ident"),
-                        "lon": self.s.key("lon").enqi(),
-                        "lat": self.s.key("lat").enqi(),
+                        "ident": self.s["ident"],
+                        "lon": self.s.enqi("lon"),
+                        "lat": self.s.enqi("lat"),
                         "network": self.s["rep_memo"],
-                        "trange": self.s["trange"],
-                        "level": self.s["level"],
-                        "date": list( d for d in self.s.date_extremes()) if self.summary else self.s["date"],
+                        "trange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
+                        "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
+                        "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
                         "var": self.s["var"],
-                        "val": self.s[self.s["var"]],
+                        "val": self.s.enqd(self.s["var"]),
                     }
 
                 features.append({
                     "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [self.s.get("lon"), self.s.get("lat")],
+                            "coordinates": [self.s.enqd("lon"), self.s.enqd("lat")],
                         },
                         "properties": properties
                     })
@@ -115,29 +115,50 @@ class dbajson:
 
     def jsondictdata (self):
 
-        return {
-            "ident": self.s.get("ident"),
-            "lon": self.s.key("lon").enqi(),
-            "lat": self.s.key("lat").enqi(),
-            "network": self.s["rep_memo"],
-            "date": list( d for d in self.s.date_extremes()) if self.summary else self.s["date"],
-            "data": [{
-                "vars": {
-                    self.s["var"]: {
-                        "v": self.s[self.s["var"]]
-                    }
-                },
-                "timerange": self.s["trange"],
-                "level": self.s["level"],
-            }]
-        }
+        if (self.summary):
+            return {
+                "ident": self.s["ident"],
+                "lon": self.s["lon"],
+                "lat": self.s["lat"],
+                "network": self.s["rep_memo"],
+                "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+                "data": [{
+                    "vars": {
+                        self.s["var"]: {
+                            "v": None if self.summary else self.s.enqd(self.s["var"])
+                        }
+                    },
+                    "timerange": (self.s["trange"][0],self.s["trange"][1],self.s["trange"][2]),
+                    "level": (self.s["level"][0],self.s["level"][1],self.s["level"][2],self.s["level"][3]),
+                }]
+            }
+        else:
 
+            return {
+                "ident": self.s["ident"],
+                "lon": self.s["lon"],
+                "lat": self.s["lat"],
+                "network": self.s["rep_memo"],
+                "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+                "data": [{
+                    "vars": {
+                        self.s["var"]: {
+                            "v": None if self.summary else self.s.enqd(self.s["var"])
+                        }
+                    },
+                    "timerange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
+                    "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
+                }]
+            }
+
+
+    
     def jsondictstation (self):
 
         return {
             "ident": self.s.get("ident"),
-            "lon": self.s.key("lon").enqi(),
-            "lat": self.s.key("lat").enqi(),
+            "lon": self.s.enqi("lon"),
+            "lat": self.s.enqi("lat"),
             "network": self.s["rep_memo"],
         }
 
@@ -145,38 +166,38 @@ class dbajson:
 def summaries(request, **kwargs):
     q = params2record(kwargs)
 
-    q["yearmin"] = request.GET.get("yearmin")
-    q["yearmax"] = request.GET.get("yearmax")
-    q["monthmin"] = request.GET.get("monthmin")
-    q["monthmax"] = request.GET.get("monthmax")
-    q["daymin"] = request.GET.get("daymin")
-    q["daymax"] = request.GET.get("daymax")
-    q["hourmin"] = request.GET.get("hourmin")
-    q["hourmax"] = request.GET.get("hourmax")
-    q["minumin"] = request.GET.get("minumin")
-    q["minumax"] = request.GET.get("minumax")
-    q["secmin"] = request.GET.get("secmin")
-    q["secmax"] = request.GET.get("secmax")
+    q["yearmin"] = int(request.GET.get("yearmin"))
+    q["yearmax"] = int(request.GET.get("yearmax"))
+    q["monthmin"] = int(request.GET.get("monthmin"))
+    q["monthmax"] = int(request.GET.get("monthmax"))
+    q["daymin"] = int(request.GET.get("daymin"))
+    q["daymax"] = int(request.GET.get("daymax"))
+    q["hourmin"] = int(request.GET.get("hourmin"))
+    q["hourmax"] = int(request.GET.get("hourmax"))
+    q["minumin"] = int(request.GET.get("minumin"))
+    q["minumax"] = int(request.GET.get("minumax"))
+    q["secmin"] = int(request.GET.get("secmin"))
+    q["secmax"] = int(request.GET.get("secmax"))
 
-    q["latmin"] = request.GET.get("latmin")
-    q["latmax"] = request.GET.get("latmax")
-    q["lonmin"] = request.GET.get("lonmin")
-    q["lonmax"] = request.GET.get("lonmax")
+    q["latmin"] = int(request.GET.get("latmin"))
+    q["latmax"] = int(request.GET.get("latmax"))
+    q["lonmin"] = int(request.GET.get("lonmin"))
+    q["lonmax"] = int(request.GET.get("lonmax"))
 
     if (not 'yearmin' in q) or (not 'yearmax' in q):
-        q['year'] = kwargs.get('year')
-        q['month'] = kwargs.get('month')
-        q['day'] = kwargs.get('day')
-        q["hour"] = kwargs.get("hour")
+        q['year'] = int(kwargs.get('year'))
+        q['month'] = int(kwargs.get('month'))
+        q['day'] = int(kwargs.get('day'))
+        q["hour"] = int(kwargs.get("hour"))
 
 
     bd={}
-    bd['year']  = kwargs.get('year',"1")
-    bd['month'] = kwargs.get('month',"1")
-    bd['day']   = kwargs.get('day',"1")
-    bd["year"]  = bd["year"] if request.GET.get("yearmin") is None else request.GET.get("yearmin") 
-    bd["month"] = bd["month"] if request.GET.get("monthmin") is None else request.GET.get("monthmin") 
-    bd["day"]   = bd["day"] if request.GET.get("daymin") is None else request.GET.get("daymin") 
+    bd['year']  = int(kwargs.get('year',"1"))
+    bd['month'] = int(kwargs.get('month',"1"))
+    bd['day']   = int(kwargs.get('day',"1"))
+    bd["year"]  = int(bd["year"]) if request.GET.get("yearmin") is None else int(request.GET.get("yearmin")) 
+    bd["month"] = int(bd["month"]) if request.GET.get("monthmin") is None else int(request.GET.get("monthmin"))
+    bd["day"]   = int(bd["day"]) if request.GET.get("daymin") is None else int(request.GET.get("daymin"))
     b = datetime(int(bd["year"]), int(bd["month"]), int(bd["day"]))
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
@@ -194,33 +215,33 @@ def summaries(request, **kwargs):
 def timeseries(request, **kwargs):
     q = params2record(kwargs)
 
-    q["yearmin"] = request.GET.get("yearmin")
-    q["yearmax"] = request.GET.get("yearmax")
-    q["monthmin"] = request.GET.get("monthmin")
-    q["monthmax"] = request.GET.get("monthmax")
-    q["daymin"] = request.GET.get("daymin")
-    q["daymax"] = request.GET.get("daymax")
-    q["hourmin"] = request.GET.get("hourmin")
-    q["hourmax"] = request.GET.get("hourmax")
-    q["minumin"] = request.GET.get("minumin")
-    q["minumax"] = request.GET.get("minumax")
-    q["secmin"] = request.GET.get("secmin")
-    q["secmax"] = request.GET.get("secmax")
+    q["yearmin"] = int(request.GET.get("yearmin"))
+    q["yearmax"] = int(request.GET.get("yearmax"))
+    q["monthmin"] = int(request.GET.get("monthmin"))
+    q["monthmax"] = int(request.GET.get("monthmax"))
+    q["daymin"] = int(request.GET.get("daymin"))
+    q["daymax"] = int(request.GET.get("daymax"))
+    q["hourmin"] = int(request.GET.get("hourmin"))
+    q["hourmax"] = int(request.GET.get("hourmax"))
+    q["minumin"] = int(request.GET.get("minumin"))
+    q["minumax"] = int(request.GET.get("minumax"))
+    q["secmin"] = int(request.GET.get("secmin"))
+    q["secmax"] = int(request.GET.get("secmax"))
 
     if (not 'yearmin' in q) or (not 'yearmax' in q):
-        q['year'] = kwargs.get('year')
-        q['month'] = kwargs.get('month')
-        q['day'] = kwargs.get('day')
-        q["hour"] = kwargs.get("hour")
+        q['year'] = int(kwargs.get('year'))
+        q['month'] = int(kwargs.get('month'))
+        q['day'] = int(kwargs.get('day'))
+        q["hour"] = int(kwargs.get("hour"))
 
 
     bd={}
-    bd['year']  = kwargs.get('year',"1")
-    bd['month'] = kwargs.get('month',"1")
-    bd['day']   = kwargs.get('day',"1")
-    bd["year"]  = bd["year"] if request.GET.get("yearmin") is None else request.GET.get("yearmin") 
-    bd["month"] = bd["month"] if request.GET.get("monthmin") is None else request.GET.get("monthmin") 
-    bd["day"]   = bd["day"] if request.GET.get("daymin") is None else request.GET.get("daymin") 
+    bd['year']  = int(kwargs.get('year',"1"))
+    bd['month'] = int(kwargs.get('month',"1"))
+    bd['day']   = int(kwargs.get('day',"1"))
+    bd["year"]  = int(bd["year"]) if request.GET.get("yearmin") is None else int(request.GET.get("yearmin"))
+    bd["month"] = int(bd["month"]) if request.GET.get("monthmin") is None else int(request.GET.get("monthmin"))
+    bd["day"]   = int(bd["day"]) if request.GET.get("daymin") is None else int(request.GET.get("daymin")) 
     b = datetime(int(bd["year"]), int(bd["month"]), int(bd["day"]))
 
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
@@ -252,8 +273,8 @@ def spatialseries(request, **kwargs):
         b = d - timedelta(seconds=1800)
         e = d + timedelta(seconds=1799)
 
-    q["datemin"] = b
-    q["datemax"] = e
+    q["datetimemin"] = b
+    q["datetimemax"] = e
 
     q["latmin"] = request.GET.get("latmin")
     q["latmax"] = request.GET.get("latmax")
