@@ -60,13 +60,13 @@ configspec['daemon']['mqttpassword']    = "string(default='rmap')"
 
 configspec['rmapweb']={}
 
-configspec['rmapweb']['logfile']  = "string(default='/tmp/rmapweb.log')"
-configspec['rmapweb']['graphiteinfologfile']  = "string(default='/tmp/graphiteinfo.log')"
-configspec['rmapweb']['graphiteexceptionlogfile']  = "string(default='/tmp/graphiteexception.log')"
-configspec['rmapweb']['graphitecachelogfile']  = "string(default='/tmp/graphitecache.log')"
-configspec['rmapweb']['graphiterenderinglogfile']  = "string(default='/tmp/graphiterendering.log')"
-configspec['rmapweb']['errfile']  = "string(default='/tmp/rmapweb.err')"
-configspec['rmapweb']['lockfile'] = "string(default='/tmp/rmapweb.lock')"
+configspec['rmapweb']['logfile']  = "string(default='rmapweb.log')"
+configspec['rmapweb']['graphiteinfologfile']  = "string(default='graphiteinfo.log')"
+configspec['rmapweb']['graphiteexceptionlogfile']  = "string(default='graphiteexception.log')"
+configspec['rmapweb']['graphitecachelogfile']  = "string(default='graphitecache.log')"
+configspec['rmapweb']['graphiterenderinglogfile']  = "string(default='graphiterendering.log')"
+configspec['rmapweb']['errfile']  = "string(default='rmapweb.err')"
+configspec['rmapweb']['lockfile'] = "string(default='rmapweb.lock')"
 configspec['rmapweb']['user']     = "string(default=None)"
 configspec['rmapweb']['group']    = "string(default=None)"
 configspec['rmapweb']['port']    = "string(default='127.0.0.1:8888')"
@@ -88,9 +88,9 @@ configspec['database']['DEBUG_BORINUD_SOURCES']="boolean(default=True)"
 
 configspec['stationd']={}
 
-configspec['stationd']['logfile']  = "string(default='/tmp/stationd.log')"
-configspec['stationd']['errfile']  = "string(default='/tmp/stationd.err')"
-configspec['stationd']['lockfile'] = "string(default='/tmp/stationd.lock')"
+configspec['stationd']['logfile']  = "string(default='stationd.log')"
+configspec['stationd']['errfile']  = "string(default='stationd.err')"
+configspec['stationd']['lockfile'] = "string(default='stationd.lock')"
 configspec['stationd']['conffile'] = "string(default='dbus-autoradio.conf')"
 configspec['stationd']['user']     = "string(default=None)"
 configspec['stationd']['group']    = "string(default=None)"
@@ -101,9 +101,9 @@ configspec['stationd']['boardslug']      = "string(default='base')"
 
 configspec['mqtt2graphited']={}
 
-configspec['mqtt2graphited']['logfile']  = "string(default='/tmp/mqtt2graphited.log')"
-configspec['mqtt2graphited']['errfile']  = "string(default='/tmp/mqtt2graphited.err')"
-configspec['mqtt2graphited']['lockfile'] = "string(default='/tmp/mqtt2graphited.lock')"
+configspec['mqtt2graphited']['logfile']  = "string(default='mqtt2graphited.log')"
+configspec['mqtt2graphited']['errfile']  = "string(default='mqtt2graphited.err')"
+configspec['mqtt2graphited']['lockfile'] = "string(default='mqtt2graphited.lock')"
 configspec['mqtt2graphited']['user']     = "string(default=None)"
 configspec['mqtt2graphited']['group']    = "string(default=None)"
 configspec['mqtt2graphited']['mapfile'] = "string(default='map')"
@@ -111,80 +111,80 @@ configspec['mqtt2graphited']['mapfile'] = "string(default='map')"
 
 configspec['ttn2dballed']={}
 
-configspec['ttn2dballed']['logfile']  = "string(default='/tmp/ttn2dballed.log')"
-configspec['ttn2dballed']['errfile']  = "string(default='/tmp/ttn2dballed.err')"
-configspec['ttn2dballed']['lockfile'] = "string(default='/tmp/ttn2dballed.lock')"
+configspec['ttn2dballed']['logfile']  = "string(default='ttn2dballed.log')"
+configspec['ttn2dballed']['errfile']  = "string(default='ttn2dballed.err')"
+configspec['ttn2dballed']['lockfile'] = "string(default='ttn2dballed.lock')"
 configspec['ttn2dballed']['user']     = "string(default=None)"
 configspec['ttn2dballed']['group']    = "string(default=None)"
 configspec['ttn2dballed']['mapfile'] = "string(default='ttnmap')"
 
 configspec['report2observationd']={}
 
-configspec['report2observationd']['logfile']  = "string(default='/tmp/report2observationd.log')"
-configspec['report2observationd']['errfile']  = "string(default='/tmp/report2observationd.err')"
-configspec['report2observationd']['lockfile'] = "string(default='/tmp/report2observationd.lock')"
+configspec['report2observationd']['logfile']  = "string(default='report2observationd.log')"
+configspec['report2observationd']['errfile']  = "string(default='report2observationd.err')"
+configspec['report2observationd']['lockfile'] = "string(default='report2observationd.lock')"
 configspec['report2observationd']['user']     = "string(default=None)"
 configspec['report2observationd']['group']    = "string(default=None)"
 configspec['report2observationd']['mapfile'] = "string(default='ttnmap')"
 
 
 configspec['amqp2dballed']={}
-configspec['amqp2dballed']['logfile']  = "string(default='/tmp/amqp2dballed.log')"
-configspec['amqp2dballed']['errfile']  = "string(default='/tmp/amqp2dballed.err')"
-configspec['amqp2dballed']['lockfile'] = "string(default='/tmp/amqp2dballed.lock')"
+configspec['amqp2dballed']['logfile']  = "string(default='amqp2dballed.log')"
+configspec['amqp2dballed']['errfile']  = "string(default='amqp2dballed.err')"
+configspec['amqp2dballed']['lockfile'] = "string(default='amqp2dballed.lock')"
 configspec['amqp2dballed']['user']     = "string(default=None)"
 configspec['amqp2dballed']['group']    = "string(default=None)"
 configspec['amqp2dballed']['dsn']      = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
 
 configspec['amqp2amqp_identvalidationd']={}
-configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='/tmp/amqp2amqp_identvalidationd.log')"
-configspec['amqp2amqp_identvalidationd']['errfile']  = "string(default='/tmp/amqp2amqp_identvalidationd.err')"
-configspec['amqp2amqp_identvalidationd']['lockfile'] = "string(default='/tmp/amqp2amqp_identvalidationd.lock')"
+configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='amqp2amqp_identvalidationd.log')"
+configspec['amqp2amqp_identvalidationd']['errfile']  = "string(default='amqp2amqp_identvalidationd.err')"
+configspec['amqp2amqp_identvalidationd']['lockfile'] = "string(default='amqp2amqp_identvalidationd.lock')"
 configspec['amqp2amqp_identvalidationd']['user']     = "string(default=None)"
 configspec['amqp2amqp_identvalidationd']['group']    = "string(default=None)"
 
 configspec['amqp2amqp_json2bufrd']={}
-configspec['amqp2amqp_json2bufrd']['logfile']  = "string(default='/tmp/amqp2amqp_json2bufrd.log')"
-configspec['amqp2amqp_json2bufrd']['errfile']  = "string(default='/tmp/amqp2amqp_json2bufrd.err')"
-configspec['amqp2amqp_json2bufrd']['lockfile'] = "string(default='/tmp/amqp2amqp_json2bufrd.lock')"
+configspec['amqp2amqp_json2bufrd']['logfile']  = "string(default='amqp2amqp_json2bufrd.log')"
+configspec['amqp2amqp_json2bufrd']['errfile']  = "string(default='amqp2amqp_json2bufrd.err')"
+configspec['amqp2amqp_json2bufrd']['lockfile'] = "string(default='amqp2amqp_json2bufrd.lock')"
 configspec['amqp2amqp_json2bufrd']['user']     = "string(default=None)"
 configspec['amqp2amqp_json2bufrd']['group']    = "string(default=None)"
 
 
 configspec['amqp2djangod']={}
-configspec['amqp2djangod']['logfile']  = "string(default='/tmp/amqp2django.log')"
-configspec['amqp2djangod']['errfile']  = "string(default='/tmp/amqp2django.err')"
-configspec['amqp2djangod']['lockfile'] = "string(default='/tmp/amqp2django.lock')"
+configspec['amqp2djangod']['logfile']  = "string(default='amqp2django.log')"
+configspec['amqp2djangod']['errfile']  = "string(default='amqp2django.err')"
+configspec['amqp2djangod']['lockfile'] = "string(default='amqp2django.lock')"
 configspec['amqp2djangod']['user']     = "string(default=None)"
 configspec['amqp2djangod']['group']    = "string(default=None)"
 
 
 configspec['amqp2geoimaged']={}
-configspec['amqp2geoimaged']['logfile']  = "string(default='/tmp/amqp2geoimage.log')"
-configspec['amqp2geoimaged']['errfile']  = "string(default='/tmp/amqp2geoimage.err')"
-configspec['amqp2geoimaged']['lockfile'] = "string(default='/tmp/amqp2geoimage.lock')"
+configspec['amqp2geoimaged']['logfile']  = "string(default='amqp2geoimage.log')"
+configspec['amqp2geoimaged']['errfile']  = "string(default='amqp2geoimage.err')"
+configspec['amqp2geoimaged']['lockfile'] = "string(default='amqp2geoimage.lock')"
 configspec['amqp2geoimaged']['user']     = "string(default=None)"
 configspec['amqp2geoimaged']['group']    = "string(default=None)"
 
 
 configspec['amqp2arkimetd']={}
-configspec['amqp2arkimetd']['logfile']  = "string(default='/tmp/amqp2arkimetd.log')"
-configspec['amqp2arkimetd']['errfile']  = "string(default='/tmp/amqp2arkimetd.err')"
-configspec['amqp2arkimetd']['lockfile'] = "string(default='/tmp/amqp2arkimetd.lock')"
+configspec['amqp2arkimetd']['logfile']  = "string(default='amqp2arkimetd.log')"
+configspec['amqp2arkimetd']['errfile']  = "string(default='amqp2arkimetd.err')"
+configspec['amqp2arkimetd']['lockfile'] = "string(default='amqp2arkimetd.lock')"
 configspec['amqp2arkimetd']['user']     = "string(default=None)"
 configspec['amqp2arkimetd']['group']    = "string(default=None)"
 
 configspec['amqp2mqttd']={}
-configspec['amqp2mqttd']['logfile']  = "string(default='/tmp/amqp2mqttd.log')"
-configspec['amqp2mqttd']['errfile']  = "string(default='/tmp/amqp2mqttd.err')"
-configspec['amqp2mqttd']['lockfile'] = "string(default='/tmp/amqp2mqttd.lock')"
+configspec['amqp2mqttd']['logfile']  = "string(default='amqp2mqttd.log')"
+configspec['amqp2mqttd']['errfile']  = "string(default='amqp2mqttd.err')"
+configspec['amqp2mqttd']['lockfile'] = "string(default='amqp2mqttd.lock')"
 configspec['amqp2mqttd']['user']     = "string(default=None)"
 configspec['amqp2mqttd']['group']    = "string(default=None)"
 
 configspec['mqtt2dballed']={}
-configspec['mqtt2dballed']['logfile']   = "string(default='/tmp/mqtt2dballed.log')"
-configspec['mqtt2dballed']['errfile']   = "string(default='/tmp/mqtt2dballed.err')"
-configspec['mqtt2dballed']['lockfile']  = "string(default='/tmp/mqtt2dballed.lock')"
+configspec['mqtt2dballed']['logfile']   = "string(default='mqtt2dballed.log')"
+configspec['mqtt2dballed']['errfile']   = "string(default='mqtt2dballed.err')"
+configspec['mqtt2dballed']['lockfile']  = "string(default='mqtt2dballed.lock')"
 configspec['mqtt2dballed']['user']      = "string(default=None)"
 configspec['mqtt2dballed']['group']     = "string(default=None)"
 configspec['mqtt2dballed']['dsnsample_fixed']    = "string(default='mysql:///sample_fixed?user=rmap&password=rmap')"
@@ -195,9 +195,9 @@ configspec['mqtt2dballed']['topicsample']   = "string(default='sample')"
 configspec['mqtt2dballed']['topicreport']   = "string(default='report')"
 
 configspec['composereportd']={}
-configspec['composereportd']['logfile']  = "string(default='/tmp/composereportd.log')"
-configspec['composereportd']['errfile']  = "string(default='/tmp/composereportd.err')"
-configspec['composereportd']['lockfile'] = "string(default='/tmp/composereportd.lock')"
+configspec['composereportd']['logfile']  = "string(default='composereportd.log')"
+configspec['composereportd']['errfile']  = "string(default='composereportd.err')"
+configspec['composereportd']['lockfile'] = "string(default='composereportd.lock')"
 configspec['composereportd']['user']     = "string(default=None)"
 configspec['composereportd']['group']    = "string(default=None)"
 configspec['composereportd']['exchange']    = "string(default='rmap')"
@@ -468,7 +468,7 @@ LOG_FILE_INFO='graphite_info.log'
 LOG_FILE_EXCEPTION='graphite_exception.log'
 LOG_FILE_CACHE='graphite_cache.log'
 LOG_FILE_RENDERING='graphite_rendering.log'
-LOG_DIR='/tmp/'
+LOG_DIR='.'
 TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
 FUNCTION_PLUGINS = []
 REMOTE_STORE_FORWARD_HEADERS = []
@@ -1401,7 +1401,7 @@ if not android :
             'rot_file':{
                 'level': 'DEBUG',
                 'class': 'logging.handlers.RotatingFileHandler',
-                'filename': '/tmp/django_rot.log',
+                'filename': 'django_rot.log',
                 'maxBytes': 16777216, # 16megabytes
                 'formatter': 'verbose'
             },

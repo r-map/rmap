@@ -1111,30 +1111,29 @@ def send2amqp(body="",user=None,password=None,host="rmap.cc",exchange="configura
         delivery_mode = 2, # persistent
     )
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials,socket_timeout=5000))
-    channel = connection.channel()
-
-    channel.confirm_delivery()
+    channel=None
+    connection=None
     
     try:
-        if channel.basic_publish(exchange=exchange,
-                                 routing_key=routing_key,
-                                 body=body,
-                                 properties=properties):
-            print(" [x] Message Sent ")
-            channel.close()
-            connection.close()
+        connection = pika.BlockingConnection(pika.ConnectionParameters(
+            host=host,credentials=credentials,socket_timeout=5000))
+        channel = connection.channel()
 
-        else:
-            
-            print(" [x] Error on publish ")
-            connection.close()
+        channel.confirm_delivery()
+
+        channel.basic_publish(exchange=exchange,
+                              routing_key=routing_key,
+                              body=body,
+                              properties=properties,
+                              mandatory=True)
+        print(" [x] Message Sent ")
             
     except Exception as e:
-        print(("PikaMQ publish really error ", e)) 
-        connection.close()
-        raise
+        print(" [x] Error on publish ")
+        print(("PikaMQ publish error ", e)) 
+
+    if (channel is not None): channel.close()
+    if (connection is not None): connection.close()
 
 def export2json(objects):
 

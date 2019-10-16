@@ -141,8 +141,8 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2dballed.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/ttn2dballed.1","./ttn2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/ttn2dballed.1"])
-            subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
-            subprocess.check_call(["gzip", "-f","man/man1/poweroffd.1"])
+            #subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
+            #subprocess.check_call(["gzip", "-f","man/man1/poweroffd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/composereportd.1","./composereportd"])
             subprocess.check_call(["gzip", "-f","man/man1/composereportd.1"])
             #subprocess.check_call(["help2man","-N","-o","man/man1/rmapweb.1","./rmapweb"])
@@ -153,10 +153,10 @@ class createmanpages(Command):
             subprocess.check_call(["gzip", "-f","man/man1/amqp2amqp_json2bufrd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2dballed.1","./amqp2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/amqp2dballed.1"])
-            subprocess.check_call(["help2man","-N","-o","man/man1/amqp2arkimetd.1","./amqp2arkimetd"])
-            subprocess.check_call(["gzip", "-f","man/man1/amqp2arkimetd.1"])
-            subprocess.check_call(["help2man","-N","-o","man/man1/amqp2mqttd.1","./amqp2mqttd"])
-            subprocess.check_call(["gzip", "-f","man/man1/amqp2mqttd.1"])
+            #subprocess.check_call(["help2man","-N","-o","man/man1/amqp2arkimetd.1","./amqp2arkimetd"])
+            #subprocess.check_call(["gzip", "-f","man/man1/amqp2arkimetd.1"])
+            #subprocess.check_call(["help2man","-N","-o","man/man1/amqp2mqttd.1","./amqp2mqttd"])
+            #subprocess.check_call(["gzip", "-f","man/man1/amqp2mqttd.1"])
             subprocess.check_call(["help2man","-N","--no-discard-stderr","-o","man/man1/rmap-configure.1","./rmap-configure"])
             subprocess.check_call(["gzip", "-f","man/man1/rmap-configure.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/rmapctrl.1","./rmapctrl"])
@@ -400,7 +400,7 @@ setup(name='rmap',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ 'django>=1.9,<1.11.99',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","cookielaw","django-tagging","pytz","six","scandir"],
+      install_requires= [ 'django>=1.9,<1.11.99',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","six","scandir"],
       extras_require = {
           'borinud': ['dballe', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'classytags','cookielaw']

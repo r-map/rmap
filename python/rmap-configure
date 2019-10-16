@@ -48,12 +48,13 @@ import django
 from django.core import serializers
 import urllib.request, urllib.error, urllib.parse
 import base64
+import logging
 
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
 if ve is not None:
     os.chdir(ve+"/share/rmap")
-
+    
 django.setup()
 
 from rmap.stations.models import StationMetadata
@@ -138,10 +139,15 @@ parser.add_argument('--ttnsampletime',default=900,type=int,help="time in seconds
 parser.add_argument('--ttnconfirmed', action="store_true", help="set whether the downlink should be confirmed by the device")
 parser.add_argument('--ttnport', default=1,type=int, help="LoRaWAN FPort")
 parser.add_argument('--ttnschedule', default="replace",choices=("replace","first","last"), help="By default, the downlink will replace the currently scheduled downlink, if any. It is also possible to schedule the downlink as the first or last item in a the downlink queue")
-
+parser.add_argument('--amqpdebug', action="store_true", help="activate amqp (pika) debug messages")
 
 args = parser.parse_args()
 
+if (args.amqpdebug):
+    import sys
+    logger=logging.getLogger('pika')
+    logger.setLevel(logging.INFO)
+    logger.addHandler(logging.StreamHandler(sys.stderr))
 
 #truncate lon and lat to have coordinate as RMAP specification
 if not (args.lon is None): args.lon=rmap.rmap_core.truncate(args.lon,5)
