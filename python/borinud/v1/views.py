@@ -38,11 +38,12 @@ class dbajson:
             self.jsondict=self.jsondictdata
         self.dsn=dsn
         self.last= seg == "last"
-        #print "++++++++++++++++++++++++++++++++++++++++++++++++++++"
-        #print "summary=",self.summary
-        #print "stations=",self.stations
-        #print "last=",self.last
-        #print "++++++++++++++++++++++++++++++++++++++++++++++++++++"
+        #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
+        #print ("summary=",self.summary)
+        #print ("stations=",self.stations)
+        #print ("last=",self.last)
+        #print (q)
+        #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 
     def __iter__(self):
@@ -64,7 +65,6 @@ class dbajson:
             jsondicts=[]
 
         for self.s in self.handle:
-
             if self.format == "geojson" :
 
                 if self.stations:
@@ -166,23 +166,39 @@ class dbajson:
 def summaries(request, **kwargs):
     q = params2record(kwargs)
 
-    q["yearmin"] = int(request.GET.get("yearmin"))
-    q["yearmax"] = int(request.GET.get("yearmax"))
-    q["monthmin"] = int(request.GET.get("monthmin"))
-    q["monthmax"] = int(request.GET.get("monthmax"))
-    q["daymin"] = int(request.GET.get("daymin"))
-    q["daymax"] = int(request.GET.get("daymax"))
-    q["hourmin"] = int(request.GET.get("hourmin"))
-    q["hourmax"] = int(request.GET.get("hourmax"))
-    q["minumin"] = int(request.GET.get("minumin"))
-    q["minumax"] = int(request.GET.get("minumax"))
-    q["secmin"] = int(request.GET.get("secmin"))
-    q["secmax"] = int(request.GET.get("secmax"))
+    if ( request.GET.get("yearmin") is not None):
+        q["yearmin"] = int(request.GET.get("yearmin"))
+    if ( request.GET.get("yearmax") is not None):
+        q["yearmax"] = int(request.GET.get("yearmax"))
+    if ( request.GET.get("monthmin") is not None):
+        q["monthmin"] = int(request.GET.get("monthmin"))
+    if ( request.GET.get("monthmax") is not None):
+        q["monthmax"] = int(request.GET.get("monthmax"))
+    if ( request.GET.get("daymin")  is not None):
+        q["daymin"] = int(request.GET.get("daymin"))
+    if ( request.GET.get("daymax")  is not None):
+        q["daymax"] = int(request.GET.get("daymax"))
+    if ( request.GET.get("hourmin") is not None):
+        q["hourmin"] = int(request.GET.get("hourmin"))
+    if ( request.GET.get("hourmax") is not None):
+        q["hourmax"] = int(request.GET.get("hourmax"))
+    if ( request.GET.get("minumin") is not None):
+        q["minumin"] = int(request.GET.get("minumin"))
+    if ( request.GET.get("minumax") is not None):
+        q["minumax"] = int(request.GET.get("minumax"))
+    if ( request.GET.get("secmin")  is not None):
+        q["secmin"] = int(request.GET.get("secmin"))
+    if ( request.GET.get("secmax")  is not None):
+        q["secmax"] = int(request.GET.get("secmax"))
 
-    q["latmin"] = int(request.GET.get("latmin"))
-    q["latmax"] = int(request.GET.get("latmax"))
-    q["lonmin"] = int(request.GET.get("lonmin"))
-    q["lonmax"] = int(request.GET.get("lonmax"))
+    if ( request.GET.get("latmin") is not None):
+        q["latmin"] = int(request.GET.get("latmin"))
+    if ( request.GET.get("latmax") is not None):
+        q["latmax"] = int(request.GET.get("latmax"))
+    if ( request.GET.get("lonmin") is not None):
+        q["lonmin"] = int(request.GET.get("lonmin"))
+    if ( request.GET.get("lonmax") is not None):
+        q["lonmax"] = int(request.GET.get("lonmax"))
 
     if (not 'yearmin' in q) or (not 'yearmax' in q):
         q['year'] = int(kwargs.get('year'))
@@ -215,24 +231,40 @@ def summaries(request, **kwargs):
 def timeseries(request, **kwargs):
     q = params2record(kwargs)
 
-    q["yearmin"] = int(request.GET.get("yearmin"))
-    q["yearmax"] = int(request.GET.get("yearmax"))
-    q["monthmin"] = int(request.GET.get("monthmin"))
-    q["monthmax"] = int(request.GET.get("monthmax"))
-    q["daymin"] = int(request.GET.get("daymin"))
-    q["daymax"] = int(request.GET.get("daymax"))
-    q["hourmin"] = int(request.GET.get("hourmin"))
-    q["hourmax"] = int(request.GET.get("hourmax"))
-    q["minumin"] = int(request.GET.get("minumin"))
-    q["minumax"] = int(request.GET.get("minumax"))
-    q["secmin"] = int(request.GET.get("secmin"))
-    q["secmax"] = int(request.GET.get("secmax"))
+    if (request.GET.get("yearmin") is not None ):
+        q["yearmin"] = int(request.GET.get("yearmin") is not None )
+    if (request.GET.get("yearmax") is not None ):
+        q["yearmax"] = int(request.GET.get("yearmax") is not None )
+    if (request.GET.get("monthmin") is not None ):
+        q["monthmin"] = int(request.GET.get("monthmin") is not None )
+    if (request.GET.get("monthmax") is not None ):
+        q["monthmax"] = int(request.GET.get("monthmax") is not None )
+    if (request.GET.get("daymin") is not None ):
+        q["daymin"] = int(request.GET.get("daymin") is not None )
+    if (request.GET.get("daymax") is not None ):
+        q["daymax"] = int(request.GET.get("daymax") is not None )
+    if (request.GET.get("hourmin") is not None ):
+        q["hourmin"] = int(request.GET.get("hourmin") is not None )
+    if (request.GET.get("hourmax") is not None ):
+        q["hourmax"] = int(request.GET.get("hourmax") is not None )
+    if (request.GET.get("minumin") is not None ):
+        q["minumin"] = int(request.GET.get("minumin") is not None )
+    if (request.GET.get("minumax") is not None ):
+        q["minumax"] = int(request.GET.get("minumax") is not None )
+    if (request.GET.get("secmin") is not None ):
+        q["secmin"] = int(request.GET.get("secmin") is not None )
+    if (request.GET.get("secmax") is not None ):
+        q["secmax"] = int(request.GET.get("secmax") is not None )
 
     if (not 'yearmin' in q) or (not 'yearmax' in q):
-        q['year'] = int(kwargs.get('year'))
-        q['month'] = int(kwargs.get('month'))
-        q['day'] = int(kwargs.get('day'))
-        q["hour"] = int(kwargs.get("hour"))
+        if (kwargs.get('year') is not None):
+            q['year'] = int(kwargs.get('year'))
+        if (kwargs.get('month') is not None):
+            q['month'] = int(kwargs.get('month'))
+        if (kwargs.get('day') is not None):
+            q['day'] = int(kwargs.get('day'))
+        if (kwargs.get("hour") is not None):
+            q["hour"] = int(kwargs.get("hour"))
 
 
     bd={}

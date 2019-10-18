@@ -210,8 +210,6 @@ class DballeDB(DB):
 
     def query_data(self, rec):
         db = self.__open_db()
-
-        print(rec)
         return db.query_data(rec)
 
     def fill_db(self, rec, memdb):
