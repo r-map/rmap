@@ -8,6 +8,7 @@ import rmap.views
 import django.views
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+import traceback
 
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
@@ -24,9 +25,9 @@ urlpatterns = [
     url(r'^wizard_error/$',wizard_error ,name='wizard_error' ),
 #    Uncomment the next line to enable admin documentation:
     url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
+    
 #    Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     url(r'^', include('rmap.stations.urls')),
 
@@ -59,60 +60,64 @@ if not android  :
     #    urlpatterns.append(url(r'^rainbo/', include('rainbo.urls')))
     #    #del urlpatterns[0]
     #except Exception as e:
-    #    print "Warnig: rainbo disabled"
+    #    print "Warning: rainbo disabled"
     #    print e        
     try:
         urlpatterns.append(url(r'^', include('http2mqtt.urls')))
     except Exception as e:
-        print("Warnig: http2mqtt disabled")
+        print("Warning: http2mqtt disabled")
         print(e)
+        print(traceback.format_exc())     
     try:
         urlpatterns.append(url(r'^borinud/', include('borinud.urls')))
     except Exception as e:
-        print("Warnig: borinud disabled")
+        print("Warning: borinud disabled")
         print(e)
+        print(traceback.format_exc())       
     try:
         urlpatterns.append(url(r'^geoimage/', include('geoimage.urls')))
     except Exception as e:
-        print("Warnig: geoimage disabled")
+        print("Warning: geoimage disabled")
         print(e)
+        print(traceback.format_exc())
     try:
         urlpatterns.append(url(r'^insertdata/', include('insertdata.urls')))
     except Exception as e:
-        print("Warnig: insertdata disabled")
+        print("Warning: insertdata disabled")
         print(e)
+        print(traceback.format_exc()) 
     try:
         urlpatterns.append(url(r'^amatyr/', include('amatyr.urls')))
     except Exception as e:
-        print("Warnig: amatyr disabled")
+        print("Warning: amatyr disabled")
         print(e)
-
+        print(traceback.format_exc())
     try:
         urlpatterns.append(url(r'^showdata/', include('showdata.urls',namespace="showdata")))
     except Exception as e:
-        print("Warnig: showdata disabled")
+        print("Warning: showdata disabled")
         print(e)
-
+        print(traceback.format_exc())
     try:
         #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
         urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls')))
     except Exception as e:
-        print("Warnig: graphite disabled")
+        print("Warning: graphite disabled")
         print(e)
-
+        print(traceback.format_exc())
     try:
         #urlpatterns.append(url(r'^graphite/', include('graphite-dballe.urls',namespace="graphite")))
         urlpatterns.append(url(r'^sos/', include('borinud_sos.urls')))
     except Exception as e:
-        print("Warnig: sos disabled")
+        print("Warning: sos disabled")
         print(e)
-        
+        print(traceback.format_exc())
     try:
         urlpatterns.append(url(r'^firmware/', include('firmware_updater.urls')))
     except Exception as e:
-        print("Warnig: firmware_updater disabled")
+        print("Warning: firmware_updater disabled")
         print(e)
-
+        print(traceback.format_exc())
   
         
 if ( settings.SERVE_STATIC ):

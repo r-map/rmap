@@ -566,19 +566,20 @@ STATICFILES_FINDERS = [
 ]
 
 
-MIDDLEWARE_CLASSES = [
-    'django.middleware.cache.UpdateCacheMiddleware',
+MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.middleware.cache.UpdateCacheMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
 
 if DEBUG:
-    MIDDLEWARE_CLASSES += [
+    MIDDLEWARE += [
         'rmap.stations.middleware.ProfileMiddleware',
     ]
 
-MIDDLEWARE_CLASSES += [
+MIDDLEWARE += [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'django.middleware.doc.XViewMiddleware',
@@ -1394,7 +1395,7 @@ if LOAD_OPTIONAL_APPS:
                 #print("enable      : ", app.get("apps", ()))
                 INSTALLED_APPS += app.get("apps", ())
                 for ind,middleware in app.get("middleware", ()):
-                    MIDDLEWARE_CLASSES.insert(ind,middleware)
+                    MIDDLEWARE.insert(ind,middleware)
                 TEMPLATES[0]['OPTIONS']['context_processors']+= app.get("context_processors", ())
 
 

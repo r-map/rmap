@@ -1,6 +1,7 @@
 from django.conf.urls import url
 
 from . import views
+app_name = 'v1'
 
 
 # TODO: each item must be configured to allow fixed, all or miss
