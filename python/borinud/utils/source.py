@@ -185,8 +185,7 @@ class MergeDB(DB):
             db.fill_db(rec,memdb)
 
         for r in memdb.query_data(rec):
-            #TODO yield r.copy()
-            yield r
+            yield r.copy()
 
 
 class DballeDB(DB):

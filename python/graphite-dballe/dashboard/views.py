@@ -205,7 +205,7 @@ def template(request, name, val):
 
 def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""
-  if user and not user.is_authenticated():
+  if user and not user.is_authenticated  :
     user = None
   if not settings.DASHBOARD_REQUIRE_AUTHENTICATION:
     return ALL_PERMISSIONS      # don't require login

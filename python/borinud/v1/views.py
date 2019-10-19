@@ -201,10 +201,14 @@ def summaries(request, **kwargs):
         q["lonmax"] = int(request.GET.get("lonmax"))
 
     if (not 'yearmin' in q) or (not 'yearmax' in q):
-        q['year'] = int(kwargs.get('year'))
-        q['month'] = int(kwargs.get('month'))
-        q['day'] = int(kwargs.get('day'))
-        q["hour"] = int(kwargs.get("hour"))
+        if (kwargs.get('year') is not None):
+            q['year'] = int(kwargs.get('year'))
+        if (kwargs.get('month') is not None):
+            q['month'] = int(kwargs.get('month'))
+        if (kwargs.get('day') is not None):
+            q['day'] = int(kwargs.get('day'))
+        if (kwargs.get('hour') is not None):
+            q["hour"] = int(kwargs.get("hour"))
 
 
     bd={}
