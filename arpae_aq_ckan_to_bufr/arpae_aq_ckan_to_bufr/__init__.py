@@ -90,7 +90,7 @@ def load_variables():
     resp = urlopen(VARIABLES_URL)
     reader = csv.DictReader(codecs.getreader("utf-8")(resp))
     for row in reader:
-        key = int(row["IdParametro"])
+        key = int(row["Id_Param"])
         bcode = VARIABLE_BCODES.get(key)
         if bcode is None:
             logger.warning("Var for variable {} not found, skipping".format(key))
@@ -98,7 +98,7 @@ def load_variables():
             variables[key] = {
                 "var": bcode,
                 "level": (103, 2000),
-                "trange": (0, 0, int(row["Tmed (min)"])*60),
+                "trange": (0, 0, int(row["Tempo mediazione\n(minuti)"])*60),
             }
 
     return variables
