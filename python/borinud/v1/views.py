@@ -85,7 +85,7 @@ class dbajson:
                         "network": self.s["rep_memo"],
                         "trange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
                         "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
-                        "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+                        "date": list( d for d in self.s.date_extremes()) if self.summary else list( d for d in (self.s["year"],self.s["month"],self.s["day"],self.s["hour"],self.s["min"],self.s["sec"])),
                         "var": self.s["var"],
                         "val": self.s.enqd(self.s["var"]),
                     }
@@ -309,8 +309,22 @@ def spatialseries(request, **kwargs):
         b = d - timedelta(seconds=1800)
         e = d + timedelta(seconds=1799)
 
-    q["datetimemin"] = b
-    q["datetimemax"] = e
+#    q["datemin"] = b
+#    q["datemax"] = e
+
+    q["yearmin"] = b.year
+    q["monthmin"] = b.month
+    q["daymin"] = b.day
+    q["hourmin"] = b.hour
+    q["minumin"] = b.minute
+    q["secmin"] = b.second
+
+    q["yearmax"] = e.year
+    q["monthmax"] = e.month
+    q["daymax"] = e.day
+    q["hourmax"] = e.hour
+    q["minumax"] = e.minute
+    q["secmax"] = e.second
 
     q["latmin"] = request.GET.get("latmin")
     q["latmax"] = request.GET.get("latmax")

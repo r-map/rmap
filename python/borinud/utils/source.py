@@ -113,8 +113,8 @@ class MergeDBfake(DB):
 
     def fill_db(self, rec, memdb):
         for r in self.query_data(rec):
-            del r["ana_id"]
-            del r["data_id"]
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
             memdb.insert_data(r, True, True)
 
 
@@ -153,7 +153,7 @@ class MergeDB(DB):
 
     def get_unique_records(self, funcname, rec, reducer):
         for k, g in groupby(sorted([
-            r.copy() for db in self.dbs for r in getattr(db, funcname)(rec)
+            r for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
             yield reducer(g)
 
@@ -161,7 +161,7 @@ class MergeDB(DB):
         for r in self.get_unique_records(
             "query_stations", rec, lambda g: next(g)
         ):
-            yield r.copy()
+            yield r
 
     def query_summary(self, rec):
         def reducer(g):
@@ -177,7 +177,7 @@ class MergeDB(DB):
         for r in self.get_unique_records(
             "query_summary", rec, reducer
         ):
-            yield r.copy()
+            yield r
 
     def query_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
@@ -185,7 +185,7 @@ class MergeDB(DB):
             db.fill_db(rec,memdb)
 
         for r in memdb.query_data(rec):
-            yield r.copy()
+            yield r
 
 
 class DballeDB(DB):
@@ -252,7 +252,7 @@ class SummaryCacheDB(DB):
         if summary is None:
             summary = self.set_cached_summary()
 
-        return tuple({
+        return tuple({**{
             "ident": None if i["ident"] is None else i["ident"],
             "lon": i["lon"],
             "lat": i["lat"],
@@ -262,7 +262,7 @@ class SummaryCacheDB(DB):
             "var": i["bcode"],
             "datemin": i["date"][0],
             "datemax": i["date"][1],
-        } for i in summary)
+        }} for i in summary)
 
     def get_filter_summary(self, rec):
         """Return a filter function based on dballe.Record `rec`.
@@ -316,8 +316,8 @@ class SummaryCacheDB(DB):
 
     def fill_db(self, rec, memdb):
         for r in self.db.query_data(rec):
-            del r["ana_id"]
-            del r["data_id"]
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
             memdb.insert_data(r, True, True)
 
 
@@ -396,7 +396,7 @@ class ArkimetVm2DB(DB):
         r = urlopen(url)
         for f in json.load(r)["features"]:
             p = f["properties"]
-            r = dballe.Record(**{
+            r = {**{
                 "lon": p["lon"],
                 "lat": p["lat"],
                 "rep_memo": str(p["network"]),
@@ -406,7 +406,7 @@ class ArkimetVm2DB(DB):
                                                "trange_p1", "trange_p2"]),
                 "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
                 str(p["bcode"]): float(p["value"]),
-            })
+            }}
             yield r
 
     def fill_db(self,rec,memedb):
@@ -424,7 +424,7 @@ class ArkimetVm2DB(DB):
         for i in json.load(r)["items"]:
             if not "va" in  i["area"] or not "va" in i["product"]:
                 continue
-            yield dballe.Record(**{
+            yield {**{
                 "ident": i["area"]["va"].get("ident"),
                 "lon": i["area"]["va"]["lon"],
                 "lat": i["area"]["va"]["lat"],
@@ -439,7 +439,7 @@ class ArkimetVm2DB(DB):
                            i["product"]["va"]["p2"]),
                 "datemin": datetime(*i["summarystats"]["b"]),
                 "datemax": datetime(*i["summarystats"]["e"]),
-            })
+            }}
 
     def query_stations(self, rec):
         """Not yet implemented."""
@@ -480,10 +480,10 @@ class ArkimetBufrDB(DB):
             Only `ident`, `rep_memo`, `lon` and `lat` are returned.
             Loading static data must be implemented.
         """
-        dates = set(r["datemax"] for r in self.query_summary(dballe.Record()))
+        dates = set(r["datemax"] for r in self.query_summary({}))
         db = dballe.DB.connect_from_url("mem:")
         for d in dates:
-            self.load_arkiquery_to_dbadb(dballe.Record(date=d), db)
+            self.load_arkiquery_to_dbadb({"date":d}, db)
 
         for s in db.query_station_data(rec):
             yield s
@@ -521,7 +521,7 @@ class ArkimetBufrDB(DB):
                     else:
                         lat=i["area"]["va"]["y"]    # mobile
 
-                    yield dballe.Record(**{
+                    yield {**{
                         "var": m["var"],
                         "level": m["level"],
                         "trange": m["trange"],
@@ -531,13 +531,13 @@ class ArkimetBufrDB(DB):
                         "rep_memo": i["product"]["va"]["t"],
                         "datemin": datetime(*i["summarystats"]["b"]),
                         "datemax": datetime(*i["summarystats"]["e"]),
-                    })
+                    }}
 
     #def query_data(self, rec):
     #    db = dballe.DB.connect_from_url("mem:")
     #    self.load_arkiquery_to_dbadb(rec, db)
     #    for r in db.query_data(rec):
-    #        yield r.copy()
+    #        yield r
 
 
     def get_datastream(self, rec):
@@ -570,9 +570,9 @@ class ArkimetBufrDB(DB):
             memdb.load(tmpf, "BUFR")
 
         for r in memdb.query_data(rec):
-            del r["ana_id"]
-            del r["data_id"]
-            yield r.copy()
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
+            yield r
 
 
     def fill_db(self, rec,memdb):
