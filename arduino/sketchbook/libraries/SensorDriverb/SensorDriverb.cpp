@@ -1359,6 +1359,39 @@ aJsonObject* SensorDriverBmp085::getJson()
   return jsonvalues;
 }
 #endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverBmp085::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B10004"]= values[0];
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+
+#if defined(SECONDARYPARAMETER)
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B10004"]= values[1];
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+#endif
+  }else{
+    jsonvalues["B10004"]=RawJson("null");
+#if defined(SECONDARYPARAMETER)
+    jsonvalues["B12101"]=RawJson("null");
+#endif
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
 #endif
 
 
