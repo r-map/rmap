@@ -200,7 +200,7 @@ def main():
 
     try:
         last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
-        print last
+        print (last)
     except Exception as e:
         logging.exception(e)
 
