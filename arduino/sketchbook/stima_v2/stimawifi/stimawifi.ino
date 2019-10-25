@@ -60,6 +60,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_TX D2
 
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define PMS_RESET D0
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
@@ -128,6 +129,7 @@ ESP8266WebServer webserver(HTTP_PORT);
 
 //flag for saving data
 bool shouldSaveConfig = false;
+bool pmspresent =  false;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char rmap_longitude[11] = "";
@@ -714,6 +716,8 @@ int  rmap_config(String payload){
 	      LOGN(F("level: %s" CR),sensors[ii].level);
 	      sensors[ii].address = array[i]["fields"]["address"];	    
 	      LOGN(F("address: %d" CR),sensors[ii].address);
+
+	      if (strcmp(sensors[ii].type,"PMS")==0) pmspresent=true;
 	      
 	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
 	      if (sd[ii] == 0){
@@ -1032,7 +1036,14 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
+  digitalWrite(PMS_RESET,HIGH);
 
+  //reset pin for sensor
+  digitalWrite(PMS_RESET,LOW); // reset low
+  delay(100);
+  digitalWrite(PMS_RESET,HIGH);
+
+  
   Serial.begin(115200);
   Serial.println();
 
@@ -1059,7 +1070,6 @@ void setup() {
 
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
-
 
   // check return value of
   // the Write.endTransmisstion to see if
@@ -1341,7 +1351,14 @@ void setup() {
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
-  Alarm.timerRepeat(3600*24*7,reboot);          // every week
+  time_t reboottime;
+  if (pmspresent){
+    reboottime=3600*24;            // pms stall sometime
+  }else{
+    reboottime=3600*24*7;          // every week
+  }
+  LOGN(F("reboot every: %d" CR),reboottime);
+  Alarm.timerRepeat(reboottime,reboot);                 // reboot
 
   // upgrade firmware
   //Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  

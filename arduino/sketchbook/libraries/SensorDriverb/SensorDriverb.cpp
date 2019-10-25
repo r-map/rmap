@@ -5006,6 +5006,7 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
   }
 #else
   _timing=millis();  
+  waittime= 0ul;
   return SD_SUCCESS;  
 #endif
 }
@@ -5017,14 +5018,21 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!HPMstarted)  return SD_INTERNAL_ERROR;
-
-  HPMstarted=false;  
+  
   _timing=0;
-
+  
   // measure
-  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
+
+
+  
 #ifdef ONESHOT_SWITCHOFF
+  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
   _hpm->stopParticleMeasurement();
+  HPMstarted=false;  
+#else
+  bool status=_hpm->readParticleMeasuringResults();
+  pm25 = _hpm->get(PM25_TYPE);
+  pm10 = _hpm->get(PM10_TYPE);
 #endif
 
   if (status){
