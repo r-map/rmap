@@ -82,8 +82,7 @@ class  wssummaries(object):
                 enddt  =datetime.utcfromtimestamp(self.query.endTime)
                 uri+="&yearmax={:04d}".format(enddt.year)+"&monthmax={:02d}".format(enddt.month)+"&daymax={:02d}".format(enddt.day)+"&hourmax={:02d}".format(enddt.hour)+"&minumax={:02d}".format(enddt.minute)+"&secmax={:02d}".format(enddt.second)
 
-            #print "URI:",uri
-
+            #print ("URI:",uri)
             r=requests.get(uri, timeout=timeout)
             rj=r.json()
 
@@ -262,7 +261,7 @@ class DballeReader(object):
         startdt=datetime.utcfromtimestamp(start_time)
         enddt  =datetime.utcfromtimestamp(end_time)
 
-        #print "fetch: ", startdt, enddt
+        #print ("fetch: ", startdt, enddt)
 
         rj=[]
 
@@ -334,55 +333,6 @@ class DballeReader(object):
                                    "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
 
-            # if starttime.tm_year != endtime.tm_year:
-            #     #span years: get two month minimum
-            #     #span years
-            #     step=3600
-            #     rj=[]
-            #     for year in xrange( starttime.tm_year, endtime.tm_year+1):
-            #         if starttime.tm_mon < endtime.tm_mon:
-            #             for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-            #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-            #                 rj+=r.json()
-            #         else:
-            #             for month in xrange( starttime.tm_mon, 12+1):
-            #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-            #                 rj+=r.json()
-            #             for month in xrange( 1, endtime.tm_mon+1):
-            #                 r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(year)+"/{:02d}".format(month))
-            #                 rj+=r.json()
-
-            # elif starttime.tm_mon != endtime.tm_mon:
-            #     #span months, same year: get two month minimum
-            #     step=3600
-            #     rj=[]
-            #     for month in xrange( starttime.tm_mon, endtime.tm_mon+1):
-            #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(month))
-            #         rj+=r.json()
-
-            # elif starttime.tm_mday != endtime.tm_mday:
-            #     #span day same month: get two month minimum
-            #     step=3600
-            #     rj=[]
-            #     for day in xrange( starttime.tm_mday, endtime.tm_mday+1):
-            #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(day))
-            #         rj+=r.json()
-
-            # elif starttime.tm_hour != endtime.tm_hour:
-            #     #span hour same day: get two hour minimum
-            #     step=60
-            #     rj=[]
-            #     for hour in xrange( starttime.tm_hour, endtime.tm_hour+1):
-            #         r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(hour))
-            #         rj+=r.json()
-
-            # else:
-            #     #one hour
-            #     step=60
-            #     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/timeseries/"+"{:04d}".format(starttime.tm_year)+"/{:02d}".format(starttime.tm_mon)+"/{:02d}".format(starttime.tm_mday)+"/{:02d}".format(starttime.tm_hour))
-            #     step=60*5
-            #     rj=r.json()
-
         if len(rj) > 0:
 
             if self.stationtype == "mobile" :
@@ -451,8 +401,8 @@ class DballeReader(object):
             series=[]
             time_info=(start_time, end_time,end_time-start_time)
 
-        #print "time_info: ",time_info
-        #print "series: ",series
+        #print ("time_info: ",time_info)
+        #print ("series: ",series)
         #time_info = _from_, _to_, _step_
         #time_info=(int(time.time()-100), int(time.time()),1)
         #series=range(*time_info)
@@ -460,7 +410,7 @@ class DballeReader(object):
         return time_info, series
 
     def get_intervals(self):
-        print("getintervals")
+        #print("getintervals")
         #return IntervalSet([Interval(start, end)])
 
         uri=path2uri(self.path)
