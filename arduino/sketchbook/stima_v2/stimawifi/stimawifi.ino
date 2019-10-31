@@ -51,6 +51,7 @@ SSL support: Basic SSL"
 
 #if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
+#define PMS_RESET D0
 #define SDA D5
 #define SCL D6
 #define RESET_PIN D7
@@ -69,6 +70,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_RX D5
 //#define SDS_PIN_TX D6
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+#define PMS_RESET D0
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
@@ -1036,11 +1038,11 @@ void setup() {
   pinMode(LED_PIN, OUTPUT);
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
-  digitalWrite(PMS_RESET,HIGH);
 
+  pinMode(PMS_RESET, OUTPUT);
   //reset pin for sensor
   digitalWrite(PMS_RESET,LOW); // reset low
-  delay(100);
+  delay(500);
   digitalWrite(PMS_RESET,HIGH);
 
   
