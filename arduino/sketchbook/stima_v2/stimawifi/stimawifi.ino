@@ -31,7 +31,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-10-07T00:00"
+#define SOFTWARE_VERSION "2019-11-01T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
