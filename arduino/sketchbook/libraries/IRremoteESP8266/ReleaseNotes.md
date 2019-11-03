@@ -1,5 +1,129 @@
 # Release Notes
 
+## _v2.7.0 (20191030)_
+
+**[Bug Fixes]**
+- auto_analyse: Fix > 64 bit send code generation. (#976)
+- auto_analyse: Fix missing arguments in generated code for send64+ (#972)
+- IRsendProntoDemo: Fix compile issue on ESP32 platform. (#938)
+- IRMQTTServer: Fix compile error when `MQTT_ENABLE` is false. (#933)
+
+**[Features]**
+- Add Hitachi 424 bit A/C support. (#975, #980, #981)
+- Experimental detailed support for `DAIKIN152` (#971)
+- Mitsubishi 112bit A/C support (#947, #968)
+- gc_decode: Adding Support for Decoding codes in raw code format (#963)
+- Refactor to use common routines/macros to handle bit manipulation. (#934)
+- Use centralised common strings. Saves ~1.5k of program space. (#946)
+- Add Internationalisation (i18n) / Locale support. (#946, #955, #966)
+  - `de-CH`: Swiss German. (#949, #954)
+  - `de-DE`: German. (#946, #950, #952)
+  - `en-AU`: English/Australia (Default locale) (#946)
+  - `en-IE`: English/Ireland (#946)
+  - `en-UK`: English/United Kingdom (#946)
+  - `en-US`: English/United States (#946)
+  - `es-ES`: Spanish. (#953)
+  - `fr-FR`: French. (#962)
+- Port CI pipeline to PlatformIO (#936)
+
+**[Misc]**
+- Add DAIKIN128 & DAIKIN152 to `decodeToState()` (#982)
+- auto_analyse: Produce better code when leader is detected. (#977)
+- Coolix A/C improvements (#944)
+- A/C setRaw/getRaw/stateReset() cleanup. (#967)
+- Add documentation on how to use & support the i18n aspects of the library.
+- Make travis checks faster. (#957)
+- Translate README.md to french (#959)
+- Fixed Coolix kCoolixDefaultState (#941)
+- Improve generation of list of pio projects. (#940)
+
+
+## _v2.6.6 (20190923)_
+
+**[Bug Fixes]**
+- Ensure `begin()` is called for every supported common a/c. (#905, #899)
+- IRMQTTServer: Fix JSON state parsing. (#896)
+- IRMQTTServer: Fix compilation error when `MQTT_CLIMATE_JSON` is `true`. (#893)
+
+**[Features]**
+- Mitsubishi136: Full A/C support. (#898, #890)
+- Fujitsu: Add support for ARRY4 remote. (#895)
+- Web-AC-control: Add new WebUI example sketch. (#880, #886)
+- Improve Common A/C API (#913)
+- IRMQTTServer: Support for multiple climates. (#903)
+- IRMQTTServer: Add TX channel support for HTTP interface. (#929)
+- IRMQTTServer: Add option to clear retained settings. (#917)
+- auto_analyse_raw_data.py: Add decode code generation. (#909)
+- auto_analyse_raw_data.py: General improvements (#906)
+
+**[Misc]**
+- IRMQTTServer: Use latest API for common A/C. (#928)
+- IRMQTTServer: Add flag & documentation for Home Assistant mode. (#919)
+- IRMQTTServer: Move from ArduinoJson v5 to v6. (#878)
+- IRMQTTServer: Use retain for discovery message. (#881)
+- Goodweather: Adjust timings & minor fixes. (#924)
+- PanasonicAc: Add better SwingV support for common a/c framework. (#923)
+- Daikin2: Corrections for common A/C interface. (#910)
+- MitsubishiAC: Improve decoding. (#914)
+- Fujitsu: Disable horiz swing for ARRY4. (#907)
+- SamsungAc: Only send power on/off code if it's needed. (#884)
+- Teco: Add timer support. (#883)
+- More consistent A/C `::toString()` output. (#920)
+
+
+## _v2.6.5 (20190828)_
+
+**[Bug Fixes]**
+- IRMQTTServer: Remove duplicate MQTT_CLIMATE from HA discovery (#869)
+- Fujitsu: Ensure `on()` is called in common a/c framework. (#862)
+- Update `strToModel()` (#861)
+- IRMQTTServer: Add missing header file. (#858)
+- IRMQTTServer: Fix a compile error when HTML_PASSWORD_ENABLE is enabled. (#856)
+
+**[Features]**
+- IRrecv: Allow tolerance percentage to be set at run-time. (#865)
+- Basic support for Daikin152 A/C protocol. (#874)
+- Teco: Add light, humid, & save support. (#871)
+- Detailed support for Amcor A/C protocol. (#836, #854)
+- IRMQTTServer: Add ability to report Vcc at the ESP chip. (#845)
+- Gree: Add timer support. (#849)
+- IRac/Mitsubishi A/C: Support wide `swingh_t` mode (#844)
+- IRMQTTServer: Generate protocol and bit size html selects (#838)
+
+**[Misc]**
+- New example code to show how to use the `IRac` class to control A/Cs (#839)
+- Improve/fix `swingh_t::kWide` support (#846)
+- Kelvinator: Optimise code a little to save space. (#843)
+
+
+## _v2.6.4 (20190726)_
+
+**[Bug Fixes]**
+- Fix some swing problems with the Mitsubishi HAVC protocol (#831)
+- Fix parameter ordering for Gree in common a/c code. (#815)
+- Fix parameters for Coolix in IRac::sendAc() (#829)
+- IRMQTTServer: Fix sending >64 bit codes. (#811)
+
+**[Features]**
+- Daikin128: Full detailed support & common a/c support. (#832)
+- Midea: Support native temp units of Celsius & SwingV. (#823)
+- Gree: Support `YBOFB` models and bug fix. (#815)
+- Pioneer: Fix sendPioneer with Pioneer specific timings (#830)
+- Daikin128: Initial support for Daikin 17 Series/BRC52B63 (#828)
+- Coolix: Better `toCommon()` support. (#825)
+- Experimental detailed support for Daikin 176 bits (#816)
+- Add setting of output options to A/C classes. (#808)
+- Add invert flag support to Samsung AC (#807)
+
+**[Misc]**
+- Daikin176: making some change on Daikin176 to work with IRMQTTServer (#826)
+- Reduce duplicate code to save (3K+) space. (#813)
+- Daikin176: Experiment Daikin176bits with IRMQTTServer (#824)
+- Update platformio.ini files for PlatformIO v4.0.0 (#812)
+- Change repo URLs to new location. (#806)
+- Move `htmlEscape()` to the IRutils namespace (#801)
+
+
 ## _v2.6.3 (20190704)_
 
 **[Bug Fixes]**

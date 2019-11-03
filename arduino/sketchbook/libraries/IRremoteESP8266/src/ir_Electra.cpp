@@ -2,17 +2,19 @@
 
 #include "ir_Electra.h"
 #include <algorithm>
+#include <cstring>
 #include "IRrecv.h"
 #include "IRsend.h"
+#include "IRtext.h"
 #include "IRutils.h"
 
 // Electra A/C added by crankyoldgit
 //
 
 // Ref:
-//   https://github.com/markszabo/IRremoteESP8266/issues/527
-//   https://github.com/markszabo/IRremoteESP8266/issues/642
-//   https://github.com/markszabo/IRremoteESP8266/issues/778
+//   https://github.com/crankyoldgit/IRremoteESP8266/issues/527
+//   https://github.com/crankyoldgit/IRremoteESP8266/issues/642
+//   https://github.com/crankyoldgit/IRremoteESP8266/issues/778
 //   https://github.com/ToniA/arduino-heatpumpir/blob/master/AUXHeatpumpIR.cpp
 
 // Constants
@@ -22,6 +24,15 @@ const uint16_t kElectraAcHdrSpace = 4470;
 const uint16_t kElectraAcOneSpace = 1647;
 const uint16_t kElectraAcZeroSpace = 547;
 const uint32_t kElectraAcMessageGap = kDefaultMessageGap;  // Just a guess.
+
+using irutils::addBoolToString;
+using irutils::addIntToString;
+using irutils::addLabeledString;
+using irutils::addModeToString;
+using irutils::addFanToString;
+using irutils::addTempToString;
+using irutils::setBit;
+using irutils::setBits;
 
 #if SEND_ELECTRA_AC
 // Send a Electra message
@@ -46,13 +57,14 @@ void IRsend::sendElectraAC(const uint8_t data[], const uint16_t nbytes,
 #endif
 
 
-IRElectraAc::IRElectraAc(const uint16_t pin) : _irsend(pin) {
+IRElectraAc::IRElectraAc(const uint16_t pin, const bool inverted,
+                         const bool use_modulation)
+    : _irsend(pin, inverted, use_modulation) {
   this->stateReset();
 }
 
 void IRElectraAc::stateReset(void) {
-  for (uint8_t i = 1; i < kElectraAcStateLength - 2; i++)
-    remote_state[i] = 0;
+  for (uint8_t i = 1; i < kElectraAcStateLength - 2; i++) remote_state[i] = 0;
   remote_state[0] = 0xC3;
   remote_state[11] = 0x08;
   // [12] is the checksum.
@@ -91,8 +103,7 @@ uint8_t *IRElectraAc::getRaw(void) {
 }
 
 void IRElectraAc::setRaw(const uint8_t new_code[], const uint16_t length) {
-  for (uint8_t i = 0; i < length && i < kElectraAcStateLength; i++)
-    remote_state[i] = new_code[i];
+  memcpy(remote_state, new_code, std::min(length, kElectraAcStateLength));
 }
 
 void IRElectraAc::on(void) { this->setPower(true); }
@@ -100,14 +111,11 @@ void IRElectraAc::on(void) { this->setPower(true); }
 void IRElectraAc::off(void) { this->setPower(false); }
 
 void IRElectraAc::setPower(const bool on) {
-  if (on)
-    remote_state[9] |= kElectraAcPowerMask;
-  else
-    remote_state[9] &= ~kElectraAcPowerMask;
+  setBit(&remote_state[9], kElectraAcPowerOffset, on);
 }
 
 bool IRElectraAc::getPower(void) {
-  return remote_state[9] & kElectraAcPowerMask;
+  return GETBIT8(remote_state[9], kElectraAcPowerOffset);
 }
 
 void IRElectraAc::setMode(const uint8_t mode) {
@@ -117,8 +125,7 @@ void IRElectraAc::setMode(const uint8_t mode) {
     case kElectraAcCool:
     case kElectraAcHeat:
     case kElectraAcFan:
-      remote_state[6] &= ~kElectraAcModeMask;
-      remote_state[6] |= (mode << 5);
+      setBits(&remote_state[6], kElectraAcModeOffset, kModeBitsSize, mode);
       break;
     default:
       // If we get an unexpected mode, default to AUTO.
@@ -127,22 +134,17 @@ void IRElectraAc::setMode(const uint8_t mode) {
 }
 
 uint8_t IRElectraAc::getMode(void) {
-  return (remote_state[6] & kElectraAcModeMask) >> 5;
+  return GETBITS8(remote_state[6], kElectraAcModeOffset, kModeBitsSize);
 }
 
 // Convert a standard A/C mode into its native mode.
 uint8_t IRElectraAc::convertMode(const stdAc::opmode_t mode) {
   switch (mode) {
-    case stdAc::opmode_t::kCool:
-      return kElectraAcCool;
-    case stdAc::opmode_t::kHeat:
-      return kElectraAcHeat;
-    case stdAc::opmode_t::kDry:
-      return kElectraAcDry;
-    case stdAc::opmode_t::kFan:
-      return kElectraAcFan;
-    default:
-      return kElectraAcAuto;
+    case stdAc::opmode_t::kCool: return kElectraAcCool;
+    case stdAc::opmode_t::kHeat: return kElectraAcHeat;
+    case stdAc::opmode_t::kDry:  return kElectraAcDry;
+    case stdAc::opmode_t::kFan:  return kElectraAcFan;
+    default:                     return kElectraAcAuto;
   }
 }
 
@@ -151,23 +153,23 @@ stdAc::opmode_t IRElectraAc::toCommonMode(const uint8_t mode) {
   switch (mode) {
     case kElectraAcCool: return stdAc::opmode_t::kCool;
     case kElectraAcHeat: return stdAc::opmode_t::kHeat;
-    case kElectraAcDry: return stdAc::opmode_t::kDry;
-    case kElectraAcFan: return stdAc::opmode_t::kFan;
-    default: return stdAc::opmode_t::kAuto;
+    case kElectraAcDry:  return stdAc::opmode_t::kDry;
+    case kElectraAcFan:  return stdAc::opmode_t::kFan;
+    default:             return stdAc::opmode_t::kAuto;
   }
 }
 
 // Set the temp. in deg C
 void IRElectraAc::setTemp(const uint8_t temp) {
   uint8_t newtemp = std::max(kElectraAcMinTemp, temp);
-  newtemp = std::min(kElectraAcMaxTemp, newtemp);
-  remote_state[1] = (remote_state[1] & ~kElectraAcTempMask) |
-    ((newtemp - kElectraAcOffsetTemp) << 3);
+  newtemp = std::min(kElectraAcMaxTemp, newtemp) - kElectraAcTempDelta;
+  setBits(&remote_state[1], kElectraAcTempOffset, kElectraAcTempSize, newtemp);
 }
 
 // Return the set temp. in deg C
 uint8_t IRElectraAc::getTemp(void) {
-  return ((remote_state[1] & kElectraAcTempMask) >> 3) + kElectraAcOffsetTemp;
+  return GETBITS8(remote_state[1], kElectraAcTempOffset, kElectraAcTempSize) +
+      kElectraAcTempDelta;
 }
 
 // Set the speed of the fan, 0-3, 0 is auto, 1-3 is the speed
@@ -177,8 +179,7 @@ void IRElectraAc::setFan(const uint8_t speed) {
     case kElectraAcFanHigh:
     case kElectraAcFanMed:
     case kElectraAcFanLow:
-      remote_state[4] &= ~kElectraAcFanMask;
-      remote_state[4] |= (speed << 5);
+      setBits(&remote_state[4], kElectraAcFanOffset, kElectraAcFanSize, speed);
       break;
     default:
       // If we get an unexpected speed, default to Auto.
@@ -187,22 +188,18 @@ void IRElectraAc::setFan(const uint8_t speed) {
 }
 
 uint8_t IRElectraAc::getFan(void) {
-  return (remote_state[4] & kElectraAcFanMask) >> 5;
+  return GETBITS8(remote_state[4], kElectraAcFanOffset, kElectraAcFanSize);
 }
 
 // Convert a standard A/C Fan speed into its native fan speed.
 uint8_t IRElectraAc::convertFan(const stdAc::fanspeed_t speed) {
   switch (speed) {
     case stdAc::fanspeed_t::kMin:
-    case stdAc::fanspeed_t::kLow:
-      return kElectraAcFanLow;
-    case stdAc::fanspeed_t::kMedium:
-      return kElectraAcFanMed;
+    case stdAc::fanspeed_t::kLow: return kElectraAcFanLow;
+    case stdAc::fanspeed_t::kMedium: return kElectraAcFanMed;
     case stdAc::fanspeed_t::kHigh:
-    case stdAc::fanspeed_t::kMax:
-      return kElectraAcFanHigh;
-    default:
-      return kElectraAcFanAuto;
+    case stdAc::fanspeed_t::kMax: return kElectraAcFanHigh;
+    default: return kElectraAcFanAuto;
   }
 }
 
@@ -217,25 +214,23 @@ stdAc::fanspeed_t IRElectraAc::toCommonFanSpeed(const uint8_t speed) {
 }
 
 void IRElectraAc::setSwingV(const bool on) {
-  if (on)
-    remote_state[1] &= ~kElectraAcSwingVMask;
-  else
-    remote_state[1] |= kElectraAcSwingVMask;
+  setBits(&remote_state[1], kElectraAcSwingVOffset, kElectraAcSwingSize,
+          on ? kElectraAcSwingOn : kElectraAcSwingOff);
 }
 
 bool IRElectraAc::getSwingV(void) {
-  return !(remote_state[1] & kElectraAcSwingVMask);
+  return !GETBITS8(remote_state[1], kElectraAcSwingVOffset,
+                   kElectraAcSwingSize);
 }
 
 void IRElectraAc::setSwingH(const bool on) {
-  if (on)
-    remote_state[2] &= ~kElectraAcSwingHMask;
-  else
-    remote_state[2] |= kElectraAcSwingHMask;
+  setBits(&remote_state[2], kElectraAcSwingHOffset, kElectraAcSwingSize,
+          on ? kElectraAcSwingOn : kElectraAcSwingOff);
 }
 
 bool IRElectraAc::getSwingH(void) {
-  return !(remote_state[2] & kElectraAcSwingHMask);
+  return !GETBITS8(remote_state[2], kElectraAcSwingHOffset,
+                   kElectraAcSwingSize);
 }
 
 // Convert the A/C state to it's common equivalent.
@@ -269,51 +264,15 @@ stdAc::state_t IRElectraAc::toCommon(void) {
 String IRElectraAc::toString(void) {
   String result = "";
   result.reserve(80);  // Reserve some heap for the string to reduce fragging.
-  result += F("Power: ");
-  result += this->getPower() ? F("On") : F("Off");
-  result += F(", Mode: ");
-  result += uint64ToString(this->getMode());
-  switch (this->getMode()) {
-    case kElectraAcAuto:
-      result += F(" (AUTO)");
-      break;
-    case kElectraAcCool:
-      result += F(" (COOL)");
-      break;
-    case kElectraAcHeat:
-      result += F(" (HEAT)");
-      break;
-    case kElectraAcDry:
-      result += F(" (DRY)");
-      break;
-    case kElectraAcFan:
-      result += F(" (FAN)");
-      break;
-    default:
-      result += F(" (UNKNOWN)");
-  }
-  result += F(", Temp: ");
-  result += uint64ToString(this->getTemp());
-  result += F("C, Fan: ");
-  result += uint64ToString(this->getFan());
-  switch (this->getFan()) {
-    case kElectraAcFanAuto:
-      result += F(" (Auto)");
-      break;
-    case kElectraAcFanHigh:
-      result += F(" (High)");
-      break;
-    case kElectraAcFanMed:
-      result += F(" (Med)");
-      break;
-    case kElectraAcFanLow:
-      result += F(" (Low)");
-      break;
-  }
-  result += F(", Swing(V): ");
-  result += this->getSwingV() ? F("On") : F("Off");
-  result += F(", Swing(H): ");
-  result += this->getSwingH() ? F("On") : F("Off");
+  result += addBoolToString(getPower(), kPowerStr, false);
+  result += addModeToString(getMode(), kElectraAcAuto, kElectraAcCool,
+                            kElectraAcHeat, kElectraAcDry, kElectraAcFan);
+  result += addTempToString(getTemp());
+  result += addFanToString(getFan(), kElectraAcFanHigh, kElectraAcFanLow,
+                           kElectraAcFanAuto, kElectraAcFanAuto,
+                           kElectraAcFanMed);
+  result += addBoolToString(getSwingV(), kSwingVStr);
+  result += addBoolToString(getSwingH(), kSwingHStr);
   return result;
 }
 
@@ -344,7 +303,7 @@ bool IRrecv::decodeElectraAC(decode_results *results, uint16_t nbits,
                     kElectraAcBitMark, kElectraAcOneSpace,
                     kElectraAcBitMark, kElectraAcZeroSpace,
                     kElectraAcBitMark, kElectraAcMessageGap, true,
-                    kTolerance, 0, false)) return false;
+                    _tolerance, 0, false)) return false;
 
   // Compliance
   if (strict) {
