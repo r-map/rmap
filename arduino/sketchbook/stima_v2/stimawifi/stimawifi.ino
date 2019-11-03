@@ -31,7 +31,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-11-01T00:00"
+#define SOFTWARE_VERSION "2019-11-03T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -1245,15 +1245,23 @@ void setup() {
   }else{
     //if you get here you have connected to the WiFi
     LOGN(F("connected... good!" CR));
+    LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
+    digitalWrite(LED_PIN,HIGH);
+
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
       u8g2.print(F("WIFI OK"));
       u8g2.sendBuffer();
+      u8g2.setCursor(0, 40); 
+      u8g2.print(F("IP:"));
+      u8g2.setFont(u8g2_font_u8glib_4_tf);
+      u8g2.print(WiFi.localIP().toString().c_str());
+      u8g2.setFont(u8g2_font_5x7_tf);
+      u8g2.sendBuffer();
     }
-    digitalWrite(LED_PIN,HIGH);
   }
-  
+
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(rmap_server, custom_rmap_server.getValue());
@@ -1272,20 +1280,6 @@ void setup() {
     }
     
   }
-
-  LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
-
-  firmware_upgrade();
-
-  if (oledpresent) {
-    u8g2.setCursor(0, 40); 
-    u8g2.print(F("IP:"));
-    u8g2.setFont(u8g2_font_u8glib_4_tf);
-    u8g2.print(WiFi.localIP().toString().c_str());
-    u8g2.setFont(u8g2_font_5x7_tf);
-    u8g2.sendBuffer();
-  }
-
   
   String remote_config= rmap_get_remote_config();
 
@@ -1300,6 +1294,9 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
+
+  firmware_upgrade();
+  
   //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
   if (!rmap_config(remote_config) == 0) {
     LOGN(F("station not configurated ! restart" CR));
@@ -1368,6 +1365,7 @@ void setup() {
 
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", HTTP_PORT);
+
 }
 
 
