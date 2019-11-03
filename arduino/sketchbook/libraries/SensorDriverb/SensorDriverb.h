@@ -282,6 +282,9 @@ class SensorDriverTmp : public SensorDriver
   #if defined(USEAJSON)
     virtual aJsonObject* getJson();
   #endif
+  #if defined(USEARDUINOJSON)
+    virtual int getJson(char *json_buffer, size_t json_buffer_length);
+  #endif
 
   float readTemperature(void);
   int32_t readPressure(void);

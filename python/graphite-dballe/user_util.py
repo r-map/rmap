@@ -19,7 +19,7 @@ from .logger import log
 
 
 def getProfile(request, allowDefault=True):
-  if request.user.is_authenticated():
+  if request.user.is_authenticated:
     return Profile.objects.get_or_create(user=request.user)[0]
   elif allowDefault:
     return default_profile()

@@ -3,7 +3,6 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy
 
-from django.db.models import permalink
 from django.db.models import Q
 
 from  django import VERSION as djversion

@@ -7,7 +7,7 @@ from django.shortcuts import render
 import dballe
 from datetime import date,datetime,timedelta,time
 from rmap.settings import *
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from rmap.stations.models import Bcode
 #from rmap.rmap_core import isRainboInstance
 

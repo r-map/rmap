@@ -52,7 +52,7 @@
 //#define HYTDRIVER
 
 // include BMP driver
-//#define BMPDRIVER
+#define BMPDRIVER
 //#define BMP085_DEBUG 1
 
 //include SI7021

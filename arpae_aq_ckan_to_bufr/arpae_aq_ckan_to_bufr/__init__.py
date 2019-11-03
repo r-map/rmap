@@ -75,10 +75,10 @@ def load_stations():
     reader = csv.DictReader(codecs.getreader("utf-8")(resp))
     for row in reader:
         key = int(row["Cod_staz"])
-        rec = dballe.Record(B01019=row["Stazione"],
-                            B07030=float(row["Altezza"].replace(",", ".")),
-                            lon=float(row["Lon"]), lat=float(row["Lat"]),
-                            rep_memo="arpae-aq")
+        rec = {"B01019":row["Stazione"],
+               "B07030":float(row["Altezza"].replace(",", ".")),
+               "lon":float(row["Lon"]), "lat":float(row["Lat"]),
+               "rep_memo":"arpae-aq"}
         stations[key] = rec
 
     return stations
@@ -127,12 +127,17 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
             logger.warning("Unknown station {}, skipping".format(row["station_id"]))
             continue
         else:
-            rec = dballe.Record(**{
+            rec = {**{
                 k: station.get(k)
                 for k in ("ident", "lon", "lat", "rep_memo")
-            })
+            }}
             try:
-                rec["date"] = reftime
+                rec["year"] = reftime.year
+                rec["month"] = reftime.month
+                rec["day"] = reftime.day
+                rec["hour"] = reftime.hour
+                rec["min"] = reftime.minute
+                rec["sec"] = reftime.second
                 rec[variable["var"]] = value * 10**-9
                 rec["level"] = variable["level"]
                 rec["trange"] = variable["trange"]
@@ -141,7 +146,7 @@ def export_data(outfile,low=0,high=None,datetimemin=None):
                 logger.error("Error encoding/write message")
                 
             
-    db.export_to_file(dballe.Record(datemin=datetimemin), filename=outfile,
+    db.export_to_file({}, filename=outfile,
                       format="BUFR", generic=True)
 
     return last+1
@@ -195,7 +200,7 @@ def main():
 
     try:
         last = export_data(args.outfile,low=args.low,datetimemin=datetimemin)
-        print last
+        print (last)
     except Exception as e:
         logging.exception(e)
 

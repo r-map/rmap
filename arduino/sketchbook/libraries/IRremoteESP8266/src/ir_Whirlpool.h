@@ -27,7 +27,7 @@
 #endif
 
 // Ref:
-//   https://github.com/markszabo/IRremoteESP8266/issues/509
+//   https://github.com/crankyoldgit/IRremoteESP8266/issues/509
 
 // Constants
 const uint8_t kWhirlpoolAcChecksumByte1 = 13;
@@ -37,31 +37,33 @@ const uint8_t kWhirlpoolAcAuto = 1;
 const uint8_t kWhirlpoolAcCool = 2;
 const uint8_t kWhirlpoolAcDry = 3;
 const uint8_t kWhirlpoolAcFan = 4;
-const uint8_t kWhirlpoolAcModeMask = 0b00000111;
+const uint8_t kWhirlpoolAcModeOffset = 0;
 const uint8_t kWhirlpoolAcModePos = 3;
+const uint8_t kWhirlpoolAcFanOffset = 0;  // Mask 0b00000011
+const uint8_t kWhirlpoolAcFanSize = 2;  // Nr. of bits
 const uint8_t kWhirlpoolAcFanAuto = 0;
 const uint8_t kWhirlpoolAcFanHigh = 1;
 const uint8_t kWhirlpoolAcFanMedium = 2;
 const uint8_t kWhirlpoolAcFanLow = 3;
-const uint8_t kWhirlpoolAcFanMask = 0b00000011;
 const uint8_t kWhirlpoolAcFanPos = 2;
 const uint8_t kWhirlpoolAcMinTemp = 18;     // 18C (DG11J1-3A), 16C (DG11J1-91)
 const uint8_t kWhirlpoolAcMaxTemp = 32;     // 32C (DG11J1-3A), 30C (DG11J1-91)
 const uint8_t kWhirlpoolAcAutoTemp = 23;    // 23C
-const uint8_t kWhirlpoolAcTempMask = 0b11110000;
 const uint8_t kWhirlpoolAcTempPos = 3;
-const uint8_t kWhirlpoolAcSwing1Mask = 0b10000000;
-const uint8_t kWhirlpoolAcSwing2Mask = 0b01000000;
-const uint8_t kWhirlpoolAcLightMask = 0b00100000;
-const uint8_t kWhirlpoolAcPowerToggleMask = 0b00000100;
+const uint8_t kWhirlpoolAcSwing1Offset = 7;
+const uint8_t kWhirlpoolAcSwing2Offset = 6;
+const uint8_t kWhirlpoolAcLightOffset = 5;
+const uint8_t kWhirlpoolAcPowerToggleOffset = 2;  // 0b00000100
 const uint8_t kWhirlpoolAcPowerTogglePos = 2;
-const uint8_t kWhirlpoolAcSleepMask = 0b00001000;
+const uint8_t kWhirlpoolAcSleepOffset = 3;
 const uint8_t kWhirlpoolAcSleepPos = 2;
 const uint8_t kWhirlpoolAcSuperMask = 0b10010000;
 const uint8_t kWhirlpoolAcSuperPos = 5;
-const uint8_t kWhirlpoolAcHourMask = 0b00011111;
-const uint8_t kWhirlpoolAcMinuteMask = 0b00111111;
-const uint8_t kWhirlpoolAcTimerEnableMask = 0b10000000;
+const uint8_t kWhirlpoolAcHourOffset = 0;  // Mask 0b00011111
+const uint8_t kWhirlpoolAcHourSize = 5;  // Nr. of bits
+const uint8_t kWhirlpoolAcMinuteOffset = 0;  // Mask 0b00111111
+const uint8_t kWhirlpoolAcMinuteSize = 6;  // Nr. of bits
+const uint8_t kWhirlpoolAcTimerEnableOffset = 7;  // 0b10000000
 const uint8_t kWhirlpoolAcClockPos = 6;
 const uint8_t kWhirlpoolAcOffTimerPos = 8;
 const uint8_t kWhirlpoolAcOnTimerPos = 10;
@@ -78,18 +80,14 @@ const uint8_t kWhirlpoolAcCommandIFeel = 0x0D;
 const uint8_t kWhirlpoolAcCommandFanSpeed = 0x11;
 const uint8_t kWhirlpoolAcCommand6thSense = 0x17;
 const uint8_t kWhirlpoolAcCommandOffTimer = 0x1D;
-const uint8_t kWhirlpoolAcAltTempMask = 0b00001000;
+const uint8_t kWhirlpoolAcAltTempOffset = 3;
 const uint8_t kWhirlpoolAcAltTempPos = 18;
-
-enum whirlpool_ac_remote_model_t {
-  DG11J13A = 1,  // DG11J1-04 too
-  DG11J191,
-};
 
 // Classes
 class IRWhirlpoolAc {
  public:
-  explicit IRWhirlpoolAc(const uint16_t pin);
+  explicit IRWhirlpoolAc(const uint16_t pin, const bool inverted = false,
+                         const bool use_modulation = true);
 
   void stateReset(void);
 #if SEND_WHIRLPOOL_AC
@@ -159,7 +157,6 @@ class IRWhirlpoolAc {
   void _setTemp(const uint8_t temp, const bool remember = true);
   void _setMode(const uint8_t mode);
   int8_t getTempOffset(void);
-  String timeToString(uint16_t minspastmidnight);
 };
 
 #endif  // IR_WHIRLPOOL_H_

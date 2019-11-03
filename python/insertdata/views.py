@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
 from leaflet.forms.widgets import LeafletWidget
 from leaflet.forms.fields import PointField
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from  rmap.tables import Table,TableEntry
 import os
 from django.utils.translation import ugettext as _
@@ -83,7 +83,7 @@ class StationForm(forms.Form):
     def __init__(self, username, *args, **kwargs):
 
         super(StationForm, self).__init__(*args, **kwargs)
-        self.fields['station_slug'] = forms.ChoiceField(scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
+        self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
 
 
 class ManualForm(forms.ModelForm):
@@ -91,7 +91,7 @@ class ManualForm(forms.ModelForm):
     #geom = PointField()
 
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    presentweather=forms.ChoiceField(scelta_present_weather(),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
+    presentweather=forms.ChoiceField(choices=scelta_present_weather(),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
 
     visibility=forms.IntegerField(required=False,label=__("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
     snow_height=forms.IntegerField(required=False,label=__("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)

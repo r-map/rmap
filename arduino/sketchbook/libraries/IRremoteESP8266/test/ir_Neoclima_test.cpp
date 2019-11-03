@@ -44,7 +44,7 @@ TEST(TestSendNeoclima, SendDataOnly) {
       irsend.outputStr());
 }
 
-// https://github.com/markszabo/IRremoteESP8266/issues/764#issuecomment-503755096
+// https://github.com/crankyoldgit/IRremoteESP8266/issues/764#issuecomment-503755096
 TEST(TestDecodeNeoclima, RealExample) {
   IRsendTest irsend(0);
   IRrecv irrecv(0);
@@ -79,7 +79,7 @@ TEST(TestDecodeNeoclima, RealExample) {
   IRNeoclimaAc ac(0);
   ac.setRaw(irsend.capture.state);
   EXPECT_EQ(
-      "Power: On, Mode: 1 (COOL), Temp: 26C, Fan: 3 (Low), "
+      "Power: On, Mode: 1 (Cool), Temp: 26C, Fan: 3 (Low), "
       "Swing(V): Off, Swing(H): On, Sleep: Off, Turbo: Off, Hold: Off, "
       "Ion: Off, Eye: Off, Light: Off, Follow: Off, 8C Heat: Off, Fresh: Off, "
       "Button: 0 (Power)",

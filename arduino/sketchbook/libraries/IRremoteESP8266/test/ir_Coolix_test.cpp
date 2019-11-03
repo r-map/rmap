@@ -31,7 +31,7 @@ TEST(TestSendCoolix, SendDataOnly) {
       "m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680"
       "m560s560m560s560m560s560m560s560m560s560m560s560m560s560m560s560"
       "m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 
   irsend.reset();
@@ -53,7 +53,7 @@ TEST(TestSendCoolix, SendDataOnly) {
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 
   irsend.reset();
@@ -75,7 +75,7 @@ TEST(TestSendCoolix, SendDataOnly) {
       "m560s560m560s560m560s560m560s560m560s560m560s560m560s560m560s560"
       "m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680"
       "m560s560m560s560m560s560m560s560m560s560m560s560m560s560m560s560"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 }
 
@@ -103,7 +103,7 @@ TEST(TestSendCoolix, SendWithRepeats) {
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
   irsend.sendCOOLIX(0xAA55AA, kCoolixBits, 2);  // 2 repeats.
   EXPECT_EQ(
@@ -131,7 +131,7 @@ TEST(TestSendCoolix, SendWithRepeats) {
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560"
       "m560s560m560s1680m560s560m560s1680m560s560m560s1680m560s560m560s1680"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 }
 
@@ -151,7 +151,7 @@ TEST(TestSendCoolix, SendUnusualSize) {
       "m4480s4480"
       "m560s560m560s560m560s560m560s560m560s560m560s560m560s560m560s560"
       "m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680m560s1680"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 
   irsend.reset();
@@ -193,7 +193,7 @@ TEST(TestSendCoolix, SendUnusualSize) {
       "m560s560m560s560m560s1680m560s1680m560s560m560s560m560s1680m560s560"
       "m560s1680m560s1680m560s1680m560s560m560s1680m560s1680m560s1680m560s1680"
       "m560s560m560s560m560s560m560s1680m560s560m560s560m560s560m560s560"
-      "m560s5040",
+      "m560s105040",
       irsend.outputStr());
 
   // Bit sizes must be a multiple of 8.
@@ -352,12 +352,11 @@ TEST(TestDecodeCoolix, FailToDecodeNonCoolixExample) {
 }
 
 // Tests for the IRCoolixAC class.
-
 TEST(TestCoolixACClass, SetAndGetRaw) {
   IRCoolixAC ircoolix(0);
 
-  ircoolix.setRaw(kCoolixOff);
-  EXPECT_EQ(kCoolixOff, ircoolix.getRaw());
+  ircoolix.setRaw(0xB21F28);
+  EXPECT_EQ(0xB21F28, ircoolix.getRaw());
   ircoolix.setRaw(kCoolixDefaultState);
   EXPECT_EQ(kCoolixDefaultState, ircoolix.getRaw());
 }
@@ -480,19 +479,20 @@ TEST(TestCoolixACClass, SpecialModesAndReset) {
 
 TEST(TestCoolixACClass, HumanReadable) {
   IRCoolixAC ircoolix(0);
+  ircoolix.begin();
+  ircoolix.setPower(true);
 
   // Initial starting point.
   EXPECT_EQ(
-      "Power: On, Mode: 2 (AUTO), Fan: 5 (AUTO), Temp: 25C, "
-      "Zone Follow: Off, Sensor Temp: Ignored",
+      "Power: On, Mode: 2 (Auto), Fan: 0 (Auto0), Temp: 25C, "
+      "Zone Follow: Off, Sensor Temp: Off",
       ircoolix.toString());
-
   ircoolix.setSensorTemp(24);
   ircoolix.setTemp(22);
   ircoolix.setMode(kCoolixCool);
   ircoolix.setFan(kCoolixFanMin);
   EXPECT_EQ(
-      "Power: On, Mode: 0 (COOL), Fan: 4 (MIN), Temp: 22C, "
+      "Power: On, Mode: 0 (Cool), Fan: 4 (Min), Temp: 22C, "
       "Zone Follow: On, Sensor Temp: 24C",
       ircoolix.toString());
   ircoolix.setSwing();
@@ -503,26 +503,28 @@ TEST(TestCoolixACClass, HumanReadable) {
 
 TEST(TestCoolixACClass, KnownExamples) {
   IRCoolixAC ircoolix(0);
-
+  ircoolix.begin();
+  ircoolix.setPower(true);
   ircoolix.setRaw(0b101100101011111111100100);
   EXPECT_EQ(
-      "Power: On, Mode: 4 (FAN), Fan: 5 (AUTO), Zone Follow: Off, "
-      "Sensor Temp: Ignored",
+      "Power: On, Mode: 4 (Fan), Fan: 5 (Auto), Zone Follow: Off, "
+      "Sensor Temp: Off",
       ircoolix.toString());
   ircoolix.setRaw(0b101100101001111100000000);
   EXPECT_EQ(
-      "Power: On, Mode: 0 (COOL), Fan: 4 (MIN), Temp: 17C, "
-      "Zone Follow: Off, Sensor Temp: Ignored",
+      "Power: On, Mode: 0 (Cool), Fan: 4 (Min), Temp: 17C, "
+      "Zone Follow: Off, Sensor Temp: Off",
       ircoolix.toString());
 }
 
 TEST(TestCoolixACClass, Issue579FanAuto0) {
   IRCoolixAC ircoolix(0);
-
+  ircoolix.begin();
+  ircoolix.setPower(true);
   ircoolix.setRaw(0xB21F28);
   EXPECT_EQ(
-      "Power: On, Mode: 2 (AUTO), Fan: 0 (AUTO0), Temp: 20C, "
-      "Zone Follow: Off, Sensor Temp: Ignored",
+      "Power: On, Mode: 2 (Auto), Fan: 0 (Auto0), Temp: 20C, "
+      "Zone Follow: Off, Sensor Temp: Off",
       ircoolix.toString());
 }
 
@@ -566,24 +568,24 @@ TEST(TestCoolixACClass, RealCaptureExample) {
 
 
 // Tests to debug/fix:
-//   https://github.com/markszabo/IRremoteESP8266/issues/624
+//   https://github.com/crankyoldgit/IRremoteESP8266/issues/624
 TEST(TestCoolixACClass, Issue624HandleSpecialStatesBetter) {
   IRCoolixAC ac(0);
   ac.begin();
+  ac.setPower(true);
   // Default
   EXPECT_EQ(
-      "Power: On, Mode: 2 (AUTO), Fan: 5 (AUTO), Temp: 25C, Zone Follow: Off, "
-      "Sensor Temp: Ignored",
+      "Power: On, Mode: 2 (Auto), Fan: 0 (Auto0), Temp: 25C, Zone Follow: Off, "
+      "Sensor Temp: Off",
       ac.toString());
-  EXPECT_EQ(0xB2BFC8, ac.getRaw());
+  EXPECT_EQ(0xB21FC8, ac.getRaw());
   // Change of settings.
-  ac.setPower(true);
   ac.setTemp(24);
   ac.setMode(kCoolixCool);
   ac.setFan(kCoolixFanAuto);
   EXPECT_EQ(
-      "Power: On, Mode: 0 (COOL), Fan: 5 (AUTO), Temp: 24C, Zone Follow: Off, "
-      "Sensor Temp: Ignored",
+      "Power: On, Mode: 0 (Cool), Fan: 5 (Auto), Temp: 24C, Zone Follow: Off, "
+      "Sensor Temp: Off",
       ac.toString());
   EXPECT_EQ(0xB2BF40, ac.getRaw());
   // Turn the unit off.
@@ -598,27 +600,25 @@ TEST(TestCoolixACClass, Issue624HandleSpecialStatesBetter) {
   ac.setMode(kCoolixCool);
   ac.setFan(kCoolixFanAuto);
   EXPECT_EQ(
-      "Power: On, Mode: 0 (COOL), Fan: 5 (AUTO), Temp: 24C, Zone Follow: Off, "
-      "Sensor Temp: Ignored",
+      "Power: On, Mode: 0 (Cool), Fan: 5 (Auto), Temp: 24C, Zone Follow: Off, "
+      "Sensor Temp: Off",
       ac.toString());
   EXPECT_EQ(0xB2BF40, ac.getRaw());
 
-  // Now test if we setRaw() a special state first.
-  ac.setRaw(kCoolixSwing);
   // Repeat change of settings.
-  ac.setPower(true);
   ac.setTemp(24);
   ac.setMode(kCoolixCool);
   ac.setFan(kCoolixFanAuto);
   EXPECT_EQ(
-      "Power: On, Mode: 0 (COOL), Fan: 5 (AUTO), Temp: 24C, Zone Follow: Off, "
-      "Sensor Temp: Ignored",
+      "Power: On, Mode: 0 (Cool), Fan: 5 (Auto), Temp: 24C, Zone Follow: Off, "
+      "Sensor Temp: Off",
       ac.toString());
   EXPECT_EQ(0xB2BF40, ac.getRaw());
 }
 
 TEST(TestCoolixACClass, toCommon) {
   IRCoolixAC ac(0);
+  ac.begin();
   ac.setPower(true);
   ac.setMode(kCoolixCool);
   ac.setTemp(20);
@@ -666,6 +666,7 @@ TEST(TestCoolixACClass, Issue722) {
 
   // ON Auto Temp 18C
   uint32_t on_auto_18c_fan_auto0 = 0xB21F18;
+  ac.on();
   ac.setTemp(18);
   EXPECT_EQ(on_auto_18c_fan_auto0, ac.getRaw());
 
@@ -743,5 +744,5 @@ TEST(TestCoolixACClass, Issue722) {
       // 564,530,564,532,566,530,564,530,566,528,564,1618,564,1618,564,532,
       "m560s560m560s560m560s560m560s560m560s560m560s1680m560s1680m560s560"
       // 564,1620,566,1618,562  // Raw data matches what is expected.
-      "m560s1680m560s1680m560s5040", ac._irsend.outputStr());
+      "m560s1680m560s1680m560s105040", ac._irsend.outputStr());
 }

@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #endif
 #include "IRremoteESP8266.h"
+#include "ir_Amcor.h"
 #include "ir_Argo.h"
 #include "ir_Coolix.h"
 #include "ir_Daikin.h"
@@ -37,8 +38,23 @@ const int8_t kGpioUnused = -1;
 // Class
 class IRac {
  public:
-  explicit IRac(uint8_t pin);
+  explicit IRac(const uint16_t pin, const bool inverted = false,
+                const bool use_modulation = true);
   static bool isProtocolSupported(const decode_type_t protocol);
+  static void initState(stdAc::state_t *state,
+                        const decode_type_t vendor, const int16_t model,
+                        const bool power, const stdAc::opmode_t mode,
+                        const float degrees, const bool celsius,
+                        const stdAc::fanspeed_t fan,
+                        const stdAc::swingv_t swingv,
+                        const stdAc::swingh_t swingh,
+                        const bool quiet, const bool turbo, const bool econo,
+                        const bool light, const bool filter, const bool clean,
+                        const bool beep, const int16_t sleep,
+                        const int16_t clock);
+  static void initState(stdAc::state_t *state);
+  bool sendAc(void);
+  bool sendAc(const stdAc::state_t desired, const stdAc::state_t *prev = NULL);
   bool sendAc(const decode_type_t vendor, const int16_t model,
               const bool power, const stdAc::opmode_t mode, const float degrees,
               const bool celsius, const stdAc::fanspeed_t fan,
@@ -47,7 +63,6 @@ class IRac {
               const bool light, const bool filter, const bool clean,
               const bool beep, const int16_t sleep = -1,
               const int16_t clock = -1);
-  bool sendAc(const stdAc::state_t desired, const stdAc::state_t *prev = NULL);
   static bool cmpStates(const stdAc::state_t a, const stdAc::state_t b);
   static bool strToBool(const char *str, const bool def = false);
   static int16_t strToModel(const char *str, const int16_t def = -1);
@@ -65,11 +80,23 @@ class IRac {
   static String fanspeedToString(const stdAc::fanspeed_t speed);
   static String swingvToString(const stdAc::swingv_t swingv);
   static String swinghToString(const stdAc::swingh_t swingh);
+  stdAc::state_t getState(void);
+  stdAc::state_t getStatePrev(void);
+  bool hasStateChanged(void);
+  stdAc::state_t next;  // The state we want the device to be in after we send.
 #ifndef UNIT_TEST
 
  private:
 #endif
-  uint8_t _pin;
+  uint16_t _pin;
+  bool _inverted;
+  bool _modulation;
+  stdAc::state_t _prev;  // The state we expect the device to currently be in.
+#if SEND_AMCOR
+  void amcor(IRAmcorAc *ac,
+             const bool on, const stdAc::opmode_t mode, const float degrees,
+             const stdAc::fanspeed_t fan);
+#endif  // SEND_AMCOR
 #if SEND_ARGO
   void argo(IRArgoAC *ac,
             const bool on, const stdAc::opmode_t mode, const float degrees,
@@ -92,12 +119,34 @@ class IRac {
               const bool quiet, const bool turbo, const bool econo,
               const bool clean);
 #endif  // SEND_DAIKIN
+#if SEND_DAIKIN128
+  void daikin128(IRDaikin128 *ac,
+                 const bool on, const stdAc::opmode_t mode,
+                 const float degrees, const stdAc::fanspeed_t fan,
+                 const stdAc::swingv_t swingv,
+                 const bool quiet, const bool turbo, const bool light,
+                 const bool econo, const int16_t sleep = -1,
+                 const int16_t clock = -1);
+#endif  // SEND_DAIKIN128
+#if SEND_DAIKIN152
+  void daikin152(IRDaikin152 *ac,
+                 const bool on, const stdAc::opmode_t mode,
+                 const float degrees, const stdAc::fanspeed_t fan,
+                 const stdAc::swingv_t swingv,
+                 const bool quiet, const bool turbo, const bool econo);
+#endif  // SEND_DAIKIN152
 #if SEND_DAIKIN160
 void daikin160(IRDaikin160 *ac,
                const bool on, const stdAc::opmode_t mode,
                const float degrees, const stdAc::fanspeed_t fan,
                const stdAc::swingv_t swingv);
 #endif  // SEND_DAIKIN160
+#if SEND_DAIKIN176
+void daikin176(IRDaikin176 *ac,
+               const bool on, const stdAc::opmode_t mode,
+               const float degrees, const stdAc::fanspeed_t fan,
+               const stdAc::swingh_t swingh);
+#endif  // SEND_DAIKIN176
 #if SEND_DAIKIN2
   void daikin2(IRDaikin2 *ac,
                const bool on, const stdAc::opmode_t mode,
@@ -127,7 +176,8 @@ void electra(IRElectraAc *ac,
                const bool on, const stdAc::opmode_t mode, const float degrees,
                const stdAc::fanspeed_t fan,
                const stdAc::swingv_t swingv, const stdAc::swingh_t swingh,
-               const bool quiet, const bool turbo, const bool econo);
+               const bool quiet, const bool turbo, const bool econo,
+               const bool filter, const bool clean);
 #endif  // SEND_FUJITSU_AC
 #if SEND_GOODWEATHER
   void goodweather(IRGoodweatherAc *ac,
@@ -139,7 +189,7 @@ void electra(IRElectraAc *ac,
                    const int16_t sleep = -1);
 #endif  // SEND_GOODWEATHER
 #if SEND_GREE
-  void gree(IRGreeAC *ac,
+  void gree(IRGreeAC *ac, const gree_ac_remote_model_t model,
             const bool on, const stdAc::opmode_t mode, const float degrees,
             const stdAc::fanspeed_t fan, const stdAc::swingv_t swingv,
             const bool turbo, const bool light, const bool clean,
@@ -166,6 +216,11 @@ void electra(IRElectraAc *ac,
                const float degrees, const stdAc::fanspeed_t fan,
                const stdAc::swingv_t swingv, const stdAc::swingh_t swingh);
 #endif  // SEND_HITACHI_AC
+#if SEND_HITACHI_AC424
+  void hitachi424(IRHitachiAc424 *ac,
+                  const bool on, const stdAc::opmode_t mode,
+                  const float degrees, const stdAc::fanspeed_t fan);
+#endif  // SEND_HITACHI_AC424
 #if SEND_KELVINATOR
   void kelvinator(IRKelvinatorAC *ac,
                   const bool on, const stdAc::opmode_t mode,
@@ -176,16 +231,32 @@ void electra(IRElectraAc *ac,
 #endif  // SEND_KELVINATOR
 #if SEND_MIDEA
   void midea(IRMideaAC *ac,
-             const bool on, const stdAc::opmode_t mode, const float degrees,
-             const stdAc::fanspeed_t fan, const int16_t sleep = -1);
+             const bool on, const stdAc::opmode_t mode, const bool celsius,
+             const float degrees, const stdAc::fanspeed_t fan,
+             const stdAc::swingv_t swingv, const int16_t sleep = -1);
 #endif  // SEND_MIDEA
 #if SEND_MITSUBISHI_AC
   void mitsubishi(IRMitsubishiAC *ac,
                   const bool on, const stdAc::opmode_t mode,
                   const float degrees,
                   const stdAc::fanspeed_t fan, const stdAc::swingv_t swingv,
+                  const stdAc::swingh_t swingh,
                   const bool quiet, const int16_t clock = -1);
 #endif  // SEND_MITSUBISHI_AC
+#if SEND_MITSUBISHI112
+  void mitsubishi112(IRMitsubishi112 *ac,
+                     const bool on, const stdAc::opmode_t mode,
+                     const float degrees, const stdAc::fanspeed_t fan,
+                     const stdAc::swingv_t swingv,
+                     const stdAc::swingh_t swingh,
+                     const bool quiet);
+#endif  // SEND_MITSUBISHI112
+#if SEND_MITSUBISHI136
+  void mitsubishi136(IRMitsubishi136 *ac,
+                     const bool on, const stdAc::opmode_t mode,
+                     const float degrees, const stdAc::fanspeed_t fan,
+                     const stdAc::swingv_t swingv, const bool quiet);
+#endif  // SEND_MITSUBISHI136
 #if SEND_MITSUBISHIHEAVY
   void mitsubishiHeavy88(IRMitsubishiHeavy88Ac *ac,
                          const bool on, const stdAc::opmode_t mode,
@@ -221,7 +292,8 @@ void electra(IRElectraAc *ac,
                const bool on, const stdAc::opmode_t mode, const float degrees,
                const stdAc::fanspeed_t fan, const stdAc::swingv_t swingv,
                const bool quiet, const bool turbo, const bool clean,
-               const bool beep, const bool dopower = true);
+               const bool beep, const bool prevpower = true,
+               const bool forcepower = true);
 #endif  // SEND_SAMSUNG_AC
 #if SEND_SHARP_AC
   void sharp(IRSharpAc *ac,
@@ -240,7 +312,7 @@ void electra(IRElectraAc *ac,
   void teco(IRTecoAc *ac,
             const bool on, const stdAc::opmode_t mode, const float degrees,
             const stdAc::fanspeed_t fan, const stdAc::swingv_t swingv,
-            const int16_t sleep = -1);
+            const bool light, const int16_t sleep = -1);
 #endif  // SEND_TECO
 #if SEND_TOSHIBA_AC
   void toshiba(IRToshibaAC *ac,
@@ -273,6 +345,7 @@ static stdAc::state_t handleToggles(const stdAc::state_t desired,
 
 namespace IRAcUtils {
   String resultAcToString(const decode_results * const results);
-  bool decodeToState(const decode_results *decode, stdAc::state_t *result);
+  bool decodeToState(const decode_results *decode, stdAc::state_t *result,
+                     const stdAc::state_t *prev = NULL);
 }  // namespace IRAcUtils
 #endif  // IRAC_H_

@@ -142,6 +142,13 @@ group_prefix_re = [
 from io import StringIO
 
 class ProfileMiddleware(object):
+
+    def __init__(self, get_response):
+            self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+    
     def process_view(self, request, callback, callback_args, callback_kwargs):
         if settings.DEBUG and 'cprof' in request.GET:
             self.profiler = cProfile.Profile()

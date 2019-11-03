@@ -397,13 +397,13 @@ TEST(TestMideaACClass, Temperature) {
   EXPECT_EQ(kMideaACMaxTempF, midea.getTemp(false));
 
   // General changes.
-  midea.setTemp(17, true);              // C
-  EXPECT_EQ(17, midea.getTemp(true));   // C
-  EXPECT_EQ(63, midea.getTemp(false));  // F
+  midea.setTemp(18, true);              // C
+  EXPECT_EQ(18, midea.getTemp(true));   // C
+  EXPECT_EQ(64, midea.getTemp(false));  // F
 
   midea.setTemp(21, true);              // C
   EXPECT_EQ(21, midea.getTemp(true));   // C
-  EXPECT_EQ(70, midea.getTemp(false));  // F
+  EXPECT_EQ(69, midea.getTemp(false));  // F
 
   midea.setTemp(25, true);              // C
   EXPECT_EQ(25, midea.getTemp(true));   // C
@@ -414,7 +414,7 @@ TEST(TestMideaACClass, Temperature) {
   EXPECT_EQ(86, midea.getTemp(false));  // F
 
   midea.setTemp(80, false);             // F
-  EXPECT_EQ(26, midea.getTemp(true));   // C
+  EXPECT_EQ(27, midea.getTemp(true));   // C
   EXPECT_EQ(80, midea.getTemp(false));  // F
 
   midea.setTemp(70);                    // F
@@ -440,25 +440,30 @@ TEST(TestMideaACClass, Sleep) {
 }
 
 TEST(TestMideaACClass, HumanReadableOutput) {
-  IRMideaAC midea(0);
-  midea.begin();
+  IRMideaAC ac(0);
+  ac.begin();
 
-  midea.setRaw(0xA1826FFFFF62);
+  ac.setRaw(0xA1826FFFFF62);
   EXPECT_EQ(
-      "Power: On, Mode: 2 (AUTO), Temp: 25C/77F, Fan: 0 (AUTO), "
-      "Sleep: Off",
-      midea.toString());
-  midea.off();
-  midea.setTemp(25);
-  midea.setFan(kMideaACFanHigh);
-  midea.setMode(kMideaACDry);
-  midea.setSleep(true);
-  EXPECT_EQ("Power: Off, Mode: 1 (DRY), Temp: 16C/62F, Fan: 3 (HI), Sleep: On",
-            midea.toString());
+      "Power: On, Mode: 2 (Auto), Celsius: Off, Temp: 25C/77F, Fan: 0 (Auto), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
+  ac.off();
+  ac.setTemp(25, true);
+  ac.setFan(kMideaACFanHigh);
+  ac.setMode(kMideaACDry);
+  ac.setSleep(true);
+  EXPECT_EQ(
+      "Power: Off, Mode: 1 (Dry), Celsius: Off, Temp: 25C/77F, Fan: 3 (High), "
+      "Sleep: On, Swing(V) Toggle: Off", ac.toString());
+  ac.setUseCelsius(true);
+  EXPECT_EQ(
+      "Power: Off, Mode: 1 (Dry), Celsius: On, Temp: 25C/77F, Fan: 3 (High), "
+      "Sleep: On, Swing(V) Toggle: Off", ac.toString());
 
-  midea.setRaw(0xA19867FFFF7E);
-  EXPECT_EQ("Power: On, Mode: 0 (COOL), Temp: 20C/69F, Fan: 3 (HI), Sleep: Off",
-            midea.toString());
+  ac.setRaw(0xA19867FFFF7E);
+  EXPECT_EQ(
+      "Power: On, Mode: 0 (Cool), Celsius: Off, Temp: 21C/69F, Fan: 3 (High), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
 }
 
 // Tests for decodeMidea().
@@ -661,6 +666,7 @@ TEST(TestMideaACClass, toCommon) {
   IRMideaAC ac(0);
   ac.setPower(true);
   ac.setMode(kMideaACCool);
+  ac.setUseCelsius(true);
   ac.setTemp(20, true);
   ac.setFan(kMideaACFanHigh);
   // Now test it.
@@ -671,8 +677,8 @@ TEST(TestMideaACClass, toCommon) {
   ASSERT_EQ(20, ac.toCommon().degrees);
   ASSERT_EQ(stdAc::opmode_t::kCool, ac.toCommon().mode);
   ASSERT_EQ(stdAc::fanspeed_t::kMax, ac.toCommon().fanspeed);
-  // Unsupported.
   ASSERT_EQ(stdAc::swingv_t::kOff, ac.toCommon().swingv);
+  // Unsupported.
   ASSERT_EQ(stdAc::swingh_t::kOff, ac.toCommon().swingh);
   ASSERT_FALSE(ac.toCommon().turbo);
   ASSERT_FALSE(ac.toCommon().clean);
@@ -683,4 +689,87 @@ TEST(TestMideaACClass, toCommon) {
   ASSERT_FALSE(ac.toCommon().beep);
   ASSERT_EQ(-1, ac.toCommon().sleep);
   ASSERT_EQ(-1, ac.toCommon().clock);
+}
+
+// https://github.com/crankyoldgit/IRremoteESP8266/issues/819
+TEST(TestMideaACClass, CelsiusRemoteTemp) {
+  IRMideaAC ac(0);
+  uint64_t on_cool_low_17c = 0xA18840FFFF56;
+  uint64_t on_cool_low_30c = 0xA1884DFFFF5D;
+  ac.on();
+  ac.setMode(kMideaACCool);
+  ac.setFan(kMideaACFanLow);
+  ac.setTemp(17, true);
+  EXPECT_FALSE(ac.getUseCelsius());
+  ac.setUseCelsius(true);
+  EXPECT_TRUE(ac.getUseCelsius());
+  EXPECT_EQ(on_cool_low_17c, ac.getRaw());
+  EXPECT_EQ(
+      "Power: On, Mode: 0 (Cool), Celsius: On, Temp: 17C/62F, Fan: 1 (Low), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
+  ac.setRaw(on_cool_low_17c);
+  EXPECT_EQ(17, ac.getTemp(true));
+  EXPECT_EQ(62, ac.getTemp(false));
+  EXPECT_EQ(
+      "Power: On, Mode: 0 (Cool), Celsius: On, Temp: 17C/62F, Fan: 1 (Low), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
+  ac.setTemp(17, true);
+  EXPECT_EQ(17, ac.getTemp(true));
+  EXPECT_EQ(62, ac.getTemp(false));
+  EXPECT_EQ(on_cool_low_17c, ac.getRaw());
+
+  ac.setRaw(on_cool_low_30c);
+  EXPECT_EQ(
+      "Power: On, Mode: 0 (Cool), Celsius: On, Temp: 30C/86F, Fan: 1 (Low), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
+}
+
+// https://github.com/crankyoldgit/IRremoteESP8266/issues/819
+TEST(TestMideaACClass, SwingV) {
+  IRMideaAC ac(0);
+  ac.setSwingVToggle(false);
+  ASSERT_FALSE(ac.getSwingVToggle());
+  ac.setSwingVToggle(true);
+  ASSERT_TRUE(ac.getSwingVToggle());
+  EXPECT_EQ(
+      "Power: On, Mode: 2 (Auto), Celsius: Off, Temp: 25C/77F, Fan: 0 (Auto), "
+      "Sleep: Off, Swing(V) Toggle: On", ac.toString());
+  ac.setSwingVToggle(false);
+  ASSERT_FALSE(ac.getSwingVToggle());
+  EXPECT_EQ(
+      "Power: On, Mode: 2 (Auto), Celsius: Off, Temp: 25C/77F, Fan: 0 (Auto), "
+      "Sleep: Off, Swing(V) Toggle: Off", ac.toString());
+  ac.setRaw(kMideaACToggleSwingV);
+  EXPECT_EQ("Swing(V) Toggle: On", ac.toString());
+}
+
+// Test abusing the protocol for sending 6 arbitary bytes.
+// See https://github.com/crankyoldgit/IRremoteESP8266/issues/887
+TEST(TestDecodeMidea, Issue887) {
+  IRsendTest irsend(0);
+  IRrecv irrecv(0);
+  irsend.begin();
+  irsend.reset();
+
+  uint64_t hwaddr = 0x1234567890AB;  // 48bits doen't conform to Midea checksum
+
+  irsend.sendMidea(hwaddr);
+  irsend.makeDecodeResult();
+
+  // Test normal operation, it shouldn't match.
+  EXPECT_TRUE(irrecv.decode(&irsend.capture));
+  EXPECT_NE(MIDEA, irsend.capture.decode_type);
+  irsend.reset();
+  irsend.sendMidea(hwaddr);
+  irsend.makeDecodeResult();
+  EXPECT_FALSE(irrecv.decodeMidea(&irsend.capture));
+
+  // Now test it with Midea's strict processing turned off!
+  irsend.reset();
+  irsend.sendMidea(hwaddr);
+  irsend.makeDecodeResult();
+  EXPECT_TRUE(irrecv.decodeMidea(&irsend.capture, kMideaBits, false));
+  EXPECT_EQ(MIDEA, irsend.capture.decode_type);
+  EXPECT_EQ(kMideaBits, irsend.capture.bits);
+  EXPECT_EQ(hwaddr, irsend.capture.value);
 }

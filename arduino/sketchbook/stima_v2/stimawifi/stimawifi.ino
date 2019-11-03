@@ -31,7 +31,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-10-07T00:00"
+#define SOFTWARE_VERSION "2019-11-03T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -51,6 +51,7 @@ SSL support: Basic SSL"
 
 #if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
+#define PMS_RESET D0
 #define SDA D5
 #define SCL D6
 #define RESET_PIN D7
@@ -60,6 +61,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_TX D2
 
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define PMS_RESET D0
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
@@ -68,6 +70,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_RX D5
 //#define SDS_PIN_TX D6
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+#define PMS_RESET D0
 #define SCL D1
 #define SDA D2
 #define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
@@ -128,6 +131,7 @@ ESP8266WebServer webserver(HTTP_PORT);
 
 //flag for saving data
 bool shouldSaveConfig = false;
+bool pmspresent =  false;
 
 //define your default values here, if there are different values in config.json, they are overwritten.
 char rmap_longitude[11] = "";
@@ -714,6 +718,8 @@ int  rmap_config(String payload){
 	      LOGN(F("level: %s" CR),sensors[ii].level);
 	      sensors[ii].address = array[i]["fields"]["address"];	    
 	      LOGN(F("address: %d" CR),sensors[ii].address);
+
+	      if (strcmp(sensors[ii].type,"PMS")==0) pmspresent=true;
 	      
 	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
 	      if (sd[ii] == 0){
@@ -1033,6 +1039,13 @@ void setup() {
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
 
+  pinMode(PMS_RESET, OUTPUT);
+  //reset pin for sensor
+  digitalWrite(PMS_RESET,LOW); // reset low
+  delay(500);
+  digitalWrite(PMS_RESET,HIGH);
+
+  
   Serial.begin(115200);
   Serial.println();
 
@@ -1059,7 +1072,6 @@ void setup() {
 
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
-
 
   // check return value of
   // the Write.endTransmisstion to see if
@@ -1233,15 +1245,23 @@ void setup() {
   }else{
     //if you get here you have connected to the WiFi
     LOGN(F("connected... good!" CR));
+    LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
+    digitalWrite(LED_PIN,HIGH);
+
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
       u8g2.print(F("WIFI OK"));
       u8g2.sendBuffer();
+      u8g2.setCursor(0, 40); 
+      u8g2.print(F("IP:"));
+      u8g2.setFont(u8g2_font_u8glib_4_tf);
+      u8g2.print(WiFi.localIP().toString().c_str());
+      u8g2.setFont(u8g2_font_5x7_tf);
+      u8g2.sendBuffer();
     }
-    digitalWrite(LED_PIN,HIGH);
   }
-  
+
   if (shouldSaveConfig){
     //read updated parameters
     strcpy(rmap_server, custom_rmap_server.getValue());
@@ -1260,20 +1280,6 @@ void setup() {
     }
     
   }
-
-  LOGN(F("local ip: %s" CR),WiFi.localIP().toString().c_str());
-
-  firmware_upgrade();
-
-  if (oledpresent) {
-    u8g2.setCursor(0, 40); 
-    u8g2.print(F("IP:"));
-    u8g2.setFont(u8g2_font_u8glib_4_tf);
-    u8g2.print(WiFi.localIP().toString().c_str());
-    u8g2.setFont(u8g2_font_5x7_tf);
-    u8g2.sendBuffer();
-  }
-
   
   String remote_config= rmap_get_remote_config();
 
@@ -1288,6 +1294,9 @@ void setup() {
     writeconfig_rmap(remote_config);
   }
 
+
+  firmware_upgrade();
+  
   //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
   if (!rmap_config(remote_config) == 0) {
     LOGN(F("station not configurated ! restart" CR));
@@ -1341,7 +1350,14 @@ void setup() {
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
   //Alarm.alarmRepeat(dowMonday,8,0,0,reboot);          // 8:00:00 every Monday
-  Alarm.timerRepeat(3600*24*7,reboot);          // every week
+  time_t reboottime;
+  if (pmspresent){
+    reboottime=3600*24;            // pms stall sometime
+  }else{
+    reboottime=3600*24*7;          // every week
+  }
+  LOGN(F("reboot every: %d" CR),reboottime);
+  Alarm.timerRepeat(reboottime,reboot);                 // reboot
 
   // upgrade firmware
   //Alarm.alarmRepeat(4,0,0,firmware_upgrade);          // 4:00:00 every day  
@@ -1349,6 +1365,7 @@ void setup() {
 
   // Add service to MDNS-SD
   MDNS.addService("http", "tcp", HTTP_PORT);
+
 }
 
 

@@ -1359,6 +1359,39 @@ aJsonObject* SensorDriverBmp085::getJson()
   return jsonvalues;
 }
 #endif
+
+#if defined(USEARDUINOJSON)
+int SensorDriverBmp085::getJson(char *json_buffer, size_t json_buffer_length)
+{
+  long values[2];
+  StaticJsonBuffer<200> jsonBuffer;
+  JsonObject& jsonvalues = jsonBuffer.createObject();
+
+  if (get(values,2) == SD_SUCCESS){
+    if ((unsigned long)values[0] != 0xFFFFFFFF){
+      jsonvalues["B10004"]= values[0];
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+
+#if defined(SECONDARYPARAMETER)
+    if ((unsigned long) values[1] != 0xFFFFFFFF){
+      jsonvalues["B10004"]= values[1];
+    }else{
+      jsonvalues["B12101"]=RawJson("null");
+    }
+#endif
+  }else{
+    jsonvalues["B10004"]=RawJson("null");
+#if defined(SECONDARYPARAMETER)
+    jsonvalues["B12101"]=RawJson("null");
+#endif
+  }
+
+  jsonvalues.printTo(json_buffer, json_buffer_length);
+  return SD_SUCCESS;
+}
+#endif
 #endif
 
 
@@ -4973,6 +5006,7 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
   }
 #else
   _timing=millis();  
+  waittime= 0ul;
   return SD_SUCCESS;  
 #endif
 }
@@ -4984,14 +5018,21 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!HPMstarted)  return SD_INTERNAL_ERROR;
-
-  HPMstarted=false;  
+  
   _timing=0;
-
+  
   // measure
-  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
+
+
+  
 #ifdef ONESHOT_SWITCHOFF
+  bool status = _hpm->query_data_auto( &pm25, &pm10, HPMSAMPLES);
   _hpm->stopParticleMeasurement();
+  HPMstarted=false;  
+#else
+  bool status=_hpm->readParticleMeasuringResults();
+  pm25 = _hpm->get(PM25_TYPE);
+  pm10 = _hpm->get(PM10_TYPE);
 #endif
 
   if (status){
