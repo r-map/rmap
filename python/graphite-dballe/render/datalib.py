@@ -111,7 +111,8 @@ class TimeSeries(list):
       else:
         yield None
 
-    raise StopIteration
+    yield None
+    #raise StopIteration
 
 
   def __repr__(self):
