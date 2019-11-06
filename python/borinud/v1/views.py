@@ -85,7 +85,7 @@ class dbajson:
                         "network": self.s["rep_memo"],
                         "trange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
                         "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
-                        "date": list( d for d in self.s.date_extremes()) if self.summary else list( d for d in (self.s["year"],self.s["month"],self.s["day"],self.s["hour"],self.s["min"],self.s["sec"])),
+                        "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
                         "var": self.s["var"],
                         "val": self.s.enqd(self.s["var"]),
                     }
@@ -157,7 +157,7 @@ class dbajson:
     def jsondictstation (self):
 
         return {
-            "ident": self.s.get("ident"),
+            "ident": self.s["ident"],
             "lon": self.s.enqi("lon"),
             "lat": self.s.enqi("lat"),
             "network": self.s["rep_memo"],
