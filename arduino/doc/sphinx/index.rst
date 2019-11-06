@@ -9,6 +9,7 @@ Benvetuti alla documentazione di Stima
 .. toctree::
    :maxdepth: 2
 
+   rmap-rfc/rfc
    howto_stima_v3/howto_stima_v3
    development_guide/development_guide
    stimacode
