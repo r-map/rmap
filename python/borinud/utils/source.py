@@ -25,7 +25,7 @@ from datetime import datetime
 import tempfile
 import codecs
 from itertools import groupby
-
+import dateutil.parser
 try:
     from urllib.parse import quote
     from urllib.request import urlopen
@@ -233,14 +233,20 @@ class SummaryCacheDB(DB):
     def set_cached_summary(self):
         res = self.db.query_summary({})
         summary = [{
-            "ident": o["ident"],
-            "lon": o.enqi("lon"),
-            "lat": o.enqi("lat"),
-            "rep_memo": o["rep_memo"],
-            "level": [o["leveltype1"], o["l1"], o["leveltype2"], o["l2"]],
-            "trange": [o["pindicator"], o["p1"], o["p2"]],
-            "bcode": o["var"],
-            "date": [o["datetimemin"],o["datetimemax"]]
+            "ident":      o["ident"],
+            "lon":        o.enqi("lon"),
+            "lat":        o.enqi("lat"),
+            "rep_memo":   o["rep_memo"],
+            "leveltype1": o["leveltype1"],
+            "l1":         o["l1"],
+            "leveltype2": o["leveltype2"],
+            "l2":         o["l2"],
+            "pindicator": o["pindicator"],
+            "p1":         o["p1"],
+            "p2":         o["p2"],
+            "var":        o["var"],
+            "datemin":    o["datetimemin"].isoformat(),
+            "datemax":    o["datetimemax"].isoformat()
         } for o in res]
         self.cache.set('borinud-summary-cache-%s' % self.dsn, summary, self.timeout)
         return summary
@@ -253,15 +259,20 @@ class SummaryCacheDB(DB):
             summary = self.set_cached_summary()
 
         return tuple({**{
-            "ident": None if i["ident"] is None else i["ident"],
-            "lon": i["lon"],
-            "lat": i["lat"],
-            "rep_memo": i["rep_memo"],
-            "level": tuple(i["level"]),
-            "trange": tuple(i["trange"]),
-            "var": i["bcode"],
-            "datemin": i["date"][0],
-            "datemax": i["date"][1],
+            "ident":    None if i["ident"] is None else i["ident"],
+            "lon":        i["lon"],
+            "lat":        i["lat"],
+            "rep_memo":   i["rep_memo"],
+            "leveltype1": i["leveltype1"],
+            "l1":         i["l1"],
+            "leveltype2": i["leveltype2"],
+            "l2":         i["l2"],
+            "pindicator": i["pindicator"],
+            "p1":         i["p1"],
+            "p2":         i["p2"],
+            "var":        i["var"],
+            "datemin":    dateutil.parser.parse(i["datemin"]),
+            "datemax":    dateutil.parser.parse(i["datemax"])
         }} for i in summary)
 
     def get_filter_summary(self, rec):
@@ -273,14 +284,17 @@ class SummaryCacheDB(DB):
         - lon
         - lat
         - rep_memo
-        - trange
-        - level
+        - pindicator.p1,p2
+        - leveltype1,l1
+        - leveltype2,l2
         - var
         """
         def wrapper(item):
             f = [
                 rec.get(k) == item.get(k)
-                for k in ["ident", "lon", "lat", "rep_memo", "trange", "level",
+
+                for k in ["ident", "lon", "lat", "rep_memo",
+                          'pindicator','p1','p2','leveltype1','l1','leveltype2','l2',
                           "var"]
                 if k in rec
             ]
@@ -309,7 +323,7 @@ class SummaryCacheDB(DB):
             self.get_filter_summary(rec),
             self.get_cached_summary()
         ))
-
+        
     def query_data(self, rec):
             return self.db.query_data(rec)
 

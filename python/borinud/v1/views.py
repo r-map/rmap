@@ -115,44 +115,22 @@ class dbajson:
 
     def jsondictdata (self):
 
-        if (self.summary):
-            #print (self.s["datemin"],self.s["datemax"]) 
-            return {
-                "ident": self.s["ident"],
-                "lon": self.s["lon"],
-                "lat": self.s["lat"],
-                "network": self.s["rep_memo"],
-                "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
-                "data": [{
-                    "vars": {
-                        self.s["var"]: {
-                            "v": None if self.summary else self.s.enqd(self.s["var"])
-                        }
-                    },
-                    "timerange": (self.s["trange"][0],self.s["trange"][1],self.s["trange"][2]),
-                    "level": (self.s["level"][0],self.s["level"][1],self.s["level"][2],self.s["level"][3]),
-                }]
-            }
-        else:
-
-            return {
-                "ident": self.s["ident"],
-                "lon": self.s["lon"],
-                "lat": self.s["lat"],
-                "network": self.s["rep_memo"],
-                "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
-                "data": [{
-                    "vars": {
-                        self.s["var"]: {
-                            "v": None if self.summary else self.s.enqd(self.s["var"])
-                        }
-                    },
-                    "timerange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
-                    "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
-                }]
-            }
-
-
+        return {
+            "ident": self.s["ident"],
+            "lon": self.s["lon"],
+            "lat": self.s["lat"],
+            "network": self.s["rep_memo"],
+            "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+            "data": [{
+                "vars": {
+                    self.s["var"]: {
+                        "v": None if self.summary else self.s.enqd(self.s["var"])
+                    }
+                },
+                "timerange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
+                "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
+            }]
+        }
     
     def jsondictstation (self):
 
