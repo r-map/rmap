@@ -13,6 +13,7 @@ configspec={}
 configspec['django']={}
 
 configspec['django']['DEBUG']="boolean(default=True)"
+configspec['django']['SUMMARYCACHE']="boolean(default=False)"
 configspec['django']['TEMPLATE_DEBUG']="boolean(default=True)"
 configspec['django']['FILE_UPLOAD_PERMISSIONS']="integer(default=420)"
 configspec['django']['SECRET_KEY']="string(default='random-string-of-ascii')"
@@ -227,6 +228,7 @@ for entry in flatten_errors(config, test):
 
 # section django
 DEBUG                   = config['django']['DEBUG']
+SUMMARYCACHE            = config['django']['SUMMARYCACHE']
 FILE_UPLOAD_PERMISSIONS = config['django']['FILE_UPLOAD_PERMISSIONS']
 SECRET_KEY              = config['django']['SECRET_KEY']
 SESSION_COOKIE_DOMAIN   = config['django']['SESSION_COOKIE_DOMAIN']
@@ -686,7 +688,7 @@ CACHES = {
 }
 
 if not android :
-    if not DEBUG:
+    if SUMMARYCACHE:
         CACHES = {
             'default': {
                 'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
