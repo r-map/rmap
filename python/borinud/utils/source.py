@@ -78,6 +78,10 @@ class DB(object):
         """Query data. Return a dballe.Record."""
         raise NotImplementedError()
 
+    def query_stations_data(self, rec):
+        """Query stations. Return a dballe.Record."""
+        raise NotImplementedError()
+    
     def fill_db(self, memdb):
         """Query data and fill a memdb."""
         raise NotImplementedError()
@@ -100,7 +104,7 @@ class MergeDBfake(DB):
 
     def query_stations(self, rec):
         db = self.__open_db(rec)
-        return db.query_station_data(rec)
+        return db.query_stations(rec)
 
     def query_summary(self, rec):
         db = self.__open_db(rec)
@@ -111,6 +115,10 @@ class MergeDBfake(DB):
         db = self.__open_db(rec)
         return db.query_data(rec)
 
+    def query_station_data(self, rec):
+        db = self.__open_db(rec)
+        return db.query_station_data(rec)
+    
     def fill_db(self, rec, memdb):
         for r in self.query_data(rec):
             #TODO del r["ana_id"]
@@ -141,24 +149,56 @@ class MergeDB(DB):
             rec.enqi("lon"),
             rec.enqi("lat"),
             rec["rep_memo"],
-            rec["trange"].pind,
-            rec["trange"].p1,
-            rec["trange"].p2,
-            rec["level"].ltype1,
-            rec["level"].l1,
-            rec["level"].ltype2,
-            rec["level"].l2,
+            rec["pindicator"],
+            rec["p1"].p1,
+            rec["p2"].p2,
+            rec["leveltype1"],
+            rec["l1"],
+            rec["leveltype2"],
+            rec["l2"],
             rec["var"],
         )))
 
+
+    def unique_record_station_key(self, rec):
+        """Create a string from a record, based on ident, lon, lat, rep_memo,
+        trange, level and var values. Null values are encoded as "-"."""
+        def if_null(value, default="-"):
+            return value if value is not None else default
+
+        print (rec,
+            rec["ident"],
+            rec.enqi("lon"),
+            rec.enqi("lat"),
+            rec["rep_memo"]
+        )
+        
+        return (
+            "{}/"
+            "{},{}/"
+            "{}/"
+        ).format(*map(if_null, (
+            rec["ident"],
+            rec.enqi("lon"),
+            rec.enqi("lat"),
+            rec["rep_memo"]
+        )))
+
+    
     def get_unique_records(self, funcname, rec, reducer):
         for k, g in groupby(sorted([
             r for db in self.dbs for r in getattr(db, funcname)(rec)
         ], key=self.unique_record_key), self.unique_record_key):
             yield reducer(g)
 
+    def get_unique_station_records(self, funcname, rec, reducer):
+        for k, g in groupby(sorted([
+            r for db in self.dbs for r in getattr(db, funcname)(rec)
+        ], key=self.unique_record_station_key), self.unique_record_station_key):
+            yield reducer(g)
+            
     def query_stations(self, rec):
-        for r in self.get_unique_records(
+        for r in self.get_unique_station_records(
             "query_stations", rec, lambda g: next(g)
         ):
             yield r
@@ -187,6 +227,14 @@ class MergeDB(DB):
         for r in memdb.query_data(rec):
             yield r
 
+    def query_station_data(self, rec):
+        memdb = dballe.DB.connect_from_url("mem:")
+        for db in self.dbs:
+            db.fill_db(rec,memdb)
+
+        for r in memdb.query_station_data(rec):
+            yield r
+            
 
 class DballeDB(DB):
     """DB-All.e database."""
@@ -200,7 +248,7 @@ class DballeDB(DB):
 
     def query_stations(self, rec):
         db = self.__open_db()
-        return db.query_station_data(rec)
+        return db.query_stations(rec)
 
     def query_summary(self, rec):
         db = self.__open_db()
@@ -211,6 +259,10 @@ class DballeDB(DB):
         db = self.__open_db()
         return db.query_data(rec)
 
+    def query_station_data(self, rec):
+        db = self.__open_db()
+        return db.query_station_data(rec)
+    
     def fill_db(self, rec, memdb):
         for r in self.query_data(rec):
             #TODO del r["ana_id"]
@@ -327,6 +379,8 @@ class SummaryCacheDB(DB):
     def query_data(self, rec):
             return self.db.query_data(rec)
 
+    def query_station_data(self, rec):
+            return self.db.query_station_data(rec)        
 
     def fill_db(self, rec, memdb):
         for r in self.db.query_data(rec):
@@ -423,6 +477,32 @@ class ArkimetVm2DB(DB):
             }}
             yield r
 
+#TO BE DONE!
+#TO BE DONE!            
+    def query_station_data(self, rec):
+        query = self.record_to_arkiquery(rec)
+        url = "{}/query?{}".format(self.dataset, "&".join([
+            "{}={}".format(k, quote(v)) for k, v in {
+                "style": "postprocess",
+                "command": "json",
+                "query": query,
+            }.items()]))
+        r = urlopen(url)
+        for f in json.load(r)["features"]:
+            p = f["properties"]
+            r = {**{
+                "lon": p["lon"],
+                "lat": p["lat"],
+                "rep_memo": str(p["network"]),
+                "level": tuple(p[k] for k in ["level_t1", "level_v1",
+                                              "level_t2", "level_v2"]),
+                "trange": tuple(p[k] for k in ["trange_pind",
+                                               "trange_p1", "trange_p2"]),
+                "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
+                str(p["bcode"]): float(p["value"]),
+            }}
+            yield r
+            
     def fill_db(self,rec,memedb):
         for r in self.query_data(rec):
             memdb.insert_data(r, True, True)
@@ -499,7 +579,7 @@ class ArkimetBufrDB(DB):
         for d in dates:
             self.load_arkiquery_to_dbadb({"date":d}, db)
 
-        for s in db.query_station_data(rec):
+        for s in db.query_stations(rec):
             yield s
 
     def query_summary(self, rec):
@@ -588,6 +668,21 @@ class ArkimetBufrDB(DB):
             #TODO del r["data_id"]
             yield r
 
+    def query_station_data(self, rec):
+
+        fo=self.get_datastream(rec)
+        memdb = dballe.DB.connect_from_url("mem:")
+
+        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
+            tmpf.write(fo.read())
+            tmpf.seek(0)
+            memdb.load(tmpf, "BUFR")
+
+        for r in memdb.query_station_data(rec):
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
+            yield r
+            
 
     def fill_db(self, rec,memdb):
 

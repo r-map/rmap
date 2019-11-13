@@ -500,7 +500,35 @@ def spatialseries(request,html_template="showdata/spatialseries.html",**kwargs):
         "datefrom":datefrom,"dateuntil":dateuntil,
         "previous":previous,"next":next,"less":less,"more":more,"dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox,
         "type":request.GET.get('type')})
-    
+
+def stationdata(request, **kwargs):
+
+    if kwargs.get("var")== "*":
+        bcode=Bcode(bcode="B00001",description="Undefined",unit="Undefined",userunit="",scale=1.0,offset=0.0)
+    else:
+        varinfo=dballe.varinfo(kwargs.get("var"))
+        try:
+            bcode=Bcode.objects.get(bcode=kwargs.get("var"))
+        except:
+            bcode=Bcode(bcode=kwargs.get("var"),description=varinfo.desc,unit=varinfo.unit,userunit=varinfo.unit,scale=1.0,offset=0.0)
+        
+    spatialbox={}
+    for k in ('lonmin','latmin','lonmax','latmax'):
+        if not request.GET.get(k, None) is None:
+            spatialbox[k]=request.GET.get(k)
+
+    timebox={}
+    for k in ('yearmin','monthmin','daymin','hourmin','minumin','secmin','yearmax','monthmax','daymax','hourmax','minumax','secmax'):
+        if not request.GET.get(k, None) is None:
+            timebox[k]=request.GET.get(k)
+            
+    return render(request, 'showdata/stationdata.html',{
+        "ident":kwargs.get("ident"), "coords":kwargs.get("coords"), 
+        "network":kwargs.get("network"),"trange":kwargs.get("trange"), 
+        "level":kwargs.get("level"),"var":kwargs.get("var"), 
+        "dsn":request.GET.get('dsn', defaultdsn),"bcode":bcode,"spatialbox":spatialbox,"timebox":timebox,
+        "type":request.GET.get('type')})
+
 def stations(request, **kwargs):
 
     spatialbox={}
