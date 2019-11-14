@@ -1,5 +1,6 @@
 __pycache__
 *.pyc
+*.log
 *\#
 static
 bin
@@ -10,6 +11,7 @@ rmap/rmap.ini
 saveddata-service.pickle
 *~
 build
+cache
 dist
 rmap.egg-info
 rmap.ini
