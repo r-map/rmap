@@ -96,7 +96,7 @@ class MergeDBfake(DB):
 
     def __open_db(self,rec):
         """Open the database."""
-        memdb = dballe.DB.connect_from_url("mem:")
+        memdb = dballe.DB.connect("mem:")
         for db in self.dbs:
             #print ("copydb: ",db,rec)
             db.fill_db(rec,memdb)

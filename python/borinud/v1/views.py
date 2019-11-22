@@ -130,8 +130,8 @@ class dbajson:
 
         return {
             "ident": self.s["ident"],
-            "lon": self.s["lon"],
-            "lat": self.s["lat"],
+            "lon": self.s.enqi("lon"),
+            "lat": self.s.enqi("lat"),
             "network": self.s["rep_memo"],
             "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
             "data": [{
@@ -150,8 +150,8 @@ class dbajson:
 
         return {
             "ident": self.s["ident"],
-            "lon": self.s["lon"],
-            "lat": self.s["lat"],
+            "lon": self.s.enqi("lon"),
+            "lat": self.s.enqi("lat"),
             "network": self.s["rep_memo"],
             "data": [{
                 "vars": {
