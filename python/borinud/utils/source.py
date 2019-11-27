@@ -67,19 +67,19 @@ class DB(object):
     - `query_data`
     """
     def query_stations(self, rec):
-        """Query stations. Return a dballe.Record."""
+        """Query stations. Return a record."""
         raise NotImplementedError()
 
     def query_summary(self, rec):
-        """Query summary. Return a dballe.Record."""
+        """Query summary. Return a record."""
         raise NotImplementedError()
 
     def query_data(self, rec):
-        """Query data. Return a dballe.Record."""
+        """Query data. Return a record."""
         raise NotImplementedError()
 
     def query_stations_data(self, rec):
-        """Query stations. Return a dballe.Record."""
+        """Query stations. Return a record."""
         raise NotImplementedError()
     
     def fill_db(self, memdb):
@@ -132,7 +132,7 @@ class MergeDB(DB):
         self.dbs = dbs
 
     def unique_record_key(self, rec):
-        """Create a string from a record, based on ident, lon, lat, rep_memo,
+        """Create a string from a record, based on ident, lon, lat, report,
         trange, level and var values. Null values are encoded as "-"."""
         def if_null(value, default="-"):
             return value if value is not None else default
@@ -145,10 +145,10 @@ class MergeDB(DB):
             "{},{},{},{}/"
             "{}"
         ).format(*map(if_null, (
-            rec["ident"],
-            rec.enqi("lon"),
-            rec.enqi("lat"),
-            rec["rep_memo"],
+            rec.get("ident",None),
+            rec["lon"],
+            rec["lat"],
+            rec["report"],
             rec["pindicator"],
             rec["p1"].p1,
             rec["p2"].p2,
@@ -161,27 +161,20 @@ class MergeDB(DB):
 
 
     def unique_record_station_key(self, rec):
-        """Create a string from a record, based on ident, lon, lat, rep_memo,
+        """Create a string from a record, based on ident, lon, lat, report,
         trange, level and var values. Null values are encoded as "-"."""
         def if_null(value, default="-"):
             return value if value is not None else default
 
-        print (rec,
-            rec["ident"],
-            rec.enqi("lon"),
-            rec.enqi("lat"),
-            rec["rep_memo"]
-        )
-        
         return (
             "{}/"
             "{},{}/"
             "{}/"
         ).format(*map(if_null, (
-            rec["ident"],
-            rec.enqi("lon"),
-            rec.enqi("lat"),
-            rec["rep_memo"]
+            rec.get("ident",None),
+            rec["lon"],
+            rec["lat"],
+            rec["report"]
         )))
 
     
@@ -248,8 +241,15 @@ class DballeDB(DB):
 
     def query_stations(self, rec):
         db = self.__open_db()
-        return db.query_stations(rec)
+        #return db.query_stations(rec)
 
+        with db.transaction() as tr:
+            for cur in tr.query_stations(rec):
+                data=cur.query
+                data["lat"]=int(cur.query["lat"]*100000)
+                data["lon"]=int(cur.query["lon"]*100000)
+                yield data
+    
     def query_summary(self, rec):
         db = self.__open_db()
         rec["query"] = "details"
@@ -286,9 +286,9 @@ class SummaryCacheDB(DB):
         res = self.db.query_summary({})
         summary = [{
             "ident":      o["ident"],
-            "lon":        o.enqi("lon"),
-            "lat":        o.enqi("lat"),
-            "rep_memo":   o["rep_memo"],
+            "lon":        o["lon"],
+            "lat":        o["lat"],
+            "report":     o["report"],
             "leveltype1": o["leveltype1"],
             "l1":         o["l1"],
             "leveltype2": o["leveltype2"],
@@ -314,7 +314,7 @@ class SummaryCacheDB(DB):
             "ident":    None if i["ident"] is None else i["ident"],
             "lon":        i["lon"],
             "lat":        i["lat"],
-            "rep_memo":   i["rep_memo"],
+            "report":     i["report"],
             "leveltype1": i["leveltype1"],
             "l1":         i["l1"],
             "leveltype2": i["leveltype2"],
@@ -335,7 +335,7 @@ class SummaryCacheDB(DB):
         - ident
         - lon
         - lat
-        - rep_memo
+        - report
         - pindicator.p1,p2
         - leveltype1,l1
         - leveltype2,l2
@@ -345,7 +345,7 @@ class SummaryCacheDB(DB):
             f = [
                 rec.get(k) == item.get(k)
 
-                for k in ["ident", "lon", "lat", "rep_memo",
+                for k in ["ident", "lon", "lat", "report",
                           'pindicator','p1','p2','leveltype1','l1','leveltype2','l2',
                           "var"]
                 if k in rec
@@ -414,8 +414,8 @@ class ArkimetVm2DB(DB):
             if k in rec:
                 q["area"][k] = int(rec[k] * 10**5)
 
-        if "rep_memo" in rec:
-            q["area"]["rep"] = rec["rep_memo"]
+        if "report" in rec:
+            q["area"]["rep"] = rec["report"]
 
         if "var" in rec:
             q["product"]["bcode"] = rec["var"]
@@ -467,7 +467,7 @@ class ArkimetVm2DB(DB):
             r = {**{
                 "lon": p["lon"],
                 "lat": p["lat"],
-                "rep_memo": str(p["network"]),
+                "report": str(p["network"]),
                 "level": tuple(p[k] for k in ["level_t1", "level_v1",
                                               "level_t2", "level_v2"]),
                 "trange": tuple(p[k] for k in ["trange_pind",
@@ -493,7 +493,7 @@ class ArkimetVm2DB(DB):
             r = {**{
                 "lon": p["lon"],
                 "lat": p["lat"],
-                "rep_memo": str(p["network"]),
+                "report": str(p["network"]),
                 "level": tuple(p[k] for k in ["level_t1", "level_v1",
                                               "level_t2", "level_v2"]),
                 "trange": tuple(p[k] for k in ["trange_pind",
@@ -522,7 +522,7 @@ class ArkimetVm2DB(DB):
                 "ident": i["area"]["va"].get("ident"),
                 "lon": i["area"]["va"]["lon"],
                 "lat": i["area"]["va"]["lat"],
-                "rep_memo": i["area"]["va"]["rep"],
+                "report": i["area"]["va"]["rep"],
                 "var": i["product"]["va"]["bcode"],
                 "level": (i["product"]["va"]["lt1"],
                           i["product"]["va"].get("l1"),
@@ -571,7 +571,7 @@ class ArkimetBufrDB(DB):
 
         .. warning::
 
-            Only `ident`, `rep_memo`, `lon` and `lat` are returned.
+            Only `ident`, `report`, `lon` and `lat` are returned.
             Loading static data must be implemented.
         """
         dates = set(r["datemax"] for r in self.query_summary({}))
@@ -622,7 +622,7 @@ class ArkimetBufrDB(DB):
                         "ident": i.get("proddef", {}).get("va", {}).get("id", None),
                         "lon": lon,
                         "lat": lat,
-                        "rep_memo": i["product"]["va"]["t"],
+                        "report": i["product"]["va"]["t"],
                         "datemin": datetime(*i["summarystats"]["b"]),
                         "datemax": datetime(*i["summarystats"]["e"]),
                     }}
@@ -727,8 +727,8 @@ class ArkimetBufrDB(DB):
                 q["area"]["fixed"][k] = int(rec[k] * 10**5)
                 q["area"]["mobile"][{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
 
-        if "rep_memo" in rec:
-            q["product"] = "BUFR:t={}".format(rec["rep_memo"])
+        if "report" in rec:
+            q["product"] = "BUFR:t={}".format(rec["report"])
 
         if "ident" in rec:
             q["proddef"] = "GRIB:id={}".format(rec["ident"])

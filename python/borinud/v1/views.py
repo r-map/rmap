@@ -60,7 +60,8 @@ class dbajson:
             self.handle = get_db(dsn=self.dsn,last=self.last).query_data(self.q)
 
         return next(self)
-
+        #yield from self.handle
+        
     def __next__(self):
 
         if self.format == "geojson" :
@@ -74,28 +75,28 @@ class dbajson:
 
                 if self.stations:
                     properties= {
-                        "ident": self.s["ident"],
-                        "lon": self.s.enqi("lon"),
-                        "lat": self.s.enqi("lat"),
-                        "network": self.s["rep_memo"],
+                        "ident": self.s.get("ident",None),
+                        "lon": self.s["lon"],
+                        "lat": self.s["lat"],
+                        "network": self.s["report"],
                     }
 
                 elif self.stationdata:
                     properties= {
-                        "ident": self.s["ident"],
-                        "lon": self.s.enqi("lon"),
-                        "lat": self.s.enqi("lat"),
-                        "network": self.s["rep_memo"],
+                        "ident": self.s.get("ident",None),
+                        "lon": self.s["lon"],
+                        "lat": self.s["lat"],
+                        "network": self.s["report"],
                         "var": self.s["var"],
                         "val": self.s[self.s["var"]].get()
                     }
                     
                 else:
                     properties= {
-                        "ident": self.s["ident"],
-                        "lon": self.s.enqi("lon"),
-                        "lat": self.s.enqi("lat"),
-                        "network": self.s["rep_memo"],
+                        "ident": self.s.get("ident",None),
+                        "lon": self.s["lon"],
+                        "lat": self.s["lat"],
+                        "network": self.s["report"],
                         "trange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
                         "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
                         "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
@@ -107,7 +108,7 @@ class dbajson:
                     "type": "Feature",
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [self.s.enqd("lon"), self.s.enqd("lat")],
+                            "coordinates": [float(self.s["lon"])/100000., float(self.s["lat"])/100000.],
                         },
                         "properties": properties
                     })
@@ -129,10 +130,10 @@ class dbajson:
     def jsondictdata (self):
 
         return {
-            "ident": self.s["ident"],
-            "lon": self.s.enqi("lon"),
-            "lat": self.s.enqi("lat"),
-            "network": self.s["rep_memo"],
+            "ident": self.s.get("ident",None),
+            "lon": self.s["lon"],
+            "lat": self.s["lat"],
+            "network": self.s["report"],
             "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
             "data": [{
                 "vars": {
@@ -150,9 +151,9 @@ class dbajson:
 
         return {
             "ident": self.s["ident"],
-            "lon": self.s.enqi("lon"),
-            "lat": self.s.enqi("lat"),
-            "network": self.s["rep_memo"],
+            "lon": self.s["lon"],
+            "lat": self.s["lat"],
+            "network": self.s["report"],
             "data": [{
                 "vars": {
                     self.s["var"]: {
@@ -166,10 +167,10 @@ class dbajson:
     def jsondictstation (self):
 
         return {
-            "ident": self.s["ident"],
-            "lon": self.s.enqi("lon"),
-            "lat": self.s.enqi("lat"),
-            "network": self.s["rep_memo"],
+            "ident": self.s.get("ident",None),
+            "lon": self.s["lon"],
+            "lat": self.s["lat"],
+            "network": self.s["report"],
         }
 
 
