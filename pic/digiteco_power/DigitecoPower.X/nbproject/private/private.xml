@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/1"/>
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/home/marco/digiteco_power/Main.c</file>
+            <file>file:/home/marco/digiteco_power/Interrupt.c</file>
+            <file>file:/home/marco/digiteco_power/Harwdare.c</file>
+            <file>file:/home/marco/digiteco_power/BootArea.c</file>
+            <file>file:/home/marco/digiteco_power/Adc.c</file>
+            <file>file:/home/marco/digiteco_power/RamDefineExtern.h</file>
+            <file>file:/home/marco/digiteco_power/RamDefine.h</file>
+            <file>file:/home/marco/digiteco_power/Interrupt.h</file>
+            <file>file:/home/marco/digiteco_power/Hardware.h</file>
+            <file>file:/home/marco/digiteco_power/GenericTypeDefs.h</file>
+            <file>file:/home/marco/digiteco_power/BootArea.h</file>
+            <file>file:/home/marco/digiteco_power/Adc.h</file>
+        </group>
+    </open-files>
+</project-private>
