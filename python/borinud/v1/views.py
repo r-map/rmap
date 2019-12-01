@@ -88,21 +88,21 @@ class dbajson:
                         "lat": self.s["lat"],
                         "network": self.s["report"],
                         "var": self.s["var"],
-                        "val": self.s[self.s["var"]].get()
+                        "val": self.s[self.s["var"]]
                     }
                     
                 else:
                     properties= {
-                        "ident": self.s.get("ident",None),
+                        "ident": self.s["ident"],
                         "lon": self.s["lon"],
                         "lat": self.s["lat"],
                         "network": self.s["report"],
-                        "trange": (self.s["trange"].pind,self.s["trange"].p1,self.s["trange"].p2),
-                        "level": (self.s["level"].ltype1,self.s["level"].l1,self.s["level"].ltype2,self.s["level"].l2),
-                        "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+                        "trange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
+                        "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
+                        "date": (self.s["datemin"],self.s["datemax"]) if self.summary else  self.s["date"],
                         "var": self.s["var"],
-                        "val": self.s[self.s["var"]].get()
-                    }
+                        "val": self.s[self.s["var"]]
+                }
 
                 features.append({
                     "type": "Feature",
@@ -129,16 +129,18 @@ class dbajson:
 
     def jsondictdata (self):
 
+        print (self.s)
         return {
-            "ident": self.s.get("ident",None),
+            "ident": self.s["ident"],
             "lon": self.s["lon"],
             "lat": self.s["lat"],
             "network": self.s["report"],
-            "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["datetime"],
+            #"date": (self.s["date"][0],self.s["date"][1]) if self.summary else self.s["date"],
+            "date": self.s["date"],
             "data": [{
                 "vars": {
                     self.s["var"]: {
-                        "v": None if self.summary else self.s.enqd(self.s["var"])
+                        "v": None if self.summary else self.s[self.s["var"]]
                     }
                 },
                 "timerange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
@@ -157,7 +159,8 @@ class dbajson:
             "data": [{
                 "vars": {
                     self.s["var"]: {
-                        "v": None if self.summary else self.s[self.s["var"]].get()
+                        #"v": None if self.summary else self.s[self.s["var"]].get()
+                        "v": 173.15
                     }
                 }
             }]
@@ -337,10 +340,14 @@ def spatialseries(request, **kwargs):
     q["minumax"] = e.minute
     q["secmax"] = e.second
 
-    q["latmin"] = request.GET.get("latmin")
-    q["latmax"] = request.GET.get("latmax")
-    q["lonmin"] = request.GET.get("lonmin")
-    q["lonmax"] = request.GET.get("lonmax")
+    if ( request.GET.get("latmin") is not None):
+        q["latmin"] = int(request.GET.get("latmin"))
+    if ( request.GET.get("latmax") is not None):
+        q["latmax"] = int(request.GET.get("latmax"))
+    if ( request.GET.get("lonmin") is not None):
+        q["lonmin"] = int(request.GET.get("lonmin"))
+    if ( request.GET.get("lonmax") is not None):
+        q["lonmax"] = int(request.GET.get("lonmax"))
 
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
@@ -349,6 +356,8 @@ def spatialseries(request, **kwargs):
 
     format=kwargs.get('format')
 
+    print("query: ",q)
+    
     if format == "geojson" or format == "dbajson" :
         return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)),0,None)),safe=False)
 

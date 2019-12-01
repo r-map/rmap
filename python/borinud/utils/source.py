@@ -133,7 +133,7 @@ class MergeDB(DB):
 
     def unique_record_key(self, rec):
         """Create a string from a record, based on ident, lon, lat, report,
-        trange, level and var values. Null values are encoded as "-"."""
+        pindicator, level and var values. Null values are encoded as "-"."""
         def if_null(value, default="-"):
             return value if value is not None else default
 
@@ -150,8 +150,8 @@ class MergeDB(DB):
             rec["lat"],
             rec["report"],
             rec["pindicator"],
-            rec["p1"].p1,
-            rec["p2"].p2,
+            rec["p1"],
+            rec["p2"],
             rec["leveltype1"],
             rec["l1"],
             rec["leveltype2"],
@@ -162,7 +162,7 @@ class MergeDB(DB):
 
     def unique_record_station_key(self, rec):
         """Create a string from a record, based on ident, lon, lat, report,
-        trange, level and var values. Null values are encoded as "-"."""
+        pindicator, level and var values. Null values are encoded as "-"."""
         def if_null(value, default="-"):
             return value if value is not None else default
 
@@ -217,17 +217,43 @@ class MergeDB(DB):
         for db in self.dbs:
             db.fill_db(rec,memdb)
 
-        for r in memdb.query_data(rec):
-            yield r
+        with memdb.transaction() as tr:
+            for cur in tr.query_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["leveltype1"]= cur["leveltype1"]
+                data["l1"]=cur["l1"]
+                data["leveltype2"]=cur["leveltype2"]
+                data["l2"]=cur["l2"]
+                data["pindicator"]=cur["pindicator"]
+                data["p1"]=cur["p1"]
+                data["p2"]=cur["p2"]
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
+                print ("merge query data: ",data)
+                yield data
 
     def query_station_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
             db.fill_db(rec,memdb)
 
-        for r in memdb.query_station_data(rec):
-            yield r
-            
+        with memdb.transaction() as tr:
+            for cur in tr.query_station_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                print ("merge query station data: ",data)
+                yield data
+
 
 class DballeDB(DB):
     """DB-All.e database."""
@@ -237,7 +263,7 @@ class DballeDB(DB):
 
     def __open_db(self):
         """Open the database."""
-        return dballe.DB.connect_from_url(self.url)
+        return dballe.DB.connect(self.url)
 
     def query_stations(self, rec):
         db = self.__open_db()
@@ -245,29 +271,82 @@ class DballeDB(DB):
 
         with db.transaction() as tr:
             for cur in tr.query_stations(rec):
-                data=cur.query
-                data["lat"]=int(cur.query["lat"]*100000)
-                data["lon"]=int(cur.query["lon"]*100000)
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                print ("dballe query station: ",data)
                 yield data
     
     def query_summary(self, rec):
         db = self.__open_db()
         rec["query"] = "details"
-        return db.query_summary(rec)
 
+        with db.transaction() as tr:
+            for cur in tr.query_summary(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["date"]=(cur["datetimemin"],cur["datetimemax"])
+                data["leveltype1"]= cur["leveltype1"]
+                data["l1"]=cur["l1"]
+                data["leveltype2"]=cur["leveltype2"]
+                data["l2"]=cur["l2"]
+                data["pindicator"]=cur["pindicator"]
+                data["p1"]=cur["p1"]
+                data["p2"]=cur["p2"]
+                data["var"]=cur["var"]
+                print ("dballe query summary: ",data)
+                yield data
+    
     def query_data(self, rec):
         db = self.__open_db()
-        return db.query_data(rec)
+
+        with db.transaction() as tr:
+            for cur in tr.query_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["leveltype1"]= cur["leveltype1"]
+                data["l1"]=cur["l1"]
+                data["leveltype2"]=cur["leveltype2"]
+                data["l2"]=cur["l2"]
+                data["pindicator"]=cur["pindicator"]
+                data["p1"]=cur["p1"]
+                data["p2"]=cur["p2"]
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
+                print ("dballe query data: ",data)
+                yield data
 
     def query_station_data(self, rec):
         db = self.__open_db()
-        return db.query_station_data(rec)
-    
+
+        with db.transaction() as tr:
+            for cur in tr.query_station_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                print ("dballe query station data: ",data)
+                yield data
+
     def fill_db(self, rec, memdb):
-        for r in self.query_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            memdb.insert_data(r, True, True)
+
+        db = self.__open_db()
+
+        with db.transaction() as tr:
+            for cur in tr.query_data(rec):
+                memdb.insert_data(cur.data, True, True)
 
 class SummaryCacheDB(DB):
     def __init__(self, db, cachename, timeout=None,dsn="report"):
@@ -284,6 +363,9 @@ class SummaryCacheDB(DB):
 
     def set_cached_summary(self):
         res = self.db.query_summary({})
+        for o in res:
+            print (o)
+         
         summary = [{
             "ident":      o["ident"],
             "lon":        o["lon"],

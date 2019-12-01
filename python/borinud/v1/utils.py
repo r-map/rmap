@@ -6,7 +6,7 @@ def params2record(p):
         k2: p.get(k1) if p.get(k1) != "-" else None
         for k1, k2 in (
             ("ident", "ident"),
-            ("network", "rep_memo"),
+            ("network", "report"),
             ("var", "var")
         )
         if k1 in p and p.get(k1) != "*"
