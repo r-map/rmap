@@ -58,9 +58,8 @@
 .leaflet-label {
     background: rgba(235, 235, 235, 0.95);
     z-index: 10000 !important;
--->
 }
-
+-->
 
 </style>
 
@@ -86,8 +85,6 @@
     <div class="col-xs-9">
       <h4>
 	{{bcode.description}}  {{bcode.userunit}}<br>
-	{{trangetxt}}<br>
-	{{leveltxt}}<br>
       </h4>
     </div>
   </div>
@@ -176,7 +173,6 @@ function setpopup(feature)
 	+ "<br>Lat: " + feature.properties.lat/100000
 	+ "<br>Network: " + "<a href=/network/"+feature.properties.network+">"+feature.properties.network+"</a>"
 	+ "<br>Var: " + b.description + " " + feature.properties.val + " (" + b.unit + ")"
-
     popupText +="</div>";
 
     return popupText
@@ -326,8 +322,11 @@ function map_init(map, options)
 			//leafletMarker.bindPopup(data.name);
 			leafletMarker.bindPopup(setpopup(data.feature));
 		    }
-		    var val=(data.feature.properties.val*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"")
-		    var vallen= val.length * 6 + 6;
+		    var val=(data.feature.properties.val*{{bcode.scale}}+{{bcode.offset}}).toPrecision(5).replace(/\.?0+$/,"");
+		    if(isNaN(val)){
+			val=data.feature.properties.val;
+		    }
+                    var vallen= val.length * 6 + 6;
 		    leafletMarker.setIcon(
 			L.extendedDivIcon
 			({
@@ -339,7 +338,7 @@ function map_init(map, options)
 			})
 		    );
 
-		    leafletMarker.bindTooltip(data.feature.properties.date.toString());
+		    leafletMarker.bindTooltip(data.feature.properties.network);
 		    
 		    leafletMarker.on('popupopen',function managepreload(e) 
 				     {
@@ -373,12 +372,13 @@ function map_init(map, options)
 		$('#loading').html("<p>Result Complete...</p>");
 		$("#loading").dialog('close')
 
+	    },
+
+
+	    error: function(jqXHR,textStatus,errorThrown )
+	    {	
+		$('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
 	    }
-	    //,
-	    //error: function(jqXHR,textStatus,errorThrown )
-	    //{	
-	//	$('#loading').html("<p>"+textStatus+"</p><p>Fatal error loading data!</p>");
-	//    }
 	}
     )
 }

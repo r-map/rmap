@@ -23,7 +23,7 @@ def sortandgroup(rj,key):
 
 def path2uri(path):
     #uri="/*/*/*/*/*/*"
-    #print "path=",path
+    #print ("path=",path)
     uri = path.replace(".","/").replace("_",",")
     uri+="/*" * (6-uri.count("/"))
     #remove the root path
@@ -38,9 +38,9 @@ class  wssummaries(object):
         self.datalevel=datalevel
         self.stationtype=stationtype
 
-        #print "query pattern: ",self.query.pattern
-        #self.query.startTime
-        #self.query.endTime
+        #print ("query pattern: ",self.query.pattern)
+        self.query.startTime
+        self.query.endTime
 
         self.branch =True
 
@@ -73,7 +73,7 @@ class  wssummaries(object):
 
             uri="http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+"/summaries?dsn="+self.datalevel+"_"+self.stationtype
 
-            #print "start:",self.query.startTime,"stop:",self.query.endTime
+            #print ("start:",self.query.startTime,"stop:",self.query.endTime)
             if (self.query.startTime is not None):
                 startdt=datetime.utcfromtimestamp(self.query.startTime)
                 uri+="&yearmin={:04d}".format(startdt.year)+"&monthmin={:02d}".format(startdt.month)+"&daymin={:02d}".format(startdt.day)+"&hourmin={:02d}".format(startdt.hour)+"&minumin={:02d}".format(startdt.minute)+"&secmin={:02d}".format(startdt.second)
@@ -104,7 +104,7 @@ class  wssummaries(object):
                 newstation["network"]=station["network"]
 
                 for data in station["data"]:
-                    #print "data: ",data
+                    #print ("data: ",data)
 
                     for i,value in enumerate(data["level"]):
                         if data["level"][i] is None:
@@ -148,9 +148,9 @@ class  wssummaries(object):
 
         elif self.branch:
             for k,g in sortandgroup(self.summaries,self.key):
-                #print "---->>",self.key," = ",k
+                #print ("---->>",self.key," = ",k)
                 #for station in g:
-                #    print "---->> station = ",station
+                #    print ("---->> station = ",station)
                 
                 if k is None:
                     k="-"
@@ -165,7 +165,7 @@ class  wssummaries(object):
 
         else:
             for summary in self.summaries:
-                #print "summary",summary
+                #print ("summary",summary)
                 self.node=self.datalevel+"_"+self.stationtype+"."+summary["ident"]+"."+summary["lonlat"]+"."+summary["network"]+"."+summary["timerange"]+"."+summary["level"]+"."+summary["var"]
                 yield self.branch,self.node
 
@@ -191,7 +191,7 @@ class DballeFinderReportFixed(object):
 
     def find_nodes(self, query):
 
-        #print "query and class: ", query.pattern, "fixed"
+        #print ("query and class: ", query.pattern, "fixed")
         # find some paths matching the query, then yield them
         for branch,node in wssummaries(query,"report","fixed"):
             if branch:
@@ -204,7 +204,7 @@ class DballeFinderReportMobile(object):
 
     def find_nodes(self, query):
 
-        #print "query and class: ", query.pattern, "mobile"
+        #print ("query and class: ", query.pattern, "mobile")
         # find some paths matching the query, then yield them
         for branch,node in wssummaries(query,"report","mobile"):
             if branch:
@@ -216,7 +216,7 @@ class DballeFinderSampleFixed(object):
 
     def find_nodes(self, query):
 
-        #print "query and class: ", query.pattern, "sample"
+        #print ("query and class: ", query.pattern, "sample")
         # find some paths matching the query, then yield them
         for branch,node in wssummaries(query,"sample","fixed"):
             if branch:
@@ -229,7 +229,7 @@ class DballeFinderSampleMobile(object):
 
     def find_nodes(self, query):
 
-        #print "query and class: ", query.pattern, "mobile"
+        #print ("query and class: ", query.pattern, "mobile")
         # find some paths matching the query, then yield them
         for branch,node in wssummaries(query,"sample","mobile"):
             if branch:
@@ -247,17 +247,17 @@ class DballeReader(object):
         self.path = path
         self.datalevel = datalevel
         self.stationtype = stationtype
-        #print "DBALLEREADER datalevel: ", datalevel," stationtype: ",stationtype," path: ", self.path
+        #print ("DBALLEREADER datalevel: ", datalevel," stationtype: ",stationtype," path: ", self.path)
         
     def fetch(self, start_time, end_time):
 
         # fetch data
-        #print "fetch: ",start_time,end_time
+        #print ("fetch: ",start_time,end_time)
         uri=path2uri(self.path)
         #starttime=time.gmtime(start_time)
-        #print starttime
+        #print (starttime)
         #endtime=time.gmtime(end_time)
-        #print endtime
+        #print (endtime)
         startdt=datetime.utcfromtimestamp(start_time)
         enddt  =datetime.utcfromtimestamp(end_time)
 
@@ -272,7 +272,7 @@ class DballeReader(object):
             #have to return none
             dt=timedelta(hours=0)
             
-        #print "deltatime: ", dt
+        #print ("deltatime: ", dt)
 
         if simclocalextensions:
         
@@ -292,9 +292,9 @@ class DballeReader(object):
                 step=3600*24
                 startdt=startdt.replace(month=1,day=1,hour=0,minute=0,second=0)
                 for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
-                    #print "loop: ", dt
-                    #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                    #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype
+                    #print ("loop: ", dt)
+                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                                   "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -303,9 +303,9 @@ class DballeReader(object):
                 step=3600*6
                 startdt=startdt.replace(day=1,hour=0,minute=0,second=0)
                 for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
-                    #print "loop: ", dt
-                    #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype
+                    #print ("loop: ", dt)
+                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -314,8 +314,8 @@ class DballeReader(object):
                 step=3600
                 startdt=startdt.replace(hour=0,minute=0,second=0)
                 for dt in rrule(DAILY, dtstart=startdt, until=enddt):
-                    #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype
+                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -324,10 +324,10 @@ class DballeReader(object):
                 step=60
                 startdt=startdt.replace(minute=0,second=0)
                 for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
-                    #print "loop: ", dt
-                    #print "http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
-                    #               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype
+                    #print ("loop: ", dt)
+                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
+                                   "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
                                    "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
@@ -339,22 +339,22 @@ class DballeReader(object):
                 rj=sorted(rj, key=lambda staz: staz["date"])
 
             # find minimum step in data
-            #print "find minimum step in data"
+            #print ("find minimum step in data")
             if len(rj) > 1:
                 step=end_time-start_time
                 startstep = rj[0]["date"]
-                #print "startstep:",startstep
+                #print ("startstep:",startstep)
                 startdatestep = dateutil.parser.parse(startstep)  
                 starttimestep = int(time.mktime(startdatestep.timetuple()))
                 for i in range(1,len(rj)):
                     endstep   = rj[i]["date"]
-                    #print "endstep:",endstep
+                    #print ("endstep:",endstep)
                     enddatestep   = dateutil.parser.parse(endstep)
                     endtimestep   = int(time.mktime(enddatestep.timetuple()))
-                    #print "steps: ",endtimestep-starttimestep
+                    #print ("steps: ",endtimestep-starttimestep)
                     step=min([step,endtimestep-starttimestep])
                     starttimestep=endtimestep
-            #print "found it: ",step
+            #print ("found it: ",step)
 
             start = rj[0]["date"]
             end   = rj[-1]["date"]
@@ -368,30 +368,30 @@ class DballeReader(object):
             size=int((int(end_time)-int(start_time))/step)+1
             series=[None for i in range(size)]
 
-            #print "request time: ",start_time,end_time
-            #print "getted  time: ",starttime,endtime
-            #print "step: ",step
-            #print "size: ",size
+            #print ("request time: ",start_time,end_time)
+            #print ("getted  time: ",starttime,endtime)
+            #print ("step: ",step)
+            #print ("size: ",size)
 
-            #print "recompute end time to not have spare"
+            #print ("recompute end time to not have spare")
             # recompute end time to not have spare
             end_time=start_time+(step*(size-1))
             time_info=(start_time, end_time, step)
 
-            #print "recomputed end time: ",endtime
+            #print ("recomputed end time: ",endtime)
 
-            #print "put data in an equaly time spaced array"
+            #print ("put data in an equaly time spaced array")
 
             for station in rj:
-                #print "station: ", station
+                #print ("station: ", station)
                 # put data in an equaly time spaced array
 
                 isodate = station["date"]
-                #print "isodate: ", isodate
+                #print ("isodate: ", isodate)
             
                 date = dateutil.parser.parse(isodate)  
                 mytime = int(time.mktime(date.timetuple()))
-                #print "mytime: ",mytime
+                #print ("mytime: ",mytime)
 
                 i=int(((mytime+(step/2))-start_time)/step)-1
                 if i>=0 and i<=(size-1):

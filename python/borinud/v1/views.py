@@ -129,14 +129,12 @@ class dbajson:
 
     def jsondictdata (self):
 
-        print (self.s)
         return {
             "ident": self.s["ident"],
             "lon": self.s["lon"],
             "lat": self.s["lat"],
             "network": self.s["report"],
-            #"date": (self.s["date"][0],self.s["date"][1]) if self.summary else self.s["date"],
-            "date": self.s["date"],
+            "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["date"],
             "data": [{
                 "vars": {
                     self.s["var"]: {
@@ -159,8 +157,7 @@ class dbajson:
             "data": [{
                 "vars": {
                     self.s["var"]: {
-                        #"v": None if self.summary else self.s[self.s["var"]].get()
-                        "v": 173.15
+                        "v": None if self.summary else self.s[self.s["var"]]
                     }
                 }
             }]
@@ -356,8 +353,6 @@ def spatialseries(request, **kwargs):
 
     format=kwargs.get('format')
 
-    print("query: ",q)
-    
     if format == "geojson" or format == "dbajson" :
         return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)),0,None)),safe=False)
 
@@ -374,7 +369,7 @@ def stationdata(request, **kwargs):
         return JsonResponse(next(itertools.islice(dbajson(q,stationdata=True,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')))
+        return StreamingHttpResponse(dbajson(q,stationdata=True,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', 'historical')))
 
 
 def stations(request, **kwargs):

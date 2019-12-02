@@ -82,10 +82,13 @@ class DB(object):
         """Query stations. Return a record."""
         raise NotImplementedError()
     
-    def fill_db(self, memdb):
+    def fill_data_db(self, memdb):
         """Query data and fill a memdb."""
         raise NotImplementedError()
 
+    def fill_station_data_db(self, memdb):
+        """Query stations data and fill a memdb."""
+        raise NotImplementedError()
 
 
 class MergeDBfake(DB):
@@ -98,8 +101,8 @@ class MergeDBfake(DB):
         """Open the database."""
         memdb = dballe.DB.connect("mem:")
         for db in self.dbs:
-            #print ("copydb: ",db,rec)
-            db.fill_db(rec,memdb)
+            db.fill_data_db(rec,memdb)
+            db.fill_station_data_db(rec,memdb)
         return memdb
 
     def query_stations(self, rec):
@@ -119,12 +122,18 @@ class MergeDBfake(DB):
         db = self.__open_db(rec)
         return db.query_station_data(rec)
     
-    def fill_db(self, rec, memdb):
+    def fill_data_db(self, rec, memdb):
         for r in self.query_data(rec):
             #TODO del r["ana_id"]
             #TODO del r["data_id"]
             memdb.insert_data(r, True, True)
 
+    def fill_station_data_db(self, rec, memdb):
+        for r in self.query_station_data(rec):
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
+            memdb.insert_station_data(r, True, True)
+            
 
 class MergeDB(DB):
     """Container for DB."""
@@ -215,7 +224,7 @@ class MergeDB(DB):
     def query_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
-            db.fill_db(rec,memdb)
+            db.fill_data_db(rec,memdb)
 
         with memdb.transaction() as tr:
             for cur in tr.query_data(rec):
@@ -234,15 +243,16 @@ class MergeDB(DB):
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
                 data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
-                print ("merge query data: ",data)
+                #print ("merge query data: ",data)
                 yield data
 
     def query_station_data(self, rec):
         memdb = dballe.DB.connect_from_url("mem:")
         for db in self.dbs:
-            db.fill_db(rec,memdb)
+            db.fill_station_data_db(rec,memdb)
 
         with memdb.transaction() as tr:
+            rec={}
             for cur in tr.query_station_data(rec):
                 data={}
                 data["ident"]=cur["ident"]
@@ -251,7 +261,7 @@ class MergeDB(DB):
                 data["lon"]=cur.enqi("lon")
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
-                print ("merge query station data: ",data)
+                #print ("merge query station data: ",data)
                 yield data
 
 
@@ -276,7 +286,7 @@ class DballeDB(DB):
                 data["report"]=cur["report"]
                 data["lat"]=cur.enqi("lat")
                 data["lon"]=cur.enqi("lon")
-                print ("dballe query station: ",data)
+                #print ("dballe query station: ",data)
                 yield data
     
     def query_summary(self, rec):
@@ -290,7 +300,8 @@ class DballeDB(DB):
                 data["report"]=cur["report"]
                 data["lat"]=cur.enqi("lat")
                 data["lon"]=cur.enqi("lon")
-                data["date"]=(cur["datetimemin"],cur["datetimemax"])
+                data["datemin"]=cur["datetimemin"]
+                data["datemax"]=cur["datetimemax"]
                 data["leveltype1"]= cur["leveltype1"]
                 data["l1"]=cur["l1"]
                 data["leveltype2"]=cur["leveltype2"]
@@ -299,7 +310,7 @@ class DballeDB(DB):
                 data["p1"]=cur["p1"]
                 data["p2"]=cur["p2"]
                 data["var"]=cur["var"]
-                print ("dballe query summary: ",data)
+                #print ("dballe query summary: ",data)
                 yield data
     
     def query_data(self, rec):
@@ -322,7 +333,7 @@ class DballeDB(DB):
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
                 data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
-                print ("dballe query data: ",data)
+                #print ("dballe query data: ",data)
                 yield data
 
     def query_station_data(self, rec):
@@ -337,16 +348,25 @@ class DballeDB(DB):
                 data["lon"]=cur.enqi("lon")
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
-                print ("dballe query station data: ",data)
+                #print ("dballe query station data: ",data)
                 yield data
 
-    def fill_db(self, rec, memdb):
+    def fill_data_db(self, rec, memdb):
 
         db = self.__open_db()
 
         with db.transaction() as tr:
             for cur in tr.query_data(rec):
                 memdb.insert_data(cur.data, True, True)
+
+    def fill_station_data_db(self, rec, memdb):
+
+        db = self.__open_db()
+
+        with db.transaction() as tr:
+            for cur in tr.query_station_data(rec):
+                memdb.insert_station_data(cur.data, True, True)
+
 
 class SummaryCacheDB(DB):
     def __init__(self, db, cachename, timeout=None,dsn="report"):
@@ -362,9 +382,8 @@ class SummaryCacheDB(DB):
         self.dsn=dsn
 
     def set_cached_summary(self):
+        
         res = self.db.query_summary({})
-        for o in res:
-            print (o)
          
         summary = [{
             "ident":      o["ident"],
@@ -379,8 +398,8 @@ class SummaryCacheDB(DB):
             "p1":         o["p1"],
             "p2":         o["p2"],
             "var":        o["var"],
-            "datemin":    o["datetimemin"].isoformat(),
-            "datemax":    o["datetimemax"].isoformat()
+            "datemin":    o["datemin"].isoformat(),
+            "datemax":    o["datemax"].isoformat()
         } for o in res]
         self.cache.set('borinud-summary-cache-%s' % self.dsn, summary, self.timeout)
         return summary
@@ -464,12 +483,19 @@ class SummaryCacheDB(DB):
     def query_station_data(self, rec):
             return self.db.query_station_data(rec)        
 
-    def fill_db(self, rec, memdb):
+    def fill_data_db(self, rec, memdb):
         for r in self.db.query_data(rec):
             #TODO del r["ana_id"]
             #TODO del r["data_id"]
             memdb.insert_data(r, True, True)
 
+    def fill_station_data_db(self, rec, memdb):
+        for r in self.db.query_station_data(rec):
+            #TODO del r["ana_id"]
+            #TODO del r["data_id"]
+            memdb.insert_station_data(r, True, True)
+
+            
 
 class ArkimetVm2DB(DB):
     """Arkimet dataset containing ``VM2`` data."""
@@ -585,10 +611,14 @@ class ArkimetVm2DB(DB):
             }}
             yield r
             
-    def fill_db(self,rec,memedb):
+    def fill_data_db(self,rec,memedb):
         for r in self.query_data(rec):
             memdb.insert_data(r, True, True)
 
+    def fill_station_data_db(self,rec,memedb):
+        for r in self.query_station_data(rec):
+            memdb.insert_station_data(r, True, True)
+            
     def query_summary(self, rec):
         query = self.record_to_arkiquery(rec)
         url = "{}/summary?{}".format(self.dataset, "&".join([
@@ -766,7 +796,7 @@ class ArkimetBufrDB(DB):
             yield r
             
 
-    def fill_db(self, rec,memdb):
+    def fill_data_db(self, rec,memdb):
 
         fo=self.get_datastream(rec)
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
@@ -774,6 +804,14 @@ class ArkimetBufrDB(DB):
             tmpf.seek(0)
             memdb.load(tmpf, "BUFR")
 
+    def fill_station_data_db(self, rec,memdb):
+
+        fo=self.get_datastream(rec)
+        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
+            tmpf.write(fo.read())
+            tmpf.seek(0)
+            memdb.load(tmpf, "BUFR")
+            
     def load_arkiquery_to_dbadb(self, rec, db):
         query = self.record_to_arkiquery(rec)
         url = "{}/query?{}".format(self.dataset, "&".join([
