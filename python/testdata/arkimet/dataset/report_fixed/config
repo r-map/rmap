@@ -1,0 +1,8 @@
+description = Fixed stations
+filter = product: BUFR:t=urbane
+format = bufr
+index = reftime, product, area
+replace = yes
+step = daily
+type = iseg
+unique = reftime, area, product, origin, proddef
