@@ -247,22 +247,18 @@ class MergeDB(DB):
                 yield data
 
     def query_station_data(self, rec):
-        memdb = dballe.DB.connect_from_url("mem:")
-        for db in self.dbs:
-            db.fill_station_data_db(rec,memdb)
+        # TODO si devono rendere univoci i risultati raggruppando per stazione,
+        # i.e. per ident,lon,lat,report.
+        memdb = dballe.DB.connect("mem:")
+        with memdb.transaction() as tr:
+            for db in self.dbs:
+                for r in db.query_station_data(rec):
+                    del r["var"]
+                    tr.insert_station_data(r, True, True)
 
         with memdb.transaction() as tr:
-            rec={}
-            for cur in tr.query_station_data(rec):
-                data={}
-                data["ident"]=cur["ident"]
-                data["report"]=cur["report"]
-                data["lat"]=cur.enqi("lat")
-                data["lon"]=cur.enqi("lon")
-                data["var"]=cur["var"]
-                data[cur["var"]]=cur[cur["var"]].get()
-                #print ("merge query station data: ",data)
-                yield data
+            for r in db.query_station_data(rec):
+                yield r
 
 
 class DballeDB(DB):
@@ -689,10 +685,16 @@ class ArkimetBufrDB(DB):
         dates = set(r["datemax"] for r in self.query_summary({}))
         db = dballe.DB.connect_from_url("mem:")
         for d in dates:
-            self.load_arkiquery_to_dbadb({"date":d}, db)
+            self.load_arkiquery_to_dbadb({"datetime":d}, db)
 
-        for s in db.query_stations(rec):
-            yield s
+        with db.transaction() as tr:
+            for cur in tr.query_stations(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                yield data
 
     def query_summary(self, rec):
         """Query summary.
@@ -729,8 +731,13 @@ class ArkimetBufrDB(DB):
 
                     yield {**{
                         "var": m["var"],
-                        "level": m["level"],
-                        "trange": m["trange"],
+                        "leveltype1": m["level"][0],
+                        "l1": m["level"][1],
+                        "leveltype2": m["level"][2],
+                        "l2": m["level"][3],
+                        "pindicator": m["trange"][0],
+                        "p1": m["trange"][1],
+                        "p2": m["trange"][2],
                         "ident": i.get("proddef", {}).get("va", {}).get("id", None),
                         "lon": lon,
                         "lat": lat,
@@ -747,12 +754,30 @@ class ArkimetBufrDB(DB):
 
 
     def get_datastream(self, rec):
+        def if_null(value, default="-"):
+            # TODO spostarla in utils
+            return value if value is not None else default
 
         query = self.record_to_arkiquery(rec)
-        filter= " ".join([
-            "{}={}".format(kk, rec.get(kk,"-")) for kk in ["leveltype1", "l1",
-                                                           "leveltype2", "l2",
-                                                           "pindicator", "p1", "p2"]])
+        # TODO ho disattivato i parametri che sono None perché dbadb non gestisce più il "-" nelle query.
+        filter= [
+            "{}={}".format(kk, if_null(rec[kk])) for kk in [
+                "ident",
+                "report",
+                # "lat", "lon",
+                "leveltype1", "l1",
+                "leveltype2", "l2",
+                "pindicator", "p1", "p2"
+            ] if kk in rec and rec[kk] is not None
+        ] + [
+            "{}={:.5f}".format(kk, rec[kk]/10**5)
+            for kk in [
+                "lon", "lat",
+            ] if kk in rec and rec[kk] is not None
+        ]
+        
+        filter = " ".join(filter)
+        
         myvar=rec.get("var",None)
         if (not myvar is None):
             filter+= " var={}".format(myvar)
@@ -781,20 +806,34 @@ class ArkimetBufrDB(DB):
             yield r
 
     def query_station_data(self, rec):
+        # fo=self.get_datastream(rec)
+        # memdb = dballe.DB.connect_from_url("mem:")
 
-        fo=self.get_datastream(rec)
-        memdb = dballe.DB.connect_from_url("mem:")
+        # with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
+        #     tmpf.write(fo.read())
+        #     tmpf.seek(0)
+        #     memdb.load(tmpf, "BUFR")
 
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(fo.read())
-            tmpf.seek(0)
-            memdb.load(tmpf, "BUFR")
-
-        for r in memdb.query_station_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            yield r
+        # for r in memdb.query_station_data(rec):
+        #     #TODO del r["ana_id"]
+        #     #TODO del r["data_id"]
+        #     yield r
+        dates = set(r["datemax"] for r in self.query_summary({}))
+        db = dballe.DB.connect_from_url("mem:")
+        for d in dates:
+            self.load_arkiquery_to_dbadb({"datetime":d}, db)
             
+        with db.transaction() as tr:
+            for cur in tr.query_station_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                #print ("dballe query station data: ",data)
+                yield data
 
     def fill_data_db(self, rec,memdb):
 
@@ -835,22 +874,67 @@ class ArkimetBufrDB(DB):
             }
         }
 
-        d1, d2 = rec.date_extremes()
-        if d1:
-            q["reftime"].append(">={}".format(d1))
+        try:
+            d = datetime(*(rec[k] for k in ("yearmin", "monthmin", "daymin", "hourmin", "minumin", "secmin")))
+            q["reftime"].append(">={}".format(d))
+        except KeyError:
+            # Se sono qui, vuol dire che non si sono
+            pass
 
-        if d2:
-            q["reftime"].append("<={}".format(d2))
+        try:
+            d = datetime(*(rec[k] for k in ("yearmax", "monthmax", "daymax", "hourmax", "minumax", "secmax")))
+            q["reftime"].append("<={}".format(d))
+        except KeyError:
+            # Se sono qui, vuol dire che non si sono
+            pass
+
+        try:
+            d = rec["datemin"]
+            q["reftime"].append(">={}".format(d))
+        except KeyError:
+            # Se sono qui, vuol dire che non c'è
+            pass
+
+        try:
+            d = rec["datemax"]
+            q["reftime"].append("<={}".format(d))
+        except KeyError:
+            # Se sono qui, vuol dire che non c'è
+            pass
+
+        d = None
+        if "sec" in rec:
+            d = "{year}-{month}-{day} {hour}:{min}:{sec}".format(**rec)
+        elif "min" in rec:
+            d = "{year}-{month}-{day} {hour}:{min}".format(**rec)
+        elif "hour" in rec:
+            d = "{year}-{month}-{day} {hour}".format(**rec)
+        elif "day" in rec:
+            d = "{year}-{month}-{day}".format(**rec)
+        elif "month" in rec:
+            d = "{year}-{month}".format(**rec)
+        elif "year" in rec:
+            d = "{year}".format(**rec)
+
+        if d is not None:
+            q["reftime"].append("={}".format(d))
+
+        try:
+            d = rec["datetime"]
+            q["reftime"].append("={}".format(d))
+        except KeyError:
+            # Se sono qui, vuol dire che non c'è
+            pass
 
         for k in ["lon", "lat"]:
             if k in rec:
-                q["area"]["fixed"][k] = int(rec[k] * 10**5)
+                q["area"]["fixed"][k] = int(rec[k])
                 q["area"]["mobile"][{"lon": "x", "lat": "y"}[k]] = math.floor(rec[k])
 
         if "report" in rec:
             q["product"] = "BUFR:t={}".format(rec["report"])
 
-        if "ident" in rec:
+        if "ident" in rec and rec["ident"] is not None:
             q["proddef"] = "GRIB:id={}".format(rec["ident"])
 
         q["reftime"] = ",".join(q["reftime"])

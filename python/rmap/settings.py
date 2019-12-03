@@ -1250,7 +1250,11 @@ if DEBUG_BORINUD_SOURCES:
                               "class": "borinud.utils.source.DballeDB",
                               "url": dsnreport_mobile,
                           }, 
-                          
+#                          {
+#                              "class": "borinud.utils.source.ArkimetBufrDB",
+#                              "dataset": "http://localhost:8090/dataset/report_fixed",
+#                              "measurements": report_measurements
+#                          }
                       ],
                       "CACHED_SUMMARY": "default",
                       "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
@@ -1262,6 +1266,11 @@ if DEBUG_BORINUD_SOURCES:
                               "class": "borinud.utils.source.DballeDB",
                               "url": dsnreport_fixed,
                           }, 
+#                          {
+#                              "class": "borinud.utils.source.ArkimetBufrDB",
+#                              "dataset": "http://localhost:8090/dataset/report_fixed",
+#                              "measurements": report_measurements
+#                          }
                       ],
                       "CACHED_SUMMARY": "default",
                       "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
@@ -1429,4 +1438,3 @@ if not android :
             },
         },
     }
-
