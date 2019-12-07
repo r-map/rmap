@@ -293,8 +293,8 @@ class DballeReader(object):
                 startdt=startdt.replace(month=1,day=1,hour=0,minute=0,second=0)
                 for dt in rrule(YEARLY , dtstart=startdt, until=enddt):
                     #print ("loop: ", dt)
-                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                                   "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype)
+                    #print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                    #               "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -304,8 +304,8 @@ class DballeReader(object):
                 startdt=startdt.replace(day=1,hour=0,minute=0,second=0)
                 for dt in rrule(MONTHLY, dtstart=startdt, until=enddt):
                     #print ("loop: ", dt)
-                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype)
+                    #print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -314,8 +314,8 @@ class DballeReader(object):
                 step=3600
                 startdt=startdt.replace(hour=0,minute=0,second=0)
                 for dt in rrule(DAILY, dtstart=startdt, until=enddt):
-                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype)
+                    #print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
@@ -325,35 +325,35 @@ class DballeReader(object):
                 startdt=startdt.replace(minute=0,second=0)
                 for dt in rrule(HOURLY, dtstart=startdt, until=enddt):
                     #print ("loop: ", dt)
-                    print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
-                                   "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
-                                   "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype)
+                    #print ("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+ \
+                    #               "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+ \
+                    #               "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype)
                     r=requests.get("http://"+Site.objects.get(id=SITE_ID).domain+"/borinud/api/v1/dbajson/"+uri+
                                    "/timeseries/"+"{:04d}".format(dt.year)+"/{:02d}".format(dt.month)+"/{:02d}".format(dt.day)+
                                    "/{:02d}".format(dt.hour)+"?dsn="+self.datalevel+"_"+self.stationtype,timeout=timeout)
                     rj+=r.json()
 
-        if len(rj) > 0:
+        if len(rj) > 1:
 
             if self.stationtype == "mobile" :
                 rj=sorted(rj, key=lambda staz: staz["date"])
 
             # find minimum step in data
             #print ("find minimum step in data")
-            if len(rj) > 1:
-                step=end_time-start_time
-                startstep = rj[0]["date"]
-                #print ("startstep:",startstep)
-                startdatestep = dateutil.parser.parse(startstep)  
-                starttimestep = int(time.mktime(startdatestep.timetuple()))
-                for i in range(1,len(rj)):
-                    endstep   = rj[i]["date"]
-                    #print ("endstep:",endstep)
-                    enddatestep   = dateutil.parser.parse(endstep)
-                    endtimestep   = int(time.mktime(enddatestep.timetuple()))
-                    #print ("steps: ",endtimestep-starttimestep)
-                    step=min([step,endtimestep-starttimestep])
-                    starttimestep=endtimestep
+            step=end_time-start_time
+            startstep = rj[0]["date"]
+            #print ("startstep:",startstep)
+            startdatestep = dateutil.parser.parse(startstep)  
+            starttimestep = int(time.mktime(startdatestep.timetuple()))
+            for i in range(1,len(rj)):
+                endstep   = rj[i]["date"]
+                #print ("endstep:",endstep)
+                enddatestep   = dateutil.parser.parse(endstep)
+                endtimestep   = int(time.mktime(enddatestep.timetuple()))
+                #print ("steps: ",endtimestep-starttimestep)
+                step=min([step,endtimestep-starttimestep])
+                starttimestep=endtimestep
+                    
             #print ("found it: ",step)
 
             start = rj[0]["date"]
