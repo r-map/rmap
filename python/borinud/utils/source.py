@@ -126,13 +126,15 @@ class MergeDBfake(DB):
         for r in self.query_data(rec):
             #TODO del r["ana_id"]
             #TODO del r["data_id"]
-            memdb.insert_data(r, True, True)
+            with memdb.transaction() as tr:
+                tr.insert_data(r, True, True)
 
     def fill_station_data_db(self, rec, memdb):
         for r in self.query_station_data(rec):
             #TODO del r["ana_id"]
             #TODO del r["data_id"]
-            memdb.insert_station_data(r, True, True)
+            with memdb.transaction() as tr:
+                tr.insert_station_data(r, True, True)
             
 
 class MergeDB(DB):
@@ -222,7 +224,7 @@ class MergeDB(DB):
             yield r
 
     def query_data(self, rec):
-        memdb = dballe.DB.connect_from_url("mem:")
+        memdb = dballe.DB.connect("mem:")
         for db in self.dbs:
             db.fill_data_db(rec,memdb)
 
@@ -250,16 +252,19 @@ class MergeDB(DB):
         # TODO si devono rendere univoci i risultati raggruppando per stazione,
         # i.e. per ident,lon,lat,report.
         memdb = dballe.DB.connect("mem:")
-        with memdb.transaction() as tr:
-            for db in self.dbs:
-                for r in db.query_station_data(rec):
-                    del r["var"]
-                    tr.insert_station_data(r, True, True)
+        for db in self.dbs:
+            db.fill_station_data_db(rec, memdb)
 
         with memdb.transaction() as tr:
-            for r in db.query_station_data(rec):
-                yield r
-
+            for cur in tr.query_station_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                yield data
 
 class DballeDB(DB):
     """DB-All.e database."""
@@ -352,17 +357,18 @@ class DballeDB(DB):
         db = self.__open_db()
 
         with db.transaction() as tr:
-            for cur in tr.query_data(rec):
-                memdb.insert_data(cur.data, True, True)
+            with memdb.transaction() as memtr:
+                for cur in tr.query_data(rec):
+                    memtr.insert_data(cur.data, True, True)
 
     def fill_station_data_db(self, rec, memdb):
 
         db = self.__open_db()
 
         with db.transaction() as tr:
-            for cur in tr.query_station_data(rec):
-                memdb.insert_station_data(cur.data, True, True)
-
+            with memdb.transaction() as memtr:
+                for cur in tr.query_station_data(rec):
+                    memtr.insert_station_data(cur.data, True, True)
 
 class SummaryCacheDB(DB):
     def __init__(self, db, cachename, timeout=None,dsn="report"):
@@ -474,24 +480,17 @@ class SummaryCacheDB(DB):
         ))
         
     def query_data(self, rec):
-            return self.db.query_data(rec)
+        return self.db.query_data(rec)
 
     def query_station_data(self, rec):
-            return self.db.query_station_data(rec)        
+        return self.db.query_station_data(rec)        
 
     def fill_data_db(self, rec, memdb):
-        for r in self.db.query_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            memdb.insert_data(r, True, True)
-
+        self.db.fill_data_db(rec)        
+        
     def fill_station_data_db(self, rec, memdb):
-        for r in self.db.query_station_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            memdb.insert_station_data(r, True, True)
+        self.db.fill_station_data_db(rec)        
 
-            
 
 class ArkimetVm2DB(DB):
     """Arkimet dataset containing ``VM2`` data."""
@@ -608,12 +607,14 @@ class ArkimetVm2DB(DB):
             yield r
             
     def fill_data_db(self,rec,memedb):
-        for r in self.query_data(rec):
-            memdb.insert_data(r, True, True)
+        with memdb.transaction() as tr:
+            for r in self.query_data(rec):
+                tr.insert_data(r, True, True)
 
     def fill_station_data_db(self,rec,memedb):
-        for r in self.query_station_data(rec):
-            memdb.insert_station_data(r, True, True)
+        with memdb.transaction() as tr:
+            for r in self.query_station_data(rec):
+                tr.insert_station_data(r, True, True)
             
     def query_summary(self, rec):
         query = self.record_to_arkiquery(rec)
@@ -683,7 +684,7 @@ class ArkimetBufrDB(DB):
             Loading static data must be implemented.
         """
         dates = set(r["datemax"] for r in self.query_summary({}))
-        db = dballe.DB.connect_from_url("mem:")
+        db = dballe.DB.connect("mem:")
         for d in dates:
             self.load_arkiquery_to_dbadb({"datetime":d}, db)
 
@@ -747,7 +748,7 @@ class ArkimetBufrDB(DB):
                     }}
 
     #def query_data(self, rec):
-    #    db = dballe.DB.connect_from_url("mem:")
+    #    db = dballe.DB.connect("mem:")
     #    self.load_arkiquery_to_dbadb(rec, db)
     #    for r in db.query_data(rec):
     #        yield r
@@ -793,7 +794,7 @@ class ArkimetBufrDB(DB):
     def query_data(self, rec):
 
         fo=self.get_datastream(rec)
-        memdb = dballe.DB.connect_from_url("mem:")
+        memdb = dballe.DB.connect("mem:")
 
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
@@ -807,7 +808,7 @@ class ArkimetBufrDB(DB):
 
     def query_station_data(self, rec):
         # fo=self.get_datastream(rec)
-        # memdb = dballe.DB.connect_from_url("mem:")
+        # memdb = dballe.DB.connect("mem:")
 
         # with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
         #     tmpf.write(fo.read())
@@ -819,7 +820,7 @@ class ArkimetBufrDB(DB):
         #     #TODO del r["data_id"]
         #     yield r
         dates = set(r["datemax"] for r in self.query_summary({}))
-        db = dballe.DB.connect_from_url("mem:")
+        db = dballe.DB.connect("mem:")
         for d in dates:
             self.load_arkiquery_to_dbadb({"datetime":d}, db)
             

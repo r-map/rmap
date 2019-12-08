@@ -43,7 +43,9 @@ class dbajson:
         self.last= seg == "last"
         #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
         #print ("summary=",self.summary)
+        #print ("format=",self.format)
         #print ("stations=",self.stations)
+        #print ("stationdata=",self.stationdata)
         #print ("last=",self.last)
         #print (q)
         #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
@@ -148,7 +150,6 @@ class dbajson:
 
 
     def jsondictstationdata (self):
-
         return {
             "ident": self.s["ident"],
             "lon": self.s["lon"],

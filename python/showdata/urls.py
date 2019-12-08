@@ -21,6 +21,7 @@ basepattern = (
 
 urlpatterns = [
 
+    #work in progress for dynamic menu
     url(r'^$', views.menu,name="menu"),
     url(r'^filtro$', views.filtro,name="filtro"),
 
@@ -36,6 +37,6 @@ urlpatterns = [
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})/(?P<hour>\d{2})$', views.spatialseries,name="spatialserieshourly"),
     url(basepattern + r'/spatialseries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.spatialseries,name="spatialseriesdaily"),
 
-    url(basepattern + r'/stationdata', views.stationdata,name="stationdata"),
-    url(basepattern + r'/stations', views.stations,name="stations"),
+    url(basepattern + r'/stationdata$', views.stationdata,name="stationdata"),
+    url(basepattern + r'/stations$', views.stations,name="stations"),
 ]
