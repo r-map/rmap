@@ -579,11 +579,11 @@ function map_init(map, options)
       <p style="text-align:left">
 	<a href='
 	   {% if hour %}
-	     {% url 'showdata:spatialserieshourly' ident '*' network trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	     {% url 'showdata:spatialserieshourly' '*' '*' '*' trange level var year month day hour %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% elif day %}
-	     {% url 'showdata:spatialseriesdaily' ident '*' network trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	     {% url 'showdata:spatialseriesdaily' '*' '*' '*' trange level var year month day %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
 	   {% endif %}
-	   '>{% trans "Show all stations on a map" %}
+	   '>{% trans "Show all values on a map" %}
 	</a>
       </p>
     </div>
@@ -611,7 +611,7 @@ function map_init(map, options)
       <p style="text-align:left">
 	<a href='
 	   {% url 'showdata:stations' ident coords network trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   '>{% trans "Show all coordinates on a map" %}
+	   '>{% trans "Show stations on a map" %}
 	</a>
       </p>
     </div>

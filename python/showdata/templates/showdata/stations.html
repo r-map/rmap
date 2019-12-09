@@ -132,10 +132,14 @@ function setpopup(feature)
 {
 
     var popupText = "<div id='popp'>"
+	+"<a href='/showdata/"+null2_(feature.properties.ident)+"/*/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>"
         + "Ident: " + null2_(feature.properties.ident)
+	+"</a>"
+	+"<a href='/showdata/"+null2_(feature.properties.ident)+"/"+feature.properties.lon+","+feature.properties.lat+"/"+null2_(feature.properties.network)+"/*/*/*/stationdata{% if dsn %}?dsn={{dsn}}{% endif %}'>"
 	+ "<br>Lon: " + feature.properties.lon/100000
 	+ "<br>Lat: " + feature.properties.lat/100000
-	+ "<br>Network: " + feature.properties.network
+	+"</a>"
+	+ "<br>Network: <a href='/showdata/*/*/"+null2_(feature.properties.network)+"/*/*/*/stations{% if dsn %}?dsn={{dsn}}{% endif %}'>" + feature.properties.network +"</a>"
     popupText +="</div>";
 
     return popupText
@@ -241,9 +245,22 @@ function map_init(map, options)
 
   {% leaflet_map "spots" callback="window.map_init" %}
 
-    <p style="text-align:right">
-    <a href='
-{% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}{% if dsn %}?dsn={{dsn}}{% endif %}
-'>{% trans "Download data" %}</a></p>
+
+  <div class="row">
+    <div class="col-xs-4">
+      <p style="text-align:left">
+	<a href='
+	   {% url 'showdata:stations' '*' '*' '*' trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	   '>{% trans "Show all stations on a map" %}
+	</a>
+      </p>
+    </div>
+
+    <div class="col-xs-4 col-xs-offset-4">
+      <p style="text-align:left">
+	<a href='{% url 'api:v1:stations' 'dbajson' ident coords network trange level var %}{% if dsn %}?dsn={{dsn}}{% endif %}'>{% trans "Download data" %}</a>
+      </p>
+    </div>
+  </div>
     
 {% endblock %}

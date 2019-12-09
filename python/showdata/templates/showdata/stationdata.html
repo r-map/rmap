@@ -392,8 +392,8 @@ function map_init(map, options)
     <div class="col-xs-4">
       <p style="text-align:left">
 	<a href='
-	   {% url 'showdata:stations' ident coords network trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
-	   '>{% trans "Show all coordinates on a map" %}
+	   {% url 'showdata:stations' '*' '*' '*' trange level var %}?{% if dsn %}dsn={{dsn}}{% endif %}{% for key, value in spatialbox.items %}&{{key}}={{value}}{% endfor %}{% for key, value in timebox.items %}&{{key}}={{value}}{% endfor %}
+	   '>{% trans "Show all stations on a map" %}
 	</a>
       </p>
     </div>
