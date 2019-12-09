@@ -1,6 +1,6 @@
 %define srcname rmap
 %define version 9.0
-%define release 18
+%define release 20
 
 Summary: rete monitoraggio ambientale partecipativo
 Name: python3-%{srcname}
@@ -15,6 +15,7 @@ Url: https://github.com/r-map/rmap
 BuildRequires: python3-devel python3-django python3-configobj
 BuildRequires: python3-django-imagekit python3-django-geojson
 BuildRequires: python3-django-tagging gettext python3-django-appconf
+BuildRequires: help2man
 Requires: python3-configobj
 Requires: python3-django-imagekit python3-django-geojson
 Requires: python3-django-tagging python3-django-hosts
