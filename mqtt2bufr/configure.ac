@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.63])
-AC_INIT([mqtt2bufr], [0.11], [edigiacomo@arpa.emr.it])
+AC_INIT([mqtt2bufr], [0.11], [edigiacomo@arpae.it])
 AC_CONFIG_SRCDIR([configure.ac])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_MACRO_DIR([m4])
@@ -10,6 +10,7 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_CXX
 AC_PROG_CC
 AC_LANG(C++)
+AM_PATH_PYTHON([3.6])
 
 dnl Use c++11
 AX_CXX_COMPILE_STDCXX_11

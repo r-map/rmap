@@ -2,8 +2,6 @@ import json
 
 from django.test import TestCase, Client
 
-import dballe
-
 
 class TestUtils(TestCase):
     def test_summaries_all(self):
