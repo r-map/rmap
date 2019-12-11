@@ -41,28 +41,42 @@ class distclean(Command):
         import shutil
         from os.path import join
         try:
-            shutil.rmtree("man")
+            print('removing: man dir')
+            if not(self.dry_run): shutil.rmtree("man")
         except:
             pass
         try:
-            shutil.rmtree("static")
+            print('removing: static dir')
+            if not(self.dry_run): shutil.rmtree("static")
         except:
             pass
         try:
-            shutil.rmtree("build")
+            print('removing: build dir')
+            if not(self.dry_run): shutil.rmtree("build")
         except:
             pass
         for root, dirs, files in os.walk('locale'):
             for name in files:
                 if name[-3:] == ".mo":
-                    os.remove(join(root, name))
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+        for root, dirs, files in os.walk('rmap/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
+        for root, dirs, files in os.walk('registration/locale'):
+            for name in files:
+                if name[-3:] == ".mo":
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
 
         # remove all the .pyc files
         for root, dirs, files in os.walk(os.getcwd(), topdown=False):
             for name in files:
-                if name.endswith('.pyc') and os.path.isfile(os.path.join(root, name)):
-                    print('removing: %s' % os.path.join(root, name))
-                    if not(self.dry_run): os.remove(os.path.join(root, name))
+                if name.endswith('.pyc') and os.path.isfile(join(root, name)):
+                    print('removing: %s' % join(root, name))
+                    if not(self.dry_run): os.remove(join(root, name))
 
 
 class build(build_):
@@ -275,6 +289,10 @@ if (platform != 'android') :
     data_files.append(('/etc/rmap',['dashboard.conf']))
     data_files.append(('/etc/rmap',['graphTemplates.conf']))
 
+for dirpath, dirnames, filenames in os.walk('rmap/locale'):
+    if filenames:
+        for file in filenames:
+            rmap_package_data.append( os.path.relpath(os.path.join(dirpath, file),'rmap'))    
 for dirpath, dirnames, filenames in os.walk('rmap/static'):
     if filenames:
         for file in filenames:

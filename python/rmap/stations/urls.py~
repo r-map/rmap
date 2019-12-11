@@ -1,8 +1,0 @@
-from django.conf.urls import *
-#from django.contrib import admin
-
-from view import StationList
-
-urlpatterns = patterns('',
-    (r'^$',PublisherList.as_view()),
-)

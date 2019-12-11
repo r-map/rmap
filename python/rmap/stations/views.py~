@@ -1,8 +1,0 @@
-
-from django.views.generic import ListView
-from models import StationMetadata
-
-class StationList(ListView):
-    model = StationMetadata
-
-
