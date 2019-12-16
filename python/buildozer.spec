@@ -30,7 +30,7 @@ source.exclude_patterns = saveddata-service.pickle,rmap.ini,rmap/rmap.ini,sign.s
 #,rmap.sqlite3
 
 # (str) Application versioning (method 1)
-version = 8.0
+version = 9.1
 
 # (str) Application versioning (method 2)
 # version.regex = __version__ = ['"](.*)['"]
@@ -41,7 +41,7 @@ version = 8.0
 
 # here we have to change pil with Pillow but Pillow need recipe that is missing now
 
-requirements = python3crystax,kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,Pillow,pytz,requests,android
+requirements = kivy,pyjnius,sqlite3,openssl,plyer,futures,pyserial,simplejson,django,configobj,pika,Pillow,pytz,requests,android,sqlparse
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -92,23 +92,26 @@ fullscreen = 0
 # (list) Permissions
 android.permissions = INTERNET,ACCESS_FINE_LOCATION,ACCESS_COARSE_LOCATION,BLUETOOTH,BLUETOOTH,BLUETOOTH_ADMIN,WAKE_LOCK,CAMERA,WRITE_EXTERNAL_STORAGE
 
-# (int) Android API to use
-#android.api = 19
+# (int) Target Android API, should be as high as possible.
+android.api = 28
 
-# (int) Minimum API required
-#android.minapi = 9
+# (int) Minimum API your APK will support.
+#android.minapi = 21
 
 # (int) Android SDK version to use
-android.sdk = 22
+#android.sdk = 20
 
 # (str) Android NDK version to use
-android.ndk = 10.3.2
+#android.ndk = 17c
+
+# (int) Android NDK API to use. This is the minimum API your app will support, it should usually match android.minapi.
+#android.ndk_api = 21
 
 # (bool) Use --private data storage (True) or --dir public storage (False)
 #android.private_storage = True
 
 # (str) Android NDK directory (if empty, it will be automatically downloaded.)
-android.ndk_path = /opt/crystax-ndk-10.3.2
+#android.ndk_path =
 
 # (str) Android SDK directory (if empty, it will be automatically downloaded.)
 #android.sdk_path =
@@ -119,7 +122,13 @@ android.ndk_path = /opt/crystax-ndk-10.3.2
 # (bool) If True, then skip trying to update the Android sdk
 # This can be useful to avoid excess Internet downloads or save time
 # when an update is due and you just want to test/build your package
-android.skip_update = True
+# android.skip_update = False
+
+# (bool) If True, then automatically accept SDK license
+# agreements. This is intended for automation only. If set to False,
+# the default, you will be shown the license when first running
+# buildozer.
+# android.accept_sdk_license = False
 
 # (str) Android entry point, default is ok for Kivy-based app
 #android.entrypoint = org.renpy.android.PythonActivity
@@ -154,8 +163,8 @@ android.skip_update = True
 # (list) Java classes to add as activities to the manifest.
 #android.add_activites = com.example.ExampleActivity
 
-# (str) python-for-android branch to use, defaults to stable
-p4a.branch = master
+# (str) python-for-android branch to use, defaults to master
+#p4a.branch = master
 
 # (str) OUYA Console category. Should be one of GAME or APP
 # If you leave this blank, OUYA support will not be enabled
@@ -201,10 +210,10 @@ android.arch = armeabi-v7a
 #
 
 # (str) python-for-android git clone directory (if empty, it will be automatically cloned from github)
-p4a.source_dir = /home/pat1/git/python-for-android_ssl
+#p4a.source_dir =
 
 # (str) The directory in which python-for-android should look for your own build recipes (if any)
-p4a.local_recipes = /home/pat1/git/python-for-android_ssl/pythonforandroid/recipes
+#p4a.local_recipes =
 
 # (str) Filename to the hook for p4a
 #p4a.hook =
@@ -222,6 +231,16 @@ p4a.local_recipes = /home/pat1/git/python-for-android_ssl/pythonforandroid/recip
 
 # (str) Path to a custom kivy-ios folder
 #ios.kivy_ios_dir = ../kivy-ios
+# Alternately, specify the URL and branch of a git checkout:
+ios.kivy_ios_url = https://github.com/kivy/kivy-ios
+ios.kivy_ios_branch = master
+
+# Another platform dependency: ios-deploy
+# Uncomment to use a custom checkout
+#ios.ios_deploy_dir = ../ios_deploy
+# Or specify URL and branch
+ios.ios_deploy_url = https://github.com/phonegap/ios-deploy
+ios.ios_deploy_branch = 1.7.0
 
 # (str) Name of the certificate to use for signing the debug version
 # Get a list of available identities: buildozer ios list_identities
@@ -240,7 +259,7 @@ log_level = 2
 warn_on_root = 1
 
 # (str) Path to build artifact storage, absolute or relative to spec file
-build_dir = ../buildbuildozer_old
+# build_dir = ./.buildozer
 
 # (str) Path to build output (i.e. .apk, .ipa) storage
 # bin_dir = ./bin

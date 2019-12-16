@@ -30,7 +30,8 @@ if __name__ == '__main__':
 
     #management.call_command("showmigrations")
     try:
-        management.call_command("migrate",no_initial_data=True )
+        #management.call_command("migrate",no_initial_data=True )
+        management.call_command("migrate")
     except:
         print("error on django command migrate on boot")
 

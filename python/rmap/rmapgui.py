@@ -1,4 +1,4 @@
-# GPL. (C) 2015 Paolo Patruno.
+# GPL. (C) 2019 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -34,9 +34,17 @@ from kivy.uix.togglebutton import ToggleButton
 from kivy.uix.settings import SettingSpacer
 from kivy.properties import NumericProperty
 from kivy.lang import Builder
-from kivy.adapters.dictadapter import DictAdapter
+
+#from kivy.adapters.dictadapter import DictAdapter
+from kivy.uix.recycleboxlayout import RecycleBoxLayout
+from kivy.uix.recycleview.layout import LayoutSelectionBehavior
+from kivy.uix.recycleview import RecycleView
+from kivy.uix.behaviors import FocusBehavior
+from kivy.uix.recycleview.views import RecycleDataViewBehavior
+from kivy.properties import BooleanProperty
+
 from kivy.uix.gridlayout import GridLayout
-from kivy.uix.listview import ListView, ListItemButton
+#from kivy.uix.listview import ListView, ListItemButton
 from .gps import *
 from kivy.properties import StringProperty
 from kivy.clock import Clock, mainthread
@@ -158,6 +166,28 @@ kv='''
 #:import MapSource mapview.MapSource
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
 ###:import camera plyer.camera
+
+<SelectableLabel>:
+    # Draw a background to indicate selection
+    canvas.before:
+        Color:
+            rgba: (.5, 0.1, .1, .3) if self.selected else (0.1, 0.6, 0.1, 1)
+        Rectangle:
+            pos: self.pos
+            size: self.size
+<PresentwView>:
+    viewclass: 'SelectableLabel'
+    SelectableRecycleBoxLayout:
+        default_size: None, dp(56)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+        orientation: 'vertical'
+        multiselect: False
+        touch_multiselect: False
+        touch_deselect_last: True
+        padding: dp(4)
+        spacing: dp(8)
 
 <Toolbar@BoxLayout>:
     size_hint_y: None
@@ -876,64 +906,67 @@ class SettingScrollOptions(SettingOptions):
         btn.bind(on_release=popup.dismiss)
         content.add_widget(btn)
 
-class values(tables.Table):
+class tableselected(tables.Table):
 
-    value=None
+    selection=None
 
-    def value_changed(self, list_adapter, *args):
-
-        self.value = None
-
-        if len(list_adapter.selection) > 0:
-            for key,item in self.items():
-                if str(item) == list_adapter.selection[0].text:
-                    self.value = item.code
-
-        print("table values changed to: ",self.value)
-
-
-class PresentwView(GridLayout):
-    '''
-    Implementation of an master-detail view with a vertical scrollable list
-    '''
-
-    def __init__(self,table,**kwargs):
-        kwargs['cols'] = 1
-        super(PresentwView, self).__init__(**kwargs)
-
-
-        list_item_args_converter = \
-                lambda row_index, rec: {'text': _(str(rec)),
-                                        'size_hint_y': None,
-                                        'height': '90sp',
-                                        'halign': 'left',
-                                        'text_size': (None,None)}
-                                        #'text_size': (420,None)} mmm do not scale good on different dpi
-
-        self.dict_adapter = DictAdapter(sorted_keys=sorted(table.keys()),
-                                        data=table,
-                                        args_converter=list_item_args_converter,
-                                        selection_mode='single',
-                                        allow_empty_selection=True,
-                                        cls=ListItemButton,
-        )
-
-        master_list_view = ListView(adapter=self.dict_adapter,
-                                    size_hint=(.3, 1.0))
-
-
-        self.dict_adapter.bind(on_selection_change=table.value_changed )
-        #self.add_widget(detail_view)
-
-        self.add_widget(master_list_view)
+    def select(self, code):
+        #print("table selected: ",self.selection)
+        self.selection = code
 
     def deselect(self):
-        """ deselect item in listitem view"""
+        #print("table deselected")
+        self.selection = None
+    
+class SelectableRecycleBoxLayout(FocusBehavior, LayoutSelectionBehavior,
+                                 RecycleBoxLayout):
+    ''' Adds selection and focus behaviour to the view. '''
+    
+class SelectableLabel(RecycleDataViewBehavior, Label):
+    ''' Add selection support to the Label '''
+    index = None
+    selected = BooleanProperty(False)
+    selectable = BooleanProperty(True)
 
-        for item in self.dict_adapter.selection:
-            item.deselect()
+    #def __init__(self, **kwargs):
+    #    super(SelectableLabel, self).__init__(**kwargs)
+    #    self.selected = False
 
+    def refresh_view_attrs(self, rv, index, data):
+        ''' Catch and handle the view changes '''
 
+        self.index = index
+        return super(SelectableLabel, self).refresh_view_attrs(
+            rv, index, data)
+
+    def on_touch_down(self, touch):
+        ''' Add selection on touch down '''
+        if super(SelectableLabel, self).on_touch_down(touch):
+            return True
+        if self.collide_point(*touch.pos) and self.selectable:
+            return self.parent.select_with_touch(self.index, touch)
+
+    def apply_selection(self, rv, index, is_selected):
+        ''' Respond to the selection of items in the view. '''
+        self.selected = is_selected
+        if is_selected:
+            #print("selection changed to {0}".format(rv.data[index]))
+            rv.table.select(rv.data[index]["entry"])
+        else:
+            #print("selection removed for {0}".format(rv.data[index]))
+            #print (rv.table.selection, rv.data[index]["entry"])
+            if (rv.table.selection == rv.data[index]["entry"]):
+                rv.table.deselect()
+
+class PresentwView(RecycleView):
+    def __init__(self, table, **kwargs):
+        super(PresentwView, self).__init__(**kwargs)
+        #print (table)
+        self.table=table
+        self.data=[]
+        for rec in table:
+            #print (ind,table[ind])
+            self.data.append({'text': _(str(table[rec])),"entry":rec})    
 
 def to_background(*args):
     from jnius import cast
@@ -1266,7 +1299,7 @@ class Rmap(App):
 
         # add listview widget
         lang=self.config.get('general','language')
-        self.present_weather_table = values(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
+        self.present_weather_table = tableselected(os.path.join(os.path.dirname(__file__), "tables","present_weather_"+lang+".txt"))
         self.present_weather_widget=PresentwView(self.present_weather_table)
         self.root.ids["presentwtab"].add_widget(self.present_weather_widget)
 
@@ -2512,25 +2545,27 @@ class Rmap(App):
 
 
         try:
-            print(self.present_weather_table.value)
-            if self.present_weather_table.value is not None:
-                value=self.present_weather_table.value
-                datavar={"B20003":{"t": datetime.utcnow(),"v": str(value)}}
+            #print("present weather", self.present_weather_table.selection)
+            if self.present_weather_table.selection is not None:
+                selection=self.present_weather_table.selection                
+                datavar={"B20003":{"t": datetime.utcnow(),"v": str(selection)}}
                 #self.root.ids["snow"].text=""
                 self.mystation.datavarlist.append({"coord":{"lat":self.lat,"lon":self.lon},
                                                    "timerange":"254,0,0",
                                                    "level":"1,-,-,-",
                                                    "datavar":datavar,
                                                    "prefix":rmap.settings.topicreport})
-                                                   
+
+                #clear selection after it was take in account
+                self.present_weather_table.deselect()
+                self.root.ids["presentwtab"].remove_widget(self.present_weather_widget)
+                self.present_weather_widget=PresentwView(self.present_weather_table)        
+                self.root.ids["presentwtab"].add_widget(self.present_weather_widget)
+                
         except:
             pass
 
-        self.present_weather_widget.deselect()
-        self.present_weather_table.value=None
-
-
-        print(self.mystation.datavarlist)
+        #print("datavarlist", self.mystation.datavarlist)
         self.root.ids["queue"].text=self.queue2str()
 
         if os.path.isfile(PHOTOIMAGE):
@@ -2644,7 +2679,13 @@ class Rmap(App):
 
     def camera_take_photo(self):
         if platform == 'android':
+            #disabled for this issue:
+            #https://github.com/kivy/plyer/issues/500
 
+            self.popup(_("disabled\nin this\nversion!"))
+            return
+        
+        elif (platform == 'android when issue 500 solved'):
             self.notify(_("Wait"))
 
             from jnius import autoclass
