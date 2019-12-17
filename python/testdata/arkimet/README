@@ -1,1 +1,3 @@
+arki-mergeconf dataset/* > config
+arki-scan --dump --dispatch=config temp.bufr
 arki-server --host=localhost --port=8090 --url=http://localhost:8090 --verbose config

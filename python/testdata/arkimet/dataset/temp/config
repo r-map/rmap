@@ -1,5 +1,5 @@
 description = Fixed stations
-filter = product: BUFR:t=urbane
+filter = product: BUFR:t=temp
 format = bufr
 index = reftime, product, area
 replace = yes
