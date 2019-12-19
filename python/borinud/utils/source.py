@@ -799,12 +799,14 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            memdb.load(tmpf, "BUFR")
+            with memdb.transaction() as tr:
+                tr.load(tmpf, "BUFR")
 
-        for r in memdb.query_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            yield r
+        with memdb.transaction() as tr:
+            for r in tr.query_data(rec):
+                #TODO del r["ana_id"]
+                #TODO del r["data_id"]
+                yield r
 
     def query_station_data(self, rec):
         # fo=self.get_datastream(rec)
@@ -842,7 +844,8 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            memdb.load(tmpf, "BUFR")
+            with memdb.transaction() as tr:
+                tr.load(tmpf, "BUFR")
 
     def fill_station_data_db(self, rec,memdb):
 
@@ -850,7 +853,8 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            memdb.load(tmpf, "BUFR")
+            with memdb.transaction() as tr:
+                tr.load(tmpf, "BUFR")
             
     def load_arkiquery_to_dbadb(self, rec, db):
         query = self.record_to_arkiquery(rec)
