@@ -26,16 +26,28 @@ from django.utils.text import slugify
 #from rmap.rmap_core import isRainboInstance
 import rmap.rmap_core
 
-lang="it"
-
-
 class scelta_present_weather(object):
     '''
     build choices for build 
     '''
 
-    def __init__(self):
-        self.table = Table(os.path.join(os.path.dirname(__file__), "../rmap/tables","present_weather_"+lang+".txt"))
+    def __init__(self,language_code):
+
+        lang = language_code.split("-")[0]
+
+        try:
+            self.table = Table(os.path.join(os.path.dirname(__file__), "../rmap/tables","present_weather_"+lang+".txt"))
+        except:
+            try:
+                #print ("error getting lang: ", lang)
+                from django.utils import  translation
+                lang=translation.get_language().split("-")[0]
+                self.table = Table(os.path.join(os.path.dirname(__file__), "../rmap/tables","present_weather_"+lang+".txt"))
+            except:
+                #print ("error getting system lang: ", lang)
+                lang="en"
+                self.table = Table(os.path.join(os.path.dirname(__file__), "../rmap/tables","present_weather_"+lang+".txt"))
+
         self.table[""]=TableEntry(code="",description="----------------")
 
     def __iter__(self):
@@ -91,11 +103,14 @@ class ManualForm(forms.ModelForm):
     #geom = PointField()
 
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
-    presentweather=forms.ChoiceField(choices=scelta_present_weather(),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
-
+    
     visibility=forms.IntegerField(required=False,label=__("Visibility(m.)"),help_text='',min_value=0,max_value=1000000)
     snow_height=forms.IntegerField(required=False,label=__("Snow height(cm.)"),help_text='',min_value=0,max_value=1000)
-
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        self.language_code = kwargs["language_code"]
+        self.fields["presentweather"]=forms.ChoiceField(scelta_present_weather(self.language_code),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
@@ -386,7 +401,7 @@ def insertDataManualData(request):
 
         stationform = StationForm(request.user.get_username(),request.POST) # A form bound to the POST data
         nominatimform = NominatimForm(request.POST) # A form bound to the POST data
-        form = ManualForm(request.POST) # A form bound to the POST data
+        form = ManualForm(request.POST,language_code=request.LANGUAGE_CODE) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
 
@@ -399,7 +414,7 @@ def insertDataManualData(request):
                 POST['geom']= str(Point(station.lon,station.lat))
                 POST['coordinate_slug']= slug
                 stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                form = ManualForm(POST) # A form bound to the new data
+                form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             stationform = StationForm(request.user.get_username())
@@ -421,7 +436,7 @@ def insertDataManualData(request):
                         POST['address']= address
                         nominatimform = NominatimForm(POST) # A form bound to the new data
                         stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                        form = ManualForm(POST) # A form bound to the new data
+                        form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
         else:
             nominatimform = NominatimForm()
@@ -479,7 +494,7 @@ def insertDataManualData(request):
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 
-                    form = ManualForm() # An unbound form
+                    form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
                 except:
                     return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"error":True})
 
@@ -488,13 +503,13 @@ def insertDataManualData(request):
         else:
 
             print("invalid form")
-            form = ManualForm() # An unbound form
+            form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
 
     else:
         stationform = StationForm(request.user.get_username()) # An unbound form
         nominatimform = NominatimForm() # An unbound form
-        form = ManualForm() # An unbound form
+        form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
         return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
 
 
