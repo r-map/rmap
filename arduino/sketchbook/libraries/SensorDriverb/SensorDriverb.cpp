@@ -2945,8 +2945,8 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
   SensorDriver::setup(driver,address,node,type);
   //bool oneshot=true;
 
-  _sdsSerial=new SoftwareSerial(SDS_PIN_RX, SDS_PIN_TX, false, 128);
-  _sdsSerial->begin(9600);
+  _sdsSerial=new SoftwareSerial();
+  _sdsSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
   _sds011 = new sds011::Sds011(*_sdsSerial);
   delay(1000);
  
@@ -4964,13 +4964,14 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   //bool oneshot=true;
 
   #if defined(ARDUINO_ARCH_ESP8266)
-  _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX, false, 128);
+  _hpmSerial=new SoftwareSerial();
+  _hpmSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
   #else
   _hpmSerial=new SoftwareSerial(HPM_PIN_RX, HPM_PIN_TX);
+  _hpmSerial->begin(9600);
   //_hpmSerial= &Serial1;
   #endif
 
-  _hpmSerial->begin(9600);
   _hpm = new hpm();
   delay(1000);
 
@@ -5153,13 +5154,14 @@ int SensorDriverPMSoneshotSerial::setup(const char* driver, const int address, c
   //bool oneshot=true;
 
   #if defined(ARDUINO_ARCH_ESP8266)
-  _pmsSerial=new SoftwareSerial(PMS_PIN_RX, PMS_PIN_TX, false, 128);
+  _pmsSerial=new SoftwareSerial();
+  _pmsSerial->begin(9600,SWSERIAL_8N1, SDS_PIN_RX, SDS_PIN_TX, false, 128,11);
   #else
   _pmsSerial=new SoftwareSerial(PMS_PIN_RX, PMS_PIN_TX);
+  _pmsSerial->begin(9600);
   //_pmsSerial= &Serial1;
   #endif
 
-  _pmsSerial->begin(9600);
   _pms = new Pmsx003();
 
   IF_SDSDEBUG(SDDBGSERIAL.println(F("#try to build PMS")));
@@ -5979,12 +5981,12 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   
     // number of particles with diameter 0.3 to 0.5 um in 0.1 L of air.
     if (lenvalues >= 5) {
-      values[4] = round(val.NumPM0 *1000.);
+      values[4] = round(val.NumPM0 *100000.);
     }
 
     // number of particles with diameter 0.5 to 1.0  um in 0.1 L of air.
     if (lenvalues >= 6) {
-      values[5] = round((val.NumPM1-val.NumPM0)*1000.) ;
+      values[5] = round((val.NumPM1-val.NumPM0)*10000.) ;
     }
   
     // number of particles with diameter 1.0 to 2.5 um in 0.1 L of air.
@@ -5994,12 +5996,12 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   
     // number of particles with diameter 2.5 to 5.0 (4.0) um in 0.1 L of air.
     if (lenvalues >= 8) {
-      values[7] = round((val.NumPM4-val.NumPM2)*1000.) ;
+      values[7] = round((val.NumPM4-val.NumPM2)*10000.) ;
     }
   
     // number of particles with diameter 5.0 to 10 um in 0.1 L of air.
     if (lenvalues >= 9) {
-      values[8] = round((val.NumPM10-val.NumPM4)*1000.) ;
+      values[8] = round((val.NumPM10-val.NumPM4)*10000.) ;
     }
 
     /*
