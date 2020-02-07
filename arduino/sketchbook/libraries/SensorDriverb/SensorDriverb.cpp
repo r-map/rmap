@@ -5981,12 +5981,12 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   
     // number of particles with diameter 0.3 to 0.5 um in 0.1 L of air.
     if (lenvalues >= 5) {
-      values[4] = round(val.NumPM0 *100000.);
+      values[4] = round(val.NumPM0 *10.);
     }
 
     // number of particles with diameter 0.5 to 1.0  um in 0.1 L of air.
     if (lenvalues >= 6) {
-      values[5] = round((val.NumPM1-val.NumPM0)*10000.) ;
+      values[5] = round((val.NumPM1-val.NumPM0)*100.) ;
     }
   
     // number of particles with diameter 1.0 to 2.5 um in 0.1 L of air.
@@ -6001,7 +6001,7 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
   
     // number of particles with diameter 5.0 to 10 um in 0.1 L of air.
     if (lenvalues >= 9) {
-      values[8] = round((val.NumPM10-val.NumPM4)*10000.) ;
+      values[8] = round((val.NumPM10-val.NumPM4)*100000.) ;
     }
 
     /*

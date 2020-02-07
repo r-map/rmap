@@ -1,3 +1,4 @@
+
 /*
 Copyright (C) 2019  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
@@ -31,7 +32,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2019-11-03T00:00"
+#define SOFTWARE_VERSION "2020-02-07T00:00"
 #define FIRMWARE_TYPE ARDUINO_BOARD
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -628,13 +629,12 @@ void firmware_upgrade() {
 
 String readconfig_rmap() {
 
-  LOGN(F("mounted file system" CR));
   if (SPIFFS.exists("/rmap.json")) {
     //file exists, reading and loading
-    LOGN(F("reading config file" CR));
+    LOGN(F("reading rmap config file" CR));
     File configFile = SPIFFS.open("/rmap.json", "r");
     if (configFile) {
-      LOGN(F("opened config file" CR));
+      LOGN(F("opened rmap config file" CR));
 
       //size_t size = configFile.size();
       // Allocate a buffer to store contents of the file.
@@ -656,16 +656,16 @@ String readconfig_rmap() {
 void writeconfig_rmap(String payload) {;
 
   //save the custom parameters to FS
-  LOGN(F("saving config" CR));
+  LOGN(F("saving rmap config" CR));
   
   File configFile = SPIFFS.open("/rmap.json", "w");
   if (!configFile) {
-    LOGN(F("failed to open config file for writing" CR));
+    LOGE(F("failed to open rmap config file for writing" CR));
   }
 
   configFile.print(payload);
   configFile.close();
-  LOGN(F("saved config parameter" CR));
+  LOGN(F("saved rmap config parameter" CR));
   //end save
 }
 
@@ -756,7 +756,6 @@ int  rmap_config(String payload){
 
 void readconfig() {
 
-  LOGN(F("mounted file system" CR));
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
@@ -794,13 +793,13 @@ void readconfig() {
 	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
 	  
         } else {
-          LOGN(F("failed to load json config" CR));
+          LOGE(F("failed to load json config" CR));
         }
       } else {
-	LOGN(F("erro reading config file" CR));	
+	LOGE(F("erro reading config file" CR));	
       }
     } else {
-      LOGN(F("config file do not exist" CR));
+      LOGW(F("config file do not exist" CR));
     }
   //end read
 }
@@ -824,7 +823,7 @@ void writeconfig() {;
   
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile) {
-    LOGN(F("failed to open config file for writing" CR));
+    LOGE(F("failed to open config file for writing" CR));
   }
 
   //json.printTo(Serial);
@@ -935,7 +934,7 @@ void repeats() {
       if (sd[i]->prepare(waittime) == SD_SUCCESS){
 	maxwaittime=_max(maxwaittime,waittime);
       }else{
-	LOGN(F("%s: prepare failed !" CR),sensors[i].driver);
+	LOGE(F("%s: prepare failed !" CR),sensors[i].driver);
       }
     }
   }
@@ -1153,12 +1152,13 @@ void setup() {
   //read configuration from FS json
   LOGN(F("mounting FS..." CR));
   if (SPIFFS.begin()) {
+    LOGN(F("mounted file system" CR));
     readconfig();
   } else {
-    LOGN(F("failed to mount FS" CR));
-    LOGN(F("Reformat SPIFFS" CR));
+    LOGE(F("failed to mount FS" CR));
+    LOGW(F("Reformat SPIFFS" CR));
     SPIFFS.format();
-    LOGN(F("Reset wifi configuration" CR));
+    LOGW(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
 
     if (oledpresent) {
@@ -1233,7 +1233,7 @@ void setup() {
   //and goes into a blocking loop awaiting configuration
   //wifiManager.setDebugOutput(false);
   if (!wifiManager.autoConnect(WIFI_SSED,WIFI_PASSWORD)) {
-    LOGN(F("failed to connect and hit timeout" CR));
+    LOGE(F("failed to connect and hit timeout" CR));
     if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
@@ -1284,13 +1284,12 @@ void setup() {
   String remote_config= rmap_get_remote_config();
 
   if ( remote_config == String() ) {
-    LOGN(F("remote configuration failed" CR));
+    LOGE(F("remote configuration failed" CR));
     analogWrite(LED_PIN,50);
     delay(5000);
     digitalWrite(LED_PIN,HIGH);    
     remote_config=readconfig_rmap();
   }else{
-    LOGN(F("write configuration" CR));
     writeconfig_rmap(remote_config);
   }
 
