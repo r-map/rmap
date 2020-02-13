@@ -105,8 +105,7 @@ class amqpConsumer(object):
 
         credentials=pika.PlainCredentials(user, password)
         return pika.SelectConnection(pika.ConnectionParameters(host=host,credentials=credentials),
-                                     self.on_connection_open,
-                                     stop_ioloop_on_close=False)
+                                     self.on_connection_open
 
 
     def on_connection_open(self, unused_connection):
@@ -221,7 +220,7 @@ class amqpConsumer(object):
         logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._channel.basic_qos(prefetch_count=3)
-        self._consumer_tag = self._channel.basic_consume(self.on_message,queue)
+        self._consumer_tag = self._channel.basic_consume(on_message_callback=self.on_message,queue=queue)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer

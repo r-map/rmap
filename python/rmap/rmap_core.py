@@ -1250,9 +1250,9 @@ def receivegeoimagefromamqp(user="your user",password="your password",host="rmap
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
-    channel.basic_consume(callback,
+    channel.basic_consume(on_message_callback=callback,
                           queue=queue,
-                          no_ack=False)
+                          auto_ack=False)
 
     channel.start_consuming()
 
@@ -1325,9 +1325,9 @@ def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc"
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
-    channel.basic_consume(callback,
+    channel.basic_consume(on_message_callback=callback,
                           queue=queue,
-                          no_ack=False)
+                          auto_ack=False)
 
     channel.start_consuming()
 

@@ -114,14 +114,14 @@ def callback(ch, method, properties, body):
 def main(self):
 
     connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials,heartbeat_interval=0))
+        host=host,credentials=credentials,heartbeat=0))
     channel = connection.channel()
     #channel.queue_declare(queue=queue)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
-    channel.basic_consume(callback,
+    channel.basic_consume(on_message_callback=callback,
                           queue=queue,
                           no_ack=False)
 
@@ -141,7 +141,7 @@ if __name__ == '__main__':
         credentials=pika.PlainCredentials(user, password)
 
         sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=host,credentials=credentials,heartbeat_interval=0))
+            host=host,credentials=credentials,heartbeat=0))
         sendchannel = sendconnection.channel()
         
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())

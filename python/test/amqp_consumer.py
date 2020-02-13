@@ -26,7 +26,7 @@ def callback(ch, method, properties, body):
     out_file.close()
     sys.exit(0)
 
-channel.basic_consume(callback,
+channel.basic_consume(on_message_callback=callback,
                       queue=queue,
                       no_ack=True)
 

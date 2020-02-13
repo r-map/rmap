@@ -77,7 +77,7 @@ def main(self):
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
 
-    channel.basic_consume(callback,
+    channel.basic_consume(on_message_callback=callback,
                           queue=queue,
                           no_ack=False)
 
