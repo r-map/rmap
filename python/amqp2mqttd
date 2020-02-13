@@ -31,7 +31,7 @@ import time
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-queue="mqtt"
+myqueue="mqtt"
 
 
 amqp2mqttd = daemon.Daemon(
@@ -105,7 +105,7 @@ class amqpConsumer(object):
 
         credentials=pika.PlainCredentials(user, password)
         return pika.SelectConnection(pika.ConnectionParameters(host=host,credentials=credentials),
-                                     self.on_connection_open
+                                     self.on_connection_open)
 
 
     def on_connection_open(self, unused_connection):
@@ -144,7 +144,7 @@ class amqpConsumer(object):
         else:
             logger.warning('Connection closed, reopening in 5 seconds: (%s) %s',
                            reply_code, reply_text)
-            self._connection.add_timeout(5, self.reconnect)
+            self._connection.ioloop.call_later(5, self.reconnect)
 
     def reconnect(self):
         """Will be invoked by the IOLoop timer if the connection is
@@ -220,7 +220,7 @@ class amqpConsumer(object):
         logger.info('Issuing consumer related RPC commands')
         self.add_on_cancel_callback()
         self._channel.basic_qos(prefetch_count=3)
-        self._consumer_tag = self._channel.basic_consume(on_message_callback=self.on_message,queue=queue)
+        self._consumer_tag = self._channel.basic_consume(on_message_callback=self.on_message,queue=myqueue)
 
     def add_on_cancel_callback(self):
         """Add a callback that will be invoked if RabbitMQ cancels the consumer
@@ -330,7 +330,7 @@ class amqpConsumer(object):
 
         """
         self._connection = self.connect()
-        self._connection.add_timeout(3, self.mgrack)
+        self._connection.ioloop.call_later(3, self.mgrack)
         self._connection.ioloop.start()
 
 
@@ -356,7 +356,7 @@ class amqpConsumer(object):
             logger.info('NOT ACK %s' % response[1])
             self.not_acknowledge_message(response[1])
 
-        self._connection.add_timeout(3, self.mgrack)
+        self._connection.ioloop.call_later(3, self.mgrack)
 
     def stop(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer

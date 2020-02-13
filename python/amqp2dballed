@@ -213,7 +213,7 @@ class amqpConsumer(object):
         else:
             logging.warning('Connection closed, reopening in 5 seconds: (%s) %s',
                            reply_code, reply_text)
-            self._connection.add_timeout(5, self.reconnect)
+            self._connection.ioloop.call_later(5, self.reconnect)
 
     def reconnect(self):
         """Will be invoked by the IOLoop timer if the connection is
@@ -402,7 +402,7 @@ class amqpConsumer(object):
 
         """
         self._connection = self.connect()
-        self._connection.add_timeout(3, self.mgrack)
+        self._connection.ioloop.call_later(3, self.mgrack)
         self._connection.ioloop.start()
 
 
@@ -426,7 +426,7 @@ class amqpConsumer(object):
                 logging.info('NOT ACK %s' % response[1])
                 self.not_acknowledge_message(response[1])
 
-        self._connection.add_timeout(3, self.mgrack)
+        self._connection.ioloop.call_later(3, self.mgrack)
 
     def stop(self):
         """Cleanly shutdown the connection to RabbitMQ by stopping the consumer
