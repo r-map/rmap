@@ -142,7 +142,7 @@ def main(self):
 
     channel.basic_consume(on_message_callback=callback,
                           queue=queue,
-                          no_ack=False)
+                          auto_ack=False)
 
     channel.start_consuming()
 
