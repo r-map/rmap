@@ -1,5 +1,6 @@
 # Django settings for rmap project.
 
+import numpy                    # https://github.com/r-map/rmap/issues/308
 import os
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
