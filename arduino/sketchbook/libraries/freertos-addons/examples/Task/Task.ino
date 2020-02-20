@@ -1,17 +1,6 @@
 /****************************************************************************
  *
- *  Copyright (c) 2017, Michael Becker (michael.f.becker@gmail.com)
- *
- *  This file is part of the FreeRTOS Add-ons project.
- *
- *  Source Code:
- *  https://github.com/michaelbecker/freertos-addons
- *
- *  Project Page:
- *  http://michaelbecker.github.io/freertos-addons/
- *
- *  On-line Documentation:
- *  http://michaelbecker.github.io/freertos-addons/docs/html/index.html
+ *  Copyright (c) 2020, Paolo Patruno (p.patruno@iperbole.bologna.it)
  *
  *  Permission is hereby granted, free of charge, to any person obtaining a
  *  copy of this software and associated documentation files
@@ -57,22 +46,15 @@ public:
 protected:
 
   virtual void Run() {
-    
-    Serial.print("Starting Thread ");
-    Serial.println(Id);
-    
     while (true) {
-      
-      Serial.print("[P ");
-      Serial.print(Id);
-      Serial.print("] DelayInSeconds: ");
-      Serial.println(DelayInSeconds);
-      Delay(Ticks::SecondsToTicks(DelayInSeconds));
+      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+      Delay(Ticks::SecondsToTicks(1));
+      digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+      Delay(Ticks::SecondsToTicks(DelayInSeconds));      
     }
   };
 
-  //private:
-public:
+private:
   int Id;
   int DelayInSeconds;
 };
@@ -83,27 +65,21 @@ void setup (void)
   
   // start up the serial interface
   Serial.begin(115200);
-  Serial.println("started");
-
   Serial.println("Testing FreeRTOS C++ wrappers");
   Serial.println("Simple Tasks");
 
-  delay(1000);
+  // initialize digital pin LED_BUILTIN as an output.
+  pinMode(LED_BUILTIN, OUTPUT);
   
-  static MyThread p1(10, 1);
-  static MyThread p2(20, 3);
-
-  Serial.println("starting val:");
-  Serial.println(p1.Id );
-  Serial.println(p1.DelayInSeconds);
+  static MyThread p1(1, 3);
+  static MyThread p2(2, 5);
 
   Thread::StartScheduler();
   
   //
   //  We shouldn't ever get here unless someone calls 
   //  Thread::EndScheduler()
-  //
-  
+  //  
   Serial.println("Scheduler ended!");
 
 }
