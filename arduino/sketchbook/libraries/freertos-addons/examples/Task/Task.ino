@@ -71,13 +71,11 @@ protected:
     }
   };
 
-private:
+  //private:
+public:
   int Id;
   int DelayInSeconds;
 };
-
-MyThread p1(10, 1);
-MyThread p2(20, 3);
 
 
 void setup (void)
@@ -89,7 +87,15 @@ void setup (void)
 
   Serial.println("Testing FreeRTOS C++ wrappers");
   Serial.println("Simple Tasks");
+
+  delay(1000);
   
+  static MyThread p1(10, 1);
+  static MyThread p2(20, 3);
+
+  Serial.println("starting val:");
+  Serial.println(p1.Id );
+  Serial.println(p1.DelayInSeconds);
 
   Thread::StartScheduler();
   

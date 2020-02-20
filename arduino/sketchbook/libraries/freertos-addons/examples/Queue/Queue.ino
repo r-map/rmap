@@ -71,15 +71,18 @@ protected:
     
     while (true) {
       
-      Serial.print("DelayInSeconds: ");
+      Serial.print("producer DelayInSeconds: ");
       Serial.println(DelayInSeconds);
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
       for (int i = 0; i < BurstAmount; i++) {
-	LockGuard guard(Lock);
+
+	Lock.Lock();
 	Serial.print("[P ");
 	Serial.print(Id);
-	Serial.print("] Sending Message: ");
+	Serial.print("] Sending  Message: ");
 	Serial.println(Message);
+	Lock.Unlock();
+
 	MessageQueue.Enqueue(&Message);
 	Message++;
       }
@@ -119,13 +122,17 @@ protected:
     
     while (true) {
       
+      Serial.print("consumer DelayInSeconds: ");
+      Serial.println(DelayInSeconds);
+      Delay(Ticks::SecondsToTicks(DelayInSeconds));
+
       MessageQueue.Dequeue(&Message);
       LockGuard guard(Lock);
-      Serial.print("[C");
+      Serial.print("[C ");
       Serial.print(Id);
       Serial.print("] Received Message: ");
       Serial.println( Message);
-      Delay(Ticks::SecondsToTicks(DelayInSeconds));
+      //guard.~LockGuard();   // automatic unlock, not needed
     }
   };
   
@@ -154,13 +161,17 @@ void setup (void)
   //  These parameters may be adjusted to explore queue 
   //  behaviors.
   //
-  MessageQueue = new Queue(1, sizeof(int));
+  MessageQueue = new Queue(5, sizeof(int));
 
   MutexStandard *SharedLock;
   SharedLock = new MutexStandard();
    
-  ProducerThread p1(10, 1, 10, *MessageQueue,*SharedLock);
-  ConsumerThread c1(20, 1, *MessageQueue,*SharedLock);
+  ProducerThread *p1;
+  ConsumerThread *p2;
+  p1 = new ProducerThread(1, 10, 10, *MessageQueue,*SharedLock);
+  p2 = new ConsumerThread(2, 1, *MessageQueue,*SharedLock);
+  //  static ProducerThread p1(10, 1, 10, *MessageQueue,*SharedLock);
+  //  static ConsumerThread c1(20, 1, *MessageQueue,*SharedLock);
   
   Thread::StartScheduler();
   
