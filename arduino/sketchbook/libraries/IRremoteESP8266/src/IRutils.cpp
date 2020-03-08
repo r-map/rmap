@@ -91,7 +91,7 @@ void serialPrintUint64(uint64_t input, uint8_t base) {
 // Returns:
 //  A decode_type_t enum.
 decode_type_t strToDecodeType(const char * const str) {
-  if (!strcasecmp(str, kUnknownStr.c_str()))
+  if (!strcasecmp(str, kUnknownStr))
     return decode_type_t::UNKNOWN;
   else if (!strcasecmp(str, "UNUSED"))
     return decode_type_t::UNUSED;
@@ -125,6 +125,8 @@ decode_type_t strToDecodeType(const char * const str) {
     return decode_type_t::DISH;
   else if (!strcasecmp(str, "ELECTRA_AC"))
     return decode_type_t::ELECTRA_AC;
+  else if (!strcasecmp(str, "EPSON"))
+    return decode_type_t::EPSON;
   else if (!strcasecmp(str, "FUJITSU_AC"))
     return decode_type_t::FUJITSU_AC;
   else if (!strcasecmp(str, "GICABLE"))
@@ -228,6 +230,8 @@ decode_type_t strToDecodeType(const char * const str) {
     return decode_type_t::SHERWOOD;
   else if (!strcasecmp(str, "SONY"))
     return decode_type_t::SONY;
+  else if (!strcasecmp(str, "SONY_38K"))
+    return decode_type_t::SONY_38K;
   else if (!strcasecmp(str, "TCL112AC"))
     return decode_type_t::TCL112AC;
   else if (!strcasecmp(str, "TECO"))
@@ -307,6 +311,9 @@ String typeToString(const decode_type_t protocol, const bool isRepeat) {
       break;
     case ELECTRA_AC:
       result = F("ELECTRA_AC");
+      break;
+    case EPSON:
+      result = F("EPSON");
       break;
     case FUJITSU_AC:
       result = F("FUJITSU_AC");
@@ -461,6 +468,9 @@ String typeToString(const decode_type_t protocol, const bool isRepeat) {
     case SONY:
       result = F("SONY");
       break;
+    case SONY_38K:
+      result = F("SONY_38K");
+      break;
     case TCL112AC:
       result = F("TCL112AC");
       break;
@@ -487,7 +497,11 @@ String typeToString(const decode_type_t protocol, const bool isRepeat) {
       result = kUnknownStr;
       break;
   }
-  if (isRepeat) result += kSpaceLBraceStr + kRepeatStr + ')';
+  if (isRepeat) {
+    result += kSpaceLBraceStr;
+    result += kRepeatStr;
+    result += ')';
+  }
   return result;
 }
 
@@ -683,16 +697,20 @@ String resultToHumanReadableBasic(const decode_results * const results) {
   // Reserve some space for the string to reduce heap fragmentation.
   output.reserve(2 * kStateSizeMax + 50);  // Should cover most cases.
   // Show Encoding standard
-  output += kProtocolStr + F("  : ");
+  output += kProtocolStr;
+  output += F("  : ");
   output += typeToString(results->decode_type, results->repeat);
   output += '\n';
 
   // Show Code & length
-  output += kCodeStr + F("      : ");
+  output += kCodeStr;
+  output += F("      : ");
   output += resultToHexidecimal(results);
   output += kSpaceLBraceStr;
   output += uint64ToString(results->bits);
-  output += ' ' + kBitsStr + F(")\n");
+  output += ' ';
+  output += kBitsStr;
+  output +=  F(")\n");
   return output;
 }
 
@@ -816,13 +834,6 @@ namespace irutils {
 
   String modelToStr(const decode_type_t protocol, const int16_t model) {
     switch (protocol) {
-      case decode_type_t::GREE:
-        switch (model) {
-          case gree_ac_remote_model_t::YAW1F: return F("YAW1F");
-          case gree_ac_remote_model_t::YBOFB: return F("YBOFB");
-          default: return kUnknownStr;
-        }
-        break;
       case decode_type_t::FUJITSU_AC:
         switch (model) {
           case fujitsu_ac_remote_model_t::ARRAH2E: return F("ARRAH2E");
@@ -830,6 +841,21 @@ namespace irutils {
           case fujitsu_ac_remote_model_t::ARREB1E: return F("ARREB1E");
           case fujitsu_ac_remote_model_t::ARJW2: return F("ARJW2");
           case fujitsu_ac_remote_model_t::ARRY4: return F("ARRY4");
+          default: return kUnknownStr;
+        }
+        break;
+      case decode_type_t::GREE:
+        switch (model) {
+          case gree_ac_remote_model_t::YAW1F: return F("YAW1F");
+          case gree_ac_remote_model_t::YBOFB: return F("YBOFB");
+          default: return kUnknownStr;
+        }
+        break;
+      case decode_type_t::LG:
+      case decode_type_t::LG2:
+        switch (model) {
+          case lg_ac_remote_model_t::GE6711AR2853M: return F("GE6711AR2853M");
+          case lg_ac_remote_model_t::AKB75215403: return F("AKB75215403");
           default: return kUnknownStr;
         }
         break;
@@ -891,10 +917,10 @@ namespace irutils {
     result += kSpaceLBraceStr;
     if ((uint8_t)(day_of_week + offset) < 7)
 #if UNIT_TEST
-      result += kThreeLetterDayOfWeekStr.substr(
+      result += String(kThreeLetterDayOfWeekStr).substr(
           (day_of_week + offset) * 3, 3);
 #else  // UNIT_TEST
-      result += kThreeLetterDayOfWeekStr.substring(
+      result += String(kThreeLetterDayOfWeekStr).substring(
           (day_of_week + offset) * 3, (day_of_week + offset) * 3 + 3);
 #endif  // UNIT_TEST
     else
@@ -991,21 +1017,22 @@ namespace irutils {
 
     String result = "";
     if (days)
-      result += uint64ToString(days) + ' ' + ((days > 1) ? kDaysStr : kDayStr);
+      result += uint64ToString(days) + ' ' + String((days > 1) ? kDaysStr
+                                                               : kDayStr);
     if (hours) {
       if (result.length()) result += ' ';
-      result += uint64ToString(hours) + ' ' + ((hours > 1) ? kHoursStr
-                                                           : kHourStr);
+      result += uint64ToString(hours) + ' ' + String((hours > 1) ? kHoursStr
+                                                                 : kHourStr);
     }
     if (minutes) {
       if (result.length()) result += ' ';
-      result += uint64ToString(minutes) + ' ' + ((minutes > 1) ? kMinutesStr
-                                                               : kMinuteStr);
+      result += uint64ToString(minutes) + ' ' + String(
+          (minutes > 1) ? kMinutesStr : kMinuteStr);
     }
     if (seconds) {
       if (result.length()) result += ' ';
-      result += uint64ToString(seconds) + ' ' + ((seconds > 1) ? kSecondsStr
-                                                               : kSecondStr);
+      result += uint64ToString(seconds) + ' ' + String(
+          (seconds > 1) ? kSecondsStr : kSecondStr);
     }
     return result;
   }

@@ -359,13 +359,15 @@ String IRHitachiAc::toString(void) {
 //
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   The number of data bits to expect.
 //            Typically kHitachiAcBits, kHitachiAc1Bits, kHitachiAc2Bits
 //   strict:  Flag indicating if we should perform strict matching.
 // Returns:
 //   boolean: True if it can decode it, false if it can't.
 //
-// Status: ALPHA / Untested.
+// Status: BETA / Probably works.
 //
 // Supported devices:
 //  Hitachi A/C Series VI (Circa 2007) / Remote: LT0541-HTA
@@ -373,11 +375,10 @@ String IRHitachiAc::toString(void) {
 // Ref:
 //   https://github.com/crankyoldgit/IRremoteESP8266/issues/417
 //   https://github.com/crankyoldgit/IRremoteESP8266/issues/453
-bool IRrecv::decodeHitachiAC(decode_results *results, const uint16_t nbits,
-                             const bool strict) {
+bool IRrecv::decodeHitachiAC(decode_results *results, uint16_t offset,
+                             const uint16_t nbits, const bool strict) {
   const uint8_t k_tolerance = _tolerance + 5;
-  if (results->rawlen < 2 * nbits + kHeader + kFooter - 1)
-    return false;  // Can't possibly be a valid HitachiAC message.
+
   if (strict) {
     switch (nbits) {
       case kHitachiAcBits:
@@ -388,7 +389,6 @@ bool IRrecv::decodeHitachiAC(decode_results *results, const uint16_t nbits,
         return false;  // Not strictly a Hitachi message.
     }
   }
-  uint16_t offset = kStartOffset;
   uint16_t hmark;
   uint32_t hspace;
   if (nbits == kHitachiAc1Bits) {
@@ -475,6 +475,8 @@ void IRsend::sendHitachiAc424(const uint8_t data[], const uint16_t nbytes,
 //
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   The number of data bits to expect. Typically kHitachiAc424Bits.
 //   strict:  Flag indicating if we should perform strict matching.
 // Returns:
@@ -489,14 +491,14 @@ void IRsend::sendHitachiAc424(const uint8_t data[], const uint16_t nbytes,
 //
 // Ref:
 //   https://github.com/crankyoldgit/IRremoteESP8266/issues/973
-bool IRrecv::decodeHitachiAc424(decode_results *results, const uint16_t nbits,
+bool IRrecv::decodeHitachiAc424(decode_results *results, uint16_t offset,
+                                const uint16_t nbits,
                                 const bool strict) {
-  if (results->rawlen < 2 * nbits + kHeader + kHeader + kFooter - 1)
+  if (results->rawlen < 2 * nbits + kHeader + kHeader + kFooter - 1 + offset)
     return false;  // Too short a message to match.
   if (strict && nbits != kHitachiAc424Bits)
     return false;
 
-  uint16_t offset = kStartOffset;
   uint16_t used;
 
   // Leader
@@ -537,7 +539,6 @@ void IRHitachiAc424::stateReset(void) {
   remote_state[3]  = 0x40;
   remote_state[5]  = 0xFF;
   remote_state[7]  = 0xCC;
-  remote_state[11] = 0x13;  // Button Action
   remote_state[33] = 0x80;
   remote_state[35] = 0x03;
   remote_state[37] = 0x01;
@@ -576,12 +577,13 @@ void IRHitachiAc424::send(const uint16_t repeat) {
 #endif  // SEND_HITACHI_AC424
 
 bool IRHitachiAc424::getPower(void) {
-  return GETBIT8(remote_state[kHitachiAc424PowerByte],
-                 kHitachiAc424PowerOffset);
+  return remote_state[kHitachiAc424PowerByte] == kHitachiAc424PowerOn;
 }
 
 void IRHitachiAc424::setPower(const bool on) {
-  setBit(&remote_state[kHitachiAc424PowerByte], kHitachiAc424PowerOffset, on);
+  setButton(kHitachiAc424ButtonPowerMode);
+  remote_state[kHitachiAc424PowerByte] = on ? kHitachiAc424PowerOn
+    : kHitachiAc424PowerOff;
 }
 
 void IRHitachiAc424::on(void) { setPower(true); }
@@ -606,6 +608,7 @@ void IRHitachiAc424::setMode(const uint8_t mode) {
           newMode);
   if (newMode != kHitachiAc424Fan) setTemp(_previoustemp);
   setFan(getFan());  // Reset the fan speed after the mode change.
+  setButton(kHitachiAc424ButtonPowerMode);
 }
 
 uint8_t IRHitachiAc424::getTemp(void) {
@@ -615,11 +618,15 @@ uint8_t IRHitachiAc424::getTemp(void) {
 
 void IRHitachiAc424::setTemp(const uint8_t celsius, bool setPrevious) {
   uint8_t temp;
-  if (setPrevious) _previoustemp = celsius;
   temp = std::min(celsius, kHitachiAc424MaxTemp);
   temp = std::max(temp, kHitachiAc424MinTemp);
   setBits(&remote_state[kHitachiAc424TempByte], kHitachiAc424TempOffset,
           kHitachiAc424TempSize, temp);
+  if (_previoustemp > temp)
+    setButton(kHitachiAc424ButtonTempDown);
+  else if (_previoustemp < temp)
+    setButton(kHitachiAc424ButtonTempUp);
+  if (setPrevious) _previoustemp = temp;
 }
 
 uint8_t IRHitachiAc424::getFan(void) {
@@ -641,6 +648,9 @@ void IRHitachiAc424::setFan(const uint8_t speed) {
   }
 
   newSpeed = std::min(newSpeed, fanMax);
+  // Handle the setting the button value if we are going to change the value.
+  if (newSpeed != getFan()) setButton(kHitachiAc424ButtonFan);
+  // Set the values
   setBits(&remote_state[kHitachiAc424FanByte], kHighNibble, kNibbleSize,
           newSpeed);
   remote_state[9] = 0x92;
@@ -652,6 +662,31 @@ void IRHitachiAc424::setFan(const uint8_t speed) {
     remote_state[9] = 0xA9;
     remote_state[29] = 0x30;
   }
+}
+
+uint8_t IRHitachiAc424::getButton(void) {
+  return remote_state[kHitachiAc424ButtonByte];
+}
+
+// The remote sends the type of button pressed on send
+void IRHitachiAc424::setButton(const uint8_t button) {
+  remote_state[kHitachiAc424ButtonByte] = button;
+}
+
+// The remote does not keep state of the vertical swing.
+// A byte is sent indicating the swing button is pressed on the remote
+void IRHitachiAc424::setSwingVToggle(const bool on) {
+  uint8_t button = getButton();  // Get the current button value.
+  if (on)
+    button = kHitachiAc424ButtonSwingV;  // Set the button to SwingV.
+  else if (button == kHitachiAc424ButtonSwingV)  // Asked to unset it
+    // It was set previous, so use Power as a default
+    button = kHitachiAc424ButtonPowerMode;
+  setButton(button);
+}
+
+bool IRHitachiAc424::getSwingVToggle(void) {
+  return getButton() == kHitachiAc424ButtonSwingV;
 }
 
 // Convert a standard A/C mode into its native mode.
@@ -710,10 +745,8 @@ stdAc::state_t IRHitachiAc424::toCommon(void) {
   result.celsius = true;
   result.degrees = this->getTemp();
   result.fanspeed = this->toCommonFanSpeed(this->getFan());
-
-  // TODO(jamsinclair): Add support.
-  result.swingv = stdAc::swingv_t::kOff;
-
+  result.swingv = this->getSwingVToggle() ? stdAc::swingv_t::kAuto
+                                                 : stdAc::swingv_t::kOff;
   // Not supported.
   result.swingh = stdAc::swingh_t::kOff;
   result.quiet = false;
@@ -731,7 +764,7 @@ stdAc::state_t IRHitachiAc424::toCommon(void) {
 // Convert the internal state into a human readable string.
 String IRHitachiAc424::toString(void) {
   String result = "";
-  result.reserve(60);  // Reserve some heap for the string to reduce fragging.
+  result.reserve(100);  // Reserve some heap for the string to reduce fragging.
   result += addBoolToString(getPower(), kPowerStr, false);
   result += addModeToString(getMode(), 0, kHitachiAc424Cool,
                             kHitachiAc424Heat, kHitachiAc424Dry,
@@ -747,6 +780,22 @@ String IRHitachiAc424::toString(void) {
     case kHitachiAc424FanLow:    result += kLowStr; break;
     case kHitachiAc424FanMin:    result += kMinStr; break;
     default:                     result += kUnknownStr;
+  }
+  result += ')';
+  result += addBoolToString(getSwingVToggle(), kSwingVToggleStr);
+  result += addIntToString(getButton(), kButtonStr);
+  result += kSpaceLBraceStr;
+  switch (getButton()) {
+    case kHitachiAc424ButtonPowerMode:
+      result += kPowerStr;
+      result += '/';
+      result += kModeStr;
+      break;
+    case kHitachiAc424ButtonFan:      result += kFanStr; break;
+    case kHitachiAc424ButtonSwingV:   result += kSwingVStr; break;
+    case kHitachiAc424ButtonTempDown: result += kTempDownStr; break;
+    case kHitachiAc424ButtonTempUp:   result += kTempUpStr; break;
+    default: result += kUnknownStr;
   }
   result += ')';
   return result;

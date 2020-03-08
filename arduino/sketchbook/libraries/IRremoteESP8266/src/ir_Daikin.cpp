@@ -513,6 +513,8 @@ String IRDaikinESP::toString(void) {
 // Decode the supplied Daikin A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikinBits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -522,17 +524,17 @@ String IRDaikinESP::toString(void) {
 //
 // Ref:
 //   https://github.com/mharizanov/Daikin-AC-remote-control-over-the-Internet/tree/master/IRremote
-bool IRrecv::decodeDaikin(decode_results *results, const uint16_t nbits,
-                          const bool strict) {
+bool IRrecv::decodeDaikin(decode_results *results, uint16_t offset,
+                          const uint16_t nbits, const bool strict) {
   // Is there enough data to match successfully?
   if (results->rawlen < (2 * (nbits + kDaikinHeaderLength) +
-                         kDaikinSections * (kHeader + kFooter) + kFooter - 1))
+                         kDaikinSections * (kHeader + kFooter) + kFooter - 1) +
+                         offset)
     return false;
 
   // Compliance
   if (strict && nbits != kDaikinBits) return false;
 
-  uint16_t offset = kStartOffset;
   match_result_t data_result;
 
   // Header #1 - Doesn't count as data.
@@ -1102,10 +1104,19 @@ String IRDaikin2::toString(void) {
     case kDaikin2SwingVHigh:
       result += kHighestStr;
       break;
-    case 2: result += kHighStr; break;
-    case 3: result += kUpperStr + kMiddleStr; break;
-    case 4: result += kLowerStr + kMiddleStr; break;
-    case 5: result += kLowStr; break;
+    case 2:
+      result += kHighStr;
+      break;
+    case 3:
+      result += kUpperStr;
+      result += kMiddleStr;
+      break;
+    case 4:
+      result += kLowerStr;
+      result += kMiddleStr;
+      break;
+    case 5:
+      result += kLowStr;
       break;
     case kDaikin2SwingVLow:
       result += kLowestStr;
@@ -1146,7 +1157,7 @@ String IRDaikin2::toString(void) {
       kOffTimerStr);
   result += addLabeledString(
       getSleepTimerEnabled() ? minsToString(getSleepTime()) : kOffStr,
-      kSleepStr + ' ' + kTimerStr);
+      kSleepTimerStr);
   result += addIntToString(getBeep(), kBeepStr);
   result += kSpaceLBraceStr;
   switch (getBeep()) {
@@ -1185,7 +1196,7 @@ String IRDaikin2::toString(void) {
       getFreshAir() ? (getFreshAirHigh() ? kHighStr : kOnStr) : kOffStr,
       kFreshStr);
   result += addBoolToString(getEye(), kEyeStr);
-  result += addBoolToString(getEyeAuto(), kEyeStr + ' ' + kAutoStr);
+  result += addBoolToString(getEyeAuto(), kEyeAutoStr);
   result += addBoolToString(getQuiet(), kQuietStr);
   result += addBoolToString(getPowerful(), kPowerfulStr);
   result += addBoolToString(getPurify(), kPurifyStr);
@@ -1197,6 +1208,8 @@ String IRDaikin2::toString(void) {
 // Decode the supplied Daikin2 A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin2Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -1210,15 +1223,14 @@ String IRDaikin2::toString(void) {
 //
 // Ref:
 //   https://github.com/mharizanov/Daikin-AC-remote-control-over-the-Internet/tree/master/IRremote
-bool IRrecv::decodeDaikin2(decode_results *results, uint16_t nbits,
-                           bool strict) {
-  if (results->rawlen < 2 * (nbits + kHeader + kFooter) + kHeader - 1)
+bool IRrecv::decodeDaikin2(decode_results *results, uint16_t offset,
+                           const uint16_t nbits, const bool strict) {
+  if (results->rawlen < 2 * (nbits + kHeader + kFooter) + kHeader - 1 + offset)
     return false;
 
   // Compliance
   if (strict && nbits != kDaikin2Bits) return false;
 
-  uint16_t offset = kStartOffset;
   const uint8_t ksectionSize[kDaikin2Sections] = {kDaikin2Section1Length,
                                                   kDaikin2Section2Length};
 
@@ -1543,6 +1555,8 @@ String IRDaikin216::toString(void) {
 // Decode the supplied Daikin 216 bit A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin216Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -1556,15 +1570,14 @@ String IRDaikin216::toString(void) {
 // Ref:
 //   https://github.com/crankyoldgit/IRremoteESP8266/issues/689
 //   https://github.com/danny-source/Arduino_DY_IRDaikin
-bool IRrecv::decodeDaikin216(decode_results *results, const uint16_t nbits,
-                             const bool strict) {
-  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1)
+bool IRrecv::decodeDaikin216(decode_results *results, uint16_t offset,
+                             const uint16_t nbits, const bool strict) {
+  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1 + offset)
     return false;
 
   // Compliance
   if (strict && nbits != kDaikin216Bits) return false;
 
-  uint16_t offset = kStartOffset;
   const uint8_t ksectionSize[kDaikin216Sections] = {kDaikin216Section1Length,
                                                     kDaikin216Section2Length};
   // Sections
@@ -1896,6 +1909,8 @@ String IRDaikin160::toString(void) {
 // Decode the supplied Daikin 160 bit A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin160Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -1908,15 +1923,14 @@ String IRDaikin160::toString(void) {
 //
 // Ref:
 //   https://github.com/crankyoldgit/IRremoteESP8266/issues/731
-bool IRrecv::decodeDaikin160(decode_results *results, const uint16_t nbits,
-                             const bool strict) {
-  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1)
+bool IRrecv::decodeDaikin160(decode_results *results, uint16_t offset,
+                             const uint16_t nbits, const bool strict) {
+  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1 + offset)
     return false;
 
   // Compliance
   if (strict && nbits != kDaikin160Bits) return false;
 
-  uint16_t offset = kStartOffset;
   const uint8_t ksectionSize[kDaikin160Sections] = {kDaikin160Section1Length,
                                                     kDaikin160Section2Length};
 
@@ -2259,6 +2273,8 @@ String IRDaikin176::toString(void) {
 // Decode the supplied Daikin 176 bit A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin176Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -2270,15 +2286,15 @@ String IRDaikin176::toString(void) {
 // Status: BETA / Probably works.
 //
 
-bool IRrecv::decodeDaikin176(decode_results *results, const uint16_t nbits,
+bool IRrecv::decodeDaikin176(decode_results *results, uint16_t offset,
+                             const uint16_t nbits,
                              const bool strict) {
-  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1)
+  if (results->rawlen < 2 * (nbits + kHeader + kFooter) - 1 + offset)
     return false;
 
   // Compliance
   if (strict && nbits != kDaikin176Bits) return false;
 
-  uint16_t offset = kStartOffset;
   const uint8_t ksectionSize[kDaikin176Sections] = {kDaikin176Section1Length,
                                                     kDaikin176Section2Length};
 
@@ -2693,8 +2709,7 @@ uint8_t IRDaikin128::getLightToggle(void) {
 String IRDaikin128::toString(void) {
   String result = "";
   result.reserve(240);  // Reserve some heap for the string to reduce fragging.
-  result += addBoolToString(getPowerToggle(), kPowerStr + ' ' + kToggleStr,
-                            false);
+  result += addBoolToString(getPowerToggle(), kPowerToggleStr, false);
   result += addModeToString(getMode(), kDaikin128Auto, kDaikin128Cool,
                             kDaikin128Heat, kDaikin128Dry, kDaikin128Fan);
   result += addTempToString(getTemp());
@@ -2711,7 +2726,7 @@ String IRDaikin128::toString(void) {
   result += addLabeledString(minsToString(getOnTimer()), kOnTimerStr);
   result += addBoolToString(getOffTimerEnabled(), kOffTimerStr);
   result += addLabeledString(minsToString(getOffTimer()), kOffTimerStr);
-  result += addIntToString(getLightToggle(), kLightStr + ' ' + kToggleStr);
+  result += addIntToString(getLightToggle(), kLightToggleStr);
   result += kSpaceLBraceStr;
   switch (getLightToggle()) {
     case kDaikin128BitCeiling: result += kCeilingStr; break;
@@ -2754,6 +2769,8 @@ stdAc::state_t IRDaikin128::toCommon(const stdAc::state_t *prev) {
 // Decode the supplied Daikin 128 bit A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin128Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -2765,16 +2782,14 @@ stdAc::state_t IRDaikin128::toCommon(const stdAc::state_t *prev) {
 // Status: STABLE / Known Working.
 //
 // Ref: https://github.com/crankyoldgit/IRremoteESP8266/issues/827
-bool IRrecv::decodeDaikin128(decode_results *results, const uint16_t nbits,
-                             const bool strict) {
-  if (results->rawlen < 2 * (nbits + kHeader) + kFooter - 1)
+bool IRrecv::decodeDaikin128(decode_results *results, uint16_t offset,
+                             const uint16_t nbits, const bool strict) {
+  if (results->rawlen < 2 * (nbits + kHeader) + kFooter - 1 + offset)
     return false;
   if (nbits / 8 <= kDaikin128SectionLength) return false;
 
   // Compliance
   if (strict && nbits != kDaikin128Bits) return false;
-
-  uint16_t offset = kStartOffset;
 
   // Leader
   for (uint8_t i = 0; i < 2; i++) {
@@ -2854,6 +2869,8 @@ void IRsend::sendDaikin152(const unsigned char data[], const uint16_t nbytes,
 // Decode the supplied Daikin 152 bit A/C message.
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   Nr. of bits to expect in the data portion. (kDaikin152Bits)
 //   strict:  Flag to indicate if we strictly adhere to the specification.
 // Returns:
@@ -2865,16 +2882,15 @@ void IRsend::sendDaikin152(const unsigned char data[], const uint16_t nbytes,
 // Status: STABLE / Known working.
 //
 // Ref: https://github.com/crankyoldgit/IRremoteESP8266/issues/873
-bool IRrecv::decodeDaikin152(decode_results *results, const uint16_t nbits,
-                             const bool strict) {
-  if (results->rawlen < 2 * (5 + nbits + kFooter) + kHeader - 1)
+bool IRrecv::decodeDaikin152(decode_results *results, uint16_t offset,
+                             const uint16_t nbits, const bool strict) {
+  if (results->rawlen < 2 * (5 + nbits + kFooter) + kHeader - 1 + offset)
     return false;
   if (nbits / 8 < kDaikin152StateLength) return false;
 
   // Compliance
   if (strict && nbits != kDaikin152Bits) return false;
 
-  uint16_t offset = kStartOffset;
   uint16_t used;
 
   // Leader

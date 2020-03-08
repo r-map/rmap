@@ -332,7 +332,9 @@ String IRArgoAC::toString(void) {
       result += kDryStr;
       break;
     case kArgoHeatAuto:
-      result += kHeatStr + ' ' + kAutoStr;
+      result += kHeatStr;
+      result += ' ';
+      result += kAutoStr;
       break;
     case kArgoOff:
       result += kOffStr;
@@ -361,7 +363,9 @@ String IRArgoAC::toString(void) {
   }
   result += ')';
   result += addTempToString(getTemp());
-  result += kCommaSpaceStr + kRoomStr + ' ';
+  result += kCommaSpaceStr;
+  result += kRoomStr;
+  result += ' ';
   result += addTempToString(getRoomTemp(), true, false);
   result += addBoolToString(getMax(), kMaxStr);
   result += addBoolToString(getiFeel(), kIFeelStr);
@@ -374,6 +378,8 @@ String IRArgoAC::toString(void) {
 //
 // Args:
 //   results: Ptr to the data to decode and where to store the decode result.
+//   offset:  The starting index to use when attempting to decode the raw data.
+//            Typically/Defaults to kStartOffset.
 //   nbits:   The number of data bits to expect. Typically kArgoBits.
 //   strict:  Flag indicating if we should perform strict matching.
 // Returns:
@@ -384,11 +390,10 @@ String IRArgoAC::toString(void) {
 // Note:
 //   This decoder is based soley off sendArgo(). We have no actual captures
 //   to test this against. If you have one of these units, please let us know.
-bool IRrecv::decodeArgo(decode_results *results, const uint16_t nbits,
+bool IRrecv::decodeArgo(decode_results *results, uint16_t offset,
+                        const uint16_t nbits,
                         const bool strict) {
   if (strict && nbits != kArgoBits) return false;
-
-  uint16_t offset = kStartOffset;
 
   // Match Header + Data
   if (!matchGeneric(results->rawbuf + offset, results->state,
