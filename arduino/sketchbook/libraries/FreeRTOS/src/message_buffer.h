@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.2.0
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -62,7 +62,11 @@
 #ifndef FREERTOS_MESSAGE_BUFFER_H
 #define FREERTOS_MESSAGE_BUFFER_H
 
-/* Message buffers are built onto of stream buffers. */
+#ifndef INC_ARDUINO_FREERTOS_H
+	#error "include Arduino_FreeRTOS.h must appear in source files before include message_buffer.h"
+#endif
+
+/* Message buffers are built on top of stream buffers. */
 #include "stream_buffer.h"
 
 #if defined( __cplusplus )
@@ -395,10 +399,10 @@ BaseType_t xHigherPriorityTaskWoken = pdFALSE; // Initialised to pdFALSE.
     // priority of the currently executing task was unblocked and a context
     // switch should be performed to ensure the ISR returns to the unblocked
     // task.  In most FreeRTOS ports this is done by simply passing
-    // xHigherPriorityTaskWoken into taskYIELD_FROM_ISR(), which will test the
+    // xHigherPriorityTaskWoken into portYIELD_FROM_ISR(), which will test the
     // variables value, and perform the context switch if necessary.  Check the
     // documentation for the port in use for port specific instructions.
-    taskYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 </pre>
  * \defgroup xMessageBufferSendFromISR xMessageBufferSendFromISR
@@ -584,10 +588,10 @@ BaseType_t xHigherPriorityTaskWoken = pdFALSE;  // Initialised to pdFALSE.
     // priority of the currently executing task was unblocked and a context
     // switch should be performed to ensure the ISR returns to the unblocked
     // task.  In most FreeRTOS ports this is done by simply passing
-    // xHigherPriorityTaskWoken into taskYIELD_FROM_ISR(), which will test the
+    // xHigherPriorityTaskWoken into portYIELD_FROM_ISR(), which will test the
     // variables value, and perform the context switch if necessary.  Check the
     // documentation for the port in use for port specific instructions.
-    taskYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
 }
 </pre>
  * \defgroup xMessageBufferReceiveFromISR xMessageBufferReceiveFromISR
@@ -792,7 +796,7 @@ BaseType_t xMessageBufferReceiveCompletedFromISR( MessageBufferHandle_t xStreamB
 #define xMessageBufferReceiveCompletedFromISR( xMessageBuffer, pxHigherPriorityTaskWoken ) xStreamBufferReceiveCompletedFromISR( ( StreamBufferHandle_t ) xMessageBuffer, pxHigherPriorityTaskWoken )
 
 #if defined( __cplusplus )
-} /* extern "C" */
+}
 #endif
 
 #endif	/* !defined( FREERTOS_MESSAGE_BUFFER_H ) */

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Phillip Stevens  All Rights Reserved.
+ * Copyright (C) 2020 Phillip Stevens  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -61,7 +61,7 @@ void initVariant(void);
 void vApplicationIdleHook( void );
 
 void vApplicationMallocFailedHook( void );
-void vApplicationStackOverflowHook( TaskHandle_t xTask, portCHAR *pcTaskName );
+void vApplicationStackOverflowHook( TaskHandle_t xTask, char *pcTaskName );
 
 void vApplicationGetIdleTaskMemory( StaticTask_t **ppxIdleTaskTCBBuffer,
                                     StackType_t **ppxIdleTaskStackBuffer,

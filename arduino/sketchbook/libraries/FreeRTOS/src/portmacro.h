@@ -1,6 +1,6 @@
 /*
- * FreeRTOS Kernel V10.2.0
- * Copyright (C) 2019 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
+ * FreeRTOS Kernel V10.3.0
+ * Copyright (C) 2020 Amazon.com, Inc. or its affiliates.  All Rights Reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -43,19 +43,12 @@ extern "C" {
  */
 
 /* Type definitions. */
-#define portCHAR        char
-#define portFLOAT       float
-#define portDOUBLE      double
-#define portLONG        long
-#define portSHORT       int
-#define portSTACK_TYPE  uint8_t
-#define portBASE_TYPE   uint8_t
 
-typedef portSTACK_TYPE StackType_t;
-typedef signed char BaseType_t;
-typedef unsigned char UBaseType_t;
+typedef uint8_t StackType_t;
+typedef int8_t BaseType_t;
+typedef uint8_t UBaseType_t;
 
-#if( configUSE_16_BIT_TICKS == 1 )
+#if configUSE_16_BIT_TICKS == 1
     typedef uint16_t TickType_t;
     #define portMAX_DELAY ( TickType_t ) 0xffff
 #else
