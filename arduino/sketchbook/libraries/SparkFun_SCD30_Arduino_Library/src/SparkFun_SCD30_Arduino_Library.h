@@ -25,14 +25,10 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#pragma once
+#ifndef __SparkFun_SCD30_ARDUINO_LIBARARY_H__
+#define __SparkFun_SCD30_ARDUINO_LIBARARY_H__
 
-#if (ARDUINO >= 100)
 #include "Arduino.h"
-#else
-#include "WProgram.h"
-#endif
-
 #include <Wire.h>
 
 //The default I2C address for the SCD30 is 0x61.
@@ -54,48 +50,49 @@
 
 class SCD30
 {
-  public:
-    SCD30(void);
+public:
+	SCD30(void);
 
   boolean begin(uint8_t address=SCD30_ADDRESS, TwoWire &wirePort = Wire); //By default use Wire port
 
-	boolean beginMeasuring(uint16_t pressureOffset);
-	boolean beginMeasuring(void);
+	bool beginMeasuring(uint16_t pressureOffset);
+	bool beginMeasuring(void);
 
 	uint16_t getCO2(void);
 	float getHumidity(void);
 	float getTemperature(void);
+	float getTemperatureOffset(void);
 
-	boolean setMeasurementInterval(uint16_t interval);
-	boolean setAmbientPressure(uint16_t pressure_mbar);
-        boolean setAltitudeCompensation(uint16_t altitude);
-	boolean setAutoSelfCalibration(boolean enable);
-	boolean setForcedRecalibrationFactor(uint16_t concentration);
-	boolean setTemperatureOffset(float tempOffset);
+	bool setMeasurementInterval(uint16_t interval);
+	bool setAmbientPressure(uint16_t pressure_mbar);
+	bool setAltitudeCompensation(uint16_t altitude);
+	bool setAutoSelfCalibration(bool enable);
+	bool setForcedRecalibrationFactor(uint16_t concentration);
+	bool setTemperatureOffset(float tempOffset);
 
-	boolean dataAvailable();
-	boolean readMeasurement();
+	bool dataAvailable();
+	bool readMeasurement();
 
-	boolean sendCommand(uint16_t command, uint16_t arguments);
-	boolean sendCommand(uint16_t command);
+	bool sendCommand(uint16_t command, uint16_t arguments);
+	bool sendCommand(uint16_t command);
 
 	uint16_t readRegister(uint16_t registerAddress);
 
 	uint8_t computeCRC8(uint8_t data[], uint8_t len);
 
-  private:
-    //Variables
-        TwoWire *_i2cPort; //The generic connection to user's chosen I2C hardware
-  uint8_t _address; // i2c address
+private:
+	//Variables
+	TwoWire *_i2cPort; //The generic connection to user's chosen I2C hardware
+        uint8_t _address; // i2c address
 	//Global main datums
 	float co2 = 0;
 	float temperature = 0;
 	float humidity = 0;
-	
+
 	//These track the staleness of the current data
 	//This allows us to avoid calling readMeasurement() every time individual datums are requested
-	boolean co2HasBeenReported = true;
-	boolean humidityHasBeenReported = true;
-	boolean temperatureHasBeenReported = true;
-	
+	bool co2HasBeenReported = true;
+	bool humidityHasBeenReported = true;
+	bool temperatureHasBeenReported = true;
 };
+#endif

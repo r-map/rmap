@@ -7,36 +7,35 @@
   basically do whatever you want with this code.
 
   Feel like supporting open source hardware?
-  Buy a board from SparkFun! https://www.sparkfun.com/products/14751
+  Buy a board from SparkFun! https://www.sparkfun.com/products/15112
 
   This example prints the current CO2 level, relative humidity, and temperature in C.
 
   Hardware Connections:
-  If needed, attach a Qwiic Shield to your Arduino/Photon/ESP32 or other
-  Plug the device into an available Qwiic port
-  Open the serial monitor at 9600 baud to see the output
+  Attach RedBoard to computer using a USB cable.
+  Connect SCD30 to RedBoard using Qwiic cable.
+  Open Serial Monitor at 115200 baud.
 */
 
 #include <Wire.h>
 
-//Click here to get the library: http://librarymanager/All#SparkFun_SCD30
-#include "SparkFun_SCD30_Arduino_Library.h" 
-
+#include "SparkFun_SCD30_Arduino_Library.h" //Click here to get the library: http://librarymanager/All#SparkFun_SCD30
 SCD30 airSensor;
 
 void setup()
 {
-  Wire.begin(D2,D1);
-
-  Serial.begin(9600);
+  Serial.begin(115200);
   Serial.println("SCD30 Example");
+  Wire.begin();
 
-  airSensor.begin(); //This will cause readings to occur every two seconds
+  if (airSensor.begin() == false)
+  {
+    Serial.println("Air sensor not detected. Please check wiring. Freezing...");
+    while (1)
+      ;
+  }
 
-  airSensor.sendCommand(COMMAND_SOFT_RESET);
-  if (airSensor.beginMeasuring()) Serial.println("OK"); //Start continuous measurements
-  airSensor.setMeasurementInterval(2); //2 seconds between measurements
-  airSensor.setAutoSelfCalibration(true); //Enable auto-self-calibration
+  //The SCD30 has data ready every two seconds
 }
 
 void loop()
@@ -55,7 +54,7 @@ void loop()
     Serial.println();
   }
   else
-    Serial.println("No data");
+    Serial.println("Waiting for new data");
 
-  delay(1000);
+  delay(500);
 }
