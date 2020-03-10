@@ -55,7 +55,15 @@
 #error "FreeRTOS-Addons require C++ Strings if you are using exceptions"
 #endif
 #endif
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino_FreeRTOS.h"
+#else
+#ifdef ARDUINO_ARCH_STM32
+#include "STM32FreeRTOS.h"
+#else
 #include "FreeRTOS.h"
+#endif
+#endif
 #include "queue.h"
 
 

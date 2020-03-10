@@ -53,7 +53,15 @@
 #ifndef CPP_FREERTOS_NO_CPP_STRINGS
 #include <string>
 #endif
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino_FreeRTOS.h"
+#else
+#ifdef ARDUINO_ARCH_STM32
+#include "STM32FreeRTOS.h"
+#else
 #include "FreeRTOS.h"
+#endif
+#endif
 #include "task.h"
 #include "mutex.hpp"
 #include "semaphore.hpp"

@@ -40,7 +40,15 @@
 #ifndef TICK_HOOK_HPP_
 #define TICK_HOOK_HPP_
 
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino_FreeRTOS.h"
+#else
+#ifdef ARDUINO_ARCH_STM32
+#include "STM32FreeRTOS.h"
+#else
 #include "FreeRTOS.h"
+#endif
+#endif
 #include "task.h"
 #include <list>
 

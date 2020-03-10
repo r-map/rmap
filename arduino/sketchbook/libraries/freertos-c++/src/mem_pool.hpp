@@ -56,7 +56,15 @@
 #endif
 #endif
 #include <list>
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino_FreeRTOS.h"
+#else
+#ifdef ARDUINO_ARCH_STM32
+#include "STM32FreeRTOS.h"
+#else
 #include "FreeRTOS.h"
+#endif
+#endif
 #include "mutex.hpp"
 
 namespace cpp_freertos {
