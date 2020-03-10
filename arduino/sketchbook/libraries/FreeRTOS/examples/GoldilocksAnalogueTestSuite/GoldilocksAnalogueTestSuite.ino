@@ -193,7 +193,10 @@ void setup() {
     ,  NULL ); // */
 
   // Start the task scheduler, which takes over control of scheduling individual tasks.
-  // The scheduler is started in initVariant() found in variantHooks.c
+  // The scheduler was started in initVariant() found in variantHooks.c but in RMAP was moved here
+
+  vTaskStartScheduler(); // initialise and run the freeRTOS scheduler. Execution should never return here.
+
 }
 
 /*--------------------------------------------------*/

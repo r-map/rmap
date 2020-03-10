@@ -54,6 +54,9 @@ void setup() {
               0, // Priority
               NULL );
 
+  // The scheduler was started in initVariant() found in variantHooks.c but in RMAP was moved here
+  vTaskStartScheduler(); // initialise and run the freeRTOS scheduler. Execution should never return here.
+  
 }
 
 void loop() {}
