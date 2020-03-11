@@ -55,6 +55,13 @@
 
 using namespace cpp_freertos;
 
+typedef struct message_t
+{
+  int Id;
+  int Value;
+};
+
+
 class ProducerThread : public Thread {
   
 public:
@@ -76,24 +83,30 @@ protected:
     
     Serial.print("Starting ProducerThread ");
     Serial.println(Id);
-    int Message = 0;
+    message_t Message;
+    Message.Id=Id;
+    Message.Value= 0;
     
     while (true) {
       
+      Lock.Lock();
       Serial.print("producer DelayInSeconds: ");
       Serial.println(DelayInSeconds);
+      Lock.Unlock();
+      
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
+
       for (int i = 0; i < BurstAmount; i++) {
 
 	Lock.Lock();
 	Serial.print("[P ");
 	Serial.print(Id);
 	Serial.print("] Sending  Message: ");
-	Serial.println(Message);
+	Serial.println(Message.Value);
 	Lock.Unlock();
 
 	MessageQueue.Enqueue(&Message);
-	Message++;
+	Message.Value++;
       }
     }
   };
@@ -127,21 +140,30 @@ protected:
     
     Serial.print("Starting ConsumerThread ");
     Serial.println(Id);
-    int Message;
+    message_t Message;
     
     while (true) {
       
-      Serial.print("consumer DelayInSeconds: ");
-      Serial.println(DelayInSeconds);
-      Delay(Ticks::SecondsToTicks(DelayInSeconds));
+      {
+	LockGuard guard(Lock);
+	Serial.print("consumer DelayInSeconds: ");
+	Serial.println(DelayInSeconds);
+	//guard.~LockGuard();   // automatic unlock, not needed
+      }
 
+      Delay(Ticks::SecondsToTicks(DelayInSeconds));
       MessageQueue.Dequeue(&Message);
-      LockGuard guard(Lock);
-      Serial.print("[C ");
-      Serial.print(Id);
-      Serial.print("] Received Message: ");
-      Serial.println( Message);
-      //guard.~LockGuard();   // automatic unlock, not needed
+
+      {
+	LockGuard guard(Lock);
+	Serial.print("[C ");
+	Serial.print(Id);
+	Serial.print("] Received Message: Id ");
+	Serial.print( Message.Id);
+	Serial.print(" value: ");
+	Serial.println( Message.Value);
+	//guard.~LockGuard();   // automatic unlock, not needed
+      }
     }
   };
   
@@ -170,17 +192,14 @@ void setup (void)
   //  These parameters may be adjusted to explore queue 
   //  behaviors.
   //
-  MessageQueue = new Queue(5, sizeof(int));
+  MessageQueue = new Queue(3, sizeof(message_t));
 
   MutexStandard *SharedLock;
   SharedLock = new MutexStandard();
    
-  ProducerThread *p1;
-  ConsumerThread *p2;
-  p1 = new ProducerThread(1, 10, 10, *MessageQueue,*SharedLock);
-  p2 = new ConsumerThread(2, 1, *MessageQueue,*SharedLock);
-  //  static ProducerThread p1(10, 1, 10, *MessageQueue,*SharedLock);
-  //  static ConsumerThread c1(20, 1, *MessageQueue,*SharedLock);
+  static ProducerThread p1(1,  5, 7, *MessageQueue,*SharedLock);
+  static ProducerThread p2(2, 10, 3, *MessageQueue,*SharedLock);
+  static ConsumerThread p3(50, 1,    *MessageQueue,*SharedLock);
   
   Thread::StartScheduler();
   
