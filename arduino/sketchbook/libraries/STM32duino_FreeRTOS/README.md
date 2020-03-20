@@ -7,7 +7,7 @@ Also, See the very useful [Getting Started](http://www.freertos.org/FreeRTOS-qui
 
 This library provides 2 FreeRTOS versions:
  * [9.0.0](http://www.freertos.org/FreeRTOS-V9.html)
- * [10.0.1](http://www.freertos.org/FreeRTOS-V10.html)
+ * [10.3.0](http://www.freertos.org/FreeRTOS-V10.html)
 
 Both have been modified by ST (See st_readme.txt in FreeRTOS Source).
 
