@@ -1,4 +1,5 @@
 #include <unity.h>
+#include <Arduino.h> 
 #ifdef ARDUINO_ARCH_AVR
 #include <ArduinoSTL.h>
 #include <Arduino_FreeRTOS.h>

@@ -40,7 +40,16 @@
 #ifndef CRITICAL_HPP_
 #define CRITICAL_HPP_
 
+#ifdef ARDUINO_ARCH_AVR
+#include "Arduino_FreeRTOS.h"
+#else
+#ifdef ARDUINO_ARCH_STM32
+#include "STM32FreeRTOS.h"
+#else
 #include "FreeRTOS.h"
+#endif
+#endif
+
 #include "task.h"
 
 
