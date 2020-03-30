@@ -1,0 +1,19 @@
+{
+	"name": "frtosLog",
+	"keywords": "logging, debug, log, log levels, AVR, ESP8266, STM32",
+	"description": "ArduinoLog is a minimalistic logging framework to help the programmer output log statements to a chosen output target. ArduinoLog is designed so that log statements can remain in the code with minimal performance cost. In order to facilitate this the loglevel can be adjusted, and if the code is completely tested all logging code can be compiled out.",
+	"version": "1.0.0",
+	"authors": {
+		"name": "Paolo Patruno",
+		"url": "https://github.com/r-map/rmap",
+		"maintainer": true
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/r-map/rmap/arduino/sketchbook/libraries/frtosLog"
+	},
+	"homepage": "https://github.com/r-map/rmap",
+	"frameworks": ["arduino"],
+	"platforms": "*",
+	"examples": "examples/*/*.ino"
+}
