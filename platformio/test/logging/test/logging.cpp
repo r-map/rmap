@@ -1,6 +1,8 @@
 #include <unity.h>
 #include <ArduinoLog.h>
-#include "StringStream.h"
+//#include "StringStream.h"
+#include "ByteBuffer.h"
+#include "BufferStream.h"
 
 /*!
 * This example sketch shows most of the features of the ArduinoLog library
@@ -16,8 +18,10 @@ String       stringValue1 = "this is a string";
 float        floatValue;
 double       doubleValue;
 
-String s;
-StringStream sstream(s);
+//String s;
+//StringStream sstream(s);
+ByteBuffer bytebuffer;
+BufferStream  sstream(bytebuffer);
 
 
 void setup() {
@@ -35,6 +39,7 @@ void setup() {
   UNITY_BEGIN();    // IMPORTANT LINE!
   
   //Start logging
+  bytebuffer.init(120);
   Log.begin(LOG_LEVEL_VERBOSE, &sstream);
   
 }

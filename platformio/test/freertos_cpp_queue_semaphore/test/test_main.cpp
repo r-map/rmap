@@ -20,6 +20,20 @@ using namespace cpp_freertos;
 
 int nmessages=0;
 
+#ifdef ARDUINO_ARCH_AVR
+// this compute the the difference fron heap and stack
+// ehwn heap and stack overload an crash happen
+int freeRam ()
+{
+  //DBGSERIAL.println(__malloc_margin);
+
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+#endif
+
+
 struct message_t
 {
   int Id;
@@ -53,6 +67,10 @@ protected:
     while (true) {
       
       Lock.Lock();
+#ifdef ARDUINO_ARCH_AVR
+      Serial.print(F("#free ram on task producer: "));
+      Serial.println(freeRam());
+#endif
       TEST_ASSERT_EQUAL(0,0);
       Lock.Unlock();
       
@@ -102,6 +120,11 @@ protected:
       
       {
 	LockGuard guard(Lock);
+#ifdef ARDUINO_ARCH_AVR
+	Serial.print(F("#free ram on consumer task: "));
+	Serial.println(freeRam());
+#endif
+	
 	TEST_ASSERT_EQUAL(0,0);
 	//guard.~LockGuard();   // automatic unlock, not needed
       }
@@ -139,6 +162,20 @@ private:
 
 void setup (void)
 {
+
+  // NOTE!!! Wait for >2 secs
+  // if board doesn't support software reset via Serial.DTR/RTS
+  delay(2000);
+
+ 
+  UNITY_BEGIN();    // IMPORTANT LINE!
+  //Serial.println("started");
+
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on setup: "));
+  Serial.println(freeRam());
+#endif
+
   Queue *MessageQueue;
   MessageQueue = new Queue(3, sizeof(message_t));
 
@@ -149,14 +186,11 @@ void setup (void)
   static ProducerThread p2(30,  2, 3, *MessageQueue,*SharedLock);
   static ConsumerThread p3(50,  1,    *MessageQueue,*SharedLock);
 
-  // NOTE!!! Wait for >2 secs
-  // if board doesn't support software reset via Serial.DTR/RTS
-  delay(2000);
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram before scheduler start: "));
+  Serial.println(freeRam());
+#endif
 
- 
-  UNITY_BEGIN();    // IMPORTANT LINE!
-  //Serial.println("started");
-  
   RUN_TEST(Thread::StartScheduler);
 
   // do not go here

@@ -48,41 +48,24 @@ public:
 	// Returns the maximum capacity of the buffer
 	int getCapacity();
 
-	// This method returns the byte that is located at index in the buffer but doesn't modify the buffer like the get methods (doesn't remove the retured byte from the buffer)
-	byte peek(unsigned int index);
+	// This method returns the int that is located at index in the buffer but doesn't modify the buffer like the get methods (doesn't remove the retured int from the buffer)
+	uint8_t peek(unsigned int index);
 
 	//
 	// Put methods, either a regular put in back or put in front
 	// 
-	int putInFront(byte in);
-	int put(byte in);
-
-	int putIntInFront(int in);
-	int putInt(int in);
-
-	int putLongInFront(long in);
-	int putLong(long in);
-
-	int putFloatInFront(float in);
-	int putFloat(float in);
+	int autoput(uint8_t in);     // put in front and remove if needed from back
+	int putInFront(uint8_t in);
+	int put(uint8_t in);
 
 	//
 	// Get methods, either a regular get from front or from back
 	// 
-	byte get();
-	byte getFromBack();
-
-	int getInt();
-	int getIntFromBack();
-
-	long getLong();	
-	long getLongFromBack();	
-
-	float getFloat();	
-	float getFloatFromBack();	
+	uint8_t get();
+	uint8_t getFromBack();
 
 private:
-	byte* data;
+	uint8_t* data;
 
 	unsigned int capacity;
 	unsigned int position;

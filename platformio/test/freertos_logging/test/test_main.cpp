@@ -14,7 +14,8 @@
 #include "thread.hpp"
 #include "ticks.hpp"
 #include <frtosLog.h>
-#include "StringStream.h"
+#include "ByteBuffer.h"
+#include "BufferStream.h"
 
 /*
 This test check various output using logging
@@ -26,6 +27,7 @@ secure the rigth sequence for write and read in the stream
 A string stream is used here to check logging in and out 
 */
 
+#ifndef ARDUINO_ARCH_AVR    
 int          intValue1  , intValue2;
 long         longValue1, longValue2;
 bool         boolValue1, boolValue2;
@@ -33,137 +35,146 @@ const char * charArray    = "this is a string";
 String       stringValue1 = "this is a string";
 float        floatValue;
 double       doubleValue;
+#endif
 
-String s;
-StringStream sstream(s);
+ByteBuffer bytebuffer;
+BufferStream  bufferstream(bytebuffer);
 
 MutexStandard loggingsemaphore;
+#ifndef ARDUINO_ARCH_AVR    
 MutexStandard testsemaphore;
+#endif
+
+#ifdef ARDUINO_ARCH_AVR
+// this compute the the difference fron heap and stack
+// ehwn heap and stack overload an crash happen
+int freeRam ()
+{
+  //DBGSERIAL.println(__malloc_margin);
+
+  extern int __heap_start, *__brkval;
+  int v;
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+}
+#endif
 
 void test0(){
+#ifndef ARDUINO_ARCH_AVR    
   LockGuard guard(testsemaphore);
-  frtosLog.notice(  "Logging example");                       // Info string in flash memory
-  TEST_ASSERT_EQUAL_STRING("#N: Logging example\n" ,sstream.readString().c_str());
-  sstream.flush();    
+#endif
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on test0: "));
+  Serial.println(freeRam());
+#endif
+  frtosLog.notice(F("Logging example"));                       // Info string in flash memory
+  TEST_ASSERT_EQUAL_STRING("#N: Logging example\n" ,bufferstream.readString().c_str());
 }
- 
+
+#ifndef ARDUINO_ARCH_AVR
 void test1(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with integer values : %d, %d"  , intValue1,  intValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with integer values : 100, 10000\n",sstream.readString().c_str());
-  sstream.flush();    
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on test1: "));
+  Serial.println(freeRam());
+#endif
+  frtosLog.notice   (F("Log as Info with integer values : %d, %d")  , intValue1,  intValue2);
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with integer values : 100, 10000\n"),bufferstream.readString().c_str());
 }
 void test2(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with hex values     : %x, %X"                  ), intValue1,  intValue1);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with hex values     : 64, 0x64\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with hex values     : 64, 0x64\n"),bufferstream.readString().c_str());
 }
 void test3(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with hex values     : %x, %X"                   , intValue2,  intValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with hex values     : 2710, 0x2710\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.notice   (F("Log as Info with hex values     : %x, %X")                   , intValue2,  intValue2);
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with hex values     : 2710, 0x2710\n"),bufferstream.readString().c_str());
 }
 void test4(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with binary values  : %b, %B"                  ), intValue1,  intValue1);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with binary values  : 1100100, 0b1100100\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with binary values  : 1100100, 0b1100100\n"),bufferstream.readString().c_str());
 }
 void test5(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with binary values  : %b, %B"                   , intValue2,  intValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with binary values  : 10011100010000, 0b10011100010000\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.notice   (F("Log as Info with binary values  : %b, %B")                   , intValue2,  intValue2);
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with binary values  : 10011100010000, 0b10011100010000\n"),bufferstream.readString().c_str());
 }
 void test6(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with long values    : %l, %l"                  ), longValue1, longValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with long values    : 1000000, 100000000\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with long values    : 1000000, 100000000\n"),bufferstream.readString().c_str());
 }
 void test7(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with bool values    : %t, %T"                   , boolValue1, boolValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with bool values    : T, false\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.notice   (F("Log as Info with bool values    : %t, %T")                   , boolValue1, boolValue2);
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with bool values    : T, false\n"),bufferstream.readString().c_str());
 }
 void test8(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with string value   : %s"                      ), charArray);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with string value   : this is a string\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with string value   : this is a string\n"),bufferstream.readString().c_str());
 }
 void test9(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (  "Log as Info with string value   : %s"                       , stringValue1.c_str());
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with string value   : this is a string\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with string value   : this is a string\n",bufferstream.readString().c_str());
 }
 void test10(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with float value   : %F"                       ), floatValue);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with float value   : 12.34\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with float value   : 12.34\n"),bufferstream.readString().c_str());
 }
 void test11(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with float value   : %F"                        , floatValue);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with float value   : 12.34\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.notice   (F("Log as Info with float value   : %F")                        , floatValue);
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with float value   : 12.34\n"),bufferstream.readString().c_str());
 }
 void test12(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Info with double value   : %D"                      ), doubleValue);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with double value   : 1234.57\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#N: Log as Info with double value   : 1234.57\n"),bufferstream.readString().c_str());
 }
 void test13(){
   LockGuard guard(testsemaphore);
-  frtosLog.notice   (  "Log as Info with double value   : %D"                       , doubleValue);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with double value   : 1234.57\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.notice   (F("Log as Info with double value   : %D")                       , doubleValue);
+  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with double value   : 1234.57\n",bufferstream.readString().c_str());
 }
 void test14(){
   LockGuard guard(testsemaphore);
   frtosLog.notice   (F("Log as Debug with mixed values  : %d, %d, %l, %l, %t, %T"  ), intValue1 , intValue2,
 				longValue1, longValue2, boolValue1, boolValue2);
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Debug with mixed values  : 100, 10000, 1000000, 100000000, T, false\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING("#N: Log as Debug with mixed values  : 100, 10000, 1000000, 100000000, T, false\n",bufferstream.readString().c_str());
 }
 void test15(){
   LockGuard guard(testsemaphore);
-  frtosLog.trace    (  "Log as Trace with bool value    : %T"                       , boolValue1);
-  TEST_ASSERT_EQUAL_STRING("#T: Log as Trace with bool value    : true\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.trace    (F("Log as Trace with bool value    : %T")                       , boolValue1);
+  TEST_ASSERT_EQUAL_STRING("#T: Log as Trace with bool value    : true\n",bufferstream.readString().c_str());
 }
 void test16(){
   LockGuard guard(testsemaphore);
-  frtosLog.warning  (  "Log as Warning with bool value  : %T"                       , boolValue1);
-  TEST_ASSERT_EQUAL_STRING("#W: Log as Warning with bool value  : true\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.warning  (F("Log as Warning with bool value  : %T")                       , boolValue1);
+  TEST_ASSERT_EQUAL_STRING(F("#W: Log as Warning with bool value  : true\n"),bufferstream.readString().c_str());
 }
 void test17(){
   LockGuard guard(testsemaphore);
-  frtosLog.error    (  "Log as Error with bool value    : %T"                       , boolValue1);
-  TEST_ASSERT_EQUAL_STRING("#E: Log as Error with bool value    : true\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.error    (F("Log as Error with bool value    : %T")                       , boolValue1);
+  TEST_ASSERT_EQUAL_STRING(F("#E: Log as Error with bool value    : true\n"),bufferstream.readString().c_str());
 }
 void test18(){
   LockGuard guard(testsemaphore);
-  frtosLog.fatal    (  "Log as Fatal with bool value    : %T"                       , boolValue1);
-  TEST_ASSERT_EQUAL_STRING("#F: Log as Fatal with bool value    : true\n",sstream.readString().c_str());
-  sstream.flush();    
+  frtosLog.fatal    (F("Log as Fatal with bool value    : %T")                       , boolValue1);
+  TEST_ASSERT_EQUAL_STRING(F("#F: Log as Fatal with bool value    : true\n"),bufferstream.readString().c_str());
 }
 void test19(){
   LockGuard guard(testsemaphore);
   frtosLog.verbose  (F("Log as Verbose with bool value   : %T"  CR CR               ), boolValue2);
-  TEST_ASSERT_EQUAL_STRING("#V: Log as Verbose with bool value   : false\n\n\n",sstream.readString().c_str());
-  sstream.flush();    
+  TEST_ASSERT_EQUAL_STRING(F("#V: Log as Verbose with bool value   : false\n\n\n"),bufferstream.readString().c_str());
 }
+#endif
 
-
+  //Serial.print("ind: ");
+  //Serial.println(ind);
 using namespace cpp_freertos;
 
 void printTimestamp(Print* _logOutput) {
@@ -171,7 +182,7 @@ void printTimestamp(Print* _logOutput) {
   sprintf(c, "%10lu ", millis());
   _logOutput->print(c);
 }
-
+ 
 void printNewline(Print* _logOutput) {
   _logOutput->print('\n');
 }
@@ -182,7 +193,7 @@ class sampleThread : public Thread {
 public:
   
   sampleThread(int i, int delayInSeconds)
-    : Thread("Thread One", 200, 1), 
+    : Thread("Thread One", 100, 1), 
       Id (i), 
       DelayInSeconds(delayInSeconds)
   {
@@ -192,9 +203,15 @@ public:
 protected:
 
   virtual void Run() {
-    
+
+#ifdef ARDUINO_ARCH_AVR
+    Serial.print(F("#free ram on task run: "));
+    Serial.println(freeRam());
+#endif
+
     //frtosLog.notice("Starting Thread %d", Id);
 
+#ifndef ARDUINO_ARCH_AVR    
     // set up some random variables
     intValue1  = 100;
     intValue2  = 10000;
@@ -204,12 +221,13 @@ protected:
     boolValue2 = false;
     floatValue = 12.34;
     doubleValue= 1234.56789;
-    
+#endif    
     while (true) {
 
     Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
     RUN_TEST(test0);
+#ifndef ARDUINO_ARCH_AVR    
     RUN_TEST(test1);
     RUN_TEST(test2);
     RUN_TEST(test3);
@@ -229,7 +247,8 @@ protected:
     RUN_TEST(test17);
     RUN_TEST(test18);
     RUN_TEST(test19);
-
+#endif
+    
     Delay(Ticks::SecondsToTicks(10-DelayInSeconds));
 
     UNITY_END(); // stop unit testing
@@ -256,16 +275,47 @@ void setup (void)
   delay(2000);
   
   UNITY_BEGIN();    // IMPORTANT LINE!
-  
+
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on setup: "));
+  Serial.println(freeRam());
+#endif
+
   //Start logging
-  frtosLog.begin(LOG_LEVEL_VERBOSE, &sstream,loggingsemaphore);
+#ifdef ARDUINO_ARCH_AVR    
+  bytebuffer.init(60);
+#else
+  bytebuffer.init(120);
+#endif
+  frtosLog.begin(LOG_LEVEL_VERBOSE, &bufferstream,loggingsemaphore);
   //frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 
   static sampleThread p1(1, 4);
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on post thread 1: "));
+  Serial.println(freeRam());
+#endif
+
+#ifndef ARDUINO_ARCH_AVR  
   static sampleThread p2(2, 4);
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on post thread 2: "));
+  Serial.println(freeRam());
+#endif
+  
   static sampleThread p3(3, 6);
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on post thread 3: "));
+  Serial.println(freeRam());
+#endif
+  
   static sampleThread p4(4, 6);
+#ifdef ARDUINO_ARCH_AVR
+  Serial.print(F("#free ram on post thread 4: "));
+  Serial.println(freeRam());
+#endif
+#endif
   
   Thread::StartScheduler();
   
