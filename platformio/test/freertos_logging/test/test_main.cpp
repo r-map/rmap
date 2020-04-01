@@ -27,7 +27,7 @@ secure the rigth sequence for write and read in the stream
 A string stream is used here to check logging in and out 
 */
 
-#ifndef ARDUINO_ARCH_AVR    
+#ifndef   ATMEGA644
 int          intValue1  , intValue2;
 long         longValue1, longValue2;
 bool         boolValue1, boolValue2;
@@ -41,7 +41,7 @@ ByteBuffer bytebuffer;
 BufferStream  bufferstream(bytebuffer);
 
 MutexStandard loggingsemaphore;
-#ifndef ARDUINO_ARCH_AVR    
+#ifndef     ATMEGA644
 MutexStandard testsemaphore;
 #endif
 
@@ -59,7 +59,7 @@ int freeRam ()
 #endif
 
 void test0(){
-#ifndef ARDUINO_ARCH_AVR    
+#ifndef ATMEGA644
   LockGuard guard(testsemaphore);
 #endif
 #ifdef ARDUINO_ARCH_AVR
@@ -70,7 +70,7 @@ void test0(){
   TEST_ASSERT_EQUAL_STRING("#N: Logging example\n" ,bufferstream.readString().c_str());
 }
 
-#ifndef ARDUINO_ARCH_AVR
+#ifndef ATMEGA644
 void test1(){
   LockGuard guard(testsemaphore);
 #ifdef ARDUINO_ARCH_AVR
@@ -211,7 +211,7 @@ protected:
 
     //frtosLog.notice("Starting Thread %d", Id);
 
-#ifndef ARDUINO_ARCH_AVR    
+#ifndef     ATMEGA644
     // set up some random variables
     intValue1  = 100;
     intValue2  = 10000;
@@ -227,7 +227,7 @@ protected:
     Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
     RUN_TEST(test0);
-#ifndef ARDUINO_ARCH_AVR    
+#ifndef  ATMEGA644
     RUN_TEST(test1);
     RUN_TEST(test2);
     RUN_TEST(test3);
@@ -282,7 +282,7 @@ void setup (void)
 #endif
 
   //Start logging
-#ifdef ARDUINO_ARCH_AVR    
+#ifdef     ATMEGA644
   bytebuffer.init(60);
 #else
   bytebuffer.init(120);
@@ -297,7 +297,7 @@ void setup (void)
   Serial.println(freeRam());
 #endif
 
-#ifndef ARDUINO_ARCH_AVR  
+#ifndef  ATMEGA644 
   static sampleThread p2(2, 4);
 #ifdef ARDUINO_ARCH_AVR
   Serial.print(F("#free ram on post thread 2: "));
