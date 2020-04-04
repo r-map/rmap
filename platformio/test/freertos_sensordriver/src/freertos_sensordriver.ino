@@ -64,7 +64,7 @@ protected:
   virtual void Run() {
     
     frtosLog.notice("Starting Thread %d",Id,sd->driver);
-    if (sd == NULL){
+    if (sd == nullptr){
       frtosLog.notice(F("%s : driver not created !"),sensor.driver);
     }else{
       frtosLog.notice(F("%s : driver created !"),sensor.driver);
@@ -76,7 +76,7 @@ protected:
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
       unsigned long waittime;
-      if (!sd == NULL){
+      if (sd != nullptr){
 	if (sd->prepare(waittime) == SD_SUCCESS){
 	}else{
 	  frtosLog.notice("%d:%s prepare failed !", Id,sd->driver);
@@ -92,12 +92,12 @@ protected:
 	long values[LENVALUES];
 	size_t lenvalues=LENVALUES;
 
-	for (int ii = 0; ii < lenvalues; ii++) {
+	for (uint8_t ii = 0; ii < lenvalues; ii++) {
 	  values[ii]=0xFFFFFFFF;
 	}
 
 	if (sd->get(values,lenvalues) == SD_SUCCESS){
-	  for (int ii = 0; ii < lenvalues; ii++) {
+	  for (uint8_t ii = 0; ii < lenvalues; ii++) {
 	    frtosLog.notice("%d:%s value: %d",Id,sd->driver,values[ii]);
 	  }
 	}else{

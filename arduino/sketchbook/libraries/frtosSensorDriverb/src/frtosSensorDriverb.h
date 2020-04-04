@@ -31,16 +31,16 @@ public:
   frtosSensorDriver(const char* mydriver,const char* mytype, MutexStandard mutex);
   ~frtosSensorDriver();
   int setup(const char* driver, const int address, const int node=0, const char* type=NULL);
-  int prepare(unsigned long& waittime) = 0;
-  int get(long values[],size_t lenvalues) = 0;
+  int prepare(unsigned long& waittime) ;
+  int get(long values[],size_t lenvalues) ;
 #if defined (USEGETDATA)
   int getdata(unsigned long& data,unsigned short& width);
 #endif
 #if defined(USEAJSON)
-  aJsonObject* getJson() = 0;
+  aJsonObject* getJson() ;
 #endif
 #if defined(USEARDUINOJSON)
-  int getJson(char *json_buffer, size_t json_buffer_length) = 0;
+  int getJson(char *json_buffer, size_t json_buffer_length) ;
 #endif  
   
   const char* driver;
