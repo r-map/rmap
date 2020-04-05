@@ -253,7 +253,7 @@ bool hpm::query_data_auto(unsigned int *pm25, unsigned int *pm10, unsigned int n
       if (i < (n-1)){
 	unsigned long starttime=millis();
 	while (starttime + 10000 > millis()){ 
-#ifndef ARDUINO_ARCH_ESP8266
+#ifdef ARDUINO_ARCH_AVR
 	  wdt_reset();
 #endif
 	  delay(10);

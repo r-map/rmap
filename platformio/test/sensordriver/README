@@ -1,0 +1,51 @@
+# compile upload
+pio run -e nucleo_l476rg --target upload
+
+#test
+platformio test -e nucleo_l476rg
+
+# debug
+pio  debug --interface=gdb -x .pioinit
+
+# serial monitor
+pio device monitor
+
+
+
+#emacs ide
+
+https://docs.platformio.org/en/latest/integration/ide/emacs.html#integration
+
+https://github.com/ZachMassia/PlatformIO-Mode/issues/11
+
+
+#in ~/.emacs
+
+(require 'platformio-mode)
+
+;; Add the required company backend.
+;;(add-to-list 'company-backends 'company-irony)
+
+;; Enable irony for all c++ files, and platformio-mode only
+;; when needed (platformio.ini present in project root).
+(add-hook 'c++-mode-hook (lambda ()
+                           (irony-mode)
+                           (irony-eldoc)
+                           (platformio-conditionally-enable)))
+
+;; Use irony's completion functions.
+(add-hook 'irony-mode-hook
+          (lambda ()
+            (define-key irony-mode-map [remap completion-at-point]
+              'irony-completion-at-point-async)
+
+            (define-key irony-mode-map [remap complete-symbol]
+              'irony-completion-at-point-async)
+
+            (irony-cdb-autosetup-compile-options)))
+            
+;; Setup irony for flycheck.
+(add-hook 'flycheck-mode-hook 'flycheck-irony-setup)
+
+
+(add-to-list 'auto-mode-alist '("\\.ino\\'" . c++-mode))

@@ -5,7 +5,7 @@
 #include <SoftwareSerial.h>
 #include <ArduinoLog.h>
 
-#ifndef ARDUINO_ARCH_ESP8266
+#ifdef ARDUINO_ARCH_AVR
 #include <avr/wdt.h>
 #endif
 

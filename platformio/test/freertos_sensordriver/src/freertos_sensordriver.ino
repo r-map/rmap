@@ -4,7 +4,6 @@
  *
  ***************************************************************************/
 
-#define SHT_ADDRESS 33
 
 #ifdef ARDUINO_ARCH_AVR
 #include <ArduinoSTL.h>
@@ -49,25 +48,26 @@ class sensorThread : public Thread {
   
 public:
   
-  sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard sdmutex)
+  sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard& sdmutex)
     : Thread("Thread One", 200, 1), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
-      sensor(mysensor)
+      sensor(mysensor),
+      sd(nullptr)
   {
-        sd=frtosSensorDriver::create(sensors[i].driver,sensors[i].type,sdmutex);
 	Start();
+        sd=frtosSensorDriver::create(sensors[i].driver,sensors[i].type,sdmutex);
   };
   
 protected:
 
   virtual void Run() {
     
-    frtosLog.notice("Starting Thread %d",Id,sd->driver);
+    frtosLog.notice("Starting Thread %d %s %s",Id,sd->driver,sd->type);
     if (sd == nullptr){
-      frtosLog.notice(F("%s : driver not created !"),sensor.driver);
+      frtosLog.notice(F("%d:%s %s : driver not created !"),Id,sensor.driver,sd->type);
     }else{
-      frtosLog.notice(F("%s : driver created !"),sensor.driver);
+      frtosLog.notice(F("%d:%s %s : driver created !"),Id,sensor.driver,sd->type);
     }
     
     sd->setup(sensor.driver,sensor.address);
@@ -75,17 +75,16 @@ protected:
     while (true) {
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
-      unsigned long waittime;
       if (sd != nullptr){
-	if (sd->prepare(waittime) == SD_SUCCESS){
-	}else{
-	  frtosLog.notice("%d:%s prepare failed !", Id,sd->driver);
+	unsigned long waittime;
+	if (sd->prepare(waittime) != SD_SUCCESS){
+	  frtosLog.notice("%d:%s %s prepare failed !", Id,sd->driver,sd->type);
 	}
 
 	//wait sensors to go ready
-	frtosLog.notice("%d:%s wait sensors for ms: %d",Id,sensor.driver,waittime);
-	delay(waittime);  // 500 for tmp and 250 for adt and 2500 for davis
-	//Delay(Ticks::SecondsToTicks(waittime/1000));
+	frtosLog.notice("%d:%s %s wait sensors for ms: %d",Id,sensor.driver,sd->type,waittime);
+	TickType_t ticks=Ticks::MsToTicks(waittime);
+	Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
 	
 	// get integers values 
 #define LENVALUES 3
@@ -98,10 +97,10 @@ protected:
 
 	if (sd->get(values,lenvalues) == SD_SUCCESS){
 	  for (uint8_t ii = 0; ii < lenvalues; ii++) {
-	    frtosLog.notice("%d:%s value: %d",Id,sd->driver,values[ii]);
+	    frtosLog.notice("%d:%s %s value: %d",Id,sd->driver,sd->type,values[ii]);
 	  }
 	}else{
-	  frtosLog.notice("%d:%s Error",Id,sd->driver);
+	  frtosLog.notice("%d:%s %s Error",Id,sd->driver,sd->type);
 	}
       }
     }
@@ -123,12 +122,12 @@ void setup (void)
   MutexStandard sdmutex;
 
   strcpy(sensors[0].driver,"I2C");
-  strcpy(sensors[0].type,"SCD");
-  sensors[0].address=SCD30_ADDRESS;
+  strcpy(sensors[0].type,"ADT");
+  sensors[0].address=73;
 
   strcpy(sensors[1].driver,"I2C");
-  strcpy(sensors[1].type,"SHT");
-  sensors[1].address=SHT_ADDRESS;
+  strcpy(sensors[1].type,"HIH");
+  sensors[1].address=39;
   
   // start up the i2c interface
   Wire.begin();
@@ -142,8 +141,9 @@ void setup (void)
   //Start logging
   frtosLog.notice(F("Testing FreeRTOS C++ wrappers to SensorDriver"));                     // Info string with Newline
 
+  
   for (int i = 0; i < SENSORS_LEN; i++) {
-    ST[i]=new sensorThread(i, 2,sensors[i],sdmutex);
+    ST[i]=new sensorThread(i, i+1,sensors[i],sdmutex);
   }
   
   Thread::StartScheduler();

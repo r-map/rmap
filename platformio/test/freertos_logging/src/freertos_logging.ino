@@ -66,11 +66,11 @@ private:
 void setup (void)
 {
 
-  MutexStandard loggingsemaphore;
+  MutexStandard loggingmutex;
   
   // start up the serial interface
   Serial.begin(115200);
-  frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial,loggingsemaphore);
+  frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial,loggingmutex);
   frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 

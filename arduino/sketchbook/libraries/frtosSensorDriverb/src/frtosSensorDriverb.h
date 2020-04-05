@@ -27,8 +27,8 @@ using namespace cpp_freertos;
 class frtosSensorDriver : public SensorDriver
 {
 public:
-  static frtosSensorDriver* create(const char* driver,const char* type,  MutexStandard mutex);
-  frtosSensorDriver(const char* mydriver,const char* mytype, MutexStandard mutex);
+  static frtosSensorDriver* create(const char* driver,const char* type,  MutexStandard& mutex);
+  frtosSensorDriver(const char* mydriver,const char* mytype, MutexStandard& mutex);
   ~frtosSensorDriver();
   int setup(const char* driver, const int address, const int node=0, const char* type=NULL);
   int prepare(unsigned long& waittime) ;
