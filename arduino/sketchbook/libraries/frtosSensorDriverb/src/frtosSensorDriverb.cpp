@@ -6,8 +6,7 @@ frtosSensorDriver* frtosSensorDriver::create(const char* mydriver,const char* my
 }
 
 frtosSensorDriver::frtosSensorDriver(const char* mydriver,const char* mytype, MutexStandard& mutex) {
-  SensorDriver* simple_sd;
-  _sd=simple_sd->create(mydriver,mytype);
+  _sd=SensorDriver::create(mydriver,mytype);
   _mutex=mutex;
   driver=mydriver;
   type=mytype;
