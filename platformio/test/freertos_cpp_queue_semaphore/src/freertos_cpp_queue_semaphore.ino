@@ -1,8 +1,7 @@
 /****************************************************************************
  *
+ *  Derived from the FreeRTOS Add-ons project.
  *  Copyright (c) 2017, Michael Becker (michael.f.becker@gmail.com)
- *
- *  This file is part of the FreeRTOS Add-ons project.
  *
  *  Source Code:
  *  https://github.com/michaelbecker/freertos-addons
@@ -67,7 +66,7 @@ class ProducerThread : public Thread {
 public:
   
   ProducerThread(int i, int delayInSeconds, int burstAmount, Queue &q, Mutex &lock)
-    : Thread("ProducerThread", 200, 1), 
+    : Thread("ProducerThread", 150, 1), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
       BurstAmount(burstAmount),
@@ -125,7 +124,7 @@ class ConsumerThread : public Thread {
 public:
 
   ConsumerThread(int i, int delayInSeconds, Queue &q, Mutex &lock)
-    : Thread("ConsumerThread", 200, 2), 
+    : Thread("ConsumerThread", 150, 2), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
       MessageQueue(q),

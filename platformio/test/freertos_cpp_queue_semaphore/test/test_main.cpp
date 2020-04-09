@@ -20,19 +20,11 @@ using namespace cpp_freertos;
 
 int nmessages=0;
 
-#ifdef ARDUINO_ARCH_AVR
-// this compute the the difference fron heap and stack
-// ehwn heap and stack overload an crash happen
-int freeRam ()
+UBaseType_t freeStack ()
 {
-  //DBGSERIAL.println(__malloc_margin);
-
-  extern int __heap_start, *__brkval;
-  int v;
-  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+  return  uxTaskGetStackHighWaterMark( NULL );
+  //return xPortGetFreeHeapSize();
 }
-#endif
-
 
 struct message_t
 {
@@ -46,7 +38,7 @@ class ProducerThread : public Thread {
 public:
   
   ProducerThread(int i, int delayInSeconds, int burstAmount, Queue &q, Mutex &lock)
-    : Thread("ProducerThread", 200, 1), 
+    : Thread("ProducerThread", 150, 1), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
       BurstAmount(burstAmount),
@@ -67,10 +59,8 @@ protected:
     while (true) {
       
       Lock.Lock();
-#ifdef ARDUINO_ARCH_AVR
-      Serial.print(F("#free ram on task producer: "));
-      Serial.println(freeRam());
-#endif
+      Serial.print(F("#free ram/stack on task producer: "));
+      Serial.println(freeStack());
       TEST_ASSERT_EQUAL(0,0);
       Lock.Unlock();
       
@@ -101,7 +91,7 @@ class ConsumerThread : public Thread {
 public:
 
   ConsumerThread(int i, int delayInSeconds, Queue &q, Mutex &lock)
-    : Thread("ConsumerThread", 200, 2), 
+    : Thread("ConsumerThread", 150, 2), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
       MessageQueue(q),
@@ -120,10 +110,8 @@ protected:
       
       {
 	LockGuard guard(Lock);
-#ifdef ARDUINO_ARCH_AVR
-	Serial.print(F("#free ram on consumer task: "));
-	Serial.println(freeRam());
-#endif
+	Serial.print(F("#free ram/stack on consumer task: "));
+	Serial.println(freeStack());
 	
 	TEST_ASSERT_EQUAL(0,0);
 	//guard.~LockGuard();   // automatic unlock, not needed
@@ -171,10 +159,8 @@ void setup (void)
   UNITY_BEGIN();    // IMPORTANT LINE!
   //Serial.println("started");
 
-#ifdef ARDUINO_ARCH_AVR
-  Serial.print(F("#free ram on setup: "));
-  Serial.println(freeRam());
-#endif
+  Serial.print(F("#free ram/stack on setup: "));
+  Serial.println(freeStack());
 
   Queue *MessageQueue;
   MessageQueue = new Queue(3, sizeof(message_t));
@@ -186,10 +172,8 @@ void setup (void)
   static ProducerThread p2(30,  2, 3, *MessageQueue,*SharedLock);
   static ConsumerThread p3(50,  1,    *MessageQueue,*SharedLock);
 
-#ifdef ARDUINO_ARCH_AVR
-  Serial.print(F("#free ram before scheduler start: "));
-  Serial.println(freeRam());
-#endif
+  Serial.print(F("#free ram/stack before scheduler start: "));
+  Serial.println(freeStack());
 
   RUN_TEST(Thread::StartScheduler);
 

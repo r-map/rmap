@@ -76,7 +76,7 @@ protected:
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
       if (sd != nullptr){
-	unsigned long waittime;
+	unsigned long waittime=0;
 	if (sd->prepare(waittime) != SD_SUCCESS){
 	  frtosLog.notice("%d:%s %s prepare failed !", Id,sd->driver,sd->type);
 	}
@@ -102,6 +102,8 @@ protected:
 	}else{
 	  frtosLog.notice("%d:%s %s Error",Id,sd->driver,sd->type);
 	}
+	frtosLog.notice(F("Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
+	
       }
     }
   };
