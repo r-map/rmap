@@ -45,11 +45,15 @@ extern void loop(void);
 void initVariant(void) __attribute__ ((OS_main));
 void initVariant(void)
 {
+    // As the Task stacks are on heap before Task allocated heap variables,
+    // the library default __malloc_heap_end = 0 doesn't work.
+    __malloc_heap_end = (char *)(RAMEND - __malloc_margin);
+
 #if defined(USBCON)
     USBDevice.attach();
 #endif
 
-    setup();        // the normal Arduino setup() function is run here.
+    setup();                    // the normal Arduino setup() function is run here.
 }
 
 
@@ -67,7 +71,7 @@ void vApplicationIdleHook( void ) __attribute__((weak));
 
 void vApplicationIdleHook( void )
 {
-    loop();        // the normal Arduino loop() function is run here.
+    loop();                     // the normal Arduino loop() function is run here.
     if (serialEventRun) serialEventRun();
 }
 
