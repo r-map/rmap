@@ -254,12 +254,6 @@ protected:
    uint32_t _start_time_ms;
 
    /*!
-   \var values[]
-   \brief Internal sensor's variable for values readed from sensors.
-   */
-   int32_t values[];
-
-   /*!
    \var _is_end
    \brief Internal sensor's variable for save end of reading values.
    */
@@ -285,6 +279,7 @@ protected:
 
    bool _is_test;
 
+  
    /*!
    \fn void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0)
    \brief Print information about sensor
@@ -295,6 +290,8 @@ protected:
    \return void.
    */
    static void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0);
+
+
 };
 
 #if (USE_SENSOR_ADT)
@@ -331,6 +328,13 @@ protected:
       READ,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+  
 };
 #endif
 
@@ -368,7 +372,14 @@ protected:
       READ,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
 };
+
 #endif
 
 #if (USE_SENSOR_HYT)
@@ -407,6 +418,13 @@ protected:
       READ_CONFIRMATION,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+
 };
 #endif
 
@@ -451,6 +469,13 @@ protected:
       ELABORATE,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+  
 };
 #endif
 
@@ -490,6 +515,13 @@ protected:
       READ_RAIN,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+
 };
 #endif
 
@@ -531,6 +563,13 @@ protected:
       READ_HUMIDITY,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+
 };
 #endif
 
@@ -580,6 +619,13 @@ protected:
       READ_OUTPUT_VOLTAGE,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+
 };
 #endif
 
@@ -620,6 +666,13 @@ protected:
       GET_VALUE,
       END
    } _get_state;
+
+   /*!
+   \var values[]
+   \brief Internal sensor's variable for values readed from sensors.
+   */
+   int32_t values[];
+
 };
 #endif
 
