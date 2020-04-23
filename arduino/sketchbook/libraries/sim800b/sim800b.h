@@ -9,7 +9,9 @@
 
 // activate debug on serial port
 //#define DEBUGONSERIAL
+#ifdef ARDUINO_ARCH_AVR
 #define ENABLEWDT 1
+#endif
 // if define HARDWARESERIAL is set then it will be static (required by Time library)
 #define HARDWARESERIAL Serial1
 
