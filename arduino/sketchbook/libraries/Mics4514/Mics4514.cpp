@@ -20,7 +20,9 @@
 
 #include "Mics4514.h"
 #include "config.h"
+#ifdef ARDUINO_ARCH_AVR
 #include <avr/wdt.h>
+#endif
 //#include <limits.h>
 
 /*
@@ -66,8 +68,12 @@ Mics4514::Mics4514(uint8_t copin, uint8_t no2pin,	\
   pinMode(_heaterpin, OUTPUT);   // sets the pin as output
   pinMode(_scale1pin, OUTPUT);   // sets the pin as output
   pinMode(_scale2pin, OUTPUT);   // sets the pin as output
-  analogReference(EXTERNAL);
 
+#ifdef ARDUINO_ARCH_STM32
+  analogReference(AR_DEFAULT);
+#else
+  analogReference(EXTERNAL);
+#endif
   sleep();
 }
 
@@ -114,19 +120,24 @@ void Mics4514::blocking_fast_heat()
 
   IF_SDEBUG(Serial.println(F("mics4514 blocking_fast_heat")));  
 
+#ifdef ARDUINO_ARCH_AVR
   wdt_reset();
-
+#endif
+  
   fast_heat();
   
   for (int mytime=0; mytime <=  FASTHEATTIME; mytime+=WDTTIMESTEP)
     {
       delay(WDTTIMESTEP);
+#ifdef ARDUINO_ARCH_AVR
       wdt_reset();
+#endif
     }
 
   delay(FASTHEATTIME % WDTTIMESTEP);
+#ifdef ARDUINO_ARCH_AVR
   wdt_reset();
-  
+#endif  
   normal_heat();
   _state=fasthot;
 
