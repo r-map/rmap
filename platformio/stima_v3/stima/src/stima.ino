@@ -174,9 +174,12 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 		noInterrupts ();
 		sleep_enable();
 
+		#ifdef ARDUINO_AVR_MICRODUINO_CORE_PLUS
 		// turn off brown-out enable in software
 		MCUCR = bit (BODS) | bit (BODSE);
 		MCUCR = bit (BODS);
+		#endif
+		
 		interrupts ();
 
 		sleep_cpu();

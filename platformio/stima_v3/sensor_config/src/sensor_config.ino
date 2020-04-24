@@ -33,9 +33,9 @@ byte end_address = 127;
 const char version[] = "1.0";
 
 
-extern "C" {
-#include "utility/twi.h"  // from Wire library, so we can do bus scanning
-}
+//extern "C" { 
+  //#include "utility/twi.h"  // from Wire library, so we can do bus scanning
+//}
 
 // Scan the I2C bus between addresses from_addr and to_addr.
 // On each address, call the callback function with the address and result.
@@ -46,9 +46,12 @@ void scanI2CBus(byte from_addr, byte to_addr,
                 void(*callback)(byte address, byte result) )
 {
   byte rc;
-  byte data = 0; // not used, just an address to feed to twi_writeTo()
+  //byte data = 0; // not used, just an address to feed to twi_writeTo()
   for( byte addr = from_addr; addr <= to_addr; addr++ ) {
-    rc = twi_writeTo(addr, &data, 0, 1, 0);
+
+    Wire.beginTransmission (addr);
+    rc = (Wire.endTransmission () != 0);
+    //rc = twi_writeTo(addr, &data, 0, 1, 0);
     callback( addr, rc );
   }
 }
