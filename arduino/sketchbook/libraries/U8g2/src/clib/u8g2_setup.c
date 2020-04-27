@@ -116,6 +116,16 @@ void u8g2_SetDisplayRotation(u8g2_t *u8g2, const u8g2_cb_t *u8g2_cb)
 
 
 /*============================================*/
+void u8g2_SendF(u8g2_t * u8g2, const char *fmt, ...)
+{
+  va_list va;
+  va_start(va, fmt);
+  u8x8_cad_vsendf(u8g2_GetU8x8(u8g2), fmt, va);
+  va_end(va);
+}
+
+
+/*============================================*/
 /* 
   update dimension: 
   calculate the following variables:
