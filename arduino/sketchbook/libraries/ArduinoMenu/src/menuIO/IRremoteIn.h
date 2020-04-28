@@ -10,9 +10,13 @@ IR receiver using IRremote library
 
 
 #include "../menuDefs.h"
+#ifdef ARDUINO_ARCH_ESP8266
 #include <IRremoteESP8266.h>
 #include <IRrecv.h>
 #include <IRutils.h>
+#else
+#include <IRremote.h>
+#endif
 
 // ==================== start of TUNEABLE PARAMETERS ====================
 
@@ -36,6 +40,7 @@ IR receiver using IRremote library
 #define KEYPAD_UP    0xFFA05F // CH+ Keypad Button
 #define KEYPAD_OK    0xFF02FD // full screen Keypad Button
 #define KEYPAD_POWERDOWN 0xFFB24D // powerdown Keypad Button
+#define KEYPAD_REPEAT   UINT64_MAX // Key pressed for more time
 
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
@@ -113,7 +118,8 @@ IR receiver using IRremote library
       volatile bool escape=false;
       volatile int8_t ind=-1;
       // Use turn on the save buffer feature for more complete capture coverage.
-      IRrecv myirrecv= IRrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
+      //IRrecv myirrecv= IRrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
+      IRrecv myirrecv= IRrecv(RECV_PIN);
       decode_results results;  // to store the results
       short int lastkey=-1;
       
@@ -250,7 +256,7 @@ IR receiver using IRremote library
 	      lastkey=key;
 	      break;
 	      
-	    case REPEAT: // REPEAT code
+	    case KEYPAD_REPEAT: // REPEAT code
 	      key=lastkey;
 	      break;
 	      
