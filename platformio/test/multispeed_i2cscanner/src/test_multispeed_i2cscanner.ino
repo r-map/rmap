@@ -9,8 +9,17 @@
 // Released to the public domain
 //
 
+//#define USE_SECOND_I2C
+
 #include <Wire.h>
 #include <Arduino.h>
+
+#ifdef USE_SECOND_I2C
+TwoWire Wire1(PB4, PA7);
+#define WIREX Wire1
+#else
+#define WIREX Wire
+#endif
 
 const char version[] = "0.1.06";
 
@@ -46,7 +55,7 @@ uint32_t stopScan;
 void setup()
 {
   Serial.begin(115200);
-  Wire.begin();
+  WIREX.begin();
   setSpeed('0');
   displayHelp();
 }
@@ -260,12 +269,12 @@ void I2Cscan()
     for (uint8_t s = 0; s < speeds ; s++)
     {
 #if ARDUINO >= 158
-      Wire.setClock(speed[s] * 1000);
+      WIREX.setClock(speed[s] * 1000);
 #else
       TWBR = (F_CPU / (speed[s] * 1000) - 16) / 2;
 #endif
-      Wire.beginTransmission (address);
-      found[s] = (Wire.endTransmission () == 0);
+      WIREX.beginTransmission (address);
+      found[s] = (WIREX.endTransmission () == 0);
       fnd |= found[s];
       // give device 5 millis
       if (fnd && delayFlag) delay(RESTORE_LATENCY);
