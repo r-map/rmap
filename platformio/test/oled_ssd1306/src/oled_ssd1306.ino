@@ -18,7 +18,7 @@
 
 #if defined(ARDUINO_ARCH_STM32)
 #define WIREX Wire1
-TwoWire WIREX(PB4, PA7);
+TwoWire WIREX(PB4, PA7);   // D12 A6
 
 // Define the dimension of the U8*log window
 #define U8LOG_WIDTH 20

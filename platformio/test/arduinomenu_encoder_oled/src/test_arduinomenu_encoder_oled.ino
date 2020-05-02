@@ -27,9 +27,9 @@ mcu: esp8266 wemos D1 mini
 #include <Wire.h>
 
 // rotary encoder pins
-#define encBtn  5
-#define encA    6
-#define encB    7
+#define encBtn  7
+#define encA    2
+#define encB    3
 
 #define IR_PIN 0
 
