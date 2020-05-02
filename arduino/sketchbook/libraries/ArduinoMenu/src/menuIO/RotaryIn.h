@@ -21,8 +21,8 @@ Rotary incremental encoder using Rotary library
       Rotary r = Rotary(pinA, pinB);
       //int pinA,pinB;
       //encoderIn<pinA,pinB>(int a,int b):pinA(a),pinB(b) {}
-      void begin() {
-	r.begin();
+      void begin(bool pullup=true) {
+	r.begin(pullup);
       }
 
       void process() {
