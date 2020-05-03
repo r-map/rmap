@@ -8,6 +8,7 @@
 #define encBtn  6
 #define encA    2
 #define encB    3
+#define LEDPIN 13
 
 #define OLEDI2CADDRESS 0X3C  // 60
 
@@ -91,16 +92,20 @@ int ledCtrl=HIGH;
 
 result myLedOn() {
   ledCtrl=HIGH;
+  frtosLog.notice(F("Set LED: %d"),ledCtrl);
+  digitalWrite(LEDPIN,ledCtrl);
   return proceed;
 }
 result myLedOff() {
   ledCtrl=LOW;
+  frtosLog.notice(F("Set LED: %d"),ledCtrl);
+  digitalWrite(LEDPIN,ledCtrl);
   return proceed;
 }
 
 TOGGLE(ledCtrl,setLed,"Led: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
-  ,VALUE("On",HIGH,doNothing,noEvent)
-  ,VALUE("Off",LOW,doNothing,noEvent)
+  ,VALUE("On",HIGH,myLedOn,noEvent)
+  ,VALUE("Off",LOW,myLedOff,noEvent)
 );
 
 int selTest=0;
@@ -266,7 +271,7 @@ class menuThread : public Thread {
 public:
   
   menuThread(MutexStandard& mutex,Queue &q)
-    : Thread("Thread Menu", 200, 1), 
+    : Thread("Thread Menu", 250, 1), 
       MessageQueue(q),
       sdmutex(mutex)
   {
@@ -478,6 +483,9 @@ void setup (void)
   
   // start up the serial interface
   Serial.begin(115200);
+
+  pinMode(LEDPIN, OUTPUT);       // initialize LED status
+  digitalWrite(LEDPIN,ledCtrl);
 
   //Start logging
   frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial,loggingmutex);
