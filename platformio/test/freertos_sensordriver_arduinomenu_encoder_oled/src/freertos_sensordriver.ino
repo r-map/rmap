@@ -322,30 +322,40 @@ protected:
 	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
 	  //u8g2.clearBuffer();
 	  u8g2.setFont(fontNameB);
-	
+	  u8g2.setFontMode(0);
+	  
 	  if (strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
-	    u8g2.setCursor(0, 24); 
+	    u8g2.setCursor(0, 12); 
 	    u8g2.print("T:");
-	    u8g2.setCursor(30, 24); 
+	    u8g2.setCursor(20, 12); 
 	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
+	      u8g2.setDrawColor(0);
+	      u8g2.drawBox(20, 0, 50, 12);
+	      u8g2.setDrawColor(1);
+	      u8g2.setCursor(20, 12);
 	      u8g2.print(round((float(Message.value)/100.-273.15)*10.)/10.,1);	    	    
 	    }
 	  }
 
 	  if (strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
-	    u8g2.setCursor(0, 12); 
+	    u8g2.setCursor(0, 24); 
 	    u8g2.print("U:");
-	    u8g2.setCursor(30, 12); 
+	    u8g2.setCursor(20, 24); 
 	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
-	    u8g2.print(round(float(Message.value)),0);
+	      u8g2.setDrawColor(0);
+	      u8g2.drawBox(20, 12, 50, 24);
+	      u8g2.setDrawColor(1);
+	      u8g2.setCursor(20, 24); 
+	      u8g2.print(round(float(Message.value)),0);
 	    }
 	  }
 	  u8g2.sendBuffer();
 	  u8g2.setFont(fontNameS);
+	  u8g2.setFontMode(1);
 	}
       }
       
