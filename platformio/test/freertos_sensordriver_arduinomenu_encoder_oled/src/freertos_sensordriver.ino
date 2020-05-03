@@ -11,6 +11,9 @@
 
 #define OLEDI2CADDRESS 0X3C  // 60
 
+#define SENSORS_LEN 2
+#define LENVALUES 3
+
 #include <Arduino.h>
 #ifdef ARDUINO_ARCH_AVR
 #include <ArduinoSTL.h>
@@ -25,6 +28,7 @@
 #include "task.h"
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "queue.hpp"
 #include <frtosLog.h>
 #include <Wire.h>
 #include <frtosSensorDriverb.h>
@@ -56,6 +60,14 @@ U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
 #define WIREX Wire
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #endif
+
+struct message_t
+{
+  char type[5];         // driver name
+  uint8_t ind;
+  unsigned long int  value;
+};
+
 
 
 // define menu colors --------------------------------------------------------
@@ -210,6 +222,7 @@ result idle(menuOut& o,idleEvent e) {
   case idling:
     o.println("suspended...");
     displaydata=true;
+    u8g2.clearBuffer();
     break;
   case idleEnd:
     o.println("resuming menu.");
@@ -237,43 +250,6 @@ void printNewline(Print* _logOutput) {
   _logOutput->print('\n');
 }
 
-float tmean=NAN;
-float umean=NAN;
-
-void do_display_sensors(){
-  u8g2.setFont(fontNameB);
-  
-  u8g2.setCursor(0, 12); 
-  u8g2.print("U:");
-  u8g2.setCursor(30, 12); 
-  if (isnan(umean)){
-    u8g2.print("wait");
-  }else{
-    u8g2.print(round(umean),0);
-  }
-  
-  u8g2.setCursor(0, 24); 
-  u8g2.print("T:");
-  u8g2.setCursor(30, 24); 
-  if (isnan(tmean)){
-    u8g2.print("wait");
-  }else{
-    u8g2.print(round(tmean*10.)/10.,1);	    	    
-  }  
-}
-
-void do_display(){
-  if (displaydata){
-
-    u8g2.setFontMode(0); // enable transparent mode, which is faster
-    u8g2.clearBuffer();
-    do_display_sensors();
-    u8g2.sendBuffer();
-    u8g2.setFont(fontNameS);
-  }
-}
-
-#define SENSORS_LEN 2
 
 struct sensor_t
 {
@@ -289,8 +265,9 @@ class menuThread : public Thread {
 
 public:
   
-  menuThread()
-    : Thread("Thread Menu", 200, 1) 
+  menuThread(Queue &q)
+    : Thread("Thread Menu", 200, 1), 
+      MessageQueue(q)
   {
     Start();
   };
@@ -324,8 +301,50 @@ protected:
     nav.timeOut=10;
     nav.exit();
 
+    message_t Message;
+    float tmean=NAN;
+    float umean=NAN;
+    
     while (true) {
-      do_display();
+
+      if (MessageQueue.Dequeue(&Message,0)){
+	frtosLog.notice(F("ricevo dalla coda : %s %d %d"),Message.type,Message.ind,Message.value);
+
+	if (displaydata){
+	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
+	  //u8g2.clearBuffer();
+	  u8g2.setFont(fontNameB);
+	
+	  if (strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
+	    tmean=float(Message.value)/100.-273.15;
+
+	    u8g2.setCursor(0, 24); 
+	    u8g2.print("T:");
+	    u8g2.setCursor(30, 24); 
+	    if (isnan(tmean)){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(round(tmean*10.)/10.,1);	    	    
+	    }       
+	  }
+
+	  if (strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
+	    umean=float(Message.value);
+	    
+	    u8g2.setCursor(0, 12); 
+	    u8g2.print("U:");
+	    u8g2.setCursor(30, 12); 
+	    if (isnan(umean)){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(round(umean),0);
+	    }
+	  }
+	  u8g2.sendBuffer();
+	  u8g2.setFont(fontNameS);
+	}
+      }
+      
       nav.doInput();
       if (nav.changed(0)) {//only draw if menu changed for gfx device
 	u8g2.firstPage();
@@ -334,6 +353,10 @@ protected:
       }  
     }
   };
+
+private:
+  Queue &MessageQueue;
+
 };
 
 
@@ -342,12 +365,13 @@ class sensorThread : public Thread {
   
 public:
   
-  sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard& sdmutex)
+  sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard& sdmutex,Queue &q)
     : Thread("Thread Sensor", 200, 2), 
       Id (i), 
       DelayInSeconds(delayInSeconds),
       sensor(mysensor),
-      sd(nullptr)
+      sd(nullptr),
+      MessageQueue(q)
   {
         sd=frtosSensorDriver::create(sensors[i].driver,sensors[i].type,sdmutex);
 	Start();
@@ -372,8 +396,6 @@ protected:
     while (true) {
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
-      //tmean=NAN;
-      //umean=NAN;
       if (sd != nullptr){
 	unsigned long waittime=0;
 
@@ -387,9 +409,10 @@ protected:
 	  Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
 	  
 	  // get integers values 
-          #define LENVALUES 3
 	  long values[LENVALUES];
 	  size_t lenvalues=LENVALUES;
+
+	  message_t Message;
 	  
 	  for (uint8_t ii = 0; ii < lenvalues; ii++) {
 	    values[ii]=0xFFFFFFFF;
@@ -398,8 +421,11 @@ protected:
 	  if (sd->get(values,lenvalues) == SD_SUCCESS){
 	    for (uint8_t ii = 0; ii < lenvalues; ii++) {
 	      frtosLog.notice("%d:%s %s value: %d",Id,sd->driver,sd->type,values[ii]);
-	      if (strcmp(sd->type,"HIH")==0) umean=float(values[0]);
-	      if (strcmp(sd->type,"ADT")==0) tmean=float(values[0])/100.-273.15;
+	      memcpy(Message.type,sd->type, sizeof(sd->type));
+	      Message.ind=ii;
+	      Message.value=values[ii];
+	      MessageQueue.Enqueue(&Message);
+
 	    }
 	  }else{
 	    frtosLog.error("%d:%s %s Error",Id,sd->driver,sd->type);
@@ -415,10 +441,8 @@ private:
   int DelayInSeconds;
   frtosSensorDriver* sd;
   sensor_t sensor;
+  Queue &MessageQueue;
 };
-
-sensorThread* ST[SENSORS_LEN];
-menuThread* MT;
 
 void setup (void)
 {
@@ -448,11 +472,16 @@ void setup (void)
   
   frtosLog.notice(F("Testing FreeRTOS C++ wrappers to SensorDriver"));
 
-  MT=new menuThread();
+  Queue *MessageQueue;
+  MessageQueue = new Queue(SENSORS_LEN*LENVALUES, sizeof(message_t));
+  
+  menuThread* MT;
+  MT=new menuThread(*MessageQueue);
 
+  sensorThread* ST[SENSORS_LEN];
   // create threads
   for (int i = 0; i < SENSORS_LEN; i++) {
-    ST[i]=new sensorThread(i, i+1,sensors[i],sdmutex);
+    ST[i]=new sensorThread(i, i+1,sensors[i],sdmutex, *MessageQueue);
   }
   
   Thread::StartScheduler();
