@@ -265,9 +265,10 @@ class menuThread : public Thread {
 
 public:
   
-  menuThread(Queue &q)
+  menuThread(MutexStandard& mutex,Queue &q)
     : Thread("Thread Menu", 200, 1), 
-      MessageQueue(q)
+      MessageQueue(q),
+      sdmutex(mutex)
   {
     Start();
   };
@@ -302,8 +303,6 @@ protected:
     nav.exit();
 
     message_t Message;
-    float tmean=NAN;
-    float umean=NAN;
     
     while (true) {
 
@@ -311,33 +310,33 @@ protected:
 	frtosLog.notice(F("ricevo dalla coda : %s %d %d"),Message.type,Message.ind,Message.value);
 
 	if (displaydata){
+
+#ifndef ARDUINO_ARCH_STM32
+	  LockGuard guard(sdmutex);
+#endif
 	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
 	  //u8g2.clearBuffer();
 	  u8g2.setFont(fontNameB);
 	
 	  if (strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
-	    tmean=float(Message.value)/100.-273.15;
-
 	    u8g2.setCursor(0, 24); 
 	    u8g2.print("T:");
 	    u8g2.setCursor(30, 24); 
-	    if (isnan(tmean)){
+	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
-	      u8g2.print(round(tmean*10.)/10.,1);	    	    
-	    }       
+	      u8g2.print(round((float(Message.value)/100.-273.15)*10.)/10.,1);	    	    
+	    }
 	  }
 
 	  if (strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
-	    umean=float(Message.value);
-	    
 	    u8g2.setCursor(0, 12); 
 	    u8g2.print("U:");
 	    u8g2.setCursor(30, 12); 
-	    if (isnan(umean)){
+	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
-	      u8g2.print(round(umean),0);
+	    u8g2.print(round(float(Message.value)),0);
 	    }
 	  }
 	  u8g2.sendBuffer();
@@ -348,7 +347,13 @@ protected:
       nav.doInput();
       if (nav.changed(0)) {//only draw if menu changed for gfx device
 	u8g2.firstPage();
+#ifndef ARDUINO_ARCH_STM32
+	sdmutex.Lock();
+#endif
 	do nav.doOutput(); while(u8g2.nextPage());
+#ifndef ARDUINO_ARCH_STM32
+	sdmutex.Unlock();
+#endif
 	frtosLog.notice(F("D:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
       }  
     }
@@ -356,7 +361,7 @@ protected:
 
 private:
   Queue &MessageQueue;
-
+  MutexStandard &sdmutex;
 };
 
 
@@ -398,9 +403,18 @@ protected:
 
       if (sd != nullptr){
 	unsigned long waittime=0;
+	message_t Message;
 
 	if (sd->prepare(waittime) != SD_SUCCESS){
 	  frtosLog.error("%d:%s %s prepare failed !", Id,sd->driver,sd->type);
+
+	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
+	      memcpy(Message.type,sd->type, sizeof(sd->type));
+	      Message.ind=ii;
+	      Message.value=0xFFFFFFFF;
+	      MessageQueue.Enqueue(&Message);
+	  }
+
 	}else{
 
 	  //wait sensors to go ready
@@ -410,25 +424,25 @@ protected:
 	  
 	  // get integers values 
 	  long values[LENVALUES];
-	  size_t lenvalues=LENVALUES;
-
-	  message_t Message;
 	  
-	  for (uint8_t ii = 0; ii < lenvalues; ii++) {
+	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
 	    values[ii]=0xFFFFFFFF;
 	  }
 	  
-	  if (sd->get(values,lenvalues) == SD_SUCCESS){
-	    for (uint8_t ii = 0; ii < lenvalues; ii++) {
+	  if (sd->get(values,LENVALUES) == SD_SUCCESS){
+	    for (uint8_t ii = 0; ii < LENVALUES; ii++) {
 	      frtosLog.notice("%d:%s %s value: %d",Id,sd->driver,sd->type,values[ii]);
-	      memcpy(Message.type,sd->type, sizeof(sd->type));
-	      Message.ind=ii;
-	      Message.value=values[ii];
-	      MessageQueue.Enqueue(&Message);
-
 	    }
 	  }else{
 	    frtosLog.error("%d:%s %s Error",Id,sd->driver,sd->type);
+	  }
+
+	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
+	    memcpy(Message.type,sd->type, sizeof(sd->type));
+	    Message.ind=ii;
+	    Message.value=values[ii];
+	    MessageQueue.Enqueue(&Message);
+	    
 	  }
 	}
 	frtosLog.notice(F("S:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
@@ -476,7 +490,7 @@ void setup (void)
   MessageQueue = new Queue(SENSORS_LEN*LENVALUES, sizeof(message_t));
   
   menuThread* MT;
-  MT=new menuThread(*MessageQueue);
+  MT=new menuThread(sdmutex,*MessageQueue);
 
   sensorThread* ST[SENSORS_LEN];
   // create threads
