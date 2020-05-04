@@ -1,8 +1,55 @@
-/****************************************************************************
- *
- *  Copyright (c) 2020, Paolo Patruno (p.patruno@iperbole.bologna.it)
- *
- ***************************************************************************/
+/*
+Copyright (C) 2020  Paolo Paruno <p.patruno@iperbole.bologna.it>
+authors:
+Paolo Patruno <p.patruno@iperbole.bologna.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Freeg Software Foundation; either version 2 of 
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+/*
+  This test use:
+  * MCU board
+  * encoder with button (see at homotix)
+  * wemos oled display V2.1.0
+  * temperature sensor ADT I2C connected
+  * temeprature and humidity sensor HIH6100 I2C connected
+
+  Tested on nucleo_l432kc
+  should work on:
+  * arduino mega  (or same MCU based board)
+  * microduino core 1284p   (or same MCU based board)
+  * nucleo_l476rg
+
+  The software use FreeRtos with the c++ wrapper all ported to arduino
+  for AVR and STM32
+
+  There are tree thread: 
+  * manage display to show data received on message queue and a
+    salmple menu and only one function actually do an action switching
+    a led light
+  * one thread for sensor to quey data and send data on message queue
+    each sensor can return multiple data
+
+  Is possible to use one or two I2C busses.  If you use two busses the
+  first is shared by sensor threads and the second is dedicated to
+  display.
+  there are two mutex:
+  * for the serial port used by logging system
+  * for the first I2C bus
+
+  Only one queue is used to send data to be displayed
+ */
 
 // rotary encoder pins
 #define encBtn  6
@@ -53,6 +100,7 @@
 #define fontMarginX 1
 #define fontMarginY 1
 
+// use two I2C bus where available
 #if defined(ARDUINO_ARCH_STM32)
 #define WIREX Wire1
 TwoWire WIREX(PB4, PA7);
@@ -62,6 +110,7 @@ U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #endif
 
+// exchange message for sensors data
 struct message_t
 {
   char type[5];         // driver name
@@ -69,24 +118,39 @@ struct message_t
   unsigned long int  value;
 };
 
-
-
-// define menu colors --------------------------------------------------------
-//each color is in the format:
-//  {{disabled normal,disabled selected},{enabled normal,enabled selected, enabled editing}}
-// this is a monochromatic color table
-const colorDef<uint8_t> colors[] ={
-  {{0,0},{0,1,1}},//bgColor
-  {{1,1},{1,0,0}},//fgColor
-  {{1,1},{1,0,0}},//valColor
-  {{1,1},{1,0,0}},//unitColor
-  {{0,1},{0,0,1}},//cursorColor
-  {{1,1},{1,0,0}},//titleColor
+// type to define sensors
+struct sensor_t
+{
+  char driver[5];         // driver name
+  char type[5];         // driver name
+  uint8_t address;            // i2c address
 };
 
-result doAlert(eventMask e, prompt &item);
+// prepend to logging
+void printTimestamp(Print* _logOutput) {
+  char c[12];
+  sprintf(c, "%10lu ", millis());
+  _logOutput->print(c);
+}
 
+// postpone to logging
+void printNewline(Print* _logOutput) {
+  _logOutput->print('\n');
+}
+
+// ---------------------   used by menu thread -------------- //
+/* 
+   those definition should be inside task class definition
+   so it will be allocated in stack and deallocated when task end
+   but there are some problems:
+   macro used to declare menu have problems with class members
+   ISR are not istance specific: https://forum.arduino.cc/index.php?topic=311968.0
+ */
+
+bool displaydata=false;
 int test=55;
+uint16_t hrs=0;
+uint16_t mins=0;
 int ledCtrl=HIGH;
 
 
@@ -103,25 +167,40 @@ result myLedOff() {
   return proceed;
 }
 
+// define menu colors
+//each color is in the format:
+//  {{disabled normal,disabled selected},{enabled normal,enabled selected, enabled editing}}
+// this is a monochromatic color table
+const colorDef<uint8_t> colors[] ={
+				   {{0,0},{0,1,1}},//bgColor
+				   {{1,1},{1,0,0}},//fgColor
+				   {{1,1},{1,0,0}},//valColor
+				   {{1,1},{1,0,0}},//unitColor
+				   {{0,1},{0,0,1}},//cursorColor
+				   {{1,1},{1,0,0}},//titleColor
+};
+
+result doAlert(eventMask e, prompt &item);
+
 TOGGLE(ledCtrl,setLed,"Led: ",doNothing,noEvent,noStyle//,doExit,enterEvent,noStyle
-  ,VALUE("On",HIGH,myLedOn,noEvent)
-  ,VALUE("Off",LOW,myLedOff,noEvent)
-);
+       ,VALUE("On",HIGH,myLedOn,noEvent)
+       ,VALUE("Off",LOW,myLedOff,noEvent)
+       );
 
 int selTest=0;
 SELECT(selTest,selMenu,"Select",doNothing,noEvent,noStyle
-  ,VALUE("Zero",0,doNothing,noEvent)
-  ,VALUE("One",1,doNothing,noEvent)
-  ,VALUE("Two",2,doNothing,noEvent)
-);
+       ,VALUE("Zero",0,doNothing,noEvent)
+       ,VALUE("One",1,doNothing,noEvent)
+       ,VALUE("Two",2,doNothing,noEvent)
+       );
 
 int chooseTest=-1;
 CHOOSE(chooseTest,chooseMenu,"Choose",doNothing,noEvent,noStyle
-  ,VALUE("First",1,doNothing,noEvent)
-  ,VALUE("Second",2,doNothing,noEvent)
-  ,VALUE("Third",3,doNothing,noEvent)
-  ,VALUE("Last",-1,doNothing,noEvent)
-);
+       ,VALUE("First",1,doNothing,noEvent)
+       ,VALUE("Second",2,doNothing,noEvent)
+       ,VALUE("Third",3,doNothing,noEvent)
+       ,VALUE("Last",-1,doNothing,noEvent)
+       );
 
 // //customizing a prompt look!
 // //by extending the prompt class
@@ -134,44 +213,39 @@ CHOOSE(chooseTest,chooseMenu,"Choose",doNothing,noEvent,noStyle
 // };
 
 MENU(subMenu,"Sub-Menu",doNothing,noEvent,noStyle
-  ,OP("Sub1",doNothing,noEvent)
-  // ,altOP(altPrompt,"",doNothing,noEvent)
-  ,EXIT("<Back")
-);
-
-uint16_t hrs=0;
-uint16_t mins=0;
+     ,OP("Sub1",doNothing,noEvent)
+     // ,altOP(altPrompt,"",doNothing,noEvent)
+     ,EXIT("<Back")
+     );
 
 //define a pad style menu (single line menu)
 //here with a set of fields to enter a date in YYYY/MM/DD format
 altMENU(menu,tempo,"Time",doNothing,noEvent,noStyle,(systemStyles)(_asPad|Menu::_menuData|Menu::_canNav|_parentDraw)
-  ,FIELD(hrs,"",":",0,11,1,0,doNothing,noEvent,noStyle)
-  ,FIELD(mins,"","",0,59,10,1,doNothing,noEvent,wrapStyle)
-);
+	,FIELD(hrs,"",":",0,11,1,0,doNothing,noEvent,noStyle)
+	,FIELD(mins,"","",0,59,10,1,doNothing,noEvent,wrapStyle)
+	);
 
 char* constMEM hexDigit MEMMODE="0123456789ABCDEF";
 char* constMEM hexNr[] MEMMODE={"0","x",hexDigit,hexDigit};
 char buf1[]="0x11";
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
-  ,OP("Op1",doNothing,noEvent)
-  ,OP("Op2",doNothing,noEvent)
-  //,FIELD(test,"Test","%",0,100,10,1,doNothing,noEvent,wrapStyle)
-  ,SUBMENU(tempo)
-  ,SUBMENU(subMenu)
-  ,SUBMENU(setLed)
-  ,OP("LED On",myLedOn,enterEvent)
-  ,OP("LED Off",myLedOff,enterEvent)
-  ,SUBMENU(selMenu)
-  ,SUBMENU(chooseMenu)
-  ,OP("Alert test",doAlert,enterEvent)
-  ,EDIT("Hex",buf1,hexNr,doNothing,noEvent,noStyle)
-  ,EXIT("<Exit")
-);
+     ,OP("Op1",doNothing,noEvent)
+     ,OP("Op2",doNothing,noEvent)
+     //,FIELD(test,"Test","%",0,100,10,1,doNothing,noEvent,wrapStyle)
+     ,SUBMENU(tempo)
+     ,SUBMENU(subMenu)
+     ,SUBMENU(setLed)
+     ,OP("LED On",myLedOn,enterEvent)
+     ,OP("LED Off",myLedOff,enterEvent)
+     ,SUBMENU(selMenu)
+     ,SUBMENU(chooseMenu)
+     ,OP("Alert test",doAlert,enterEvent)
+     ,EDIT("Hex",buf1,hexNr,doNothing,noEvent,noStyle)
+     ,EXIT("<Exit")
+     );
 
 #define MAX_DEPTH 2
-
-// global variables for display
 
 encoderIn<encA,encB> encoder;//simple quad encoder driver
 encoderInStream<encA,encB> encStream(encoder);// simple encoder Stream
@@ -195,8 +269,6 @@ outputsList out(outputs,sizeof(outputs)/sizeof(menuOut*));//outputs list control
 
 
 NAVROOT(nav,mainMenu,MAX_DEPTH,in,out);
-
-bool displaydata=false;
 
 
 result alert(menuOut& o,idleEvent e) {
@@ -243,29 +315,12 @@ void encoderprocess (){
 }
 
 
-// prepend to logging
-void printTimestamp(Print* _logOutput) {
-  char c[12];
-  sprintf(c, "%10lu ", millis());
-  _logOutput->print(c);
-}
-
-// postpone to logging
-void printNewline(Print* _logOutput) {
-  _logOutput->print('\n');
-}
-
-
-struct sensor_t
-{
-  char driver[5];         // driver name
-  char type[5];         // driver name
-  uint8_t address;            // i2c address
-} sensors[SENSORS_LEN];
-frtosSensorDriver* sd[SENSORS_LEN];
+// --------------------------------- //
 
 using namespace cpp_freertos;
 
+
+//                                 Thread to manage menu and display data
 class menuThread : public Thread {
 
 public:
@@ -284,6 +339,9 @@ protected:
 
     frtosLog.notice("Starting Thread menu");
 
+    pinMode(LEDPIN, OUTPUT);       // initialize LED status
+    digitalWrite(LEDPIN,ledCtrl);
+    
     u8g2.setI2CAddress(OLEDI2CADDRESS*2);
     u8g2.begin();
     u8g2.setFont(fontName);
@@ -311,13 +369,14 @@ protected:
     
     while (true) {
 
+      // get messages from the queue
       if (MessageQueue.Dequeue(&Message,0)){
 	frtosLog.notice(F("ricevo dalla coda : %s %d %d"),Message.type,Message.ind,Message.value);
 
-	if (displaydata){
+	if (displaydata){               // we have new messages and hav to display it
 
 #ifndef ARDUINO_ARCH_STM32
-	  LockGuard guard(sdmutex);
+	  LockGuard guard(sdmutex);     // use mutex when we have only oene I2C bus
 #endif
 	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
 	  //u8g2.clearBuffer();
@@ -360,10 +419,10 @@ protected:
       }
       
       nav.doInput();
-      if (nav.changed(0)) {//only draw if menu changed for gfx device
+      if (nav.changed(0)) {   //only draw if menu changed for gfx device
 	u8g2.firstPage();
 #ifndef ARDUINO_ARCH_STM32
-	sdmutex.Lock();
+	sdmutex.Lock();       // use mutex when we have only oene I2C bus
 #endif
 	do nav.doOutput(); while(u8g2.nextPage());
 #ifndef ARDUINO_ARCH_STM32
@@ -381,19 +440,20 @@ private:
 
 
 
+//                                 Thread to get data from one sensor
 class sensorThread : public Thread {
   
 public:
   
   sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard& sdmutex,Queue &q)
     : Thread("Thread Sensor", 200, 2), 
-      Id (i), 
-      DelayInSeconds(delayInSeconds),
-      sensor(mysensor),
-      sd(nullptr),
-      MessageQueue(q)
+      Id (i),                                     // id of the thread
+      DelayInSeconds(delayInSeconds),             // sample time for the sensor
+      sensor(mysensor),                           // sensor definition RMAP stype
+      sd(nullptr),                                // sensor driver (SensorDriver library)
+      MessageQueue(q)                             // queue to send data
   {
-        sd=frtosSensorDriver::create(sensors[i].driver,sensors[i].type,sdmutex);
+    sd=frtosSensorDriver::create(sensor.driver,sensor.type,sdmutex);  // create driver
 	Start();
   };
   
@@ -423,7 +483,7 @@ protected:
 	if (sd->prepare(waittime) != SD_SUCCESS){
 	  frtosLog.error("%d:%s %s prepare failed !", Id,sd->driver,sd->type);
 
-	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
+	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {      // send missed data message
 	      memcpy(Message.type,sd->type, sizeof(sd->type));
 	      Message.ind=ii;
 	      Message.value=0xFFFFFFFF;
@@ -441,7 +501,7 @@ protected:
 	  long values[LENVALUES];
 	  
 	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
-	    values[ii]=0xFFFFFFFF;
+	    values[ii]=0xFFFFFFFF;                   // initialize to missed
 	  }
 	  
 	  if (sd->get(values,LENVALUES) == SD_SUCCESS){
@@ -452,7 +512,7 @@ protected:
 	    frtosLog.error("%d:%s %s Error",Id,sd->driver,sd->type);
 	  }
 
-	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
+	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {   // send data
 	    memcpy(Message.type,sd->type, sizeof(sd->type));
 	    Message.ind=ii;
 	    Message.value=values[ii];
@@ -476,9 +536,17 @@ private:
 void setup (void)
 {
 
-  static MutexStandard loggingmutex;
-  static MutexStandard sdmutex;
-
+  /*  Warning
+      in this function il you want use a variable after scheduler is started
+      you have to allocate il in heap becouse averithings allocated in stack
+      will be deleted by freertos starting scheduler
+      so use static or new to allocate
+  */
+  
+  static MutexStandard loggingmutex;  // shared serial for logging
+  static MutexStandard sdmutex;       // shared I2C bus
+  sensor_t sensors[SENSORS_LEN];      // not static, we lost it after StartScheduler
+  
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
   sensors[0].address=73;
@@ -489,13 +557,10 @@ void setup (void)
   
   // start up the i2c interface
   Wire.begin();
-  WIREX.begin();
+  WIREX.begin();       // it could be the same I2C or second I2C
   
   // start up the serial interface
   Serial.begin(115200);
-
-  pinMode(LEDPIN, OUTPUT);       // initialize LED status
-  digitalWrite(LEDPIN,ledCtrl);
 
   //Start logging
   frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial,loggingmutex);
@@ -508,7 +573,7 @@ void setup (void)
   MessageQueue = new Queue(SENSORS_LEN*LENVALUES, sizeof(message_t));
   
   menuThread* MT;
-  MT=new menuThread(sdmutex,*MessageQueue);
+  MT=new menuThread(sdmutex,*MessageQueue);     // we can allocate it as static too
 
   sensorThread* ST[SENSORS_LEN];
   // create threads
