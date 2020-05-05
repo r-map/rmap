@@ -52,6 +52,7 @@
         inline styles style() const {return shadow->_style();}
         inline eventMask events() const {return shadow->_events();}
 
+        virtual idx_t sz() const {return 0;}
         inline bool is(systemStyles chk)  const {return (sysStyles()&chk)==chk;}
         inline bool has(systemStyles chk) const {return sysStyles()&chk;}
         inline bool is(styles chk)        const {return (style()&chk)==chk;}
@@ -213,6 +214,15 @@
           void printTune(menuOut& o) const override;
           const char* typeName() const override;
         #endif
+      };
+
+      template<uint8_t dps>
+      struct decPlaces {
+        template<typename T>
+        struct menuField:Menu::menuField<T> {
+          using Menu::menuField<T>::menuField;
+          idx_t printReflex(menuOut& o) const override;
+        };
       };
 
     //--------------------------------------------------------------------------

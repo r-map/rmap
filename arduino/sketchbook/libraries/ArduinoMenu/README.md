@@ -1,8 +1,14 @@
+# COVID-19 note
+
+**If you need this menu for any device covid-19 related, be my guest, I grant you free usage even if you going to sell the device**
+
+This menu system has the advantage of being long tested and supporting many interface devices so that makers don't be restricted in hardware.
+
 # ArduinoMenu 4
 
 **Generic menu/interactivity system for the arduino framework**
 
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://spdx.org/licenses/CC-BY-NC-SA-4.0.html)
+[![License: LGPL-2.1+](https://img.shields.io/badge/License%20LGPL-2.1+-lightgrey.svg)](https://spdx.org/licenses/LGPL-2.1-or-later.html)
 [![Build Status](https://travis-ci.org/neu-rah/ArduinoMenu.svg?branch=master)](https://travis-ci.org/neu-rah/ArduinoMenu)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.me/ruihfazevedo)
 [![Join Gitter](https://img.shields.io/badge/GITTER-join%20chat-green.svg)](https://gitter.im/ArduinoMenu/Lobby)
@@ -106,6 +112,15 @@ Some plugins might be platform specific or require some hardware.
 
 Some applications/tutorials using ArduinoMenu, (current and older versions).  
 Do you have another? please let me know on gitter or email me.
+
+**Arduino script for temperature sensor and timer.** It allows to turn on heater and light accordingly to schedule  
+https://github.com/vikulin/LCD_LAT
+
+**Project-GlassKilnController** electrically-heated kiln for making "Warm Glass"  
+https://arduinoinfo.mywikis.net/wiki/Project-GlassKilnController
+
+**ArduinoMenu demo TTGO T-Display** awesome tutorial.  
+https://sites.google.com/site/jmaathuis/arduino/lilygo-ttgo-t-display-esp32/arduinomenu-demo-ttgo-t-display
 
 **mvc-interface** ArduinoMenu tutorial  
 https://zaragozamakerspace.com/index.php/courses/mvc-interface/

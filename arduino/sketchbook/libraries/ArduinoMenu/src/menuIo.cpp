@@ -52,6 +52,12 @@ idx_t menuOut::printRaw(const char* at,idx_t len) {
   return at-p-1;
 }
 
+idx_t menuOut::printText(const char* at,idx_t len) {
+  for(int n=0;at[n]&&(len==0||n<len);n++)
+    write(at[n]);
+  return len;
+}
+
 void menuOut::doNav(navCmd cmd,navNode &nav) {
   trace(MENU_DEBUG_OUT<<"menuOut::doNav"<<endl);
   panel p=panels[nav.root->level];
