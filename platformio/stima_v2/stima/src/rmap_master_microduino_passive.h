@@ -40,7 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // activate if you have the Hobby Components I2C LCD module (HCARDU0023)
 // LCD Version 1 - Marked YwRobot Arduino LCM1602 IIC V1
-#define LCD
+#define USELCD
 // activate if you have relays connected to some pins
 #define ATTUATORE
 

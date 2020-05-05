@@ -182,7 +182,7 @@ Mega2560	      	        	   21	   20	   19	   18
 #define IF_SDEBUG(x)
 #endif
 
-#ifdef LCD
+#ifdef USELCD
 #define IF_LCD(x) ({x;})
 #define LCD_I2CADDRESS 0x27
 #define LCD_CHAR 20
@@ -217,8 +217,13 @@ Mega2560	      	        	   21	   20	   19	   18
 #define ETHERNETPORT 1000
 
 // define the output pins used for (relays)
+#ifdef ARDUINO_ARCH_AVR
 #define OUTPUTPINS 4,5,A6,A7
-
+#endif
+#ifdef ARDUINO_ARCH_STM32
+#define OUTPUTPINS 4,5,A6,A6
+#endif  
+  
 // define pin and led that force and display configuration status at boot
 #define FORCECONFIGPIN 8          // the same pin of CS for ENC28j60 ENC28J60_CONTROL_CS
 #define FORCECONFIGLED 13
@@ -259,4 +264,8 @@ static char mainbuf[MAIN_BUFFER_SIZE];
   #endif
   #define SLEEP_TIME 5
   #define TOLLERANCE_TIME 5
+#endif
+
+#ifdef ARDUINO_ARCH_STM32
+HardwareSerial Serial1(PA_0, PB_10);
 #endif

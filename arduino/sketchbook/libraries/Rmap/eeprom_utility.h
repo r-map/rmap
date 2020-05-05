@@ -23,6 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _EEPROM_UTILITY_H
 #define _EEPROM_UTILITY_H
 
+#ifdef ARDUINO_ARCH_AVR
 #include <avr/eeprom.h>
 
 /*!
@@ -36,5 +37,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Write size bytes of data in eeprom at specified address.
 */
 #define ee_write(data,address,size)     (eeprom_write_block((void *)data, (void *)address, size))
+
+#else
+#include <EEPROM.h>
+
+//       TO BE DONE !
+
+void ee_read(void *data,void * address,size_t size){};
+
+void ee_write(const void *data,void * address,size_t size){};
+
+#endif
+
 
 #endif

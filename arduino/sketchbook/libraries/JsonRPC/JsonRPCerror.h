@@ -13,7 +13,7 @@ enum _error
 };
 
 /* type to provide in your API */
-typedef _error error_t;
+typedef _error rpcerror_t;
 
 char * strerror (int errnum);
 

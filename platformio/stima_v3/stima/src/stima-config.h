@@ -319,7 +319,11 @@ Possible value for WDT_TIMER are:
 WDTO_15MS, WDTO_30MS, WDTO_60MS, WDTO_120MS, WDTO_250MS, WDTO_500MS,
 WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
+#ifdef ARDUINO_ARCH_AVR
 #define WDT_TIMER                                     (WDTO_8S)
+#else
+#define WDT_TIMER                                     (8000)
+#endif
 
 /*********************************************************************
 * RTC

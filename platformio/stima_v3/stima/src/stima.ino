@@ -919,7 +919,7 @@ int prepandget(JsonObject &params, JsonObject &result) {
 }
 #endif
 
-uint32_t getSystemTime() {
+time_t getSystemTime() {
   return system_time;
 }
 

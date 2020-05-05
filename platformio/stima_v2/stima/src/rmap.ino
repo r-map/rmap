@@ -69,7 +69,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifdef REPEATTASK
 #include <TimeAlarms.h>
 #ifdef REPORTMODE
+#ifdef ARDUINO_ARCH_AVR
 #include <Sleep_n0m1.h>
+#endif
 unsigned long repeattasktime;
 bool newqueued=true;
 Sleep sleep;
@@ -268,9 +270,9 @@ static int uart_putchar (char c, FILE *stream)
 }
 #endif
 
-#ifdef LCD
+#ifdef USELCD
 #include <Wire.h>
-#include <YwrobotLiquidCrystal_I2C.h>
+#include <LiquidCrystal_I2C.h>
 /* Initialise the LiquidCrystal library. The default address is 0x27 and this is a 16x2 or 16x4 line display */
 LiquidCrystal_I2C lcd(LCD_I2CADDRESS,LCD_CHAR,LCD_ROW);
 #endif
@@ -864,7 +866,7 @@ void digitalClockDisplay(time_t t ){
 
 #endif
 
-#if defined(LCD)     
+#if defined(USELCD)     
 
 void lcdDigits(int digits){
   // utility function for digital clock display: lcd display preceding colon and leading 0
@@ -2729,7 +2731,7 @@ void mgrsdcard(time_t maxtime)
 #ifdef ARDUINO_ARCH_AVR
   wdt_reset();
 #endif
-  unsigned long int starttime=max(millis() - 10000,1);  // 10 sec tollerance
+  unsigned long int starttime=max(millis() - 10000,1UL);  // 10 sec tollerance
 
   #if defined(REPORTMODE)
 
@@ -3158,7 +3160,7 @@ void setup()
 #if defined (GSMGPRSMQTT)
   DBGSERIAL.print(F(" gsm-mqtt"));
 #endif
-#if defined (LCD)
+#if defined (USELCD)
   DBGSERIAL.print(F(" lcd"));
 #endif
 #if defined (SDCARD)
@@ -3232,7 +3234,7 @@ void setup()
   Wire.setClock(I2C_CLOCK);
 
 
-#if defined(LCD)
+#if defined(USELCD)
   /* Initialise the LCD */
   IF_SDEBUG(DBGSERIAL.println(F("#initialize LCD")));
   lcd.init();
@@ -3692,7 +3694,7 @@ void setup()
   }
 #endif
 
-#if defined(LCD)
+#if defined(USELCD)
   if(timeStatus()== timeNotSet){
     lcd.setCursor(0,2); 
     lcd.print(F("time was not set"));
@@ -3886,13 +3888,13 @@ void loop()
     delay(100);
 
 #if defined(GSMGPRSMQTT)
+    #if def ARDUINO_ARCH_AVR
     sleep.idleMode(); //set sleep mode
     //sleep.pwrDownMode(); //set sleep mode
     sleep.sleepDelay((dt-MQTTCONNECT_TIME-TOLLERANCE_TIME)*1000); //sleep for: sleepTime
     //setMillis(millis()+((dt-25)*1000));   
-#ifdef ARDUINO_ARCH_AVR
     wdt_reset();
-#endif
+    #endif
 #endif
 
 #if defined(ETHERNETMQTT)

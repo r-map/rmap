@@ -32,9 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <json_config.h>
 #include <ntp_config.h>
 #include <lcd_config.h>
+
+#ifdef ARDUINO_ARCH_AVR
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
+#endif
+
 #include <SPI.h>
 #include <Wire.h>
 
@@ -650,7 +654,7 @@ rpc_state_t rpc_state;
 * FUNCTIONS
 *********************************************************************/
 void reboot();
-uint32_t getSystemTime();
+time_t getSystemTime();
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.
@@ -1043,5 +1047,37 @@ bool is_event_rpc;
 \return void.
 */
 void rtc_interrupt_handler(void);
+
+
+#ifndef ARDUINO_ARCH_AVR
+
+void wdt_enable(int wdt_timer){};
+void wdt_reset(){};
+void wdt_disable(){};
+
+void power_adc_disable(){};
+void power_spi_disable(){};
+void power_timer0_disable(){};
+void power_timer1_disable(){};
+void power_timer2_disable(){};
+void power_adc_enable(){};
+void power_spi_enable(){};
+void power_timer0_enable(){};
+
+void power_timer1_enable(){};
+void power_timer2_enable(){};
+
+void set_sleep_mode(int SLEEP_MODE_PWR_DOWN){};
+void sleep_enable(){};
+void sleep_cpu(){};
+void sleep_disable(){};
+
+#define WDTO_1S 1
+#define SLEEP_MODE_PWR_DOWN 1
+
+HardwareSerial Serial1(PA_0, PB_10);
+
+#endif
+
 
 #endif
