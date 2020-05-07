@@ -2,10 +2,28 @@
 
   "Hello World" version for u8g2 API
    U8g2 Project: SSD1306 Test Board
-   use Wemos oled board 2.1.0
+   use STM32 nucleo_l432kc
 
   Universal 8bit Graphics Library (https://github.com/olikraus/u8g2/)
 
+Display connector:
+VCC 	3.3V
+GND 	GND
+DIN 	SPI MOSI
+CLK 	SPI SCK
+CS 	SPI chip select (Low active)
+DC 	Data/Command control pin (High for data, and low for command)
+RST 	External reset pin (Low for reset)
+BUSY 	Busy state output pin (High for busy) 
+
+connect:
+VCC -> 3.3V
+GND -> GND
+din -> D11
+clk -> D13
+cs  -> D8
+dc  -> D9
+rst -> D10
 */
 
 #include <SPI.h>
