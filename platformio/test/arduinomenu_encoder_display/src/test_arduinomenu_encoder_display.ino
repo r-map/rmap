@@ -64,14 +64,16 @@ U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #else
 #include <SPI.h>
 
-#define fontName u8g2_font_profont17_tf
-// problem here: do not work as expected
+//#define fontName u8g2_font_profont17_tf
 //#define fontX 9
-#define fontX 50       
-#define fontY 17
+//#define fontY 17
+#define fontName u8g2_font_10x20_tf
+#define fontX 10
+#define fontY 20
 #define offsetX 0
 #define offsetY 0
-#define U8_Width 296
+// problem here: do not set bigger U8_Width
+#define U8_Width 200
 #define U8_Height 128
 #define fontMarginX 2
 #define fontMarginY 1
@@ -315,5 +317,5 @@ void loop() {
   if (nav.changed(0)) {//only draw if menu changed for gfx device
     u8g2.firstPage();
     do nav.doOutput(); while(u8g2.nextPage());
-  }  
+  }
 }
