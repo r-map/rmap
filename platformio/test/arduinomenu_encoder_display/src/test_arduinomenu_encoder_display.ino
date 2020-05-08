@@ -5,16 +5,24 @@ Arduino generic menu system
 U8G2 menu example
 U8G2: https://github.com/olikraus/u8g2
 
+Maj. 2020 Paolo Patruno https://github.com/r-map/rmap/platformio/test
 Oct. 2016 Stephen Denne https://github.com/datacute
 Based on example from Rui Azevedo - ruihfazevedo(@rrob@)gmail.com
 Original from: https://github.com/christophepersoz
 
 menu on U8G2 device
-input:  Serial + encoder
-output: wemos OLED Shield (SSD1306 I2C) + Serial
-mcu: esp8266 wemos D1 mini
-
+input:  Serial + encoder + IRremote + serial
+output: wemos OLED Shield (SSD1306 I2C)/epaper (IL3820 SPI) + Serial
+mcu:
+esp8266 wemos D1 mini
+STM32 nucleo_l432kc
+arduino mega
+microduino 1284p16m/644pa16m
 */
+
+
+//#define I2CDISPLAY
+
 #include <U8g2lib.h>
 #include <menu.h>
 #include <menuIO/u8g2Out.h>
@@ -24,14 +32,16 @@ mcu: esp8266 wemos D1 mini
 #include <menuIO/chainStream.h>
 #include <menuIO/serialOut.h>
 #include <menuIO/serialIn.h>
-#include <Wire.h>
 
 // rotary encoder pins
-#define encBtn  7
+#define encBtn  6
 #define encA    2
 #define encB    3
 
 #define IR_PIN 0
+
+#if defined(I2CDISPLAY)
+#include <Wire.h>
 
 #define fontName u8g2_font_tom_thumb_4x6_tf
 #define fontX 5
@@ -51,7 +61,23 @@ U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
 #define WIREX Wire
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #endif
+#else
+#include <SPI.h>
 
+#define fontName u8g2_font_profont17_tf
+// problem here: do not work as expected
+//#define fontX 9
+#define fontX 50       
+#define fontY 17
+#define offsetX 0
+#define offsetY 0
+#define U8_Width 296
+#define U8_Height 128
+#define fontMarginX 2
+#define fontMarginY 1
+
+U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+#endif
 
 // define menu colors --------------------------------------------------------
 //each color is in the format:
@@ -65,7 +91,16 @@ const colorDef<uint8_t> colors[] ={
   {{0,1},{0,0,1}},//cursorColor
   {{1,1},{1,0,0}},//titleColor
 };
-
+/*  reverse colors
+const colorDef<uint8_t> colors[] ={
+  {{1,1},{1,0,0}},//bgColor
+  {{0,0},{0,1,1}},//fgColor
+  {{0,0},{0,1,1}},//valColor
+  {{0,0},{0,1,1}},//unitColor
+  {{1,0},{1,1,0}},//cursorColor
+  {{0,0},{0,1,1}},//titleColor
+};
+*/
 result doAlert(eventMask e, prompt &item);
 
 int test=55;
@@ -235,7 +270,11 @@ void setup() {
   while(!Serial);
   Serial.println("menu 4.x test");Serial.flush();
 
+#if defined(I2CDISPLAY)  
   WIREX.begin();
+#else
+  SPI.begin();
+#endif
 
   delay(1000);
   #define OLEDI2CADDRESS 0X3C
@@ -244,7 +283,7 @@ void setup() {
   u8g2.setFont(fontName);
   u8g2.setFontMode(0); // enable transparent mode, which is faster
   u8g2.clearBuffer();
-  u8g2.setCursor(0, 10); 
+  u8g2.setCursor(0, 40); 
   u8g2.print(F("Starting up!"));
   u8g2.sendBuffer();
 

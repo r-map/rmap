@@ -37,12 +37,12 @@ rst -> D10
 
 #ifdef USE_U8G2
 // Define the dimension of the U8*log window
-#define U8LOG_WIDTH 20
-#define U8LOG_HEIGHT 8
+#define U8LOG_WIDTH 200
+#define U8LOG_HEIGHT 22
 #else
 // Define the dimension of the U8*log window
-#define U8LOG_WIDTH 10
-#define U8LOG_HEIGHT 6
+#define U8LOG_WIDTH 100
+#define U8LOG_HEIGHT 16
 #endif
 
 
@@ -87,7 +87,7 @@ void setup(void)
 
   // start up display
   u8g2.begin();
-  u8g2.setFont(fontNameS);
+  u8g2.setFont(fontNameB);
   u8g2.setFontMode(0); // enable transparent mode, which is faster
   u8g2.clearBuffer();
   u8g2.setCursor(0, 10); 
@@ -98,13 +98,14 @@ void setup(void)
   u8g2log.begin(u8g2, U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
   u8g2log.setLineHeightOffset(0);	// set extra space between lines in pixel, this can be negative
   u8g2log.setRedrawMode(0);		// 0: Update screen with newline, 1: Update screen for every char
+  u8g2.setFont(fontNameS);
   
 #else  
 
   u8x8.begin();
   u8x8.setPowerSave(0);
 
-  u8x8.setFont(fontName);
+  u8x8.setFont(fontNameB);
   u8x8.drawString(0,0,"Hello");
   u8x8.drawString(0,1,"World!");
   u8x8.refreshDisplay();
@@ -114,6 +115,7 @@ void setup(void)
   
   // Set the U8x8log redraw mode
   u8x8log.setRedrawMode(0);		// 0: Update screen with newline, 1: Update screen for every char  
+  u8x8.setFont(fontName);
 
 #endif
 }
