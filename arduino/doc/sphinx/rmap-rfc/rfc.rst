@@ -893,13 +893,17 @@ Stato della connessione
 Alla connessione deve essere inviato dalla stazione una eventuale
 segnalazione di sconnessione gestita male con will (retained):
 
-**``maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213"/``**\ `` ``
+::
+   
+   maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
 payload : **{"v": "error01"}**
 
 poi questo messaggio viene "ricoperto" con:
 
-**``maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213"/``**
+::
+   
+   maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
 payload : **{ "v": "conn"}**
 
@@ -919,7 +923,9 @@ formato per il payload.
 
 Forma simbilica del topic:
 
-**\ ``/IDENT/COORDS/NETWORK/TRANGE/LEVEL/VAR``**
+::
+   
+   <rootpath>/IDENT/COORDS/NETWORK/TRANGE/LEVEL/VAR
 
 -  **IDENT**: identificativo dell'utente che pubblica i dati o
    identificativo della stazione per stazioni mobili, “-” per stazioni
@@ -955,7 +961,9 @@ Constant Data
 I metadati per i dati costanti (anagrafica) sono caratterizzati da
 questo path:
 
-**\ ``/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/``**\ `` ``
+::
+   
+   <rootpath>/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/
 
 con payload simile a quello dei dati, in particolare dovrà essere omessa
 la chiave “t”: **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**
@@ -977,7 +985,9 @@ allo stato della connessione.
 Il topic e come quello della forma standard senza l'ultimo parametro
 "VAR". Ad esempio:
 
-``test/myuser/1131908,4449301/fixed/254,0,0/103,2000,-,-``
+::
+   
+   test/myuser/1131908,4449301/fixed/254,0,0/103,2000,-,-
 
 Il payload prevede due parametri:
 
@@ -988,19 +998,21 @@ Il payload prevede due parametri:
 
 Ad esempio:
 
-``{"d":50,"p":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]}``
+::
+   
+   {"d":50,"p":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]}
 
 Tabella D
          
 ::
    
- dtable={"50":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
-             "B49205","B49206","B49207","B49208","B49209","B49210","B49211",
-             "B49212","B49213","B49214","B49215","B49216","B49217","B49218",
-             "B49219","B49220","B49221"],
-         "51":["B11211","B11212","B11213","B11214","B11215","B11216"],
-         "52":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
-             "B49205","B49206","B49207","B49208","B49209"]}
+   dtable={"50":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
+                 "B49205","B49206","B49207","B49208","B49209","B49210","B49211",
+                 "B49212","B49213","B49214","B49215","B49216","B49217","B49218",
+                 "B49219","B49220","B49221"],
+           "51":["B11211","B11212","B11213","B11214","B11215","B11216"],
+           "52":["B49198","B49199","B49200","B49201","B49202","B49203","B49204",
+                 "B49205","B49206","B49207","B49208","B49209"]}
 
 Seconda forma contratta tabella E
 '''''''''''''''''''''''''''''''''
@@ -1010,7 +1022,9 @@ In questa forma contratta non è necessario inviare messaggi relativi
 allo stato della connessione. Il topic e come quello della forma
 standard senza i parametri "VAR", "LEVEL" e "TRANGE". Ad esempio:
 
-``test/myuser/1131908,4449301/fixed``
+::
+   
+   test/myuser/1131908,4449301/fixed
 
 Il payload prevede due parametri:
 
@@ -1021,19 +1035,22 @@ Il payload prevede due parametri:
 
 Ad esempio:
 
-``{"p":[27315,73],"e":1}``
+::
+   
+   {"p":[27315,73],"e":1}
 
 Tabella E
          
 ::
- # template 1: temperature and humidity``
- etable={"1":{"B12101"={"timerange":"254,0,0","level":"103,2000,-,-"},
-             "B13003"={"timerange":"254,0,0","level":"103,2000,-,-"}},
- # template 2: temperature, humidity and PM2.5
-         "2":{"B12101"]={"timerange":"254,0,0","level":"103,2000,-,-"},
-             "B13003"]={"timerange":"254,0,0","level":"103,2000,-,-"},
-             "B15198"]={"timerange":"254,0,0","level":"103,2000,-,-"}}
-        }
+   
+   # template 1: temperature and humidity``
+     etable={"1":{"B12101"={"timerange":"254,0,0","level":"103,2000,-,-"},
+                  "B13003"={"timerange":"254,0,0","level":"103,2000,-,-"}},
+   # template 2: temperature, humidity and PM2.5
+             "2":{"B12101"]={"timerange":"254,0,0","level":"103,2000,-,-"},
+                  "B13003"]={"timerange":"254,0,0","level":"103,2000,-,-"},
+                  "B15198"]={"timerange":"254,0,0","level":"103,2000,-,-"}}
+   }
 
 Remote procedure over MQTT
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1041,8 +1058,9 @@ Remote procedure over MQTT
 Le RPC sono in formato json (json-rpc) e utilizzano due topics MQTT:
 
 ::
-       topiccom="rpc/"+user+"/"+mac+"/com"
-       topicres="rpc/"+user+"/"+mac+"/res"
+   
+   topiccom="rpc/<user>/<mac>/com"
+   topicres="rpc/<user>/<mac>/res"
 
 -  topiccom è il topic utilizzato per l'invio delle richieste RPC al
    server mentre topicres è il topic utilizzato dal server per le
@@ -1113,18 +1131,20 @@ esempi:
 -  reset, configurazione e salvatataggio in una unica RPC
 
 ::
- {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,"save":true,"mqttserver":"rmap.cc", "sensors":[{"mqttpath":"105,2000,,/1,0,900", ext":{"driver":"HIH"}}]}, "id": 0}
+   
+   {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,"save":true,"mqttserver":"rmap.cc", "sensors":[{"mqttpath":"105,2000,,/1,0,900", ext":{"driver":"HIH"}}]}, "id": 0}
 
 -  reset, configurazione, addizione sensori e salvataggio in differenti
    RPC
 
 ::
- {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,}, "id": 0}
- {"jsonrpc": "2.0", "method": "config", "params": {"mqttserver":"rmap.cc", "mqttuser":"myuser", "mqttpass":"mypassword"}, "id": 1}
- {"jsonrpc": "2.0", "method": "config", "params": {"datalevel":"report", "network":"fixed", "lon":1112345, "lat":4412345}, "id": 1}
- {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"1,0,60", "lev":"1,-,-,-", "var":"B130111", ext":{"driver":"HIH"}}]}, "id": 2}
- {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"254,0,0", "lev":"105,2000,-,-", "var":"B12101", ext":{"driver":"TMP"}}]}, "id": 3}
- {"jsonrpc": "2.0", "method": "config", "params": {"save":true}, "id": 4}
+
+   {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,}, "id": 0}
+   {"jsonrpc": "2.0", "method": "config", "params": {"mqttserver":"rmap.cc", "mqttuser":"myuser", "mqttpass":"mypassword"}, "id": 1}
+   {"jsonrpc": "2.0", "method": "config", "params": {"datalevel":"report", "network":"fixed", "lon":1112345, "lat":4412345}, "id": 1}
+   {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"1,0,60", "lev":"1,-,-,-", "var":"B130111", ext":{"driver":"HIH"}}]}, "id": 2}
+   {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"254,0,0", "lev":"105,2000,-,-", "var":"B12101", ext":{"driver":"TMP"}}]}, "id": 3}
+   {"jsonrpc": "2.0", "method": "config", "params": {"save":true}, "id": 4}
 
 - pinout
       
@@ -1139,7 +1159,8 @@ parametri:
    -  bool s: true=on; false=off
 
 ::
- {"jsonrpc": "2.0", "method": "pinout", "params": [{"n":4,"s":true},{"n":5,"s":false}], "id": 0}
+
+   {"jsonrpc": "2.0", "method": "pinout", "params": [{"n":4,"s":true},{"n":5,"s":false}], "id": 0}
 
 - recovery
         
@@ -1149,7 +1170,8 @@ Richiede il re-invio dei dati non trasmessi al server; senza parametri
 esempio:
 
 ::
- {"jsonrpc": "2.0", "method": "sdrecovery", "id": 0}
+
+   {"jsonrpc": "2.0", "method": "sdrecovery", "id": 0}
 
 - resend
       
@@ -1165,7 +1187,8 @@ iniziale a una data finale
 esempio:
 
 ::
- {"jsonrpc": "2.0", "method": "resend", "params": {"dts":[2014,2,10,18,45,18],"dte":[2015,3,25,12,0,0] }, "id": 0}
+   
+   {"jsonrpc": "2.0", "method": "resend", "params": {"dts":[2014,2,10,18,45,18],"dte":[2015,3,25,12,0,0] }, "id": 0}
 
 reboot
       
@@ -1173,8 +1196,10 @@ reboot
 Richiede il riavvio della stazione
 
 esempio:
+
 ::
- {"jsonrpc": "2.0", "method": "reboot", "id": 0}
+   
+   {"jsonrpc": "2.0", "method": "reboot", "id": 0}
 
 HTTP
 ^^^^
@@ -1200,7 +1225,8 @@ Ad esempio:
 -  get:
 
 ::
- http://rmap.cc/http2mqtt/?user=`` <http://rmap.cc/http2mqtt/?user=>`__\ \ ``&password=``\ \ ``&topic=sample/``\ \ ``/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0, "t":"2015-07-30T15:30:00"}
+   
+   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=sample/<myuser>/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0, "t":"2015-07-30T15:30:00"}
 
 risposta:
 
@@ -1210,7 +1236,9 @@ Per dati non differiti è possibile omettere la chiave "t" nel payload.
 
 -  get:
 
-```http://rmap.cc/http2mqtt/?user=`` <http://rmap.cc/http2mqtt/?user=>`__\ \ ``&password=``\ \ ``&topic=sample/``\ \ ``/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0}``
+::
+   
+   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=sample/<myuser>/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0}
 
 risposta:
 
@@ -1218,7 +1246,9 @@ risposta:
 
 -  get:
 
-```http://rmap.cc/http2mqtt/?time`` <http://rmap.cc/http2mqtt/?time>`__
+::
+   
+   http://rmap.cc/http2mqtt/?time
 
 risposta:
 
@@ -1292,7 +1322,9 @@ Le \`API\` avranno come prefisso la versione in uso.
 
 Ad esempio, serie temporale mensile usando la versione 1:
 
-http://api.borinud.arpa.emr.it/v1/dbajson/-/1120000,4450000/generic/254,0,0/103,2000,-,-/B12101/timeseries/2013/09
+::
+   
+   http://api.borinud.arpa.emr.it/v1/dbajson/-/1120000,4450000/generic/254,0,0/103,2000,-,-/B12101/timeseries/2013/09
 
 Format
 ^^^^^^
@@ -1305,18 +1337,24 @@ Il secondo prametro delle api è il formato; questa la scelta:
 
 ad esempio:
 
-http://api.borinud.arpa.emr.it/v1/geojson/-/1120000,4450000/generic/254,0,0/103,2000,-,-/B12101/timeseries/2013/09
+::
+   
+   http://api.borinud.arpa.emr.it/v1/geojson/-/1120000,4450000/generic/254,0,0/103,2000,-,-/B12101/timeseries/2013/09
 
 metadati
 ^^^^^^^^
 
 La "base" della richiesta è quella descritta per il topic MQTT, i.e.:
 
-**``/ident/coords/network/timerange/level/bcode/``**
+::
+   
+   /ident/coords/network/timerange/level/bcode/
 
 Ad esempio:
 
-**``/-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101``**
+::
+   
+   /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101
 
 E' l'URL che identifica la misurazione effettuata dalla stazione fissa
 (`-`) con longitudine 12,07738 e latitudine 44.60016 (`1207738,4460016`)
@@ -1330,12 +1368,25 @@ equivalente a dire "tutti".
 Anagrafica
 ''''''''''
 
+Elenco stazioni indipendenti dal timerange e livello sono specificati così:
+
+::
+
+   /-/<lon>,<lat>/<network>/-,-,-/-,-,-,-/*/stations
+   
+   /<ident>/*/<network>/-,-,-/-,-,-,-/*/stations
+
+I dati restituiti sono analoghi a quelli restituiti con una richiesta dati.
+
+
 I dati costanti nel tempo e indipendenti dal timerange e livello sono
 specificati così:
 
-**``/-/``\ \ ``,``\ \ ``/``\ \ ``/-,-,-/-,-,-,-/*/stationdata``**
-
-**``/``\ \ ``/*/``\ \ ``/-,-,-/-,-,-,-/*/stationdata``**
+::
+   
+   /-/<lon>,<lat>/<network>/-,-,-/-,-,-,-/*/stationdata
+   
+   /<ident>/*/<network>/-,-,-/-,-,-,-/*/stationdata
 
 I dati restituiti sono analoghi a quelli restituiti con una richiesta
 dati.
@@ -1349,21 +1400,27 @@ Serie temporale
 Serie temporale annuale,mensile, giornaliera e oraria:
 
 ::
- **``/ident/coords/network/timerange/level/bcode/timeseries/year``**
- **``/ident/coords/network/timerange/level/bcode/timeseries/year/month``**
- **``/ident/coords/network/timerange/level/bcode/timeseries/year/month/day``**
- **``/ident/coords/network/timerange/level/bcode/timeseries/year/month/day/hour``**
+
+   /ident/coords/network/timerange/level/bcode/timeseries/year
+   /ident/coords/network/timerange/level/bcode/timeseries/year/month
+   /ident/coords/network/timerange/level/bcode/timeseries/year/month/day
+   /ident/coords/network/timerange/level/bcode/timeseries/year/month/day/hour
 
 nel dettaglio:
 
-**``/``\ \ ``/``\ \ ``,``\ \ ``/``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``/timeseries/``\ \ ``/``\ \ ``/``\ \ ``/``\ **
+::
+   
+   /<ident>/<lon>,<lat>/<network>/<pind>,<p1>,<p2>/<lt1>,<l1>,<lt2>,<l2>/<bcode>/timeseries/<year>/<month>/<day>/<hour>
+
 
 Ad esempio:
+
 ::
- /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011
- /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01
- /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01/13
- /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01/13/06
+   
+   /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011
+   /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01
+   /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01/13
+   /-/1207738,4460016/locali/254,0,0/103,2000,-,-/B12101/timeseries/2011/01/13/06
 
 Serie spaziale
 ''''''''''''''
@@ -1372,45 +1429,54 @@ Serie spaziale di una rete, con granularità giornaliera o oraria (± 30
 minuti):
 
 ::
- **``/ident/coords/network/timerange/level/bcode/spatialseries/year/month/day``**
- **``/ident/coords/network/timerange/level/bcode/spatialseries/year/month/day/hour``**
+   
+ /ident/coords/network/timerange/level/bcode/spatialseries/year/month/day
+ /ident/coords/network/timerange/level/bcode/spatialseries/year/month/day/hour
 
 "ident" e "coords" possono assumere il valore "*"
 
 nel dettaglio:
 
-**``/``\ \ ``/``\ \ ``,``\ \ ``/``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``/spatialseries/``\ \ ``/``\ \ ``/``\ \ ``/``\ **
+::
+   
+   /<ident>/<lon>,<lat>/<network>/<pind>,<p1>,<p2>/<lt1>,<l1>,<lt2>,<l2>/<bcode>/spatialseries/<year>/<month>/<day>/<hour
 
 Ad esempio:
 
 ::
- /-/*/locali/254,0,0/103,2000,-,-/B12101/spatialseries/2011/01/13
- /-/*/*/254,0,0/103,2000,-,-/B12101/spatialseries/2011/01/13/06
+
+   /-/*/locali/254,0,0/103,2000,-,-/B12101/spatialseries/2011/01/13
+   /-/*/*/254,0,0/103,2000,-,-/B12101/spatialseries/2011/01/13/06
 
 Riassuntivo
 '''''''''''
 
 Riassuntivo di tutto il database:
 
-**``/*/*/*/*/*/*/summaries``**
+::
+   
+   /*/*/*/*/*/*/summaries
 
 Riassuntivo di una stazione (fissa o mobile):
 
-**``/-/``\ \ ``,``\ \ ``/``\ \ ``/*/*/*/summaries``**
-
-**``/``\ \ ``/*/``\ \ ``/*/*/*/summaries``**
+::
+   
+   /-/<lon>,<lat>/<network>/*/*/*/summaries
+   
+   /<ident>/*/<network>/*/*/*/summaries
 
 Riassuntivo di una misurazione in un dato mese:
 
-**``/*/*/``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``,``\ \ ``,``\ \ ``,``\ \ ``/``\ \ ``/summaries/``\ \ ``/``\ **
+::
+
+   /*/*/<network>/<pind>,<p1>,<p2>/<lt1>,<l1>,<lt2>,<l2>/<bcode>/summaries/<year>/<month>
+
 
 I dati restituiti sono analoghi a quelli restituiti con una richiesta
 dati.
 
 Formati dati
 ------------
-
-.. _json-1:
 
 Json
 ^^^^
@@ -1428,31 +1494,33 @@ Geojson
 http://geojson.org/
 
 Questo un esempio di \`GeoJSON`:
+
 ::
- {
-  "type": "FeatureCollection",
-  "features": [
-    {
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          10.26667,
-          46.81667
-        ]
-      },
-      "type": "Feature",
-      "properties": {
-        "date": "2011-01-25T00:00:00",
-        "level": [103,2000,null,null],
-        "ident": null,
-        "network": "locali",
-        "bcode": "B12101",
-        "value": 263.75,
-        "trange": [254,0,0]
-      }
-    },
-   ...
- }
+   
+   {
+     "type": "FeatureCollection",
+     "features": [
+                   {
+                     "geometry":  {
+                                    "type": "Point",
+				    "coordinates": [
+				                    10.26667,
+						    46.81667
+						  ]
+				   },
+		     "type": "Feature",
+		     "properties": {
+		                    "date": "2011-01-25T00:00:00",
+				    "level": [103,2000,null,null],
+				    "ident": null,
+				    "network": "locali",
+				    "bcode": "B12101",
+				    "value": 263.75,
+				    "trange": [254,0,0]
+		    },
+		    ...
+		 ]
+   }
 
 Ritrasmissioni e correzioni
 ---------------------------
