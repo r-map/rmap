@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   This test use:
   * MCU board
   * encoder with button (see at homotix)
-  * wemos oled display V2.1.0
+  * output: wemos OLED Shield V2.1.0 (SSD1306 I2C)/epaper 2.9" (IL3820 SPI)
   * temperature sensor ADT I2C connected
   * temeprature and humidity sensor HIH6100 I2C connected
 
@@ -49,7 +49,30 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   * for the first I2C bus
 
   Only one queue is used to send data to be displayed
+
+epaper Display connector:
+VCC 	3.3V
+GND 	GND
+DIN 	SPI MOSI
+CLK 	SPI SCK
+CS 	SPI chip select (Low active)
+DC 	Data/Command control pin (High for data, and low for command)
+RST 	External reset pin (Low for reset)
+BUSY 	Busy state output pin (High for busy) 
+
+epaper connections:
+VCC -> 3.3V
+GND -> GND
+din -> D11
+clk -> D13
+cs  -> D8
+dc  -> D9
+rst -> D10
+
  */
+
+// use oled display; if not setted use epaper display
+#define USEOLED
 
 // rotary encoder pins
 #define encBtn  6
@@ -88,6 +111,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
 
+#if defined(USEOLED)
 #define fontNameS u8g2_font_tom_thumb_4x6_tf
 #define fontNameB u8g2_font_t0_11_tf
 #define fontName u8g2_font_tom_thumb_4x6_tf
@@ -99,7 +123,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define U8_Height 48
 #define fontMarginX 1
 #define fontMarginY 1
+#else
+#define fontNameS u8g2_font_10x20_tf
+#define fontNameB u8g2_font_t0_11_tf
+#define fontName u8g2_font_10x20_tf
+#define fontX 10
+#define fontY 20
+#define offsetX 0
+#define offsetY 0
+// problem here: do not set bigger U8_Width without uncomment U8G2_16BIT in U8g2.h
+//#define U8_Width 200
+#define U8_Width 296
+#define U8_Height 128
+#define fontMarginX 2
+#define fontMarginY 1
+#endif
 
+#if defined(USEOLED)
 // use two I2C bus where available
 #if defined(ARDUINO_ARCH_STM32)
 #define WIREX Wire1
@@ -109,10 +149,16 @@ U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
 #define WIREX Wire
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #endif
+#else
+//SPI epaper
+#include <SPI.h>
+U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+#endif
 
 // exchange message for sensors data
 struct message_t
 {
+  uint8_t tid;  
   char type[5];         // driver name
   uint8_t ind;
   unsigned long int  value;
@@ -342,15 +388,17 @@ protected:
     pinMode(LEDPIN, OUTPUT);       // initialize LED status
     digitalWrite(LEDPIN,ledCtrl);
     
+#if defined(USEOLED)
     u8g2.setI2CAddress(OLEDI2CADDRESS*2);
+#endif
     u8g2.begin();
     u8g2.setFont(fontName);
     u8g2.setFontMode(0); // enable transparent mode, which is faster
     u8g2.clearBuffer();
-    u8g2.setCursor(0, 10); 
+    u8g2.setCursor(0, 40); 
     u8g2.print(F("Starting up!"));
     u8g2.sendBuffer();
-    
+
     Delay(Ticks::SecondsToTicks(3));
 
     encButton.begin();
@@ -371,7 +419,7 @@ protected:
 
       // get messages from the queue
       if (MessageQueue.Dequeue(&Message,0)){
-	frtosLog.notice(F("ricevo dalla coda : %s %d %d"),Message.type,Message.ind,Message.value);
+	frtosLog.notice(F("ricevo dalla coda : %d %s %d %d"),Message.tid,Message.type,Message.ind,Message.value);
 
 	if (displaydata){               // we have new messages and hav to display it
 
@@ -383,7 +431,7 @@ protected:
 	  u8g2.setFont(fontNameB);
 	  u8g2.setFontMode(0);
 	  
-	  if (strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
+	  if ((Message.tid == 0) && strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
 	    u8g2.setCursor(0, 12); 
 	    u8g2.print("T:");
 	    u8g2.setCursor(20, 12); 
@@ -398,7 +446,7 @@ protected:
 	    }
 	  }
 
-	  if (strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
+	  if ((Message.tid == 1) && strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
 	    u8g2.setCursor(0, 24); 
 	    u8g2.print("U:");
 	    u8g2.setCursor(20, 24); 
@@ -421,12 +469,16 @@ protected:
       nav.doInput();
       if (nav.changed(0)) {   //only draw if menu changed for gfx device
 	u8g2.firstPage();
+#if defined(USEOLED)
 #ifndef ARDUINO_ARCH_STM32
 	sdmutex.Lock();       // use mutex when we have only oene I2C bus
 #endif
+#endif
 	do nav.doOutput(); while(u8g2.nextPage());
+#if defined(USEOLED)
 #ifndef ARDUINO_ARCH_STM32
 	sdmutex.Unlock();
+#endif
 #endif
 	frtosLog.notice(F("D:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
       }  
@@ -485,6 +537,7 @@ protected:
 
 	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {      // send missed data message
 	      memcpy(Message.type,sd->type, sizeof(sd->type));
+	      Message.tid=Id;
 	      Message.ind=ii;
 	      Message.value=0xFFFFFFFF;
 	      MessageQueue.Enqueue(&Message);
@@ -514,6 +567,7 @@ protected:
 
 	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {   // send data
 	    memcpy(Message.type,sd->type, sizeof(sd->type));
+	    Message.tid=Id;
 	    Message.ind=ii;
 	    Message.value=values[ii];
 	    MessageQueue.Enqueue(&Message);
@@ -557,8 +611,9 @@ void setup (void)
   
   // start up the i2c interface
   Wire.begin();
+#if defined(USEOLED)
   WIREX.begin();       // it could be the same I2C or second I2C
-  
+#endif
   // start up the serial interface
   Serial.begin(115200);
 
