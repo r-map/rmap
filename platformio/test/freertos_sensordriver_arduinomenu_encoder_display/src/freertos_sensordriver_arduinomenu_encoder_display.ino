@@ -153,6 +153,7 @@ U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 //SPI epaper
 #include <SPI.h>
 U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+//U8G2_IL3820_V2_296X296_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
 #endif
 
 // exchange message for sensors data
