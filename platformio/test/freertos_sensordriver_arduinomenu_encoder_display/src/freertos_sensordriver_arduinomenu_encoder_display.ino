@@ -72,7 +72,11 @@ rst -> D10
  */
 
 // use oled display; if not setted use epaper display
-#define USEOLED
+//#define USEEPAPER
+
+// if defined show all sensor values in scrolling line
+// if not defined show selected values in fixed position
+//#define USEU8G2LOG
 
 // rotary encoder pins
 #define encBtn  6
@@ -111,49 +115,53 @@ rst -> D10
 #include <menuIO/keyIn.h>
 #include <menuIO/chainStream.h>
 
-#if defined(USEOLED)
-#define fontNameS u8g2_font_tom_thumb_4x6_tf
-#define fontNameB u8g2_font_t0_11_tf
-#define fontName u8g2_font_tom_thumb_4x6_tf
-#define fontX 5
-#define fontY 8
-#define offsetX 1
-#define offsetY 1
-#define U8_Width 64
-#define U8_Height 48
-#define fontMarginX 1
-#define fontMarginY 1
+#if not defined(USEEPAPER)
+  #define fontNameS u8g2_font_tom_thumb_4x6_tf
+  #define fontNameB u8g2_font_t0_11_tf
+  #define fontName u8g2_font_tom_thumb_4x6_tf
+  #define fontX 5
+  #define fontY 8
+  #define offsetX 1
+  #define offsetY 1
+  #define U8_Width 64
+  #define U8_Height 48
+  #define fontMarginX 1
+  #define fontMarginY 1
+  #define U8LOG_WIDTH 20
+  #define U8LOG_HEIGHT 8
 #else
-#define fontNameS u8g2_font_10x20_tf
-#define fontNameB u8g2_font_t0_11_tf
-#define fontName u8g2_font_10x20_tf
-#define fontX 10
-#define fontY 20
-#define offsetX 0
-#define offsetY 0
-// problem here: do not set bigger U8_Width without uncomment U8G2_16BIT in U8g2.h
-//#define U8_Width 200
-#define U8_Width 296
-#define U8_Height 128
-#define fontMarginX 2
-#define fontMarginY 1
+  #define fontNameS u8g2_font_10x20_tf
+  #define fontNameB u8g2_font_t0_11_tf
+  #define fontName u8g2_font_10x20_tf
+  #define fontX 10
+  #define fontY 20
+  #define offsetX 0
+  #define offsetY 0
+  // problem here: do not set bigger U8_Width without uncomment U8G2_16BIT in U8g2.h
+  //#define U8_Width 200
+  #define U8_Width 296
+  #define U8_Height 128
+  #define fontMarginX 2
+  #define fontMarginY 1
+  #define U8LOG_WIDTH 200
+  #define U8LOG_HEIGHT 22
 #endif
 
-#if defined(USEOLED)
+#if not defined(USEEPAPER)
 // use two I2C bus where available
-#if defined(ARDUINO_ARCH_STM32)
-#define WIREX Wire1
-TwoWire WIREX(PB4, PA7);
-U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
+  #if defined(ARDUINO_ARCH_STM32)
+    #define WIREX Wire1
+    TwoWire WIREX(PB4, PA7);
+    U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
+  #else
+    #define WIREX Wire
+    U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
+  #endif
 #else
-#define WIREX Wire
-U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
-#endif
-#else
-//SPI epaper
-#include <SPI.h>
-U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
-//U8G2_IL3820_V2_296X296_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+  //SPI epaper
+  #include <SPI.h>
+  U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+  //U8G2_IL3820_V2_296X296_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
 #endif
 
 // exchange message for sensors data
@@ -389,9 +397,10 @@ protected:
     pinMode(LEDPIN, OUTPUT);       // initialize LED status
     digitalWrite(LEDPIN,ledCtrl);
     
-#if defined(USEOLED)
+#if not defined(USEEPAPER)
     u8g2.setI2CAddress(OLEDI2CADDRESS*2);
 #endif
+    
     u8g2.begin();
     u8g2.setFont(fontName);
     u8g2.setFontMode(0); // enable transparent mode, which is faster
@@ -401,6 +410,22 @@ protected:
     u8g2.sendBuffer();
 
     Delay(Ticks::SecondsToTicks(3));
+    
+#if defined(USEU8G2LOG)
+
+    // Create a U8g2log object
+    U8G2LOG u8g2log;
+
+    // Allocate static memory for the U8x8log window
+    uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
+
+    // Start U8x8log, connect to U8x8, set the dimension and assign the static memory
+    u8g2log.begin(u8g2, U8LOG_WIDTH, U8LOG_HEIGHT, u8log_buffer);
+    u8g2log.setLineHeightOffset(0);	// set extra space between lines in pixel, this can be negative
+    u8g2log.setRedrawMode(0);		// 0: Update screen with newline, 1: Update screen for every char
+    u8g2.setFont(fontNameS);
+
+#endif
 
     encButton.begin();
     encoder.begin();
@@ -427,6 +452,16 @@ protected:
 #ifndef ARDUINO_ARCH_STM32
 	  LockGuard guard(sdmutex);     // use mutex when we have only oene I2C bus
 #endif
+
+#if defined(USEU8G2LOG)
+	  u8g2log.print(Message.tid);
+	  u8g2log.print(" : ");
+	  u8g2log.print(Message.type);
+	  u8g2log.print(" : ");
+	  u8g2log.println(Message.ind);
+	  u8g2log.print(" ---> ");
+	  u8g2log.println(Message.value);
+#else
 	  //u8g2.setFontMode(0); // enable transparent mode, which is faster
 	  //u8g2.clearBuffer();
 	  u8g2.setFont(fontNameB);
@@ -464,22 +499,23 @@ protected:
 	  u8g2.sendBuffer();
 	  u8g2.setFont(fontNameS);
 	  u8g2.setFontMode(1);
+#endif
 	}
       }
-      
+
       nav.doInput();
       if (nav.changed(0)) {   //only draw if menu changed for gfx device
 	u8g2.firstPage();
-#if defined(USEOLED)
-#ifndef ARDUINO_ARCH_STM32
+#if not defined(USEEPAPER)
+  #ifndef ARDUINO_ARCH_STM32
 	sdmutex.Lock();       // use mutex when we have only oene I2C bus
-#endif
+  #endif
 #endif
 	do nav.doOutput(); while(u8g2.nextPage());
-#if defined(USEOLED)
-#ifndef ARDUINO_ARCH_STM32
+#if not defined(USEEPAPER)
+  #ifndef ARDUINO_ARCH_STM32
 	sdmutex.Unlock();
-#endif
+  #endif
 #endif
 	frtosLog.notice(F("D:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
       }  
@@ -612,7 +648,7 @@ void setup (void)
   
   // start up the i2c interface
   Wire.begin();
-#if defined(USEOLED)
+#if not defined(USEEPAPER)
   WIREX.begin();       // it could be the same I2C or second I2C
 #endif
   // start up the serial interface
