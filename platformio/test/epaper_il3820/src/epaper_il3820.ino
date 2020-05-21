@@ -37,8 +37,15 @@ rst -> D10
 
 #ifdef USE_U8G2
 // Define the dimension of the U8*log window
-#define U8LOG_WIDTH 200
-#define U8LOG_HEIGHT 22
+
+//296x128
+//#define U8LOG_WIDTH 200
+//#define U8LOG_HEIGHT 21
+
+// 400x300
+#define U8LOG_WIDTH 270
+#define U8LOG_HEIGHT 50
+
 #else
 // Define the dimension of the U8*log window
 #define U8LOG_WIDTH 100
@@ -57,7 +64,8 @@ rst -> D10
 #ifdef USE_U8G2
 #include <U8g2lib.h>
 
-U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+//U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
+U8G2_IL3820_V2_400X300_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
 // Create a U8g2log object
 U8G2LOG u8g2log;
 
