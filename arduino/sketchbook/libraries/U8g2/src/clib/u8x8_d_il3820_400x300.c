@@ -1,6 +1,6 @@
 /*
 
-  u8x8_d_il3820_296x128.c
+  u8x8_d_il3820_400x300.c
 
   Universal 8bit Graphics Library (https://github.com/olikraus/u8g2/)
 
@@ -72,7 +72,7 @@
     total_refresh_time = (refresh_lines + dummy_lines*2)*TGate*TS_Sum/f_OSC
 
     f_OSC=1MHz (according to the datasheets)
-    refreh_lines = 296 (for the waveshare display, 0x045 cmd)
+    refreh_lines = 400 (for the waveshare display, 0x045 cmd)
     dummy_lines = 22 (for the upcoming u8g2 code, 0x03a cmd)
     TGate = 62 (POR default, 0x03b cmd)
     TS_Sum: Sum of all TS entries of the second part of the LUT
@@ -155,12 +155,12 @@ static const u8x8_display_info_t u8x8_il3820_400x300_display_info =
   /* i2c_bus_clock_100kHz = */ 4,
   /* data_setup_time_ns = */ 40,
   /* write_pulse_width_ns = */ 150,	
-  /* tile_width = */ 37,		/* 37*8 = 296 */
-  /* tile_hight = */ 16,		/* 16*8 = 128 */	
+  /* tile_width = */ 50,		/* 50*8 = 400 */
+  /* tile_hight = */ 37,		/* 16*8 = 296 */	
   /* default_x_offset = */ 0,
   /* flipmode_x_offset = */ 0,
-  /* pixel_width = */ 296,
-  /* pixel_height = */ 128
+  /* pixel_width = */ 400,
+  /* pixel_height = */ 300
 };
 
 
@@ -277,7 +277,7 @@ static const uint8_t u8x8_d_il3820_400x300_init_seq[] = {
 
   U8X8_CA(0x10, 0x00),	/* Deep Sleep mode Control: Disable */
   U8X8_C(0x01),
-  U8X8_A(295 % 256), U8X8_A(295/256), U8X8_A(0),
+  U8X8_A(399 % 256), U8X8_A(399/256), U8X8_A(0),
   
   
   U8X8_CA(0x03, 0x00), 	/* Gate Driving voltage: 15V (lowest value)*/
@@ -295,8 +295,8 @@ static const uint8_t u8x8_d_il3820_400x300_init_seq[] = {
 
   U8X8_CA(0x11, 0x07),	/* Define data entry mode, x&y inc, x first*/
 
-  U8X8_CAA(0x44, 0, 29),	/* RAM x start & end, issue 920: end should be (128/8)-1=15. */
-  U8X8_CAAAA(0x45, 0, 0, 295&255, 295>>8),	/* RAM y start & end */
+  U8X8_CAA(0x44, 0, 68),	/* RAM x start & end, issue 920: end should be (300/8)-1=36.5 */
+  U8X8_CAAAA(0x45, 0, 0, 399&255, 399>>8),	/* RAM y start & end */
   
   //U8X8_CA(0x4e, 0),	/* set x pos, 0..29? */
   //U8X8_CAA(0x4f, 0, 0),	/* set y pos, 0...320??? */
@@ -419,7 +419,7 @@ static const uint8_t u8x8_d_il3820_v2_400x300_init_seq[] = {
 
   // U8X8_CA(0x10, 0x00),	/* Deep Sleep mode Control: POR: Normal mode */
   U8X8_C(0x01),
-  U8X8_A(295 % 256), U8X8_A(295/256), U8X8_A(0),
+  U8X8_A(399 % 256), U8X8_A(399/256), U8X8_A(0),
   
   /* the driving voltagesmust not be that high, in order to aviod level change after */
   /* some seconds (which happens with 0xea */
@@ -433,8 +433,8 @@ static const uint8_t u8x8_d_il3820_v2_400x300_init_seq[] = {
   U8X8_CA(0x3c, 0x33),	/* select boarder waveform */
 
   U8X8_CA(0x11, 0x07),	/* Define data entry mode, x&y inc, x first*/
-  U8X8_CAA(0x44, 0, 29),	/* RAM x start & end, 32*4=128 */
-  U8X8_CAAAA(0x45, 0, 0, 295&255, 295>>8),	/* RAM y start & end, 0..295 */
+  U8X8_CAA(0x44, 0, 68),	/* RAM x start & end, 32*4=128 */
+  U8X8_CAAAA(0x45, 0, 0, 399&255, 399>>8),	/* RAM y start & end, 0..399 */
   
   U8X8_END_TRANSFER(),             	/* disable chip */
   U8X8_END()             			/* end of sequence */
