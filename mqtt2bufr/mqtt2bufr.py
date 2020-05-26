@@ -133,7 +133,7 @@ def on_message(client, userdata, message):
             m["trange"] != (None, None, None),
             userdata["overwrite_date"],
         ]):
-            m["datetime"] = datetime.now()
+            m["datetime"] = datetime.utcnow()
 
         if m["datetime"] is not None:
             msg.set_named("year", dballe.var("B04001", m["datetime"].year))

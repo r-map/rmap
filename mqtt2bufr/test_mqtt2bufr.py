@@ -5,7 +5,7 @@ import mqtt2bufr
 
 class TestMqtt2bufr(unittest.TestCase):
     def test_parse_topic(self):
-        obj = mqtt2bufr.parse_topic("/path/to/-/1212345,4312345/test/103,2000,-,-/254,0,0/B12101")
+        obj = mqtt2bufr.parse_topic("rootpath/-/1212345,4312345/test/254,0,0/103,2000,-,-/B12101")
         self.assertEqual(sorted(obj.keys()),
                          sorted(["ident", "lon", "lat", "rep_memo", "level",
                                  "trange", "var"]))
