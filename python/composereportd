@@ -60,7 +60,7 @@ def main(self):
     logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.INFO)
 
-    logging.info('Starting up mqtt2dballed')
+    logging.info('Starting up composereportdd')
     
     #    my_env = os.environ
     #    my_env["PYTHONPATH"] = "/usr/local/lib/python2.7/site-packages" + my_env.get("PYTHONPATH","")

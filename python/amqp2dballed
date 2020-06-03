@@ -24,7 +24,7 @@ import logging,logging.handlers
 #django.setup()
 
 from rmap import daemon
-import pika, subprocess
+import pika
 import traceback
 import rmap.settings
 import threading,queue,time
@@ -102,29 +102,28 @@ class Threaded_bufr2dballe(threading.Thread):
                     totalbody += message.body
             
                 try:
-                    amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--rejected","/dev/null", "--dsn="+self.dsn], stdin=subprocess.PIPE)]
-                    outstdout,outstderr=amqp2dballed.procs[0].communicate(input=totalbody)
 
-                    if (outstdout): logging.debug(outstdout)
-                    if (outstderr): logging.error(outstderr)
-
-                    status=amqp2dballed.procs[0].wait()
-                    if status != 0:
-                        logging.error("There were some errors executing dbadb import error: %s" % status)
-                        logging.debug("skip message: ")
-                        logging.debug(totalbody)
-                        logging.debug("---------------------")
+                    totalbodyfile = io.BytesIO(totalbody) 
+                    # Connect to the database
+                    db = dballe.DB.connect(self.dsn)
+                    importer = dballe.Importer("BUFR")
+                    # Start a transaction
+                    with db.transaction() as tr:
+                        with importer.from_file(totalbodyfile) as f:
+                            tr.import_messages(f)
 
                 except Exception as exception:
-                    logging.error("There were some errors executing dbadb import")
+                    logging.error("There were some errors import message in dballe")
+                    logging.debug("skip message: ")
+                    logging.debug(totalbody)
+                    logging.debug("---------------------")
                     logging.error('Exception occured: ' + str(exception))
                     logging.error(traceback.format_exc())
                     status=100
-                    #raise
                     # TODO: enqueue in error
                 else:
 
-                    logging.info("Task done: dbadb terminated")
+                    logging.info("Task done: importing in dballe terminated")
                     # error or not error we skip the messages
                     status=0
 
@@ -498,7 +497,7 @@ def main(self):
 
     logging.info('Queue: %s' % queue)
     logging.info('DSN: %s'% dsn)
-    logging.error("Start version: "+rmap.__version__)
+    logging.info("Start version: "+rmap.__version__)
 
     print(' [*] Waiting for messages. To exit press CTRL+C')
 
@@ -509,8 +508,6 @@ def main(self):
 
     except KeyboardInterrupt:
         consumer.stop()
-
-
 
 
 def callback(ch, method, properties, body):
@@ -543,94 +540,126 @@ def callback(ch, method, properties, body):
         ch.basic_ack(delivery_tag = method.delivery_tag)
 
 
+
+#import subprocess
+#def callback_old_with_subprocess(ch, method, properties, body):
+#    logging.info("Received message")
+#
+#
+#    try:
+#        amqp2dballed.procs = [subprocess.Popen(["dbadb","import","-f","--dsn="+ch.dsn], stdin=subprocess.PIPE)]
+#        outstdout,outstderr=amqp2dballed.procs[0].communicate(input=body)
+#
+#        if (outstdout): logging.debug(outstdout)
+#        if (outstderr): logging.error(outstderr)
+#            
+#        status=amqp2dballed.procs[0].wait()
+#        if status != 0:
+#            logging.error("There were some errors executing dbadb import error: %s" % status)
+#            logging.debug("skip message: ")
+#            logging.debug(body)
+#            logging.debug("---------------------")
+#
+#    except Exception as exception:
+#        logging.error("There were some errors executing dbadb import")
+#        logging.error('Exception occured: ' + str(exception))
+#        logging.error(traceback.format_exc())
+#        raise
+#
+#    else:
+#                          
+#        logging.info("Done")
+#        ch.basic_ack(delivery_tag = method.delivery_tag)
+
+
     # TODO how we can pass procs to daemon ? 
 
-def oldmain(self):
-
-    # configure the logger
-    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
-    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
-    handler.setFormatter(formatter)
-    
-    # Add the log message handler to the root logger
-    logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
-
-    logging.info('Starting up amqp2dballed')
-    
-    dsndict={"sample":{},"report":{}}
-    dsndict["sample"]["fixed"]=rmap.settings.dsnsample_fixed
-    dsndict["sample"]["mobile"]=rmap.settings.dsnsample_mobile
-    dsndict["report"]["fixed"]=rmap.settings.dsnreport_fixed
-    dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
-
-    if (not self.options.datalevel is None):
-        if not (self.options.datalevel in list(dsndict.keys())):
-            logging.error('Invalid dsn')
-            sys.stdout.write("Invalid dsn\n")
-            return False
-
-    if (not self.options.stationtype is None):
-        if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
-            logging.error('Invalid dsn')
-            sys.stdout.write("Invalid dsn\n")
-            return False
-
-    if (self.options.stationtype is None != self.options.datalevel is None ):
-            logging.error('Invalid: only one of datalevel and stationtype options are missed ')
-            sys.stdout.write("Invalid: only one of datalevel and stationtype options are missed\n")
-            return False
-
-    if (self.options.stationtype is None and self.options.datalevel is None ):
-        queue="dballe"
-        dsn=rmap.settings.dsn
-    else:        
-        queue=self.options.datalevel+"_"+self.options.stationtype
-        dsn   = dsndict[self.options.datalevel][self.options.stationtype]
-
-    logging.info('Queue: %s' % queue)
-    logging.info('DSN: %s'% dsn)
-    
-    credentials=pika.PlainCredentials(user, password)
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials))
-    channel = connection.channel()
-
-    #save in channel for callback
-    channel.dsn=dsn
-
-    #channel.queue_declare(queue=queue)
-    
-    channel.basic_consume(on_message_callback=callback,
-            queue=queue,
-            no_ack=False)
-
-    try:
-        logging.info('Waiting for messages. To exit press CTRL+C')
-        channel.start_consuming()
-
-    # log and retry on exception 
-    except Exception as exception:
-        logging.error('Exception occured: ' + str(exception))
-        logging.error(traceback.format_exc())
-        logging.error('Start_consuming failed')
-        status=False    
-    # terminate on keyboard interrupt
-    except KeyboardInterrupt:
-        sys.stdout.write("keyboard interrupt\n")
-        logging.info("keyboard interrupt\n")
-        status=True    
-    # terminate without error
-    else:
-        # no exception was raised
-        logging.info('Start_consuming terminated')
-        status=True
-    finally:
-        # we have to terminate together with other exceptions                          
-        logging.info('Subprocess finished')
-
-    return status
+#def oldmain(self):
+#
+#    # configure the logger
+#    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+#    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+#    handler.setFormatter(formatter)
+#    
+#    # Add the log message handler to the root logger
+#    logging.getLogger().addHandler(handler)
+#    logging.getLogger().setLevel(logging.INFO)
+#
+#    logging.info('Starting up amqp2dballed')
+#    
+#    dsndict={"sample":{},"report":{}}
+#    dsndict["sample"]["fixed"]=rmap.settings.dsnsample_fixed
+#    dsndict["sample"]["mobile"]=rmap.settings.dsnsample_mobile
+#    dsndict["report"]["fixed"]=rmap.settings.dsnreport_fixed
+#    dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
+#
+#    if (not self.options.datalevel is None):
+#        if not (self.options.datalevel in list(dsndict.keys())):
+#            logging.error('Invalid dsn')
+#            sys.stdout.write("Invalid dsn\n")
+#            return False
+#
+#    if (not self.options.stationtype is None):
+#        if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
+#            logging.error('Invalid dsn')
+#            sys.stdout.write("Invalid dsn\n")
+#            return False
+#
+#    if (self.options.stationtype is None != self.options.datalevel is None ):
+#            logging.error('Invalid: only one of datalevel and stationtype options are missed ')
+#            sys.stdout.write("Invalid: only one of datalevel and stationtype options are missed\n")
+#            return False
+#
+#    if (self.options.stationtype is None and self.options.datalevel is None ):
+#        queue="dballe"
+#        dsn=rmap.settings.dsn
+#    else:        
+#        queue=self.options.datalevel+"_"+self.options.stationtype
+#        dsn   = dsndict[self.options.datalevel][self.options.stationtype]
+#
+#    logging.info('Queue: %s' % queue)
+#    logging.info('DSN: %s'% dsn)
+#    
+#    credentials=pika.PlainCredentials(user, password)
+#
+#    connection = pika.BlockingConnection(pika.ConnectionParameters(
+#        host=host,credentials=credentials))
+#    channel = connection.channel()
+#
+#    #save in channel for callback
+#    channel.dsn=dsn
+#
+#    #channel.queue_declare(queue=queue)
+#    
+#    channel.basic_consume(on_message_callback=callback,
+#            queue=queue,
+#            no_ack=False)
+#
+#    try:
+#        logging.info('Waiting for messages. To exit press CTRL+C')
+#        channel.start_consuming()
+#
+#    # log and retry on exception 
+#    except Exception as exception:
+#        logging.error('Exception occured: ' + str(exception))
+#        logging.error(traceback.format_exc())
+#        logging.error('Start_consuming failed')
+#        status=False    
+#    # terminate on keyboard interrupt
+#    except KeyboardInterrupt:
+#        sys.stdout.write("keyboard interrupt\n")
+#        logging.info("keyboard interrupt\n")
+#        status=True    
+#    # terminate without error
+#    else:
+#        # no exception was raised
+#        logging.info('Start_consuming terminated')
+#        status=True
+#    finally:
+#        # we have to terminate together with other exceptions                          
+#        logging.info('Subprocess finished')
+#
+#    return status
 
                           
 

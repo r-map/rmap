@@ -183,18 +183,18 @@ configspec['amqp2mqttd']['lockfile'] = "string(default='amqp2mqttd.lock')"
 configspec['amqp2mqttd']['user']     = "string(default=None)"
 configspec['amqp2mqttd']['group']    = "string(default=None)"
 
-configspec['mqtt2dballed']={}
-configspec['mqtt2dballed']['logfile']   = "string(default='mqtt2dballed.log')"
-configspec['mqtt2dballed']['errfile']   = "string(default='mqtt2dballed.err')"
-configspec['mqtt2dballed']['lockfile']  = "string(default='mqtt2dballed.lock')"
-configspec['mqtt2dballed']['user']      = "string(default=None)"
-configspec['mqtt2dballed']['group']     = "string(default=None)"
-configspec['mqtt2dballed']['dsnsample_fixed']    = "string(default='mysql:///sample_fixed?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['dsnsample_mobile']   = "string(default='mysql:///sample_mobile?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['dsnreport_fixed']    = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['dsnreport_mobile']   = "string(default='mysql:///report_mobile?user=rmap&password=rmap')"
-configspec['mqtt2dballed']['topicsample']   = "string(default='sample')"
-configspec['mqtt2dballed']['topicreport']   = "string(default='report')"
+configspec['mqtt2amqpd']={}
+configspec['mqtt2amqpd']['logfile']   = "string(default='mqtt2amqpd.log')"
+configspec['mqtt2amqpd']['errfile']   = "string(default='mqtt2amqpd.err')"
+configspec['mqtt2amqpd']['lockfile']  = "string(default='mqtt2amqpd.lock')"
+configspec['mqtt2amqpd']['user']      = "string(default=None)"
+configspec['mqtt2amqpd']['group']     = "string(default=None)"
+configspec['mqtt2amqpd']['dsnsample_fixed']    = "string(default='mysql:///sample_fixed?user=rmap&password=rmap')"
+configspec['mqtt2amqpd']['dsnsample_mobile']   = "string(default='mysql:///sample_mobile?user=rmap&password=rmap')"
+configspec['mqtt2amqpd']['dsnreport_fixed']    = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
+configspec['mqtt2amqpd']['dsnreport_mobile']   = "string(default='mysql:///report_mobile?user=rmap&password=rmap')"
+configspec['mqtt2amqpd']['topicsample']   = "string(default='sample')"
+configspec['mqtt2amqpd']['topicreport']   = "string(default='report')"
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='composereportd.log')"
@@ -350,18 +350,18 @@ lockfileamqp2mqttd             = config['amqp2mqttd']['lockfile']
 useramqp2mqttd                 = config['amqp2mqttd']['user']
 groupamqp2mqttd                = config['amqp2mqttd']['group']
 
-# section mqtt2dballed
-logfilemqtt2dballed              = config['mqtt2dballed']['logfile']
-errfilemqtt2dballed              = config['mqtt2dballed']['errfile']
-lockfilemqtt2dballed             = config['mqtt2dballed']['lockfile']
-usermqtt2dballed                 = config['mqtt2dballed']['user']
-groupmqtt2dballed                = config['mqtt2dballed']['group']
-dsnsample_fixed                  = config['mqtt2dballed']['dsnsample_fixed']
-dsnsample_mobile                 = config['mqtt2dballed']['dsnsample_mobile']
-dsnreport_fixed                  = config['mqtt2dballed']['dsnreport_fixed']
-dsnreport_mobile                 = config['mqtt2dballed']['dsnreport_mobile']
-topicsample                        = config['mqtt2dballed']['topicsample']
-topicreport                        = config['mqtt2dballed']['topicreport']
+# section mqtt2amqpd
+logfilemqtt2amqpd              = config['mqtt2amqpd']['logfile']
+errfilemqtt2amqpd              = config['mqtt2amqpd']['errfile']
+lockfilemqtt2amqpd             = config['mqtt2amqpd']['lockfile']
+usermqtt2amqpd                 = config['mqtt2amqpd']['user']
+groupmqtt2amqpd                = config['mqtt2amqpd']['group']
+dsnsample_fixed                = config['mqtt2amqpd']['dsnsample_fixed']
+dsnsample_mobile               = config['mqtt2amqpd']['dsnsample_mobile']
+dsnreport_fixed                = config['mqtt2amqpd']['dsnreport_fixed']
+dsnreport_mobile               = config['mqtt2amqpd']['dsnreport_mobile']
+topicsample                    = config['mqtt2amqpd']['topicsample']
+topicreport                    = config['mqtt2amqpd']['topicreport']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
@@ -1325,7 +1325,7 @@ if DEBUG_BORINUD_SOURCES:
                       "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
                   }
               }
-    
+
     
 SHOWDATA = BORINUD
 
@@ -1341,7 +1341,15 @@ LEAFLET_CONFIG = {
 'ATTRIBUTION_PREFIX': "Powered by RMAP contributors",
 }
 
-MAINSITES=("rmapv.rmap.cc","rmap.cc","rmaper.rmap.it","rmap.it")
+LEAFLET_WIDGET_ATTRS = {
+    'timeDimension': True,
+    'timeDimensionOptions': {
+        'timeInterval': "2014-09-30/2014-10-30",
+        'period': "PT1H"},
+    'timeDimensionControl': True,
+}
+
+MAINSITES=("rmapv.rmap.cc","rmap.cc","rmaper.rmap.it","rmap.it","test.rmap.cc")
 ALLOWED_HOSTS = ['*']
 
 #django-hosts configuration
