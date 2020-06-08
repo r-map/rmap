@@ -38,8 +38,7 @@ import rmap.settings
 
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
-#host="localhost"
-host="test.rmap.cc"
+host="localhost"
 
 TOPIC_RE = re.compile((
     r'^.*/'
