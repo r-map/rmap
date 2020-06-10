@@ -384,8 +384,9 @@ class MyMQTTClass(mqtt.Client):
                 t["level"] != (None, None, None, None),
                 t["trange"] != (None, None, None),
         ]):
-            if "d" in m:
-                msg["datetime"] = datetime.strptime(m["d"], "%Y-%m-%dT%H:%M:%S")
+            if "t" in m:
+                msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+                logging.info("Time: "+str(message.payload))
             else:
                 msg["datetime"] = datetime.now()
         else:
@@ -455,7 +456,6 @@ class MyMQTTClass(mqtt.Client):
             traceback.print_exc()
 
 
-#add option for topic and dsn
 class  mydaemon(daemon.Daemon):
 
     def optionparser(self):
@@ -463,7 +463,6 @@ class  mydaemon(daemon.Daemon):
         op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
         op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
         #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
-        #op.add_option("-d", "--dsn",dest="dsn", help="topic root to subscribe on mqtt broker (default %default)", default=rmap.settings.dsnrmap)
         return op 	  				 
 
 mqtt2amqpd = mydaemon(
@@ -512,23 +511,6 @@ def main(self):
 
     logging.info('Starting up mqtt2amqpd')
 
-    dsndict={"sample":{},"report":{}}
-    dsndict["sample"]["fixed"]=rmap.settings.dsnsample_fixed
-    dsndict["sample"]["mobile"]=rmap.settings.dsnsample_mobile
-    dsndict["report"]["fixed"]=rmap.settings.dsnreport_fixed
-    dsndict["report"]["mobile"]=rmap.settings.dsnreport_mobile
-
-    
-    if not (self.options.datalevel in list(dsndict.keys())):
-        logging.error('Invalid dsn')
-        sys.stdout.write("Invalid dsn\n")
-        return False
-
-    if not (self.options.stationtype in list(dsndict[self.options.datalevel].keys())):
-        logging.error('Invalid dsn')
-        sys.stdout.write("Invalid dsn\n")
-        return False
-
     topicdict={"sample":{},"report":{}}
     topicdict["sample"]["fixed"]  = "{}/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
     topicdict["sample"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
@@ -546,13 +528,10 @@ def main(self):
         sys.stdout.write("Invalid topic\n")
         return False
 
-    dsn   = dsndict[self.options.datalevel][self.options.stationtype]
-    logging.info('DSN: %s'% dsn)
     topic = topicdict[self.options.datalevel][self.options.stationtype]
     logging.info('Topic: %s'% topic)
     
-    exchange=self.options.datalevel+"_"+self.options.stationtype
-
+    exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
 
     send_queue = queue.Queue(maxsize=1000000)
 

@@ -33,7 +33,6 @@ import dballe
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-user="rmap"
 
 MAXMESSAGEFORSECOND=10  # max number of messages to elaborate in one second
 TIMESTEP=15             # execute dbadb import everi TIMESTEP seconds
@@ -490,10 +489,10 @@ def main(self):
             return False
 
     if (self.options.stationtype is None and self.options.datalevel is None ):
-        queue="dballe"
+        queue="rmap.dae.bufr.report_fixed_validated"
         dsn=rmap.settings.dsn
     else:        
-        queue=self.options.datalevel+"_"+self.options.stationtype
+        queue="rmap..bufr."+self.options.datalevel+"_"+self.options.stationtype
         dsn   = dsndict[self.options.datalevel][self.options.stationtype]
 
     logging.info('Queue: %s' % queue)

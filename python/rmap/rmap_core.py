@@ -187,7 +187,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,serialactivate=False
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
-              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
               ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
           ):
 
@@ -273,7 +273,7 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
               ,timerange="254,0,0",level="0,1",activate=False
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="hc-05"
-              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
           ):
     #,sensortemplate=None):
 
@@ -1103,7 +1103,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         transport.close()
 
 
-def send2amqp(body="",user=None,password=None,host="rmap.cc",exchange="configuration",routing_key="config"):
+def send2amqp(body="",user=None,password=None,host="rmap.cc",exchange=".in.json.configuration",routing_key="config"):
 
     credentials=pika.PlainCredentials(user, password)
     properties=pika.BasicProperties(
@@ -1160,7 +1160,7 @@ def dumpstation(station,user="your user"):
     return export2json(objects)
 
 
-def sendjson2amqp(station,user="your user",password="your password",host="rmap.cc",exchange="configuration"):
+def sendjson2amqp(station,user="your user",password="your password",host="rmap.cc",exchange=".in.json.configuration"):
 
     print("sendjson2amqp")
 
@@ -1168,7 +1168,7 @@ def sendjson2amqp(station,user="your user",password="your password",host="rmap.c
     send2amqp(body,user,password,host,exchange)
 
 
-def receivegeoimagefromamqp(user="your user",password="your password",host="rmap.cc",queue="photo"):
+def receivegeoimagefromamqp(user="your user",password="your password",host="rmap.cc",queue="..jpg.photo"):
 
     from geoimage.models import GeorefencedImage
 
@@ -1261,7 +1261,7 @@ def receivegeoimagefromamqp(user="your user",password="your password",host="rmap
 
 
 
-def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc",queue="configuration"):
+def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc",queue=""):
 
     def callback(ch, method, properties, body):
         print(" [x] Received message")
@@ -1398,7 +1398,7 @@ def configdb(username="rmap",password="rmap",
              amqppassword="your password",
              amqpserver="rmap.cc",
              queue="rmap",
-             exchange="rmap",
+             exchange=".in.json",
              board=None,
              activate=None,
              stationname=None,

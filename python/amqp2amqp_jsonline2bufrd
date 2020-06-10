@@ -28,21 +28,21 @@ import rmap.settings
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-queue="validatedjson"
-outexchange="validated"
-routing_key="validated"
+queue="..jsonline.report_fixed"
+outexchange="..bufr.report_fixed"
+routing_key="convertedfromjsonline"
 
 DSNFILE="/dev/shm/amqp2amqp_json2bufrd.sqlite"
 DSN="sqlite:"+DSNFILE
 
 
-amqp2amqp_json2bufr = daemon.Daemon(
+amqp2amqp_jsonline2bufr = daemon.Daemon(
         stdin="/dev/null",
-        stdout=rmap.settings.logfileamqp2amqp_json2bufrd,
-        stderr=rmap.settings.errfileamqp2amqp_json2bufrd,
-        pidfile=rmap.settings.lockfileamqp2amqp_json2bufrd,
-        user=rmap.settings.useramqp2amqp_json2bufrd,
-        group=rmap.settings.groupamqp2amqp_json2bufrd
+        stdout=rmap.settings.logfileamqp2amqp_jsonline2bufrd,
+        stderr=rmap.settings.errfileamqp2amqp_jsonline2bufrd,
+        pidfile=rmap.settings.lockfileamqp2amqp_jsonline2bufrd,
+        user=rmap.settings.useramqp2amqp_jsonline2bufrd,
+        group=rmap.settings.groupamqp2amqp_jsonline2bufrd
 )
 
 def callback(ch, method, properties, body):
@@ -55,11 +55,11 @@ def callback(ch, method, properties, body):
     #    return
   
     try:
-        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","import","--type=json","--wipe-first","--dsn="+DSN], stdin=subprocess.PIPE)]
+        amqp2amqp_jsonline2bufr.procs = [subprocess.Popen(["dbadb","import","--type=json","--wipe-first","--dsn="+DSN], stdin=subprocess.PIPE)]
 
-        outbody,outerr=amqp2amqp_json2bufr.procs[0].communicate(input=body)
+        outbody,outerr=amqp2amqp_jsonline2bufr.procs[0].communicate(input=body)
 
-        status=amqp2amqp_json2bufr.procs[0].wait()
+        status=amqp2amqp_jsonline2bufr.procs[0].wait()
         if status != 0:
             print("There were some errors executing dbadb import error: ",status,outerr)
             #print "skip message: "
@@ -72,11 +72,11 @@ def callback(ch, method, properties, body):
 
 
     try:
-        amqp2amqp_json2bufr.procs = [subprocess.Popen(["dbadb","export","--dsn="+DSN], stdout=subprocess.PIPE)]
+        amqp2amqp_jsonline2bufr.procs = [subprocess.Popen(["dbadb","export","--dsn="+DSN], stdout=subprocess.PIPE)]
 
-        outbody,outerr=amqp2amqp_json2bufr.procs[0].communicate()
+        outbody,outerr=amqp2amqp_jsonline2bufr.procs[0].communicate()
 
-        status=amqp2amqp_json2bufr.procs[0].wait()
+        status=amqp2amqp_jsonline2bufr.procs[0].wait()
         if status != 0:
             print("There were some errors executing dbadb export error: ",status,outerr)
             #print "skip message: "
@@ -153,9 +153,9 @@ def main(self):
 if __name__ == '__main__':
 
     import sys, os
-    amqp2amqp_json2bufr.cwd=os.getcwd()
+    amqp2amqp_jsonline2bufr.cwd=os.getcwd()
 
-    if amqp2amqp_json2bufr.service():
+    if amqp2amqp_jsonline2bufr.service():
 
         credentials=pika.PlainCredentials(user, password)
 
@@ -167,9 +167,9 @@ if __name__ == '__main__':
         sys.stdout.write("Daemon stdout output\n")
         sys.stderr.write("Daemon stderr output\n")
 
-        main(amqp2amqp_json2bufr)  # (this code was run as script)
+        main(amqp2amqp_jsonline2bufr)  # (this code was run as script)
 
-        for proc in amqp2amqp_json2bufr.procs:
+        for proc in amqp2amqp_jsonline2bufr.procs:
             proc.wait()
 
         sys.exit(0)

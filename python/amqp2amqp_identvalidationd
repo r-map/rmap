@@ -28,8 +28,8 @@ import rmap.settings
 user=rmap.settings.amqpuser
 password=rmap.settings.amqppassword
 host="localhost"
-queue="rmap"
-outexchange="validated"
+queue="..bufr.report_fixed"
+outexchange="rmap.dae.bufr.report_fixed_validated"
 routing_key="validated"
 
 amqp2amqp_identvalidationd = daemon.Daemon(

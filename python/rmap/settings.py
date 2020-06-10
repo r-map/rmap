@@ -137,6 +137,10 @@ configspec['amqp2dballed']['lockfile'] = "string(default='amqp2dballed.lock')"
 configspec['amqp2dballed']['user']     = "string(default=None)"
 configspec['amqp2dballed']['group']    = "string(default=None)"
 configspec['amqp2dballed']['dsn']      = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
+configspec['amqp2dballed']['dsnsample_fixed']    = "string(default='mysql:///sample_fixed?user=rmap&password=rmap')"
+configspec['amqp2dballed']['dsnsample_mobile']   = "string(default='mysql:///sample_mobile?user=rmap&password=rmap')"
+configspec['amqp2dballed']['dsnreport_fixed']    = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
+configspec['amqp2dballed']['dsnreport_mobile']   = "string(default='mysql:///report_mobile?user=rmap&password=rmap')"
 
 configspec['amqp2amqp_identvalidationd']={}
 configspec['amqp2amqp_identvalidationd']['logfile']  = "string(default='amqp2amqp_identvalidationd.log')"
@@ -145,12 +149,12 @@ configspec['amqp2amqp_identvalidationd']['lockfile'] = "string(default='amqp2amq
 configspec['amqp2amqp_identvalidationd']['user']     = "string(default=None)"
 configspec['amqp2amqp_identvalidationd']['group']    = "string(default=None)"
 
-configspec['amqp2amqp_json2bufrd']={}
-configspec['amqp2amqp_json2bufrd']['logfile']  = "string(default='amqp2amqp_json2bufrd.log')"
-configspec['amqp2amqp_json2bufrd']['errfile']  = "string(default='amqp2amqp_json2bufrd.err')"
-configspec['amqp2amqp_json2bufrd']['lockfile'] = "string(default='amqp2amqp_json2bufrd.lock')"
-configspec['amqp2amqp_json2bufrd']['user']     = "string(default=None)"
-configspec['amqp2amqp_json2bufrd']['group']    = "string(default=None)"
+configspec['amqp2amqp_jsonline2bufrd']={}
+configspec['amqp2amqp_jsonline2bufrd']['logfile']  = "string(default='amqp2amqp_jsonline2bufrd.log')"
+configspec['amqp2amqp_jsonline2bufrd']['errfile']  = "string(default='amqp2amqp_jsonline2bufrd.err')"
+configspec['amqp2amqp_jsonline2bufrd']['lockfile'] = "string(default='amqp2amqp_jsonline2bufrd.lock')"
+configspec['amqp2amqp_jsonline2bufrd']['user']     = "string(default=None)"
+configspec['amqp2amqp_jsonline2bufrd']['group']    = "string(default=None)"
 
 
 configspec['amqp2djangod']={}
@@ -189,10 +193,6 @@ configspec['mqtt2amqpd']['errfile']   = "string(default='mqtt2amqpd.err')"
 configspec['mqtt2amqpd']['lockfile']  = "string(default='mqtt2amqpd.lock')"
 configspec['mqtt2amqpd']['user']      = "string(default=None)"
 configspec['mqtt2amqpd']['group']     = "string(default=None)"
-configspec['mqtt2amqpd']['dsnsample_fixed']    = "string(default='mysql:///sample_fixed?user=rmap&password=rmap')"
-configspec['mqtt2amqpd']['dsnsample_mobile']   = "string(default='mysql:///sample_mobile?user=rmap&password=rmap')"
-configspec['mqtt2amqpd']['dsnreport_fixed']    = "string(default='mysql:///report_fixed?user=rmap&password=rmap')"
-configspec['mqtt2amqpd']['dsnreport_mobile']   = "string(default='mysql:///report_mobile?user=rmap&password=rmap')"
 configspec['mqtt2amqpd']['topicsample']   = "string(default='sample')"
 configspec['mqtt2amqpd']['topicreport']   = "string(default='report')"
 
@@ -307,6 +307,10 @@ lockfileamqp2dballed             = config['amqp2dballed']['lockfile']
 useramqp2dballed                 = config['amqp2dballed']['user']
 groupamqp2dballed                = config['amqp2dballed']['group']
 dsn                              = config['amqp2dballed']['dsn']
+dsnsample_fixed                  = config['amqp2dballed']['dsnsample_fixed']
+dsnsample_mobile                 = config['amqp2dballed']['dsnsample_mobile']
+dsnreport_fixed                  = config['amqp2dballed']['dsnreport_fixed']
+dsnreport_mobile                 = config['amqp2dballed']['dsnreport_mobile']
 
 # section amqp2amqp_identvalidationd
 logfileamqp2amqp_identvalidationd              = config['amqp2amqp_identvalidationd']['logfile']
@@ -316,11 +320,11 @@ useramqp2amqp_identvalidationd                 = config['amqp2amqp_identvalidati
 groupamqp2amqp_identvalidationd                = config['amqp2amqp_identvalidationd']['group']
 
 # section amqp2amqp_json2bufrd
-logfileamqp2amqp_json2bufrd              = config['amqp2amqp_json2bufrd']['logfile']
-errfileamqp2amqp_json2bufrd              = config['amqp2amqp_json2bufrd']['errfile']
-lockfileamqp2amqp_json2bufrd             = config['amqp2amqp_json2bufrd']['lockfile']
-useramqp2amqp_json2bufrd                 = config['amqp2amqp_json2bufrd']['user']
-groupamqp2amqp_json2bufrd                = config['amqp2amqp_json2bufrd']['group']
+logfileamqp2amqp_jsonline2bufrd              = config['amqp2amqp_jsonline2bufrd']['logfile']
+errfileamqp2amqp_jsonline2bufrd              = config['amqp2amqp_jsonline2bufrd']['errfile']
+lockfileamqp2amqp_jsonline2bufrd             = config['amqp2amqp_jsonline2bufrd']['lockfile']
+useramqp2amqp_jsonline2bufrd                 = config['amqp2amqp_jsonline2bufrd']['user']
+groupamqp2amqp_jsonline2bufrd                = config['amqp2amqp_jsonline2bufrd']['group']
 
 # section amqp2djangod
 logfileamqp2djangod              = config['amqp2djangod']['logfile']
@@ -356,10 +360,6 @@ errfilemqtt2amqpd              = config['mqtt2amqpd']['errfile']
 lockfilemqtt2amqpd             = config['mqtt2amqpd']['lockfile']
 usermqtt2amqpd                 = config['mqtt2amqpd']['user']
 groupmqtt2amqpd                = config['mqtt2amqpd']['group']
-dsnsample_fixed                = config['mqtt2amqpd']['dsnsample_fixed']
-dsnsample_mobile               = config['mqtt2amqpd']['dsnsample_mobile']
-dsnreport_fixed                = config['mqtt2amqpd']['dsnreport_fixed']
-dsnreport_mobile               = config['mqtt2amqpd']['dsnreport_mobile']
 topicsample                    = config['mqtt2amqpd']['topicsample']
 topicreport                    = config['mqtt2amqpd']['topicreport']
 

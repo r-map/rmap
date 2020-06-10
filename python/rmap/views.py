@@ -15,7 +15,7 @@ from . import network
 from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
-
+from django.views.decorators.csrf import csrf_exempt
 
 def home(request):
     current_site = get_current_site(request)
@@ -147,6 +147,7 @@ def wizard_error(request):
 
 #AMQP auth for rabbitmq
 
+@csrf_exempt
 def user(request):
     if 'username' in request.GET and 'password' in request.GET:
         username = request.GET['username']
@@ -156,14 +157,44 @@ def user(request):
             if user.is_superuser:
                 return HttpResponse("allow administrator")
             else:
-                return HttpResponse("allow management")
+                return HttpResponse("allow")
     return HttpResponse("deny")
 
+@csrf_exempt
 def vhost(request):
     return HttpResponse("allow")
 
+@csrf_exempt
 def resource(request):
-    return HttpResponse("allow")
+
+    # username - the name of the user
+    # vhost - the name of the virtual host containing the resource
+    # resource - the type of resource (exchange, queue, topic)
+    # name - the name of the resource
+    # permission - the access level to the resource (configure, write, read) - see the Access Control guide for their meaning
+
+
+    if 'name' in request.GET and 'permission' in request.GET:
+        name = request.GET['name']
+        permission = request.GET['permission']
+
+        if (permission == "configure"):
+            return HttpResponse("deny")
+
+        if (len(name)>0):
+            if (name[0] == "."):
+                return HttpResponse("allow")
+
+            # TO BE REMOVED !!!!!!
+            # we use new stantard for resources
+            # "." is separator in resource name and the first word is username
+            # no username is for all users
+            if (name == "configuration"):
+                return HttpResponse("allow")
+            if (name == "photo"):
+                return HttpResponse("allow")
+
+    return HttpResponse("deny")
 
 
 #MQTT auth for mosquitto
