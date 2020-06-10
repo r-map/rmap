@@ -90,8 +90,8 @@ def parse_message(topic, payload):
         t["level"] != (None, None, None, None),
         t["trange"] != (None, None, None),
     ]):
-        if "d" in m:
-            msg["datetime"] = datetime.strptime(m["d"], "%Y-%m-%dT%H:%M:%S")
+        if "t" in m:
+            msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
         else:
             msg["datetime"] = datetime.now()
     else:
