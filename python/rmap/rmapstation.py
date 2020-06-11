@@ -552,6 +552,7 @@ class station():
                                            prefix=self.prefix,maintprefix=self.maintprefix,logfunc=self.log)
 
             self.rmap.loop_start()
+            self.rmap.connect()
 
         except:
             pass
@@ -913,69 +914,3 @@ class station():
 #class RequestHandler(WSGIRequestHandler):
 #    pass
 
-
-def main():
-
-    import os
-    import random
-
-    from django.conf import settings
-    from django.utils import translation
-    from django.core import management
-
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'settings'
-    import django
-    django.setup()
-
-    django.utils.translation.activate("it")
-
-    lon=11.36992
-    lat=44.48906
-    host="rmap.cc"
-
-    anavar={
-        "B07030":{"v": "400"}
-    }
-
-    try:
-        rmap=rmapmqtt(lon=lon,lat=lat,host=host)
-        rmap.loop_start()
-
-        rmap.ana(anavar)
-        time.sleep(5)
-        #rmap.loop()
-
-        reptime=datetime.now()
-        endtime=reptime+timedelta(days=1)
-    
-        while reptime <= endtime:
-
-            print("connect status: ",rmap.connected)
-            timerange="254,0,0"               # dati istantanei
-            level="103,2000,-,-"              # 2m dal suolo
-            value=random.randint(25315,30000) # tempertaure in cent K
-            datavar={"B12101":
-            {
-                "t": reptime,
-                "v": value,
-                "a": {
-                    "B33194": "90",           # attributi di qualita' del dato
-                    "B33195": "85"
-                }   
-            }}
-
-            rmap.data(timerange,level,datavar)
-            time.sleep(5)
-            #rmap.loop()
-            reptime=datetime.now()
-
-        rmap.disconnect()
-        rmap.loop_stop()
-        print("work is done OK")
-
-    except:
-        print("terminated with error")
-        raise
-
-if __name__ == '__main__':
-    main()  # (this code was run as script)

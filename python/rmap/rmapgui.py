@@ -2844,7 +2844,7 @@ class Rmap(App):
                                              user=self.config.get('rmap','user'),
                                              password=self.config.get('rmap','password'),
                                              host=self.config.get('rmap','server'),
-                                             exchange="photo",routing_key="photo")
+                                             exchange=".in.jpg.photo",routing_key="photo")
 
                     os.remove(file)
                     #self.notifydismiss()

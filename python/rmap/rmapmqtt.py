@@ -107,24 +107,13 @@ class rmapmqtt:
                     payload=dumps({"v": "error01"}),
                             qos=self.qos, retain=retain)
 
+
+    def connect(self):
         try:
-            #self.mqttc.connect_async(self.host,self.port,self.timeout)
             rc=self.mqttc.connect(self.host,self.port,self.timeout)
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("connect",rc)
-
-            ## retained only if the station is fixed
-            #retain = self.maintprefix != "mobile"
-
-            #rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
-            #                 payload=dumps({ "v": "conn"}),
-            #                      qos=1,retain=retain)
-
-            #if rc[0] != mqtt.MQTT_ERR_SUCCESS:
-            #    raise Exception("publish status",rc)
-
-            #self.log("publish maint message mid: "+str(rc[1]))
-            self.mqttc.loop()
+            self.loop()
         except Exception as inst:
             self.error(inst)
 
@@ -133,10 +122,12 @@ class rmapmqtt:
         bloking publish
         with qos > 0 we wait for ack
         '''
-        self.mqttc.loop()
+        self.loop()
         self.puback=False
         self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=self.qos,retain=retain)
         rc,self.mid=self.messageinfo
+        self.messageinfo.wait_for_publish()
+        
         if rc != mqtt.MQTT_ERR_SUCCESS:
             return rc
         if (self.qos == 0 ):
@@ -147,8 +138,7 @@ class rmapmqtt:
         last=time.time()
         while ((time.time()-last) < timeout and not self.puback):
             time.sleep(.1)
-            if (not self.loop_started):
-                self.loop()
+            self.loop(timeout=0)
 
         if (not self.puback):
             return 50
@@ -219,9 +209,11 @@ class rmapmqtt:
         """
 
         try:
-            rc = self.mqttc.loop(timeout)
-            #if rc != mqtt.MQTT_ERR_SUCCESS:
-                #raise Exception("loop",rc)
+            if ( not self.loop_started):
+                print("loop")
+                rc = self.mqttc.loop(timeout)
+                #if rc != mqtt.MQTT_ERR_SUCCESS:
+                  #raise Exception("loop",rc)
         
         except Exception as inst:
             self.error(inst)
@@ -232,21 +224,24 @@ class rmapmqtt:
         """
         this start a thead to mantain mqtt protocol
         """
-        try:
-            rc = self.mqttc.loop_start()
-            self.loop_started=True
-        except Exception as inst:
-            self.loop_started=False
-            self.error(inst)
+
+        if (not self.loop_started):
+            try:
+                rc = self.mqttc.loop_start()
+                self.loop_started=True
+            except Exception as inst:
+                self.loop_started=False
+                self.error(inst)
 
     def loop_stop(self):
 
-        try:
-            rc = self.mqttc.loop_stop(force=True)
-            self.loop_started=False
-        except Exception as inst:
-            self.loop_started=False
-            self.error(inst)        
+        if (self.loop_started):
+            try:
+                rc = self.mqttc.loop_stop(force=True)
+                self.loop_started=False
+            except Exception as inst:
+                self.loop_started=False
+                self.error(inst)        
 
     def disconnect(self):
 
@@ -294,24 +289,22 @@ class rmapmqtt:
         self.log("connect rc: "+str(rc))
         #self.log(mqtt.error_string(rc))
 
-        if not self.connected:
-            try:
-                # retained only if the station is fixed
-                retain = self.maintprefix != "mobile"
-
-                rc=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
-                             payload=dumps({ "v": "conn"}),
-                                      qos=self.qos,retain=retain)
-
-                if rc[0] != mqtt.MQTT_ERR_SUCCESS:
-                    raise Exception("publish status",rc)
-
-                self.log("publish maint message mid: "+str(rc[1]))
-
-            except Exception as inst:
-                self.error(inst)
-
         self.connected=True
+
+        #if not self.connected:
+#
+#            try:
+#                # retained only if the station is fixed
+#                retain = self.maintprefix != "mobile"
+#                topic=self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
+#                payload=dumps({ "v": "conn"})
+#                self.publish(topic,payload,retain=retain)
+#
+#                self.log("published maint message")
+#                
+#            except Exception as inst:
+#                self.error(inst)
+
 
 
     def on_disconnect(self,mosq, userdata, rc):
@@ -378,20 +371,3 @@ def do_notify(message="",title="Notification"):
         print("error on notify message:",title, message)
         traceback.print_exc()
 
-def main():
-
-    ident="test"
-    lon=10.0
-    lat=44.0
-    value=100
-    dt=datetime.utcnow().replace(microsecond=0)
-
-    datavar={"B20003":{"t": dt,"v": value}}
-
-    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network="rmap",host="rmap.cc",port=1883,prefix="test",maintprefix="test")
-    mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
-    mqtt.disconnect()
-
-
-if __name__ == '__main__':
-    main()  # (this code was run as script)
