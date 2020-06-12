@@ -240,8 +240,10 @@ class amqpProducer(threading.Thread):
                               channel, reason)
         self._channel = None
         if not self._stopping:
-            self._connection.close()
-
+            try:
+                self._connection.close()
+            except:
+                pass
 
     def close_channel(self):
         """Call to close the channel with RabbitMQ cleanly by issuing the
@@ -546,13 +548,13 @@ def main(self):
         "send_queue": send_queue,
     })
     
+    mqttclient.loop_start()
     mqttclient.connect(host=host)
-
 
     # infinite loop
     while True:
         try:
-            mqttclient.loop()
+            time.sleep(3) # do nothing
         except Exception as exception:
             logging.error('Exception occured: ' + str(exception))
             logging.error(traceback.format_exc())
@@ -572,6 +574,7 @@ def main(self):
         if killer.kill_now:
 
             mqttclient.disconnect()
+            mqttclient.loop_stop()
             logging.debug("MQTT connection closed")
             
             amqp.terminate()
