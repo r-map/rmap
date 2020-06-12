@@ -386,7 +386,6 @@ class MyMQTTClass(mqtt.Client):
         ]):
             if "t" in m:
                 msg["datetime"] = datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
-                logging.info("Time: "+str(message.payload))
             else:
                 msg["datetime"] = datetime.now()
         else:
@@ -452,8 +451,7 @@ class MyMQTTClass(mqtt.Client):
             send_queue.put_nowait(totalbody)
 
         except Exception:
-            import traceback
-            traceback.print_exc()
+            logging.error(traceback.format_exc())
 
 
 class  mydaemon(daemon.Daemon):
@@ -495,7 +493,6 @@ def main(self):
     import os,sys,time
     import logging.handlers
     import subprocess
-    import traceback
 
     #arm the signal handler
     killer = GracefulKiller()
