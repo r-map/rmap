@@ -36,7 +36,10 @@ class FindQuery(object):
             self.pattern, startString, endString)
 
 
-class BaseFinder(object, metaclass=abc.ABCMeta):
+class BaseFinder(object):
+    __metaclass__ = abc.ABCMeta
+
+    # Set to False if this is a remote finder.
     local = True
     # set to True if this finder shouldn't be used
     disabled = False
@@ -126,18 +129,23 @@ class BaseFinder(object, metaclass=abc.ABCMeta):
             for pattern in patterns
         ]
 
-        result = []
+        results = []
 
         for node, query in self.find_multi(queries):
             if not isinstance(node, LeafNode):
                 continue
 
-            time_info, values = node.fetch(
+            result = node.fetch(
                 start_time, end_time,
                 now=now, requestContext=requestContext
             )
 
-            result.append({
+            if result is None:
+                continue
+
+            time_info, values = result
+
+            results.append({
                 'pathExpression': query.pattern,
                 'path': node.path,
                 'name': node.path,
@@ -145,7 +153,7 @@ class BaseFinder(object, metaclass=abc.ABCMeta):
                 'values': values,
             })
 
-        return result
+        return results
 
     def auto_complete_tags(self, exprs, tagPrefix=None, limit=None, requestContext=None):
         return []

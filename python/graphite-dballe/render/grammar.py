@@ -38,6 +38,10 @@ none = Group(
   CaselessKeyword('none')
 )('none')
 
+infinity = Group(
+  CaselessKeyword('inf')
+)('infinity')
+
 argname = Word(alphas + '_', alphanums + '_')('argname')
 funcname = Word(alphas + '_', alphanums + '_')('funcname')
 
@@ -64,6 +68,7 @@ arg = Group(
   number |
   none |
   aString |
+  infinity |
   expression
 )('args*')
 kwarg = Group(argname + equal + arg)('kwargs*')
@@ -71,8 +76,10 @@ kwarg = Group(argname + equal + arg)('kwargs*')
 args = delimitedList(~kwarg + arg)  # lookahead to prevent failing on equals
 kwargs = delimitedList(kwarg)
 
+
 def setRaw(s, loc, toks):
-  toks[0].raw = s[toks[0].start:toks[0].end]
+    toks[0].raw = s[toks[0].start:toks[0].end]
+
 
 call = Group(
   Empty().setParseAction(lambda s, l, t: l)('start') +
@@ -136,9 +143,9 @@ else:
 
 
 def enableDebug():
-  for name,obj in list(globals().items()):
-    try:
-      obj.setName(name)
-      obj.setDebug(True)
-    except:
-      pass
+    for name, obj in globals().items():
+        try:
+            obj.setName(name)
+            obj.setDebug(True)
+        except Exception:
+            pass

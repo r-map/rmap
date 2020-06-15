@@ -19,10 +19,10 @@ import six.moves.http_client
 from datetime import datetime
 from time import time
 from random import shuffle
-from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
-from cgi import parse_qs
+from six.moves.urllib.parse import urlencode, urlsplit, urlunsplit, parse_qs
 
 from ..compat import HttpResponse
+from ..errors import InputParameterError, handleInputParameterError
 from ..user_util import getProfileByUsername
 from ..util import json, unpickle, pickle, msgpack, BytesIO
 from ..storage import extractForwardHeaders
@@ -45,9 +45,18 @@ from six.moves import zip
 
 loadFunctions()
 
+
+@handleInputParameterError
 def renderView(request):
   start = time()
-  (graphOptions, requestOptions) = parseOptions(request)
+
+  try:
+    # we consider exceptions thrown by the option
+    # parsing to be due to user input error
+    (graphOptions, requestOptions) = parseOptions(request)
+  except Exception as e:
+    raise InputParameterError(str(e))
+
   useCache = 'noCache' not in requestOptions
   cacheTimeout = requestOptions['cacheTimeout']
   # TODO: Make that a namedtuple or a class.
@@ -59,9 +68,11 @@ def renderView(request):
     'template' : requestOptions['template'],
     'tzinfo' : requestOptions['tzinfo'],
     'forwardHeaders': requestOptions['forwardHeaders'],
+    'sourceIdHeaders': requestOptions['sourceIdHeaders'],
     'data' : [],
     'prefetched' : {},
     'xFilesFactor' : requestOptions['xFilesFactor'],
+    'maxDataPoints' : requestOptions.get('maxDataPoints', None),
   }
   data = requestContext['data']
 
@@ -83,11 +94,11 @@ def renderView(request):
     for target in requestOptions['targets']:
       if target.find(':') >= 0:
         try:
-          name,value = target.split(':',1)
+          name, value = target.split(':', 1)
           value = float(value)
-        except:
+        except ValueError:
           raise ValueError("Invalid target '%s'" % target)
-        data.append( (name,value) )
+        data.append((name, value))
       else:
         seriesList = evaluateTarget(requestContext, target)
 
@@ -191,49 +202,42 @@ def renderViewCsv(requestOptions, data):
 
 def renderViewJson(requestOptions, data):
   series_data = []
-  if 'maxDataPoints' in requestOptions and any(data):
-    maxDataPoints = requestOptions['maxDataPoints']
-    if maxDataPoints == 1:
-      for series in data:
-        series.consolidate(len(series))
-        datapoints = list(zip(series, [int(series.start)]))
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-    else:
-      startTime = min([series.start for series in data])
-      endTime = max([series.end for series in data])
-      timeRange = endTime - startTime
-      for series in data:
-        numberOfDataPoints = timeRange/series.step
-        if maxDataPoints < numberOfDataPoints:
-          valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
-          secondsPerPoint = int(valuesPerPoint * series.step)
-          # Nudge start over a little bit so that the consolidation bands align with each call
-          # removing 'jitter' seen when refreshing.
-          nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
-          series.start = series.start + nudge
-          valuesToLose = int(nudge/series.step)
-          for r in range(1, valuesToLose):
-            del series[0]
-          series.consolidate(valuesPerPoint)
-          timestamps = list(range(int(series.start), int(series.end) + 1, int(secondsPerPoint)))
+
+  if any(data):
+    startTime = min([series.start for series in data])
+    endTime = max([series.end for series in data])
+    timeRange = endTime - startTime
+
+    for series in data:
+      if 'maxDataPoints' in requestOptions:
+        maxDataPoints = requestOptions['maxDataPoints']
+        if maxDataPoints == 1:
+          series.consolidate(len(series))
         else:
-          timestamps = list(range(int(series.start), int(series.end) + 1, int(series.step)))
-        datapoints = list(zip(series, timestamps))
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
-  elif 'noNullPoints' in requestOptions and any(data):
-    for series in data:
-      values = []
-      for (index,v) in enumerate(series):
-        if v is not None and not math.isnan(v):
-          timestamp = series.start + (index * series.step)
-          values.append((v,timestamp))
-      if len(values) > 0:
-        series_data.append(dict(target=series.name, tags=series.tags, datapoints=values))
-  else:
-    for series in data:
-      timestamps = list(range(int(series.start), int(series.end) + 1, int(series.step)))
-      datapoints = list(zip(series, timestamps))
-      series_data.append(dict(target=series.name, tags=series.tags, datapoints=datapoints))
+          numberOfDataPoints = timeRange/series.step
+          if maxDataPoints < numberOfDataPoints:
+            valuesPerPoint = math.ceil(float(numberOfDataPoints) / float(maxDataPoints))
+            secondsPerPoint = int(valuesPerPoint * series.step)
+            # Nudge start over a little bit so that the consolidation bands align with each call
+            # removing 'jitter' seen when refreshing.
+            nudge = secondsPerPoint + (series.start % series.step) - (series.start % secondsPerPoint)
+            series.start = series.start + nudge
+            valuesToLose = int(nudge/series.step)
+            for r in range(1, valuesToLose):
+              del series[0]
+            series.consolidate(valuesPerPoint)
+
+      datapoints = series.datapoints()
+
+      if 'noNullPoints' in requestOptions:
+        datapoints = [
+          point for point in datapoints
+          if point[0] is not None and not math.isnan(point[0])
+        ]
+        if not datapoints:
+          continue
+
+      series_data.append(dict(target=series.name, tags=dict(series.tags), datapoints=datapoints))
 
   output = json.dumps(series_data, indent=(2 if requestOptions.get('pretty') else None)).replace('None,', 'null,').replace('NaN,', 'null,').replace('Infinity,', '1e9999,')
 
@@ -285,7 +289,7 @@ def renderViewDygraph(requestOptions, data):
 def renderViewRickshaw(requestOptions, data):
   series_data = []
   for series in data:
-    timestamps = list(range(series.start, series.end, series.step))
+    timestamps = range(series.start, series.end, series.step)
     datapoints = [{'x' : x, 'y' : y} for x, y in zip(timestamps, series)]
     series_data.append( dict(target=series.name, datapoints=datapoints) )
 
@@ -349,6 +353,7 @@ def parseOptions(request):
   cacheTimeout = int( queryParams.get('cacheTimeout', settings.DEFAULT_CACHE_DURATION) )
   requestOptions['targets'] = []
   requestOptions['forwardHeaders'] = extractForwardHeaders(request)
+  requestOptions['sourceIdHeaders'] = extractSourceIdHeaders(request)
 
   # Extract the targets out of the queryParams
   mytargets = []
@@ -365,7 +370,7 @@ def parseOptions(request):
     requestOptions['targets'].append(target)
 
   template = dict()
-  for key, val in list(queryParams.items()):
+  for key, val in queryParams.items():
     if key.startswith("template["):
       template[key[9:-1]] = val
   requestOptions['template'] = template
@@ -458,6 +463,26 @@ def parseOptions(request):
   return (graphOptions, requestOptions)
 
 
+# extract headers which get set by Grafana when issuing queries, to help identifying where a query came from.
+# user-defined headers from settings.INPUT_VALIDATION_SOURCE_ID_HEADERS also get extracted and mixed
+# with the standard Grafana headers.
+def extractSourceIdHeaders(request):
+    source_headers = {
+        'X-Grafana-Org-ID': 'grafana-org-id',
+        'X-Dashboard-ID': 'dashboard-id',
+        'X-Panel-ID': 'panel-id',
+    }
+    source_headers.update(settings.INPUT_VALIDATION_SOURCE_ID_HEADERS)
+
+    headers = {}
+    for hdr_name, log_name in source_headers.items():
+        value = request.META.get('HTTP_' + hdr_name.upper().replace('-', '_'))
+        if value:
+            headers[log_name] = value
+
+    return headers
+
+
 connectionPools = {}
 
 
@@ -469,7 +494,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
   if headers is None:
     headers = {}
   start = time()
-  postData = graphType + '\n' + pickle.dumps(graphOptions)
+  postData = (graphType + '\n').encode() + pickle.dumps(graphOptions)
   servers = settings.RENDERING_HOSTS[:] #make a copy so we can shuffle it safely
   shuffle(servers)
   connector_class = connector_class_selector(settings.INTRACLUSTER_HTTPS)
@@ -508,7 +533,7 @@ def delegateRendering(graphType, graphOptions, headers=None):
       log.rendering('Spent a total of %.6f seconds doing remote rendering work' % (time() - start))
       pool.add(connection)
       return imageData
-    except:
+    except Exception:
       log.exception("Exception while attempting remote rendering request on %s" % server)
       log.rendering('Exception while remotely rendering on %s wasted %.6f' % (server,time() - start2))
       continue
@@ -518,7 +543,7 @@ def renderLocalView(request):
   try:
     start = time()
     reqParams = BytesIO(request.body)
-    graphType = reqParams.readline().strip()
+    graphType = reqParams.readline().strip().decode()
     optionsPickle = reqParams.read()
     reqParams.close()
     graphClass = GraphTypes[graphType]
@@ -528,7 +553,7 @@ def renderLocalView(request):
     response = buildResponse(image)
     add_never_cache_headers(response)
     return response
-  except:
+  except Exception:
     log.exception("Exception in graphite.render.views.rawrender")
     return HttpResponseServerError()
 
@@ -550,13 +575,13 @@ def renderMyGraphView(request,username,graphName):
     if query_string:
       url_params = parse_qs(query_string)
       # Remove lists so that we can do an update() on the dict
-      for param, value in list(url_params.items()):
+      for param, value in url_params.items():
         if isinstance(value, list) and param != 'target':
           url_params[param] = value[-1]
       url_params.update(request_params)
       # Handle 'target' being a list - we want duplicate &target params out of it
       url_param_pairs = []
-      for key,val in list(url_params.items()):
+      for key,val in url_params.items():
         if isinstance(val, list):
           for v in val:
             url_param_pairs.append( (key,v) )
@@ -586,6 +611,6 @@ def buildResponse(imageData, content_type="image/png"):
 
 
 def errorPage(message):
-  template = loader.get_template('my500.html')
+  template = loader.get_template('500.html')
   context = Context(dict(message=message))
   return HttpResponseServerError( template.render(context) )

@@ -1,11 +1,10 @@
-import json
 import re
 import errno
 
 from os.path import getmtime
 from six.moves.urllib.parse import urlencode
 from six.moves.configparser import ConfigParser
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.http import QueryDict
 from django.conf import settings
 from django.contrib.auth import login, authenticate, logout
@@ -13,10 +12,11 @@ from django.contrib.staticfiles import finders
 from django.utils.safestring import mark_safe
 from ..compat import HttpResponse
 from ..dashboard.models import Dashboard, Template
-from ..render.views import renderView
 from .send_graph import send_graph_email
+from ..render.views import renderView
+from ..util import json
+from ..user_util import isAuthenticated
 from django.views.decorators.csrf import csrf_exempt
-
 
 fieldRegex = re.compile(r'<([^>]+)>')
 defaultScheme = {
@@ -44,6 +44,7 @@ defaultKeyboardShortcuts = {
 
 ALL_PERMISSIONS = ['change', 'delete']
 
+
 class DashboardConfig:
   def __init__(self):
     self.last_read = 0
@@ -59,7 +60,7 @@ class DashboardConfig:
     parser = ConfigParser()
     parser.read(settings.DASHBOARD_CONF)
 
-    for option, default_value in list(defaultUIConfig.items()):
+    for option, default_value in defaultUIConfig.items():
       if parser.has_option('ui', option):
         try:
           self.ui_config[option] = parser.getint('ui', option)
@@ -134,7 +135,7 @@ def dashboard(request, name=None):
     'debug': debug,
     'theme': theme,
     'initialError': initialError,
-    'querystring': mark_safe(json.dumps(dict(list(request.GET.items())))),
+    'querystring': mark_safe(json.dumps(dict(request.GET.items()))),
     'dashboard_conf_missing': dashboard_conf_missing,
     'userName': '',
     'permissions': mark_safe(json.dumps(getPermissions(request.user))),
@@ -152,7 +153,7 @@ def dashboard(request, name=None):
     else:
       context['initialState'] = dashboard.state
 
-  return render_to_response("dashboard.html", context)
+  return render(request, "dashboard.html", context)
 
 
 @csrf_exempt
@@ -182,7 +183,7 @@ def template(request, name, val):
     'debug' : debug,
     'theme' : theme,
     'initialError' : initialError,
-    'querystring' : json.dumps( dict( list(request.GET.items()) ) ),
+    'querystring' : json.dumps( dict( request.GET.items() ) ),
     'template_conf_missing' : template_conf_missing,
     'userName': '',
     'permissions': json.dumps(getPermissions(request.user)),
@@ -201,11 +202,12 @@ def template(request, name, val):
     state = json.loads(template.loadState(val))
     state['name'] = '%s/%s' % (name, val)
     context['initialState'] = json.dumps(state)
-  return render_to_response("dashboard.html", context)
+  return render(request, "dashboard.html", context)
+
 
 def getPermissions(user):
   """Return [change, delete] based on authorisation model and user privileges/groups"""
-  if user and not user.is_authenticated  :
+  if user and not isAuthenticated(user):
     user = None
   if not settings.DASHBOARD_REQUIRE_AUTHENTICATION:
     return ALL_PERMISSIONS      # don't require login
@@ -234,7 +236,7 @@ def save(request, name):
     dashboard = Dashboard.objects.create(name=name, state=state)
   else:
     dashboard.state = state
-    dashboard.save();
+    dashboard.save()
 
   return json_response( dict(success=True) )
 
@@ -254,7 +256,7 @@ def save_template(request, name, key):
     template.save()
   else:
     template.setState(state, key)
-    template.save();
+    template.save()
 
   return json_response( dict(success=True) )
 
@@ -369,7 +371,7 @@ def find_template(request):
 @csrf_exempt
 def help(request):
   context = {}
-  return render_to_response("dashboardHelp.html", context)
+  return render(request, "dashboardHelp.html", context)
 
 
 @csrf_exempt

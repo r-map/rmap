@@ -1,14 +1,21 @@
 import os
 
 from django.db import models
-from tagging.models import Tag
 
-from ..events.compat import ModelTaggedItemManager
+# Monkeypatching so that django-tagging can import python_2_unicode_compatible
+import django.utils.encoding
+import six
+django.utils.encoding.python_2_unicode_compatible = six.python_2_unicode_compatible
+django.utils.six = six
+from tagging.models import Tag  # noqa: E402
+
+from ..events.compat import ModelTaggedItemManager  # noqa: E402
 
 if os.environ.get('READTHEDOCS'):
     TagField = lambda *args, **kwargs: None
 else:
     from tagging.fields import TagField
+
 
 class Event(models.Model):
     when = models.DateTimeField()
@@ -40,7 +47,6 @@ class Event(models.Model):
 
         if time_until is not None:
             query = query.filter(when__lte=time_until)
-
 
         result = list(query.order_by("when"))
         return result

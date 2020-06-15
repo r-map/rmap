@@ -12,13 +12,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
 
-import math, itertools, re
+import itertools
+import math
+import re
 from datetime import datetime, timedelta
+
 from six.moves import range, zip
 from six.moves.urllib.parse import unquote_plus
 from six.moves.configparser import SafeConfigParser
 from django.conf import settings
 import pytz
+import six
 
 from ..render.datalib import TimeSeries
 from ..util import json, BytesIO
@@ -86,7 +90,7 @@ try:
         percent_l_supported = True
     else:
         percent_l_supported = False
-except ValueError as e:
+except ValueError:
     percent_l_supported = False
 
 DATE_FORMAT = settings.DATE_FORMAT
@@ -516,8 +520,8 @@ class _LogAxisTics(_AxisTics):
 
 
 class Graph:
-  customizable = ('width','height','margin','bgcolor','fgcolor', \
-                 'fontName','fontSize','fontBold','fontItalic', \
+  customizable = ('width','height','margin','bgcolor','fgcolor',
+                 'fontName','fontSize','fontBold','fontItalic',
                  'colorList','template','yAxisSide','outputFormat')
 
   def __init__(self,**params):
@@ -594,7 +598,7 @@ class Graph:
       r,g,b = value
     elif value in colorAliases:
       r,g,b = colorAliases[value]
-    elif type(value) in (str,str) and len(value) >= 6:
+    elif isinstance(value, six.string_types) and len(value) >= 6:
       s = value
       if s[0] == '#': s = s[1:]
       if s[0:3] == '%23': s = s[3:]
@@ -688,7 +692,6 @@ class Graph:
       self.area['ymin'] = y
     else:
       self.area['ymin'] = y + self.margin
-
 
   def drawLegend(self, elements, unique=False): #elements is [ (name,color,rightSide), (name,color,rightSide), ... ]
     self.encodeHeader('legend')
@@ -793,6 +796,12 @@ class Graph:
           y += lineHeight
 
   def encodeHeader(self,text):
+    """
+    Puts some metadata in the generated svg xml that is not inside the frame.
+    This can be used to manipulate the svg later on with a framework like d3.
+    """
+    if self.outputFormat != 'svg':
+      return
     self.ctx.save()
     self.setColor( self.backgroundColor )
     self.ctx.move_to(-88,-88) # identifier
@@ -882,10 +891,10 @@ class Graph:
         metaData = { }
 
       self.surface.finish()
-      svgData = str(self.surfaceData.getvalue())
+      svgData = self.surfaceData.getvalue().decode('utf-8')
       self.surfaceData.close()
 
-      svgData = svgData.replace('pt"', 'px"', 2) # we expect height/width in pixels, not points
+      svgData = svgData.replace('pt"', 'px"', 2)  # we expect height/width in pixels, not points
       svgData = svgData.replace('</svg>\n', '', 1)
       svgData = svgData.replace('</defs>\n<g', '</defs>\n<g class="graphite"', 1)
 
@@ -900,10 +909,10 @@ class Graph:
         (svgData, subsMade) = re.subn(r'<path.+?d="M -88 -88 (.+?)"/>', onHeaderPath, svgData)
 
         # Replace the first </g><g> with <g>, and close out the last </g> at the end
-        svgData = svgData.replace('</g><g data-header','<g data-header',1)
+        svgData = svgData.replace('</g><g data-header', '<g data-header', 1)
         if subsMade > 0:
-          svgData += "</g>"
-        svgData = svgData.replace(' data-header="true"','')
+          svgData += '</g>'
+        svgData = svgData.replace(' data-header="true"', '')
 
       fileObj.write(svgData.encode('utf-8'))
       fileObj.write(("""<script>
@@ -916,16 +925,16 @@ class Graph:
 
 class LineGraph(Graph):
   customizable = Graph.customizable + \
-                 ('title','vtitle','lineMode','lineWidth','hideLegend', \
-                  'hideAxes','minXStep','hideGrid','majorGridLineColor', \
-                  'minorGridLineColor','thickness','min','max', \
-                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode', \
-                  'areaAlpha','drawNullAsZero','tz', 'yAxisSide','pieMode', \
-                  'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft', \
-                  'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft', \
-                  'yStepRight', 'rightWidth', 'rightColor', 'rightDashed', \
-                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY', \
-                  'hideYAxis', 'uniqueLegend', 'vtitleRight', 'yDivisors', \
+                 ('title','vtitle','lineMode','lineWidth','hideLegend',
+                  'hideAxes','minXStep','hideGrid','majorGridLineColor',
+                  'minorGridLineColor','thickness','min','max',
+                  'graphOnly','yMin','yMax','yLimit','yStep','areaMode',
+                  'areaAlpha','drawNullAsZero','tz', 'yAxisSide','pieMode',
+                  'yUnitSystem', 'logBase','yMinLeft','yMinRight','yMaxLeft',
+                  'yMaxRight', 'yLimitLeft', 'yLimitRight', 'yStepLeft',
+                  'yStepRight', 'rightWidth', 'rightColor', 'rightDashed',
+                  'leftWidth', 'leftColor', 'leftDashed', 'xFormat', 'minorY',
+                  'hideYAxis', 'uniqueLegend', 'vtitleRight', 'yDivisors',
                   'connectedLimit', 'hideXAxis', 'hideNullFromLegend')
   validLineModes = ('staircase','slope','connected')
   validAreaModes = ('none','first','all','stacked')
@@ -985,7 +994,7 @@ class LineGraph(Graph):
     if 'yUnitSystem' not in params:
       params['yUnitSystem'] = 'si'
     else:
-      params['yUnitSystem'] = str(params['yUnitSystem']).lower()
+      params['yUnitSystem'] = six.text_type(params['yUnitSystem']).lower()
       if params['yUnitSystem'] not in UnitSystems:
         params['yUnitSystem'] = 'si'
 
@@ -1044,11 +1053,11 @@ class LineGraph(Graph):
     self.setColor( self.foregroundColor )
 
     if params.get('title'):
-      self.drawTitle( str( unquote_plus(params['title']) ) )
+      self.drawTitle( six.text_type( unquote_plus(params['title']) ) )
     if params.get('vtitle'):
-      self.drawVTitle( str( unquote_plus(params['vtitle']) ) )
+      self.drawVTitle( six.text_type( unquote_plus(params['vtitle']) ) )
     if self.secondYAxis and params.get('vtitleRight'):
-      self.drawVTitle( str( unquote_plus(params['vtitleRight']) ), rightAlign=True )
+      self.drawVTitle( six.text_type( unquote_plus(params['vtitleRight']) ), rightAlign=True )
     self.setFont()
 
     if not params.get('hideLegend', len(self.data) > settings.LEGEND_MAX_ITEMS):
@@ -1165,7 +1174,6 @@ class LineGraph(Graph):
     pixelToValueRatio = pixelRange / valueRange
     valueInPixels = pixelToValueRatio * relativeValue
     return self.area['ymax'] - valueInPixels
-
 
   def drawLines(self, width=None, dash=None, linecap='butt', linejoin='miter'):
     if not width: width = self.lineWidth
@@ -1597,7 +1605,6 @@ class LineGraph(Graph):
     self.xMinorGridStep = self.xConf['minorGridUnit'] * self.xConf['minorGridStep']
     self.xMajorGridStep = self.xConf['majorGridUnit'] * self.xConf['majorGridStep']
 
-
   def drawLabels(self):
     # Draw the Y-labels
     if not self.params.get('hideYAxis'):
@@ -1762,7 +1769,6 @@ class LineGraph(Graph):
     self.ctx.stroke()
 
 
-
 class PieGraph(Graph):
   customizable = Graph.customizable + \
                  ('title','valueLabels','valueLabelsMin','hideLegend','pieLabels','areaAlpha','valueLabelsColor')
@@ -1821,7 +1827,7 @@ class PieGraph(Graph):
     self.valueLabelsMin = float( params.get('valueLabelsMin',5) )
     self.valueLabels = params.get('valueLabels','percent')
     assert self.valueLabels in self.validValueLabels, \
-    "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
+        "valueLabels=%s must be one of %s" % (self.valueLabels,self.validValueLabels)
     if self.valueLabels != 'none':
       self.drawLabels()
 
@@ -1855,7 +1861,7 @@ class PieGraph(Graph):
         if slice['value'] < 10 and slice['value'] != int(slice['value']):
           label = "%.2f" % slice['value']
         else:
-          label = str(int(slice['value']))
+          label = six.text_type(int(slice['value']))
       theta = slice['midAngle']
       x = self.x0 + (self.radius / 2.0 * math.cos(theta))
       y = self.y0 + (self.radius / 2.0 * math.sin(theta))

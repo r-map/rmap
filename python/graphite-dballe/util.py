@@ -41,8 +41,8 @@ if sys.version_info >= (3, 0):
   from io import BytesIO
 else:
   PY3 = False
-  import pickle as pickle
-  from io import StringIO as BytesIO
+  import cPickle as pickle
+  from cStringIO import StringIO as BytesIO
 
 # use https://github.com/msgpack/msgpack-python if available
 try:
@@ -50,6 +50,7 @@ try:
 # otherwise fall back to bundled https://github.com/vsergeev/u-msgpack-python
 except ImportError:
   from . import umsgpack as msgpack  # NOQA
+
 
 def epoch(dt):
   """
@@ -68,12 +69,14 @@ def epoch_to_dt(timestamp):
     """
     return make_aware(datetime.utcfromtimestamp(timestamp), pytz.utc)
 
+
 def timebounds(requestContext):
   startTime = int(epoch(requestContext['startTime']))
   endTime = int(epoch(requestContext['endTime']))
   now = int(epoch(requestContext['now']))
 
   return (startTime, endTime, now)
+
 
 def is_local_interface(host):
   is_ipv6 = False
@@ -97,7 +100,7 @@ def is_local_interface(host):
     else:
       sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind( (host, 0) )
-  except:
+  except socket.error:
     return False
   finally:
     sock.close()
@@ -108,6 +111,7 @@ def is_local_interface(host):
 def is_pattern(s):
    return '*' in s or '?' in s or '[' in s or '{' in s
 
+
 def is_escaped_pattern(s):
   for symbol in '*?[{':
     i = s.find(symbol)
@@ -115,6 +119,7 @@ def is_escaped_pattern(s):
       if s[i-1] == '\\':
         return True
   return False
+
 
 def find_escaped_pattern_fields(pattern_string):
   pattern_parts = pattern_string.split('.')
@@ -125,7 +130,10 @@ def find_escaped_pattern_fields(pattern_string):
 
 def load_module(module_path, member=None):
   module_name = splitext(basename(module_path))[0]
-  module_file = open(module_path, 'U')
+  try:  # 'U' is default from Python 3.0 and deprecated since 3.9
+    module_file = open(module_path, 'U')
+  except ValueError:
+    module_file = open(module_path, 'rt')
   description = ('.py', 'U', imp.PY_SOURCE)
   module = imp.load_module(module_name, module_file, module_path, description)
   if member:
@@ -133,9 +141,11 @@ def load_module(module_path, member=None):
   else:
     return module
 
+
 def timestamp(dt):
   "Convert a datetime object into epoch time"
   return time.mktime(dt.timetuple())
+
 
 def deltaseconds(timedelta):
   "Convert a timedelta object into seconds (same as timedelta.total_seconds() in Python 2.7+)"
@@ -158,11 +168,11 @@ if not PY3:
 
     @classmethod
     def find_class(cls, module, name):
-      if not module in cls.PICKLE_SAFE:
+      if module not in cls.PICKLE_SAFE:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
       __import__(module)
       mod = sys.modules[module]
-      if not name in cls.PICKLE_SAFE[module]:
+      if name not in cls.PICKLE_SAFE[module]:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
@@ -191,11 +201,11 @@ else:
     }
 
     def find_class(self, module, name):
-      if not module in self.PICKLE_SAFE:
+      if module not in self.PICKLE_SAFE:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe module %s' % module)
       __import__(module)
       mod = sys.modules[module]
-      if not name in self.PICKLE_SAFE[module]:
+      if name not in self.PICKLE_SAFE[module]:
         raise pickle.UnpicklingError('Attempting to unpickle unsafe class %s' % name)
       return getattr(mod, name)
 
@@ -264,7 +274,7 @@ def logtime(f):
 
     try:
       return f(*args, **kwargs)
-    except:
+    except Exception:
       timer.msg = 'failed in'
       raise
     finally:
@@ -273,7 +283,7 @@ def logtime(f):
   return wrapped_f
 
 
-class BufferedHTTPReader(io.IOBase):
+class BufferedHTTPReader(io.FileIO):
   def __init__(self, response, buffer_size=1048576):
     self.response = response
     self.buffer_size = buffer_size
@@ -359,3 +369,28 @@ def _jsonResponse(data, queryParams, status=200, encoder=None, default=None):
 def _jsonError(message, queryParams, status=500, encoder=None, default=None):
   return _jsonResponse(
     {'error': message}, queryParams, status=status, encoder=encoder, default=default)
+
+
+def parseHost(host_string):
+    s = host_string.strip()
+    bidx = s.rfind(']:')    # find closing bracket and following colon.
+    cidx = s.find(':')
+    if s.startswith('[') and bidx is not None:
+        server = s[1:bidx]
+        port = s[bidx + 2:]
+    elif cidx is not None:
+        server = s[:cidx]
+        port = s[cidx + 1:]
+    else:
+        raise ValueError("Invalid host string \"%s\"" % host_string)
+
+    if ':' in port:
+        port, _, instance = port.partition(':')
+    else:
+        instance = None
+
+    return server, int(port), instance
+
+
+def parseHosts(host_strings):
+    return [parseHost(host_string) for host_string in host_strings]

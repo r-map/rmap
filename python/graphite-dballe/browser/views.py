@@ -15,7 +15,7 @@ limitations under the License."""
 import re
 
 from django.conf import settings
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.utils.safestring import mark_safe
 from django.utils.html import escape
 from ..account.models import Profile
@@ -24,7 +24,6 @@ from ..user_util import getProfile, getProfileByUsername
 import json
 from ..logger import log
 from hashlib import md5
-from six.moves.urllib.parse import urlencode, urlparse, parse_qsl
 
 
 def header(request):
@@ -34,7 +33,7 @@ def header(request):
   context['profile'] = getProfile(request)
   context['documentation_url'] = settings.DOCUMENTATION_URL
   context['login_url'] = settings.LOGIN_URL
-  return render_to_response("browserHeader.html", context)
+  return render(request, "browserHeader.html", context)
 
 
 def browser(request):
@@ -47,7 +46,7 @@ def browser(request):
     context['queryString'] = context['queryString'].replace('#','%23')
   if context['target']:
     context['target'] = context['target'].replace('#','%23') #js libs terminate a querystring on #
-  return render_to_response("browser.html", context)
+  return render(request, "browser.html", context)
 
 
 def search(request):
@@ -96,7 +95,7 @@ def myGraphLookup(request):
   }
 
   try:
-    path = request.GET.get('path', '')
+    path = request.GET.get('path', u'')
 
     if path:
       if path.endswith('.'):
@@ -106,7 +105,7 @@ def myGraphLookup(request):
         userpath_prefix = path + '.'
 
     else:
-      userpath_prefix = ""
+      userpath_prefix = u""
 
     matches = [ graph for graph in profile.mygraph_set.all().order_by('name') if graph.name.startswith(userpath_prefix) ]
 
@@ -138,24 +137,12 @@ def myGraphLookup(request):
       else:
         m = md5()
         m.update(name.encode('utf-8'))
-
-        # Sanitize target
-        urlEscaped = str(graph.url)
-        graphUrl = urlparse(urlEscaped)
-        graphUrlParams = {}
-        graphUrlParams['target'] = []
-        for param in parse_qsl(graphUrl.query):
-          if param[0] != 'target':
-            graphUrlParams[param[0]] = param[1]
-          else:
-            graphUrlParams[param[0]].append(escape(param[1]))
-        urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
-        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : urlEscaped } )
+        node.update( { 'id' : str(userpath_prefix + m.hexdigest()), 'graphUrl' : graph.url } )
         node.update(leafNode)
 
       nodes.append(node)
 
-  except:
+  except Exception:
     log.exception("browser.views.myGraphLookup(): could not complete request.")
 
   if not nodes:
@@ -164,6 +151,7 @@ def myGraphLookup(request):
     nodes.append(no_graphs)
 
   return json_response(nodes, request)
+
 
 def userGraphLookup(request):
   "View for User Graphs navigation"
@@ -236,28 +224,16 @@ def userGraphLookup(request):
           m = md5()
           m.update(nodeName.encode('utf-8'))
 
-          # Sanitize target
-          urlEscaped = str(graph.url)
-          graphUrl = urlparse(urlEscaped)
-          graphUrlParams = {}
-          graphUrlParams['target'] = []
-          for param in parse_qsl(graphUrl.query):
-            if param[0] != 'target':
-              graphUrlParams[param[0]] = param[1]
-            else:
-              graphUrlParams[param[0]].append(escape(param[1]))
-          urlEscaped = graphUrl._replace(query=urlencode(graphUrlParams, True)).geturl()
-
           node = {
             'text' : escape(nodeName),
             'id' : username + '.' + prefix + m.hexdigest(),
-            'graphUrl' : urlEscaped,
+            'graphUrl' : graph.url,
           }
           node.update(leafNode)
 
         nodes.append(node)
 
-  except:
+  except Exception:
     log.exception("browser.views.userLookup(): could not complete request for %s" % username)
 
   if not nodes:

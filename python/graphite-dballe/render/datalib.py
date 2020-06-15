@@ -11,11 +11,12 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License."""
-
+from __future__ import division
 
 import collections
 import re
 import time
+import types
 from six import text_type
 
 from django.conf import settings
@@ -23,6 +24,17 @@ from django.conf import settings
 from ..logger import log
 from ..storage import STORE
 from ..util import timebounds, logtime
+
+
+try:
+  from collections import UserDict
+except ImportError:
+  from UserDict import IterableUserDict as UserDict
+
+
+class Tags(UserDict):
+  def __setitem__(self, key, value):
+    self.data[key] = str(value)
 
 
 class TimeSeries(list):
@@ -43,12 +55,12 @@ class TimeSeries(list):
     else:
       self.tags = {'name': name}
       # parse for tags if a tagdb is configured and name doesn't look like a function-wrapped name
-      if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name, re.IGNORECASE):
-        try:
+      try:
+        if STORE.tagdb and not re.match('^[a-z]+[(].+[)]$', name, re.IGNORECASE):
           self.tags = STORE.tagdb.parse(name).tags
-        except Exception as err:
-          # tags couldn't be parsed, just use "name" tag
-          log.debug("Couldn't parse tags for %s: %s" % (name, err))
+      except Exception as err:
+        # tags couldn't be parsed, just use "name" tag
+        log.debug("Couldn't parse tags for %s: %s" % (name, err))
 
   def __eq__(self, other):
     if not isinstance(other, TimeSeries):
@@ -63,62 +75,68 @@ class TimeSeries(list):
     return ((self.name, self.start, self.end, self.step, self.consolidationFunc, self.valuesPerPoint, self.options, self.xFilesFactor) ==
       (other.name, other.start, other.end, other.step, other.consolidationFunc, other.valuesPerPoint, other.options, other.xFilesFactor)) and list.__eq__(self, other)
 
-
   def __iter__(self):
     if self.valuesPerPoint > 1:
       return self.__consolidatingGenerator( list.__iter__(self) )
     else:
       return list.__iter__(self)
 
-
   def consolidate(self, valuesPerPoint):
     self.valuesPerPoint = int(valuesPerPoint)
-
 
   __consolidation_functions = {
     'sum': sum,
     'average': lambda usable: sum(usable) / len(usable),
+    'avg_zero': lambda usable: sum(usable) / len(usable),
     'max': max,
     'min': min,
     'first': lambda usable: usable[0],
     'last': lambda usable: usable[-1],
   }
+  __consolidation_function_aliases = {
+    'avg': 'average',
+  }
+
   def __consolidatingGenerator(self, gen):
-    try:
+    if self.consolidationFunc in self.__consolidation_functions:
       cf = self.__consolidation_functions[self.consolidationFunc]
-    except KeyError:
+    elif self.consolidationFunc in self.__consolidation_function_aliases:
+      cf = self.__consolidation_functions[self.__consolidation_function_aliases[self.consolidationFunc]]
+    else:
       raise Exception("Invalid consolidation function: '%s'" % self.consolidationFunc)
 
-    buf = []  # only the not-None values
+    buf = []
     valcnt = 0
+    nonNull = 0
 
     for x in gen:
       valcnt += 1
       if x is not None:
         buf.append(x)
+        nonNull += 1
+      elif self.consolidationFunc == 'avg_zero':
+        buf.append(0)
 
       if valcnt == self.valuesPerPoint:
-        if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
+        if nonNull and (nonNull / self.valuesPerPoint) >= self.xFilesFactor:
           yield cf(buf)
         else:
           yield None
         buf = []
         valcnt = 0
+        nonNull = 0
 
     if valcnt > 0:
-      if buf and (len(buf) / self.valuesPerPoint) >= self.xFilesFactor:
+      if nonNull and (nonNull / self.valuesPerPoint) >= self.xFilesFactor:
         yield cf(buf)
       else:
         yield None
 
-    yield None
-    #raise StopIteration
-
+    return
 
   def __repr__(self):
     return 'TimeSeries(name=%s, start=%s, end=%s, step=%s, valuesPerPoint=%s, consolidationFunc=%s, xFilesFactor=%s)' % (
       self.name, self.start, self.end, self.step, self.valuesPerPoint, self.consolidationFunc, self.xFilesFactor)
-
 
   def getInfo(self):
     """Pickle-friendly representation of the series"""
@@ -135,7 +153,6 @@ class TimeSeries(list):
       text_type('xFilesFactor') : self.xFilesFactor,
     }
 
-
   def copy(self, name=None, start=None, end=None, step=None, values=None, consolidate=None, tags=None, xFilesFactor=None):
     return TimeSeries(
       name if name is not None else self.name,
@@ -147,6 +164,23 @@ class TimeSeries(list):
       tags=tags if tags is not None else self.tags,
       xFilesFactor=xFilesFactor if xFilesFactor is not None else self.xFilesFactor
     )
+
+  def datapoints(self):
+    timestamps = range(int(self.start), int(self.end) + 1, int(self.step * self.valuesPerPoint))
+    return list(zip(self, timestamps))
+
+  @property
+  def tags(self):
+    return self.__tags
+
+  @tags.setter
+  def tags(self, tags):
+    if isinstance(tags, Tags):
+      self.__tags = tags
+    elif isinstance(tags, dict):
+      self.__tags = Tags(tags)
+    else:
+      raise Exception('Invalid tags specified')
 
 
 # Data retrieval API
@@ -209,7 +243,7 @@ def _merge_results(pathExpr, startTime, endTime, prefetched, seriesList, request
         series_best_nones[known.name] = known_nones
 
       if known_nones > candidate_nones and len(series):
-        if settings.REMOTE_STORE_MERGE_RESULTS:
+        if settings.REMOTE_STORE_MERGE_RESULTS and len(series) == len(known):
           # This series has potential data that might be missing from
           # earlier series.  Attempt to merge in useful data and update
           # the cache count.
@@ -267,9 +301,19 @@ def prefetchData(requestContext, pathExpressions):
       ),
     ))
 
+  # Several third-party readers including rrdtool and biggraphite return values in a
+  # generator which can only be iterated on once. These must be converted to a list.
+  for pathExpression, items in prefetched.items():
+    for i, (name, (time_info, values)) in enumerate(items):
+      if isinstance(values, types.GeneratorType):
+        prefetched[pathExpression][i] = (name, (time_info, list(values)))
+
   if not requestContext.get('prefetched'):
     requestContext['prefetched'] = {}
 
-  requestContext['prefetched'][(startTime, endTime, now)] = prefetched
+  if (startTime, endTime, now) in requestContext['prefetched']:
+      requestContext['prefetched'][(startTime, endTime, now)].update(prefetched)
+  else:
+      requestContext['prefetched'][(startTime, endTime, now)] = prefetched
 
   log.rendering("Fetched data for [%s] in %fs" % (', '.join(pathExpressions), time.time() - start))

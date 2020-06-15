@@ -4,7 +4,6 @@ from django.conf import settings
 
 from graphite.logger import log
 from graphite.readers.utils import BaseReader
-from graphite.util import unpickle, msgpack, BufferedHTTPReader
 
 
 class RemoteReader(BaseReader):
@@ -54,41 +53,27 @@ class RemoteReader(BaseReader):
 
         headers = requestContext.get('forwardHeaders') if requestContext else None
 
-        retries = 1 # start counting at one to make log output and settings more readable
+        retries = 1  # start counting at one to make log output and settings more readable
         while True:
-          try:
-            result = self.finder.request(
-                '/render/',
-                fields=query_params,
-                headers=headers,
-                timeout=settings.REMOTE_FETCH_TIMEOUT,
-            )
-            break
-          except Exception:
-            if retries >= settings.MAX_FETCH_RETRIES:
-              log.exception("Failed after %s attempts! Root cause:\n%s" %
-                  (settings.MAX_FETCH_RETRIES, format_exc()))
-              raise
-            else:
-              log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
-                           (retries, settings.MAX_FETCH_RETRIES, format_exc()))
-              retries += 1
+            try:
+                result = self.finder.request(
+                    '/render/',
+                    fields=query_params,
+                    headers=headers,
+                    timeout=settings.FETCH_TIMEOUT,
+                )
+                break
+            except Exception:
+                if retries >= settings.MAX_FETCH_RETRIES:
+                    log.exception("Failed after %s attempts! Root cause:\n%s" %
+                                  (settings.MAX_FETCH_RETRIES, format_exc()))
+                    raise
+                else:
+                    log.exception("Got an exception when fetching data! Try: %i of %i. Root cause:\n%s" %
+                                  (retries, settings.MAX_FETCH_RETRIES, format_exc()))
+                retries += 1
 
-        try:
-            if result.getheader('content-type') == 'application/x-msgpack':
-              data = msgpack.load(BufferedHTTPReader(
-                result, buffer_size=settings.REMOTE_BUFFER_SIZE), encoding='utf-8')
-            else:
-              data = unpickle.load(BufferedHTTPReader(
-                result, buffer_size=settings.REMOTE_BUFFER_SIZE))
-        except Exception as err:
-            self.finder.fail()
-            log.exception(
-                "RemoteReader[%s] Error decoding render response from %s: %s" %
-                (self.finder.host, result.url_full, err))
-            raise Exception("Error decoding render response from %s: %s" % (result.url_full, err))
-        finally:
-            result.release_conn()
+        data = self.finder.deserialize(result)
 
         try:
             return [
@@ -102,7 +87,6 @@ class RemoteReader(BaseReader):
             ]
         except Exception as err:
             self.finder.fail()
-            log.exception(
-                "RemoteReader[%s] Invalid render response from %s: %s" %
-                (self.finder.host, result.url_full, repr(err)))
+            log.exception("RemoteReader[%s] Invalid render response from %s: %s" %
+                          (self.finder.host, result.url_full, repr(err)))
             raise Exception("Invalid render response from %s: %s" % (result.url_full, repr(err)))

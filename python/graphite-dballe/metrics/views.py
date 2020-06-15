@@ -22,6 +22,7 @@ from django.conf import settings
 
 from ..carbonlink import CarbonLink
 from ..compat import HttpResponse, HttpResponseBadRequest
+from ..errors import InputParameterError, handleInputParameterError
 from ..logger import log
 from ..render.attime import parseATTime
 from ..storage import STORE, extractForwardHeaders
@@ -67,41 +68,78 @@ def index_json(request):
   return json_response_for(request, matches, jsonp=jsonp)
 
 
+def queryParamAsInt(queryParams, name, default):
+  if name not in queryParams:
+    return default
+
+  try:
+    return int(queryParams[name])
+  except Exception as e:
+    raise InputParameterError('Invalid int value {value} for param {name}: {err}'.format(
+      value=repr(queryParams[name]),
+      name=name,
+      err=str(e)))
+
+
 @csrf_exempt
+@handleInputParameterError
 def find_view(request):
   "View for finding metrics matching a given pattern"
-  profile = getProfile(request)
 
   queryParams = request.GET.copy()
   queryParams.update(request.POST)
 
   format = queryParams.get('format', 'treejson')
-  local_only = int( queryParams.get('local', 0) )
-  wildcards = int( queryParams.get('wildcards', 0) )
+  leaves_only = queryParamAsInt(queryParams, 'leavesOnly', 0)
+  local_only = queryParamAsInt(queryParams, 'local', 0)
+  wildcards = queryParamAsInt(queryParams, 'wildcards', 0)
 
   tzinfo = pytz.timezone(settings.TIME_ZONE)
   if 'tz' in queryParams:
     try:
-      tzinfo = pytz.timezone(queryParams['tz'])
+      value = queryParams['tz']
+      tzinfo = pytz.timezone(value)
     except pytz.UnknownTimeZoneError:
       pass
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param tz: {err}'
+        .format(value=repr(value), err=str(e)))
 
   if 'now' in queryParams:
-    now = parseATTime(queryParams['now'], tzinfo)
+    try:
+      value = queryParams['now']
+      now = parseATTime(value, tzinfo)
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param now: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     now = datetime.now(tzinfo)
 
   if 'from' in queryParams and str(queryParams['from']) != '-1':
-    fromTime = int(epoch(parseATTime(queryParams['from'], tzinfo, now)))
+    try:
+      value = queryParams['from']
+      fromTime = int(epoch(parseATTime(value, tzinfo, now)))
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param from: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     fromTime = -1
 
-  if 'until' in queryParams and str(queryParams['from']) != '-1':
-    untilTime = int(epoch(parseATTime(queryParams['until'], tzinfo, now)))
+  if 'until' in queryParams and str(queryParams['until']) != '-1':
+    try:
+      value = queryParams['until']
+      untilTime = int(epoch(parseATTime(value, tzinfo, now)))
+    except Exception as e:
+      raise InputParameterError(
+        'Invalid value {value} for param until: {err}'
+        .format(value=repr(value), err=str(e)))
   else:
     untilTime = -1
 
-  nodePosition = int( queryParams.get('position', -1) )
+  nodePosition = queryParamAsInt(queryParams, 'position', -1)
   jsonp = queryParams.get('jsonp', False)
   forward_headers = extractForwardHeaders(request)
 
@@ -110,13 +148,15 @@ def find_view(request):
   if untilTime == -1:
     untilTime = None
 
-  automatic_variants = int( queryParams.get('automatic_variants', 0) )
+  automatic_variants = queryParamAsInt(queryParams, 'automatic_variants', 0)
 
   try:
     query = str( queryParams['query'] )
-  except:
-    return HttpResponseBadRequest(content="Missing required parameter 'query'",
-                                  content_type='text/plain')
+  except KeyError:
+    raise InputParameterError('Missing required parameter \'query\'')
+
+  if query == '':
+    raise InputParameterError('Required parameter \'query\' is empty')
 
   if '.' in query:
     base_path = query.rsplit('.', 1)[0] + '.'
@@ -136,8 +176,13 @@ def find_view(request):
       query = '.'.join(query_parts)
 
   try:
-    matches = list( STORE.find(query, fromTime, untilTime, local=local_only, headers=forward_headers) )
-  except:
+    matches = list(STORE.find(
+      query, fromTime, untilTime,
+      local=local_only,
+      headers=forward_headers,
+      leaves_only=leaves_only,
+    ))
+  except Exception:
     log.exception()
     raise
 
@@ -211,10 +256,10 @@ def expand_view(request):
 
   # Convert our results to sorted lists because sets aren't json-friendly
   if group_by_expr:
-    for query, matches in list(results.items()):
+    for query, matches in results.items():
       results[query] = sorted(matches)
   else:
-    results = sorted( reduce(set.union, list(results.values()), set()) )
+    results = sorted( reduce(set.union, results.values(), set()) )
 
   result = {
     'results' : results
@@ -238,7 +283,7 @@ def get_metadata_view(request):
   for metric in metrics:
     try:
       results[metric] = CarbonLink.get_metadata(metric, key)
-    except:
+    except Exception:
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.get_metadata(%s, %s)" % (metric, key))
 
@@ -255,7 +300,7 @@ def set_metadata_view(request):
     value = request.GET['value']
     try:
       results[metric] = CarbonLink.set_metadata(metric, key, value)
-    except:
+    except Exception:
       log.exception()
       results[metric] = dict(error="Unexpected error occurred in CarbonLink.set_metadata(%s, %s)" % (metric, key))
 
@@ -270,7 +315,7 @@ def set_metadata_view(request):
       try:
         metric, key, value = op['metric'], op['key'], op['value']
         results[metric] = CarbonLink.set_metadata(metric, key, value)
-      except:
+      except Exception:
         log.exception()
         if metric:
           results[metric] = dict(error="Unexpected error occurred in bulk CarbonLink.set_metadata(%s)" % metric)
@@ -347,10 +392,10 @@ def tree_json(nodes, base_path, wildcards=False):
           varinfo=dballe.varinfo(node.name)
           text = varinfo.desc.lower()+" "+varinfo.unit
       else:
-        text = urllib.parse.unquote_plus(str(node.name))
+        text = unquote_plus(str(node.name))
 
     else:
-      text = urllib.parse.unquote_plus(str(node.name))
+      text = unquote_plus(str(node.name))
 
     resultNode = {
         'text' : text,

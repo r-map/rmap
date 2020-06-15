@@ -13,23 +13,33 @@ See the License for the specific language governing permissions and
 limitations under the License."""
 
 
+from django import VERSION as DJANGO_VERSION
 from django.contrib.auth.models import User
 from .account.models import Profile
 from .logger import log
 
 
+def isAuthenticated(user):
+    # is_authenticated() is changed to a boolean since 1.10, 2.0 removes the
+    # backwards compatibilty
+    if DJANGO_VERSION >= (1, 10):
+        return user.is_authenticated
+    else:
+        return user.is_authenticated()
+
+
 def getProfile(request, allowDefault=True):
-  if request.user.is_authenticated:
-    return Profile.objects.get_or_create(user=request.user)[0]
-  elif allowDefault:
-    return default_profile()
+    if isAuthenticated(request.user):
+        return Profile.objects.get_or_create(user=request.user)[0]
+    elif allowDefault:
+        return default_profile()
 
 
 def getProfileByUsername(username):
-  try:
-    return Profile.objects.get(user__username=username)
-  except Profile.DoesNotExist:
-    return None
+    try:
+        return Profile.objects.get(user__username=username)
+    except Profile.DoesNotExist:
+        return None
 
 
 def default_profile():

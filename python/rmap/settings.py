@@ -422,7 +422,7 @@ mapfilereport2observationd              = config['report2observationd']['mapfile
 
 from os.path import abspath, dirname, join
 
-WEBAPP_VERSION="rmap "+__version__ + " + graphite 1.1.1"
+WEBAPP_VERSION="rmap "+__version__ + " + graphite 1.1.7-git"
 JAVASCRIPT_DEBUG = False
 DATE_FORMAT = '%y/%m/%d'
 WEB_DIR = dirname( abspath(__file__) )
@@ -437,6 +437,7 @@ DOCUMENTATION_URL = "http://graphite.readthedocs.io/"
 ALLOW_ANONYMOUS_CLI = True
 LEGEND_MAX_ITEMS = 10
 RRD_CF = 'AVERAGE'
+INPUT_VALIDATION_SOURCE_ID_HEADERS = {}
 #STORAGE_FINDERS = (
 #    'graphite-dballe.finders.standard.StandardFinder',
 #)
@@ -482,12 +483,12 @@ TAGDB='graphite-dballe.tags.localdatabase.LocalDatabaseTagDB'
 FUNCTION_PLUGINS = []
 REMOTE_STORE_FORWARD_HEADERS = []
 DEFAULT_XFILES_FACTOR = 0
-REMOTE_FETCH_TIMEOUT = 180.0
+FETCH_TIMEOUT = 180.0
 USE_WORKER_POOL = True
 POOL_MAX_WORKERS = 10
 METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
 METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
-REMOTE_FIND_TIMEOUT = 180.0
+FIND_TIMEOUT = 180.0
 
 # Cluster settings
 CLUSTER_SERVERS = []
