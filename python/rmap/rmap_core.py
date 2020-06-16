@@ -1757,15 +1757,17 @@ class amqpConsumerProducer(threading.Thread):
         confirmation_type = method_frame.method.NAME.split('.')[1].lower()
         self._logging.info('Received %s for delivery tag: %i', confirmation_type,
                     method_frame.method.delivery_tag)
+        tag=self._deliveries[method_frame.method.delivery_tag]
         if confirmation_type == 'ack':
             self._acked += 1
-
-            self.acknowledge_message(self._deliveries[method_frame.method.delivery_tag])
+            if (tag is not None):
+                self.acknowledge_message(tag)
             print(" [x] Done")
             
         elif confirmation_type == 'nack':
             self._nacked += 1
-            self.reject_message(self._deliveries[method_frame.method.delivery_tag])
+            if (tag is not None):
+                self.reject_message(tag)
             print(" [ ] NOT Done")
             
         self._deliveries.pop(method_frame.method.delivery_tag)
