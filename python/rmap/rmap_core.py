@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# GPL. (C) 2014 Paolo Patruno.
+# GPL. (C) 2020 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -38,6 +38,12 @@ from datetime import datetime
 from . import exifutils
 from django.db import connection
 import collections
+import threading
+import dballe,io
+import functools
+import logging
+
+
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
 
@@ -1594,3 +1600,443 @@ def compact(myrpc,mydata):
         
     return binstring
 
+class amqpConsumerProducer(threading.Thread):
+    def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",send_queue=None,logging=logging):
+        """Create a new instance of the producer consumer class, passing in the AMQP
+        URL used to connect to RabbitMQ.
+
+        :param str amqp_url: The AMQP url to connect with
+
+        """
+
+        threading.Thread.__init__(self)
+
+        self._connection = None
+        self._channel = None
+        self._stopping = False
+        self._host = host
+        self._queue=queue
+        self._exchange=exchange
+        self._user=user
+        self._password=password
+        self._logging=logging
+        self._running = False
+        self._send_queue=send_queue
+
+        self._deliveries = {}
+        self._acked = None
+        self._nacked = None
+        self._message_number = None
+        self._terminate_event = threading.Event()
+        self._prefetch_count = 1
+ 
+    def terminate(self):
+        self._terminate_event.set()
+
+    def have_to_terminate(self):
+        return self._terminate_event.is_set()
+        
+    def publish(self,body,tag=None):
+        """This method publish message to RabbitMQ exhange
+        """
+        self._logging.info('Publish to %s', self._exchange)
+
+        #set user_id property to don't get  "PRECONDITION_FAILED - user_id property set to 'guest' but authenticated user was 'rmap'
+        properties=pika.BasicProperties(
+            user_id= self._user,
+            delivery_mode = 2, # persistent
+        )
+        routing_key=self._user
+        
+        try:
+            self._channel.basic_publish(exchange=self._exchange,
+                                  routing_key=routing_key,
+                                  body=body,
+                                  properties=properties)
+            self._message_number += 1
+            self._deliveries[self._message_number]=tag            
+            self._logging.debug('Message published # %i',self._message_number)
+            return True
+        except pika.exceptions.UnroutableError:
+            self._logging.error('Message could not be confirmed')
+            return False
+
+        
+        
+    def connect(self):
+        """This method connects to RabbitMQ, returning the connection handle.
+        When the connection is established, the on_connection_open method
+        will be invoked by pika.
+
+        :rtype: pika.SelectConnection
+
+        """
+        self._logging.info('Connecting to %s', self._host)
+        self._logging.info('User %s; Password %s', self._user,self._password)
+
+        credentials=pika.PlainCredentials(self._user, self._password)
+        self._connection= pika.SelectConnection(pika.ConnectionParameters(host=self._host,credentials=credentials),
+
+                                                on_open_callback=self.on_connection_open,
+                                                on_open_error_callback=self.on_connection_open_error,
+                                                on_close_callback=self.on_connection_closed)
+
+
+    def on_connection_open(self, unused_connection):
+        """This method is called by pika once the connection to RabbitMQ has
+        been established. It passes the handle to the connection object in
+        case we need it, but in this case, we'll just mark it unused.
+
+        :type unused_connection: pika.SelectConnection
+
+        """
+        self._logging.info('Connection opened')
+        self.open_channel()
+
+    def on_connection_open_error(self, _unused_connection, err):
+        """This method is called by pika if the connection to RabbitMQ
+        can't be established.
+        :param pika.SelectConnection _unused_connection: The connection
+        :param Exception err: The error
+        """
+
+        self._logging.error('Connection open failed, reopening in 5 seconds: %s', err)
+        self._connection.ioloop.call_later(5, self._connection.ioloop.stop)
+
+
+    def on_connection_closed(self, _unused_connection, reason):
+        """This method is invoked by pika when the connection to RabbitMQ is
+        closed unexpectedly. Since it is unexpected, we will reconnect to
+        RabbitMQ if it disconnects.
+
+        :param pika.connection.Connection connection: The closed connection obj
+        :param int reply_code: The server provided reply_code if given
+        :param str reply_text: The server provided reply_text if given
+
+        """
+        self._channel = None
+        if self._stopping:
+            self._connection.ioloop.stop()
+        else:
+            self._logging.warning('Connection closed, reopening in 5 seconds: %s',
+                                  reason)
+            self._connection.ioloop.call_later(5, self._connection.ioloop.stop)
+
+
+    def open_channel(self):
+        """Open a new channel with RabbitMQ by issuing the Channel.Open RPC
+        command. When RabbitMQ responds that the channel is open, the
+        on_channel_open callback will be invoked by pika.
+
+        """
+        self._logging.info('Creating a new channel')
+        self._connection.channel(on_open_callback=self.on_channel_open)
+        
+    def on_channel_open(self, channel):
+        """This method is invoked by pika when the channel has been opened.
+        The channel object is passed in so we can make use of it.
+
+        Since the channel is now open, we'll declare the exchange to use.
+
+        :param pika.channel.Channel channel: The channel object
+
+        """
+        self._logging.info('Channel opened')
+        self._channel = channel
+        self.add_on_channel_close_callback()
+
+        # Turn on delivery confirmations
+        self._channel.confirm_delivery(ack_nack_callback=self.on_delivery_confirmation)
+
+        if (self._queue is not None):
+            self.set_qos()
+        
+        
+    def on_delivery_confirmation(self,method_frame):
+
+        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
+        self._logging.info('Received %s for delivery tag: %i', confirmation_type,
+                    method_frame.method.delivery_tag)
+        if confirmation_type == 'ack':
+            self._acked += 1
+
+            self.acknowledge_message(self._deliveries[method_frame.method.delivery_tag])
+            print(" [x] Done")
+            
+        elif confirmation_type == 'nack':
+            self._nacked += 1
+            self.reject_message(self._deliveries[method_frame.method.delivery_tag])
+            print(" [ ] NOT Done")
+            
+        self._deliveries.pop(method_frame.method.delivery_tag)
+        self._logging.info(
+            'Published %i messages, %i have yet to be confirmed, '
+            '%i were acked and %i were nacked', self._message_number,
+            len(self._deliveries), self._acked, self._nacked)
+    
+    def add_on_channel_close_callback(self):
+        """This method tells pika to call the on_channel_closed method if
+        RabbitMQ unexpectedly closes the channel.
+
+        """
+        self._logging.info('Adding channel close callback')
+        self._channel.add_on_close_callback(self.on_channel_closed)
+
+    def on_channel_closed(self, channel, reason):
+        """Invoked by pika when RabbitMQ unexpectedly closes the channel.
+        Channels are usually closed if you attempt to do something that
+        violates the protocol, such as re-declare an exchange or queue with
+        different parameters. In this case, we'll close the connection
+        to shutdown the object.
+
+        :param pika.channel.Channel: The closed channel
+        :param int reply_code: The numeric reason the channel was closed
+        :param str reply_text: The text reason the channel was closed
+
+        """
+        self._logging.warning('Channel %i was closed: (%s)',
+                              channel, reason)
+        self._channel = None
+        if not self._stopping:
+            try:
+                self._connection.close()
+            except:
+                pass
+
+    def close_channel(self):
+        """Call to close the channel with RabbitMQ cleanly by issuing the
+        Channel.Close RPC command.
+
+        """
+        self._logging.info('Closing the channel')
+        self._channel.close()
+
+    def get_messages(self):
+        "get messages from thead queue and publish to AMQP"
+
+        def send_message(message):
+            "send message; if error occour the message is requeued for retry"
+            
+            self._logging.debug("elaborate %s bytes" % len(message))
+
+            if (self.publish(message)):
+                self._send_queue.task_done()                    
+                
+            else:
+                self._logging.error("There were some errors sendin message to AMQP")
+                self._logging.debug("skip message: ")
+                self._logging.debug(message)
+                #self._logging.debug("---------------------")
+                #self._logging.error('Exception occured: ' + str(exception))
+                #self._logging.error(traceback.format_exc())
+
+                # requeue message for retry
+                self._send_queue.put_nowait(message)                    
+                
+
+        totalbody=b""
+        while not self._send_queue.empty():
+            # get a message
+            totalbody+=(self._send_queue.get())
+
+            if (len(totalbody) > 1000000):
+                send_message(totalbody)
+                totalbody=b""
+
+        if len(totalbody) > 0:
+            send_message(totalbody)
+
+        if(self.have_to_terminate()):
+            self.stop()
+        else:
+            self._connection.ioloop.call_later(5, self.get_messages)
+
+    def set_qos(self):
+        """This method sets up the consumer prefetch to only be delivered
+        one message at a time. The consumer must acknowledge this message
+        before RabbitMQ will deliver another one. You should experiment
+        with different prefetch values to achieve desired performance.
+        """
+        self._channel.basic_qos(
+            prefetch_count=self._prefetch_count, callback=self.on_basic_qos_ok)
+
+    def on_basic_qos_ok(self, _unused_frame):
+        """Invoked by pika when the Basic.QoS method has completed. At this
+        point we will start consuming messages by calling start_consuming
+        which will invoke the needed RPC commands to start the process.
+        :param pika.frame.Method _unused_frame: The Basic.QosOk response frame
+        """
+        self._logging.info('QOS set to: %d', self._prefetch_count)
+        self.start_consuming()
+
+    def start_consuming(self):
+        """This method sets up the consumer by first calling
+        add_on_cancel_callback so that the object is notified if RabbitMQ
+        cancels the consumer. It then issues the Basic.Consume RPC command
+        which returns the consumer tag that is used to uniquely identify the
+        consumer with RabbitMQ. We keep the value to use it when we want to
+        cancel consuming. The on_message method is passed in as a callback pika
+        will invoke when a message is fully received.
+        """
+        self._logging.info('Issuing consumer related RPC commands')
+        self.add_on_cancel_callback()
+        self._consumer_tag = self._channel.basic_consume(
+            self._queue, self.on_message)
+
+    def add_on_cancel_callback(self):
+        """Add a callback that will be invoked if RabbitMQ cancels the consumer
+        for some reason. If RabbitMQ does cancel the consumer,
+        on_consumer_cancelled will be invoked by pika.
+        """
+        self._logging.info('Adding consumer cancellation callback')
+        self._channel.add_on_cancel_callback(self.on_consumer_cancelled)
+
+    def on_consumer_cancelled(self, method_frame):
+        """Invoked by pika when RabbitMQ sends a Basic.Cancel for a consumer
+        receiving messages.
+        :param pika.frame.Method method_frame: The Basic.Cancel frame
+        """
+        self._logging.info('Consumer was cancelled remotely, shutting down: %r',
+                    method_frame)
+        if self._channel:
+            self._channel.close()
+
+    def acknowledge_message(self, delivery_tag):
+        """Acknowledge the message delivery from RabbitMQ by sending a
+        Basic.Ack RPC method for the delivery tag.
+        :param int delivery_tag: The delivery tag from the Basic.Deliver frame
+        """
+        self._logging.info('Acknowledging message %s', delivery_tag)
+        self._channel.basic_ack(delivery_tag)
+
+    def reject_message(self, delivery_tag):
+        """Do not acknowledge the message delivery from RabbitMQ 
+        It can be used to interrupt and cancel large incoming messages, or
+        return untreatable messages to their original queue.
+        :param int delivery_tag: The delivery tag from the Basic.Deliver frame
+        """
+        self._logging.info('Reject message %s', delivery_tag)
+        self._channel.basic_nack(delivery_tag)
+        
+    def stop_consuming(self):
+        """Tell RabbitMQ that you would like to stop consuming by sending the
+        Basic.Cancel RPC command.
+        """
+        if self._channel:
+            self._logging.info('Sending a Basic.Cancel RPC command to RabbitMQ')
+            cb = functools.partial(
+                self.on_cancelok, userdata=self._consumer_tag)
+            self._channel.basic_cancel(self._consumer_tag, cb)
+
+    def on_cancelok(self, _unused_frame, userdata):
+        """This method is invoked by pika when RabbitMQ acknowledges the
+        cancellation of a consumer. At this point we will close the channel.
+        This will invoke the on_channel_closed method once the channel has been
+        closed, which will in-turn close the connection.
+        :param pika.frame.Method _unused_frame: The Basic.CancelOk frame
+        :param str|unicode userdata: Extra user data (consumer tag)
+        """
+        self._logging.info(
+            'RabbitMQ acknowledged the cancellation of the consumer: %s',
+            userdata)
+        self.close_channel()
+
+
+    def on_message(self, _unused_channel, basic_deliver, properties, body):
+        """Invoked by pika when a message is delivered from RabbitMQ. The
+        channel is passed for your convenience. The basic_deliver object that
+        is passed in carries the exchange, routing key, delivery tag and
+        a redelivered flag for the message. The properties passed in is an
+        instance of BasicProperties with the message properties and the body
+        is the message that was sent.
+        :param pika.channel.Channel _unused_channel: The channel object
+        :param pika.Spec.Basic.Deliver: basic_deliver method
+        :param pika.Spec.BasicProperties: properties
+        :param bytes body: The message body
+        """
+        self._logging.debug('Received message # %s from %s: %s',
+                           basic_deliver.delivery_tag, properties.app_id, body)
+
+        #if properties.user_id is None:
+        #    print "Ignore anonymous message"
+        #    print " [x] Done"
+        #    ch.basic_ack(delivery_tag = method.delivery_tag)
+        #    return
+  
+        bodyfile = io.BytesIO(body) 
+        importer = dballe.Importer("JSON")
+        exporter = dballe.Exporter("BUFR")
+        outbufr=b""
+        with importer.from_file(bodyfile) as f:
+            for msg in f:
+                outbufr+=exporter.to_binary(msg)
+                
+        # Send a message
+        if ( self.publish(outbufr,basic_deliver.delivery_tag)):
+            self._logging.debug('message sended')
+        else:
+            self.reject_message(basic_deliver.delivery_tag)
+            print(" [ ] NOT Done")
+            self._logging.error('message not sended')
+            
+
+    def check_terminate(self):
+        if(self.have_to_terminate()):
+            self.stop()
+        else:
+            self._connection.ioloop.call_later(5, self.check_terminate)
+        
+                
+    def begin(self):
+        """Run the consumer by connecting to RabbitMQ and then
+        starting the IOLoop to block and allow the SelectConnection to operate.
+
+        """
+        self._deliveries = {}
+        self._acked = 0
+        self._nacked = 0
+        self._message_number = 0
+        
+        self.connect()
+        if (self._send_queue is not None):
+            self._connection.ioloop.call_later(10, self.get_messages)   # get messages from theading queue
+        self._connection.ioloop.call_later(10, self.check_terminate) # get messages from amqp queue 
+        self._connection.ioloop.start()
+
+    def run(self):
+        while not self._stopping:
+            try:
+                self.begin()
+                self.check_terminate()
+            except KeyboardInterrupt:
+                self.stop()
+                if (self._connection is not None and
+                    not self._connection.is_closed):
+                    # Finish closing
+                    self._connection.ioloop.start()
+        self._logging.info('Terminated')
+
+    def stop(self):
+        """Cleanly shutdown the connection to RabbitMQ by stopping the consumer/producer
+        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
+        will be invoked by pika, which will then closing the channel and
+        connection. The IOLoop is started again because this method is invoked
+        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
+        exception stops the IOLoop which needs to be running for pika to
+        communicate with RabbitMQ. All of the commands issued prior to starting
+        the IOLoop will be buffered but not processed.
+
+        """
+        self._logging.info('Stopping')
+        self._stopping = True
+        self.close_connection()
+        self._logging.info('Stopped')
+
+    def close_connection(self):
+        """This method closes the connection to RabbitMQ."""
+        self._logging.info('Closing connection')
+        try:
+            self._connection.close()
+        except pika.exceptions.ConnectionWrongStateError:
+            self._logging.info('attempt to close not open AMQP connection')
+        

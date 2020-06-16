@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# GPL. (C) 2014 Paolo Patruno.
+# GPL. (C) 2020 Paolo Patruno.
 
 # This program is free software; you can redistribute it and/or modify 
 # it under the terms of the GNU General Public License as published by 
@@ -22,7 +22,7 @@ import django
 django.setup()
 
 from rmap import daemon
-import pika, subprocess
+import pika,dballe,io
 import rmap.settings
 
 user=rmap.settings.amqpuser
@@ -41,8 +41,6 @@ amqp2amqp_identvalidationd = daemon.Daemon(
         group=rmap.settings.groupamqp2amqp_identvalidationd
 )
 
-
-
 def callback(ch, method, properties, body):
     print(" [x] Received message")
 
@@ -56,27 +54,21 @@ def callback(ch, method, properties, body):
     ident=properties.user_id
     print("Received from user: %r" % ident) 
 
-    #but we check that message content is with the same ident
-    try:
-        amqp2amqp_identvalidationd.procs = [subprocess.Popen(["dba_transform","-u",ident], stdin=subprocess.PIPE, stdout=subprocess.PIPE)]
-
-        outbody,outerr=amqp2amqp_identvalidationd.procs[0].communicate(input=body)
-
-        status=amqp2amqp_identvalidationd.procs[0].wait()
-        if status != 0:
-            print("There were some errors executing dbadb import error: ",status,outerr)
-            #print "skip message: "
-            #print body
-            #print "---------------------"
-
-    except:
-        print("There were some errors executing dba_transform")
-        raise
-
+    bodyfile = io.BytesIO(body) 
+    importer = dballe.Importer("BUFR")
+    exporter = dballe.Exporter("BUFR")
+    outbody=b""
+    with importer.from_file(bodyfile) as f:
+        for msgs in f:
+            for msg in msgs:
+                if msg.ident == ident:
+                    outbody+=exporter.to_binary(msg)
+                else:
+                    print ("message rejected by ident validation: ",msg.ident,ident)
 
     try:
 
-        if (outbody == ""):
+        if (outbody == b""):
             print("skip empty output message")
         else:
             print("publish message: ")
@@ -95,11 +87,9 @@ def callback(ch, method, properties, body):
                                          body=outbody,
                                          properties=properties):
                 print('Message publish was confirmed')
+                print(" [x] message Sent ")
             else:
                 print('Message could not be confirmed')
-
-            
-            print(" [x] message Sent ")
 
     except:
         print("There were some errors publishing message")

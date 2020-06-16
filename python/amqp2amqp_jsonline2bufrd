@@ -22,19 +22,11 @@ import django
 django.setup()
 
 from rmap import daemon
-import pika, subprocess
 import rmap.settings
-
-user=rmap.settings.amqpuser
-password=rmap.settings.amqppassword
-host="localhost"
-queue="..jsonline.report_fixed"
-outexchange="..bufr.report_fixed"
-routing_key="convertedfromjsonline"
-
-DSNFILE="/dev/shm/amqp2amqp_json2bufrd.sqlite"
-DSN="sqlite:"+DSNFILE
-
+import threading
+import signal
+import logging,traceback,time
+from rmap.rmap_core import amqpConsumerProducer
 
 amqp2amqp_jsonline2bufr = daemon.Daemon(
         stdin="/dev/null",
@@ -45,109 +37,76 @@ amqp2amqp_jsonline2bufr = daemon.Daemon(
         group=rmap.settings.groupamqp2amqp_jsonline2bufrd
 )
 
-def callback(ch, method, properties, body):
-    print(" [x] Received message")
 
-    #if properties.user_id is None:
-    #    print "Ignore anonymous message"
-    #    print " [x] Done"
-    #    ch.basic_ack(delivery_tag = method.delivery_tag)
-    #    return
-  
-    try:
-        amqp2amqp_jsonline2bufr.procs = [subprocess.Popen(["dbadb","import","--type=json","--wipe-first","--dsn="+DSN], stdin=subprocess.PIPE)]
+# catch signal to terminate the process
+class GracefulKiller:
+    kill_now = False
+    def __init__(self):
+        signal.signal(signal.SIGINT, self.exit_gracefully)
+        signal.signal(signal.SIGTERM, self.exit_gracefully)
 
-        outbody,outerr=amqp2amqp_jsonline2bufr.procs[0].communicate(input=body)
+    def exit_gracefully(self,signum, frame):
+        self.kill_now = True
 
-        status=amqp2amqp_jsonline2bufr.procs[0].wait()
-        if status != 0:
-            print("There were some errors executing dbadb import error: ",status,outerr)
-            #print "skip message: "
-            #print body
-            #print "---------------------"
+    def keyboard_interrupt(self):
+        self.kill_now = True
 
-    except:
-        print("There were some errors executing dbadb import")
-        raise
+    def terminate(self):
+        self.kill_now = True
 
 
-    try:
-        amqp2amqp_jsonline2bufr.procs = [subprocess.Popen(["dbadb","export","--dsn="+DSN], stdout=subprocess.PIPE)]
-
-        outbody,outerr=amqp2amqp_jsonline2bufr.procs[0].communicate()
-
-        status=amqp2amqp_jsonline2bufr.procs[0].wait()
-        if status != 0:
-            print("There were some errors executing dbadb export error: ",status,outerr)
-            #print "skip message: "
-            #print body
-            #print "---------------------"
-
-    except:
-        print("There were some errors executing dbadb export")
-        raise
-
-    try:
-
-        if (outbody == ""):
-            print("skip empty output message")
-        else:
-            print("publish message: ")
-            #print outbody
-            #print "---------------------"
-        
-            #set user_id property to don't get  "PRECONDITION_FAILED - user_id property set to 'guest' but authenticated user was 'rmap'
-            properties.user_id=user
-
-            # Turn on delivery confirmations
-            sendchannel.confirm_delivery()
-
-            # Send a message
-            if sendchannel.basic_publish(exchange=outexchange,
-                                        routing_key=routing_key,
-                                         body=outbody,
-                                         properties=properties):
-                print('Message publish was confirmed')
-            else:
-                print('Message could not be confirmed')
-
-            
-            print(" [x] message Sent ")
-
-    except:
-        print("There were some errors publishing message")
-        raise        
-
-    finally:
-        try:
-            os.remove(DSNFILE)
-        except:
-            pass
-
-    print(" [x] Done")
-    ch.basic_ack(delivery_tag = method.delivery_tag)
-
-
-    # TODO how we can pass procs to daemon ? 
 
 def main(self):
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials,heartbeat=0))
-    channel = connection.channel()
-    #channel.queue_declare(queue=queue)
+    #arm the signal handler
+    killer = GracefulKiller()
 
-    print(' [*] Waiting for messages. To exit press CTRL+C')
+    # configure the logger
+    formatter=logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s",datefmt="%Y-%m-%d %H:%M:%S")
+    handler = logging.handlers.RotatingFileHandler(self.options.stdout, maxBytes=5000000, backupCount=10)
+    handler.setFormatter(formatter)
+    
+    # Add the log message handler to the root logger
+    logging.getLogger().addHandler(handler)
+    logging.getLogger().setLevel(logging.INFO)
 
+    logging.info('Starting up mqtt2amqpd')
 
-    channel.basic_consume(on_message_callback=callback,
-                          queue=queue,
-                          auto_ack=False)
+    #send_queue = queue.Queue(maxsize=100)
 
-    channel.start_consuming()
+    user=rmap.settings.amqpuser
+    password=rmap.settings.amqppassword
+    host="localhost"
+    inqueue="..jsonline.report_fixed"
+    outexchange="..bufr.report_fixed"
 
-    connection.close()
-    sendconnection.close()
+    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,logging=logging)
+    amqp.start()
+    
+    # infinite loop
+    while True:
+        try:
+            time.sleep(3) # do nothing
+        except Exception as exception:
+            logging.error('Exception occured: ' + str(exception))
+            logging.error(traceback.format_exc())
+            killer.terminate()
+            
+        # terminate on keyboard interrupt
+        except KeyboardInterrupt:
+            sys.stdout.write("keyboard interrupt\n")
+            logging.info("keyboard interrupt\n")
+            killer.keyboard_interrupt()
+
+        # check if we have to terminate together with other exceptions
+        if killer.kill_now:
+            logging.info("killed by signal\n")
+
+            amqp.terminate()
+            amqp.join()
+            logging.debug("AMQP terminated")
+
+            return False
 
 
 if __name__ == '__main__':
@@ -157,12 +116,6 @@ if __name__ == '__main__':
 
     if amqp2amqp_jsonline2bufr.service():
 
-        credentials=pika.PlainCredentials(user, password)
-
-        sendconnection = pika.BlockingConnection(pika.ConnectionParameters(
-            host=host,credentials=credentials,heartbeat=0))
-        sendchannel = sendconnection.channel()
-        
         sys.stdout.write("Daemon started with pid %d\n" % os.getpid())
         sys.stdout.write("Daemon stdout output\n")
         sys.stderr.write("Daemon stderr output\n")
@@ -172,4 +125,5 @@ if __name__ == '__main__':
         for proc in amqp2amqp_jsonline2bufr.procs:
             proc.wait()
 
+        sys.stdout.write("Daemon stoppped\n")
         sys.exit(0)

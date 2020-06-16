@@ -35,10 +35,7 @@ django.setup()
 
 from rmap import daemon
 import rmap.settings
-
-user=rmap.settings.amqpuser
-password=rmap.settings.amqppassword
-host="localhost"
+from rmap.rmap_core import amqpConsumerProducer
 
 TOPIC_RE = re.compile((
     r'^.*/'
@@ -55,293 +52,6 @@ TOPIC_RE = re.compile((
     r'(?P<lv2>[0-9]+|-)/'
     r'(?P<var>B[0-9]{5})$'
 ))
-
-
-class amqpProducer(threading.Thread):
-    def __init__(self,host,exchange,send_queue=None,logging=logging):
-        """Create a new instance of the producer class, passing in the AMQP
-        URL used to connect to RabbitMQ.
-
-        :param str amqp_url: The AMQP url to connect with
-
-        """
-
-        threading.Thread.__init__(self)
-
-        self._connection = None
-        self._channel = None
-        self._stopping = False
-        self._host = host
-        self._exchange=exchange
-        self._logging=logging
-        self._running = False
-        self._send_queue=send_queue
-
-        self._deliveries = None
-        self._acked = None
-        self._nacked = None
-        self._message_number = None
-        self._terminate_event = threading.Event()
-
-    def terminate(self):
-        self._terminate_event.set()
-
-    def have_to_terminate(self):
-        return self._terminate_event.is_set()
-        
-    def publish(self,body):
-        """This method publish message to RabbitMQ exhange
-        """
-        self._logging.info('Publish to %s', self._exchange)
-
-        properties=pika.BasicProperties(
-            user_id= user,
-            delivery_mode = 2, # persistent
-        )
-        routing_key=user
-        
-        try:
-            self._channel.basic_publish(exchange=self._exchange,
-                                  routing_key=routing_key,
-                                  body=body,
-                                  properties=properties)
-            self._message_number += 1
-            self._deliveries.append(self._message_number)
-            
-            self._logging.debug('Message published # %i',self._message_number)
-            return True
-        except pika.exceptions.UnroutableError:
-            self._logging.error('Message could not be confirmed')
-            return False
-
-        
-        
-    def connect(self):
-        """This method connects to RabbitMQ, returning the connection handle.
-        When the connection is established, the on_connection_open method
-        will be invoked by pika.
-
-        :rtype: pika.SelectConnection
-
-        """
-        self._logging.info('Connecting to %s', self._host)
-        self._logging.info('User %s; Password %s', user,password)
-
-        credentials=pika.PlainCredentials(user, password)
-        self._connection= pika.SelectConnection(pika.ConnectionParameters(host=self._host,credentials=credentials),
-
-                                                on_open_callback=self.on_connection_open,
-                                                on_open_error_callback=self.on_connection_open_error,
-                                                on_close_callback=self.on_connection_closed)
-
-
-    def on_connection_open(self, unused_connection):
-        """This method is called by pika once the connection to RabbitMQ has
-        been established. It passes the handle to the connection object in
-        case we need it, but in this case, we'll just mark it unused.
-
-        :type unused_connection: pika.SelectConnection
-
-        """
-        self._logging.info('Connection opened')
-        self.open_channel()
-
-    def on_connection_open_error(self, _unused_connection, err):
-        """This method is called by pika if the connection to RabbitMQ
-        can't be established.
-        :param pika.SelectConnection _unused_connection: The connection
-        :param Exception err: The error
-        """
-
-        self._logging.error('Connection open failed, reopening in 5 seconds: %s', err)
-        self._connection.ioloop.call_later(5, self._connection.ioloop.stop)
-
-
-    def on_connection_closed(self, _unused_connection, reason):
-        """This method is invoked by pika when the connection to RabbitMQ is
-        closed unexpectedly. Since it is unexpected, we will reconnect to
-        RabbitMQ if it disconnects.
-
-        :param pika.connection.Connection connection: The closed connection obj
-        :param int reply_code: The server provided reply_code if given
-        :param str reply_text: The server provided reply_text if given
-
-        """
-        self._channel = None
-        if self._stopping:
-            self._connection.ioloop.stop()
-        else:
-            self._logging.warning('Connection closed, reopening in 5 seconds: %s',
-                                  reason)
-            self._connection.ioloop.call_later(5, self._connection.ioloop.stop)
-
-
-    def open_channel(self):
-        """Open a new channel with RabbitMQ by issuing the Channel.Open RPC
-        command. When RabbitMQ responds that the channel is open, the
-        on_channel_open callback will be invoked by pika.
-
-        """
-        self._logging.info('Creating a new channel')
-        self._connection.channel(on_open_callback=self.on_channel_open)
-
-    def on_channel_open(self, channel):
-        """This method is invoked by pika when the channel has been opened.
-        The channel object is passed in so we can make use of it.
-
-        Since the channel is now open, we'll declare the exchange to use.
-
-        :param pika.channel.Channel channel: The channel object
-
-        """
-        self._logging.info('Channel opened')
-        self._channel = channel
-        self.add_on_channel_close_callback()
-
-        # Turn on delivery confirmations
-        self._channel.confirm_delivery(ack_nack_callback=self.on_delivery_confirmation)
-
-    def on_delivery_confirmation(self,method_frame):
-
-        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
-        self._logging.info('Received %s for delivery tag: %i', confirmation_type,
-                    method_frame.method.delivery_tag)
-        if confirmation_type == 'ack':
-            self._acked += 1
-        elif confirmation_type == 'nack':
-            self._nacked += 1
-        self._deliveries.remove(method_frame.method.delivery_tag)
-        self._logging.info(
-            'Published %i messages, %i have yet to be confirmed, '
-            '%i were acked and %i were nacked', self._message_number,
-            len(self._deliveries), self._acked, self._nacked)
-    
-    def add_on_channel_close_callback(self):
-        """This method tells pika to call the on_channel_closed method if
-        RabbitMQ unexpectedly closes the channel.
-
-        """
-        self._logging.info('Adding channel close callback')
-        self._channel.add_on_close_callback(self.on_channel_closed)
-
-    def on_channel_closed(self, channel, reason):
-        """Invoked by pika when RabbitMQ unexpectedly closes the channel.
-        Channels are usually closed if you attempt to do something that
-        violates the protocol, such as re-declare an exchange or queue with
-        different parameters. In this case, we'll close the connection
-        to shutdown the object.
-
-        :param pika.channel.Channel: The closed channel
-        :param int reply_code: The numeric reason the channel was closed
-        :param str reply_text: The text reason the channel was closed
-
-        """
-        self._logging.warning('Channel %i was closed: (%s)',
-                              channel, reason)
-        self._channel = None
-        if not self._stopping:
-            try:
-                self._connection.close()
-            except:
-                pass
-
-    def close_channel(self):
-        """Call to close the channel with RabbitMQ cleanly by issuing the
-        Channel.Close RPC command.
-
-        """
-        self._logging.info('Closing the channel')
-        self._channel.close()
-
-    def get_messages(self):
-
-
-        def send_message(message):
-            self._logging.debug("elaborate %s bytes" % len(message))
-
-            try:
-                self.publish(message)
-                
-            except Exception as exception:
-                self._logging.error("There were some errors sendin message to AMQP")
-                self._logging.debug("skip message: ")
-                self._logging.debug(message)
-                self._logging.debug("---------------------")
-                self._logging.error('Exception occured: ' + str(exception))
-                self._logging.error(traceback.format_exc())
-
-                # requeue message
-                self._send_queue.put_nowait(message)                    
-                
-            finally:
-                self._send_queue.task_done()                    
-
-
-        totalbody=b""
-        while not self._send_queue.empty():
-            # get a message
-            totalbody+=(self._send_queue.get())
-
-            if (len(totalbody) > 1000000):
-                send_message(totalbody)
-                totalbody=b""
-
-        if len(totalbody) > 0:
-            send_message(totalbody)
-
-        if(self.have_to_terminate()):
-            self.stop()
-        else:
-            self._connection.ioloop.call_later(5, self.get_messages)
-
-        
-    def begin(self):
-        """Run the example producer by connecting to RabbitMQ and then
-        starting the IOLoop to block and allow the SelectConnection to operate.
-
-        """
-        self._deliveries = []
-        self._acked = 0
-        self._nacked = 0
-        self._message_number = 0
-        
-        self.connect()
-        self._connection.ioloop.call_later(10, self.get_messages)
-        self._connection.ioloop.start()
-
-    def run(self):
-        while not self._stopping:
-            try:
-                self.begin()
-            except KeyboardInterrupt:
-                self.stop()
-                if (self._connection is not None and
-                        not self._connection.is_closed):
-                    # Finish closing
-                    self._connection.ioloop.start()
-        self._logging.info('Terminated')
-
-    def stop(self):
-        """Cleanly shutdown the connection to RabbitMQ by stopping the producer
-        with RabbitMQ. When RabbitMQ confirms the cancellation, on_cancelok
-        will be invoked by pika, which will then closing the channel and
-        connection. The IOLoop is started again because this method is invoked
-        when CTRL-C is pressed raising a KeyboardInterrupt exception. This
-        exception stops the IOLoop which needs to be running for pika to
-        communicate with RabbitMQ. All of the commands issued prior to starting
-        the IOLoop will be buffered but not processed.
-
-        """
-        self._logging.info('Stopping')
-        self._stopping = True
-        self.close_connection()
-        self._logging.info('Stopped')
-
-    def close_connection(self):
-        """This method closes the connection to RabbitMQ."""
-        self._logging.info('Closing connection')
-        self._connection.close()
-
 
 
 class MyMQTTClass(mqtt.Client):
@@ -530,11 +240,14 @@ def main(self):
     topic = topicdict[self.options.datalevel][self.options.stationtype]
     logging.info('Topic: %s'% topic)
     
-    exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
 
+    user=rmap.settings.amqpuser
+    password=rmap.settings.amqppassword
+    host="localhost"
+    exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
     send_queue = queue.Queue(maxsize=1000000)
 
-    amqp=amqpProducer(host,exchange,send_queue,logging)
+    amqp=amqpConsumerProducer(host=host,exchange=exchange,user=user,password=password,send_queue=send_queue,logging=logging)
     amqp.start()
 
     # If you want to use a specific client id, use
@@ -572,6 +285,7 @@ def main(self):
             
         # check if we have to terminate together with other exceptions
         if killer.kill_now:
+            logging.info("killed by signal\n")
 
             mqttclient.disconnect()
             mqttclient.loop_stop()
@@ -579,13 +293,10 @@ def main(self):
             
             amqp.terminate()
             amqp.join()
-            logging.debug("AMQP connection closed")
+            logging.debug("AMQP terminated")
 
-            logging.info("killed by signal\n")
-            logging.info('Subprocess finished')
             return False
     
-            
 
 if __name__ == '__main__':
 
