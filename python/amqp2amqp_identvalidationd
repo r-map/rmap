@@ -58,9 +58,9 @@ def identvalidation(amqp,basic_deliver, properties, body):
     logging.debug(" [x] Received message")
 
     if properties.user_id is None:
-        logging.debug("Ignore anonymous message")
-        logging.debug(" [x] Done")
-        ch.basic_ack(delivery_tag = basic_deliver.delivery_tag)
+        logging.info("Ignore anonymous message")
+        logging.info(" [x] Done")
+        amqp.acknowledge_message(basic_deliver.delivery_tag)
         return
   
     #At this point we can check if we trust this authenticated user... 
@@ -77,7 +77,7 @@ def identvalidation(amqp,basic_deliver, properties, body):
                 if msg.ident == ident:
                     outbody+=exporter.to_binary(msg)
                 else:
-                    logging.debug("message rejected by ident validation: %s : %s ",msg.ident,ident)
+                    logging.info("message rejected by ident validation: %s : %s ",msg.ident,ident)
 
     if (outbody == b""):
         logging.debug("skip empty output message")
@@ -87,10 +87,11 @@ def identvalidation(amqp,basic_deliver, properties, body):
         # Send a message
         if ( amqp.publish(outbody,basic_deliver.delivery_tag)):
             logging.debug('message sended')
+            logging.info(" [x] Done")
             amqp.acknowledge_message(basic_deliver.delivery_tag)
         else:
             amqp.reject_message(basic_deliver.delivery_tag)
-            logging.debug(" [ ] NOT Done")
+            logging.info(" [ ] NOT Done")
             logging.error('message not sended')
 
 
