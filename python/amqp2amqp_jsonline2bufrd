@@ -17,6 +17,7 @@
 # 
 
 import os
+import dballe,io
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 import django
 django.setup()
@@ -54,6 +55,31 @@ class GracefulKiller:
     def terminate(self):
         self.kill_now = True
 
+def jsonline2bufr(amqp,basic_deliver, properties, body):
+
+    logging.debug(" [x] Received message")
+        
+    bodyfile = io.BytesIO(body) 
+    importer = dballe.Importer("JSON")
+    exporter = dballe.Exporter("BUFR")
+    outbufr=b""
+    with importer.from_file(bodyfile) as f:
+        for msg in f:
+            outbufr+=exporter.to_binary(msg)
+                
+    if (outbufr == b""):
+        logging.debug("skip empty output message")
+        amqp.acknowledge_message(basic_deliver.delivery_tag)
+    else:
+        # Send a message
+        if ( amqp.publish(outbufr,basic_deliver.delivery_tag)):
+            logging.debug('message sended')
+            amqp.acknowledge_message(basic_deliver.delivery_tag)
+        else:
+            amqp.reject_message(basic_deliver.delivery_tag)
+            logging.debug(" [ ] NOT Done")
+            logging.error('message not sended')
+
 
 
 def main(self):
@@ -68,7 +94,7 @@ def main(self):
     
     # Add the log message handler to the root logger
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
+    logging.getLogger().setLevel(logging.DEBUG)
 
     logging.info('Starting up mqtt2amqpd')
 
@@ -80,7 +106,8 @@ def main(self):
     inqueue="..jsonline.report_fixed"
     outexchange="..bufr.report_fixed"
 
-    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,logging=logging)
+    
+    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,logging=logging,pipefunction=jsonline2bufr)
     amqp.start()
     
     # infinite loop
@@ -98,6 +125,10 @@ def main(self):
             logging.info("keyboard interrupt\n")
             killer.keyboard_interrupt()
 
+        if (not amqp.is_alive()):
+            logging.info("amqp aborted\n")
+            killer.terminate()            
+            
         # check if we have to terminate together with other exceptions
         if killer.kill_now:
             logging.info("killed by signal\n")

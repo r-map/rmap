@@ -258,8 +258,8 @@ def main(self):
     mqttclient = MyMQTTClass(userdata={
         "topics": [topic],
         "logging": logging,
-        "send_queue": send_queue,
-    })
+        "send_queue": send_queue},
+        client_id="1")
     
     mqttclient.loop_start()
     mqttclient.connect(host=host)
@@ -282,7 +282,12 @@ def main(self):
         # terminate without error
         # no exception was raised
         #logging.info('work finished')
-            
+
+
+        if (not amqp.is_alive()):
+            logging.info("amqp aborted\n")
+            killer.terminate()            
+        
         # check if we have to terminate together with other exceptions
         if killer.kill_now:
             logging.info("killed by signal\n")

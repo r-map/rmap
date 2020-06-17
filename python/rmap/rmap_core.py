@@ -1601,7 +1601,7 @@ def compact(myrpc,mydata):
     return binstring
 
 class amqpConsumerProducer(threading.Thread):
-    def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",send_queue=None,logging=logging):
+    def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",send_queue=None,logging=logging,pipefunction=None):
         """Create a new instance of the producer consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -1628,7 +1628,8 @@ class amqpConsumerProducer(threading.Thread):
         self._nacked = None
         self._message_number = None
         self._terminate_event = threading.Event()
-        self._prefetch_count = 1
+        self._prefetch_count = 5
+        self._pipefunction=pipefunction
  
     def terminate(self):
         self._terminate_event.set()
@@ -1959,35 +1960,16 @@ class amqpConsumerProducer(threading.Thread):
         self._logging.debug('Received message # %s from %s: %s',
                            basic_deliver.delivery_tag, properties.app_id, body)
 
-        #if properties.user_id is None:
-        #    print "Ignore anonymous message"
-        #    print " [x] Done"
-        #    ch.basic_ack(delivery_tag = method.delivery_tag)
-        #    return
-  
-        bodyfile = io.BytesIO(body) 
-        importer = dballe.Importer("JSON")
-        exporter = dballe.Exporter("BUFR")
-        outbufr=b""
-        with importer.from_file(bodyfile) as f:
-            for msg in f:
-                outbufr+=exporter.to_binary(msg)
-                
-        # Send a message
-        if ( self.publish(outbufr,basic_deliver.delivery_tag)):
-            self._logging.debug('message sended')
-        else:
-            self.reject_message(basic_deliver.delivery_tag)
-            print(" [ ] NOT Done")
-            self._logging.error('message not sended')
-            
+        if (self._pipefunction is not None):
+            self._pipefunction(self,basic_deliver, properties, body)
+
 
     def check_terminate(self):
         if(self.have_to_terminate()):
             self.stop()
         else:
             self._connection.ioloop.call_later(5, self.check_terminate)
-        
+                
                 
     def begin(self):
         """Run the consumer by connecting to RabbitMQ and then
