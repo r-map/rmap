@@ -54,6 +54,7 @@ configspec['django']['CACHE_LOCATION']="string(default='%s/cache/')" % os.getcwd
 
 configspec['daemon']={}
 
+configspec['daemon']['amqphost']        = "string(default='localhost')"
 configspec['daemon']['amqpuser']        = "string(default='rmap')"
 configspec['daemon']['amqppassword']    = "string(default='rmap')"
 configspec['daemon']['mqttuser']        = "string(default='rmap')"
@@ -280,6 +281,7 @@ CACHE_LOCATION          = config['django']['CACHE_LOCATION']
 
 
 # section daemon
+amqphost                = config['daemon']['amqphost']
 amqpuser                = config['daemon']['amqpuser']
 amqppassword            = config['daemon']['amqppassword']
 mqttuser                = config['daemon']['mqttuser']
