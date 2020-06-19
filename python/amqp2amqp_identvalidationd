@@ -16,7 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
-import os,signal,logging,traceback,time
+import os,signal,logging,traceback,time,queue
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 import django
 django.setup()
@@ -25,6 +25,7 @@ from rmap import daemon
 import pika,dballe,io
 import rmap.settings
 from rmap.rmap_core import amqpConsumerProducer
+from rmap.rmap_core import Message
 
 
 amqp2amqp_identvalidationd = daemon.Daemon(
@@ -60,7 +61,11 @@ def identvalidation(amqp,basic_deliver, properties, body):
     if properties.user_id is None:
         logging.info("Ignore anonymous message")
         logging.info(" [x] Done")
-        amqp.acknowledge_message(basic_deliver.delivery_tag)
+
+        if (amqp.receive_queue is not None):
+            amqp.receive_queue.put_nowait(Message(True,basic_deliver.delivery_tag))
+        else:
+            amqp.acknowledge_message(basic_deliver.delivery_tag)
         return
   
     #At this point we can check if we trust this authenticated user... 
@@ -81,18 +86,23 @@ def identvalidation(amqp,basic_deliver, properties, body):
 
     if (outbody == b""):
         logging.debug("skip empty output message")
-        amqp.acknowledge_message(basic_deliver.delivery_tag)
+        if (amqp.receive_queue is not None):
+            amqp.receive_queue.put_nowait(Message(True,basic_deliver.delivery_tag))
+        else:
+            amqp.acknowledge_message(basic_deliver.delivery_tag)
     else:
         logging.debug("publish message")
         # Send a message
-        if ( amqp.publish(outbody,basic_deliver.delivery_tag)):
-            logging.debug('message sended')
-            logging.info(" [x] Done")
-            amqp.acknowledge_message(basic_deliver.delivery_tag)
-        else:
-            amqp.reject_message(basic_deliver.delivery_tag)
-            logging.info(" [ ] NOT Done")
-            logging.error('message not sended')
+        if (amqp.send_queue is not None):
+            amqp.send_queue.put_nowait(Message(outbody,basic_deliver.delivery_tag))
+        else:                    
+            if ( amqp.publish(outbody,[basic_deliver.delivery_tag])):
+                logging.debug('message sended')
+                logging.info(" [x] Done")
+            else:
+                logging.info(" [ ] NOT Done")
+                logging.error('message not sended')
+                amqp.reject_message(basic_deliver.delivery_tag)
 
 
 def main(self):
@@ -111,16 +121,20 @@ def main(self):
 
     logging.info('Starting up mqtt2amqpd')
 
-    #send_queue = queue.Queue(maxsize=100)
+    receive_queue = queue.Queue(maxsize=100)
+    send_queue = queue.Queue(maxsize=100)
 
     user=rmap.settings.amqpuser
     password=rmap.settings.amqppassword
-    host="localhost"
+    host=rmap.settings.amqphost
     inqueue="..bufr.report_fixed"
     outexchange="rmap.dae.bufr.report_fixed_validated"
 
     
-    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,logging=logging,pipefunction=identvalidation)
+    amqp=amqpConsumerProducer(host,inqueue,outexchange,user,password,
+                              receive_queue=receive_queue,send_queue=send_queue,
+                              pipefunction=identvalidation,
+                              logging=logging)
     amqp.start()
     
     # infinite loop

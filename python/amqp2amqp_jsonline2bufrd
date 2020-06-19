@@ -69,17 +69,23 @@ def jsonline2bufr(amqp,basic_deliver, properties, body):
                 
     if (outbufr == b""):
         logging.debug("skip empty output message")
-        amqp.acknowledge_message(basic_deliver.delivery_tag)
-    else:
-        # Send a message
-        if ( amqp.publish(outbufr,basic_deliver.delivery_tag)):
-            logging.debug('message sended')
-            amqp.acknowledge_message(basic_deliver.delivery_tag)
+        if (amqp.receive_queue is not None):
+            amqp.receive_queue.put_nowait(Message(True,basic_deliver.delivery_tag))
         else:
-            amqp.reject_message(basic_deliver.delivery_tag)
-            logging.debug(" [ ] NOT Done")
-            logging.error('message not sended')
+            amqp.acknowledge_message(basic_deliver.delivery_tag)
+    else:
 
+        # Send a message
+        if (amqp.send_queue is not None):
+            amqp.send_queue.put_nowait(Message(outbufr,basic_deliver.delivery_tag))
+        else:                    
+            if ( amqp.publish(outbufr,[basic_deliver.delivery_tag])):
+                logging.debug('message sended')
+                logging.info(" [x] Done")
+            else:
+                logging.info(" [ ] NOT Done")
+                logging.error('message not sended')
+                amqp.reject_message(basic_deliver.delivery_tag)
 
 
 def main(self):
@@ -102,7 +108,7 @@ def main(self):
 
     user=rmap.settings.amqpuser
     password=rmap.settings.amqppassword
-    host="localhost"
+    host=rmap.settings.amqphost
     inqueue="..jsonline.report_fixed"
     outexchange="..bufr.report_fixed"
 

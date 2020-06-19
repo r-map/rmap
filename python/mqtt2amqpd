@@ -36,6 +36,7 @@ django.setup()
 from rmap import daemon
 import rmap.settings
 from rmap.rmap_core import amqpConsumerProducer
+from rmap.rmap_core import Message
 
 TOPIC_RE = re.compile((
     r'^.*/'
@@ -160,7 +161,7 @@ class MyMQTTClass(mqtt.Client):
             #sys.stdout.buffer.write(exporter.to_binary(msg))
             #sys.stdout.flush()
 
-            send_queue.put_nowait(totalbody)
+            send_queue.put_nowait(Message(totalbody))
 
         except Exception:
             logging.error(traceback.format_exc())
@@ -243,7 +244,7 @@ def main(self):
 
     user=rmap.settings.amqpuser
     password=rmap.settings.amqppassword
-    host="localhost"
+    host=rmap.settings.amqphost
     exchange="rmap.mqtt.bufr."+self.options.datalevel+"_"+self.options.stationtype
     send_queue = queue.Queue(maxsize=1000000)
 
@@ -258,8 +259,8 @@ def main(self):
     mqttclient = MyMQTTClass(userdata={
         "topics": [topic],
         "logging": logging,
-        "send_queue": send_queue},
-        client_id="1")
+        "send_queue": send_queue})
+#        client_id="1")
     
     mqttclient.loop_start()
     mqttclient.connect(host=host)

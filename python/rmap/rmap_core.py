@@ -16,6 +16,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
 # 
 
+
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
 from .stations.models import StationMetadata
@@ -1600,8 +1601,38 @@ def compact(myrpc,mydata):
         
     return binstring
 
+
+class Message(object):
+    """ messaggio ricevuto o di conferma usato nella classe 
+    amqpConsumerProducer
+    body è il payload del messaggio
+    delivery_tag il tag amqp del messaggio
+    se il messaggio è usato per conferma/disconferma
+    il payload dovrà contenere rispettivamente Treue for "acked"
+    and False for "nacked"
+    """
+
+    def __init__(self,body,delivery_tag=None):
+        self.delivery_tag=delivery_tag
+        self.body=body
+
+
+
 class amqpConsumerProducer(threading.Thread):
-    def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",send_queue=None,logging=logging,pipefunction=None):
+    """questa classe gestisce la comunicazione con un broker amqp
+    Viene eseguita in un thread  attivato con il metodo start()
+    e terminato con un segnale inviato dal metodo terminate()
+    se definita una coda vengono consumati i messaggi e se definita viene eseguita pipefunction
+    a cui viene passata self stessa per gestire l'eventuale ack del messaggio stesso.
+    se definito un exchange è possibile pubblicare messaggi inviandoli alla coda del thread send_queue
+    I messaggi ricevuti possono essere confermati in modo asincrono inviando un Message alla coda thread
+    receive_queue
+    """
+
+    def __init__(self,host="localhost",queue=None,exchange=None,user="guest",password="guest",
+                 send_queue=None,receive_queue=None,
+                 pipefunction=None,prefetch_count=50,
+                 logging=logging):
         """Create a new instance of the producer consumer class, passing in the AMQP
         URL used to connect to RabbitMQ.
 
@@ -1621,14 +1652,15 @@ class amqpConsumerProducer(threading.Thread):
         self._password=password
         self._logging=logging
         self._running = False
-        self._send_queue=send_queue
+        self.send_queue=send_queue
+        self.receive_queue=receive_queue
 
         self._deliveries = {}
         self._acked = None
         self._nacked = None
         self._message_number = None
         self._terminate_event = threading.Event()
-        self._prefetch_count = 5
+        self._prefetch_count = prefetch_count 
         self._pipefunction=pipefunction
  
     def terminate(self):
@@ -1637,9 +1669,14 @@ class amqpConsumerProducer(threading.Thread):
     def have_to_terminate(self):
         return self._terminate_event.is_set()
         
-    def publish(self,body,tag=None):
+    def publish(self,body,totaltag=None):
         """This method publish message to RabbitMQ exhange
         """
+
+        if (self._exchange is None):
+            self._logging.error('Try to Publish not defined exchange')
+            return False
+        
         self._logging.info('Publish to %s', self._exchange)
 
         #set user_id property to don't get  "PRECONDITION_FAILED - user_id property set to 'guest' but authenticated user was 'rmap'
@@ -1648,20 +1685,22 @@ class amqpConsumerProducer(threading.Thread):
             delivery_mode = 2, # persistent
         )
         routing_key=self._user
-        
+
         try:
             self._channel.basic_publish(exchange=self._exchange,
                                   routing_key=routing_key,
                                   body=body,
                                   properties=properties)
             self._message_number += 1
-            self._deliveries[self._message_number]=tag            
+            self._deliveries[self._message_number]=totaltag            
             self._logging.debug('Message published # %i',self._message_number)
             return True
         except pika.exceptions.UnroutableError:
-            self._logging.error('Message could not be confirmed')
-            return False
+            self._logging.error('Message UnroutableError')
+        except:
+            self._logging.error('Message could not be sended')
 
+        return False
         
         
     def connect(self):
@@ -1737,8 +1776,6 @@ class amqpConsumerProducer(threading.Thread):
         """This method is invoked by pika when the channel has been opened.
         The channel object is passed in so we can make use of it.
 
-        Since the channel is now open, we'll declare the exchange to use.
-
         :param pika.channel.Channel channel: The channel object
 
         """
@@ -1758,19 +1795,28 @@ class amqpConsumerProducer(threading.Thread):
         confirmation_type = method_frame.method.NAME.split('.')[1].lower()
         self._logging.info('Received %s for delivery tag: %i', confirmation_type,
                     method_frame.method.delivery_tag)
-        tag=self._deliveries[method_frame.method.delivery_tag]
+        totaltag=self._deliveries[method_frame.method.delivery_tag]
         if confirmation_type == 'ack':
             self._acked += 1
-            if (tag is not None):
-                self.acknowledge_message(tag)
-            print(" [x] Done")
-            
+            status=True
+            self._logging.info(" [x] Done")
         elif confirmation_type == 'nack':
             self._nacked += 1
+            status=False
+            self._logging.info(" [ ] NOT Done")
+        else:
+            self._logging.info("Strange condition on delivery_confirmation ")
+
+        for tag in totaltag:
             if (tag is not None):
-                self.reject_message(tag)
-            print(" [ ] NOT Done")
-            
+                if (self.receive_queue is not None):
+                    self.receive_queue.put_nowait(Message(status,tag))
+                else:
+                    if (status):
+                        self.acknowledge_message(tag)
+                    else:
+                        self.reject_message(tag)
+                        
         self._deliveries.pop(method_frame.method.delivery_tag)
         self._logging.info(
             'Published %i messages, %i have yet to be confirmed, '
@@ -1814,46 +1860,64 @@ class amqpConsumerProducer(threading.Thread):
         self._logging.info('Closing the channel')
         self._channel.close()
 
-    def get_messages(self):
+    def publish_messages_from_thread_queue(self):
         "get messages from thead queue and publish to AMQP"
 
-        def send_message(message):
-            "send message; if error occour the message is requeued for retry"
+        def send_message(totalbody,totaltag):
+            "send message"
             
-            self._logging.debug("elaborate %s bytes" % len(message))
+            self._logging.debug("elaborate %s bytes" % len(totalbody))
 
-            if (self.publish(message)):
-                self._send_queue.task_done()                    
-                
+            if (self.publish(totalbody,totaltag)):
+                self._logging.debug("message published ")
+                status=True
             else:
                 self._logging.error("There were some errors sendin message to AMQP")
-                self._logging.debug("skip message: ")
-                self._logging.debug(message)
+                self._logging.debug("skip message:")
+                self._logging.debug(totalbody)
                 #self._logging.debug("---------------------")
                 #self._logging.error('Exception occured: ' + str(exception))
                 #self._logging.error(traceback.format_exc())
 
                 # requeue message for retry
-                self._send_queue.put_nowait(message)                    
+                #self.send_queue.put_nowait(message)                    
+                status=False
                 
 
         totalbody=b""
-        while not self._send_queue.empty():
+        totaltag=[]
+        while not self.send_queue.empty():
             # get a message
-            totalbody+=(self._send_queue.get())
-
+            message=self.send_queue.get()
+            self.send_queue.task_done()                    
+            totalbody+=(message.body)
+            totaltag.append(message.delivery_tag)
             if (len(totalbody) > 1000000):
-                send_message(totalbody)
+                send_message(totalbody,totaltag)
                 totalbody=b""
+                totaltag=[]
 
         if len(totalbody) > 0:
-            send_message(totalbody)
+            send_message(totalbody,totaltag)
 
-        if(self.have_to_terminate()):
-            self.stop()
-        else:
-            self._connection.ioloop.call_later(5, self.get_messages)
+        self._connection.ioloop.call_later(3, self.publish_messages_from_thread_queue)
 
+    def ack_messages_from_thread_queue(self):
+        "confirm or not messages from thead queue"
+
+        while not self.receive_queue.empty():
+            # get a message
+            message=self.receive_queue.get()
+
+            if (message.body):
+                self.acknowledge_message(message.delivery_tag)
+            else:
+                self.reject_message(message.delivery_tag)
+            
+            self.receive_queue.task_done()
+
+        self._connection.ioloop.call_later(3, self.ack_messages_from_thread_queue)       # confirm/noconfirm messages from theading queue
+            
     def set_qos(self):
         """This method sets up the consumer prefetch to only be delivered
         one message at a time. The consumer must acknowledge this message
@@ -1962,13 +2026,17 @@ class amqpConsumerProducer(threading.Thread):
 
         if (self._pipefunction is not None):
             self._pipefunction(self,basic_deliver, properties, body)
+        else:
+            if (self.send_queue is not None):
+                message=Message(body,basic_deliver.delivery_tag)
+                self.send_queue.put_nowait(message)                    
 
 
     def check_terminate(self):
         if(self.have_to_terminate()):
             self.stop()
         else:
-            self._connection.ioloop.call_later(5, self.check_terminate)
+            self._connection.ioloop.call_later(3, self.check_terminate)
                 
                 
     def begin(self):
@@ -1982,9 +2050,13 @@ class amqpConsumerProducer(threading.Thread):
         self._message_number = 0
         
         self.connect()
-        if (self._send_queue is not None):
-            self._connection.ioloop.call_later(10, self.get_messages)   # get messages from theading queue
-        self._connection.ioloop.call_later(10, self.check_terminate) # get messages from amqp queue 
+        if (self.send_queue is not None and self._exchange is not None):
+            self._connection.ioloop.call_later(10, self.publish_messages_from_thread_queue)   # get messages from theading queue
+
+        if (self.receive_queue is not None and self._queue is not None):
+            self._connection.ioloop.call_later(10, self.ack_messages_from_thread_queue)       # confirm/noconfirm messages from theading queue
+
+        self._connection.ioloop.call_later(10, self.check_terminate) # get messages from amqp queue
         self._connection.ioloop.start()
 
     def run(self):
