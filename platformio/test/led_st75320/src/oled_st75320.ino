@@ -33,21 +33,18 @@
 #include <Wire.h>
 
 #if defined(ARDUINO_ARCH_STM32)
-//#define WIREX Wire1
-//TwoWire WIREX(PB4, PA7);   // D12 A6
-#define WIREX Wire
-
-//
-//// Define the dimension of the U8*log window
+#define WIREX Wire1
+TwoWire WIREX(PB4, PA7);   // D12 A6
+// Define the dimension of the U8*log window
 #define U8LOG_WIDTH 15
 #define U8LOG_HEIGHT 6
 
 #else
-//#define WIREX Wire
+#define WIREX Wire
 
-//// Define the dimension of the U8*log window
-//#define U8LOG_WIDTH 20
-//#define U8LOG_HEIGHT 16
+// Define the dimension of the U8*log window
+#define U8LOG_WIDTH 20
+#define U8LOG_HEIGHT 16
 
 #endif
 
@@ -63,7 +60,7 @@
 #ifdef USE_U8G2
 #include <U8g2lib.h>
 
-U8G2_ST75320_JLX320240_F_HW_I2C  u8g2(U8G2_R0);
+U8G2_ST75320_JLX320240_F_2ND_HW_I2C  u8g2(U8G2_R0);
 
 // Create a U8g2log object
 U8G2LOG u8g2log;
@@ -72,9 +69,7 @@ U8G2LOG u8g2log;
 
 #include <U8x8lib.h>
 
-//U8X8_SSD1306_64X48_ER_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
-//U8X8_SSD1306_64X48_ER_2ND_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
-U8X8_SSD1327_EA_W128128_2ND_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
+U8X8_ST75320_JLX320240_2ND_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
 // Create a U8x8log object
 U8X8LOG u8x8log;
 
@@ -88,7 +83,7 @@ uint8_t u8log_buffer[U8LOG_WIDTH*U8LOG_HEIGHT];
 void setup(void)
 {
   WIREX.begin();
-  WIREX.setClock(200000);
+  //WIREX.setClock(200000);
 
   //The Wire library enables the internal pullup resistors for SDA and SCL.
   //You can turn them off after Wire.begin()
