@@ -43,7 +43,7 @@ urlpatterns = [
         insertdata.views.insertDataRainboWeatherData,name="insertdata-manualdata"),
 
 #   Uncomment the next line to enable the admin and reset password
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', showdata.views.rainbotimeseries,name="timeseriesyearly"),
     url(basepattern + r'/timeseries/(?P<year>\d{4})/(?P<month>\d{2})$', showdata.views.rainbotimeseries,name="timeseriesmonthly"),
