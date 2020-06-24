@@ -799,8 +799,21 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            with memdb.transaction() as tr:
-                tr.load(tmpf, "BUFR")
+
+            importer = dballe.Importer("BUFR")
+            with importer.from_file(tmpf) as f:
+            # Start a transaction
+                with memdb.transaction() as tr:
+                    for msgs in f:
+                        for msg in msgs:
+                            try:
+                                tr.import_messages(msg)
+                            except:
+                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+                    #tr.import_messages(f)
+            
+            #with memdb.transaction() as tr:
+            #    tr.load(tmpf, "BUFR")
 
         with memdb.transaction() as tr:
             for r in tr.query_data(rec):
@@ -844,8 +857,16 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            with memdb.transaction() as tr:
-                tr.load(tmpf, "BUFR")
+            importer = dballe.Importer("BUFR")
+            with importer.from_file(tmpf) as f:
+                with memdb.transaction() as tr:
+                    for msgs in f:
+                        for msg in msgs:
+                            try:
+                                tr.import_messages(msg)
+                            except:
+                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+                    #tr.load(tmpf, "BUFR")
 
     def fill_station_data_db(self, rec,memdb):
 
@@ -853,8 +874,16 @@ class ArkimetBufrDB(DB):
         with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
             tmpf.write(fo.read())
             tmpf.seek(0)
-            with memdb.transaction() as tr:
-                tr.load(tmpf, "BUFR")
+            importer = dballe.Importer("BUFR")
+            with importer.from_file(tmpf) as f:
+                with memdb.transaction() as tr:
+                    for msgs in f:
+                        for msg in msgs:
+                            try:
+                                tr.import_messages(msg)
+                            except:
+                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+                    #tr.load(tmpf, "BUFR")
             
     def load_arkiquery_to_dbadb(self, rec, db):
         query = self.record_to_arkiquery(rec)
@@ -863,8 +892,20 @@ class ArkimetBufrDB(DB):
                 "style": "data",
                 "query": query,
             }.items()]))
-        r = urlopen(url)
-        db.load(r, "BUFR")
+
+        #print("url di load_arkiquery_to_dbadb: ",url)
+        importer = dballe.Importer("BUFR")
+        with importer.from_file(urlopen(url)) as f:
+            # Start a transaction
+            with db.transaction() as tr:
+                for msgs in f:
+                    for msg in msgs:
+                        try:
+                            tr.import_messages(msg)
+                        except:
+                            print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+
+        #db.load(r, "BUFR")
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
