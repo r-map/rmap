@@ -110,7 +110,7 @@ class ManualForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
         self.language_code = kwargs["language_code"]
-        self.fields["presentweather"]=forms.ChoiceField(scelta_present_weather(self.language_code),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
+        self.fields["presentweather"]=forms.ChoiceField(choices=scelta_present_weather(self.language_code),required=False,label=__('Present weather'),help_text=__('Present weather'),initial="")
     class Meta:
         model = GeorefencedImage
         fields = ('geom',)
