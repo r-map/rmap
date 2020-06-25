@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='arpae_aq_ckan_to_bufr',
-    version='0.1.1',
+    version='0.2.0',
     description='Python Distribution Utilities',
     author='Emanuele Di Giacomo',
     author_email='emanuele@digiacomo.cc',
