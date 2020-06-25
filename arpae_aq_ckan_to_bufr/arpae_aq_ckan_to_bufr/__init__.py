@@ -105,50 +105,55 @@ def load_variables():
 
 
 def export_data(outfile,low=0,high=None,datetimemin=None):
-    db = dballe.DB.connect_from_url("sqlite://:memory:")
+    db = dballe.DB.connect("mem:")
     db.reset()
     last=low
     stations = load_stations()
     variables = load_variables()
-    for rec in stations.values():
-        db.insert_station_data(rec, can_add_stations=True)
+    with db.transaction() as tr:
+        for rec in stations.values():
+            tr.insert_station_data(rec, can_add_stations=True)
 
-    for row in iter_datastore(low=low,high=high):
-        last+=1
-        #last=row["_id"]
-        variable = variables.get(row["variable_id"])
-        station = stations.get(row["station_id"])
-        reftime = datetime.strptime(row["reftime"], "%Y-%m-%dT%H:%M:%S")
-        value = row["value"]
-        if variable is None:
-            logger.warning("Unknown variable {}, skipping".format(row["variable_id"]))
-            continue
-        elif station is None:
-            logger.warning("Unknown station {}, skipping".format(row["station_id"]))
-            continue
-        else:
-            rec = {**{
-                k: station.get(k)
-                for k in ("ident", "lon", "lat", "rep_memo")
-            }}
-            try:
-                rec["year"] = reftime.year
-                rec["month"] = reftime.month
-                rec["day"] = reftime.day
-                rec["hour"] = reftime.hour
-                rec["min"] = reftime.minute
-                rec["sec"] = reftime.second
-                rec[variable["var"]] = value * 10**-9
-                rec["level"] = variable["level"]
-                rec["trange"] = variable["trange"]
-                db.insert_data(rec)
-            except:
-                logger.error("Error encoding/write message")
+    with db.transaction() as tr:
+        for row in iter_datastore(low=low,high=high):
+            last+=1
+            #last=row["_id"]
+            variable = variables.get(row["variable_id"])
+            station = stations.get(row["station_id"])
+            reftime = datetime.strptime(row["reftime"], "%Y-%m-%dT%H:%M:%S")
+            value = row["value"]
+            if variable is None:
+                logger.warning("Unknown variable {}, skipping".format(row["variable_id"]))
+                continue
+            elif station is None:
+                logger.warning("Unknown station {}, skipping".format(row["station_id"]))
+                continue
+            else:
+                rec = {**{
+                    k: station.get(k)
+                    for k in ("ident", "lon", "lat", "rep_memo")
+                }}
+                try:
+                    rec["year"] = reftime.year
+                    rec["month"] = reftime.month
+                    rec["day"] = reftime.day
+                    rec["hour"] = reftime.hour
+                    rec["min"] = reftime.minute
+                    rec["sec"] = reftime.second
+                    rec[variable["var"]] = value * 10**-9
+                    rec["level"] = variable["level"]
+                    rec["trange"] = variable["trange"]
+                    tr.insert_data(rec)
+                except:
+                    logger.error("Error encoding/write message")
                 
-            
-    db.export_to_file({}, filename=outfile,
-                      format="BUFR", generic=True)
 
+    exporter = dballe.Exporter("BUFR")
+    with open(outfile, "wb") as outfile:
+        with db.transaction() as tr:
+            for row in tr.query_messages({"datetimemin":datetimemin}):
+                outfile.write(exporter.to_binary(row.message))
+                    
     return last+1
 
 
