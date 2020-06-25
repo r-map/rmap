@@ -97,20 +97,22 @@ def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,lat
 
             if havetowrite:
                 try:
-                    tr.insert_data(rec, can_replace=True)
+                    with db.transaction() as tr:
+                        tr.insert_data(rec, can_replace=True)
                 except Exception as e:
                     logging.exception(e)
                     print (rec)
 
     exporter = dballe.Exporter("BUFR")
     with open(outfile, "wb") as outfile:
-        for row in tr.query_messages(
-                {"datetimemin":datetimemin,
-                 "lonmin":lonmin,
-                 "latmin":latmin,
-                 "lonmax":lonmax,
-                 "latmax":latmax}):
-            outfile.write(exporter.to_binary(row.message))
+        with db.transaction() as tr:
+            for row in tr.query_messages(
+                    {"datetimemin":datetimemin,
+                     "lonmin":lonmin,
+                     "latmin":latmin,
+                     "lonmax":lonmax,
+                     "latmax":latmax}):
+                outfile.write(exporter.to_binary(row.message))
         
     #db.export_to_file(dballe.Record(datemin=datetimemin,lonmin=lonmin,latmin=latmin,lonmax=lonmax,latmax=latmax), filename=outfile,
     #                  format="BUFR", generic=True)
