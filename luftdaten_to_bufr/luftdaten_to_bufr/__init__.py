@@ -43,8 +43,8 @@ def iter_datastore(url):
             yield r
 
 def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,latmax=None):
-    db = dballe.DB.connect_from_url("sqlite://:memory:")
-    db.reset()
+    db = dballe.DB.connect("mem:")
+    #db.reset()
 
     for data in iter_datastore(DATASTORE_URL):
 
@@ -61,21 +61,18 @@ def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,lat
             #logging.exception(e)
             continue
 
-        constantdata = dballe.Record(B01019=str(data["location"]["id"]),
-                                     #B07030=float(data["Altezza"].replace(",", ".")),
-                                     lon=lon, lat=lat,
-                                     rep_memo="luftdaten")
-
         try:
-            db.insert_station_data(constantdata, can_add_stations=True, can_replace=True)
+            with db.transaction() as tr:
+                tr.insert_station_data(
+                    {"lon":lon,
+                     "lat":lat,
+                     "report":"luftdaten",
+                     "B01019":str(data["location"]["id"])},
+                    can_add_stations=True, can_replace=True)
         except Exception as e:
             logging.exception(e)
 
-        rec = dballe.Record(**{
-            k: constantdata.get(k)
-            for k in ("ident", "lon", "lat", "rep_memo")
-        })
-
+        rec={}
         havetowrite=False
         for sensordatavalues in data["sensordatavalues"]:
             key=sensordatavalues["value_type"]
@@ -84,28 +81,39 @@ def export_data(outfile,datetimemin=None,lonmin=None,latmin=None,lonmax=None,lat
                 logger.info("Var for variable {} not found, skipping".format(key))
             else:
                 try:
+                    rec["lon"]=lon
+                    rec["lat"]=lat
+                    rec["report"]="luftdaten"
                     bcode =var["bcode"]
                     rec[bcode] = float(sensordatavalues["value"])*var["a"]+var["b"]
-                    rec["level"] = var["level"]
-                    rec["trange"] = var["trange"]
+                    rec["level"] = dballe.Level(*var["level"])
+                    rec["trange"] = dballe.Trange(*var["trange"])
+                    rec["datetime"] = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
                     havetowrite=True
                     
                 except Exception as e:
                     logging.exception(e)
-                    rec[bcode]=None
+                    #rec[bcode]=None
 
             if havetowrite:
-                    
-                rec["date"] = datetime.strptime(data["timestamp"], "%Y-%m-%d %H:%M:%S")
-
                 try:
-                    db.insert_data(rec, can_replace=True)
+                    tr.insert_data(rec, can_replace=True)
                 except Exception as e:
                     logging.exception(e)
-                    print rec
+                    print (rec)
 
-    db.export_to_file(dballe.Record(datemin=datetimemin,lonmin=lonmin,latmin=latmin,lonmax=lonmax,latmax=latmax), filename=outfile,
-                      format="BUFR", generic=True)
+    exporter = dballe.Exporter("BUFR")
+    with open(outfile, "wb") as outfile:
+        for row in tr.query_messages(
+                {"datetimemin":datetimemin,
+                 "lonmin":lonmin,
+                 "latmin":latmin,
+                 "lonmax":lonmax,
+                 "latmax":latmax}):
+            outfile.write(exporter.to_binary(row.message))
+        
+    #db.export_to_file(dballe.Record(datemin=datetimemin,lonmin=lonmin,latmin=latmin,lonmax=lonmax,latmax=latmax), filename=outfile,
+    #                  format="BUFR", generic=True)
 
 
 def main():

@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='luftdaten_to_bufr',
-    version='0.1.2',
+    version='0.2.0',
     description='Python Distribution Utilities',
     author='Paolo Patruno',
     author_email='p-patruno@iperbole.bologna.it',
