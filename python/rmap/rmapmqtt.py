@@ -126,7 +126,11 @@ class rmapmqtt:
         self.puback=False
         self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=self.qos,retain=retain)
         rc,self.mid=self.messageinfo
-        self.messageinfo.wait_for_publish()
+        while self.messageinfo.is_published() == False:
+            if (not self.loop_started):
+                self.loop(.1)
+            else:
+                self.messageinfo.wait_for_publish()
         
         if rc != mqtt.MQTT_ERR_SUCCESS:
             return rc

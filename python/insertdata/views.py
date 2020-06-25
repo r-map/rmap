@@ -328,6 +328,7 @@ def insertDataRainboImpactData(request):
                     print("<",slug,">","prefix:",prefix)
 
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
                     form = RainboImpactForm() # An unbound Rainbo form
@@ -375,6 +376,7 @@ def insertDataRainboWeatherData(request):
                     print(user,password,network,prefix)
                     print("<",slug,">","prefix:",prefix)
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt.connect()                    
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
                     form = RainboWeatherForm() # An unbound Rainbo form
@@ -491,6 +493,7 @@ def insertDataManualData(request):
                     print("<",slug,">","prefix:",prefix)
 
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt.connect()                    
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 
