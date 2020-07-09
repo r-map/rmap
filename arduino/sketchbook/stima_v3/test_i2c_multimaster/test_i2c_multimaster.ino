@@ -3,7 +3,7 @@
 #define SERIAL_TRACE_LEVEL SERIAL_TRACE_LEVEL_INFO
 
 #include <debug.h>
-#include <hardware_config.h>
+#include <i2c_config.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
