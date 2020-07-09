@@ -690,7 +690,7 @@ Compilazione e caricamento del bootloader Digitecoboot
 
 5. Caricare il bootloader attraverso un programmatore impostando i
    seguenti parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended
-   fuse 0xFF, High fuse 0xD8
+   fuse 0xFD, High fuse 0xD0
 
 Compilazione del firmware in formato binario
 --------------------------------------------
