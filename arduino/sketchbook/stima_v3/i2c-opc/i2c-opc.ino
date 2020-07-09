@@ -128,9 +128,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 		noInterrupts ();
 		sleep_enable();
 
-		//! turn off brown-out
-		MCUCR = bit (BODS) | bit (BODSE);
-		MCUCR = bit (BODS);
 		interrupts ();
 
 		sleep_cpu();
@@ -1330,13 +1327,6 @@ void command_task() {
          is_start = true;
          is_stop = true;
          commands();
-      break;
-
-      case I2C_OPC_COMMAND_TEST_READ:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
-         strcpy(buffer, "TEST READ");
-         #endif
-         tests();
       break;
 
       case I2C_OPC_COMMAND_SAVE:

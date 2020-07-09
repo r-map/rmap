@@ -128,12 +128,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 		noInterrupts ();
 		sleep_enable();
 
-
-		// perche non usare void sleep_bod_disable()  ?
-		// http://avr-libc.nongnu.org/user-manual/group__avr__sleep.html#gabf889562cc5ea768ee80cfc8a5bb0312
-		// turn off brown-out
-		MCUCR = bit (BODS) | bit (BODSE);
-		MCUCR = bit (BODS);
 		interrupts ();
 
 		sleep_cpu();

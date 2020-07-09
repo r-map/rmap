@@ -124,9 +124,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 		noInterrupts ();
 		sleep_enable();
 
-		//! turn off brown-out
-		MCUCR = bit (BODS) | bit (BODSE);
-		MCUCR = bit (BODS);
 		interrupts ();
 
 		sleep_cpu();
