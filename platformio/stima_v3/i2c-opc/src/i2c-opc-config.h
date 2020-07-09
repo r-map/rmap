@@ -167,7 +167,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def USE_SENSORS_COUNT
 \brief Sensors count.
 */
-#define USE_SENSORS_COUNT                             (1)
+#define USE_SENSORS_COUNT                               (USE_SENSOR_OA2 + USE_SENSOR_OB2 + USE_SENSOR_OC2 + USE_SENSOR_OD2 + USE_SENSOR_OA3 + USE_SENSOR_OB3 + USE_SENSOR_OC3 + USE_SENSOR_OD3 + USE_SENSOR_OE3)
 
 #if (USE_SENSORS_COUNT == 0)
 #error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
