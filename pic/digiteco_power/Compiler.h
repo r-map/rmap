@@ -1,11 +1,30 @@
 /*********************************************************************
+Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+authors:
+Marco Baldinetti <m.baldinetti@digiteco.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**********************************************************************/
+
+/*********************************************************************
  *
  *                  Compiler and hardware specific definitions
  *
  *********************************************************************
  * FileName:        Compiler.h
  * Dependencies:    None
- * Processor:       PIC18, PIC24F, PIC24H, PIC24E, dsPIC30F, dsPIC33F, 
+ * Processor:       PIC18, PIC24F, PIC24H, PIC24E, dsPIC30F, dsPIC33F,
  *                    dsPIC33E, PIC32
  * Compiler:        Microchip C32 v1.00 or higher
  *                    Microchip C30 v3.01 or higher
@@ -15,33 +34,33 @@
  *
  * Software License Agreement
  *
- * Copyright (C) 2002-2010 Microchip Technology Inc.  All rights 
+ * Copyright (C) 2002-2010 Microchip Technology Inc.  All rights
  * reserved.
  *
- * Microchip licenses to you the right to use, modify, copy, and 
- * distribute: 
- * (i)  the Software when embedded on a Microchip microcontroller or 
- *      digital signal controller product ("Device") which is 
+ * Microchip licenses to you the right to use, modify, copy, and
+ * distribute:
+ * (i)  the Software when embedded on a Microchip microcontroller or
+ *      digital signal controller product ("Device") which is
  *      integrated into Licensee's product; or
- * (ii) ONLY the Software driver source files ENC28J60.c and 
- *      ENC28J60.h ported to a non-Microchip device used in 
- *      conjunction with a Microchip ethernet controller for the 
- *      sole purpose of interfacing with the ethernet controller. 
+ * (ii) ONLY the Software driver source files ENC28J60.c and
+ *      ENC28J60.h ported to a non-Microchip device used in
+ *      conjunction with a Microchip ethernet controller for the
+ *      sole purpose of interfacing with the ethernet controller.
  *
- * You should refer to the license agreement accompanying this 
- * Software for additional information regarding your rights and 
+ * You should refer to the license agreement accompanying this
+ * Software for additional information regarding your rights and
  * obligations.
  *
- * THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT 
- * WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT 
- * LIMITATION, ANY WARRANTY OF MERCHANTABILITY, FITNESS FOR A 
- * PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL 
- * MICROCHIP BE LIABLE FOR ANY INCIDENTAL, SPECIAL, INDIRECT OR 
- * CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF 
- * PROCUREMENT OF SUBSTITUTE GOODS, TECHNOLOGY OR SERVICES, ANY CLAIMS 
- * BY THIRD PARTIES (INCLUDING BUT NOT LIMITED TO ANY DEFENSE 
- * THEREOF), ANY CLAIMS FOR INDEMNITY OR CONTRIBUTION, OR OTHER 
- * SIMILAR COSTS, WHETHER ASSERTED ON THE BASIS OF CONTRACT, TORT 
+ * THE SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT
+ * WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT
+ * LIMITATION, ANY WARRANTY OF MERCHANTABILITY, FITNESS FOR A
+ * PARTICULAR PURPOSE, TITLE AND NON-INFRINGEMENT. IN NO EVENT SHALL
+ * MICROCHIP BE LIABLE FOR ANY INCIDENTAL, SPECIAL, INDIRECT OR
+ * CONSEQUENTIAL DAMAGES, LOST PROFITS OR LOST DATA, COST OF
+ * PROCUREMENT OF SUBSTITUTE GOODS, TECHNOLOGY OR SERVICES, ANY CLAIMS
+ * BY THIRD PARTIES (INCLUDING BUT NOT LIMITED TO ANY DEFENSE
+ * THEREOF), ANY CLAIMS FOR INDEMNITY OR CONTRIBUTION, OR OTHER
+ * SIMILAR COSTS, WHETHER ASSERTED ON THE BASIS OF CONTRACT, TORT
  * (INCLUDING NEGLIGENCE), BREACH OF WARRANTY, OR OTHERWISE.
  *
  *
@@ -56,11 +75,11 @@
 #define __COMPILER_H
 
 // Include proper device header file
-#if defined(__18CXX) && !defined(HI_TECH_C)    
+#if defined(__18CXX) && !defined(HI_TECH_C)
     // PIC18 processor with Microchip C18 compiler
     #define COMPILER_MPLAB_C18
     #include <p18cxxx.h>
-#elif defined(__PICC18__) && defined(HI_TECH_C)    
+#elif defined(__PICC18__) && defined(HI_TECH_C)
     // PIC18 processor with (Microchip) HI-TECH PICC-18 compiler
     #if !defined(__18CXX)
         #define __18CXX
@@ -94,7 +113,7 @@
 #elif defined(__C30__)        // Microchip C30 compiler, but targeting "generic-16bit" processor.
     #define COMPILER_MPLAB_C30
     #include <p30sim.h>
-    // Define some useful inline assembly functions which are normally in the 
+    // Define some useful inline assembly functions which are normally in the
     // processor header files, but absent from the generic p30sim.h file.
     #if !defined(Nop)
         #define Nop()    __builtin_nop()
@@ -159,7 +178,7 @@
     #if defined(COMPILER_MPLAB_C18)
         #define ROM                     rom
     #endif
-    
+
     // HI TECH PICC-18 specific defines
     #if defined(COMPILER_HITECH_PICC18)
         #define ROM                     const
@@ -168,7 +187,7 @@
         #define ClrWdt()                asm("CLRWDT");
         #define Reset()                    asm("RESET");
     #endif
-    
+
 // Definitions that apply to all 16-bit and 32-bit products
 // (PIC24F, PIC24H, dsPIC30F, dsPIC33F, and PIC32)
 #else
@@ -188,7 +207,7 @@
         #define Reset()                SoftReset()
         #define ClrWdt()            (WDTCONSET = _WDTCON_WDTCLR_MASK)
 
-        // MPLAB C Compiler for PIC32 MCUs version 1.04 and below don't have a 
+        // MPLAB C Compiler for PIC32 MCUs version 1.04 and below don't have a
         // Nop() function. However, version 1.05 has Nop() declared as _nop().
         #if !defined(Nop) && (__C32_VERSION__ <= 104)
             #define Nop()                asm("nop")
