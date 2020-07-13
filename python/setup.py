@@ -25,6 +25,7 @@ try:
 
 except:
     print("error setting django env")
+    raise
 
 class distclean(Command):
     description = "remove man pages and *.mo files"
@@ -426,7 +427,7 @@ setup(name='rmap',
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","six","scandir"],
       extras_require = {
           'borinud': ['dballe>=8.4', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
-                      'classytags','cookielaw']
+                      'classytags','cookielaw','numpy']
       },
       #install_requires= [ "django","Cython","pil","pysdl2","kivy","plyer","configobj","pika","simplejson"],
       #setup_requires= [ "django","configobj"],
