@@ -424,7 +424,7 @@ setup(name='rmap',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd'],
       data_files = data_files,
       license = "GNU GPL v2",
-      install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","six","scandir"],
+      install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","six"],
       extras_require = {
           'borinud': ['dballe>=8.4', 'django-tagging==0.4.3', 'pytz', 'pyparsing==1.5.7', 'cairocffi',
                       'classytags','cookielaw','numpy']
