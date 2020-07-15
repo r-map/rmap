@@ -19,8 +19,8 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Stima'
-copyright = '2019, Various'
+project = 'RMAP e Stima'
+copyright = '2020, Various'
 author = 'Various'
 
 # The short X.Y version
@@ -91,7 +91,7 @@ html_theme = 'alabaster'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+#html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -103,6 +103,11 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
+html_logo="../logo_stima.png"
+#html_logo="../../../python/static/rmap/rmap-01.png"
+html_favicon="../../../python/static/img/favicon.ico"
+#html_add_permalinks="rmap"
+#html_split_index=True
 
 # -- Options for HTMLHelp output ---------------------------------------------
 

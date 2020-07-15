@@ -538,8 +538,23 @@ Modulo Stima Ethernet
 6. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata.
 
-Per la configurazione è possibile fare riferimento al seguente link:
-http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_5
+Per la configurazione:
+
+* Per ottenere una username e una password iscriversi al sito `<http://rmap.cc/registrazione/register/>`_
+* Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i pin "Set".
+* Eseguire i comandi:
+
+::
+
+   rmapctrl --syncdb
+   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=report
+   rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima
+   rmap-configure --addsensors_by_template=stima_report_thp --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+   rmap-configure --config_station --station_slug=<nome_stazione>  --board_slug=<nome_board> --username=<username> --baudrate 115200
+   
+   sostituendo i valori tra <> con opportuni valori.
+
+* Rimuovere il ponticello ai pin "Set". 
 
 Modulo Stima GSM/GPRS
 .....................
@@ -588,8 +603,24 @@ Modulo Stima GSM/GPRS
 5. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata
 
-Per la configurazione è possibile fare riferimento al seguente link:
-http://www.raspibo.org/wiki/index.php?title=Gruppo_Meteo/HowTo#Configurazione_4
+
+Per la configurazione:
+
+* Per ottenere una username e una password iscriversi al sito `<http://rmap.cc/registrazione/register/>`_
+* Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i pin "Set".
+* Eseguire i comandi:
+
+::
+
+   rmapctrl --syncdb
+   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=report
+   rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<board_name> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900
+   rmap-configure --addsensors_by_template=stima_report_thp --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+   rmap-configure --config_station --station_slug=<nome_stazione> --board_slug=<nome_board> --username=<username> --baudrate 115200
+   
+   sostituendo i valori <> con opportuni valori.
+
+* Rimuovere il ponticello ai pin "Set".
 
 Modulo Stima Passive
 ....................
