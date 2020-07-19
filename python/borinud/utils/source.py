@@ -694,7 +694,7 @@ class ArkimetBufrDB(DB):
         memdb = dballe.DB.connect("mem:")
 
         for d in dates:
-            self.fill_data_db({"datetime":d},memdb):
+            self.fill_data_db({"datetime":d},memdb)
             
         with memdb.transaction() as tr:
             for cur in tr.query_stations(rec):
@@ -709,7 +709,7 @@ class ArkimetBufrDB(DB):
     def query_station_data(self, rec):
 
         memdb = dballe.DB.connect("mem:")
-        def fill_station_data_db(self, rec,memdb):
+        fill_station_data_db(self, rec,memdb)
 
         with memdb.transaction() as tr:
             for cur in tr.query_station_data(rec):
@@ -750,7 +750,7 @@ class ArkimetBufrDB(DB):
         memdb = dballe.DB.connect("mem:")
 
         for d in dates:
-            self.fill_data_db({"datetime":d},memdb):
+            self.fill_data_db({"datetime":d},memdb)
 
 
     def record_to_arkiquery(self, rec):
@@ -845,4 +845,4 @@ class ArkimetBufrDB(DB):
 
         arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
 
-        return akiquery
+        return arkiquery

@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/libexec/platform-python -s
 # coding: utf8
 
 # Copyright (C) 2020  Paolo Patruno <p.patruno@iperbole.bologna.it>
@@ -147,7 +147,7 @@ def dballe2arkimet(date):
         if opts.explorer is not None:
             with dballe.Explorer(opts.explorer) as explorer:
                 with explorer.update() as updater:
-                    importer = dballe.Importer("JSON")
+                    importer = dballe.Importer("BUFR")
                     with importer.from_file(tmpdatafile) as message:
                         updater.add_messages(message)
 
