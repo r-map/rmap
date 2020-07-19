@@ -2,3 +2,4 @@ arki-mergeconf dataset/* > config
 arki-scan --dump --dispatch=config temp.bufr
 arki-query --summary --dump --config config 'product:BUFR:t=temp;timerange:Timedef,6h;reftime:=2017-04-01 00:00'
 arki-server --host=localhost --port=8090 --url=http://localhost:8090 --verbose config
+wget -O estratti.bufr "http://localhost:8090/query?query=product:BUFR:t=temp;timerange:Timedef,6h;reftime:=2017-04-01%2000:00"

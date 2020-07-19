@@ -33,6 +33,10 @@ except ImportError:
     from urllib.request import urlopen
     from urllib.parse import quote
 
+import sys,io
+from arkimet.cmdline.query import Query
+from contextlib import redirect_stdout
+    
 from ..settings import BORINUD,BORINUDLAST
 
 
@@ -62,9 +66,10 @@ class DB(object):
     """Abstract class.
     A concrete DB must implement the following methods
 
-    - `query_stations`
     - `query_summary`
     - `query_data`
+    - `query_stations`
+    - `query_stations_data`
     """
     def query_stations(self, rec):
         """Query stations. Return a record."""
@@ -91,51 +96,6 @@ class DB(object):
         raise NotImplementedError()
 
 
-class MergeDBfake(DB):
-    """Container for DB."""
-
-    def __init__(self, dbs):
-        self.dbs=dbs
-
-    def __open_db(self,rec):
-        """Open the database."""
-        memdb = dballe.DB.connect("mem:")
-        for db in self.dbs:
-            db.fill_data_db(rec,memdb)
-            db.fill_station_data_db(rec,memdb)
-        return memdb
-
-    def query_stations(self, rec):
-        db = self.__open_db(rec)
-        return db.query_stations(rec)
-
-    def query_summary(self, rec):
-        db = self.__open_db(rec)
-        rec["query"] = "details"
-        return db.query_summary(rec)
-
-    def query_data(self, rec):
-        db = self.__open_db(rec)
-        return db.query_data(rec)
-
-    def query_station_data(self, rec):
-        db = self.__open_db(rec)
-        return db.query_station_data(rec)
-    
-    def fill_data_db(self, rec, memdb):
-        for r in self.query_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            with memdb.transaction() as tr:
-                tr.insert_data(r, True, True)
-
-    def fill_station_data_db(self, rec, memdb):
-        for r in self.query_station_data(rec):
-            #TODO del r["ana_id"]
-            #TODO del r["data_id"]
-            with memdb.transaction() as tr:
-                tr.insert_station_data(r, True, True)
-            
 
 class MergeDB(DB):
     """Container for DB."""
@@ -492,188 +452,222 @@ class SummaryCacheDB(DB):
         self.db.fill_station_data_db(rec)        
 
 
-class ArkimetVm2DB(DB):
-    """Arkimet dataset containing ``VM2`` data."""
-    def __init__(self, dataset):
-        self.dataset = dataset
-
-    def record_to_arkiquery(self, rec):
-        """Translate a dballe.Record to arkimet query."""
-        # TODO: less verbose implementation
-        q = {
-            "reftime": [],
-            "area": {},
-            "product": {},
-        }
-
-        d1, d2 = rec.date_extremes()
-        if d1:
-            q["reftime"].append(">={}".format(d1))
-
-        if d2:
-            q["reftime"].append("<={}".format(d2))
-
-        for k in ["lon", "lat"]:
-            if k in rec:
-                q["area"][k] = int(rec[k] * 10**5)
-
-        if "report" in rec:
-            q["area"]["rep"] = rec["report"]
-
-        if "var" in rec:
-            q["product"]["bcode"] = rec["var"]
-
-        if "leveltype1" in rec:
-            q["product"]["lt1"] = rec["leveltype1"]
-
-        if "l1" in rec:
-            q["product"]["l1"] = rec["l1"]
-
-        if "leveltype2" in rec:
-            q["product"]["lt2"] = rec["leveltype2"]
-
-        if "l2" in rec:
-            q["product"]["l2"] = rec["l2"]
-
-        if "pindicator" in rec:
-            q["product"]["tr"] = rec["pindicator"]
-
-        if "p1" in rec:
-            q["product"]["p1"] = rec["p1"]
-
-        if "p2" in rec:
-            q["product"]["p2"] = rec["p2"]
-
-        q["reftime"] = ",".join(q["reftime"])
-        q["area"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["area"].items()
-        ]))
-        q["product"] = "VM2:{}".format(",".join([
-            "{}={}".format(k, v) for k, v in q["product"].items()
-        ]))
-
-        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
-
-        return arkiquery
-
-    def query_data(self, rec):
-        query = self.record_to_arkiquery(rec)
-        url = "{}/query?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "postprocess",
-                "command": "json",
-                "query": query,
-            }.items()]))
-        r = urlopen(url)
-        for f in json.load(r)["features"]:
-            p = f["properties"]
-            r = {**{
-                "lon": p["lon"],
-                "lat": p["lat"],
-                "report": str(p["network"]),
-                "level": tuple(p[k] for k in ["level_t1", "level_v1",
-                                              "level_t2", "level_v2"]),
-                "trange": tuple(p[k] for k in ["trange_pind",
-                                               "trange_p1", "trange_p2"]),
-                "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
-                str(p["bcode"]): float(p["value"]),
-            }}
-            yield r
+#class ArkimetVm2DB(DB):
+#    """Arkimet dataset containing ``VM2`` data."""
+#    def __init__(self, dataset):
+#        self.dataset = dataset
+#
+#    def record_to_arkiquery(self, rec):
+#        """Translate a dballe.Record to arkimet query."""
+#        # TODO: less verbose implementation
+#        q = {
+#            "reftime": [],
+#            "area": {},
+#            "product": {},
+#        }
+#
+#        d1, d2 = rec.date_extremes()
+#        if d1:
+#            q["reftime"].append(">={}".format(d1))
+#
+#        if d2:
+#            q["reftime"].append("<={}".format(d2))
+#
+#        for k in ["lon", "lat"]:
+#            if k in rec:
+#                q["area"][k] = int(rec[k] * 10**5)
+#
+#        if "report" in rec:
+#            q["area"]["rep"] = rec["report"]
+#
+#        if "var" in rec:
+#            q["product"]["bcode"] = rec["var"]
+#
+#        if "leveltype1" in rec:
+#            q["product"]["lt1"] = rec["leveltype1"]
+#
+#        if "l1" in rec:
+#            q["product"]["l1"] = rec["l1"]
+#
+#        if "leveltype2" in rec:
+#            q["product"]["lt2"] = rec["leveltype2"]
+#
+#        if "l2" in rec:
+#            q["product"]["l2"] = rec["l2"]
+#
+#        if "pindicator" in rec:
+#            q["product"]["tr"] = rec["pindicator"]
+#
+#        if "p1" in rec:
+#            q["product"]["p1"] = rec["p1"]
+#
+#        if "p2" in rec:
+#            q["product"]["p2"] = rec["p2"]
+#
+#        q["reftime"] = ",".join(q["reftime"])
+#        q["area"] = "VM2:{}".format(",".join([
+#            "{}={}".format(k, v) for k, v in q["area"].items()
+#        ]))
+#        q["product"] = "VM2:{}".format(",".join([
+#            "{}={}".format(k, v) for k, v in q["product"].items()
+#        ]))
+#
+#        arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
+#
+#        return arkiquery
 
 #TO BE DONE!
 #TO BE DONE!            
-    def query_station_data(self, rec):
-        query = self.record_to_arkiquery(rec)
-        url = "{}/query?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "postprocess",
-                "command": "json",
-                "query": query,
-            }.items()]))
-        r = urlopen(url)
-        for f in json.load(r)["features"]:
-            p = f["properties"]
-            r = {**{
-                "lon": p["lon"],
-                "lat": p["lat"],
-                "report": str(p["network"]),
-                "level": tuple(p[k] for k in ["level_t1", "level_v1",
-                                              "level_t2", "level_v2"]),
-                "trange": tuple(p[k] for k in ["trange_pind",
-                                               "trange_p1", "trange_p2"]),
-                "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
-                str(p["bcode"]): float(p["value"]),
-            }}
-            yield r
-            
-    def fill_data_db(self,rec,memedb):
-        with memdb.transaction() as tr:
-            for r in self.query_data(rec):
-                tr.insert_data(r, True, True)
+#    def query_data(self, rec):   
+#        query = self.record_to_arkiquery(rec)
+#        url = "{}/query?{}".format(self.dataset, "&".join([
+#            "{}={}".format(k, quote(v)) for k, v in {
+#                #"style": "postprocess",
+#                #"command": "json",
+#                "query": query,
+#            }.items()]))
+#        r = urlopen(url)
+#        for f in json.load(r)["features"]:
+#            p = f["properties"]
+#            r = {**{
+#                "lon": p["lon"],
+#                "lat": p["lat"],
+#                "report": str(p["network"]),
+#                "level": tuple(p[k] for k in ["level_t1", "level_v1",
+#                                              "level_t2", "level_v2"]),
+#                "trange": tuple(p[k] for k in ["trange_pind",
+#                                               "trange_p1", "trange_p2"]),
+#                "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
+#                str(p["bcode"]): float(p["value"]),
+#            }}
+#            yield r
 
-    def fill_station_data_db(self,rec,memedb):
-        with memdb.transaction() as tr:
-            for r in self.query_station_data(rec):
-                tr.insert_station_data(r, True, True)
-            
-    def query_summary(self, rec):
-        query = self.record_to_arkiquery(rec)
-        url = "{}/summary?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "json",
-                "query": query,
-            }.items()]))
-        r = urlopen(url)
-        for i in json.load(r)["items"]:
-            if not "va" in  i["area"] or not "va" in i["product"]:
-                continue
-            yield {**{
-                "ident": i["area"]["va"].get("ident"),
-                "lon": i["area"]["va"]["lon"],
-                "lat": i["area"]["va"]["lat"],
-                "report": i["area"]["va"]["rep"],
-                "var": i["product"]["va"]["bcode"],
-                "level": (i["product"]["va"]["lt1"],
-                          i["product"]["va"].get("l1"),
-                          i["product"]["va"].get("lt2"),
-                          i["product"]["va"].get("l2")),
-                "trange": (i["product"]["va"]["tr"],
-                           i["product"]["va"]["p1"],
-                           i["product"]["va"]["p2"]),
-                "datemin": datetime(*i["summarystats"]["b"]),
-                "datemax": datetime(*i["summarystats"]["e"]),
-            }}
-
-    def query_stations(self, rec):
-        """Not yet implemented."""
-        return DB.query_stations(self, rec)
+#TO BE DONE!
+#TO BE DONE!
+#    def query_station_data(self, rec):
+#        query = self.record_to_arkiquery(rec)
+#        url = "{}/query?{}".format(self.dataset, "&".join([
+#            "{}={}".format(k, quote(v)) for k, v in {
+#                #"style": "postprocess",
+#                #"command": "json",
+#                "query": query,
+#            }.items()]))
+#        r = urlopen(url)
+#        for f in json.load(r)["features"]:
+#            p = f["properties"]
+#            r = {**{
+#                "lon": p["lon"],
+#                "lat": p["lat"],
+#                "report": str(p["network"]),
+#                "level": tuple(p[k] for k in ["level_t1", "level_v1",
+#                                              "level_t2", "level_v2"]),
+#                "trange": tuple(p[k] for k in ["trange_pind",
+#                                               "trange_p1", "trange_p2"]),
+#                "date": datetime.strptime(p["datetime"], "%Y-%m-%dT%H:%M:%SZ"),
+#                str(p["bcode"]): float(p["value"]),
+#            }}
+#            yield r
+#            
+#    def fill_data_db(self,rec,memedb):
+#        with memdb.transaction() as tr:
+#            for r in self.query_data(rec):
+#                tr.insert_data(r, True, True)
+#
+#    def fill_station_data_db(self,rec,memedb):
+#        with memdb.transaction() as tr:
+#            for r in self.query_station_data(rec):
+#                tr.insert_station_data(r, True, True)
+#            
+#    def query_summary(self, rec):
+#        query = self.record_to_arkiquery(rec)
+#        url = "{}/summary?{}".format(self.dataset, "&".join([
+#            "{}={}".format(k, quote(v)) for k, v in {
+#                "style": "json",
+#                "query": query,
+#            }.items()]))
+#        r = urlopen(url)
+#        for i in json.load(r)["items"]:
+#            if not "va" in  i["area"] or not "va" in i["product"]:
+#                continue
+#            yield {**{
+#                "ident": i["area"]["va"].get("ident"),
+#                "lon": i["area"]["va"]["lon"],
+#                "lat": i["area"]["va"]["lat"],
+#                "report": i["area"]["va"]["rep"],
+#                "var": i["product"]["va"]["bcode"],
+#                "level": (i["product"]["va"]["lt1"],
+#                          i["product"]["va"].get("l1"),
+#                          i["product"]["va"].get("lt2"),
+#                          i["product"]["va"].get("l2")),
+#                "trange": (i["product"]["va"]["tr"],
+#                           i["product"]["va"]["p1"],
+#                           i["product"]["va"]["p2"]),
+#                "datemin": datetime(*i["summarystats"]["b"]),
+#                "datemax": datetime(*i["summarystats"]["e"]),
+#            }}
+#
+#    def query_stations(self, rec):
+#        """Not yet implemented."""
+#        return DB.query_stations(self, rec)
 
 
 class ArkimetBufrDB(DB):
     """Arkimet dataset containing generic ``BUFR`` data."""
-    def __init__(self, dataset, measurements):
+
+    def __init__(self, dataset, explorer):
         """
         Create a DB from an `HTTP` Arkimet `dataset` containing generic BUFR
         data.
 
         :param dataset: `URL` of Arkimet dataset
-        :param measurements: array of dict with `var`, `level` and `trange`
-
+        :param explorer: dballe explorer for summaries
         Example::
 
-            ArkimetBufrDB(
-                "http://localhost:8090/dataset/rmap", [{
-                    "var": "B13011",
-                    "level": (1, None, None, None),
-                    "trange": (0, 0, 3600),
-                }, {
-                    "var": "B12101",
-                    "level": (103, 2000, None, None),
-                }],
-            )
+            ArkimetBufrDB("http://localhost:8090/dataset/rmap","report_fixed")
         """
         self.dataset = dataset
-        self.measurements = measurements
+        self.explorer = explorer
+
+    def query_summary(self, rec):
+        """Query summary.
+
+        .. warning::
+
+            Get data from dballe explorer
+        """
+
+        with dballe.Explorer(self.explorer) as explorer:
+
+            for cur in explorer.query_summary(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["datemin"]=cur["datetimemin"]
+                data["datemax"]=cur["datetimemax"]
+                data["leveltype1"]= cur["leveltype1"]
+                data["l1"]=cur["l1"]
+                data["leveltype2"]=cur["leveltype2"]
+                data["l2"]=cur["l2"]
+                data["pindicator"]=cur["pindicator"]
+                data["p1"]=cur["p1"]
+                data["p2"]=cur["p2"]
+                data["var"]=cur["var"]
+                #print ("dballe query summary: ",data)
+                yield data
+
+    def query_data(self, rec):
+
+        memdb = dballe.DB.connect("mem:")
+        self.fill_data_db( rec,memdb):
+            
+        with memdb.transaction() as tr:
+            for r in tr.query_data(rec):
+                #TODO del r["ana_id"]
+                #TODO del r["data_id"]
+                yield r
+
 
     def query_stations(self, rec):
         """Query stations.
@@ -683,12 +677,13 @@ class ArkimetBufrDB(DB):
             Only `ident`, `report`, `lon` and `lat` are returned.
             Loading static data must be implemented.
         """
-        dates = set(r["datemax"] for r in self.query_summary({}))
-        db = dballe.DB.connect("mem:")
-        for d in dates:
-            self.load_arkiquery_to_dbadb({"datetime":d}, db)
+        dates = set(r["datemax"] for r in self.query_summary(rec))
+        memdb = dballe.DB.connect("mem:")
 
-        with db.transaction() as tr:
+        for d in dates:
+            self.fill_data_db({"datetime":d},memdb):
+            
+        with memdb.transaction() as tr:
             for cur in tr.query_stations(rec):
                 data={}
                 data["ident"]=cur["ident"]
@@ -697,149 +692,16 @@ class ArkimetBufrDB(DB):
                 data["lon"]=cur.enqi("lon")
                 yield data
 
-    def query_summary(self, rec):
-        """Query summary.
-
-        .. warning::
-
-            Every station is supposed to measure all the `self.measurements`
-        """
-        query = self.record_to_arkiquery(rec)
-        url = "{}/summary?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "json",
-                "query": query,
-            }.items()]))
-
-        reader = codecs.getreader("utf-8")
-        r = reader(urlopen(url))
-        for i in json.load(r)["items"]:
-            for m in self.measurements:
-                if all([
-                        rec.get(k) == i.get(k)
-                        for k in ["var", "level", "trange"]
-                        if k in rec
-                ]):
-                    if "lon" in i["area"]["va"]:
-                        lon=i["area"]["va"]["lon"]  # fixed station
-                    else:
-                        lon=i["area"]["va"]["x"]    # mobile
-
-                    if "lat" in i["area"]["va"]:
-                        lat=i["area"]["va"]["lat"]  # fixed station
-                    else:
-                        lat=i["area"]["va"]["y"]    # mobile
-
-                    yield {**{
-                        "var": m["var"],
-                        "leveltype1": m["level"][0],
-                        "l1": m["level"][1],
-                        "leveltype2": m["level"][2],
-                        "l2": m["level"][3],
-                        "pindicator": m["trange"][0],
-                        "p1": m["trange"][1],
-                        "p2": m["trange"][2],
-                        "ident": i.get("proddef", {}).get("va", {}).get("id", None),
-                        "lon": lon,
-                        "lat": lat,
-                        "report": i["product"]["va"]["t"],
-                        "datemin": datetime(*i["summarystats"]["b"]),
-                        "datemax": datetime(*i["summarystats"]["e"]),
-                    }}
-
-    #def query_data(self, rec):
-    #    db = dballe.DB.connect("mem:")
-    #    self.load_arkiquery_to_dbadb(rec, db)
-    #    for r in db.query_data(rec):
-    #        yield r
-
-
-    def get_datastream(self, rec):
-        def if_null(value, default="-"):
-            # TODO spostarla in utils
-            return value if value is not None else default
-
-        query = self.record_to_arkiquery(rec)
-        # TODO ho disattivato i parametri che sono None perché dbadb non gestisce più il "-" nelle query.
-        filter= [
-            "{}={}".format(kk, if_null(rec[kk])) for kk in [
-                "ident",
-                "report",
-                # "lat", "lon",
-                "leveltype1", "l1",
-                "leveltype2", "l2",
-                "pindicator", "p1", "p2"
-            ] if kk in rec and rec[kk] is not None
-        ] + [
-            "{}={:.5f}".format(kk, rec[kk]/10**5)
-            for kk in [
-                "lon", "lat",
-            ] if kk in rec and rec[kk] is not None
-        ]
-        
-        filter = " ".join(filter)
-        
-        myvar=rec.get("var",None)
-        if (not myvar is None):
-            filter+= " var={}".format(myvar)
-        url = "{}/query?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "postprocess",
-                "command": "bufr-filter "+filter,
-                "query": query }.items()]))
-
-        return urlopen(url)
-
-
-    def query_data(self, rec):
-
-        fo=self.get_datastream(rec)
-        memdb = dballe.DB.connect("mem:")
-
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(fo.read())
-            tmpf.seek(0)
-
-            importer = dballe.Importer("BUFR")
-            with importer.from_file(tmpf) as f:
-            # Start a transaction
-                with memdb.transaction() as tr:
-                    for msgs in f:
-                        for msg in msgs:
-                            try:
-                                tr.import_messages(msg)
-                            except:
-                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
-                    #tr.import_messages(f)
-            
-            #with memdb.transaction() as tr:
-            #    tr.load(tmpf, "BUFR")
-
-        with memdb.transaction() as tr:
-            for r in tr.query_data(rec):
-                #TODO del r["ana_id"]
-                #TODO del r["data_id"]
-                yield r
 
     def query_station_data(self, rec):
-        # fo=self.get_datastream(rec)
-        # memdb = dballe.DB.connect("mem:")
 
-        # with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-        #     tmpf.write(fo.read())
-        #     tmpf.seek(0)
-        #     memdb.load(tmpf, "BUFR")
+        dates = set(r["datemax"] for r in self.query_summary(rec))
+        memdb = dballe.DB.connect("mem:")
 
-        # for r in memdb.query_station_data(rec):
-        #     #TODO del r["ana_id"]
-        #     #TODO del r["data_id"]
-        #     yield r
-        dates = set(r["datemax"] for r in self.query_summary({}))
-        db = dballe.DB.connect("mem:")
         for d in dates:
-            self.load_arkiquery_to_dbadb({"datetime":d}, db)
+            self.fill_data_db({"datetime":d},memdb):
             
-        with db.transaction() as tr:
+        with memdb.transaction() as tr:
             for cur in tr.query_station_data(rec):
                 data={}
                 data["ident"]=cur["ident"]
@@ -848,68 +710,33 @@ class ArkimetBufrDB(DB):
                 data["lon"]=cur.enqi("lon")
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
-                #print ("dballe query station data: ",data)
                 yield data
+
 
     def fill_data_db(self, rec,memdb):
 
-        fo=self.get_datastream(rec)
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(fo.read())
-            tmpf.seek(0)
-            importer = dballe.Importer("BUFR")
-            with importer.from_file(tmpf) as f:
-                with memdb.transaction() as tr:
-                    for msgs in f:
-                        for msg in msgs:
-                            try:
-                                tr.import_messages(msg)
-                            except:
-                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
-                    #tr.load(tmpf, "BUFR")
-
-    def fill_station_data_db(self, rec,memdb):
-
-        fo=self.get_datastream(rec)
-        with tempfile.SpooledTemporaryFile(max_size=10000000) as tmpf:
-            tmpf.write(fo.read())
-            tmpf.seek(0)
-            importer = dballe.Importer("BUFR")
-            with importer.from_file(tmpf) as f:
-                with memdb.transaction() as tr:
-                    for msgs in f:
-                        for msg in msgs:
-                            try:
-                                tr.import_messages(msg)
-                            except:
-                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
-                    #tr.load(tmpf, "BUFR")
-            
-    def load_arkiquery_to_dbadb(self, rec, db):
         query = self.record_to_arkiquery(rec)
-        url = "{}/query?{}".format(self.dataset, "&".join([
-            "{}={}".format(k, quote(v)) for k, v in {
-                "style": "data",
-                "query": query,
-            }.items()]))
 
-        #print("url di load_arkiquery_to_dbadb: ",url)
-        importer = dballe.Importer("BUFR")
-        with importer.from_file(urlopen(url)) as f:
-            # Start a transaction
-            with db.transaction() as tr:
-                for msgs in f:
-                    for msg in msgs:
-                        try:
-                            tr.import_messages(msg)
-                        except:
-                            print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
-
-        #db.load(r, "BUFR")
+        with io.BytesIO() as stdoutbytesio:
+            with redirect_stdout(stdoutbytesio):
+                sys.argv=["borinud", "--data", "--config", self.dataset, query]
+                Query.main()
+                stdoutbytesio.seek(0,0)    
+                
+            importer = dballe.Importer("BUFR")
+            with importer.from_file(stdoutbytesio) as f:
+                with memdb.transaction() as tr:
+                    for msgs in f:
+                        for msg in msgs:
+                            try:
+                                tr.import_messages(msg)
+                            except:
+                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
         # TODO: less verbose implementation
+
         q = {
             "reftime": [],
             "area": {
@@ -997,4 +824,5 @@ class ArkimetBufrDB(DB):
             )
 
         arkiquery = ";".join("{}:{}".format(k, v) for k, v in q.items())
-        return arkiquery
+
+        return akiquery
