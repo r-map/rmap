@@ -660,7 +660,7 @@ class ArkimetBufrDB(DB):
     def query_data(self, rec):
 
         memdb = dballe.DB.connect("mem:")
-        self.fill_data_db( rec,memdb):
+        self.fill_data_db( rec,memdb)
             
         with memdb.transaction() as tr:
             for cur in tr.query_data(rec):
