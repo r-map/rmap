@@ -663,11 +663,24 @@ class ArkimetBufrDB(DB):
         self.fill_data_db( rec,memdb):
             
         with memdb.transaction() as tr:
-            for r in tr.query_data(rec):
-                #TODO del r["ana_id"]
-                #TODO del r["data_id"]
-                yield r
-
+            for cur in tr.query_data(rec):
+                data={}
+                data["ident"]=cur["ident"]
+                data["report"]=cur["report"]
+                data["lat"]=cur.enqi("lat")
+                data["lon"]=cur.enqi("lon")
+                data["leveltype1"]= cur["leveltype1"]
+                data["l1"]=cur["l1"]
+                data["leveltype2"]=cur["leveltype2"]
+                data["l2"]=cur["l2"]
+                data["pindicator"]=cur["pindicator"]
+                data["p1"]=cur["p1"]
+                data["p2"]=cur["p2"]
+                data["var"]=cur["var"]
+                data[cur["var"]]=cur[cur["var"]].get()
+                data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
+                #print ("dballe query data: ",data)
+                yield data
 
     def query_stations(self, rec):
         """Query stations.
@@ -695,12 +708,9 @@ class ArkimetBufrDB(DB):
 
     def query_station_data(self, rec):
 
-        dates = set(r["datemax"] for r in self.query_summary(rec))
         memdb = dballe.DB.connect("mem:")
+        def fill_station_data_db(self, rec,memdb):
 
-        for d in dates:
-            self.fill_data_db({"datetime":d},memdb):
-            
         with memdb.transaction() as tr:
             for cur in tr.query_station_data(rec):
                 data={}
@@ -732,6 +742,16 @@ class ArkimetBufrDB(DB):
                                 tr.import_messages(msg)
                             except:
                                 print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+
+
+    def fill_station_data_db(self, rec,memdb):
+
+        dates = set(r["datemax"] for r in self.query_summary(rec))
+        memdb = dballe.DB.connect("mem:")
+
+        for d in dates:
+            self.fill_data_db({"datetime":d},memdb):
+
 
     def record_to_arkiquery(self, rec):
         """Translate a dballe.Record to arkimet query."""
