@@ -1,15 +1,16 @@
-// RHHardwareSPI.h
+// RHHardwareSPI.cpp
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2011 Mike McCauley
 // Contributed by Joanna Rutkowska
-// $Id: RHHardwareSPI.cpp,v 1.18 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RHHardwareSPI.cpp,v 1.28 2020/06/15 23:39:39 mikem Exp $
 
 #include <RHHardwareSPI.h>
+
+#ifdef RH_HAVE_HARDWARE_SPI
 
 // Declare a single default instance of the hardware SPI interface class
 RHHardwareSPI hardware_spi;
 
-#ifdef RH_HAVE_HARDWARE_SPI
 
 #if (RH_PLATFORM == RH_PLATFORM_STM32) // Maple etc
 // Declare an SPI interface to use
@@ -17,7 +18,13 @@ HardwareSPI SPI(1);
 #elif (RH_PLATFORM == RH_PLATFORM_STM32STD) // STM32F4 Discovery
 // Declare an SPI interface to use
 HardwareSPI SPI(1);
+#elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS) // Mongoose OS platform
+HardwareSPI SPI(1);
+#elif (RH_PLATFORM == RH_PLATFORM_STM32L0) && (defined STM32L082xx || defined STM32L072xx)
+ extern SPIClass radio_spi; // Created in RH_ABZ.cpp
+ #define SPI radio_spi
 #endif
+
 
 // Arduino Due has default SPI pins on central SPI headers, and not on 10, 11, 12, 13
 // as per other Arduinos
@@ -42,6 +49,24 @@ uint8_t RHHardwareSPI::transfer(uint8_t data)
 {
     return SPI.transfer(data);
 }
+
+#if (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
+uint8_t RHHardwareSPI::transfer2B(uint8_t byte0, uint8_t byte1)
+{
+    return SPI.transfer2B(byte0, byte1);
+}
+
+uint8_t RHHardwareSPI::spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
+{
+    return SPI.spiBurstRead(reg, dest, len);
+}
+
+uint8_t RHHardwareSPI::spiBurstWrite(uint8_t reg, const uint8_t* src, uint8_t len)
+{
+    uint8_t status = SPI.spiBurstWrite(reg, src, len);
+    return status;
+}
+#endif
 
 void RHHardwareSPI::attachInterrupt() 
 {
@@ -74,10 +99,14 @@ void RHHardwareSPI::begin()
    else
        frequency = 1000000;
 
-#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52)
+#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52) || defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_STM32L0) || defined(NRF52)
     // Arduino Due in 1.5.5 has its own BitOrder :-(
     // So too does Arduino Zero
+    // So too does rogerclarkmelbourne/Arduino_STM32
+    // So too does GrumpyOldPizza/ArduinoCore-stm32l0 
     ::BitOrder bitOrder;
+#elif (RH_PLATFORM == RH_PLATFORM_ATTINY_MEGA)
+   ::BitOrder bitOrder;
 #else
     uint8_t bitOrder;
 #endif
@@ -103,7 +132,7 @@ void RHHardwareSPI::begin()
    _settings = SPISettings(frequency, bitOrder, dataMode);
    SPI.begin();
     
-#else
+#else // SPI_HAS_TRANSACTION
     
     // Sigh: there are no common symbols for some of these SPI options across all platforms
 #if (RH_PLATFORM == RH_PLATFORM_ARDUINO) || (RH_PLATFORM == RH_PLATFORM_UNO32) || (RH_PLATFORM == RH_PLATFORM_CHIPKIT_CORE || RH_PLATFORM == RH_PLATFORM_NRF52)
@@ -130,9 +159,11 @@ void RHHardwareSPI::begin()
     SPI.setDataMode(dataMode);
 #endif
 
-#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52)
+#if ((RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined (__arm__) && (defined(ARDUINO_SAM_DUE) || defined(ARDUINO_ARCH_SAMD))) || defined(ARDUINO_ARCH_NRF52) || defined (ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_STM32F4)  || defined(ARDUINO_ARCH_STM32F1)
     // Arduino Due in 1.5.5 has its own BitOrder :-(
     // So too does Arduino Zero
+    // So too does rogerclarkmelbourne/Arduino_STM32
+    // So too does stm32duino F1, F4
     ::BitOrder bitOrder;
 #else
     uint8_t bitOrder;
@@ -179,7 +210,6 @@ void RHHardwareSPI::begin()
 	    break;
 
     }
-
     SPI.setClockDivider(divider);
     SPI.begin();
     // Teensy requires it to be set _after_ begin()
@@ -411,6 +441,33 @@ void RHHardwareSPI::begin()
       break;
   }
   SPI.begin(divider, bitOrder, dataMode);
+#elif (RH_PLATFORM == RH_PLATFORM_MONGOOSE_OS)
+    uint8_t dataMode   = SPI_MODE0;
+    uint32_t frequency = 4000000; //!!! ESP32/NRF902 works ok at 4MHz but not at 8MHz SPI clock.
+    uint32_t bitOrder  = MSBFIRST;
+
+    if (_dataMode == DataMode0) {
+        dataMode = SPI_MODE0;
+    } else if (_dataMode == DataMode1) {
+        dataMode = SPI_MODE1;
+    } else if (_dataMode == DataMode2) {
+        dataMode = SPI_MODE2;
+    } else if (_dataMode == DataMode3) {
+        dataMode = SPI_MODE3;
+    }
+
+    if (_bitOrder == BitOrderLSBFirst) {
+        bitOrder = LSBFIRST;
+    }
+
+    if (_frequency == Frequency4MHz)
+        frequency = 4000000;
+    else if (_frequency == Frequency2MHz)
+        frequency = 2000000;
+    else
+        frequency = 1000000;
+
+    SPI.begin(frequency, bitOrder, dataMode);
 #else
  #warning RHHardwareSPI does not support this platform yet. Consider adding it and contributing a patch.
 #endif
@@ -439,10 +496,10 @@ void RHHardwareSPI::endTransaction()
 
 void RHHardwareSPI::usingInterrupt(uint8_t interrupt)
 {
-#if defined(SPI_HAS_TRANSACTION)
-
+#if defined(SPI_HAS_TRANSACTION) && !defined(RH_MISSING_SPIUSINGINTERRUPT)
+    SPI.usingInterrupt(interrupt);
 #endif
+    (void)interrupt;
 }
 
 #endif
-

@@ -1,7 +1,10 @@
 // RH_E32.cpp
 //
 // Copyright (C) 2017 Mike McCauley
-// $Id: RH_E32.cpp,v 1.2 2017/06/24 20:36:15 mikem Exp $
+// $Id: RH_E32.cpp,v 1.6 2020/01/07 23:35:02 mikem Exp $
+
+#include <RadioHead.h>
+#ifdef RH_HAVE_SERIAL // No serial
 
 #include <RH_E32.h>
 #include <Stream.h>
@@ -15,8 +18,8 @@ RH_E32::RH_E32(Stream *s, uint8_t m0_pin, uint8_t m1_pin, uint8_t aux_pin)
 {
   // Prevent glitches at startup
   pinMode(_aux_pin, INPUT);
-  digitalWrite(_m0_pin, true);
-  digitalWrite(_m1_pin, true);
+  digitalWrite(_m0_pin, HIGH);
+  digitalWrite(_m1_pin, HIGH);
   pinMode(_m0_pin, OUTPUT);
   pinMode(_m1_pin, OUTPUT);
 }
@@ -75,7 +78,7 @@ bool RH_E32::writeParameters(Parameters& params, bool save)
   setOperatingMode(ModeSleep);
   params.head = save ? RH_E32_COMMAND_WRITE_PARAMS_SAVE : RH_E32_COMMAND_WRITE_PARAMS_NOSAVE;
   //  printBuffer("writing now", (uint8_t*)&params, sizeof(params));
-  size_t result = _s->write((char*)&params, sizeof(params));
+  size_t result = _s->write((uint8_t*)&params, sizeof(params));
   if (result != sizeof(params))
     return false;
   
@@ -97,23 +100,23 @@ void RH_E32::setOperatingMode(OperatingMode mode)
   switch (mode)
     {
     case ModeNormal:
-      digitalWrite(_m0_pin, false);
-      digitalWrite(_m1_pin, false);
+      digitalWrite(_m0_pin, LOW);
+      digitalWrite(_m1_pin, LOW);
       break;
       
     case ModeWakeUp:
-      digitalWrite(_m0_pin, true);
-      digitalWrite(_m1_pin, false);
+      digitalWrite(_m0_pin, HIGH);
+      digitalWrite(_m1_pin, LOW);
       break;
       
     case ModePowerSaving:
-      digitalWrite(_m0_pin, false);
-      digitalWrite(_m1_pin, true);
+      digitalWrite(_m0_pin, LOW);
+      digitalWrite(_m1_pin, HIGH);
       break;
       
     case ModeSleep:
-      digitalWrite(_m0_pin, true);
-      digitalWrite(_m1_pin, true);
+      digitalWrite(_m0_pin, HIGH);
+      digitalWrite(_m1_pin, HIGH);
       break;
       
     }
@@ -127,7 +130,7 @@ bool RH_E32::getVersion()
   uint8_t readVersionCommand[] = { RH_E32_COMMAND_READ_VERSION, RH_E32_COMMAND_READ_VERSION, RH_E32_COMMAND_READ_VERSION };
   _s->write(readVersionCommand, sizeof(readVersionCommand));
   uint8_t version[4];
-  size_t result = _s->readBytes(version, sizeof(version)); // default 1 sec timeout
+  size_t result = _s->readBytes((char *)version, sizeof(version)); // default 1 sec timeout
   setOperatingMode(ModeNormal);
   if (result == 4)
     {
@@ -205,7 +208,7 @@ bool RH_E32::available()
 
 	// Suck up all the characters we can
 	uint8_t data;
-	while (_s->readBytes(&data, 1) == 1) // Not read timeout
+	while (_s->readBytes((char *)&data, 1) == 1) // Not read timeout
 	  {
 	    _buf[_bufLen++] = data;
 	  }
@@ -340,3 +343,5 @@ bool RH_E32::setFrequency(uint16_t frequency)
   return writeParameters(params);
   
 }
+
+#endif // RH_HAVE_SERIAL

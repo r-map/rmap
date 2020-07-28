@@ -1,7 +1,7 @@
 // RH_RF69.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF69.cpp,v 1.30 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RH_RF69.cpp,v 1.31 2019/09/02 05:21:52 mikem Exp $
 
 #include <RH_RF69.h>
 
@@ -263,17 +263,17 @@ void RH_RF69::readFifo()
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_RF69.
 // 3 interrupts allows us to have 3 different devices
-void RH_RF69::isr0()
+void RH_INTERRUPT_ATTR RH_RF69::isr0()
 {
     if (_deviceForInterrupt[0])
 	_deviceForInterrupt[0]->handleInterrupt();
 }
-void RH_RF69::isr1()
+void RH_INTERRUPT_ATTR RH_RF69::isr1()
 {
     if (_deviceForInterrupt[1])
 	_deviceForInterrupt[1]->handleInterrupt();
 }
-void RH_RF69::isr2()
+void RH_INTERRUPT_ATTR RH_RF69::isr2()
 {
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();

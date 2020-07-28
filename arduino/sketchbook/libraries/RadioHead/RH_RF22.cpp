@@ -1,9 +1,15 @@
 // RH_RF22.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF22.cpp,v 1.28 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RH_RF22.cpp,v 1.33 2020/07/05 08:52:21 mikem Exp mikem $
 
 #include <RH_RF22.h>
+
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+// This voltatile array is used in the ESP8266 platform to manage the interrupt
+// service routines in a main loop, avoiding SPI calls inside the isr functions.
+volatile bool flagIsr[3] = {false, false, false};
+#endif
 
 // Interrupt vectors for the 2 Arduino interrupt pins
 // Each interrupt can be handled by a different instance of RH_RF22, allowing you to have
@@ -73,6 +79,12 @@ void RH_RF22::setIdleMode(uint8_t idleMode)
 
 bool RH_RF22::init()
 {
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+    flagIsr[0] = false;
+    flagIsr[1] = false;
+    flagIsr[2] = false;
+#endif
+
     if (!RHSPIDriver::init())
 	return false;
 
@@ -96,11 +108,17 @@ bool RH_RF22::init()
     if (   _deviceType != RH_RF22_DEVICE_TYPE_RX_TRX
         && _deviceType != RH_RF22_DEVICE_TYPE_TX)
     {
-	Serial.println("device type");
-	Serial.println(_deviceType);
+//	Serial.print("unknown device type: ");
+//	Serial.println(_deviceType);
 	return false;
     }
 
+    // Issue software reset to get all registers to default state
+    spiWrite(RH_RF22_REG_07_OPERATING_MODE1, RH_RF22_SWRES);
+    // Wait for chip ready
+    while (!(spiRead(RH_RF22_REG_04_INTERRUPT_STATUS2) & RH_RF22_ICHIPRDY))
+	;
+    
     // Add by Adrien van den Bossche <vandenbo@univ-tlse2.fr> for Teensy
     // ARM M4 requires the below. else pin interrupt doesn't work properly.
     // On all other platforms, its innocuous, belt and braces
@@ -300,23 +318,59 @@ void RH_RF22::handleInterrupt()
     }
 }
 
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+void RH_RF22::loopIsr()
+{
+    if (flagIsr[0])
+    {
+	if (_deviceForInterrupt[0])
+	    _deviceForInterrupt[0]->handleInterrupt();
+	flagIsr[0] = false;
+    }
+    if (flagIsr[1])
+    {
+	if (_deviceForInterrupt[1])
+	    _deviceForInterrupt[1]->handleInterrupt();
+	flagIsr[1] = false;
+    }
+    if (flagIsr[2])
+    {
+	if (_deviceForInterrupt[2])
+	    _deviceForInterrupt[2]->handleInterrupt();
+	flagIsr[2] = false;
+    }
+}
+#endif
+
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_RF22.
 // 3 interrupts allows us to have 3 different devices
-void RH_RF22::isr0()
+void RH_INTERRUPT_ATTR RH_RF22::isr0()
 {
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+	flagIsr[0] = true;
+#else
     if (_deviceForInterrupt[0])
 	_deviceForInterrupt[0]->handleInterrupt();
+#endif
 }
-void RH_RF22::isr1()
+void RH_INTERRUPT_ATTR RH_RF22::isr1()
 {
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+	flagIsr[1] = true;
+#else
     if (_deviceForInterrupt[1])
 	_deviceForInterrupt[1]->handleInterrupt();
+#endif
 }
-void RH_RF22::isr2()
+void RH_INTERRUPT_ATTR RH_RF22::isr2()
 {
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+	flagIsr[2] = true;
+#else
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();
+#endif
 }
 
 void RH_RF22::reset()
@@ -539,12 +593,28 @@ bool RH_RF22::available()
 {
     if (!_rxBufValid)
     {
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+	loopIsr();
+#endif
 	if (_mode == RHModeTx)
 	    return false;
 	setModeRx(); // Make sure we are receiving
+	YIELD; // Wait for any previous transmit to finish
     }
     return _rxBufValid;
 }
+
+#if RH_PLATFORM == RH_PLATFORM_ESP8266
+bool RH_RF22::waitPacketSent()
+{
+    while (_mode == RHModeTx)
+    {
+	loopIsr();
+	YIELD; // Make sure the watchdog is fed
+    }
+    return true;
+}
+#endif
 
 bool RH_RF22::recv(uint8_t* buf, uint8_t* len)
 {
