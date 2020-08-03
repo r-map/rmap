@@ -15,7 +15,7 @@ HardwareTimer timer(MAPLE_TIMER);
 #elif defined(ARDUINO_ARCH_STM32) || defined(ARDUINO_ARCH_STM32F1) || defined(ARDUINO_ARCH_STM32F3) || defined(ARDUINO_ARCH_STM32F4)
 // rogerclarkmelbourne/Arduino_STM32
 // And stm32duino    
-HardwareTimer timer(1);
+HardwareTimer timer(TIM1);
 
 #elif (RH_PLATFORM == RH_PLATFORM_ESP32)
 // Michael Cain
@@ -188,13 +188,37 @@ void RH_ASK::timerSetup()
     // or stm32duino
     // Pause the timer while we're configuring it
     timer.pause();
+
+    void interrupt(); // defined below
+    
+#ifdef BOARD_NAME
+    // ST's Arduino Core STM32, https://github.com/stm32duino/Arduino_Core_STM32
+    uint16_t us=(1000000/8)/_speed;
+    timer.setMode(1, TIMER_OUTPUT_COMPARE);
+    timer.setOverflow(us, MICROSEC_FORMAT);
+    timer.setCaptureCompare(1, us - 1, MICROSEC_COMPARE_FORMAT);
+    timer.attachInterrupt(1,interrupt);
+    
+#else
+    // Roger Clark Arduino STM32, https://github.com/rogerclarkmelbourne/Arduino_STM32
+
+    //old interface?
     timer.setPeriod((1000000/8)/_speed);
     // Set up an interrupt on channel 1
     timer.setChannel1Mode(TIMER_OUTPUT_COMPARE);
     timer.setCompare(TIMER_CH1, 1);  // Interrupt 1 count after each update
-    void interrupt(); // defined below
     timer.attachCompare1Interrupt(interrupt);
-    
+		      
+    //new interface?
+    //uint16_t us=(1000000/8)/_speed;
+    //Timer.setMode(TIMER_CH1, TIMER_OUTPUTCOMPARE);
+    //uint16_t timerOverflow = Timer.setPeriod(us);
+    //Timer.setCompare(TIMER_CH1, timerOverflow);
+    //Timer.attachInterrupt(TIMER_CH1, interrupt);
+
+#endif
+
+
     // Refresh the timer's count, prescale, and overflow
     timer.refresh();
     
