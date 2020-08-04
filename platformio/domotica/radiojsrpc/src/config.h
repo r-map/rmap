@@ -1,9 +1,9 @@
 # define VERSION "20180205"
 
 // radio bidirectional comunication
-#define TWOWAY "Yes"
-#define CLIENT "Yes"
-#define SERVER "Yes"
+//#define TWOWAY "Yes"
+//#define CLIENT "Yes"
+//#define SERVER "Yes"
 
 // freq added to standard channel
 //#define FREQCORR 0.050
