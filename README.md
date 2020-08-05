@@ -13,6 +13,6 @@ http://doc.rmap.cc
 
 http://rmap.cc
 
-[![Build status Platformio](https://github.com/r-map/rmap/workflows/platformio/badge.svg)](https://github.com/r-map/rmap/actions)
-[![Build status Python](https://github.com/r-map/rmap/workflows/Python/badge.svg)](https://github.com/r-map/rmap/actions)
+[![Build status Platformio](https://github.com/r-map/rmap/workflows/platformio/badge.svg)](https://github.com/r-map/rmap/actions?query=workflow%3Aplatformio)
+[![Build status Python](https://github.com/r-map/rmap/workflows/Python/badge.svg)](https://github.com/r-map/rmap/actions?query=workflow%3APython)
 
