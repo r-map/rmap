@@ -1,7 +1,13 @@
 name: platformio
-on: push
-  #push:
-  #  branches: [ explorer ]
+on: push:
+    paths:
+    - 'platformio/**.ino'
+    - 'platformio/**.cpp'
+    - 'platformio/**.h'
+    - 'platformio/**platformio.ini'      
+    - '**platformio.yml'
+  #  branches: [ master ]
+  pull_request:
 
 jobs:
   main:
@@ -34,4 +40,7 @@ jobs:
           cd platformio/stima_v3/i2c-rain
           platformio run
 
-
+      - name: Build i2c-rain
+        run: |
+          cd platformio/stima_v2/stimawifi
+          platformio run
