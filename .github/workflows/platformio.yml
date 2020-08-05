@@ -22,6 +22,6 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Build
         run: |
-          cd platformio/domotica/radiojsonrpc
+          cd platformio/domotica/radiojsrpc
           platformio run
 
