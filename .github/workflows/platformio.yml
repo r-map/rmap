@@ -1,7 +1,7 @@
-name: Test Configuration
-on:
-  push:
-    branches: [ explorer ]
+name: check platformio
+on: push
+#  push:
+#    branches: [ explorer ]
 
 jobs:
   main:
