@@ -10,7 +10,11 @@
 #define FREQCORR 0.0
 
 // define the  pins used
+#ifdef ARDUINO_ARCH_AVR
 #define PINS 4,5,A6,A7
+#else
+#define PINS 4,5,6,7
+#endif
 
 #define SERIALBUFFERSIZE 160
 #define SERIALBAUDRATE 115200
