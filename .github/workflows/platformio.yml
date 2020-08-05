@@ -1,4 +1,4 @@
-name: check platformio
+name: platformio
 on: push
 #  push:
 #    branches: [ explorer ]
@@ -20,8 +20,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
       # Runs a set of commands using the runners shell
-      - name: Build
+      - name: Build Stima V3
         run: |
-          cd platformio/domotica/radiojsrpc
+          cd platformio/stima_v3/stima
           platformio run
+      - name: Build i2c-th
+        run: |
+          cd platformio/stima_v3/i2c-th
+          platformio run
+
+      - name: Build i2c-rain
+        run: |
+          cd platformio/stima_v3/i2c-rain
+          platformio run
+
 
