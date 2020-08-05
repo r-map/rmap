@@ -1,8 +1,12 @@
 name: Python
 
-on:
+on: 
   push:
+    paths:
+    - 'python/**.py'
+    - '**django.yml'
     branches: [ master ]
+  pull_request:
 
 jobs:
   build:
