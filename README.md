@@ -13,5 +13,5 @@ http://doc.rmap.cc
 
 http://rmap.cc
 
-![Platformio](https://github.com/r-map/rmap/workflows/check%20platformio/badge.svg?branch=master)
+![Platformio](https://github.com/r-map/rmap/workflows/platformio/badge.svg)
 ![Python](https://github.com/r-map/rmap/workflows/Python/badge.svg)
