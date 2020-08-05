@@ -1,5 +1,6 @@
 name: Test Configuration
-on: push
+on:
+  push:
     branches: [ explorer ]
 
 jobs:
