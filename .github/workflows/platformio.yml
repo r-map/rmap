@@ -1,7 +1,7 @@
 name: platformio
-on:
-  push:
-    branches: [ explorer ]
+on: push
+  #push:
+  #  branches: [ explorer ]
 
 jobs:
   main:
