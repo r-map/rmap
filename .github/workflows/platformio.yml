@@ -1,5 +1,6 @@
 name: platformio
-on: push:
+on: 
+  push:
     paths:
     - 'platformio/**.ino'
     - 'platformio/**.cpp'
