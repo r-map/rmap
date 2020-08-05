@@ -5,7 +5,7 @@
 //
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2017 Mike McCauley
-// $Id: RH_E32.h,v 1.2 2017/06/24 20:36:15 mikem Exp $
+// $Id: RH_E32.h,v 1.5 2020/04/09 23:40:34 mikem Exp $
 // 
 
 #ifndef RH_E32_h
@@ -97,7 +97,7 @@
 ///
 /// Note: it should also be possible to use the E32-TTL-1W with the RadioHead RH_Serial module,
 /// which will also you to send longer packets, but will require you to use the EBYTE Wireless Module Setting program
-/// to configure teh radio first. In this arrangement the E32 would act as a transparent serial connection.
+/// to configure the radio first. In this arrangement the E32 would act as a transparent serial connection.
 /// This has not been tested by us.
 ///
 /// \par Overview
@@ -137,7 +137,7 @@
 /// We tested with Arduino Uno. We used SoftwareSerial on pins 6 and 7) to connect to the E32 module, so
 /// we could continue to use the only hardware serial port for debugging
 /// \code
-///                 Arduino      RFM95/96/97/98
+///                 Arduino      E32
 ///                 GND----------GND   (ground in)
 ///                 5V-----------VCC   (5V in)
 ///             pin D4-----------M0    (mode control pin input to radio)
@@ -146,10 +146,26 @@
 ///             pin D7-----------TXD   (serial data output from radio to Arduino)
 ///             pin D8-----------AUX   (Aux pin output from radio to Arduino)
 /// \endcode
-/// With this conneciton, you can initialise the serail port and RH_E32 like this:
+/// With this connection, you can initialise the serial port and RH_E32 like this:
 /// \code
 /// SoftwareSerial mySerial(7, 6);
 /// RH_E32  driver(&mySerial, 4, 5, 8);
+/// \endcode
+///
+/// For Adafruit M0 Feather:
+/// \code
+///                 Feather      E32
+///                 GND----------GND   (ground in)
+///                 3V-----------VCC   (3.3V in)
+///             pin D5-----------M0    (mode control pin input to radio)
+///             pin D6-----------M1    (mode control pin input to radio)
+///             pin D1/Tx--------RXD   (serial data input from M0 to radio)
+///             pin D0/Rx--------TXD   (serial data output from radio to M0)
+///             pin D9-----------AUX   (Aux pin output from radio to M0)
+/// \endcode
+/// With this connection, you can initialise serial port 1 and RH_E32 like this:
+/// \code
+/// RH_E32  driver(&Serial1, 5, 6, 9);
 /// \endcode
 /// Other connection schems are possible provided the approporiate constructors are used for SoftwareSerial and RH_E32
 ///
@@ -172,7 +188,7 @@
 ///
 /// This radio supports a range of different data rates and powers.
 /// The lowest speeds are the most reliable, however you should note that at 1kbps and with an 13 octet payload,
-/// the transmission time for one packet approaches 5 seconds. Therefore you should be cautios about trying to
+/// the transmission time for one packet approaches 5 seconds. Therefore you should be cautious about trying to
 /// send too many or too long messages per unit of time, lest you monopolise the airwaves.
 /// Be a good neighbour and use the lowest power and fastest speed that you can.
 ///

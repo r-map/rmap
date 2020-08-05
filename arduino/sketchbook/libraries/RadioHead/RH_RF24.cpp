@@ -1,7 +1,7 @@
 // RH_RF24.cpp
 //
 // Copyright (C) 2011 Mike McCauley
-// $Id: RH_RF24.cpp,v 1.22 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RH_RF24.cpp,v 1.24 2019/09/02 05:21:52 mikem Exp $
 
 #include <RH_RF24.h>
 
@@ -265,17 +265,17 @@ void RH_RF24::clearBuffer()
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_RF24.
 // 3 interrupts allows us to have 3 different devices
-void RH_RF24::isr0()
+void RH_INTERRUPT_ATTR RH_RF24::isr0()
 {
     if (_deviceForInterrupt[0])
 	_deviceForInterrupt[0]->handleInterrupt();
 }
-void RH_RF24::isr1()
+void RH_INTERRUPT_ATTR RH_RF24::isr1()
 {
     if (_deviceForInterrupt[1])
 	_deviceForInterrupt[1]->handleInterrupt();
 }
-void RH_RF24::isr2()
+void RH_INTERRUPT_ATTR RH_RF24::isr2()
 {
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();
@@ -415,7 +415,9 @@ uint8_t RH_RF24::maxMessageLength()
 // Sets registers from a canned modem configuration structure
 void RH_RF24::setModemRegisters(const ModemConfig* config)
 {
+#ifdef RH_HAVE_SERIAL
   Serial.println("Programming Error: setModemRegisters is obsolete. Generate custom radio config file with WDS instead");
+#endif
   (void)config; // Prevent warnings
 }
 
@@ -423,8 +425,10 @@ void RH_RF24::setModemRegisters(const ModemConfig* config)
 // Returns true if its a valid choice
 bool RH_RF24::setModemConfig(ModemConfigChoice index)
 {
+#ifdef RH_HAVE_SERIAL
   Serial.println("Programming Error: setModemRegisters is obsolete. Generate custom radio config file with WDS instead");
   (void)index; // Prevent warnings
+#endif
   return false;
 }
 

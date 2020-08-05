@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/libexec/platform-python -s
 # coding: utf8
 
 # Copyright (C) 2020  Paolo Patruno <p.patruno@iperbole.bologna.it>
@@ -39,6 +39,9 @@ parser.add_argument('--version', action='version',
 parser.add_argument('-a', '--arkiconf', dest='arkiconf', action='store',
                     default="/rmap/arkimet/arkimet.conf",
                     help='arkiserver to contact. Default: %(default)s')
+parser.add_argument('-r', '--explorer', dest='explorer', action='store',
+                    default=None,
+                    help='explorer to update with data migrated to arkimet. Default: %(default)s')
 parser.add_argument('-d', '--dsn', dest='dsn', action='store',
                     default="mysql:///rmap?user=rmap&password=rmap",
                     help='arkiserver to contact. Default: %(default)s')
@@ -140,7 +143,14 @@ def dballe2arkimet(date):
         with open(tmpdatafile, 'wb') as tmpfile:
             for row in tr.query_messages(rec):
                 tmpfile.write(exporter.to_binary(row.message))
-            
+
+        if opts.explorer is not None:
+            with dballe.Explorer(opts.explorer) as explorer:
+                with explorer.update() as updater:
+                    importer = dballe.Importer("BUFR")
+                    with importer.from_file(tmpdatafile) as message:
+                        updater.add_messages(message)
+
         returncode = subprocess.call (("arki-scan", "--dispatch="+opts.arkiconf , "bufr:"+tmpdatafile,  "--summary", "--dump", "--status"),stderr=stderr,stdout=stdout)
 
         logging.info("End to migrate data to arkimet")

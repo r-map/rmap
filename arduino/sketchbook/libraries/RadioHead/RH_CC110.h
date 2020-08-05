@@ -7,7 +7,7 @@
 // 
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2016 Mike McCauley
-// $Id: RH_CC110.h,v 1.8 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RH_CC110.h,v 1.9 2020/01/05 07:02:23 mikem Exp $
 // 
 
 #ifndef RH_CC110_h
@@ -847,7 +847,12 @@ protected:
     /// \return The value of the status byte per Table 5-2
     uint8_t statusRead();
 
-    
+    /// Handle the TX or RX overflow state of the given status
+    /// \param status The status byte read from the last SPI command
+    /// \return void
+    void handleOverFlows(uint8_t status);
+
+
 private:
     /// Low level interrupt service routine for device connected to interrupt 0
     static void         isr0();

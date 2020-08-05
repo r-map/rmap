@@ -1,7 +1,7 @@
 // RHGenericDriver.h
 // Author: Mike McCauley (mikem@airspayce.com)
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.h,v 1.22 2017/10/03 06:04:59 mikem Exp $
+// $Id: RHGenericDriver.h,v 1.24 2020/04/09 23:40:34 mikem Exp $
 
 #ifndef RHGenericDriver_h
 #define RHGenericDriver_h
@@ -58,6 +58,9 @@ public:
     /// Constructor
     RHGenericDriver();
 
+    /// Generic destructor to prevent warnings when objects are dynamically allocated
+    virtual ~RHGenericDriver() {};
+    
     /// Initialise the Driver transport hardware and software.
     /// Make sure the Driver is properly configured before calling init().
     /// \return true if initialisation succeeded.
@@ -206,14 +209,14 @@ public:
     /// Usually it is the RSSI of the last received message, which is measured when the preamble is received.
     /// If you called readRssi() more recently, it will return that more recent value.
     /// \return The most recent RSSI measurement in dBm.
-    int16_t        lastRssi();
+    virtual int16_t        lastRssi();
 
     /// Returns the operating mode of the library.
     /// \return the current mode, one of RF69_MODE_*
-    RHMode          mode();
+    virtual RHMode          mode();
 
     /// Sets the operating mode of the transport.
-    void            setMode(RHMode mode);
+    virtual void            setMode(RHMode mode);
 
     /// Sets the transport hardware into low-power sleep mode
     /// (if supported). May be overridden by specific drivers to initialte sleep mode.

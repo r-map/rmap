@@ -1,7 +1,7 @@
 // RH_MRF89.cpp
 //
 // Copyright (C) 2015 Mike McCauley
-// $Id: RH_MRF89.cpp,v 1.9 2017/11/06 00:04:08 mikem Exp mikem $
+// $Id: RH_MRF89.cpp,v 1.10 2019/09/02 05:21:52 mikem Exp $
 
 #include <RH_MRF89.h>
 #define BAND_915
@@ -238,17 +238,17 @@ void RH_MRF89::handleInterrupt()
 // These are low level functions that call the interrupt handler for the correct
 // instance of RH_MRF89.
 // 3 interrupts allows us to have 3 different devices
-void RH_MRF89::isr0()
+void RH_INTERRUPT_ATTR RH_MRF89::isr0()
 {
     if (_deviceForInterrupt[0])
 	_deviceForInterrupt[0]->handleInterrupt();
 }
-void RH_MRF89::isr1()
+void RH_INTERRUPT_ATTR RH_MRF89::isr1()
 {
     if (_deviceForInterrupt[1])
 	_deviceForInterrupt[1]->handleInterrupt();
 }
-void RH_MRF89::isr2()
+void RH_INTERRUPT_ATTR RH_MRF89::isr2()
 {
     if (_deviceForInterrupt[2])
 	_deviceForInterrupt[2]->handleInterrupt();

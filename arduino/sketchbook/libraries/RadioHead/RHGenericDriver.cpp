@@ -1,7 +1,7 @@
 // RHGenericDriver.cpp
 //
 // Copyright (C) 2014 Mike McCauley
-// $Id: RHGenericDriver.cpp,v 1.22 2017/06/24 20:36:15 mikem Exp $
+// $Id: RHGenericDriver.cpp,v 1.24 2020/01/07 23:35:02 mikem Exp $
 
 #include <RHGenericDriver.h>
 
@@ -174,10 +174,9 @@ bool  RHGenericDriver::sleep()
 // Diagnostic help
 void RHGenericDriver::printBuffer(const char* prompt, const uint8_t* buf, uint8_t len)
 {
-    uint8_t i;
-
 #ifdef RH_HAVE_SERIAL
     Serial.println(prompt);
+    uint8_t i;
     for (i = 0; i < len; i++)
     {
 	if (i % 16 == 15)
@@ -212,7 +211,7 @@ void RHGenericDriver::setCADTimeout(unsigned long cad_timeout)
     _cad_timeout = cad_timeout;
 }
 
-#if (RH_PLATFORM == RH_PLATFORM_ARDUINO) && defined(RH_PLATFORM_ATTINY)
+#if (RH_PLATFORM == RH_PLATFORM_ATTINY)
 // Tinycore does not have __cxa_pure_virtual, so without this we
 // get linking complaints from the default code generated for pure virtual functions
 extern "C" void __cxa_pure_virtual()
