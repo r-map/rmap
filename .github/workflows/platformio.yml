@@ -8,7 +8,9 @@ jobs:
     name: platformio
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@explorer
+      - uses: actions/checkout@v2
+        with:
+          ref: explorer
       - name: Setup Python
         uses: actions/setup-python@master
         with:
