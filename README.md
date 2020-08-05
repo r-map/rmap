@@ -1,3 +1,6 @@
+
+![check platformio](https://github.com/r-map/rmap/workflows/check%20platformio/badge.svg?branch=master)
+
 Description
 
 software to collect weather data contributed by citizens; to make
