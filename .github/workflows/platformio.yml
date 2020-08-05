@@ -41,7 +41,7 @@ jobs:
           cd platformio/stima_v3/i2c-rain
           platformio run
 
-      - name: Build i2c-rain
+      - name: Build stimawifi
         run: |
           cd platformio/stima_v2/stimawifi
           platformio run
