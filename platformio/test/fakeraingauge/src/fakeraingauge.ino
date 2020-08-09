@@ -28,10 +28,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MINTIMETORAIN      5000          // 500 ms
 #define MAXTIMETORAIN      7000          // 700 ms
 
+#define SECONDSTOPOWERON 10
+#define SECONDSTOPOWEROFF 60
+
 #include <ArduinoLog.h>
 
 unsigned long int millisecondi=0;
-
+unsigned long int secondi=0;
 
 // global variables for sensors state machine
 enum r_states {
@@ -62,10 +65,8 @@ enum r_events {
 
 unsigned long tp=0;
 
-
-
 HardwareTimer Tim1 = HardwareTimer(TIM1);      
-//HardwareTimer Tim2 = HardwareTimer(TIM2);      
+HardwareTimer Tim2 = HardwareTimer(TIM2);      
 
 // rain machine
 void rain_machine(){
@@ -302,10 +303,19 @@ void printNewline(Print* _logOutput) {
 
 
 void tick_callback(void)
-{ // Update event correspond to Rising edge of PWM when configured in PWM1 mode
-  //Log.trace(F("event FRONT_UP"));
+{ 
+  //Log.trace("event 1/10 ms tick");
   millisecondi++;
   rain_machine();
+}
+
+void power_callback(void)
+{
+  Log.trace(F("1s tick"));
+  secondi++;
+
+  if (secondi == SECONDSTOPOWERON +1)  poweron();
+  if (secondi == SECONDSTOPOWEROFF +1) poweroff();
 }
 
 
@@ -319,7 +329,7 @@ void poweroff(void)
 { 
   Log.notice(F("Power Off"));
   r_event=POWEROFF;
-  //Tim2.pause();
+  Tim2.pause();
 }
 
 
@@ -345,26 +355,11 @@ void setup (void)
   Tim1.setOverflow(100, MICROSEC_FORMAT);
   Tim1.attachInterrupt(tick_callback);
 
-  /*
-  Tim2.setMode(1,TIMER_OUTPUT_COMPARE);
-  Tim2.setMode(2,TIMER_OUTPUT_COMPARE);
+  Tim2.setOverflow(1, HERTZ_FORMAT);
+  Tim2.attachInterrupt(power_callback);
 
-  Tim2.setPrescaleFactor(0x10000);
-  Tim2.setOverflow(60000000);
-    
-  Tim2.setCaptureCompare(1, 1000000);
-  Tim2.attachInterrupt(1,poweron);
-
-  Tim2.setCaptureCompare(2, 30000000);
-  Tim2.attachInterrupt(2,poweroff);
-
-  Tim2.refresh();
-  */
-  
   Tim1.resume();
-  //Tim2.resume();
-
-  poweron();
+  Tim2.resume();
 
 }
 
