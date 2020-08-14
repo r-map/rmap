@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define IRSND_SUPPORT_NEC_PROTOCOL    1
 #define IRMP_USE_COMPLETE_CALLBACK       1 // Enable callback functionality
 #define IRMP_ENABLE_PIN_CHANGE_INTERRUPT 1 // Enable interrupt functionality
-#define IRMP_USE_ARDUINO_ATTACH_INTERRUPT 1
 #define USE_ONE_TIMER_FOR_IRMP_AND_IRSND // otherwise we get an error: redefinition of 'void __vector_8()
 #include <irmp.c.h>
 #include <irsnd.c.h>
