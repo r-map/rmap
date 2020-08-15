@@ -5,6 +5,9 @@
 
 #ifdef ARDUINO_ARCH_AVR
 #include <avr/wdt.h>
+#else
+#include <IWatchdog.h>
+#include <USBSerial.h>
 #endif
 
 #define CONFVER "conf00"
@@ -18,7 +21,11 @@
 #include <RH_CC110.h>
 
 // Singleton instance of the radio driver
+#ifdef ARDUINO_ARCH_AVR
 RH_CC110 cc110;
+#else
+RH_CC110 cc110(PA4,A2);
+#endif
 
 //  GFSK_Rb1_2Fd5_2 = 0,   ///< GFSK, Data Rate: 1.2kBaud, Dev: 5.2kHz, RX BW 58kHz, optimised for sensitivity
 //  GFSK_Rb2_4Fd5_2,       ///< GFSK, Data Rate: 2.4kBaud, Dev: 5.2kHz, RX BW 58kHz, optimised for sensitivity
@@ -50,7 +57,7 @@ JsonRPC rpcserver(3,true ); //radio port with compact protocoll
 #ifdef CLIENT
 // initialize a serial json stream for receiving json objects
 // through a serial/USB connection
-aJsonStream stream(&Serial);
+aJsonStream stream(&JSSERIAL);
 aJsonObject *serialmsg = NULL;
 #endif
 
@@ -91,7 +98,9 @@ const uint8_t pins [] = {PINS};
 void Reboot() {
   IF_SDEBUG(DBGSERIAL.println(F("#Reboot")));
 #ifdef ARDUINO_ARCH_AVR
-  wdt_enable(WDTO_30MS); while(1) {} 
+  wdt_enable(WDTO_30MS); while(1) {}
+#else
+  IWatchdog.begin(500);  while(1) {}
 #endif
 }
 
@@ -164,7 +173,7 @@ int client(aJsonObject* params)
   char serialbuf[SERIALBUFFERSIZE];
 
   aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
-  Serial.println(serialbuf);
+  JSSERIAL.println(serialbuf);
 
   return status;
 
@@ -186,7 +195,7 @@ int setdid(aJsonObject* params)
     aJson.addTrueToObject(serialmsg, "result");
     char buf[SERIALBUFFERSIZE];
     aJson.print(serialmsg,buf, sizeof(buf));
-    Serial.println(buf);
+    JSSERIAL.println(buf);
     
     status= 0;
   }
@@ -210,7 +219,7 @@ int save(aJsonObject* params)
     aJson.addTrueToObject(serialmsg, "result");
     char buf[SERIALBUFFERSIZE];
     aJson.print(serialmsg,buf, sizeof(buf));
-    Serial.println(buf);
+    JSSERIAL.println(buf);
     
     status = 0;
   }
@@ -331,20 +340,23 @@ void setup()
   */
   wdt_disable();
   wdt_enable(WDTO_8S);
+#else
+  IWatchdog.begin(8000000);  
 #endif
   
   IF_SDEBUG(DBGSERIAL.begin(SERIALBAUDRATE));
-  Serial.begin(SERIALBAUDRATE);
-  while (!Serial); // wait for serial port to connect. Needed for native USB
-  Serial.println(F("#Started: " VERSION));
+  JSSERIAL.begin(SERIALBAUDRATE);
+  //while (!Serial); // wait for serial port to connect. Needed for native USB
+  delay(5000);
+  JSSERIAL.println(F("#Started: " VERSION));
 #ifdef TWOWAY
-  Serial.println(F("#Twovay: " TWOWAY));
+  JSSERIAL.println(F("#Twovay: " TWOWAY));
 #endif
 #ifdef CLIENT
-  Serial.println(F("#Client: " CLIENT));
+  JSSERIAL.println(F("#Client: " CLIENT));
 #endif
 #ifdef SERVER
-  Serial.println(F("#Server: " SERVER));
+  JSSERIAL.println(F("#Server: " SERVER));
 #endif
 
   if (configuration.ld()){
@@ -498,7 +510,7 @@ void mgr_serial(){
       char serialbuf[SERIALBUFFERSIZE];
 
       aJson.print(serialmsg,serialbuf, sizeof(serialbuf));
-      Serial.println(serialbuf);
+      JSSERIAL.println(serialbuf);
       aJson.deleteItem(serialmsg);
 
     }
@@ -564,6 +576,8 @@ void loop()
 {
 #ifdef ARDUINO_ARCH_AVR  
   wdt_reset();
+#else
+  IWatchdog.reload();
 #endif
 #ifdef CLIENT
   mgr_serial();
@@ -571,6 +585,8 @@ void loop()
 #ifdef SERVER
 #ifdef ARDUINO_ARCH_AVR
   wdt_reset();
+#else
+  IWatchdog.reload();
 #endif
   mgr_radio();
 #endif  
