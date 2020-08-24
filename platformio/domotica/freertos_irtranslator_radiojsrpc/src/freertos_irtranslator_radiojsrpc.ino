@@ -48,7 +48,8 @@ Serial json on  Serial
 //#define CLIENT "Yes"
 //#define SERVER "Yes"
 
-#define JSSERIAL Serial
+#define JSSERIAL SerialUSB
+//#define JSSERIAL Serial
 
 // freq added to standard channel
 //#define FREQCORR 0.050
@@ -286,8 +287,12 @@ int save(aJsonObject* params)
   aJsonObject* saveParam = aJson.getObjectItem(myparams, "eeprom");
   if (saveParam){
     bool eeprom = saveParam -> valuebool;
+
+    IWatchdog.begin(30000000);  
     
     if (eeprom) configuration.save();
+
+    IWatchdog.begin(8000000);  
     
     aJson.addTrueToObject(serialmsg, "result");
     char buf[SERIALBUFFERSIZE];
@@ -707,7 +712,7 @@ void setup (void)
   // set RX and TX pins
   static HardwareSerial Serial1(PA10, PA9);
   // start up the serial interface
-  Serial.begin(SERIALBAUDRATE);
+  JSSERIAL.begin(SERIALBAUDRATE);
   Serial1.begin(SERIALBAUDRATE);
   frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial1,loggingmutex);
   frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
