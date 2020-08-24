@@ -705,17 +705,20 @@ void setup (void)
   IWatchdog.begin(8000000);  
 
   // set RX and TX pins
-  HardwareSerial Serial1(PA10, PA9);
+  static HardwareSerial Serial1(PA10, PA9);
   // start up the serial interface
-  Serial1.begin(115200);
+  Serial.begin(SERIALBAUDRATE);
+  Serial1.begin(SERIALBAUDRATE);
   frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial1,loggingmutex);
   frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 
   //Start logging
 
-  frtosLog.notice(F("Testing FreeRTOS C++ wrappers with logger"));                     // Info string with Newline
-
+  Serial.println (F("#0 Testing FreeRTOS IR & radio"));
+  Serial1.println(F("#1 Testing FreeRTOS IR & radio"));
+  delay(3000);
+  
   irQueue = new Queue(10, sizeof(IRMP_DATA));
   radioQueue = new Queue(10, 4);
   
