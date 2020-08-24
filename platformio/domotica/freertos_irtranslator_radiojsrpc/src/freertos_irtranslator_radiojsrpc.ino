@@ -23,19 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Platform  backpill & microduino smart RF
 
 nome             blackpill     microduino smartrf
-GND                 GND              GND
-3.3V                3V3              3V3
+GND                 GND               GND
+3.3V                3V3               3V3
 IR input            PA6
 IR output           PA7
-SS1                 PA4              D10
-SCLK1               PA5              D13
-MISO1               PA6              D12
-MOSI1               PA7              D11
-GDO0                PB4              D2
+SS1                 PA4               D10
+SCLK1               PA5               D13
+MISO1               PA6               D12
+MOSI1               PA7               D11
+GDO0                PB4               D2
+Serial1             PA10(RX), PA9(TX)
+Serial              PA3 (RX), PA2(TX)
 
-
-Debuging messages on UART1
-Serial json on USB serial
+Debuging messages on Serial1
+Serial json on  Serial
  */
 
 
@@ -47,11 +48,7 @@ Serial json on USB serial
 //#define CLIENT "Yes"
 //#define SERVER "Yes"
 
-// for bluepill
-//#define JSSERIAL SerialUSB
-
-// other board
-//#define JSSERIAL Serial
+#define JSSERIAL Serial
 
 // freq added to standard channel
 //#define FREQCORR 0.050
@@ -604,7 +601,7 @@ protected:
     frtosLog.notice("Starting Radio Thread %d", Id);
 
     JSSERIAL.begin(SERIALBAUDRATE);
-    delay(5000);
+
     frtosLog.notice(F("#Started: " VERSION));
 #ifdef TWOWAY
     JSSERIAL.println(F("#Twovay: " TWOWAY));
@@ -706,10 +703,12 @@ void setup (void)
   MutexStandard loggingmutex;
 
   IWatchdog.begin(8000000);  
-  
+
+  // set RX and TX pins
+  HardwareSerial Serial1(PA10, PA9);
   // start up the serial interface
-  Serial.begin(115200);
-  frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial,loggingmutex);
+  Serial1.begin(115200);
+  frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial1,loggingmutex);
   frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 
