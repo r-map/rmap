@@ -24,7 +24,7 @@
 #ifdef ARDUINO_ARCH_AVR
 RH_CC110 cc110;
 #else
-RH_CC110 cc110(PA4,A2);
+RH_CC110 cc110(PA4,PB4);
 #endif
 
 //  GFSK_Rb1_2Fd5_2 = 0,   ///< GFSK, Data Rate: 1.2kBaud, Dev: 5.2kHz, RX BW 58kHz, optimised for sensitivity
