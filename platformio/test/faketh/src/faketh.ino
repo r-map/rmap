@@ -45,7 +45,10 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "registers-th_v2.h"      //Register definitions
 #include "config.h"
 
-#include "EEPROMAnything.h"
+#include "EEPROMAnything.h"#
+#if defined(PLOT)
+#include "Plotter.h"
+#endif
 
 #define REG_MAP_SIZE            sizeof(I2C_REGISTERS)                //size of register map
 #define REG_WRITABLE_MAP_SIZE   sizeof(I2C_WRITABLE_REGISTERS)       //size of register map
@@ -124,6 +127,14 @@ bool stop=false;
 
 unsigned long starttime, regsettime, inittime;
 boolean forcedefault=false;
+
+#if defined(PLOT)
+Plotter plot; // create plotter
+#endif
+
+// global required by plot lib
+uint16_t t;
+uint16_t h;
 
 //////////////////////////////////////////////////////////////////////////////////////
 // I2C handlers
@@ -322,6 +333,13 @@ void setup() {
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
 
+#if defined(PLOT)
+  plot.Begin(); // start plotter
+  
+  //plot.AddTimeGraph( "Temperature and Humidity", 3600, "Temperature", t,"Humidity",h ); 
+  plot.AddTimeGraph( "Temperature and Humidity", 3600, "Humidity", h ); 
+#endif
+  
   starttime = millis();       // start the daily cycle for temperature and humidity
 
   IF_SDEBUG(Serial.println(F("end setup")));
@@ -394,8 +412,6 @@ void loop() {
       
       digitalWrite(LEDPIN,LOW);
       
-      uint16_t t;
-      uint16_t h;
       
       if (millis() > (inittime + MAXWAITTIME) ) {
 	int baset = 27315;
@@ -424,6 +440,10 @@ void loop() {
 	IF_SDEBUG(Serial.print("daily cycle: "));
 	IF_SDEBUG(Serial.println(dailyh));
 
+#if defined(PLOT)
+	plot.Plot();
+#endif
+	
       }else{
 	IF_SDEBUG(Serial.print("too fast: "));
 	IF_SDEBUG(Serial.println(millis() - (inittime + MAXWAITTIME)));
