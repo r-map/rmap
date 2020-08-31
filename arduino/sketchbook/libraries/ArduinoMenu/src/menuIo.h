@@ -162,7 +162,7 @@
         menuOut* constMEM* outs;
         outputsList(menuOut* constMEM o[],int n):cnt(n),outs(o) {}
         inline menuOut& operator[](idx_t i) {
-          assert(i<cnt);
+          //assert(i<cnt);
           return *(menuOut*)memPtr(outs[i]);
         }
         Used printMenu(navNode& nav) const;
