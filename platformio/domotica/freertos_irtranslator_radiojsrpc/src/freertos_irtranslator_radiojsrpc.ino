@@ -25,18 +25,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 nome             blackpill     microduino smartrf
 GND                 GND               GND
 3.3V                3V3               3V3
-IR input            PA6
-IR output           PA7
+IR input            PA2
+IR output           PA3
 SS1                 PA4               D10
 SCLK1               PA5               D13
 MISO1               PA6               D12
 MOSI1               PA7               D11
 GDO0                PB4               D2
 Serial1             PA10(RX), PA9(TX)
+PUTPIN1             PB5
+PUTPIN2             PB6
+PUTPIN3             PB7
+PUTPIN4             PB8
+
+as alternative defining JSSERIAL macro:
+SerialUSB           USB
 Serial              PA3 (RX), PA2(TX)
 
 Debuging messages on Serial1
-Serial json on  Serial
+Serial json on  JSSERIAL
  */
 
 
@@ -56,10 +63,16 @@ Serial json on  Serial
 #define FREQCORR 0.0
 
 // define the  pins used
-#define PINS 22,23,24,25
+#define PINS PB5,PB6,PB7,PB8
 
 #define SERIALBUFFERSIZE 160
 #define SERIALBAUDRATE 115200
+
+#define FEEDBACK_LED_IS_ACTIVE_LOW // The LED on the BluePill is active LOW
+#define IRMP_INPUT_PIN   PA2
+#define IRSND_OUTPUT_PIN PA3
+#define TONE_PIN         PA1
+#define IRMP_TIMING_TEST_PIN PA0
 
 #define IRMP_PROTOCOL_NAMES 0 // Enable protocol number mapping to protocol strings - requires some FLASH.
 
@@ -78,7 +91,7 @@ Serial json on  Serial
 
 #define IRMP_USE_COMPLETE_CALLBACK       1 // Enable callback functionality
 #define IRMP_ENABLE_PIN_CHANGE_INTERRUPT 1 // Enable interrupt functionality
-#define USE_ONE_TIMER_FOR_IRMP_AND_IRSND // otherwise we get an error: redefinition of 'void __vector_8()
+#define USE_ONE_TIMER_FOR_IRMP_AND_IRSND   // otherwise we get an error: redefinition of 'void __vector_8()
 
 #include <irmp.c.h>
 #include <irsnd.c.h>
@@ -523,12 +536,10 @@ void handleReceivedIRData(){
   // enable interrupts
   interrupts();
   //irmp_result_print(&irmp_data);
-  if (! (irmp_data.flags & IRMP_FLAG_REPETITION)){
-      // Its a new key
-    
+  //if (! (irmp_data.flags & IRMP_FLAG_REPETITION)){
+      // Its a new key  
     irQueue->EnqueueFromISR (&irmp_data,NULL);
-  
-  }
+    //}
 }
 
 class irThread : public Thread {
@@ -536,7 +547,7 @@ class irThread : public Thread {
 public:
   
   irThread(int i, Queue &q)
-    : Thread("Thread Ir", 200,1), 
+    : Thread("Thread Ir", 1000,1), 
       Id (i),
       irQueue(q)
   {
@@ -574,7 +585,7 @@ protected:
       irsnd_data.protocol = IRMP_NEC_PROTOCOL;
       irsnd_data.address = irmp_data.address;
       irsnd_data.command = irmp_data.command;
-      irsnd_data.flags = 1; // repeat frame 1 time
+      irsnd_data.flags = 0; // repeat frame 1 time
       frtosLog.notice("Send %d %d %d %d",irsnd_data.protocol,irsnd_data.address,irsnd_data.command,irsnd_data.flags);
       irsnd_send_data(&irsnd_data, true); // true = wait for frame to end. This stores timer state and restores it after sending
       
@@ -592,7 +603,7 @@ class radioThread : public Thread {
 public:
   
   radioThread(int i, Queue &q)
-    : Thread("Thread radio", 200,1), 
+    : Thread("Thread radio", 1000,1), 
       Id (i),
       radioQueue(q)
   {

@@ -20,13 +20,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*
  * Pin mapping table
  *
- * Platform     IR input    IR output
+ * Platform           IR input    IR output
  * ----------------------------------
- * BluePill     PA6         PA7      
+ * Blue/BlackPill     PA2         PA3      
  */
 
+//#define IRMP_LOGGING 1
 
-#define IRMP_PROTOCOL_NAMES 1 // Enable protocol number mapping to protocol strings - requires some FLASH.
+#define FEEDBACK_LED_IS_ACTIVE_LOW // The LED on the BluePill is active LOW
+#define IRMP_INPUT_PIN   PA2
+#define IRSND_OUTPUT_PIN PA3
+#define TONE_PIN         PA1
+#define IRMP_TIMING_TEST_PIN PA0
+
+#define IRMP_PROTOCOL_NAMES 0 // Enable protocol number mapping to protocol strings - requires some FLASH.
 #define IRMP_SUPPORT_NEC_PROTOCOL     1
 #define IRSND_SUPPORT_NEC_PROTOCOL    1
 #define IRMP_USE_COMPLETE_CALLBACK       1 // Enable callback functionality
@@ -70,14 +77,13 @@ void handleReceivedIRData(){
   IRMP_DATA irmp_data;
   irmp_get_data(&irmp_data);
   // enable interrupts
-  interrupts();
+  //interrupts();
   //irmp_result_print(&irmp_data);
-  if (! (irmp_data.flags & IRMP_FLAG_REPETITION)){
-      // Its a new key
-    
+  //if (! (irmp_data.flags & IRMP_FLAG_REPETITION)){
+    // Its a new key
+    //Serial.println("ricevuto");
     MessageQueue->EnqueueFromISR (&irmp_data,NULL);
-  
-  }
+    //}
 }
 
 class irThread : public Thread {
@@ -85,7 +91,7 @@ class irThread : public Thread {
 public:
   
   irThread(int i, Queue &q)
-    : Thread("Thread One", 200,1), 
+    : Thread("Thread One", 300,1), 
       Id (i),
       MessageQueue(q)
   {
@@ -124,7 +130,7 @@ protected:
       irsnd_data.protocol = IRMP_NEC_PROTOCOL;
       irsnd_data.address = irmp_data.address;
       irsnd_data.command = irmp_data.command;
-      irsnd_data.flags = 1; // repeat frame 1 time
+      irsnd_data.flags = 0; // repeat frame 1 time
       frtosLog.notice("Send %d %d %d %d",irsnd_data.protocol,irsnd_data.address,irsnd_data.command,irsnd_data.flags);
       irsnd_send_data(&irsnd_data, true); // true = wait for frame to end. This stores timer state and restores it after sending
       
