@@ -914,7 +914,7 @@ void display_values(const char* values) {
 
 void repeats() {
 
-  long unsigned int waittime,maxwaittime=0;
+  uint32_t waittime,maxwaittime=0;
 
   char values[MAX_VALUES_FOR_SENSOR*20];
   size_t lenvalues=MAX_VALUES_FOR_SENSOR*20;
