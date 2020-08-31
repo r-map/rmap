@@ -114,6 +114,7 @@ RH_CC110 cc110(PA4,PB4);
 #include "thread.hpp"
 #include "ticks.hpp"
 #include "queue.hpp"
+#include "timer.hpp"
 #include <frtosLog.h>
 
 // include the aJSON library
@@ -171,6 +172,7 @@ struct config_t               // configuration to save and load fron eeprom
 //-------------
 
 const uint8_t pins [] = {PINS};
+uint8_t pinsstatus [sizeof(pins)];
 
 //-------------
 
@@ -390,7 +392,8 @@ int singleserver(aJsonObject* params)
 	    frtosLog.notice(F(" onoff: %d"),onoff);
 
 	    digitalWrite(pins[dstunit], ! onoff);
-
+	    pinsstatus[dstunit]= ! onoff;
+	    
 	    aJson.deleteItemFromObject(radiomsg, "m");
 	    aJson.deleteItemFromObject(radiomsg, "p");
 	    aJson.addTrueToObject(radiomsg, "r");
@@ -525,22 +528,63 @@ void mgr_radio(){
 }
 #endif
 
+
 using namespace cpp_freertos;
 
 Queue *irQueue;
 Queue *radioQueue;
 
+enum source_t: int8_t { receiver, autocommand };
+
+struct datamsg_t
+{
+  IRMP_DATA irdata;
+  source_t source;
+};
+
 void handleReceivedIRData(){
-  IRMP_DATA irmp_data;
-  irmp_get_data(&irmp_data);
+  //IRMP_DATA irmp_data;
+  datamsg_t datamsg;
+  irmp_get_data(&datamsg.irdata);
   // enable interrupts
-  interrupts();
-  //irmp_result_print(&irmp_data);
-  //if (! (irmp_data.flags & IRMP_FLAG_REPETITION)){
+  //interrupts();
+  //irmp_result_print(&datamsg.irdata);
+  //if (! (data.irdata.flags & IRMP_FLAG_REPETITION)){
       // Its a new key  
-    irQueue->EnqueueFromISR (&irmp_data,NULL);
-    //}
+  datamsg.source = receiver;
+  irQueue->EnqueueFromISR (&datamsg,NULL);
+  //}
 }
+
+class PeriodicTimerTvoff : public Timer {
+
+    public:
+        PeriodicTimerTvoff(int id, TickType_t PeriodInTicks) 
+            : Timer(PeriodInTicks), Id(id)
+        {
+        };
+
+    protected:
+
+        virtual void Run() {
+	  frtosLog.notice(F("Periodic timer %d"), Id);
+	  if (pinsstatus[0] == 1){
+	    datamsg_t datamsg;
+
+	    datamsg.irdata.protocol = IRMP_NEC_PROTOCOL;
+	    datamsg.irdata.address = 44880;
+	    datamsg.irdata.command = 99;
+	    datamsg.irdata.flags = 1; // repeat frame 1 time
+	    datamsg.source=autocommand;
+	    irQueue->EnqueueFromISR (&datamsg,NULL);
+	  }	  
+	};
+
+    private:
+        int Id;
+
+};
+
 
 class irThread : public Thread {
   
@@ -562,7 +606,8 @@ protected:
 
     irmp_init();
     irsnd_init();
-    IRMP_DATA irmp_data;
+
+    datamsg_t irmpmsg;
     IRMP_DATA irsnd_data;
  
     frtosLog.notice(F("Ready to receive IR signals at pin %d"), IRMP_INPUT_PIN);
@@ -571,8 +616,11 @@ protected:
     irmp_register_complete_callback_function(&handleReceivedIRData);
  
     while (true){
-      irQueue.Dequeue(&irmp_data);
-      //if (irmp_get_data(&irmp_data)) {
+      irQueue.Dequeue(&irmpmsg);
+      frtosLog.notice("Received protocol:%d address:%d command:%d flags:%d source:%d",irmpmsg.irdata.protocol,irmpmsg.irdata.address,irmpmsg.irdata.command,irmpmsg.irdata.flags,irmpmsg.source);
+
+      if ((pinsstatus[0] == 0 && irmpmsg.source == receiver) || (pinsstatus[0] == 1 && irmpmsg.source ==  autocommand)){
+
 	/*
 	  irmp_data.protocol (8 Bit)
 	  irmp_data.address (16 Bit)
@@ -580,15 +628,13 @@ protected:
 	  irmp_data.flags (8 Bit)
 	*/
 
-      frtosLog.notice("Received %d %d %d %d",irmp_data.protocol,irmp_data.address,irmp_data.command,irmp_data.flags);
- 
-      irsnd_data.protocol = IRMP_NEC_PROTOCOL;
-      irsnd_data.address = irmp_data.address;
-      irsnd_data.command = irmp_data.command;
-      irsnd_data.flags = 0; // repeat frame 1 time
-      frtosLog.notice("Send %d %d %d %d",irsnd_data.protocol,irsnd_data.address,irsnd_data.command,irsnd_data.flags);
-      irsnd_send_data(&irsnd_data, true); // true = wait for frame to end. This stores timer state and restores it after sending
-      
+	irsnd_data.protocol = IRMP_NEC_PROTOCOL;
+	irsnd_data.address = irmpmsg.irdata.address;
+	irsnd_data.command = irmpmsg.irdata.command;
+	irsnd_data.flags = 0; // repeat frame 1 time
+	frtosLog.notice("Send %d %d %d %d",irmpmsg.irdata.protocol,irmpmsg.irdata.address,irmpmsg.irdata.command,irmpmsg.irdata.flags);
+	irsnd_send_data(&irsnd_data, true); // true = wait for frame to end. This stores timer state and restores it after sending
+      }
     }
   };
 
@@ -685,6 +731,7 @@ protected:
     {
       pinMode(pins[dstunit], OUTPUT);
       digitalWrite(pins[dstunit], 1);
+      pinsstatus[dstunit]=1;
     }
 
 #ifdef CLIENT
@@ -733,11 +780,13 @@ void setup (void)
 
   Serial.println (F("#0 Testing FreeRTOS IR & radio"));
   Serial1.println(F("#1 Testing FreeRTOS IR & radio"));
-  delay(3000);
+  //delay(3000);
   
-  irQueue = new Queue(10, sizeof(IRMP_DATA));
+  irQueue = new Queue(10, sizeof(datamsg_t));
   radioQueue = new Queue(10, 4);
-  
+  static PeriodicTimerTvoff tvoff(1, Ticks::SecondsToTicks(10));
+  tvoff.Start();
+ 
   static irThread p1(1,*irQueue);
   static radioThread p2(2,*radioQueue);
   
