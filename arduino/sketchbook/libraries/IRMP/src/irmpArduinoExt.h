@@ -60,21 +60,26 @@
 #  define F_INTERRUPTS                          15625   // 15625 interrupts per second gives 64 us period
 #endif
 
-#if ! defined(__AVR__)
+#if defined(__AVR__)
 #define uint_fast8_t uint8_t
 #define uint_fast16_t uint16_t
 
-#  if defined(ESP8266)
+#elif defined(ESP8266)
 #include "ets_sys.h"
 #include "osapi.h"
 #include "gpio.h"
 #include "os_type.h"
 #include "c_types.h"
 
-#  elif defined(ESP32)
-#  elif defined(STM32F1xx)   // for "Generic STM32F1 series" from STM32 Boards from STM32 cores of Arduino Board manager
-#  elif defined(__STM32F1__) // for "Generic STM32F103C series" from STM32F1 Boards (STM32duino.com) of manual installed hardware folder
-#  endif
+#elif defined(ARDUINO_ARCH_MBED) // Arduino Nano 33 BLE
+#include "mbed.h"
+// F is undefined in mbed.h, so F() is unknown and leads to "'F' was not declared in this scope" errors. -> define it again.
+#define F(a) a
+
+#elif defined(ESP32)
+#elif defined(STM32F1xx) // for "Generic STM32F1 series" from STM32 Boards from STM32 cores of Arduino Board manager
+#elif defined(ARDUINO_ARCH_STM32) // Untested! use settings from BluePill / STM32F1xx
+#elif defined(__STM32F1__) // for "Generic STM32F103C series" from STM32F1 Boards (STM32duino.com) of manual installed hardware folder
 #endif
 
 /*---------------------------------------------------------------------------------------------------------------------------------------------------
@@ -105,11 +110,10 @@ void irmp_init(uint_fast8_t aIrmpInputPin);
 void irmp_init(uint_fast8_t aIrmpInputPin, uint_fast8_t aIrmpFeedbackLedPin);
 void irmp_init(uint_fast8_t aIrmpInputPin, uint_fast8_t aIrmpFeedbackLedPin, bool aIrmpLedFeedbackPinIsActiveLow);
 
-
 void irmp_result_print(Print * aSerial, IRMP_DATA * aIRMPDataPtr);
 void irmp_result_print(IRMP_DATA * aIRMPDataPtr);
 #  if defined(__AVR__)
-void irmp_debug_print(const __FlashStringHelper * aMessage, bool aDoShortOutput);
+void irmp_debug_print(const __FlashStringHelper * aMessage, bool aDoShortOutput = true);
 #  else
 void irmp_debug_print(const char * aMessage, bool aDoShortOutput);
 #  endif

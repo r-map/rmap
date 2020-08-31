@@ -65,7 +65,7 @@
 #include "PinDefinitionsAndMore.h"
 
 /*
- * Set library modifiers first to set input pin etc.
+ * Set input pin and output pin definitions etc.
  */
 #define IRMP_PROTOCOL_NAMES              1 // Enable protocol number mapping to protocol strings - needs some FLASH
 #define IRMP_USE_COMPLETE_CALLBACK       1 // Enable callback functionality
@@ -80,7 +80,7 @@
 #include <irmpSelectAllProtocols.h>  // This enables all possible protocols
 
 /*
- * After setting the modifiers we can include the code and compile it.
+ * After setting the definitions we can include the code and compile it.
  */
 #include <irmp.c.h>
 
@@ -124,7 +124,7 @@ void setup()
     irmp_irsnd_LEDFeedback(true); // Enable receive signal feedback at LED_BUILTIN
     irmp_register_complete_callback_function(&handleReceivedIRData);
 
-#if defined(STM32F1xx)
+#if defined(STM32F1xx) || defined(ARDUINO_ARCH_STM32)
     Serial.print(F("Ready to receive IR signals  of protocols: "));
     irmp_print_active_protocols(&Serial);
     Serial.println(F("at pin PA4")); // the internal pin numbers are crazy for the STM32 Boards library
@@ -156,7 +156,9 @@ void setup()
 
 void loop()
 {
+#if defined(__AVR__) && (! defined(__AVR_ATmega4809__))
     static uint32_t sMillisOfLastVoltagePrint;
+#endif
 
     if (sIRMPDataAvailable)
     {

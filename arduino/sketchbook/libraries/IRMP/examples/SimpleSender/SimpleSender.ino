@@ -46,7 +46,7 @@
 
 #include <irsndSelectMain15Protocols.h>
 /*
- * After setting the modifiers we can include the code and compile it.
+ * After setting the definitions we can include the code and compile it.
  */
 #include <irsnd.c.h>
 
@@ -71,7 +71,7 @@ void setup()
     irsnd_init();
     irmp_irsnd_LEDFeedback(true); // Enable send signal feedback at LED_BUILTIN
 
-#if defined(STM32F1xx)
+#if defined(ARDUINO_ARCH_STM32)
     Serial.println(F("Ready to send IR signals at pin PA5")); // the internal pin numbers are crazy for the STM32 Boards library
 #else
     Serial.println(F("Ready to send IR signals at pin " STR(IRSND_OUTPUT_PIN)));

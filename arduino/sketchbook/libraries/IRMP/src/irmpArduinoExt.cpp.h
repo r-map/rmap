@@ -140,8 +140,8 @@ void irmp_debug_print(const char * aMessage, bool aDoShortOutput)
     Serial.print(F(" Pa"));
     Serial.print(irmp_pause_time);
 
-    Serial.print(F(" Sb=0x"));
-    Serial.print(irmp_param.stop_bit, HEX);
+    Serial.print(F(" Sb"));
+    Serial.print(irmp_param.stop_bit); // boolean. 1 = stop bit required
 
     if (!aDoShortOutput)
     {
@@ -337,7 +337,10 @@ const uint8_t irmp_used_protocol_index[] PROGMEM =
     RF_GEN24_PROTOCOL,
 #endif
 #if IRMP_SUPPORT_RF_X10_PROTOCOL == 1
-    RF_X10_PROTOCOL
+    RF_X10_PROTOCOL,
+#endif
+#if IRMP_SUPPORT_RF_MEDION_PROTOCOL == 1
+    RF_MEDION_PROTOCOL
 #endif
 };
 
@@ -512,7 +515,10 @@ const char * const irmp_used_protocol_names[] PROGMEM =
     proto_rf_gen24,
 #endif
 #if IRMP_SUPPORT_RF_X10_PROTOCOL == 1
-    proto_rf_x10
+    proto_rf_x10,
+#endif
+#if IRMP_SUPPORT_RF_MEDION_PROTOCOL == 1
+    proto_rf_medion
 #endif
 };
 

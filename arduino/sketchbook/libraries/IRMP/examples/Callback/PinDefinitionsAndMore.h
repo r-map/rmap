@@ -53,7 +53,7 @@
 #define tone(a,b) void() // no tone() available on ESP32
 #define noTone(a) void()
 
-#elif defined(STM32F1xx) || defined(__STM32F1__)
+#elif defined(ARDUINO_ARCH_STM32) || defined(__STM32F1__)
 // BluePill in 2 flavors
 // STM32F1xx is for "Generic STM32F1 series" from STM32 Boards from STM32 cores of Arduino Board manager
 // __STM32F1__is for "Generic STM32F103C series" from STM32F1 Boards (STM32duino.com) of manually installed hardware folder
@@ -97,7 +97,13 @@
 #define IRSND_OUTPUT_PIN 12
 #define TONE_PIN         5
 
-#else
+#elif defined(ARDUINO_ARCH_MBED) // Arduino Nano 33 BLE
+#define IRMP_INPUT_PIN   3
+#define IRSND_OUTPUT_PIN 4
+#define TONE_PIN         5
+#define IRMP_TIMING_TEST_PIN 6
+
+#elif defined(__AVR__)
 #define IRMP_INPUT_PIN   3 // To be compatible with interrupt example, pin 3 is chosen here (which is default).
 #define IRSND_OUTPUT_PIN 4
 #define TONE_PIN         5
@@ -105,6 +111,14 @@
 // You can alternatively specify the input pin with port and bit number if you do not have the Arduino pin number at hand
 //#define IRMP_PORT_LETTER D
 //#define IRMP_BIT_NUMBER 3
+
+#else
+#warning Board / CPU is not detected using pre-processor symbols -> using default values, which may not fit. Please extend PinDefinitionsAndMore.h.
+// Default valued for unidentified boards
+#define IRMP_INPUT_PIN   3
+#define IRSND_OUTPUT_PIN 4
+#define TONE_PIN         5
+#define IRMP_TIMING_TEST_PIN 6
 #endif // defined(ESP8266)
 
 // On the Zero and others we switch explicitly to SerialUSB
