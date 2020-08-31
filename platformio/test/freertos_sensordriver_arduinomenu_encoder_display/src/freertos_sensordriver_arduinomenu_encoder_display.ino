@@ -84,9 +84,10 @@ rst -> D10
 #define encB    3
 #define LEDPIN 13
 
-#define OLEDI2CADDRESS 0X3C  // 60
+#define OLEDI2CADDRESS 0X3C  // SSD1306_64X48   SSD1327_128X128
+//#define OLEDI2CADDRESS 63
 
-#define SENSORS_LEN 2
+#define SENSORS_LEN 1
 #define LENVALUES 3
 
 #include <Arduino.h>
@@ -119,12 +120,25 @@ rst -> D10
   #define fontNameS u8g2_font_tom_thumb_4x6_tf
   #define fontNameB u8g2_font_t0_11_tf
   #define fontName u8g2_font_tom_thumb_4x6_tf
+
+//#define fontNameS u8g2_font_logisoso20_tf
+//  #define fontNameB u8g2_font_logisoso32_tn
+//  #define fontName  u8g2_font_logisoso20_tf
+
   #define fontX 5
   #define fontY 8
+
+//  #define fontX 15
+//  #define fontY 28
+
   #define offsetX 1
   #define offsetY 1
   #define U8_Width 64
   #define U8_Height 48
+
+//#define U8_Width 128
+//#define U8_Height 128
+
   #define fontMarginX 1
   #define fontMarginY 1
   #define U8LOG_WIDTH 20
@@ -152,6 +166,10 @@ rst -> D10
   #if defined(ARDUINO_ARCH_STM32)
     #define WIREX Wire1
     TwoWire WIREX(PB4, PA7);
+    //U8G2_ST75320_JLX320240_F_2ND_HW_I2C  u8g2(U8G2_R0);
+    //U8G2_SSD1327_EA_W128128_F_2ND_HW_I2C  u8g2(U8G2_R0);
+    //U8G2_SSD1327_MIDAS_128X128_F_2ND_HW_I2C  u8g2(U8G2_R0);
+    //U8G2_SSD1327_WS_128X128_F_2ND_HW_I2C  u8g2(U8G2_R0);
     U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
   #else
     #define WIREX Wire
@@ -161,7 +179,6 @@ rst -> D10
   //SPI epaper
   #include <SPI.h>
   U8G2_IL3820_V2_296X128_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
-  //U8G2_IL3820_V2_296X296_F_4W_HW_SPI  u8g2(U8G2_R0,8,9,10);
 #endif
 
 // exchange message for sensors data
@@ -170,7 +187,7 @@ struct message_t
   uint8_t tid;  
   char type[5];         // driver name
   uint8_t ind;
-  unsigned long int  value;
+  uint32_t  value;
 };
 
 // type to define sensors
@@ -402,6 +419,7 @@ protected:
 #endif
     
     u8g2.begin();
+    //u8g2.setContrast(80); // for JLX display
     u8g2.setFont(fontName);
     u8g2.setFontMode(0); // enable transparent mode, which is faster
     u8g2.clearBuffer();
@@ -444,13 +462,13 @@ protected:
     while (true) {
 
       // get messages from the queue
-      if (MessageQueue.Dequeue(&Message,0)){
+      while (MessageQueue.Dequeue(&Message,0)){
 	frtosLog.notice(F("ricevo dalla coda : %d %s %d %d"),Message.tid,Message.type,Message.ind,Message.value);
 
-	if (displaydata){               // we have new messages and hav to display it
+	if (displaydata){               // we have new messages and have to display it
 
 #ifndef ARDUINO_ARCH_STM32
-	  LockGuard guard(sdmutex);     // use mutex when we have only oene I2C bus
+	  LockGuard guard(sdmutex);     // use mutex when we have only one I2C bus
 #endif
 
 #if defined(USEU8G2LOG)
@@ -470,32 +488,64 @@ protected:
 	  if ((Message.tid == 0) && strcmp(Message.type,"ADT")==0 && (Message.ind == 0)){
 	    u8g2.setCursor(0, 12); 
 	    u8g2.print("T:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 0, 64, 12);
+	    u8g2.setDrawColor(1);
 	    u8g2.setCursor(20, 12); 
 	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
-	      u8g2.setDrawColor(0);
-	      u8g2.drawBox(20, 0, 50, 12);
-	      u8g2.setDrawColor(1);
-	      u8g2.setCursor(20, 12);
 	      u8g2.print(round((float(Message.value)/100.-273.15)*10.)/10.,1);	    	    
 	    }
+	    //u8g2.setCursor(50, 12); 
+	    //u8g2.print(millis());
 	  }
 
 	  if ((Message.tid == 1) && strcmp(Message.type,"HIH")==0 && (Message.ind == 0)){
 	    u8g2.setCursor(0, 24); 
 	    u8g2.print("U:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 12, 64, 24);
+	    u8g2.setDrawColor(1);
 	    u8g2.setCursor(20, 24); 
 	    if (Message.value == 0xFFFFFFFF){
 	      u8g2.print("NO data");
 	    }else{
-	      u8g2.setDrawColor(0);
-	      u8g2.drawBox(20, 12, 50, 24);
-	      u8g2.setDrawColor(1);
-	      u8g2.setCursor(20, 24); 
 	      u8g2.print(round(float(Message.value)),0);
 	    }
+	    //u8g2.setCursor(50, 24); 
+	    //u8g2.print(millis());
 	  }
+
+	  if ((Message.tid == 0) && strcmp(Message.type,"STH")==0 && (Message.ind == 0)){
+	    u8g2.setCursor(0, 12); 
+	    u8g2.print("T:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 0, 64, 12);
+	    u8g2.setDrawColor(1);
+	    u8g2.setCursor(20, 12); 
+	    if (Message.value == 0xFFFFFFFF){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(Message.value);	    	    
+	    }
+	  }
+	  
+	  if ((Message.tid == 0) && strcmp(Message.type,"STH")==0 && (Message.ind == 1)){
+	    u8g2.setCursor(0, 24); 
+	    u8g2.print("U:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 12, 64, 24);
+	    u8g2.setDrawColor(1);
+	    u8g2.setCursor(20, 24); 
+	    if (Message.value == 0xFFFFFFFF){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(Message.value);
+	    }
+
+	  }
+
 	  u8g2.sendBuffer();
 	  u8g2.setFont(fontNameS);
 	  u8g2.setFontMode(1);
@@ -517,7 +567,7 @@ protected:
 	sdmutex.Unlock();
   #endif
 #endif
-	frtosLog.notice(F("D:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
+	//frtosLog.notice(F("D:Free stack bytes : %d" ),uxTaskGetStackHighWaterMark( NULL ));
       }  
     }
   };
@@ -535,7 +585,7 @@ class sensorThread : public Thread {
 public:
   
   sensorThread(int i, int delayInSeconds,sensor_t mysensor,MutexStandard& sdmutex,Queue &q)
-    : Thread("Thread Sensor", 200, 2), 
+    : Thread("Thread Sensor", 300, 2), 
       Id (i),                                     // id of the thread
       DelayInSeconds(delayInSeconds),             // sample time for the sensor
       sensor(mysensor),                           // sensor definition RMAP stype
@@ -549,24 +599,34 @@ public:
 protected:
 
   virtual void Run() {
-    
-    frtosLog.notice("Starting Thread sensor %d %s %s",Id,sd->driver,sd->type);
+
+    frtosLog.notice("Starting Thread sensor %d",Id);
+    TickType_t ticks=Ticks::MsToTicks(1000);
+    Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
 
     if (sd == nullptr){
-      frtosLog.error(F("%d:%s %s : driver not created !"),Id,sensor.driver,sd->type);
+      frtosLog.error(F("%d:%s : driver not created !"),Id,sensor.driver);
+      TickType_t ticks=Ticks::MsToTicks(1000);
+      Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
+      //      assert(false);
     }else{
       frtosLog.notice(F("%d:%s %s : driver created !"),Id,sensor.driver,sd->type);
     }
 
     if (sd->setup(sensor.driver,sensor.address) != SD_SUCCESS){
       frtosLog.error("%d:%s %s setup failed !", Id,sd->driver,sd->type);
+      TickType_t ticks=Ticks::MsToTicks(1000);
+      Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
     }
-	
+
+    ticks=Ticks::MsToTicks(1000);
+    Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
+    
     while (true) {
       Delay(Ticks::SecondsToTicks(DelayInSeconds));
 
       if (sd != nullptr){
-	unsigned long waittime=0;
+	uint32_t waittime=0;
 	message_t Message;
 
 	if (sd->prepare(waittime) != SD_SUCCESS){
@@ -588,7 +648,7 @@ protected:
 	  Delay( ticks ? ticks : 1 );            /* Minimum delay = 1 tick */
 	  
 	  // get integers values 
-	  long values[LENVALUES];
+	  uint32_t values[LENVALUES];
 	  
 	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {
 	    values[ii]=0xFFFFFFFF;                   // initialize to missed
@@ -596,14 +656,14 @@ protected:
 	  
 	  if (sd->get(values,LENVALUES) == SD_SUCCESS){
 	    for (uint8_t ii = 0; ii < LENVALUES; ii++) {
-	      frtosLog.notice("%d:%s %s value: %d",Id,sd->driver,sd->type,values[ii]);
+	      frtosLog.notice("%d:%d %s %s value: %l",Id,ii,sd->driver,sd->type,values[ii]);
 	    }
 	  }else{
 	    frtosLog.error("%d:%s %s Error",Id,sd->driver,sd->type);
 	  }
 
 	  for (uint8_t ii = 0; ii < LENVALUES; ii++) {   // send data
-	    memcpy(Message.type,sd->type, sizeof(sd->type));
+	    memcpy(Message.type,sd->type, sizeof(Message.type));
 	    Message.tid=Id;
 	    Message.ind=ii;
 	    Message.value=values[ii];
@@ -639,17 +699,22 @@ void setup (void)
   sensor_t sensors[SENSORS_LEN];      // not static, we lost it after StartScheduler
   
   strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"STH");
+  sensors[0].address=35;
+  /*
+  strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
   sensors[0].address=73;
 
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"HIH");
   sensors[1].address=39;
-  
+  */
   // start up the i2c interface
   Wire.begin();
 #if not defined(USEEPAPER)
   WIREX.begin();       // it could be the same I2C or second I2C
+  //WIREX.setClock(200000);
 #endif
   // start up the serial interface
   Serial.begin(115200);
@@ -662,7 +727,7 @@ void setup (void)
   frtosLog.notice(F("Testing FreeRTOS C++ wrappers to SensorDriver"));
 
   Queue *MessageQueue;
-  MessageQueue = new Queue(SENSORS_LEN*LENVALUES, sizeof(message_t));
+  MessageQueue = new Queue((SENSORS_LEN+1)*LENVALUES, sizeof(message_t));
   
   menuThread* MT;
   MT=new menuThread(sdmutex,*MessageQueue);     // we can allocate it as static too
