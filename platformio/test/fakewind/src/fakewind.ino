@@ -419,7 +419,7 @@ void loop() {
       
       
       if (millis() > (inittime + MAXWAITTIME) ) {
-	int baseu = 0;
+	int baseu = 50;
 	int rndu = random(-30,31);
 	int hourlyu = round(sin((float(millis()-starttime)/(60.*60.*1.*1000.))*2.*PI)*200.);
 	u = baseu + rndu + hourlyu;
@@ -431,12 +431,15 @@ void loop() {
 	IF_SDEBUG(Serial.println(rndu));
 	IF_SDEBUG(Serial.print("hourly cycle: "));
 	IF_SDEBUG(Serial.println(hourlyu));
+	IF_SDEBUG(Serial.print(F("value: ")));
+	IF_SDEBUG(Serial.println(u));
 	
-	int basev = 0;
+	int basev = 50;
 	int rndv = random(-30,31);
-	int hourlyv = - round(cos((float(millis()-starttime)/(60.*60.*1.*1000.))*2.*PI)*200.); // fase opposta ripetto a u
+	int hourlyv =  round(cos((float(millis()-starttime)/(60.*60.*1.*1000.))*2.*PI)*200.); // fase opposta ripetto a u
 
 	v = basev + rndv + hourlyv;
+
 	IF_SDEBUG(Serial.println("V:"));
 	IF_SDEBUG(Serial.print("base value: "));
 	IF_SDEBUG(Serial.println(basev));
@@ -444,6 +447,8 @@ void loop() {
 	IF_SDEBUG(Serial.println(rndv));
 	IF_SDEBUG(Serial.print("hourly cycle: "));
 	IF_SDEBUG(Serial.println(hourlyv));
+	IF_SDEBUG(Serial.print(F("value: ")));
+	IF_SDEBUG(Serial.println(v));
 
 	/*
 	float ar=float(dd)*PI/180.;
@@ -456,14 +461,24 @@ void loop() {
 	uint16_t ff;
 	
 	if(u == 0 && v == 0) {
-	  ff =  0;
 	  dd =  0;
+	  ff =  0;
 	}else{
-	  ff=sqrt(u*u+v*v) ;
+	  ff=round(sqrt(float(u)*float(u)+float(v)*float(v))) ;
 	  //scambio seno e coseno per rotazione 90 gradi
-	  dd=atan2(-u,-v)*(180./PI);
+	  dd=round(atan2(float(-u),float(-v))*180./PI);
+	  IF_SDEBUG(Serial.print(F("dd1: ")));
+	  IF_SDEBUG(Serial.println(dd));
 	  dd=dd % 360;
+	  IF_SDEBUG(Serial.print(F("dd2: ")));
+	  IF_SDEBUG(Serial.println(dd));
 	  if(dd == 0) dd=360 ;
+	  IF_SDEBUG(Serial.print(F("dd3: ")));
+	  IF_SDEBUG(Serial.println(dd));
+	  if (dd < 0) dd=360+dd;
+	  IF_SDEBUG(Serial.print(F("dd4: ")));
+	  IF_SDEBUG(Serial.println(dd));
+	  
 	}
 
 	
