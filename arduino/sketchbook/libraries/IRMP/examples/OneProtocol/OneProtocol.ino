@@ -88,7 +88,7 @@ void setup()
     delay(2000); // To be able to connect Serial monitor after reset and before first printout
 #endif
     // Just to know which program is running on my Arduino
-#if defined(__ESP8266__)
+#if defined(ESP8266)
     Serial.println();
 #endif
     Serial.println(F("START " __FILE__ " from " __DATE__ "\r\nUsing library version " VERSION_IRMP));
@@ -96,13 +96,11 @@ void setup()
     irmp_init();
 //    irmp_irsnd_LEDFeedback(true); // Enable receive signal feedback at LED_BUILTIN - commented out, since we use built in LED in loop below
 
-#if defined(STM32F1xx)
-    Serial.print(F("Ready to receive IR signals  of protocols: "));
-    irmp_print_active_protocols(&Serial);
-    Serial.println(F("at pin PA4")); // the internal pin numbers are crazy for the STM32 Boards library
-#else
     Serial.print(F("Ready to receive IR signals of protocols: "));
     irmp_print_active_protocols(&Serial);
+#if defined(ARDUINO_ARCH_STM32)
+    Serial.println(F("at pin " IRMP_INPUT_PIN_STRING)); // the internal pin numbers are crazy for the STM32 Boards library
+#else
     Serial.println(F("at pin " STR(IRMP_INPUT_PIN)));
 #endif
 }
