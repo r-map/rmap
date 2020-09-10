@@ -339,10 +339,8 @@ void setup() {
   Wire.onReceive(receiveEvent);
 
 #if defined(PLOT)
-  plot.Begin(); // start plotter
-  
-  //plot.AddTimeGraph( "Temperature and Humidity", 3600, "Temperature", t,"Humidity",h ); 
-  plot.AddTimeGraph( "Wind", 3600, "U", u,"V",v ); 
+  plot.Begin(); // start plotter  
+  plot.AddTimeGraph( "Wind", 600, "U", u,"V",v ); 
 #endif
   
   starttime = millis();       // start the daily cycle for temperature and humidity

@@ -22,11 +22,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // use 100 microsends here as unit
 #define MINTIMEWITHOUTRAIN 50000         // 500 ms
 #define MAXTIMEWITHOUTRAIN 80000         // 800 ms
-#define MAXTIMEBOUNCEPULSE 30            // 3 ms
-#define MINTIMETOBOUNCE    150           // 15 ms
-#define MAXTIMETOBOUNCE    250           // 20 ms
-#define MINTIMETORAIN      5000          // 500 ms
-#define MAXTIMETORAIN      7000          // 700 ms
+#define MAXTIMEBOUNCEPULSE 3            // 0.3 ms
+#define MINTIMETOBOUNCE    10           // 1 ms
+#define MAXTIMETOBOUNCE    30           // 3 ms
+#define MINTIMETORAIN      500          // 50 ms
+#define MAXTIMETORAIN      3000          // 300 ms
 
 #define SECONDSTOPOWERON 10
 #define SECONDSTOPOWEROFF 60
