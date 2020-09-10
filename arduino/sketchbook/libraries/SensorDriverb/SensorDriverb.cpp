@@ -175,7 +175,7 @@ SensorDriver::~SensorDriver() {}
 
 
 #if defined (USEGETDATA)
-int SensorDriver::getdata(unsigned long& data,unsigned short& width)
+int SensorDriver::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -283,7 +283,7 @@ int SensorDriverTmp::setup(const char* driver, const int address, const int node
   
 }
 
-int SensorDriverTmp::prepare(unsigned long& waittime)
+int SensorDriverTmp::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -298,7 +298,7 @@ int SensorDriverTmp::prepare(unsigned long& waittime)
 
 }
 
-int SensorDriverTmp::get(long values[],size_t lenvalues)
+int SensorDriverTmp::get(uint32_t values[],size_t lenvalues)
 {
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -328,7 +328,7 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
   {
     TemperatureSum=TemperatureSum - 0x1000;
   }
-  if (lenvalues >= 1)  values[0] = (long)(TemperatureSum*6.25 + 27315.) ;
+  if (lenvalues >= 1)  values[0] = (uint32_t)(TemperatureSum*6.25 + 27315.) ;
 
   _timing=0;
 
@@ -337,7 +337,7 @@ int SensorDriverTmp::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTmp::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -348,11 +348,11 @@ int SensorDriverTmp::getdata(unsigned long& data,unsigned short& width)
   #if defined(USEAJSON)
 aJsonObject* SensorDriverTmp::getJson()
 {
-  long values[1];
+  uint32_t values[1];
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverTmp::get(values,1) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     // if you have a second value add here
     //aJson.addNumberToObject(jsonvalues, "B12102", values2);      
 
@@ -394,7 +394,7 @@ int SensorDriverAdt7420::setup(const char* driver, const int address, const int 
 
 }
 
-int SensorDriverAdt7420::prepare(unsigned long& waittime)
+int SensorDriverAdt7420::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -409,7 +409,7 @@ int SensorDriverAdt7420::prepare(unsigned long& waittime)
 
 }
 
-int SensorDriverAdt7420::get(long values[],size_t lenvalues)
+int SensorDriverAdt7420::get(uint32_t values[],size_t lenvalues)
 {
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
@@ -439,7 +439,7 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
     TemperatureSum=TemperatureSum - 0x1000;
   }
 
-  if (lenvalues >= 1)  values[0] = (long)(TemperatureSum*6.25 + 27315.) ;
+  if (lenvalues >= 1)  values[0] = (uint32_t)(TemperatureSum*6.25 + 27315.) ;
   _timing=0;
 
   return SD_SUCCESS;
@@ -447,7 +447,7 @@ int SensorDriverAdt7420::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
+int SensorDriverAdt7420::getdata(uint32_t &data,uint16_t &width)
 {
   /*
     scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
@@ -455,9 +455,9 @@ int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
     data width (bits): The number of bits the element requires for representation in data
   */
 
-  long values[1];
+  uint32_t values[1];
   width=16;
-  const long reference=22315;
+  const uint32_t reference=22315;
   
   if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference) ;// << (sizeof(values[1])-width);
@@ -473,12 +473,12 @@ int SensorDriverAdt7420::getdata(unsigned long &data,unsigned short &width)
   #if defined(USEAJSON)
 aJsonObject* SensorDriverAdt7420::getJson()
 {
-  long values[1];
+  uint32_t values[1];
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   
   if (SensorDriverAdt7420::get(values,1) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     // if you have a second value add here
     //aJson.addNumberToObject(jsonvalues, "B12102", values2);      
 
@@ -494,7 +494,7 @@ aJsonObject* SensorDriverAdt7420::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverAdt7420::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[1];
+  uint32_t values[1];
   StaticJsonBuffer<100> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
@@ -533,7 +533,7 @@ int SensorDriverRF24::setup(const char* driver, const int address, const int nod
   return SD_SUCCESS;  // do nothing
 }
 
-int SensorDriverRF24::prepare(unsigned long& waittime)
+int SensorDriverRF24::prepare(uint32_t& waittime)
 {
 
    IF_SDSDEBUG(SDDBGSERIAL.println(F("#Radio Sending... prepare")));
@@ -575,7 +575,7 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
     return SD_INTERNAL_ERROR;             // End Write Transmission 
   }
 
-  unsigned long start_at = millis();
+  uint32_t start_at = millis();
 
   while (true){
     _network->update();
@@ -645,7 +645,7 @@ int SensorDriverRF24::prepare(unsigned long& waittime)
   }
 
   //waittime=250ul;
-  //waittime=(unsigned long)waittimei->valueint;
+  //waittime=(uint32_t)waittimei->valueint;
   waittime=waittimei->valueint;
   IF_SDSDEBUG(SDDBGSERIAL.print(F("#waittime: ")));
   IF_SDSDEBUG(SDDBGSERIAL.println(waittime));
@@ -710,7 +710,7 @@ aJsonObject* SensorDriverRF24::getJson()
     return jsonvalues; 
   }
   
-  unsigned long start_at = millis();
+  uint32_t start_at = millis();
 
   while (true){
     _network->update();
@@ -745,7 +745,7 @@ aJsonObject* SensorDriverRF24::getJson()
 
  #endif
 
-int SensorDriverRF24::get(long values[], size_t lenvalues)
+int SensorDriverRF24::get(uint32_t values[], size_t lenvalues)
 {
     return SD_INTERNAL_ERROR;
 }
@@ -777,7 +777,7 @@ int SensorDriverHih6100::setup(const char* driver, const int address, const int 
 
 }
 
-int SensorDriverHih6100::prepare(unsigned long& waittime)
+int SensorDriverHih6100::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);   // Open I2C line in write mode
@@ -790,7 +790,7 @@ int SensorDriverHih6100::prepare(unsigned long& waittime)
 
 }
 
-int SensorDriverHih6100::get(long values[],size_t lenvalues)
+int SensorDriverHih6100::get(uint32_t values[],size_t lenvalues)
 {
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -808,8 +808,8 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
   */
 
   uint8_t x, y, s;
-  uint16_t h;
-  uint16_t t;
+  uint32_t h;
+  uint32_t t;
   
   Wire.requestFrom(_address, 4);
   if(Wire.available() >= 4) {
@@ -827,7 +827,7 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
       //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
       //IF_SDSDEBUG(SDDBGSERIAL.println(y));
 
-      h = (((uint16_t) (x & 0x3f)) << 8) | y;
+      h = (((uint32_t) (x & 0x3f)) << 8) | y;
 
       x = Wire.read();
       y = Wire.read();
@@ -836,7 +836,7 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
       //IF_SDSDEBUG(SDDBGSERIAL.print(F(" , ")));
       //IF_SDSDEBUG(SDDBGSERIAL.println(y));
 
-      t = (((uint16_t) x) << 6) | ((y & 0xfc) >> 2);
+      t = (((uint32_t) x) << 6) | ((y & 0xfc) >> 2);
       
       //Wire.endTransmission();
       break;
@@ -863,8 +863,8 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
     return SD_INTERNAL_ERROR;
   }
 
-  if (lenvalues >= 1)  values[0] = (long) round (float(h) / 16382. * 100.) ;
-  if (lenvalues >= 2)  values[1] = (long) round((float(t) / 16382. * 165. - 40.) * 100. + 27315.) ;
+  if (lenvalues >= 1)  values[0] = (uint32_t) round (float(h) / 16382. * 100.) ;
+  if (lenvalues >= 2)  values[1] = (uint32_t) round((float(t) / 16382. * 165. - 40.) * 100. + 27315.) ;
   _timing=0;
 
   return SD_SUCCESS;
@@ -872,7 +872,7 @@ int SensorDriverHih6100::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverHih6100::getdata(uint32_t& data,uint16_t& width)
 {
   /*
     scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
@@ -880,9 +880,9 @@ int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
     data width (bits): The number of bits the element requires for representation in data
   */
   
-  long values[1];
+  uint32_t values[1];
   width=7;
-  const long reference=0;
+  const uint32_t reference=0;
   
   if (SensorDriverHih6100::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
@@ -898,17 +898,17 @@ int SensorDriverHih6100::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHih6100::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
   if (SensorDriverHih6100::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[0]);      
 
 #if defined(SECONDARYPARAMETER)
     // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[1]);      
 #endif
   }else{
     aJson.addNullToObject(jsonvalues, "B12101");
@@ -923,7 +923,7 @@ aJsonObject* SensorDriverHih6100::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverHih6100::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[1];
+  uint32_t values[1];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
@@ -979,7 +979,7 @@ int SensorDriverHyt271::setup(const char* driver, const int address, const int n
 
 }
 
-int SensorDriverHyt271::prepare(unsigned long &waittime) {
+int SensorDriverHyt271::prepare(uint32_t &waittime) {
 	Wire.beginTransmission(_address);   	 //Open I2C line in write mode
 	
 	if (Wire.endTransmission())
@@ -991,7 +991,7 @@ int SensorDriverHyt271::prepare(unsigned long &waittime) {
 	return SD_SUCCESS;
 }
 
-int SensorDriverHyt271::get(long values[], size_t lenvalues) {
+int SensorDriverHyt271::get(uint32_t values[], size_t lenvalues) {
 	if (millis() - _timing > MAXDELAYFORREAD)
 		return SD_INTERNAL_ERROR;
 	
@@ -1001,21 +1001,21 @@ int SensorDriverHyt271::get(long values[], size_t lenvalues) {
 	Wire.requestFrom(_address, I2C_HYT271_READ_HT_DATA_LENGTH);
 	
 	if (Wire.available() == I2C_HYT271_READ_HT_DATA_LENGTH)
-		HYT271_getHT((unsigned long) Wire.read() << 24 | (unsigned long) Wire.read() << 16 | (unsigned long) Wire.read() << 8 | (unsigned long) Wire.read(), &humidity, &temperature);
+		HYT271_getHT((uint32_t) Wire.read() << 24 | (uint32_t) Wire.read() << 16 | (uint32_t) Wire.read() << 8 | (uint32_t) Wire.read(), &humidity, &temperature);
 	else return SD_INTERNAL_ERROR;
 
 	if (lenvalues >= 1)
-		values[0] = (long) round(humidity);
+		values[0] = (uint32_t) round(humidity);
 	
 	if (lenvalues >= 2)
-		values[1] = (long) round(temperature*100 + 27315);
+		values[1] = (uint32_t) round(temperature*100 + 27315);
 	
 	_timing = 0;
 	return SD_SUCCESS;
 }
 
 #if defined (USEGETDATA)
-int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverHyt271::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1025,17 +1025,17 @@ int SensorDriverHyt271::getdata(unsigned long& data,unsigned short& width)
 
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHyt271::getJson() {
-	long values[2];
+	uint32_t values[2];
 	aJsonObject* jsonvalues;
 	jsonvalues = aJson.createObject();
 	
 	if (SensorDriverHyt271::get(values,2) == SD_SUCCESS) {
-		aJson.addNumberToObject(jsonvalues, "B13003", values[0]);
-		aJson.addNumberToObject(jsonvalues, "B12101", values[1]);
+		aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[0]);
+		aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[1]);
 	}
 	else {
-		aJson.addNullToObject(jsonvalues, "B12101");
-		aJson.addNullToObject(jsonvalues, "B13003");
+		aJson.addNullToObject(jsonvalues, (int32_t)"B12101");
+		aJson.addNullToObject(jsonvalues, (int32_t)"B13003");
 	}
 	
 	return jsonvalues;
@@ -1061,8 +1061,8 @@ uint8_t SensorDriverBmp085::read8(uint8_t a) {
   return ret;
 }
 
-uint16_t SensorDriverBmp085::read16(uint8_t a) {
-  uint16_t ret;
+uint32_t SensorDriverBmp085::read16(uint8_t a) {
+  uint32_t ret;
 
   Wire.beginTransmission(_address); // start transmission to device 
   Wire.write(a); // sends register address to read from
@@ -1094,7 +1094,7 @@ int32_t SensorDriverBmp085::computeB5(int32_t UT) {
   return X1 + X2;
 }
 
-uint16_t SensorDriverBmp085::readRawTemperature(void) {
+uint32_t SensorDriverBmp085::readRawTemperature(void) {
   write8(BMP085_CONTROL, BMP085_READTEMPCMD);
   delay(10);
 #if BMP085_DEBUG == 1
@@ -1302,7 +1302,7 @@ int32_t SensorDriverBmp085::readPressure(void) {
 
 }
 
-int SensorDriverBmp085::prepare(unsigned long& waittime)
+int SensorDriverBmp085::prepare(uint32_t& waittime)
 {
 
   _timing=millis();
@@ -1312,13 +1312,13 @@ int SensorDriverBmp085::prepare(unsigned long& waittime)
 
 }
 
-int SensorDriverBmp085::get(long values[],size_t lenvalues)
+int SensorDriverBmp085::get(uint32_t values[],size_t lenvalues)
 {
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
 
-  if (lenvalues>=1) values[0] = (long) round(float(readPressure())/10.);
-  if (lenvalues>=2) values[1] = (long) round(readTemperature() * 100. + 27315.);
+  if (lenvalues>=1) values[0] = (uint32_t) round(float(readPressure())/10.);
+  if (lenvalues>=2) values[1] = (uint32_t) round(readTemperature() * 100. + 27315.);
 
   _timing=0;
 
@@ -1327,7 +1327,7 @@ int SensorDriverBmp085::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverBmp085::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1338,16 +1338,16 @@ int SensorDriverBmp085::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverBmp085::getJson()
 {
-  long values[2];
+  uint32_t values[2];
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   //if (SensorDriverBmp085::get2(&pressure,&temperature) == SD_SUCCESS){
   if (SensorDriverBmp085::get(values,2) == SD_SUCCESS){
     // pressure
-    aJson.addNumberToObject(jsonvalues, "B10004", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B10004", (int32_t)values[0]);      
 #if defined(SECONDARYPARAMETER)
     // temperature
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[1]);      
 #endif
 
   }else{
@@ -1363,19 +1363,19 @@ aJsonObject* SensorDriverBmp085::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverBmp085::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,2) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B10004"]= values[0];
     }else{
       jsonvalues["B12101"]=RawJson("null");
     }
 
 #if defined(SECONDARYPARAMETER)
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B10004"]= values[1];
     }else{
       jsonvalues["B12101"]=RawJson("null");
@@ -1419,7 +1419,7 @@ int SensorDriverSI7021::setup(const char* driver, const int address, const int n
 
 }
 
-int SensorDriverSI7021::prepare(unsigned long& waittime)
+int SensorDriverSI7021::prepare(uint32_t& waittime)
 {
   Wire.begin();
   Wire.beginTransmission(_address);
@@ -1431,7 +1431,7 @@ int SensorDriverSI7021::prepare(unsigned long& waittime)
 
 }
 
-int SensorDriverSI7021::get(long values[],size_t lenvalues)
+int SensorDriverSI7021::get(uint32_t values[],size_t lenvalues)
 {
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -1467,7 +1467,7 @@ int SensorDriverSI7021::get(long values[],size_t lenvalues)
     data[1] = Wire.read();
   }
 
-  long temperature  = ((data[0] * 256.0) + data[1]);
+  uint32_t temperature  = ((data[0] * 256.0) + data[1]);
   temperature =  (((175.72 * float(temperature)) / 65536.0) - 46.85) * 100. + 27315.;
 
   if (lenvalues >= 1)  values[0] = round (humidity);
@@ -1478,7 +1478,7 @@ int SensorDriverSI7021::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSI7021::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1489,17 +1489,17 @@ int SensorDriverSI7021::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSI7021::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
   if (SensorDriverSI7021::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B13003", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[0]);      
 
 #if defined(SECONDARYPARAMETER)
     // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[1]);      
 #endif
   }else{
     aJson.addNullToObject(jsonvalues, "B12101");
@@ -1550,7 +1550,7 @@ int SensorDriverDw1::setup(const char* driver, const int address, const int node
 
 }
 
-int SensorDriverDw1::prepare(unsigned long& waittime)
+int SensorDriverDw1::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);
@@ -1565,7 +1565,7 @@ int SensorDriverDw1::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverDw1::get(long values[],size_t lenvalues)
+int SensorDriverDw1::get(uint32_t values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -1620,7 +1620,7 @@ int SensorDriverDw1::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverDw1::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1631,19 +1631,19 @@ int SensorDriverDw1::getdata(unsigned long& data,unsigned short& width)
   #if defined(USEAJSON)
 aJsonObject* SensorDriverDw1::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverDw1::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B11001", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B11001", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B11001");
     }
     // if you have a second value add here
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B11002", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B11002", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B11002");
     }
@@ -1695,7 +1695,7 @@ int SensorDriverTbr::setup(const char* driver, const int address, const int node
 
 }
 
-int SensorDriverTbr::prepare(unsigned long& waittime)
+int SensorDriverTbr::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);
@@ -1709,7 +1709,7 @@ int SensorDriverTbr::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTbr::get(long values[],size_t lenvalues)
+int SensorDriverTbr::get(uint32_t values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   //if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -1736,7 +1736,7 @@ int SensorDriverTbr::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTbr::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1747,13 +1747,13 @@ int SensorDriverTbr::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTbr::getJson()
 {
-  long values[1];
+  uint32_t values[1];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverTbr::get(values,1) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13011", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B13011", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13011");
     }
@@ -1803,7 +1803,7 @@ int SensorDriverTHoneshot::setup(const char* driver, const int address, const in
 
 }
 
-int SensorDriverTHoneshot::prepare(unsigned long& waittime)
+int SensorDriverTHoneshot::prepare(uint32_t& waittime)
 {
 
   Wire.beginTransmission(_address);
@@ -1817,7 +1817,7 @@ int SensorDriverTHoneshot::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
+int SensorDriverTHoneshot::get(uint32_t values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -1873,7 +1873,7 @@ int SensorDriverTHoneshot::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTHoneshot::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -1884,19 +1884,19 @@ int SensorDriverTHoneshot::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHoneshot::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverTHoneshot::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
@@ -1968,7 +1968,7 @@ int SensorDriverTH60mean::setup(const char* driver, const int address, const int
 
 }
 
-int SensorDriverTH60mean::prepare(unsigned long& waittime)
+int SensorDriverTH60mean::prepare(uint32_t& waittime)
 {
 
   if (THcounter < 0) THcounter=0;
@@ -2000,7 +2000,7 @@ int SensorDriverTH60mean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTH60mean::get(long values[],size_t lenvalues)
+int SensorDriverTH60mean::get(uint32_t values[],size_t lenvalues)
 {
   THcounter--;
 
@@ -2078,7 +2078,7 @@ int SensorDriverTH60mean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTH60mean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -2089,7 +2089,7 @@ int SensorDriverTH60mean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTH60mean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -2104,12 +2104,12 @@ aJsonObject* SensorDriverTH60mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
@@ -2177,7 +2177,7 @@ int SensorDriverTHmean::setup(const char* driver, const int address, const int n
 
 }
 
-int SensorDriverTHmean::prepare(unsigned long& waittime)
+int SensorDriverTHmean::prepare(uint32_t& waittime)
 {
 
   if (THcounter < 0) THcounter=0;
@@ -2208,7 +2208,7 @@ int SensorDriverTHmean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTHmean::get(long values[],size_t lenvalues)
+int SensorDriverTHmean::get(uint32_t values[],size_t lenvalues)
 {
   THcounter--;
 
@@ -2282,7 +2282,7 @@ int SensorDriverTHmean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTHmean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -2293,7 +2293,7 @@ int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -2308,13 +2308,13 @@ aJsonObject* SensorDriverTHmean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");      
     }
@@ -2384,7 +2384,7 @@ int SensorDriverTHmin::setup(const char* driver, const int address, const int no
 
 }
 
-int SensorDriverTHmin::prepare(unsigned long& waittime)
+int SensorDriverTHmin::prepare(uint32_t& waittime)
 {
 
   if (THcounter < 0) THcounter=0;
@@ -2415,7 +2415,7 @@ int SensorDriverTHmin::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTHmin::get(long values[],size_t lenvalues)
+int SensorDriverTHmin::get(uint32_t values[],size_t lenvalues)
 {
   THcounter--;
   unsigned char msb, lsb;
@@ -2489,7 +2489,7 @@ int SensorDriverTHmin::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTHmean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -2500,7 +2500,7 @@ int SensorDriverTHmean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmin::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -2515,12 +2515,12 @@ aJsonObject* SensorDriverTHmin::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
@@ -2587,7 +2587,7 @@ int SensorDriverTHmax::setup(const char* driver, const int address, const int no
 
 }
 
-int SensorDriverTHmax::prepare(unsigned long& waittime)
+int SensorDriverTHmax::prepare(uint32_t& waittime)
 {
 
   if (THcounter < 0) THcounter=0;
@@ -2617,7 +2617,7 @@ int SensorDriverTHmax::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverTHmax::get(long values[],size_t lenvalues)
+int SensorDriverTHmax::get(uint32_t values[],size_t lenvalues)
 {
   THcounter--;
   unsigned char msb, lsb;
@@ -2691,7 +2691,7 @@ int SensorDriverTHmax::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverTHmax::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -2702,7 +2702,7 @@ int SensorDriverTHmax::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverTHmax::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -2717,13 +2717,13 @@ aJsonObject* SensorDriverTHmax::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
@@ -2776,7 +2776,7 @@ int SensorDriverSDS011oneshot::setup(const char* driver, const int address, cons
 
 }
 
-int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
+int SensorDriverSDS011oneshot::prepare(uint32_t& waittime)
 {
 
   if (! SDSMICSstarted) {
@@ -2803,7 +2803,7 @@ int SensorDriverSDS011oneshot::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
+int SensorDriverSDS011oneshot::get(uint32_t values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -2864,7 +2864,7 @@ int SensorDriverSDS011oneshot::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011oneshot::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -2875,19 +2875,19 @@ int SensorDriverSDS011oneshot::getdata(unsigned long& data,unsigned short& width
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011oneshot::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSDS011oneshot::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -2902,7 +2902,7 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
@@ -2992,7 +2992,7 @@ int SensorDriverSDS011oneshotSerial::setup(const char* driver, const int address
   return SD_INTERNAL_ERROR;
 }
 
-int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
+int SensorDriverSDS011oneshotSerial::prepare(uint32_t& waittime)
 {
   //if (_sds011->set_sleep(sds011::WORK)) {
     SDSMICSstarted=true;
@@ -3005,7 +3005,7 @@ int SensorDriverSDS011oneshotSerial::prepare(unsigned long& waittime)
     //}
 }
 
-int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
+int SensorDriverSDS011oneshotSerial::get(uint32_t values[],size_t lenvalues)
 {
   int pm25=0xFFFFFFFF;
   int pm10=0xFFFFFFFF;
@@ -3041,7 +3041,7 @@ int SensorDriverSDS011oneshotSerial::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011oneshotSerial::getdata(uint32_t& data,uint8_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -3052,19 +3052,19 @@ int SensorDriverSDS011oneshotSerial::getdata(unsigned long& data,unsigned short&
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSDS011oneshotSerial::get(values,2) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -3080,18 +3080,18 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,2) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[0];      
     }else{
       jsonvalues["B15198"]=RawJson("null");
     }
 
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B15195"]= values[1];
     }else{
       jsonvalues["B15195"]=RawJson("null");
@@ -3125,7 +3125,7 @@ int SensorDriverSDS01160mean::setup(const char* driver, const int address, const
   #if defined (RADIORF24)
 			   , char* mainbuf, size_t lenbuf, RF24Network* network
     #if defined (AES)
-			   , uint8_t key[] , uint8_t iv[]
+			   , uint8_t key[] , uint16_t iv[]
     #endif
   #endif
 			   )
@@ -3176,7 +3176,7 @@ int SensorDriverSDS01160mean::setup(const char* driver, const int address, const
 
 }
 
-int SensorDriverSDS01160mean::prepare(unsigned long& waittime)
+int SensorDriverSDS01160mean::prepare(uint32_t& waittime)
 {
 
   if (SDS011counter < 0) SDS011counter=0;
@@ -3208,7 +3208,7 @@ int SensorDriverSDS01160mean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
+int SensorDriverSDS01160mean::get(uint32_t values[],size_t lenvalues)
 {
   SDS011counter--;
 
@@ -3286,7 +3286,7 @@ int SensorDriverSDS01160mean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011mean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -3297,7 +3297,7 @@ int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS01160mean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -3312,12 +3312,12 @@ aJsonObject* SensorDriverSDS01160mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -3385,7 +3385,7 @@ int SensorDriverSDS011mean::setup(const char* driver, const int address, const i
 
 }
 
-int SensorDriverSDS011mean::prepare(unsigned long& waittime)
+int SensorDriverSDS011mean::prepare(uint32_t& waittime)
 {
 
   if (SDS011counter < 0) SDS011counter=0;
@@ -3416,7 +3416,7 @@ int SensorDriverSDS011mean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
+int SensorDriverSDS011mean::get(uint32_t values[],size_t lenvalues)
 {
   SDS011counter--;
 
@@ -3490,7 +3490,7 @@ int SensorDriverSDS011mean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011mean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -3501,7 +3501,7 @@ int SensorDriverSDS011mean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011mean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -3516,13 +3516,13 @@ aJsonObject* SensorDriverSDS011mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");      
     }
@@ -3592,7 +3592,7 @@ int SensorDriverSDS011min::setup(const char* driver, const int address, const in
 
 }
 
-int SensorDriverSDS011min::prepare(unsigned long& waittime)
+int SensorDriverSDS011min::prepare(uint32_t& waittime)
 {
 
   if (SDS011counter < 0) SDS011counter=0;
@@ -3623,7 +3623,7 @@ int SensorDriverSDS011min::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSDS011min::get(long values[],size_t lenvalues)
+int SensorDriverSDS011min::get(uint32_t values[],size_t lenvalues)
 {
   SDS011counter--;
   unsigned char msb, lsb;
@@ -3697,7 +3697,7 @@ int SensorDriverSDS011min::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011min::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -3708,7 +3708,7 @@ int SensorDriverSDS011min::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011min::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -3723,12 +3723,12 @@ aJsonObject* SensorDriverSDS011min::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -3795,7 +3795,7 @@ int SensorDriverSDS011max::setup(const char* driver, const int address, const in
 
 }
 
-int SensorDriverSDS011max::prepare(unsigned long& waittime)
+int SensorDriverSDS011max::prepare(uint32_t& waittime)
 {
 
   if (SDS011counter < 0) SDS011counter=0;
@@ -3825,7 +3825,7 @@ int SensorDriverSDS011max::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSDS011max::get(long values[],size_t lenvalues)
+int SensorDriverSDS011max::get(uint32_t values[],size_t lenvalues)
 {
   SDS011counter--;
   unsigned char msb, lsb;
@@ -3899,7 +3899,7 @@ int SensorDriverSDS011max::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSDS011max::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -3910,7 +3910,7 @@ int SensorDriverSDS011max::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSDS011max::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -3925,13 +3925,13 @@ aJsonObject* SensorDriverSDS011max::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -3984,7 +3984,7 @@ int SensorDriverMICS4514oneshot::setup(const char* driver, const int address, co
 
 }
 
-int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
+int SensorDriverMICS4514oneshot::prepare(uint32_t& waittime)
 {
 
   if (! SDSMICSstarted) {
@@ -4002,7 +4002,7 @@ int SensorDriverMICS4514oneshot::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
+int SensorDriverMICS4514oneshot::get(uint32_t values[],size_t lenvalues)
 {
   unsigned char msb, lsb;
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -4060,7 +4060,7 @@ int SensorDriverMICS4514oneshot::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverMICS4514oneshot::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -4071,19 +4071,19 @@ int SensorDriverMICS4514oneshot::getdata(unsigned long& data,unsigned short& wid
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514oneshot::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverMICS4514oneshot::get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15196", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15196");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15193", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15193");
     }
@@ -4099,7 +4099,7 @@ aJsonObject* SensorDriverMICS4514oneshot::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverMICS4514oneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
@@ -4185,7 +4185,7 @@ int SensorDriverMICS451460mean::setup(const char* driver, const int address, con
 
 }
 
-int SensorDriverMICS451460mean::prepare(unsigned long& waittime)
+int SensorDriverMICS451460mean::prepare(uint32_t& waittime)
 {
 
   if (MICS4514counter < 0) MICS4514counter=0;
@@ -4217,7 +4217,7 @@ int SensorDriverMICS451460mean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
+int SensorDriverMICS451460mean::get(uint32_t values[],size_t lenvalues)
 {
   MICS4514counter--;
 
@@ -4295,7 +4295,7 @@ int SensorDriverMICS451460mean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverMICS451460mean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -4306,7 +4306,7 @@ int SensorDriverMICS451460mean::getdata(unsigned long& data,unsigned short& widt
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS451460mean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -4321,12 +4321,12 @@ aJsonObject* SensorDriverMICS451460mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -4394,7 +4394,7 @@ int SensorDriverMICS4514mean::setup(const char* driver, const int address, const
 
 }
 
-int SensorDriverMICS4514mean::prepare(unsigned long& waittime)
+int SensorDriverMICS4514mean::prepare(uint32_t& waittime)
 {
 
   if (MICS4514counter < 0) MICS4514counter=0;
@@ -4425,7 +4425,7 @@ int SensorDriverMICS4514mean::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
+int SensorDriverMICS4514mean::get(uint32_t values[],size_t lenvalues)
 {
   MICS4514counter--;
 
@@ -4499,7 +4499,7 @@ int SensorDriverMICS4514mean::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverMICS4514mean::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -4510,7 +4510,7 @@ int SensorDriverMICS4514mean::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514mean::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -4525,13 +4525,13 @@ aJsonObject* SensorDriverMICS4514mean::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15196", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15196");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15193", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15193");      
     }
@@ -4601,7 +4601,7 @@ int SensorDriverMICS4514min::setup(const char* driver, const int address, const 
 
 }
 
-int SensorDriverMICS4514min::prepare(unsigned long& waittime)
+int SensorDriverMICS4514min::prepare(uint32_t& waittime)
 {
 
   if (MICS4514counter < 0) MICS4514counter=0;
@@ -4632,7 +4632,7 @@ int SensorDriverMICS4514min::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
+int SensorDriverMICS4514min::get(uint32_t values[],size_t lenvalues)
 {
   MICS4514counter--;
   unsigned char msb, lsb;
@@ -4706,7 +4706,7 @@ int SensorDriverMICS4514min::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverMICS4514min::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -4717,7 +4717,7 @@ int SensorDriverMICS4514min::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514min::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -4732,12 +4732,12 @@ aJsonObject* SensorDriverMICS4514min::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15196", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15196");
     }
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15193", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15193");
     }
@@ -4804,7 +4804,7 @@ int SensorDriverMICS4514max::setup(const char* driver, const int address, const 
 
 }
 
-int SensorDriverMICS4514max::prepare(unsigned long& waittime)
+int SensorDriverMICS4514max::prepare(uint32_t& waittime)
 {
 
   if (MICS4514counter < 0) MICS4514counter=0;
@@ -4834,7 +4834,7 @@ int SensorDriverMICS4514max::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
+int SensorDriverMICS4514max::get(uint32_t values[],size_t lenvalues)
 {
   MICS4514counter--;
   unsigned char msb, lsb;
@@ -4908,7 +4908,7 @@ int SensorDriverMICS4514max::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverMICS4514max::getdata(uint32_t& data,uint16_t& width)
 {
   data=0xFFFFFFFF;
   width=0xFFFF;
@@ -4919,7 +4919,7 @@ int SensorDriverMICS4514max::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverMICS4514max::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
@@ -4934,13 +4934,13 @@ aJsonObject* SensorDriverMICS4514max::getJson()
 
   if (ntry > 0){
     if (values[0] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15196", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15196", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15196");
     }
 
     if (values[1] >= 0){
-      aJson.addNumberToObject(jsonvalues, "B15193", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15193", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15193");
     }
@@ -4993,7 +4993,7 @@ int SensorDriverHPMoneshotSerial::setup(const char* driver, const int address, c
   return SD_INTERNAL_ERROR;
 }
 
-int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
+int SensorDriverHPMoneshotSerial::prepare(uint32_t& waittime)
 {
 #ifdef ONESHOT_SWITCHOFF
   if(_hpm->startParticleMeasurement()){
@@ -5012,7 +5012,7 @@ int SensorDriverHPMoneshotSerial::prepare(unsigned long& waittime)
 #endif
 }
 
-int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
+int SensorDriverHPMoneshotSerial::get(uint32_t values[],size_t lenvalues)
 {
   unsigned int pm25;
   unsigned int pm10;
@@ -5056,12 +5056,12 @@ int SensorDriverHPMoneshotSerial::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverHPMoneshotSerial::getdata(uint32_t& data,uint16_t& width)
 {
 
-  long values[1];
+  uint32_t values[1];
   width=20;
-  const long reference=0;
+  const int16_t reference=0;
   
   if (SensorDriverHPMoneshotSerial::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
@@ -5078,19 +5078,19 @@ int SensorDriverHPMoneshotSerial::getdata(unsigned long& data,unsigned short& wi
 #if defined(USEAJSON)
 aJsonObject* SensorDriverHPMoneshotSerial::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverHPMoneshotSerial::get(values,2) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
@@ -5106,18 +5106,18 @@ aJsonObject* SensorDriverHPMoneshotSerial::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverHPMoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,2) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[0];      
     }else{
       jsonvalues["B15198"]=RawJson("null");
     }
 
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B15195"]= values[1];
     }else{
       jsonvalues["B15195"]=RawJson("null");
@@ -5178,7 +5178,7 @@ int SensorDriverPMSoneshotSerial::setup(const char* driver, const int address, c
   return SD_SUCCESS;
 }
 
-int SensorDriverPMSoneshotSerial::prepare(unsigned long& waittime)
+int SensorDriverPMSoneshotSerial::prepare(uint32_t& waittime)
 {
   _pms->cmd(Pmsx003::cmdReadData);
   
@@ -5189,7 +5189,7 @@ int SensorDriverPMSoneshotSerial::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
+int SensorDriverPMSoneshotSerial::get(uint32_t values[],size_t lenvalues)
 {
   bool status = false;
   uint16_t data[13];
@@ -5276,12 +5276,12 @@ int SensorDriverPMSoneshotSerial::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverPMSoneshotSerial::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverPMSoneshotSerial::getdata(uint32_t& data,uint16_t& width)
 {
 
-  long values[1];
+  uint32_t values[1];
   width=20;
-  const long reference=0;
+  const int16_t reference=0;
   
   if (SensorDriverPMSoneshotSerial::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
@@ -5298,56 +5298,56 @@ int SensorDriverPMSoneshotSerial::getdata(unsigned long& data,unsigned short& wi
 #if defined(USEAJSON)
 aJsonObject* SensorDriverPMSoneshotSerial::getJson()
 {
-  long values[9];
+  uint32_t values[9];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverPMSoneshotSerial::get(values,9) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
 
     if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
 
     if (values[2] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15203", values[2]);      
+      aJson.addNumberToObject(jsonvalues, "B15203", (int32_t)values[2]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15203");
     }
 
     if (values[3] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49192", values[3]);      
+      aJson.addNumberToObject(jsonvalues, "B49192", (int32_t)values[3]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49192");
     }
     if (values[4] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49193", values[4]);      
+      aJson.addNumberToObject(jsonvalues, "B49193", (int32_t)values[4]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49193");
     }
     if (values[5] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49194", values[5]);      
+      aJson.addNumberToObject(jsonvalues, "B49194", (int32_t)values[5]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49194");
     }
     if (values[6] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49195", values[6]);      
+      aJson.addNumberToObject(jsonvalues, "B49195", (int32_t)values[6]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49195");
     }
     if (values[7] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49196", values[7]);      
+      aJson.addNumberToObject(jsonvalues, "B49196", (int32_t)values[7]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49196");
     }
     if (values[8] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49197", values[8]);      
+      aJson.addNumberToObject(jsonvalues, "B49197", (int32_t)values[8]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49197");
     }
@@ -5371,55 +5371,55 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[9];
+  uint32_t values[9];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,9) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[0];      
     }else{
       jsonvalues["B15198"]=RawJson("null");
     }
 
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B15195"]= values[1];
     }else{
       jsonvalues["B15195"]=RawJson("null");
     }
 
-    if ((unsigned long) values[2] != 0xFFFFFFFF){
+    if ((uint32_t) values[2] != 0xFFFFFFFF){
       jsonvalues["B15203"]= values[2];
     }else{
       jsonvalues["B15203"]=RawJson("null");
     }
 
-    if ((unsigned long) values[3] != 0xFFFFFFFF){
+    if ((uint32_t) values[3] != 0xFFFFFFFF){
       jsonvalues["B49192"]= values[3];
     }else{
       jsonvalues["B49192"]=RawJson("null");
     }
-    if ((unsigned long) values[4] != 0xFFFFFFFF){
+    if ((uint32_t) values[4] != 0xFFFFFFFF){
       jsonvalues["B49193"]= values[4];
     }else{
       jsonvalues["B49193"]=RawJson("null");
     }
-    if ((unsigned long) values[5] != 0xFFFFFFFF){
+    if ((uint32_t) values[5] != 0xFFFFFFFF){
       jsonvalues["B49194"]= values[5];
     }else{
       jsonvalues["B49194"]=RawJson("null");
     }
-    if ((unsigned long) values[6] != 0xFFFFFFFF){
+    if ((uint32_t) values[6] != 0xFFFFFFFF){
       jsonvalues["B49195"]= values[6];
     }else{
       jsonvalues["B49195"]=RawJson("null");
     }
-    if ((unsigned long) values[7] != 0xFFFFFFFF){
+    if ((uint32_t) values[7] != 0xFFFFFFFF){
       jsonvalues["B49196"]= values[7];
     }else{
       jsonvalues["B49196"]=RawJson("null");
     }
-    if ((unsigned long) values[8] != 0xFFFFFFFF){
+    if ((uint32_t) values[8] != 0xFFFFFFFF){
       jsonvalues["B49197"]= values[8];
     }else{
       jsonvalues["B49197"]=RawJson("null");
@@ -5503,7 +5503,7 @@ int SensorDriverSCDoneshot::setup(const char* driver, const int address, const i
 
 }
 
-int SensorDriverSCDoneshot::prepare(unsigned long& waittime)
+int SensorDriverSCDoneshot::prepare(uint32_t& waittime)
 {
   
   SCDstarted=true;
@@ -5521,7 +5521,7 @@ int SensorDriverSCDoneshot::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSCDoneshot::get(long values[],size_t lenvalues)
+int SensorDriverSCDoneshot::get(uint32_t values[],size_t lenvalues)
 {
   if (millis() - _timing > MAXDELAYFORREAD) return SD_INTERNAL_ERROR;
   if (!SCDstarted)  return SD_INTERNAL_ERROR;
@@ -5564,12 +5564,12 @@ int SensorDriverSCDoneshot::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSCDoneshot::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSCDoneshot::getdata(uint32_t& data,uint16_t& width)
 {
 
-  long values[1];
+  uint32_t values[1];
   width=20;   // todo
-  const long reference=0;
+  const int16_t reference=0;
   
   if (SensorDriverSCDoneshot::get(values,1) == SD_SUCCESS){
     data=(values[0]-reference);// << (sizeof(values[1])-width);
@@ -5586,26 +5586,26 @@ int SensorDriverSCDoneshot::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSCDoneshot::getJson()
 {
-  long values[3];
+  uint32_t values[3];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSCDoneshot::get(values,3) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15242", values[0]);      
+      aJson.addNumberToObject(jsonvalues, "B15242", (int32_t)values[0]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B15242");
     }
 
 #if defined(SECONDARYPARAMETER)
     if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B12101", values[1]);      
+      aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[1]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B12101");
     }
 
     if (values[2] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B13003", values[2]);      
+      aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[2]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B13003");
     }
@@ -5625,25 +5625,25 @@ aJsonObject* SensorDriverSCDoneshot::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSCDoneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[3];
+  uint32_t values[3];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (get(values,3) == SD_SUCCESS){
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B15242"]= values[0];      
     }else{
       jsonvalues["B15242"]=RawJson("null");
     }
 
 #if defined(SECONDARYPARAMETER)
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B12101"]= values[1];
     }else{
       jsonvalues["B12101"]=RawJson("null");
     }
 
-    if ((unsigned long) values[2] != 0xFFFFFFFF){
+    if ((uint32_t) values[2] != 0xFFFFFFFF){
       jsonvalues["B13003"]= values[2];
     }else{
       jsonvalues["B13003"]=RawJson("null");
@@ -5708,7 +5708,7 @@ int SensorDriverSHT85::setup(const char* driver, const int address, const int no
   return SD_SUCCESS;
 }
 
-int SensorDriverSHT85::prepare(unsigned long& waittime)
+int SensorDriverSHT85::prepare(uint32_t& waittime)
 {
   
   SHTstarted=true;
@@ -5724,7 +5724,7 @@ int SensorDriverSHT85::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSHT85::get(long values[],size_t lenvalues)
+int SensorDriverSHT85::get(uint32_t values[],size_t lenvalues)
 {
 
   if (millis() - _timing > MAXDELAYFORREAD)     return SD_INTERNAL_ERROR;
@@ -5737,8 +5737,8 @@ int SensorDriverSHT85::get(long values[],size_t lenvalues)
     return SD_INTERNAL_ERROR;
   }
 
-  if (lenvalues >= 1)  values[0] = (long) round(_sht->getTemperature() * 100. + 27315.) ;
-  if (lenvalues >= 2)  values[1] = (long) round (_sht->getHumidity()) ;
+  if (lenvalues >= 1)  values[0] = (uint32_t) round(_sht->getTemperature() * 100. + 27315.) ;
+  if (lenvalues >= 2)  values[1] = (uint32_t) round (_sht->getHumidity()) ;
   _timing=0;
 
   return SD_SUCCESS;
@@ -5746,7 +5746,7 @@ int SensorDriverSHT85::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSHT85::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSHT85::getdata(uint32_t& data,uint16_t& width)
 {
   /*
     scale: The exponent of the  power of 10 by which the value of the element has been multiplied prior to encoding 
@@ -5754,10 +5754,10 @@ int SensorDriverSHT85::getdata(unsigned long& data,unsigned short& width)
     data width (bits): The number of bits the element requires for representation in data
   */
   
-  long values[2];
+  uint32_t values[2];
   
   if (SensorDriverSHT85::get(values,2) == SD_SUCCESS){
-    long reference=22315;  
+    int16_t reference=22315;  
     data=(values[0]-reference) ;// << (sizeof(values[1])-width);
     width=16;
 
@@ -5779,16 +5779,16 @@ int SensorDriverSHT85::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSHT85::getJson()
 {
-  long values[2];
+  uint32_t values[2];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   //if (SensorDriverTmp::get2(&humidity,&temperature) == SD_SUCCESS){
   if (SensorDriverSHT85::get(values,2) == SD_SUCCESS){
-    aJson.addNumberToObject(jsonvalues, "B12101", values[0]);      
+    aJson.addNumberToObject(jsonvalues, "B12101", (int32_t)values[0]);      
 
     // if you have a second value add here
-    aJson.addNumberToObject(jsonvalues, "B13003", values[1]);      
+    aJson.addNumberToObject(jsonvalues, "B13003", (int32_t)values[1]);      
   }else{
     aJson.addNullToObject(jsonvalues, "B12101");
     // if you have a second value add here
@@ -5800,7 +5800,7 @@ aJsonObject* SensorDriverSHT85::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSHT85::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[2];
+  uint32_t values[2];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
@@ -5906,7 +5906,7 @@ int SensorDriverSPSoneshot::setup(const char* driver, const int address, const i
   return SD_INTERNAL_ERROR;
 }
 
-int SensorDriverSPSoneshot::prepare(unsigned long& waittime)
+int SensorDriverSPSoneshot::prepare(uint32_t& waittime)
 {
   
 #ifdef ONESHOT_SWITCHOFF
@@ -5923,7 +5923,7 @@ int SensorDriverSPSoneshot::prepare(unsigned long& waittime)
   return SD_SUCCESS;
 }
 
-int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
+int SensorDriverSPSoneshot::get(uint32_t values[],size_t lenvalues)
 {
   // measure
   struct sps_values val;
@@ -6016,12 +6016,12 @@ int SensorDriverSPSoneshot::get(long values[],size_t lenvalues)
 }
 
 #if defined (USEGETDATA)
-int SensorDriverSPSoneshot::getdata(unsigned long& data,unsigned short& width)
+int SensorDriverSPSoneshot::getdata(uint32_t& data,uint16_t& width)
 {
 
-  long values[2];
+  uint32_t values[2];
   width=20;
-  const long reference=0;
+  const int16_t reference=0;
   
   if (SensorDriverSPSoneshot::get(values,2) == SD_SUCCESS){
     data=(values[1]-reference);// << (sizeof(values[1])-width);
@@ -6038,53 +6038,53 @@ int SensorDriverSPSoneshot::getdata(unsigned long& data,unsigned short& width)
 #if defined(USEAJSON)
 aJsonObject* SensorDriverSPSoneshot::getJson()
 {
-  long values[9];
+  uint32_t values[9];
 
   aJsonObject* jsonvalues;
   jsonvalues = aJson.createObject();
   if (SensorDriverSPSoneshot::get(values,9) == SD_SUCCESS){
     if (values[0] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15203", values[0]);    //PM1  
+      aJson.addNumberToObject(jsonvalues, "B15203", (int32_t)values[0]);    //PM1  
     }else{
       aJson.addNullToObject(jsonvalues, "B15203");
     }
     if (values[1] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15198", values[1]);   //PM2.5
+      aJson.addNumberToObject(jsonvalues, "B15198", (int32_t)values[1]);   //PM2.5
     }else{
       aJson.addNullToObject(jsonvalues, "B15198");
     }
     if (values[2] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15202", values[2]);   //PM5 (4)
+      aJson.addNumberToObject(jsonvalues, "B15202", (int32_t)values[2]);   //PM5 (4)
     }else{
       aJson.addNullToObject(jsonvalues, "B15202");
     }
     if (values[3] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B15195", values[3]);   //PM10
+      aJson.addNumberToObject(jsonvalues, "B15195", (int32_t)values[3]);   //PM10
     }else{
       aJson.addNullToObject(jsonvalues, "B15195");
     }
     if (values[4] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49193", values[4]);      
+      aJson.addNumberToObject(jsonvalues, "B49193", (int32_t)values[4]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49193");
     }
     if (values[5] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49194", values[5]);      
+      aJson.addNumberToObject(jsonvalues, "B49194", (int32_t)values[5]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49194");
     }
     if (values[6] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49195", values[6]);      
+      aJson.addNumberToObject(jsonvalues, "B49195", (int32_t)values[6]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49195");
     }
     if (values[7] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49196", values[7]);      
+      aJson.addNumberToObject(jsonvalues, "B49196", (int32_t)values[7]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49196");
     }
     if (values[8] != 0xFFFFFFFF){
-      aJson.addNumberToObject(jsonvalues, "B49197", values[8]);      
+      aJson.addNumberToObject(jsonvalues, "B49197", (int32_t)values[8]);      
     }else{
       aJson.addNullToObject(jsonvalues, "B49197");
     }
@@ -6108,53 +6108,53 @@ aJsonObject* SensorDriverSPSoneshot::getJson()
 #if defined(USEARDUINOJSON)
 int SensorDriverSPSoneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
-  long values[9];
+  uint32_t values[9];
   StaticJsonBuffer<200> jsonBuffer;
   JsonObject& jsonvalues = jsonBuffer.createObject();
 
   if (SensorDriverSPSoneshot::get(values,9) == SD_SUCCESS){
 
-    if ((unsigned long)values[0] != 0xFFFFFFFF){
+    if ((uint32_t)values[0] != 0xFFFFFFFF){
       jsonvalues["B15203"]= values[0];      
     }else{
       jsonvalues["B15203"]=RawJson("null");
     }
-    if ((unsigned long) values[1] != 0xFFFFFFFF){
+    if ((uint32_t) values[1] != 0xFFFFFFFF){
       jsonvalues["B15198"]= values[1];
     }else{
       jsonvalues["B15198"]=RawJson("null");
     }
-    if ((unsigned long) values[2] != 0xFFFFFFFF){
+    if ((uint32_t) values[2] != 0xFFFFFFFF){
       jsonvalues["B15202"]= values[2];
     }else{
       jsonvalues["B15202"]=RawJson("null");
     }
-    if ((unsigned long) values[3] != 0xFFFFFFFF){
+    if ((uint32_t) values[3] != 0xFFFFFFFF){
       jsonvalues["B15195"]= values[3];
     }else{
       jsonvalues["B15195"]=RawJson("null");
     }    
-    if ((unsigned long) values[4] != 0xFFFFFFFF){
+    if ((uint32_t) values[4] != 0xFFFFFFFF){
       jsonvalues["B49193"]= values[4];
     }else{
       jsonvalues["B49193"]=RawJson("null");
     }
-    if ((unsigned long) values[5] != 0xFFFFFFFF){
+    if ((uint32_t) values[5] != 0xFFFFFFFF){
       jsonvalues["B49194"]= values[5];
     }else{
       jsonvalues["B49194"]=RawJson("null");
     }
-    if ((unsigned long) values[6] != 0xFFFFFFFF){
+    if ((uint32_t) values[6] != 0xFFFFFFFF){
       jsonvalues["B49195"]= values[6];
     }else{
       jsonvalues["B49195"]=RawJson("null");
     }
-    if ((unsigned long) values[7] != 0xFFFFFFFF){
+    if ((uint32_t) values[7] != 0xFFFFFFFF){
       jsonvalues["B49196"]= values[7];
     }else{
       jsonvalues["B49196"]=RawJson("null");
     }
-    if ((unsigned long) values[8] != 0xFFFFFFFF){
+    if ((uint32_t) values[8] != 0xFFFFFFFF){
       jsonvalues["B49197"]= values[8];
     }else{
       jsonvalues["B49197"]=RawJson("null");
