@@ -21,39 +21,83 @@
 #include <eXoCAN.h>
 #define bluePillLED PC13
 
+#ifdef BOARD1
+//  ****** uncomment the following for the first stm32f103 board ******
 // tx frame setup #1
 int txMsgID = 0x069;
 int rxMsgID = 0x005;   // needed for rx filtering
 uint8_t txData[8]{0x00, 0x01, 0x23, 0x45, 0xab, 0xcd, 0xef, 0xff};
 uint8_t txDataLen = 8;
 uint32_t txDly = 5000; // mSec
+#endif
 
+#ifdef BOARD2
 //  ****** uncomment the following for the second stm32f103 board ******
+// tx frame setup #2
+int txMsgID = 0x005;
+int rxMsgID = 0x069;   // only needed if using a filter
+uint8_t txData[8]{0x01, 0xfe, 0xdc, 0xba, 0x11, 0x12, 0x34, 0x56};
+uint8_t txDataLen = 8;
+uint32_t txDly = 1000;  // mSec
+#endif
 
-// int txMsgID = 0x005;
-// int rxMsgID = 0x069;   // only needed if using a filter
-// uint8_t txData[8]{{0x01, 0xfe, 0xdc, 0xba, 0x11, 0x12, 0x34, 0x56};
-// uint_8 txDataLen = 8;
-// uint32_t txDly = 1000;  // mSec
 
 int id, fltIdx;
 uint8_t rxbytes[8];
 
 // 11b IDs, 250k bit rate, no transceiver chip, portA pins 11,12, no external resistor
-eXoCAN can(STD_ID_LEN, BR250K, PORTA_11_12_WIRE_PULLUP); 
+//eXoCAN can(STD_ID_LEN, BR250K, PORTA_11_12_WIRE_PULLUP); 
+eXoCAN can(STD_ID_LEN, BR250K,PORTA_11_12_XCVR);
+
 
 void canISR() // get CAN bus frame passed by a filter into fifo0
 {
-    can.receive(id, fltIdx, rxbytes);  // empties fifo0 so that another another rx interrupt can take place
-    digitalToggle(bluePillLED);
+  can.receive(id, fltIdx, rxbytes);  // empties fifo0 so that another another rx interrupt can take place
+  //Serial.println(id);
+  digitalToggle(bluePillLED);
 }
 
 void setup()
 {
-  can.attachInterrupt(canISR);
-  // can.filterMask16Init(0, rxMsgID, 0x7ff);   // filter bank 0, filter 0: allow ID = rxMsgID, mask = 0x7ff (must match)
+
+  //Serial.begin(115200);
+  //delay(5000);
+  //Serial.println("Start!");
                                                 // without calling a filter, the default passes all IDs
   pinMode(bluePillLED, OUTPUT);
+  digitalWrite(bluePillLED,HIGH);
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+
+#ifdef BOARD2
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+  delay(500);
+  digitalToggle(bluePillLED); //on
+  delay(500);
+  digitalToggle(bluePillLED); //off
+#endif
+
+  
+  can.attachInterrupt(canISR);
+  //can.filterMask16Init(0, rxMsgID, 0x7ff);   // filter bank 0, filter 0: allow ID = rxMsgID, mask = 0x7ff (must match)
+
 }
 
 uint32_t last = 0;
@@ -62,6 +106,9 @@ void loop()
   if (millis() / txDly != last)                 // send every txDly, rx handled by the interrupt
   {
     last = millis() / txDly;
+    //Serial.print("send:");
+    //Serial.print(txMsgID);
+    //Serial.println(txDataLen);
     can.transmit(txMsgID, txData, txDataLen);
   }
 }
