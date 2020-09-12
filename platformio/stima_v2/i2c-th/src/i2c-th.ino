@@ -104,7 +104,7 @@ typedef struct {
 //humidity data
   values_t             humidity;
 
-} I2C_REGISTERS;
+} __attribute__((packed)) I2C_REGISTERS;
 
 
 typedef struct {

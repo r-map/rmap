@@ -75,7 +75,7 @@ typedef struct {
 
 //rain data
   rain_t                rain;            // 0x01 rain
-} I2C_REGISTERS;
+} __attribute__((packed)) I2C_REGISTERS;
 
 
 typedef struct {

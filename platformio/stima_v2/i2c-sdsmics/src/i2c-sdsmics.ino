@@ -187,7 +187,7 @@ typedef struct {
 //data
   pm_t                pm;                     // 0x01 pm
   cono2_t             cono2;                  // 0x15 pm
-} I2C_REGISTERS;
+} __attribute__((packed)) I2C_REGISTERS;
 
 
 typedef struct {

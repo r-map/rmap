@@ -99,7 +99,7 @@ typedef struct {
 
 //wind data
   wind_t                wind;                     // 0x01 wind
-} I2C_REGISTERS;
+} __attribute__((packed)) I2C_REGISTERS;
 
 
 typedef struct {

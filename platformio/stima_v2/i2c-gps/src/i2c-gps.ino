@@ -97,7 +97,7 @@ typedef struct {
   uint16_t              ground_speed;             // 0x10 ground speed from gps m/s*100
   uint32_t		time;	                  // 0x12 UTC Time from of gps_loc
   datetime_t            datetime;                 // 0x16 UTC Date and Time
-} I2C_REGISTERS;
+} __attribute__((packed)) I2C_REGISTERS;
 
 static I2C_REGISTERS   i2c_buffer1;
 static I2C_REGISTERS   i2c_buffer2;
