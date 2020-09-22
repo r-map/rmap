@@ -40,7 +40,7 @@ PUTPIN4             PB8
 
 as alternative defining JSSERIAL macro:
 SerialUSB           USB
-Serial              PA3 (RX), PA2(TX)
+Serial              PA10 (RX), PA9(TX)
 
 Debuging messages on Serial1
 Serial json on  JSSERIAL
@@ -55,8 +55,8 @@ Serial json on  JSSERIAL
 //#define CLIENT "Yes"
 //#define SERVER "Yes"
 
-#define JSSERIAL SerialUSB
-//#define JSSERIAL Serial
+//#define JSSERIAL SerialUSB
+#define JSSERIAL Serial
 
 // freq added to standard channel
 //#define FREQCORR 0.050
@@ -97,7 +97,7 @@ Serial json on  JSSERIAL
 #include <irsnd.c.h>
 
 #include "STM32FreeRTOS.h"
-#include <USBSerial.h>
+//#include <USBSerial.h>
 #include <IWatchdog.h>
 
 #include "config.h"
@@ -109,6 +109,9 @@ Serial json on  JSSERIAL
 
 // Singleton instance of the radio driver
 RH_CC110 cc110(PA4,PB4);
+
+// set RX and TX pins
+//HardwareSerial Serial1(PA3, PA2);
 
 #include "task.h"
 #include "thread.hpp"
@@ -649,7 +652,7 @@ class radioThread : public Thread {
 public:
   
   radioThread(int i, Queue &q)
-    : Thread("Thread radio", 1000,1), 
+    : Thread("Thread radio", 2000,1), 
       Id (i),
       radioQueue(q)
   {
@@ -662,7 +665,7 @@ protected:
     
     frtosLog.notice("Starting Radio Thread %d", Id);
 
-    JSSERIAL.begin(SERIALBAUDRATE);
+    //JSSERIAL.begin(SERIALBAUDRATE);
 
     frtosLog.notice(F("#Started: " VERSION));
 #ifdef TWOWAY
@@ -706,7 +709,9 @@ protected:
   //cc110.setIs27MHz(true); // Anaren 430BOOST-CC110L Air BoosterPack test boards have 27MHz
 
   if (!cc110.init()){
-    frtosLog.notice(F("init failed"));
+    frtosLog.notice(F("radio init failed"));
+    frtosLog.notice(F("reboot"));
+    delay(3000);
     Reboot();
   }
   // After init(), the following default values apply:
@@ -763,12 +768,10 @@ private:
 void setup (void)
 {
 
-  MutexStandard loggingmutex;
+  static MutexStandard loggingmutex;
 
   IWatchdog.begin(8000000);  
 
-  // set RX and TX pins
-  static HardwareSerial Serial1(PA10, PA9);
   // start up the serial interface
   JSSERIAL.begin(SERIALBAUDRATE);
   Serial1.begin(SERIALBAUDRATE);
@@ -778,7 +781,7 @@ void setup (void)
 
   //Start logging
 
-  Serial.println (F("#0 Testing FreeRTOS IR & radio"));
+  JSSERIAL.println (F("#0 Testing FreeRTOS IR & radio"));
   Serial1.println(F("#1 Testing FreeRTOS IR & radio"));
   //delay(3000);
   

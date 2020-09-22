@@ -1,0 +1,7 @@
+server side:
+{"jsonrpc":"2.0","method":"setdid","params":{"d":200},"id":0}
+{"jsonrpc":"2.0","method":"save","params":{"eeprom":true},"id":0}
+
+client side:
+{"jsonrpc":"2.0","method":"single","params":{"d":200,"u":1,"o":true},"id":0}
+{"jsonrpc":"2.0","method":"single","params":{"d":200,"u":1,"o":false},"id":0}
