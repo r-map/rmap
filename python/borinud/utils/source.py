@@ -99,8 +99,9 @@ class DB(object):
 
 class MergeDB(DB):
     """Container for DB."""
-    def __init__(self, dbs):
+    def __init__(self, dbs,attr=False):
         self.dbs = dbs
+        self.attr = attr
 
     def unique_record_key(self, rec):
         """Create a string from a record, based on ident, lon, lat, report,
@@ -188,6 +189,9 @@ class MergeDB(DB):
         for db in self.dbs:
             db.fill_data_db(rec,memdb)
 
+        if (self.attr):
+            rec["query"]="attrs"
+
         with memdb.transaction() as tr:
             for cur in tr.query_data(rec):
                 data={}
@@ -204,6 +208,10 @@ class MergeDB(DB):
                 data["p2"]=cur["p2"]
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
+                if (self.attr):
+                    attrs =  cur["variable"].get_attrs()
+                    data["a"]= {v.code: v.get() for v in attrs}
+                
                 data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
                 #print ("merge query data: ",data)
                 yield data
@@ -228,10 +236,11 @@ class MergeDB(DB):
 
 class DballeDB(DB):
     """DB-All.e database."""
-    def __init__(self, url):
+    def __init__(self, url,attr=False):
         """Create a DB-All.e database from `url` DSN."""
         self.url = url
-
+        self.attr=attr
+        
     def __open_db(self):
         """Open the database."""
         return dballe.DB.connect(self.url)
@@ -277,6 +286,9 @@ class DballeDB(DB):
     def query_data(self, rec):
         db = self.__open_db()
 
+        if (self.attr):
+            rec["query"]="attrs"
+        
         with db.transaction() as tr:
             for cur in tr.query_data(rec):
                 data={}
@@ -293,6 +305,11 @@ class DballeDB(DB):
                 data["p2"]=cur["p2"]
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
+
+                if (self.attr):
+                    attrs =  cur["variable"].get_attrs()
+                    data["a"]= {v.code: v.get() for v in attrs}
+                
                 data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
                 #print ("dballe query data: ",data)
                 yield data
@@ -614,7 +631,7 @@ class SummaryCacheDB(DB):
 class ArkimetBufrDB(DB):
     """Arkimet dataset containing generic ``BUFR`` data."""
 
-    def __init__(self, dataset, explorer):
+    def __init__(self, dataset, explorer,attr=False):
         """
         Create a DB from an `HTTP` Arkimet `dataset` containing generic BUFR
         data.
@@ -627,7 +644,8 @@ class ArkimetBufrDB(DB):
         """
         self.dataset = dataset
         self.explorer = explorer
-
+        self.attr = attr
+        
     def query_summary(self, rec):
         """Query summary.
 
@@ -662,6 +680,8 @@ class ArkimetBufrDB(DB):
         memdb = dballe.DB.connect("mem:")
         self.fill_data_db( rec,memdb)
             
+        if (self.attr):
+            rec["query"]="attrs"
         with memdb.transaction() as tr:
             for cur in tr.query_data(rec):
                 data={}
@@ -678,6 +698,12 @@ class ArkimetBufrDB(DB):
                 data["p2"]=cur["p2"]
                 data["var"]=cur["var"]
                 data[cur["var"]]=cur[cur["var"]].get()
+
+
+                if (self.attr):
+                    attrs =  cur["variable"].get_attrs()
+                    data["a"]= {v.code: v.get() for v in attrs}
+                
                 data["date"]=datetime(cur["year"], cur["month"], cur["day"], cur["hour"], cur["min"], cur["sec"])
                 #print ("dballe query data: ",data)
                 yield data

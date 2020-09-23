@@ -27,7 +27,7 @@ def json_serial(obj):
 
 class dbajson:
 
-    def __init__(self,q,summary=False,stations=False,stationdata=False,format="jsonlines",dsn="report",seg="last"):
+    def __init__(self,q,summary=False,stations=False,stationdata=False,format="jsonlines",dsn="report",seg="last",attr=False):
         self.q=q
         self.summary=summary
         self.stations=stations
@@ -41,12 +41,14 @@ class dbajson:
             self.jsondict=self.jsondictdata
         self.dsn=dsn
         self.last= seg == "last"
+        self.attr = attr
         #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
         #print ("summary=",self.summary)
         #print ("format=",self.format)
         #print ("stations=",self.stations)
         #print ("stationdata=",self.stationdata)
         #print ("last=",self.last)
+        #print ("attr=",self.attr)
         #print (q)
         #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
@@ -59,7 +61,7 @@ class dbajson:
         elif self.stationdata:
             self.handle = get_db(dsn=self.dsn,last=self.last).query_station_data(self.q)
         else:
-            self.handle = get_db(dsn=self.dsn,last=self.last).query_data(self.q)
+            self.handle = get_db(dsn=self.dsn,last=self.last).query_data(self.q,self.attr)
 
         return next(self)
         #yield from self.handle
@@ -131,13 +133,28 @@ class dbajson:
 
     def jsondictdata (self):
 
-        return {
+        dictdata= {
             "ident": self.s["ident"],
             "lon": self.s["lon"],
             "lat": self.s["lat"],
             "network": self.s["report"],
-            "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["date"],
-            "data": [{
+            "date": (self.s["datemin"],self.s["datemax"]) if self.summary else self.s["date"]
+        }
+
+        if (self.attr and not self.summary):
+            dictadata["data"]= [{
+                "vars": {
+                    self.s["var"]: {
+                        "v": self.s[self.s["var"]],
+                        "a": self.s["a"]
+                    }
+                },
+                "timerange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
+                "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
+            }]
+        
+        else:
+            dictadata["data"]= [{
                 "vars": {
                     self.s["var"]: {
                         "v": None if self.summary else self.s[self.s["var"]]
@@ -146,8 +163,7 @@ class dbajson:
                 "timerange": (self.s["pindicator"],self.s["p1"],self.s["p2"]),
                 "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
             }]
-        }
-
+        
 
     def jsondictstationdata (self):
         return {
@@ -304,10 +320,10 @@ def timeseries(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("attr")),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("attr")))
 
 
 def spatialseries(request, **kwargs):
@@ -355,10 +371,10 @@ def spatialseries(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("attr")),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg)))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("attr")))
 
 
 def stationdata(request, **kwargs):
