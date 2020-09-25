@@ -40,18 +40,18 @@ from contextlib import redirect_stdout
 from ..settings import BORINUD,BORINUDLAST
 
 
-def get_db(dsn="report",last=True):
+def get_db(dsn="report",last=True,attr=False):
     from django.utils.module_loading import import_string
     dbs = [
         import_string(i["class"])(**{
-            k: v for k, v in list(i.items()) if k != "class"
+            k: v for k, v in list(i.items()) + [("attr", attr)] if k != "class"
         })
         for i in (BORINUDLAST[dsn]["SOURCES"] if last else BORINUD[dsn]["SOURCES"])
     ]
     if len(dbs) == 1:
         db = dbs[0]
     else:
-        db = MergeDB(dbs)
+        db = MergeDB(dbs,attr)
 
     if BORINUD[dsn]["CACHED_SUMMARY"]:
         db = SummaryCacheDB(

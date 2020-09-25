@@ -61,7 +61,7 @@ class dbajson:
         elif self.stationdata:
             self.handle = get_db(dsn=self.dsn,last=self.last).query_station_data(self.q)
         else:
-            self.handle = get_db(dsn=self.dsn,last=self.last).query_data(self.q,self.attr)
+            self.handle = get_db(dsn=self.dsn,last=self.last,attr=self.attr).query_data(self.q)
 
         return next(self)
         #yield from self.handle
@@ -142,7 +142,7 @@ class dbajson:
         }
 
         if (self.attr and not self.summary):
-            dictadata["data"]= [{
+            dictdata["data"]= [{
                 "vars": {
                     self.s["var"]: {
                         "v": self.s[self.s["var"]],
@@ -154,7 +154,7 @@ class dbajson:
             }]
         
         else:
-            dictadata["data"]= [{
+            dictdata["data"]= [{
                 "vars": {
                     self.s["var"]: {
                         "v": None if self.summary else self.s[self.s["var"]]
@@ -164,7 +164,8 @@ class dbajson:
                 "level": (self.s["leveltype1"],self.s["l1"],self.s["leveltype2"],self.s["l2"]),
             }]
         
-
+        return dictdata
+            
     def jsondictstationdata (self):
         return {
             "ident": self.s["ident"],
@@ -320,10 +321,10 @@ def timeseries(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("query")),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("query")))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")))
 
 
 def spatialseries(request, **kwargs):
@@ -371,10 +372,10 @@ def spatialseries(request, **kwargs):
     format=kwargs.get('format')
 
     if format == "geojson" or format == "dbajson" :
-        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("query")),0,None)),safe=False)
+        return JsonResponse(next(itertools.islice(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")),0,None)),safe=False)
 
     if format == "jsonline" :
-        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),attr=request.GET.get("query")))
+        return StreamingHttpResponse(dbajson(q,format=format,dsn=request.GET.get('dsn', 'report'),seg=request.GET.get('seg', seg),query=request.GET.get("query")))
 
 
 def stationdata(request, **kwargs):
