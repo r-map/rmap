@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
 */
-#define USE_JSON                    (true)
+#define USE_JSON                    (false)
 
 /*!
 \def USE_SENSOR_ADT
