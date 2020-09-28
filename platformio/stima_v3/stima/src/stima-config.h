@@ -322,7 +322,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #ifdef ARDUINO_ARCH_AVR
 #define WDT_TIMER                                     (WDTO_8S)
 #else
-#define WDT_TIMER                                     (8000)
+#define WDT_TIMER                                     (254)
 #endif
 
 /*********************************************************************

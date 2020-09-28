@@ -557,8 +557,7 @@ void save_configuration(bool is_default) {
 }
 
 void load_configuration() {
-   bool is_configuration_done = false;
-
+  
    ee_read(&writable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
 
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
@@ -566,14 +565,12 @@ void load_configuration() {
       LCD_INFO(&lcd, false, true, F("Wait configuration"));
    }
 
-   while (digitalRead(CONFIGURATION_RESET_PIN) == LOW && !is_configuration_done) {
+   while (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
       streamRpc.parseStream(&is_event_rpc, &Serial);
       wdt_reset();
    }
 
-   if (is_configuration_done) {
-      SERIAL_INFO(F("Configuration received... [ %s ]\r\n"), OK_STRING);
-   }
+   SERIAL_INFO(F("Configuration received... [ %s ]\r\n"), OK_STRING);
 
    if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION || writable_configuration.module_minor_version != MODULE_MINOR_VERSION) {
       save_configuration(CONFIGURATION_DEFAULT);
@@ -674,13 +671,16 @@ int configure(JsonObject &params, JsonObject &result) {
          setTime(it->value.as<JsonArray>()[3].as<int>(), it->value.as<JsonArray>()[4].as<int>(), it->value.as<JsonArray>()[5].as<int>(), it->value.as<JsonArray>()[2].as<int>(), it->value.as<JsonArray>()[1].as<int>(), it->value.as<JsonArray>()[0].as<int>() - 2000);
          #endif
       }
-      #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
       else if (strcmp(it->key, "mac") == 0) {
+         #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          for (uint8_t i=0; i<ETHERNET_MAC_LENGTH; i++) {
             writable_configuration.ethernet_mac[i] = it->value.as<JsonArray>()[i];
          }
+	 #else
+	 SERIAL_TRACE(F("Configuration mac parameter ignored\r\n"));
+	 #endif
       }
-      #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
+      #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
       else if (strcmp(it->key, "gsmapn") == 0) {
          strncpy(writable_configuration.gsm_apn, it->value.as<char*>(), GSM_APN_LENGTH);
       }
@@ -1595,7 +1595,6 @@ void gsm_task() {
       case GSM_INIT:
          is_error = false;
          is_client_connected = false;
-         sim800_connection_status = 0;
          state_after_wait = GSM_INIT;
          gsm_state = GSM_SWITCH_ON;
       break;
