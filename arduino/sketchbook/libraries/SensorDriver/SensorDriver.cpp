@@ -1077,20 +1077,17 @@ void SensorDriverRain::prepare(bool is_test) {
 
       if (is_test) {
         _buffer[i++] = I2C_RAIN_COMMAND_TEST_READ;
-        _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else {
         _buffer[i++] = I2C_RAIN_COMMAND_ONESHOT_START_STOP;
-        _buffer[i] = crc8(_buffer, i);
-	i++;
       }
+      _buffer[i] = crc8(_buffer, i);
       _delay_ms = 0;
     }
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
         _is_success = true;
@@ -1145,13 +1142,12 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
         _buffer[i++] = I2C_RAIN_TIPS_ADDRESS;
         _buffer[i++] = I2C_RAIN_TIPS_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else _is_success = false;
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
-        Wire.write(_buffer, i);
+        Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
           _is_success = false;
@@ -1296,12 +1292,11 @@ void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
       _buffer[i++] = I2C_COMMAND_ID;
       _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
         _is_success = true;
@@ -1341,20 +1336,17 @@ void SensorDriverTh::prepare(bool is_test) {
 
       if (is_test) {
         _buffer[i++] = I2C_TH_COMMAND_TEST_READ;
-        _buffer[i] = crc8(_buffer, i);
-      i++;
       }
       else {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
-        _buffer[i] = crc8(_buffer, i);
-      i++;
       }
+      _buffer[i] = crc8(_buffer, i);
       _delay_ms = 0;
     }
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
         _is_success = true;
@@ -1411,41 +1403,36 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
         _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_ADDRESS;
         _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
         is_i2c_write = true;
         _buffer[i++] = I2C_TH_TEMPERATURE_MED60_ADDRESS;
         _buffer[i++] = I2C_TH_TEMPERATURE_MED60_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
         is_i2c_write = true;
         _buffer[i++] = I2C_TH_TEMPERATURE_MED_ADDRESS;
         _buffer[i++] = I2C_TH_TEMPERATURE_MED_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
         is_i2c_write = true;
         _buffer[i++] = I2C_TH_TEMPERATURE_MIN_ADDRESS;
         _buffer[i++] = I2C_TH_TEMPERATURE_MIN_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
         is_i2c_write = true;
         _buffer[i++] = I2C_TH_TEMPERATURE_MAX_ADDRESS;
         _buffer[i++] = I2C_TH_TEMPERATURE_MAX_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       else _is_success = false;
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
-        Wire.write(_buffer, i);
+        Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
           _is_success = false;
@@ -1550,7 +1537,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission()) {
         _is_success = false;
@@ -2116,12 +2103,11 @@ void SensorDriverOpc::setup(const uint8_t address, const uint8_t node) {
       _buffer[i++] = I2C_COMMAND_ID;
       _buffer[i++] = I2C_OPC_COMMAND_CONTINUOUS_START;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
         _is_success = true;
@@ -2153,13 +2139,12 @@ void SensorDriverOpc::prepare(bool is_test) {
       _buffer[i++] = I2C_COMMAND_ID;
       _buffer[i++] = I2C_OPC_COMMAND_CONTINUOUS_START_STOP;
       _buffer[i] = crc8(_buffer, i);
-      i++;
       _delay_ms = 0;
     }
 
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
-      Wire.write(_buffer, i);
+      Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
         _is_success = true;
@@ -2330,13 +2315,12 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         _buffer[i++] = I2C_OPC_TH_MED_ADDRESS;
         _buffer[i++] = I2C_OPC_TH_MED_LENGTH;
         _buffer[i] = crc8(_buffer, i);
-	i++;
       }
       #endif
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
-        Wire.write(_buffer, i);
+        Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
           _is_success = false;
@@ -2355,7 +2339,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       break;
 
     case READ_VALUE:
-      
+
       if (_is_success) {
         Wire.requestFrom(_address, data_length + 1);
         if (Wire.available() < (data_length + 1)) {
