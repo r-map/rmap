@@ -364,6 +364,7 @@ void i2c_request_interrupt_handler() {
   }
 
    //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+   Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
    Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
 }
 
@@ -645,7 +646,7 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
   val_v current = UINT16_MAX;
 
   //! minimum value
-  float min = UINT16_MAX;
+  float mymin = UINT16_MAX;
 
   //! average value
   float med = 0;
@@ -654,7 +655,7 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
   float sum2 = 0;
 
   //! maximum value
-  float max = 0;
+  float mymax = 0;
 
   //! standard deviation value
   float sigma = 0;
@@ -671,10 +672,10 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
         count++;
 
         //! check and assing minimum value
-        min = min(min, current);
+        mymin = min(mymin, current);
 
         //! check and assing maximum value
-        max = max(max, current);
+        mymax = max(mymax, current);
 
         //! average calculation
         med += ((float) current - med) / (float) (count);
@@ -698,10 +699,10 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
       value->med = (val_v) med;
 
       //! assign maximum observation to report value
-      value->max = (val_v) max;
+      value->max = (val_v) mymax;
 
       //! assign minimum observation to report value
-      value->min = (val_v) min;
+      value->min = (val_v) mymin;
 
       //! calculate standard deviation: make sense for count >=2
       if (count > 1) {

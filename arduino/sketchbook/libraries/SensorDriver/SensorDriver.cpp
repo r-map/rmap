@@ -1172,7 +1172,6 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
       else _is_success = false;
 
       if (_is_success) {
-	Serial.println("request data");
         Wire.requestFrom(_address, data_length + 1);
         if (Wire.available() < (data_length + 1)) {
           _is_success = false;
@@ -1180,7 +1179,6 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
       }
 
       if (_is_success) {
-	Serial.println("arrivati");
         for (i = 0; i < data_length; i++) {
           rain_data[i] = Wire.read();
         }

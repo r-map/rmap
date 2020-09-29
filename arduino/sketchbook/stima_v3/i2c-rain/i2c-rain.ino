@@ -281,6 +281,7 @@ void tipping_bucket_interrupt_handler() {
 
 void i2c_request_interrupt_handler() {
    // write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+   Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
    Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
 }
 
