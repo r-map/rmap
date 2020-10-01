@@ -1501,35 +1501,30 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_ADDRESS;
       _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
       is_i2c_write = true;
       _buffer[i++] = I2C_TH_HUMIDITY_MED60_ADDRESS;
       _buffer[i++] = I2C_TH_HUMIDITY_MED60_LENGTH;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
     else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
       is_i2c_write = true;
       _buffer[i++] = I2C_TH_HUMIDITY_MED_ADDRESS;
       _buffer[i++] = I2C_TH_HUMIDITY_MED_LENGTH;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
     else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
       is_i2c_write = true;
       _buffer[i++] = I2C_TH_HUMIDITY_MIN_ADDRESS;
       _buffer[i++] = I2C_TH_HUMIDITY_MIN_LENGTH;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
     else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
       is_i2c_write = true;
       _buffer[i++] = I2C_TH_HUMIDITY_MAX_ADDRESS;
       _buffer[i++] = I2C_TH_HUMIDITY_MAX_LENGTH;
       _buffer[i] = crc8(_buffer, i);
-      i++;
     }
     else _is_success = false;
 
