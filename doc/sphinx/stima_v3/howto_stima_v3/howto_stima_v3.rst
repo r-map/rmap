@@ -549,7 +549,7 @@ Per la configurazione:
    rmapctrl --syncdb
    rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=report
    rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima
-   rmap-configure --addsensors_by_template=stima_report_thp --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+   rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
    rmap-configure --config_station --station_slug=<nome_stazione>  --board_slug=<nome_board> --username=<username> --baudrate 115200
    
    sostituendo i valori tra <> con opportuni valori.
@@ -561,7 +561,7 @@ Modulo Stima GSM/GPRS
 
 1. Aprire lo sketch stima.ino nella cartella
    arduino/sketchbook/stima_v3/stima
-2. Aprire il file rmap-config.h arduino/sketchbook/stima_v3/stima:
+2. Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:
 
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo
@@ -722,6 +722,14 @@ Compilazione e caricamento del bootloader Digitecoboot
 5. Caricare il bootloader attraverso un programmatore impostando i
    seguenti parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended
    fuse 0xFD, High fuse 0xD0
+   Per usare arduino come programmatore riferirsi a:
+   https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP
+   e questo è un esempio dei comandi da impartire a avrdude:
+   
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -e -Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -V -U digitecoboot_atmega1284p.hex
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -U lock:w:0x0F:m
+
 
 Compilazione del firmware in formato binario
 --------------------------------------------
