@@ -75,7 +75,7 @@ def parse_topic(topic):
 
 
 def parse_payload(payload):
-    return json.loads(payload.decode("utf-8"))
+    return json.loads(payload)
 
 
 def parse_message(topic, payload):
@@ -117,7 +117,7 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     try:
-        m = parse_message(message.topic, message.payload)
+        m = parse_message(message.topic, message.payload.decode("utf-8"))
         if m is None:
             return
         msg = dballe.Message("generic")
@@ -158,6 +158,42 @@ def on_message(client, userdata, message):
         traceback.print_exc()
 
 
+
+def write_message(topic,payload,outfile):
+    try:
+        m = parse_message(topic,payload)
+        if m is None:
+            return
+        msg = dballe.Message("generic")
+        if m["ident"] is not None:
+            msg.set_named("ident", dballe.var("B01011", m["ident"]))
+        msg.set_named("longitude", dballe.var("B06001", m["lon"]))
+        msg.set_named("latitude", dballe.var("B05001", m["lat"]))
+        msg.set_named("rep_memo", dballe.var("B01194", m["rep_memo"]))
+        msg.set_named("year", dballe.var("B04001", m["datetime"].year))
+        msg.set_named("month", dballe.var("B04002", m["datetime"].month))
+        msg.set_named("day", dballe.var("B04003", m["datetime"].day))
+        msg.set_named("hour", dballe.var("B04004", m["datetime"].hour))
+        msg.set_named("minute", dballe.var("B04005", m["datetime"].minute))
+        msg.set_named("second", dballe.var("B04006", m["datetime"].second))
+
+        var = dballe.var(m["var"], m["value"])
+
+        for b, v in m["attributes"].items():
+            var.seta(dballe.var(b, v))
+
+        msg.set(m["level"], m["trange"], var)
+
+        exporter = dballe.Exporter(encoding="BUFR")
+        outfile.write(exporter.to_binary(msg))
+        outfile.flush()
+    except Exception:
+        import traceback
+        traceback.print_exc()
+
+
+        
+
 def handle_signals(mqttclient):
     import signal
 
@@ -175,27 +211,49 @@ def handle_signals(mqttclient):
 
 
 def main(host, keepalive, port, topics, username, password, debug,
-         overwrite_date, outfile):
-    mqttclient = mqtt.Client(userdata={
-        "topics": topics,
-        "debug": debug,
-        "overwrite_date": overwrite_date,
-        "outfile": outfile,
-    })
+         overwrite_date, outfile,
+         readfromfile,fileinput,roottopic):
+    
+    if (readfromfile):
 
-    if username:
-        mqttclient.username_pw_set(username, password)
+        MQTT_SENSOR_TOPIC_LENGTH=30
+        MQTT_MESSAGE_LENGTH=200
+        reclen=MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH
+        with fileinput as f:
+            while True:
+                message=f.read(reclen)
+                if not message:
+                    break
+                message = message.decode("utf-8").split(" ",1)
+                topic=roottopic+message[0].strip()
+                #print (topic)
+                #print(parse_topic(topic))
+                payload=message[1].rstrip('\x00')
+                #print(payload)
+                #print(parse_message(topic,payload))
+                write_message(topic,payload,outfile)
 
-    mqttclient.on_log = on_log
-    mqttclient.on_connect = on_connect
-    mqttclient.on_message = on_message
-
-    mqttclient.connect(host, port=port, keepalive=keepalive)
-
-    handle_signals(mqttclient)
-
-    mqttclient.loop_forever()
-
+    else:
+        mqttclient = mqtt.Client(userdata={
+            "topics": topics,
+            "debug": debug,
+            "overwrite_date": overwrite_date,
+            "outfile": outfile,
+        })
+        
+        if username:
+            mqttclient.username_pw_set(username, password)
+            
+            mqttclient.on_log = on_log
+            mqttclient.on_connect = on_connect
+            mqttclient.on_message = on_message
+            
+            mqttclient.connect(host, port=port, keepalive=keepalive)
+            
+            handle_signals(mqttclient)
+            
+            mqttclient.loop_forever()
+            
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog="mqtt2bufr", add_help=False,
@@ -207,7 +265,18 @@ if __name__ == '__main__':
     parser.add_argument("--version", action="version",
                         version="%(prog)s " + PACKAGE_VERSION,
                         help="show version and exit")
-    parser.add_argument("-h", "--host",
+    group = parser.add_mutually_exclusive_group()
+
+    group.add_argument("-i", action="store_true",dest="readfromfile",
+                        help="read data from file (default false)")
+    parser.add_argument("-f", "--file",dest="fileinput",
+                        help="file to read; require -i (default: standard input)",
+                        default="-",type=argparse.FileType('rb'))
+
+    parser.add_argument("-r", "--roottopic",
+                        help="root topic used when reading from file (default %(default)s)",
+                        default="test/myuser/1212345,4512345/fixed/")
+    group.add_argument("-h", "--host",
                         help="host to connect to (default: localhost)",
                         default="localhost")
     parser.add_argument("-k", "--keepalive", metavar="SECONDS",
@@ -239,4 +308,6 @@ if __name__ == '__main__':
         topics=args.topic, username=args.username, password=args.pw,
         debug=args.debug, overwrite_date=args.overwrite_date,
         outfile=sys.stdout.buffer,
+        readfromfile=args.readfromfile,fileinput=args.fileinput,
+        roottopic=args.roottopic
     )
