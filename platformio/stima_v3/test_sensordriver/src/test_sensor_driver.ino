@@ -15,6 +15,10 @@
 #define SENSORS_RETRY_COUNT_MAX                       (3)
 #define SENSORS_RETRY_DELAY_MS                        (50)
 
+
+#define DELAY_ACQ_MS          (40000)
+#define DELAY_TEST_MS         (2000)
+
 typedef enum {
   SENSORS_READING_INIT,
   SENSORS_READING_PREPARE,
@@ -357,15 +361,13 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
   }
 }
 
-bool check_i2c_bus () {
+void check_i2c_bus () {
   if (i2c_error > I2C_MAX_ERROR_COUNT) {
     SERIAL_ERROR(F("Restart I2C BUS\r\n"));
     init_wire();
   }
 }
 
-#define DELAY_ACQ_MS          (40000)
-#define DELAY_TEST_MS         (2000)
 
 void init_wire() {
   i2c_error = 0;
@@ -401,11 +403,9 @@ void loop() {
     is_event_sensors_reading = true;
   }
 
-  /*
   if (!is_event_sensors_reading && (millis() - testing_sensors_delay_ms >= DELAY_TEST_MS)) {
     testing_sensors_delay_ms = millis();
     is_test = true;
     is_event_sensors_reading = true;
   }
-  */
 }
