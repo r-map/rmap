@@ -11,9 +11,9 @@
 //#define DEBUGONSERIAL
 #ifdef ARDUINO_ARCH_AVR
 #define ENABLEWDT 1
-#endif
 // if define HARDWARESERIAL is set then it will be static (required by Time library)
 #define HARDWARESERIAL Serial1
+#endif
 
 #define BUF_LENGTH 100
 #define BUFCOMMAND_LENGTH 120
@@ -98,15 +98,16 @@ class SIM800 {
 
   byte state;
 
+#ifndef HARDWARESERIAL
+  HardwareSerial *modem;
+#endif
+  
  private:
   void switchModem();
 
   byte onOffPin;
   byte resetPin;
 
-#ifndef HARDWARESERIAL
-  HardwareSerial *modem;
-#endif
 
 };
 
