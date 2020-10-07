@@ -547,7 +547,7 @@ Per la configurazione:
 ::
 
    rmapctrl --syncdb
-   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=report
+   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=maint
    rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima
    rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
    rmap-configure --config_station --station_slug=<nome_stazione>  --board_slug=<nome_board> --username=<username> --baudrate 115200
@@ -613,7 +613,7 @@ Per la configurazione:
 ::
 
    rmapctrl --syncdb
-   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=report
+   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=maint
    rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<board_name> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900
    rmap-configure --addsensors_by_template=stima_report_thp --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
    rmap-configure --config_station --station_slug=<nome_stazione> --board_slug=<nome_board> --username=<username> --baudrate 115200

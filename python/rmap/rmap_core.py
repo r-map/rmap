@@ -1069,7 +1069,9 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             if ( board.transporttcpip.active):
                 print("TCP/IP Transport",board.transporttcpip)
                 mac=board.transporttcpip.mac[board.transporttcpip.name]
-                print("ntpserver:",rpcproxy.configure(mac=mac,ntpserver=board.transporttcpip.ntpserver))
+                #print("ntpserver:",rpcproxy.configure(mac=mac,ntpserver=board.transporttcpip.ntpserver))
+                #print("ntpserver:",rpcproxy.configure(gsmapn="ibox.tim.it",ntpserver=board.transporttcpip.ntpserver))
+                print("ntpserver:",rpcproxy.configure(ntpserver=board.transporttcpip.ntpserver))
 
         except ObjectDoesNotExist:
             print("transport tcpip not present")
@@ -1099,6 +1101,10 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             #TODO  check id of status (good only > 0)
 
         print("mqttrootpath:",rpcproxy.configure(mqttrootpath=mystation.mqttrootpath+"/"+str(mystation.ident)+"/"+\
+                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
+                                                 "/"+mystation.network+"/"))
+
+        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath=mystation.mqttmaintpath+"/"+str(mystation.ident)+"/"+\
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/"))
 
