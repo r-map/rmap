@@ -50,8 +50,6 @@ import urllib.request, urllib.error, urllib.parse
 import base64
 import logging
 
-DEFAULT_HOST="rmap.cc"
-
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
 if ve is not None:
@@ -203,11 +201,11 @@ if args.addboard:
 
     rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,activate=True
                             ,serialactivate=args.serialactivate
-                            ,mqttactivate=args.mqttactivate, mqttserver="rmap.cc"
+                            ,mqttactivate=args.mqttactivate, mqttserver=args.server
                             ,mqttusername=args.mqttusername, mqttpassword=args.mqttpassword, mqttsamplerate=args.mqttsamplerate
                             ,bluetoothactivate=args.bluetoothactivate, bluetoothname=args.bluetoothname
                             ,amqpactivate=args.amqpactivate, amqpusername=args.amqpuser, amqppassword=args.amqppassword
-                            ,amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+                            ,amqpserver=args.server, queue="rmap", exchange="rmap"
                             ,tcpipactivate=args.tcpipactivate, tcpipname=args.tcpipname, tcpipntpserver=args.tcpipntpserver)
 
 
@@ -444,12 +442,12 @@ if args.download_from_server:
         raise SystemExit(1)
 
     print("get configuration from:")
-    print("http://"+DEFAULT_HOST+"/stations/"+args.username+"/"+args.station_slug+"/json")
-    body=urllib.request.urlopen("http://"+DEFAULT_HOST+"/stations/"+args.username+"/"+args.station_slug+"/json").read()
+    print("http://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json")
+    body=urllib.request.urlopen("http://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json").read()
     print(body)
 
     try:
-        user = User.objects.create_user(args.username, args.username+'@rmap.cc', None)            
+        user = User.objects.create_user(args.username, args.username+'@'+args.server, None)            
         #trap IntegrityError for user that already exist
     except IntegrityError:
         print("user already exist")
