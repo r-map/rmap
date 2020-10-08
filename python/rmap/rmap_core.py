@@ -349,6 +349,7 @@ ttntemplate[2]["B15198"]={"nbit":20,"offset":0,"scale":10000000000,"timerange":"
 
             
 # the first is the default
+# attention: here if in the template there is "_report_" this is used by interdata app to change the stationmetadata mqttrootpath that default to "sample"
 template_choices = [
     "default",
     "none",

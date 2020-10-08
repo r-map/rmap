@@ -575,6 +575,10 @@ def insertNewStation(request):
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
 
+                    # this in not very good ! we need to specify better in template the type (report/sample)
+                    if ("_report_" in template):
+                        mystation.mqttrootpath="report"
+                    
                     mystation.clean()
                     mystation.save()
 
