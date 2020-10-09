@@ -11,8 +11,9 @@ Benvenuti alla documentazione di RMAP e Stima
 
    rmap_rfc/rfc
    stima_v3/stima_v3
+   stima_wifi/stima_wifi_howto
+   server_rmap/server_rmap
 
-==================
 
 * :ref:`genindex`
 * :ref:`search`

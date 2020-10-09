@@ -498,11 +498,28 @@ Configurazioni software dei moduli Stima
 Configurazione dell’IDE Arduino
 ...............................
 
+La compilazione del firmware è testata con Arduino IDE versione 1.8.13.
 Per la compilazione del software è necessario settare lo sketchbook del
-progetto rmap nell’ide Arduino cliccando su File  Impostazioni e
+progetto rmap nell’ide Arduino cliccando su File -> Impostazioni e
 selezionando la cartella dello sketchbook facendo click su sfoglia in
 alto a destra. Successivamente cliccare su ok, chiudere l’ide per poi
 riaprirlo.
+
+Installazione del software per la configurazione
+................................................
+
+Installare Centos 8.
+
+Aggiunta repository e installazione pacchetti da utente amministratore
+::
+
+  dnf -y install epel-release
+  dnf install yum-plugin-copr
+  dnf copr enable simc/stable
+  dnf copr enable pat1/rmap
+  dnf config-manager --set-enabled PowerTool
+  dnf groupinstall rmap
+
 
 Modulo Stima Ethernet
 .....................
@@ -615,7 +632,7 @@ Per la configurazione:
    rmapctrl --syncdb
    rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=maint
    rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<board_name> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900
-   rmap-configure --addsensors_by_template=stima_report_thp --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+   rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
    rmap-configure --config_station --station_slug=<nome_stazione> --board_slug=<nome_board> --username=<username> --baudrate 115200
    
    sostituendo i valori <> con opportuni valori.
