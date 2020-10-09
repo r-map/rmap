@@ -5,7 +5,7 @@ these data available for weather services and homeland security; to
 provide feedback to the data contributors so that they have the tools
 to check and improve their data quality
 
-http://rmap.cc
+http://doc.rmap.cc
 
 \section howto Howto
 
