@@ -51,21 +51,6 @@ void CAN_HW_Init(void) {
 
 }
 
-
-void printArray(int16_t arr[]) {
-
-  char str[20];
-  itoa(arr[0], str, 10);
-  Serial.print("ESC Array: ");
-  Serial.print(str);
-  for (int i = 1; i < RC_NUM_CHANNELS_TO_PRINT; i++) {
-    itoa(arr[i], str, 10);
-    Serial.print(", ");
-    Serial.print(str);
-  }
-  Serial.println();
-}
-
 /*
 https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
 
@@ -118,14 +103,6 @@ Libcanard also needs two functions that must be implemented by the user:
     onTransferReceived - this callback is called every time a transfer
     is received and accepted in shouldAcceptTransfer. It is a good
     idea to put incoming data handlers here.
-
-As should be obvious from shouldAcceptTransfer, our node will accept only one type of transfers:
-
-    UAVCAN_GET_NODE_INFO_DATA_TYPE_ID - this is a request that the
-    UAVCAN GUI Tool sends to all nodes that it discovers to get some
-    data like name, software version, hardware version and so on from
-    them. In fact, this is optional, but supporting this type of
-    service is a good idea.
 */
     
 bool shouldAcceptTransfer(const CanardInstance* ins,
@@ -154,6 +131,18 @@ bool shouldAcceptTransfer(const CanardInstance* ins,
 
 /*
 https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+onTransferReceived - this callback is called every time a transfer
+is received and accepted in shouldAcceptTransfer. It is a good
+idea to put incoming data handlers here.
+
+As should be obvious from shouldAcceptTransfer, our node will accept
+only one type of transfers:
+
+UAVCAN_GET_NODE_INFO_DATA_TYPE_ID - this is a request that the UAVCAN
+GUI Tool sends to all nodes that it discovers to get some data like
+name, software version, hardware version and so on from them. In fact,
+this is optional, but supporting this type of service is a good idea.
 
 We added support of UAVCAN_EQUIPMENT_ESC_RAWCOMMAND_ID, message that
 contains all values needed to generate RCPWM signal from ESC setpoint
@@ -199,205 +188,6 @@ void getNodeInfoHandleCanard(CanardRxTransfer* transfer)
 
 }
 
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
-
-As libcanard does not use any interrupts, it is up to the user to
-decide when and how to receive and transmit UAVCAN messages. In this
-application we will constantly poll if any message was received by the
-MCU's CAN peripheral and process it. We will also poll if the library
-has any new messages to transmit and manually extract them from the
-library and pass them to the CAN transmitter.
-*/
-
-void sendCanard(void)
-{
-
-  const CanardCANFrame* txf = canardPeekTxQueue(&g_canard); 
-
-  while(txf) {
-    const int tx_res = canardSTM32Transmit(txf);
-    if (tx_res < 0) {                 // Failure - drop the frame and report
-      __ASM volatile("BKPT #01");     // TODO: handle the error properly
-    }
-    if(tx_res > 0) {
-      canardPopTxQueue(&g_canard);
-    }
-    txf = canardPeekTxQueue(&g_canard); 
-  }
-
-}
-
-
-void receiveCanard(void)
-{
-
-  CanardCANFrame rx_frame;
-  int res = canardSTM32Receive(&rx_frame);
-  if(res) {
-    canardHandleRxFrame(&g_canard, &rx_frame, HAL_GetTick() * 1000);
-  }    
-
-}
-
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
-
-Besides receiving UAVCAN messages, each node must also broadcast at
-least one type of messages periodically - NodeStatus (once in every
-100-1000 ms should be fine). So let's make a function for that.
-*/  
-
-void spinCanard(void)
-{  
-
-  static uint32_t spin_time = 0;
-
-  if(HAL_GetTick() < spin_time + CANARD_SPIN_PERIOD) return;    // rate limiting
-  
-  spin_time = HAL_GetTick();
-  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_11);
-  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
-    
-  uint8_t buffer[UAVCAN_NODE_STATUS_MESSAGE_SIZE];    
-  static uint8_t transfer_id = 0;                               // This variable MUST BE STATIC; refer to the libcanard documentation for the background
-  makeNodeStatusMessage(buffer);  
-  canardBroadcast(&g_canard, 
-                  UAVCAN_NODE_STATUS_DATA_TYPE_SIGNATURE,
-                  UAVCAN_NODE_STATUS_DATA_TYPE_ID,
-                  &transfer_id,
-                  CANARD_TRANSFER_PRIORITY_LOW,
-                  buffer, 
-                  UAVCAN_NODE_STATUS_MESSAGE_SIZE);             //some indication
-  
-}
-
-
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
-
-We are going to use the UAVCAN message
-uavcan.protocol.debug.KeyValue. The UAVCAN specification says that
-float32 values can be broadcasted this way. We can use it to broadcast
-some custom sensor data, ADC data, or just any named value. For the
-sake of simplicity, in this tutorial we will broadcast sine
-values. But, assuming that the MCU resources are quite constrained, we
-will take the values from a lookup table. We will also broadcast the
-second value – the current table index.
-
-Important note. Integer and float values have very different
-bit-structure. As libcanard expects a float data type for
-uavcan.protocol.debug.KeyValue, it is important to give it exactly
-what it wants - a float value. So, despite the fact that we have an
-unsigned integer (even uint8_t) typed sine table, it is important to
-provide the canardEncodeScalar function with a float type parameter.
-
-*/
-
-void publishCanard(void)
-{  
-
-  static uint32_t publish_time = 0;
-  static int step = 0;
-  if(HAL_GetTick() < publish_time + PUBLISHER_PERIOD_mS) {return;} // rate limiting
-  publish_time = HAL_GetTick();
-
-  uint8_t buffer[UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE];
-  memset(buffer,0x00,UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE);
-  step++;
-  if(step == 256) {
-    step = 0;
-  }
-  
-  float val = sine_wave[step];
-  static uint8_t transfer_id = 0;
-  canardEncodeScalar(buffer, 0, 32, &val);
-  memcpy(&buffer[4], "sin", 3);    
-  canardBroadcast(&g_canard, 
-                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_SIGNATURE,
-                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_ID,
-                  &transfer_id,
-                  CANARD_TRANSFER_PRIORITY_LOW,
-                  &buffer[0], 
-                  7);
-  memset(buffer,0x00,UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE);
-
-  val = step;
-  canardEncodeScalar(buffer, 0, 32, &val);
-  memcpy(&buffer[4], "stp", 3);  
-  canardBroadcast(&g_canard, 
-                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_SIGNATURE,
-                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_ID,
-                  &transfer_id,
-                  CANARD_TRANSFER_PRIORITY_LOW,
-                  &buffer[0], 
-                  7);
-
-}
-
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
-
-To make a node status message we will have to compose it manually. For that we will need three values:
-
-    Uptime in seconds.
-    Node health. Our node will always be 100% healthy.
-    Node mode. Our node will always be in the operational mode.
-
-These values have to be encoded according to NodeStatus message description:
-
-*/
-
-void makeNodeStatusMessage(uint8_t buffer[UAVCAN_NODE_STATUS_MESSAGE_SIZE])
-{
-
-  uint8_t node_health = UAVCAN_NODE_HEALTH_OK;
-  uint8_t node_mode   = UAVCAN_NODE_MODE_OPERATIONAL;
-  memset(buffer, 0, UAVCAN_NODE_STATUS_MESSAGE_SIZE);
-  uint32_t uptime_sec = (HAL_GetTick() / 1000);
-  canardEncodeScalar(buffer,  0, 32, &uptime_sec);
-  canardEncodeScalar(buffer, 32,  2, &node_health);
-  canardEncodeScalar(buffer, 34,  3, &node_mode);
-
-}
-
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
-
-When the UAVCAN GUI Tool receives this message for the first time, it
-will attempt to get more info about the new node, so we also have to
-implement a handler that will form a GetNodeInfo response and send it
-back to the requesting node (client):
-*/
-
-uint16_t makeNodeInfoMessage(uint8_t buffer[UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE])
-{
-
-  memset(buffer, 0, UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE);
-  makeNodeStatusMessage(buffer);
-   
-  buffer[7] = APP_VERSION_MAJOR;
-  buffer[8] = APP_VERSION_MINOR;
-  buffer[9] = 1;                            // Optional field flags, VCS commit is set
-  uint32_t u32 = GIT_HASH;
-  canardEncodeScalar(buffer, 80, 32, &u32); 
-    
-  readUniqueID(&buffer[24]);
-  const size_t name_len = strlen(APP_NODE_NAME);
-  memcpy(&buffer[41], APP_NODE_NAME, name_len);
-  return 41 + name_len ;
-
-}
-
-
-void readUniqueID(uint8_t* out_uid)
-{
-
-  for (uint8_t i = 0; i < UNIQUE_ID_LENGTH_BYTES; i++) {
-    out_uid[i] = i;
-  }
-
-}
 
 /*
 https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
@@ -417,22 +207,12 @@ void rawcmdHandleCanard(CanardRxTransfer* transfer)
 
 }
 
-
-void showRcpwmonUart()
-{
-  printArray(rc_pwm);
-}
-
 /*
 https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
 
 For the sake of simplicity, in this example we will use only integer
 numeric parameters, although UAVCAN allows you to have parameters of
 just any type you want.
-*/
-
-/*
-https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
 
 In this example we will have three integer parameters. It is not
 necessary but it can be considered a good practice to specify the
@@ -610,3 +390,224 @@ void getsetHandleCanard(CanardRxTransfer* transfer)
 			 (uint16_t)len);
 
 }
+
+
+/*
+https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+As libcanard does not use any interrupts, it is up to the user to
+decide when and how to receive and transmit UAVCAN messages. In this
+application we will constantly poll if any message was received by the
+MCU's CAN peripheral and process it. We will also poll if the library
+has any new messages to transmit and manually extract them from the
+library and pass them to the CAN transmitter.
+*/
+
+void sendCanard(void)
+{
+
+  const CanardCANFrame* txf = canardPeekTxQueue(&g_canard); 
+
+  while(txf) {
+    const int tx_res = canardSTM32Transmit(txf);
+    if (tx_res < 0) {                 // Failure - drop the frame and report
+      __ASM volatile("BKPT #01");     // TODO: handle the error properly
+    }
+    if(tx_res > 0) {
+      canardPopTxQueue(&g_canard);
+    }
+    txf = canardPeekTxQueue(&g_canard); 
+  }
+
+}
+
+
+void receiveCanard(void)
+{
+
+  CanardCANFrame rx_frame;
+  int res = canardSTM32Receive(&rx_frame);
+  if(res) {
+    canardHandleRxFrame(&g_canard, &rx_frame, HAL_GetTick() * 1000);
+  }    
+
+}
+
+/*
+https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+Besides receiving UAVCAN messages, each node must also broadcast at
+least one type of messages periodically - NodeStatus (once in every
+100-1000 ms should be fine). So let's make a function for that.
+*/  
+
+void spinCanard(void)
+{  
+
+  static uint32_t spin_time = 0;
+
+  if(HAL_GetTick() < spin_time + CANARD_SPIN_PERIOD) return;    // rate limiting
+  
+  spin_time = HAL_GetTick();
+  //HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_11);
+  digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
+    
+  uint8_t buffer[UAVCAN_NODE_STATUS_MESSAGE_SIZE];    
+  static uint8_t transfer_id = 0;                               // This variable MUST BE STATIC; refer to the libcanard documentation for the background
+  makeNodeStatusMessage(buffer);  
+  canardBroadcast(&g_canard, 
+                  UAVCAN_NODE_STATUS_DATA_TYPE_SIGNATURE,
+                  UAVCAN_NODE_STATUS_DATA_TYPE_ID,
+                  &transfer_id,
+                  CANARD_TRANSFER_PRIORITY_LOW,
+                  buffer, 
+                  UAVCAN_NODE_STATUS_MESSAGE_SIZE);             //some indication
+  
+}
+
+
+/*
+https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+We are going to use the UAVCAN message
+uavcan.protocol.debug.KeyValue. The UAVCAN specification says that
+float32 values can be broadcasted this way. We can use it to broadcast
+some custom sensor data, ADC data, or just any named value. For the
+sake of simplicity, in this tutorial we will broadcast sine
+values. But, assuming that the MCU resources are quite constrained, we
+will take the values from a lookup table. We will also broadcast the
+second value – the current table index.
+
+Important note. Integer and float values have very different
+bit-structure. As libcanard expects a float data type for
+uavcan.protocol.debug.KeyValue, it is important to give it exactly
+what it wants - a float value. So, despite the fact that we have an
+unsigned integer (even uint8_t) typed sine table, it is important to
+provide the canardEncodeScalar function with a float type parameter.
+
+*/
+
+void publishCanard(void)
+{  
+
+  static uint32_t publish_time = 0;
+  static int step = 0;
+  if(HAL_GetTick() < publish_time + PUBLISHER_PERIOD_mS) {return;} // rate limiting
+  publish_time = HAL_GetTick();
+
+  uint8_t buffer[UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE];
+  memset(buffer,0x00,UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE);
+  step++;
+  if(step == 256) {
+    step = 0;
+  }
+  
+  float val = sine_wave[step];
+  static uint8_t transfer_id = 0;
+  canardEncodeScalar(buffer, 0, 32, &val);
+  memcpy(&buffer[4], "sin", 3);    
+  canardBroadcast(&g_canard, 
+                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_SIGNATURE,
+                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_ID,
+                  &transfer_id,
+                  CANARD_TRANSFER_PRIORITY_LOW,
+                  &buffer[0], 
+                  7);
+  memset(buffer,0x00,UAVCAN_PROTOCOL_DEBUG_KEYVALUE_MESSAGE_SIZE);
+
+  val = step;
+  canardEncodeScalar(buffer, 0, 32, &val);
+  memcpy(&buffer[4], "stp", 3);  
+  canardBroadcast(&g_canard, 
+                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_SIGNATURE,
+                  UAVCAN_PROTOCOL_DEBUG_KEYVALUE_ID,
+                  &transfer_id,
+                  CANARD_TRANSFER_PRIORITY_LOW,
+                  &buffer[0], 
+                  7);
+
+}
+
+/*
+https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+To make a node status message we will have to compose it manually. For that we will need three values:
+
+    Uptime in seconds.
+    Node health. Our node will always be 100% healthy.
+    Node mode. Our node will always be in the operational mode.
+
+These values have to be encoded according to NodeStatus message description:
+
+*/
+
+void makeNodeStatusMessage(uint8_t buffer[UAVCAN_NODE_STATUS_MESSAGE_SIZE])
+{
+
+  uint8_t node_health = UAVCAN_NODE_HEALTH_OK;
+  uint8_t node_mode   = UAVCAN_NODE_MODE_OPERATIONAL;
+  memset(buffer, 0, UAVCAN_NODE_STATUS_MESSAGE_SIZE);
+  uint32_t uptime_sec = (HAL_GetTick() / 1000);
+  canardEncodeScalar(buffer,  0, 32, &uptime_sec);
+  canardEncodeScalar(buffer, 32,  2, &node_health);
+  canardEncodeScalar(buffer, 34,  3, &node_mode);
+
+}
+
+
+void readUniqueID(uint8_t* out_uid)
+{
+
+  for (uint8_t i = 0; i < UNIQUE_ID_LENGTH_BYTES; i++) {
+    out_uid[i] = i;
+  }
+
+}
+
+/*
+https://kb.zubax.com/display/MAINKB/1.+Basic+tutorial
+
+When the UAVCAN GUI Tool receives this message for the first time, it
+will attempt to get more info about the new node, so we also have to
+implement a handler that will form a GetNodeInfo response and send it
+back to the requesting node (client):
+*/
+
+uint16_t makeNodeInfoMessage(uint8_t buffer[UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE])
+{
+
+  memset(buffer, 0, UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE);
+  makeNodeStatusMessage(buffer);
+   
+  buffer[7] = APP_VERSION_MAJOR;
+  buffer[8] = APP_VERSION_MINOR;
+  buffer[9] = 1;                            // Optional field flags, VCS commit is set
+  uint32_t u32 = GIT_HASH;
+  canardEncodeScalar(buffer, 80, 32, &u32); 
+    
+  readUniqueID(&buffer[24]);
+  const size_t name_len = strlen(APP_NODE_NAME);
+  memcpy(&buffer[41], APP_NODE_NAME, name_len);
+  return 41 + name_len ;
+
+}
+
+void printArray(int16_t arr[]) {
+
+  char str[20];
+  itoa(arr[0], str, 10);
+  Serial.print("ESC Array: ");
+  Serial.print(str);
+  for (int i = 1; i < RC_NUM_CHANNELS_TO_PRINT; i++) {
+    itoa(arr[i], str, 10);
+    Serial.print(", ");
+    Serial.print(str);
+  }
+  Serial.println();
+}
+
+void showRcpwmonUart()
+{
+  printArray(rc_pwm);
+}
+

@@ -50,19 +50,6 @@ int64_t defval;
 } param_t;
 
 
-void showRcpwmonUart(void);
-void sendCanard(void);
-void receiveCanard(void);
-void spinCanard(void);
-void publishCanard(void);
-void showRcpwmonUart(void);
-void rawcmdHandleCanard(CanardRxTransfer* transfer);
-void getsetHandleCanard(CanardRxTransfer* transfer);
-void getNodeInfoHandleCanard(CanardRxTransfer* transfer);
-uint16_t makeNodeInfoMessage(uint8_t buffer[UAVCAN_GET_NODE_INFO_RESPONSE_MAX_SIZE]);
-
-
-
 static const uint8_t  sine_wave[256] = 
 {
   0x80, 0x83, 0x86, 0x89, 0x8C, 0x90, 0x93, 0x96,
@@ -115,9 +102,7 @@ void spinCanard(void);
 void publishCanard(void);
 void makeNodeStatusMessage(uint8_t buffer[]);
 uint16_t makeNodeInfoMessage(uint8_t buffer[]);
-void readUniqueID(uint8_t* out_uid);
 void rawcmdHandleCanard(CanardRxTransfer* transfer);
 void showRcpwmonUart();
-
-
+void getsetHandleCanard(CanardRxTransfer* transfer);
 
