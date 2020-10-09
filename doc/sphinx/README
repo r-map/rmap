@@ -1,0 +1,4 @@
+make gettext
+sphinx-intl update -p _build/gettext -l en
+make -e SPHINXOPTS="-D language='it'" html
+#make -e SPHINXOPTS="-D language='en'" html

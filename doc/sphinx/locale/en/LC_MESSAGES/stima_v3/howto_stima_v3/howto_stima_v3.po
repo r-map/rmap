@@ -1,0 +1,1452 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2020, Various
+# This file is distributed under the same license as the RMAP e Stima
+# package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2020.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: RMAP e Stima \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.7.0\n"
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:2
+msgid "Howto per Stima versione 3"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:5
+msgid "Caratteristiche hardware dei singoli moduli"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:8
+msgid "Stima core+644 e Stima core+1284"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:9
+msgid "|image0|\\ |image1|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:11
+msgid ""
+"Le due board Stima core+644 e Stima core+1284 sono realizzate sul "
+"medesimo circuito stampato, appositamente progettato per accogliere "
+"indifferentemente il microcontrollore ATmega644 o ATmega1284 nelle "
+"configurazioni a 8 MHz a 3.3V o 16 MHz a 5V."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:16
+msgid ""
+"Per selezionare la corretta tensione di alimentazione sul "
+"microcontrollore, è sufficiente un punto di saldatura sullo switch delle "
+"piste del circuito stampato della scheda, a patto di aver selezionato il "
+"giusto quarzo in funzione della tensione di alimentazione."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:21
+msgid "Entrambe le board sono realizzate sullo standard UPIN-27."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:23
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:70
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:93
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:124
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:150
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:165
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:191
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:234
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:286
+msgid ""
+"Gli schemi elettrici realizzati in KiCad sono disponibili sul repository "
+"github rmap al seguente link:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:26
+msgid "kicad/r-map_v3/Microduino_Core+_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:29
+msgid "Stima I2C-Base"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:31
+msgid "|image2|\\ |image3|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:33
+msgid ""
+"Basato sullo standard UPIN-27 e quindi impilabile come un normalissimo "
+"modulo Microduino, è stato progettato per far fronte alle necessità di "
+"alimentazione e collegamento su bus I\\ :sup:`2`\\ C dell’intero stack."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:37
+msgid ""
+"È dotato di un connettore a quattro pin, posto nella parte frontale del "
+"modulo (l’unico libero dal connettore UPIN-27) la cui funzione duale è "
+"quella di alimentare lo stack e di fornire il collegamento su bus I\\ "
+":sup:`2`\\ C a tutti i moduli ad esso collegati."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:42
+msgid ""
+"Per la corretta configurazione hardware di tale modulo, è necessario "
+"effettuare un punto di saldatura sullo switch delle piste del circuito "
+"stampato atto a selezionare l’alimentazione (3.3V o 5V) e la "
+"corrispondente tensione di alimentazione del bus I\\ :sup:`2`\\ C sullo "
+"stack di moduli nel quale verrà installato."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:48
+msgid ""
+"Inoltre, tale switch presenta un’ulteriore via che prevede l’abilitazione"
+" dell’alimentazione sul bus I\\ :sup:`2`\\ C controllabile attraverso un "
+"pin di un microcontrollore impilato nello stack: funzione utile nel caso "
+"di test o di configurazione di particolari sensori I\\ :sup:`2`\\ C."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:54
+msgid ""
+"Si specifica che il connettore a quattro pin presenta clip di "
+"collegamento elettriche in materiale anti ossidante in grado di garantire"
+" un perfetto contatto elettrico nel corso degli anni. Inoltre è "
+"realizzato in modo tale da non permettere il distacco accidentale del "
+"cavo, assicurando la comunicazione. Altra peculiarità è quella di poter "
+"essere innestato in un unico verso evitando l’inversione di polarità di "
+"alimentazione e di collegamento del bus."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:62
+msgid ""
+"Tale board, inoltre, presenta due pin cortocircuitabili temporaneamente "
+"attraverso un jumper atto a consentire la configurazione della stazione "
+"attraverso porta seriale."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:66
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:89
+msgid ""
+"A causa dell’ingombro in altezza maggiorato rispetto ad una board "
+"standard dovuto al connettore a quattro pin, tale scheda è impilabile "
+"solamente attraverso l’adozione di due file di pin del tipo UPIN-27."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:73
+msgid "kicad/r-map_v3/Microduino_BASE_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:76
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:480
+msgid "Stima I2C-Digital"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:78
+msgid "|image4|\\ |image5|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:80
+msgid ""
+"Il modulo in oggetto, realizza le funzioni di input o output di segnali "
+"digitali. Basato sullo standard UPIN-27, sarà dotato di un connettore a "
+"quattro pin del tipo usato nel modulo Stima I2C-Base ma adoperato per "
+"l’input o l’output di segnali digitali."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:85
+msgid ""
+"In particolare, sono presenti tre pin corrispondenti alle tre linee di "
+"interrupt fisiche fornite dai microcontrollori ed un pin di massa, comune"
+" alle tre linee."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:96
+msgid "kicad/r-map_v3/Microduino_DIGITALE_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:99
+msgid "Stima I2C-RTC"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:101
+msgid "|image6|\\ |image7|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:103
+msgid ""
+"Tale modulo, compatibile con lo standard UPIN-27, assolve le funzioni di "
+"mantenimento della data ed ora nel tempo, attraverso l’adozione del Real "
+"Time Clock (RTC), interfacciato al microcontrollore attraverso bus I\\ "
+":sup:`2`\\ C."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:108
+msgid ""
+"Per la corretta configurazione hardware di tale modulo, è necessario "
+"effettuare un punto di saldatura sullo switch delle piste del circuito "
+"stampato atto a selezionare l’alimentazione (3.3V o 5V)."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:112
+msgid ""
+"Inoltre, per garantire il funzionamento dello stesso nel caso di distacco"
+" dell’alimentazione principale, è provvisto di un super condensatore in "
+"grado di fornire energia sufficiente a garantirne il funzionamento per "
+"alcune ore."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:117
+msgid ""
+"Un’ulteriore caratteristica del modulo, è quella di poter generare un "
+"segnale a frequenza costante e programmabile via software, che potrà "
+"essere convogliata su una delle tre linee digitali ad interrupt del "
+"microcontrollore, utilizzabile come segnale di risveglio per il "
+"microcontrollore impostato in risparmio energetico profondo, in modo tale"
+" da poter ridurre i consumi energetici dell’intera stazione."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:127
+msgid "kicad/r-map_v3/Microduino_RTC_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:130
+msgid "Stima I2C-FT232RL"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:132
+msgid "|image8|\\ |image9|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:134
+msgid ""
+"Il modulo in questione, permette di collegare la porta seriale zero del "
+"microcontrollore ad un bus USB (ad esempio, quello di un computer) in "
+"modo tale da poter facilmente instaurare una comunicazione seriale con il"
+" microcontrollore. Tale metodo di comunicazione risulta comodo sia nel "
+"caso di upload del firmware che nel caso di configurazione della "
+"stazione."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:141
+msgid ""
+"Inoltre, l’integrato FT232RL è in grado di generare una tensione a 3.3V a"
+" bassa potenza in grado di alimentare direttamente il microcontrollore "
+"nella configurazione 3.3V e 8MHz, permettendone la programmazione dello "
+"stesso quando non è alimentato da una fonte di alimentazione esterna."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:146
+msgid ""
+"Tale tensione può o meno essere fornita al microcontrollore effettuando o"
+" meno una saldatura sul circuito stampato della board. L’intero modulo è "
+"realizzato secondo lo standard UPIN-27."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:153
+msgid "kicad/r-map_v3/Microduino_FT232R_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:156
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:379
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:404
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:450
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:482
+msgid "Stima SD-Card"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:158
+msgid "|image10|\\ |image11|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:160
+msgid ""
+"Tale board permette il collegamento di una micro SD-Card al "
+"microcontrollore permettendo il salvataggio dei dati dei sensori e "
+"l’upload del firmware con il bootloader Digitecoboot. L’intera board è "
+"anch’essa basata sullo standard UPIN-27."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:168
+msgid "kicad/r-map_v3/Microduino_SD_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:171
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:399
+msgid "Stima SIM800C Power"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:173
+msgid "|image12|\\ |image13|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:175
+msgid ""
+"Il modulo SIM800C Power costituisce il modulo di alimentazione per il "
+"modulo GSM/GPRS SIM800C ed include il connettore per la SIM Card in "
+"formato standard. Basato sul connettore UPIN-27, necessita di ulteriori 6"
+" pin posti a contatto con la parte posteriore del connettore principale, "
+"atti al trasporto di tensioni di alimentazione e segnali verso il modulo "
+"SIM800C posto nella board Stima SIM800C Module."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:182
+msgid ""
+"Il comparto di alimentazione è realizzato mediante alimentatore switching"
+" e fornisce la giusta alimentazione al modulo SIM800C a partire dalla "
+"tensione di alimentazione primaria di 5V."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:186
+msgid ""
+"A causa dell’ingombro in altezza maggiorato rispetto ad una board "
+"standard dovuto alla componentistica elettronica, tale scheda è "
+"impilabile solamente attraverso l’adozione di una fila di pin del tipo "
+"UPIN-27."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:194
+msgid "kicad/r-map_v3/Microduino_GSM_DE/SIM_shield_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:197
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:400
+msgid "Stima SIM800C Module"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:199
+msgid "|image14|\\ |image15|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:201
+msgid ""
+"In tale modulo basato sul connettore UPIN-27, trova alloggio il modulo "
+"GSM/GPRS SIM800C, due led di funzionamento ed il connettore SMA per il "
+"collegamento dell’antenna, introdotto in quanto molto più solido, robusto"
+" e di facile installazione rispetto a quello adottato sulle board "
+"Microduino."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:207
+msgid ""
+"Per garantire il risparmio energetico della stazione, il modulo GSM/GPRS "
+"è sempre spento e viene acceso solo nel momento in cui si rende "
+"necessario il suo utilizzo. L’operazione di accensione o spegnimento è "
+"effettuata ponendo a livello logico basso il pin dedicato del modulo per "
+"almeno un secondo. L’identificazione di tale pin è inserita nel file "
+"gsm_config.h nella cartella arduino/sketchbook/libraries/RmapConfig."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:214
+msgid ""
+"Il modulo è provvisto di due led di stato che forniscono indicazioni sul "
+"funzionamento e sullo stato della rete. In particolare, osservando il "
+"modulo frontalmente, il led di sinistra:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:218
+msgid "Acceso: il modulo è acceso ed è in funzionamento"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:219
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:223
+msgid "Spento: il modulo è spento"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:221
+msgid "Il led di destra:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:224
+msgid "Acceso per 64ms e spento per 800ms: il modulo non è registrato sulla rete"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:226
+msgid "Acceso per 64ms e spento per 3000ms: il modulo è registrato sulla rete"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:228
+msgid "Acceso per 64ms e spento per 300ms: comunicazione GPRS in corso"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:230
+msgid ""
+"Si consiglia quindi di impilare per prima la board Stima SIM800C Power, "
+"di interporre un’ulteriore fila di pin del connettore UPIN-27 e di "
+"impilare in testa la board Stima SIM800C Module."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:237
+msgid "kicad/r-map_v3/Microduino_GSM_DE/SIM800C_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:240
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:786
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:829
+msgid "Stima I2C-HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:242
+msgid "|image16|\\ |image17|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:244
+msgid ""
+"Il modulo Stima I2C-HUB garantisce la massima modularità dell’intero "
+"progetto della stazione meteorologica Stima, preservando la compatibilità"
+" con tutti i moduli Stima esistenti e garantendo il collegamento su bus "
+"I\\ :sup:`2`\\ C di dispositivi operanti a tensioni di 3.3 V e 5 V "
+"contemporaneamente."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:250
+msgid ""
+"L’HUB presenta una porta in ingresso e sei porte in uscita, utilizzabili "
+"per il collegamento e/o alimentazione di moduli su bus I\\ :sup:`2`\\ C. "
+"Ogni porta è realizzata mediante il connettore a quattro pin dello stesso"
+" tipo di quello installato negli altri moduli (Stima I2C-Base e Stima "
+"I2C-Digital)."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:256
+msgid ""
+"Fatta eccezione per la porta in ingresso, la quale dev’essere sempre "
+"collegata ad un bus I\\ :sup:`2`\\ C a 5V, ognuna delle sei porte in "
+"uscita è configurabile indipendentemente per collegare e/o alimentare "
+"moduli funzionanti a tensioni di 3.3V o 5V, selezionabili facilmente e "
+"velocemente attraverso un jumper posto in prossimità di ogni porta. "
+"Inoltre, ogni singola porta è bufferizzata e protetta contro scariche "
+"elettrostatiche."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:264
+msgid ""
+"L’HUB è in grado di ricevere alimentazione a 5V attraverso il connettore "
+"USB tipo B o dalla porta in ingresso con connettore a quattro pin. Tale "
+"alimentazione, verrà propagata sull’intera linea a 5V e su tutti i moduli"
+" connessi all’HUB."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:269
+msgid ""
+"Diversamente, un circuito di alimentazione da 5V a 3.3V posto sull’HUB, "
+"provvederà ad alimentare tutti i moduli collegati sul bus a 3.3V."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:272
+msgid ""
+"Con riferimento alla porta in ingresso con connettore a quattro pin, si "
+"evidenzia che tale porta può essere adottata per collegare un HUB B ad un"
+" ad HUB A nel caso in cui vi sia la necessità di collegare un certo "
+"numero di periferiche sull’HUB B posto a distanza dall’HUB A. In tal "
+"caso, sarà sufficiente collegare attraverso un cavo, una delle sei porte "
+"in uscita dell’HUB A impostata a 5V al connettore in ingresso dell’HUB B."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:280
+msgid ""
+"Stima I2C-HUB consente la piena modularità della stazione Stima, "
+"garantendo molteplici topologie di collegamento dei moduli o dei sensori,"
+" facilitandone la connessione ed il cablaggio e dimenticandosi di "
+"calcolare di volta in volta i giusti valori di resistenze di pull-up e il"
+" massimo limite di capacità del bus I\\ :sup:`2`\\ C."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:289
+msgid "kicad/r-map_v3/Microduino_HUB_DE"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:292
+msgid ""
+"Regolatore di tensione e carica della batteria con bus I\\ :sup:`2`\\ C "
+"DigitecoPower"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:294
+msgid ""
+"Il regolatore di alimentazione DigitecoPower, di tipo switching, è "
+"progettato per garantire un uso efficiente della batteria con "
+"funzionamento in tampone."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:298
+msgid ""
+"Nel caso specifico, il regolatore monitorerà lo stato di salute della "
+"batteria fornendo i dati riassuntivi tramite interrogazione su bus I\\ "
+":sup:`2`\\ C. È provvisto di una linea di alimentazione 12-30 V DC "
+"fornita da un pannello fotovoltaico o da un alimentatore DC, di una linea"
+" a 12V in uscita per la connessione di una batteria al piombo di tipo "
+"sigillato e di quattro pin per la connessione di tale alimentatore alla "
+"porta a quattro pin in ingresso al HUB."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:306
+msgid ""
+"In particolare, i valori monitorabili ed acquisiti attraverso la libreria"
+" DigitecoPower implementata nella libreria SensorDriver, sono:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:309
+msgid "Tensione di alimentazione"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:310
+msgid "Corrente di alimentazione"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:311
+msgid "Tensione di batteria"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:312
+msgid "Corrente di batteria"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:313
+msgid "Percentuale di carica della batteria"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:314
+msgid "Tensione a 5V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:316
+msgid ""
+"Per la verifica istantanea del funzionamento, è presente un led di "
+"notifica tri-colore (rosso, giallo, verde) in grado di indicare la carica"
+" o meno della batteria ed il livello di energia della stessa:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:320
+msgid "Led rosso: batteria scarica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:321
+msgid "Led giallo: batteria mediamente carica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:322
+msgid "Led verde: batteria carica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:323
+msgid "Led lampeggiante lentamente: batteria in scarica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:324
+msgid "Led lampeggiante velocemente: batteria in carica"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:326
+msgid ""
+"Ad esempio, un led rosso con un lampeggio veloce indica che la batteria è"
+" scarica e si sta caricando, diversamente, un led verde con lampeggio "
+"lento, indica che la batteria è carica ma si sta scaricando."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:330
+msgid ""
+"Per l’interfacciamento di tale modulo, si faccia riferimento al seguente "
+"schema di collegamento:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:334
+msgid "Collegamento"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:334
+msgid "Nome"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:334
+msgid "Descrizione"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:336
+msgid "1"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:336
+msgid "VCC_IN"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:336
+msgid "ingresso alimentazione 12-30V DC VCC (+)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:337
+msgid "2"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:337
+msgid "GND_IN"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:337
+msgid "ingresso alimentazione 12-30V DC GND (-)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:338
+msgid "3"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:338
+msgid "VCC_BAT"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:338
+msgid "uscita alimentazione batteria 12V DC VCC (+)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:339
+msgid "4"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:339
+msgid "GND_BAT"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:339
+msgid "uscita alimentazione batteria 12V DC GND (-)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:340
+msgid "5"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:340
+msgid "LED"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:340
+msgid "LED di stato"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:341
+msgid "6"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:341
+msgid "VCC_OUT"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:341
+msgid "uscita tensione di alimentazione HUB 5V DC VCC (+)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:342
+msgid "7"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:342
+msgid "SCL"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:342
+msgid "I2C SCL HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:343
+msgid "8"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:343
+msgid "SDA"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:343
+msgid "I2C SDA HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:344
+msgid "9"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:344
+msgid "GND_OUT"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:344
+msgid "uscita tensione di alimentazione HUB 5V DC GND (-)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:350
+msgid "Display LCD 20x4 con interfaccia I2C"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:352
+msgid ""
+"Il display consente di visualizzare lo stato della stazione: prossimo "
+"orario di acquisizione, stato del salvataggio dei dati su sd-card, stato "
+"dell’invio dei dati attraverso mqtt ed un valore rappresentativo "
+"dell’ultima acquisizione, utile per verificare in campo il corretto "
+"funzionamento della strumentazione."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:358
+msgid ""
+"Inoltre, è provvisto di un pulsante per l’accensione temporanea della "
+"retroilluminazione, evitando inutilmente il consumo della batteria."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:362
+msgid "Configurazioni hardware dei moduli Stima"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:365
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:525
+msgid "Modulo Stima Ethernet"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:367
+msgid "|image18|\\"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:369
+msgid ""
+"Il modulo Stima Ethernet consente la connessione della stazione "
+"attraverso Ethernet con eventuale alimentazione PoE ed è realizzabile "
+"assemblando i seguenti moduli (dal basso verso l’alto):"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:373
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:398
+msgid "Stima I2C-Base @ 5V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:374
+msgid "Microduino Ethernet WIZ"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:375
+msgid "Microduino RJ45"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:376
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:401
+msgid "Stima core+1284 @ 5V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:377
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:402
+msgid "Stima I2C-RTC @ 5V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:378
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:403
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:425
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:449
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:481
+msgid "Stima FT232RL"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:381
+msgid ""
+"Successivamente sarà necessario fornire connettività Ethernet e "
+"alimentazione attraverso una delle seguenti modalità:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:384
+msgid "Power over ethernet (PoE)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:385
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:410
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:430
+msgid "Connettore micro USB posto sulla board Stima FT232RL"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:386
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:411
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:431
+msgid "Connettore a quattro pin posto sulla board Stima I2C-Base"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:387
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:412
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:432
+msgid "Collegando il modulo a Stima I2C-HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:390
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:577
+msgid "Modulo Stima GSM/GPRS"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:392
+msgid "|image19|\\"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:394
+msgid ""
+"Il modulo Stima GSM/GPRS consente la connessione della stazione "
+"attraverso GPRS ed è realizzabile assemblando i seguenti moduli (dal "
+"basso verso l’alto):"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:406
+msgid ""
+"Infine, è necessario collegare un’antenna GPRS Dual Band 850/1900 MHz "
+"attraverso il connettore SMA posto sulla board Stima SIM800C Module e "
+"fornire alimentazione attraverso una delle seguenti modalità:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:415
+msgid "Modulo Stima Passivo"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:417
+msgid ""
+"Tale modulo passivo permette di acquisire i sensori collegati su bus I\\ "
+":sup:`2`\\ C e di esporre i dati ad un altro modulo “attivo” attraverso "
+"Remote Procedure Call (RPC) ed è realizzabile assemblando i seguenti "
+"moduli (dal basso verso l’alto):"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:422
+msgid "Stima I2C-Base @ 5V / 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:423
+msgid "Stima core+1284 @ 5V / Stima core+644 @ 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:424
+msgid "Stima I2C-RTC @ 5V / 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:427
+msgid ""
+"A tale modulo, è possibile fornire alimentazione attraverso una delle "
+"seguenti modalità:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:435
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:676
+msgid "Modulo Stima I2C-TH"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:437
+msgid ""
+"Acquisisce i dati dai sensori di temperatura e umidità collegati su bus "
+"I\\ :sup:`2`\\ C fornendo elaborazioni relative a valori istantanei, "
+"minimi, medi e massimi. Tali dati potranno essere acquisiti da uno dei "
+"moduli atti a tale operazione, attraverso la libreria SensorDriver."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:442
+msgid "|image20|\\"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:444
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:475
+msgid ""
+"Nello specifico, assemblare il modulo con le seguenti board (dal basso "
+"verso l’alto):"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:447
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:478
+msgid "Stima I2C-Base @ 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:448
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:479
+msgid "Stima core+644 @ 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:452
+msgid ""
+"Per garantire il risparmio energetico della stazione, il modulo Stima "
+"I2C-TH è perennemente posto in risparmio energetico sufficiente al "
+"mantenimento del funzionamento del clock della CPU e del timer ad elevata"
+" precisione posto all’interno del microcontrollore."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:457
+msgid ""
+"Il timer è programmato per generare un interrupt allo scadere di un certo"
+" intervallo di tempo in secondi (programmabile via software), "
+"corrispondente all’intervallo di acquisizione dei sensori di temperatura "
+"e umidità."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:462
+msgid ""
+"Al termine delle operazioni di acquisizione dei sensori, il "
+"microcontrollore torna in risparmio energetico attendendo il successivo "
+"istante di acquisizione."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:467
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:703
+msgid "Modulo Stima I2C-Rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:469
+msgid ""
+"Effettua un conteggio del numero di basculate di un pluviometro nell’arco"
+" di tempo desiderato. Tale dato sarà acquisito da uno dei moduli atti a "
+"tale operazione, attraverso la libreria SensorDriver."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:473
+msgid "|image21|\\"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:484
+msgid ""
+"In genere la segnalazione di una basculata del pluviometro viene fornita "
+"con la chiusura di un contatto elettrico. Tale collegamento può essere "
+"realizzato mediante collegamento al pin di massa e ad una delle tre linee"
+" di interrupt presenti sul connettore a quattro pin sulla board Stima "
+"I2C-Digital."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:490
+msgid ""
+"Per garantire il risparmio energetico della stazione, il modulo Stima "
+"I2C-Rain è perennemente posto in risparmio energetico profondo e "
+"risvegliato all’occorrenza da un interrupt scaturito dalla basculata del "
+"pluviometro."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:496
+msgid "Configurazioni software dei moduli Stima"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:499
+msgid "Configurazione dell’IDE Arduino"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:501
+msgid ""
+"La compilazione del firmware è testata con Arduino IDE versione 1.8.13. "
+"Per la compilazione del software è necessario settare lo sketchbook del "
+"progetto rmap nell’ide Arduino cliccando su File -> Impostazioni e "
+"selezionando la cartella dello sketchbook facendo click su sfoglia in "
+"alto a destra. Successivamente cliccare su ok, chiudere l’ide per poi "
+"riaprirlo."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:509
+msgid "Installazione del software per la configurazione"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:511
+msgid "Installare Centos 8."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:513
+msgid "Aggiunta repository e installazione pacchetti da utente amministratore ::"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:527
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:579
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:645
+msgid ""
+"Aprire lo sketch stima.ino nella cartella "
+"arduino/sketchbook/stima_v3/stima"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:529
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:647
+msgid "Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:531
+msgid ""
+"Impostare la #define MODULE_TYPE con il valore "
+"STIMA_MODULE_TYPE_REPORT_ETH per definire una stazione di tipo report o "
+"STIMA_MODULE_TYPE_SAMPLE_ETH per definire una stazione di tipo sample"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:536
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:588
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:653
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:680
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:707
+msgid ""
+"Aprire il file sensors_config.h nella cartella "
+"arduino/sketchbook/libraries/RmapConfig:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:539
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:591
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:656
+msgid "Settare la #define USE_JSON con il valore true"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:540
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:592
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:657
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:684
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:711
+msgid ""
+"Settare le altre #define USE_SENSOR_XXX con valori true o false a seconda"
+" dei sensori che si vuole abilitare o disabilitare"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:542
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:594
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:659
+msgid ""
+"Impostare il valore in decimi di mm di pioggia per ogni basculata del "
+"pluviometro nella #define RAIN_FOR_TIP"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:544
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:599
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:661
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:686
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:713
+msgid ""
+"Impostare il numero di valori da leggere per ogni singolo sensore nella "
+"#define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori a "
+"disposizione, inserire quello più alto)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:547
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:605
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:664
+msgid ""
+"Impostare il valore in minuti per il calcolo di un’osservazione nella "
+"#define OBSERVATIONS_MINUTES (in genere 1)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:549
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:607
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:666
+msgid ""
+"Impostare il numero di osservazioni necessarie a produrre un dato utile "
+"per il report nella #define STATISTICAL_DATA_COUNT (in genere 15)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:553
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:618
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:670
+msgid "Impostare il microcontrollore su core+1284 a 5V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:554
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:619
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:671
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:698
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:721
+msgid "Compilare il firmware e caricarlo attraverso il cavo USB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:555
+msgid ""
+"Inserire il jumper sulla board Stima I2C-Base, configurare la stazione e "
+"rimuovere il jumper a configurazione terminata."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:558
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:624
+msgid "Per la configurazione:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:560
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:626
+msgid ""
+"Per ottenere una username e una password iscriversi al sito "
+"`<http://rmap.cc/registrazione/register/>`_"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:561
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:627
+msgid ""
+"Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i "
+"pin \"Set\"."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:562
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:628
+msgid "Eseguire i comandi:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:574
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:640
+msgid "Rimuovere il ponticello ai pin \"Set\"."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:581
+msgid "Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:583
+msgid ""
+"Impostare la #define MODULE_TYPE con il valore "
+"STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo report o "
+"STIMA_MODULE_TYPE_SAMPLE_GSM per definire una stazione di tipo sample"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:611
+msgid ""
+"Aprire il file gsm_config.h nella cartella "
+"arduino/sketchbook/libraries/RmapConfig:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:614
+msgid ""
+"Settare la #define GSM_DEFAULT_APN con il valore dell’APN o con il valore"
+" di una delle #define predefinite ed incluse nel medesimo file"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:620
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:672
+msgid ""
+"Inserire il jumper sulla board Stima I2C-Base, configurare la stazione e "
+"rimuovere il jumper a configurazione terminata"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:643
+msgid "Modulo Stima Passive"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:649
+msgid ""
+"Impostare la #define MODULE_TYPE con il valore STIMA_MODULE_TYPE_PASSIVE "
+"per definire una stazione di tipo passivo"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:678
+msgid ""
+"Aprire lo sketch i2c-th.ino nella cartella arduino/sketchbook/stima_v3"
+"/i2c-th"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:683
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:710
+msgid "Settare la #define USE_JSON con il valore false"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:689
+msgid ""
+"Impostare il valore in minuti per il calcolo di un’osservazione nella "
+"#define OBSERVATIONS_MINUTES (in genere 1 o in accordo con quanto "
+"impostato per la compilazione dello sketch stima.ino)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:692
+msgid ""
+"Impostare il numero di osservazioni necessarie a produrre un dato utile "
+"per il report nella #define STATISTICAL_DATA_COUNT (in genere 15 o in "
+"accordo con quanto impostato per la compilazione dello sketch stima.ino)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:697
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:720
+msgid "Impostare il microcontrollore su core+644 a 3.3V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:699
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:722
+msgid ""
+"Configurare il suddetto modulo attraverso lo sketch sensor_config "
+"presente nella cartella arduino\\sketchbook\\stima_v3"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:705
+msgid ""
+"Aprire lo sketch i2c-rain.ino nella cartella "
+"arduino/sketchbook/stima_v3/i2c- rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:716
+msgid ""
+"Impostare la quantità di pioggia espressa in decimi di millimetro da "
+"conteggiare per ogni basculata del pluviometro nella #define RAIN_FOR_TIP"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:726
+msgid "Compilazione e caricamento del bootloader Digitecoboot"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:728
+msgid "Aprire il file avr_conf nella cartella digitecoboot"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:729
+msgid ""
+"Editare la variabile AVR_DIR inserendo il percorso corretto per la "
+"directory AVR"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:731
+msgid ""
+"Nella cartella digitecoboot compilare il bootloader attraverso -  make "
+"atmega644p -  make atmega1284p"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:735
+msgid ""
+"La compilazione produce i seguenti files: -  digitecoboot_atmega644p.hex:"
+" booatloader per core+644 -  digitecoboot_atmega1284p.hex: booatloader "
+"per core+1284"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:739
+msgid ""
+"Caricare il bootloader attraverso un programmatore impostando i seguenti "
+"parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended fuse 0xFD, High "
+"fuse 0xD0 Per usare arduino come programmatore riferirsi a: "
+"https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP e questo è un "
+"esempio dei comandi da impartire a avrdude:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:746
+msgid ""
+"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -e "
+"-Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:747
+msgid ""
+"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -V -U "
+"digitecoboot_atmega1284p.hex"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:748
+msgid "avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -U lock:w:0x0F:m"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:752
+msgid "Compilazione del firmware in formato binario"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:754
+msgid ""
+"Compilare il firmware per i moduli Stima secondo quanto scritto ai punti "
+"precedenti"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:756
+msgid ""
+"Localizzare il file NOME_SKETCH.ino.elf compilato (è possibile seguire la"
+" seguente guida (http://www.instructables.com/id/HOW-TO-GET-HEX-FILE-"
+"FROM-ARDUINO-/)"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:759
+msgid "Localizzare la cartella di installazione dell’IDE Arduino"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:760
+msgid ""
+"Entrare nella cartella hardware/tools/avr/bin situata nella cartella di "
+"installazione dell’IDE Arduino"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:762
+msgid "Attraverso una consolle o il prompt dei comandi, eseguire"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:764
+msgid "avr-objcopy -I ihex -O binary NOME_SKETCH.ino.elf FIRMWARE.BIN"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:767
+msgid "Upload del firmware tramite micro SD-Card attraverso Digitecoboot"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:769
+msgid "Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:770
+msgid ""
+"Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima "
+"GSM/GPRS, Stima I2C-TH o Stima-Rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:772
+msgid ""
+"Alimentare il modulo e attendere 30 secondi per la fine del caricamento "
+"del firmware"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:774
+msgid "Spegnere il modulo e rimuovere la micro SD-Card contenente il firmware"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:776
+msgid ""
+"Se necessario, inserire la micro SD-Card utile per il funzionamento del "
+"modulo"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:778
+msgid "Alimentare il modulo"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:781
+msgid "Assemblaggio stazione Stima"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:783
+msgid "Per assemblare una stazione Stima, è necessario disporre di:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:785
+msgid "Stima I2C-Master nella versione GSM/GPRS o Ethernet"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:787
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:827
+msgid "Stima I2C-TH"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:788
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:828
+msgid "Stima I2C-Rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:789
+msgid ""
+"Sensore di temperatura e umidità Digiteco TU022 (con sensore HYT221 o "
+"HYT271) oppure sensore di temperatura ADT7420 e sensore di umidità "
+"HIH6100"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:792
+msgid ""
+"Pluviometro Digiteco PL005 o Digiteco PL010 o qualsiasi altro pluviometro"
+" con uscita a contatto"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:794
+msgid "Cavi di collegamento:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:796
+msgid ""
+"per sensore di temperatura e umidità Digiteco TU022: cavo 4 poli con "
+"connettore a vite lato sensore e connettore 4 pin lato HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:798
+msgid ""
+"o per sensori ADT7420 e HIH6100 con cavi a 4 poli per sensore a saldare "
+"lato sensore e connettore 4 pin lato HUB"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:800
+msgid ""
+"per pluviometro a contatto: cavo a 2 poli con connettore 4 pin lato "
+"modulo Stima I2C-Rain"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:803
+msgid "Antenna dual/quad band GPRS con connettore SMA per stazione GSM/GPRS"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:804
+msgid "Contenitore stagno IP66 310x425x160"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:805
+msgid ""
+"Batteria sigillata al piombo 12V e relativi cavi di collegamento con "
+"fusibile di protezione"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:807
+msgid "Pannello fotovoltaico 20W o sorgente di alimentazione continua 12-30 V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:809
+msgid ""
+"DigitecoPower: se presente batteria tampone 12V con pannello fotovoltaico"
+" o sorgente di alimentazione esterna DC"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:811
+msgid "Palo acciaio inox diametro 48 mm"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:812
+msgid "Collare alluminio anodizzato per fissaggio a palo diametro 48 mm"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:813
+msgid "Morsetto alluminio anodizzato per fissaggio a sensore diametro 40 mm"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:814
+msgid ""
+"Braccetto alluminio anodizzato cilindrico per fissaggio del morsetto "
+"sensore al collare del palo"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:816
+msgid "Supporto per pluviometro"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:817
+msgid "Display I2C LCD con supporto in alluminio"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:818
+msgid "Supporti per moduli Stima su guida DIN"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:820
+msgid ""
+"Una volta aver collegato i sensori, i moduli Stima, compilato i firmware "
+"e configurato tutti i moduli, così come illustrato nei capitoli "
+"precedenti, la stazione è pronta per essere utilizzata."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:824
+msgid "Di seguito un esempio di installazione di una stazione Stima GSM/GPRS con:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:830
+msgid "DigitecoPower"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:831
+msgid "Batteria sigillata 12V"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:832
+msgid "Pannello fotovoltaico"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:834
+msgid "|image22|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:836
+msgid ""
+"A partire da sinistra, è visibile il modulo Stima GSM/GPRS dotato di "
+"connettore tipo SMA per il collegamento dell’antenna. Al centro è "
+"visibile il modulo Stima I2C-TH e subito a destra è posizionato il modulo"
+" Stima I2C-Rain. Stima I2C-HUB collega i tre moduli, preleva "
+"l’alimentazione attraverso il connettore in ingresso in basso a destra "
+"dal modulo DigitecoPower e dispone di altre due porte libere per il "
+"collegamento di ulteriori sensori e moduli su bus I\\ :sup:`2`\\ C."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:844
+msgid ""
+"Sono ben visibili i jumper, uno per porta, per la selezione della "
+"corrispondente tensione di alimentazione (5V o 3.3V) per i moduli Stima e"
+" per i sensori I2C."
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:848
+msgid "|image23|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:850
+msgid "|image24|"
+msgstr ""
+
