@@ -1,10 +1,11 @@
-RFC rmap versione 2.3
+RFC rmap versione 2.4
 =====================
 
 Storia del documento
 --------------------
 
-2019/06/18 v. 2.3 : aggiunte specifiche JSRPC
+- 2020/10/09 v. 2.4 : specificato il formato della data in json
+- 2019/06/18 v. 2.3 : aggiunte specifiche JSRPC
 
 Definizioni
 -----------
@@ -703,11 +704,15 @@ Le latitudini e longitudini devono essere scritte come coordinate
 geodetiche espresse in sessadecimale, come numero intero dopo aver
 moltiplicato per 10^5 (quindi espresso in 10^-5 gradi sessadecimali).
 
-L'istante di riferimento è il campo \`datetime\` (ISO 8601) che si
+L'istante di riferimento è il campo \`datetime\` che si
 riferisce all'istante finale della misurazione. Di conseguenza, una
 precipitazione cumulata su 30 minuti con istante di riferimento
 "2015-08-05T12:00:00Z" è la precipitazione cumulata tra le 11:30:00Z e
 le 12:00:00Z del giorno 2015-08-05.
+Il formato è ISO 8601 con alcune limitazioni:
+``YYYY-MM-DDTHH:MM:SSZ``. Uno spazio è accettato al posto di ``T``,
+il carattere ``Z`` alla fine può essere omesso. Il formato
+``YYYY-MM-DDTHH:MM:SSZ`` rimane quello consigliato.
 
 I dati sono nel campo \`data\` sotto forma di array. Ogni elemento
 dell'array è un oggetto con i seguenti campi:
