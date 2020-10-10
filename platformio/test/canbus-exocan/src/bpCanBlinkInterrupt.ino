@@ -19,6 +19,12 @@
 
 */
 #include <eXoCAN.h>
+
+#define SYS_CLOCK_HZ 9000000U
+#define REG_VERSION  0x42
+
+//#include "Driver_CAN.h"
+
 #define bluePillLED PC13
 
 #ifdef BOARD1
@@ -65,35 +71,19 @@ void setup()
   //Serial.println("Start!");
                                                 // without calling a filter, the default passes all IDs
   pinMode(bluePillLED, OUTPUT);
-  digitalWrite(bluePillLED,HIGH);
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
 
+  for( uint8_t i=0; i<3; i++){
+    delay(500);
+    digitalToggle(bluePillLED);
+  }
 #ifdef BOARD2
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
-  delay(500);
-  digitalToggle(bluePillLED); //on
-  delay(500);
-  digitalToggle(bluePillLED); //off
+  for( uint8_t i=0; i<3; i++){
+    delay(500);
+    digitalToggle(bluePillLED);
+  }
 #endif
 
+  delay(3000);
   
   can.attachInterrupt(canISR);
   //can.filterMask16Init(0, rxMsgID, 0x7ff);   // filter bank 0, filter 0: allow ID = rxMsgID, mask = 0x7ff (must match)
