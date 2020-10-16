@@ -71,7 +71,7 @@ void uavcanInit(void)
 {
 
   CanardSTM32CANTimings timings;
-  int result = canardSTM32ComputeCANTimings(HAL_RCC_GetPCLK1Freq(), 1000000, &timings);
+  int result = canardSTM32ComputeCANTimings(HAL_RCC_GetPCLK1Freq(), 250000, &timings);
   if (result) {
     __ASM volatile("BKPT #01");
   }
