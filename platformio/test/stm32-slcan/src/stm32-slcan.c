@@ -182,6 +182,12 @@ static void can_setup(void) {
 	rcc_periph_clock_enable(RCC_AFIO);
 	rcc_periph_clock_enable(RCC_CAN1);
 
+	/* Enable peripheral clocks.
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_AFIOEN);
+	rcc_peripheral_enable_clock(&RCC_APB2ENR, RCC_APB2ENR_IOPBEN);
+	rcc_peripheral_enable_clock(&RCC_APB1ENR, RCC_APB1ENR_CAN1EN);
+	*/
+	
 	AFIO_MAPR |= AFIO_MAPR_CAN1_REMAP_PORTB;
 
 	/* Configure CAN pin: RX (input pull-up) */
@@ -201,12 +207,10 @@ static void can_setup(void) {
 	can_reset(CAN1);
 
 	/* defaultt CAN setting 250 kBaud */
-	if (can_speed(5)) {
+	while (can_speed(5)) {
 		gpio_clear(GPIOC, GPIO13); /* LED green on */
 
 		/* Die because we failed to initialize. */
-		while (1)
-		  can_reset(CAN1);
 		//__asm__("nop");
 	}
 
@@ -230,7 +234,7 @@ void sys_tick_handler(void) {
 	counter++;
 	if (counter == 500) {
 		counter = 0;
-		gpio_toggle(GPIOC, GPIO13); /* toggle green LED */
+		//gpio_toggle(GPIOC, GPIO13); /* toggle green LED */
 
 	}
 }
@@ -270,6 +274,8 @@ void usb_lp_can_rx0_isr(void) {
 	uint8_t i, dlc, data[8], fmi;
 	char c;
 
+	gpio_toggle(GPIOC, GPIO13); /* toggle green LED */
+ 
 	can_receive(CAN1, 0, false, &id, &ext, &rtr, &fmi, &dlc, data, NULL);
 
 	if (rtr) {
@@ -332,7 +338,6 @@ static uint32_t get_nibbles(int nibbles) {
 
 
 static int slcan_command(void) {
-	static bool sw_flow = true;
 	bool ext, rtr;
 	uint8_t i, dlc, data[8];
 	uint32_t id;
@@ -347,6 +352,7 @@ static int slcan_command(void) {
 	rtr = false;
 	ret = 0;
 	
+//	static bool sw_flow = true;
 //	if(ring_bytes_free(&input_ring)< 100 && sw_flow) {
 //		ring_write_ch(&output_ring, XOFF);
 //		sw_flow = false;
@@ -356,12 +362,12 @@ static int slcan_command(void) {
 //		sw_flow = true;
 //	}
 
-
+/*
 	if (!can_available_mailbox(CAN1)) {
 	  //asm("nop");
 		return -1;
 	}
-
+*/
 
 	c = uart_read_blocking();
 	switch (c) {
@@ -397,18 +403,34 @@ static int slcan_command(void) {
 	case 'V':
 		send = false;
 		break;
+	case 'O':
+		send = false;
+		break;
 	case 'C':
 		send = false;
 		break;
 	default:
-		send = false;
-		break;
+
+		/* consume chars until eol reached */
+		do {
+			ret = uart_read_blocking();
+		} while (ret != '\r');
+
+	        ring_write_ch(&output_ring, '\a');
+		/* enable the transmitter now */
+		USART_CR1(USART2) |= USART_CR1_TXEIE;
+
+	  return -1;
 	}
 	if(dlc > 8) {
 		/* consume chars until eol reached */
 		do {
 			ret = uart_read_blocking();
 		} while (ret != '\r');
+
+	        ring_write_ch(&output_ring, '\a');
+		/* enable the transmitter now */
+		USART_CR1(USART2) |= USART_CR1_TXEIE;
 
 		return -1;
 	}
@@ -423,10 +445,11 @@ static int slcan_command(void) {
 		ret = uart_read_blocking();
 	} while (ret != '\r');
 
+	ret=0;
 #if 1
 	if (send) {
 		ret = can_transmit(CAN1, id, ext, rtr, dlc, data);
-		/* gpio_debug(ret); */
+		gpio_debug(ret);
 	}
 #else
 	if (send) {
@@ -445,6 +468,13 @@ static int slcan_command(void) {
 	if (commands_pending)
 		commands_pending--;
 
+	if (ret){
+	  ring_write_ch(&output_ring, '\r');
+	}else{	  
+	  ring_write_ch(&output_ring, '\a');
+	}
+	/* enable the transmitter now */
+	USART_CR1(USART2) |= USART_CR1_TXEIE;
 
 	return ret;
 }
@@ -462,14 +492,7 @@ int main(void) {
 
 	/* endless loop */
 	while (1) {
-	  if (slcan_command()){
-	    ring_write_ch(&output_ring, '\r');
-	  }else{	  
-	    ring_write_ch(&output_ring, '\a');
-	  }
-	  /* enable the transmitter now */
-	  USART_CR1(USART2) |= USART_CR1_TXEIE;
-
+	  slcan_command();
 	}
 	return 0;
 }
