@@ -1,14 +1,22 @@
-/// This is a trivial demonstration of the runtime subject-ID assignment logic via the standard register interface.
-/// This node implements a server for uavcan.register.Access.1 and two publishers: the heartbeat publisher using its
-/// fixed subject-ID, and a custom subject of type uavcan.primitive.String.1 via a runtime-assigned ID.
-/// DSDL auto-generation is not used in this example -- everything is (de-)serialized manually.
-///
-/// This node is not PnP -- the node-ID has to be assigned manually when starting the application along with the
-/// bxcan interface name. A PnP allocator can be implemented trivially in just a few lines of code but I decided
-/// that it would distract the reader from the main demonstrated behavior, which is runtime subject-ID assignment.
-///
-/// This software is released under Creative Commons CC0.
-/// Author: Pavel Kirienko <pavel.kirienko@zubax.com>
+/*
+Copyright (C) 2020  Paolo Paruno <p.patruno@iperbole.bologna.it>
+authors:
+Paolo Patruno <p.patruno@iperbole.bologna.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Freeg Software Foundation; either version 2 of 
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 
 #include "Arduino.h"
 #include "stm32_def.h"
@@ -39,7 +47,6 @@ static void canardFree(CanardInstance* const ins, void* const pointer)
 static void publishMeasurement(CanardInstance* const canard)
 {
     // Do not publish messages until the subject-ID is configured.
-    // A real node would store the value in a non-volatile memory; we do not emulate this behavior in this demo.
     if (g_measurement_subject_id <= CANARD_SUBJECT_ID_MAX)
     {
         static CanardTransferID transfer_id=0;
@@ -205,9 +212,9 @@ void setup(void) {
 
   CAN_HW_Init();
   
-  // Initialize the node with a static node-ID as specified in the command-line arguments.
+  // Initialize the node with a static node-ID.
   canard = canardInit(&canardAllocate, &canardFree);
-  canard.mtu_bytes      = CANARD_MTU_CAN_CLASSIC;  // Do not use CAN FD to enhance compatibility.
+  canard.mtu_bytes      = CANARD_MTU_CAN_CLASSIC;  // Do not use CAN FD
   canard.node_id        = (CanardNodeID) 10;
   
   // Configure the library to listen for register access service requests.
