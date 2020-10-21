@@ -44,6 +44,35 @@ static void canardFree(CanardInstance* const ins, void* const pointer)
     free(pointer);
 }
 
+static void publishHeartbeat(CanardInstance* const canard, const uint32_t uptime)
+{
+    static CanardTransferID transfer_id=0;
+    const uint8_t payload[7] =
+      {
+       (uint8_t)(uptime >> 0U),
+       (uint8_t)(uptime >> 8U),
+       (uint8_t)(uptime >> 16U),
+       (uint8_t)(uptime >> 24U),
+       0,   // health 2 bit  // mode   3 bit // vendor_specific_status_code  19 bit
+       0,
+       0,
+      };
+    const CanardTransfer transfer =
+      {
+       .timestamp_usec = micros()+2000000UL,
+       .priority       = CanardPriorityNominal,
+       .transfer_kind  = CanardTransferKindMessage,
+       .port_id        = HeartbeatSubjectID,
+       .remote_node_id = CANARD_NODE_ID_UNSET,
+       .transfer_id    = transfer_id,
+       .payload_size   = sizeof(payload),
+       .payload        = &payload[0],
+      };
+    ++transfer_id;
+    (void) canardTxPush(canard, &transfer);
+}
+
+
 static void publishMeasurement(CanardInstance* const canard)
 {
     // Do not publish messages until the subject-ID is configured.
@@ -65,35 +94,6 @@ static void publishMeasurement(CanardInstance* const canard)
         ++transfer_id;
         (void) canardTxPush(canard, &transfer);
     }
-}
-
-static void publishHeartbeat(CanardInstance* const canard, const uint32_t uptime)
-{
-    static CanardTransferID transfer_id=0;
-    const uint8_t payload[7] =
-      {
-       (uint8_t)(uptime >> 0U),
-       (uint8_t)(uptime >> 8U),
-       (uint8_t)(uptime >> 16U),
-       (uint8_t)(uptime >> 24U),
-       0,   // health 2 bit  // mode   3 bit // vendor_specific_status_code  19 bit
-       0,
-       0,
-      };
-    const CanardTransfer transfer =
-      {
-       //       .timestamp_usec = micros()+2000000UL,
-       .timestamp_usec = 0,
-       .priority       = CanardPriorityNominal,
-       .transfer_kind  = CanardTransferKindMessage,
-       .port_id        = HeartbeatSubjectID,
-       .remote_node_id = CANARD_NODE_ID_UNSET,
-       .transfer_id    = transfer_id,
-       .payload_size   = sizeof(payload),
-       .payload        = &payload[0],
-      };
-    ++transfer_id;
-    (void) canardTxPush(canard, &transfer);
 }
 
 static void handleRegisterAccess(CanardInstance* const canard, const CanardTransfer* const request_transfer)
