@@ -98,6 +98,21 @@ class StationForm(forms.Form):
         self.fields['station_slug'] = forms.ChoiceField(choices=scelta_stations(username),required=False,label=__('Your station'),help_text=__('Select configurated station'),initial="")
 
 
+class TimeElapsedForm(forms.Form):
+
+    timeelapsedchoices=[(0,__("now")),
+                        (-1,__("observed 1 our before")),
+                        (-2,__("observed 2 hours before")),
+                        (-3,__("observed 3 ours before")),
+                        (-4,__("observed 4 hours before")),
+                        (-5,__("observed 5 our before")),
+                        (-6,__("observed 6 hours before"))]
+    
+    timeelapsed = forms.ChoiceField(choices=timeelapsedchoices,
+                                    required=True,label=__('Time elapsed'),
+                                    help_text=__('Time elapsed from observation time'),
+                                    initial="0")
+
 class ManualForm(forms.ModelForm):
 
     #geom = PointField()
@@ -403,6 +418,7 @@ def insertDataManualData(request):
 
         stationform = StationForm(request.user.get_username(),request.POST) # A form bound to the POST data
         nominatimform = NominatimForm(request.POST) # A form bound to the POST data
+        timeelapsedform=TimeElapsedForm(request.POST) # A form bound to the POST data
         form = ManualForm(request.POST,language_code=request.LANGUAGE_CODE) # A form bound to the POST data
 
         if stationform.is_valid(): # All validation rules pass
@@ -416,12 +432,12 @@ def insertDataManualData(request):
                 POST['geom']= str(Point(station.lon,station.lat))
                 POST['coordinate_slug']= slug
                 stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
-                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+                #form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
+                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             stationform = StationForm(request.user.get_username())
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
-
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
+        
         if nominatimform.is_valid(): # All validation rules pass
 
             address=nominatimform.cleaned_data['address']
@@ -438,18 +454,19 @@ def insertDataManualData(request):
                         POST['address']= address
                         nominatimform = NominatimForm(POST) # A form bound to the new data
                         stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                        form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
-                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+                        #form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
+                return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             nominatimform = NominatimForm()
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
 
-        if form.is_valid(): # All validation rules pass
-            
+        if form.is_valid() and timeelapsedform.is_valid(): # All validation rules pass
+
+            timeelapsed=timeelapsedform.cleaned_data['timeelapsed']
             geom=form.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
-            dt=datetime.utcnow().replace(microsecond=0)
+            dt=datetime.utcnow().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
             ident=request.user.username
 
             #if (not stationlat is None):
@@ -497,23 +514,26 @@ def insertDataManualData(request):
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 
+                    timeelapsedform = TimeElapsedForm()
                     form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
                 except:
-                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"error":True})
+                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
 
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"success":True})
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"success":True})
 
         else:
 
             print("invalid form")
             form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
-            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True})
+            timeelapsedform = TimeElapsedForm()
+            return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,"invalid":True,'timeelapsedform':timeelapsedform})
 
     else:
         stationform = StationForm(request.user.get_username()) # An unbound form
         nominatimform = NominatimForm() # An unbound form
         form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
-        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform})
+        timeelapsedform = TimeElapsedForm() # A form bound to the POST data
+        return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
 
 
 @login_required
