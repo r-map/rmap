@@ -1,4 +1,4 @@
-#!/usr/libexec/platform-python -s
+#!/usr/libexec/platform-python
 # coding: utf8
 
 # Copyright (C) 2020  Paolo Patruno <p.patruno@iperbole.bologna.it>
