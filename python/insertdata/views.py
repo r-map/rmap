@@ -432,7 +432,7 @@ def insertDataManualData(request):
                 POST['geom']= str(Point(station.lon,station.lat))
                 POST['coordinate_slug']= slug
                 stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                #form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
+                form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             stationform = StationForm(request.user.get_username())
@@ -454,7 +454,7 @@ def insertDataManualData(request):
                         POST['address']= address
                         nominatimform = NominatimForm(POST) # A form bound to the new data
                         stationform = StationForm(request.user.get_username(),POST) # A form bound to the new data
-                        #form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
+                        form = ManualForm(POST,language_code=request.LANGUAGE_CODE) # A form bound to the new data
                 return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform})
         else:
             nominatimform = NominatimForm()
