@@ -333,6 +333,9 @@ class DballeDB(DB):
 
         db = self.__open_db()
 
+        if (self.attr):
+            rec["query"]="attrs"
+        
         with db.transaction() as tr:
             with memdb.transaction() as memtr:
                 for cur in tr.query_data(rec):
