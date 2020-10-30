@@ -1669,6 +1669,7 @@ class amqpConsumerProducer(threading.Thread):
         self._terminate_event = threading.Event()
         self._prefetch_count = prefetch_count 
         self._pipefunction=pipefunction
+        self._last_delivered_msg_tag=0
  
     def terminate(self):
         self._terminate_event.set()
@@ -1799,21 +1800,51 @@ class amqpConsumerProducer(threading.Thread):
         
     def on_delivery_confirmation(self,method_frame):
 
-        confirmation_type = method_frame.method.NAME.split('.')[1].lower()
-        self._logging.info('Received %s for delivery tag: %i', confirmation_type,
-                    method_frame.method.delivery_tag)
-        totaltag=self._deliveries[method_frame.method.delivery_tag]
-        if confirmation_type == 'ack':
-            self._acked += 1
-            status=True
-            self._logging.info(" [x] Done")
-        elif confirmation_type == 'nack':
-            self._nacked += 1
-            status=False
-            self._logging.info(" [ ] NOT Done")
-        else:
-            self._logging.info("Strange condition on delivery_confirmation ")
+        m = method_frame.method
+        confirmation_type = m.NAME.split('.')[1].lower()
+        multiple = m.multiple
+        delivery_tag = m.delivery_tag
 
+        self._logging.info('Received %s %sfor delivery tag: %i',
+                confirmation_type, '*multiple* ' if multiple else '', delivery_tag)
+
+        #compute list of tags
+        if (multiple):
+            if delivery_tag == 0:
+                num_ack = len(self._deliveries)
+                tags=self._deliveries.keys()
+            else:
+                num_acks = delivery_tag - self._last_delivered_msg_tag
+                tags=[]
+                for tag in range(self._last_delivered_msg_tag + 1, delivery_tag + 1):
+                    tags.append(tag)
+        else:
+            num_acks = 1
+            tags=[method_frame.method.delivery_tag,]
+
+
+        #compute num acks or nacks
+        if confirmation_type == 'ack':
+            self._acked += num_acks
+        elif confirmation_type == 'nack':
+            self._nacked += num_acks
+            
+        #remove tags from deliveries
+        totaltag=[]
+        for tag in tags:
+            totaltag.extend(self._deliveries[tag])
+            if confirmation_type == 'ack':
+                status=True
+                self._logging.info(" [x] Done")
+            elif confirmation_type == 'nack':
+                status=False
+                self._logging.info(" [ ] NOT Done")
+            else:
+                self._logging.error("Strange condition on delivery_confirmation ")
+
+            self._deliveries.pop(tag)
+
+        #acknowledge or reject to reading queue
         for tag in totaltag:
             if (tag is not None):
                 if (self.receive_queue is not None):
@@ -1823,13 +1854,15 @@ class amqpConsumerProducer(threading.Thread):
                         self.acknowledge_message(tag)
                     else:
                         self.reject_message(tag)
-                        
-        self._deliveries.pop(method_frame.method.delivery_tag)
+
+        self._last_delivered_msg_tag = delivery_tag
+
         self._logging.info(
             'Published %i messages, %i have yet to be confirmed, '
             '%i were acked and %i were nacked', self._message_number,
             len(self._deliveries), self._acked, self._nacked)
-    
+
+        
     def add_on_channel_close_callback(self):
         """This method tells pika to call the on_channel_closed method if
         RabbitMQ unexpectedly closes the channel.
