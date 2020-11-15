@@ -1,0 +1,34 @@
+upload by serial:
+
+/home/pat1/git/openblt/Host/BootCommander -s=xcp -t=xcp_rs232 -d=/dev/ttyACM0 -b=57600 .pio/build/nucleo_l476rg/firmware.srec
+
+upload by sd card:
+SD-card preparation and update procedure
+
+The demo bootloaders that support firmware updates from SD-card are
+configured to look for a S-record firmware filename with a
+predetermined name in the root directory on the SD-card. The filename
+is configured as a constant character array firmwareFilename[] in
+hooks.c. Here is the example for the STM32-E407 demo:
+
+static const blt_char firmwareFilename[] = "/demoprog_olimex_stm32e407.srec";
+
+To prepare the SD-card and start the update procedure, perform the following steps:
+
+    2)Insert the SD-card into your PC and store the firmware file (as
+    specified by firmwareFilename[]) in its root directory. For the
+    demo programs, you can find this file in the “.\Prog\bin\”
+    directory.
+    2)Insert the SD-card into the card holder on the
+    microcontroller board.
+    3) Reset the microcontroller to start the
+    firmware update. Once done, the newly programmed firmware is
+    automatically started.
+
+Note that the bootloader demo is configured to output log messages to
+a serial terminal. This enables you to view the progress of the
+firmware update with a terminal program such as Putty. The
+communication speed is typically 57600 bits/sec. Additionally, the log
+messages are written to a file called bootlog.txt on the SD-card,
+which can optionally be checked for verification purposes.
+
