@@ -430,7 +430,7 @@ if args.upload_to_server:
         print(" selected upload_to_server without username or password or station_slug")
         raise SystemExit(1)
 
-    rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,password=args.password)
+    rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,host=args.server,password=args.password)
 
     print("END of upload_to_server configuration")
 
