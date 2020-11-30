@@ -567,7 +567,7 @@ class ArkimetBufrDB(DB):
 
         with dballe.Explorer(self.explorer) as explorer:
             for staz in explorer.stations:
-                print(staz.ident,staz.lat,staz.lon,staz.report)
+                #print(staz.ident,staz.lat,staz.lon,staz.report)
  
                 data={}
                 data["ident"]=staz.ident
@@ -643,7 +643,7 @@ class ArkimetBufrDB(DB):
                             try:
                                 tr.import_messages(msg)
                             except:
-                                print("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
+                                sys.stderr.write("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
 
 
     def fill_station_data_db(self, rec,memdb):
