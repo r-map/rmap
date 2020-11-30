@@ -103,9 +103,9 @@ class TimeElapsedForm(forms.Form):
     timeelapsedchoices=[(0,__("now")),
                         (-1,__("observed 1 our before")),
                         (-2,__("observed 2 hours before")),
-                        (-3,__("observed 3 ours before")),
+                        (-3,__("observed 3 hours before")),
                         (-4,__("observed 4 hours before")),
-                        (-5,__("observed 5 our before")),
+                        (-5,__("observed 5 hours before")),
                         (-6,__("observed 6 hours before"))]
     
     timeelapsed = forms.ChoiceField(choices=timeelapsedchoices,

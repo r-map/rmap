@@ -69,83 +69,80 @@ def main():
 
 
     BORINUD =\
-          {"report":{
-              "SOURCES": 
-              [
+              {
+                  "report":
                   {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": options.dsnreport_fixed,
-                  }, 
-                  {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": options.dsnreport_mobile,
-                  }, 
-              ],
-              "CACHED_SUMMARY": "default",
-              "CACHED_SUMMARY_TIMEOUT": 60*15,},
-           
-           "report_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnreport_fixed,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
-           },
-           "report_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnreport_mobile,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
-           },
-           "sample":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnsample_fixed,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnsample_mobile,
-                   },         
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
-           },
-           "sample_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnsample_fixed,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
-           },
-           "sample_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": options.dsnsample_mobile,
-                   },         
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": 60*15,
-           }
-          }
-
-
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnreport_fixed,
+                              "explorer": "testdata/dballe_report_fixed.json"
+                          }, 
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnreport_mobile,
+                              "explorer": "testdata/dballe_report_mobile.json"
+                          }, 
+                      ],
+                  },
+                  "report_fixed":{
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnreport_fixed,
+                              "explorer": "testdata/dballe_report_fixed.json"
+                          }, 
+                      ],
+                  },
+                  "report_mobile":{
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnreport_mobile,
+                              "explorer": "testdata/dballe_report_mobile.json"
+                          }, 
+                      ],
+                  },
+                  "sample":{
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnsample_fixed,
+                              "explorer": "testdata/dballe_sample_fixed.json"
+                          }, 
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnsample_mobile,
+                              "explorer": "testdata/dballe_sample_mobile.json"
+                          }, 
+                      ],
+                  },
+                  "sample_fixed":{
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnsample_fixed,
+                              "explorer": "testdata/dballe_sample_fixed.json"
+                          }, 
+                      ],
+                  },
+                  "sample_mobile":{
+                      "SOURCES": 
+                      [
+                          {
+                              "class": "borinud.utils.source.DballeDB",
+                              "url": options.dsnsample_mobile,
+                              "explorer": "testdata/dballe_sample_mobile.json"
+                          },         
+                      ],
+                  }
+              }
+    
     rmap.settings.BORINUD=BORINUD
     rmap.settings.BORINUDLAST=BORINUD
     

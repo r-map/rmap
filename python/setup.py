@@ -175,6 +175,8 @@ class createmanpages(Command):
             #subprocess.check_call(["gzip", "-f","man/man1/amqp2mqttd.1"])
             subprocess.check_call(["help2man","-N","--no-discard-stderr","-o","man/man1/rmap-configure.1","./rmap-configure"])
             subprocess.check_call(["gzip", "-f","man/man1/rmap-configure.1"])
+            subprocess.check_call(["help2man","-N","--no-discard-stderr","-o","man/man1/rmap-explorer.1","./rmap-explorer"])
+            subprocess.check_call(["gzip", "-f","man/man1/rmap-explorer.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/rmapctrl.1","./rmapctrl"])
             subprocess.check_call(["gzip", "-f","man/man1/rmapctrl.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/amqp2djangod.1","./amqp2djangod"])
@@ -421,7 +423,7 @@ setup(name='rmap',
       scripts=[
           'stationd','mqtt2graphited','mqtt2amqpd','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_jsonline2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
-          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd'],
+          'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd','rmap-explorer'],
       data_files = data_files,
       license = "GNU GPL v2",
       install_requires= [ 'django>=2.0,<3.0',"configobj","pika","simplejson","requests","pyserial","django-leaflet","jsonfield","django-geojson","Pillow","django-imagekit","django-appconf","nominatim","django-hosts","iso8601","django-cookie-law","django-tagging","pytz","six"],

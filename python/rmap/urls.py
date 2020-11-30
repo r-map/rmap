@@ -52,8 +52,9 @@ urlpatterns = [
     url(r'^network/', include('rmap.network.urls')),
 ]
 
-
-
+from django.apps import apps
+if (apps.is_installed("dynamic")):
+    urlpatterns.append(url(r'^cosudo/', include('dynamic.urls')))
 
 if not android  :
     #try:

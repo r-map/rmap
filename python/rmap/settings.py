@@ -14,7 +14,6 @@ configspec={}
 configspec['django']={}
 
 configspec['django']['DEBUG']="boolean(default=True)"
-configspec['django']['SUMMARYCACHE']="boolean(default=False)"
 configspec['django']['TEMPLATE_DEBUG']="boolean(default=True)"
 configspec['django']['FILE_UPLOAD_PERMISSIONS']="integer(default=420)"
 configspec['django']['SECRET_KEY']="string(default='random-string-of-ascii')"
@@ -230,7 +229,6 @@ for entry in flatten_errors(config, test):
 
 # section django
 DEBUG                   = config['django']['DEBUG']
-SUMMARYCACHE            = config['django']['SUMMARYCACHE']
 FILE_UPLOAD_PERMISSIONS = config['django']['FILE_UPLOAD_PERMISSIONS']
 SECRET_KEY              = config['django']['SECRET_KEY']
 SESSION_COOKIE_DOMAIN   = config['django']['SESSION_COOKIE_DOMAIN']
@@ -491,6 +489,7 @@ POOL_MAX_WORKERS = 10
 METRICS_FIND_WARNING_THRESHOLD = float('Inf') # Print a warning if more than X metrics are returned
 METRICS_FIND_FAILURE_THRESHOLD = float('Inf') # Fail if more than X metrics are returned
 FIND_TIMEOUT = 180.0
+STORE_FAIL_ON_ERROR= True
 
 # Cluster settings
 CLUSTER_SERVERS = []
@@ -674,8 +673,6 @@ SERIALIZATION_MODULES = {
     'geojson' : 'djgeojson.serializers'
 }
 
-SUMMARYCACHETIMEOUT=60*60
-
 
 #CACHES = {
 #    'default': {
@@ -690,15 +687,6 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
-
-if not android :
-    if SUMMARYCACHE:
-        CACHES = {
-            'default': {
-                'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-                'LOCATION': CACHE_LOCATION,
-            }
-        }
 
 ## CORS management
 #CORS_ORIGIN_WHITELIST = [
@@ -716,7 +704,8 @@ if not android :
 #]
 
 
-sample_measurements=[
+sample_measurements=\
+[
     {
         "var": "B12101",
         "level": (103, 2000, None, None),
@@ -799,7 +788,8 @@ sample_measurements=[
     },
 ]
 
-report_measurements=[
+report_measurements=\
+[
     {
         "var": "B12101",
         "level": (103, 2000, None, None),
@@ -974,291 +964,271 @@ report_measurements=[
 
 
 BORINUD =\
-          {"report":{
-              "SOURCES": 
-              [
-                  {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": dsnreport_fixed,
-                  }, 
-                  {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": dsnreport_mobile,
-                  }, 
-                  {
-                      "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "/rmap/arkimet/report_fixed.conf",
-                      "explorer": "/rmap/arkimet/report_fixed.json"
-                  },
-                  {
-                      "class": "borinud.utils.source.ArkimetBufrDB",
-                      "dataset": "/rmap/arkimet/report_mobile.conf",
-                      "explorer": "/rmap/arkimet/report_mobile.json"
-                  },
-              ],
-              "CACHED_SUMMARY": "default",
-              "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
-           
-           "report_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnreport_fixed,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/report_fixed.conf",
-                       "explorer": "/rmap/arkimet/report_fixed.json"
-                   },
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "report_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnreport_mobile,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/report_mobile.conf",
-                       "explorer": "/rmap/arkimet/report_mobile.json"
-                   },
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_fixed,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_mobile,
-                   },         
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/sample_fixed.conf",
-                       "explorer": "/rmap/arkimet/sample_fixed.json"
-                   },
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/sample_mobile.conf",
-                       "explorer": "/rmap/arkimet/sample_mobile.json"
-                   },
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_fixed,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/sample_fixed.conf",
-                       "explorer": "/rmap/arkimet/sample_fixed.json"
-                   },
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_mobile,
-                   },         
-                   {
-                       "class": "borinud.utils.source.ArkimetBufrDB",
-                       "dataset": "/rmap/arkimet/sample_mobile.conf",
-                       "explorer": "/rmap/arkimet/sample_mobile.json"
-                   },
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           }
-          }
+{
+    "report":
+    {
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_fixed,
+                "explorer": "/rmap/dballe/report_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_mobile,
+                "explorer": "/rmap/dballe/report_mobile.json"
+            }, 
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/report_fixed.conf",
+                "explorer": "/rmap/arkimet/report_fixed.json"
+            },
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/report_mobile.conf",
+                "explorer": "/rmap/arkimet/report_mobile.json"
+            },
+        ],
+    },       
+    "report_fixed":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_fixed,
+                "explorer": "/rmap/dballe/report_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/report_fixed.conf",
+                "explorer": "/rmap/arkimet/report_fixed.json"
+            },
+        ],
+    },
+    "report_mobile":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_mobile,
+                "explorer": "/rmap/dballe/report_mobile.json"
+            }, 
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/report_mobile.conf",
+                "explorer": "/rmap/arkimet/report_mobile.json"
+            },
+        ],
+    },
+    "sample":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_fixed,
+                "explorer": "/rmap/dballe/sample_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_mobile,
+                "explorer": "/rmap/dballe/sample_mobile.json"
+            },         
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/sample_fixed.conf",
+                "explorer": "/rmap/arkimet/sample_fixed.json"
+            },
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/sample_mobile.conf",
+                "explorer": "/rmap/arkimet/sample_mobile.json"
+            },
+        ],
+    },
+    "sample_fixed":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_fixed,
+                "explorer": "/rmap/dballe/sample_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/sample_fixed.conf",
+                "explorer": "/rmap/arkimet/sample_fixed.json"
+            },
+        ],
+    },
+    "sample_mobile":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_mobile,
+                "explorer": "/rmap/dballe/sample_mobile.json"
+            },         
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/sample_mobile.conf",
+                "explorer": "/rmap/arkimet/sample_mobile.json"
+            },
+        ],
+    }
+}
 
 BORINUDLAST =\
-          {"report":{
-              "SOURCES": 
-              [
-                  {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": dsnreport_fixed,
-                  }, 
-                  {
-                      "class": "borinud.utils.source.DballeDB",
-                      "url": dsnreport_mobile,
-                  }, 
-              ],
-              "CACHED_SUMMARY": "default",
-              "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
-           
-           "report_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnreport_fixed,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "report_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnreport_mobile,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_fixed,
-                   }, 
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_mobile,
-                   },         
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample_fixed":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_fixed,
-                   }, 
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           },
-           "sample_mobile":{
-               "SOURCES": 
-               [
-                   {
-                       "class": "borinud.utils.source.DballeDB",
-                       "url": dsnsample_mobile,
-                   },         
-               ],
-               "CACHED_SUMMARY": "default",
-               "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-           }
-          }
+{
+    "report":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_fixed,
+                "explorer": "/rmap/dballe/report_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_mobile,
+                "explorer": "/rmap/dballe/report_mobile.json"
+            }, 
+        ],
+    },
+    "report_fixed":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_fixed,
+                "explorer": "/rmap/dballe/report_fixed.json"
+            }, 
+        ],
+    },
+    "report_mobile":{
+        "SOURCES": 
+        [
+            {
+                          "class": "borinud.utils.source.DballeDB",
+                "url": dsnreport_mobile,
+                "explorer": "/rmap/dballe/report_mobile.json"
+            }, 
+        ],
+    },
+    "sample":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_fixed,
+                "explorer": "/rmap/dballe/sample_fixed.json"
+            }, 
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_mobile,
+                "explorer": "/rmap/dballe/sample_mobile.json"                       
+            },         
+        ],
+    },
+    "sample_fixed":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_fixed,
+                "explorer": "/rmap/dballe/sample_fixed.json"
+            }, 
+        ],
+    },
+    "sample_mobile":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": dsnsample_mobile,
+                "explorer": "/rmap/dballe/sample_mobile.json"
+            },         
+        ],
+    }
+}
 
 
 
 if DEBUG_BORINUD_SOURCES:
     BORINUD =\
-              {
-                  "report":
-                  {
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnreport_fixed,
-                          }, 
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnreport_mobile,
-                          }, 
-#                          {
-#                              "class": "borinud.utils.source.ArkimetBufrDB",
-#                              "dataset": "http://localhost:8090/dataset/report_fixed",
-#                              "measurements": report_measurements
-#                          }
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,},
-                  
-                  "report_fixed":{
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnreport_fixed,
-                          }, 
-#                          {
-#                              "class": "borinud.utils.source.ArkimetBufrDB",
-#                              "dataset": "http://localhost:8090/dataset/report_fixed",
-#                              "measurements": report_measurements
-#                          }
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-                  },
-                  "report_mobile":{
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnreport_mobile,
-                          }, 
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-                  },
-                  "sample":{
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnsample_fixed,
-                          }, 
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnsample_mobile,
-                          }, 
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-                  },
-                  "sample_fixed":{
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnsample_fixed,
-                          }, 
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-                  },
-                  "sample_mobile":{
-                      "SOURCES": 
-                      [
-                          {
-                              "class": "borinud.utils.source.DballeDB",
-                              "url": dsnsample_mobile,
-                          },         
-                      ],
-                      "CACHED_SUMMARY": "default",
-                      "CACHED_SUMMARY_TIMEOUT": SUMMARYCACHETIMEOUT,
-                  }
-              }
-
+    {
+        "report":
+        {
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnreport_fixed,
+                    "explorer": "testdata/dballe_report_fixed.json"
+                }, 
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnreport_mobile,
+                    "explorer": "testdata/dballe_report_mobile.json"
+                }, 
+            ],
+        },
+        "report_fixed":{
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnreport_fixed,
+                    "explorer": "testdata/dballe_report_fixed.json"
+                }, 
+            ],
+        },
+        "report_mobile":{
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnreport_mobile,
+                    "explorer": "testdata/dballe_report_mobile.json"
+                }, 
+            ],
+        },
+        "sample":{
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnsample_fixed,
+                    "explorer": "testdata/dballe_sample_fixed.json"
+                }, 
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnsample_mobile,
+                    "explorer": "testdata/dballe_sample_mobile.json"
+                }, 
+            ],
+        },
+        "sample_fixed":{
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnsample_fixed,
+                    "explorer": "testdata/dballe_sample_fixed.json"
+                }, 
+            ],
+        },
+        "sample_mobile":{
+            "SOURCES": 
+            [
+                {
+                    "class": "borinud.utils.source.DballeDB",
+                    "url": dsnsample_mobile,
+                    "explorer": "testdata/dballe_sample_mobile.json"
+                },         
+            ],
+        }
+    }
     
 SHOWDATA = BORINUD
 
@@ -1329,6 +1299,7 @@ if LOAD_OPTIONAL_APPS:
         {"import": 'borinud_sos',                    "apps": ('borinud_sos'   ,)},
         {"import": 'contacts',                       "apps": ('contacts'   ,)},
         {"import": 'firmware_updater',               "apps": ('firmware_updater'   ,)},
+        {"import": 'dynamic',                        "apps": ('dynamic'  ,'rest_framework')},
     )
 
     # Set up each optional app if available.
@@ -1379,4 +1350,15 @@ if not android :
                 'propagate': True,
             },
         },
+    }
+
+#cosudo
+BORINUD_URL = "/borinud/api/v1"
+WMS_URL = "http://0.0.0.0:5000/wms"
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 15
     }
