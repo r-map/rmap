@@ -3,37 +3,37 @@ Settings for Borinud.
 
 Example::
     # project/settings.py
-    BORINUD["report"]["SOURCES"] = [{
-        "class": "borinud.utils.source.DballeDB",
-        "url": "odbc://rmap",
-    }, {
-        "class": "borinud.utils.source.ArkimetBufrDB",
-        "dataset": "http://localhost:8090/dataset/rmap",
-        "measurements": [{
-            "var": "B13011",
-            "level": (1, None, None, None),
-            "trange": (0, 0, 3600),
-        }, {
-            "var": "B12101",
-            "level": (103, 2000, None, None),
-            "trange": (254, 0, 0),
-        }],
-    }]
-    BORINUD["report"]["CACHED_SUMMARY"] = "default"
-    BORINUD["report"]["CACHED_SUMMARY_TIMEOUT"] = 3600
+BORINUD =\
+{
+    "report":{
+        "SOURCES": 
+        [
+            {
+                "class": "borinud.utils.source.DballeDB",
+                "url": "sqlite:/rmap/dballe/report_fixed.sqlite",
+                "explorer": "/rmap/dballe/report.json"
+            }, 
+ 
+            {
+                "class": "borinud.utils.source.ArkimetBufrDB",
+                "dataset": "/rmap/arkimet/report.conf",
+                "explorer": "/rmap/arkimet/report.json"
+            }
+        ]
+    }
+}
+
 """
 from django.conf import settings
 
-DEFAULTS = {
-    "SOURCES": [],
-    "CACHED_SUMMARY": None,
-    "CACHED_SUMMARY_TIMEOUT": 0,
-}
+#DEFAULTS = {
+#    "SOURCES": [],
+#}
 
 BORINUD = getattr(settings, 'BORINUD', {})
 BORINUDLAST = getattr(settings, 'BORINUDLAST', {})
 
-for name, default in list(DEFAULTS.items()):
-    for dsn in BORINUD:
-        if name not in BORINUD[dsn]:
-            BORINUD[dsn][name] = default
+#for name, default in list(DEFAULTS.items()):
+#    for dsn in BORINUD:
+#        if name not in BORINUD[dsn]:
+#            BORINUD[dsn][name] = default

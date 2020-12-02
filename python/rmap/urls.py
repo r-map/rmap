@@ -54,7 +54,7 @@ urlpatterns = [
 
 from django.apps import apps
 if (apps.is_installed("dynamic")):
-    urlpatterns.append(url(r'^cosudo/', include('dynamic.urls')))
+    urlpatterns.append(url(r'^dynamic/', include('dynamic.urls')))
 
 if not android  :
     #try:

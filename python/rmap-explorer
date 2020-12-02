@@ -27,6 +27,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+ARKIMETBASEPATH="/rmap/arkimet/"
+
 import os
 os.environ['DJANGO_SETTINGS_MODULE'] = 'rmap.settings'
 from django.conf import settings
@@ -39,7 +41,8 @@ import rmap.settings
 import argparse
 import django
 import dballe
-import logging
+#mport logging
+from pathlib import Path
 
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
@@ -51,10 +54,12 @@ django.setup()
 #types=["report_fixed","report_mobile","sample_fixed","sample_mobile"]
 types=rmap.settings.BORINUD.keys()
 
-parser = argparse.ArgumentParser(description='Create explorer fron dballe DSN; explorer are used by BORINUD to cache summaries. Call this periodically from crontab')
+parser = argparse.ArgumentParser(description='Create explorer fron dballe DSN (default) or arkimet; explorer are used by BORINUD to cache summaries. Call this periodically from crontab or whe DB is updated')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
 parser.add_argument('--writeexplorer',action="store_true", help="write explorer on permanent store")
 parser.add_argument('--alltype',action="store_true", help="select ALL data level and type of data to elaborate")
+parser.add_argument('--nodballe',action="store_true", help="disable build explorer for DBall.e")
+parser.add_argument('--arkimet',action="store_true", help="build explorer for arkimet")
 parser.add_argument('--type',  default=None, choices=types,help="select data level and type of data to elaborate")
 
 args = parser.parse_args()
@@ -69,38 +74,77 @@ if (args.type is not None):
 
 print(" selected types: ", types)
 
+
+
 for type in types:
     for source in rmap.settings.BORINUD[type]["SOURCES"]:
-
-        if ("explorer" in source.keys() and "url" in source.keys():
-            indsn=source["url"]
-            outexplorer=source["explorer"]
-            print(indsn,outexplorer)
+        if not args.nodballe:
+            if (source["class"] == "borinud.utils.source.DballeDB"):
+                indsn=source["url"]
+                outexplorer=source["explorer"]
+                print(indsn,outexplorer)
             
-            # Create from database
-            db = dballe.DB.connect(indsn)
+                # Create from database
+                db = dballe.DB.connect(indsn)
 
-            if args.writeexplorer:
-                with dballe.Explorer(outexplorer) as explorer:
-                    with explorer.rebuild() as updater:
-                        with db.transaction() as tr:
-                            updater.add_db(tr)
-                    print ("explorer created and written: ")
-                    print (explorer.stats)
+                if args.writeexplorer:
+                    with dballe.Explorer(outexplorer) as explorer:
+                        with explorer.rebuild() as updater:
+                            with db.transaction() as tr:
+                                updater.add_db(tr)
+                        print ("explorer created and written: ")
+                        print (explorer.stats)
+
+                else:
+                    with dballe.Explorer(outexplorer) as explorer:
+                        with explorer.rebuild() as updater:
+                            with db.transaction() as tr:
+                                updater.add_db(tr)
+                        #updater.set_filter({"ident":"agrmet"})
+                        print ("explorer created and NOT written: ")
+                        print (explorer.all_reports)
+                        print (explorer.all_levels)
+                        print (explorer.all_tranges)
+                        print (explorer.all_varcodes)
+                        print (explorer.stats)
 
             else:
-                with dballe.Explorer(outexplorer) as explorer:
-                    with explorer.rebuild() as updater:
-                        with db.transaction() as tr:
-                            updater.add_db(tr)
-                    #updater.set_filter({"ident":"agrmet"})
-                    print ("explorer created and NOT written: ")
-                    print (explorer.all_reports)
-                    print (explorer.all_levels)
-                    print (explorer.all_tranges)
-                    print (explorer.all_varcodes)
-                    print (explorer.stats)
+                print("Skip DBALLE source without defined explorer: ", indsn)
 
-        else:
-            print("Skip source without defined explorer: ", indsn)
 
+        if args.arkimet:
+
+            if (source["class"] == "borinud.utils.source.ArkimetBufrDB"):
+                outexplorer=source["explorer"]
+
+                for path in Path(ARKIMETBASEPATH+type).rglob('*.bufr'):
+                    file=path.as_posix()
+                    print("elaborate: ",file)
+
+                    # update from file
+                    if (args.writeexplorer):
+                        with dballe.ExploreR(outexplorer) as explorer:
+                            with explorer.update() as updater:
+                                importer = dballe.Importer("BUFR")
+                                with importer.from_file(file) as message:
+                                    try:
+                                        updater.add_messages(message)
+                                    except Exception as e:
+                                        print (e)
+                            print ("updated from file")
+                            print (explorer.stats)
+                    else:
+                        with dballe.ExploreR() as explorer:
+                            with explorer.update() as updater:
+                                importer = dballe.Importer("BUFR")
+                                with importer.from_file(file) as message:
+                                    try:
+                                        updater.add_messages(message)
+                                    except Exception as e:
+                                        print (e)
+                            print ("updated from file")
+                            print (explorer.all_reports)
+                            print (explorer.all_levels)
+                            print (explorer.all_tranges)
+                            print (explorer.all_varcodes)
+                            print (explorer.stats)

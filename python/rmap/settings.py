@@ -1109,7 +1109,7 @@ BORINUDLAST =\
         "SOURCES": 
         [
             {
-                          "class": "borinud.utils.source.DballeDB",
+                "class": "borinud.utils.source.DballeDB",
                 "url": dsnreport_mobile,
                 "explorer": "/rmap/dballe/report_mobile.json"
             }, 

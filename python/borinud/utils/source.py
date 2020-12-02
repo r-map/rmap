@@ -199,6 +199,9 @@ class MergeDB(DB):
         with dballe.Explorer() as explorer:
             with explorer.update() as updater:
                 for db in self.dbs:
+                    #jsexp=db.get_json_explorer()
+                    #print (jsexp)
+                    #updater.add_json(jsexp)
                     updater.add_json(db.get_json_explorer())
         
             explorer.set_filter(rec)
@@ -447,9 +450,19 @@ class DballeDB(DB):
 
     def get_json_explorer(self):
 
-        with dballe.Explorer(self.explorer) as explorer:
-            return explorer.to_json()
-                
+        if (self.explorer is None):
+            db = self.__open_db()
+
+            with dballe.Explorer() as explorer:
+                with explorer.rebuild() as updater:
+                    with db.transaction() as tr:
+                        updater.add_db(tr)
+                return explorer.to_json()
+        else:
+            with dballe.Explorer(self.explorer) as explorer:
+                return explorer.to_json()
+
+
     def fill_data_db(self, rec, memdb):
 
         db = self.__open_db()
