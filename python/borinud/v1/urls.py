@@ -18,6 +18,7 @@ basepattern = (
 
 urlpatterns = [
     url(basepattern + r'/summaries$', views.summaries),
+    url(basepattern + r'/summaries/(?P<year>\d{4})$', views.summaries),
     url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})$', views.summaries),
     url(basepattern + r'/summaries/(?P<year>\d{4})/(?P<month>\d{2})/(?P<day>\d{2})$', views.summaries),
     url(basepattern + r'/timeseries/(?P<year>\d{4})$', views.timeseries, name="timeseriesyearly"),
