@@ -204,6 +204,11 @@ configspec['composereportd']['user']     = "string(default=None)"
 configspec['composereportd']['group']    = "string(default=None)"
 configspec['composereportd']['exchange']    = "string(default='rmap')"
 
+configspec['cosudo']={}
+configspec['cosudo']['username_arkiweb']  = "string(default=None)"
+configspec['cosudo']['password_arkiweb']  = "string(default=None)"
+configspec['cosudo']['repository_dir'] = "string(default='/rmap/wms/arkimet/')"
+
 
 config    = ConfigObj ('/etc/rmap/rmap-site.cfg',file_error=False,configspec=configspec)
 
@@ -1354,7 +1359,7 @@ if not android :
 
 #cosudo
 BORINUD_URL = "/borinud/api/v1"
-WMS_URL = "http://0.0.0.0:5000/wms"
+
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -1362,3 +1367,19 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 15
     }
+
+#url of skinny wms service
+WMS_URL = "http://127.0.0.1/wms"
+# wms port
+WMS_PORT = "5000"
+
+# map server url
+MAP_SERVER_WMS_URL = "http://127.0.0.1/wms/mapserver"
+# map server port
+MAP_SERVER_WMS_PORT = "80"
+
+USERNAME_ARKIWEB = config['cosudo']['username_arkiweb']
+PASSWORD_ARKIWEB = config['cosudo']['password_arkiweb']
+REPOSITORY_DIR = config['cosudo']['repository_dir']
+DBALLE_DB_DYNAMIC = dsnreport_fixed
+

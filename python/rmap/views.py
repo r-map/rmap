@@ -16,6 +16,7 @@ from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache
 
 def home(request):
     current_site = get_current_site(request)
@@ -282,11 +283,13 @@ def acl(request):
 from django.contrib.auth.decorators import login_required
 
 @login_required
+@never_cache
 def profile(request):
     stations=StationMetadata.objects.filter(active=True,ident__username=request.user.get_username())
     return render(request, 'profile.html',{ 'ident' : request.user.get_username(),"stations":stations})
 
 @login_required
+@never_cache
 def profile_details(request,mystation_slug):
 
     mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
