@@ -96,7 +96,7 @@ for type in types:
                         print (explorer.stats)
 
                 else:
-                    with dballe.Explorer(outexplorer) as explorer:
+                    with dballe.Explorer() as explorer:
                         with explorer.rebuild() as updater:
                             with db.transaction() as tr:
                                 updater.add_db(tr)
@@ -123,7 +123,7 @@ for type in types:
 
                     # update from file
                     if (args.writeexplorer):
-                        with dballe.ExploreR(outexplorer) as explorer:
+                        with dballe.Explorer(outexplorer) as explorer:
                             with explorer.update() as updater:
                                 importer = dballe.Importer("BUFR")
                                 with importer.from_file(file) as message:
@@ -134,7 +134,7 @@ for type in types:
                             print ("updated from file")
                             print (explorer.stats)
                     else:
-                        with dballe.ExploreR() as explorer:
+                        with dballe.Explorer() as explorer:
                             with explorer.update() as updater:
                                 importer = dballe.Importer("BUFR")
                                 with importer.from_file(file) as message:
