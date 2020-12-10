@@ -33,7 +33,7 @@ SSL support: Basic SSL"
 
 // increment on change
 #define SOFTWARE_VERSION "2020-02-10T00:00"
-#define FIRMWARE_TYPE ARDUINO_BOARD
+//
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
 
@@ -52,6 +52,7 @@ SSL support: Basic SSL"
 
 #if defined(ARDUINO_ESP8266_NODEMCU) 
 // NODEMCU FOR LUFDATEN HOWTO
+#define FIRMWARE_TYPE "ESP8266_NODEMCU"
 #define PMS_RESET D0
 #define SDA D5
 #define SCL D6
@@ -62,6 +63,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_TX D2
 
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINI"
 #define PMS_RESET D0
 #define SCL D1
 #define SDA D2
@@ -71,6 +73,7 @@ SSL support: Basic SSL"
 //#define SDS_PIN_RX D5
 //#define SDS_PIN_TX D6
 #elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINIPRO"
 #define PMS_RESET D0
 #define SCL D1
 #define SDA D2
