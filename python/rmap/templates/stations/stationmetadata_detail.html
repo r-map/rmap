@@ -51,7 +51,7 @@
 
 <p><h3> <a href="{% url 'mystationmetadata-del' object.ident object.slug %}">{% trans 'Delete' %} {{ object.slug }}</a></h3></p>
 
-<p><h3> <a href="{% url 'mystation-localdata' object.ident object.slug %}">{% trans 'Realtime local data' %} {{ object.slug }}</a></h3></p>
+<p><h3> <a href="http://{{site.domain}}{% url 'mystation-localdata' object.ident object.slug %}">{% trans 'Realtime local data' %} {{ object.slug }}</a></h3></p>
 
 <h2 id="striped-rows">{% trans 'Display graph' %}</h2>
 
