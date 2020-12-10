@@ -10,13 +10,15 @@
 #include <Arduino.h>
 #include "IPAddress.h"
 // if use sim800 client
-//#include "sim800Client.h"
-//#define TCPCLIENT sim800Client
-
+#ifndef PUSUBCLIENT_ETHERNET
+#include "sim800bClient.h"
+#define TCPCLIENT sim800Client
+#else
 // if use arduino_uip or etherclient
 #include "Client.h"
 #include "Stream.h"
 #define TCPCLIENT Client
+#endif
 
 #define MQTT_VERSION_3_1      3
 #define MQTT_VERSION_3_1_1    4
