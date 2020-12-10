@@ -698,8 +698,8 @@ void start_measure(){
 
 // sensor machine
 void sensor_machine(){
-  unsigned long waittime;
-  static unsigned long maxwaittime=0;
+  uint32_t waittime;
+  static uint32_t maxwaittime=0;
 
   switch(s_state) {
   case UNKNOWN:
@@ -786,7 +786,7 @@ void sensor_machine(){
     for (int i = 0; i < SENSORS_LEN; i++) {
       if (!sd[i] == 0){
 	// get integers values 
-	long values[LENVALUES];
+	uint32_t values[LENVALUES];
 	size_t lenvalues=LENVALUES;
 	
 	if (sd[i]->get(values,lenvalues) == SD_SUCCESS){
