@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Microduino_UART-rescue)(type Legacy)(uri ${KIPRJMOD}/Microduino_UART-rescue.lib)(options "")(descr ""))
+)

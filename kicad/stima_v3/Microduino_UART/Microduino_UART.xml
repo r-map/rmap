@@ -1,0 +1,557 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>C:\Users\Administrator\Dropbox\digiteco\Microduino\Microduino_UART\Microduino_UART.sch</source>
+    <date>09/11/2020 19:59:46</date>
+    <tool>Eeschema (5.1.5)-3</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title>Microduino SENSORE</title>
+        <company/>
+        <rev>0.0</rev>
+        <date>31 ottobre 2020</date>
+        <source>Microduino_UART.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="C1">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">C1206C104K5RACTU</field>
+        <field name="Codice Mouser">80-C1206C104K5R</field>
+        <field name="Codice RS">391-214</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30B4F</tstamp>
+    </comp>
+    <comp ref="C3">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">C1206C104K5RACTU</field>
+        <field name="Codice Mouser">80-C1206C104K5R</field>
+        <field name="Codice RS">391-214</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30B5A</tstamp>
+    </comp>
+    <comp ref="C2">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">C1206C104K5RACTU</field>
+        <field name="Codice Mouser">80-C1206C104K5R</field>
+        <field name="Codice RS">391-214</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30B6E</tstamp>
+    </comp>
+    <comp ref="C4">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">C1206C104K5RACTU</field>
+        <field name="Codice Mouser">80-C1206C104K5R</field>
+        <field name="Codice RS">391-214</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30B78</tstamp>
+    </comp>
+    <comp ref="C5">
+      <value>100nF</value>
+      <footprint>Capacitor_SMD:C_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">C1206C104K5RACTU</field>
+        <field name="Codice Mouser">80-C1206C104K5R</field>
+        <field name="Codice RS">391-214</field>
+      </fields>
+      <libsource lib="Device" part="C" description="Unpolarized capacitor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30B82</tstamp>
+    </comp>
+    <comp ref="R2">
+      <value>4k7</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">rs</field>
+        <field name="Codice">CRCW12064K70FKEA</field>
+        <field name="Codice Mouser">71-CRCW1206-4.7K-E3</field>
+        <field name="Codice RS">679-2184</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30BB1</tstamp>
+    </comp>
+    <comp ref="R1">
+      <value>47k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">CRCW120647K0FKEA</field>
+        <field name="Codice Mouser">71-CRCW1206-47K-E3</field>
+        <field name="Codice RS">679-2156</field>
+      </fields>
+      <libsource lib="Device" part="R" description="Resistor"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30BBB</tstamp>
+    </comp>
+    <comp ref="Q2">
+      <value>BC847B</value>
+      <footprint>Package_TO_SOT_SMD:SOT-23</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">BC847B,215</field>
+        <field name="Codice Mouser">771-BC847B-T/R</field>
+        <field name="Codice RS">436-7947</field>
+      </fields>
+      <libsource lib="Device" part="Q_NPN_BEC" description="NPN transistor, base/emitter/collector"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30BCD</tstamp>
+    </comp>
+    <comp ref="Q1">
+      <value>BSP315PH6327XTSA1</value>
+      <footprint>Package_TO_SOT_SMD:SOT-223-3_TabPin2</footprint>
+      <fields>
+        <field name="Campo4">m</field>
+        <field name="Codice">BSP315PH6327XTSA1</field>
+        <field name="Codice Mouser">726-BSP315PH6327XTSA</field>
+        <field name="Codice RS">826-9238</field>
+      </fields>
+      <libsource lib="Device" part="Q_PMOS_GDS" description="P-MOSFET transistor, gate/drain/source"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30BD7</tstamp>
+    </comp>
+    <comp ref="U1">
+      <value>MAX3232</value>
+      <footprint>Package_SO:SOIC-16_3.9x9.9mm_P1.27mm</footprint>
+      <datasheet>https://datasheets.maximintegrated.com/en/ds/MAX3222-MAX3241.pdf</datasheet>
+      <libsource lib="Interface_UART" part="MAX3232" description="3.0V to 5.5V, Low-Power, up to 1Mbps, True RS-232 Transceivers Using Four 0.1μF External Capacitors"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA5D9A5</tstamp>
+    </comp>
+    <comp ref="P1">
+      <value>CONN_1x27</value>
+      <footprint>Libreria_PCB_mia:Upin_27</footprint>
+      <libsource lib="Libreria_SCH_mia" part="CONN_1x27" description="Connettore Microduino"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA639CC</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>Conn_01x05</value>
+      <footprint>Libreria_PCB_mia:WHURT_5pin_90°_61900511021</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Connector_Generic" part="Conn_01x05" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA28AD8</tstamp>
+    </comp>
+    <comp ref="GS1">
+      <value>GS4_b</value>
+      <footprint>Libreria_PCB_mia:GS4</footprint>
+      <libsource lib="Libreria_SCH_mia" part="GS4_b" description="Selettore 4 vie"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA30309</tstamp>
+    </comp>
+    <comp ref="JP1">
+      <value>SolderJumper_3_Open</value>
+      <footprint>Connectors:GS3</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA54A9D</tstamp>
+    </comp>
+    <comp ref="JP2">
+      <value>SolderJumper_3_Open</value>
+      <footprint>Connectors:GS3</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Jumper" part="SolderJumper_3_Open" description="Solder Jumper, 3-pole, open"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA5579B</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector_Generic" part="Conn_01x05">
+      <description>Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x05</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="C">
+      <description>Unpolarized capacitor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>C_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">C</field>
+        <field name="Value">C</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Q_NPN_BEC">
+      <description>NPN transistor, base/emitter/collector</description>
+      <docs>~</docs>
+      <fields>
+        <field name="Reference">Q</field>
+        <field name="Value">Q_NPN_BEC</field>
+      </fields>
+      <pins>
+        <pin num="1" name="B" type="input"/>
+        <pin num="2" name="E" type="passive"/>
+        <pin num="3" name="C" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Q_PMOS_GDS">
+      <description>P-MOSFET transistor, gate/drain/source</description>
+      <docs>~</docs>
+      <fields>
+        <field name="Reference">Q</field>
+        <field name="Value">Q_PMOS_GDS</field>
+      </fields>
+      <pins>
+        <pin num="1" name="G" type="input"/>
+        <pin num="2" name="D" type="passive"/>
+        <pin num="3" name="S" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R">
+      <description>Resistor</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Interface_UART" part="MAX232">
+      <aliases>
+        <alias>MAX232I</alias>
+        <alias>MAX202</alias>
+        <alias>ADM232A</alias>
+        <alias>MAX3232</alias>
+        <alias>ICL3232</alias>
+      </aliases>
+      <description>Dual RS232 driver/receiver, 5V supply, 120kb/s, 0C-70C</description>
+      <docs>http://www.ti.com/lit/ds/symlink/max232.pdf</docs>
+      <footprints>
+        <fp>SOIC*P1.27mm*</fp>
+        <fp>DIP*W7.62mm*</fp>
+        <fp>TSSOP*4.4x5mm*P0.65mm*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">U</field>
+        <field name="Value">MAX232</field>
+      </fields>
+      <pins>
+        <pin num="1" name="C1+" type="passive"/>
+        <pin num="2" name="VS+" type="power_out"/>
+        <pin num="3" name="C1-" type="passive"/>
+        <pin num="4" name="C2+" type="passive"/>
+        <pin num="5" name="C2-" type="passive"/>
+        <pin num="6" name="VS-" type="power_out"/>
+        <pin num="7" name="T2OUT" type="output"/>
+        <pin num="8" name="R2IN" type="input"/>
+        <pin num="9" name="R2OUT" type="output"/>
+        <pin num="10" name="T2IN" type="input"/>
+        <pin num="11" name="T1IN" type="input"/>
+        <pin num="12" name="R1OUT" type="output"/>
+        <pin num="13" name="R1IN" type="input"/>
+        <pin num="14" name="T1OUT" type="output"/>
+        <pin num="15" name="GND" type="power_in"/>
+        <pin num="16" name="VCC" type="power_in"/>
+      </pins>
+    </libpart>
+    <libpart lib="Jumper" part="SolderJumper_3_Open">
+      <description>Solder Jumper, 3-pole, open</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*Open*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">SolderJumper_3_Open</field>
+      </fields>
+      <pins>
+        <pin num="1" name="A" type="passive"/>
+        <pin num="2" name="C" type="passive"/>
+        <pin num="3" name="B" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Libreria_SCH_mia" part="CONN_1x27">
+      <description>Connettore Microduino</description>
+      <footprints>
+        <fp>Upin_27</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">P</field>
+        <field name="Value">CONN_1x27</field>
+      </fields>
+      <pins>
+        <pin num="1" name="P1" type="passive"/>
+        <pin num="2" name="P2" type="passive"/>
+        <pin num="3" name="P3" type="passive"/>
+        <pin num="4" name="P4" type="passive"/>
+        <pin num="5" name="P5" type="passive"/>
+        <pin num="6" name="P6" type="passive"/>
+        <pin num="7" name="P7" type="passive"/>
+        <pin num="8" name="P8" type="passive"/>
+        <pin num="9" name="P9" type="passive"/>
+        <pin num="10" name="P10" type="passive"/>
+        <pin num="11" name="P11" type="passive"/>
+        <pin num="12" name="P12" type="passive"/>
+        <pin num="13" name="P13" type="passive"/>
+        <pin num="14" name="P14" type="passive"/>
+        <pin num="15" name="P15" type="passive"/>
+        <pin num="16" name="P16" type="passive"/>
+        <pin num="17" name="P17" type="passive"/>
+        <pin num="18" name="P18" type="passive"/>
+        <pin num="19" name="P19" type="passive"/>
+        <pin num="20" name="P20" type="passive"/>
+        <pin num="21" name="P21" type="passive"/>
+        <pin num="22" name="P22" type="passive"/>
+        <pin num="23" name="P23" type="passive"/>
+        <pin num="24" name="P24" type="passive"/>
+        <pin num="25" name="P25" type="passive"/>
+        <pin num="26" name="P26" type="passive"/>
+        <pin num="27" name="P27" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Libreria_SCH_mia" part="GS4_b">
+      <description>Selettore 4 vie</description>
+      <footprints>
+        <fp>GS*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">GS</field>
+        <field name="Value">GS4_b</field>
+        <field name="Footprint">GS4</field>
+      </fields>
+      <pins>
+        <pin num="1" name="G1" type="passive"/>
+        <pin num="2" name="G2" type="passive"/>
+        <pin num="3" name="G4" type="passive"/>
+        <pin num="4" name="G3" type="passive"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector_Generic">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Connector_Generic.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Device.lib</uri>
+    </library>
+    <library logical="Interface_UART">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Interface_UART.lib</uri>
+    </library>
+    <library logical="Jumper">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Jumper.lib</uri>
+    </library>
+    <library logical="Libreria_SCH_mia">
+      <uri>C:/Users/Administrator/Dropbox/digiteco/Libreria_SCH_mia/Libreria_SCH_mia.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="/D10">
+      <node ref="P1" pin="6"/>
+    </net>
+    <net code="2" name="/D1">
+      <node ref="P1" pin="20"/>
+      <node ref="JP1" pin="1"/>
+    </net>
+    <net code="3" name="/D2">
+      <node ref="JP2" pin="3"/>
+      <node ref="P1" pin="21"/>
+    </net>
+    <net code="4" name="/D3">
+      <node ref="JP1" pin="3"/>
+      <node ref="P1" pin="22"/>
+    </net>
+    <net code="5" name="/D4">
+      <node ref="R2" pin="2"/>
+      <node ref="P1" pin="23"/>
+    </net>
+    <net code="6" name="/D5">
+      <node ref="P1" pin="24"/>
+    </net>
+    <net code="7" name="/RESET">
+      <node ref="P1" pin="26"/>
+    </net>
+    <net code="8" name="/SDA">
+      <node ref="P1" pin="15"/>
+    </net>
+    <net code="9" name="/SCL">
+      <node ref="P1" pin="16"/>
+    </net>
+    <net code="10" name="/D8">
+      <node ref="P1" pin="4"/>
+    </net>
+    <net code="11" name="/CLK">
+      <node ref="P1" pin="9"/>
+    </net>
+    <net code="12" name="/DO">
+      <node ref="P1" pin="8"/>
+    </net>
+    <net code="13" name="/DI">
+      <node ref="P1" pin="7"/>
+    </net>
+    <net code="14" name="/CS">
+      <node ref="P1" pin="3"/>
+    </net>
+    <net code="15" name="/D0">
+      <node ref="P1" pin="19"/>
+      <node ref="JP2" pin="1"/>
+    </net>
+    <net code="16" name="/D9">
+      <node ref="P1" pin="5"/>
+    </net>
+    <net code="17" name="/A7">
+      <node ref="P1" pin="18"/>
+    </net>
+    <net code="18" name="/A3">
+      <node ref="P1" pin="14"/>
+    </net>
+    <net code="19" name="/A1">
+      <node ref="P1" pin="12"/>
+    </net>
+    <net code="20" name="/AREF">
+      <node ref="P1" pin="10"/>
+    </net>
+    <net code="21" name="/A6">
+      <node ref="P1" pin="17"/>
+    </net>
+    <net code="22" name="/A2">
+      <node ref="P1" pin="13"/>
+    </net>
+    <net code="23" name="/A0">
+      <node ref="P1" pin="11"/>
+    </net>
+    <net code="24" name="/D6">
+      <node ref="P1" pin="25"/>
+    </net>
+    <net code="25" name="+3V3">
+      <node ref="P1" pin="2"/>
+      <node ref="GS1" pin="4"/>
+    </net>
+    <net code="26" name="+5V">
+      <node ref="C1" pin="1"/>
+      <node ref="P1" pin="1"/>
+      <node ref="U1" pin="16"/>
+      <node ref="GS1" pin="3"/>
+    </net>
+    <net code="27" name="GND">
+      <node ref="U1" pin="8"/>
+      <node ref="C5" pin="2"/>
+      <node ref="C4" pin="1"/>
+      <node ref="U1" pin="10"/>
+      <node ref="U1" pin="15"/>
+      <node ref="C1" pin="2"/>
+      <node ref="P1" pin="27"/>
+      <node ref="J1" pin="5"/>
+      <node ref="Q2" pin="2"/>
+    </net>
+    <net code="28" name="Net-(JP1-Pad2)">
+      <node ref="JP1" pin="2"/>
+      <node ref="U1" pin="11"/>
+    </net>
+    <net code="29" name="Net-(JP2-Pad2)">
+      <node ref="JP2" pin="2"/>
+      <node ref="U1" pin="12"/>
+    </net>
+    <net code="30" name="Net-(GS1-Pad1)">
+      <node ref="J1" pin="1"/>
+      <node ref="GS1" pin="1"/>
+    </net>
+    <net code="31" name="Net-(J1-Pad2)">
+      <node ref="J1" pin="2"/>
+      <node ref="Q1" pin="2"/>
+    </net>
+    <net code="32" name="Net-(J1-Pad3)">
+      <node ref="J1" pin="3"/>
+      <node ref="U1" pin="14"/>
+    </net>
+    <net code="33" name="Net-(J1-Pad4)">
+      <node ref="U1" pin="13"/>
+      <node ref="J1" pin="4"/>
+    </net>
+    <net code="34" name="Net-(Q2-Pad1)">
+      <node ref="Q2" pin="1"/>
+      <node ref="R2" pin="1"/>
+    </net>
+    <net code="35" name="Net-(GS1-Pad2)">
+      <node ref="GS1" pin="2"/>
+      <node ref="R1" pin="1"/>
+      <node ref="Q1" pin="3"/>
+    </net>
+    <net code="36" name="Net-(Q1-Pad1)">
+      <node ref="R1" pin="2"/>
+      <node ref="Q1" pin="1"/>
+      <node ref="Q2" pin="3"/>
+    </net>
+    <net code="37" name="Net-(C3-Pad2)">
+      <node ref="C3" pin="2"/>
+      <node ref="U1" pin="3"/>
+    </net>
+    <net code="38" name="Net-(C3-Pad1)">
+      <node ref="U1" pin="1"/>
+      <node ref="C3" pin="1"/>
+    </net>
+    <net code="39" name="Net-(C2-Pad1)">
+      <node ref="C2" pin="1"/>
+      <node ref="U1" pin="4"/>
+    </net>
+    <net code="40" name="Net-(C2-Pad2)">
+      <node ref="U1" pin="5"/>
+      <node ref="C2" pin="2"/>
+    </net>
+    <net code="41" name="Net-(C5-Pad1)">
+      <node ref="U1" pin="6"/>
+      <node ref="C5" pin="1"/>
+    </net>
+    <net code="42" name="Net-(U1-Pad7)">
+      <node ref="U1" pin="7"/>
+    </net>
+    <net code="43" name="Net-(U1-Pad9)">
+      <node ref="U1" pin="9"/>
+    </net>
+    <net code="44" name="Net-(C4-Pad2)">
+      <node ref="C4" pin="2"/>
+      <node ref="U1" pin="2"/>
+    </net>
+  </nets>
+</export>
