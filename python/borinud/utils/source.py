@@ -157,19 +157,20 @@ class MergeDB(DB):
     def query_stations(self, rec):
 
         with dballe.Explorer() as explorer:
-            for db in dbs:
-                explorer.add_json(db.get_json_explorer())
-                explorer.set_filter(rec)
-                for staz in explorer.stations:
-                    #print(staz.ident,staz.lat,staz.lon,staz.report) 
-                    data={}
-                    data["ident"]=staz.ident
-                    data["report"]=staz.report
-                    data["lat"]=staz.lat
-                    data["lon"]=staz.lon
-                    #print ("dballe query station: ",data)
-                    yield data
-            
+            with explorer.update() as updater:
+                for db in self.dbs:
+                    updater.add_json(db.get_json_explorer())
+            explorer.set_filter(rec)
+            for staz in explorer.stations:
+                #print(staz.ident,staz.lat,staz.lon,staz.report) 
+                data={}
+                data["ident"]=staz.ident
+                data["report"]=staz.report
+                data["lat"]=staz.lat
+                data["lon"]=staz.lon
+                #print ("dballe query station: ",data)
+                yield data
+                    
     #def _query_stations_db(self, rec):
     #    for r in self._get_unique_station_records(
     #        "query_stations", rec, lambda g: next(g)
