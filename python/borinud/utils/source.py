@@ -166,8 +166,8 @@ class MergeDB(DB):
                 data={}
                 data["ident"]=staz.ident
                 data["report"]=staz.report
-                data["lat"]=staz.lat
-                data["lon"]=staz.lon
+                data["lat"]=staz.lat*100000
+                data["lon"]=staz.lon*100000
                 #print ("dballe query station: ",data)
                 yield data
                     
@@ -322,8 +322,8 @@ class DballeDB(DB):
                 data={}
                 data["ident"]=staz.ident
                 data["report"]=staz.report
-                data["lat"]=staz.lat
-                data["lon"]=staz.lon
+                data["lat"]=staz.lat*100000
+                data["lon"]=staz.lon*100000
                 #print ("dballe query station: ",data)
                 yield data
                 
@@ -586,8 +586,8 @@ class ArkimetBufrDB(DB):
                 data={}
                 data["ident"]=staz.ident
                 data["report"]=staz.report
-                data["lat"]=staz.lat
-                data["lon"]=staz.lon
+                data["lat"]=staz.lat*100000
+                data["lon"]=staz.lon*100000
                 #print ("dballe query station: ",data)
                 yield data
 
