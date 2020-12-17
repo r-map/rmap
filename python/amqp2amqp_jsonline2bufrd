@@ -60,7 +60,7 @@ def jsonline2bufr(amqp,basic_deliver, properties, body):
     logging.debug(" [x] Received message")
         
     bodyfile = io.BytesIO(body) 
-    importer = dballe.Importer("JSON")
+    importer = dballe.Importer("JSON",domain_errors="clamp")
     exporter = dballe.Exporter("BUFR")
     outbufr=b""
     with importer.from_file(bodyfile) as f:
