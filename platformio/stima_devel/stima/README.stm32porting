@@ -1,0 +1,9 @@
+stm32 nucleoL432kc	microduino upin27
+
+GND			GND
+A5(PA6)			SCL
+A4(PA5)			SDA
+D2(PA12)		D5
+D3(PB0)			D6
+D0/RX(PA10)		D2
+D1/TX(PA9)		D3

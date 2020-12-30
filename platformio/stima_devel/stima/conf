@@ -1,0 +1,49 @@
+{"jsonrpc":"2.0","method":"configure","params":{"reset": true},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"gsmapn": "ibox.tim.it"},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"mqttserver": "test.rmap.cc", "mqttsampletime": 900},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"mqttpassword": "eco2610", "mqttuser": "digiteco"},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"mqttrootpath": "report/digiteco/1100001,4400000/fixed/"},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"mqttmaintpath": "maint/digiteco/1100001,4400000/fixed/"},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"ntpserver": "pool.ntp.org", "mac": [226, 33, 182, 68, 235, 41]},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "ITH", "mqttpath": "254,0,0/103,2000,-,-/", "driver": "I2C", "address": 35},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "NTH", "mqttpath": "3,0,120/103,2000,-,-/", "driver": "I2C", "address": 35},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "MTH", "mqttpath": "0,0,120/103,2000,-,-/", "driver": "I2C", "address": 35},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "XTH", "mqttpath": "2,0,120/103,2000,-,-/", "driver": "I2C", "address": 35},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "TBR", "mqttpath": "1,0,120/1,-,-,-/", "driver": "I2C", "address": 33},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"node": 1, "type": "DEP", "mqttpath": "254,0,0/265,1,-,-", "driver": "I2C", "address": 48},"id":0}
+
+{"jsonrpc":"2.0","method":"configure","params":{"save": true},"id":0}
+
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"reset": true}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"mqttsampletime": 900, "mqttserver": "rmap.cc"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"mqttuser": "pat1", "mqttpassword": "1password"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "ITH", "node": 1, "address": 35, "mqttpath": "254,0,0/103,2000,-,-/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "NTH", "node": 1, "address": 35, "mqttpath": "3,0,900/103,2000,-,-/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "MTH", "node": 1, "address": 35, "mqttpath": "0,0,900/103,2000,-,-/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "XTH", "node": 1, "address": 35, "mqttpath": "2,0,900/103,2000,-,-/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"driver": "I2C", "type": "TBR", "node": 1, "address": 33, "mqttpath": "1,0,900/1,-,-,-/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"mqttrootpath": "report/pat1/1212345,4512345/fixed/"}, "id": 0}
+
+{"jsonrpc": "2.0", "method": "configure", "params": {"save": true}, "id": 0}
+
