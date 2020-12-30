@@ -1,7 +1,12 @@
-// Simple example for FreeRTOS
-// a mutex for serial port is missed
-// so serial port output should be corrupted
+/* Simple example for FreeRTOS
 
+ with  preemptive scheduler
+ a mutex for serial port is missed
+ so serial port output should be corrupted
+
+ use cooperative scheduler !
+
+*/
 
 #ifdef ARDUINO_ARCH_AVR
   #include <Arduino_FreeRTOS.h>
@@ -27,7 +32,9 @@ void taskOne( void * parameter )
         Serial.println("Hello from task 1");
 	Serial.print(F("#free stack on task 1: "));
 	Serial.println(freeStack());
-	delay(1000);
+	vTaskDelay(1000/portTICK_PERIOD_MS);
+	//taskYIELD();
+	//delay(1000);
     }
  
     Serial.println("Ending task 1");
@@ -43,7 +50,9 @@ void taskTwo( void * parameter)
         Serial.println("Hello from task 2");
 	Serial.print(F("#free stack on task 2: "));
 	Serial.println(freeStack());
-        delay(1000);
+	vTaskDelay(1500/portTICK_PERIOD_MS);
+	//taskYIELD();
+	//delay(1500);
     }
     Serial.println("Ending task 2");
     vTaskDelete( NULL );
@@ -62,7 +71,7 @@ void setup() {
   xTaskCreate(
 	      taskOne,          /* Task function. */
 	      "TaskOne",        /* String with name of task. */
-	      80,            /* Stack size in bytes. */
+	      120,            /* Stack size in bytes. */
 	      NULL,             /* Parameter passed as input of the task */
 	      1,                /* Priority of the task. */
 	      NULL);            /* Task handle. */
@@ -70,7 +79,7 @@ void setup() {
   xTaskCreate(
 	      taskTwo,          /* Task function. */
 	      "TaskTwo",        /* String with name of task. */
-	      128,            /* Stack size in bytes. */
+	      120,            /* Stack size in bytes. */
 	      NULL,             /* Parameter passed as input of the task */
 	      1,                /* Priority of the task. */
 	      NULL);            /* Task handle. */
