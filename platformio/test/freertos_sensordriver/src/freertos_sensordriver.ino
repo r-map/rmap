@@ -88,7 +88,7 @@ protected:
 	
 	// get integers values 
 #define LENVALUES 3
-	long values[LENVALUES];
+	uint32_t values[LENVALUES];
 	size_t lenvalues=LENVALUES;
 
 	for (uint8_t ii = 0; ii < lenvalues; ii++) {

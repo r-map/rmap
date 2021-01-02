@@ -87,7 +87,7 @@ rst -> D10
 #define OLEDI2CADDRESS 0X3C  // SSD1306_64X48   SSD1327_128X128
 //#define OLEDI2CADDRESS 63
 
-#define SENSORS_LEN 1
+#define SENSORS_LEN 2
 #define LENVALUES 3
 
 #include <Arduino.h>
@@ -546,6 +546,35 @@ protected:
 
 	  }
 
+	  if ((Message.tid == 0) && strcmp(Message.type,"DW1")==0 && (Message.ind == 0)){
+	    u8g2.setCursor(0, 12); 
+	    u8g2.print("d:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 0, 64, 12);
+	    u8g2.setDrawColor(1);
+	    u8g2.setCursor(20, 12); 
+	    if (Message.value == 0xFFFFFFFF){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(Message.value);	    	    
+	    }
+	  }
+	  
+	  if ((Message.tid == 0) && strcmp(Message.type,"DW1")==0 && (Message.ind == 1)){
+	    u8g2.setCursor(0, 24); 
+	    u8g2.print("f:");
+	    u8g2.setDrawColor(0);
+	    u8g2.drawBox(20, 12, 64, 24);
+	    u8g2.setDrawColor(1);
+	    u8g2.setCursor(20, 24); 
+	    if (Message.value == 0xFFFFFFFF){
+	      u8g2.print("NO data");
+	    }else{
+	      u8g2.print(Message.value);
+	    }
+
+	  }
+	  
 	  u8g2.sendBuffer();
 	  u8g2.setFont(fontNameS);
 	  u8g2.setFontMode(1);
@@ -697,11 +726,15 @@ void setup (void)
   static MutexStandard loggingmutex;  // shared serial for logging
   static MutexStandard sdmutex;       // shared I2C bus
   sensor_t sensors[SENSORS_LEN];      // not static, we lost it after StartScheduler
+  /*
+  strcpy(sensors[0].driver,"I2C");
+  strcpy(sensors[0].type,"DW1");
+  sensors[0].address=34;
   
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"STH");
   sensors[0].address=35;
-  /*
+  */
   strcpy(sensors[0].driver,"I2C");
   strcpy(sensors[0].type,"ADT");
   sensors[0].address=73;
@@ -709,7 +742,7 @@ void setup (void)
   strcpy(sensors[1].driver,"I2C");
   strcpy(sensors[1].type,"HIH");
   sensors[1].address=39;
-  */
+
   // start up the i2c interface
   Wire.begin();
 #if not defined(USEEPAPER)

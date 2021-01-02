@@ -22,6 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "canard.h"
 #include "canard_dsdl.h"
 #include "bxcan.h"
+//#include <bxcan_interrupt.h>
 
 static const uint16_t HeartbeatSubjectID         = 7509U;
 static const uint16_t UltrasoundMessageSubjectID = 1610U;
@@ -360,25 +361,28 @@ void setup(void) {
   static CanardRxSubscription rpc_response_subscription;
   (void)canardRxSubscribe(&canard,
 			  CanardTransferKindResponse,
-			  RegisterAccessServiceID,  
-			  10,                  
+			  RegisterAccessServiceID,
+			  10,
 			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
 			  &rpc_response_subscription);
 
   next = millis() + 1000;
   nextrpc = millis() + 2500;
+
+  //bxCANattachInterrupt(processReceived);
+
 }
 
 // The main loop: publish messages and process service requests.
 void loop(void) {  
   if (next <= millis()) {
-    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     /*
     Serial2.print("It's time to send ");
     Serial2.print(millis());
     Serial2.print(":");
     Serial2.println(next);
     */
+    digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     publishUltrasoundMessage(&canard);
     publishHeartbeat(&canard, millis());
     next = next + 1000;
@@ -400,5 +404,5 @@ void loop(void) {
   
   sendQueued();
   processReceived();
-  
+  sendQueued();
 }
