@@ -97,7 +97,7 @@ void loop()
       Log.error("%s %s : skipped", sensors[i].driver,sensors[i].type);      
     }else{      
       size_t lenvalues=2;
-      long int values[lenvalues];
+      uint32_t values[lenvalues];
       for (uint8_t ii = 0; ii < lenvalues; ii++) {
 	values[ii]=0XFFFFFFFF;
       }
