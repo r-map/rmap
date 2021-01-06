@@ -229,7 +229,7 @@ ScreenManager:
 
         GridLayout:
 
-            orientation: 'vertical'
+            orientation: 'lr-tb'
             cols: 1
 
             Toolbar:
@@ -398,7 +398,7 @@ ScreenManager:
 
 
         GridLayout:
-            orientation: 'vertical'
+            orientation: 'lr-tb'
             cols: 1
             row_force_default: True
             row_default_height: "40dp"
@@ -485,7 +485,7 @@ ScreenManager:
 
 
         GridLayout:
-            orientation: 'vertical'
+            orientation: 'lr-tb'
             cols: 1
             #row_force_default: True
             #row_default_height: '40dp'
@@ -572,7 +572,7 @@ ScreenManager:
                             text: app.str_Manual_measurements
 
                             GridLayout:
-                                orientation: 'vertical'
+                                orientation: 'lr-tb'
                                 cols: 1
                                 row_force_default: True
                                 row_default_height: '40dp'
@@ -614,7 +614,7 @@ ScreenManager:
                 TabbedPanelItem:
                     text: app.str_Air_Quality
                     GridLayout:
-                        orientation: 'vertical'
+                        orientation: 'lr-tb'
                         cols: 1
                         row_force_default: True
                         row_default_height: '40dp'
@@ -625,7 +625,7 @@ ScreenManager:
                 TabbedPanelItem:
                     text: app.str_Water_Quality
                     GridLayout:
-                        orientation: 'vertical'
+                        orientation: 'lr-tb'
                         cols: 1
                         row_force_default: True
                         row_default_height: '40dp'
@@ -634,7 +634,7 @@ ScreenManager:
                             text: app.str_Water_quality_tab_content_area
 
                     #GridLayout:
-                    #    orientation: 'vertical'
+                    #    orientation: 'lr-tb'
                     #    cols: 1
                     #    row_force_default: True
                     #    row_default_height: '40dp'
@@ -659,7 +659,7 @@ ScreenManager:
 
 
         GridLayout:
-            orientation: 'vertical'
+            orientation: 'lr-tb'
             cols: 1
             #row_force_default: True
             canvas:
@@ -778,7 +778,7 @@ ScreenManager:
                 size: self.size
 
         GridLayout:
-            orientation: 'vertical'
+            orientation: 'lr-tb'
             cols: 1
 
             Toolbar:
