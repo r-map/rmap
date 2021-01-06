@@ -66,7 +66,11 @@ class plyergps():
             print('GPS not implemented on this platform')
             self.status="GPS not implemented in this platform"
             return 1
-
+        
+        except ConnectionRefusedError:
+            print('GPS not respond')
+            self.status="GPS not implemented in this platform"
+            return 1
 
     def stop(self):
         ''' stop use of GPS'''
