@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name microduino_stm32-eagle-import)(type Legacy)(uri ${KIPRJMOD}/microduino_stm32-eagle-import.lib)(options "")(descr ""))
+)

@@ -1,0 +1,1113 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr User 12096 8273
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+Wire Wire Line
+	1100 5800 1100 5900
+Wire Wire Line
+	1100 5900 1100 6000
+Wire Wire Line
+	1100 6000 1100 6100
+Wire Wire Line
+	1100 6100 1100 6200
+Wire Wire Line
+	1100 6200 1100 6300
+Wire Wire Line
+	1100 6300 1100 6400
+Wire Wire Line
+	1100 6400 1100 6500
+Wire Wire Line
+	1100 6500 1100 6600
+Wire Wire Line
+	1100 6600 1100 6700
+Wire Wire Line
+	1100 6700 1100 7000
+Wire Wire Line
+	1100 7000 1600 7000
+Wire Wire Line
+	1600 7000 2100 7000
+Wire Wire Line
+	2100 7000 2100 6700
+Wire Wire Line
+	1600 7100 1600 7000
+Connection ~ 1100 5900
+Connection ~ 1100 6000
+Connection ~ 1100 6100
+Connection ~ 1100 6200
+Connection ~ 1100 6300
+Connection ~ 1100 6400
+Connection ~ 1100 6500
+Connection ~ 1100 6600
+Connection ~ 1100 6700
+Connection ~ 1600 7000
+Text Label 1100 5800 0    10   ~ 0
+GND
+Wire Wire Line
+	8600 3900 8600 4000
+Text Label 8600 3900 0    10   ~ 0
+GND
+Text Label 4200 4400 0    10   ~ 0
+GND
+Wire Wire Line
+	1600 2400 1400 2400
+Text Label 1600 2400 0    10   ~ 0
+GND
+Wire Wire Line
+	4400 4400 4400 4500
+Wire Wire Line
+	4400 4500 4500 4500
+Wire Wire Line
+	4500 4500 4600 4500
+Wire Wire Line
+	4600 4500 4600 4400
+Wire Wire Line
+	4500 4400 4500 4500
+Wire Wire Line
+	4600 4500 4600 4600
+Connection ~ 4600 4500
+Connection ~ 4500 4500
+Text Label 4400 4400 0    10   ~ 0
+GND
+Wire Wire Line
+	5200 1200 5200 1000
+Wire Wire Line
+	5200 1000 5000 1000
+Text Label 5200 1200 0    10   ~ 0
+GND
+Text Label 7900 2000 0    10   ~ 0
+GND
+Wire Wire Line
+	1600 3300 1400 3300
+Wire Wire Line
+	1400 3300 1400 3600
+Wire Wire Line
+	2000 3600 1600 3600
+Wire Wire Line
+	1600 3600 1400 3600
+Connection ~ 1600 3600
+Text Label 1600 3300 0    10   ~ 0
+GND
+Wire Wire Line
+	3100 7200 3200 7200
+Wire Wire Line
+	3200 7200 4600 7200
+Wire Wire Line
+	4600 7200 4600 6900
+Wire Wire Line
+	4600 6900 4500 6900
+Wire Wire Line
+	3300 6900 3200 6900
+Wire Wire Line
+	3200 7200 3200 6900
+Connection ~ 3200 7200
+Text Label 3100 7200 0    10   ~ 0
+GND
+Wire Wire Line
+	2900 3700 2100 3700
+Wire Wire Line
+	2100 3700 2100 3900
+Text Label 2900 3700 0    10   ~ 0
+GND
+Wire Wire Line
+	1400 2000 1200 2000
+Wire Wire Line
+	1400 1800 1200 1800
+Wire Wire Line
+	1200 1800 1200 2000
+Connection ~ 1200 2000
+Text Label 1400 2000 0    10   ~ 0
+GND
+Wire Wire Line
+	8800 3900 8800 4100
+Text Label 8800 4100 1    70   ~ 0
+RST
+Wire Wire Line
+	2000 3300 2200 3300
+Wire Wire Line
+	2200 3300 2200 2800
+Wire Wire Line
+	2200 2800 2200 2600
+Wire Wire Line
+	2200 2600 2900 2600
+Wire Wire Line
+	2000 2800 2200 2800
+Text Label 2400 2600 0    70   ~ 0
+RST
+Connection ~ 2200 2800
+Wire Wire Line
+	6900 6300 7000 6300
+Wire Wire Line
+	7000 6300 7000 6100
+Text Label 6900 6300 0    10   ~ 0
++3V3
+Wire Wire Line
+	8800 1300 8800 1200
+Text Label 8800 1300 0    10   ~ 0
++3V3
+Wire Wire Line
+	1600 2800 1400 2800
+Text Label 1600 2800 0    10   ~ 0
++3V3
+Wire Wire Line
+	7000 1600 7000 1300
+Wire Wire Line
+	7200 1600 7000 1600
+Text Label 7000 1600 0    10   ~ 0
++3V3
+Wire Wire Line
+	4200 1400 4200 1300
+Wire Wire Line
+	4500 900  4500 1000
+Wire Wire Line
+	4700 1000 4500 1000
+Wire Wire Line
+	4400 1400 4400 1300
+Wire Wire Line
+	4400 1300 4500 1300
+Wire Wire Line
+	4500 1300 4600 1300
+Wire Wire Line
+	4600 1300 4600 1400
+Wire Wire Line
+	4500 1400 4500 1300
+Wire Wire Line
+	4500 1000 4500 1300
+Wire Wire Line
+	4200 1300 4400 1300
+Connection ~ 4500 1000
+Connection ~ 4500 1300
+Connection ~ 4400 1300
+Text Label 4200 1400 0    10   ~ 0
++3V3
+Wire Wire Line
+	5200 7100 5100 7100
+Text Label 5200 7100 0    10   ~ 0
++3V3
+Wire Wire Line
+	5200 6500 5100 6500
+Wire Wire Line
+	5100 6500 4500 6500
+Wire Wire Line
+	5100 6700 5100 6500
+Connection ~ 5100 6500
+Text Label 5200 6500 0    10   ~ 0
++3V3
+Wire Wire Line
+	10700 2000 10900 2000
+Text Label 10800 2000 0    70   ~ 0
+A0
+Wire Wire Line
+	10700 2200 10900 2200
+Text Label 10800 2200 0    70   ~ 0
+A1
+Wire Wire Line
+	10900 2400 10700 2400
+Text Label 10800 2400 0    70   ~ 0
+A2
+Wire Wire Line
+	10700 2600 10900 2600
+Text Label 10800 2600 0    70   ~ 0
+A3
+Wire Wire Line
+	10700 3200 10900 3200
+Text Label 10800 3200 0    70   ~ 0
+A6
+Wire Wire Line
+	10700 3400 10900 3400
+Text Label 10800 3400 0    70   ~ 0
+A7
+Wire Wire Line
+	9400 3900 9400 4100
+Text Label 9400 4100 1    70   ~ 0
+D4
+Wire Wire Line
+	6800 3500 7100 3500
+Wire Wire Line
+	7100 3500 7700 3500
+Text Label 6900 3500 0    70   ~ 0
+D4
+Connection ~ 7100 3500
+Wire Wire Line
+	9200 3900 9200 4100
+Text Label 9200 4100 1    70   ~ 0
+D5
+Wire Wire Line
+	7700 3000 6800 3000
+Text Label 6900 3000 0    70   ~ 0
+D5
+Wire Wire Line
+	9000 3900 9000 4100
+Text Label 9000 4100 1    70   ~ 0
+D6
+Wire Wire Line
+	6800 2900 7700 2900
+Text Label 6900 2900 0    70   ~ 0
+D6
+Wire Wire Line
+	9000 1300 9000 1100
+Text Label 9000 1300 1    70   ~ 0
+D7
+Wire Wire Line
+	7700 2800 6800 2800
+Text Label 6900 2800 0    70   ~ 0
+D7
+Wire Wire Line
+	9200 1300 9200 1100
+Text Label 9200 1300 1    70   ~ 0
+D8
+Wire Wire Line
+	6800 2700 7700 2700
+Text Label 6900 2700 0    70   ~ 0
+D8
+Wire Wire Line
+	9400 1300 9400 1100
+Text Label 9400 1300 1    70   ~ 0
+D9
+Wire Wire Line
+	7700 2600 6800 2600
+Text Label 6900 2600 0    70   ~ 0
+D9
+Wire Wire Line
+	10700 2800 10900 2800
+Text Label 10800 2800 0    70   ~ 0
+SDA
+Wire Wire Line
+	7700 2300 6800 2300
+Text Label 6900 2300 0    70   ~ 0
+SDA
+Wire Wire Line
+	10700 3000 10900 3000
+Text Label 10800 3000 0    70   ~ 0
+SCL
+Wire Wire Line
+	7700 2400 6800 2400
+Text Label 6900 2400 0    70   ~ 0
+SCL
+Wire Wire Line
+	5700 6300 5500 6300
+Wire Wire Line
+	5500 6300 5500 6150
+Wire Wire Line
+	5700 6600 5500 6600
+Wire Wire Line
+	5500 6600 5500 6300
+Connection ~ 5500 6300
+Text Label 5700 6300 0    10   ~ 0
++5V
+Wire Wire Line
+	8600 1300 8600 1200
+Text Label 8600 1300 0    10   ~ 0
++5V
+Wire Wire Line
+	2700 6100 2700 6300
+Text Label 2700 6100 0    10   ~ 0
++5V
+Wire Wire Line
+	9600 1300 9600 1100
+Text Label 9600 1300 1    70   ~ 0
+D10
+Wire Wire Line
+	9800 1300 9800 1100
+Text Label 9800 1300 1    70   ~ 0
+MOSI
+Wire Wire Line
+	10000 1300 10000 1100
+Text Label 10000 1300 1    70   ~ 0
+MISO
+Wire Wire Line
+	10200 1300 10200 1100
+Text Label 10200 1300 1    70   ~ 0
+SCK
+Wire Wire Line
+	2100 6400 2300 6400
+Wire Wire Line
+	2100 6500 2300 6500
+Wire Wire Line
+	5100 6900 5300 6900
+Wire Wire Line
+	6800 2000 7200 2000
+Text Label 6900 2000 0    70   ~ 0
+DISC
+Wire Wire Line
+	2900 2400 2000 2400
+Wire Wire Line
+	2000 2300 1900 2300
+Wire Wire Line
+	2000 2300 2000 2400
+Text Label 2400 2400 0    70   ~ 0
+OSC_IN
+Wire Wire Line
+	2900 2500 1900 2500
+Text Label 2400 2500 0    70   ~ 0
+OSC_OUT
+Wire Wire Line
+	6800 3100 7700 3100
+Text Label 6900 3100 0    70   ~ 0
+23_USBDP
+Wire Wire Line
+	2700 6500 3400 6500
+Text Label 2800 6500 0    70   ~ 0
+23_USBDP
+Wire Wire Line
+	9800 3900 9800 4100
+Text Label 9800 4100 1    70   ~ 0
+RX3
+Wire Wire Line
+	9600 3900 9600 4100
+Text Label 9600 4100 1    70   ~ 0
+TX3
+Wire Wire Line
+	6800 3200 7700 3200
+Text Label 6900 3200 0    70   ~ 0
+24_USBDM
+Wire Wire Line
+	2700 6400 3400 6400
+Text Label 2800 6400 0    70   ~ 0
+24_USBDM
+Wire Wire Line
+	6800 3300 7700 3300
+Text Label 6900 3300 0    70   ~ 0
+RX1
+Wire Wire Line
+	10200 3900 10200 4100
+Text Label 10200 4100 1    70   ~ 0
+RX1
+Wire Wire Line
+	6800 3400 7700 3400
+Text Label 6900 3400 0    70   ~ 0
+TX1
+Wire Wire Line
+	10000 3900 10000 4100
+Text Label 10000 4100 1    70   ~ 0
+TX1
+Wire Wire Line
+	7700 2200 6800 2200
+Wire Wire Line
+	7700 1600 7700 2100
+Wire Wire Line
+	7700 2100 7700 2200
+Wire Wire Line
+	7700 1600 7900 1600
+Wire Wire Line
+	6800 2100 7700 2100
+Wire Wire Line
+	7700 1600 7600 1600
+Connection ~ 7700 2100
+Text Label 6900 2100 0    70   ~ 0
+32
+Connection ~ 7700 1600
+Wire Wire Line
+	3900 6700 3800 6700
+Wire Wire Line
+	3800 6700 3800 6900
+Wire Wire Line
+	3800 6900 3900 6900
+Wire Wire Line
+	4700 7100 3800 7100
+Wire Wire Line
+	3800 7100 3800 6900
+Wire Wire Line
+	3700 6900 3800 6900
+Connection ~ 3800 6900
+Wire Wire Line
+	3800 6500 3900 6500
+Wire Wire Line
+	4700 6700 4500 6700
+Wire Wire Line
+	4700 6700 4700 6900
+Connection ~ 4700 6700
+Wire Wire Line
+	7100 3900 7100 4000
+Wire Wire Line
+	2900 2200 2200 2200
+Wire Wire Line
+	2200 2200 2200 1800
+Wire Wire Line
+	2200 1800 1900 1800
+Wire Wire Line
+	1900 1800 1700 1800
+Connection ~ 1900 1800
+Wire Wire Line
+	2900 2300 2100 2300
+Wire Wire Line
+	2100 2300 2100 2000
+Wire Wire Line
+	2100 2000 1900 2000
+Wire Wire Line
+	1900 2000 1700 2000
+Connection ~ 1900 2000
+$Comp
+L microduino_stm32-eagle-import:GND #GND012
+U 1 1 A5F18D96
+P 6300 7300
+F 0 "#GND012" H 6300 7300 50  0001 C CNN
+F 1 "GND" H 6200 7200 59  0000 L BNN
+F 2 "" H 6300 7300 50  0001 C CNN
+F 3 "" H 6300 7300 50  0001 C CNN
+	1    6300 7300
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+01
+U 1 1 BCDF72C5
+P 7000 6100
+F 0 "#P+01" H 7000 6100 50  0001 C CNN
+F 1 "+3V3" H 6960 6240 59  0000 L BNN
+F 2 "" H 7000 6100 50  0001 C CNN
+F 3 "" H 7000 6100 50  0001 C CNN
+	1    7000 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+5V #U$03
+U 1 1 54307519
+P 5500 6100
+F 0 "#U$03" H 5500 6100 50  0001 C CNN
+F 1 "+5V" H 5460 6240 59  0000 L BNN
+F 2 "" H 5500 6100 50  0001 C CNN
+F 3 "" H 5500 6100 50  0001 C CNN
+	1    5500 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:MICRO_USB USB1
+U 1 1 1CDC2E20
+P 1600 6500
+F 0 "USB1" H 1300 7300 70  0000 L BNN
+F 1 "MICRO_USB" H 1300 6100 70  0000 L BNN
+F 2 "Connector_USB:USB_Micro-B_GCT_USB3076-30-A" H 1600 6500 50  0001 C CNN
+F 3 "" H 1600 6500 50  0001 C CNN
+	1    1600 6500
+	-1   0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #GND01
+U 1 1 DB8695AC
+P 1600 7200
+F 0 "#GND01" H 1600 7200 50  0001 C CNN
+F 1 "GND" H 1500 7100 59  0000 L BNN
+F 2 "" H 1600 7200 50  0001 C CNN
+F 3 "" H 1600 7200 50  0001 C CNN
+	1    1600 7200
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:MICRDUINO-PIN_NORMAL U$4
+U 1 1 84E86E02
+P 9400 2600
+F 0 "U$4" H 9400 2600 50  0001 C CNN
+F 1 "MICRDUINO-PIN_NORMAL" H 9400 2600 50  0001 C CNN
+F 2 "Microduino:microduino" H 9400 2600 50  0001 C CNN
+F 3 "" H 9400 2600 50  0001 C CNN
+	1    9400 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+02
+U 1 1 339DE9D3
+P 8800 1200
+F 0 "#P+02" H 8800 1200 50  0001 C CNN
+F 1 "+3V3" H 8760 1340 59  0000 L BNN
+F 2 "" H 8800 1200 50  0001 C CNN
+F 3 "" H 8800 1200 50  0001 C CNN
+	1    8800 1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+5V #U$05
+U 1 1 6A689A17
+P 8600 1200
+F 0 "#U$05" H 8600 1200 50  0001 C CNN
+F 1 "+5V" H 8560 1340 59  0000 L BNN
+F 2 "" H 8600 1200 50  0001 C CNN
+F 3 "" H 8600 1200 50  0001 C CNN
+	1    8600 1200
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #GND02
+U 1 1 13A376EC
+P 8600 4100
+F 0 "#GND02" H 8600 4100 50  0001 C CNN
+F 1 "GND" H 8500 4000 59  0000 L BNN
+F 2 "" H 8600 4100 50  0001 C CNN
+F 3 "" H 8600 4100 50  0001 C CNN
+	1    8600 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R8
+U 1 1 640E8202
+P 2500 6400
+F 0 "R8" H 2810 6419 59  0000 R BNN
+F 1 "22" H 2370 6420 59  0000 R BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 2500 6400 50  0001 C CNN
+F 3 "" H 2500 6400 50  0001 C CNN
+	1    2500 6400
+	-1   0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R9
+U 1 1 783C991F
+P 2500 6500
+F 0 "R9" H 2810 6519 59  0000 R BNN
+F 1 "22" H 2370 6520 59  0000 R BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 2500 6500 50  0001 C CNN
+F 3 "" H 2500 6500 50  0001 C CNN
+	1    2500 6500
+	-1   0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+04
+U 1 1 A7FDB2D8
+P 4500 900
+F 0 "#P+04" H 4500 900 50  0001 C CNN
+F 1 "+3V3" H 4460 1040 59  0000 L BNN
+F 2 "" H 4500 900 50  0001 C CNN
+F 3 "" H 4500 900 50  0001 C CNN
+	1    4500 900 
+	-1   0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+05
+U 1 1 33ACA7EC
+P 1400 2800
+F 0 "#P+05" H 1400 2800 50  0001 C CNN
+F 1 "+3V3" H 1460 2840 59  0000 L BNN
+F 2 "" H 1400 2800 50  0001 C CNN
+F 3 "" H 1400 2800 50  0001 C CNN
+	1    1400 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+07
+U 1 1 BC2DCEA9
+P 7000 1300
+F 0 "#P+07" H 7000 1300 50  0001 C CNN
+F 1 "+3V3" H 6960 1440 59  0000 L BNN
+F 2 "" H 7000 1300 50  0001 C CNN
+F 3 "" H 7000 1300 50  0001 C CNN
+	1    7000 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:CAP0603-CAP C1
+U 1 1 D1512118
+P 4900 1000
+F 0 "C1" H 4960 1115 59  0000 L BNN
+F 1 "10uF" H 4960 915 59  0000 L BNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 4900 1000 50  0001 C CNN
+F 3 "" H 4900 1000 50  0001 C CNN
+	1    4900 1000
+	0    -1   1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY04
+U 1 1 34708E8F
+P 1600 3700
+F 0 "#SUPPLY04" H 1600 3700 50  0001 C CNN
+F 1 "GND" H 1500 3600 59  0000 L BNN
+F 2 "" H 1600 3700 50  0001 C CNN
+F 3 "" H 1600 3700 50  0001 C CNN
+	1    1600 3700
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY06
+U 1 1 9B982C7F
+P 1400 2500
+F 0 "#SUPPLY06" H 1400 2500 50  0001 C CNN
+F 1 "GND" H 1300 2400 59  0000 L BNN
+F 2 "" H 1400 2500 50  0001 C CNN
+F 3 "" H 1400 2500 50  0001 C CNN
+	1    1400 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY014
+U 1 1 DDFC6947
+P 5200 1300
+F 0 "#SUPPLY014" H 5200 1300 50  0001 C CNN
+F 1 "GND" H 5100 1200 59  0000 L BNN
+F 2 "" H 5200 1300 50  0001 C CNN
+F 3 "" H 5200 1300 50  0001 C CNN
+	1    5200 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY020
+U 1 1 48D16C92
+P 4600 4700
+F 0 "#SUPPLY020" H 4600 4700 50  0001 C CNN
+F 1 "GND" H 4500 4600 59  0000 L BNN
+F 2 "" H 4600 4700 50  0001 C CNN
+F 3 "" H 4600 4700 50  0001 C CNN
+	1    4600 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R4
+U 1 1 98DC0D12
+P 7900 1800
+F 0 "R4" H 7750 1859 59  0000 L BNN
+F 1 "10k" H 7750 1670 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 7900 1800 50  0001 C CNN
+F 3 "" H 7900 1800 50  0001 C CNN
+	1    7900 1800
+	0    -1   -1   0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R10
+U 1 1 0A067037
+P 1800 2800
+F 0 "R10" H 1650 2859 59  0000 L BNN
+F 1 "10k" H 1650 2670 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 1800 2800 50  0001 C CNN
+F 3 "" H 1800 2800 50  0001 C CNN
+	1    1800 2800
+	-1   0    0    1   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0805-RES F1
+U 1 1 273AA80F
+P 2500 6300
+F 0 "F1" H 2350 6359 59  0000 L BNN
+F 1 "10uF" H 2350 6170 59  0000 L BNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 2500 6300 50  0001 C CNN
+F 3 "" H 2500 6300 50  0001 C CNN
+	1    2500 6300
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+5V #U$01
+U 1 1 BABD3B23
+P 2700 6100
+F 0 "#U$01" H 2700 6100 50  0001 C CNN
+F 1 "+5V" H 2660 6240 59  0000 L BNN
+F 2 "" H 2700 6100 50  0001 C CNN
+F 3 "" H 2700 6100 50  0001 C CNN
+	1    2700 6100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:KEY-TES-018 KEY1
+U 1 1 DF229B70
+P 1800 3300
+F 0 "KEY1" H 1600 3500 59  0000 L BNN
+F 1 "KEY-TES-018" H 1800 3300 50  0001 C CNN
+F 2 "Button_Switch_SMD:SW_SPST_EVQP7A" H 1800 3300 50  0001 C CNN
+F 3 "" H 1800 3300 50  0001 C CNN
+	1    1800 3300
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R2
+U 1 1 8A7CCFCE
+P 7100 3700
+F 0 "R2" H 6950 3759 59  0000 L BNN
+F 1 "1K" H 6950 3570 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 7100 3700 50  0001 C CNN
+F 3 "" H 7100 3700 50  0001 C CNN
+	1    7100 3700
+	0    -1   -1   0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:LED0805 LED1
+U 1 1 BF7B7EFB
+P 7100 4100
+F 0 "LED1" V 7240 3920 59  0000 L BNN
+F 1 "BLUE" V 7325 3920 59  0000 L BNN
+F 2 "LED_SMD:LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder" H 7100 4100 50  0001 C CNN
+F 3 "" H 7100 4100 50  0001 C CNN
+	1    7100 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY02
+U 1 1 6A69D9B0
+P 7100 4400
+F 0 "#SUPPLY02" H 7100 4400 50  0001 C CNN
+F 1 "GND" H 7000 4300 59  0000 L BNN
+F 2 "" H 7100 4400 50  0001 C CNN
+F 3 "" H 7100 4400 50  0001 C CNN
+	1    7100 4400
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY03
+U 1 1 8CEF224C
+P 4200 4700
+F 0 "#SUPPLY03" H 4200 4700 50  0001 C CNN
+F 1 "GND" H 4100 4600 59  0000 L BNN
+F 2 "" H 4200 4700 50  0001 C CNN
+F 3 "" H 4200 4700 50  0001 C CNN
+	1    4200 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:BUTTON-KMR241GLFS BUT1
+U 1 1 5118CCB8
+P 7400 1600
+F 0 "BUT1" H 7300 1850 59  0000 L BNN
+F 1 "KMR211GLFS" H 7300 1350 59  0001 L BNN
+F 2 "Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2" H 7400 1600 50  0001 C CNN
+F 3 "" H 7400 1600 50  0001 C CNN
+	1    7400 1600
+	-1   0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESONATORSMD Y1
+U 1 1 D3EE6C78
+P 1900 2400
+F 0 "Y1" V 1760 2400 59  0000 L BNN
+F 1 "8M" V 2100 2400 59  0000 L BNN
+F 2 "Crystal:Resonator_SMD_muRata_CSTxExxV-3Pin_3.0x1.1mm_HandSoldering" H 1900 2400 50  0001 C CNN
+F 3 "" H 1900 2400 50  0001 C CNN
+	1    1900 2400
+	0    1    1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:NPN-2P U$2
+U 1 1 A8B04D1A
+P 4200 6700
+F 0 "U$2" H 4200 6700 50  0001 C CNN
+F 1 "NPN-2P" H 4200 6700 50  0001 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-6_Handsoldering" H 4200 6700 50  0001 C CNN
+F 3 "" H 4200 6700 50  0001 C CNN
+	1    4200 6700
+	0    1    1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #GND04
+U 1 1 D896219B
+P 3000 7200
+F 0 "#GND04" H 3000 7200 50  0001 C CNN
+F 1 "GND" H 2900 7100 59  0000 L BNN
+F 2 "" H 3000 7200 50  0001 C CNN
+F 3 "" H 3000 7200 50  0001 C CNN
+	1    3000 7200
+	0    1    1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R1
+U 1 1 B8D477BD
+P 3600 6500
+F 0 "R1" H 3450 6559 59  0000 L BNN
+F 1 "1.5k" H 3450 6370 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 3600 6500 50  0001 C CNN
+F 3 "" H 3600 6500 50  0001 C CNN
+	1    3600 6500
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+03
+U 1 1 00F05DF6
+P 5200 6500
+F 0 "#P+03" H 5200 6500 50  0001 C CNN
+F 1 "+3V3" H 5160 6640 59  0000 L BNN
+F 2 "" H 5200 6500 50  0001 C CNN
+F 3 "" H 5200 6500 50  0001 C CNN
+	1    5200 6500
+	0    1    1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R5
+U 1 1 F5E59E3A
+P 4900 6900
+F 0 "R5" H 4750 6959 59  0000 L BNN
+F 1 "1k" H 4750 6770 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 4900 6900 50  0001 C CNN
+F 3 "" H 4900 6900 50  0001 C CNN
+	1    4900 6900
+	-1   0    0    1   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R6
+U 1 1 A785B92B
+P 4900 6700
+F 0 "R6" H 4750 6759 59  0000 L BNN
+F 1 "47k" H 4750 6570 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 4900 6700 50  0001 C CNN
+F 3 "" H 4900 6700 50  0001 C CNN
+	1    4900 6700
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R3
+U 1 1 8B2EC5A7
+P 3500 6900
+F 0 "R3" H 3350 6959 59  0000 L BNN
+F 1 "36k" H 3350 6770 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 3500 6900 50  0001 C CNN
+F 3 "" H 3500 6900 50  0001 C CNN
+	1    3500 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R7
+U 1 1 6C012852
+P 4900 7100
+F 0 "R7" H 4750 7159 59  0000 L BNN
+F 1 "10k" H 4750 6970 59  0000 L BNN
+F 2 "Resistor_SMD:R_1206_3216Metric_Pad1.30x1.75mm_HandSolder" H 4900 7100 50  0001 C CNN
+F 3 "" H 4900 7100 50  0001 C CNN
+	1    4900 7100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY07
+U 1 1 2936FF7D
+P 2100 4000
+F 0 "#SUPPLY07" H 2100 4000 50  0001 C CNN
+F 1 "GND" H 2000 3900 59  0000 L BNN
+F 2 "" H 2100 4000 50  0001 C CNN
+F 3 "" H 2100 4000 50  0001 C CNN
+	1    2100 4000
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY08
+U 1 1 95D4D52C
+P 1200 2100
+F 0 "#SUPPLY08" H 1200 2100 50  0001 C CNN
+F 1 "GND" H 1100 2000 59  0000 L BNN
+F 2 "" H 1200 2100 50  0001 C CNN
+F 3 "" H 1200 2100 50  0001 C CNN
+	1    1200 2100
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:DINA4_L #FRAME2
+U 1 1 9845AFB0
+P 900 7400
+F 0 "#FRAME2" H 900 7400 50  0001 C CNN
+F 1 "20131011" H 900 7400 50  0001 C CNN
+F 2 "" H 900 7400 50  0001 C CNN
+F 3 "" H 900 7400 50  0001 C CNN
+	1    900  7400
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:DINA4_L #FRAME2
+U 2 1 9845AFBC
+P 7300 7400
+F 0 "#FRAME2" H 7300 7400 50  0001 C CNN
+F 1 "20131011" H 7300 7400 50  0001 C CNN
+F 2 "" H 7300 7400 50  0001 C CNN
+F 3 "" H 7300 7400 50  0001 C CNN
+	2    7300 7400
+	1    0    0    -1  
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+06
+U 1 1 B0F39303
+P 5200 7100
+F 0 "#P+06" H 5200 7100 50  0001 C CNN
+F 1 "+3V3" H 5160 7240 59  0000 L BNN
+F 2 "" H 5200 7100 50  0001 C CNN
+F 3 "" H 5200 7100 50  0001 C CNN
+	1    5200 7100
+	0    1    1    0   
+$EndComp
+Text Notes 6900 2200 0    59   ~ 0
+BOOT0
+Text Notes 7400 6200 0    85   ~ 0
+Microduino Studio
+Text Notes 7820 7350 0    100  ~ 0
+2014/07/06
+NoConn ~ 2100 6600
+$Comp
+L microduino_stm32-eagle-import:LP2985 IC2
+U 1 1 541775CA
+P 6300 6500
+F 0 "IC2" H 6300 6500 50  0001 C CNN
+F 1 "LP2985" H 6300 6500 50  0001 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-5_HandSoldering" H 6300 6500 50  0001 C CNN
+F 3 "" H 6300 6500 50  0001 C CNN
+	1    6300 6500
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6300 7200 6300 7100
+$Comp
+L microduino_stm32-eagle-import:STM32F103CB IC1
+U 1 1 1D3959DB
+P 4800 2900
+F 0 "IC1" H 6300 1400 59  0000 L BNN
+F 1 "STM32F103CBT6" H 6600 4400 59  0000 R TNN
+F 2 "Package_QFP:LQFP-48_7x7mm_P0.5mm" H 4800 2900 50  0001 C CNN
+F 3 "" H 4800 2900 50  0001 C CNN
+	1    4800 2900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2300 6300 2100 6300
+Connection ~ 2300 6300
+Wire Wire Line
+	2300 6200 2300 6300
+$Comp
+L microduino_stm32-eagle-import:+5V_2 #SUPPLY01
+U 1 1 A5FEF186
+P 2300 6100
+F 0 "#SUPPLY01" H 2300 6100 50  0001 C CNN
+F 1 "USB_5V" H 2150 6225 59  0000 L BNN
+F 2 "" H 2300 6100 50  0001 C CNN
+F 3 "" H 2300 6100 50  0001 C CNN
+	1    2300 6100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7900 2000 7900 2100
+$Comp
+L microduino_stm32-eagle-import:GND #SUPPLY05
+U 1 1 A4B40D53
+P 7900 2200
+F 0 "#SUPPLY05" H 7900 2200 50  0001 C CNN
+F 1 "GND" H 7800 2100 59  0000 L BNN
+F 2 "" H 7900 2200 50  0001 C CNN
+F 3 "" H 7900 2200 50  0001 C CNN
+	1    7900 2200
+	1    0    0    -1  
+$EndComp
+Text Label 2400 3900 0    70   ~ 0
+RX3
+Text Label 2400 3800 0    70   ~ 0
+TX3
+Wire Wire Line
+	2900 3900 2300 3900
+Wire Wire Line
+	2900 3800 2300 3800
+Wire Wire Line
+	2900 3600 2300 3600
+Wire Wire Line
+	2300 3500 2900 3500
+Wire Wire Line
+	2300 3400 2900 3400
+Text Label 2400 3600 0    70   ~ 0
+A7
+Text Label 2400 3500 0    70   ~ 0
+A6
+Text Label 2400 3400 0    70   ~ 0
+MOSI
+Text Label 2400 2700 0    70   ~ 0
+A0
+Text Label 2400 2800 0    70   ~ 0
+A1
+Text Label 2400 2900 0    70   ~ 0
+A2
+Text Label 2400 3000 0    70   ~ 0
+A3
+Text Label 2400 3100 0    70   ~ 0
+D10
+Text Label 2400 3200 0    70   ~ 0
+SCK
+Text Label 2400 3300 0    70   ~ 0
+MISO
+Wire Wire Line
+	2300 3300 2900 3300
+Wire Wire Line
+	2300 3200 2900 3200
+Wire Wire Line
+	2300 3100 2900 3100
+Wire Wire Line
+	2300 3000 2900 3000
+Wire Wire Line
+	2300 2900 2900 2900
+Wire Wire Line
+	2300 2800 2900 2800
+Wire Wire Line
+	2300 2700 2900 2700
+Text Label 5200 6900 0    70   ~ 0
+DISC
+Text Label 2500 2000 0    70   ~ 0
+VBAT
+NoConn ~ 2900 2100
+NoConn ~ 7200 1700
+NoConn ~ 7600 1700
+NoConn ~ 6800 2500
+NoConn ~ 6300 5900
+NoConn ~ 6800 3600
+NoConn ~ 6800 3700
+NoConn ~ 6800 3800
+NoConn ~ 6800 3900
+Text Label 10800 1800 0    70   ~ 0
+N$13
+Wire Wire Line
+	10800 1800 10700 1800
+Wire Wire Line
+	2500 2000 2900 2000
+Wire Wire Line
+	4200 4400 4200 4600
+$Comp
+L power:PWR_FLAG #FLG0101
+U 1 1 60185E5E
+P 5500 6150
+F 0 "#FLG0101" H 5500 6225 50  0001 C CNN
+F 1 "PWR_FLAG" V 5500 6277 50  0000 L CNN
+F 2 "" H 5500 6150 50  0001 C CNN
+F 3 "~" H 5500 6150 50  0001 C CNN
+	1    5500 6150
+	0    -1   -1   0   
+$EndComp
+Connection ~ 5500 6150
+Wire Wire Line
+	5500 6150 5500 6100
+$Comp
+L power:PWR_FLAG #FLG0102
+U 1 1 60187B11
+P 2150 6200
+F 0 "#FLG0102" H 2150 6275 50  0001 C CNN
+F 1 "PWR_FLAG" H 2150 6373 50  0000 C CNN
+F 2 "" H 2150 6200 50  0001 C CNN
+F 3 "~" H 2150 6200 50  0001 C CNN
+	1    2150 6200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2150 6200 2300 6200
+Connection ~ 2300 6200
+$Comp
+L microduino_stm32-eagle-import:CRYSTAL-32.768K-3215 Y2
+U 1 1 CF370CD0
+P 1900 1900
+F 0 "Y2" V 1620 1900 59  0000 R TNN
+F 1 "32.768K" V 1620 2330 59  0000 R TNN
+F 2 "Crystal:Crystal_SMD_3215-2Pin_3.2x1.5mm" H 1900 1900 50  0001 C CNN
+F 3 "" H 1900 1900 50  0001 C CNN
+	1    1900 1900
+	0    1    1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:CAP0402-CAP C7
+U 1 1 BFD5E5E7
+P 1600 1800
+F 0 "C7" V 1425 1775 59  0000 R TNN
+F 1 "10pF" V 1425 1825 59  0000 L TNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 1600 1800 50  0001 C CNN
+F 3 "" H 1600 1800 50  0001 C CNN
+	1    1600 1800
+	0    -1   1    0   
+$EndComp
+$Comp
+L microduino_stm32-eagle-import:CAP0402-CAP C6
+U 1 1 F851F330
+P 1600 2000
+F 0 "C6" V 1725 1975 59  0000 R TNN
+F 1 "10pF" V 1725 2025 59  0000 L TNN
+F 2 "Capacitor_SMD:C_1206_3216Metric_Pad1.33x1.80mm_HandSolder" H 1600 2000 50  0001 C CNN
+F 3 "" H 1600 2000 50  0001 C CNN
+	1    1600 2000
+	0    -1   1    0   
+$EndComp
+$EndSCHEMATC
