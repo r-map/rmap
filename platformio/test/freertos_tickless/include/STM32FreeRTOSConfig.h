@@ -139,7 +139,7 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
  * Be warned that (at the time of writing) the current newlib design implements
  * a system-wide malloc() that must be provided with locks.
  */
-#define configUSE_NEWLIB_REENTRANT        0
+#define configUSE_NEWLIB_REENTRANT        1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES           0
@@ -228,8 +228,8 @@ header file. */
 allow the application writer to add additional code before and after the MCU is
 placed into the low power state respectively. */
 #if configUSE_TICKLESS_IDLE == 2 
-//#define configPRE_SLEEP_PROCESSING( x )                        PreSleepProcessing( x )
-//#define configPOST_SLEEP_PROCESSING( x )                       PostSleepProcessing( x )
+#define configPRE_SLEEP_PROCESSING( x )                        PreSleepProcessing( x )
+#define configPOST_SLEEP_PROCESSING( x )                       PostSleepProcessing( x )
 #endif /* configUSE_TICKLESS_IDLE == 1 */
 
 #endif /* FREERTOS_CONFIG_H */
