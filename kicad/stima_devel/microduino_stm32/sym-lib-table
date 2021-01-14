@@ -1,3 +1,4 @@
 (sym_lib_table
   (lib (name microduino_stm32-eagle-import)(type Legacy)(uri ${KIPRJMOD}/microduino_stm32-eagle-import.lib)(options "")(descr ""))
+  (lib (name microduino)(type Legacy)(uri /home/kicad/Documenti/rmap/kicad/stima_v2/lib/microduino.lib)(options "")(descr ""))
 )
