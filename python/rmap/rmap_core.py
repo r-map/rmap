@@ -1811,7 +1811,7 @@ class amqpConsumerProducer(threading.Thread):
         #compute list of tags
         if (multiple):
             if delivery_tag == 0:
-                num_ack = len(self._deliveries)
+                num_acks = len(self._deliveries)
                 tags=self._deliveries.keys()
             else:
                 num_acks = delivery_tag - self._last_delivered_msg_tag
