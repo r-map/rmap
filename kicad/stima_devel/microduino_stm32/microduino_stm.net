@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source /home/kicad/Documenti/rmap/kicad/stima_devel/microduino_stm32/microduino_stm.sch)
-    (date "Fri 15 Jan 2021 18:37:37 CET")
+    (date "Sat 16 Jan 2021 18:10:29 CET")
     (tool "Eeschema 5.1.9-1.fc33")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -59,7 +59,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 60006A7E))
     (comp (ref Y2)
-      (value 32.768KHz)
+      (value "32.768KHz cl 12.5pF")
       (footprint Crystal:Crystal_SMD_EuroQuartz_EQ161-2Pin_3.2x1.5mm)
       (datasheet ~)
       (libsource (lib Device) (part Crystal) (description "Two pin crystal"))
@@ -67,7 +67,7 @@
       (tstamp 601DB760))
     (comp (ref SW1)
       (value SW_Push)
-      (footprint Button_Switch_SMD:SW_SPST_B3U-3000P)
+      (footprint Button_Switch_SMD:SW_Push_1P1T_NO_CK_KMR2)
       (datasheet ~)
       (libsource (lib Switch) (part SW_Push) (description "Push button switch, generic, two pins"))
       (sheetpath (names /) (tstamps /))
