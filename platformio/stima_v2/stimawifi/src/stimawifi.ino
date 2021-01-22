@@ -86,7 +86,7 @@ SSL support: Basic SSL"
 #error "unknown platform"
 #endif
 
-#define HTTP_PORT 80
+#define STIMAHTTP_PORT 80
 #define WS_PORT 81
 
 // set the frequency
@@ -129,7 +129,7 @@ const int update_port = 80;
 
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
-ESP8266WebServer webserver(HTTP_PORT);
+ESP8266WebServer webserver(STIMAHTTP_PORT);
 //WebSocketsServer webSocket(WS_PORT);
 //EspHtmlTemplateProcessor templateProcessor(&server);
 
@@ -1212,9 +1212,14 @@ void setup() {
   //sets timeout until configuration portal gets turned off
   //useful to make it all retry or go to sleep
   //in seconds
-  wifiManager.setTimeout(180);
+  wifiManager.setConfigPortalTimeout(180);
 
-
+  // USE THIS OPTIONS WITH WIFIMANAGER VERSION 2
+  //if false, timeout captive portal even if a STA client connected to softAP (false), suggest disabling if captiveportal is open
+  wifiManager.setAPClientCheck(false);
+  //if true, reset timeout when webclient connects (true), suggest disabling if captiveportal is open    
+  wifiManager.setWebPortalClientCheck(false);
+    
   if (oledpresent) {
       u8g2.clearBuffer();
       u8g2.setCursor(0, 10); 
@@ -1366,7 +1371,7 @@ void setup() {
   Alarm.timerRepeat(3600*24,firmware_upgrade);          // every day  
 
   // Add service to MDNS-SD
-  MDNS.addService("http", "tcp", HTTP_PORT);
+  MDNS.addService("http", "tcp", STIMAHTTP_PORT);
 
 }
 
