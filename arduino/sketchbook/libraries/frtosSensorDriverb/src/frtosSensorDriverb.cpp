@@ -23,20 +23,20 @@ int frtosSensorDriver::setup(const char* mydriver, const int myaddress, const in
   return _sd->setup(mydriver, myaddress, mynode, mytype);
 }
 
-int frtosSensorDriver::prepare(unsigned long& waittime)
+int frtosSensorDriver::prepare(uint32_t& waittime)
 {
   LockGuard guard(_mutex);
   return _sd->prepare(waittime);
 }
 
-int frtosSensorDriver::get(long values[],size_t lenvalues)
+int frtosSensorDriver::get(uint32_t values[],size_t lenvalues)
 {
   LockGuard guard(_mutex);
   return _sd->get(values,lenvalues);
 }
 
 #if defined (USEGETDATA)
-int frtosSensorDriver::getdata(unsigned long& data,unsigned short& width)
+int frtosSensorDriver::getdata(uint32_t& data,uint16_t& width)
 {
   LockGuard guard(_mutex);
   return _sd->getdata(data,width);

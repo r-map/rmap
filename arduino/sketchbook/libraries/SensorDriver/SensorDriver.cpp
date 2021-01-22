@@ -1172,7 +1172,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
       else _is_success = false;
 
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
           _is_success = false;
         }
@@ -1464,7 +1464,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     else _is_success = false;
 
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
           _is_success = false;
         }
@@ -1567,7 +1567,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       else _is_success = false;
 
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
           _is_success = false;
         }
@@ -2334,7 +2334,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
     case READ_VALUE:
 
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
           _is_success = false;
         }
