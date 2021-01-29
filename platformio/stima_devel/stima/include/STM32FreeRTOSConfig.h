@@ -86,8 +86,10 @@ extern uint32_t SystemCoreClock;
  */
 #define configUSE_PORT_OPTIMISED_TASK_SELECTION 0
 
-#define configMINIMAL_STACK_SIZE          ((uint16_t)128)
-#define configTOTAL_HEAP_SIZE             ((size_t)(15 * 1024))
+//#define configMINIMAL_STACK_SIZE          ((uint16_t)128)
+//#define configTOTAL_HEAP_SIZE             ((size_t)(15 * 1024))
+#define configMINIMAL_STACK_SIZE          (128)
+#define configTOTAL_HEAP_SIZE             ((15 * 1024))
 
 #else
 extern char _end; /* Defined in the linker script */
@@ -101,10 +103,17 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
  * Use it divided by 8 to set minmimal stack size of a task to 128 by default.
  * End user will have to properly configure those value depending to their needs.
  */
-#define configMINIMAL_STACK_SIZE          ((uint16_t)((uint32_t)&_Min_Stack_Size/8))
+//#define configMINIMAL_STACK_SIZE          ((uint16_t)((uint32_t)&_Min_Stack_Size/8))
+//#define configTOTAL_HEAP_SIZE             ((size_t)(&_estack - _Min_Stack_Size - &_end))
+#define configMINIMAL_STACK_SIZE          (28)
 #define configTOTAL_HEAP_SIZE             ((size_t)(&_estack - _Min_Stack_Size - &_end))
 
 #endif /* configUSE_CMSIS_RTOS_V2 */
+
+
+#define configSUPPORT_DYNAMIC_ALLOCATION    0
+#define configSUPPORT_STATIC_ALLOCATION     1
+
 
 #define configUSE_PREEMPTION              0
 #define configUSE_IDLE_HOOK               1
@@ -134,7 +143,7 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
  * Be warned that (at the time of writing) the current newlib design implements
  * a system-wide malloc() that must be provided with locks.
  */
-#define configUSE_NEWLIB_REENTRANT        0
+#define configUSE_NEWLIB_REENTRANT        1
 
 /* Co-routine definitions. */
 #define configUSE_CO_ROUTINES           0

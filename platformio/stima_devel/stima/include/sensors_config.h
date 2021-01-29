@@ -208,6 +208,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define USE_SENSOR_MMI              (false)
 
 /*!
+\def USE_SENSOR_GWS
+\brief Enable if you want use Gill Windsonic sensor.
+*/
+#define USE_SENSOR_GWS              (false)
+
+/*!
 \def USE_SENSOR_XMI
 \brief Enable if you want use MICS4514 report maximum sensor.
 */

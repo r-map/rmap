@@ -646,11 +646,9 @@ time_t getSystemTime();
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.
-\param time_ms pointer to a variable to save the last instant you entered power down.
-\param debouncing_ms delay to power down.
 \return void.
 */
-void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms);
+void init_power_down(void);
 
 /*!
 \fn void init_wdt(uint8_t wdt_timer)
