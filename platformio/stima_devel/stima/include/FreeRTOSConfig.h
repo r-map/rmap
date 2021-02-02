@@ -54,9 +54,9 @@
 #define configUSE_16_BIT_TICKS              1
 #define configIDLE_SHOULD_YIELD             1
 
-#define configUSE_MUTEXES                   1
-#define configUSE_RECURSIVE_MUTEXES         1
-#define configUSE_COUNTING_SEMAPHORES       1
+#define configUSE_MUTEXES                   0
+#define configUSE_RECURSIVE_MUTEXES         0
+#define configUSE_COUNTING_SEMAPHORES       0
 #define configUSE_QUEUE_SETS                0
 #define configQUEUE_REGISTRY_SIZE           0
 #define configUSE_TIME_SLICING              1
@@ -67,7 +67,7 @@
 #define configSUPPORT_STATIC_ALLOCATION     1
 
 /* Timer definitions. */
-#define configUSE_TIMERS                    1
+#define configUSE_TIMERS                    0
 #define configTIMER_TASK_PRIORITY           ( ( UBaseType_t ) 3 )
 #define configTIMER_QUEUE_LENGTH            ( ( UBaseType_t ) 10 )
 #define configTIMER_TASK_STACK_DEPTH        ( 85 )
@@ -85,13 +85,13 @@
 /* Set the following definitions to 1 to include the API function, or zero
 to exclude the API function. */
 
-#define INCLUDE_vTaskPrioritySet                1
-#define INCLUDE_uxTaskPriorityGet               1
+#define INCLUDE_vTaskPrioritySet                0
+#define INCLUDE_uxTaskPriorityGet               0
 #define INCLUDE_vTaskDelete                     1
-#define INCLUDE_vTaskCleanUpResources           1
+#define INCLUDE_vTaskCleanUpResources           0
 #define INCLUDE_vTaskSuspend                    1
 #define INCLUDE_vResumeFromISR                  1
-#define INCLUDE_vTaskDelayUntil                 1
+#define INCLUDE_vTaskDelayUntil                 0
 #define INCLUDE_vTaskDelay                      1
 #define INCLUDE_xTaskGetSchedulerState          0
 #define INCLUDE_xTaskGetIdleTaskHandle          0 // create an idle task handle.

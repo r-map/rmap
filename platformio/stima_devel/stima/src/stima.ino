@@ -46,11 +46,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "stima.h"
 
+/*
 // Dimensions the buffer that the task being created will use as its stack.
 //   NOTE:  This is the number of words the stack will hold, not the number of
 //   bytes.  For example, if each stack item is 32-bits, and this is set to 100,
 //   then 400 bytes (100 * 32-bits) will be allocated.
-#define STACK_SIZE_RTC 100
+#define STACK_SIZE_RTC 150
 
 // Structure that will hold the TCB of the task being created.
 StaticTask_t xTaskBufferRtc;
@@ -60,8 +61,9 @@ StaticTask_t xTaskBufferRtc;
 //   the RTOS port.
 StackType_t xStackRtc[ STACK_SIZE_RTC ];
 TaskHandle_t xHandleRtc;
+*/
 
-#define STACK_SIZE_SUPERVISOR 200
+#define STACK_SIZE_SUPERVISOR 300
 StaticTask_t xTaskBufferSupervisor;
 StackType_t xStackSupervisor[ STACK_SIZE_SUPERVISOR ];
 TaskHandle_t xHandleSupervisor;
@@ -78,20 +80,20 @@ TaskHandle_t xHandleSupervisor;
   TaskHandle_t xHandleGsm;
 #endif
   
-#define STACK_SIZE_SENSORREADING 300
+#define STACK_SIZE_SENSORREADING 200
 StaticTask_t xTaskBufferSensorReading;
 StackType_t xStackSensorReading[ STACK_SIZE_SENSORREADING ];
 TaskHandle_t xHandleSensorReading;
 
 #if (USE_SDCARD)
-#define STACK_SIZE_DATASAVING 100
+#define STACK_SIZE_DATASAVING 650
 StaticTask_t xTaskBufferDataSaving;
 StackType_t xStackDataSaving[ STACK_SIZE_DATASAVING ];
 TaskHandle_t xHandleDataSaving;
 #endif
 
 #if (USE_MQTT)
-#define STACK_SIZE_MQTT 200
+#define STACK_SIZE_MQTT 700
 StaticTask_t xTaskBufferMqtt;
 StackType_t xStackMqtt[ STACK_SIZE_MQTT ];
 TaskHandle_t xHandleMqtt;
@@ -125,77 +127,93 @@ int freeRam ()
 }
 */
 
-
-void taskRtc( void * parameter = NULL )
+/*
+void taskRtc( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("rtc_task start\r\n"));
     rtc_task();
+    //SERIAL_INFO(F("rtc_task end\r\n"));
     taskYIELD(); 
   }
 }
+*/
 
-	
-void taskSupervisor( void * parameter = NULL )
+void taskSupervisor( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("supervisor_task start\r\n"));
     supervisor_task();
+    //SERIAL_INFO(F("supervisor_task end\r\n"));
     taskYIELD(); 
   }
 }
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 
-  void taskEthernet( void * parameter = NULL )
+  void taskEthernet( void * parameter )
   {
     while(true){
+      //SERIAL_INFO(F("ethernet_task start\r\n"));
       ethernet_task();
+      //SERIAL_INFO(F("ethernet_task end\r\n"));
       taskYIELD(); 
     }
   }
 
 #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
 
-  void taskGsm( void * parameter = NULL )
+  void taskGsm( void * parameter )
   {
     while(true){
+      //SERIAL_INFO(F("gsm_task start\r\n"));
       gsm_task();
+      //SERIAL_INFO(F("gsm_task stop\r\n"));
       taskYIELD(); 
     }
   }
 #endif
 
-void taskSensorReading( void * parameter = NULL )
+void taskSensorReading( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("sensorreading_task start\r\n"));
     sensors_reading_task();
+    //SERIAL_INFO(F("sensorreading_task stop\r\n"));
     taskYIELD(); 
   }
 }
     
 #if (USE_SDCARD)
-void taskDataSaving( void * parameter = NULL )
+void taskDataSaving( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("data_saving_task start\r\n"));
     data_saving_task();
+    //SERIAL_INFO(F("data_saving_task stop\r\n"));
     taskYIELD(); 
   }
 }
 #endif
 
 #if (USE_MQTT)
-void taskMqtt( void * parameter = NULL )
+void taskMqtt( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("mqtt_task start\r\n"));
     mqtt_task();
+    //SERIAL_INFO(F("mqtt_task stop\r\n"));
     taskYIELD(); 
   }
 }
 #endif
 
-void taskTime( void * parameter = NULL )
+void taskTime( void * parameter )
 {
   while(true){
+    //SERIAL_INFO(F("time_task start\r\n"));
     time_task();
+    //SERIAL_INFO(F("time_task stop\r\n"));
     taskYIELD(); 
   }
 }
@@ -213,20 +231,11 @@ void taskRpc( void * parameter = NULL )
 }
 */
 
-void taskHearthBeat( void * parameter = NULL )
+void taskHearthBeat( void * parameter )
 {
   while(true){    
-    // I2C Bus Check
-    if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-      SERIAL_ERROR(F("Restart I2C BUS\r\n"));
-      init_wire();
-      // LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
-    }
-
-    streamRpc.parseStream(&is_event_rpc, &Serial);
-
     SERIAL_INFO(F("--> beat\r\n"));
-    SERIAL_INFO(F("Rtc:          %d\r\n"),uxTaskGetStackHighWaterMark( xHandleRtc));
+    //SERIAL_INFO(F("Rtc:          %d\r\n"),uxTaskGetStackHighWaterMark( xHandleRtc));
     SERIAL_INFO(F("Supervisor:   %d\r\n"),uxTaskGetStackHighWaterMark( xHandleSupervisor ));
     #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
       SERIAL_INFO(F("Ethernet:     %d\r\n"),uxTaskGetStackHighWaterMark( xHandleEthernet ));
@@ -238,14 +247,34 @@ void taskHearthBeat( void * parameter = NULL )
       SERIAL_INFO(F("DataSaving:   %d\r\n"),uxTaskGetStackHighWaterMark( xHandleDataSaving ));
     #endif
     #if (USE_MQTT)
-    SERIAL_INFO(F("Mqtt:         %d\r\n"),uxTaskGetStackHighWaterMark( xHandleMqtt ));
+      SERIAL_INFO(F("Mqtt:         %d\r\n"),uxTaskGetStackHighWaterMark( xHandleMqtt ));
     #endif
     SERIAL_INFO(F("Time:         %d\r\n"),uxTaskGetStackHighWaterMark( xHandleTime ));
     SERIAL_INFO(F("HearthBeat:   %d\r\n"),uxTaskGetStackHighWaterMark( xHandleHearthBeat ));
+    Serial.flush();
 
-    vTaskDelay(10000/portTICK_PERIOD_MS);
+    // I2C Bus Check
+    if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+      SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+      init_wire();
+      // LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
+    }
+
+    if (is_time_set) {
+      
+    #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
+      if (is_time_for_sensors_reading_updated) {
+	is_time_for_sensors_reading_updated = false;
+	SERIAL_INFO(F("Next acquisition scheduled at: %02u:%02u:%02u\r\n"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+	LCD_INFO(&lcd, true, true, F("next acq %02u:%02u:%02u"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+      }
+    #endif
+    }
+    
+    streamRpc.parseStream(&is_event_rpc, &Serial);
+    
+    vTaskDelay(5000/portTICK_PERIOD_MS);
   }
-  //vTaskDelete( NULL );
 }
 
 /*
@@ -268,7 +297,7 @@ void setup() {
    init_tasks();
    LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
    load_configuration();
-   init_buffers();
+   //init_buffers();
    init_spi();
    #if (USE_RTC)
    init_rtc();
@@ -278,7 +307,8 @@ void setup() {
    init_system();
 
    init_sensors();
-   
+
+   /*
    xHandleRtc = xTaskCreateStatic(
 				  taskRtc,           // Task function.
 				  "Rtc",             // String with name of task.
@@ -287,28 +317,32 @@ void setup() {
 				  1,                 // Priority of the task.
 				  xStackRtc,         // Array to use as the task's stack.
 				  &xTaskBufferRtc ); // Variable to hold the task's data structure.
-   vTaskSuspend( xHandleRtc);
 
+   //xTaskCreate(taskRtc,"Rtc", STACK_SIZE_RTC, (void *) 1,  1, &xHandleRtc);
+   vTaskSuspend( xHandleRtc);
+   */
+   
    xHandleSupervisor = xTaskCreateStatic(taskSupervisor,"Superv",
-					 STACK_SIZE_SUPERVISOR, NULL, 1, xStackSupervisor, &xTaskBufferSupervisor );
+   					 STACK_SIZE_SUPERVISOR, NULL, 1, xStackSupervisor, &xTaskBufferSupervisor );
    //vTaskSuspend( xHandleSupervisor);
  
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    xHandleEthernet = xTaskCreateStatic(taskEthernet, "Ether",
 				       STACK_SIZE_ETHERNET, NULL, 1, xStackEthernet, &xTaskBufferEthernet );
    vTaskSuspend( xHandleEthernet);
-#elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)     
+   #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)     
    xHandleGsm = xTaskCreateStatic(taskGsm, "Gsm",
 				  STACK_SIZE_GSM, NULL, 1, xStackGsm, &xTaskBufferGsm );
    vTaskSuspend( xHandleGsm);
    #endif
    
    xHandleSensorReading = xTaskCreateStatic(taskSensorReading, "Sensor",
-					    STACK_SIZE_SENSORREADING, NULL, 1, xStackSensorReading, &xTaskBufferSensorReading );
+					    STACK_SIZE_SENSORREADING, NULL, 2, xStackSensorReading, &xTaskBufferSensorReading );
    vTaskSuspend( xHandleSensorReading);     
-   #if (USE_SDCARD)
+
+#if (USE_SDCARD)
    xHandleDataSaving = xTaskCreateStatic(taskDataSaving, "Saving",
-					 STACK_SIZE_DATASAVING, NULL, 1, xStackDataSaving, &xTaskBufferDataSaving );
+					 STACK_SIZE_DATASAVING, NULL, 2, xStackDataSaving, &xTaskBufferDataSaving );
    vTaskSuspend( xHandleDataSaving);
    #endif
    
@@ -327,10 +361,10 @@ void setup() {
 				  STACK_SIZE_RPC, NULL, 1, xStackRpc, &xTaskBufferRpc );
    //vTaskSuspend( xHandleRpc);
    */
-   
+
    xHandleHearthBeat = xTaskCreateStatic(taskHearthBeat, "Beat",
 					 STACK_SIZE_HEARTHBEAT, NULL, 1, xStackHearthBeat, &xTaskBufferHearthBeat );
-     
+
   // The scheduler was started in initVariant() found in variantHooks.c but in RMAP was moved here
   vTaskStartScheduler(); // initialise and run the freeRTOS scheduler. Execution should never return here.
 
@@ -347,7 +381,6 @@ void loop() {
   #if (USE_POWER_DOWN)
   init_power_down();
   #endif
-
 }
 
 void init_power_down(void) {
@@ -381,8 +414,10 @@ void init_power_down(void) {
     SERIAL_INFO(F("wakeup\r\n")); 
 }
 
+/*
 void init_buffers() {
 }
+*/
 
 void init_tasks() {
 
@@ -411,8 +446,6 @@ void init_tasks() {
    mqtt_state = MQTT_INIT;
    is_mqtt_subscribed = false;
    #endif
-
-   is_event_rtc = false;
 
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    is_event_ethernet = false;
@@ -1138,21 +1171,23 @@ void interrupt_task_1s () {
     is_time_for_sensors_reading_updated = true;
     do_reset_first_run = true;
 
-    noInterrupts();
     if (!is_event_sensors_reading) {
+      noInterrupts();
       is_test = false;
       is_event_sensors_reading = true;
-      vTaskResume( xHandleSensorReading );      
+      interrupts();
+      xTaskResumeFromISR( xHandleSensorReading );      //xTaskResumeFromISR() is generally considered a dangerous function because its actions are not latched.
     }
 
     #if (USE_MQTT)
     if (is_event_mqtt) {
+      noInterrupts();
       is_event_mqtt_paused = true;
       is_event_mqtt = false;
+      interrupts();
       vTaskSuspend( xHandleMqtt );      
     }
     #endif
-    interrupts();
   }
 
   if (is_time_set && now() >= next_ptr_time_for_testing_sensors && next_ptr_time_for_testing_sensors) {
@@ -1161,18 +1196,12 @@ void interrupt_task_1s () {
     if (!is_event_sensors_reading) {
       is_test = !is_first_test;
       is_event_sensors_reading = true;
-      vTaskResume( xHandleSensorReading );      
+      xTaskResumeFromISR( xHandleSensorReading );      //xTaskResumeFromISR() is generally considered a dangerous function because its actions are not latched.
     }
     interrupts();
   }
   #endif
 
-  noInterrupts();
-  if (!is_event_rtc) {
-    is_event_rtc = true;
-    vTaskResume( xHandleRtc);
-  }
-  interrupts();
 }
 
 void supervisor_task() {
@@ -1438,8 +1467,8 @@ void supervisor_task() {
          is_supervisor_first_run = false;
          noInterrupts();
          is_event_supervisor = false;
-	 vTaskSuspend( NULL);
          interrupts();
+	 vTaskSuspend( NULL);
 
          supervisor_state = SUPERVISOR_INIT;
          SERIAL_TRACE(F("SUPERVISOR_END ---> SUPERVISOR_INIT\r\n"));
@@ -1453,12 +1482,9 @@ void supervisor_task() {
    }
 }
 
+/*
 void rtc_task() {
   if (is_time_set) {
-    noInterrupts();
-    is_event_rtc = false;
-    vTaskSuspend( NULL );
-    interrupts();
 
     #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
     if (is_time_for_sensors_reading_updated) {
@@ -1468,7 +1494,9 @@ void rtc_task() {
     }
     #endif
   }
+  vTaskDelay(5000/portTICK_PERIOD_MS);
 }
+*/
 
 void time_task() {
    static uint8_t retry;
@@ -1650,10 +1678,10 @@ void time_task() {
          is_event_time_executed = true;
          noInterrupts();
          is_event_time = false;
-	 vTaskSuspend( NULL );
          interrupts();
          time_state = TIME_INIT;
          SERIAL_TRACE(F("TIME_END --> TIME_INIT\r\n"));
+	 vTaskSuspend( NULL );
       break;
 
       case TIME_WAIT_STATE:
@@ -1757,10 +1785,10 @@ void ethernet_task() {
          is_event_client_executed = true;
          noInterrupts();
          is_event_ethernet = false;
-	 vTaskSuspend( xHandleEthernet );
          interrupts();
          ethernet_state = ETHERNET_INIT;
          SERIAL_TRACE(F("ETHERNET_END --> ETHERNET_INIT\r\n"));
+	 vTaskSuspend( xHandleEthernet );
       break;
 
       case ETHERNET_WAIT_STATE:
@@ -1889,8 +1917,8 @@ void gsm_task() {
          gsm_state = state_after_wait;
          noInterrupts();
          is_event_gsm = false;
-	 vTaskSuspend( NULL );
          interrupts();
+	 vTaskSuspend( NULL );
       break;
 
       case GSM_STOP_CONNECTION:
@@ -1945,9 +1973,9 @@ void gsm_task() {
          is_client_udp_socket_open = false;
          noInterrupts();
          is_event_gsm = false;
-	 vTaskSuspend( NULL );
          interrupts();
          gsm_state = GSM_INIT;
+	 vTaskSuspend( NULL );
       break;
 
       case GSM_WAIT_STATE:
@@ -2270,7 +2298,6 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
         noInterrupts();
         if (is_event_sensors_reading) {
           is_event_sensors_reading = false;
-	  vTaskSuspend( NULL );      	  
         }
 
         if (is_event_sensors_reading_rpc) {
@@ -2280,6 +2307,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
         sensors_reading_state = SENSORS_READING_INIT;
         SERIAL_TRACE(F("SENSORS_READING_END ---> SENSORS_READING_INIT\r\n"));
+	vTaskSuspend( NULL );      	  
       break;
 
       case SENSORS_READING_WAIT_STATE:
@@ -2446,11 +2474,11 @@ void data_saving_task() {
          }
 
          is_event_data_saving = false;
-	 vTaskSuspend( NULL );      
          interrupts();
 
          data_saving_state = DATA_SAVING_INIT;
          SERIAL_TRACE(F("DATA_SAVING_END ---> DATA_SAVING_INIT\r\n"));
+	 vTaskSuspend( NULL );      
       break;
 
       case DATA_SAVING_WAIT_STATE:
@@ -3060,11 +3088,11 @@ void mqtt_task() {
          noInterrupts();
          is_event_mqtt_paused = false;
          is_event_mqtt = false;
-	 vTaskSuspend( NULL );
          interrupts();
 
          mqtt_state = MQTT_INIT;
          SERIAL_TRACE(F("MQTT_END ---> MQTT_INIT\r\n"));
+	 vTaskSuspend( NULL );
       break;
 
       case MQTT_WAIT_STATE:

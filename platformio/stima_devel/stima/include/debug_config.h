@@ -153,25 +153,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def OPC_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for Opcxx library.
 */
-#define OPC_SERIAL_TRACE_LEVEL            (SERIAL_TRACE_LEVEL_INFO)
+#define OPC_SERIAL_TRACE_LEVEL            (SERIAL_TRACE_LEVEL_OFF)
 
 /*!
 \def I2C_TH_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for i2c-th sketch.
 */
-#define I2C_TH_SERIAL_TRACE_LEVEL         (SERIAL_TRACE_LEVEL_INFO)
+#define I2C_TH_SERIAL_TRACE_LEVEL         (SERIAL_TRACE_LEVEL_OFF)
 
 /*!
 \def I2C_RAIN_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for i2c-rain sketch.
 */
-#define I2C_RAIN_SERIAL_TRACE_LEVEL       (SERIAL_TRACE_LEVEL_TRACE)
+#define I2C_RAIN_SERIAL_TRACE_LEVEL       (SERIAL_TRACE_LEVEL_OFF)
 
 /*!
 \def I2C_OPC_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for i2c-opc sketch.
 */
-#define I2C_OPC_SERIAL_TRACE_LEVEL        (SERIAL_TRACE_LEVEL_DEBUG)
+#define I2C_OPC_SERIAL_TRACE_LEVEL        (SERIAL_TRACE_LEVEL_OFF)
 
 /*!
 \def STIMA_SERIAL_TRACE_LEVEL
@@ -183,6 +183,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def STIMA_LCD_TRACE_LEVEL
 \brief Lcd trace level debug for stima sketch.
 */
-#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
+#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_OFF)
 
 #endif
