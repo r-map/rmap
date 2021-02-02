@@ -86,14 +86,14 @@ StackType_t xStackSensorReading[ STACK_SIZE_SENSORREADING ];
 TaskHandle_t xHandleSensorReading;
 
 #if (USE_SDCARD)
-#define STACK_SIZE_DATASAVING 650
+#define STACK_SIZE_DATASAVING 700
 StaticTask_t xTaskBufferDataSaving;
 StackType_t xStackDataSaving[ STACK_SIZE_DATASAVING ];
 TaskHandle_t xHandleDataSaving;
 #endif
 
 #if (USE_MQTT)
-#define STACK_SIZE_MQTT 700
+#define STACK_SIZE_MQTT 800
 StaticTask_t xTaskBufferMqtt;
 StackType_t xStackMqtt[ STACK_SIZE_MQTT ];
 TaskHandle_t xHandleMqtt;
