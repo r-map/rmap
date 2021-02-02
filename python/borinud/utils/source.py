@@ -655,7 +655,7 @@ class ArkimetBufrDB(DB):
                     for msgs in f:
                         for msg in msgs:
                             try:
-                                tr.import_messages(msg)
+                                tr.import_messages(msg,overwrite=True, update_station=True,import_attributes=True)
                             except:
                                 sys.stderr.write("ERROR {m.report},{m.coords},{m.ident},{m.datetime},{m.type}".format(m=msg))
 

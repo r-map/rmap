@@ -129,7 +129,7 @@ class Threaded_bufr2dballe(threading.Thread):
                     # Start a transaction
                     with db.transaction() as tr:
                         with importer.from_file(totalbodyfile) as f:
-                            tr.import_messages(f)
+                            tr.import_messages(f,overwrite=True, update_station=True,import_attributes=True)
                     status=True
                             
                 except Exception as exception:
