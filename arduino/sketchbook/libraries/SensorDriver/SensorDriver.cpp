@@ -671,7 +671,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       status = Hyt2X1::hyt_read(_address, &humidity_confirmation, &temperature_confirmation);
       if ((status == HYT2X1_SUCCESS) || (status == HYT2X1_NO_NEW_DATA)) {
         // max 1% variation
-        if ((abs(humidity - humidity_confirmation) <= 1.0) && (abs(temperature - temperature_confirmation) <= 0.5)) {
+        if ((abs(humidity - humidity_confirmation) <= 1.0) && ((abs(temperature) - abs(temperature_confirmation)) <= 0.5)) {
           _is_success = true;
         }
         else {
