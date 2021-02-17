@@ -135,11 +135,11 @@ X 2 2 200 0 100 L 50 50 0 1 P
 ENDDRAW
 ENDDEF
 #
-# microduino_Microduino
+# microduino_stm-rescue_Microduino-microduino
 #
-DEF microduino_Microduino U 0 40 Y Y 1 F N
+DEF microduino_stm-rescue_Microduino-microduino U 0 40 Y Y 1 F N
 F0 "U" 0 -100 60 H V C CNN
-F1 "microduino_Microduino" -100 0 60 H V C CNN
+F1 "microduino_stm-rescue_Microduino-microduino" -100 0 60 H V C CNN
 F2 "" 0 0 60 H V C CNN
 F3 "" 0 0 60 H V C CNN
 DRAW
@@ -292,28 +292,6 @@ ENDDEF
 DEF microduino_stm32-eagle-import_RESISTOR0603-RES R 0 40 Y Y 1 L N
 F0 "R" -150 59 59 H V L BNN
 F1 "microduino_stm32-eagle-import_RESISTOR0603-RES" -150 -130 59 H V L BNN
-F2 "" 0 0 50 H I C CNN
-F3 "" 0 0 50 H I C CNN
-DRAW
-P 2 1 0 0 -100 0 -85 40 N
-P 2 1 0 0 -85 40 -60 -40 N
-P 2 1 0 0 -60 -40 -35 40 N
-P 2 1 0 0 -35 40 -10 -40 N
-P 2 1 0 0 -10 -40 15 40 N
-P 2 1 0 0 15 40 40 -40 N
-P 2 1 0 0 40 -40 65 40 N
-P 2 1 0 0 65 40 90 -40 N
-P 2 1 0 0 90 -40 100 0 N
-X 1 1 -200 0 100 R 0 0 1 0 P
-X 2 2 200 0 100 L 0 0 1 0 P
-ENDDRAW
-ENDDEF
-#
-# microduino_stm32-eagle-import_RESISTOR0805-RES
-#
-DEF microduino_stm32-eagle-import_RESISTOR0805-RES R 0 40 Y Y 1 L N
-F0 "R" -150 59 59 H V L BNN
-F1 "microduino_stm32-eagle-import_RESISTOR0805-RES" -150 -130 59 H V L BNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW

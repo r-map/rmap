@@ -603,17 +603,6 @@ F 3 "~" H 7400 1800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L microduino_stm32-eagle-import:RESISTOR0603-RES R5
-U 1 1 5FFF4825
-P 2950 6800
-F 0 "R5" H 2800 6859 59  0000 L BNN
-F 1 "1.5k" H 3050 6850 59  0000 L BNN
-F 2 "Resistor_SMD:R_0805_2012Metric" H 2950 6800 50  0001 C CNN
-F 3 "" H 2950 6800 50  0001 C CNN
-	1    2950 6800
-	0    1    1    0   
-$EndComp
-$Comp
 L microduino_stm32-eagle-import:DINA4_L #FRAME1
 U 1 1 5FFF4831
 P -3950 6200
@@ -686,20 +675,9 @@ F 3 "" H 1700 7200 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2700 6450 2950 6450
-Wire Wire Line
 	1700 7100 1700 7050
 Wire Wire Line
 	1700 7050 2000 7050
-Wire Wire Line
-	2950 6450 3650 6450
-Wire Wire Line
-	2700 6550 3650 6550
-Wire Wire Line
-	2950 7050 2950 7000
-Wire Wire Line
-	2950 6450 2950 6600
-Connection ~ 2950 6450
 $Comp
 L Device:D D1
 U 1 1 600A2E09
@@ -726,9 +704,6 @@ F 3 "" H 2100 5750 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2000 6650 2000 7050
-Connection ~ 2000 7050
-Wire Wire Line
-	2000 7050 2950 7050
 $Comp
 L microduino_stm32-eagle-import:DINA4_L #FRAME2
 U 2 1 9845AFBC
@@ -741,7 +716,7 @@ F 3 "" H 7300 7400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L microduino:Microduino U1
+L microduino_stm-rescue:Microduino-microduino U1
 U 1 1 5FFE8227
 P 9400 2450
 F 0 "U1" V 9353 2738 60  0000 L CNN
@@ -880,4 +855,37 @@ F 3 "" H 4800 2900 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2100 5750 2100 5900
+$Comp
+L microduino_stm32-eagle-import:RESISTOR0603-RES R5
+U 1 1 6020C72E
+P 2950 5950
+F 0 "R5" H 2800 6009 59  0000 L BNN
+F 1 "1.5k" H 3050 6000 59  0000 L BNN
+F 2 "Resistor_SMD:R_0805_2012Metric" H 2950 5950 50  0001 C CNN
+F 3 "" H 2950 5950 50  0001 C CNN
+	1    2950 5950
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	2700 6550 3650 6550
+Wire Wire Line
+	2950 6450 3650 6450
+Wire Wire Line
+	2700 6450 2950 6450
+Connection ~ 2950 6450
+Wire Wire Line
+	2950 6150 2950 6450
+$Comp
+L microduino_stm32-eagle-import:+3V3 #P+0102
+U 1 1 6022BBF7
+P 2950 5350
+F 0 "#P+0102" H 2950 5350 50  0001 C CNN
+F 1 "+3V3" H 2950 5572 59  0000 C CNN
+F 2 "" H 2950 5350 50  0001 C CNN
+F 3 "" H 2950 5350 50  0001 C CNN
+	1    2950 5350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2950 5350 2950 5750
 $EndSCHEMATC
