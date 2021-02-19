@@ -279,7 +279,7 @@ protected:
 
    bool _is_test;
 
-  
+
    /*!
    \fn void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0)
    \brief Print information about sensor
@@ -334,7 +334,7 @@ protected:
    \brief Internal sensor's variable for values readed from sensors.
    */
    int32_t values[];
-  
+
 };
 #endif
 
@@ -475,7 +475,7 @@ protected:
    \brief Internal sensor's variable for values readed from sensors.
    */
    int32_t values[];
-  
+
 };
 #endif
 
@@ -626,6 +626,86 @@ protected:
    */
    int32_t values[];
 
+};
+#endif
+
+#if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+#include "registers-wind.h"
+class SensorDriverWind : public SensorDriver {
+public:
+  SensorDriverWind(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
+    _is_setted = is_setted;
+    _is_prepared = is_prepared;
+
+    *_is_setted = false;
+    *_is_prepared = false;
+
+    SensorDriver::printInfo(driver, type);
+    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+  };
+  void setup(const uint8_t address, const uint8_t node = 0);
+  void prepare(bool is_test = false);
+  void get(int32_t *values, uint8_t length);
+
+  #if (USE_JSON)
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  #endif
+
+  bool isSetted();
+  bool isPrepared();
+  void resetPrepared();
+
+protected:
+  bool *_is_setted;
+  bool *_is_prepared;
+
+  enum {
+    INIT,
+    SET_ADDRESS,
+    READ_VALUE,
+    GET_VALUE,
+    END
+  } _get_state;
+};
+#endif
+
+#if (USE_SENSOR_DSA)
+#include "registers-radiation.h"
+class SensorDriverSolarRadiation : public SensorDriver {
+public:
+  SensorDriverSolarRadiation(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
+    _is_setted = is_setted;
+    _is_prepared = is_prepared;
+
+    *_is_setted = false;
+    *_is_prepared = false;
+
+    SensorDriver::printInfo(driver, type);
+    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+  };
+  void setup(const uint8_t address, const uint8_t node = 0);
+  void prepare(bool is_test = false);
+  void get(int32_t *values, uint8_t length);
+
+  #if (USE_JSON)
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  #endif
+
+  bool isSetted();
+  bool isPrepared();
+  void resetPrepared();
+
+protected:
+  bool *_is_setted;
+  bool *_is_prepared;
+
+  enum {
+    INIT,
+    SET_ADDRESS,
+    READ_VALUE,
+    GET_VALUE,
+    END
+  } _get_state;
 };
 #endif
 

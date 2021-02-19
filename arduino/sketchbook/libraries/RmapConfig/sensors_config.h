@@ -54,6 +54,66 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define USE_SENSOR_DEP              (true)
 
 /*!
+\def USE_SENSOR_DES
+\brief Enable if you want use DigitEco Wind Speed sensor.
+*/
+#define USE_SENSOR_DES              (false)
+
+/*!
+\def USE_SENSOR_DED
+\brief Enable if you want use DigitEco Wind Direction sensor.
+*/
+#define USE_SENSOR_DED              (false)
+
+/*!
+\def USE_SENSOR_DSR
+\brief Enable if you want use DigitEco Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSR              (false)
+
+/*!
+\def USE_SENSOR_VSR
+\brief Enable if you want use 0-5V High Resolution Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_VSR              (false)
+
+/*!
+\def USE_SENSOR_DSA
+\brief Enable if you want average Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSA              (true)
+
+/*!
+\def USE_SENSOR_DWA
+\brief Enable if you want vectorial average Wind Speed and Direction over 10'.
+*/
+#define USE_SENSOR_DWA              (false)
+
+/*!
+\def USE_SENSOR_DWB
+\brief Enable if you want vectorial average Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWB              (false)
+
+/*!
+\def USE_SENSOR_DWC
+\brief Enable if you want gust Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWC              (false)
+
+/*!
+\def USE_SENSOR_DWD
+\brief Enable if you want average Wind Speed over report time.
+*/
+#define USE_SENSOR_DWD              (false)
+
+/*!
+\def USE_SENSOR_DWE
+\brief Enable if you want class Wind Speed over report time.
+*/
+#define USE_SENSOR_DWE              (false)
+
+/*!
 \def USE_SENSOR_OA2
 \brief Enable if you want use OPC PM1, PM2.5, PM10 continuous average value.
 */

@@ -66,6 +66,16 @@ namespace _SensorDriver {
   bool _is_dep_prepared;
   #endif
 
+  #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+  bool _is_wind_setted;
+  bool _is_wind_prepared;
+  #endif
+
+  #if (USE_SENSOR_DSA)
+  bool _is_sr_setted;
+  bool _is_sr_prepared;
+  #endif
+
   #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
   bool _is_opc_setted;
   bool _is_opc_prepared;
@@ -120,6 +130,16 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   #if (USE_SENSOR_DEP)
   else if (strcmp(type, SENSOR_TYPE_DEP) == 0)
   return new SensorDriverDigitecoPower(driver, type, &_SensorDriver::_is_dep_setted, &_SensorDriver::_is_dep_prepared);
+  #endif
+
+  #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+  else if ((strcmp(type, SENSOR_TYPE_DWA) == 0) || (strcmp(type, SENSOR_TYPE_DWB) == 0) || (strcmp(type, SENSOR_TYPE_DWC) == 0) || (strcmp(type, SENSOR_TYPE_DWD) == 0) || (strcmp(type, SENSOR_TYPE_DWE) == 0))
+  return new SensorDriverWind(driver, type, &_SensorDriver::_is_wind_setted, &_SensorDriver::_is_wind_prepared);
+  #endif
+
+  #if (USE_SENSOR_DSA)
+  else if (strcmp(type, SENSOR_TYPE_DSA) == 0)
+  return new SensorDriverSolarRadiation(driver, type, &_SensorDriver::_is_sr_setted, &_SensorDriver::_is_sr_prepared);
   #endif
 
   #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
@@ -1897,18 +1917,18 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
 
-    if (length >= 3) {
+    if (length >= 4) {
       if (_is_success) {
-        values[2] = battery_current;
+        values[3] = battery_current;
       }
       else {
         _is_success = false;
       }
     }
 
-    if (length >= 4) {
+    if (length >= 3) {
       if (_is_success) {
-        values[3] = input_voltage * 10;
+        values[2] = input_voltage * 10;
       }
       else {
         _is_success = false;
@@ -1954,8 +1974,8 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
 
-    if (length >= 3) {
-      if (isValid(values[2])) {
+    if (length >= 4) {
+      if (isValid(values[3])) {
         SERIAL_DEBUG(F("--> battery current: %ld mA\r\n"), values[2]);
       }
       else {
@@ -1963,9 +1983,9 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
 
-    if (length >= 4) {
-      if (isValid(values[3])) {
-        SERIAL_DEBUG(F("--> input voltage: %ld V\r\n"), values[3]);
+    if (length >= 3) {
+      if (isValid(values[2])) {
+        SERIAL_DEBUG(F("--> input voltage: %ld V\r\n"), values[2]);
       }
       else {
         SERIAL_DEBUG(F("--> input voltage: ---\r\n"));
@@ -2021,18 +2041,18 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
       else json["B25025"] = RawJson("null");
     }
 
-    if (length >= 3) {
-      if (isValid(values[2])) {
-        json["B25193"] = values[2];
+    if (length >= 4) {
+      if (isValid(values[3])) {
+        json["B25193"] = values[3];
       }
       else json["B25193"] = RawJson("null");
     }
 
-     if (length >= 4) {
-       if (isValid(values[3])) {
-         json["B00004"] = values[3];
+     if (length >= 3) {
+       if (isValid(values[2])) {
+         json["B25194"] = values[2];
        }
-       else json["B00004"] = RawJson("null");
+       else json["B25194"] = RawJson("null");
      }
 
      if (length >= 5) {
@@ -2048,6 +2068,708 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
        }
        else json["B00006"] = RawJson("null");
      }
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
+}
+#endif
+
+#endif
+
+//------------------------------------------------------------------------------
+// Wind Speed and Direction sensor's
+// USE_SENSOR_DWA:
+// USE_SENSOR_DWB:
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+bool SensorDriverWind::isSetted() {
+  return *_is_setted;
+}
+
+bool SensorDriverWind::isPrepared() {
+  return *_is_prepared;
+}
+
+void SensorDriverWind::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverWind::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  bool is_i2c_write;
+  uint8_t i;
+  _delay_ms = 0;
+  _is_success = false;
+
+  if (!*_is_setted) {
+    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+    is_i2c_write = false;
+    i = 0;
+
+    if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWE) == 0)) {
+      is_i2c_write = true;
+      _buffer[i++] = I2C_COMMAND_ID;
+      _buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START;
+      _buffer[i] = crc8(_buffer, i);
+    }
+
+    if (is_i2c_write) {
+      Wire.beginTransmission(_address);
+      Wire.write(_buffer, i+1);
+
+      if (Wire.endTransmission() == 0) {
+        _is_success = true;
+        *_is_setted = true;
+      }
+    }
+  }
+  else {
+    _is_success = true;
+  }
+
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+}
+
+void SensorDriverWind::prepare(bool is_test) {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  bool is_i2c_write;
+  uint8_t i;
+  _is_success = false;
+  _is_test = is_test;
+
+  if (!*_is_prepared) {
+    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+    is_i2c_write = false;
+    i = 0;
+
+    if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWE) == 0)) {
+      is_i2c_write = true;
+      _buffer[i++] = I2C_COMMAND_ID;
+      _buffer[i++] = I2C_WIND_COMMAND_CONTINUOUS_START_STOP;
+      _buffer[i] = crc8(_buffer, i);
+      _delay_ms = 0;
+    }
+
+    if (is_i2c_write) {
+      Wire.beginTransmission(_address);
+      Wire.write(_buffer, i+1);
+
+      if (Wire.endTransmission() == 0) {
+        _is_success = true;
+        *_is_prepared = true;
+      }
+    }
+  }
+  else {
+    _is_success = true;
+    _delay_ms = 0;
+  }
+
+  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  _start_time_ms = millis();
+}
+
+void SensorDriverWind::get(int32_t *values, uint8_t length) {
+  static uint8_t variable_length;
+  static uint8_t data_length;
+
+  static uint8_t variable_count;
+  static uint8_t offset;
+
+  bool is_i2c_write;
+  uint8_t i;
+
+  #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+  float val;
+  uint8_t *val_ptr;
+  #endif
+
+  switch (_get_state) {
+    case INIT:
+      memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+      if (strcmp(_type, SENSOR_TYPE_DWA) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 2;
+      }
+      else if (strcmp(_type, SENSOR_TYPE_DWB) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 2;
+      }
+      else if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 4;
+      }
+      else if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 1;
+      }
+      else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 6;
+      }
+
+      variable_count = 0;
+      data_length = 0;
+
+      _is_readed = false;
+      _is_end = false;
+
+      if (*_is_prepared && length >= 1) {
+        _is_success = true;
+        _get_state = SET_ADDRESS;
+      }
+      else {
+        _is_success = false;
+        _get_state = END;
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+      break;
+
+    case SET_ADDRESS:
+      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+      is_i2c_write = false;
+      offset = 0;
+      i = 0;
+
+      #if (USE_SENSOR_DWA)
+      if (strcmp(_type, SENSOR_TYPE_DWA) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_WIND_VAVG10_LENGTH;
+        _buffer[i++] = I2C_WIND_VAVG10_ADDRESS;
+        _buffer[i++] = I2C_WIND_VAVG10_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      #if (USE_SENSOR_DWB)
+      if (strcmp(_type, SENSOR_TYPE_DWB) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_WIND_VAVG_LENGTH;
+        _buffer[i++] = I2C_WIND_VAVG_ADDRESS;
+        _buffer[i++] = I2C_WIND_VAVG_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      #if (USE_SENSOR_DWC)
+      if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_WIND_GUST_LENGTH;
+        _buffer[i++] = I2C_WIND_GUST_ADDRESS;
+        _buffer[i++] = I2C_WIND_GUST_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      #if (USE_SENSOR_DWD)
+      if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_WIND_SPEED_LENGTH;
+        _buffer[i++] = I2C_WIND_SPEED_ADDRESS;
+        _buffer[i++] = I2C_WIND_SPEED_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      #if (USE_SENSOR_DWE)
+      if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_WIND_CLASS_LENGTH;
+        _buffer[i++] = I2C_WIND_CLASS_ADDRESS;
+        _buffer[i++] = I2C_WIND_CLASS_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      if (is_i2c_write) {
+        Wire.beginTransmission(_address);
+        Wire.write(_buffer, i+1);
+
+        if (Wire.endTransmission()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = READ_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case READ_VALUE:
+      if (_is_success) {
+        Wire.requestFrom(_address, data_length + 1);
+        if (Wire.available() < (data_length + 1)) {
+          _is_success = false;
+        }
+      }
+
+      if (_is_success) {
+        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
+        for (i = 0; i < data_length; i++) {
+          _buffer[i] = Wire.read();
+        }
+
+        if (crc8(_buffer, data_length) != Wire.read()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = GET_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case GET_VALUE:
+      #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+      if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0) || (strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0) || (strcmp(_type, SENSOR_TYPE_DWE) == 0)) {
+        if (length >= variable_count + 1) {
+          val_ptr = (uint8_t*) &val;
+
+          for (i = 0; i < 4; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
+          }
+
+          if (_is_success && isValid(val)) {
+            if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
+              values[variable_count] = (int32_t) round(val);
+            }
+            else if ((variable_count == 0) || (variable_count == 2)) {
+              values[variable_count] = (int32_t) round(val * 10.0);
+            }
+            else {
+              values[variable_count] = (int32_t) round(val);
+            }
+          }
+          else {
+            values[variable_count] = UINT16_MAX;
+            _is_success = false;
+          }
+
+          offset += 4;
+        }
+      }
+      #endif
+
+      variable_count++;
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if ((variable_count >= length) || (variable_count >= variable_length)) {
+        _get_state = END;
+      }
+      else if (variable_count == 7) {
+        _get_state = SET_ADDRESS;
+      }
+      break;
+
+    case END:
+      SensorDriver::printInfo(_driver, _type, _address, _node);
+      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+      _start_time_ms = millis();
+      _delay_ms = 0;
+      _is_end = true;
+      _is_readed = false;
+      _get_state = INIT;
+      break;
+  }
+}
+
+#if (USE_JSON)
+void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverWind::get(values, length);
+  static uint8_t variable_length;
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    #if (USE_SENSOR_DWA || USE_SENSOR_DWB)
+    if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
+      if (length >= 1) {
+        if (isValid(values[0])) {
+          json["B11002"] = values[0];
+        }
+        else json["B11002"] = RawJson("null");
+      }
+
+      if (length >= 2) {
+        if (isValid(values[1])) {
+          json["B11001"] = values[1];
+        }
+        else json["B11001"] = RawJson("null");
+      }
+    }
+    #endif
+
+    #if (USE_SENSOR_DWC)
+    if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
+      if (length >= 1) {
+        if (isValid(values[0])) {
+          json["B11041"] = values[0];
+        }
+        else json["B11041"] = RawJson("null");
+      }
+
+      if (length >= 2) {
+        if (isValid(values[1])) {
+          json["B11043"] = values[1];
+        }
+        else json["B11043"] = RawJson("null");
+      }
+
+      if (length >= 3) {
+        if (isValid(values[2])) {
+          json["B11209"] = values[2];
+        }
+        else json["B11209"] = RawJson("null");
+      }
+
+      if (length >= 4) {
+        if (isValid(values[3])) {
+          json["B11210"] = values[3];
+        }
+        else json["B11210"] = RawJson("null");
+      }
+    }
+    #endif
+
+    #if (USE_SENSOR_DWD)
+    if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
+      if (length >= 1) {
+        if (isValid(values[0])) {
+          json["B11002"] = values[0];
+        }
+        else json["B11002"] = RawJson("null");
+      }
+    }
+    #endif
+
+    #if (USE_SENSOR_DWE)
+    if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
+      if (length >= 1) {
+        variable_length = 6;
+        json["d"] = 51;
+
+        JsonArray &p = json.createNestedArray("p");
+
+        for (uint8_t i = 0; i < variable_length; i++) {
+          if (isValid(values[i])) {
+            p.add(values[i]);
+          }
+          else p.add(RawJson("null"));;
+        }
+      }
+    }
+    #endif
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
+}
+#endif
+
+#endif
+
+//------------------------------------------------------------------------------
+// Solar Radiation Sensor
+// USE_SENSOR_DSA: average solar radiation
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_DSA)
+bool SensorDriverSolarRadiation::isSetted() {
+  return *_is_setted;
+}
+
+bool SensorDriverSolarRadiation::isPrepared() {
+  return *_is_prepared;
+}
+
+void SensorDriverSolarRadiation::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  bool is_i2c_write;
+  uint8_t i;
+  _delay_ms = 0;
+  _is_success = false;
+
+  if (!*_is_setted) {
+    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+    is_i2c_write = false;
+    i = 0;
+
+    if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+      is_i2c_write = true;
+      _buffer[i++] = I2C_COMMAND_ID;
+      _buffer[i++] = I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START;
+      _buffer[i] = crc8(_buffer, i);
+    }
+
+    if (is_i2c_write) {
+      Wire.beginTransmission(_address);
+      Wire.write(_buffer, i+1);
+
+      if (Wire.endTransmission() == 0) {
+        _is_success = true;
+        *_is_setted = true;
+      }
+    }
+  }
+  else {
+    _is_success = true;
+  }
+
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+}
+
+void SensorDriverSolarRadiation::prepare(bool is_test) {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  bool is_i2c_write;
+  uint8_t i;
+  _is_success = false;
+  _is_test = is_test;
+
+  if (!*_is_prepared) {
+    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+    is_i2c_write = false;
+    i = 0;
+
+    if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+      is_i2c_write = true;
+      _buffer[i++] = I2C_COMMAND_ID;
+      _buffer[i++] = I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP;
+      _buffer[i] = crc8(_buffer, i);
+      _delay_ms = 0;
+    }
+
+    if (is_i2c_write) {
+      Wire.beginTransmission(_address);
+      Wire.write(_buffer, i+1);
+
+      if (Wire.endTransmission() == 0) {
+        _is_success = true;
+        *_is_prepared = true;
+      }
+    }
+  }
+  else {
+    _is_success = true;
+    _delay_ms = 0;
+  }
+
+  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  _start_time_ms = millis();
+}
+
+void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
+  static uint8_t variable_length;
+  static uint8_t data_length;
+
+  static uint8_t variable_count;
+  static uint8_t offset;
+
+  bool is_i2c_write;
+  uint8_t i;
+
+  float val;
+  uint8_t *val_ptr;
+
+  switch (_get_state) {
+    case INIT:
+      memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 1;
+      }
+
+      variable_count = 0;
+      data_length = 0;
+
+      _is_readed = false;
+      _is_end = false;
+
+      if (*_is_prepared && length >= 1) {
+        _is_success = true;
+        _get_state = SET_ADDRESS;
+      }
+      else {
+        _is_success = false;
+        _get_state = END;
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+      break;
+
+    case SET_ADDRESS:
+      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+      is_i2c_write = false;
+      offset = 0;
+      i = 0;
+
+      #if (USE_SENSOR_DSA)
+      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
+        _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_ADDRESS;
+        _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      if (is_i2c_write) {
+        Wire.beginTransmission(_address);
+        Wire.write(_buffer, i+1);
+
+        if (Wire.endTransmission()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = READ_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case READ_VALUE:
+      if (_is_success) {
+        Wire.requestFrom(_address, data_length + 1);
+        if (Wire.available() < (data_length + 1)) {
+          _is_success = false;
+        }
+      }
+
+      if (_is_success) {
+        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
+        for (i = 0; i < data_length; i++) {
+          _buffer[i] = Wire.read();
+        }
+
+        if (crc8(_buffer, data_length) != Wire.read()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = GET_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case GET_VALUE:
+      #if (USE_SENSOR_DSA)
+      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+        if (length >= variable_count + 1) {
+          val_ptr = (uint8_t*) &val;
+
+          for (i = 0; i < 4; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
+          }
+
+          if (_is_success && isValid(val)) {
+            values[variable_count] = (int32_t) round(val);
+          }
+          else {
+            values[variable_count] = UINT16_MAX;
+            _is_success = false;
+          }
+
+          offset += 4;
+        }
+      }
+      #endif
+
+      variable_count++;
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if ((variable_count >= length) || (variable_count >= variable_length)) {
+        _get_state = END;
+      }
+      else if (variable_count == 2) {
+        _get_state = SET_ADDRESS;
+      }
+      break;
+
+    case END:
+      SensorDriver::printInfo(_driver, _type, _address, _node);
+      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+      #if (USE_SENSOR_DSA)
+      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+        if (length >= 1) {
+          if (isValid(values[0])) {
+            SERIAL_DEBUG(F("--> solar radiation: %ld\r\n"), values[0]);
+          }
+          else {
+            SERIAL_DEBUG(F("--> solar radiation: ---\r\n"));
+          }
+        }
+      }
+      #endif
+
+      _start_time_ms = millis();
+      _delay_ms = 0;
+      _is_end = true;
+      _is_readed = false;
+      _get_state = INIT;
+      break;
+  }
+}
+
+#if (USE_JSON)
+void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverSolarRadiation::get(values, length);
+  static uint8_t variable_length;
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    #if (USE_SENSOR_DSA)
+    if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+      if (length >= 1) {
+        if (isValid(values[0])) {
+          json["B14198"] = values[0];
+        }
+        else json["B14198"] = RawJson("null");
+      }
+    }
+    #endif
 
     json.printTo(json_buffer, json_buffer_length);
   }
