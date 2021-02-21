@@ -1,0 +1,4 @@
+arm-none-eabi-objcopy -O binary .pio/build/microduinostm32_F410/firmware.elf firmware.bin
+
+~/.arduino15/packages/STM32/tools/STM32Tools/1.4.0/tools/linux/stm32CubeProg.sh 0 firmware.bin -g
+
