@@ -54,6 +54,72 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_DEP           ("DEP")
 
 /*!
+\def SENSOR_TYPE_DES
+\brief Sensor driver's DES sensor type for DigitEco Wind Speed.
+*/
+#define SENSOR_TYPE_DES           ("DES")
+
+/*!
+\def SENSOR_TYPE_DED
+\brief Sensor driver's DED sensor type for DigitEco Wind Direction.
+*/
+#define SENSOR_TYPE_DED           ("DED")
+
+/*!
+\def SENSOR_TYPE_GWS
+\brief Sensor driver's GWS sensor type for Gill Windsonic.
+*/
+#define SENSOR_TYPE_GWS           ("GWS")
+
+/*!
+\def DSR
+\brief Sensor driver's DSR sensor type for Digiteco Solar Radiation.
+*/
+#define SENSOR_TYPE_DSR           ("DSR")
+
+/*!
+\def DSR
+\brief Sensor driver's DSR sensor type for Digiteco Solar Radiation.
+*/
+#define SENSOR_TYPE_VSR           ("VSR")
+
+/*!
+\def SENSOR_TYPE_DSA
+\brief Sensor driver's DSA sensor type for average Solar Radiation.
+*/
+#define SENSOR_TYPE_DSA           ("DSA")
+
+/*!
+\def SENSOR_TYPE_DWA
+\brief Sensor driver's DWA sensor type for vectorial average Wind Speed and Direction over 10'.
+*/
+#define SENSOR_TYPE_DWA           ("DWA")
+
+/*!
+\def SENSOR_TYPE_DWB
+\brief Sensor driver's DWA sensor type for vectorial average Wind Speed and Direction over report time.
+*/
+#define SENSOR_TYPE_DWB           ("DWB")
+
+/*!
+\def SENSOR_TYPE_DWC
+\brief Sensor driver's DWA sensor type for gust Wind Speed and Direction over report time.
+*/
+#define SENSOR_TYPE_DWC           ("DWC")
+
+/*!
+\def SENSOR_TYPE_DWD
+\brief Sensor driver's DWA sensor type for average Wind Speed over report time.
+*/
+#define SENSOR_TYPE_DWD           ("DWD")
+
+/*!
+\def SENSOR_TYPE_DWE
+\brief Sensor driver's DWA sensor type for class Wind Speed over report time.
+*/
+#define SENSOR_TYPE_DWE           ("DWE")
+
+/*!
 \def SENSOR_TYPE_OA2
 \brief Sensor driver's OA2 sensor type for OPC-N2: PM1, PM2.5, PM10 average continuos values.
 */
