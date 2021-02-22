@@ -1,13 +1,13 @@
-//#include <Arduino.h>
-//#include <USBSerial.h>
+HardwareSerial Serial1(PA10, PA9);
 
 void setup() {
-  //SerialUSB.begin();
   Serial.begin();
+  Serial1.begin(115200);
 }
 
 void loop() {
-  //SerialUSB.println("Ciao!");
-  Serial.println("Ciao!");
-  delay(1000);
+  Serial.println("USB Ciao!");
+  delay(500);
+  Serial1.println("UART Ciao!");
+  delay(500);
 }
