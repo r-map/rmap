@@ -1,0 +1,256 @@
+[
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B13212",
+          "description": "Leaf wetness duration",
+          "unit": "s",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "s"
+      }
+  },
+    
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11041",
+          "description": "Wind gust speed",
+          "unit": "m/s",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "m/s"
+      }
+  },
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11043",
+          "description": "Wind gust direction",
+          "unit": "degree",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "degree"
+      }
+  },
+
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11209",
+          "description": "Persistent wind gust speed",
+          "unit": "m/s",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "m/s"
+      }
+  },
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11210",
+          "description": "Persistent wind gust direction",
+          "unit": "degree",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "degree"
+      }
+  },
+    
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11211",
+          "description": "Wind speed <1 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11212",
+          "description": "Wind speed >=1 <2 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11213",
+          "description": "Wind speed >=2 <4 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11214",
+          "description": "Wind speed >=4 <7 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11215",
+          "description": "Wind speed >=7 <10 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B11216",
+          "description": "Wind speed >=10 m/s frequency",
+          "unit": "%",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "%"
+      }
+  },
+
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B14198",
+          "description": "Global radiation flux (downward)",
+          "unit": "W/m**2",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "W/m**2"
+      }
+  },
+   
+  {
+      "model": "stations.bcode",
+      "fields": {
+          "bcode": "B25025",
+          "description": "Photovoltaic panel voltage",
+          "unit": "V",
+          "offset": 0.0,
+          "scale": 1.0,
+          "userunit": "V"
+      }
+  },
+
+
+
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Leaf wetness driver",
+          "type": "LWT",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B13212"]
+	  ]
+      }
+  },    
+    
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DWA",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11041"],
+	      ["B11043"]
+	  ]
+      }
+  },
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DWB",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11209"],
+	      ["B11210"]
+	  ]
+      }
+  },
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DWC",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11209"],
+	      ["B11210"]
+	  ]
+      }
+  },
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DWD",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11209"],
+	      ["B11210"]
+	  ]
+      }
+  },
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DWE",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11209"],
+	      ["B11210"]
+	  ]
+      }
+  },
+    
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver",
+          "type": "DSA",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11209"],
+	      ["B11210"]
+	  ]
+      }
+  }
+
+]

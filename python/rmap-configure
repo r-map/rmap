@@ -128,6 +128,7 @@ parser.add_argument('--amqppassword',  default="", help="amqp password")
 parser.add_argument('--tcpipactivate', action="store_true", help="activate tcp/ip transport")
 parser.add_argument('--tcpipname',  default="master", help="tcp/ip name")
 parser.add_argument('--tcpipntpserver',  default="ntpserver", help="tcp/ip ntp server")
+parser.add_argument('--tcpipgsmapn',  default="ibox.tim.it", help="apn for gsm access")
 
 # ttn
 parser.add_argument('--ttn_jsrpc',action="store_true", help="execute json remote procedure call over ttn lorawan transport")
@@ -206,7 +207,8 @@ if args.addboard:
                             ,bluetoothactivate=args.bluetoothactivate, bluetoothname=args.bluetoothname
                             ,amqpactivate=args.amqpactivate, amqpusername=args.amqpuser, amqppassword=args.amqppassword
                             ,amqpserver=args.server, queue="rmap", exchange="rmap"
-                            ,tcpipactivate=args.tcpipactivate, tcpipname=args.tcpipname, tcpipntpserver=args.tcpipntpserver)
+                            ,tcpipactivate=args.tcpipactivate, tcpipname=args.tcpipname, tcpipntpserver=args.tcpipntpserver
+                            , tcpipgsmapn=args.tcpipgsmapn)
 
 
 if args.delsensor:

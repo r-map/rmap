@@ -414,6 +414,8 @@ class TransportTcpip(models.Model):
 
     ntpserver = models.CharField(max_length=50,default="ntpserver",null=False,blank=False,help_text=ugettext_lazy("Network time server (NTP)"))
 
+    gsmapn = models.CharField(max_length=50,default="ibox.tim.it",null=False,blank=False,help_text=ugettext_lazy("APN for gsm access"))
+
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 
     def natural_key(self):

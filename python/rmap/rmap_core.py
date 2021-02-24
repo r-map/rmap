@@ -195,7 +195,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
-              ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
+              ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org", tcpipgsmapn="ibox.tim.it"
           ):
 
     print("---------------------------")
@@ -271,6 +271,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     transporttcpip.active=tcpipactivate
     transporttcpip.name=tcpipname
     transporttcpip.ntpserver=tcpipntpserver
+    transporttcpip.tcpipgsmapn=tcpipgsmapn
     myboard.transporttcpip=transporttcpip
     print("TCPIP Transport", myboard.transporttcpip)                
     myboard.transporttcpip.save()
@@ -361,7 +362,7 @@ template_choices = [
     "stima_rf24_thw",    "stima_rf24_thp",    "stima_rf24_yp",    "stima_rf24_thwr",    "stima_rf24_thwrp",
     "airquality_sds", "airquality_pms", "airquality_hpm", "airquality_sps", "airquality_sps_sht", "airquality_sps_sht_scd",
     "stima_thd", "stima_thdm",
-    "stima_report_thp","stima_report_thpb", "stima_report_thpwb", "stima_report_p",
+    "stima_report_thp","stima_report_thpb", "stima_report_thpbl", "stima_report_thpbwr", "stima_report_thpwb", "stima_report_p",
     "stima_indirect_t",    "stima_indirect_h",    "stima_indirect_r",    "stima_indirect_p",    "stima_indirect_s", "stima_indirect_m",
     "stima_indirect_sm", "stima_indirect_th",    "stima_indirect_y",    "stima_indirect_thw",    "stima_indirect_thp",    "stima_indirect_yp",    "stima_indirect_ths",    "stima_indirect_thsm",
     "stima_indirect_thwr",    "stima_indirect_thwrp",    "stima_indirect_report_thp",
@@ -783,6 +784,73 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Battery charge monitor",driver="I2C",
                   type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
 
+    if (template == "stima_report_thpbl"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="I2C",
+                  type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="I2C",
+                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="I2C",
+                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max malues",driver="I2C",
+                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="I2C",
+                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Battery charge monitor",driver="I2C",
+                  type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Leaf wetness duration",driver="I2C",
+                  type="LWT",address=101,timerange="1,0,900",level="103,2000,-,-")
+        
+
+    if (template == "stima_report_thpbwr"):
+        print("setting template:", template)
+        delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report inst. values",driver="I2C",
+                  type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report min values",driver="I2C",
+                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report mean values",driver="I2C",
+                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Temperature/Humidity report max malues",driver="I2C",
+                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Precipitation report",driver="I2C",
+                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Battery charge monitor",driver="I2C",
+                  type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor",driver="I2C",
+                  type="DWA",address=69,timerange="254,0,0",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor",driver="I2C",
+                  type="DWB",address=69,timerange="200,0,900",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor",driver="I2C",
+                  type="DWC",address=69,timerange="2,0,900",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor",driver="I2C",
+                  type="DWD",address=69,timerange="0,0,900",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Windsonic wind sensor",driver="I2C",
+                  type="DWE",address=69,timerange="9,0,900",level="103,10000,-,-")
+        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
+                  name="Radiation",driver="I2C",
+                  type="DSA",address=71,timerange="0,0,900",level="1,-,-,-")
+
+        
     if (template == "stima_report_thpwb"):
         print("setting template:", template)
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
@@ -1073,6 +1141,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 #print("ntpserver:",rpcproxy.configure(mac=mac,ntpserver=board.transporttcpip.ntpserver))
                 #print("ntpserver:",rpcproxy.configure(gsmapn="ibox.tim.it",ntpserver=board.transporttcpip.ntpserver))
                 print("ntpserver:",rpcproxy.configure(ntpserver=board.transporttcpip.ntpserver))
+                print("gsmapn:",rpcproxy.configure(gsmapn=board.transporttcpip.gsmapn))
 
         except ObjectDoesNotExist:
             print("transport tcpip not present")
