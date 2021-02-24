@@ -757,3 +757,43 @@ protected:
 #endif
 
 #endif
+
+#if (USE_SENSOR_LWT)
+#include "registers-leaf.h"
+class SensorDriverLeaf : public SensorDriver {
+public:
+  SensorDriverLeaf(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
+    _is_setted = is_setted;
+    _is_prepared = is_prepared;
+
+    *_is_setted = false;
+    *_is_prepared = false;
+
+    SensorDriver::printInfo(driver, type);
+    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+  };
+  void setup(const uint8_t address, const uint8_t node = 0);
+  void prepare(bool is_test = false);
+  void get(int32_t *values, uint8_t length);
+
+  #if (USE_JSON)
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  #endif
+
+  bool isSetted();
+  bool isPrepared();
+  void resetPrepared();
+
+protected:
+  bool *_is_setted;
+  bool *_is_prepared;
+
+  enum {
+    INIT,
+    SET_ADDRESS,
+    READ_VALUE,
+    GET_VALUE,
+    END
+  } _get_state;
+};
+#endif

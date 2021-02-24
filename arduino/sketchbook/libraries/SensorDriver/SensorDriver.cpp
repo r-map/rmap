@@ -80,6 +80,11 @@ namespace _SensorDriver {
   bool _is_opc_setted;
   bool _is_opc_prepared;
   #endif
+
+  #if (USE_SENSOR_LWT)
+  bool _is_leaf_setted;
+  bool _is_leaf_prepared;
+  #endif
 }
 
 /*********************************************************************
@@ -145,6 +150,11 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
   else if ((strcmp(type, SENSOR_TYPE_OA2) == 0) || (strcmp(type, SENSOR_TYPE_OB2) == 0) || (strcmp(type, SENSOR_TYPE_OC2) == 0) || (strcmp(type, SENSOR_TYPE_OD2) == 0) || (strcmp(type, SENSOR_TYPE_OA3) == 0) || (strcmp(type, SENSOR_TYPE_OB3) == 0) || (strcmp(type, SENSOR_TYPE_OC3) == 0) || (strcmp(type, SENSOR_TYPE_OD3) == 0) || (strcmp(type, SENSOR_TYPE_OE3) == 0))
   return new SensorDriverOpc(driver, type, &_SensorDriver::_is_opc_setted, &_SensorDriver::_is_opc_prepared);
+  #endif
+
+  #if (USE_SENSOR_LWT)
+  else if (strcmp(type, SENSOR_TYPE_LWT) == 0)
+  return new SensorDriverLeaf(driver, type, &_SensorDriver::_is_leaf_setted, &_SensorDriver::_is_leaf_prepared);
   #endif
 
   else {
@@ -3391,6 +3401,267 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
       }
     }
     #endif
+
+    json.printTo(json_buffer, json_buffer_length);
+  }
+}
+#endif
+
+#endif
+
+//------------------------------------------------------------------------------
+// Leaf Wetness
+// USE_SENSOR_LWT: Wetness timer continuous
+//------------------------------------------------------------------------------
+#if (USE_SENSOR_LWT)
+
+bool SensorDriverLeaf::isSetted() {
+  return *_is_setted;
+}
+
+bool SensorDriverLeaf::isPrepared() {
+  return *_is_prepared;
+}
+
+void SensorDriverLeaf::resetPrepared() {
+  _get_state = INIT;
+  *_is_prepared = false;
+}
+
+void SensorDriverLeaf::setup(const uint8_t address, const uint8_t node) {
+  SensorDriver::setup(address, node);
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  *_is_setted = true;
+  _delay_ms = 0;
+  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+}
+
+void SensorDriverLeaf::prepare(bool is_test) {
+  SensorDriver::printInfo(_driver, _type, _address, _node);
+  bool is_i2c_write = false;
+  uint8_t i = 0;
+  _is_success = false;
+
+  if (!*_is_prepared) {
+    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+    is_i2c_write = false;
+    i = 0;
+
+    if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
+      is_i2c_write = true;
+      _buffer[i++] = I2C_COMMAND_ID;
+
+      if (is_test) {
+        _buffer[i++] = I2C_LEAF_COMMAND_TEST_READ;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      else {
+        _buffer[i++] = I2C_LEAF_COMMAND_ONESHOT_START_STOP;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      _delay_ms = 0;
+    }
+
+    if (is_i2c_write) {
+      Wire.beginTransmission(_address);
+      Wire.write(_buffer, i+1);
+
+      if (Wire.endTransmission() == 0) {
+        _is_success = true;
+        *_is_prepared = true;
+      }
+    }
+  }
+  else {
+    _is_success = true;
+    _delay_ms = 0;
+  }
+
+  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+
+  _start_time_ms = millis();
+}
+
+void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
+  static uint8_t variable_length;
+  static uint8_t data_length;
+
+  static uint8_t variable_count;
+  static uint8_t offset;
+
+  bool is_i2c_write;
+  uint8_t i;
+
+  float val;
+  uint8_t *val_ptr;
+
+  switch (_get_state) {
+    case INIT:
+      memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+      if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
+        val = (float) UINT16_MAX;
+        variable_length = 1;
+      }
+
+      variable_count = 0;
+      data_length = 0;
+
+      _is_readed = false;
+      _is_end = false;
+
+      if (*_is_prepared && length >= 1) {
+        _is_success = true;
+        _get_state = SET_ADDRESS;
+      }
+      else {
+        _is_success = false;
+        _get_state = END;
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+      break;
+
+    case SET_ADDRESS:
+      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+      is_i2c_write = false;
+      offset = 0;
+      i = 0;
+
+      #if (USE_SENSOR_LWT)
+      if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
+        is_i2c_write = true;
+        data_length = I2C_LEAF_TIMER_LENGTH;
+        _buffer[i++] = I2C_LEAF_TIMER_ADDRESS;
+        _buffer[i++] = I2C_LEAF_TIMER_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
+      }
+      #endif
+
+      if (is_i2c_write) {
+        Wire.beginTransmission(_address);
+        Wire.write(_buffer, i+1);
+
+        if (Wire.endTransmission()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = READ_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case READ_VALUE:
+      if (_is_success) {
+        Wire.requestFrom(_address, data_length + 1);
+        if (Wire.available() < (data_length + 1)) {
+          _is_success = false;
+        }
+      }
+
+      if (_is_success) {
+        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
+        for (i = 0; i < data_length; i++) {
+          _buffer[i] = Wire.read();
+        }
+
+        if (crc8(_buffer, data_length) != Wire.read()) {
+          _is_success = false;
+        }
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if (_is_success) {
+        _get_state = GET_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+      break;
+
+    case GET_VALUE:
+      #if (USE_SENSOR_LWT)
+      if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
+        if (length >= variable_count + 1) {
+          val_ptr = (uint8_t*) &val;
+
+          for (i = 0; i < 4; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
+          }
+
+          if (_is_success && isValid(val)) {
+            values[variable_count] = (uint16_t)(round(val / 10.0));
+          }
+          else {
+            values[variable_count] = UINT16_MAX;
+            _is_success = false;
+          }
+
+          offset += 4;
+        }
+      }
+      #endif
+
+      variable_count++;
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if ((variable_count >= length) || (variable_count >= variable_length)) {
+        _get_state = END;
+      }
+      break;
+
+    case END:
+      SensorDriver::printInfo(_driver, _type, _address, _node);
+      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+
+      #if (USE_SENSOR_LWT)
+      if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
+        if (length >= 1) {
+          if (isValid(values[0])) {
+            SERIAL_INFO(F("--> Leaf Wet Time: %ld minutes\r\n"), values[0]);
+          }
+          else {
+            SERIAL_DEBUG(F("--> Leaf Wet Time: --- minutes\r\n"));
+          }
+        }
+      }
+      #endif
+
+      _start_time_ms = millis();
+      _delay_ms = 0;
+      _is_end = true;
+      _is_readed = false;
+      _get_state = INIT;
+      break;
+  }
+}
+
+#if (USE_JSON)
+void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverLeaf::get(values, length);
+
+  if (_is_end && !_is_readed) {
+    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
+    JsonObject &json = buffer.createObject();
+
+    if (length >= 1) {
+      if (isValid(values[0])) {
+        json["B13212"] = values[0];
+      }
+      else json["B13212"] = RawJson("null");
+    }
 
     json.printTo(json_buffer, json_buffer_length);
   }

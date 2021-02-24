@@ -174,6 +174,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_OE3           ("OE3")
 
 /*!
+\def SENSOR_TYPE_LWT
+\brief Sensor driver's LWT sensor type for leaf wetness time continuos values.
+*/
+#define SENSOR_TYPE_LWT           ("LWT")
+
+/*!
 \def SENSOR_TYPE_HI7
 \brief Sensor driver's HI7 sensor type for SI7021.
 */
