@@ -4,13 +4,15 @@
 
 from django.db import migrations, models
 from django.core import serializers
-import os
+import os,re
+import django
 
 fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtures'))
 
 def load_fixture(apps, schema_editor):
 
     fixture_file=fixture_dir+"/sensor_type_01.json"
+    print("load fixture from file: ",fixture_file)
     fixture = open(fixture_file, 'rb')
     objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
     for obj in objects:
@@ -97,6 +99,12 @@ class Migration(migrations.Migration):
             model_name='bcode',
             name='unit',
             field=models.CharField(default=b'Undefined', help_text='Units of measure', max_length=20),
+        ),
+
+         migrations.AddField(
+            model_name='transporttcpip',
+            name='gsmapn',
+            field=models.CharField(default='ibox.tim.it', help_text='APN for gsm access', max_length=50),
         ),
         migrations.RunPython(load_fixture, reverse_code=unload_fixture),
     ]
