@@ -215,7 +215,7 @@ void handle_Data() {
 void handle_Json() {
   webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
   webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
-  webserver.send(200, "text/html", Json()); 
+  webserver.send(200, "application/json", Json()); 
 }
 
 void handle_NotFound(){
