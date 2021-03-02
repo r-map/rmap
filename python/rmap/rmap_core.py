@@ -835,7 +835,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Windsonic wind sensor vectorial average 10'",driver="I2C",
                   type="DWA",address=69,timerange="254,0,0",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Windsonic wind sensor vectorial average",driver="I2C",
+                  name="Windsonic wind sensor vectorial average snd gust direction",driver="I2C",
                   type="DWB",address=69,timerange="200,0,900",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor gust speeds",driver="I2C",
@@ -846,9 +846,6 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor frequency",driver="I2C",
                   type="DWE",address=69,timerange="9,0,900",level="103,10000,-,-")
-        addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Windsonic wind sensor gust directions",driver="I2C",
-                  type="DWF",address=69,timerange="200,0,900",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Radiation",driver="I2C",
                   type="DSA",address=71,timerange="0,0,900",level="1,-,-,-")
