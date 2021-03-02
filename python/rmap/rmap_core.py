@@ -755,7 +755,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="I2C",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="I2C",
+                  name="Temperature/Humidity report max values",driver="I2C",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
@@ -775,7 +775,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="I2C",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="I2C",
+                  name="Temperature/Humidity report max values",driver="I2C",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
@@ -797,7 +797,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="I2C",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="I2C",
+                  name="Temperature/Humidity report max values",driver="I2C",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
@@ -823,7 +823,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="I2C",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="I2C",
+                  name="Temperature/Humidity report max values",driver="I2C",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
@@ -864,7 +864,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="I2C",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="I2C",
+                  name="Temperature/Humidity report max values",driver="I2C",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
@@ -1030,7 +1030,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   name="Temperature/Humidity report mean values",driver="JRPC",
                   type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
-                  name="Temperature/Humidity report max malues",driver="JRPC",
+                  name="Temperature/Humidity report max values",driver="JRPC",
                   type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="JRPC",
