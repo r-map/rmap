@@ -1,9 +1,10 @@
-RFC rmap versione 2.4
+RFC rmap versione 2.5
 =====================
 
 Storia del documento
 --------------------
 
+- 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
 - 2019/06/18 v. 2.3 : aggiunte specifiche JSRPC
 
@@ -274,9 +275,11 @@ the values for leveltype coincide with the GRIB standard where possible.
 
 The level field is composed by:
 
--  leveltype : from level table (unsigned integer value)
--  l1 : first level defined by leveltype (unsigned integer value)
--  l2 : second level defined by leveltype ; needed with layer only,
+-  leveltype1 : from level table (unsigned integer value)
+-  l1 : first level defined by leveltype1 (unsigned integer value)
+-  leveltype2 : from level table (unsigned integer value); needed with layer only,
+   missing otherwise (unsigned integer value)
+-  l2 : second level defined by leveltype2 ; needed with layer only,
    missing otherwise (unsigned integer value)
 
 Should be everytime l1 < l2
@@ -506,15 +509,15 @@ Variabile
 La tabella B (vedi codifica BUFR del WMO) descrive i dati e la loro
 eventuale codifica.
 
-I dati possono essere inviati come numeri a virgola mobile, interi con
-segno o stringhe di caratteri. Nell'utilizzo del formato JSON i numeri a
-virgola mobile vendono distinti da quelli interi per la presenza del
-carattere ".". Il formato consigliato è quello intero con segno per
-evitare problemi di troncamento nella rappresentazione dei valori. E'
-anche possibile rappresentare i dati convertendo gli interi con segno in
+I dati possono essere inviati come numeri a virgola mobile o stringhe di caratteri.
+Il formato consigliato è quello a stringhe di caratteri per
+evitare problemi di troncamento nella rappresentazione dei valori
+visto che al suo interno la rappresentazione è intera.
+La rappresentazione di valori numerici nel formato a stringa di caratteri  si ottiene 
+convertendo la rappresentazione del valore in intero con segno in
 una rappresentazione decimale in una stringa (es. "27315" per una
 temperatura di 273.15K) Il valore intero con segno si ottiene
-moltiplicando la variabile rappresentata con la unità di misura
+moltiplicando il valore rappresentato con la unità di misura
 descritta da "units" per il fattore di scala "scale".
 
 Le restanti colonne della tabella B vengono utilizzate nella de/codifica
