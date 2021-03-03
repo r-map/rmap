@@ -187,14 +187,12 @@
       "model": "stations.sensortype",
       "fields": {
           "active": true,
-          "name": "Winsonic driver vectorial average and gust direction",
+          "name": "Winsonic driver vectorial mean",
           "type": "DWB",
 	  "datalevel": "report",
           "bcodes": [
 	      ["B11002"],
-	      ["B11001"],
-	      ["B11209"],
-	      ["B11043"]
+	      ["B11001"]
 	  ]
       }
   },
@@ -208,7 +206,7 @@
 	  "datalevel": "report",
           "bcodes": [
 	      ["B11041"],
-	      ["B11210"]
+	      ["B11209"]
 	  ]
       }
   },
@@ -217,7 +215,7 @@
       "model": "stations.sensortype",
       "fields": {
           "active": true,
-          "name": "Winsonic driver scalar average",
+          "name": "Winsonic driver scalar mean",
           "type": "DWD",
 	  "datalevel": "report",
           "bcodes": [
@@ -243,7 +241,22 @@
 	  ]
       }
   },
-    
+
+  {
+      "model": "stations.sensortype",
+      "fields": {
+          "active": true,
+          "name": "Winsonic driver gust direction",
+          "type": "DWF",
+	  "datalevel": "report",
+          "bcodes": [
+	      ["B11043"],
+	      ["B11210"]
+
+	  ]
+      }
+  },
+
   {
       "model": "stations.sensortype",
       "fields": {
