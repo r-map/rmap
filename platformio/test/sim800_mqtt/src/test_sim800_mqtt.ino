@@ -6,6 +6,7 @@
   - subscribes to the topic "inTopic"
 */
 
+#define USE_SIM_800C 
 #define GSMAPN "ibox.tim.it"
 #define GSMUSER ""
 #define GSMPASSWORD ""
@@ -23,7 +24,9 @@ char imeicode[16];
 char server[] = "rmap.cc";
 
 
-HardwareSerial Serial1(PA10, PA9);
+#ifndef HARDWARESERIAL
+HardwareSerial Serial1(PB11, PB10);
+#endif
 
 void callback(char* topic, byte* payload, unsigned int length) {
   // handle message arrived
@@ -74,7 +77,7 @@ void setup()
 
     #else
     // use this on stm32
-    if (s800.init(&Serial1 , D2, D3)) break;
+    if (s800.init(&Serial1 , D5, D6)) break;
     #endif
 
   }
