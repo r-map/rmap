@@ -135,11 +135,11 @@ X 2 2 200 0 100 L 50 50 0 1 P
 ENDDRAW
 ENDDEF
 #
-# microduino_stm-rescue_Microduino-microduino
+# microduino_stm-rescue_Microduino-microduino-microduino_stm-rescue
 #
-DEF microduino_stm-rescue_Microduino-microduino U 0 40 Y Y 1 F N
+DEF microduino_stm-rescue_Microduino-microduino-microduino_stm-rescue U 0 40 Y Y 1 F N
 F0 "U" 0 -100 60 H V C CNN
-F1 "microduino_stm-rescue_Microduino-microduino" -100 0 60 H V C CNN
+F1 "microduino_stm-rescue_Microduino-microduino-microduino_stm-rescue" -100 0 60 H V C CNN
 F2 "" 0 0 60 H V C CNN
 F3 "" 0 0 60 H V C CNN
 DRAW

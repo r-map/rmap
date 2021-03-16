@@ -684,7 +684,7 @@ U 1 1 600A2E09
 P 2100 6050
 F 0 "D1" V 2054 6130 50  0000 L CNN
 F 1 "D" V 2145 6130 50  0000 L CNN
-F 2 "Diode_SMD:D_SOD-123" H 2100 6050 50  0001 C CNN
+F 2 "Diodo:STPS0530Z" H 2100 6050 50  0001 C CNN
 F 3 "~" H 2100 6050 50  0001 C CNN
 	1    2100 6050
 	0    1    1    0   
@@ -716,7 +716,7 @@ F 3 "" H 7300 7400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L microduino_stm-rescue:Microduino-microduino U1
+L microduino_stm-rescue:Microduino-microduino-microduino_stm-rescue U1
 U 1 1 5FFE8227
 P 9400 2450
 F 0 "U1" V 9353 2738 60  0000 L CNN

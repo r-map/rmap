@@ -1,8 +1,8 @@
 (export (version D)
   (design
-    (source /home/pat1/git/rmap/kicad/stima_devel/microduino_stm32/microduino_stm.sch)
-    (date "lun 8 feb 2021, 17:48:19")
-    (tool "Eeschema 5.1.9-1.fc32")
+    (source /home/kicad/Documenti/rmap/kicad/stima_devel/microduino_stm32/microduino_stm.sch)
+    (date "Tue 16 Mar 2021 22:39:24 CET")
+    (tool "Eeschema 5.1.9-1.fc33")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
         (title)
@@ -100,7 +100,7 @@
       (tstamp 5FFF4862))
     (comp (ref D1)
       (value D)
-      (footprint Diode_SMD:D_SOD-123)
+      (footprint Diodo:STPS0530Z)
       (datasheet ~)
       (libsource (lib Device) (part D) (description Diode))
       (sheetpath (names /) (tstamps /))
@@ -108,7 +108,7 @@
     (comp (ref U1)
       (value Microduino)
       (footprint Microduino:microduino)
-      (libsource (lib microduino_stm-rescue) (part Microduino-microduino) (description ""))
+      (libsource (lib microduino_stm-rescue) (part Microduino-microduino-microduino_stm-rescue) (description ""))
       (sheetpath (names /) (tstamps /))
       (tstamp 5FFE8227))
     (comp (ref J3)
@@ -250,10 +250,10 @@
       (pins
         (pin (num 1) (name 1) (type passive))
         (pin (num 2) (name 2) (type passive))))
-    (libpart (lib microduino_stm-rescue) (part Microduino-microduino)
+    (libpart (lib microduino_stm-rescue) (part Microduino-microduino-microduino_stm-rescue)
       (fields
         (field (name Reference) U)
-        (field (name Value) Microduino-microduino))
+        (field (name Value) Microduino-microduino-microduino_stm-rescue))
       (pins
         (pin (num 1) (name GND) (type power_out))
         (pin (num 2) (name RST) (type input))
@@ -375,9 +375,9 @@
     (library (logical Switch)
       (uri /usr/share/kicad/library/Switch.lib))
     (library (logical microduino_stm-rescue)
-      (uri /home/pat1/git/rmap/kicad/stima_devel/microduino_stm32/microduino_stm-rescue.lib))
+      (uri /home/kicad/Documenti/rmap/kicad/stima_devel/microduino_stm32/microduino_stm-rescue.lib))
     (library (logical microduino_stm32-eagle-import)
-      (uri /home/pat1/git/rmap/kicad/stima_devel/microduino_stm32/microduino_stm32-eagle-import.lib)))
+      (uri /home/kicad/Documenti/rmap/kicad/stima_devel/microduino_stm32/microduino_stm32-eagle-import.lib)))
   (nets
     (net (code 1) (name /D10)
       (node (ref U1) (pin 22))

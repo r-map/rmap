@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name Microduino)(type KiCad)(uri /home/kicad/Documenti/rmap/kicad/stima_v2/lib.pretty)(options "")(descr ""))
+  (lib (name Diodo)(type KiCad)(uri ${KIPRJMOD}/footprints.pretty)(options "")(descr ""))
 )
