@@ -45,11 +45,17 @@ public:
         countdown_ms((unsigned long)seconds * 1000L);
     }
     
+
     int left_ms()
     {
-        return interval_end_ms - millis();
+      unsigned long now=millis();
+      if(now >= interval_end_ms){
+	  return 0;  
+	}else{
+	  return interval_end_ms - now;
+      }
     }
-    
+
 private:
     unsigned long interval_end_ms; 
 };
