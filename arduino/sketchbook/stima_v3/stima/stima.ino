@@ -1115,6 +1115,12 @@ void supervisor_task() {
          interrupts();
 
          if (!is_event_time && is_event_time_executed) {
+            // if NTP sync fail, reset variable anyway
+            if (do_ntp_sync || ((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S)) {
+               last_ntp_sync = system_time;
+               do_ntp_sync = false;
+            }
+
             is_time_updated = true;
 
             #if (USE_NTP)
