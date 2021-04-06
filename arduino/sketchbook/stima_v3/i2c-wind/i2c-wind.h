@@ -75,15 +75,33 @@ typedef struct {
 \brief report data.
 */
 typedef struct {
-  float vavg10_speed;
-  float vavg10_direction;
-  float vavg_speed;
-  float vavg_direction;
-  float peak_gust_speed;
-  float peak_gust_direction;
-  float long_gust_speed;
-  float long_gust_direction;
-  float avg_speed;
+  // DWA
+  float vavg10_speed;           // B11002   254,0,0
+  float vavg10_direction;       // B11001   254,0,0
+
+  // DWB
+  float vavg_speed;             // B11002   200,0,900
+  float vavg_direction;         // B11001   200,0,900
+
+  // DWC
+  float peak_gust_speed;        // B11041   2,0,900
+  float long_gust_speed;        // B11209   2,0,900
+
+  // DWD
+  float avg_speed;              // B11002   0,0,900
+
+  // DWE
+  float class_1;                // B11211   9,0,900
+  float class_2;                // B11212   9,0,900
+  float class_3;                // B11213   9,0,900
+  float class_4;                // B11214   9,0,900
+  float class_5;                // B11215   9,0,900
+  float class_6;                // B11216   9,0,900
+  // dtable={"51":["B11211","B11212","B11213","B11214","B11215","B11216"]}
+
+  // DWF
+  float peak_gust_direction;    // B11043   205,0,900
+  float long_gust_direction;    // B11210   205,0,900
 
 } report_t;
 

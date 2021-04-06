@@ -120,6 +120,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SENSOR_TYPE_DWE           ("DWE")
 
 /*!
+\def SENSOR_TYPE_DWF
+\brief Sensor driver's DWF sensor type for class Wind Speed over report time.
+*/
+#define SENSOR_TYPE_DWF           ("DWF")
+
+/*!
 \def SENSOR_TYPE_OA2
 \brief Sensor driver's OA2 sensor type for OPC-N2: PM1, PM2.5, PM10 average continuos values.
 */

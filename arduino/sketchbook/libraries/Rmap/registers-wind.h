@@ -131,16 +131,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_WIND_VAVG_ADDRESS                     (I2C_WIND_VAVG10_ADDRESS + I2C_WIND_VAVG10_LENGTH)
 
 /*!
-\def I2C_WIND_GUST_LENGTH
+\def I2C_WIND_GUST_SPEED_LENGTH
 \brief length of the version variable for i2c-wind module.
 */
-#define I2C_WIND_GUST_LENGTH                      (4 * 0x04)
+#define I2C_WIND_GUST_SPEED_LENGTH                      (2 * 0x04)
 
 /*!
-\def I2C_WIND_GUST_ADDRESS
+\def I2C_WIND_GUST_SPEED_ADDRESS
 \brief address of the version variable for i2c-wind module.
 */
-#define I2C_WIND_GUST_ADDRESS                     (I2C_WIND_VAVG_ADDRESS + I2C_WIND_VAVG_LENGTH)
+#define I2C_WIND_GUST_SPEED_ADDRESS                     (I2C_WIND_VAVG_ADDRESS + I2C_WIND_VAVG_LENGTH)
 
 /*!
 \def I2C_WIND_SPEED_LENGTH
@@ -152,7 +152,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_WIND_SPEED_ADDRESS
 \brief address of the version variable for i2c-wind module.
 */
-#define I2C_WIND_SPEED_ADDRESS                    (I2C_WIND_GUST_ADDRESS + I2C_WIND_GUST_LENGTH)
+#define I2C_WIND_SPEED_ADDRESS                    (I2C_WIND_GUST_SPEED_ADDRESS + I2C_WIND_GUST_SPEED_LENGTH)
 
 /*!
 \def I2C_WIND_CLASS_LENGTH
@@ -165,6 +165,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief address of the version variable for i2c-wind module.
 */
 #define I2C_WIND_CLASS_ADDRESS                    (I2C_WIND_SPEED_ADDRESS + I2C_WIND_SPEED_LENGTH)
+
+/*!
+\def I2C_WIND_GUST_DIRECTION_LENGTH
+\brief length of the version variable for i2c-wind module.
+*/
+#define I2C_WIND_GUST_DIRECTION_LENGTH                     (2 * 0x04)
+
+/*!
+\def I2C_WIND_GUST_DIRECTION_ADDRESS
+\brief address of the version variable for i2c-wind module.
+*/
+#define I2C_WIND_GUST_DIRECTION_ADDRESS                    (I2C_WIND_CLASS_ADDRESS + I2C_WIND_CLASS_LENGTH)
 
 /*!
 \def I2C_WIND_READABLE_DATA_LENGTH

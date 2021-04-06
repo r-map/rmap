@@ -629,7 +629,7 @@ protected:
 };
 #endif
 
-#if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE)
+#if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
 #include "registers-wind.h"
 class SensorDriverWind : public SensorDriver {
 public:
