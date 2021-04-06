@@ -22,11 +22,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifdef ARDUINO_ARCH_AVR
   #include <Arduino_FreeRTOS.h>
+  #define WORD 1
 #else 
   #ifdef ARDUINO_ARCH_STM32
     #include "STM32FreeRTOS.h"
+    #define WORD 4
   #else
     #include "FreeRTOS.h"
+    #define WORD 4
   #endif
 #endif
 
@@ -63,57 +66,75 @@ StackType_t xStackRtc[ STACK_SIZE_RTC ];
 TaskHandle_t xHandleRtc;
 */
 
-#define STACK_SIZE_SUPERVISOR 300
+#define STACK_SIZE_SUPERVISOR 300/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferSupervisor;
 StackType_t xStackSupervisor[ STACK_SIZE_SUPERVISOR ];
+#endif
 TaskHandle_t xHandleSupervisor;
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
-  #define STACK_SIZE_ETHERNET 200
+  #define STACK_SIZE_ETHERNET 200/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
   StaticTask_t xTaskBufferEthernet;
   StackType_t xStackEthernet[ STACK_SIZE_ETHERNET ];
+#endif
   TaskHandle_t xHandleEthernet;
 #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
-  #define STACK_SIZE_GSM 200
+  #define STACK_SIZE_GSM 200/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
   StaticTask_t xTaskBufferGsm;
   StackType_t xStackGsm[ STACK_SIZE_GSM ];
+#endif
   TaskHandle_t xHandleGsm;
 #endif
   
-#define STACK_SIZE_SENSORREADING 200
+#define STACK_SIZE_SENSORREADING 200/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferSensorReading;
 StackType_t xStackSensorReading[ STACK_SIZE_SENSORREADING ];
+#endif
 TaskHandle_t xHandleSensorReading;
 
 #if (USE_SDCARD)
-#define STACK_SIZE_DATASAVING 700
+#define STACK_SIZE_DATASAVING 700/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferDataSaving;
 StackType_t xStackDataSaving[ STACK_SIZE_DATASAVING ];
+#endif
 TaskHandle_t xHandleDataSaving;
 #endif
 
 #if (USE_MQTT)
-#define STACK_SIZE_MQTT 800
+#define STACK_SIZE_MQTT 800/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferMqtt;
 StackType_t xStackMqtt[ STACK_SIZE_MQTT ];
+#endif
 TaskHandle_t xHandleMqtt;
 #endif
 
-#define STACK_SIZE_TIME 200
+#define STACK_SIZE_TIME 200/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferTime;
 StackType_t xStackTime[ STACK_SIZE_TIME ];
+#endif
 TaskHandle_t xHandleTime;
 
 /*
-#define STACK_SIZE_RPC 300
+#define STACK_SIZE_RPC 300/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferRpc;
 StackType_t xStackRpc[ STACK_SIZE_RPC ];
+#endif
 TaskHandle_t xHandleRpc;
 */
 
-#define STACK_SIZE_HEARTHBEAT 200
+#define STACK_SIZE_HEARTHBEAT 200/WORD
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferHearthBeat;
 StackType_t xStackHearthBeat[ STACK_SIZE_HEARTHBEAT ];
+#endif
 TaskHandle_t xHandleHearthBeat;
 
 /*
@@ -291,6 +312,9 @@ void vApplicationStackOverflowHook( TaskHandle_t xTask,
 */
 void setup() {
    SERIAL_BEGIN(115200);
+   delay(3000);
+   Serial.println("Starting up");
+   delay(3000);
    init_pins();
    init_wire();
    init_rpc();
@@ -322,38 +346,66 @@ void setup() {
    vTaskSuspend( xHandleRtc);
    */
    
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleSupervisor = xTaskCreateStatic(taskSupervisor,"Superv",
    					 STACK_SIZE_SUPERVISOR, NULL, 1, xStackSupervisor, &xTaskBufferSupervisor );
+#else
+   xTaskCreate(taskSupervisor,"Superv", STACK_SIZE_SUPERVISOR, (void *) 1,  1, &xHandleSupervisor);
+#endif
    //vTaskSuspend( xHandleSupervisor);
  
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleEthernet = xTaskCreateStatic(taskEthernet, "Ether",
 				       STACK_SIZE_ETHERNET, NULL, 1, xStackEthernet, &xTaskBufferEthernet );
+#else
+   xTaskCreate(taskEthernet,"Ether", STACK_SIZE_ETHERNET, (void *) 1,  1, &xHandleEthernet);
+#endif   
    vTaskSuspend( xHandleEthernet);
    #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)     
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleGsm = xTaskCreateStatic(taskGsm, "Gsm",
 				  STACK_SIZE_GSM, NULL, 1, xStackGsm, &xTaskBufferGsm );
+#else
+   xTaskCreate(taskGsm,"Gsm", STACK_SIZE_GSM, (void *) 1,  1, &xHandleGsm);
+#endif   
    vTaskSuspend( xHandleGsm);
    #endif
    
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleSensorReading = xTaskCreateStatic(taskSensorReading, "Sensor",
 					    STACK_SIZE_SENSORREADING, NULL, 2, xStackSensorReading, &xTaskBufferSensorReading );
+#else
+   xTaskCreate(taskSensorReading,"Sensor", STACK_SIZE_SENSORREADING, (void *) 1,  1, &xHandleSensorReading);
+#endif
    vTaskSuspend( xHandleSensorReading);     
 
 #if (USE_SDCARD)
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleDataSaving = xTaskCreateStatic(taskDataSaving, "Saving",
 					 STACK_SIZE_DATASAVING, NULL, 2, xStackDataSaving, &xTaskBufferDataSaving );
+#else
+   xTaskCreate(taskDataSaving,"Saving", STACK_SIZE_DATASAVING, (void *) 1,  1, &xHandleDataSaving);
+#endif
    vTaskSuspend( xHandleDataSaving);
-   #endif
+#endif
    
    #if (USE_MQTT)
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleMqtt = xTaskCreateStatic(taskMqtt, "Mqtt",
 				   STACK_SIZE_MQTT, NULL, 1, xStackMqtt, &xTaskBufferMqtt );
+#else
+   xTaskCreate(taskMqtt,"Mqtt", STACK_SIZE_MQTT, (void *) 1,  1, &xHandleMqtt);
+#endif
    vTaskSuspend( xHandleMqtt);
    #endif
    
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleTime = xTaskCreateStatic(taskTime, "Time",
 				   STACK_SIZE_TIME, NULL, 1, xStackTime, &xTaskBufferTime );
+#else
+   xTaskCreate(taskTime,"time", STACK_SIZE_TIME, (void *) 1,  1, &xHandleTime);
+#endif
    vTaskSuspend( xHandleTime);
      
    /*
@@ -362,8 +414,12 @@ void setup() {
    //vTaskSuspend( xHandleRpc);
    */
 
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
    xHandleHearthBeat = xTaskCreateStatic(taskHearthBeat, "Beat",
 					 STACK_SIZE_HEARTHBEAT, NULL, 1, xStackHearthBeat, &xTaskBufferHearthBeat );
+#else
+   xTaskCreate(taskHearthBeat,"Beat", STACK_SIZE_HEARTHBEAT, (void *) 1,  1, &xHandleHearthBeat);
+#endif
 
   // The scheduler was started in initVariant() found in variantHooks.c but in RMAP was moved here
   vTaskStartScheduler(); // initialise and run the freeRTOS scheduler. Execution should never return here.
@@ -514,7 +570,9 @@ void init_wire() {
    // }
 
    i2c_error = 0;
+#ifdef ARDUINO_ARCH_AVR
    Wire.end();
+#endif   
    Wire.begin();
    Wire.setClock(I2C_BUS_CLOCK);
 }
@@ -1334,7 +1392,13 @@ void supervisor_task() {
          interrupts();
 
          if (!is_event_time && is_event_time_executed) {
-            is_time_updated = true;
+	    // if NTP sync fail, reset variable anyway
+	    if (do_ntp_sync || ((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S)) {
+	      last_ntp_sync = system_time;
+	      do_ntp_sync = false;
+	    }
+	   
+	    is_time_updated = true;
 
             #if (USE_NTP)
             if (is_client_connected) {

@@ -291,7 +291,9 @@ void init_wire() {
    // }
 
    i2c_error = 0;
+#ifdef ARDUINO_ARCH_AVR
    Wire.end();
+#endif
    Wire.begin();
    Wire.setClock(I2C_BUS_CLOCK);
 }
@@ -1115,6 +1117,12 @@ void supervisor_task() {
          interrupts();
 
          if (!is_event_time && is_event_time_executed) {
+            // if NTP sync fail, reset variable anyway
+            if (do_ntp_sync || ((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S)) {
+               last_ntp_sync = system_time;
+               do_ntp_sync = false;
+            }
+
             is_time_updated = true;
 
             #if (USE_NTP)
@@ -1595,6 +1603,7 @@ void gsm_task() {
       case GSM_INIT:
          is_error = false;
          is_client_connected = false;
+         sim800_connection_status = 0;
          state_after_wait = GSM_INIT;
          gsm_state = GSM_SWITCH_ON;
       break;
