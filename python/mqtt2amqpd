@@ -117,7 +117,7 @@ class MyMQTTClass(mqtt.Client):
 
     def on_connect(self,client, userdata, flags, rc):
         for topic in userdata["topics"]:
-            client.subscribe(topic)
+            client.subscribe(topic,qos=userdata.get("qos",0))
 
     def on_message(self,client, userdata, message):
 
@@ -256,11 +256,16 @@ def main(self):
     # but note that the client id must be unique on the broker. Leaving the client
     # id parameter empty will generate a random id for you.
 
-    mqttclient = MyMQTTClass(userdata={
-        "topics": [topic],
-        "logging": logging,
-        "send_queue": send_queue})
-#        client_id="1")
+    mqttclient = MyMQTTClass(
+        userdata={
+            "topics": [topic],
+            "logging": logging,
+            "send_queue": send_queue,
+            "qos":1},
+        client_id=user+"/"+self.options.datalevel+"/"+self.options.stationtype,
+        clean_session=False
+        # qos=1 required by clean_session=False
+    )
     
     mqttclient.loop_start()
     mqttclient.connect(host=host)
