@@ -93,11 +93,11 @@ extern "C" {
 #define TIMER_SERVO             TIM4
 
 // UART Definitions
-#define SERIAL_UART_INSTANCE    2
+#define SERIAL_UART_INSTANCE    3
 // Default pin used for 'Serial' instance
 // Mandatory for Firmata
-#define PIN_SERIAL_RX           PA_3
-#define PIN_SERIAL_TX           PA_2
+#define PIN_SERIAL_RX           PA_10
+#define PIN_SERIAL_TX           PA_9
 
 #ifdef __cplusplus
 } // extern "C"
