@@ -19,6 +19,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define OUTPIN  D6
 
+// reverse output on OUTPIN !  usefull for simulatea switch closed on GND
+#define MYHIGH  LOW  
+#define MYLOW   HIGH
+
+
 // use 100 microsends here as unit
 #define MINTIMEWITHOUTRAIN 50000         // 500 ms
 #define MAXTIMEWITHOUTRAIN 80000         // 800 ms
@@ -28,8 +33,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MINTIMETORAIN      500          // 50 ms
 #define MAXTIMETORAIN      3000          // 300 ms
 
-#define SECONDSTOPOWERON 10
-#define SECONDSTOPOWEROFF 60
+// Digiteco rain gauge
+#define MAXTIMETOBOUNCE    8            // 0.8 ms
+#define MINTIMETORAIN      400          // 40 ms
+#define MAXTIMETORAIN      600          // 60 ms
+
+
+#define SECONDSTOPOWERON   10
+#define SECONDSTOPOWEROFF  60
 
 #include <ArduinoLog.h>
 
@@ -106,7 +117,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine NORAINSTART"));
     
-    digitalWrite(OUTPIN, LOW);
+    digitalWrite(OUTPIN, MYLOW);
     
     norain_start_wait=millisecondi;
     timewithoutrain = random(MINTIMEWITHOUTRAIN,MAXTIMEWITHOUTRAIN+1);
@@ -150,7 +161,7 @@ void rain_machine(){
 
     bounceoff_start_wait=millisecondi;
     timetobounceoff = random(1,MAXTIMEBOUNCEPULSE+1);
-    digitalWrite(OUTPIN, LOW);
+    digitalWrite(OUTPIN, MYLOW);
 
     r_state = PRBOUNCEOFF;
     break;
@@ -177,7 +188,7 @@ void rain_machine(){
 
     bounceon_start_wait=millisecondi;
     timetobounceon = random(1,MAXTIMEBOUNCEPULSE+1);
-    digitalWrite(OUTPIN, HIGH);
+    digitalWrite(OUTPIN, MYHIGH);
 
     r_state = PRBOUNCEON;
     break;
@@ -203,7 +214,7 @@ void rain_machine(){
 
     rain_start_wait=millisecondi;
     timetorain = random(MINTIMETORAIN,MAXTIMETORAIN+1);
-    digitalWrite(OUTPIN, HIGH);
+    digitalWrite(OUTPIN, MYHIGH);
     tp++;
     
     r_state = RAIN;
@@ -234,7 +245,7 @@ void rain_machine(){
 
     bounceoff_start_wait=millisecondi;
     timetobounceoff = random(1,MAXTIMEBOUNCEPULSE+1);
-    digitalWrite(OUTPIN, LOW);
+    digitalWrite(OUTPIN, MYLOW);
 
     r_state = POBOUNCEOFF;
     break;
@@ -261,7 +272,7 @@ void rain_machine(){
 
     bounceon_start_wait=millisecondi;
     timetobounceon = random(1,MAXTIMEBOUNCEPULSE+1);
-    digitalWrite(OUTPIN, HIGH);
+    digitalWrite(OUTPIN, MYHIGH);
 
     r_state = POBOUNCEON;
     break;
@@ -346,7 +357,11 @@ void setup (void)
   Log.notice(F("Starting Fake Rain Gauge"));
   
   // configure pin in output mode
+  digitalWrite(OUTPIN, MYLOW);
   pinMode(OUTPIN, OUTPUT);
+  digitalWrite(OUTPIN, MYLOW);  // in reverse mode here is possible we have a spurious tick ! 
+
+  randomSeed(analogRead(0));    // on STM32F1 we do not have a true random generator
   
   // start sensor machine
   Log.notice(F("Starting rain_machine"));
