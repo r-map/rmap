@@ -133,25 +133,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_SENSOR_ITH
 \brief Enable if you want use Temperature and humidity continuous istantaneous sensor.
 */
-#define USE_SENSOR_ITH              (false)
+#define USE_SENSOR_ITH              (true)
 
 /*!
 \def USE_SENSOR_NTH
 \brief Enable if you want use Temperature and humidity continuous minium sensor.
 */
-#define USE_SENSOR_NTH              (false)
+#define USE_SENSOR_NTH              (true)
 
 /*!
 \def USE_SENSOR_MTH
 \brief Enable if you want use Temperature and humidity continuous average sensor.
 */
-#define USE_SENSOR_MTH              (false)
+#define USE_SENSOR_MTH              (true)
 
 /*!
 \def USE_SENSOR_XTH
 \brief Enable if you want use Temperature and humidity continuous maximum sensor.
 */
-#define USE_SENSOR_XTH              (false)
+#define USE_SENSOR_XTH              (true)
 
 /*!
 \def USE_SENSOR_SSD
