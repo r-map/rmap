@@ -1051,6 +1051,8 @@ void rtc_interrupt_handler(void);
 
 #ifndef ARDUINO_ARCH_AVR
 
+HardwareSerial Serial1(PB11, PB10);
+
 void wdt_enable(int wdt_timer){};
 void wdt_reset(){};
 void wdt_disable(){};
@@ -1074,8 +1076,6 @@ void sleep_disable(){};
 
 #define WDTO_1S 1
 #define SLEEP_MODE_PWR_DOWN 1
-
-HardwareSerial Serial1(PA_0, PB_10);
 
 #endif
 

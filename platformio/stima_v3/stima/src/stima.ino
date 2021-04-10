@@ -21,6 +21,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #include <debug_config.h>
+#if (DEBUG_MEMORY)
+#include <MemoryUsage.h>
+STACK_DECLARE
+#endif
 
 /*!
 \def SERIAL_TRACE_LEVEL
@@ -42,6 +46,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \return void.
 */
 void setup() {
+   #if (DEBUG_MEMORY)
+   post_StackPaint();
+   #endif
    init_wdt(WDT_TIMER);
    SERIAL_BEGIN(115200);
    init_pins();
@@ -150,6 +157,21 @@ void loop() {
       break;
 
       case END:
+         #if (DEBUG_MEMORY)
+	 SRamDisplay();
+	 Serial.print("Stack painted free: ");
+	 Serial.println(post_StackCount());
+	 //STACKPAINT_PRINT
+	 MEMORY_PRINT_START
+	 MEMORY_PRINT_HEAPSTART
+	 MEMORY_PRINT_HEAPEND
+	 MEMORY_PRINT_STACKSTART
+	 MEMORY_PRINT_END
+	 MEMORY_PRINT_HEAPSIZE
+	 FREERAM_PRINT;  
+	 Serial.flush();
+	 #endif
+
          #if (USE_POWER_DOWN)
          state = ENTER_POWER_DOWN;
          #else

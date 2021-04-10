@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For Matrix
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+mu_freeRam	KEYWORD2
+mu_StackCount	KEYWORD2
+SRamDisplay	KEYWORD2
+
+MEMORY_PRINT_START 	KEYWORD2
+MEMORY_PRINT_HEAPSTART	KEYWORD2
+MEMORY_PRINT_HEAPEND	KEYWORD2
+MEMORY_PRINT_STACKSTART	KEYWORD2
+MEMORY_PRINT_END	KEYWORD2
+
+MEMORY_PRINT_HEAPSIZE	KEYWORD2
+MEMORY_PRINT_STACKSIZE	KEYWORD2
+MEMORY_PRINT_FREERAM	KEYWORD2
+MEMORY_PRINT_TOTALSIZE	KEYWORD2
+
+STACK_DECLARE	KEYWORD2
+STACK_COMPUTE	KEYWORD2
+STACK_PRINT_TEXT	KEYWORD2
+STACK_PRINT	KEYWORD2
+
+FREERAM_PRINT_TEXT	KEYWORD2
+FREERAM_PRINT	KEYWORD2
+
+STACKPAINT_PRINT_TEXT	KEYWORD2
+STACKPAINT_PRINT	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+EEPROMLIST_EMPTY_OWNER	LITERAL1

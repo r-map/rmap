@@ -1,0 +1,41 @@
+This is a library for Arduino to check your SRAM / Stack memory usage.
+
+
+Whats New ?
+10/04/2021 V3.0
+	 added post stack paint functions by Paolo Patruno
+
+
+17/03/2021 V2.21.0
+	- Correction de MEMORY_PRINT_FREERAM
+	- Limitation de la bibliothèque aux Arduino Avr.
+
+	- Fix MEMORY_PRINT_FREERAM
+	- Limit the library to AVR Arduino.
+
+15/07/2018 V2.20.1
+	- Correction du format de Keywords.txt
+	- Ajout du fichier LICENSE
+
+	- Fix Keywords.txt format.
+	- Add of LICENSE file
+
+19/07/2017 V2.20
+	- Ajout de la documentation doxypress.
+
+	- Adding 'Doxypress' documentation.
+
+06/08/2015 V2.10
+	- Ajout de SRamDisplay()
+
+	- Add of SRamDisplay()
+
+05/08/2015 V2.00
+	- Ajout de mmacros d'impression...
+
+	- Add printing macros...
+
+26/07/2015 V1.00
+	- Naissance de MemoryUsage !
+	
+	- MemoryUsage is Born !
