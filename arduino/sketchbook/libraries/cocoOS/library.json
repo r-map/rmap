@@ -18,5 +18,5 @@
     "flags": "-I inc"
   },
   "frameworks": "*",
-  "platforms": "atmelavr, atmelsam, ststm32, timsp430", "espressif"
+  "platforms": "atmelavr, atmelsam, ststm32, timsp430, espressif"
  }
