@@ -1050,12 +1050,26 @@ void rtc_interrupt_handler(void);
 
 
 #ifndef ARDUINO_ARCH_AVR
+#include <IWatchdog.h>
+#include "STM32LowPower.h"
+#include <STM32RTC.h>
+#include <rtc.h>
+
+/* Get the rtc object */
+STM32RTC& rtc = STM32RTC::getInstance();
 
 HardwareSerial Serial1(PB11, PB10);
 
-void wdt_enable(int wdt_timer){};
-void wdt_reset(){};
-void wdt_disable(){};
+void wdt_enable(int wdt_timer){
+  IWatchdog.begin(wdt_timer*1000000);
+};
+void wdt_reset(){
+  IWatchdog.reload();
+};
+void wdt_disable(){
+  //WARNING: Once started the IWDG timer can not be stopped.
+  IWatchdog.begin(32000000);  // set to maximum value
+};
 
 void power_adc_disable(){};
 void power_spi_disable(){};
@@ -1069,9 +1083,20 @@ void power_timer0_enable(){};
 void power_timer1_enable(){};
 void power_timer2_enable(){};
 
-void set_sleep_mode(int SLEEP_MODE_PWR_DOWN){};
+
+// To be done
+// manage sleep mode: RTC and timer 1 ....
+void set_sleep_mode(int SLEEP_MODE_PWR_DOWN){
+  // Select RTC clock source: LSI_CLOCK, LSE_CLOCK or HSE_CLOCK.
+  // By default the LSI is selected as source.
+  rtc.setClockSource(STM32RTC::LSE_CLOCK);
+  rtc.begin();
+  LowPower.begin();
+};
 void sleep_enable(){};
-void sleep_cpu(){};
+void sleep_cpu(){
+  LowPower.deepSleep(1000);
+};
 void sleep_disable(){};
 
 #define WDTO_1S 1
