@@ -1089,13 +1089,15 @@ void power_timer2_enable(){};
 void set_sleep_mode(int SLEEP_MODE_PWR_DOWN){
   // Select RTC clock source: LSI_CLOCK, LSE_CLOCK or HSE_CLOCK.
   // By default the LSI is selected as source.
+  /*
   rtc.setClockSource(STM32RTC::LSE_CLOCK);
   rtc.begin();
   LowPower.begin();
+  */
 };
 void sleep_enable(){};
 void sleep_cpu(){
-  LowPower.deepSleep(1000);
+  //LowPower.deepSleep(1000);
 };
 void sleep_disable(){};
 
