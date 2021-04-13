@@ -194,8 +194,8 @@ class NewStationDetailForm(forms.Form):
     height = forms.DecimalField(required=True,label=_('Station height (m.)'),help_text=_('Station height (m.)'),min_value=decimal.Decimal("-10."),max_value=decimal.Decimal("10000."),decimal_places=1)
     template = forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
     mqttsamplerate=forms.IntegerField(required=True,label=__("report period (secondi)"),help_text='Time elapsed from two reports',min_value=0,max_value=3600*12,initial=900)
-    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password'),widget=forms.PasswordInput)
-    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Reppeat password'),widget=forms.PasswordInput)
+    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
+    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
 
         
 from django.contrib.auth.decorators import login_required

@@ -24,7 +24,7 @@
 {% endif %}
 
 
-<h3 id="striped-rows">{% trans 'Insert your new station' %}</h3>
+<h3 id="striped-rows">{% trans 'Insert/Modify your new station' %}</h3>
 <div class="table-responsive">
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
         {{ newstationdetailform.as_p }}
