@@ -50,6 +50,7 @@
 </div>
 
 <p><h3> <a href="{% url 'mystationmetadata-del' object.ident object.slug %}">{% trans 'Delete' %} {{ object.slug }}</a></h3></p>
+<p><h3> <a href="{% url 'insertdata-stationmodify' object.slug %}">{% trans 'Modify' %} {{ object.slug }}</a></h3></p>
 
 <p><h3> <a href="http://{{site.domain}}{% url 'mystation-localdata' object.ident object.slug %}">{% trans 'Realtime local data' %} {{ object.slug }}</a></h3></p>
 

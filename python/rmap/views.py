@@ -57,7 +57,7 @@ def wizard(request):
                     constantdata["B07030"]=height
 
                     rmap.rmap_core.configdb(username=username,password=password,
-                                            station=station_slug,lat=lat,lon=lon,constantdata={"B07030":height},
+                            station=station_slug,lat=lat,lon=lon,constantdata=constantdata,
                             mqttusername=username,
                             mqttpassword=password,
                             #mqttserver=args.server,
