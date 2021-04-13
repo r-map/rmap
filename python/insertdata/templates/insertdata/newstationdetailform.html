@@ -26,6 +26,7 @@
 
 <h3 id="striped-rows">{% trans 'Insert/Modify your new station' %}</h3>
 <div class="table-responsive">
+    <h3 id="striped-rows"><a href={% url 'stationmetadata-list' %}>{% trans 'Cancel' %}</a> </h3>
     <form enctype="multipart/form-data" method="POST">{% csrf_token %}
         {{ newstationdetailform.as_p }}
      <input type="submit" value={%trans "Submit" %} class="btn">
