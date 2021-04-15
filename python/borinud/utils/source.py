@@ -643,6 +643,32 @@ class ArkimetBufrDB(DB):
 
         query = self.record_to_arkiquery(rec)
 
+        
+        # problem related to timeseries query with some filter from this 
+        #         "leveltype1", "l1",
+        #         "leveltype2", "l2",
+        #         "pindicator", "p1", "p2",
+        #         "var"
+        # setted but not taken in account by arkimet query.
+        # the problem is more in evidence quering a big volume of data like not setting some of
+        # lat lon, ident, metwork
+        # with borinud terminated with timeout
+        #
+        ## is not possible to add this to filter the arkimet query becouse:
+        ## arkimet error: postprocessing is not possible when querying more than one dataset at the same time
+        # one solution is to create a daily loop over the time range and filter the data like the bufr_filter postproc
+        
+        #postproc = "bufr-filter "+" ".join(
+        #    [
+        #        "{}={}".format(kk, rec.get(kk,"-")) for kk in
+        #        ["leveltype1", "l1",
+        #         "leveltype2", "l2",
+        #         "pindicator", "p1", "p2",
+        #         "var"]
+        #    ]
+        #)
+        # add "--postproc" postproc to sys.argv
+        
         with io.BytesIO() as stdoutbytesio:
             with redirect_stdout(stdoutbytesio):
                 sys.argv=["borinud", "--data", "--config", self.dataset, query]
