@@ -1,7 +1,9 @@
 #ifdef ARDUINO_ARCH_STM32
 
-#include "FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
+#include "STM32FreeRTOS.h"                   // ARM.FreeRTOS::RTOS:Core
 #include "task.h"                       // ARM.FreeRTOS::RTOS:Core
+
+#if (configSUPPORT_STATIC_ALLOCATION == 1)
 
 /*---------------------------------------------------------------------------*/
 
@@ -95,4 +97,4 @@ static StackType_t uxTimerTaskStack[ configTIMER_TASK_STACK_DEPTH ];
 }
 
 #endif
-
+#endif
