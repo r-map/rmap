@@ -66,7 +66,7 @@ StackType_t xStackRtc[ STACK_SIZE_RTC ];
 TaskHandle_t xHandleRtc;
 */
 
-#define STACK_SIZE_SUPERVISOR 700/WORD
+#define STACK_SIZE_SUPERVISOR 2000/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferSupervisor;
 StackType_t xStackSupervisor[ STACK_SIZE_SUPERVISOR ];
@@ -81,7 +81,7 @@ TaskHandle_t xHandleSupervisor;
 #endif
   TaskHandle_t xHandleEthernet;
 #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
-  #define STACK_SIZE_GSM 1300/WORD
+  #define STACK_SIZE_GSM 2600/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
   StaticTask_t xTaskBufferGsm;
   StackType_t xStackGsm[ STACK_SIZE_GSM ];
@@ -89,7 +89,7 @@ TaskHandle_t xHandleSupervisor;
   TaskHandle_t xHandleGsm;
 #endif
 
-#define STACK_SIZE_SENSORREADING 300/WORD
+#define STACK_SIZE_SENSORREADING 2000/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferSensorReading;
 StackType_t xStackSensorReading[ STACK_SIZE_SENSORREADING ];
@@ -97,7 +97,7 @@ StackType_t xStackSensorReading[ STACK_SIZE_SENSORREADING ];
 TaskHandle_t xHandleSensorReading;
 
 #if (USE_SDCARD)
-#define STACK_SIZE_DATASAVING 500/WORD
+#define STACK_SIZE_DATASAVING 2000/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferDataSaving;
 StackType_t xStackDataSaving[ STACK_SIZE_DATASAVING ];
@@ -106,7 +106,7 @@ TaskHandle_t xHandleDataSaving;
 #endif
 
 #if (USE_MQTT)
-#define STACK_SIZE_MQTT 500/WORD
+#define STACK_SIZE_MQTT 2500/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferMqtt;
 StackType_t xStackMqtt[ STACK_SIZE_MQTT ];
@@ -114,7 +114,7 @@ StackType_t xStackMqtt[ STACK_SIZE_MQTT ];
 TaskHandle_t xHandleMqtt;
 #endif
 
-#define STACK_SIZE_TIME 400/WORD
+#define STACK_SIZE_TIME 1700/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferTime;
 StackType_t xStackTime[ STACK_SIZE_TIME ];
@@ -130,7 +130,7 @@ StackType_t xStackRpc[ STACK_SIZE_RPC ];
 TaskHandle_t xHandleRpc;
 */
 
-#define STACK_SIZE_HEARTHBEAT 850/WORD
+#define STACK_SIZE_HEARTHBEAT 2150/WORD
 #if (configSUPPORT_STATIC_ALLOCATION == 1)
 StaticTask_t xTaskBufferHearthBeat;
 StackType_t xStackHearthBeat[ STACK_SIZE_HEARTHBEAT ];
@@ -254,7 +254,10 @@ void taskRpc( void * parameter = NULL )
 
 void taskHearthBeat( void * parameter )
 {
-
+  // those initializations are here for:
+  //https://community.st.com/s/question/0D50X00009XkYFaSAN/freertos-stm32-tick
+  // find a better place !
+  ////
   init_pins();
   init_wire();
   init_rpc();
@@ -269,8 +272,8 @@ void taskHearthBeat( void * parameter )
   init_timer1();
   #endif
   init_system();
-
   init_sensors();
+  ////
   
   while(true){
     SERIAL_INFO(F("--> beat\r\n"));
@@ -440,7 +443,7 @@ void loop() {
 
 void init_power_down(void) {
 
-    SERIAL_INFO(F("sleep\r\n"));
+  //SERIAL_INFO(F("sleep\r\n"));
     Serial.flush();
 
     power_adc_disable();
@@ -466,7 +469,7 @@ void init_power_down(void) {
     power_timer1_enable();
     #endif
     power_timer2_enable();
-    SERIAL_INFO(F("wakeup\r\n"));
+    //SERIAL_INFO(F("wakeup\r\n"));
 }
 
 /*
