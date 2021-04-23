@@ -16,8 +16,8 @@
 #define SENSORS_RETRY_DELAY_MS                        (50)
 
 
-#define DELAY_ACQ_MS          (40000)
-#define DELAY_TEST_MS         (2000)
+#define DELAY_ACQ_MS          (320000)
+#define DELAY_TEST_MS         (5000)
 
 typedef enum {
   SENSORS_READING_INIT,
@@ -315,21 +315,21 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     }
     // success: all sensors readed
     else {
-      if (!is_first_run || is_test) {
-	for (i = 0; i < sensors_count; i++) {
-	  SERIAL_INFO(F("%s:\t"), sensors[i]->getType());
-	  
-	  for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
-	    SERIAL_INFO_CLEAN(F("%ld\t"), values_readed_from_sensor[i][v]);
-	  }
-	  
+      //if (!is_first_run || is_test) {
+      for (i = 0; i < sensors_count; i++) {
+	SERIAL_INFO(F("test:%s type:%s:\t"), is_test ? "true" : "false",sensors[i]->getType());
+	
+	for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
+	  SERIAL_INFO_CLEAN(F("%ld\t"), values_readed_from_sensor[i][v]);
+	}
+	
           #if (USE_JSON)
 	  SERIAL_INFO_CLEAN(F("%s"), &json_sensors_data[i][0]);
           #endif
 	  
 	  SERIAL_INFO_CLEAN(F("\r\n\r\n"));
-	}
       }
+	//}
 
       sensors_reading_state = SENSORS_READING_END;
       SERIAL_TRACE(F("SENSORS_READING_NEXT ---> SENSORS_READING_END\r\n"));
