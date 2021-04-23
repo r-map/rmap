@@ -25,26 +25,32 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 // use 100 microsends here as unit
-#define MINTIMEWITHOUTRAIN 50000         // 500 ms
-#define MAXTIMEWITHOUTRAIN 80000         // 800 ms
+
+#define MINTIMEWITHOUTRAIN 15000         // 1,5s
+#define MAXTIMEWITHOUTRAIN 30000         // 3s
+
+// bounce definitions
 #define MAXTIMEBOUNCEPULSE 3            // 0.3 ms
 #define MINTIMETOBOUNCE    10           // 1 ms
-#define MAXTIMETOBOUNCE    30           // 3 ms
-#define MINTIMETORAIN      500          // 50 ms
-#define MAXTIMETORAIN      3000          // 300 ms
+//#define MAXTIMETOBOUNCE    30           // 3 ms
+
+// pulse definitions
+//#define MINTIMETORAIN      500          // 50 ms
+//#define MAXTIMETORAIN      3000          // 300 ms
 
 // Digiteco rain gauge
 #define MAXTIMETOBOUNCE    8            // 0.8 ms
 #define MINTIMETORAIN      400          // 40 ms
 #define MAXTIMETORAIN      600          // 60 ms
 
-
+// rain period definitions
 #define SECONDSTOPOWERON   10
-#define SECONDSTOPOWEROFF  60
+#define SECONDSTOPOWEROFF  850
+#define MAXPRECIPITATION   360
 
 #include <ArduinoLog.h>
 
-unsigned long int millisecondi=0;
+unsigned long int decmillisecondi=0;
 unsigned long int secondi=0;
 
 // global variables for sensors state machine
@@ -104,6 +110,7 @@ void rain_machine(){
     Log.trace(F("rain machine IDLE"));
     switch(r_event) {
     case POWERON:
+      Log.notice(F("Power On"));
       r_event = NONE;
       r_state = NORAINSTART;
       break;
@@ -119,7 +126,7 @@ void rain_machine(){
     
     digitalWrite(OUTPIN, MYLOW);
     
-    norain_start_wait=millisecondi;
+    norain_start_wait=decmillisecondi;
     timewithoutrain = random(MINTIMEWITHOUTRAIN,MAXTIMEWITHOUTRAIN+1);
     Log.trace(F("time without rain: %d"),timewithoutrain);
 
@@ -130,15 +137,14 @@ void rain_machine(){
 
     Log.trace(F("rain machine NORAIN"));
 
-    switch(r_event) {
-    case POWEROFF:
+    if (r_event == POWEROFF) {
+      Log.notice(F("Power Off"));
       r_event = NONE;
       r_state = IDLE;
       return;
-      break;
     }
     
-    if ((millisecondi-norain_start_wait) < timewithoutrain) {
+    if ((decmillisecondi-norain_start_wait) < timewithoutrain) {
       return;
     }
 
@@ -150,7 +156,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine PREBOUNCESTART"));
 
-    bounce_start_wait=millisecondi;
+    bounce_start_wait=decmillisecondi;
     timetobounce = random(MINTIMETOBOUNCE,MAXTIMETOBOUNCE+1);
     r_state = PRBOUNCEOFFSTART;
     break;
@@ -159,7 +165,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine PRBOUNCEOFFSTART"));
 
-    bounceoff_start_wait=millisecondi;
+    bounceoff_start_wait=decmillisecondi;
     timetobounceoff = random(1,MAXTIMEBOUNCEPULSE+1);
     digitalWrite(OUTPIN, MYLOW);
 
@@ -169,11 +175,11 @@ void rain_machine(){
   case PRBOUNCEOFF:
     Log.trace(F("rain machine PRBOUNCEOFF"));
 
-    if ((millisecondi-bounce_start_wait) >= timetobounce) {
+    if ((decmillisecondi-bounce_start_wait) >= timetobounce) {
       r_state = RAINSTART;
       return;
     }
-    if ((millisecondi-bounceoff_start_wait) >= timetobounceoff) {
+    if ((decmillisecondi-bounceoff_start_wait) >= timetobounceoff) {
       r_state = PRBOUNCEONSTART;
       return;
     }
@@ -186,7 +192,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine PRBOUNCEONSTART"));
 
-    bounceon_start_wait=millisecondi;
+    bounceon_start_wait=decmillisecondi;
     timetobounceon = random(1,MAXTIMEBOUNCEPULSE+1);
     digitalWrite(OUTPIN, MYHIGH);
 
@@ -196,11 +202,11 @@ void rain_machine(){
   case PRBOUNCEON:
     Log.trace(F("rain machine PRBOUNCEON"));
 
-    if ((millisecondi-bounce_start_wait) >= timetobounce) {
+    if ((decmillisecondi-bounce_start_wait) >= timetobounce) {
       r_state = RAINSTART;
       return;
     }
-    if ((millisecondi-bounceon_start_wait) >= timetobounceon) {
+    if ((decmillisecondi-bounceon_start_wait) >= timetobounceon) {
       r_state = PRBOUNCEOFFSTART;
       return;
     }
@@ -212,7 +218,7 @@ void rain_machine(){
   case RAINSTART:
     Log.trace(F("rain machine RAINSTART"));
 
-    rain_start_wait=millisecondi;
+    rain_start_wait=decmillisecondi;
     timetorain = random(MINTIMETORAIN,MAXTIMETORAIN+1);
     digitalWrite(OUTPIN, MYHIGH);
     tp++;
@@ -223,7 +229,7 @@ void rain_machine(){
   case RAIN:
     Log.trace(F("rain machine RAIN"));
 
-    if ((millisecondi-rain_start_wait) < timetorain) {
+    if ((decmillisecondi-rain_start_wait) < timetorain) {
       return;
     }
 
@@ -234,7 +240,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine POSTBOUNCESTART"));
 
-    bounce_start_wait=millisecondi;
+    bounce_start_wait=decmillisecondi;
     timetobounce = random(MINTIMETOBOUNCE,MAXTIMETOBOUNCE+1);
     r_state = POBOUNCEOFFSTART;
     break;
@@ -243,7 +249,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine POBOUNCEOFFSTART"));
 
-    bounceoff_start_wait=millisecondi;
+    bounceoff_start_wait=decmillisecondi;
     timetobounceoff = random(1,MAXTIMEBOUNCEPULSE+1);
     digitalWrite(OUTPIN, MYLOW);
 
@@ -253,11 +259,11 @@ void rain_machine(){
   case POBOUNCEOFF:
     Log.trace(F("rain machine POBOUNCEOFF"));
 
-    if ((millisecondi-bounce_start_wait) >= timetobounce) {
+    if ((decmillisecondi-bounce_start_wait) >= timetobounce) {
       r_state = NORAINSTART;
       return;
     }
-    if ((millisecondi-bounceoff_start_wait) >= timetobounceoff) {
+    if ((decmillisecondi-bounceoff_start_wait) >= timetobounceoff) {
       r_state = POBOUNCEONSTART;
       return;
     }
@@ -270,7 +276,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine POBOUNCEONSTART"));
 
-    bounceon_start_wait=millisecondi;
+    bounceon_start_wait=decmillisecondi;
     timetobounceon = random(1,MAXTIMEBOUNCEPULSE+1);
     digitalWrite(OUTPIN, MYHIGH);
 
@@ -280,11 +286,11 @@ void rain_machine(){
   case POBOUNCEON:
     Log.trace(F("rain machine POBOUNCEON"));
 
-    if ((millisecondi-bounce_start_wait) >= timetobounce) {
+    if ((decmillisecondi-bounce_start_wait) >= timetobounce) {
 	r_state = NORAINSTART;
 	return;
     }
-    if ((millisecondi-bounceon_start_wait) >= timetobounceon) {
+    if ((decmillisecondi-bounceon_start_wait) >= timetobounceon) {
       r_state = POBOUNCEOFFSTART;
       return;
     }
@@ -304,7 +310,7 @@ void rain_machine(){
 
 void printTimestamp(Print* _logOutput) {
   char c[12];
-  sprintf(c, "%10lu ", millisecondi);
+  sprintf(c, "%10lu ", decmillisecondi/10);
   _logOutput->print(c);
 }
 
@@ -316,7 +322,10 @@ void printNewline(Print* _logOutput) {
 void tick_callback(void)
 { 
   //Log.trace("event 1/10 ms tick");
-  millisecondi++;
+  decmillisecondi++;
+  if ( r_state != IDLE && tp >= MAXPRECIPITATION){
+    poweroff();
+  }
   rain_machine();
 }
 
@@ -332,13 +341,11 @@ void power_callback(void)
 
 void poweron(void)
 { 
-  Log.notice(F("Power On"));
   r_event=POWERON;
 }
 
 void poweroff(void)
 { 
-  Log.notice(F("Power Off"));
   r_event=POWEROFF;
   Tim2.pause();
 }
@@ -383,8 +390,10 @@ void loop()
   // sleep some time to do not go tired ;)
   delay(10000);
   noInterrupts();
-  Log.notice("Total precipitation: %d",tp );
+  long unsigned int totalp=tp;
   interrupts();
+
+  Log.notice("Total precipitation: %d",totalp );
 
 }
 
