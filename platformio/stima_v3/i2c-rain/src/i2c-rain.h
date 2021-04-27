@@ -96,8 +96,8 @@ typedef enum {
 */
 typedef enum {
    TIPPING_BUCKET_INIT,          //!< init task variables and wait half debounce time
-   TIPPING_BUCKET_READ,          //!< read rain tips from variable shared with tipping bucket interrupt and validate it re-reading tipping bucket signal
-   TIPPING_BUCKET_END,           //!< wait double debounce time and performs end operations and deactivate task
+   TIPPING_BUCKET_READ,          //!< read rain tips from variable shared with tipping bucket interrupt, validate it re-reading tipping bucket signal and wait double debounce time
+   TIPPING_BUCKET_END,           //!< wait for the tipping bucket switch return open and performs end operations and deactivate task
    TIPPING_BUCKET_WAIT_STATE     //!< non-blocking waiting time
 } tipping_bucket_state_t;
 

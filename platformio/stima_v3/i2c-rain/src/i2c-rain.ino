@@ -389,7 +389,17 @@ void tipping_bucket_task () {
 
       
       case TIPPING_BUCKET_END:
-         noInterrupts();
+
+	 if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
+	     SERIAL_ERROR(F("wrong timing or stalled tipping bucket"));
+
+	     start_time_ms=millis();
+	     delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS;
+	     state_after_wait=TIPPING_BUCKET_END;
+	     tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
+	 }
+
+	 noInterrupts();
          is_event_tipping_bucket = false;
          ready_tasks_count--;
          interrupts();
