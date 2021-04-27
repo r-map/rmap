@@ -47,6 +47,15 @@ void setup() {
    #if (USE_TIMER_1)
    init_timer1();
    #endif
+
+   power_adc_disable();
+   power_spi_disable();
+   //power_timer0_disable();
+   #if (USE_TIMER_1 == false)
+   power_timer1_disable(); 
+   #endif
+   power_timer2_disable();
+   
    init_system();
    wdt_reset();
 }
@@ -117,14 +126,10 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 	if (millis() - *time_ms > debouncing_ms) {
 		*time_ms = millis();
 
-		power_adc_disable();
-		power_spi_disable();
 		power_timer0_disable();
       #if (USE_TIMER_1 == false)
       power_timer1_disable();
       #endif
-		power_timer2_disable();
-
 		noInterrupts ();
 		sleep_enable();
 
@@ -133,13 +138,10 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 		sleep_cpu();
 		sleep_disable();
 
-		power_adc_enable();
-		power_spi_enable();
 		power_timer0_enable();
       #if (USE_TIMER_1 == false)
       power_timer1_enable();
       #endif
-		power_timer2_enable();
 	}
 }
 
@@ -450,10 +452,10 @@ void command_task() {
 
       case I2C_RAIN_COMMAND_SAVE:
          SERIAL_DEBUG(F("Execute [ %s ]\r\n"), SAVE_STRING);
-         is_oneshot = false;
-         is_continuous = false;
-         is_start = false;
-         is_stop = false;
+         //is_oneshot = false;
+         //is_continuous = false;
+         //is_start = false;
+         //is_stop = false;
          save_configuration(CONFIGURATION_CURRENT);
          init_wire();
       break;
