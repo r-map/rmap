@@ -4,6 +4,7 @@ RFC rmap versione 2.5
 Storia del documento
 --------------------
 
+- 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
 - 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
 - 2019/06/18 v. 2.3 : aggiunte specifiche JSRPC
@@ -1203,12 +1204,92 @@ reboot
 
 Richiede il riavvio della stazione
 
+parametri:
+
+-  bool update: true=update firmware available on SDcard
+
 esempio:
 
 ::
    
-   {"jsonrpc": "2.0", "method": "reboot", "id": 0}
+   {"jsonrpc": "2.0", "method": "reboot","params": {"update":true}, "id": 0}
 
+
+prepare
+      
+
+Richiede l'attivazione di un sensore e inizio misurazione.
+
+parametri:
+
+-  int    node: nodo per l'eventuale comunicazione radio
+-  char driver: nome del driver del sensore (trasporto) ( 3 caratteri)
+-  char   type: nome del tipo del sensore ( driver sensore) (3 caratteri)
+-  int address: indirizzo del sensore
+
+ritorna:
+
+-  int waittime: tempo di attesa prima di poter richiedere il risultato della misura (millisec)
+   
+esempio:
+
+::
+   
+   {"jsonrpc": "2.0", "method": "prepare", "params": {"node":1, "driver":"I2C", "type":"TMP", "address":72}, "id": 0}
+
+getjson
+      
+
+Richiede i valori delle misure; necessita una precedente rpc "prepare"
+
+parametri:
+
+-  int    node: nodo per l'eventuale comunicazione radio
+-  char driver: nome del driver del sensore (trasporto) ( 3 caratteri)
+-  char   type: nome del tipo del sensore ( driver sensore) (3 caratteri)
+-  int address: indirizzo del sensore
+
+ritorna una serie di Bcode:value :
+
+-  char Bcode: codice della variabile come da tabella B
+-  int  value: valore della misura espresso come intero   
+   
+esempio:
+
+::
+   
+   {"jsonrpc": "2.0", "method": "getjson", "params": {"node":1, "driver":"I2C", "type":"TMP", "address":72}, "id": 0}
+
+   {"jsonrpc":"2.0","result":{"B12101":27315},"id":0}
+
+
+prepandget
+      
+Prepara il sensore per le misure e dopo apportuna attesa restituisce i valori delle misure.
+
+parametri:
+
+-  int    node: nodo per l'eventuale comunicazione radio
+-  char driver: nome del driver del sensore (trasporto) ( 3 caratteri)
+-  char   type: nome del tipo del sensore ( driver sensore) (3 caratteri)
+-  int address: indirizzo del sensore
+
+ritorna una serie di Bcode:value :
+
+-  char Bcode: codice della variabile come da tabella B
+-  int  value: valore della misura espresso come intero   
+   
+esempio:
+
+::
+   
+   {"jsonrpc": "2.0", "method": "prepandget", "params": {"node":1, "driver":"I2C", "type":"TMP", "address":72}, "id": 0}
+
+   torna:
+   {"jsonrpc":"2.0","result":{"B12101":27315},"id":0}
+
+   
+   
 HTTP
 ^^^^
 
