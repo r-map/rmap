@@ -370,7 +370,7 @@ void tipping_bucket_task () {
 	     rain.tips_count++;
 	     SERIAL_INFO(F("Rain tips count: %u\r\n"), rain.tips_count);
 	   }else{
-	     SERIAL_INFO(F("Skip spike"));
+	     SERIAL_INFO(F("Skip spike\r\n"));
 	     tipping_bucket_state = TIPPING_BUCKET_END;
 	     break;
 	   }

@@ -48,10 +48,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SECONDSTOPOWEROFF  850
 #define MAXPRECIPITATION   360
 
+
+
+// spike definitions
+#define MINTIMEWITHOUTSPIKE  200000        // 20s
+#define MAXTIMEWITHOUTSPIKE  300000        // 30s
+
+#define MAXTIMESPIKE            10         // 1 ms
+#define MINTIMESPIKE            3          // 0.3 ms
+
+#define SECONDSTOPOWERONSPIKE    20
+#define SECONDSTOPOWEROFFSPIKE  600
+
 #include <ArduinoLog.h>
 
 unsigned long int decmillisecondi=0;
 unsigned long int secondi=0;
+bool pinlocked=false;
 
 // global variables for sensors state machine
 enum r_states {
@@ -80,6 +93,23 @@ enum r_events {
 	       ,NONE
 }r_event=NONE;
 
+
+enum s_states {
+	       UNKNOWNSPIKE
+	       ,IDLESPIKE
+	       ,NOSPIKESTART
+	       ,NOSPIKE
+	       ,SPIKESTART
+	       ,SPIKESTOP
+} s_state= UNKNOWNSPIKE;
+
+enum s_events {
+	       POWERONSPIKE
+	       ,POWEROFFSPIKE
+	       ,NONESPIKE
+}s_event=NONESPIKE;
+
+
 unsigned long tp=0;
 
 HardwareTimer Tim1 = HardwareTimer(TIM1);      
@@ -88,7 +118,7 @@ HardwareTimer Tim2 = HardwareTimer(TIM2);
 // rain machine
 void rain_machine(){
 
-  static unsigned int norain_start_wait;
+  static unsigned long norain_start_wait;
   static unsigned long timewithoutrain;
   static unsigned long timetobounce;
   static unsigned long bounceoff_start_wait;
@@ -124,6 +154,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine NORAINSTART"));
     
+    pinlocked=false;   // disable spike
     digitalWrite(OUTPIN, MYLOW);
     
     norain_start_wait=decmillisecondi;
@@ -156,6 +187,7 @@ void rain_machine(){
 
     Log.trace(F("rain machine PREBOUNCESTART"));
 
+    pinlocked=true;   // disable spike
     bounce_start_wait=decmillisecondi;
     timetobounce = random(MINTIMETOBOUNCE,MAXTIMETOBOUNCE+1);
     r_state = PRBOUNCEOFFSTART;
@@ -308,6 +340,104 @@ void rain_machine(){
 }
 
 
+
+// spike machine
+void spike_machine(){
+
+  static unsigned long nospike_start_wait;
+  static unsigned long timewithoutspike;
+  static unsigned long spike_start_wait;
+  static unsigned long timetospike;
+    
+  switch(s_state) {
+  case UNKNOWNSPIKE:
+  
+    Log.trace(F("spike machine UNKNOWN"));
+    s_state = IDLESPIKE;
+    break;
+    
+  case IDLESPIKE:
+    Log.trace(F("spike machine IDLE"));
+    switch(s_event) {
+    case POWERON:
+      Log.notice(F("Power On spike"));
+      s_event = NONESPIKE;
+      s_state = NOSPIKESTART;
+      break;
+    default:
+      return;
+      break;
+    }
+    break;
+
+  case NOSPIKESTART:
+
+    Log.trace(F("spike machine NOSPIKESTART"));
+    nospike_start_wait=decmillisecondi;
+    timewithoutspike = random(MINTIMEWITHOUTSPIKE,MAXTIMEWITHOUTSPIKE+1);
+    Log.trace(F("time without spike: %d"),timewithoutspike);
+    s_state = NOSPIKE;
+    break;
+    
+  case NOSPIKE:
+
+    Log.trace(F("rain machine NOSPIKE"));
+    if (s_event == POWEROFFSPIKE) {
+      Log.notice(F("Power Off spike"));
+      s_event = NONESPIKE;
+      s_state = IDLESPIKE;
+      return;
+    }
+    
+    if ((decmillisecondi-nospike_start_wait) < timewithoutspike) {
+      return;
+    }
+
+    s_state = SPIKESTART;
+    break;
+
+
+  case SPIKESTART:
+
+    if (pinlocked) {
+      s_state=NOSPIKESTART;
+      break;
+    }
+    
+    Log.trace(F("rain machine SPIKESTART"));
+    spike_start_wait=decmillisecondi;
+    timetospike = random(MINTIMESPIKE,MAXTIMESPIKE+1);
+    s_state = SPIKESTOP;
+
+    Log.notice(F("Spike!"));
+
+    digitalWrite(OUTPIN, MYHIGH);
+    break;
+
+  case SPIKESTOP:
+
+    Log.trace(F("rain machine SPIKESTOP"));
+
+
+    if ((decmillisecondi-spike_start_wait) < timetospike) {
+      return;
+    }
+
+    digitalWrite(OUTPIN, MYLOW);
+
+    s_state = NOSPIKESTART;
+    break;
+
+  default:
+    LOGN(F("Something go wrong in rain_machine"));
+    break;
+    
+  }
+
+  return;
+}
+
+
 void printTimestamp(Print* _logOutput) {
   char c[12];
   sprintf(c, "%10lu ", decmillisecondi/10);
@@ -327,7 +457,9 @@ void tick_callback(void)
     poweroff();
   }
   rain_machine();
+  spike_machine();
 }
+
 
 void power_callback(void)
 {
@@ -336,6 +468,9 @@ void power_callback(void)
 
   if (secondi == SECONDSTOPOWERON +1)  poweron();
   if (secondi == SECONDSTOPOWEROFF +1) poweroff();
+
+  if (secondi == SECONDSTOPOWERONSPIKE +1)  poweronspike();
+  if (secondi == SECONDSTOPOWEROFFSPIKE +1) poweroffspike();
 }
 
 
@@ -348,6 +483,16 @@ void poweroff(void)
 { 
   r_event=POWEROFF;
   Tim2.pause();
+}
+
+void poweronspike(void)
+{ 
+  s_event=POWERONSPIKE;
+}
+
+void poweroffspike(void)
+{ 
+  s_event=POWEROFFSPIKE;
 }
 
 
@@ -373,6 +518,7 @@ void setup (void)
   // start sensor machine
   Log.notice(F("Starting rain_machine"));
   rain_machine();
+  spike_machine();
 
   Tim1.setOverflow(100, MICROSEC_FORMAT);
   Tim1.attachInterrupt(tick_callback);
