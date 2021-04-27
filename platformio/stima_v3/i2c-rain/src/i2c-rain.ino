@@ -156,7 +156,8 @@ void init_buffers() {
 
    readable_data_write_ptr->module_type = MODULE_TYPE;
    readable_data_write_ptr->module_version = MODULE_VERSION;
-   reset_buffers();
+   memset((void *) &readable_data_read_ptr->rain, UINT8_MAX, sizeof(rain_t));
+   rain.tips_count = UINT16_MAX;
 
    // copy readable_data_2 in readable_data_1
    memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
