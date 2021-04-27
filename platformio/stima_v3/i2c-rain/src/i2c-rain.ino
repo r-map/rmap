@@ -184,7 +184,7 @@ void init_tasks() {
 void init_pins() {
    pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
    pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
-   attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, FALLING);
+   attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
 }
 
 void init_wire() {
@@ -272,6 +272,7 @@ void load_configuration() {
 void tipping_bucket_interrupt_handler() {
    // reading TIPPING_BUCKET_PIN value to be sure the interrupt has occurred
    if (digitalRead(TIPPING_BUCKET_PIN) == LOW) {
+      detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
       noInterrupts();
       // enable Tipping bucket task
       if (!is_event_tipping_bucket) {
@@ -354,34 +355,48 @@ void tipping_bucket_task () {
 
    switch (tipping_bucket_state) {
       case TIPPING_BUCKET_INIT:
-         // check if last tipping bucket event has happened for more than DEBOUNCING_TIPPING_BUCKET_TIME_MS ms
-         if (millis() - rain_tips_event_occurred_time_ms > DEBOUNCING_TIPPING_BUCKET_TIME_MS) {
-            rain_tips_event_occurred_time_ms = millis();
-            tipping_bucket_state = TIPPING_BUCKET_READ;
-         } else {
-            tipping_bucket_state = TIPPING_BUCKET_END;
-         }
+	start_time_ms=millis();
+	delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS/2;
+	state_after_wait=TIPPING_BUCKET_READ;
+	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
+	
       break;
 
       case TIPPING_BUCKET_READ:
          // increment rain tips if oneshot mode is on and oneshot start command It has been received
          if (configuration.is_oneshot && is_oneshot && is_start) {
-            rain.tips_count++;
-            SERIAL_INFO(F("Rain tips count: %u\r\n"), rain.tips_count);
-         }
-         else {
-            SERIAL_INFO(F("Rain tips!\r\n"));
-         }
+	   // re-read pin status to filter spikes 
+	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
+	     rain.tips_count++;
+	     SERIAL_INFO(F("Rain tips count: %u\r\n"), rain.tips_count);
+	   }else{
+	     SERIAL_INFO(F("Skip spike"));
+	     tipping_bucket_state = TIPPING_BUCKET_END;
+	     break;
+	   }
+	 }
+	 else {
+	   SERIAL_INFO(F("Rain tips!\r\n"));
+	 }
 
-         tipping_bucket_state = TIPPING_BUCKET_END;
-      break;
+         //tipping_bucket_state = TIPPING_BUCKET_END;
+	start_time_ms=millis();
+	delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS*2;
+	state_after_wait=TIPPING_BUCKET_END;
+	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 
+     break;
+
+      
       case TIPPING_BUCKET_END:
          noInterrupts();
          is_event_tipping_bucket = false;
          ready_tasks_count--;
          interrupts();
          tipping_bucket_state = TIPPING_BUCKET_INIT;
+
+	 attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
+
       break;
 
       case TIPPING_BUCKET_WAIT_STATE:

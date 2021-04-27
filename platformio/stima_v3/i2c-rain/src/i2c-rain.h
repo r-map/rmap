@@ -95,9 +95,9 @@ typedef enum {
 \brief Tipping bucket task finite state machine.
 */
 typedef enum {
-   TIPPING_BUCKET_INIT,          //!< init task variables
-   TIPPING_BUCKET_READ,          //!< read rain tips from variable shared with tipping bucket interrupt
-   TIPPING_BUCKET_END,           //!< performs end operations and deactivate task
+   TIPPING_BUCKET_INIT,          //!< init task variables and wait half debounce time
+   TIPPING_BUCKET_READ,          //!< read rain tips from variable shared with tipping bucket interrupt and validate it re-reading tipping bucket signal
+   TIPPING_BUCKET_END,           //!< wait double debounce time and performs end operations and deactivate task
    TIPPING_BUCKET_WAIT_STATE     //!< non-blocking waiting time
 } tipping_bucket_state_t;
 

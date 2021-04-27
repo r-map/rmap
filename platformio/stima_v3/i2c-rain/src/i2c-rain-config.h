@@ -53,7 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def DEBOUNCING_TIPPING_BUCKET_TIME_MS
 \brief Debouncing tipping bucket time in milliseconds.
 */
-#define DEBOUNCING_TIPPING_BUCKET_TIME_MS       (200)
+#define DEBOUNCING_TIPPING_BUCKET_TIME_MS       (50)
 
 /*********************************************************************
 * CONFIGURATION
