@@ -15,6 +15,7 @@ from . import network
 from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
+from rmap.stations.models import StationImage
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 
@@ -294,6 +295,13 @@ def profile_details(request,mystation_slug):
 
     mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
     return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation})
+
+
+@login_required
+@never_cache
+def profile_details_stationimage(request,mystation_slug,stationimage_id):
+    stationimage=StationImage.objects.get(stationmetadata__ident__username=request.user.get_username(),stationmetadata__slug=mystation_slug,id=stationimage_id)
+    return render(request, 'profile_details_stationimage.html',{"stationimage":stationimage})
 
 #def profile(request):
 #    html = "<html><body>This is your personal page. TODO</body></html>"

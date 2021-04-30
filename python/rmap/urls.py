@@ -48,6 +48,7 @@ urlpatterns = [
 
     url(r'^accounts/profile/$',      rmap.views.profile),
     url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/$',      rmap.views.profile_details),
+    url(r'^accounts/profile/(?P<mystation_slug>[-\w]+)/(?P<stationimage_id>[-\w]+)/$',      rmap.views.profile_details_stationimage),
     url(r'^robots.txt$', TemplateView.as_view(template_name="robots.txt", content_type="text/plain"), name="robots_file"),
     url(r'^network/', include('rmap.network.urls')),
 ]

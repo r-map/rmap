@@ -44,6 +44,40 @@
 <a href="{% url 'mystationmetadata-detail' mystation.ident.username  mystation.slug %}">{% trans 'Show station details' %}</a>
 </p>
 
+<div class="table-responsive">
+  <table class="table">
+    <tr>
+      <th> {% trans 'Comment' %}          </th>
+      <th> {% trans 'Date' %}            </th>
+      <th> {% trans 'Category' %}       </th>
+      <th> {% trans 'Image' %}</th>
+      <th> {% trans 'Operation' %}</th>
+    </tr>
+    
+    {% for stationimage in  mystation.stationimage_set.all %}
+    {% if mystation.active %} 
+    <tr>
+      <td>{{ stationimage.comment }}</td>
+      <td>{{ stationimage.date }}</td>
+      <td>{{ stationimage.category }}</td>
+      <td>
+	<a href="#" onclick="window.open('/accounts/profile/{{ mystation.slug}}/{{stationimage.id}}','stationimage', 'width=800, height=620').focus(); return false;">
+	  <img src="/{{ stationimage.image_thumbnail.url }}" />
+	</a>
+      </td>
+      <td>Delete</td>      
+    </tr>
+    {% endif %}
+    
+    {% empty %}
+    <li>{% trans 'No image yet.' %}</li>
+    {% endfor %}
+  </table>
+
+  Insert Form
+
+</div>
+    
 </section>
 
 {% endblock %}
