@@ -17,7 +17,6 @@ from rmap.stations.models import StationMetadata
 from rmap.stations.models import StationImage,PHOTO_CATEGORY_CHOICES
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
-from datetime import datetime
 
 def home(request):
     current_site = get_current_site(request)
@@ -295,7 +294,7 @@ def profile_details(request,mystation_slug):
 
     if request.method == 'POST': # If the form has been submitted...
         
-        if request.POST['stationimageid'] and request.POST['stationslug']:
+        if (request.POST.get('stationimageid') is not None and request.POST.get('stationslug') is not None):
             try:
                 stationimageid=request.POST['stationimageid']
                 mystationslug=request.POST['stationslug']
@@ -317,7 +316,7 @@ def profile_details(request,mystation_slug):
                 comment=form.cleaned_data['comment']
                 #geom=form.cleaned_data['geom']
                 image=request.FILES['image']
-                dt=datetime.utcnow().replace(microsecond=0)
+                #dt=datetime.utcnow().replace(microsecond=0)
                 #lon=geom['coordinates'][0]
                 #lat=geom['coordinates'][1]
                 #image=image.read()
@@ -325,7 +324,8 @@ def profile_details(request,mystation_slug):
 
                 mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
                 stationimage=StationImage(active=True,comment=comment,stationmetadata=mystation,
-                                          date=dt, category = PHOTO_CATEGORY_CHOICES[0][0],image=image)
+                                          #date=dt,
+                                          category = PHOTO_CATEGORY_CHOICES[0][0],image=image)
 
                 #stationimage.image.save('stationimage.jpg',ContentFile(body))
 

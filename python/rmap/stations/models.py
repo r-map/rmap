@@ -872,7 +872,7 @@ class StationImage(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,null=False,blank=False,help_text=ugettext_lazy("Activate this station image"))
     comment = models.TextField()
     stationmetadata = models.ForeignKey('StationMetadata',on_delete=models.CASCADE)
-    date=models.DateTimeField(auto_now=False, auto_now_add=False)
+    date=models.DateTimeField(auto_now=True, auto_now_add=False)
     category = models.CharField(max_length=50, blank=False,choices=PHOTO_CATEGORY_CHOICES)
 
 
