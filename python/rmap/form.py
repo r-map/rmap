@@ -6,7 +6,7 @@ from django.core import validators
 from django import forms
 import re
 import decimal
-from .stations.models import StationMetadata
+from .stations.models import StationMetadata,StationImage
 from . import settings
 
 def get_stations():
@@ -43,3 +43,13 @@ class WizardForm2(forms.Form):
 
     password = forms.CharField(label='Password',help_text=_('Password'),required=False)
 
+
+
+class StationImageForm(forms.ModelForm):
+
+    class Meta:
+        model = StationImage
+        fields = ('image','comment')
+
+        
+    
