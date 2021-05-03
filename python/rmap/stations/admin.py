@@ -52,7 +52,7 @@ class SensorAdmin(admin.ModelAdmin):
 
     list_display = ('name','active','driver','type','address','timerange','level','board')
     list_editable = ('active','timerange','level')
-    search_fields = ['name','driver','type','address','timerange','level','board__name']
+    search_fields = ['name','driver','type__name','address','timerange','level','board__name']
 
     list_filter = ('driver','timerange','level','board')
 
