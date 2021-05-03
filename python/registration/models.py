@@ -18,7 +18,7 @@ from django.db import transaction
 from django.template import TemplateDoesNotExist
 from django.template.loader import render_to_string
 from django.utils.crypto import get_random_string
-from django.utils.encoding import python_2_unicode_compatible
+#from django.utils.encoding import python_2_unicode_compatible
 from django.utils.module_loading import import_string
 from django.utils.timezone import now as datetime_now
 from django.utils.translation import ugettext_lazy as _
@@ -284,7 +284,7 @@ class RegistrationManager(models.Manager):
                 profile.delete()
 
 
-@python_2_unicode_compatible
+#@python_2_unicode_compatible
 class RegistrationProfile(models.Model):
     """
     A simple profile which stores an activation key for use during
