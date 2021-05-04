@@ -4,17 +4,17 @@ from django.contrib.auth import authenticate
 from django.shortcuts import render
 #from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.sites.shortcuts import get_current_site
-from .form import WizardForm,WizardForm2
+from .form import WizardForm,WizardForm2,StationImageForm
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.exceptions import ObjectDoesNotExist
-from .stations.models import StationMetadata
 from . import settings
 from . import rabbitshovel
 from . import network
 from django.contrib.auth.decorators import login_required
 import rmap.rmap_core
 from rmap.stations.models import StationMetadata
+from rmap.stations.models import StationImage,PHOTO_CATEGORY_CHOICES
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 
@@ -292,8 +292,61 @@ def profile(request):
 @never_cache
 def profile_details(request,mystation_slug):
 
+    if request.method == 'POST': # If the form has been submitted...
+        
+        if (request.POST.get('stationimageid') is not None and request.POST.get('stationslug') is not None):
+            try:
+                stationimageid=request.POST['stationimageid']
+                mystationslug=request.POST['stationslug']
+                
+                mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+                stationimage=StationImage.objects.get(stationmetadata=mystation,id=stationimageid)
+                stationimage.delete()
+                invalid=False
+            except:
+                invalid=True
+            form = StationImageForm() # An unbound form
+            return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form,"invalid":invalid})
+            
+
+        form = StationImageForm(request.POST, request.FILES) # A form bound to the POST data
+        if form.is_valid(): # All validation rules pass
+
+                #from rmap import exifutils
+                comment=form.cleaned_data['comment']
+                #geom=form.cleaned_data['geom']
+                image=request.FILES['image']
+                #dt=datetime.utcnow().replace(microsecond=0)
+                #lon=geom['coordinates'][0]
+                #lat=geom['coordinates'][1]
+                #image=image.read()
+                #body=exifutils.setgeoimage(image,lat,lon,imagedescription=request.user.username,usercomment=comment)
+
+                mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+                stationimage=StationImage(active=True,comment=comment,stationmetadata=mystation,
+                                          #date=dt,
+                                          category = PHOTO_CATEGORY_CHOICES[0][0],image=image)
+
+                #stationimage.image.save('stationimage.jpg',ContentFile(body))
+
+                stationimage.save()
+
+        else:
+
+            form = StationImageForm() # An unbound form
+            mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+            return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form,"invalid":True})
+
+    form = StationImageForm() # An unbound form
     mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
-    return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation})
+    return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form})
+
+
+@login_required
+@never_cache
+def profile_details_stationimage(request,mystation_slug,stationimage_id):
+    stationimage=StationImage.objects.get(stationmetadata__ident__username=request.user.get_username(),stationmetadata__slug=mystation_slug,id=stationimage_id)
+    return render(request, 'profile_details_stationimage.html',{"stationimage":stationimage})
 
 #def profile(request):
 #    html = "<html><body>This is your personal page. TODO</body></html>"

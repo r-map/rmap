@@ -29,6 +29,7 @@ from rmap import  __version__
 def initdb(cwd):
     p = optparse.OptionParser(usage="usage: %prog [options]",version="%prog "+__version__)
     p.add_option("--syncdb", action="store_true",dest="syncdb", help="initialize rmap DB (default %default)", default=False)
+    p.add_option("--collectstatic", action="store_true",dest="collectstatic", help="Collect static files from multiple apps into a single path (default %default)", default=False)
     p.add_option("--changeuser", action="store_true",dest="changeuser", help="change user to the user in config file (default %default)", default=False)
     p.add_option("--dumpdata", action="store_true", help=\
                  "dump Data Base (default %default)", default=False)
@@ -47,10 +48,11 @@ def initdb(cwd):
     django.setup()
 
     if (not options.syncdb and\
+        not options.collectstatic and\
         not options.dumpdata and\
         options.loaddata is None) :
         p.print_help()
-        raise optparse.OptionValueError("you have to set one of --syncdb --dumpdata --loaddata")
+        raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata")
 
 
     if (options.changeuser):
@@ -73,6 +75,8 @@ def initdb(cwd):
         #u.set_password('rmap')
         #u.save()
 
+    if (options.collectstatic):
+        management.call_command("collectstatic")
 
     if (options.dumpdata):
         management.call_command("dumpdata",use_natural_foreign_keys = True, use_natural_primary_keys = True, exclude=["sessions","admin","contenttypes","auth.Permission"])

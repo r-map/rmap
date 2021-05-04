@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData,BoardFirmwareMetadata
+from .models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportAmqp,TransportBluetooth,StationConstantData,BoardFirmwareMetadata,StationImage
 from django import forms
 from django.utils.translation import ugettext_lazy
 import rmap.settings
@@ -52,7 +52,7 @@ class SensorAdmin(admin.ModelAdmin):
 
     list_display = ('name','active','driver','type','address','timerange','level','board')
     list_editable = ('active','timerange','level')
-    search_fields = ['name','driver','type','address','timerange','level','board__name']
+    search_fields = ['name','driver','type__name','address','timerange','level','board__name']
 
     list_filter = ('driver','timerange','level','board')
 
@@ -116,10 +116,13 @@ class StationConstantDataInline(admin.TabularInline):
     model = StationConstantData
     extra=1
 
+class StationImageInline(admin.TabularInline):
+    model = StationImage
+    extra=1
 
 class StationMetadataAdmin(admin.ModelAdmin):
 
-    inlines = [BoardInline,StationConstantDataInline]
+    inlines = [BoardInline,StationConstantDataInline,StationImageInline]
 
     prepopulated_fields = {'slug': ("name",)}
 

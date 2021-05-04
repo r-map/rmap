@@ -2,6 +2,14 @@
 {% load i18n %}
 
 {% block content %}
+
+{% if invalid  %}
+<div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
+{% endif %}
+
+{% if error  %}
+<div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
+{% endif %}
     
     <section id="main_content">
 
@@ -44,6 +52,55 @@
 <a href="{% url 'mystationmetadata-detail' mystation.ident.username  mystation.slug %}">{% trans 'Show station details' %}</a>
 </p>
 
+<div class="table-responsive">
+  <table class="table">
+    <tr>
+      <th> {% trans 'Comment' %}          </th>
+      <th> {% trans 'Date' %}            </th>
+      <th> {% trans 'Category' %}       </th>
+      <th> {% trans 'Image' %}</th>
+      <th> {% trans 'Operation' %}</th>
+    </tr>
+    
+    {% for stationimage in  mystation.stationimage_set.all %}
+    {% if mystation.active %} 
+    <tr>
+      <td>{{ stationimage.comment }}</td>
+      <td>{{ stationimage.date }}</td>
+      <td>{{ stationimage.category }}</td>
+      <td>
+	<a href="#" onclick="window.open('/accounts/profile/{{ mystation.slug}}/{{stationimage.id}}','stationimage', 'width=800, height=620').focus(); return false;">
+	  <img src="/{{ stationimage.image_thumbnail.url }}" />
+	</a>
+      </td>
+      <td>
+	<form action="" method="POST">{% csrf_token %}
+	  <input type="hidden" value="{{ stationimage.id }}" name="stationimageid">
+	  <input type="hidden" value="{{ mystation.slug }}" name="stationslug">
+	  <input type="submit" value={%trans "Delete" %} class="btn">
+	</form>
+      </td>      
+    </tr>
+    {% endif %}
+    
+    {% empty %}
+    <li>{% trans 'No image yet.' %}</li>
+    {% endfor %}
+  </table>
+
+  <h3 id="striped-rows">{% trans 'upload your station image' %}</h3>
+
+  <div class="table-responsive">
+    <form enctype="multipart/form-data" method="POST">{% csrf_token %}
+      
+      {{ form.as_p }}
+      
+      <input type="submit" value={%trans "Submit" %} class="btn">
+    </form>
+  </div>
+  
+</div>
+    
 </section>
 
 {% endblock %}

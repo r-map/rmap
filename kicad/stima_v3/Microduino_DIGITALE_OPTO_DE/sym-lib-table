@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Microduino_Digitale_DE-rescue)(type Legacy)(uri ${KIPRJMOD}/Microduino_Digitale_DE-rescue.lib)(options "")(descr ""))
+)
