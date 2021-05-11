@@ -1,0 +1,37 @@
+#######################################
+# Syntax Coloring Map For bq769x0 
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+bq769x0	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+SetupStereoMode	KEYWORD2
+SetupMonoMode	KEYWORD2
+setReg	KEYWORD2
+SetVolume	KEYWORD2
+SetFilter	KEYWORD2
+NextFilter	KEYWORD2
+PrevFilter	KEYWORD2
+VolumeUp	KEYWORD2
+VolumeDown	KEYWORD2
+Mute	KEYWORD2
+ZeroSound	KEYWORD2
+SoftReset	KEYWORD2
+getReg	KEYWORD2
+CheckMuteStatus	KEYWORD2
+isMuted	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+
+#######################################
+# Constants (LITERAL1)
+#######################################
