@@ -105,8 +105,8 @@ const int OCD_delay_setting [8] =
 const int OCD_threshold_setting [16] = 
   { 17, 22, 28, 33, 39, 44, 50, 56, 61, 67, 72, 78, 83, 89, 94, 100 };  // mV
 
-const int UV_delay_setting [4] = { 1, 4, 8, 16 };  // s
-const int OV_delay_setting [4] = { 1, 2, 4, 8 };   // s
+const uint8_t UV_delay_setting [4] = { 1, 4, 8, 16 }; // s
+const uint8_t OV_delay_setting [4] = { 1, 2, 4, 8 }; // s
 
 typedef union regSYS_STAT {
   struct

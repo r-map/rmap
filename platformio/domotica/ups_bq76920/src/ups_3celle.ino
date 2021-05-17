@@ -3,7 +3,6 @@
 #define BMS_ALERT_PIN 2       //Pin collegato al ALN (Allerta pin)
 #define BMS_BOOT_PIN 7        //Pin BOOT connesso a TS1
 #define BMS_I2C_ADDRESS 0x18  //Indirizzo I2C dell'integrato
-#define CC_CHANGED_PIN 13     //Uscita indicante che è disponibile un nuovo Coulomb. Non utilizzato
 
 bq769x0 BMS(bq76920, BMS_I2C_ADDRESS);    //Dichiarazione gestore batteria
 
@@ -14,11 +13,21 @@ const float MIN_TENS_CHARGE = 11000;      //Tensione minima al di sotto della qu
 
 void setup()
 {
+  Serial.begin(115200);
+  Serial.println("Starting UPS");
+  Wire.begin();        // join I2C bus
   pinMode(BMS_ALERT_PIN, INPUT);
-  pinMode(CC_CHANGED_PIN, OUTPUT);
-  digitalWrite(CC_CHANGED_PIN,LOW);
+
+  /*
+  pinMode(BMS_BOOT_PIN, OUTPUT);
+  digitalWrite(BMS_BOOT_PIN, HIGH);
+  Serial.println("Boot");
+  delay(5000);   // wait 5 ms for device to receive boot signal (datasheet: max. 2 ms)
+  Serial.println("Booted");
+  digitalWrite(BMS_BOOT_PIN, LOW);
+  */
+
   BMS.begin(BMS_ALERT_PIN,BMS_BOOT_PIN);
-  Serial.begin(9600);
   BMS.setTemperatureLimits(-20, 45, 0, 45);
   BMS.setShuntResistorValue(5);
   BMS.setShortCircuitProtection(14000, 200);  // delay in us
@@ -30,8 +39,9 @@ void setup()
   BMS.setBalancingThresholds(0, 3300, 20);  // minIdleTime_min, minCellV_mV, maxVoltageDiff_mV
   BMS.setIdleCurrentThreshold(100); 
   BMS.enableAutoBalancing();        //Attivazione bilanciamento batterie
-  BMS.setBatteryCapacity(2200);     //Capacità batteria. usato per il calcolo della corrente
-  
+  //BMS.enableDischarging();
+  //BMS.setBatteryCapacity(2200);     //Capacità batteria. usato per il calcolo della corrente
+  Serial.println("End Setup");  
 }
 
 void loop()
@@ -90,8 +100,8 @@ void loop()
     delay(10);  
   }  
   */
-  Serial.print("Coulomb: ");
-  Serial.print(BMS.getSOC());  
+  ////Serial.print("Coulomb: ");
+  ////Serial.print(BMS.getSOC());  
   Serial.print(" / Corrente: ");
   Serial.println(BMS.getBatteryCurrent());  
   delay(250);

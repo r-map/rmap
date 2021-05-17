@@ -1,8 +1,8 @@
 # bq769x0 Arduino Library
 
-Arduino-compatible library for battery management system based on Texas Instruments bq769x0 IC (bq76920, bq76930 and bq76940).
+Arduino-compatible library for battery management system based on Texas Instruments bq769x0 IC (bq76920, bq76930, and bq76940).
 
-The library offerst most features for a simple BMS (including automatic fault handling and balancing). See also BMS48V hardware files.
+This library offers most features for a simple BMS (including automatic fault handling and balancing). See also BMS48V hardware files.
 
 
 ## Example Arduino sketch
@@ -41,7 +41,14 @@ void loop()
 }
 ```
 
+## What's changed from the original upload (as of September 2019)
+
+- Now supports CRC (thanks to mikethezipper)
+- Automatically finds bq769x0 address and CRC
+- Tested on bq76940
+
 ## To Do list
 
 - Proper SOC estimation and coloumb counter implementation
 - Testing for ICs with more than 5 cells
+- Software protection for charge overcurrent
