@@ -934,10 +934,10 @@ void bq769x0::alertISR()
     LOG_PRINT(F("0x0B CC_CFG:    "));
     LOG_PRINTLN(byte2char(readRegister(CC_CFG)));
 
-    LOG_PRINT(F("0x2A BAT_HI:     "));
+    LOG_PRINT(F("0x2A BAT_HI:    "));
     LOG_PRINTLN(byte2char(readRegister(BAT_HI_BYTE)));
 
-    LOG_PRINT(F("0x2B BAT_LO:     "));
+    LOG_PRINT(F("0x2B BAT_LO:    "));
     LOG_PRINTLN(byte2char(readRegister(BAT_LO_BYTE)));
 
     LOG_PRINT(F("0x32 CC_HI:     "));

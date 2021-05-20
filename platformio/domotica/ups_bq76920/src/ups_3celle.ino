@@ -1,7 +1,7 @@
 #include <bq769x0.h>    // Library for Texas Instruments bq76920 battery management IC
 
-#define BMS_ALERT_PIN 2       //Pin collegato al ALN (Allerta pin)
-#define BMS_BOOT_PIN 7        //Pin BOOT connesso a TS1
+#define BMS_ALERT_PIN D2       //Pin collegato al ALN (Allerta pin)
+#define BMS_BOOT_PIN A6        //Pin BOOT connesso a TS1
 #define BMS_I2C_ADDRESS 0x18  //Indirizzo I2C dell'integrato
 
 bq769x0 BMS(bq76920, BMS_I2C_ADDRESS);    //Dichiarazione gestore batteria
@@ -33,21 +33,24 @@ void setup()
   BMS.setShortCircuitProtection(14000, 200);  // delay in us
   BMS.setOvercurrentChargeProtection(8000, 200);  // delay in ms
   BMS.setOvercurrentDischargeProtection(8000, 320); // delay in ms
-  BMS.setCellUndervoltageProtection(2600, 2); // delay in s
-  BMS.setCellOvervoltageProtection(3750, 2);  // delay in s
+  BMS.setCellUndervoltageProtection(3400, 2); // delay in s
+  BMS.setCellOvervoltageProtection(4160, 2);  // delay in s
 
   BMS.setBalancingThresholds(0, 3300, 20);  // minIdleTime_min, minCellV_mV, maxVoltageDiff_mV
   BMS.setIdleCurrentThreshold(100); 
   BMS.enableAutoBalancing();        //Attivazione bilanciamento batterie
-  //BMS.enableDischarging();
-  //BMS.setBatteryCapacity(2200);     //Capacità batteria. usato per il calcolo della corrente
+
+  BMS.update();
+  BMS.enableCharging();
+  BMS.enableDischarging();
+
   Serial.println("End Setup");  
 }
 
 void loop()
 {
   BMS.update();  //Queta funzione dovrebbe essere chiamata ogni 250ms per avere le indicazioni corrette
-  
+
   //BMS.printRegisters();               //Utilizzato per scrivere tutti i registri
   Serial.print("Vbat: ");               //Si visualizza la tensione di ogni cella
   Serial.print(BMS.getCellVoltage(1));
@@ -59,10 +62,13 @@ void loop()
   Serial.print(BMS.getBatteryVoltage());
   Serial.print("mV - ");
   Serial.print("Temp: ");               //Si visualizza la temperatura
-  Serial.println(BMS.getTemperatureDegC(1)); 
+  Serial.print(BMS.getTemperatureDegC(1)); 
+  Serial.print("     Corrente: ");
+  Serial.println(BMS.getBatteryCurrent());  
+  /*
   Serial.print("CHARGE ");              //Si indica se è in corso la ricarica oppure no 
   Serial.println(CHARGE_ON);  
-  
+
   //Se la ricarica non è in corso, se la tensione scende al di sotto di MIN_TENS_CHARGE si attiva la ricarica
   if (CHARGE_ON==false) 
   {
@@ -82,8 +88,7 @@ void loop()
       delay(500);
     }
   }
-  
-
+  */
   
   //Lettura Coulomb se è disponibile un nuovo dato, da uasre se se vuole leggere
   //in autonomia il registro senza passare per la libreria
@@ -102,7 +107,6 @@ void loop()
   */
   ////Serial.print("Coulomb: ");
   ////Serial.print(BMS.getSOC());  
-  Serial.print(" / Corrente: ");
-  Serial.println(BMS.getBatteryCurrent());  
-  delay(250);
+
+  delay(50);
 }
