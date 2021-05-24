@@ -20,17 +20,26 @@ Supports:
 __all__ = ["GeoJsonMapLayer"]
 
 import json
-from kivy.properties import StringProperty, ObjectProperty
-from kivy.graphics import (Canvas, PushMatrix, PopMatrix, MatrixInstruction,
-                           Translate, Scale)
-from kivy.graphics import Mesh, Line, Color
-from kivy.graphics.tesselator import Tesselator, WINDING_ODD, TYPE_POLYGONS
-from kivy.utils import get_color_from_hex
+
+from kivy.graphics import (
+    Canvas,
+    Color,
+    Line,
+    MatrixInstruction,
+    Mesh,
+    PopMatrix,
+    PushMatrix,
+    Scale,
+    Translate,
+)
+from kivy.graphics.tesselator import TYPE_POLYGONS, WINDING_ODD, Tesselator
 from kivy.metrics import dp
+from kivy.properties import ObjectProperty, StringProperty
 from kivy.utils import get_color_from_hex
-from mapview import CACHE_DIR
-from mapview.view import MapLayer
-from mapview.downloader import Downloader
+
+from kivy_garden.mapview.constants import CACHE_DIR
+from kivy_garden.mapview.downloader import Downloader
+from kivy_garden.mapview.view import MapLayer
 
 COLORS = {
     'aliceblue': '#f0f8ff',
@@ -179,12 +188,12 @@ COLORS = {
     'white': '#ffffff',
     'whitesmoke': '#f5f5f5',
     'yellow': '#ffff00',
-    'yellowgreen': '#9acd32'
+    'yellowgreen': '#9acd32',
 }
 
 
-def flatten(l):
-    return [item for sublist in l for item in sublist]
+def flatten(lst):
+    return [item for sublist in lst for item in sublist]
 
 
 class GeoJsonMapLayer(MapLayer):
@@ -196,9 +205,10 @@ class GeoJsonMapLayer(MapLayer):
     def __init__(self, **kwargs):
         self.first_time = True
         self.initial_zoom = None
-        super(GeoJsonMapLayer, self).__init__(**kwargs)
+        super().__init__(**kwargs)
         with self.canvas:
             self.canvas_polygon = Canvas()
+            self.canvas_line = Canvas()
         with self.canvas_polygon.before:
             PushMatrix()
             self.g_matrix = MatrixInstruction()
@@ -216,12 +226,12 @@ class GeoJsonMapLayer(MapLayer):
         if zoom is None:
             self.initial_zoom = zoom = pzoom
         if zoom != pzoom:
-            diff = 2**(pzoom - zoom)
+            diff = 2 ** (pzoom - zoom)
             vx /= diff
             vy /= diff
             self.g_scale.x = self.g_scale.y = diff
         else:
-            self.g_scale.x = self.g_scale.y = 1.
+            self.g_scale.x = self.g_scale.y = 1.0
         self.g_translate.xy = vx, vy
         self.g_matrix.matrix = self.parent._scatter.transform
 
@@ -269,39 +279,38 @@ class GeoJsonMapLayer(MapLayer):
                 for polygon in geometry["coordinates"]:
                     for coordinate in polygon[0]:
                         _submit_coordinate(coordinate)
+
         self.traverse_feature(_get_bounds)
         return bounds
 
     @property
     def center(self):
         min_lon, max_lon, min_lat, max_lat = self.bounds
-        cx = (max_lon - min_lon) / 2.
-        cy = (max_lat - min_lat) / 2.
+        cx = (max_lon - min_lon) / 2.0
+        cy = (max_lat - min_lat) / 2.0
         return min_lon + cx, min_lat + cy
 
     def on_geojson(self, instance, geojson, update=False):
         if self.parent is None:
             return
         if not update:
-            # print "Reload geojson (polygon)"
             self.g_canvas_polygon.clear()
             self._geojson_part(geojson, geotype="Polygon")
-        # print "Reload geojson (LineString)"
         self.canvas_line.clear()
         self._geojson_part(geojson, geotype="LineString")
 
     def on_source(self, instance, value):
-        if value.startswith("http://") or value.startswith("https://"):
-            Downloader.instance(
-                cache_dir=self.cache_dir
-            ).download(value, self._load_geojson_url)
+        if value.startswith(("http://", "https://")):
+            Downloader.instance(cache_dir=self.cache_dir).download(
+                value, self._load_geojson_url
+            )
         else:
             with open(value, "rb") as fd:
                 geojson = json.load(fd)
             self.geojson = geojson
 
-    def _load_geojson_url(self, url, r):
-        self.geojson = r.json()
+    def _load_geojson_url(self, url, response):
+        self.geojson = response.json()
 
     def _geojson_part(self, part, geotype=None):
         tp = part["type"]
@@ -344,10 +353,8 @@ class GeoJsonMapLayer(MapLayer):
             graphics.append(Color(*color))
             for vertices, indices in tess.meshes:
                 graphics.append(
-                    Mesh(
-                        vertices=vertices,
-                        indices=indices,
-                        mode="triangle_fan"))
+                    Mesh(vertices=vertices, indices=indices, mode="triangle_fan")
+                )
 
         elif tp == "LineString":
             stroke = get_color_from_hex(properties.get("stroke", "#ffffff"))

@@ -59,8 +59,8 @@ from . import btable
 from . import tables
 from . import jsonrpc
 from .sensordriver import SensorDriver
-from mapview import MapMarkerPopup
-from mapview import MapView
+from kivy_garden.mapview import MapMarkerPopup
+from kivy_garden.mapview import MapView
 from django.utils.translation import ugettext as _
 from django.utils import translation
 from django.contrib.auth.models import User
@@ -383,6 +383,7 @@ ScreenManager:
                 id: marker
                 lat: app.lat
                 lon: app.lon
+                source: app.DEFAULT_MARKER
 
                 popup_size: dp(150), dp(100)
 
@@ -1017,6 +1018,7 @@ class MyMapMarker(MapMarkerPopup):
         #lon = NumericProperty(lon)
         self.lat = lat
         self.lon = lon
+        self.source=MapMarkerPopup.DEFAULT_MARKER       # set the marker for MapMarker
 
 
 class mytextinput(TextInput):
@@ -1243,7 +1245,7 @@ class Rmap(App):
         self.str_lat_lon_height=_("[b]%s\nLat: %4.5f\nLon: %4.5f\nHeight: %d[/b]")
         self.str_Location=_("Location")
         self.str_Publish=_("Publish")
-
+        self.DEFAULT_MARKER=MapMarkerPopup.DEFAULT_MARKER     # set the marker for MapMarker https://github.com/kivy-garden/mapview/issues/44
 
     def on_start(self):
         '''Event handler for the `on_start` event which is fired after
