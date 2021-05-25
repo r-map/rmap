@@ -693,6 +693,15 @@ CACHES = {
     }
 }
 
+if not android :
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+            'LOCATION': CACHE_LOCATION,
+        }
+    }
+
+
 ## CORS management
 #CORS_ORIGIN_WHITELIST = [
 #    "http://rmap.it"
