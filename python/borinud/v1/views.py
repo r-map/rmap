@@ -49,7 +49,7 @@ class dbajson:
         #print ("stationdata=",self.stationdata)
         #print ("last=",self.last)
         #print ("attr=",self.attr)
-        #print (q)
+        #print ("query=",q)
         #print ("++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 
@@ -239,15 +239,10 @@ def summaries(request, **kwargs):
         if (kwargs.get('hour') is not None):
             q["hour"] = int(kwargs.get("hour"))
 
+    b = datetime(int(request.GET.get("yearmin",kwargs.get('year',"1"))),
+                 int(request.GET.get("monthmin",kwargs.get('month',"1"))),
+                 int(request.GET.get("daymin",kwargs.get('day',"1"))))
 
-    bd={}
-    bd['year']  = int(kwargs.get('year',"1"))
-    bd['month'] = int(kwargs.get('month',"1"))
-    bd['day']   = int(kwargs.get('day',"1"))
-    bd["year"]  = int(bd["year"]) if request.GET.get("yearmin") is None else int(request.GET.get("yearmin")) 
-    bd["month"] = int(bd["month"]) if request.GET.get("monthmin") is None else int(request.GET.get("monthmin"))
-    bd["day"]   = int(bd["day"]) if request.GET.get("daymin") is None else int(request.GET.get("daymin"))
-    b = datetime(int(bd["year"]), int(bd["month"]), int(bd["day"]))
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
     else:
@@ -298,16 +293,10 @@ def timeseries(request, **kwargs):
             q['day'] = int(kwargs.get('day'))
         if (kwargs.get("hour") is not None):
             q["hour"] = int(kwargs.get("hour"))
-
-
-    bd={}
-    bd['year']  = int(kwargs.get('year',"1"))
-    bd['month'] = int(kwargs.get('month',"1"))
-    bd['day']   = int(kwargs.get('day',"1"))
-    bd["year"]  = int(bd["year"]) if request.GET.get("yearmin") is None else int(request.GET.get("yearmin"))
-    bd["month"] = int(bd["month"]) if request.GET.get("monthmin") is None else int(request.GET.get("monthmin"))
-    bd["day"]   = int(bd["day"]) if request.GET.get("daymin") is None else int(request.GET.get("daymin")) 
-    b = datetime(int(bd["year"]), int(bd["month"]), int(bd["day"]))
+    
+    b = datetime(int(request.GET.get("yearmin",kwargs.get('year',"1"))),
+                 int(request.GET.get("monthmin",kwargs.get('month',"1"))),
+                 int(request.GET.get("daymin",kwargs.get('day',"1"))))
 
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
@@ -330,30 +319,43 @@ def timeseries(request, **kwargs):
 def spatialseries(request, **kwargs):
     q = params2record(kwargs)
 
-    if kwargs.get("hour") is None:
-        b = datetime(*(int(kwargs[k]) for k in ("year", "month", "day")))
-        e = datetime(*(int(kwargs[k]) for k in ("year", "month", "day")),hour=23,minute=59,second=59)
-    else:
-        d = datetime(*(int(kwargs[k]) for k in ("year", "month", "day", "hour")))
-        b = d - timedelta(seconds=1800)
-        e = d + timedelta(seconds=1799)
 
-#    q["datemin"] = b
-#    q["datemax"] = e
+    if (request.GET.get("yearmin") is not None ):
+        q["yearmin"] = int(request.GET.get("yearmin"))
+    if (request.GET.get("yearmax") is not None ):
+        q["yearmax"] = int(request.GET.get("yearmax"))
+    if (request.GET.get("monthmin") is not None ):
+        q["monthmin"] = int(request.GET.get("monthmin"))
+    if (request.GET.get("monthmax") is not None ):
+        q["monthmax"] = int(request.GET.get("monthmax"))
+    if (request.GET.get("daymin") is not None ):
+        q["daymin"] = int(request.GET.get("daymin"))
+    if (request.GET.get("daymax") is not None ):
+        q["daymax"] = int(request.GET.get("daymax"))
+    if (request.GET.get("hourmin") is not None ):
+        q["hourmin"] = int(request.GET.get("hourmin"))
+    if (request.GET.get("hourmax") is not None ):
+        q["hourmax"] = int(request.GET.get("hourmax"))
+    if (request.GET.get("minumin") is not None ):
+        q["minumin"] = int(request.GET.get("minumin"))
+    if (request.GET.get("minumax") is not None ):
+        q["minumax"] = int(request.GET.get("minumax"))
+    if (request.GET.get("secmin") is not None ):
+        q["secmin"] = int(request.GET.get("secmin"))
+    if (request.GET.get("secmax") is not None ):
+        q["secmax"] = int(request.GET.get("secmax"))
 
-    q["yearmin"] = b.year
-    q["monthmin"] = b.month
-    q["daymin"] = b.day
-    q["hourmin"] = b.hour
-    q["minumin"] = b.minute
-    q["secmin"] = b.second
-
-    q["yearmax"] = e.year
-    q["monthmax"] = e.month
-    q["daymax"] = e.day
-    q["hourmax"] = e.hour
-    q["minumax"] = e.minute
-    q["secmax"] = e.second
+    if ((not 'yearmin' in q) or (not 'yearmax' in q) or
+        (not 'monthmin' in q) or (not 'monthmax' in q) or
+        (not 'daymin' in q) or (not 'daymax' in q)):
+        if (kwargs.get('year') is not None):
+            q['year'] = int(kwargs.get('year'))
+        if (kwargs.get('month') is not None):
+            q['month'] = int(kwargs.get('month'))
+        if (kwargs.get('day') is not None):
+            q['day'] = int(kwargs.get('day'))
+        if (kwargs.get("hour") is not None):
+            q["hour"] = int(kwargs.get("hour"))
 
     if ( request.GET.get("latmin") is not None):
         q["latmin"] = int(request.GET.get("latmin"))
@@ -364,6 +366,11 @@ def spatialseries(request, **kwargs):
     if ( request.GET.get("lonmax") is not None):
         q["lonmax"] = int(request.GET.get("lonmax"))
 
+
+    b = datetime(int(request.GET.get("yearmin",kwargs.get('year',"1"))),
+                 int(request.GET.get("monthmin",kwargs.get('month',"1"))),
+                 int(request.GET.get("daymin",kwargs.get('day',"1"))))
+        
     if b <  (datetime.utcnow()-timedelta(days=lastdays)):
         seg="historical"
     else:
