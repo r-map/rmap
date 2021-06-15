@@ -23,10 +23,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "sdcard_utility.h"
 
 bool sdcard_init(SdFat *SD, uint8_t chip_select) {
-   return (SD->begin(chip_select) && SD->vol()->fatType());
+#ifdef ARDUINO_ARCH_AVR
+  return (SD->begin(chip_select) && SD->vol()->fatType());
+#else
+#define SPI_SPEED SD_SCK_MHZ(4)
+  return (SD->begin(chip_select,SPI_SPEED) && SD->vol()->fatType());
+#endif
+  
 }
 
-bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, uint8_t param) {
+bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, oflag_t param) {
    *file = SD->open(file_name, param);
 
    if (*file) {

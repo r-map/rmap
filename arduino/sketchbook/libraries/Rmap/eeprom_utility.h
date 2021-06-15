@@ -41,11 +41,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #else
 #include <EEPROM.h>
 
-//       TO BE DONE !
+void ee_read(void *data,void * address,size_t size){
+  // Copy the data from the flash to the buffer
+  eeprom_buffer_fill();
+  char* arraydata=(char*)data;
+  for (unsigned int i = 0; i < size; i++)
+   arraydata[i]= eeprom_buffered_read_byte(i); // Function reads a byte from the eeprom buffer
+};
 
-void ee_read(void *data,void * address,size_t size){};
+void ee_write(const void *data,void * address,size_t size){
 
-void ee_write(const void *data,void * address,size_t size){};
+  char* arraydata=(char*)data;
+
+  for (unsigned int i = 0; i < size; i++)
+    eeprom_buffered_write_byte(i, arraydata[i]);
+  // Copy the data from the buffer to the flash
+  eeprom_buffer_flush();
+};
 
 #endif
 

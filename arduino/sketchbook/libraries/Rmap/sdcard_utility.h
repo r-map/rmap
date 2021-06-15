@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 bool sdcard_init(SdFat *SD, uint8_t chip_select);
 
 /*!
-\fn bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, uint8_t param)
+\fn bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, oflag_t param)
 \brief Open file on sdcard with relative file mode bits.
 \param[in] *SD pointer to sdcard instance.
 \param[in] *file pointer to file instance.
@@ -45,7 +45,7 @@ bool sdcard_init(SdFat *SD, uint8_t chip_select);
 \param[in] param parameter for open file (example: O_RDWR | O_CREAT | O_APPEND. See SdFat documentation).
 \return true if success, false otherwise.
 */
-bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, uint8_t param);
+bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, oflag_t param);
 
 /*!
 \fn void sdcard_make_filename(time_t time, char *file_name)

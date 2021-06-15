@@ -201,6 +201,7 @@ uint8_t SIM800::receive(char *rx_buffer, const char *at_ok_string, const char *a
    char readed_char;
 
    uint32_t start_time_ms = millis();
+// check ms timeout: set to 50 for slow baud rate
    while ((millis() - start_time_ms <= 5) && (rx_buffer_length < (SIM800_BUFFER_LENGTH - 1)) && !is_responce_ok && !is_responce_error) {
       if (modem->available()) {
          start_time_ms = millis();
@@ -240,7 +241,7 @@ uint8_t SIM800::receive(char *rx_buffer, const char *at_ok_string, const char *a
    }
 
    if (rx_buffer_length) {
-      SERIAL_TRACE(F("--> %s\r\n"), rx_buffer);
+     SERIAL_TRACE(F("SIM800<-- %s\r\n"), rx_buffer);
    }
 
    return rx_buffer_length;
@@ -279,7 +280,7 @@ sim800_status_t SIM800::sendAtCommand(const char *command, char *buffer, const c
          start_time_ms = 0;
          strncpy(buffer, command, SIM800_BUFFER_LENGTH);
          send(buffer);
-         SERIAL_TRACE(F("SIM800\r\n--> %s"), buffer);
+         SERIAL_TRACE(F("SIM800--> %s\r\n"), buffer);
          sim800_at_state = SIM800_AT_RECEIVE;
          break;
 
@@ -397,18 +398,27 @@ sim800_status_t SIM800::getCreg(uint8_t *n, uint8_t *stat) {
    if (!isInitialized())
       return SIM800_ERROR;
 
+   unsigned int nn,statstat;
+
    at_command_status = sendAtCommand("AT+CREG?\r\n", buffer_ext);
 
    if (at_command_status == SIM800_OK) {
-      if (sscanf(buffer_ext, "+CREG: %hhu,%hhu", n, stat) != 2) {
-         *n = 0;
-         *stat = 0;
-         at_command_status = SIM800_ERROR;
-      }
+     if (sscanf(buffer_ext, "+CREG: %u,%u", &nn, &statstat) != 2) {
+       //if (sscanf(buffer_ext, "+CREG: %hhu,%hhu", n, stat) != 2) {
+       at_command_status = SIM800_ERROR;
+       *n = 0;
+       *stat = 0;
+     }else{
+       *n=nn;
+       *stat=statstat;
+     }
+   } else {
+     *n = 0;
+     *stat = 0;
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 CREG [ %s ] [ %hhu,%hhu ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *n, *stat);
+      SERIAL_DEBUG(F("SIM800 CREG [ %s ] [ %u,%u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), nn, statstat);
    }
 
    return at_command_status;
@@ -416,9 +426,7 @@ sim800_status_t SIM800::getCreg(uint8_t *n, uint8_t *stat) {
 
 sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
    sim800_status_t at_command_status;
-
-   *rssi = SIM800_RSSI_UNKNOWN;
-   *ber = SIM800_BER_UNKNOWN;
+   unsigned int rssirssi, berber;
 
    if (!isInitialized())
       return SIM800_ERROR;
@@ -426,17 +434,22 @@ sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
    at_command_status = sendAtCommand("AT+CSQ\r\n", buffer_ext);
 
    if (at_command_status == SIM800_OK) {
-      if (sscanf(buffer_ext, "+CSQ: %hhu,%hhu", rssi, ber) != 2) {
-         at_command_status = SIM800_ERROR;
-      }
-   }
-   else if (at_command_status == SIM800_ERROR) {
+     //if (sscanf(buffer_ext, "+CSQ: %hhu,%hhu", rssi, ber) != 2) {
+     if (sscanf(buffer_ext, "+CSQ: %u,%u", &rssirssi, &berber) != 2) {
+       at_command_status = SIM800_ERROR;
+       *rssi = SIM800_RSSI_UNKNOWN;
+       *ber = SIM800_BER_UNKNOWN;
+     } else {
+       *rssi=rssirssi;
+       *ber=berber;
+     }
+   } else {
       *rssi = SIM800_RSSI_UNKNOWN;
       *ber = SIM800_BER_UNKNOWN;
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 CSQ [ %s ] [ %hhu,%hhu ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *rssi, *ber);
+      SERIAL_DEBUG(F("SIM800 CSQ [ %s ] [ %u,%u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), rssirssi, berber);
    }
 
    return at_command_status;
@@ -445,7 +458,7 @@ sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
 sim800_status_t SIM800::getCgatt(bool *is_attached) {
    sim800_status_t at_command_status;
 
-   uint8_t is_gprs_attached = 0;
+   unsigned int is_gprs_attached = 0;
 
    if (!isInitialized())
       return SIM800_ERROR;
@@ -453,11 +466,12 @@ sim800_status_t SIM800::getCgatt(bool *is_attached) {
    at_command_status = sendAtCommand("AT+CGATT?\r\n", buffer_ext);
 
    if (at_command_status == SIM800_OK) {
-      if (sscanf(buffer_ext, "+CGATT: %hhu", &is_gprs_attached) != 1) {
+      if (sscanf(buffer_ext, "+CGATT: %u", &is_gprs_attached) != 1) {
          at_command_status = SIM800_ERROR;
+	 is_gprs_attached=0;
       }
-      *is_attached = (bool) is_gprs_attached;
    }
+   *is_attached = (bool) is_gprs_attached;
 
    if (at_command_status != SIM800_BUSY) {
       SERIAL_DEBUG(F("SIM800 CGATT [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *is_attached ? YES_STRING : NO_STRING);
@@ -724,7 +738,7 @@ sim800_status_t SIM800::setup() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 signal [ %s ] [ rssi %hhu, ber %hhu ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), rssi, ber);
+	   SERIAL_INFO(F("SIM800 signal [ %s ] [ rssi %u, ber %u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)rssi, (int)ber);
          }
 
          // wait
