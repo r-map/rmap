@@ -366,7 +366,7 @@ bool SIM800::init_fixbaud() {
 	IF_SDEBUG(Serial.println(F("#sim800:inizialize done")));
 	if (!ATcommand("&F", buf)) return false;
 	// this is the default
-	//if (!ATcommand("+IPR=0", buf)) return false;
+	if (!ATcommand("+IPR=0", buf)) return false;
 	if (!ATcommand("&W", buf)) return false;    // save
 
 	// here a reset is required !
