@@ -156,7 +156,7 @@ def dballe2arkimet(date):
         logging.info("End to migrate data to arkimet")
         logging.info("Return status: %s" % (returncode))
     
-        if (returncode==0 or returncode==2):
+        if (returncode==0 or returncode==65):
             logging.info("Start to delete data from dballe")
             tr.remove_data(rec)
             logging.info("End to delete data from dballe")
