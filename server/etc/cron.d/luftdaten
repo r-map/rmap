@@ -1,0 +1,9 @@
+# Import air quality data from ckan ARPAE server
+
+MAILTO=root
+
+
+#*/3 * * * *  arkimet /usr/bin/luftdaten_to_bufr  /tmp/luftdaten.bufr  ;dbadb import  --dsn='postgresql://rmap:rmap@localhost/sample_fixed' /tmp/luftdaten.bufr ; rm -f /tmp/luftdaten.bufr
+
+
+

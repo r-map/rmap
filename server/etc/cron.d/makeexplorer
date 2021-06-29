@@ -1,0 +1,8 @@
+# Create explorer for borinud services
+
+MAILTO=root
+
+*/5 * * * *  rmap /usr/bin/rmap-explorer --write --type report_fixed; /usr/bin/rmap-explorer --write --type report_mobile; /usr/bin/rmap-explorer --write --type sample_fixed; /usr/bin/rmap-explorer --write --type sample_mobile
+
+
+

@@ -1,0 +1,8 @@
+index = reftime, area, product, origin, proddef
+step = monthly
+type = iseg
+format = bufr
+unique = reftime, area, product, origin, proddef
+filter = product: BUFR:t=rmap or BUFR:t=mobile or BUFR:t=arpae
+replace = yes
+postprocess = json, bufr, bufr-filter

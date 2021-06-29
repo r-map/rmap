@@ -1,0 +1,23 @@
+topic read #
+topic write test/#
+
+# This only affects clients with username "rmap".
+user rmap
+topic #
+ 
+#pattern write rmap/%u/#
+#pattern write fixed/%u/#
+#pattern write mobile/%u/#
+
+pattern write sample/%u/#
+pattern write report/%u/#
+
+pattern write maint/%u/#
+
+pattern write rpc/%u/#
+
+
+pattern read sample/%u/#
+pattern read report/%u/#
+pattern read maint/%u/#
+pattern read rpc/%u/#
