@@ -76,7 +76,7 @@ SecRuleEngine On
 #Then we define a neat ErrorDocument for the 509 response to give a better clue to the client about what is happening.
 
 
-<Location /borinud_disabled>
+<Location /borinud>
 
   # whitelist localhost
   #SecRule REMOTE_ADDR "@contains 127.0.0.1" "id:1,phase:1,nolog,allow,ctl:ruleEngine=Off"
