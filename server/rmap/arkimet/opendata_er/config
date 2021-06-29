@@ -1,7 +1,0 @@
-index = reftime, area, product, origin, proddef
-step = daily
-type = ondisk2
-unique = reftime, area, product, origin, proddef
-filter = product: BUFR:t=spdsra or BUFR:t=locali or BUFR:t=agrmet or BUFR:t=profe or BUFR:t=simnpr or BUFR:t=simnbo or BUFR:t=rer or BUFR:t=simc or BUFR:t=urbane or BUFR:t=arpae or BUFR:t=boa or BUFR:t=cer or BUFR:t=provpc or BUFR:t=syrep or BUFR:t=umsuol
-replace = yes
-postprocess = json, bufr, bufr-filter

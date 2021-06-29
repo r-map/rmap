@@ -1,19 +1,32 @@
 ARKIMET
 
-#use the arkimet user fo those operations
+#use the rmap user fo those operations
 
 # create global conf with bounding boxes
-arki-mergeconf --extra /rmap/arkimet/{sample_fixed,sample_fixed_error,sample_fixed_duplicates} -o sample_fixed.conf
-arki-mergeconf --extra /rmap/arkimet/{sample_mobile,sample_mobile_error,sample_mobile_duplicates} -o sample_mobile.conf
-arki-mergeconf --extra /rmap/arkimet/{report_fixed,meteonetwork,opendata-er,arpav,report_fixed_error,report_fixed_duplicates} -o report_fixed.conf
-arki-mergeconf --extra /rmap/arkimet/{report_mobile,meteonetwork,opendata-er,arpav,report_mobile_error,report_mobile_duplicates} -o report_mobile.conf
-arki-mergeconf --extra /rmap/arkimet/* -o arkimet.conf
+arki-mergeconf --extra /rmap/arkimet/sample_fixed/{sample_fixed,sample_fixed_error,sample_fixed_duplicates} -o sample_fixed.conf
+arki-mergeconf --extra /rmap/arkimet/sample_mobile/{sample_mobile,sample_mobile_error,sample_mobile_duplicates} -o sample_mobile.conf
+arki-mergeconf --extra /rmap/arkimet/report_fixed/{report_fixed,meteonetwork,opendata-er,arpav,meteohub,cae,report_fixed_error,report_fixed_duplicates} -o report_fixed.conf
+arki-mergeconf --extra /rmap/arkimet/report_mobile/{report_mobile,report_mobile_error,report_mobile_duplicates} -o report_mobile.conf
+
+rename in *.conf [*duplicates] in [duplicates] and [*error] in [error]
+
+COSUDO:
+
+arki-mergeconf --extra /rmap/arkimet/cosudo/{radar,cosudo_duplicates,cosudo_error} -o cosudo.conf
+
+
+
+
+
+
+
+old:
+
+#arki-mergeconf --extra /rmap/arkimet/* -o arkimet.conf
 
 
 # migrate data from dballe to arkimet
 dballe2arkimet --arkiconf=/rmap/arkimet/sample_fixed.conf --dsn="mysql:///sample_fixed?user=rmap&password=rmap" --date=2017-04-10
-
-old:
 ## create global conf with bounding boxes
 #arki-mergeconf --extra /rmap/arkimet/{sample,error,duplicates} -o sample.conf
 #arki-mergeconf --extra /rmap/arkimet/{mobile,error,duplicates} -o mobile.conf

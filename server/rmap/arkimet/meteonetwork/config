@@ -1,7 +1,0 @@
-index = reftime, area, product, origin, proddef
-step = daily
-type = ondisk2
-unique = reftime, area, product, origin, proddef
-filter = product: BUFR:t=mnw
-replace = yes
-postprocess = json, bufr, bufr-filter

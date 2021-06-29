@@ -3,6 +3,6 @@
 MAILTO=root
 
 
-45 11 * * *  arkimet /usr/bin/arpae_aq_ckan_to_bufr --nlastdays 6 /tmp/aq.bufr  ;dbadb import  --dsn='mysql:///report_fixed?user=rmap&password=rmap' /tmp/aq.bufr ; rm -f /tmp/aq.bufr
+#45 11 * * *  arkimet /usr/bin/arpae_aq_ckan_to_bufr --nlastdays 6 /tmp/aq.bufr  ;dbadb import  --dsn='postgresql://rmap:rmap@localhost/report_fixed' /tmp/aq.bufr ; rm -f /tmp/aq.bufr
 
 

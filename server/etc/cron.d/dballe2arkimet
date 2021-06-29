@@ -2,14 +2,10 @@
 
 MAILTO=root
 
-15 3 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///sample_fixed?user=rmap&password=rmap"  --arkiconf=/rmap/arkimet/sample_fixed.conf   > /dev/null
-40 3 * * *   arkimet /usr/bin/dbadb cleanup --url="mysql:///sample_fixed?user=rmap&password=rmap"
+15 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_fixed"  --arkiconf=/rmap/arkimet/sample_fixed.conf  --explorer="/rmap/arkimet/sample_fixed.json"  > /dev/null ;/usr/bin/dbadb cleanup --url="postgresql://rmap:rmap@localhost/sample_fixed"
 
-45 3 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///sample_mobile?user=rmap&password=rmap" --arkiconf=/rmap/arkimet/sample_mobile.conf  > /dev/null
-10 4 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///sample_mobile?user=rmap&password=rmap"
+45 3 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/sample_mobile" --arkiconf=/rmap/arkimet/sample_mobile.conf --explorer="/rmap/arkimet/sample_mobile.json"  > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/sample_mobile"
 
-15 4 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///report_fixed?user=rmap&password=rmap"  --arkiconf=/rmap/arkimet/report_fixed.conf   > /dev/null
-40 4 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///report_fixed?user=rmap&password=rmap"
+15 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_fixed"  --arkiconf=/rmap/arkimet/report_fixed.conf  --explorer="/rmap/arkimet/report_fixed.json"  > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_fixed"
 
-45 4 * * *   arkimet /usr/bin/dballe2arkimet --dsn="mysql:///report_mobile?user=rmap&password=rmap" --arkiconf=/rmap/arkimet/report_mobile.conf  > /dev/null
-10 5 * * *   arkimet /usr/bin/dbadb cleanup --dsn="mysql:///report_mobile?user=rmap&password=rmap"
+45 4 * * *   rmap /usr/bin/dballe2arkimet --dsn="postgresql://rmap:rmap@localhost/report_mobile" --arkiconf=/rmap/arkimet/report_mobile.conf --explorer="/rmap/arkimet/report_mobile.json" > /dev/null ;/usr/bin/dbadb cleanup --dsn="postgresql://rmap:rmap@localhost/report_mobile"
