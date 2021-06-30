@@ -15,6 +15,8 @@ Aggiunta repository e installazione pacchetti
   dnf copr enable pat1/rmap
   dnf config-manager --set-enabled PowerTool
   dnf groupinstall rmap
+  dnf copr enable simc/cosudo
+  dnf install python3-django-dynamic-map-borinud
   dnf install mosquitto mosquitto-auth-plug
   dnf install arkimet
   useradd rmap
@@ -45,12 +47,15 @@ Aggiunta repository e installazione pacchetti
    
 postgresql
 ----------
-
-dnf module disable postgresql:10 dnf module enable postgresql:12 dnf
-install postgresql-server postgresql-contrib dnf install
-python3-psycopg2
 ::
-   
+
+   dnf module disable postgresql:10
+   dnf module enable postgresql:12
+   dnf install postgresql-server postgresql-contrib
+   dnf installpython3-psycopg2
+
+::
+
    postgresql-setup --initdb --unit postgresql
 
 /var/lib/pgsql/data/pg_hba.conf
@@ -135,10 +140,9 @@ apache
 Collect static files from django apps:
 ::
    
-   mkdir global_static
-   export DJANGO_SETTINGS_MODULE=rmap.settings
-   django-admin collectstatic
-   rmdir global_static
+   mkdir /root/tmp/global_static
+   rmapctrl --collectstatic
+   rmdir /root/tmp/global_static
 
    yum install python3-mod_wsgi
 
@@ -423,16 +427,7 @@ remove everythings and add in /etc/mosquitto/mosquitto.conf
    chkconfig mosquitto on
    service mosquitto start
 
-if the package use systemd:
-   
-create /etc/systemd/system/mosquitto.service.d/rmap.conf
-::
-   
-   [Service] 
-   Restart=always 
-   RestartSec=15
-
-if the package use systemV:
+if the package use systemV create:
 
 /etc/monit.d/mosquitto
 ::
