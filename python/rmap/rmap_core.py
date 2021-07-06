@@ -1040,6 +1040,29 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
 
 
+
+def modifystation(station_slug=None,username=None,lon=None,lat=None):
+
+    if (station_slug is None): return
+    if (username is None): return
+
+    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+
+    if not mystation.active:
+        print("disactivated station: do nothing!")
+        return
+
+    #print ("salvo", lat,lon)
+    if (lat is not None):
+        mystation.lat=lat
+        mystation.save()
+    if (lon is not None):
+        mystation.lon=lon
+        mystation.save()
+
+
+
+        
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None):
 
@@ -1238,11 +1261,40 @@ def dumpstation(station,user="your user"):
     mystation=StationMetadata.objects.get(slug=station,ident__username=user)
     objects.append(mystation)
     for board in mystation.board_set.all():
-        objects.append(board)
+        if (board.active):
+            objects.append(board)
         
-        for sensor in board.sensor_set.all():
-            objects.append(sensor)
-        
+            for sensor in board.sensor_set.all():
+                if (sensor.active): objects.append(sensor)
+            try:
+                transport=board.transportmqtt
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transportbluetooth
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transportamqp
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transportserial
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            try:
+                transport=board.transporttcpip
+                if (transport.active): objects.append(transport)
+            except ObjectDoesNotExist:
+                pass
+            
+    for stationconstantdata in mystation.stationconstantdata_set.all():
+            if (stationconstantdata.active): objects.append(stationconstantdata)
+
     return export2json(objects)
 
 
