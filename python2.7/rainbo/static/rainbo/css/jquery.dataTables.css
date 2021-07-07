@@ -1,8 +1,0 @@
-table.dataTable tbody tr {
-  cursor: pointer;
-}
-
-table.dataTable tbody tr.selected {
-  background-color: #b0bed9;
-  cursor: default;
-}
