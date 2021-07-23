@@ -163,7 +163,6 @@ if platform == 'android':
 kv='''
 #### _("string") here is not usefull because makemessages do catch it
 ####:import _ django.utils.translation.ugettext
-#:import MapSource mapview.MapSource
 #:import RiseInTransition kivy.uix.screenmanager.RiseInTransition
 ###:import camera plyer.camera
 
