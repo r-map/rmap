@@ -7,10 +7,24 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from rmap import rmap_core
 from datetime import datetime,timedelta
+from django.core.paginator import Paginator
+from django.db.models import Q
 
 class StationList(ListView):
+    paginate_by = 25
     model = StationMetadata
+    def get_queryset(self):
 
+        if 'search' in self.request.GET:
+            objects = StationMetadata.objects.filter(
+                Q(ident__username__icontains=self.request.GET['search']) | Q(slug__icontains=self.request.GET['search'])
+            )
+        else:
+            objects = StationMetadata.objects.all()
+        
+        return objects
+
+    
 class StationDetail(DetailView):
     model = StationMetadata
 
@@ -55,7 +69,10 @@ def mystationmetadata_del(request,ident,slug):
 
 def mystationmetadata_list(request,ident):
     mystations=StationMetadata.objects.filter(ident__username=ident)
-    return render(request, 'stations/stationmetadata_list.html',{"object_list":mystations,"ident":ident})
+    paginator = Paginator(mystations, 25) # Show 25 contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'stations/stationmetadata_list.html',{"page_obj":page_obj,"ident":ident})
 
 def mystationmetadata_detail(request,ident,slug):
 

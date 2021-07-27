@@ -10,6 +10,11 @@
     <h3 id="striped-rows"><a href="{% if ident %} {% url 'stationsonmap' ident %} {% else %} {% url 'stationsonmap' %} {% endif %}"><i class="fa fa-map-marker"></i> {% trans 'View on the map' %}</a></h3>
 
     <div class="table-responsive">
+
+      <form action="{% url 'stationmetadata-list' %}" method="get">
+	<input name="search" type="text" placeholder="Search...">
+      </form>
+
       <table class="table">
 	<thead  class="thead-default">
 	<tr>
@@ -21,7 +26,7 @@
 	  <th><i class="fa fa-map"></i> {% trans 'View on the map' %}</th>
 	</tr>
 	</thead>
-        {% for station in object_list %}
+        {% for station in page_obj %}
 	  {% if station.active  %}
 	    <tr>
               <td> <a href="{% url 'mystationmetadata-detail' station.ident.username station.slug %}">{{ station.name }}</a> </td>
@@ -36,6 +41,27 @@
 	    <li>{% trans 'No station yet.' %}</li>
         {% endfor %}
       </table>
+
+      <div class="pagination">
+	<span class="step-links">
+          {% if page_obj.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ page_obj.previous_page_number }}">{% trans 'previous' %}</a>
+          {% endif %}
+
+          {% if page_obj.number %}
+            <span class="current">
+              {% trans 'Page' %} {{ page_obj.number }} {% trans 'of' %} {{ page_obj.paginator.num_pages }}.
+            </span>
+          {% endif %}
+
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">{% trans 'next' %}</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">{% trans 'last &raquo;' %}</a>
+          {% endif %}
+	</span>
+      </div>
+      
     </div>
   </section>
 
