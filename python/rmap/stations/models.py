@@ -15,6 +15,7 @@ from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
+from registration.signals import user_activated
 
 try:
     import dballe
@@ -860,6 +861,22 @@ def create_user_profile(sender, instance, created, **kwargs):
         UserProfile.objects.create(user=instance)
 
 post_save.connect(create_user_profile, sender=User)
+
+
+# use this to set user information from registration process
+# use signal from registration app
+# the registration form require accept license so we set it to True
+# and certification to the "auto-registered" default
+
+def registration_user_activated(sender, user, request, **kwargs):
+    # if (request.GET.get("accepted_license",False)):     # the request come fron the activation link received by email so no information in it
+    myuser=UserProfile.objects.get(user=user)
+    myuser.accepted_license=True
+    myuser.certification="auto-registered"
+    myuser.save()
+                        
+user_activated.connect(registration_user_activated)
+
 
 
 PHOTO_CATEGORY_CHOICES = (
