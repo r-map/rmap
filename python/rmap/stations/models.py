@@ -843,7 +843,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE)
 
     # Other fields here
-    accepted_license = models.BooleanField(ugettext_lazy("I accept ODBL license"),default=False,null=False,blank=False,help_text=ugettext_lazy("You need to accept ODBL license to provide your data"))
+    accepted_license = models.BooleanField(ugettext_lazy("I accept CC BY 4.0 license"),default=False,null=False,blank=False,help_text=ugettext_lazy("You need to accept CC BY 4.0 license to provide your data"))
     certification = models.CharField(max_length=20, default="ARPA-ER")
 
     def natural_key(self):
