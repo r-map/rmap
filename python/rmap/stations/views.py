@@ -9,6 +9,7 @@ from rmap import rmap_core
 from datetime import datetime,timedelta
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 class StationList(ListView):
     paginate_by = 25
@@ -83,11 +84,11 @@ def mystationmetadata_detail(request,ident,slug):
     day='{:02d}'.format(showdate.day)
     hour='{:02d}'.format(showdate.hour)
     
-    mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
+    mystation=get_object_or_404(StationMetadata,ident__username=ident,slug=slug)
     return render(request, 'stations/stationmetadata_detail.html',{"object":mystation,"year":year,"month":month,"day":day,"hour":hour})
 
 def mystation_localdata(request,ident,slug):
-    mystation=StationMetadata.objects.get(ident__username=ident,slug=slug)
+    mystation=get_object_or_404(StationMetadata,ident__username=ident,slug=slug)
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
 
 
