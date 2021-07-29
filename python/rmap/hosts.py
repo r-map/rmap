@@ -10,7 +10,7 @@ def set_base_template_rainbo(request):
 
 
 host_patterns = patterns('',
-    host(r'rmaper', settings.ROOT_URLCONF, callback='rmap.hosts.set_base_template_rmap', name='rmaper'),  # <-- The `name` we used to in the `DEFAULT_HOST` setting
-    host(r'rmapv', settings.ROOT_URLCONF, callback='rmap.hosts.set_base_template_rmap', name='rmapv'),  # <-- The `name` we used to in the `DEFAULT_HOST` setting
+    host(r'rmap', settings.ROOT_URLCONF, callback='rmap.hosts.set_base_template_rmap', name='rmap'),  # <-- The `name` we used to in the `DEFAULT_HOST` setting
+    host(r'test', settings.ROOT_URLCONF, callback='rmap.hosts.set_base_template_rmap', name='test'),  # <-- The `name` we used to in the `DEFAULT_HOST` setting
     host(r'partecipa', 'rainbo.urls', callback='rmap.hosts.set_base_template_rainbo', name='rainbo'),  
 )

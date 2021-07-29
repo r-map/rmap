@@ -1266,12 +1266,12 @@ LEAFLET_WIDGET_ATTRS = {
     'timeDimensionControl': True,
 }
 
-MAINSITES=("rmapv.rmap.cc","rmap.cc","rmaper.rmap.it","rmap.it","test.rmap.cc")
+MAINSITES=("rmap.cc","rmap.it","test.rmap.cc")
 ALLOWED_HOSTS = ['*']
 
 #django-hosts configuration
 ROOT_HOSTCONF = 'rmap.hosts'
-DEFAULT_HOST = 'rmapv'  # Name of the default host
+DEFAULT_HOST = 'rmap'  # Name of the default host
 
 
 LOAD_OPTIONAL_APPS = not android
