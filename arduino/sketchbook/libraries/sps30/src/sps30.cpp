@@ -341,6 +341,8 @@ uint8_t SPS30::SetAutoCleanInt(uint32_t val)
     if (SHDLC_fill_buffer(SER_WRITE_AUTO_CLEANING, val) != true) return(ERR_PARAMETER);
 
     return(ReadFromSerial());
+#else
+    return (ERR_PARAMETER);
 #endif //INCLUDE_UART
 }
 

@@ -1,6 +1,6 @@
 
 /*
-Copyright (C) 2019  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2021  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -32,7 +32,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2020-02-10T00:00"
+#define SOFTWARE_VERSION "2021-08-08T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -125,7 +125,7 @@ SSL support: Basic SSL"
   
 //const char* update_host = "rmap.cc";
 const char* update_url = "/firmware/update/" FIRMWARE_TYPE "/";
-const int update_port = 80;
+const uint16_t update_port = 80;
 
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
@@ -426,7 +426,7 @@ String  rmap_get_remote_config(){
 
   LOGN(F("readRmapRemoteConfig url: %s" CR),url.c_str());  
   //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
-  http.begin(url.c_str());
+  http.begin(espClient,url.c_str());
 
   int httpCode = http.GET();
   if (httpCode == HTTP_CODE_OK) { //Check the returning code
@@ -471,7 +471,7 @@ bool publish_maint() {
   strcpy (mainttopic,rmap_mqttmaintpath);
   strcat(mainttopic,"/");
   strcat(mainttopic,mqttid);
-  strcat (mainttopic,"/-,-,-/-,-,-,-/B01213");
+  strcat (mainttopic,"/254,0,0/265,0,-,-/B01213");
   LOGN(F("MQTT maint topic: %s" CR),mainttopic);
     
   if (!mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
@@ -570,7 +570,7 @@ void firmware_upgrade() {
   analogWrite(LED_PIN,512);  
 
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(rmap_server, update_port, update_url, String(buffer));
+  t_httpUpdate_return ret = ESPhttpUpdate.update(espClient,String(rmap_server), update_port, String(update_url), String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
