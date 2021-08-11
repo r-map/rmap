@@ -45,7 +45,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include "registers-th_v2.h"      //Register definitions
 #include "config.h"
 
-#include "EEPROMAnything.h"#
+#include "EEPROMAnything.h"
 #if defined(PLOT)
 #include "Plotter.h"
 #endif
