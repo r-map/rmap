@@ -65,7 +65,7 @@ char confver[9] = CONFVER; // version of configuration saved on eeprom
 #define SENSORS_LEN           SENSORS_COUNT     // number of sensors
 #define LENVALUES 2
 size_t lenvalues=LENVALUES;       // max of values for sensor
-long int values[LENVALUES];
+uint32_t values[LENVALUES];
 
 struct sensor_t
 {
@@ -554,8 +554,8 @@ void loop() {
   long int t;
   long int h;
   float mean;
-  long int maxv,minv;
-  long int value;
+  uint32_t maxv,minv;
+  uint32_t value;
 
   uint8_t i;
 
