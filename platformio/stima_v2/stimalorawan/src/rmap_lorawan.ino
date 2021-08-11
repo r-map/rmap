@@ -897,8 +897,8 @@ void mgr_sensors(){
     os_runloop_once();
   }
 
-  unsigned long data;
-  unsigned short width;
+  uint32_t data;
+  uint16_t width;
   size_t nbyte=0;
   
   // inizialize template
