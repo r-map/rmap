@@ -27,21 +27,81 @@ jobs:
           python -m pip install --upgrade pip
           pip install -U platformio
       # Runs a set of commands using the runners shell
-      - name: Build Stima V3
+      - name: Build Stima V3 i2c-leaf
         run: |
-          cd platformio/stima_v3/stima
+          cd platformio/stima_v3/i2c-leaf
           platformio run
-      - name: Build i2c-th
+      - name: Build Stima V3 i2c-opc
         run: |
-          cd platformio/stima_v3/i2c-th
+          cd platformio/stima_v3/i2c-opc
           platformio run
-
-      - name: Build i2c-rain
+      - name: Build Stima V3 i2c-radiation
+        run: |
+          cd platformio/stima_v3/i2c-radiation
+          platformio run
+      - name: Build Stima V3 i2c-rain
         run: |
           cd platformio/stima_v3/i2c-rain
           platformio run
-
-      - name: Build stimawifi
+      - name: Build Stima V3 i2c-th
         run: |
-          cd platformio/stima_v2/stimawifi
+          cd platformio/stima_v3/i2c-th
           platformio run
+      - name: Build Stima V3 i2c-wind
+        run: |
+          cd platformio/stima_v3/i2c-wind
+          platformio run
+      - name: Build Stima V3 sensor_config
+        run: |
+          cd platformio/stima_v3/sensor_config
+          platformio run
+      - name: Build Stima V3 stima
+        run: |
+          cd platformio/stima_v3/stima
+          platformio run
+      - name: Build Stima V3 test hyt271
+        run: |
+          cd platformio/stima_v3/test_hyt271
+          platformio run
+      - name: Build Stima V3 test_i2c_multimaster
+        run: |
+          cd platformio/stima_v3/test_i2c_multimaster
+          platformio run
+      - name: Build Stima V3 test_mqtt_sim800
+        run: |
+          cd platformio/stima_v3/test_mqtt_sim800
+          platformio run
+      - name: Build Stima V3 test_sdcard
+        run: |
+          cd platformio/stima_v3/test_sdcard
+          platformio run
+      - name: Build Stima V3 test_sensordriver
+        run: |
+          cd platformio/stima_v3/test_sensordriver
+          platformio run
+      - name: Build Stima V3 test_sim800
+        run: |
+          cd platformio/stima_v3/test_sim800
+          platformio run
+
+
+      - name: Build Stima test fakeraingauge
+        run: |
+          cd platformio/test/fakeraingauge
+          platformio run
+      - name: Build Stima test faketh
+        run: |
+          cd platformio/test/faketh
+          platformio run
+      - name: Build Stima test fakewind
+        run: |
+          cd platformio/test/fakewind
+          platformio run
+
+
+      - name: Build Stima devel
+        run: |
+          cd platformio/stima_devel/stima
+          platformio run
+
+
