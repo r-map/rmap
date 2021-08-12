@@ -40,7 +40,12 @@ IR receiver using IRremote library
 #define KEYPAD_UP    0xFFA05F // CH+ Keypad Button
 #define KEYPAD_OK    0xFF02FD // full screen Keypad Button
 #define KEYPAD_POWERDOWN 0xFFB24D // powerdown Keypad Button
+
+#ifdef ARDUINO_ARCH_ESP8266
 #define KEYPAD_REPEAT   UINT64_MAX // Key pressed for more time
+#else
+#define KEYPAD_REPEAT   UINT32_MAX // Key pressed for more time
+#endif
 
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
