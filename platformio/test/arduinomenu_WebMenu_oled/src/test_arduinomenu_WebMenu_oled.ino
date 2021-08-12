@@ -76,7 +76,7 @@ so don't forget to change it.
 
 IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
-const byte DNS_PORT = 53;
+uint8_t DNS_PORT = 53;
 
 // global variables for display
 bool displayredraw=false;

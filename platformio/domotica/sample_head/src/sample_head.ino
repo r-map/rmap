@@ -165,6 +165,7 @@ result save() {
     configFile.close();
     LOGN(F("saved parameter" CR));
   }
+  return proceed;
 }
 
 MENU(mainMenu,"Main menu",doNothing,noEvent,wrapStyle
@@ -438,7 +439,7 @@ void setup()
 
 void loop()
 {
-  long unsigned int waittime,maxwaittime=0;
+  uint32_t waittime,maxwaittime=0;
   U_Setpoint = umid;
 
   // prepare sensors to measure
@@ -463,7 +464,7 @@ void loop()
   for (int i = 0; i < SENSORS_LEN; i++) {
     if (!sd[i] == 0){
       // get integers values 
-      long values[LENVALUES];
+      uint32_t values[LENVALUES];
       size_t lenvalues=LENVALUES;
 
       if (sd[i]->get(values,lenvalues) == SD_SUCCESS){

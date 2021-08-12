@@ -101,11 +101,13 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
  * Use it divided by 8 to set minmimal stack size of a task to 128 by default.
  * End user will have to properly configure those value depending to their needs.
  */
-#define configMINIMAL_STACK_SIZE          ((uint16_t)((uint32_t)&_Min_Stack_Size/8))
+//#define configMINIMAL_STACK_SIZE          ((uint16_t)((uint32_t)&_Min_Stack_Size/8))
+#define configMINIMAL_STACK_SIZE          (128)
 #define configTOTAL_HEAP_SIZE             ((size_t)(&_estack - _Min_Stack_Size - &_end))
 
 #endif /* configUSE_CMSIS_RTOS_V2 */
 
+#define configSUPPORT_STATIC_ALLOCATION   1
 #define configUSE_PREEMPTION              0
 #define configUSE_IDLE_HOOK               1
 #define configUSE_TICK_HOOK               0

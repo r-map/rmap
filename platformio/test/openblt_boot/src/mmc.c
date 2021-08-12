@@ -146,42 +146,17 @@ void send_initial_clock_train(void)
   GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
+#define SD_CS_GPIO_Port GPIOB
+#define SD_CS_Pin GPIO_PIN_5
+#define B1_Pin GPIO_PIN_13
+#define B1_GPIO_Port GPIOC
 
-
-/*-----------------------------------------------------------------------*/
-/* Power Control  (Platform dependent)                                   */
-/*-----------------------------------------------------------------------*/
-/* When the target system does not support socket power control, there   */
-/* is nothing to do in these functions.                                  */
-static
-void power_on (void)
+/* SPI1 init function */
+void MX_SPI1_Init(void)
 {
-  LL_SPI_InitTypeDef  SPI_InitStruct;
-  LL_GPIO_InitTypeDef GPIO_InitStruct;
+  LL_SPI_InitTypeDef SPI_InitStruct = {0};
 
-  /*
-   * This doesn't really turn the power on, but initializes the
-   * SSI port and pins needed to talk to the card.
-   */
-  /* Enable SPI and GPIO peripheral clocks. */
-  //LL_AHB1_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
-  //LL_APB1_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
-
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-
-  /** Initializes the CPU, AHB and APB busses clocks 
-  */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
-  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
-
-  /** Configure the main internal regulator output voltage */
-  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+  LL_GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* Peripheral clock enable */
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
@@ -192,6 +167,113 @@ void power_on (void)
   PA6   ------> SPI1_MISO
   PA7   ------> SPI1_MOSI 
   */
+  GPIO_InitStruct.Pin = LL_GPIO_PIN_5|LL_GPIO_PIN_6|LL_GPIO_PIN_7;
+  GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
+  GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
+  GPIO_InitStruct.OutputType = LL_GPIO_OUTPUT_PUSHPULL;
+  GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
+  GPIO_InitStruct.Alternate = LL_GPIO_AF_5;
+  LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  SPI_InitStruct.TransferDirection = LL_SPI_FULL_DUPLEX;
+  SPI_InitStruct.Mode = LL_SPI_MODE_MASTER;
+  SPI_InitStruct.DataWidth = LL_SPI_DATAWIDTH_8BIT;
+  SPI_InitStruct.ClockPolarity = LL_SPI_POLARITY_LOW;
+  SPI_InitStruct.ClockPhase = LL_SPI_PHASE_1EDGE;
+  SPI_InitStruct.NSS = LL_SPI_NSS_SOFT;
+  SPI_InitStruct.BaudRate = LL_SPI_BAUDRATEPRESCALER_DIV128;
+  SPI_InitStruct.BitOrder = LL_SPI_MSB_FIRST;
+  SPI_InitStruct.CRCCalculation = LL_SPI_CRCCALCULATION_DISABLE;
+  SPI_InitStruct.CRCPoly = 7;
+  LL_SPI_Init(SPI1, &SPI_InitStruct);
+  LL_SPI_SetStandard(SPI1, LL_SPI_PROTOCOL_MOTOROLA);
+  LL_SPI_EnableNSSPulseMgt(SPI1);
+
+}
+
+/** Configure pins as 
+        * Analog 
+        * Input 
+        * Output
+        * EVENT_OUT
+        * EXTI
+*/
+void MX_GPIO_Init(void)
+{
+
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+
+  /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  __HAL_RCC_GPIOH_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SD_CS_GPIO_Port, SD_CS_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = B1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PtPin */
+  GPIO_InitStruct.Pin = SD_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SD_CS_GPIO_Port, &GPIO_InitStruct);
+
+}
+
+/*-----------------------------------------------------------------------*/
+/* Power Control  (Platform dependent)                                   */
+/*-----------------------------------------------------------------------*/
+/* When the target system does not support socket power control, there   */
+/* is nothing to do in these functions.                                  */
+static
+void power_on (void)
+{
+  MX_GPIO_Init();
+  MX_SPI1_Init();
+
+  /*
+  LL_SPI_InitTypeDef  SPI_InitStruct;
+  LL_GPIO_InitTypeDef GPIO_InitStruct;
+
+  //
+  // This doesn't really turn the power on, but initializes the
+  // SSI port and pins needed to talk to the card.
+  //
+  // Enable SPI and GPIO peripheral clocks.
+  //LL_AHB1_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOB);
+  //LL_APB1_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
+
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+  // Initializes the CPU, AHB and APB busses clocks 
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
+                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+
+  HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4);
+
+  // Configure the main internal regulator output voltage
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+
+  // Peripheral clock enable
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_SPI1);
+  
+  LL_AHB2_GRP1_EnableClock(LL_AHB2_GRP1_PERIPH_GPIOA);
+  //SPI1 GPIO Configuration  
+  //PA5   ------> SPI1_SCK
+  //PA6   ------> SPI1_MISO
+  //PA7   ------> SPI1_MOSI 
+
   GPIO_InitStruct.Pin = LL_GPIO_PIN_5|LL_GPIO_PIN_6|LL_GPIO_PIN_7;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_ALTERNATE;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_VERY_HIGH;
@@ -215,7 +297,7 @@ void power_on (void)
   //LL_SPI_EnableNSSPulseMgt(SPI1);
 
   
-  /* Configure I/O for Chip select (PB5) */
+  // Configure I/O for Chip select (PB5)
   GPIO_InitStruct.Pin = LL_GPIO_PIN_5;
   GPIO_InitStruct.Mode = LL_GPIO_MODE_OUTPUT;
   GPIO_InitStruct.Speed = LL_GPIO_SPEED_FREQ_HIGH;
@@ -223,11 +305,26 @@ void power_on (void)
   GPIO_InitStruct.Pull = LL_GPIO_PULL_NO;
   LL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-  /* De-select the Card: Chip Select high */
+  // De-select the Card: Chip Select high
   LL_GPIO_SetOutputPin(GPIOB, LL_GPIO_PIN_5);
+
+*/
 
   LL_SPI_Enable(SPI1);
 
+  /*
+  while (1)
+  {
+
+	  while(!LL_SPI_IsActiveFlag_TXE(SPI1));
+	  LL_SPI_TransmitData8(SPI1, 0XAA);
+
+
+	  //while(!LL_SPI_IsActiveFlag_RXNE(SPI1));
+	  LL_SPI_ReceiveData8(SPI1);
+  }
+  */
+  
   /* Set DI and CS high and apply more than 74 pulses to SCLK for the card */
   /* to be able to accept a native command. */
   send_initial_clock_train();

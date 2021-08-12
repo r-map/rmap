@@ -24,7 +24,7 @@ STM32RTC& rtc = STM32RTC::getInstance();
 void taskOne( void * parameter )
 {
   while( true ){ 
-    digitalToggle(LED_BUILTIN);
+    digitalToggle(PA8);
     vTaskDelay(1000/portTICK_PERIOD_MS);
   }
 }
@@ -33,7 +33,7 @@ void setup() {
   rtc.setClockSource(STM32RTC::LSE_CLOCK);
   rtc.begin(); // initialize RTC NEEDED to start LPTIM1
  
-  pinMode(LED_BUILTIN, OUTPUT);   
+  pinMode(PA8, OUTPUT);   
   xTaskCreate(taskOne,"TaskOne",200,NULL,1,NULL);
   vTaskStartScheduler(); // initialise and run the freeRTOS scheduler.
   //Execution should never return here.

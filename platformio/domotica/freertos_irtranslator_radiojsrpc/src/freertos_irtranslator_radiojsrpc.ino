@@ -194,7 +194,7 @@ void printNewline(Print* _logOutput) {
 
 void Reboot() {
   frtosLog.notice(F("#Reboot"));
-  IWatchdog.begin(500);  while(1) {}
+  IWatchdog.begin(3000000);  while(1) {}
 }
 
 #ifdef CLIENT
@@ -594,7 +594,7 @@ class irThread : public Thread {
 public:
   
   irThread(int i, Queue &q)
-    : Thread("Thread Ir", 1000,1), 
+    : Thread("Thread Ir", 2000,1), 
       Id (i),
       irQueue(q)
   {
@@ -619,6 +619,7 @@ protected:
     irmp_register_complete_callback_function(&handleReceivedIRData);
  
     while (true){
+      frtosLog.notice(F("IR wait for command"));
       irQueue.Dequeue(&irmpmsg);
       frtosLog.notice("Received protocol:%d address:%d command:%d flags:%d source:%d",irmpmsg.irdata.protocol,irmpmsg.irdata.address,irmpmsg.irdata.command,irmpmsg.irdata.flags,irmpmsg.source);
 
@@ -709,11 +710,13 @@ protected:
   //cc110.setIs27MHz(true); // Anaren 430BOOST-CC110L Air BoosterPack test boards have 27MHz
 
   if (!cc110.init()){
-    frtosLog.notice(F("radio init failed"));
-    frtosLog.notice(F("reboot"));
-    delay(3000);
+    frtosLog.error(F("radio init failed"));
+    frtosLog.error(F("reboot"));
     Reboot();
   }
+
+  frtosLog.notice(F("radio init done"));
+
   // After init(), the following default values apply:
   // TxPower: TransmitPower5dBm
   // Frequency: 915.0
@@ -731,7 +734,8 @@ protected:
   
   cc110.setFrequency(434.0+FREQCORR);
 
-
+ frtosLog.notice(F("radio setup done"));
+ 
   for (unsigned int dstunit=0 ;dstunit  < sizeof(pins)/sizeof(*pins); dstunit++)
     {
       pinMode(pins[dstunit], OUTPUT);
@@ -774,16 +778,16 @@ void setup (void)
 
   // start up the serial interface
   JSSERIAL.begin(SERIALBAUDRATE);
+
+  //Start logging  
   Serial1.begin(SERIALBAUDRATE);
   frtosLog.begin(LOG_LEVEL_VERBOSE, &Serial1,loggingmutex);
   frtosLog.setPrefix(printTimestamp); // Uncomment to get timestamps as prefix
   frtosLog.setSuffix(printNewline); // Uncomment to get newline as suffix
 
-  //Start logging
 
   JSSERIAL.println (F("#0 Testing FreeRTOS IR & radio"));
   Serial1.println(F("#1 Testing FreeRTOS IR & radio"));
-  //delay(3000);
   
   irQueue = new Queue(10, sizeof(datamsg_t));
   radioQueue = new Queue(10, 4);

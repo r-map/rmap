@@ -1,10 +1,10 @@
 #include <Arduino.h>
-#include <USBSerial.h>
+//#include <USBSerial.h>
 
 void setup() {
-  SerialUSB.begin();
+  Serial.begin(115200);
 }
 
 void loop() {
-  SerialUSB.println("Ciao!");
+  Serial.println("Ciao!");
 }
