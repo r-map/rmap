@@ -102,7 +102,7 @@ void firmware_upgrade() {
   analogWrite(LED_PIN,512);  
 
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
-  t_httpUpdate_return ret = ESPhttpUpdate.update(ota_server, update_port, update_url, String(buffer));
+  t_httpUpdate_return ret = ESPhttpUpdate.update(espClient,ota_server, update_port, update_url, String(buffer));
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
