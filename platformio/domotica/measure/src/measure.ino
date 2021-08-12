@@ -211,7 +211,7 @@ volatile uint8_t prec=0;
 // global variable for network (apn, dns server and web server)
 IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
-const byte DNS_PORT = 53;
+const uint8_t DNS_PORT = 53;
 ESP8266WebServer webserver(HTTP_PORT);
 WebSocketsServer webSocket(WS_PORT);
 EspHtmlTemplateProcessor templateProcessor(&webserver);
@@ -549,17 +549,20 @@ result actionresetprec(eventMask event, navNode& nav, prompt &item) {
 result resetprec() {
   prec=0;
   p.clear();
+  return proceed;
 }
 
 // change debounce runtime
 result changeDebounce() {
   LOGN(F("changedebounce %d" CR),debounce);
   precBtn.setDbTime(debounce);
+  return proceed;
 }
 
 // change resolution
 result changeResolution() {
   LOGN(F("changeresolution %.2f" CR),resolution);
+  return proceed;
 }
 
 //menu action functions
@@ -633,6 +636,7 @@ result save() {
     configFile.close();
     LOGN(F("saved parameter" CR));
   }
+  return proceed;
 }
 
 String read_savedparams() {

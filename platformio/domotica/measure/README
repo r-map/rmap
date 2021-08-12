@@ -1,0 +1,3 @@
+
+pio run -e d1_mini -t upload
+pio run -e d1_mini --target uploadfs
