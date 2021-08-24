@@ -105,6 +105,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <FS.h>
+#include <LittleFS.h>
 #include <ArduinoLog.h>
 #include <Wire.h>
 #include <SensorDriverb.h>
@@ -116,7 +117,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <JC_Button.h> // https://github.com/JChristensen/JC_Button
 #endif
 #include <U8g2lib.h>
-#include "EspHtmlTemplateProcessor.h"
+#include "EspHtmlTemplateProcessorLittleFS.h"
 #include <menu.h>
 #include <menuIO/esp8266Out.h>
 #include <menuIO/u8g2Out.h>
@@ -162,7 +163,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define NSAMPLEPREC SAMPLEPERIOD/SAMPLERATEPREC
 
 // MENU
-#define CUR_VERSION "1.0"  // this version numbers MUST be the same as SPIFFS data/1.0
+#define CUR_VERSION "1.0"  // this version numbers MUST be the same as LittleFS data/1.0
 #define MAX_DEPTH 2
 
 // global variables for sensors measure
@@ -627,7 +628,7 @@ result save() {
     jsonhmeasures.add(hmeasures[i]);
   }
   
-  File configFile = SPIFFS.open(FILESAVEDDATA, "w");
+  File configFile = LittleFS.open(FILESAVEDDATA, "w");
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }else{
@@ -642,10 +643,10 @@ result save() {
 String read_savedparams() {
 
   LOGN(F("mounted file system" CR));
-  if (SPIFFS.exists(FILESAVEDDATA)) {
+  if (LittleFS.exists(FILESAVEDDATA)) {
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
-    File configFile = SPIFFS.open(FILESAVEDDATA, "r");
+    File configFile = LittleFS.open(FILESAVEDDATA, "r");
     if (configFile) {
       LOGN(F("opened config file" CR));
 
@@ -888,37 +889,24 @@ void handle_NotFound(){
 }
 
 
-const char* reportKeyProcessor(const char* key)
+String reportKeyProcessor(const String& key)
 {
   //LOGN(F("KEY:>%s<" CR),key);
   static char cvalue[21];
 
   // attention floating value print have round here?
 
-
-  if (strcmp(key,"TEMP")==0) snprintf(cvalue,20,"%.1f",tmean);
-  else if (strcmp(key, "HUMID")==0) snprintf(cvalue,20,"%.0f",umean);
-  else if (strcmp(key, "PM2")==0) snprintf(cvalue,20,"%d",pm2);
-  else if (strcmp(key, "PM10")==0) snprintf(cvalue,20,"%d",pm10);
-  else if (strcmp(key, "CO2")==0) snprintf(cvalue,20,"%d",co2);
-  else if (strcmp(key, "PREC")==0) snprintf(cvalue,20,"%.2f",prec*resolution);
-  else if (strcmp(key, "RATE")==0) snprintf(cvalue,20,"%.2f",rrate*resolution);
-  else if (strcmp(key, "RSYM")==0) snprintf(cvalue,20,"%.1f",symmetry);
-  else   strcpy(cvalue,"ERROR: Key not found");
-  
-
-  /*
   if (key == "TEMP") snprintf(cvalue,20,"%.1f",tmean);
   else if (key == "HUMID") snprintf(cvalue,20,"%.0f",umean);
-  else if (key == "PM2") snprintf(cvalue,20,"%d",pm2);
-  else if (key == "PM10") snprintf(cvalue,20,"%d",pm10);
-  else if (key == "CO2") snprintf(cvalue,20,"%d",co2);
-  else if (key == "PREC") snprintf(cvalue,20,"%.2f",prec*resolution);
-  else if (key == "RATE") snprintf(cvalue,20,"%.2f",rrate*resolution);
-  else if (key == "RSYM") snprintf(cvalue,20,"%.1f",symmetry);
+  else if (key == "PM2"  ) snprintf(cvalue,20,"%d",pm2);
+  else if (key == "PM10" ) snprintf(cvalue,20,"%d",pm10);
+  else if (key == "CO2"  ) snprintf(cvalue,20,"%d",co2);
+  else if (key == "PREC" ) snprintf(cvalue,20,"%.2f",prec*resolution);
+  else if (key == "RATE" ) snprintf(cvalue,20,"%.2f",rrate*resolution);
+  else if (key == "RSYM" ) snprintf(cvalue,20,"%.1f",symmetry);
   else   strcpy(cvalue,"ERROR: Key not found");
-  */
-  return cvalue;
+  
+  return String(cvalue);
 }
 
 void handleReport()
@@ -1158,13 +1146,13 @@ void setup()
   
   //read configuration from FS in json format
   LOGN(F("mounting FS..." CR));
-  if (!SPIFFS.begin()) {
+  if (!LittleFS.begin()) {
     LOGE(F("failed to mount FS" CR));
-    LOGN(F("Reformat SPIFFS" CR));
-    SPIFFS.format();
-    if (!SPIFFS.begin()) {
-      LOGN(F("failed to mount FS" CR));
-    }
+    //LOGN(F("Reformat LittleFS" CR));
+    //LittleFS.format();
+    //if (!LittleFS.begin()) {
+    //  LOGN(F("failed to mount FS" CR));
+    //}
     // messages on display
     u8g2.clearBuffer();
     u8g2.setCursor(0, 10); 
@@ -1364,7 +1352,7 @@ void setup()
     jsonEnd();
   });
 
-  webserver.serveStatic("/", SPIFFS, "/","max-age=31536000");
+  webserver.serveStatic("/", LittleFS, "/","max-age=31536000");
   
   webserver.begin();
   LOGN(F("HTTP server started" CR));
