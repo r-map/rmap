@@ -21,7 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*
 Standard compilation options:
 scheda: lolin (wemos) D1 R2 & mini
-flash size: 4M (1M SPIFFS)
+flash size: 4M (1M LittleFS)
 debug port: disabled
 debug level nessuno
 lwIP variant: V2 lower memory
@@ -32,7 +32,7 @@ SSL support: Basic SSL"
 
 
 // increment on change
-#define SOFTWARE_VERSION "2021-08-08T00:00"
+#define SOFTWARE_VERSION "2021-08-24T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -98,6 +98,7 @@ SSL support: Basic SSL"
 //#define DISABLE_LOGGING disable
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
+#include <LittleFS.h>
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 //needed for library
 #include <DNSServer.h>
@@ -632,10 +633,10 @@ void firmware_upgrade() {
 
 String readconfig_rmap() {
 
-  if (SPIFFS.exists("/rmap.json")) {
+  if (LittleFS.exists("/rmap.json")) {
     //file exists, reading and loading
     LOGN(F("reading rmap config file" CR));
-    File configFile = SPIFFS.open("/rmap.json", "r");
+    File configFile = LittleFS.open("/rmap.json", "r");
     if (configFile) {
       LOGN(F("opened rmap config file" CR));
 
@@ -661,7 +662,7 @@ void writeconfig_rmap(String payload) {;
   //save the custom parameters to FS
   LOGN(F("saving rmap config" CR));
   
-  File configFile = SPIFFS.open("/rmap.json", "w");
+  File configFile = LittleFS.open("/rmap.json", "w");
   if (!configFile) {
     LOGE(F("failed to open rmap config file for writing" CR));
   }
@@ -756,13 +757,89 @@ int  rmap_config(String payload){
 }
 
 
-
-void readconfig() {
+void readconfig_SPIFFS() {
 
   if (SPIFFS.exists("/config.json")) {
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
     File configFile = SPIFFS.open("/config.json", "r");
+    if (configFile) {
+      LOGN(F("opened config file" CR));
+      size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      std::unique_ptr<char[]> buf(new char[size]);
+
+        configFile.readBytes(buf.get(), size);
+        StaticJsonBuffer<500> jsonBuffer;
+        JsonObject& json = jsonBuffer.parseObject(buf.get());
+        if (json.success()) {
+          LOGN(F("parsed json" CR));
+	  //json.printTo(Serial);
+
+	  //if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
+	  //if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
+          if (json.containsKey("rmap_server")) strcpy(rmap_server, json["rmap_server"]);
+          if (json.containsKey("rmap_user")) strcpy(rmap_user, json["rmap_user"]);
+          if (json.containsKey("rmap_password")) strcpy(rmap_password, json["rmap_password"]);
+          if (json.containsKey("rmap_slug")) strcpy(rmap_slug, json["rmap_slug"]);
+	  if (json.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
+	  if (json.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
+	  
+	  LOGN(F("loaded config parameter:" CR));
+	  //LOGN(F("longitude: %s" CR),rmap_longitude);
+	  //LOGN(F("latitude: %s" CR),rmap_latitude);
+	  LOGN(F("server: %s" CR),rmap_server);
+	  LOGN(F("user: %s" CR),rmap_user);
+	  //LOGN(F("password: %s" CR),rmap_password);
+	  LOGN(F("slug: %s" CR),rmap_slug);
+	  LOGN(F("mqttrootpath: %s" CR),rmap_mqttrootpath);
+	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+	  
+        } else {
+          LOGE(F("failed to load json config" CR));
+        }
+      } else {
+	LOGE(F("erro reading config file" CR));	
+      }
+    } else {
+      LOGW(F("config file do not exist" CR));
+    }
+  //end read
+}
+
+
+String readconfig_rmap_SPIFFS() {
+
+  if (SPIFFS.exists("/rmap.json")) {
+    //file exists, reading and loading
+    LOGN(F("reading rmap config file" CR));
+    File configFile = SPIFFS.open("/rmap.json", "r");
+    if (configFile) {
+      LOGN(F("opened rmap config file" CR));
+
+      //size_t size = configFile.size();
+      // Allocate a buffer to store contents of the file.
+      //std::unique_ptr<char[]> buf(new char[size]);
+      //configfile.readBytes(buf.get(), size);
+
+      return configFile.readString();
+      
+    } else {
+      LOGN(F("erro reading rmap file" CR));	
+    }
+  } else {
+    LOGN(F("rmap file do not exist" CR));
+  }
+  //end read
+  return String();  
+}
+
+void readconfig() {
+
+  if (LittleFS.exists("/config.json")) {
+    //file exists, reading and loading
+    LOGN(F("reading config file" CR));
+    File configFile = LittleFS.open("/config.json", "r");
     if (configFile) {
       LOGN(F("opened config file" CR));
       size_t size = configFile.size();
@@ -824,7 +901,7 @@ void writeconfig() {;
   json["rmap_mqttrootpath"] = rmap_mqttrootpath;
   json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
   
-  File configFile = SPIFFS.open("/config.json", "w");
+  File configFile = LittleFS.open("/config.json", "w");
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }
@@ -1147,20 +1224,44 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
-    SPIFFS.format();
+    LittleFS.format();
     LOGN(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
   }
   
   //read configuration from FS json
   LOGN(F("mounting FS..." CR));
+  SPIFFSConfig spiffscfg;
+  spiffscfg.setAutoFormat(false);
+  SPIFFS.setConfig(spiffscfg);
+
+  LittleFSConfig cfg;
+  cfg.setAutoFormat(false);
+  LittleFS.setConfig(cfg);
+  
   if (SPIFFS.begin()) {
-    LOGN(F("mounted file system" CR));
-    readconfig();
+    // migrate configuration from old SPIFFS to new LittleFS
+    LOGN(F("mounted old SPIFFS file system" CR));
+    readconfig_SPIFFS();
+    String remote_config=readconfig_rmap_SPIFFS();
+    LOGW(F("Old configuration read" CR));
+    SPIFFS.end();
+    LOGW(F("Reformat LittleFS" CR));
+    LittleFS.format();
+    LittleFS.begin();
+    LOGW(F("writeconfig" CR));
+    writeconfig();
+    LOGW(F("writeconfig rmap" CR));
+    writeconfig_rmap(remote_config);
+    LOGW(F("filesystem conversion done" CR));
+  } else if (LittleFS.begin()) {
+    LOGN(F("mounted LittleFS file system" CR));
+    readconfig();    
   } else {
     LOGE(F("failed to mount FS" CR));
-    LOGW(F("Reformat SPIFFS" CR));
-    SPIFFS.format();
+    LOGW(F("Reformat LittleFS" CR));
+    LittleFS.format();
+    LittleFS.begin();
     LOGW(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
 
