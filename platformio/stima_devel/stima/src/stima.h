@@ -1044,7 +1044,9 @@ void rtc_interrupt_handler(void);
 /* Get the rtc object */
 //STM32RTC& rtc = STM32RTC::getInstance();
 
+#ifndef ARDUINO_BLACKPILL_F411CE
 HardwareSerial Serial1(PB11, PB10);
+#endif
 
 void wdt_enable(int wdt_timer){
   //  IWatchdog.begin(wdt_timer*1000000);

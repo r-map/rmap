@@ -10,6 +10,7 @@
  *
  *******************************************************************************
  */
+#if defined(ARDUINO_NUCLEO_L433RC_P)
 
 #include "pins_arduino.h"
 
@@ -131,4 +132,5 @@ WEAK void SystemClock_Config(void)
 
 #ifdef __cplusplus
 }
+#endif
 #endif
