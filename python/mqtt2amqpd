@@ -111,10 +111,6 @@ class MyMQTTClass(mqtt.Client):
             
         return msg
 
-    def on_log(self,client, userdata, level, buf):
-        if userdata["logging"]:
-            userdata["logging"].debug(buf)
-
     def on_connect(self,client, userdata, flags, rc):
         for topic in userdata["topics"]:
             client.subscribe(topic,qos=userdata.get("qos",0))
@@ -242,6 +238,8 @@ def main(self):
     logging.info('Topic: %s'% topic)
     
 
+    mqttuser=rmap.settings.mqttuser
+    mqttpassword=rmap.settings.mqttpassword    
     user=rmap.settings.amqpuser
     password=rmap.settings.amqppassword
     host=rmap.settings.amqphost
@@ -266,7 +264,12 @@ def main(self):
         clean_session=False
         # qos=1 required by clean_session=False
     )
-    
+
+
+    if mqttuser:
+        mqttclient.username_pw_set(mqttuser, mqttpassword)
+
+    mqttclient.enable_logger(logging)
     mqttclient.loop_start()
     mqttclient.connect(host=host)
 

@@ -155,6 +155,8 @@ class createmanpages(Command):
             #subprocess.check_call(["gzip", "-f","man/man1/mqtt2graphited.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2amqpd.1","./mqtt2amqpd"])
             subprocess.check_call(["gzip", "-f","man/man1/mqtt2amqpd.1"])
+            subprocess.check_call(["help2man","-N","-o","man/man1/mqtt2stationmaintd.1","./mqtt2stationmaintd"])
+            subprocess.check_call(["gzip", "-f","man/man1/mqtt2stationmaintd.1"])
             subprocess.check_call(["help2man","-N","-o","man/man1/ttn2dballed.1","./ttn2dballed"])
             subprocess.check_call(["gzip", "-f","man/man1/ttn2dballed.1"])
             #subprocess.check_call(["help2man","-N","-o","man/man1/poweroffd.1","./poweroffd"])
@@ -421,7 +423,7 @@ setup(name='rmap',
           'borinud_sos':['templates/borinud_sos/xml/1.0/*.xml'],          
       },
       scripts=[
-          'stationd','mqtt2graphited','mqtt2amqpd','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
+          'stationd','mqtt2graphited','mqtt2amqpd','mqtt2stationmaintd','ttn2dballed','toamqp','poweroffd','composereportd','rmapweb','amqp2amqp_identvalidationd',
           'amqp2amqp_jsonline2bufrd','amqp2dballed', 'amqp2arkimetd','amqp2mqttd','rmap-configure','rmapctrl','rmap.wsgi',
           'rmapgui','amqp2djangod','amqp2geoimaged','dballe2arkimet','report2observationd','rmap-explorer'],
       data_files = data_files,

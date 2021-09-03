@@ -22,6 +22,9 @@
 	  <th>Ident</th>
 	  <th>Lat</th>
 	  <th>Lon</th>
+	  <th>{% trans 'Station status' %}</th>
+	  <th>{% trans 'Last status update' %}</th>
+	  
 	  <th>Category</th>
 	  <th><i class="fa fa-map"></i> {% trans 'View on the map' %}</th>
 	</tr>
@@ -33,6 +36,8 @@
 	      <td> <a href="{% url 'mystationmetadata_list' station.ident.username %}">{{ station.ident}}</a></td>
 	      <td> {{ station.lat}}</td>
 	      <td> {{ station.lon}}</td>
+	      <td> {{ station.stationmaintstatus.laststatus}}</td>
+	      <td> {{ station.stationmaintstatus.lastupdate}}</td>
 	      <td> {{ station.category}}</td>
 	      <td> <a href="{% url 'stationsonmap' station.ident station.slug %}"><i class="fa fa-map-marker "></i> {{ station.name }}</a></td>
 	    </tr>

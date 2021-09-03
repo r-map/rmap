@@ -663,6 +663,18 @@ class Board(models.Model):
     def __str__(self):
         return '%s' % (self.slug)
 
+
+
+class StationMaintStatus(models.Model):
+    """Board status based on maint messages over MQTT."""
+
+    station = models.OneToOneField("StationMetadata",on_delete=models.CASCADE)
+    
+    laststatus = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("Last status"))
+    lastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Last status update date"))
+
+
+    
 class BoardFirmwareMetadata(models.Model):
     """Board metadata for firmware management."""
 

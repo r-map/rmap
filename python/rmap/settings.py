@@ -196,6 +196,14 @@ configspec['mqtt2amqpd']['group']     = "string(default=None)"
 configspec['mqtt2amqpd']['topicsample']   = "string(default='sample')"
 configspec['mqtt2amqpd']['topicreport']   = "string(default='report')"
 
+configspec['mqtt2stationmaintd']={}
+configspec['mqtt2stationmaintd']['logfile']   = "string(default='mqtt2stationmaintd.log')"
+configspec['mqtt2stationmaintd']['errfile']   = "string(default='mqtt2stationmaintd.err')"
+configspec['mqtt2stationmaintd']['lockfile']  = "string(default='mqtt2stationmaintd.lock')"
+configspec['mqtt2stationmaintd']['user']      = "string(default=None)"
+configspec['mqtt2stationmaintd']['group']     = "string(default=None)"
+configspec['mqtt2stationmaintd']['topicmaint']   = "string(default='maint')"
+
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='composereportd.log')"
 configspec['composereportd']['errfile']  = "string(default='composereportd.err')"
@@ -367,6 +375,15 @@ usermqtt2amqpd                 = config['mqtt2amqpd']['user']
 groupmqtt2amqpd                = config['mqtt2amqpd']['group']
 topicsample                    = config['mqtt2amqpd']['topicsample']
 topicreport                    = config['mqtt2amqpd']['topicreport']
+
+
+# section mqtt2stationmaintd
+logfilemqtt2stationmaintd          = config['mqtt2stationmaintd']['logfile']
+errfilemqtt2stationmaintd          = config['mqtt2stationmaintd']['errfile']
+lockfilemqtt2stationmaintd         = config['mqtt2stationmaintd']['lockfile']
+usermqtt2stationmaintd             = config['mqtt2stationmaintd']['user']
+groupmqtt2stationmaintd            = config['mqtt2stationmaintd']['group']
+topicmaint                         = config['mqtt2stationmaintd']['topicmaint']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
@@ -693,7 +710,7 @@ CACHES = {
     }
 }
 
-if not android :
+if not android and not DEBUG :
     CACHES = {
         'default': {
             'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
