@@ -833,8 +833,7 @@ class StationMetadata(models.Model):
         ordering = ['slug']
         verbose_name = 'station'
         verbose_name_plural = 'stations'
-        unique_together = (('slug', 'ident'),)
-
+        unique_together = (('slug', 'ident'),('ident', 'lat','lon','network'))
 
     def __str__(self):
         return '%s/%s' % (self.slug,self.ident)
