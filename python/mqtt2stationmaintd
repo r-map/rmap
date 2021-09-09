@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6 -s
+#!/usr/bin/python3.6
 # mqtt2stationmaintd - Update station information with the last status
 # received from MQTT maint rootpath
 #
