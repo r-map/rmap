@@ -28,11 +28,20 @@ lwIP variant: V2 lower memory
 Vtables: "flash"
 exceptions: disabled
 SSL support: Basic SSL"
+
+TODO PORTING TO ESP32 WeMos-D1-Mini-ESP32
+https://www.dropbox.com/s/4phxfx75hje5eu4/Board-de-desarrollo-WeMos-D1-Mini-ESP32-WiFiBluetooth-BLE-Pines.jpg
+https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
+
+* implementing OTA firmware updater for ESP32 (https): now I use a old simple porting of ESP8266httpUpdate
+* change second serial port from software to hardware (but it seems implemented in not wemos connector)
+* check if LittleFS.begin(FORMAT_LITTLEFS_IF_FAILED) default to do not autoformat littlefs
+* wait for new LittleFS release for esp8266 API compatibility  https://github.com/espressif/arduino-esp32/pull/5396
 */
 
 
 // increment on change
-#define SOFTWARE_VERSION "2021-08-24T00:00"
+#define SOFTWARE_VERSION "2021-10-07T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -49,43 +58,6 @@ SSL support: Basic SSL"
 // LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 
-
-#if defined(ARDUINO_ESP8266_NODEMCU) 
-// NODEMCU FOR LUFDATEN HOWTO
-#define FIRMWARE_TYPE "ESP8266_NODEMCU"
-#define PMS_RESET D0
-#define SDA D5
-#define SCL D6
-#define RESET_PIN D7
-#define LED_PIN D4
-// those are defined in SensorDriverb_config.h
-//#define SDS_PIN_RX D1
-//#define SDS_PIN_TX D2
-
-#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
-#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINI"
-#define PMS_RESET D0
-#define SCL D1
-#define SDA D2
-#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
-#define LED_PIN D4
-// those are defined in SensorDriverb_config.h
-//#define SDS_PIN_RX D5
-//#define SDS_PIN_TX D6
-#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
-#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINIPRO"
-#define PMS_RESET D0
-#define SCL D1
-#define SDA D2
-#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
-#define LED_PIN D4
-// those are defined in SensorDriverb_config.h
-//#define SDS_PIN_RX D5
-//#define SDS_PIN_TX D6
-#else
-#error "unknown platform"
-#endif
-
 #define STIMAHTTP_PORT 80
 #define WS_PORT 81
 
@@ -98,19 +70,96 @@ SSL support: Basic SSL"
 //#define DISABLE_LOGGING disable
 
 #include <FS.h>                   //this needs to be first, or it all crashes and burns...
-#include <LittleFS.h>
+
+#if defined(ARDUINO_ESP8266_NODEMCU) 
+// NODEMCU FOR LUFDATEN HOWTO
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
-//needed for library
-#include <DNSServer.h>
 #include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
+#include <LittleFS.h>
+#define FIRMWARE_TYPE "ESP8266_NODEMCU"
+#define PMS_RESET D0
+#define SDA D5
+#define SCL D6
+#define RESET_PIN D7
+#define LED_PIN D4
+// those are defined in SensorDriverb_config.h
+//#define SDS_PIN_RX D1
+//#define SDS_PIN_TX D2
+ESP8266WebServer webserver(STIMAHTTP_PORT);
+
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINI)
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
+#include <LittleFS.h>
+#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINI"
+#define PMS_RESET D0
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define LED_PIN D4
+// those are defined in SensorDriverb_config.h
+//#define SDS_PIN_RX D5
+//#define SDS_PIN_TX D6
+ESP8266WebServer webserver(STIMAHTTP_PORT);
+
+#elif defined(ARDUINO_ESP8266_WEMOS_D1MINIPRO)
+#include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
+#include <ESP8266mDNS.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266HTTPClient.h>
+#include <ESP8266httpUpdate.h>
+#include <LittleFS.h>
+#define FIRMWARE_TYPE "ESP8266_WEMOS_D1MINIPRO"
+#define PMS_RESET D0
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define LED_PIN D4
+// those are defined in SensorDriverb_config.h
+//#define SDS_PIN_RX D5
+//#define SDS_PIN_TX D6
+ESP8266WebServer webserver(STIMAHTTP_PORT);
+
+#elif defined(ARDUINO_D1_MINI32)
+#include <analogWrite.h>
+#include <WiFi.h>
+#include <ESPmDNS.h>
+#include <WebServer.h>
+#include <HTTPClient.h>
+#include <ESP32httpUpdate.h>
+//#include <ESP32LittleFS.h>
+#include <LITTLEFS.h>
+#define FIRMWARE_TYPE "WEMOS_D1_MINI32"
+#define PMS_RESET D0
+#define SCL D1
+#define SDA D2
+#define RESET_PIN D7    // pin to connect to ground for reset wifi configuration
+#define LED_PIN 2
+
+WebServer webserver(STIMAHTTP_PORT);
+
+void analogWriteFreq(double frequency){
+  analogWriteFrequency(frequency);
+}
+
+
+#else
+#error "unknown platform"
+#endif
+
+//needed for library
+#include <DNSServer.h>
 //#include <WebSocketsServer.h>
 //#include "EspHtmlTemplateProcessor.h"
 #include <WiFiManager.h>          //https://github.com/tzapu/WiFiManager
 #include <ArduinoJson.h>          //https://github.com/bblanchon/ArduinoJson
 #include <PubSubClient.h>
-#include <ESP8266HTTPClient.h>
-#include <ESP8266httpUpdate.h>
 #include <SoftwareSerial.h>
 #include <TimeAlarms.h>
 #include <ArduinoLog.h>
@@ -130,7 +179,6 @@ const uint16_t update_port = 80;
 
 WiFiClient espClient;
 PubSubClient mqttclient(espClient);
-ESP8266WebServer webserver(STIMAHTTP_PORT);
 //WebSocketsServer webSocket(WS_PORT);
 //EspHtmlTemplateProcessor templateProcessor(&server);
 
@@ -205,27 +253,6 @@ void handleReport()
   templateProcessor.processAndSend("/report.html", reportKeyProcessor);
 }
 */
-
-
-// web server response function
-void handle_FullPage() {
-  webserver.send(200, "text/html", FullPage()); 
-}
-
-void handle_Data() {
-  webserver.send(200, "text/html", Data()); 
-}
-
-void handle_Json() {
-  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
-  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
-  webserver.send(200, "application/json", Json()); 
-}
-
-void handle_NotFound(){
-  webserver.send(404, "text/plain", "Not found");
-}
-
 
 String Json(){
 
@@ -360,6 +387,25 @@ String FullPage(){
   return ptr;
 }
 
+
+// web server response function
+void handle_FullPage() {
+  webserver.send(200, "text/html", FullPage()); 
+}
+
+void handle_Data() {
+  webserver.send(200, "text/html", Data()); 
+}
+
+void handle_Json() {
+  webserver.sendHeader("Access-Control-Allow-Origin", "*", true);
+  webserver.sendHeader("Access-Control-Allow-Methods", "*", true);
+  webserver.send(200, "application/json", Json()); 
+}
+
+void handle_NotFound(){
+  webserver.send(404, "text/plain", "Not found");
+}
 
 //callback notifying us of the need to save config
 void saveConfigCallback () {
@@ -570,8 +616,14 @@ void firmware_upgrade() {
   analogWriteFreq(4);
   analogWrite(LED_PIN,512);  
 
+
+
   //		t_httpUpdate_return ret = ESPhttpUpdate.update(update_host, update_port, update_url, String(SOFTWARE_VERSION) + String(" ") + esp_chipid + String(" ") + SDS_version + String(" ") + String(current_lang) + String(" ") + String(INTL_LANG));
+#if defined(ARDUINO_D1_MINI32)
+  t_httpUpdate_return ret = ESPhttpUpdate.update(String(rmap_server), update_port, String(update_url), String(buffer));
+#else
   t_httpUpdate_return ret = ESPhttpUpdate.update(espClient,String(rmap_server), update_port, String(update_url), String(buffer));
+#endif
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
@@ -625,18 +677,27 @@ void firmware_upgrade() {
       break;
     }
 
+  //#endif
+
   analogWriteFreq(1);
   digitalWrite(LED_PIN,HIGH);
-
 }
 
 
 String readconfig_rmap() {
 
-  if (LittleFS.exists("/rmap.json")) {
-    //file exists, reading and loading
+#if defined(ARDUINO_D1_MINI32)
+  if (LITTLEFS.exists("/rmap.json")) {
+#else
+    if (LittleFS.exists("/rmap.json")) {
+#endif
+      //file exists, reading and loading
     LOGN(F("reading rmap config file" CR));
+#if defined(ARDUINO_D1_MINI32)
+    File configFile = LITTLEFS.open("/rmap.json", "r");
+#else
     File configFile = LittleFS.open("/rmap.json", "r");
+#endif    
     if (configFile) {
       LOGN(F("opened rmap config file" CR));
 
@@ -662,7 +723,11 @@ void writeconfig_rmap(String payload) {;
   //save the custom parameters to FS
   LOGN(F("saving rmap config" CR));
   
+#if defined(ARDUINO_D1_MINI32)
+  File configFile = LITTLEFS.open("/rmap.json", "w");
+#else
   File configFile = LittleFS.open("/rmap.json", "w");
+#endif
   if (!configFile) {
     LOGE(F("failed to open rmap config file for writing" CR));
   }
@@ -756,6 +821,7 @@ int  rmap_config(String payload){
   return status;
 }
 
+#if not defined(ARDUINO_D1_MINI32)
 
 void readconfig_SPIFFS() {
 
@@ -834,12 +900,22 @@ String readconfig_rmap_SPIFFS() {
   return String();  
 }
 
+#endif
+
 void readconfig() {
 
+#if defined(ARDUINO_D1_MINI32)
+  if (LITTLEFS.exists("/config.json")) {
+#else
   if (LittleFS.exists("/config.json")) {
+#endif
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
+#if defined(ARDUINO_D1_MINI32)
+    File configFile = LITTLEFS.open("/config.json", "r");
+#else
     File configFile = LittleFS.open("/config.json", "r");
+#endif
     if (configFile) {
       LOGN(F("opened config file" CR));
       size_t size = configFile.size();
@@ -901,7 +977,11 @@ void writeconfig() {;
   json["rmap_mqttrootpath"] = rmap_mqttrootpath;
   json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
   
+#if defined(ARDUINO_D1_MINI32)
+  File configFile = LITTLEFS.open("/config.json", "w");
+#else
   File configFile = LittleFS.open("/config.json", "w");
+#endif
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }
@@ -1059,7 +1139,9 @@ void repeats() {
     //LOGN(F("delay" CR));
     mqttclient.loop();;
     webserver.handleClient();
+#if not defined(ARDUINO_D1_MINI32)
     MDNS.update();
+#endif
     yield();
   }
 
@@ -1224,21 +1306,28 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
+#if defined(ARDUINO_D1_MINI32)
+    LITTLEFS.format();
+#else
     LittleFS.format();
+#endif
     LOGN(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
   }
   
   //read configuration from FS json
   LOGN(F("mounting FS..." CR));
-  SPIFFSConfig spiffscfg;
-  spiffscfg.setAutoFormat(false);
-  SPIFFS.setConfig(spiffscfg);
+
+
+#if not defined(ARDUINO_D1_MINI32)
 
   LittleFSConfig cfg;
   cfg.setAutoFormat(false);
   LittleFS.setConfig(cfg);
   
+  SPIFFSConfig spiffscfg;
+  spiffscfg.setAutoFormat(false);
+  SPIFFS.setConfig(spiffscfg);
   if (SPIFFS.begin()) {
     // migrate configuration from old SPIFFS to new LittleFS
     LOGN(F("mounted old SPIFFS file system" CR));
@@ -1254,14 +1343,25 @@ void setup() {
     LOGW(F("writeconfig rmap" CR));
     writeconfig_rmap(remote_config);
     LOGW(F("filesystem conversion done" CR));
-  } else if (LittleFS.begin()) {
-    LOGN(F("mounted LittleFS file system" CR));
+  } else
+#endif
+#if defined(ARDUINO_D1_MINI32)
+    if (LITTLEFS.begin()) {
+#else
+    if (LittleFS.begin()) {
+#endif
+      LOGN(F("mounted LittleFS file system" CR));
     readconfig();    
   } else {
     LOGE(F("failed to mount FS" CR));
     LOGW(F("Reformat LittleFS" CR));
+#if defined(ARDUINO_D1_MINI32)
+    LITTLEFS.format();
+    LITTLEFS.begin();
+#else
     LittleFS.format();
-    LittleFS.begin();
+    LittleFS.begin();    
+#endif
     LOGW(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
 
@@ -1480,6 +1580,8 @@ void setup() {
 void loop() {
   mqttclient.loop();
   webserver.handleClient();
+#if not defined(ARDUINO_D1_MINI32)
   MDNS.update();
+#endif
   Alarm.delay(0);
 }
