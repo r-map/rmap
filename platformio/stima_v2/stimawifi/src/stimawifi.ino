@@ -1532,7 +1532,7 @@ void setup() {
   // - second argument is the IP address to advertise
   //   we send our IP address on the WiFi network
   while (!MDNS.begin(rmap_slug)) {
-    LOGN(F("Error setting up MDNS responder!"));
+    LOGE(F("Error setting up MDNS responder!"));
     delay(1000);
   }
   LOGN(F("mDNS responder started" CR));
@@ -1582,6 +1582,20 @@ void loop() {
   webserver.handleClient();
 #if not defined(ARDUINO_D1_MINI32)
   MDNS.update();
+#else
+  // sometimes ESP32 do not reconnect and we need a restart
+  uint16_t counter=0;
+  while (WiFi.status() != WL_CONNECTED) { //lost connection
+    LOGE(F("WIFI disconnected!" CR));
+    if (oledpresent){
+      u8g2.clearBuffer();
+      u8g2.setCursor(0, 20); 
+      u8g2.print(F("WIFI KO"));
+      u8g2.sendBuffer();
+    }
+    if(counter++>=300) reboot(); //300 seconds timeout - reset board
+    delay(1000);
+  }
 #endif
   Alarm.delay(0);
 }
