@@ -23,6 +23,7 @@ from .stations.models import StationMetadata
 from .stations.models import StationConstantData
 from .stations.models import Board
 from .stations.models import Sensor, SensorType
+from .stations.models import TransportRF24Network
 from .stations.models import TransportMqtt
 from .stations.models import TransportBluetooth
 from .stations.models import TransportAmqp
@@ -1150,6 +1151,11 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> configure board: ", board.name," slug="+board.slug)
 
+        for constantdata in  mystation.stationconstantdata_set.all():
+            if ( constantdata.active):
+                #print ("constantdata:",constantdata.btable,constantdata.value)
+                print("constantdata:",constantdata.btable,rpcproxy.configure(sd={constantdata.btable:constantdata.value}))
+        
         try:
             if ( board.transportmqtt.active):
                 print("TCP/IP Transport",board.transportmqtt)
@@ -1439,6 +1445,7 @@ def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc"
                     print("reject:",deserialized_object.object)
                     ch.basic_ack(delivery_tag = method.delivery_tag)
                     print(" [R] Rejected")
+                    return
 
         except Exception as e:
             print(("error in deserialize object; skip it",e))
@@ -1486,6 +1493,34 @@ def object_auth(object,user):
 
     if isinstance(object,Sensor):
         if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,TransportRF24Network):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,TransportBluetooth):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,TransportAmqp):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,TransportMqtt):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+        
+    if isinstance(object,TransportSerial):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,TransportTcpip):
+        if object.board.stationmetadata.ident.username == user:
+            return True
+
+    if isinstance(object,StationConstantData):
+        if object.stationmetadata.ident.username == user:
             return True
 
     return False
