@@ -1,9 +1,10 @@
-RFC rmap versione 2.5
+RFC rmap versione 2.7
 =====================
 
 Storia del documento
 --------------------
 
+- 2021/10/13 v. 2.7 : corretto topic MQTT per constant station data
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
 - 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
@@ -972,10 +973,12 @@ questo path:
 
 ::
    
-   <rootpath>/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/
+   <rootpath>/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/VAR
 
 con payload simile a quello dei dati, in particolare dovrà essere omessa
-la chiave “t”: **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**
+la chiave “t”.
+
+payload : **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**
 
 Estensioni
 ^^^^^^^^^^
