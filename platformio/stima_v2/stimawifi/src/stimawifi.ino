@@ -1071,6 +1071,75 @@ void display_values(const char* values) {
   }
 }
 
+bool publish_constantdata() {
+
+  char topic[100]="";
+  StaticJsonBuffer<500> jsonBuffer;
+
+  char longitude [10];
+  char latitude [10];
+
+  itoa (coordCharToInt(rmap_longitude),longitude,10);
+  itoa (coordCharToInt(rmap_latitude),latitude,10);
+
+  String payload=readconfig_rmap();
+
+  if (! (payload == String())) {
+    //StaticJsonBuffer<2900> jsonBuffer;
+    DynamicJsonBuffer jsonBuffer(4000);
+    JsonArray& array = jsonBuffer.parseArray(payload);
+    if (array.success()){
+      for (uint8_t i = 0; i < array.size(); i++) {
+	if  (array[i]["model"] == "stations.stationconstantdata"){
+	  if (array[i]["fields"]["active"]){
+	    LOGN(F("station constant data found!" CR));
+	    char btable[7];
+	    strncpy (btable, array[i]["fields"]["btable"].as< const char*>(),6);
+	    btable[6]='\0';
+	    LOGN(F("btable: %s" CR),btable);
+	    char value[31];
+	    strncpy (value, array[i]["fields"]["value"].as< const char*>(),30);
+	    value[30]='\0';
+	    LOGN(F("value: %s" CR),value);
+
+	    char payload[100]="{\"v\":\"";
+	    strcat(payload,value);
+	    strcat(payload,"\"}");
+      
+	    strcpy(topic,rmap_mqttrootpath);
+	    strcat(topic,"/");
+	    strcat(topic,rmap_user);
+	    strcat(topic,"/");  
+	    strcat(topic,longitude);
+	    strcat(topic,",");
+	    strcat(topic,latitude);
+	    strcat(topic,"/");
+	    strcat(topic,rmap_network);
+	    strcat(topic,"/-,-,-/-,-,-,-/");
+	    strcat(topic,btable);
+
+	    LOGN(F("mqtt publish: %s %s" CR),topic,payload);
+	    if (!mqttclient.publish(topic, payload)){
+	      LOGE(F("MQTT data not published" CR));
+	      mqttclient.disconnect();
+	      return false;
+	    }
+	    LOGN(F("MQTT data published" CR));
+	  }
+	}
+      }
+    } else {
+      LOGE(F("error parsing array" CR));
+      analogWrite(LED_PIN,973);
+      delay(5000);
+      return false;
+    }
+    
+  }else{
+    return false;
+  }
+  return true;
+}
 
 void repeats() {
 
@@ -1124,6 +1193,24 @@ void repeats() {
 	//return;
       }
     }
+
+    if (!publish_constantdata()) {
+      LOGE(F("Error in publish constant data" CR));
+      if (oledpresent) {
+	u8g2.clearBuffer();
+	u8g2.setCursor(0, 20); 
+	u8g2.print(F("MQTT Error constant"));
+	u8g2.sendBuffer();
+	u8g2.clearBuffer();
+	delay(3000);
+      }else{
+	// if we do not have display terminate (we do not display values)
+	analogWrite(LED_PIN,512);
+	delay(5000);
+	digitalWrite(LED_PIN,HIGH);
+	//return;
+      }
+    }    
   }
 
   if (oledpresent) {
