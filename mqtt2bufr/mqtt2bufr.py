@@ -244,15 +244,15 @@ def main(host, keepalive, port, topics, username, password, debug,
         if username:
             mqttclient.username_pw_set(username, password)
             
-            mqttclient.on_log = on_log
-            mqttclient.on_connect = on_connect
-            mqttclient.on_message = on_message
+        mqttclient.on_log = on_log
+        mqttclient.on_connect = on_connect
+        mqttclient.on_message = on_message
             
-            mqttclient.connect(host, port=port, keepalive=keepalive)
+        mqttclient.connect(host, port=port, keepalive=keepalive)
+        
+        handle_signals(mqttclient)
             
-            handle_signals(mqttclient)
-            
-            mqttclient.loop_forever()
+        mqttclient.loop_forever()
             
 
 if __name__ == '__main__':
