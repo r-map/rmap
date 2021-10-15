@@ -493,7 +493,10 @@ void print_configuration() {
    SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
    SERIAL_INFO(F("--> version: %d.%d\r\n"), readable_configuration.module_main_version, readable_configuration.module_minor_version);
    SERIAL_INFO(F("--> sensors: %d\r\n"), readable_configuration.sensors_count);
-
+   SERIAL_INFO(F("--> ConstantData: %d\r\n"), readable_configuration.constantdata_count);
+   for (uint8_t i=0; i<readable_configuration.constantdata_count; i++) {
+     SERIAL_INFO(F("--> CD %d:  %s : %s\r\n"), i,readable_configuration.constantdata[i].btable,readable_configuration.constantdata[i].value);
+   }
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    SERIAL_INFO(F("--> dhcp: %s\r\n"), readable_configuration.is_dhcp_enable ? "on" : "off");
    SERIAL_INFO(F("--> ethernet mac: %02X:%02X:%02X:%02X:%02X:%02X\r\n"), readable_configuration.ethernet_mac[0], readable_configuration.ethernet_mac[1], readable_configuration.ethernet_mac[2], readable_configuration.ethernet_mac[3], readable_configuration.ethernet_mac[4], readable_configuration.ethernet_mac[5]);
@@ -530,6 +533,8 @@ void set_default_configuration() {
    writable_configuration.sensors_count = 0;
    memset(writable_configuration.sensors, 0, sizeof(sensor_t) * USE_SENSORS_COUNT);
 
+   writable_configuration.constantdata_count = 0;
+   
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    char temp_string[20];
    writable_configuration.is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
@@ -677,6 +682,20 @@ int configure(JsonObject &params, JsonObject &result) {
       else if (strcmp(it->key, "mqttpassword") == 0) {
          strncpy(writable_configuration.mqtt_password, it->value.as<char*>(), MQTT_PASSWORD_LENGTH);
       }
+      else if (strcmp(it->key, "sd") == 0) {
+	JsonObject& sdobj = it->value.as<JsonObject>();
+	for (JsonObject::iterator sd = sdobj.begin(); sd != sdobj.end(); ++sd) {
+	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd->key, CONSTANTDATA_BTABLE_LENGTH);
+	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd->value.as<char*>(), CONSTANTDATA_VALUE_LENGTH);
+
+	  if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT-1)
+	    writable_configuration.constantdata_count++;
+	  else {
+	    is_error = true;
+	  }
+	}
+	
+      }
       #endif
       #if (USE_NTP)
       else if (strcmp(it->key, "ntpserver") == 0) {
@@ -735,7 +754,11 @@ int configure(JsonObject &params, JsonObject &result) {
    }
 
    if (is_sensor_config) {
-      writable_configuration.sensors_count++;
+     if (writable_configuration.sensors_count < USE_SENSORS_COUNT-1)
+       writable_configuration.sensors_count++;
+     else {
+       is_error = true;
+     }     
    }
 
    if (is_error) {
@@ -2324,6 +2347,7 @@ void mqtt_task() {
    static bool is_ptr_found;
    static bool is_ptr_updated;
    static bool is_eof_data_read;
+   static bool is_mqtt_constantdata;
    static tmElements_t datetime;
    static time_t current_ptr_time_data;
    static time_t last_correct_ptr_time_data;
@@ -2341,6 +2365,7 @@ void mqtt_task() {
          is_eof_data_read = false;
          is_mqtt_error = false;
          is_mqtt_published_data = false;
+	 is_mqtt_constantdata = false;
          mqtt_data_count = 0;
 
          if (!is_sdcard_open && !is_sdcard_error) {
@@ -2612,10 +2637,43 @@ void mqtt_task() {
             SERIAL_DEBUG(F("MQTT Subscription... [ %s ]\r\n"), is_mqtt_subscribed ? OK_STRING : FAIL_STRING);
          }
 
-         mqtt_state = MQTT_CHECK;
-         SERIAL_TRACE(F("MQTT_SUBSCRIBE ---> MQTT_CHECK\r\n"));
+         mqtt_state = MQTT_CONSTANTDATA;
+         SERIAL_TRACE(F("MQTT_SUBSCRIBE ---> MQTT_CONSTANTDATA\r\n"));
       break;
 
+      case MQTT_CONSTANTDATA:
+
+	if (!is_mqtt_constantdata) {
+	  i = 0;
+	  is_mqtt_constantdata = true;
+	}
+
+	// publish constant station data without retry
+	if (i < readable_configuration.constantdata_count) {	  
+	  //memset(full_topic_buffer, 0, MQTT_ROOT_TOPIC_LENGTH + 14 + CONSTANTDATA_BTABLE_LENGTH);
+	  strncpy(full_topic_buffer, readable_configuration.mqtt_root_topic, MQTT_ROOT_TOPIC_LENGTH);	  
+	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic), "-,-,-/-,-,-,-/", 14);
+	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic)+14, readable_configuration.constantdata[i].btable, CONSTANTDATA_BTABLE_LENGTH);
+	  char payload[CONSTANTDATA_BTABLE_LENGTH+2];
+	  // payload is a string as default; add "" around
+	  strncpy(payload,"\"",1);
+	  strncpy(payload+1,readable_configuration.constantdata[i].value,strlen(readable_configuration.constantdata[i].value));
+	  strncpy(payload+1+strlen(readable_configuration.constantdata[i].value),"\"\0",2);
+	  
+	  if (mqttPublish(full_topic_buffer,payload)){
+	  SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), full_topic_buffer, payload);
+	  }else{
+	   SERIAL_ERROR(F("MQTT ERROR <-- %s %s\r\n"), full_topic_buffer, payload);
+	  }
+	}else{
+	  mqtt_state = MQTT_CHECK;
+	  SERIAL_TRACE(F("MQTT_CONSTANTDATA ---> MQTT_CHECK\r\n"));
+	}
+
+	i++;
+	  
+      break;
+      
       case MQTT_CHECK:
          // ptr data is found: send data saved on sdcard
          if (!is_sdcard_error) {
