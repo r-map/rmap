@@ -75,7 +75,7 @@
  */
 #if defined(__AVR__) && FLASHEND < 0X8000
 // 32K AVR boards.
-#define SDFAT_FILE_TYPE 1
+#define SDFAT_FILE_TYPE 3
 #elif defined(__arm__)
 // ARM boards usually have plenty of memory
 #define SDFAT_FILE_TYPE 3
@@ -164,7 +164,7 @@ typedef uint8_t SdCsPin_t;
  *  * (asterisk)
  *
  */
-#define USE_LONG_FILE_NAMES 0
+#define USE_LONG_FILE_NAMES 1
 //------------------------------------------------------------------------------
 /**
  * Set the default file time stamp when a RTC callback is not used.
@@ -210,7 +210,7 @@ typedef uint8_t SdCsPin_t;
  * Set USE_SD_CRC to 2 to used a larger table driven CRC-CCITT function.  This
  * function is faster for AVR but may be slower for ARM and other processors.
  */
-#define USE_SD_CRC 0
+#define USE_SD_CRC 2
 //------------------------------------------------------------------------------
 /** If the symbol USE_FCNTL_H is nonzero, open flags for access modes O_RDONLY,
  * O_WRONLY, O_RDWR and the open modifiers O_APPEND, O_CREAT, O_EXCL, O_SYNC
