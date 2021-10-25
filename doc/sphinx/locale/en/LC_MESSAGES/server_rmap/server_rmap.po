@@ -9,163 +9,195 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"POT-Creation-Date: 2021-10-13 17:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
-#: ../../server_rmap/server_rmap.rst:2
+#: ../../server_rmap/server_rmap.rst:5
 msgid "Server RMAP"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:5
+#: ../../server_rmap/server_rmap.rst:8
 msgid "Installazione sistema operativo Centos 8"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:7
+#: ../../server_rmap/server_rmap.rst:10
 msgid "Installare Centos 8."
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:9
+#: ../../server_rmap/server_rmap.rst:12
 msgid "Aggiunta repository e installazione pacchetti ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:22
+#: ../../server_rmap/server_rmap.rst:27
 msgid "/etc/selinux/config::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:26
-msgid "/etc/tmpfiles.d/rmap.conf::"
+#: ../../server_rmap/server_rmap.rst:31
+msgid ""
+"`/etc/tmpfiles.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/tmpfiles.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:37
-msgid "/etc/sysconfig/crond::"
+#: ../../server_rmap/server_rmap.rst:38
+msgid ""
+"`/etc/sysconfig/crond "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/sysconfig/crond>`_"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:47
 msgid "postgresql"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:49
+#: ../../server_rmap/server_rmap.rst:60
 msgid ""
-"dnf module disable postgresql:10 dnf module enable postgresql:12 dnf "
-"install postgresql-server postgresql-contrib dnf install python3-psycopg2"
+"`/var/lib/pgsql/data/pg_hba.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/pg_hba.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:62
+msgid ""
+"`/var/lib/pgsql/data/postgresql.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/postgresql.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:68
+msgid ""
+"`/etc/systemd/system/postgresql.service.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/systemd/system/postgresql.service.d/rmap.conf>`_"
 " ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:56
-msgid "/var/lib/pgsql/data/pg_hba.conf ::"
+#: ../../server_rmap/server_rmap.rst:88
+msgid ""
+"`/etc/rmap/rmap-site.cfg "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap"
+"/rmap-site.cfg>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:70
-msgid "/var/lib/pgsql/data/postgresql.conf ::"
+#: ../../server_rmap/server_rmap.rst:90
+msgid ""
+"`/etc/rmap/dashboard.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap/dashboard.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:83
-msgid "/etc/systemd/system/postgresql.service.d/rmap.conf ::"
+#: ../../server_rmap/server_rmap.rst:92
+msgid ""
+"`/etc/rmap/graphTemplates.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap/graphTemplates.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:106
-msgid "/etc/rmap/rmap-site.cfg ::"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:133
+#: ../../server_rmap/server_rmap.rst:110
 msgid "apache"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:135
+#: ../../server_rmap/server_rmap.rst:112
 msgid "Collect static files from django apps: ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:152
-msgid "/etc/httpd/conf.modules.d/00-mpm.conf"
+#: ../../server_rmap/server_rmap.rst:128
+msgid ""
+"`/etc/httpd/conf.modules.d/00-mpm.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.modules.d/00-mpm.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:173
-msgid "/etc/httpd/conf.d/rmap.conf"
+#: ../../server_rmap/server_rmap.rst:130
+msgid ""
+"`/etc/httpd/conf.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:187
-msgid "/etc/httpd/conf.d/rmap.inc ::"
+#: ../../server_rmap/server_rmap.rst:132
+msgid ""
+"`/etc/httpd/conf.d/rmap.inc "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.inc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:276
+#: ../../server_rmap/server_rmap.rst:140
 msgid "Arkimet"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:290
-msgid "/etc/sysconfig/arkimet ::"
+#: ../../server_rmap/server_rmap.rst:154
+msgid ""
+"`/etc/sysconfig/arkimet "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/sysconfig/arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:296
-msgid "Create file /etc/arkimet/scan/bufr_generic_mobile_rmap.py: ::"
+#: ../../server_rmap/server_rmap.rst:156
+msgid ""
+"`/etc/arkimet/scan/bufr_generic_mobile_rmap.py "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/arkimet/scan/bufr_generic_mobile_rmap.py>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:323
-msgid "Sincronizzazione DB"
+#: ../../server_rmap/server_rmap.rst:159
+msgid "Replicate structure in:"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:326
-msgid "Server di origine"
+#: ../../server_rmap/server_rmap.rst:161
+msgid ""
+"`/rmap/arkimet  "
+"<https://github.com/r-map/rmap/tree/master/server/rmap/arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:332
-msgid "rimuovere le prime righe che non sono json ::"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:342
-msgid "Server di destinazione"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:344
-msgid "Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap) ::"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:363
+#: ../../server_rmap/server_rmap.rst:171
 msgid "Mosquitto"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:372
-msgid "/etc/mosquitto/conf.d/rmap.conf ::"
+#: ../../server_rmap/server_rmap.rst:180
+msgid ""
+"`/etc/mosquitto/conf.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/conf.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:392
-msgid "/etc/mosquitto/aclfile ::"
+#: ../../server_rmap/server_rmap.rst:182
+msgid ""
+"`/etc/mosquitto/aclfile "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/aclfile>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:414
+#: ../../server_rmap/server_rmap.rst:184
 msgid "remove everythings and add in /etc/mosquitto/mosquitto.conf ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:426
-msgid "if the package use systemd:"
+#: ../../server_rmap/server_rmap.rst:196
+msgid "if the package use systemV create:"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:428
-msgid "create /etc/systemd/system/mosquitto.service.d/rmap.conf ::"
+#: ../../server_rmap/server_rmap.rst:198
+msgid ""
+"`/etc/monit.d/mosquitto "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/mosquitto>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:435
-msgid "if the package use systemV:"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:437
-msgid "/etc/monit.d/mosquitto ::"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:446
+#: ../../server_rmap/server_rmap.rst:202
 msgid "Rabbitmq"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:455
-msgid "in /etc/rabbitmq/rabbitmq.config ::"
+#: ../../server_rmap/server_rmap.rst:211
+msgid ""
+"`/etc/rabbitmq/enabled_plugins "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/enabled_plugins>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:486
+#: ../../server_rmap/server_rmap.rst:213
+msgid ""
+"`/etc/rabbitmq/rabbitmq-env.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq"
+"/rabbitmq-env.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:215
+msgid ""
+"`/etc/rabbitmq/rabbitmq.config "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:223
 msgid ""
 "login at management interface with user \"guest\" and password \"guest\" "
 "on overview page use import definition to configure exchange, queue and "
@@ -173,11 +205,11 @@ msgid ""
 "with a new real user"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:490
+#: ../../server_rmap/server_rmap.rst:227
 msgid "Per attivare uno showell: ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:495
+#: ../../server_rmap/server_rmap.rst:232
 msgid ""
 "problema non risolto: se si trasferiscono dati scritti da un utente "
 "autenticandosi con un altro utente la security su user_id lo vieta. "
@@ -186,31 +218,184 @@ msgid ""
 "formato json sopra ma non funziona"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:501
+#: ../../server_rmap/server_rmap.rst:238
 msgid "Monit"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:507
-msgid "comment everithings and add in /etc/monitrc ::"
+#: ../../server_rmap/server_rmap.rst:244
+msgid ""
+"`/etc/monitrc "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monitrc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:527
+#: ../../server_rmap/server_rmap.rst:246
+msgid ""
+"`/etc/monit.d/rmap "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/rmap>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:254
 msgid "Cron"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:538
+#: ../../server_rmap/server_rmap.rst:256
+msgid ""
+"`/etc/cron.d/arpae_aq_ckan "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:258
+msgid ""
+"`/etc/cron.d/dballe2arkimet "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/dballe2arkimet>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:260
+msgid ""
+"`/etc/cron.d/luftdaten "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/luftdaten>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:262
+msgid ""
+"`/etc/cron.d/makeexplorer "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/makeexplorer>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:266
+msgid "Sincronizzazione DB da un server"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:269
+msgid "Server di origine"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:275
+msgid "rimuovere le prime righe che non sono json ::"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:285
+msgid "Server di destinazione"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:287
+msgid "Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap) ::"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:306
 msgid "Arkiweb"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:539
+#: ../../server_rmap/server_rmap.rst:307
 msgid "AL MOMENTO NON DISPONIBILE SU CENTOS 8 NOT AVAILABLE ON CENTOS 8"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:546
+#: ../../server_rmap/server_rmap.rst:314
 msgid "/etc/httpd/conf.d/arkiweb.conf ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:591
-msgid "/rmap/arkimet/arkiweb.config ::"
+#: ../../server_rmap/server_rmap.rst:359
+msgid "/rmap/arkimet/arkiweb.config"
 msgstr ""
+
+#~ msgid "/etc/selinux/config::"
+#~ msgstr ""
+
+#~ msgid "/etc/tmpfiles.d/rmap.conf::"
+#~ msgstr ""
+
+#~ msgid "/etc/sysconfig/crond::"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "dnf module disable postgresql:10 dnf "
+#~ "module enable postgresql:12 dnf install "
+#~ "postgresql-server postgresql-contrib dnf "
+#~ "install python3-psycopg2 ::"
+#~ msgstr ""
+
+#~ msgid "/var/lib/pgsql/data/pg_hba.conf ::"
+#~ msgstr ""
+
+#~ msgid "/var/lib/pgsql/data/postgresql.conf ::"
+#~ msgstr ""
+
+#~ msgid "/etc/systemd/system/postgresql.service.d/rmap.conf ::"
+#~ msgstr ""
+
+#~ msgid "/etc/rmap/rmap-site.cfg ::"
+#~ msgstr ""
+
+#~ msgid "if the package use systemd:"
+#~ msgstr ""
+
+#~ msgid "create /etc/systemd/system/mosquitto.service.d/rmap.conf ::"
+#~ msgstr ""
+
+#~ msgid "if the package use systemV:"
+#~ msgstr ""
+
+#~ msgid "`/etc/selinux/config <|GITHUBURL|/etc/selinux/config>`_"
+#~ msgstr ""
+
+#~ msgid "`/etc/tmpfiles.d/rmap.conf <|GITHUBURL|/etc/tmpfiles.d/rmap.conf>`_"
+#~ msgstr ""
+
+#~ msgid "`/etc/sysconfig/crond <|GITHUBURL|/etc/sysconfig/crond>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/var/lib/pgsql/data/pg_hba.conf "
+#~ "<|GITHUBURL|/var/lib/pgsql/data/pg_hba.conf>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/var/lib/pgsql/data/postgresql.conf "
+#~ "<|GITHUBURL|/var/lib/pgsql/data/postgresql.conf>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/systemd/system/postgresql.service.d/rmap.conf "
+#~ "<|GITHUBURL|/etc/systemd/system/postgresql.service.d/rmap.conf>`_ "
+#~ "::"
+#~ msgstr ""
+
+#~ msgid "`/etc/rmap/rmap-site.cfg <|GITHUBURL|/etc/rmap/rmap-site.cfg>`_"
+#~ msgstr ""
+
+#~ msgid "/etc/httpd/conf.modules.d/00-mpm.conf"
+#~ msgstr ""
+
+#~ msgid "/etc/httpd/conf.d/rmap.conf"
+#~ msgstr ""
+
+#~ msgid "/etc/httpd/conf.d/rmap.inc ::"
+#~ msgstr ""
+
+#~ msgid "/etc/sysconfig/arkimet ::"
+#~ msgstr ""
+
+#~ msgid "Create file /etc/arkimet/scan/bufr_generic_mobile_rmap.py: ::"
+#~ msgstr ""
+
+#~ msgid "Sincronizzazione DB"
+#~ msgstr ""
+
+#~ msgid "/etc/mosquitto/conf.d/rmap.conf ::"
+#~ msgstr ""
+
+#~ msgid "/etc/mosquitto/aclfile ::"
+#~ msgstr ""
+
+#~ msgid "/etc/monit.d/mosquitto ::"
+#~ msgstr ""
+
+#~ msgid "in /etc/rabbitmq/rabbitmq.config ::"
+#~ msgstr ""
+
+#~ msgid "comment everithings and add in /etc/monitrc ::"
+#~ msgstr ""
+
+#~ msgid "/rmap/arkimet/arkiweb.config ::"
+#~ msgstr ""
 

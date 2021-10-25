@@ -4,7 +4,7 @@ RFC rmap versione 2.7
 Storia del documento
 --------------------
 
-- 2021/10/13 v. 2.7 : corretto topic MQTT per constant station data
+- 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro "sd"
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
 - 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
@@ -1093,7 +1093,7 @@ di conseguenza gli accessi.
 Remote procedure supportate
 '''''''''''''''''''''''''''
 
-config
+configure
       
 
 Configura la stazione.
@@ -1122,6 +1122,11 @@ parametri:
    (no default)
 -  array byte mac[6]: ethernet mac address (esempio: use (0,0,0,0,0,1)
    for board1, use (0,0,0,0,0,2) for board2 etc.) (no default)
+-  JSON object sd:
+   
+   -  char btable: constant station data (e.g. station name and heigth)
+      coded as described by bufr table B btable and written as string
+
 -  bool save: if true save configuration into permanent memory; questa
    operazione è l'ultima ad essere effettuata dal server (default false)
 -  array sens:
@@ -1131,7 +1136,7 @@ parametri:
    -  char var: variabile tabella B (esempio "B13011") (no default)
    -  any ext: configurazione relativa a una implementazione specifica
       di un sensore nella stazione OPZIONALE:
-
+      
 ad esempio nella implementazione Stima ext contiene:
 
 -  char driver: driver locale del sensore
@@ -1144,19 +1149,21 @@ esempi:
 
 ::
    
-   {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,"save":true,"mqttserver":"rmap.cc", "sensors":[{"mqttpath":"105,2000,,/1,0,900", ext":{"driver":"HIH"}}]}, "id": 0}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"reset":true,"save":true,"mqttserver":"rmap.cc", "sensors":[{"mqttpath":"105,2000,,/1,0,900", ext":{"driver":"HIH"}}]}, "id": 0}
 
 -  reset, configurazione, addizione sensori e salvataggio in differenti
    RPC
 
 ::
 
-   {"jsonrpc": "2.0", "method": "config", "params": {"reset":true,}, "id": 0}
-   {"jsonrpc": "2.0", "method": "config", "params": {"mqttserver":"rmap.cc", "mqttuser":"myuser", "mqttpass":"mypassword"}, "id": 1}
-   {"jsonrpc": "2.0", "method": "config", "params": {"datalevel":"report", "network":"fixed", "lon":1112345, "lat":4412345}, "id": 1}
-   {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"1,0,60", "lev":"1,-,-,-", "var":"B130111", ext":{"driver":"HIH"}}]}, "id": 2}
-   {"jsonrpc": "2.0", "method": "config", "params": {"sens":[{"tr":"254,0,0", "lev":"105,2000,-,-", "var":"B12101", ext":{"driver":"TMP"}}]}, "id": 3}
-   {"jsonrpc": "2.0", "method": "config", "params": {"save":true}, "id": 4}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"reset":true,}, "id": 0}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"sd": {"B01019": "test station"}}, "id": 0}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"sd": {"B07030": "20"}}, "id": 0}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"mqttserver":"rmap.cc", "mqttuser":"myuser", "mqttpass":"mypassword"}, "id": 1}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"datalevel":"report", "network":"fixed", "lon":1112345, "lat":4412345}, "id": 1}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"sens":[{"tr":"1,0,60", "lev":"1,-,-,-", "var":"B130111", ext":{"driver":"HIH"}}]}, "id": 2}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"sens":[{"tr":"254,0,0", "lev":"105,2000,-,-", "var":"B12101", ext":{"driver":"TMP"}}]}, "id": 3}
+   {"jsonrpc": "2.0", "method": "configure", "params": {"save":true}, "id": 4}
 
 - pinout
       
