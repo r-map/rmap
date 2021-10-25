@@ -1,7 +1,0 @@
-arduino-1.6.5/arduino -v  --board Microduino:avr:1284p:cpu=16MHzatmega1284   --upload --port /dev/ttyUSB0  sketchbook/rmap/rmap/rmap.ino
-
-arduino-1.6.5/arduino -v  --board Microduino:avr:644p:cpu=16MHzatmega644   --upload --port /dev/ttyUSB0  sketchbook/rmap/rmap/rmap.ino
-
-
-in sketchbook/library there are subtree
-see at http://blogs.atlassian.com/2013/05/alternatives-to-git-submodule-git-subtree/
