@@ -374,7 +374,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
       }
       else {
@@ -396,17 +396,16 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
   SensorDriverAdt7420::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B12101"] = values[0];
       }
-      else json["B12101"] = RawJson("null");
+      else json["B12101"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -564,7 +563,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
       }
       else {
@@ -573,7 +572,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
       }
       else {
@@ -595,24 +594,23 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
   SensorDriverHih6100::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B13003"] = values[0];
       }
-      else json["B13003"] = RawJson("null");
+      else json["B13003"] = nullptr;
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         json["B12101"] = values[1];
       }
-      else json["B12101"] = RawJson("null");
+      else json["B12101"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -739,7 +737,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
         }
         else {
@@ -748,7 +746,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
         }
         else {
@@ -776,24 +774,23 @@ void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buf
   SensorDriverHyt2X1::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B13003"] = values[0];
       }
-      else json["B13003"] = RawJson("null");
+      else json["B13003"] = nullptr;
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         json["B12101"] = values[1];
       }
-      else json["B12101"] = RawJson("null");
+      else json["B12101"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -918,7 +915,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       lsb = Wire.read();
       msb = Wire.read();
       values[0] = ((int) (msb << 8) | lsb);
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         values[0] -= OFFSET;
       }
     }
@@ -964,7 +961,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       lsb = Wire.read();
       msb = Wire.read();
       values[1] = ((uint16_t) (msb << 8) | lsb);
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         values[1] -= OFFSET;
       }
     }
@@ -976,7 +973,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     break;
 
     case ELABORATE:
-    if (isValid(values[0]) && isValid(values[1]) && length >= 2) {
+    if (ISVALID(values[0]) && ISVALID(values[1]) && length >= 2) {
       if (values[0] || values[1]) {
         SensorDriverDw1::getSDfromUV(values[0], values[1], &speed, &direction);
 
@@ -997,7 +994,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> mean u: %u\r\n"), values[0]);
       }
       else {
@@ -1006,7 +1003,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         SERIAL_DEBUG(F("--> mean v: %u\r\n"), values[1]);
       }
       else {
@@ -1014,7 +1011,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       }
     }
 
-    if (isValid(values[0]) && isValid(values[1]) && length >= 2) {
+    if (ISVALID(values[0]) && ISVALID(values[1]) && length >= 2) {
       values[0] = (int32_t) direction;
       values[1] = (int32_t) round(speed);
       SERIAL_DEBUG(F("--> direction: %u\r\n"), values[0]);
@@ -1038,24 +1035,23 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
   SensorDriverDw1::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B11001"] = values[0];
       }
-      else json["B11001"] = RawJson("null");
+      else json["B11001"] = nullptr;
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         json["B11002"] = values[1];
       }
-      else json["B11002"] = RawJson("null");
+      else json["B11002"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -1240,7 +1236,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> rain tips: %u\r\n"), values[0]);
       }
       else {
@@ -1262,17 +1258,16 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
   SensorDriverRain::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B13011"] = values[0];
       }
-      else json["B13011"] = RawJson("null");
+      else json["B13011"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -1641,7 +1636,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
       }
       else {
@@ -1650,7 +1645,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[1]);
       }
       else {
@@ -1672,24 +1667,23 @@ void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer,
   SensorDriverTh::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B12101"] = values[0];
       }
-      else json["B12101"] = RawJson("null");
+      else json["B12101"] = nullptr;
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         json["B13003"] = values[1];
       }
-      else json["B13003"] = RawJson("null");
+      else json["B13003"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -1967,7 +1961,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         SERIAL_DEBUG(F("--> battery charge: %ld %%\r\n"), values[0]);
       }
       else {
@@ -1976,7 +1970,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         SERIAL_DEBUG(F("--> battery voltage: %ld V\r\n"), values[1]);
       }
       else {
@@ -1985,7 +1979,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 4) {
-      if (isValid(values[3])) {
+      if (ISVALID(values[3])) {
         SERIAL_DEBUG(F("--> battery current: %ld mA\r\n"), values[2]);
       }
       else {
@@ -1994,7 +1988,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 3) {
-      if (isValid(values[2])) {
+      if (ISVALID(values[2])) {
         SERIAL_DEBUG(F("--> input voltage: %ld V\r\n"), values[2]);
       }
       else {
@@ -2003,7 +1997,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 5) {
-      if (isValid(values[4])) {
+      if (ISVALID(values[4])) {
         SERIAL_DEBUG(F("--> input current: %ld mA\r\n"), values[4]);
       }
       else {
@@ -2012,7 +2006,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 6) {
-      if (isValid(values[5])) {
+      if (ISVALID(values[5])) {
         SERIAL_DEBUG(F("--> output voltage: %ld V\r\n"), values[5]);
       }
       else {
@@ -2034,52 +2028,51 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
   SensorDriverDigitecoPower::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B25192"] = values[0];
       }
-      else json["B25192"] = RawJson("null");
+      else json["B25192"] = nullptr;
     }
 
     if (length >= 2) {
-      if (isValid(values[1])) {
+      if (ISVALID(values[1])) {
         json["B25025"] = values[1];
       }
-      else json["B25025"] = RawJson("null");
+      else json["B25025"] = nullptr;
     }
 
     if (length >= 4) {
-      if (isValid(values[3])) {
+      if (ISVALID(values[3])) {
         json["B25193"] = values[3];
       }
-      else json["B25193"] = RawJson("null");
+      else json["B25193"] = nullptr;
     }
 
      if (length >= 3) {
-       if (isValid(values[2])) {
+       if (ISVALID(values[2])) {
          json["B25194"] = values[2];
        }
-       else json["B25194"] = RawJson("null");
+       else json["B25194"] = nullptr;
      }
 
      if (length >= 5) {
-       if (isValid(values[4])) {
+       if (ISVALID(values[4])) {
          json["B00005"] = values[4];
        }
-       else json["B00005"] = RawJson("null");
+       else json["B00005"] = nullptr;
      }
 
      if (length >= 6) {
-       if (isValid(values[5])) {
+       if (ISVALID(values[5])) {
          json["B00006"] = values[5];
        }
-       else json["B00006"] = RawJson("null");
+       else json["B00006"] = nullptr;
      }
 
-    json.printTo(json_buffer, json_buffer_length);
+     serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -2370,7 +2363,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
               // speed
               if ((variable_count == 0)) {
@@ -2436,23 +2429,22 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
   static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     #if (USE_SENSOR_DWA || USE_SENSOR_DWB)
     if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B11002"] = values[0];
         }
-        else json["B11002"] = RawJson("null");
+        else json["B11002"] = nullptr;
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           json["B11001"] = values[1];
         }
-        else json["B11001"] = RawJson("null");
+        else json["B11001"] = nullptr;
       }
     }
     #endif
@@ -2460,17 +2452,17 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWC)
     if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B11041"] = values[0];
         }
-        else json["B11041"] = RawJson("null");
+        else json["B11041"] = nullptr;
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           json["B11209"] = values[1];
         }
-        else json["B11209"] = RawJson("null");
+        else json["B11209"] = nullptr;
       }
     }
     #endif
@@ -2478,10 +2470,10 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWD)
     if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B11002"] = values[0];
         }
-        else json["B11002"] = RawJson("null");
+        else json["B11002"] = nullptr;
       }
     }
     #endif
@@ -2495,10 +2487,10 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
         JsonArray &p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < variable_length; i++) {
-          if (isValid(values[i])) {
+          if (ISVALID(values[i])) {
             p.add(values[i]);
           }
-          else p.add(RawJson("null"));;
+          else p.add(nullptr);;
         }
       }
     }
@@ -2507,22 +2499,22 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWF)
     if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B11043"] = values[0];
         }
-        else json["B11043"] = RawJson("null");
+        else json["B11043"] = nullptr;
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           json["B11210"] = values[1];
         }
-        else json["B11210"] = RawJson("null");
+        else json["B11210"] = nullptr;
       }
     }
     #endif
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -2740,7 +2732,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             values[variable_count] = (int32_t) round(val);
           }
           else {
@@ -2773,7 +2765,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> solar radiation: %ld\r\n"), values[0]);
           }
           else {
@@ -2798,21 +2790,20 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
   static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     #if (USE_SENSOR_DSA)
     if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B14198"] = values[0];
         }
-        else json["B14198"] = RawJson("null");
+        else json["B14198"] = nullptr;
       }
     }
     #endif
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -3135,7 +3126,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             values[variable_count] = (int32_t) round(val * 10.0);
           }
           else {
@@ -3157,7 +3148,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             if (variable_count >= 13) {
               val = val * 100000.0;
             }
@@ -3195,7 +3186,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             if (variable_count == 0) {
               values[variable_count] = (int32_t) round(val * 100.0) + SENSOR_DRIVER_C_TO_K;
             }
@@ -3233,7 +3224,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> PM 1: %ld\r\n"), values[0]);
           }
           else {
@@ -3242,7 +3233,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (isValid(values[1])) {
+          if (ISVALID(values[1])) {
             SERIAL_DEBUG(F("--> PM 2.5: %ld\r\n"), values[1]);
           }
           else {
@@ -3251,7 +3242,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 3) {
-          if (isValid(values[2])) {
+          if (ISVALID(values[2])) {
             SERIAL_DEBUG(F("--> PM 10: %ld\r\n"), values[2]);
           }
           else {
@@ -3264,7 +3255,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OB2 || USE_SENSOR_OB3)
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> PM 1 sigma: %ld\r\n"), values[0]);
           }
           else {
@@ -3273,7 +3264,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (isValid(values[1])) {
+          if (ISVALID(values[1])) {
             SERIAL_DEBUG(F("--> PM 2.5 sigma: %ld\r\n"), values[1]);
           }
           else {
@@ -3282,7 +3273,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 3) {
-          if (isValid(values[2])) {
+          if (ISVALID(values[2])) {
             SERIAL_DEBUG(F("--> PM 10 sigma: %ld\r\n"), values[2]);
           }
           else {
@@ -3295,7 +3286,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OC2 || USE_SENSOR_OC3)
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), variable_length - 1);
             SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
@@ -3312,7 +3303,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OD2 || USE_SENSOR_OD3)
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), variable_length - 1);
             SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
             SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
@@ -3329,7 +3320,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OE3)
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_DEBUG(F("--> Temperature: %ld\r\n"), values[0]);
           }
           else {
@@ -3338,7 +3329,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (isValid(values[1])) {
+          if (ISVALID(values[1])) {
             SERIAL_DEBUG(F("--> Humidity: %ld\r\n"), values[1]);
           }
           else {
@@ -3363,30 +3354,29 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
   static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     #if (USE_SENSOR_OA2 || USE_SENSOR_OA3 || USE_SENSOR_OB2 || USE_SENSOR_OB3)
     if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B15203"] = values[0];
         }
-        else json["B15203"] = RawJson("null");
+        else json["B15203"] = nullptr;
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           json["B15198"] = values[1];
         }
-        else json["B15198"] = RawJson("null");
+        else json["B15198"] = nullptr;
       }
 
       if (length >= 3) {
-        if (isValid(values[2])) {
+        if (ISVALID(values[2])) {
           json["B15195"] = values[2];
         }
-        else json["B15195"] = RawJson("null");
+        else json["B15195"] = nullptr;
       }
     }
     #endif
@@ -3406,10 +3396,10 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
         JsonArray &p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < variable_length; i++) {
-          if (isValid(values[i])) {
+          if (ISVALID(values[i])) {
             p.add(values[i]);
           }
-          else p.add(RawJson("null"));;
+          else p.add(nullptr);;
         }
       }
     }
@@ -3418,22 +3408,22 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
     #if (USE_SENSOR_OE3)
     if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
       if (length >= 1) {
-        if (isValid(values[0])) {
+        if (ISVALID(values[0])) {
           json["B12101"] = values[0];
         }
-        else json["B12101"] = RawJson("null");
+        else json["B12101"] = nullptr;
       }
 
       if (length >= 2) {
-        if (isValid(values[1])) {
+        if (ISVALID(values[1])) {
           json["B13003"] = values[1];
         }
-        else json["B13003"] = RawJson("null");
+        else json["B13003"] = nullptr;
       }
     }
     #endif
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif
@@ -3630,7 +3620,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && isValid(val)) {
+          if (_is_success && ISVALID(val)) {
             values[variable_count] = (uint16_t)(round(val / 10.0));
           }
           else {
@@ -3660,7 +3650,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
-          if (isValid(values[0])) {
+          if (ISVALID(values[0])) {
             SERIAL_INFO(F("--> Leaf Wet Time: %ld minutes\r\n"), values[0]);
           }
           else {
@@ -3684,17 +3674,16 @@ void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffe
   SensorDriverLeaf::get(values, length);
 
   if (_is_end && !_is_readed) {
-    StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-    JsonObject &json = buffer.createObject();
+    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (isValid(values[0])) {
+      if (ISVALID(values[0])) {
         json["B13212"] = values[0];
       }
-      else json["B13212"] = RawJson("null");
+      else json["B13212"] = nullptr;
     }
 
-    json.printTo(json_buffer, json_buffer_length);
+    serializeJson(json,json_buffer, json_buffer_length);
   }
 }
 #endif

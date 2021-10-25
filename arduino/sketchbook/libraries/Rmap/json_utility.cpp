@@ -60,31 +60,35 @@ uint8_t jsonToMqtt(const char *json, const char *mqtt_sensor, char topic[][MQTT_
   memset(topic, 0, sizeof(topic[0][0]) * MQTT_SENSOR_TOPIC_LENGTH * JSONS_TO_READ_FROM_SENSOR_COUNT);
   memset(message, 0, sizeof(message[0][0]) * MQTT_MESSAGE_LENGTH * JSONS_TO_READ_FROM_SENSOR_COUNT);
 
-  StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-  JsonObject &root = buffer.parseObject(json);
+  StaticJsonDocument<JSON_BUFFER_LENGTH> doc;
+  DeserializationError error = deserializeJson(doc,json);
+  if (error) {
+    // Error reading json data: error.c_str();
+    return i;
+  }
 
-  for (JsonObject::iterator it=root.begin(); it!=root.end(); ++it) {
-    if (strcmp(it->key, "d") == 0) {
+  for (JsonPair it : doc.as<JsonObject>()) {
+    if (strcmp(it.key().c_str(), "d") == 0) {
       snprintf(&topic[i][0], MQTT_SENSOR_TOPIC_LENGTH, "%s", mqtt_sensor);
-      snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"d\":%ld,\"p\":", it->value.as<int32_t>());
+      snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"d\":%ld,\"p\":", it.value().as<int32_t>());
     }
-    else if (strcmp(it->key, "p") == 0) {
-      if (it->value.is<JsonArray>()) {
-        JsonArray &array = it->value.as<JsonArray>();
-        array.printTo((char *)(&message[i][0] + strlen(&message[i][0])), MQTT_MESSAGE_LENGTH);
+    else if (strcmp(it.key().c_str(), "p") == 0) {
+      if (it.value().is<JsonArray>()) {
+        JsonArray array = it.value().as<JsonArray>();
+        serializeJson (array,(char *)(&message[i][0] + strlen(&message[i][0])), MQTT_MESSAGE_LENGTH);
       }
 
       snprintf(&message[i][0] + strlen(&message[i][0]), MQTT_MESSAGE_LENGTH - strlen(&message[i][0]), ",\"t\":\"%04u-%02u-%02uT%02u:%02u:%02u\"}", tmYearToCalendar(sensor_reading_time->Year), sensor_reading_time->Month, sensor_reading_time->Day, sensor_reading_time->Hour, sensor_reading_time->Minute, sensor_reading_time->Second);
       i++;
     }
     else {
-      snprintf(&topic[i][0], MQTT_SENSOR_TOPIC_LENGTH, "%s%s", mqtt_sensor, it->key);
+      snprintf(&topic[i][0], MQTT_SENSOR_TOPIC_LENGTH, "%s%s", mqtt_sensor, it.key().c_str());
 
-      if (it->value.as<char*>() == NULL) {
+      if (it.value().isNull()) {
         snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"v\":null,\"t\":\"");
       }
       else {
-        snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"v\":%ld,\"t\":\"", it->value.as<int32_t>());
+        snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"v\":%ld,\"t\":\"", it.value().as<int32_t>());
       }
 
       snprintf(&message[i][0] + strlen(&message[i][0]), MQTT_MESSAGE_LENGTH - strlen(&message[i][0]), "%04u-%02u-%02uT%02u:%02u:%02u\"}", tmYearToCalendar(sensor_reading_time->Year), sensor_reading_time->Month, sensor_reading_time->Day, sensor_reading_time->Hour, sensor_reading_time->Minute, sensor_reading_time->Second);
@@ -102,9 +106,18 @@ time_t getDateFromMessage(char *message) {
    uint8_t dt[3];
    uint8_t delimiter = (uint8_t) strcspn(message, "{");
    strcpy(temp, message + delimiter);
-   StaticJsonBuffer<JSON_BUFFER_LENGTH> buffer;
-   JsonObject &root = buffer.parseObject(temp);
-   const char *datetime = root.get<const char*>("t");
+
+   StaticJsonDocument<JSON_BUFFER_LENGTH> doc;
+   /*
+   DeserializationError error = deserializeJson(doc,temp);
+   if (error) {
+     // Error reading json data: error.c_str();
+     return i;
+   }
+   */
+   deserializeJson(doc,temp);
+   const char *datetime = doc["t"];
+   
    delimiter = (uint8_t) strcspn(datetime, "T");
    strncpy(str_buffer, datetime+2, delimiter);
    str_buffer[delimiter] = '\0';

@@ -58,7 +58,7 @@ public:
    #endif
 
    void registerMethod(const char* methodName, int (*callback)(JsonObject &, JsonObject &));
-   int processMessage(JsonObject &msg);
+   int processMessage(JsonObject msg);
 
 private:
    FuncMap mymap;

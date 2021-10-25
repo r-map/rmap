@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "stima_module.h"
 
-#define isValid(v)      ((uint16_t) v != UINT16_MAX)
+#define ISVALID(v)      ((uint16_t) v != UINT16_MAX)
 
 /*!
 \fn void getStimaNameByType(char *name, uint8_t type)

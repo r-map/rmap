@@ -294,7 +294,7 @@ float Opcn2::getBinAtIndex(uint16_t index) {
 
 float Opcn2::getBinNormalizedAtIndex(uint16_t index) {
   float bin = (float) UINT16_MAX;
-  if (isValid(histogram.bins[index])) {
+  if (ISVALID(histogram.bins[index])) {
     bin = (float) histogram.bins[index];
     bin = (bin / histogram.sample_flow_rate);
   }
@@ -630,7 +630,7 @@ float Opcn3::getBinAtIndex(uint16_t index) {
 
 float Opcn3::getBinNormalizedAtIndex(uint16_t index) {
   float bin = (float) UINT16_MAX;
-  if (isValid(histogram.bins[index])) {
+  if (ISVALID(histogram.bins[index])) {
     bin = (float) histogram.bins[index];
     bin = (bin / histogram.sample_flow_rate);
   }

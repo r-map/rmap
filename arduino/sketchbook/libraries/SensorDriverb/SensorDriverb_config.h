@@ -19,7 +19,7 @@
 // this the value for http and report
 #define MAXDELAYFORREAD 60000
 
-#if defined(ARDUINO_ARCH_ESP8266)
+#if defined(ARDUINO_ARCH_ESP8266) || defined(ARDUINO_D1_MINI32)
 // use aarduinojson library for json response
 #define USEARDUINOJSON
 #else

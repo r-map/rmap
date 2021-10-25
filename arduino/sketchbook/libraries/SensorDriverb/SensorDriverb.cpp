@@ -495,21 +495,20 @@ aJsonObject* SensorDriverAdt7420::getJson()
 int SensorDriverAdt7420::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[1];
-  StaticJsonBuffer<100> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<100> doc;
 
   if (get(values,1) == SD_SUCCESS){
     if (values[0] >= 0){
-      jsonvalues["B12101"]= values[0];      
+      doc["B12101"]= values[0];      
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
 
   }else{
-    jsonvalues["B12101"]=RawJson("null");
+    doc["B12101"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -924,32 +923,31 @@ aJsonObject* SensorDriverHih6100::getJson()
 int SensorDriverHih6100::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[1];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,1) == SD_SUCCESS){
     if (values[0] >= 0){
-      jsonvalues["B13003"]= values[0];      
+      doc["B13003"]= values[0];      
     }else{
-      jsonvalues["B13003"]=RawJson("null");
+      doc["B13003"]=serialized("null");
     }
 #if defined(SECONDARYPARAMETER)
     // if you have a second value add here
     if (values[1] >= 0){
-      jsonvalues["B12101"]= values[1];      
+      doc["B12101"]= values[1];      
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
 #endif    
   }else{
-    jsonvalues["B13003"]=RawJson("null");
+    doc["B13003"]=serialized("null");
 #if defined(SECONDARYPARAMETER)
     // if you have a second value add here
-    jsonvalues["B12101"]=RawJson("null");
+    doc["B12101"]=serialized("null");
 #endif
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -1364,31 +1362,30 @@ aJsonObject* SensorDriverBmp085::getJson()
 int SensorDriverBmp085::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B10004"]= values[0];
+      doc["B10004"]= values[0];
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
 
 #if defined(SECONDARYPARAMETER)
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B10004"]= values[1];
+      doc["B10004"]= values[1];
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
 #endif
   }else{
-    jsonvalues["B10004"]=RawJson("null");
+    doc["B10004"]=serialized("null");
 #if defined(SECONDARYPARAMETER)
-    jsonvalues["B12101"]=RawJson("null");
+    doc["B12101"]=serialized("null");
 #endif
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -2903,28 +2900,27 @@ aJsonObject* SensorDriverSDS011oneshot::getJson()
 int SensorDriverSDS011oneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      jsonvalues["B15198"]= values[0];      
+      doc["B15198"]= values[0];      
     }else{
-      jsonvalues["B15198"]=RawJson("null");
+      doc["B15198"]=serialized("null");
     }
 
     if (values[1] >= 0){
-      jsonvalues["B15195"]= values[1];
+      doc["B15195"]= values[1];
     }else{
-      jsonvalues["B15195"]=RawJson("null");
+      doc["B15195"]=serialized("null");
     }
 
   }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
+    doc["B15198"]=serialized("null");
+    doc["B15195"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -3081,28 +3077,27 @@ aJsonObject* SensorDriverSDS011oneshotSerial::getJson()
 int SensorDriverSDS011oneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[0];      
+      doc["B15198"]= values[0];      
     }else{
-      jsonvalues["B15198"]=RawJson("null");
+      doc["B15198"]=serialized("null");
     }
 
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[1];
+      doc["B15195"]= values[1];
     }else{
-      jsonvalues["B15195"]=RawJson("null");
+      doc["B15195"]=serialized("null");
     }
 
   }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
+    doc["B15198"]=serialized("null");
+    doc["B15195"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -4100,28 +4095,27 @@ aJsonObject* SensorDriverMICS4514oneshot::getJson()
 int SensorDriverMICS4514oneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      jsonvalues["B15196"]= values[0];      
+      doc["B15196"]= values[0];      
     }else{
-      jsonvalues["B15196"]=RawJson("null");
+      doc["B15196"]=serialized("null");
     }
 
     if (values[1] >= 0){
-      jsonvalues["B15193"]= values[1];
+      doc["B15193"]= values[1];
     }else{
-      jsonvalues["B15193"]=RawJson("null");
+      doc["B15193"]=serialized("null");
     }
 
   }else{
-    jsonvalues["B15196"]=RawJson("null");
-    jsonvalues["B15193"]=RawJson("null");
+    doc["B15196"]=serialized("null");
+    doc["B15193"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -5107,28 +5101,27 @@ aJsonObject* SensorDriverHPMoneshotSerial::getJson()
 int SensorDriverHPMoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[0];      
+      doc["B15198"]= values[0];      
     }else{
-      jsonvalues["B15198"]=RawJson("null");
+      doc["B15198"]=serialized("null");
     }
 
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[1];
+      doc["B15195"]= values[1];
     }else{
-      jsonvalues["B15195"]=RawJson("null");
+      doc["B15195"]=serialized("null");
     }
 
   }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
+    doc["B15198"]=serialized("null");
+    doc["B15195"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -5372,72 +5365,71 @@ aJsonObject* SensorDriverPMSoneshotSerial::getJson()
 int SensorDriverPMSoneshotSerial::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[9];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,9) == SD_SUCCESS){
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[0];      
+      doc["B15198"]= values[0];      
     }else{
-      jsonvalues["B15198"]=RawJson("null");
+      doc["B15198"]=serialized("null");
     }
 
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[1];
+      doc["B15195"]= values[1];
     }else{
-      jsonvalues["B15195"]=RawJson("null");
+      doc["B15195"]=serialized("null");
     }
 
     if ((uint32_t) values[2] != 0xFFFFFFFF){
-      jsonvalues["B15203"]= values[2];
+      doc["B15203"]= values[2];
     }else{
-      jsonvalues["B15203"]=RawJson("null");
+      doc["B15203"]=serialized("null");
     }
 
     if ((uint32_t) values[3] != 0xFFFFFFFF){
-      jsonvalues["B49192"]= values[3];
+      doc["B49192"]= values[3];
     }else{
-      jsonvalues["B49192"]=RawJson("null");
+      doc["B49192"]=serialized("null");
     }
     if ((uint32_t) values[4] != 0xFFFFFFFF){
-      jsonvalues["B49193"]= values[4];
+      doc["B49193"]= values[4];
     }else{
-      jsonvalues["B49193"]=RawJson("null");
+      doc["B49193"]=serialized("null");
     }
     if ((uint32_t) values[5] != 0xFFFFFFFF){
-      jsonvalues["B49194"]= values[5];
+      doc["B49194"]= values[5];
     }else{
-      jsonvalues["B49194"]=RawJson("null");
+      doc["B49194"]=serialized("null");
     }
     if ((uint32_t) values[6] != 0xFFFFFFFF){
-      jsonvalues["B49195"]= values[6];
+      doc["B49195"]= values[6];
     }else{
-      jsonvalues["B49195"]=RawJson("null");
+      doc["B49195"]=serialized("null");
     }
     if ((uint32_t) values[7] != 0xFFFFFFFF){
-      jsonvalues["B49196"]= values[7];
+      doc["B49196"]= values[7];
     }else{
-      jsonvalues["B49196"]=RawJson("null");
+      doc["B49196"]=serialized("null");
     }
     if ((uint32_t) values[8] != 0xFFFFFFFF){
-      jsonvalues["B49197"]= values[8];
+      doc["B49197"]= values[8];
     }else{
-      jsonvalues["B49197"]=RawJson("null");
+      doc["B49197"]=serialized("null");
     }
     
   }else{
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
-    jsonvalues["B15203"]=RawJson("null");
-    jsonvalues["B49192"]=RawJson("null");
-    jsonvalues["B49193"]=RawJson("null");
-    jsonvalues["B49194"]=RawJson("null");
-    jsonvalues["B49195"]=RawJson("null");
-    jsonvalues["B49196"]=RawJson("null");
-    jsonvalues["B49197"]=RawJson("null");
+    doc["B15198"]=serialized("null");
+    doc["B15195"]=serialized("null");
+    doc["B15203"]=serialized("null");
+    doc["B49192"]=serialized("null");
+    doc["B49193"]=serialized("null");
+    doc["B49194"]=serialized("null");
+    doc["B49195"]=serialized("null");
+    doc["B49196"]=serialized("null");
+    doc["B49197"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -5626,39 +5618,38 @@ aJsonObject* SensorDriverSCDoneshot::getJson()
 int SensorDriverSCDoneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[3];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,3) == SD_SUCCESS){
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15242"]= values[0];      
+      doc["B15242"]= values[0];      
     }else{
-      jsonvalues["B15242"]=RawJson("null");
+      doc["B15242"]=serialized("null");
     }
 
 #if defined(SECONDARYPARAMETER)
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B12101"]= values[1];
+      doc["B12101"]= values[1];
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
 
     if ((uint32_t) values[2] != 0xFFFFFFFF){
-      jsonvalues["B13003"]= values[2];
+      doc["B13003"]= values[2];
     }else{
-      jsonvalues["B13003"]=RawJson("null");
+      doc["B13003"]=serialized("null");
     }
 #endif
 
   }else{
-    jsonvalues["B15242"]=RawJson("null");
+    doc["B15242"]=serialized("null");
 #if defined(SECONDARYPARAMETER)
-    jsonvalues["B12101"]=RawJson("null");
-    jsonvalues["B13003"]=RawJson("null");
+    doc["B12101"]=serialized("null");
+    doc["B13003"]=serialized("null");
 #endif
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -5801,28 +5792,27 @@ aJsonObject* SensorDriverSHT85::getJson()
 int SensorDriverSHT85::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[2];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (get(values,2) == SD_SUCCESS){
     if (values[0] >= 0){
-      jsonvalues["B12101"]= values[0];      
+      doc["B12101"]= values[0];      
     }else{
-      jsonvalues["B12101"]=RawJson("null");
+      doc["B12101"]=serialized("null");
     }
     // if you have a second value add here
     if (values[1] >= 0){
-      jsonvalues["B13003"]= values[1];      
+      doc["B13003"]= values[1];      
     }else{
-      jsonvalues["B13003"]=RawJson("null");
+      doc["B13003"]=serialized("null");
     }
   }else{
-    jsonvalues["B12101"]=RawJson("null");
+    doc["B12101"]=serialized("null");
     // if you have a second value add here
-    jsonvalues["B13003"]=RawJson("null");
+    doc["B13003"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif
@@ -6109,69 +6099,68 @@ aJsonObject* SensorDriverSPSoneshot::getJson()
 int SensorDriverSPSoneshot::getJson(char *json_buffer, size_t json_buffer_length)
 {
   uint32_t values[9];
-  StaticJsonBuffer<200> jsonBuffer;
-  JsonObject& jsonvalues = jsonBuffer.createObject();
+  StaticJsonDocument<200> doc;
 
   if (SensorDriverSPSoneshot::get(values,9) == SD_SUCCESS){
 
     if ((uint32_t)values[0] != 0xFFFFFFFF){
-      jsonvalues["B15203"]= values[0];      
+      doc["B15203"]= values[0];      
     }else{
-      jsonvalues["B15203"]=RawJson("null");
+      doc["B15203"]=serialized("null");
     }
     if ((uint32_t) values[1] != 0xFFFFFFFF){
-      jsonvalues["B15198"]= values[1];
+      doc["B15198"]= values[1];
     }else{
-      jsonvalues["B15198"]=RawJson("null");
+      doc["B15198"]=serialized("null");
     }
     if ((uint32_t) values[2] != 0xFFFFFFFF){
-      jsonvalues["B15202"]= values[2];
+      doc["B15202"]= values[2];
     }else{
-      jsonvalues["B15202"]=RawJson("null");
+      doc["B15202"]=serialized("null");
     }
     if ((uint32_t) values[3] != 0xFFFFFFFF){
-      jsonvalues["B15195"]= values[3];
+      doc["B15195"]= values[3];
     }else{
-      jsonvalues["B15195"]=RawJson("null");
+      doc["B15195"]=serialized("null");
     }    
     if ((uint32_t) values[4] != 0xFFFFFFFF){
-      jsonvalues["B49193"]= values[4];
+      doc["B49193"]= values[4];
     }else{
-      jsonvalues["B49193"]=RawJson("null");
+      doc["B49193"]=serialized("null");
     }
     if ((uint32_t) values[5] != 0xFFFFFFFF){
-      jsonvalues["B49194"]= values[5];
+      doc["B49194"]= values[5];
     }else{
-      jsonvalues["B49194"]=RawJson("null");
+      doc["B49194"]=serialized("null");
     }
     if ((uint32_t) values[6] != 0xFFFFFFFF){
-      jsonvalues["B49195"]= values[6];
+      doc["B49195"]= values[6];
     }else{
-      jsonvalues["B49195"]=RawJson("null");
+      doc["B49195"]=serialized("null");
     }
     if ((uint32_t) values[7] != 0xFFFFFFFF){
-      jsonvalues["B49196"]= values[7];
+      doc["B49196"]= values[7];
     }else{
-      jsonvalues["B49196"]=RawJson("null");
+      doc["B49196"]=serialized("null");
     }
     if ((uint32_t) values[8] != 0xFFFFFFFF){
-      jsonvalues["B49197"]= values[8];
+      doc["B49197"]= values[8];
     }else{
-      jsonvalues["B49197"]=RawJson("null");
+      doc["B49197"]=serialized("null");
     }
   }else{
-    jsonvalues["B15203"]=RawJson("null");
-    jsonvalues["B15198"]=RawJson("null");
-    jsonvalues["B15202"]=RawJson("null");
-    jsonvalues["B15195"]=RawJson("null");
-    jsonvalues["B49193"]=RawJson("null");
-    jsonvalues["B49194"]=RawJson("null");
-    jsonvalues["B49195"]=RawJson("null");
-    jsonvalues["B49196"]=RawJson("null");
-    jsonvalues["B49197"]=RawJson("null");
+    doc["B15203"]=serialized("null");
+    doc["B15198"]=serialized("null");
+    doc["B15202"]=serialized("null");
+    doc["B15195"]=serialized("null");
+    doc["B49193"]=serialized("null");
+    doc["B49194"]=serialized("null");
+    doc["B49195"]=serialized("null");
+    doc["B49196"]=serialized("null");
+    doc["B49197"]=serialized("null");
   }
 
-  jsonvalues.printTo(json_buffer, json_buffer_length);
+  serializeJson(doc,json_buffer, json_buffer_length);
   return SD_SUCCESS;
 }
 #endif

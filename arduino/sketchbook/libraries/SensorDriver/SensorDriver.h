@@ -49,7 +49,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SENSOR_DRIVER_C_TO_K      (27315l)
 
-#define isValid(v)                ((uint16_t) v != UINT16_MAX)
+#define ISVALID(v)                ((uint16_t) v != UINT16_MAX)
 
 #if (USE_JSON)
 #include <json_config.h>

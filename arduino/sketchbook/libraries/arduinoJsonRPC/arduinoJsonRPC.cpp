@@ -24,7 +24,7 @@ void JsonRPC::registerMethod(const char* methodName, int (*callback)(JsonObject 
    }
 }
 
-int JsonRPC::processMessage(JsonObject &msg) {
+int JsonRPC::processMessage(JsonObject msg) {
    int status = E_SUCCESS;
 
    if (!msg.containsKey(radio ? F("i") : F("id"))) {
@@ -51,7 +51,7 @@ int JsonRPC::processMessage(JsonObject &msg) {
 
             #elif (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
                memset(input_buffer, 0, JRPC_BUFFER_LENGTH);
-               msg.printTo(input_buffer, JRPC_BUFFER_LENGTH);
+               serializeJson(msg,input_buffer, JRPC_BUFFER_LENGTH);
                status = E_BUSY;
 
             #endif
@@ -62,7 +62,7 @@ int JsonRPC::processMessage(JsonObject &msg) {
 
    if (status != E_BUSY && status != E_SUCCESS) {
       msg.remove(radio ? F("r") : F("result"));
-      JsonObject &error = msg.createNestedObject(radio ? "e" : "error");
+      JsonObject error = msg.createNestedObject(radio ? "e" : "error");
       error[radio ? F("c") : F("code")] = status;
 
       if (radio == 0) {
@@ -103,17 +103,17 @@ int JsonRPC::parseStream(bool *is_active, Stream *stream, uint32_t timeout) {
          interrupts();
 
          if (do_stream_read) {
-            StaticJsonBuffer<JRPC_BUFFER_LENGTH> jsonBuffer;
-            JsonObject &msg = jsonBuffer.parse(*stream);
-            if (msg.success()) {
-               status = processMessage(msg);
-               if (status != E_BUSY && status != E_SUCCESS) {
-                  msg.printTo(*stream);
-                  jrpc_state = JRPC_END;
-               }
-               else {
-                  jrpc_state = JRPC_PROCESS;
-               }
+            StaticJsonDocument<JRPC_BUFFER_LENGTH> doc;
+            DeserializationError error =  deserializeJson(doc,*stream);
+            if (!error) {
+	      status = processMessage(doc.as<JsonObject>());
+	      if (status != E_BUSY && status != E_SUCCESS) {
+		serializeJson(doc,*stream);
+		jrpc_state = JRPC_END;
+	      }
+	      else {
+		jrpc_state = JRPC_PROCESS;
+	      }
             }
             noInterrupts();
             do_stream_read = false;
@@ -145,17 +145,17 @@ int JsonRPC::parseStream(bool *is_active, Stream *stream, uint32_t timeout) {
 }
 
 int JsonRPC::callback(Stream *stream) {
-   StaticJsonBuffer<JRPC_BUFFER_LENGTH> jsonBuffer;
-   JsonObject &msg = jsonBuffer.parseObject((const char*)input_buffer);
-   JsonObject &params = msg[radio ? F("p") : F("params")];
-   msg.remove(radio? F("p") : F("params"));
-   JsonObject &result = msg.createNestedObject(radio ? F("r") : F("result"));
+   StaticJsonDocument<JRPC_BUFFER_LENGTH> doc;
+   deserializeJson(doc,(const char*)input_buffer);
+   JsonObject params = doc[radio ? F("p") : F("params")];
+   doc.remove(radio? F("p") : F("params"));
+   JsonObject result = doc.createNestedObject(radio ? F("r") : F("result"));
 
    int status = mapping->callback(params, result);
 
    if (status != E_BUSY && status != E_SUCCESS) {
-      msg.remove(radio ? F("r") : F("result"));
-      JsonObject &error = msg.createNestedObject(radio ? "e" : "error");
+      doc.remove(radio ? F("r") : F("result"));
+      JsonObject error = doc.createNestedObject(radio ? "e" : "error");
       error[radio ? F("c") : F("code")] = status;
 
       if (radio == 0) {
@@ -164,7 +164,7 @@ int JsonRPC::callback(Stream *stream) {
    }
 
    if (status != E_BUSY) {
-      msg.printTo(*stream);
+     serializeJson(doc,*stream);
    }
 
    return status;

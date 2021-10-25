@@ -85,7 +85,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define OPCNXX_STRING                             (OPCN3_STRING)
 #endif
 
-#define isValid(v)                                (((uint16_t) v != UINT16_MAX) && (!isnan(v)))
+#define ISVALID(v)                                (((uint16_t) v != UINT16_MAX) && (!isnan(v)))
 
 /*!
 \enum opcxx_command_state_t
