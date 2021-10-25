@@ -1,4 +1,3 @@
-
 /*
 Copyright (C) 2021  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
@@ -413,49 +412,6 @@ void saveConfigCallback () {
   shouldSaveConfig = true;
 }
 
-unsigned int coordCharToInt(char* lat){
-  String mylat(lat);
-
-  char sep[]=".";
-  // without "." or ","
-  if (mylat.indexOf(".") < 0 ) {
-    if (mylat.indexOf(".") < 0 ) return 0;
-    strcpy(sep,",");
-  }
-  // separator sep found
-  
-  mylat=mylat.substring(0,mylat.indexOf(sep));
-  mylat.trim();
-  int latdegree =mylat.toInt();
-
-  mylat=lat;
-  mylat=mylat.substring(mylat.indexOf(sep)+1);
-  mylat.trim();
-  mylat=mylat.substring(0,5);
-  uint8_t missed0=5-mylat.length();
-  for (uint8_t i = 0; i < (missed0); i++){
-    mylat+= String("0");
-  }
-  if ( latdegree > 0)
-    {
-      return latdegree*100000+mylat.toInt();
-    }
-  else
-    {
-      return latdegree*100000-mylat.toInt();
-    }
-}
-
-const char* coordIntToChar(int lat){
-  if ( lat == 0) return "";
-  
-  String mylat=String(lat/100000);
-  mylat+=".";
-  mylat+=String(lat-((lat/100000)*100000));
-  return mylat.c_str();
-}
-
-
 String  rmap_get_remote_config(){
   
   String payload;
@@ -498,17 +454,12 @@ bool publish_maint() {
     
   LOGN(F("Connet to mqtt broker" CR));
 
-  char longitude [10];
-  char latitude [10];
-  itoa (coordCharToInt(rmap_longitude),longitude,10);
-  itoa (coordCharToInt(rmap_latitude),latitude,10);
-  
   char mqttid[100]="";
   strcat(mqttid,rmap_user);
   strcat(mqttid,"/");
-  strcat(mqttid,longitude);
+  strcat(mqttid,rmap_longitude);
   strcat(mqttid,",");
-  strcat(mqttid,latitude);
+  strcat(mqttid,rmap_latitude);
   strcat(mqttid,"/");
   strcat(mqttid,rmap_network);
   
@@ -542,23 +493,16 @@ bool publish_maint() {
 bool publish_data(const char* values, const char* timerange, const char* level) {
   
   char topic[100]="";
-  StaticJsonBuffer<500> jsonBuffer;
-
-  char longitude [10];
-  char latitude [10];
-  itoa (coordCharToInt(rmap_longitude),longitude,10);
-  itoa (coordCharToInt(rmap_latitude),latitude,10);
+  StaticJsonDocument<500> doc;
 
   LOGN(F("have to publish: %s" CR),values);
-
-  JsonObject& json =jsonBuffer.parseObject(values);
-  if (!json.success()) {
-    LOGE(F("reading json data" CR));
+  DeserializationError error = deserializeJson(doc,values);
+  if (error) {
+    LOGE(F("reading json data: %s" CR),error.c_str());
     return false;
   }
-  for (JsonPair& pair : json) {
-
-    if (pair.value.as<char*>() == NULL){
+  for (JsonPair pair : doc.as<JsonObject>()) {
+    if (pair.value().isNull()){
       /*
       analogWriteFreq(2);
       analogWrite(LED_PIN,512);
@@ -570,17 +514,20 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
       */
       continue;
     }
+
     char payload[100]="{\"v\":";
-    strcat(payload,pair.value.as<char*>());
+    char value[33];
+    itoa(pair.value().as<uint32_t>(),value,10);
+    strcat(payload,value);
     strcat(payload,"}");
-      
+    
     strcpy(topic,rmap_mqttrootpath);
     strcat(topic,"/");
     strcat(topic,rmap_user);
     strcat(topic,"/");  
-    strcat(topic,longitude);
+    strcat(topic,rmap_longitude);
     strcat(topic,",");
-    strcat(topic,latitude);
+    strcat(topic,rmap_latitude);
     strcat(topic,"/");
     strcat(topic,rmap_network);
     strcat(topic,"/");
@@ -588,7 +535,7 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
     strcat(topic,"/");
     strcat(topic,level);
     strcat(topic,"/");
-    strcat(topic,pair.key);
+    strcat(topic,pair.key().c_str());
 
     LOGN(F("mqtt publish: %s %s" CR),topic,payload);
     if (!mqttclient.publish(topic, payload)){
@@ -603,13 +550,12 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
 
 void firmware_upgrade() {
 
-  StaticJsonBuffer<200> jsonBuffer; 
-  JsonObject& root = jsonBuffer.createObject();
-  root["ver"] = SOFTWARE_VERSION;
-  root["user"] = rmap_user;
-  root["slug"] = rmap_slug;
+  StaticJsonDocument<200> doc; 
+  doc["ver"] = SOFTWARE_VERSION;
+  doc["user"] = rmap_user;
+  doc["slug"] = rmap_slug;
   char buffer[256];
-  root.printTo(buffer, sizeof(buffer));
+  deserializeJson(doc, buffer, sizeof(buffer));
   LOGN(F("url for firmware update: %s" CR),update_url);
   LOGN(F("version for firmware update: %s" CR),buffer);
 
@@ -627,7 +573,7 @@ void firmware_upgrade() {
   switch(ret)
     {
     case HTTP_UPDATE_FAILED:
-      LOGE(F("[update] Update failed." CR));
+      LOGE(F("[update] Update failed with message:" CR));
       LOGE(F("%s" CR),ESPhttpUpdate.getLastErrorString().c_str());
       if (oledpresent) {
 	u8g2.setCursor(0, 20); 
@@ -744,28 +690,37 @@ int  rmap_config(String payload){
   int ii = 0;
 
   if (! (payload == String())) {
-    //StaticJsonBuffer<2900> jsonBuffer;
-    DynamicJsonBuffer jsonBuffer(4000);
+    //StaticJsonDocument<2900> jsonBuffer;
+    DynamicJsonDocument doc(4000);
     status = 3;
-    JsonArray& array = jsonBuffer.parseArray(payload);
-    if (array.success()){
-      for (uint8_t i = 0; i < array.size(); i++) {
-	if  (array[i]["model"] == "stations.stationmetadata"){
-	  if (array[i]["fields"]["active"]){
+    DeserializationError error = deserializeJson(doc,payload);
+    if (!error){
+      JsonArrayConst array = doc.as<JsonArray>();
+      LOGN(F("array: %d" CR),array.size());
+      //for (uint8_t i = 0; i < array.size(); i++) {
+      for(JsonObjectConst element: array){
+	
+	if  (element["model"] == "stations.stationmetadata"){
+	  if (element["fields"]["active"]){
 	    LOGN(F("station metadata found!" CR));
-	    strncpy (rmap_mqttrootpath, array[i]["fields"]["mqttrootpath"].as< const char*>(),10);
+	    strncpy (rmap_mqttrootpath, element["fields"]["mqttrootpath"].as< const char*>(),9);
 	    rmap_mqttrootpath[9]='\0';
 	    LOGN(F("mqttrootpath: %s" CR),rmap_mqttrootpath);
-	    strncpy (rmap_mqttmaintpath, array[i]["fields"]["mqttmaintpath"].as< const char*>(),10);
+	    strncpy (rmap_mqttmaintpath, element["fields"]["mqttmaintpath"].as< const char*>(),9);
 	    rmap_mqttmaintpath[9]='\0';
 	    LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
-	    strncpy (rmap_longitude, array[i]["fields"]["lon"].as< const char*>(),10);
-	    rmap_longitude[10]='\0';
+
+	    //strncpy (rmap_longitude, element["fields"]["lon"].as<const char*>(),10);
+	    //rmap_longitude[10]='\0';
+	    itoa(int(element["fields"]["lon"].as<float>()*100000),rmap_longitude,10);
 	    LOGN(F("lon: %s" CR),rmap_longitude);
-	    strncpy (rmap_latitude , array[i]["fields"]["lat"].as< const char*>(),10);
-	    rmap_latitude[10]='\0';
+
+	    //strncpy (rmap_latitude , element["fields"]["lat"].as<const char*>(),10);
+	    //rmap_latitude[10]='\0';
+	    itoa(int(element["fields"]["lat"].as<float>()*100000),rmap_latitude,10);
 	    LOGN(F("lat: %s" CR),rmap_latitude);
-	    strncpy (rmap_network , array[i]["fields"]["network"].as< const char*>(),30);
+	    
+	    strncpy (rmap_network , element["fields"]["network"].as< const char*>(),30);
 	    rmap_network[30]='\0';
 	    LOGN(F("network: %s" CR),rmap_network);
 	    
@@ -773,19 +728,19 @@ int  rmap_config(String payload){
 	  }
 	}
 
-	if  (array[i]["model"] == "stations.sensor"){
-	  if (array[i]["fields"]["active"]){
+	if  (element["model"] == "stations.sensor"){
+	  if (element["fields"]["active"]){
 	    if (ii < SENSORS_LEN) {
 	      LOGN(F("station sensor found!" CR));
-	      strncpy (sensors[ii].driver , array[i]["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN-1);
+	      strncpy (sensors[ii].driver , element["fields"]["driver"].as< const char*>(),SENSORDRIVER_DRIVER_LEN);
 	      LOGN(F("driver: %s" CR),sensors[ii].driver);
-	      strncpy (sensors[ii].type , array[i]["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN-1);
+	      strncpy (sensors[ii].type , element["fields"]["type"][0].as< const char*>(),SENSORDRIVER_TYPE_LEN);
 	      LOGN(F("type: %s" CR),sensors[ii].type);
-	      strncpy (sensors[ii].timerange, array[i]["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN-1);
+	      strncpy (sensors[ii].timerange, element["fields"]["timerange"].as< const char*>(),SENSORDRIVER_META_LEN);
 	      LOGN(F("timerange: %s" CR),sensors[ii].timerange);
-	      strncpy (sensors[ii].level, array[i]["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN-1);
+	      strncpy (sensors[ii].level, element["fields"]["level"].as< const char*>(),SENSORDRIVER_META_LEN);
 	      LOGN(F("level: %s" CR),sensors[ii].level);
-	      sensors[ii].address = array[i]["fields"]["address"];	    
+	      sensors[ii].address = element["fields"]["address"];	    
 	      LOGN(F("address: %d" CR),sensors[ii].address);
 
 	      if (strcmp(sensors[ii].type,"PMS")==0) pmspresent=true;
@@ -809,7 +764,7 @@ int  rmap_config(String payload){
 
       }
     } else {
-      LOGE(F("error parsing array" CR));
+      LOGE(F("error parsing array: %s" CR),error.c_str());
       analogWrite(LED_PIN,973);
       delay(5000);
       status = 2;
@@ -836,24 +791,22 @@ void readconfig_SPIFFS() {
       std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        StaticJsonBuffer<500> jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        if (json.success()) {
-          LOGN(F("parsed json" CR));
+        StaticJsonDocument<500> doc;
+        DeserializationError error = deserializeJson(doc,buf.get());
+	if (!error) {
 	  //json.printTo(Serial);
-
-	  //if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
-	  //if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
-          if (json.containsKey("rmap_server")) strcpy(rmap_server, json["rmap_server"]);
-          if (json.containsKey("rmap_user")) strcpy(rmap_user, json["rmap_user"]);
-          if (json.containsKey("rmap_password")) strcpy(rmap_password, json["rmap_password"]);
-          if (json.containsKey("rmap_slug")) strcpy(rmap_slug, json["rmap_slug"]);
-	  if (json.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
-	  if (json.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
+	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
+	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
+          if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
+          if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
+          if (doc.containsKey("rmap_slug")) strcpy(rmap_slug, doc["rmap_slug"]);
+	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, doc["rmap_mqttrootpath"]);
+	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
 	  LOGN(F("loaded config parameter:" CR));
-	  //LOGN(F("longitude: %s" CR),rmap_longitude);
-	  //LOGN(F("latitude: %s" CR),rmap_latitude);
+	  LOGN(F("longitude: %s" CR),rmap_longitude);
+	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
@@ -862,7 +815,7 @@ void readconfig_SPIFFS() {
 	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
 	  
         } else {
-          LOGE(F("failed to load json config" CR));
+          LOGE(F("failed to deserialize json config %s" CR),error.c_str());
         }
       } else {
 	LOGE(F("erro reading config file" CR));	
@@ -923,24 +876,23 @@ void readconfig() {
       std::unique_ptr<char[]> buf(new char[size]);
 
         configFile.readBytes(buf.get(), size);
-        StaticJsonBuffer<500> jsonBuffer;
-        JsonObject& json = jsonBuffer.parseObject(buf.get());
-        if (json.success()) {
-          LOGN(F("parsed json" CR));
+        StaticJsonDocument<500> doc;
+        DeserializationError error = deserializeJson(doc,buf.get());
+	if (!error) {
 	  //json.printTo(Serial);
 
-	  //if (json.containsKey("rmap_longitude"))strcpy(rmap_longitude, json["rmap_longitude"]);
-	  //if (json.containsKey("rmap_latitude")) strcpy(rmap_latitude, json["rmap_latitude"]);
-          if (json.containsKey("rmap_server")) strcpy(rmap_server, json["rmap_server"]);
-          if (json.containsKey("rmap_user")) strcpy(rmap_user, json["rmap_user"]);
-          if (json.containsKey("rmap_password")) strcpy(rmap_password, json["rmap_password"]);
-          if (json.containsKey("rmap_slug")) strcpy(rmap_slug, json["rmap_slug"]);
-	  if (json.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, json["rmap_mqttrootpath"]);
-	  if (json.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, json["rmap_mqttmaintpath"]);
+	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
+	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
+          if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
+          if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
+          if (doc.containsKey("rmap_slug")) strcpy(rmap_slug, doc["rmap_slug"]);
+	  if (doc.containsKey("rmap_mqttrootpath")) strcpy(rmap_mqttrootpath, doc["rmap_mqttrootpath"]);
+	  if (doc.containsKey("rmap_mqttmaintpath")) strcpy(rmap_mqttmaintpath, doc["rmap_mqttmaintpath"]);
 	  
 	  LOGN(F("loaded config parameter:" CR));
-	  //LOGN(F("longitude: %s" CR),rmap_longitude);
-	  //LOGN(F("latitude: %s" CR),rmap_latitude);
+	  LOGN(F("longitude: %s" CR),rmap_longitude);
+	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
@@ -949,7 +901,7 @@ void readconfig() {
 	  LOGN(F("mqttmaintpath: %s" CR),rmap_mqttmaintpath);
 	  
         } else {
-          LOGE(F("failed to load json config" CR));
+          LOGE(F("failed to deserialize json config %s" CR),error.c_str());
         }
       } else {
 	LOGE(F("erro reading config file" CR));	
@@ -964,12 +916,11 @@ void writeconfig() {;
 
   //save the custom parameters to FS
   LOGN(F("saving config" CR));
-  //DynamicJsonBuffer jsonBuffer;
-  StaticJsonBuffer<500> jsonBuffer;
-  JsonObject& json = jsonBuffer.createObject();
+  //DynamicJsonDocument jsonBuffer;
+  StaticJsonDocument<500> json;
     
-  //json["rmap_longitude"] = rmap_longitude;
-  //json["rmap_latitude"] = rmap_latitude;
+  json["rmap_longitude"] = rmap_longitude;
+  json["rmap_latitude"] = rmap_latitude;
   json["rmap_server"] = rmap_server;
   json["rmap_user"] = rmap_user;
   json["rmap_password"] = rmap_password;
@@ -987,7 +938,7 @@ void writeconfig() {;
   }
 
   //json.printTo(Serial);
-  json.printTo(configFile);
+  serializeJson(json,configFile);
   configFile.close();
   LOGN(F("saved config parameter" CR));
 }
@@ -995,28 +946,29 @@ void writeconfig() {;
 
 void web_values(const char* values) {
   
-  StaticJsonBuffer<500> jsonBuffer;
+  StaticJsonDocument<500> doc;
 
-  JsonObject& json =jsonBuffer.parseObject(values);
-  if (json.success()){
-    for (JsonPair& pair : json) {
+  DeserializationError error =deserializeJson(doc,values);
+  if (!error) {
+    JsonObject obj = doc.as<JsonObject>();
+    for (JsonPair pair : obj) {
 
-      if (pair.value.as<char*>() == NULL) continue;
-      float val=pair.value.as<float>();
+      if (pair.value().isNull()) continue;
+      float val=pair.value().as<float>();
 
-      if (strcmp(pair.key,"B12101")==0){
+      if (strcmp(pair.key().c_str(),"B12101")==0){
 	temperature=round((val-27315)/10.)/10;
       }
-      if (strcmp(pair.key,"B13003")==0){
+      if (strcmp(pair.key().c_str(),"B13003")==0){
 	humidity=round(val);
       }
-      if (strcmp(pair.key,"B15198")==0){
+      if (strcmp(pair.key().c_str(),"B15198")==0){
 	pm2=round(val/10.);
       }
-      if (strcmp(pair.key,"B15195")==0){
+      if (strcmp(pair.key().c_str(),"B15195")==0){
 	pm10=round(val/10.);
       }
-      if (strcmp(pair.key,"B15242")==0){
+      if (strcmp(pair.key().c_str(),"B15242")==0){
 	co2=round(val/1.8);
       }
     }
@@ -1026,42 +978,43 @@ void web_values(const char* values) {
 
 void display_values(const char* values) {
   
-  StaticJsonBuffer<500> jsonBuffer;
+  StaticJsonDocument<500> doc;
 
-  JsonObject& json =jsonBuffer.parseObject(values);
-  if (json.success()){
-    for (JsonPair& pair : json) {
+  DeserializationError error = deserializeJson(doc,values);
+  if (!error) {
+    JsonObject obj = doc.as<JsonObject>();
+    for (JsonPair pair : obj) {
 
-      if (pair.value.as<char*>() == NULL) continue;
-      float val=pair.value.as<float>();
+      if (pair.value().isNull()) continue;
+      float val=pair.value().as<float>();
 
       u8g2.setCursor(0, (displaypos)*CH); 
       
-      if (strcmp(pair.key,"B12101")==0){
+      if (strcmp(pair.key().c_str(),"B12101")==0){
 	u8g2.print(F("T   : "));
 	u8g2.print(round((val-27315)/10.)/10,1);
 	u8g2.print(F(" C"));
 	displaypos++;	
       }
-      if (strcmp(pair.key,"B13003")==0){
+      if (strcmp(pair.key().c_str(),"B13003")==0){
 	u8g2.print(F("U   : "));
 	u8g2.print(round(val),0);
 	u8g2.print(F(" %"));
 	displaypos++;	
       }
-      if (strcmp(pair.key,"B15198")==0){
+      if (strcmp(pair.key().c_str(),"B15198")==0){
 	u8g2.print(F("PM2 : "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
 	displaypos++;	
       }
-      if (strcmp(pair.key,"B15195")==0){
+      if (strcmp(pair.key().c_str(),"B15195")==0){
 	u8g2.print(F("PM10: "));
 	u8g2.print(round(val/10.),0);
 	u8g2.print(F(" ug/m3"));
 	displaypos++;	
       }
-      if (strcmp(pair.key,"B15242")==0){
+      if (strcmp(pair.key().c_str(),"B15242")==0){
 	u8g2.print(F("CO2 : "));
 	u8g2.print(round(val/1.8),0);
 	u8g2.print(F(" ppm"));
@@ -1074,31 +1027,25 @@ void display_values(const char* values) {
 bool publish_constantdata() {
 
   char topic[100]="";
-  StaticJsonBuffer<500> jsonBuffer;
-
-  char longitude [10];
-  char latitude [10];
-
-  itoa (coordCharToInt(rmap_longitude),longitude,10);
-  itoa (coordCharToInt(rmap_latitude),latitude,10);
-
   String payload=readconfig_rmap();
 
   if (! (payload == String())) {
-    //StaticJsonBuffer<2900> jsonBuffer;
-    DynamicJsonBuffer jsonBuffer(4000);
-    JsonArray& array = jsonBuffer.parseArray(payload);
-    if (array.success()){
-      for (uint8_t i = 0; i < array.size(); i++) {
-	if  (array[i]["model"] == "stations.stationconstantdata"){
-	  if (array[i]["fields"]["active"]){
+    //StaticJsonDocument<2900> doc;
+    DynamicJsonDocument doc(4000);
+    DeserializationError error = deserializeJson(doc,payload);
+    if (!error) {
+      JsonArrayConst array = doc.as<JsonArray>();
+      //for (uint8_t i = 0; i < array.size(); i++) {
+      for(JsonObjectConst element: array){ 
+	if  (element["model"] == "stations.stationconstantdata"){
+	  if (element["fields"]["active"]){
 	    LOGN(F("station constant data found!" CR));
 	    char btable[7];
-	    strncpy (btable, array[i]["fields"]["btable"].as< const char*>(),6);
+	    strncpy (btable, element["fields"]["btable"].as< const char*>(),6);
 	    btable[6]='\0';
 	    LOGN(F("btable: %s" CR),btable);
 	    char value[31];
-	    strncpy (value, array[i]["fields"]["value"].as< const char*>(),30);
+	    strncpy (value, element["fields"]["value"].as< const char*>(),30);
 	    value[30]='\0';
 	    LOGN(F("value: %s" CR),value);
 
@@ -1110,9 +1057,9 @@ bool publish_constantdata() {
 	    strcat(topic,"/");
 	    strcat(topic,rmap_user);
 	    strcat(topic,"/");  
-	    strcat(topic,longitude);
+	    strcat(topic,rmap_longitude);
 	    strcat(topic,",");
-	    strcat(topic,latitude);
+	    strcat(topic,rmap_latitude);
 	    strcat(topic,"/");
 	    strcat(topic,rmap_network);
 	    strcat(topic,"/-,-,-/-,-,-,-/");
@@ -1129,7 +1076,7 @@ bool publish_constantdata() {
 	}
       }
     } else {
-      LOGE(F("error parsing array" CR));
+      LOGE(F("error parsing array: %s" CR),error.c_str());
       analogWrite(LED_PIN,973);
       delay(5000);
       return false;
@@ -1592,7 +1539,6 @@ void setup() {
 
   firmware_upgrade();
   
-  //if (strcmp(rmap_longitude,"") == 0 ||strcmp(rmap_latitude,"") == 0) { 
   if (!rmap_config(remote_config) == 0) {
     LOGN(F("station not configurated ! restart" CR));
     //LOGN(F("Reset wifi configuration" CR));

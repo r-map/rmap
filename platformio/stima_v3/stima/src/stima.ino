@@ -157,18 +157,18 @@ void loop() {
       break;
 
       case END:
-         #if (DEBUG_MEMORY)
-	 SRamDisplay();
-	 Serial.print("Stack painted free: ");
-	 Serial.println(post_StackCount());
-	 //STACKPAINT_PRINT
-	 MEMORY_PRINT_START
-	 MEMORY_PRINT_HEAPSTART
-	 MEMORY_PRINT_HEAPEND
-	 MEMORY_PRINT_STACKSTART
-	 MEMORY_PRINT_END
-	 MEMORY_PRINT_HEAPSIZE
-	 FREERAM_PRINT;  
+          #if (DEBUG_MEMORY)
+	//SRamDisplay();
+	Serial.print("Stack painted free: ");
+	Serial.println(post_StackCount());
+	//STACKPAINT_PRINT
+	//MEMORY_PRINT_START
+	//MEMORY_PRINT_HEAPSTART
+	//MEMORY_PRINT_HEAPEND
+	//MEMORY_PRINT_STACKSTART
+	//MEMORY_PRINT_END
+	//MEMORY_PRINT_HEAPSIZE
+	//FREERAM_PRINT;  
 	 Serial.flush();
 	 #endif
 
@@ -479,7 +479,7 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
 }
 
 void mqttRxCallback(MQTT::MessageData &md) {
-   MQTT::Message &rx_message = md.message;
+  //MQTT::Message &rx_message = md.message;
    // SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
    // SERIAL_DEBUG(F("--> qos %u\r\n"), rx_message.qos);
    // SERIAL_DEBUG(F("--> retained %u\r\n"), rx_message.retained);
@@ -621,17 +621,17 @@ bool extractSensorsParams(JsonObject &params, char *driver, char *type, uint8_t 
    bool is_error = false;
 
    for (JsonObject::iterator it = params.begin(); it != params.end(); ++it) {
-      if (strcmp(it->key, "driver") == 0) {
-         strncpy(driver, it->value.as<char*>(), DRIVER_LENGTH);
+      if (strcmp(it.key().c_str(), "driver") == 0) {
+         strncpy(driver, it.value().as<const char*>(), DRIVER_LENGTH);
       }
-      else if (strcmp(it->key, "type") == 0) {
-         strncpy(type, it->value.as<char*>(), TYPE_LENGTH);
+      else if (strcmp(it.key().c_str(), "type") == 0) {
+         strncpy(type, it.value().as<const char*>(), TYPE_LENGTH);
       }
-      else if (strcmp(it->key, "address") == 0) {
-         *address = it->value.as<unsigned char>();
+      else if (strcmp(it.key().c_str(), "address") == 0) {
+         *address = it.value().as<unsigned char>();
       }
-      else if (strcmp(it->key, "node") == 0) {
-         *node = it->value.as<unsigned char>();
+      else if (strcmp(it.key().c_str(), "node") == 0) {
+         *node = it.value().as<unsigned char>();
       }
       else {
          is_error = true;
@@ -647,48 +647,47 @@ int configure(JsonObject &params, JsonObject &result) {
    bool is_error = false;
    bool is_sensor_config = false;
 
-   for (JsonObject::iterator it = params.begin(); it != params.end(); ++it) {
-      if (strcmp(it->key, "reset") == 0) {
-         if (it->value.as<bool>() == true) {
+   for (JsonPair it : params) {
+      if (strcmp(it.key().c_str(), "reset") == 0) {
+         if (it.value().as<bool>() == true) {
             set_default_configuration();
             LCD_INFO(&lcd, false, true, F("Reset configuration"));
          }
       }
-      else if (strcmp(it->key, "save") == 0) {
-         if (it->value.as<bool>() == true) {
+      else if (strcmp(it.key().c_str(), "save") == 0) {
+         if (it.value().as<bool>() == true) {
             save_configuration(CONFIGURATION_CURRENT);
             LCD_INFO(&lcd, false, true, F("Save configuration"));
          }
       }
       #if (USE_MQTT)
-      else if (strcmp(it->key, "mqttserver") == 0) {
-         strncpy(writable_configuration.mqtt_server, it->value.as<char*>(), MQTT_SERVER_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttserver") == 0) {
+         strncpy(writable_configuration.mqtt_server, it.value().as<const char*>(), MQTT_SERVER_LENGTH);
       }
-      else if (strcmp(it->key, "mqttrootpath") == 0) {
-         strncpy(writable_configuration.mqtt_root_topic, it->value.as<char*>(), MQTT_ROOT_TOPIC_LENGTH);
-         strncpy(writable_configuration.mqtt_subscribe_topic, it->value.as<char*>(), MQTT_SUBSCRIBE_TOPIC_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttrootpath") == 0) {
+         strncpy(writable_configuration.mqtt_root_topic, it.value().as<const char*>(), MQTT_ROOT_TOPIC_LENGTH);
+         strncpy(writable_configuration.mqtt_subscribe_topic, it.value().as<const char*>(), MQTT_SUBSCRIBE_TOPIC_LENGTH);
          uint8_t mqtt_subscribe_topic_len = strlen(writable_configuration.mqtt_subscribe_topic);
          strncpy(writable_configuration.mqtt_subscribe_topic+mqtt_subscribe_topic_len, "rx", MQTT_SUBSCRIBE_TOPIC_LENGTH-mqtt_subscribe_topic_len);
       }
-      else if (strcmp(it->key, "mqttmaintpath") == 0) {
-         strncpy(writable_configuration.mqtt_maint_topic, it->value.as<char*>(), MQTT_MAINT_TOPIC_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0) {
+         strncpy(writable_configuration.mqtt_maint_topic, it.value().as<const char*>(), MQTT_MAINT_TOPIC_LENGTH);
       }
-      else if (strcmp(it->key, "mqttsampletime") == 0) {
-         writable_configuration.report_seconds = it->value.as<unsigned int>();
+      else if (strcmp(it.key().c_str(), "mqttsampletime") == 0) {
+         writable_configuration.report_seconds = it.value().as<unsigned int>();
       }
-      else if (strcmp(it->key, "mqttuser") == 0) {
-         strncpy(writable_configuration.mqtt_username, it->value.as<char*>(), MQTT_USERNAME_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttuser") == 0) {
+         strncpy(writable_configuration.mqtt_username, it.value().as<const char*>(), MQTT_USERNAME_LENGTH);
       }
-      else if (strcmp(it->key, "mqttpassword") == 0) {
-         strncpy(writable_configuration.mqtt_password, it->value.as<char*>(), MQTT_PASSWORD_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttpassword") == 0) {
+         strncpy(writable_configuration.mqtt_password, it.value().as<const char*>(), MQTT_PASSWORD_LENGTH);
       }
-      else if (strcmp(it->key, "sd") == 0) {
-	JsonObject& sdobj = it->value.as<JsonObject>();
-	for (JsonObject::iterator sd = sdobj.begin(); sd != sdobj.end(); ++sd) {
-	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd->key, CONSTANTDATA_BTABLE_LENGTH);
-	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd->value.as<char*>(), CONSTANTDATA_VALUE_LENGTH);
+      else if (strcmp(it.key().c_str(), "sd") == 0) {
+	for (JsonPair sd : it.value().as<JsonObject>()) {
+	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd.key().c_str(), CONSTANTDATA_BTABLE_LENGTH);
+	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd.value().as<const char*>(), CONSTANTDATA_VALUE_LENGTH);
 
-	  if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT-1)
+	  if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT)
 	    writable_configuration.constantdata_count++;
 	  else {
 	    is_error = true;
@@ -698,54 +697,54 @@ int configure(JsonObject &params, JsonObject &result) {
       }
       #endif
       #if (USE_NTP)
-      else if (strcmp(it->key, "ntpserver") == 0) {
-         strncpy(writable_configuration.ntp_server, it->value.as<char*>(), NTP_SERVER_LENGTH);
+      else if (strcmp(it.key().c_str(), "ntpserver") == 0) {
+         strncpy(writable_configuration.ntp_server, it.value().as<const char*>(), NTP_SERVER_LENGTH);
       }
       #endif
-      else if (strcmp(it->key, "date") == 0) {
+      else if (strcmp(it.key().c_str(), "date") == 0) {
          #if (USE_RTC)
          Pcf8563::disable();
-         Pcf8563::setDate(it->value.as<JsonArray>()[2].as<int>(), it->value.as<JsonArray>()[1].as<int>(), it->value.as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
-         Pcf8563::setTime(it->value.as<JsonArray>()[3].as<int>(), it->value.as<JsonArray>()[4].as<int>(), it->value.as<JsonArray>()[5].as<int>());
+         Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
+         Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
          Pcf8563::enable();
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
          setSyncProvider(getSystemTime);
          #elif (USE_TIMER_1)
-         setTime(it->value.as<JsonArray>()[3].as<int>(), it->value.as<JsonArray>()[4].as<int>(), it->value.as<JsonArray>()[5].as<int>(), it->value.as<JsonArray>()[2].as<int>(), it->value.as<JsonArray>()[1].as<int>(), it->value.as<JsonArray>()[0].as<int>() - 2000);
+         setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>(), it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000);
          #endif
       }
-      else if (strcmp(it->key, "mac") == 0) {
+      else if (strcmp(it.key().c_str(), "mac") == 0) {
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          for (uint8_t i=0; i<ETHERNET_MAC_LENGTH; i++) {
-            writable_configuration.ethernet_mac[i] = it->value.as<JsonArray>()[i];
+            writable_configuration.ethernet_mac[i] = it.value().as<JsonArray>()[i];
          }
 	 #else
 	 SERIAL_TRACE(F("Configuration mac parameter ignored\r\n"));
 	 #endif
       }
       #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
-      else if (strcmp(it->key, "gsmapn") == 0) {
-         strncpy(writable_configuration.gsm_apn, it->value.as<char*>(), GSM_APN_LENGTH);
+      else if (strcmp(it.key().c_str(), "gsmapn") == 0) {
+         strncpy(writable_configuration.gsm_apn, it.value().as<const char*>(), GSM_APN_LENGTH);
       }
       #endif
-      else if (strcmp(it->key, "driver") == 0) {
-         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].driver, it->value.as<char*>(), DRIVER_LENGTH);
+      else if (strcmp(it.key().c_str(), "driver") == 0) {
+         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].driver, it.value().as<const char*>(), DRIVER_LENGTH);
          is_sensor_config = true;
       }
-      else if (strcmp(it->key, "type") == 0) {
-         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].type, it->value.as<char*>(), TYPE_LENGTH);
+      else if (strcmp(it.key().c_str(), "type") == 0) {
+         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].type, it.value().as<const char*>(), TYPE_LENGTH);
          is_sensor_config = true;
       }
-      else if (strcmp(it->key, "address") == 0) {
-         writable_configuration.sensors[writable_configuration.sensors_count].address = it->value.as<unsigned char>();
+      else if (strcmp(it.key().c_str(), "address") == 0) {
+         writable_configuration.sensors[writable_configuration.sensors_count].address = it.value().as<unsigned char>();
          is_sensor_config = true;
       }
-      else if (strcmp(it->key, "node") == 0) {
-         writable_configuration.sensors[writable_configuration.sensors_count].node = it->value.as<unsigned char>();
+      else if (strcmp(it.key().c_str(), "node") == 0) {
+         writable_configuration.sensors[writable_configuration.sensors_count].node = it.value().as<unsigned char>();
          is_sensor_config = true;
       }
-      else if (strcmp(it->key, "mqttpath") == 0) {
-         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].mqtt_topic, it->value.as<char*>(), MQTT_SENSOR_TOPIC_LENGTH);
+      else if (strcmp(it.key().c_str(), "mqttpath") == 0) {
+         strncpy(writable_configuration.sensors[writable_configuration.sensors_count].mqtt_topic, it.value().as<const char*>(), MQTT_SENSOR_TOPIC_LENGTH);
          is_sensor_config = true;
       }
       else {
@@ -754,7 +753,7 @@ int configure(JsonObject &params, JsonObject &result) {
    }
 
    if (is_sensor_config) {
-     if (writable_configuration.sensors_count < USE_SENSORS_COUNT-1)
+     if (writable_configuration.sensors_count < USE_SENSORS_COUNT)
        writable_configuration.sensors_count++;
      else {
        is_error = true;
@@ -873,11 +872,11 @@ int getjson(JsonObject &params, JsonObject &result) {
             result.createNestedObject(F("v"));
 
             for (JsonObject::iterator it = v.begin(); it != v.end(); ++it) {
-               if (it->value.as<unsigned int>() == 0) {
-                  result[F("v")][(char *) it->key] = (char *) NULL;
+               if (it.value().as<unsigned int>() == 0) {
+                  result[F("v")][(char *) it.key().c_str()] = (char *) NULL;
                }
                else {
-                  result[F("v")][(char *) it->key] = it->value.as<unsigned int>();
+                  result[F("v")][(char *) it.key().c_str()] = it.value().as<unsigned int>();
                }
             }
 
@@ -941,11 +940,11 @@ int prepandget(JsonObject &params, JsonObject &result) {
             result.createNestedObject(F("v"));
 
             for (JsonObject::iterator it = v.begin(); it != v.end(); ++it) {
-               if (it->value.as<unsigned int>() == 0) {
-                  result[F("v")][(char *) it->key] = (char *) NULL;
+               if (it.value().as<unsigned int>() == 0) {
+                  result[F("v")][(char *) it.key().c_str()] = (char *) NULL;
                }
                else {
-                  result[F("v")][(char *) it->key] = it->value.as<unsigned int>();
+                  result[F("v")][(char *) it.key().c_str()] = it.value().as<unsigned int>();
                }
             }
 
@@ -964,11 +963,12 @@ time_t getSystemTime() {
   return system_time;
 }
 
+/*
 void reboot() {
   init_wdt(WDTO_1S);
   while(true);
 }
-
+*/
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject &params, JsonObject &result) {
    LCD_INFO(&lcd, false, true, F("Reboot"));
@@ -2051,14 +2051,14 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
               // SERIAL_DEBUG(F("Valori: %ld %ld %ld\t%s\r\n"), values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2], json_sensors_data[i]);
 
               if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "%.1fC ", ((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0));
                 }
                 else {
                   lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "--.-C ");
                 }
 
-                if (isValid(values_readed_from_sensor[i][1])) {
+                if (ISVALID(values_readed_from_sensor[i][1])) {
                   lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%ld%% ", values_readed_from_sensor[i][1]);
                 }
                 else {
@@ -2066,7 +2066,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                 }
               }
               else if (strcmp(sensors[i]->getType(), "OA3") == 0) {
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f %.0f %.0f ug/m3", values_readed_from_sensor[i][0]/10.0, values_readed_from_sensor[i][1]/10.0, values_readed_from_sensor[i][2]/10.0);
                 }
                 else {
@@ -2074,7 +2074,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                 }
               }
               else if (strcmp(sensors[i]->getType(), "TBR") == 0) {
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fmm ", (values_readed_from_sensor[i][0]/10.0));
                 }
                 else {
@@ -2082,7 +2082,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                 }
               }
               else if (strcmp(sensors[i]->getType(), "LWT") == 0) {
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f'", (values_readed_from_sensor[i][0]*10.0/60.0));
                 }
                 else {
@@ -2090,14 +2090,14 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                 }
               }
               else if (strcmp(sensors[i]->getType(), "DW1") == 0) {
-                if (isValid(values_readed_from_sensor[i][1])) {
+                if (ISVALID(values_readed_from_sensor[i][1])) {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[i][1]/10.0));
                 }
                 else {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
                 }
 
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[i][0], 0b11011111);
                 }
                 else {
@@ -2105,7 +2105,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                 }
               }
               else if (strcmp(sensors[i]->getType(), "DEP") == 0) {
-                if (isValid(values_readed_from_sensor[i][0])) {
+                if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%.1fV", (values_readed_from_sensor[i][1]/10.0));
                 }
                 else {
@@ -2654,11 +2654,11 @@ void mqtt_task() {
 	  strncpy(full_topic_buffer, readable_configuration.mqtt_root_topic, MQTT_ROOT_TOPIC_LENGTH);	  
 	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic), "-,-,-/-,-,-,-/", 14);
 	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic)+14, readable_configuration.constantdata[i].btable, CONSTANTDATA_BTABLE_LENGTH);
-	  char payload[CONSTANTDATA_BTABLE_LENGTH+2];
+	  char payload[CONSTANTDATA_BTABLE_LENGTH+9];
 	  // payload is a string as default; add "" around
-	  strncpy(payload,"\"",1);
-	  strncpy(payload+1,readable_configuration.constantdata[i].value,strlen(readable_configuration.constantdata[i].value));
-	  strncpy(payload+1+strlen(readable_configuration.constantdata[i].value),"\"\0",2);
+	  strncpy(payload,"{\"v\":\"",6);
+	  strncpy(payload+6,readable_configuration.constantdata[i].value,strlen(readable_configuration.constantdata[i].value));
+	  strncpy(payload+6+strlen(readable_configuration.constantdata[i].value),"\"}\0",3);
 	  
 	  if (mqttPublish(full_topic_buffer,payload)){
 	  SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), full_topic_buffer, payload);

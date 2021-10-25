@@ -434,7 +434,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 }
 
 template<typename sample_g, typename observation_g, typename value_v> void addSample(sample_g *sample, observation_g *observation, value_v value) {
-  if (isValid(value)) {
+  if (ISVALID(value)) {
     sample->values = value;
     sample->count++;
     float med = (float) readCurrentObservation<observation_g, value_v>(observation);
@@ -541,52 +541,52 @@ void samples_processing(bool is_force_processing) {
   #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
   if (is_observations_processing) {
     SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
-    if (isValid(readable_data_read_ptr->temperature.sample)) {
+    if (ISVALID(readable_data_read_ptr->temperature.sample)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.sample);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->temperature.med60)) {
+    if (ISVALID(readable_data_read_ptr->temperature.med60)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.med60);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->temperature.min)) {
+    if (ISVALID(readable_data_read_ptr->temperature.min)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.min);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->temperature.med)) {
+    if (ISVALID(readable_data_read_ptr->temperature.med)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.med);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->temperature.max)) {
+    if (ISVALID(readable_data_read_ptr->temperature.max)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.max);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->humidity.sample)) {
+    if (ISVALID(readable_data_read_ptr->humidity.sample)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.sample);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->humidity.med60)) {
+    if (ISVALID(readable_data_read_ptr->humidity.med60)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.med60);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->humidity.min)) {
+    if (ISVALID(readable_data_read_ptr->humidity.min)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.min);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->humidity.med)) {
+    if (ISVALID(readable_data_read_ptr->humidity.med)) {
       SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.med);
     }
     else SERIAL_INFO(F("-----\t"));
 
-    if (isValid(readable_data_read_ptr->humidity.max)) {
+    if (ISVALID(readable_data_read_ptr->humidity.max)) {
       SERIAL_INFO(F("%u\r\n"), readable_data_read_ptr->humidity.max);
     }
     else SERIAL_INFO(F("-----\r\n"));
@@ -668,7 +668,7 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
       current = readBackObservation<observation_g, uint16_t, val_v>(observation, OBSERVATION_COUNT);
 
       //! if it is a good observation, calculate sum, minimum and maximum value. Otherwise increment error counter.
-      if (isValid(current)) {
+      if (ISVALID(current)) {
         count++;
 
         //! check and assing minimum value
@@ -1067,7 +1067,7 @@ void tests() {
     noInterrupts();
 
     if (temperature_samples.count && humidity_samples.count) {
-      if (isValid(temperature_samples.values) && isValid(humidity_samples.values)) {
+      if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
         readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
         readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
         SERIAL_DEBUG(F("%.0f\t \t \t \t \t%.0f\t \t \t \t \t%u\t%u\t%s\r\n"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");

@@ -452,7 +452,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 template<typename sample_g, typename observation_g, typename values_v, typename value_v> void addSample(sample_g *sample, observation_g *observation, values_v *values, value_v value) {
   values->sample = (value_v) value;
 
-  if (isValid(value)) {
+  if (ISVALID(value)) {
     sample->values = value;
     sample->count++;
     float med = (float) readCurrentObservation<observation_g, value_v>(observation);
@@ -628,180 +628,180 @@ void samples_processing(bool is_force_processing) {
     SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
     SERIAL_INFO(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_med[0])) {
+    if (ISVALID(readable_data_read_ptr->pm_med[0])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[0]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_sigma[0])) {
+    if (ISVALID(readable_data_read_ptr->pm_sigma[0])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[0]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_med[1])) {
+    if (ISVALID(readable_data_read_ptr->pm_med[1])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[1]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_sigma[1])) {
+    if (ISVALID(readable_data_read_ptr->pm_sigma[1])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[1]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_med[2])) {
+    if (ISVALID(readable_data_read_ptr->pm_med[2])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[2]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->pm_sigma[2])) {
+    if (ISVALID(readable_data_read_ptr->pm_sigma[2])) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[2]);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.sample)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.sample)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.sample);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.med60)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.med60)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.med60);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.min)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.min)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.min);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.med)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.med)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.med);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.sigma)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.sigma)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.sigma);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm1.max)) {
+    // if (ISVALID(readable_data_read_ptr->pm1.max)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.max);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.sample)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.sample)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.sample);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.med60)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.med60)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.med60);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.min)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.min)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.min);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.med)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.med)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.med);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.sigma)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.sigma)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.sigma);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm25.max)) {
+    // if (ISVALID(readable_data_read_ptr->pm25.max)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.max);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.sample)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.sample)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.sample);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.med60)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.med60)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.med60);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.min)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.min)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.min);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.med)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.med)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.med);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.sigma)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.sigma)) {
     //   SERIAL_INFO_CLEAN(F("%.1f\t"), readable_data_read_ptr->pm10.sigma);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->pm10.max)) {
+    // if (ISVALID(readable_data_read_ptr->pm10.max)) {
     //   SERIAL_INFO_CLEAN(F("%.1f\t"), readable_data_read_ptr->pm10.max);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
 
     for (uint8_t i = 0; i < OPC_BINS_LENGTH; i++) {
-      if (isValid(readable_data_read_ptr->bins_med[i])) {
+      if (ISVALID(readable_data_read_ptr->bins_med[i])) {
         SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins_med[i]);
       }
       else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].sample)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].sample)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].sample);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].med60)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].med60)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].med60);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].min)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].min)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].min);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].med)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].med)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].med);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].sigma)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].sigma)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].sigma);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
 
-      // if (isValid(readable_data_read_ptr->bins[i].max)) {
+      // if (ISVALID(readable_data_read_ptr->bins[i].max)) {
       //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].max);
       // }
       // else SERIAL_INFO_CLEAN(F("\t"));
     }
 
     #if (USE_SENSOR_OE3)
-    if (isValid(readable_data_read_ptr->temperature_med)) {
+    if (ISVALID(readable_data_read_ptr->temperature_med)) {
       SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->temperature_med);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    if (isValid(readable_data_read_ptr->humidity_med)) {
+    if (ISVALID(readable_data_read_ptr->humidity_med)) {
       SERIAL_INFO_CLEAN(F("%.0f "), readable_data_read_ptr->humidity_med);
     }
     else SERIAL_INFO_CLEAN(F("\t"));
 
-    // if (isValid(readable_data_read_ptr->temperature.med)) {
+    // if (ISVALID(readable_data_read_ptr->temperature.med)) {
     //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->temperature.med);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
     //
-    // if (isValid(readable_data_read_ptr->humidity.med)) {
+    // if (ISVALID(readable_data_read_ptr->humidity.med)) {
     //   SERIAL_INFO_CLEAN(F("%.0f "), readable_data_read_ptr->humidity.med);
     // }
     // else SERIAL_INFO_CLEAN(F("\t"));
@@ -879,7 +879,7 @@ bool observations_processing() {
 template<typename sample_g, typename observation_g, typename value_v, typename val_v> bool make_value_from_samples_and_observations(sample_g *sample, observation_g *observation, value_v *value) {
   //! assign last sample to report value
   // value->sample = (val_v) sample->values;
-  if (isValid(sample->values)) {
+  if (ISVALID(sample->values)) {
     value->sample = (val_v) sample->values;
   }
 
@@ -925,7 +925,7 @@ template<typename sample_g, typename observation_g, typename value_v, typename v
       current = readBackObservation<observation_g, uint16_t, val_v>(observation, OBSERVATION_COUNT);
 
       //! if it is a good observation, calculate sum, minimum and maximum value. Otherwise increment error counter.
-      if (isValid(current)) {
+      if (ISVALID(current)) {
         count++;
 
         //! check and assing minimum value

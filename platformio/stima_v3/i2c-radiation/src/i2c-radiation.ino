@@ -539,7 +539,7 @@ void make_report () {
     }
 
     #if (USE_SENSOR_DSR)
-    if (isValid(solar_radiation)) {
+    if (ISVALID(solar_radiation)) {
       valid_count++;
       avg += (float) ((solar_radiation - avg) / valid_count);
     }

@@ -594,7 +594,7 @@ void make_report () {
 
     #if (USE_SENSOR_GWS)
     if (i < WMO_REPORT_SAMPLES_COUNT) {
-      if (isValid(speed) && isValid(direction)) {
+      if (ISVALID(speed) && ISVALID(direction)) {
         valid_count_a++;
         ua += ((float) (-speed * sin(DEG_TO_RAD * direction)) - ua) / valid_count_a;
         va += ((float) (-speed * cos(DEG_TO_RAD * direction)) - va) / valid_count_a;
@@ -604,7 +604,7 @@ void make_report () {
       }
     }
 
-    if (isValid(speed) && isValid(direction)) {
+    if (ISVALID(speed) && ISVALID(direction)) {
       valid_count_b++;
       valid_count_c++;
 
