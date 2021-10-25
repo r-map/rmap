@@ -1,19 +1,26 @@
-# Copyright Benoit Blanchon 2014-2017
+# ArduinoJson - https://arduinojson.org
+# Copyright Benoit Blanchon 2014-2021
 # MIT License
-# 
-# Arduino JSON library
-# https://bblanchon.github.io/ArduinoJson/
-# If you like this project, please add a star!
 
-cmake_minimum_required(VERSION 3.0)
-project(ArduinoJson)
+cmake_minimum_required(VERSION 3.3)
 
-enable_testing()
-
-if(${COVERAGE})
-	set(CMAKE_CXX_FLAGS "-g -O0 -fprofile-arcs -ftest-coverage")
+if(ESP_PLATFORM)
+   # Build ArduinoJson as an ESP-IDF component
+   idf_component_register(INCLUDE_DIRS src)
+   target_compile_definitions(${COMPONENT_LIB} INTERFACE ARDUINOJSON_EMBEDDED_MODE=1)
+   return()
 endif()
 
-include_directories(${CMAKE_CURRENT_LIST_DIR}/src)
-add_subdirectory(third-party/catch)
-add_subdirectory(test)
+project(ArduinoJson VERSION 6.18.5)
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+endif()
+
+add_subdirectory(src)
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+	include(extras/CompileOptions.cmake)
+	add_subdirectory(extras/tests)
+	add_subdirectory(extras/fuzzing)
+endif()

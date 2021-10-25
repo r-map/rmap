@@ -1,60 +1,54 @@
-// Copyright Benoit Blanchon 2014-2017
+// ArduinoJson - https://arduinojson.org
+// Copyright Benoit Blanchon 2014-2021
 // MIT License
 //
-// Arduino JSON library
-// https://bblanchon.github.io/ArduinoJson/
-// If you like this project, please add a star!
+// This example shows how to generate a JSON document with ArduinoJson.
+//
+// https://arduinojson.org/v6/example/generator/
 
 #include <ArduinoJson.h>
 
 void setup() {
+  // Initialize Serial port
   Serial.begin(9600);
-  while (!Serial) {
-    // wait serial port initialization
-  }
+  while (!Serial) continue;
 
-  // Memory pool for JSON object tree.
+  // Allocate the JSON document
   //
-  // Inside the brackets, 200 is the size of the pool in bytes.
-  // If the JSON object is more complex, you need to increase that value.
-  // See https://bblanchon.github.io/ArduinoJson/assistant/
-  StaticJsonBuffer<200> jsonBuffer;
+  // Inside the brackets, 200 is the RAM allocated to this document.
+  // Don't forget to change this value to match your requirement.
+  // Use https://arduinojson.org/v6/assistant to compute the capacity.
+  StaticJsonDocument<200> doc;
 
-  // StaticJsonBuffer allocates memory on the stack, it can be
-  // replaced by DynamicJsonBuffer which allocates in the heap.
+  // StaticJsonObject allocates memory on the stack, it can be
+  // replaced by DynamicJsonDocument which allocates in the heap.
   //
-  // DynamicJsonBuffer  jsonBuffer(200);
+  // DynamicJsonDocument  doc(200);
 
-  // Create the root of the object tree.
+  // Add values in the document
   //
-  // It's a reference to the JsonObject, the actual bytes are inside the
-  // JsonBuffer with all the other nodes of the object tree.
-  // Memory is freed when jsonBuffer goes out of scope.
-  JsonObject& root = jsonBuffer.createObject();
+  doc["sensor"] = "gps";
+  doc["time"] = 1351824120;
 
-  // Add values in the object
+  // Add an array.
   //
-  // Most of the time, you can rely on the implicit casts.
-  // In other case, you can do root.set<long>("time", 1351824120);
-  root["sensor"] = "gps";
-  root["time"] = 1351824120;
-
-  // Add a nested array.
-  //
-  // It's also possible to create the array separately and add it to the
-  // JsonObject but it's less efficient.
-  JsonArray& data = root.createNestedArray("data");
+  JsonArray data = doc.createNestedArray("data");
   data.add(48.756080);
   data.add(2.302038);
 
-  root.printTo(Serial);
-  // This prints:
+  // Generate the minified JSON and send it to the Serial port.
+  //
+  serializeJson(doc, Serial);
+  // The above line prints:
   // {"sensor":"gps","time":1351824120,"data":[48.756080,2.302038]}
 
+  // Start a new line
   Serial.println();
 
-  root.prettyPrintTo(Serial);
-  // This prints:
+  // Generate the prettified JSON and send it to the Serial port.
+  //
+  serializeJsonPretty(doc, Serial);
+  // The above line prints:
   // {
   //   "sensor": "gps",
   //   "time": 1351824120,
@@ -68,3 +62,16 @@ void setup() {
 void loop() {
   // not used in this example
 }
+
+// See also
+// --------
+//
+// https://arduinojson.org/ contains the documentation for all the functions
+// used above. It also includes an FAQ that will help you solve any
+// serialization problem.
+//
+// The book "Mastering ArduinoJson" contains a tutorial on serialization.
+// It begins with a simple example, like the one above, and then adds more
+// features like serializing directly to a file or an HTTP request.
+// Learn more at https://arduinojson.org/book/
+// Use the coupon code TWENTY for a 20% discount ❤❤❤❤❤
