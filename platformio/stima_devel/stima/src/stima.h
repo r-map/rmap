@@ -85,6 +85,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*********************************************************************
 * TYPEDEF
 *********************************************************************/
+
+/*!
+\struct sensordata_t
+\brief constant station data (station name, station height ...) parameters.
+*/
+typedef struct {
+   char btable[CONSTANTDATA_BTABLE_LENGTH];                 //!< table B code for constant station data
+   char value[CONSTANTDATA_VALUE_LENGTH];                   //!< value of constant station data
+} constantdata_t;
+
 /*!
 \struct configuration_t
 \brief EEPROM saved configuration.
@@ -112,6 +122,9 @@ typedef struct {
    uint8_t sensors_count;                                   //!< configured sensors number
    uint16_t report_seconds;                                 //!< seconds for report values
 
+   constantdata_t constantdata[USE_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter
+   uint8_t constantdata_count;                              //!< configured constantdata number
+  
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    bool is_dhcp_enable;                                     //!< dhcp status
    uint8_t ethernet_mac[ETHERNET_MAC_LENGTH];               //!< ethernet mac
@@ -264,6 +277,7 @@ typedef enum {
    MQTT_CONNECT,           //!< connect to mqtt server
    MQTT_ON_CONNECT,        //!< doing on connect event routine
    MQTT_SUBSCRIBE,         //!< subscribe to mqtt topic
+   MQTT_CONSTANTDATA,      //!< publish constant station data without retry
 
    MQTT_OPEN_DATA_FILE,    //!< open sdcard read data file
 

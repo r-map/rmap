@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _STIMA_CONFIG_H
 
 #include <sensors_config.h>
+#include <constantdata_config.h>
 
 /*********************************************************************
 * MODULE
@@ -38,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (2)
+#define MODULE_MINOR_VERSION                          (4)
 
 /*!
 \def MODULE_TYPE
@@ -373,6 +374,15 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #if (USE_SENSORS_COUNT == 0)
 #error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
 #endif
+
+/*********************************************************************
+* CONSTANT DATA
+*********************************************************************/
+/*!
+\def USE_CONSTANTDATA_COUNT
+\brief Constantdata count.
+*/
+#define USE_CONSTANTDATA_COUNT                             (3)
 
 /*********************************************************************
 * TASKS
