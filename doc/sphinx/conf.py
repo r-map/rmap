@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'RMAP e Stima'
-copyright = '2020, Various'
-author = 'Various'
+copyright = '2021, CC BY-SA 4.0, Arpae https://www.arpae.it'
+author = 'Baldinetti Marco'
 
 # The short X.Y version
 version = ''

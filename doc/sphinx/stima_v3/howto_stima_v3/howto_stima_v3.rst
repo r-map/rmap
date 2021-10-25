@@ -20,8 +20,7 @@ giusto quarzo in funzione della tensione di alimentazione.
 
 Entrambe le board sono realizzate sullo standard UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_Core+_DE
 
@@ -67,8 +66,7 @@ A causa dell’ingombro in altezza maggiorato rispetto ad una board
 standard dovuto al connettore a quattro pin, tale scheda è impilabile
 solamente attraverso l’adozione di due file di pin del tipo UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_BASE_DE
 
@@ -90,8 +88,7 @@ A causa dell’ingombro in altezza maggiorato rispetto ad una board
 standard dovuto al connettore a quattro pin, tale scheda è impilabile
 solamente attraverso l’adozione di due file di pin del tipo UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_DIGITALE_DE
 
@@ -121,8 +118,7 @@ microcontrollore, utilizzabile come segnale di risveglio per il
 microcontrollore impostato in risparmio energetico profondo, in modo
 tale da poter ridurre i consumi energetici dell’intera stazione.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_RTC_DE
 
@@ -147,8 +143,7 @@ Tale tensione può o meno essere fornita al microcontrollore effettuando
 o meno una saldatura sul circuito stampato della board. L’intero modulo
 è realizzato secondo lo standard UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_FT232R_DE
 
@@ -162,8 +157,7 @@ microcontrollore permettendo il salvataggio dei dati dei sensori e
 l’upload del firmware con il bootloader Digitecoboot. L’intera board è
 anch’essa basata sullo standard UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_SD_DE
 
@@ -188,8 +182,7 @@ standard dovuto alla componentistica elettronica, tale scheda è
 impilabile solamente attraverso l’adozione di una fila di pin del tipo
 UPIN-27.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_GSM_DE/SIM_shield_DE
 
@@ -209,7 +202,7 @@ Per garantire il risparmio energetico della stazione, il modulo GSM/GPRS
 necessario il suo utilizzo. L’operazione di accensione o spegnimento è
 effettuata ponendo a livello logico basso il pin dedicato del modulo per
 almeno un secondo. L’identificazione di tale pin è inserita nel file
-gsm_config.h nella cartella arduino/sketchbook/libraries/RmapConfig.
+gsm_config.h nella cartella platformio/stima_ve/stima/include.
 
 Il modulo è provvisto di due led di stato che forniscono indicazioni sul
 funzionamento e sullo stato della rete. In particolare, osservando il
@@ -231,8 +224,7 @@ Si consiglia quindi di impilare per prima la board Stima SIM800C Power,
 di interporre un’ulteriore fila di pin del connettore UPIN-27 e di
 impilare in testa la board Stima SIM800C Module.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_GSM_DE/SIM800C_DE
 
@@ -283,8 +275,7 @@ sensori, facilitandone la connessione ed il cablaggio e dimenticandosi
 di calcolare di volta in volta i giusti valori di resistenze di pull-up
 e il massimo limite di capacità del bus I\ :sup:`2`\ C.
 
-Gli schemi elettrici realizzati in KiCad sono disponibili sul repository
-github rmap al seguente link:
+Gli schemi elettrici realizzati in KiCad sono disponibili nella cartella:
 
 kicad/r-map_v3/Microduino_HUB_DE
 
@@ -495,15 +486,6 @@ pluviometro.
 Configurazioni software dei moduli Stima
 ----------------------------------------
 
-Configurazione dell’IDE Arduino
-...............................
-
-La compilazione del firmware è testata con Arduino IDE versione 1.8.13.
-Per la compilazione del software è necessario settare lo sketchbook del
-progetto rmap nell’ide Arduino cliccando su File -> Impostazioni e
-selezionando la cartella dello sketchbook facendo click su sfoglia in
-alto a destra. Successivamente cliccare su ok, chiudere l’ide per poi
-riaprirlo.
 
 Installazione del software per la configurazione
 ................................................
@@ -521,12 +503,107 @@ Aggiunta repository e installazione pacchetti da utente amministratore
   dnf groupinstall rmap
 
 
+Installazione del software per la compilazione dei firmware
+...........................................................
+
+Per compilazione del firmware è necessario installare PlatformIO
+https://platformio.org
+
+Utilizzeremo per la copilazione i comandi a CLI tramite Command Line Tool.
+Quindi seguire le istruzioni a: 
+https://platformio.org/install/cli
+
+Installazione dei sorgenti dei firmware e dei progetti kicad
+............................................................
+
+Scaricare e scompattare l'ultima release denominata Stima disponibile a:
+https://github.com/r-map/rmap/releases
+ad esempio:
+https://github.com/r-map/rmap/archive/refs/tags/3.4.tar.gz
+
+
+
+Modulo Stima GSM/GPRS
+.....................
+
+1. Il progetto per platformio si trova in:
+   platformio/stima_v3/stima
+
+2. Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:
+
+   -  Impostare la #define MODULE_TYPE con il valore
+      STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo
+      report o STIMA_MODULE_TYPE_SAMPLE_GSM per definire una stazione di
+      tipo sample
+
+3. Aprire il file sensors_config.h nella cartella
+   platformio/stima_v3/stima/include:
+
+   -  Settare la #define USE_JSON con il valore true
+   -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
+      seconda dei sensori che si vuole abilitare o disabilitare
+   -  Impostare il valore in decimi di mm di pioggia per ogni basculata
+      del pluviometro nella #define RAIN_FOR_TIP
+
+4. 
+
+   -  Impostare il numero di valori da leggere per ogni singolo sensore
+      nella #define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori
+      a disposizione, inserire quello più alto)
+
+5. 
+
+   -  Impostare il valore in minuti per il calcolo di un’osservazione
+      nella #define OBSERVATIONS_MINUTES (in genere 1)
+   -  Impostare il numero di osservazioni necessarie a produrre un dato
+      utile per il report nella #define STATISTICAL_DATA_COUNT (in
+      genere 15)
+
+6. Aprire il file gsm_config.h nella cartella
+   platformio/stima_v3/stima/include:
+
+   -  Settare la #define GSM_DEFAULT_APN con il valore dell’APN o con il
+      valore di una delle #define predefinite ed incluse nel medesimo
+      file
+
+7. Impostare il microcontrollore su core+1284 a 5V
+
+8. Compilare il firmware e caricarlo attraverso il cavo USB
+   tramite il comando:
+   ::
+   
+      cd platformio/stima_v3/stima
+      pio run -e 1284p16m -t upload
+   
+9. Inserire il jumper sulla board Stima I2C-Base, configurare la
+   stazione e rimuovere il jumper a configurazione terminata
+
+
+Per la configurazione:
+
+* Per ottenere una username e una password iscriversi al sito `<http://rmap.cc/registrazione/register/>`_
+* Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i pin "Set".
+* Eseguire i comandi:
+
+  ::
+
+     rmapctrl --syncdb
+     rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=maint
+     rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<board_name> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900
+     rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+     rmap-configure --config_station --station_slug=<nome_stazione> --board_slug=<nome_board> --username=<username> --baudrate 115200
+   
+  sostituendo i valori <> con opportuni valori.
+
+* Rimuovere il ponticello ai pin "Set".
+
+
 Modulo Stima Ethernet
 .....................
 
-1. Aprire lo sketch stima.ino nella cartella
-   arduino/sketchbook/stima_v3/stima
-2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima:
+1. Il progetto per platformio si trova in:
+   platformio/stima_v3/stima
+2. Aprire il file stima-config.h in platformio/stima_v3/stima/src:
 
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_REPORT_ETH per definire una stazione di tipo
@@ -534,7 +611,7 @@ Modulo Stima Ethernet
       tipo sample
 
 3. Aprire il file sensors_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
+   platformio/stima_v3/stima/include:
 
    -  Settare la #define USE_JSON con il valore true
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
@@ -552,6 +629,12 @@ Modulo Stima Ethernet
 
 4. Impostare il microcontrollore su core+1284 a 5V
 5. Compilare il firmware e caricarlo attraverso il cavo USB
+   tramite il comando:
+   ::
+   
+      cd platformio/stima_v3/stima
+      pio run -e 1284p16m -t upload
+   
 6. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata.
 
@@ -561,97 +644,32 @@ Per la configurazione:
 * Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i pin "Set".
 * Eseguire i comandi:
 
-::
+  ::
 
-   rmapctrl --syncdb
-   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=maint
-   rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima
-   rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
-   rmap-configure --config_station --station_slug=<nome_stazione>  --board_slug=<nome_board> --username=<username> --baudrate 115200
+     rmapctrl --syncdb
+     rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx>  --mqttrootpath=report --mqttmaintpath=maint
+     rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima
+     rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
+     rmap-configure --config_station --station_slug=<nome_stazione>  --board_slug=<nome_board> --username=<username> --baudrate 115200
    
-   sostituendo i valori tra <> con opportuni valori.
+  sostituendo i valori tra <> con opportuni valori.
 
 * Rimuovere il ponticello ai pin "Set". 
 
-Modulo Stima GSM/GPRS
-.....................
-
-1. Aprire lo sketch stima.ino nella cartella
-   arduino/sketchbook/stima_v3/stima
-2. Aprire il file stima-config.h in arduino/sketchbook/stima_v3/stima:
-
-   -  Impostare la #define MODULE_TYPE con il valore
-      STIMA_MODULE_TYPE_REPORT_GSM per definire una stazione di tipo
-      report o STIMA_MODULE_TYPE_SAMPLE_GSM per definire una stazione di
-      tipo sample
-
-3. Aprire il file sensors_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
-
-   -  Settare la #define USE_JSON con il valore true
-   -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
-      seconda dei sensori che si vuole abilitare o disabilitare
-   -  Impostare il valore in decimi di mm di pioggia per ogni basculata
-      del pluviometro nella #define RAIN_FOR_TIP
-
-1. 
-
-   -  Impostare il numero di valori da leggere per ogni singolo sensore
-      nella #define VALUES_TO_READ_FROM_SENSOR_COUNT (tra tutti i valori
-      a disposizione, inserire quello più alto)
-
-1. 
-
-   -  Impostare il valore in minuti per il calcolo di un’osservazione
-      nella #define OBSERVATIONS_MINUTES (in genere 1)
-   -  Impostare il numero di osservazioni necessarie a produrre un dato
-      utile per il report nella #define STATISTICAL_DATA_COUNT (in
-      genere 15)
-
-2. Aprire il file gsm_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
-
-   -  Settare la #define GSM_DEFAULT_APN con il valore dell’APN o con il
-      valore di una delle #define predefinite ed incluse nel medesimo
-      file
-
-3. Impostare il microcontrollore su core+1284 a 5V
-4. Compilare il firmware e caricarlo attraverso il cavo USB
-5. Inserire il jumper sulla board Stima I2C-Base, configurare la
-   stazione e rimuovere il jumper a configurazione terminata
-
-
-Per la configurazione:
-
-* Per ottenere una username e una password iscriversi al sito `<http://rmap.cc/registrazione/register/>`_
-* Eventualmente (dopo la prima configurazione) ponticellare sulla scheda i pin "Set".
-* Eseguire i comandi:
-
-::
-
-   rmapctrl --syncdb
-   rmap-configure --wizard --station_slug=<nome_stazione> --height=<height> --stationname=<nome_descrittivo> --username=<username> --password=<password> --server=rmap.cc --lat=<xx.xxxxx> --lon=<xx.xxxxx> --mqttrootpath=report --mqttmaintpath=maint
-   rmap-configure --addboard --station_slug=<nome_stazione> --board_slug=<board_name> --user=<username> --serialactivate --mqttactivate --mqttuser=<username> --mqttpassword=<password> --mqttsamplerate=900
-   rmap-configure --addsensors_by_template=stima_report_thpb --station_slug=<nome_stazione> --board_slug=<nome_board> --user=<username> --password=<password> --upload_to_server
-   rmap-configure --config_station --station_slug=<nome_stazione> --board_slug=<nome_board> --username=<username> --baudrate 115200
-   
-   sostituendo i valori <> con opportuni valori.
-
-* Rimuovere il ponticello ai pin "Set".
-
+  
 Modulo Stima Passive
 ....................
 
-1. Aprire lo sketch stima.ino nella cartella
-   arduino/sketchbook/stima_v3/stima
-2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima:
+1. Il progetto per platformio si trova in:
+   platformio/stima_v3/stima
+2. Aprire il file stima-config.h arduino/sketchbook/stima_v3/stima/src:
    
    -  Impostare la #define MODULE_TYPE con il valore
       STIMA_MODULE_TYPE_PASSIVE per definire una stazione di tipo
       passivo
 
 3. Aprire il file sensors_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
+   platformio/stima_v3/stima/include:
 
    -  Settare la #define USE_JSON con il valore true
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
@@ -667,18 +685,23 @@ Modulo Stima Passive
       utile per il report nella #define STATISTICAL_DATA_COUNT (in
       genere 15)
 
-4. Impostare il microcontrollore su core+1284 a 5V
-5. Compilare il firmware e caricarlo attraverso il cavo USB
-6. Inserire il jumper sulla board Stima I2C-Base, configurare la
+4. Compilare il firmware e caricarlo attraverso il cavo USB
+   tramite il comando:
+   ::
+   
+      cd platformio/stima_v3/stima
+      pio run -e 1284p16m -t upload
+   
+5. Inserire il jumper sulla board Stima I2C-Base, configurare la
    stazione e rimuovere il jumper a configurazione terminata
 
 Modulo Stima I2C-TH
 ...................
 
 1. Aprire lo sketch i2c-th.ino nella cartella
-   arduino/sketchbook/stima_v3/i2c-th
+   platformio/stima_v3/i2c-th
 2. Aprire il file sensors_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
+   platformio/stima_v3/i2c-th/include:
 
    -  Settare la #define USE_JSON con il valore false
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
@@ -694,18 +717,23 @@ Modulo Stima I2C-TH
       genere 15 o in accordo con quanto impostato per la compilazione
       dello sketch stima.ino)
 
-3. Impostare il microcontrollore su core+644 a 3.3V
-4. Compilare il firmware e caricarlo attraverso il cavo USB
-5. Configurare il suddetto modulo attraverso lo sketch sensor_config
+3. Compilare il firmware e caricarlo attraverso il cavo USB
+   tramite il comando:
+   ::
+   
+      cd platformio/stima_v3/i2c-th
+      pio run -e 644pa8m -t upload
+   
+4. Configurare il suddetto modulo attraverso lo sketch sensor_config
    presente nella cartella arduino\sketchbook\stima_v3
 
 Modulo Stima I2C-Rain
 .....................
 
-1. Aprire lo sketch i2c-rain.ino nella cartella
-   arduino/sketchbook/stima_v3/i2c- rain
+1. Il progetto platformio si trova nella cartella:
+   platformio/stima_v3/i2c-rain
 2. Aprire il file sensors_config.h nella cartella
-   arduino/sketchbook/libraries/RmapConfig:
+   platformio/stima_v3/i2c-rain/include:
 
    -  Settare la #define USE_JSON con il valore false
    -  Settare le altre #define USE_SENSOR_XXX con valori true o false a
@@ -717,9 +745,15 @@ Modulo Stima I2C-Rain
       da conteggiare per ogni basculata del pluviometro nella #define
       RAIN_FOR_TIP
 
-3. Impostare il microcontrollore su core+644 a 3.3V
-4. Compilare il firmware e caricarlo attraverso il cavo USB
-5. Configurare il suddetto modulo attraverso lo sketch sensor_config
+3. Compilare il firmware e caricarlo attraverso il cavo USB
+   tramite il comando:
+   ::
+   
+      cd platformio/stima_v3/i2c-rain
+      pio run -e 644pa8m -t upload
+   
+   
+4. Configurare il suddetto modulo attraverso lo sketch sensor_config
    presente nella cartella arduino\sketchbook\stima_v3
 
 Compilazione e caricamento del bootloader Digitecoboot
@@ -753,15 +787,10 @@ Compilazione del firmware in formato binario
 
 1. Compilare il firmware per i moduli Stima secondo quanto scritto ai
    punti precedenti
-2. Localizzare il file NOME_SKETCH.ino.elf compilato (è possibile
-   seguire la seguente guida
-   (http://www.instructables.com/id/HOW-TO-GET-HEX-FILE-FROM-ARDUINO-/)
-3. Localizzare la cartella di installazione dell’IDE Arduino
-4. Entrare nella cartella hardware/tools/avr/bin situata nella cartella
-   di installazione dell’IDE Arduino
-5. Attraverso una consolle o il prompt dei comandi, eseguire
-
-   -  avr-objcopy -I ihex -O binary NOME_SKETCH.ino.elf FIRMWARE.BIN
+2. Localizzare il file firmware.elf compilato, solitamente
+   -  rmap/platformio/stima_v3/stima/.pio/build/1284p16m
+3. Attraverso una consolle o il prompt dei comandi, eseguire
+   -  ~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy -I ihex -O binary firmware.elf FIRMWARE.BIN
 
 Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 -----------------------------------------------------------------
@@ -774,7 +803,7 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 4. Spegnere il modulo e rimuovere la micro SD-Card contenente il
    firmware
 5. Se necessario, inserire la micro SD-Card utile per il funzionamento
-   del modulo
+   del modulo (senza il file FIRMWARE.BIN)
 6. Alimentare il modulo
 
 Assemblaggio stazione Stima
