@@ -21,7 +21,7 @@
 #define JRPC_MODE                   (JRPC_NON_BLOCKING_MODE)
 
 #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-#define JRPC_BUFFER_LENGTH          (384)
+#define JRPC_BUFFER_LENGTH          (300)
 #define JRPC_DEFAULT_TIMEOUT_MS     (5)
 
 typedef enum {
@@ -54,7 +54,6 @@ public:
    #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
    int parseStream(bool *is_active, Stream *stream, uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS);
    int callback(Stream *stream);
-   char input_buffer[JRPC_BUFFER_LENGTH];
    #endif
 
    void registerMethod(const char* methodName, int (*callback)(JsonObject &, JsonObject &));
@@ -69,6 +68,7 @@ private:
    jrpc_state_t jrpc_state;
    bool is_stream_ready;
    bool do_stream_read;
+   StaticJsonDocument<JRPC_BUFFER_LENGTH> doc;
    #endif
 };
 
