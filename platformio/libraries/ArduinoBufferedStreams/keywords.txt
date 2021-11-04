@@ -1,0 +1,19 @@
+#######################################
+# Syntax Coloring Map for CircularPrintStream
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+LoopbackStream	KEYWORD1
+PipedStream	KEYWORD1
+PipedStreamPair	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################

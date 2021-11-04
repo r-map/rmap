@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (4)
+#define MODULE_MINOR_VERSION                          (5)
 
 /*!
 \def MODULE_TYPE
@@ -115,7 +115,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_RPC_METHOD_REBOOT
 \brief RPC method for reboot station.
 */
-#define USE_RPC_METHOD_REBOOT                         (false)
+#define USE_RPC_METHOD_REBOOT                         (true)
+
+
+/*!
+\def USE_RPC_METHOD_RECOVERY
+\brief RPC method for recovery data written on SD card from station.
+*/
+#define USE_RPC_METHOD_RECOVERY                       (true)
 
 /*********************************************************************
 * CONFIGURATION
@@ -170,10 +177,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC         (MQTT_DEFAULT_MAINT_TOPIC)
 
 /*!
-\def CONFIGURATION_DEFAULT_MQTT_SUBSCRIBE_TOPIC
-\brief Default mqtt subscribe topic.
+\def CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC
+\brief Default mqtt rpc topic.
 */
-#define CONFIGURATION_DEFAULT_MQTT_SUBSCRIBE_TOPIC    (MQTT_DEFAULT_SUBSCRIBE_TOPIC)
+#define CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC          (MQTT_DEFAULT_RPC_TOPIC)
 
 /*!
 \def CONFIGURATION_DEFAULT_MQTT_USERNAME
@@ -445,7 +452,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def MQTT_DELAY_MS
 \brief Wait time between two attempts.
 */
-#define MQTT_DELAY_MS                                 (1000)
+#define MQTT_DELAY_MS                                 (3000)
 
 /*!
 \def IP_STACK_TIMEOUT_MS
@@ -471,6 +478,14 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Data file on SD-Card containing the pointer to the last mqtt transmitted data.
 */
 #define SDCARD_MQTT_PTR_FILE_NAME                     ("mqtt_ptr.txt")
+
+/*!
+\def SDCARD_MQTT_PTR_RPC_FILE_NAME
+\brief Data file on SD-Card containing the pointer to the last mqtt transmitted data
+coming from recovery json RPC.
+*/
+#define SDCARD_MQTT_PTR_RPC_FILE_NAME                 ("rpc_ptr.txt")
+
 #endif
 
 /*!

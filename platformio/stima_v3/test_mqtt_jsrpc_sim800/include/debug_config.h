@@ -24,12 +24,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _DEBUG_CONFIG_H
 
 /*!
-\def DEBUG_MEMORY
-\brief Activate debug of memory use and stack heap collision on serial interface.
-*/
-#define DEBUG_MEMORY                      (0)
-
-/*!
 \def SERIAL_TRACE_LEVEL_OFF
 \brief Debug level for disable debug on serial interface.
 */
@@ -183,7 +177,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def STIMA_SERIAL_TRACE_LEVEL
 \brief Serial trace level debug for stima sketch.
 */
-#define STIMA_SERIAL_TRACE_LEVEL           (SERIAL_TRACE_LEVEL_DEBUG)
+#define STIMA_SERIAL_TRACE_LEVEL           (SERIAL_TRACE_LEVEL_INFO)
 
 /*!
 \def STIMA_LCD_TRACE_LEVEL

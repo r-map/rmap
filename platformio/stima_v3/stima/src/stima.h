@@ -66,6 +66,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 #include <ethernet_config.h>
 #include <Ethernet2.h>
+#if (USE_MQTT)
+#include <IPStack.h>
+#endif
 
 #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
 #include <gsm_config.h>
@@ -77,9 +80,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #if (USE_MQTT)
-#include <IPStack.h>
 #include <Countdown.h>
 #include <MQTTClient.h>
+#include <LoopbackStream.h>
+
 #endif
 
 /*********************************************************************
@@ -109,7 +113,7 @@ typedef struct {
    char mqtt_server[MQTT_SERVER_LENGTH];                    //!< mqtt server
    char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];            //!< mqtt root path
    char mqtt_maint_topic[MQTT_MAINT_TOPIC_LENGTH];          //!< mqtt maint path
-   char mqtt_subscribe_topic[MQTT_SUBSCRIBE_TOPIC_LENGTH];  //!< mqtt subscribe topic
+   char mqtt_rpc_topic[MQTT_RPC_TOPIC_LENGTH];              //!< mqtt subscribe topic
    char mqtt_username[MQTT_USERNAME_LENGTH];                //!< mqtt username
    char mqtt_password[MQTT_PASSWORD_LENGTH];                //!< mqtt password
    #endif
@@ -155,7 +159,8 @@ typedef enum {
    ENTER_POWER_DOWN,          //!< if no task is running, activate power down
    #endif
    TASKS_EXECUTION,           //!< execute active tasks
-   END                        //!< go to ENTER_POWER_DOWN or TASKS_EXECUTION
+   END,                        //!< go to ENTER_POWER_DOWN or TASKS_EXECUTION
+   REBOOT                     //!< reboot the machine
 } state_t;
 
 /*!
@@ -289,6 +294,7 @@ typedef enum {
    MQTT_CLOSE_DATA_FILE,   //!< close sdcard read data file
 
    MQTT_DISCONNECT,        //!< disconnect from mqtt server
+   MQTT_RPC_DELAY,         //!< delay after a RPC waiting for other RPC over MQTT (stay MQTT connected)
    MQTT_ON_DISCONNECT,     //!< doing on disconnect event routine
 
    MQTT_PTR_UPDATE,        //!< update mqtt data file pointer
@@ -296,7 +302,8 @@ typedef enum {
    MQTT_CLOSE_SDCARD,      //!< close sdcard
 
    MQTT_END,               //!< performs end operations and deactivate task
-   MQTT_WAIT_STATE         //!< non-blocking waiting time
+   MQTT_WAIT_STATE,        //!< non-blocking waiting time
+   MQTT_WAIT_STATE_RPC     //!< non-blocking waiting time with MQTT management
 } mqtt_state_t;
 #endif
 
@@ -375,6 +382,26 @@ File test_file;
 \brief File structure for read and write data pointer stored on SD-Card for mqtt send.
 */
 File mqtt_ptr_file;
+
+/*!
+\var is_mqtt_rpc_delay; 
+\brief An MQTT RPC happened and we have to wait some time before disconnect waiting for some more RPC to come.
+*/
+bool is_mqtt_rpc_delay; 
+
+/*!
+\var rpcpayload; 
+\brief The MQTT RPC payload for RPC response.
+*/
+char rpcpayload[MQTT_MESSAGE_LENGTH];
+
+
+/*!
+\var mqtt_session_present; 
+\brief The MQTT session is present on the broker for a Persistent Session.
+*/
+bool mqtt_session_present;
+
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
@@ -421,7 +448,8 @@ IPStack ipstack(s800);
 \var mqtt_client
 \brief MQTT Client structure.
 */
-MQTT::Client<IPStack, Countdown, MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH, 1> mqtt_client = MQTT::Client<IPStack, Countdown, MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH, 1>(ipstack, IP_STACK_TIMEOUT_MS);
+MQTT::Client<IPStack, Countdown, MQTT_MESSAGE_LENGTH, 1> mqtt_client = MQTT::Client<IPStack, Countdown, MQTT_MESSAGE_LENGTH, 1>(ipstack, IP_STACK_TIMEOUT_MS);
+
 #endif
 
 /*!
@@ -530,11 +558,6 @@ bool is_sdcard_error;
 #endif
 
 #if (USE_MQTT)
-/*!
-\var is_mqtt_subscribed
-\brief If true, MQTT Client is subscribed to receive topic.
-*/
-bool is_mqtt_subscribed;
 
 /*!
 \var client_id
@@ -667,7 +690,7 @@ rpc_state_t rpc_state;
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
-void reboot();
+void realreboot();
 time_t getSystemTime();
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)

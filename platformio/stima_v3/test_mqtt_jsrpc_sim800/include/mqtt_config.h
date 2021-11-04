@@ -36,10 +36,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MQTT_MAINT_TOPIC_LENGTH        (MQTT_ROOT_TOPIC_LENGTH)
 
 /*!
-\def MQTT_RPC_TOPIC_LENGTH
-\brief Length in bytes for mqtt rpc topic.
+\def MQTT_SUBSCRIBE_TOPIC_LENGTH
+\brief Length in bytes for mqtt subscibe topic.
 */
-#define MQTT_RPC_TOPIC_LENGTH          (MQTT_ROOT_TOPIC_LENGTH)
+#define MQTT_SUBSCRIBE_TOPIC_LENGTH    (50)
 
 /*!
 \def MQTT_SENSOR_TOPIC_LENGTH
@@ -99,19 +99,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_DEFAULT_ROOT_TOPIC
 \brief Default MQTT root topic.
 */
-#define MQTT_DEFAULT_ROOT_TOPIC        ("test")
+#define MQTT_DEFAULT_ROOT_TOPIC        ("")
 
 /*!
 \def MQTT_DEFAULT_MAINT_TOPIC
 \brief Default MQTT maint topic.
 */
-#define MQTT_DEFAULT_MAINT_TOPIC       ("test")
+#define MQTT_DEFAULT_MAINT_TOPIC       ("")
 
 /*!
 \def MQTT_DEFAULT_SUBSCRIBE_TOPIC
 \brief Default MQTT subscibe topic.
 */
-#define MQTT_DEFAULT_RPC_TOPIC         ("test")
+#define MQTT_DEFAULT_SUBSCRIBE_TOPIC   ("")
 
 /*!
 \def MQTT_DEFAULT_USERNAME

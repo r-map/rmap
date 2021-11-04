@@ -137,7 +137,7 @@ void loop() {
         if (is_event_mqtt) {
           mqtt_task();
           wdt_reset();
-        }
+	}
         #endif
 
         if (is_event_time) {
@@ -152,7 +152,7 @@ void loop() {
 
         if ((ready_tasks_count == 0) && (!is_event_rpc)) {
           wdt_reset();
-          state = END;
+          if (state != REBOOT) state = END;
         }
       break;
 
@@ -178,6 +178,19 @@ void loop() {
          state = TASKS_EXECUTION;
          #endif
       break;
+
+      case REBOOT:
+	Serial.print("Reboot");
+	mqtt_client.yield(6000L);   
+	wdt_reset();
+	mqtt_client.disconnect();
+	wdt_reset();
+	ipstack.disconnect();
+	wdt_reset();
+	SERIAL_DEBUG(F("MQTT Disconnect... [ %s ]\r\n"), OK_STRING);
+	realreboot();
+      break;
+
    }
 }
 
@@ -241,7 +254,7 @@ void init_tasks() {
    is_event_mqtt = false;
    is_event_mqtt_paused = false;
    mqtt_state = MQTT_INIT;
-   is_mqtt_subscribed = false;
+   mqtt_session_present=false;
    #endif
 
    is_event_rtc = false;
@@ -367,6 +380,11 @@ void init_rpc() {
    #if (USE_RPC_METHOD_REBOOT)
    streamRpc.registerMethod("reboot", &reboot);
    #endif
+
+   #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+   streamRpc.registerMethod("recovery", &recovery);
+   #endif
+   
 }
 
 void init_wdt(uint8_t wdt_timer) {
@@ -448,23 +466,31 @@ void setNextTimeForSensorReading (time_t *next_time, uint16_t time_s) {
 
 #if (USE_MQTT)
 bool mqttConnect(char *username, char *password) {
-   MQTTPacket_connectData data = MQTTPacket_connectData_initializer;
-   data.MQTTVersion = 3;
-   // data.will.topicName.cstring = maint_topic;
-   // data.will.message.cstring = MQTT_ON_ERROR_MESSAGE;
-   // data.will.retained = true;
-   // data.will.qos = MQTT::QOS1;
-   // data.willFlag = true;
-   data.clientID.cstring = client_id;
-   data.username.cstring = username;
-   data.password.cstring = password;
-   data.cleansession = false;
+   MQTTPacket_connectData options = MQTTPacket_connectData_initializer;
+   MQTT::connackData data ;
+   options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
+   options.will.topicName.cstring = maint_topic;
+   options.will.message.cstring = MQTT_ON_ERROR_MESSAGE;
+   options.will.retained = true;
+   options.will.qos = MQTT::QOS1;
+   options.willFlag = true;
+   options.clientID.cstring = client_id;
+   options.username.cstring = username;
+   options.password.cstring = password;
+   options.cleansession = !mqtt_session_present;
 
-   // SERIAL_DEBUG(F("MQTT clientID: %s\r\n"), data.clientID.cstring);
-   // SERIAL_DEBUG(F("MQTT will message: %s\r\n"), data.will.message.cstring);
-   // SERIAL_DEBUG(F("MQTT will topic: %s\r\n"), data.will.topicName.cstring);
+   SERIAL_DEBUG(F("MQTT clientID: %s\r\n"), options.clientID.cstring);
+   SERIAL_DEBUG(F("MQTT will message: %s\r\n"), options.will.message.cstring);
+   SERIAL_DEBUG(F("MQTT will topic: %s\r\n"), options.will.topicName.cstring);
+   SERIAL_DEBUG(F("MQTT cleansession: %s\r\n"), options.cleansession ? "true" : "false");
 
-   return (mqtt_client.connect(data) == 0);
+   bool returnstatus = (mqtt_client.connect(options,data) == 0);
+
+   if (returnstatus) {
+     SERIAL_DEBUG(F("MQTT sessionPresent: %s\r\n"), data.sessionPresent ? "true" : "false");
+     mqtt_session_present=data.sessionPresent;
+   }
+   return returnstatus;
 }
 
 bool mqttPublish(const char *topic, const char *message, bool is_retained) {
@@ -475,16 +501,43 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
    tx_message.payload = (void*) message;
    tx_message.payloadlen = strlen(message);
 
+   SERIAL_DEBUG(F("MQTT TX: %s\r\n"), (char*)tx_message.payload);
+   SERIAL_TRACE(F("--> len %u\r\n"), tx_message.payloadlen);
+
+   mqtt_client.yield(10L);
    return (mqtt_client.publish(topic, tx_message) == 0);
 }
 
 void mqttRxCallback(MQTT::MessageData &md) {
-  //MQTT::Message &rx_message = md.message;
-   // SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
-   // SERIAL_DEBUG(F("--> qos %u\r\n"), rx_message.qos);
-   // SERIAL_DEBUG(F("--> retained %u\r\n"), rx_message.retained);
-   // SERIAL_DEBUG(F("--> dup %u\r\n"), rx_message.dup);
-   // SERIAL_DEBUG(F("--> id %u\r\n"), rx_message.id);
+  MQTT::Message &rx_message = md.message;
+  /*!
+    \var rpc_stream
+    \brief MQTT Loopback Stream used by jsonRPC over MQTT.
+  */
+  LoopbackStream rpc_stream(MQTT_MESSAGE_LENGTH);
+  
+  SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
+  SERIAL_TRACE(F("--> len %u\r\n"), rx_message.payloadlen);
+  SERIAL_TRACE(F("--> qos %u\r\n"), rx_message.qos);
+  SERIAL_TRACE(F("--> retained %u\r\n"), rx_message.retained);
+  SERIAL_TRACE(F("--> dup %u\r\n"), rx_message.dup);
+  SERIAL_TRACE(F("--> id %u\r\n"), rx_message.id);
+  
+  rpc_stream.clear();
+  uint8_t* command=(uint8_t*)rx_message.payload;
+  for (uint8_t i=0; i < rx_message.payloadlen; i++){
+    rpc_stream.write(*command);
+    command++;
+  }
+
+  is_event_rpc=true;
+  while (is_event_rpc) {                                  // here we are blocking becouse pahoMQTT is blocking
+    streamRpc.parseStream(&is_event_rpc, &rpc_stream);
+    wdt_reset();
+  }
+
+  rpcpayload[rpc_stream.readBytes(rpcpayload,MQTT_MESSAGE_LENGTH-1)]= 0;   // "queued" the response to send outside this callback
+ 
 }
 #endif
 
@@ -517,7 +570,7 @@ void print_configuration() {
    SERIAL_INFO(F("--> mqtt port: %u\r\n"), readable_configuration.mqtt_port);
    SERIAL_INFO(F("--> mqtt root topic: %s\r\n"), readable_configuration.mqtt_root_topic);
    SERIAL_INFO(F("--> mqtt maint topic: %s\r\n"), readable_configuration.mqtt_maint_topic);
-   SERIAL_INFO(F("--> mqtt subscribe topic: %s\r\n"), readable_configuration.mqtt_subscribe_topic);
+   SERIAL_INFO(F("--> mqtt rpc topic: %s\r\n"), readable_configuration.mqtt_rpc_topic);
    SERIAL_INFO(F("--> mqtt username: %s\r\n"), readable_configuration.mqtt_username);
    SERIAL_INFO(F("--> mqtt password: %s\r\n\r\n"), readable_configuration.mqtt_password);
    #endif
@@ -528,7 +581,7 @@ void set_default_configuration() {
    writable_configuration.module_main_version = MODULE_MAIN_VERSION;
    writable_configuration.module_minor_version = MODULE_MINOR_VERSION;
 
-   writable_configuration.report_seconds = 0;
+   writable_configuration.report_seconds = 900;
 
    writable_configuration.sensors_count = 0;
    memset(writable_configuration.sensors, 0, sizeof(sensor_t) * USE_SENSORS_COUNT);
@@ -565,7 +618,7 @@ void set_default_configuration() {
    strcpy(writable_configuration.mqtt_server, CONFIGURATION_DEFAULT_MQTT_SERVER);
    strcpy(writable_configuration.mqtt_root_topic, CONFIGURATION_DEFAULT_MQTT_ROOT_TOPIC);
    strcpy(writable_configuration.mqtt_maint_topic, CONFIGURATION_DEFAULT_MQTT_MAINT_TOPIC);
-   strcpy(writable_configuration.mqtt_subscribe_topic, CONFIGURATION_DEFAULT_MQTT_SUBSCRIBE_TOPIC);
+   strcpy(writable_configuration.mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC);
    strcpy(writable_configuration.mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME);
    strcpy(writable_configuration.mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD);
    #endif
@@ -608,7 +661,7 @@ void load_configuration() {
    ee_read(&readable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
 
    #if (USE_MQTT)
-   getMqttClientIdFromMqttTopic(readable_configuration.mqtt_maint_topic, client_id);
+   getMqttClientIdFromMqttTopic(readable_configuration.mqtt_rpc_topic, client_id);
    getFullTopic(maint_topic, readable_configuration.mqtt_maint_topic, MQTT_STATUS_TOPIC);
    #endif
 
@@ -647,10 +700,14 @@ int configure(JsonObject &params, JsonObject &result) {
    bool is_error = false;
    bool is_sensor_config = false;
 
+   //SERIAL_INFO(F("params.isNull %s\r\n"), params.isNull() ? "true" : "false");
+   if (params.isNull()) is_mqtt_rpc_delay=true;  // configure without params is used
+                                                 // to set a long delay before disconnect
+                                                 // after the data are sended
    for (JsonPair it : params) {
       if (strcmp(it.key().c_str(), "reset") == 0) {
          if (it.value().as<bool>() == true) {
-            set_default_configuration();
+	    set_default_configuration();
             LCD_INFO(&lcd, false, true, F("Reset configuration"));
          }
       }
@@ -666,9 +723,9 @@ int configure(JsonObject &params, JsonObject &result) {
       }
       else if (strcmp(it.key().c_str(), "mqttrootpath") == 0) {
          strncpy(writable_configuration.mqtt_root_topic, it.value().as<const char*>(), MQTT_ROOT_TOPIC_LENGTH);
-         strncpy(writable_configuration.mqtt_subscribe_topic, it.value().as<const char*>(), MQTT_SUBSCRIBE_TOPIC_LENGTH);
-         uint8_t mqtt_subscribe_topic_len = strlen(writable_configuration.mqtt_subscribe_topic);
-         strncpy(writable_configuration.mqtt_subscribe_topic+mqtt_subscribe_topic_len, "rx", MQTT_SUBSCRIBE_TOPIC_LENGTH-mqtt_subscribe_topic_len);
+      }
+      else if (strcmp(it.key().c_str(), "mqttrpcpath") == 0) {
+         strncpy(writable_configuration.mqtt_rpc_topic, it.value().as<const char*>(), MQTT_RPC_TOPIC_LENGTH);
       }
       else if (strcmp(it.key().c_str(), "mqttmaintpath") == 0) {
          strncpy(writable_configuration.mqtt_maint_topic, it.value().as<const char*>(), MQTT_MAINT_TOPIC_LENGTH);
@@ -959,22 +1016,104 @@ int prepandget(JsonObject &params, JsonObject &result) {
 }
 #endif
 
+#if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
+
+int recovery(JsonObject &params, JsonObject &result) {
+  static int state;
+  static int tmpstate;
+  static time_t ptr_time;  
+  static File mqtt_ptr_rpc_file;
+  
+  switch (rpc_state) {
+  case RPC_INIT:
+
+    state = E_BUSY;
+    {
+      bool found=false;
+    
+      for (JsonPair it : params) {
+	if (strcmp(it.key().c_str(), "dts") == 0) {
+	  found=true;
+	  
+	  if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT)) {
+	    tmpstate = E_INTERNAL_ERROR;
+	    result[F("state")] = F("error");
+	    SERIAL_ERROR(F("SD Card opening ptr data on file %s... [ %s ]\r\n"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+	    rpc_state = RPC_END;
+	    break;
+	  }
+	  
+	  tmElements_t datetime;
+	  datetime.Year = CalendarYrToTm(it.value().as<JsonArray>()[0].as<int>());
+	  datetime.Month = it.value().as<JsonArray>()[1].as<int>();
+	  datetime.Day = it.value().as<JsonArray>()[2].as<int>();
+	  datetime.Hour = it.value().as<JsonArray>()[3].as<int>();
+	  datetime.Minute = it.value().as<JsonArray>()[4].as<int>();
+	  datetime.Second = it.value().as<JsonArray>()[5].as<int>();
+	  ptr_time = makeTime(datetime);
+	  SERIAL_INFO(F("RPC Data pointer... [ %02u/%02u/%04u %02u:%02u:%02u ]\r\n"), datetime.Day, datetime.Month, tmYearToCalendar(datetime.Year), datetime.Hour, datetime.Minute, datetime.Second);
+	  
+	  rpc_state = RPC_EXECUTE;
+	  
+	  break;
+	}
+      }
+      
+      if (!found){
+	tmpstate = E_INVALID_PARAMS;
+	result[F("state")] = F("error");
+	SERIAL_ERROR(F("Invalid params [ %s ]\r\n"), FAIL_STRING);
+	
+	rpc_state = RPC_END;
+      }
+    }    
+    break;
+    
+  case RPC_EXECUTE:
+
+    if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t)) {
+      mqtt_ptr_rpc_file.flush();
+      mqtt_ptr_rpc_file.close();
+
+      SERIAL_INFO(F("SD Card writing ptr data on file %s... [ %s ]\r\n"), SDCARD_MQTT_PTR_RPC_FILE_NAME, OK_STRING);
+      tmpstate = E_SUCCESS;
+      result[F("state")] = F("done");
+
+    }else {
+      tmpstate = E_INTERNAL_ERROR;
+      result[F("state")] = F("error");
+      SERIAL_ERROR(F("SD Card writing ptr data on file %s... [ %s ]\r\n"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
+    }
+    
+    rpc_state = RPC_END;
+        
+  case RPC_END:
+
+    rpc_state = RPC_INIT;
+    state=tmpstate;
+    break;
+  }
+
+  return state;
+}
+#endif
+
+
 time_t getSystemTime() {
   return system_time;
 }
 
-/*
-void reboot() {
+void realreboot() {
   init_wdt(WDTO_1S);
   while(true);
 }
-*/
+
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject &params, JsonObject &result) {
    LCD_INFO(&lcd, false, true, F("Reboot"));
+   SERIAL_DEBUG(F("Reboot\r\n"));
    result[F("state")] = "done";
-   init_wdt(WDTO_1S);
-   while(true);
+   state=REBOOT;
    return E_SUCCESS;
 }
 #endif
@@ -2356,7 +2495,22 @@ void mqtt_task() {
    uint8_t ipstack_status;
    char file_name[SDCARD_FILES_NAME_MAX_LENGTH];
    int read_bytes_count;
+   static char comtopic[MQTT_RPC_TOPIC_LENGTH+3];    // static is required here for MQTTClient
 
+   // check every time and send RPC response
+   // callback driven !
+   if (strlen(rpcpayload) > 0 && mqtt_client.isConnected()){
+     char restopic[MQTT_RPC_TOPIC_LENGTH+3];
+     strcpy(restopic,readable_configuration.mqtt_rpc_topic);
+     strcat(restopic, "res");
+     if (mqttPublish(restopic,rpcpayload)){
+       SERIAL_DEBUG(F("MQTT RPC response <-- %s %s\r\n"), restopic, rpcpayload);
+       strcpy(rpcpayload,"");
+     }else{
+       SERIAL_ERROR(F("MQTT RPC response ERROR <-- %s %s\r\n"), restopic, rpcpayload);
+     }
+   }
+   
    switch (mqtt_state) {
       case MQTT_INIT:
          retry = 0;
@@ -2366,7 +2520,12 @@ void mqtt_task() {
          is_mqtt_error = false;
          is_mqtt_published_data = false;
 	 is_mqtt_constantdata = false;
+	 is_mqtt_rpc_delay =false;	 
          mqtt_data_count = 0;
+	 
+	 strcpy(comtopic,readable_configuration.mqtt_rpc_topic);
+	 strcat(comtopic, "com");
+	 strcpy(rpcpayload,"");
 
          if (!is_sdcard_open && !is_sdcard_error) {
             mqtt_state = MQTT_OPEN_SDCARD;
@@ -2410,6 +2569,20 @@ void mqtt_task() {
          break;
 
       case MQTT_OPEN_PTR_FILE:
+	 // if we have SDCARD_MQTT_PTR_RPC_FILE_NAME rename as current SDCARD_MQTT_PTR_FILE_NAME
+	 if (SD.exists(SDCARD_MQTT_PTR_RPC_FILE_NAME)) {
+	   SERIAL_INFO(F("file %s exists\r\n"),SDCARD_MQTT_PTR_RPC_FILE_NAME );   
+	   if (SD.remove(SDCARD_MQTT_PTR_FILE_NAME)) {
+	     SERIAL_INFO(F("file %s removed\r\n"),SDCARD_MQTT_PTR_FILE_NAME );   
+	   }
+	   // rename file coming from recovery rpc if exist
+	   if (SD.rename(SDCARD_MQTT_PTR_RPC_FILE_NAME, SDCARD_MQTT_PTR_FILE_NAME)) {
+	     SERIAL_INFO(F("PTR RPC file renamed to PTR file\r\n"));
+	   }
+	 } else {
+	   SERIAL_INFO(F("file %s do not exists\r\n"),SDCARD_MQTT_PTR_RPC_FILE_NAME );   
+	 }	  
+
          // try to open file. if ok, read ptr data.
          if (sdcard_open_file(&SD, &mqtt_ptr_file, SDCARD_MQTT_PTR_FILE_NAME, O_RDWR | O_CREAT)) {
             retry = 0;
@@ -2572,6 +2745,8 @@ void mqtt_task() {
             ipstack_timeout_ms = millis();
          }
 
+	 mqtt_client.setMessageHandler(comtopic, mqttRxCallback);   // messages queued for persistent client are sended at connect time and we have to "remember" the subscription
+	 
          ipstack_status = ipstack.connect(readable_configuration.mqtt_server, readable_configuration.mqtt_port);
 
          // success
@@ -2597,8 +2772,8 @@ void mqtt_task() {
          #endif
             SERIAL_ERROR(F("MQTT Connection... [ %s ]\r\n"), FAIL_STRING);
             is_mqtt_error = true;
-            mqtt_state = MQTT_ON_DISCONNECT;
-            SERIAL_TRACE(F("MQTT_CONNECT ---> MQTT_ON_DISCONNECT\r\n"));
+            mqtt_state = MQTT_RPC_DELAY;
+            SERIAL_TRACE(F("MQTT_CONNECT ---> MQTT_RPC_DELAY\r\n"));
          }
          // wait
       break;
@@ -2625,20 +2800,24 @@ void mqtt_task() {
             retry = 0;
             SERIAL_ERROR(F("MQTT on connect publish message... [ %s ]\r\n"), FAIL_STRING);
             is_mqtt_error = true;
-            mqtt_state = MQTT_ON_DISCONNECT;
-            SERIAL_TRACE(F("MQTT_ON_CONNECT ---> MQTT_ON_DISCONNECT\r\n"));
+            mqtt_state = MQTT_RPC_DELAY;
+            SERIAL_TRACE(F("MQTT_ON_CONNECT ---> MQTT_RPC_DELAY\r\n"));
          }
       break;
 
       case MQTT_SUBSCRIBE:
-         if (!is_mqtt_subscribed) {
-            is_mqtt_subscribed = (mqtt_client.subscribe(readable_configuration.mqtt_subscribe_topic, MQTT::QOS1, mqttRxCallback) == 0);
-            is_mqtt_error = !is_mqtt_subscribed;
-            SERIAL_DEBUG(F("MQTT Subscription... [ %s ]\r\n"), is_mqtt_subscribed ? OK_STRING : FAIL_STRING);
-         }
 
-         mqtt_state = MQTT_CONSTANTDATA;
-         SERIAL_TRACE(F("MQTT_SUBSCRIBE ---> MQTT_CONSTANTDATA\r\n"));
+	if(!mqtt_session_present) {
+	  mqtt_session_present=true;
+	  mqtt_client.setMessageHandler(comtopic, NULL); // remove previous handler
+	                                                 // MessageHandler in MQTTClient is not cleared betwen sessions
+	  
+	  bool is_mqtt_subscribed = mqtt_client.subscribe(comtopic, MQTT::QOS1, mqttRxCallback) == 0;  // subscribe and set new handler
+	  SERIAL_DEBUG(F("MQTT Subscription %s [ %s ]\r\n"), comtopic, is_mqtt_subscribed ? OK_STRING : FAIL_STRING);
+	}
+
+	mqtt_state = MQTT_CONSTANTDATA;
+	SERIAL_TRACE(F("MQTT_SUBSCRIBE ---> MQTT_CONSTANTDATA\r\n"));
       break;
 
       case MQTT_CONSTANTDATA:
@@ -2663,6 +2842,7 @@ void mqtt_task() {
 	  if (mqttPublish(full_topic_buffer,payload)){
 	  SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), full_topic_buffer, payload);
 	  }else{
+           is_mqtt_error = true;	 // we are restrictive here (we do not have retry and can omit this)   
 	   SERIAL_ERROR(F("MQTT ERROR <-- %s %s\r\n"), full_topic_buffer, payload);
 	  }
 	}else{
@@ -2701,8 +2881,8 @@ void mqtt_task() {
             SERIAL_TRACE(F("MQTT_SENSORS_LOOP ---> MQTT_DATA_LOOP\r\n"));
          }
          else if (is_mqtt_processing_json) {
-            mqtt_state = MQTT_ON_DISCONNECT;
-            SERIAL_TRACE(F("MQTT_SENSORS_LOOP ---> MQTT_ON_DISCONNECT\r\n"));
+            mqtt_state = MQTT_RPC_DELAY;
+            SERIAL_TRACE(F("MQTT_SENSORS_LOOP ---> MQTT_RPC_DELAY\r\n"));
          }
       break;
 
@@ -2788,8 +2968,8 @@ void mqtt_task() {
             SERIAL_ERROR(F("MQTT publish... [ %s ]\r\n"), FAIL_STRING);
 
             if (is_mqtt_processing_json) {
-               mqtt_state = MQTT_ON_DISCONNECT;
-               SERIAL_TRACE(F("MQTT_PUBLISH ---> MQTT_ON_DISCONNECT\r\n"));
+               mqtt_state = MQTT_RPC_DELAY;
+               SERIAL_TRACE(F("MQTT_PUBLISH ---> MQTT_RPC_DELAY\r\n"));
             }
             else if (is_mqtt_processing_sdcard) {
                mqtt_state = MQTT_CLOSE_DATA_FILE;
@@ -2833,11 +3013,22 @@ void mqtt_task() {
       case MQTT_CLOSE_DATA_FILE:
          if (is_mqtt_processing_sdcard) {
             is_sdcard_error = !read_data_file.close();
-            mqtt_state = MQTT_ON_DISCONNECT;
-            SERIAL_TRACE(F("MQTT_CLOSE_DATA_FILE ---> MQTT_ON_DISCONNECT\r\n"));
+            mqtt_state = MQTT_RPC_DELAY;
+            SERIAL_TRACE(F("MQTT_CLOSE_DATA_FILE ---> MQTT_RPC_DELAY\r\n"));
          }
          break;
 
+      case MQTT_RPC_DELAY:
+
+	 delay_ms = readable_configuration.report_seconds/3L*2L*1000L;
+	 start_time_ms = millis();
+	 state_after_wait = MQTT_ON_DISCONNECT;
+	 mqtt_state = MQTT_WAIT_STATE_RPC;
+
+	 SERIAL_TRACE(F("MQTT_RPC_DELAY ---> MQTT_WAIT_STATE_RPC\r\n"));
+
+         break;
+	 
       case MQTT_ON_DISCONNECT:
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          if (is_mqtt_error) {
@@ -2882,7 +3073,8 @@ void mqtt_task() {
          if (is_mqtt_error) {
          #endif
 
-         mqtt_client.disconnect();
+	 mqtt_client.disconnect();
+	 mqtt_client.setMessageHandler(comtopic, NULL); // remove handler setted
          ipstack.disconnect();
          SERIAL_DEBUG(F("MQTT Disconnect... [ %s ]\r\n"), OK_STRING);
 
@@ -2971,6 +3163,16 @@ void mqtt_task() {
             mqtt_state = state_after_wait;
          }
       break;
+
+      case MQTT_WAIT_STATE_RPC:
+	if (!mqtt_client.isConnected() || !is_mqtt_rpc_delay || is_mqtt_error) mqtt_state = state_after_wait;
+	mqtt_client.yield(10L);  
+	if (millis() - start_time_ms > delay_ms) {
+	  is_mqtt_rpc_delay=false;
+	  mqtt_state = state_after_wait;
+	}
+      break;
+
    }
 }
 #endif
