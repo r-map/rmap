@@ -44,7 +44,7 @@ import threading
 import dballe,io
 import functools
 import logging
-
+import time
 
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
@@ -1143,9 +1143,35 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     print("transport TCPIP not present for this board")
                     return
 
+            if transport_name == "mqtt":
+                try:
+                    if ( board.transportmqtt.active):
+                        print("mqtt Transport", board.transporttcpip)
+
+                        myhost =board.transportmqtt.mqttserver
+                        myuser =board.transportmqtt.mqttuser
+                        mypassword =board.transportmqtt.mqttpassword
+                        myrpctopic="rpc/"+str(mystation.ident)+"/"+\
+                            "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
+                            "/"+mystation.network+"/"
+
+                        transport=jsonrpc.TransportMQTT( host=myhost, user=myuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
+
+                except ObjectDoesNotExist:
+                    print("transport TCPIP not present for this board")
+                    return
+
+                
         rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
         if (rpcproxy is None): return
 
+        # with MQTT we send a configure command without params 
+        # to say to the station to do not disconnect and wait for RPC
+        if transport_name == "mqtt":
+            print("MQTT prepare to RPC",rpcproxy.configure())
+            time.sleep(30)
+
+        
         print(">>>>>>> reset config")
         print("reset",rpcproxy.configure(reset=True ))
 
@@ -1210,10 +1236,15 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/"))
 
+        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="rpc/"+str(mystation.ident)+"/"+\
+                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
+                                                 "/"+mystation.network+"/"))
+
         print(">>>>>>> save config")
         print("save",rpcproxy.configure(save=True ))
 
-        print("----------------------------- board configured ---------------------------------------")
+        print("----------------------------- board configured : REBOOT ---------------------------------")
+        print("reboot:",rpcproxy.reboot())
         
         transport.close()
 

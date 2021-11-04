@@ -83,7 +83,7 @@ parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
 parser.add_argument('--baudrate',  default=None, help="use this baudrate for serial transport")
-parser.add_argument('--transport',  default="serial",choices=["serial","tcpip","amqp","dummy"],help="work on this transport")
+parser.add_argument('--transport',  default="serial",choices=["serial","tcpip","amqp","mqtt","dummy"],help="work on this transport")
 parser.add_argument('--host',  default="master",choices=['master', 'master2', 'master3', 'master4'],help="work on this named board only")
 parser.add_argument('--lon',  default=None, help="longitude of station")
 parser.add_argument('--lat',  default=None, help="latitude of station")

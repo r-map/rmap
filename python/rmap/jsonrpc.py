@@ -835,7 +835,7 @@ class TransportMQTT(Transport):
     tested with mosquitto
     """
 
-    def __init__(self,host="rmap.cc",user=None,password=None,rpctopic="rpc",mac="000000000001",client_id=None,timeout=5,logfunc=log_dummy):
+    def __init__(self,host="rmap.cc",user=None,password=None,rpctopic="rpc",client_id=None,timeout=10,logfunc=log_dummy):
 
         import paho.mqtt.client as mqtt
         import signal
@@ -857,8 +857,8 @@ class TransportMQTT(Transport):
         self.connected=False
         self.mid=-1
 
-        self.topiccom=rpctopic+"/"+user+"/"+mac+"/com"
-        self.topicres=rpctopic+"/"+user+"/"+mac+"/res"
+        self.topiccom=rpctopic+"com"
+        self.topicres=rpctopic+"res"
 
         self.log    = logfunc
         self.log( "mqtt connect" )
@@ -929,8 +929,7 @@ class TransportMQTT(Transport):
         while not self.connected:
             self.log( "wait for connect" )
             time.sleep(1)
-
-        mi=self.mqttc.publish(self.topiccom, payload=string, qos=0, retain=False)
+        mi=self.mqttc.publish(self.topiccom, payload=string, qos=1, retain=False)
         self.log( "mqtt publish : %s" % (string) )
         
         while not mi.mid == self.mid:
