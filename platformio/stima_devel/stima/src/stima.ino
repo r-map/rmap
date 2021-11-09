@@ -895,7 +895,7 @@ bool extractSensorsParams(JsonObject &params, char *driver, char *type, uint8_t 
 #endif
 
 #if (USE_RPC_METHOD_CONFIGURE)
-int configure(JsonObject &params, JsonObject &result) {
+int configure(JsonObject params, JsonObject result) {
    bool is_error = false;
    bool is_sensor_config = false;
 
@@ -1024,7 +1024,7 @@ int configure(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_PREPARE)
-int prepare(JsonObject &params, JsonObject &result) {
+int prepare(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -1076,7 +1076,7 @@ int prepare(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_GETJSON)
-int getjson(JsonObject &params, JsonObject &result) {
+int getjson(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -1144,7 +1144,7 @@ int getjson(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_PREPANDGET)
-int prepandget(JsonObject &params, JsonObject &result) {
+int prepandget(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -1222,7 +1222,7 @@ void reboot() {
 }
 */
 #if (USE_RPC_METHOD_REBOOT)
-int reboot(JsonObject &params, JsonObject &result) {
+int reboot(JsonObject params, JsonObject result) {
    LCD_INFO(&lcd, false, true, F("Reboot"));
    result[F("state")] = "done";
    init_wdt(WDTO_1S);
