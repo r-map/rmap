@@ -67,9 +67,17 @@ jobs:
         run: |
           cd platformio/stima_v3/test_i2c_multimaster
           platformio run
+      - name: Build Stima V3 test_sim800
+        run: |
+          cd platformio/stima_v3/test_sim800
+          platformio run
       - name: Build Stima V3 test_mqtt_sim800
         run: |
           cd platformio/stima_v3/test_mqtt_sim800
+          platformio run
+      - name: Build Stima V3 test_mqtt_subscribe_sim800
+        run: |
+          cd platformio/stima_v3/test_mqtt_subscribe_sim800
           platformio run
       - name: Build Stima V3 test_sdcard
         run: |
@@ -79,12 +87,6 @@ jobs:
         run: |
           cd platformio/stima_v3/test_sensordriver
           platformio run
-      - name: Build Stima V3 test_sim800
-        run: |
-          cd platformio/stima_v3/test_sim800
-          platformio run
-
-
       - name: Build Stima test fakeraingauge
         run: |
           cd platformio/test/fakeraingauge
