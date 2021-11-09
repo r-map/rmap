@@ -513,7 +513,7 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
    SERIAL_TRACE(F("MQTT TX: %s\r\n"), (char*)tx_message.payload);
    SERIAL_TRACE(F("--> len %u\r\n"), tx_message.payloadlen);
 
-   MQTT::returnCode rc = mqtt_client.publish(topic, tx_message)   ;
+   MQTT::returnCode rc = (MQTT::returnCode) mqtt_client.publish(topic, tx_message)   ;
    switch (rc){
    case MQTT::BUFFER_OVERFLOW:
      SERIAL_TRACE(F("publish BUFFER_OVERFLOW\r\n"));
