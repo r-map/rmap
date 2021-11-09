@@ -76,6 +76,7 @@ void setup() {
 void loop() {
    switch (state) {
       case INIT:
+	 have_to_reboot =false;
          init_sensors();
          wdt_reset();
          state = TASKS_EXECUTION;
@@ -152,23 +153,26 @@ void loop() {
 
         if ((ready_tasks_count == 0) && (!is_event_rpc)) {
           wdt_reset();
-          if (state != REBOOT) state = END;
+	  if (have_to_reboot) {
+	    state = REBOOT;
+	  }else{
+	    state = END;
+	  }
         }
       break;
 
       case END:
-          #if (DEBUG_MEMORY)
-	//SRamDisplay();
-	Serial.print("Stack painted free: ");
-	Serial.println(post_StackCount());
-	//STACKPAINT_PRINT
-	//MEMORY_PRINT_START
-	//MEMORY_PRINT_HEAPSTART
-	//MEMORY_PRINT_HEAPEND
-	//MEMORY_PRINT_STACKSTART
-	//MEMORY_PRINT_END
-	//MEMORY_PRINT_HEAPSIZE
-	//FREERAM_PRINT;  
+         #if (DEBUG_MEMORY)
+	 //SRamDisplay();
+	 SERIAL_DEBUG(F("Stack painted free: %d\r\n"), post_StackCount());
+	 //STACKPAINT_PRINT
+	 //MEMORY_PRINT_START
+	 //MEMORY_PRINT_HEAPSTART
+	 //MEMORY_PRINT_HEAPEND
+	 //MEMORY_PRINT_STACKSTART
+	 //MEMORY_PRINT_END
+	 //MEMORY_PRINT_HEAPSIZE
+	 //FREERAM_PRINT;  
 	 Serial.flush();
 	 #endif
 
@@ -180,15 +184,19 @@ void loop() {
       break;
 
       case REBOOT:
-	Serial.print("Reboot");
-	mqtt_client.yield(6000L);   
-	wdt_reset();
-	mqtt_client.disconnect();
-	wdt_reset();
-	ipstack.disconnect();
-	wdt_reset();
-	SERIAL_DEBUG(F("MQTT Disconnect... [ %s ]\r\n"), OK_STRING);
-	realreboot();
+	if (strlen(rpcpayload) == 0 || !mqtt_client.isConnected()){
+	  SERIAL_DEBUG(F("Reboot\r\n"));
+	  if (mqtt_client.isConnected()){
+	    mqtt_client.yield(6000L);   
+	    wdt_reset();
+	    mqtt_client.disconnect();
+	    wdt_reset();
+	  }
+	  ipstack.disconnect();
+	  wdt_reset();
+	  SERIAL_DEBUG(F("MQTT Disconnect... [ %s ]\r\n"), OK_STRING);
+	  realreboot();
+	}
       break;
 
    }
@@ -299,7 +307,8 @@ void init_pins() {
 
    #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
    s800.init(GSM_ON_OFF_PIN);
-
+   s800.setTimeout(IP_STACK_TIMEOUT_MS);
+   
    #endif
 }
 
@@ -501,11 +510,23 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
    tx_message.payload = (void*) message;
    tx_message.payloadlen = strlen(message);
 
-   SERIAL_DEBUG(F("MQTT TX: %s\r\n"), (char*)tx_message.payload);
+   SERIAL_TRACE(F("MQTT TX: %s\r\n"), (char*)tx_message.payload);
    SERIAL_TRACE(F("--> len %u\r\n"), tx_message.payloadlen);
 
-   mqtt_client.yield(10L);
-   return (mqtt_client.publish(topic, tx_message) == 0);
+   MQTT::returnCode rc = mqtt_client.publish(topic, tx_message)   ;
+   switch (rc){
+   case MQTT::BUFFER_OVERFLOW:
+     SERIAL_TRACE(F("publish BUFFER_OVERFLOW\r\n"));
+     break;
+   case MQTT::FAILURE:
+     SERIAL_TRACE(F("publish FAILURE\r\n"));
+       break;
+   case MQTT::SUCCESS:
+     SERIAL_TRACE(F("publish SUCCESS\r\n"));
+     break;
+   }
+
+   return (rc == MQTT::SUCCESS);
 }
 
 void mqttRxCallback(MQTT::MessageData &md) {
@@ -514,7 +535,7 @@ void mqttRxCallback(MQTT::MessageData &md) {
     \var rpc_stream
     \brief MQTT Loopback Stream used by jsonRPC over MQTT.
   */
-  LoopbackStream rpc_stream(MQTT_MESSAGE_LENGTH);
+  LoopbackStream rpc_stream(MQTT_RPC_COMMAND_LENGTH);
   
   SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
   SERIAL_TRACE(F("--> len %u\r\n"), rx_message.payloadlen);
@@ -531,13 +552,11 @@ void mqttRxCallback(MQTT::MessageData &md) {
   }
 
   is_event_rpc=true;
-  while (is_event_rpc) {                                  // here we are blocking becouse pahoMQTT is blocking
+  while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
     streamRpc.parseStream(&is_event_rpc, &rpc_stream);
     wdt_reset();
   }
-
-  rpcpayload[rpc_stream.readBytes(rpcpayload,MQTT_MESSAGE_LENGTH-1)]= 0;   // "queued" the response to send outside this callback
- 
+  rpcpayload[rpc_stream.readBytes(rpcpayload,MQTT_RPC_RESPONSE_LENGTH-1)]= 0;   // "queued" the response to send outside this callback
 }
 #endif
 
@@ -696,7 +715,7 @@ bool extractSensorsParams(JsonObject &params, char *driver, char *type, uint8_t 
 #endif
 
 #if (USE_RPC_METHOD_CONFIGURE)
-int configure(JsonObject &params, JsonObject &result) {
+int configure(JsonObject params, JsonObject result) {
    bool is_error = false;
    bool is_sensor_config = false;
 
@@ -829,7 +848,7 @@ int configure(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_PREPARE)
-int prepare(JsonObject &params, JsonObject &result) {
+int prepare(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -881,7 +900,7 @@ int prepare(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_GETJSON)
-int getjson(JsonObject &params, JsonObject &result) {
+int getjson(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -949,7 +968,7 @@ int getjson(JsonObject &params, JsonObject &result) {
 #endif
 
 #if (USE_RPC_METHOD_PREPANDGET)
-int prepandget(JsonObject &params, JsonObject &result) {
+int prepandget(JsonObject params, JsonObject result) {
    static int state;
    static bool is_error = false;
    static char driver[DRIVER_LENGTH];
@@ -1018,7 +1037,7 @@ int prepandget(JsonObject &params, JsonObject &result) {
 
 #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
 
-int recovery(JsonObject &params, JsonObject &result) {
+int recovery(JsonObject params, JsonObject result) {
   static int state;
   static int tmpstate;
   static time_t ptr_time;  
@@ -1034,7 +1053,7 @@ int recovery(JsonObject &params, JsonObject &result) {
       for (JsonPair it : params) {
 	if (strcmp(it.key().c_str(), "dts") == 0) {
 	  found=true;
-	  
+          //if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) { // required in stream is Serial at boot time
 	  if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT)) {
 	    tmpstate = E_INTERNAL_ERROR;
 	    result[F("state")] = F("error");
@@ -1104,16 +1123,17 @@ time_t getSystemTime() {
 }
 
 void realreboot() {
+  SERIAL_DEBUG(F("bye bye\r\n"));
   init_wdt(WDTO_1S);
   while(true);
 }
 
 #if (USE_RPC_METHOD_REBOOT)
-int reboot(JsonObject &params, JsonObject &result) {
+int reboot(JsonObject params, JsonObject result) {
    LCD_INFO(&lcd, false, true, F("Reboot"));
    SERIAL_DEBUG(F("Reboot\r\n"));
    result[F("state")] = "done";
-   state=REBOOT;
+   have_to_reboot=true;
    return E_SUCCESS;
 }
 #endif
@@ -2496,18 +2516,31 @@ void mqtt_task() {
    char file_name[SDCARD_FILES_NAME_MAX_LENGTH];
    int read_bytes_count;
    static char comtopic[MQTT_RPC_TOPIC_LENGTH+3];    // static is required here for MQTTClient
-
-   // check every time and send RPC response
+   //static uint8_t mqtt_numretry_rpc_response;
+   
+   // check every loop to send RPC response
    // callback driven !
+
+   /*
+   // try to send response for three times
+   if (mqtt_numretry_rpc_response > 3 ){
+     rpcpayload[0]=0;
+     is_mqtt_error = true;
+     mqtt_numretry_rpc_response=0;
+   }
+   */
+   
    if (strlen(rpcpayload) > 0 && mqtt_client.isConnected()){
      char restopic[MQTT_RPC_TOPIC_LENGTH+3];
      strcpy(restopic,readable_configuration.mqtt_rpc_topic);
      strcat(restopic, "res");
      if (mqttPublish(restopic,rpcpayload)){
        SERIAL_DEBUG(F("MQTT RPC response <-- %s %s\r\n"), restopic, rpcpayload);
-       strcpy(rpcpayload,"");
+       rpcpayload[0]=0;
+       //mqtt_numretry_rpc_response=0;
      }else{
        SERIAL_ERROR(F("MQTT RPC response ERROR <-- %s %s\r\n"), restopic, rpcpayload);
+       //mqtt_numretry_rpc_response++;
      }
    }
    
@@ -2522,11 +2555,12 @@ void mqtt_task() {
 	 is_mqtt_constantdata = false;
 	 is_mqtt_rpc_delay =false;	 
          mqtt_data_count = 0;
+	 //mqtt_numretry_rpc_response =0;
 	 
 	 strcpy(comtopic,readable_configuration.mqtt_rpc_topic);
 	 strcat(comtopic, "com");
-	 strcpy(rpcpayload,"");
-
+	 rpcpayload[0]=0;
+	 
          if (!is_sdcard_open && !is_sdcard_error) {
             mqtt_state = MQTT_OPEN_SDCARD;
             SERIAL_TRACE(F("MQTT_PTR_DATA_INIT ---> MQTT_OPEN_SDCARD\r\n"));
@@ -2561,6 +2595,7 @@ void mqtt_task() {
          else {
             is_sdcard_error = true;
             is_sdcard_open = false;
+            retry = 0;
             SERIAL_ERROR(F("SD Card... [ FAIL ]\r\n--> is card inserted?\r\n--> there is a valid FAT32 filesystem?\r\n\r\n"));
 
             mqtt_state = MQTT_PTR_END;
@@ -2601,6 +2636,7 @@ void mqtt_task() {
          else {
             SERIAL_ERROR(F("SD Card open file %s... [ FAIL ]\r\n"), SDCARD_MQTT_PTR_FILE_NAME);
             is_sdcard_error = true;
+            retry = 0;
             mqtt_state = MQTT_PTR_END;
             SERIAL_TRACE(F("MQTT_OPEN_PTR_FILE ---> MQTT_PTR_END\r\n"));
          }
@@ -2772,6 +2808,7 @@ void mqtt_task() {
          #endif
             SERIAL_ERROR(F("MQTT Connection... [ %s ]\r\n"), FAIL_STRING);
             is_mqtt_error = true;
+            retry = 0;
             mqtt_state = MQTT_RPC_DELAY;
             SERIAL_TRACE(F("MQTT_CONNECT ---> MQTT_RPC_DELAY\r\n"));
          }
@@ -2783,10 +2820,11 @@ void mqtt_task() {
          snprintf(&message_buffer[0][0], MQTT_MESSAGE_LENGTH, MQTT_ON_CONNECT_MESSAGE);
 
          if (mqttPublish(full_topic_buffer, &message_buffer[0][0]), true) {
-            retry = 0;
+	   //retry = 0;
             mqtt_state = MQTT_SUBSCRIBE;
             SERIAL_TRACE(F("MQTT_ON_CONNECT ---> MQTT_SUBSCRIBE\r\n"));
          }
+	 /*
          // retry
          else if ((++retry) < MQTT_RETRY_COUNT_MAX) {
             delay_ms = MQTT_DELAY_MS;
@@ -2795,9 +2833,10 @@ void mqtt_task() {
             mqtt_state = MQTT_WAIT_STATE;
             SERIAL_TRACE(F("MQTT_ON_CONNECT ---> MQTT_WAIT_STATE\r\n"));
          }
+	 */
          // fail
          else {
-            retry = 0;
+	   //retry = 0;
             SERIAL_ERROR(F("MQTT on connect publish message... [ %s ]\r\n"), FAIL_STRING);
             is_mqtt_error = true;
             mqtt_state = MQTT_RPC_DELAY;
@@ -2840,10 +2879,10 @@ void mqtt_task() {
 	  strncpy(payload+6+strlen(readable_configuration.constantdata[i].value),"\"}\0",3);
 	  
 	  if (mqttPublish(full_topic_buffer,payload)){
-	  SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), full_topic_buffer, payload);
+	    SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), full_topic_buffer, payload);
 	  }else{
-           is_mqtt_error = true;	 // we are restrictive here (we do not have retry and can omit this)   
-	   SERIAL_ERROR(F("MQTT ERROR <-- %s %s\r\n"), full_topic_buffer, payload);
+	    is_mqtt_error = true;
+	    SERIAL_ERROR(F("MQTT ERROR <-- %s %s\r\n"), full_topic_buffer, payload);
 	  }
 	}else{
 	  mqtt_state = MQTT_CHECK;
@@ -2936,7 +2975,7 @@ void mqtt_task() {
          // mqtt json success
          if (is_mqtt_processing_json && mqttPublish(full_topic_buffer, &message_buffer[k][0])) {
             SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), &topic_buffer[k][0], &message_buffer[k][0]);
-            retry = 0;
+            //retry = 0;
             k++;
             mqtt_data_count++;
             mqtt_state = MQTT_DATA_LOOP;
@@ -2945,11 +2984,12 @@ void mqtt_task() {
          // mqtt sdcard success
          else if (is_mqtt_processing_sdcard && mqttPublish(full_topic_buffer, &message_buffer[0][0])) {
             SERIAL_DEBUG(F("MQTT <-- %s %s\r\n"), &topic_buffer[0][0], &message_buffer[0][0]);
-            retry = 0;
+            //retry = 0;
             mqtt_data_count++;
             mqtt_state = MQTT_SD_LOOP;
             SERIAL_TRACE(F("MQTT_PUBLISH ---> MQTT_SD_LOOP\r\n"));
          }
+	 /*
          // retry
          else if ((++retry) < MQTT_RETRY_COUNT_MAX) {
             delay_ms = MQTT_DELAY_MS;
@@ -2958,6 +2998,7 @@ void mqtt_task() {
             mqtt_state = MQTT_WAIT_STATE;
             SERIAL_TRACE(F("MQTT_PUBLISH ---> MQTT_WAIT_STATE\r\n"));
          }
+	 */
          // fail
          else {
             ptr_time_data = current_ptr_time_data - readable_configuration.report_seconds;
@@ -3020,11 +3061,13 @@ void mqtt_task() {
 
       case MQTT_RPC_DELAY:
 
-	 delay_ms = readable_configuration.report_seconds/3L*2L*1000L;
+	 //delay_ms = readable_configuration.report_seconds*500UL;
+	 delay_ms = 180000UL;
 	 start_time_ms = millis();
 	 state_after_wait = MQTT_ON_DISCONNECT;
 	 mqtt_state = MQTT_WAIT_STATE_RPC;
 
+	 SERIAL_TRACE(F("MQTT_WAIT_STATE_RPC: %lu\r\n"),delay_ms);
 	 SERIAL_TRACE(F("MQTT_RPC_DELAY ---> MQTT_WAIT_STATE_RPC\r\n"));
 
          break;
@@ -3165,10 +3208,19 @@ void mqtt_task() {
       break;
 
       case MQTT_WAIT_STATE_RPC:
-	if (!mqtt_client.isConnected() || !is_mqtt_rpc_delay || is_mqtt_error) mqtt_state = state_after_wait;
-	mqtt_client.yield(10L);  
+	if (!mqtt_client.isConnected() || !is_mqtt_rpc_delay || is_mqtt_error) {
+	  SERIAL_DEBUG(F("MQTT_WAIT_STATE_RPC: skipped\r\n"));
+	  SERIAL_TRACE(F("mqtt_client.isConnected: %s\r\n"),mqtt_client.isConnected() ? "true" : "false");
+	  SERIAL_TRACE(F("is_mqtt_rpc_delay: %s\r\n"),is_mqtt_rpc_delay ? "true" : "false");
+	  SERIAL_TRACE(F("is_mqtt_error: %s\r\n"),is_mqtt_error ? "true" : "false");
+
+	  is_mqtt_rpc_delay=false;
+	  mqtt_state = state_after_wait;
+	}
+	mqtt_client.yield(100L);  
 	if (millis() - start_time_ms > delay_ms) {
 	  is_mqtt_rpc_delay=false;
+	  SERIAL_DEBUG(F("MQTT_WAIT_STATE_RPC: expired\r\n"));
 	  mqtt_state = state_after_wait;
 	}
       break;

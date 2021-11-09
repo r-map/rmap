@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_ROOT_TOPIC_LENGTH
 \brief Length in bytes for mqtt root topic.
 */
-#define MQTT_ROOT_TOPIC_LENGTH         (50)
+#define MQTT_ROOT_TOPIC_LENGTH         (40)
 
 /*!
 \def MQTT_MAINT_TOPIC_LENGTH
@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_SENSOR_TOPIC_LENGTH
 \brief Length in bytes for mqtt sensor topic.
 */
-#define MQTT_SENSOR_TOPIC_LENGTH       (30)
+#define MQTT_SENSOR_TOPIC_LENGTH       (35)
 
 /*!
 \def MQTT_CLIENT_ID_LENGTH
@@ -57,7 +57,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_MESSAGE_LENGTH
 \brief Length in bytes for mqtt message.
 */
-#define MQTT_MESSAGE_LENGTH            (200)
+#define MQTT_MESSAGE_LENGTH            (40)
+
+/*!
+\def MQTT_RPC_COMMAND_LENGTH
+\brief Length in bytes for mqtt rpc command message.
+*/
+#define MQTT_RPC_COMMAND_LENGTH            (200)
+
+/*!
+\def MQTT_RPC_RESPONSE_LENGTH
+\brief Length in bytes for mqtt rpc response message.
+*/
+#define MQTT_RPC_RESPONSE_LENGTH           (80)
+
+/*!
+\def MQTT_PACKET_SIZE
+\brief Length in bytes for max mqtt packet size.
+*/
+#define MQTT_PACKET_SIZE                   (220)
 
 /*!
 \def MQTT_SERVER_LENGTH

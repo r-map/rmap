@@ -34,7 +34,7 @@ typedef enum {
 
 struct Mapping {
    char name[JRPC_MAXRPCNAMELEN];
-   int (*callback)(JsonObject&,JsonObject&);
+   int (*callback)(JsonObject,JsonObject);
 
 public:
    Mapping();
@@ -52,12 +52,12 @@ public:
    JsonRPC(bool my_radio = false);
 
    #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-   int parseStream(bool *is_active, Stream *stream, uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS);
+   void parseStream(bool *is_active, Stream *stream, uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS);
    int callback(Stream *stream);
    #endif
 
-   void registerMethod(const char* methodName, int (*callback)(JsonObject &, JsonObject &));
-   int processMessage(JsonObject msg);
+   void registerMethod(const char* methodName, int (*callback)(JsonObject, JsonObject));
+   int processMessage();
 
 private:
    FuncMap mymap;
@@ -66,8 +66,6 @@ private:
 
    #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
    jrpc_state_t jrpc_state;
-   bool is_stream_ready;
-   bool do_stream_read;
    StaticJsonDocument<JRPC_BUFFER_LENGTH> doc;
    #endif
 };

@@ -4,8 +4,8 @@
 #define GSM_APN        ("ibox.tim.it")
 #define GSM_USERNAME   ("")
 #define GSM_PASSWORD   ("")
-#define TOPICCOM "rpc/ident/000000000001/com"
-#define TOPICRES "rpc/ident/000000000001/res"
+#define TOPICCOM "test/ident/com"
+#define TOPICRES "test/ident/res"
 #define HOSTNAME "test.rmap.cc"
 #ifndef ARDUINO_ARCH_AVR
 HardwareSerial Serial1(PB11, PB10);
@@ -19,9 +19,9 @@ HardwareSerial Serial1(PB11, PB10);
 sim800Client s800;
 IPStack ipstack(s800);
 MQTT::Client<IPStack, Countdown, 120, 1> client = MQTT::Client<IPStack, Countdown, 120, 1>(ipstack,TIMEOUT);
+bool send_response=false;
 
-
-bool publish(void)
+bool publish(const char* topic, const char* payload)
 { 
 
   static long unsigned int sentcount = 0;
@@ -39,14 +39,12 @@ bool publish(void)
   Serial.println("Publish");  
   Serial.println("Send QoS 1 message:");
 
-  const char* payload="{\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"state\":\"done\"}}";
-
   Serial.println(payload);
   message.qos = MQTT::QOS1;  
   message.payload = payload;
-  message.payloadlen = strlen(payload);   // publish here can produce a deadlock ??
-                                          // should be better porting this outside callback
-  rc = client.publish(TOPICRES, message);
+  message.payloadlen = strlen(payload);
+                                       
+  rc = client.publish(topic, message);
   if (rc != 0)
   {
     Serial.print("rc from MQTT pubblish is ");
@@ -70,10 +68,10 @@ void messageArrived(MQTT::MessageData& md)
   Serial.print(message.dup);
   Serial.print(", packetid: ");
   Serial.print(message.id);
-  Serial.println(", Payload:");
+  Serial.print(", Payload:");
   Serial.println((char*)message.payload);
-  publish();
 
+  send_response=true;
 }
 
 bool initmodem(void)
@@ -160,10 +158,10 @@ bool connect(void)
 
   Serial.println("MQTT connecting");
   MQTTPacket_connectData data = MQTTPacket_connectData_initializer;       
-  data.MQTTVersion = 3;
+  data.MQTTVersion = 4;
   data.clientID.cstring = (char*)"test-ID";
-  data.username.cstring = (char*)"ident";
-  data.password.cstring = (char*)"password";
+  //data.username.cstring = (char*)"ident";
+  //data.password.cstring = (char*)"password";
   data.cleansession = true;
   
   int rc = client.connect(data);
@@ -175,7 +173,7 @@ bool connect(void)
   }else{
     Serial.println("MQTT connected");
   }
-  
+
   rc = client.subscribe(TOPICCOM, MQTTCLIENT_QOS, messageArrived);   
   if (rc != 0)
   {
@@ -200,11 +198,6 @@ void setup()
     delay(5000);
   }
 
-  Serial.println("Connect");
-  while (!client.isConnected()){
-    connect();
-    delay(1000);
-  }
 
   /*
   Serial.println("Disconnect");
@@ -216,6 +209,31 @@ void setup()
 }
 
 void loop()
-{ 
-  client.yield(60000L);
+{
+
+  while (!client.isConnected()){
+    Serial.println("Connect");
+    connect();
+    delay(1000);
+  }
+  
+  if(send_response){
+    const char* payload="{\"jsonrpc\":\"2.0\",\"id\":0,\"result\":{\"state\":\"done\"}}";
+    publish(TOPICRES,payload);
+    send_response=false;
+  }
+  
+  client.yield(1000LU);
+
+  uint32_t pub_time=millis() / 10000UL;
+  static uint32_t last_publish=0;
+  if( pub_time > last_publish){
+    last_publish=pub_time;
+    Serial.println(pub_time);
+    publish("test/ident/test","prova 1");
+    publish("test/ident/test","prova 2");
+    publish(TOPICCOM,"{\"jsonrpc\":\"2.0\",\"id\":0,\"params\":{}}");
+    publish("test/ident/test","prova 3");
+
+  }
 }

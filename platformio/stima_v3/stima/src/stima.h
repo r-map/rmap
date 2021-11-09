@@ -320,6 +320,13 @@ typedef enum {
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
+
+/*!
+\var have_to_reboot
+\brief Request for a reboot as soon as possible.
+*/
+bool  have_to_reboot;
+
 /*!
 \var readable_configuration
 \brief Configuration for this module.
@@ -393,7 +400,7 @@ bool is_mqtt_rpc_delay;
 \var rpcpayload; 
 \brief The MQTT RPC payload for RPC response.
 */
-char rpcpayload[MQTT_MESSAGE_LENGTH];
+char rpcpayload[MQTT_RPC_RESPONSE_LENGTH];
 
 
 /*!
@@ -448,7 +455,7 @@ IPStack ipstack(s800);
 \var mqtt_client
 \brief MQTT Client structure.
 */
-MQTT::Client<IPStack, Countdown, MQTT_MESSAGE_LENGTH, 1> mqtt_client = MQTT::Client<IPStack, Countdown, MQTT_MESSAGE_LENGTH, 1>(ipstack, IP_STACK_TIMEOUT_MS);
+MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1>(ipstack, IP_STACK_TIMEOUT_MS);
 
 #endif
 
