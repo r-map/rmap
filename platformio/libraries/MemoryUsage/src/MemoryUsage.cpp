@@ -35,7 +35,7 @@ int mu_freeRam()
 
 /// Copy / adaptation of the library StackPaint available here : https://github.com/WickedDevice/StackPaint
 
-#define STACK_CANARY	0xc5
+#define STACK_CANARY	0xa5
 
 // post paint derived by this post:
 // https://www.avrfreaks.net/comment/1314296#comment-1314296
@@ -46,18 +46,18 @@ void post_StackPaint(void)
 
     while(p < (uint8_t*)&p)
     {
-        *p = 0xc5;
+        *p = STACK_CANARY;
         p++;
     }
 } 
 
 uint16_t post_StackCount(void)
 {
-  const uint8_t *p =  (int) (__brkval == 0 ? (uint8_t *) &__heap_start : __brkval);
+  const uint8_t *p =  (const uint8_t*) (__brkval == 0 ? (uint8_t *) &__heap_start : __brkval);
   //const uint8_t *p = &_end;
     uint16_t       c = 0;
 
-    while(*p == 0xc5 && p < (uint8_t*)&p)
+    while(*p == STACK_CANARY && p < (uint8_t*)&p)
     {
         p++;
         c++;
@@ -85,7 +85,7 @@ void mu_StackPaint(void)
 	__asm volatile (
 		"    ldi r30,lo8(_end)\n"
 		"    ldi r31,hi8(_end)\n"
-		"    ldi r24,lo8(0xc5)\n" // STACK_CANARY = 0xc5
+		"    ldi r24,lo8(STACK_CANARY)\n" // STACK_CANARY = 0xc5
 		"    ldi r25,hi8(__stack)\n"
 		"    rjmp .cmp\n"
 		".loop:\n"
