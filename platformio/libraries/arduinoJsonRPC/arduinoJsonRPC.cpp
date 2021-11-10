@@ -1,4 +1,3 @@
-#include "Arduino.h"
 #include "arduinoJsonRPC.h"
 
 Mapping::Mapping() : callback(nullptr) {
@@ -42,19 +41,7 @@ int JsonRPC::processMessage() {
      mapping = &mymap.mappings[i];
      if (strcmp(method, mapping->name) == 0) {
        doc.remove(radio? F("m") : F("method"));
-       
-#if (JRPC_MODE == JRPC_CLASSIC_MODE)
-
-       JsonObject params = doc[radio ? F("p") : F("params")];
-       JsonObject result = doc.createNestedObject(radio ? F("r") : F("result"));
-       ret_status = mapping->callback(params,result);
-       doc.remove(radio? F("p") : F("params"));
-	       
-#elif (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-
        return E_BUSY;
-
-#endif
      }
    }
 
@@ -74,8 +61,55 @@ int JsonRPC::processMessage() {
    return ret_status;
 }
 
-#if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-void JsonRPC::parseStream(bool *is_active, Stream *stream, uint32_t timeout) {
+void JsonRPC::parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_len, char *rpcout, const size_t rpcout_len )
+{
+  int status;
+  
+  switch (jrpc_state) {
+  case JRPC_INIT:
+      *is_active = true;
+      jrpc_state = JRPC_AVAILABLE;
+    break;
+
+  case JRPC_AVAILABLE:
+    {
+      DeserializationError error =  deserializeJson(doc,rpcin,rpcin_len);
+      if (error) {
+	jrpc_state = JRPC_END;
+      }else{
+	status = processMessage();
+	if (status != E_BUSY && status != E_SUCCESS) {
+	  serializeJson(doc,rpcout,rpcout_len);
+	  jrpc_state = JRPC_END;
+	}
+	else {
+	  jrpc_state = JRPC_PROCESS;
+	}
+      }
+    }
+    
+    break;
+    
+  case JRPC_PROCESS:
+    
+    status = callback();
+
+    if (status != E_BUSY) {
+      jrpc_state = JRPC_END;
+      serializeJson(doc,rpcout,rpcout_len);
+    }
+    break;
+    
+  case JRPC_END:
+
+    jrpc_state = JRPC_INIT;
+    *is_active = false;
+    break;
+  }
+}
+
+
+void JsonRPC::parseStream(bool *is_active, Stream *stream, const uint32_t timeout) {
 
   int status;
   
@@ -113,17 +147,12 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, uint32_t timeout) {
     
   case JRPC_PROCESS:
     
-#if (JRPC_MODE == JRPC_CLASSIC_MODE)
-    jrpc_state = JRPC_END;
-#elif (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-	
-    status = callback(stream);
+    status = callback();
 
     if (status != E_BUSY) {
       jrpc_state = JRPC_END;
+      serializeJson(doc,*stream);
     }
-#endif
-
     break;
     
   case JRPC_END:
@@ -134,7 +163,7 @@ void JsonRPC::parseStream(bool *is_active, Stream *stream, uint32_t timeout) {
   }
 }
 
-int JsonRPC::callback(Stream *stream) {
+int JsonRPC::callback() {
    JsonObject params = doc[radio ? F("p") : F("params")];
    JsonObject result = doc.createNestedObject(radio ? F("r") : F("result"));
 
@@ -152,12 +181,8 @@ int JsonRPC::callback(Stream *stream) {
       }
    }
 
-   if (ret_status != E_BUSY) {
-     serializeJson(doc,*stream);
-   }
    return ret_status;
 }
-#endif
 
 const __FlashStringHelper* jsstrerror (int errnum) {
    /* use this to provide a perror style method to help consumers out */

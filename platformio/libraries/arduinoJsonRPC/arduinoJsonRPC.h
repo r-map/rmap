@@ -15,13 +15,7 @@
 #define JRPC_MAXRPCNAMELEN          (15)
 #endif
 
-#define JRPC_CLASSIC_MODE           (1)
-#define JRPC_NON_BLOCKING_MODE      (2)
-
-#define JRPC_MODE                   (JRPC_NON_BLOCKING_MODE)
-
-#if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-#define JRPC_BUFFER_LENGTH          (300)
+#define JRPC_DOCUMENT_SIZE          (300)
 #define JRPC_DEFAULT_TIMEOUT_MS     (5)
 
 typedef enum {
@@ -30,7 +24,6 @@ typedef enum {
    JRPC_PROCESS,
    JRPC_END
 } jrpc_state_t;
-#endif
 
 struct Mapping {
    char name[JRPC_MAXRPCNAMELEN];
@@ -50,12 +43,9 @@ public:
 class JsonRPC {
 public:
    JsonRPC(bool my_radio = false);
-
-   #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
-   void parseStream(bool *is_active, Stream *stream, uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS);
-   int callback(Stream *stream);
-   #endif
-
+   void parseStream(bool *is_active, Stream *stream, const uint32_t timeout = JRPC_DEFAULT_TIMEOUT_MS);
+   void parseCharpointer(bool *is_active, char *rpcin, const size_t rpcin_len, char *rpcout, const size_t rpcout_len );
+   int callback();
    void registerMethod(const char* methodName, int (*callback)(JsonObject, JsonObject));
    int processMessage();
 
@@ -63,11 +53,9 @@ private:
    FuncMap mymap;
    bool radio;
    Mapping *mapping;
-
-   #if (JRPC_MODE == JRPC_NON_BLOCKING_MODE)
    jrpc_state_t jrpc_state;
-   StaticJsonDocument<JRPC_BUFFER_LENGTH> doc;
-   #endif
+   StaticJsonDocument<JRPC_DOCUMENT_SIZE> doc;
+
 };
 
 #endif
