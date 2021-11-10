@@ -531,11 +531,6 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
 
 void mqttRxCallback(MQTT::MessageData &md) {
   MQTT::Message &rx_message = md.message;
-  /*!
-    \var rpc_stream
-    \brief MQTT Loopback Stream used by jsonRPC over MQTT.
-  */
-  LoopbackStream rpc_stream(MQTT_RPC_COMMAND_LENGTH);
   
   SERIAL_DEBUG(F("MQTT RX: %s\r\n"), (char*)rx_message.payload);
   SERIAL_TRACE(F("--> len %u\r\n"), rx_message.payloadlen);
@@ -543,20 +538,12 @@ void mqttRxCallback(MQTT::MessageData &md) {
   SERIAL_TRACE(F("--> retained %u\r\n"), rx_message.retained);
   SERIAL_TRACE(F("--> dup %u\r\n"), rx_message.dup);
   SERIAL_TRACE(F("--> id %u\r\n"), rx_message.id);
-  
-  rpc_stream.clear();
-  uint8_t* command=(uint8_t*)rx_message.payload;
-  for (uint8_t i=0; i < rx_message.payloadlen; i++){
-    rpc_stream.write(*command);
-    command++;
-  }
 
   is_event_rpc=true;
   while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
-    streamRpc.parseStream(&is_event_rpc, &rpc_stream);
+    streamRpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcpayload, MQTT_RPC_RESPONSE_LENGTH );
     wdt_reset();
   }
-  rpcpayload[rpc_stream.readBytes(rpcpayload,MQTT_RPC_RESPONSE_LENGTH-1)]= 0;   // "queued" the response to send outside this callback
 }
 #endif
 
@@ -3062,7 +3049,7 @@ void mqtt_task() {
       case MQTT_RPC_DELAY:
 
 	 //delay_ms = readable_configuration.report_seconds*500UL;
-	 delay_ms = 180000UL;
+	 delay_ms = 300000UL;
 	 start_time_ms = millis();
 	 state_after_wait = MQTT_ON_DISCONNECT;
 	 mqtt_state = MQTT_WAIT_STATE_RPC;
@@ -3217,7 +3204,7 @@ void mqtt_task() {
 	  is_mqtt_rpc_delay=false;
 	  mqtt_state = state_after_wait;
 	}
-	mqtt_client.yield(100L);  
+	mqtt_client.yield(100L);
 	if (millis() - start_time_ms > delay_ms) {
 	  is_mqtt_rpc_delay=false;
 	  SERIAL_DEBUG(F("MQTT_WAIT_STATE_RPC: expired\r\n"));

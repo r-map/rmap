@@ -37,6 +37,19 @@ void loop(void) {
     Serial.println("error init");
   }
 
+
+  
+  if (SD.exists("test.txt")) {
+    Serial.println(F("file test.txt exists\r\n") );   
+    SD.remove("renamed.txt");
+    if (SD.rename("test.txt", "renamed.txt")) {
+      Serial.println(F("test.txt file renamed to renamed.txt file\r\n"));
+    }
+  } else {
+    Serial.println(F("file test.txt do not exists\r\n"));   
+  }	  
+
+  
   delay(5000);
 
 }

@@ -79,6 +79,10 @@ jobs:
         run: |
           cd platformio/stima_v3/test_mqtt_subscribe_sim800
           platformio run
+      - name: Build Stima V3 test_jsonrpc
+        run: |
+          cd platformio/stima_v3/test_jsonrpc
+          platformio run
       - name: Build Stima V3 test_sdcard
         run: |
           cd platformio/stima_v3/test_sdcard
