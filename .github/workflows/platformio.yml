@@ -95,16 +95,15 @@ jobs:
         run: |
           cd platformio/stima_v3/test_logging
           platformio run
-	  
-      - name: Build Stima test fakeraingauge
+      - name: Build Stima fakeraingauge
         run: |
           cd platformio/test/fakeraingauge
           platformio run
-      - name: Build Stima test faketh
+      - name: Build Stima faketh
         run: |
           cd platformio/test/faketh
           platformio run
-      - name: Build Stima test fakewind
+      - name: Build Stima fakewind
         run: |
           cd platformio/test/fakewind
           platformio run
