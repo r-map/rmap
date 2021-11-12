@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this library.
-*/
-#define SERIAL_TRACE_LEVEL SENSOR_DRIVER_SERIAL_TRACE_LEVEL
-
 #include "SensorDriver.h"
 
 namespace _SensorDriver {
@@ -98,7 +90,7 @@ SensorDriver::SensorDriver(const char* driver, const char* type) {
 
 SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   if (strlen(driver) == 0 || strlen(type) == 0) {
-    SERIAL_ERROR(F("SensorDriver %s-%s create... [ %s ]\r\n--> driver or type is null.\r\n"), driver, type, FAIL_STRING);
+    LOGE(F("SensorDriver %s-%s create... [ %s ]--> driver or type is null."), driver, type, FAIL_STRING);
     return NULL;
   }
 
@@ -158,7 +150,7 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   #endif
 
   else {
-    SERIAL_ERROR(F("SensorDriver %s-%s create... [ FAIL ]\r\n--> driver or type not found.\r\n"), driver, type);
+    LOGE(F("SensorDriver %s-%s create... [ FAIL ]--> driver or type not found."), driver, type);
     return NULL;
   }
 }
@@ -214,14 +206,14 @@ void SensorDriver::createAndSetup(const char* driver, const char* type, const ui
 }
 
 void SensorDriver::printInfo(const char* driver, const char* type, const uint8_t address, const uint8_t node) {
-  SERIAL_DEBUG(F("SensorDriver %s-%s"), driver, type);
+  LOGT(F("SensorDriver %s-%s"), driver, type);
 
   if (address) {
-    SERIAL_DEBUG(F(" 0x%x (%d)"), address, address);
+    LOGT(F(" 0x%x (%d)"), address, address);
   }
 
   if (node) {
-    SERIAL_DEBUG(F(" on node %d\r\n"), node);
+    LOGT(F(" on node %d"), node);
   }
 }
 
@@ -252,15 +244,15 @@ void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), FAIL_STRING);
+      LOGT(F(" setup... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_setted = true;
-    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" setup... [ %s ]"), OK_STRING);
   }
   else {
-    SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), YES_STRING);
+    LOGT(F(" setup... [ %s ]"), YES_STRING);
   }
 
   _delay_ms = 0;
@@ -276,17 +268,17 @@ void SensorDriverAdt7420::prepare(bool is_test) {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
     _delay_ms = 250;
 
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" prepare... [ %s ]"), OK_STRING);
   }
   else {
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    LOGT(F(" prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -371,14 +363,14 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
     }
 
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
+        LOGT(F("--> temperature: %d"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+        LOGT(F("--> temperature: ---"));
       }
     }
 
@@ -432,7 +424,7 @@ void SensorDriverHih6100::resetPrepared() {
 void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
   SensorDriver::printInfo(_driver, _type, _address, _node);
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
   _delay_ms = 0;
   *_is_setted = true;
 }
@@ -444,17 +436,17 @@ void SensorDriverHih6100::prepare(bool is_test) {
     Wire.beginTransmission(_address);
 
     if (Wire.endTransmission()) {
-      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
     _delay_ms = 40;
 
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" prepare... [ %s ]"), OK_STRING);
   }
   else {
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    LOGT(F(" prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -560,23 +552,23 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     }
 
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
+        LOGT(F("--> humidity: %d"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+        LOGT(F("--> humidity: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
+        LOGT(F("--> temperature: %d"), values[1]);
       }
       else {
-        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+        LOGT(F("--> temperature: ---"));
       }
     }
 
@@ -639,13 +631,13 @@ void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_setted = true;
   _delay_ms = 0;
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverHyt2X1::prepare(bool is_test) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_prepared = Hyt2X1::hyt_initRead(_address);
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), *_is_prepared ? OK_STRING : FAIL_STRING);
+  LOGT(F(" prepare... [ %s ]"), *_is_prepared ? OK_STRING : FAIL_STRING);
   _delay_ms = HYT2X1_CONVERSION_TIME_MS;
   _start_time_ms = millis();
 }
@@ -734,23 +726,23 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       }
 
       SensorDriver::printInfo(_driver, _type, _address, _node);
-      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
       if (length >= 1) {
         if (ISVALID(values[0])) {
-          SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[0]);
+          LOGT(F("--> humidity: %d"), values[0]);
         }
         else {
-          SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+          LOGT(F("--> humidity: ---"));
         }
       }
 
       if (length >= 2) {
         if (ISVALID(values[1])) {
-          SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[1]);
+          LOGT(F("--> temperature: %d"), values[1]);
         }
         else {
-          SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+          LOGT(F("--> temperature: ---"));
         }
       }
 
@@ -829,7 +821,7 @@ void SensorDriverDw1::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_setted = true;
   _delay_ms = 0;
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverDw1::prepare(bool is_test) {
@@ -842,16 +834,16 @@ void SensorDriverDw1::prepare(bool is_test) {
     _delay_ms = 3000;
 
     if (Wire.endTransmission()) {
-      SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), FAIL_STRING);
+      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
 
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" prepare... [ %s ]"), OK_STRING);
   }
   else {
-    SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), YES_STRING);
+    LOGT(F(" prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -991,34 +983,34 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
 
     case END:
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> mean u: %u\r\n"), values[0]);
+        LOGT(F("--> mean u: %d"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> mean u: ---\r\n"));
+        LOGT(F("--> mean u: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        SERIAL_DEBUG(F("--> mean v: %u\r\n"), values[1]);
+        LOGT(F("--> mean v: %d"), values[1]);
       }
       else {
-        SERIAL_DEBUG(F("--> mean v: ---\r\n"));
+        LOGT(F("--> mean v: ---"));
       }
     }
 
     if (ISVALID(values[0]) && ISVALID(values[1]) && length >= 2) {
       values[0] = (int32_t) direction;
       values[1] = (int32_t) round(speed);
-      SERIAL_DEBUG(F("--> direction: %u\r\n"), values[0]);
-      SERIAL_DEBUG(F("--> speed: %u\r\n"), values[1]);
+      LOGT(F("--> direction: %d"), values[0]);
+      LOGT(F("--> speed: %d"), values[1]);
     } else {
-      SERIAL_DEBUG(F("--> direction: ---\r\n"));
-      SERIAL_DEBUG(F("--> speed: ---\r\n"));
+      LOGT(F("--> direction: ---"));
+      LOGT(F("--> speed: ---"));
     }
 
     _start_time_ms = millis();
@@ -1083,7 +1075,7 @@ void SensorDriverRain::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_setted = true;
   _delay_ms = 0;
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverRain::prepare(bool is_test) {
@@ -1126,7 +1118,7 @@ void SensorDriverRain::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -1233,14 +1225,14 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     }
 
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> rain tips: %u\r\n"), values[0]);
+        LOGT(F("--> rain tips: %d"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> rain tips: ---\r\n"));
+        LOGT(F("--> rain tips: ---"));
       }
     }
 
@@ -1331,7 +1323,7 @@ void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverTh::prepare(bool is_test) {
@@ -1382,7 +1374,7 @@ void SensorDriverTh::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -1633,23 +1625,23 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     }
 
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> temperature: %u\r\n"), values[0]);
+        LOGT(F("--> temperature: %d"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> temperature: ---\r\n"));
+        LOGT(F("--> temperature: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        SERIAL_DEBUG(F("--> humidity: %u\r\n"), values[1]);
+        LOGT(F("--> humidity: %d"), values[1]);
       }
       else {
-        SERIAL_DEBUG(F("--> humidity: ---\r\n"));
+        LOGT(F("--> humidity: ---"));
       }
     }
 
@@ -1713,7 +1705,7 @@ void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node)
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_setted = true;
   _delay_ms = 0;
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverDigitecoPower::prepare(bool is_test) {
@@ -1721,7 +1713,7 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
   _delay_ms = 0;
   *_is_prepared = true;
   _start_time_ms = millis();
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" prepare... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
@@ -1958,59 +1950,59 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     SensorDriver::printInfo(_driver, _type, _address, _node);
-    SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        SERIAL_DEBUG(F("--> battery charge: %ld %%\r\n"), values[0]);
+        LOGT(F("--> battery charge: %ld %%"), values[0]);
       }
       else {
-        SERIAL_DEBUG(F("--> battery charge: ---\r\n"));
+        LOGT(F("--> battery charge: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        SERIAL_DEBUG(F("--> battery voltage: %ld V\r\n"), values[1]);
+        LOGT(F("--> battery voltage: %ld V"), values[1]);
       }
       else {
-        SERIAL_DEBUG(F("--> battery voltage: ---\r\n"));
+        LOGT(F("--> battery voltage: ---"));
       }
     }
 
     if (length >= 4) {
       if (ISVALID(values[3])) {
-        SERIAL_DEBUG(F("--> battery current: %ld mA\r\n"), values[2]);
+        LOGT(F("--> battery current: %ld mA"), values[2]);
       }
       else {
-        SERIAL_DEBUG(F("--> battery current: ---\r\n"));
+        LOGT(F("--> battery current: ---"));
       }
     }
 
     if (length >= 3) {
       if (ISVALID(values[2])) {
-        SERIAL_DEBUG(F("--> input voltage: %ld V\r\n"), values[2]);
+        LOGT(F("--> input voltage: %ld V"), values[2]);
       }
       else {
-        SERIAL_DEBUG(F("--> input voltage: ---\r\n"));
+        LOGT(F("--> input voltage: ---"));
       }
     }
 
     if (length >= 5) {
       if (ISVALID(values[4])) {
-        SERIAL_DEBUG(F("--> input current: %ld mA\r\n"), values[4]);
+        LOGT(F("--> input current: %ld mA"), values[4]);
       }
       else {
-        SERIAL_DEBUG(F("--> input current: ---\r\n"));
+        LOGT(F("--> input current: ---"));
       }
     }
 
     if (length >= 6) {
       if (ISVALID(values[5])) {
-        SERIAL_DEBUG(F("--> output voltage: %ld V\r\n"), values[5]);
+        LOGT(F("--> output voltage: %ld V"), values[5]);
       }
       else {
-        SERIAL_DEBUG(F("--> output voltage: ---\r\n"));
+        LOGT(F("--> output voltage: ---"));
       }
     }
 
@@ -2132,7 +2124,7 @@ void SensorDriverWind::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverWind::prepare(bool is_test) {
@@ -2170,7 +2162,7 @@ void SensorDriverWind::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -2412,7 +2404,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
 
     case END:
       SensorDriver::printInfo(_driver, _type, _address, _node);
-      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
       _start_time_ms = millis();
       _delay_ms = 0;
@@ -2573,7 +2565,7 @@ void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node
     _is_success = true;
   }
 
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverSolarRadiation::prepare(bool is_test) {
@@ -2611,7 +2603,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -2760,16 +2752,16 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
 
     case END:
       SensorDriver::printInfo(_driver, _type, _address, _node);
-      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
       #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> solar radiation: %ld\r\n"), values[0]);
+            LOGT(F("--> solar radiation: %ld"), values[0]);
           }
           else {
-            SERIAL_DEBUG(F("--> solar radiation: ---\r\n"));
+            LOGT(F("--> solar radiation: ---"));
           }
         }
       }
@@ -2866,7 +2858,7 @@ void SensorDriverOpc::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverOpc::prepare(bool is_test) {
@@ -2904,7 +2896,7 @@ void SensorDriverOpc::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
@@ -3219,34 +3211,34 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 
     case END:
       SensorDriver::printInfo(_driver, _type, _address, _node);
-      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> PM 1: %ld\r\n"), values[0]);
+            LOGT(F("--> PM 1: %ld"), values[0]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 1: ---\r\n"));
+            LOGT(F("--> PM 1: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            SERIAL_DEBUG(F("--> PM 2.5: %ld\r\n"), values[1]);
+            LOGT(F("--> PM 2.5: %ld"), values[1]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 2.5: ---\r\n"));
+            LOGT(F("--> PM 2.5: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID(values[2])) {
-            SERIAL_DEBUG(F("--> PM 10: %ld\r\n"), values[2]);
+            LOGT(F("--> PM 10: %ld"), values[2]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 10: ---\r\n"));
+            LOGT(F("--> PM 10: ---"));
           }
         }
       }
@@ -3256,28 +3248,28 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> PM 1 sigma: %ld\r\n"), values[0]);
+            LOGT(F("--> PM 1 sigma: %ld"), values[0]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 1 sigma: ---\r\n"));
+            LOGT(F("--> PM 1 sigma: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            SERIAL_DEBUG(F("--> PM 2.5 sigma: %ld\r\n"), values[1]);
+            LOGT(F("--> PM 2.5 sigma: %ld"), values[1]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 2.5 sigma: ---\r\n"));
+            LOGT(F("--> PM 2.5 sigma: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID(values[2])) {
-            SERIAL_DEBUG(F("--> PM 10 sigma: %ld\r\n"), values[2]);
+            LOGT(F("--> PM 10 sigma: %ld"), values[2]);
           }
           else {
-            SERIAL_DEBUG(F("--> PM 10 sigma: ---\r\n"));
+            LOGT(F("--> PM 10 sigma: ---"));
           }
         }
       }
@@ -3287,14 +3279,18 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
-            SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
+            LOGT(F("--> BIN [0-%d]:\t[ "), variable_length - 1);
+	    for (int i=0; i<variable_length; i++) {
+	      LOGT(F("%l"),values[i]);
+	    }
+            LOGT(F(" ]"));
           }
           else {
-            SERIAL_DEBUG(F("--> BIN [0-%u]:\t[ "), variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("- "));
-            SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
+            LOGT(F("--> BIN [0-%d]:\t[ "), variable_length - 1);
+	    for (int i=0; i<variable_length; i++) {
+	      LOGT(F("-"));
+	    }
+            LOGT(F(" ]"));
           }
         }
       }
@@ -3304,14 +3300,18 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("%ld "));
-            SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
+            LOGT(F("--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+	    for (int i=0; i<variable_length; i++) {
+	      LOGT(F("%l"),values[i]);
+	    }
+            LOGT_CLEAN(F(" ]"));
           }
           else {
-            SERIAL_DEBUG(F("--> BIN sigma [0-%u]:\t[ "), variable_length - 1);
-            SERIAL_DEBUG_ARRAY_CLEAN(values, variable_length, INT32, F("- "));
-            SERIAL_DEBUG_CLEAN(F(" ]\r\n"));
+            LOGT(F("--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+	    for (int i=0; i<variable_length; i++) {
+	      LOGT(F("-"));
+	    }
+            LOGT_CLEAN(F(" ]"));
           }
         }
       }
@@ -3321,19 +3321,19 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_DEBUG(F("--> Temperature: %ld\r\n"), values[0]);
+            LOGT(F("--> Temperature: %ld"), values[0]);
           }
           else {
-            SERIAL_DEBUG(F("--> Temperature: ---\r\n"));
+            LOGT(F("--> Temperature: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            SERIAL_DEBUG(F("--> Humidity: %ld\r\n"), values[1]);
+            LOGT(F("--> Humidity: %ld"), values[1]);
           }
           else {
-            SERIAL_DEBUG(F("--> Humidity: ---\r\n"));
+            LOGT(F("--> Humidity: ---"));
           }
         }
       }
@@ -3454,7 +3454,7 @@ void SensorDriverLeaf::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::printInfo(_driver, _type, _address, _node);
   *_is_setted = true;
   _delay_ms = 0;
-  SERIAL_DEBUG(F(" setup... [ %s ]\r\n"), OK_STRING);
+  LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverLeaf::prepare(bool is_test) {
@@ -3498,7 +3498,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  SERIAL_DEBUG(F(" prepare... [ %s ]\r\n"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
@@ -3645,16 +3645,16 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
 
     case END:
       SensorDriver::printInfo(_driver, _type, _address, _node);
-      SERIAL_DEBUG(F(" get... [ %s ]\r\n"), _is_success ? OK_STRING : FAIL_STRING);
+      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
 
       #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            SERIAL_INFO(F("--> Leaf Wet Time: %ld minutes\r\n"), values[0]);
+            LOGN(F("--> Leaf Wet Time: %ld minutes"), values[0]);
           }
           else {
-            SERIAL_DEBUG(F("--> Leaf Wet Time: --- minutes\r\n"));
+            LOGT(F("--> Leaf Wet Time: --- minutes"));
           }
         }
       }

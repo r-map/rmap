@@ -28,6 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typedef.h>
 #include <registers.h>
 #include <debug.h>
+#include <ArduinoLog.h>
+#include <StreamUtils.h>
+
 #include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
@@ -362,6 +365,21 @@ JsonRPC streamRpc(false);
 \brief SD-Card structure.
 */
 SdFat SD;
+
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
 
 /*!
 \var read_data_file
@@ -698,6 +716,14 @@ rpc_state_t rpc_state;
 *********************************************************************/
 void realreboot();
 time_t getSystemTime();
+
+/*!
+\fn void init_logging(void)
+\brief Init logging system.
+\return void.
+*/
+void init_logging(void);
+
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.

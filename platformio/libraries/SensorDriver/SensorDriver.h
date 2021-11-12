@@ -23,7 +23,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SENSOR_DRIVER_H
 #define SENSOR_DRIVER_H
 
-#include <debug.h>
+#include <debug_config.h>
+#include <ArduinoLog.h>
 #include "SensorDriverSensors.h"
 #include "sensors_config.h"
 #include "i2c_config.h"
@@ -305,7 +306,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -349,7 +350,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -394,7 +395,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -441,7 +442,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %S ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %S ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -491,7 +492,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -537,7 +538,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %S ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %S ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -585,7 +586,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -641,7 +642,7 @@ public:
     *_is_prepared = false;
 
     SensorDriver::printInfo(driver, type);
-    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);
@@ -681,7 +682,7 @@ public:
     *_is_prepared = false;
 
     SensorDriver::printInfo(driver, type);
-    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);
@@ -721,7 +722,7 @@ public:
       *_is_prepared = false;
 
       SensorDriver::printInfo(driver, type);
-      SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+      LOGT(F(" create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -770,7 +771,7 @@ public:
     *_is_prepared = false;
 
     SensorDriver::printInfo(driver, type);
-    SERIAL_DEBUG(F(" create... [ %s ]\r\n"), OK_STRING);
+    LOGT(F(" create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);

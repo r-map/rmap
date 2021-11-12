@@ -26,8 +26,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "Arduino.h"
 #include <Time.h>
 #include "IPAddress.h"
-
-#include <debug.h>
+#include <ArduinoLog.h>
+#include <debug_config.h>
 
 /*!
 \def SIM800_BUFFER_LENGTH

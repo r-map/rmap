@@ -311,9 +311,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def SDCARD_TEST_FILE_NAME
-\brief Chip select pin for SD-Card module.
+\brief File name for testing SD-Card.
 */
 #define SDCARD_TEST_FILE_NAME                        ("temp.txt")
+
+/*!
+\def SDCARD_LOGGING_FILE_NAME
+\brief File name for logging on SD-Card.
+*/
+#define SDCARD_LOGGING_FILE_NAME                     ("stima.log")
+
 #endif
 
 /*********************************************************************

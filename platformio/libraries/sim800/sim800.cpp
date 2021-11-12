@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for this library.
-*/
-#define SERIAL_TRACE_LEVEL SIM800_SERIAL_TRACE_LEVEL
-
 #include "sim800Client.h"
 
 /*!
@@ -70,7 +62,7 @@ sim800_status_t SIM800::switchOn() {
    at_command_status = switchModem(is_switching_on);
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_INFO(F("SIM800 switching ON... [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
+      LOGN(F("SIM800 switching ON... [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
    }
 
    return at_command_status;
@@ -89,7 +81,7 @@ sim800_status_t SIM800::switchOff(uint8_t power_off_method) {
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_INFO(F("SIM800 switching OFF... [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
+      LOGN(F("SIM800 switching OFF... [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), isOn() ? ON_STRING : OFF_STRING);
    }
 
    return at_command_status;
@@ -192,6 +184,74 @@ sim800_status_t SIM800::switchModem(bool is_switching_on) {
 
 SIM800::SIM800() {}
 
+/*
+bool SIM800::httpGET(const char* server, int port, const char* path, char* result, int resultlength)
+{
+  char bufcommand[BUFCOMMAND_LENGTH];
+  char buf[BUF_LENGTH];
+  char* newpath;
+
+  IF_SDEBUG(Serial.println(F("#sim800:start httpget ...")));
+
+  if (!isInitialized()) return SIM800_ERROR;
+  if (!isRegistered())  return SIM800_ERROR;
+
+  if (isHttpInitialized()){
+    ATcommand("+HTTPTERM", buf);
+    state &= ~STATE_HTTPINITIALIZED;
+  }
+
+  if(!ATcommand("+HTTPINIT", buf)){
+    ATcommand("+HTTPTERM", buf);
+    if(!ATcommand("+HTTPINIT", buf)) return false;
+    state |= STATE_HTTPINITIALIZED;
+  }
+
+  if(!ATcommand("+HTTPPARA=\"CID\",1", buf)) return false;
+  newpath = str_replace(path,"\"", "%22");
+  sprintf(bufcommand, "+HTTPPARA=\"URL\",\"%s%s\"",server,newpath );
+  free(newpath);
+  if(!ATcommand(bufcommand, buf)) return false;
+  if(!ATcommand("+HTTPACTION=0", buf)) return false;
+  //receive(buf,5000,"\n",NULL);             // here we receive some spourious \r\n; do not wait for it
+  receive(buf,20000,"+HTTPACTION",NULL);     // timeout for response 20 sec
+  receive(buf,5000,"\n",NULL);
+  int method;
+  int status;
+  int datalen;
+  int token_count = sscanf(buf,":%i,%i,%i",&method,&status,&datalen);
+  if ( token_count == 3 ){
+    IF_SDEBUG(Serial.print(F("#sim800:method: ")));
+    IF_SDEBUG(Serial.println(method));
+    IF_SDEBUG(Serial.print(F("#sim800:status: ")));
+    IF_SDEBUG(Serial.println(status));
+    IF_SDEBUG(Serial.print(F("#sim800:datalen: ")));
+    IF_SDEBUG(Serial.println(datalen));
+    }else{
+    IF_SDEBUG(Serial.println(F("#sim800:ERROR httpaction")));
+    IF_SDEBUG(Serial.print(F("#sim800:token count: ")));
+    IF_SDEBUG(Serial.println(token_count));
+    IF_SDEBUG(Serial.println(buf));
+    return false;
+  }
+  if (status != 200) return false;
+  send("AT+HTTPREAD\r\n");
+  if(!receive(buf,5000,"\r\n",NULL)) return false;  // get +HTTPREAD: n
+  if(!receive(buf,5000,"\r\n",NULL)) return false;   // gel null line
+
+  if (datalen+1 > resultlength){
+    IF_SDEBUG(Serial.println(F("#sim800:ERROR no buffer space for http response")));
+    return false;
+  }
+  if(!receivelen(result,5000,datalen)) return false;
+  if(!receive(buf,5000,"OK\r\n",NULL)) return false;  
+  if(!ATcommand("+HTTPTERM", buf)) return false;
+  state &= ~STATE_HTTPINITIALIZED;
+
+  return true;
+}
+*/
+
 uint8_t SIM800::receive(char *rx_buffer, const char *at_ok_string, const char *at_error_string) {
    memset(rx_buffer, 0, SIM800_BUFFER_LENGTH);
    uint8_t rx_buffer_length = 0;
@@ -241,7 +301,7 @@ uint8_t SIM800::receive(char *rx_buffer, const char *at_ok_string, const char *a
    }
 
    if (rx_buffer_length) {
-     SERIAL_TRACE(F("SIM800<-- %s\r\n"), rx_buffer);
+     LOGV(F("SIM800<-- %s"), rx_buffer);
    }
 
    return rx_buffer_length;
@@ -280,7 +340,7 @@ sim800_status_t SIM800::sendAtCommand(const char *command, char *buffer, const c
          start_time_ms = 0;
          strncpy(buffer, command, SIM800_BUFFER_LENGTH);
          send(buffer);
-         SERIAL_TRACE(F("SIM800--> %s\r\n"), buffer);
+         LOGV(F("SIM800--> %s"), buffer);
          sim800_at_state = SIM800_AT_RECEIVE;
          break;
 
@@ -324,12 +384,12 @@ bool SIM800::init(uint8_t _on_off_pin, uint8_t _reset_pin) {
 
    pinMode(on_off_pin, OUTPUT);
    digitalWrite(on_off_pin, HIGH);
-   SERIAL_DEBUG(F("SIM800 on/off pin [ %u ]\r\n"), on_off_pin);
+   LOGT(F("SIM800 on/off pin [ %d ]"), on_off_pin);
 
    if (reset_pin != 0xFF) {
       pinMode(reset_pin, OUTPUT);
       digitalWrite(reset_pin, HIGH);
-      SERIAL_DEBUG(F("SIM800 reset pin [ %u ]\r\n"), reset_pin);
+      LOGT(F("SIM800 reset pin [ %d ]"), reset_pin);
    }
 
    state = SIM800_STATE_NONE;
@@ -365,7 +425,7 @@ sim800_status_t SIM800::initAutobaud() {
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 autobaud... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, FAIL_STRING));
+      LOGT(F("SIM800 autobaud... [ %s ]"), printStatus(at_command_status, OK_STRING, FAIL_STRING));
    }
 
    return at_command_status;
@@ -386,7 +446,7 @@ sim800_status_t SIM800::getGsn(char *imei) {
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 IMEI [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), imei);
+      LOGT(F("SIM800 IMEI [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), imei);
    }
 
    return at_command_status;
@@ -403,7 +463,7 @@ sim800_status_t SIM800::getCreg(uint8_t *n, uint8_t *stat) {
    at_command_status = sendAtCommand("AT+CREG?\r\n", buffer_ext);
 
    if (at_command_status == SIM800_OK) {
-     if (sscanf(buffer_ext, "+CREG: %u,%u", &nn, &statstat) != 2) {
+     if (sscanf(buffer_ext, "+CREG: %d,%d", &nn, &statstat) != 2) {
        //if (sscanf(buffer_ext, "+CREG: %hhu,%hhu", n, stat) != 2) {
        at_command_status = SIM800_ERROR;
        *n = 0;
@@ -418,7 +478,7 @@ sim800_status_t SIM800::getCreg(uint8_t *n, uint8_t *stat) {
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 CREG [ %s ] [ %u,%u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), nn, statstat);
+      LOGT(F("SIM800 CREG [ %s ] [ %d,%d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), nn, statstat);
    }
 
    return at_command_status;
@@ -435,7 +495,7 @@ sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
 
    if (at_command_status == SIM800_OK) {
      //if (sscanf(buffer_ext, "+CSQ: %hhu,%hhu", rssi, ber) != 2) {
-     if (sscanf(buffer_ext, "+CSQ: %u,%u", &rssirssi, &berber) != 2) {
+     if (sscanf(buffer_ext, "+CSQ: %d,%d", &rssirssi, &berber) != 2) {
        at_command_status = SIM800_ERROR;
        *rssi = SIM800_RSSI_UNKNOWN;
        *ber = SIM800_BER_UNKNOWN;
@@ -449,7 +509,7 @@ sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
    }
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 CSQ [ %s ] [ %u,%u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), rssirssi, berber);
+      LOGT(F("SIM800 CSQ [ %s ] [ %d,%d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), rssirssi, berber);
    }
 
    return at_command_status;
@@ -466,7 +526,7 @@ sim800_status_t SIM800::getCgatt(bool *is_attached) {
    at_command_status = sendAtCommand("AT+CGATT?\r\n", buffer_ext);
 
    if (at_command_status == SIM800_OK) {
-      if (sscanf(buffer_ext, "+CGATT: %u", &is_gprs_attached) != 1) {
+      if (sscanf(buffer_ext, "+CGATT: %d", &is_gprs_attached) != 1) {
          at_command_status = SIM800_ERROR;
 	 is_gprs_attached=0;
       }
@@ -474,7 +534,7 @@ sim800_status_t SIM800::getCgatt(bool *is_attached) {
    *is_attached = (bool) is_gprs_attached;
 
    if (at_command_status != SIM800_BUSY) {
-      SERIAL_DEBUG(F("SIM800 CGATT [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *is_attached ? YES_STRING : NO_STRING);
+      LOGT(F("SIM800 CGATT [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), *is_attached ? YES_STRING : NO_STRING);
    }
 
    return at_command_status;
@@ -552,7 +612,7 @@ sim800_status_t SIM800::exitTransparentMode() {
       case SIM800_EXIT_TRANSPARENT_MODE_END:
          sim800_status = (is_error ? SIM800_ERROR : SIM800_OK);
          sim800_exit_transparent_mode_state = SIM800_EXIT_TRANSPARENT_MODE_INIT;
-         SERIAL_DEBUG(F("SIM800 switch to command mode [ %s ]\r\n"), sim800_status == SIM800_OK ? OK_STRING : FAIL_STRING);
+         LOGT(F("SIM800 switch to command mode [ %s ]"), sim800_status == SIM800_OK ? OK_STRING : FAIL_STRING);
          break;
 
       case SIM800_EXIT_TRANSPARENT_MODE_WAIT_STATE:
@@ -619,18 +679,18 @@ sim800_status_t SIM800::connection(const char *tipo, const char *server, const i
 
          // fail
          if (rx_data_length && found(buffer_ext, AT_CONNECT_FAIL_STRING)) {
-            SERIAL_ERROR(F("SIM800 %s status... [ %s ] [ %s ]\r\n"), tipo, ERROR_STRING, buffer_ext);
+            LOGE(F("SIM800 %s status... [ %s ] [ %s ]"), tipo, ERROR_STRING, buffer_ext);
             is_error = true;
             sim800_connection_state = SIM800_CONNECTION_END;
          }
          // success
          else if (rx_data_length && found(buffer_ext, AT_CONNECT_OK_STRING)) {
-            SERIAL_INFO(F("SIM800 %s status... [ %s ] [ %s ]\r\n"), tipo, OK_STRING, buffer_ext);
+            LOGN(F("SIM800 %s status... [ %s ] [ %s ]"), tipo, OK_STRING, buffer_ext);
             sim800_connection_state = SIM800_CONNECTION_END;
          }
          // timeout fail
          else if (millis() - start_time_ms > SIM800_CIPSTART_RESPONSE_TIME_MAX_MS) {
-            SERIAL_ERROR(F("SIM800 %s status... [ %s ]\r\n"), tipo, ERROR_STRING);
+            LOGE(F("SIM800 %s status... [ %s ]"), tipo, ERROR_STRING);
             is_error = true;
             sim800_connection_state = SIM800_CONNECTION_END;
          }
@@ -701,7 +761,7 @@ sim800_status_t SIM800::setup() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 reset to factory default [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 reset to factory default [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
          break;
 
@@ -723,7 +783,7 @@ sim800_status_t SIM800::setup() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 echo mode off [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 echo mode off [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -738,7 +798,7 @@ sim800_status_t SIM800::setup() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-	   SERIAL_INFO(F("SIM800 signal [ %s ] [ rssi %u, ber %u ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)rssi, (int)ber);
+	   LOGN(F("SIM800 signal [ %s ] [ rssi %d, ber %d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)rssi, (int)ber);
          }
 
          // wait
@@ -754,32 +814,32 @@ sim800_status_t SIM800::setup() {
             switch (stat) {
                case 0:
                   is_registered = false;
-                  SERIAL_INFO(F("SIM800 NOT registered... [ %s ]\r\n"), ERROR_STRING);
+                  LOGN(F("SIM800 NOT registered... [ %s ]"), ERROR_STRING);
                   break;
 
                case 1:
                   is_registered = true;
-                  SERIAL_INFO(F("SIM800 network registered... [ %s ]\r\n"), OK_STRING);
+                  LOGN(F("SIM800 network registered... [ %s ]"), OK_STRING);
                   break;
 
                case 2:
                   is_registered = false;
-                  SERIAL_INFO(F("SIM800 searching network...\r\n"));
+                  LOGN(F("SIM800 searching network..."));
                   break;
 
                case 3:
                   is_registered = false;
-                  SERIAL_INFO(F("SIM800 network registration denied... [ %s ]\r\n"), ERROR_STRING);
+                  LOGN(F("SIM800 network registration denied... [ %s ]"), ERROR_STRING);
                   break;
 
                case 4:
                   is_registered = false;
-                  SERIAL_INFO(F("SIM800 unknown network...\r\n"));
+                  LOGN(F("SIM800 unknown network..."));
                   break;
 
                case 5:
                   is_registered = true;
-                  SERIAL_INFO(F("SIM800 network registered (roaming)... [ %s ]\r\n"), OK_STRING);
+                  LOGN(F("SIM800 network registered (roaming)... [ %s ]"), OK_STRING);
                   break;
             }
          }
@@ -816,7 +876,7 @@ sim800_status_t SIM800::setup() {
          }
 
          sim800_setup_state = SIM800_SETUP_INIT;
-         SERIAL_INFO(F("SIM800 setup... [ %s ]\r\n"), printStatus(sim800_status, OK_STRING, FAIL_STRING));
+         LOGN(F("SIM800 setup... [ %s ]"), printStatus(sim800_status, OK_STRING, FAIL_STRING));
          break;
 
       case SIM800_SETUP_WAIT_STATE:
@@ -888,7 +948,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 GPRS attach... [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), is_attached ? YES_STRING : NO_STRING);
+            LOGN(F("SIM800 GPRS attach... [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), is_attached ? YES_STRING : NO_STRING);
          }
 
          // wait
@@ -917,7 +977,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 attach GPRS... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, FAIL_STRING));
+            LOGN(F("SIM800 attach GPRS... [ %s ]"), printStatus(at_command_status, OK_STRING, FAIL_STRING));
          }
 
          // wait...
@@ -945,7 +1005,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 single IP mode... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 single IP mode... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -973,7 +1033,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 switch to data mode... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 switch to data mode... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -1009,7 +1069,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 transparent mode... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 transparent mode... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -1038,7 +1098,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 set APN, username and password... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 set APN, username and password... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -1069,7 +1129,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 setting up connection... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 setting up connection... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -1098,7 +1158,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 IP... [ %s ] [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING), ip);
+            LOGN(F("SIM800 IP... [ %s ] [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), ip);
          }
 
          // wait...
@@ -1107,7 +1167,7 @@ sim800_status_t SIM800::startConnection(const char *apn, const char *username, c
       case SIM800_CONNECTION_START_END:
          sim800_status = (is_error ? SIM800_ERROR : SIM800_OK);
          sim800_connection_start_state = SIM800_CONNECTION_START_INIT;
-         SERIAL_INFO(F("SIM800 start connection... [ %s ]\r\n"), printStatus(sim800_status, OK_STRING, ERROR_STRING));
+         LOGN(F("SIM800 start connection... [ %s ]"), printStatus(sim800_status, OK_STRING, ERROR_STRING));
          break;
 
       case SIM800_CONNECTION_START_WAIT_STATE:
@@ -1185,7 +1245,7 @@ sim800_status_t SIM800::stopConnection() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 stop connection... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 stop connection... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait
@@ -1213,7 +1273,7 @@ sim800_status_t SIM800::stopConnection() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 PDP close... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 PDP close... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait
@@ -1241,7 +1301,7 @@ sim800_status_t SIM800::stopConnection() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-            SERIAL_INFO(F("SIM800 detach GPRS... [ %s ]\r\n"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
+            LOGN(F("SIM800 detach GPRS... [ %s ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING));
          }
 
          // wait...
@@ -1250,7 +1310,7 @@ sim800_status_t SIM800::stopConnection() {
       case SIM800_CONNECTION_STOP_END:
          sim800_status = (is_error ? SIM800_ERROR : SIM800_OK);
          sim800_connection_stop_state = SIM800_CONNECTION_STOP_INIT;
-         SERIAL_INFO(F("SIM800 stop connection... [ %s ]\r\n"), printStatus(sim800_status, OK_STRING, FAIL_STRING));
+         LOGN(F("SIM800 stop connection... [ %s ]"), printStatus(sim800_status, OK_STRING, FAIL_STRING));
          break;
 
       case SIM800_CONNECTION_STOP_WAIT_STATE:
