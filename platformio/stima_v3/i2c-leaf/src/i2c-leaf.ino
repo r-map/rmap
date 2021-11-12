@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_LEAF_SERIAL_TRACE_LEVEL
-
 #include "i2c-leaf.h"
 
 /*!
@@ -38,12 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
   init_wdt(WDT_TIMER);
-  SERIAL_BEGIN(115200);
+  Serial.begin(115200);
   init_pins();
+  init_spi();
+  init_logging();
   load_configuration();
   init_buffers();
   init_wire();
-  init_spi();
   init_rtc();
   #if (USE_TIMER_1)
   init_timer1();
@@ -78,7 +71,7 @@ void loop() {
     case TASKS_EXECUTION:
       // I2C Bus Check
       if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-        SERIAL_DEBUG(F("Restart I2C BUS\r\n"));
+        LOGT(F("Restart I2C BUS"));
         init_wire();
         wdt_reset();
       }
@@ -108,6 +101,52 @@ void loop() {
     break;
   }
 }
+
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   ("initialization failed. Things to check:" );
+    Serial.println   ("* is a card inserted?" );
+    Serial.println   ("* is your wiring correct?" );
+    Serial.println   ("* did you change the chipSelect pin to match your shield or module?" );
+  } else {
+    Serial.println   ("Wiring is correct and a card is present." );
+    Serial.println   ("The FAT type of the volume: ");
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
   if (millis() - *time_ms > debouncing_ms) {
@@ -185,6 +224,7 @@ void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
   pinMode(LEAF_POWER_PIN, OUTPUT);
   pinMode(LEAF_ANALOG_PIN, INPUT);
+  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
@@ -200,6 +240,7 @@ void init_wire() {
 }
 
 void init_spi() {
+  SPI.begin();
 }
 
 void init_rtc() {
@@ -240,17 +281,17 @@ void init_system() {
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
-  SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-  SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-  SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-  SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-  SERIAL_INFO(F("--> leaf wet value: [ %u - %u ]\r\n"), configuration.leaf_calibration_min, configuration.leaf_calibration_max);
+  LOGN(F("--> type: %s"), stima_name);
+  LOGN(F("--> version: %d"), configuration.module_version);
+  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+  LOGN(F("--> leaf wet value: [ %u - %u ]"), configuration.leaf_calibration_min, configuration.leaf_calibration_max);
 }
 
 void save_configuration(bool is_default) {
   if (is_default) {
-    SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
     configuration.module_version = MODULE_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -258,7 +299,7 @@ void save_configuration(bool is_default) {
     configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
   }
   else {
-    SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
     configuration.is_continuous = writable_data.is_continuous;
@@ -278,7 +319,7 @@ void load_configuration() {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
-    SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Load configuration... [ %s ]"), OK_STRING);
     print_configuration();
   }
 
@@ -287,12 +328,12 @@ void load_configuration() {
 }
 
 void init_sensors () {
-  SERIAL_INFO(F("\r\n--> acquiring samples every %u seconds\r\n\r\n"), SENSORS_SAMPLE_TIME_MS / 1000);
-  SERIAL_INFO(F("leaf: leaf value\r\n"));
-  SERIAL_INFO(F("timer: total wet time [s]\r\n"));
-  SERIAL_INFO(F("wet: is wet?\r\n\r\n"));
+  LOGN(F("--> acquiring samples every %u seconds"), SENSORS_SAMPLE_TIME_MS / 1000);
+  LOGN(F("leaf: leaf value"));
+  LOGN(F("timer: total wet time [s]"));
+  LOGN(F("wet: is wet?"));
 
-  SERIAL_INFO(F("leaf\ttimer\twet\r\n"));
+  LOGN(F("leaf\ttimer\twet"));
 }
 
 /*!
@@ -411,7 +452,7 @@ void leaf_reading_task () {
       start_time_ms = millis();
       state_after_wait = LEAF_READING_READ;
       leaf_reading_state = LEAF_READING_WAIT_STATE;
-      SERIAL_TRACE(F("LEAF_READING_INIT --> LEAF_READING_READ\r\n"));
+      LOGV(F("LEAF_READING_INIT --> LEAF_READING_READ"));
     break;
 
     case LEAF_READING_READ:
@@ -426,7 +467,7 @@ void leaf_reading_task () {
       }
       else {
         leaf_reading_state = LEAF_READING_END;
-        SERIAL_TRACE(F("LEAF_READING_READ --> LEAF_READING_END\r\n"));
+        LOGV(F("LEAF_READING_READ --> LEAF_READING_END"));
       }
     break;
 
@@ -448,7 +489,7 @@ void leaf_reading_task () {
       interrupts();
 
       leaf_reading_state = LEAF_READING_INIT;
-      SERIAL_TRACE(F("LEAF_READING_END --> LEAF_READING_INIT\r\n"));
+      LOGV(F("LEAF_READING_END --> LEAF_READING_INIT"));
     break;
 
     case LEAF_READING_WAIT_STATE:
@@ -466,7 +507,7 @@ void exchange_buffers() {
 }
 
 void copy_oneshot_data () {
-  SERIAL_INFO(F("Report Leaf wetness: [ %s ] Total [ %0.f ] seconds\r\n"), is_leaf_wet ? "WET" : "DRY", leaf_wetness.timer);
+  LOGN(F("Report Leaf wetness: [ %s ] Total [ %0.f ] seconds"), is_leaf_wet ? "WET" : "DRY", leaf_wetness.timer);
   readable_data_write_ptr->leaf_wetness.timer = leaf_wetness.timer;
 }
 
@@ -482,13 +523,13 @@ void reset_report_buffer () {
 }
 
 void command_task() {
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   char buffer[30];
   #endif
 
   switch(i2c_rx_data[1]) {
     case I2C_LEAF_COMMAND_ONESHOT_START:
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
     strcpy(buffer, "ONESHOT START");
     #endif
     is_oneshot = true;
@@ -499,7 +540,7 @@ void command_task() {
     break;
 
     case I2C_LEAF_COMMAND_ONESHOT_STOP:
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
     strcpy(buffer, "ONESHOT STOP");
     #endif
     is_oneshot = true;
@@ -510,7 +551,7 @@ void command_task() {
     break;
 
     case I2C_LEAF_COMMAND_ONESHOT_START_STOP:
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
     strcpy(buffer, "ONESHOT START-STOP");
     #endif
     is_oneshot = true;
@@ -521,7 +562,7 @@ void command_task() {
     break;
 
     case I2C_LEAF_COMMAND_TEST_READ:
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+    #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
     strcpy(buffer, "TEST READ");
     #endif
     tests();
@@ -532,18 +573,18 @@ void command_task() {
     is_continuous = false;
     is_start = false;
     is_stop = false;
-    SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+    LOGV(F("Execute command [ SAVE ]"));
     save_configuration(CONFIGURATION_CURRENT);
     init_wire();
     break;
   }
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    SERIAL_DEBUG(F("Execute [ %s ]\r\n"), buffer);
+    LOGT(F("Execute [ %s ]"), buffer);
   }
   else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    SERIAL_DEBUG(F("Ignore [ %s ]\r\n"), buffer);
+    LOGT(F("Ignore [ %s ]"), buffer);
   }
   #endif
 
