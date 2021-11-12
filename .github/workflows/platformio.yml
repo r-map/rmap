@@ -91,6 +91,11 @@ jobs:
         run: |
           cd platformio/stima_v3/test_sensordriver
           platformio run
+      - name: Build Stima test_logging
+        run: |
+          cd platformio/stima_v3/test_logging
+          platformio run
+	  
       - name: Build Stima test fakeraingauge
         run: |
           cd platformio/test/fakeraingauge
@@ -103,7 +108,6 @@ jobs:
         run: |
           cd platformio/test/fakewind
           platformio run
-
 
       - name: Build Stima devel
         run: |
