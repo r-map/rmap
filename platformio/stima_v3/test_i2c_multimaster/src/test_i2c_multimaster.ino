@@ -1,16 +1,13 @@
 
 #include <Arduino.h>
 #include <debug_config.h>
-
-#define SERIAL_TRACE_LEVEL SERIAL_TRACE_LEVEL_INFO
-
-#include <debug.h>
 #include <i2c_config.h>
 #include <avr/sleep.h>
 #include <avr/power.h>
 #include <avr/wdt.h>
 #include <Wire.h>
 #include <i2c_utility.h>
+#include <ArduinoLog.h>
 
 #define I2C_ADDRESS_1               (1)
 #define I2C_ADDRESS_2               (2)
@@ -159,16 +156,16 @@ bool check_i2c_bus () {
     // uint8_t i2c_bus_state = I2C_ClearBus_NEW();
     //
     // if (i2c_bus_state > 0) {
-    //   SERIAL_ERROR(F("%u: [ %s ] I2C bus error. Could not clear!!!\r\n"), I2C_MY_ADDRESS, ERROR_STRING);
+    //   LOGE(F("%l: [ %s ] I2C bus error. Could not clear!!!"), I2C_MY_ADDRESS, ERROR_STRING);
     //
     //   if (i2c_bus_state == 1) {
-    //     SERIAL_ERROR(F("%u: [ %s ] SCL clock line held low\r\n"), I2C_MY_ADDRESS, ERROR_STRING);
+    //     LOGE(F("%l: [ %s ] SCL clock line held low"), I2C_MY_ADDRESS, ERROR_STRING);
     //   } else if (i2c_bus_state == 2) {
-    //     SERIAL_ERROR(F("%u: [ %s ] SCL clock line held low by slave clock stretch\r\n"), I2C_MY_ADDRESS, ERROR_STRING);
+    //     LOGE(F("%l: [ %s ] SCL clock line held low by slave clock stretch"), I2C_MY_ADDRESS, ERROR_STRING);
     //   } else if (i2c_bus_state == 3) {
-    //     SERIAL_ERROR(F("%u: [ %s ] SDA data line held low\r\n"), I2C_MY_ADDRESS, ERROR_STRING);
+    //     LOGE(F("%l: [ %s ] SDA data line held low"), I2C_MY_ADDRESS, ERROR_STRING);
     //   } else {
-    //     SERIAL_ERROR(F("%u: [ %s ] Other I2C Error\r\n"), I2C_MY_ADDRESS, ERROR_STRING);
+    //     LOGE(F("%l: [ %s ] Other I2C Error"), I2C_MY_ADDRESS, ERROR_STRING);
     //   }
     //
     //   i2c_send_delay_ms += 10000;
@@ -335,26 +332,26 @@ void init_wire() {
   // uint8_t i2c_bus_state = I2C_ClearBus();
   //
   // if (i2c_bus_state) {
-  //    SERIAL_ERROR(F("I2C bus error: Could not clear!!!\r\n"));
+  //    LOGE(F("I2C bus error: Could not clear!!!"));
   //    //! wait for watchdog reboot
   //    while(1);
   // }
   //
   // switch (i2c_bus_state) {
   //    case 1:
-  //       SERIAL_ERROR(F("SCL clock line held low\r\n"));
+  //       LOGE(F("SCL clock line held low"));
   //    break;
   //
   //    case 2:
-  //       SERIAL_ERROR(F("SCL clock line held low by slave clock stretch\r\n"));
+  //       LOGE(F("SCL clock line held low by slave clock stretch"));
   //    break;
   //
   //    case 3:
-  //       SERIAL_ERROR(F("SDA data line held low\r\n"));
+  //       LOGE(F("SDA data line held low"));
   //    break;
   // }
 
-  SERIAL_INFO(F("%u: Init Wire..\r\n"), I2C_MY_ADDRESS);
+  LOGN(F("%l: Init Wire.."), I2C_MY_ADDRESS);
 
   i2c_rx_error_count = 0;
   i2c_rx_success_count = 0;
@@ -433,7 +430,7 @@ void received_data () {
   uint8_t crc = crc8((uint8_t *) rx_buffer, rx_buffer_length - 1);
 
   if (crc != rx_buffer[rx_buffer_length - 1]) {
-    // SERIAL_ERROR(F("%u: [ %s ] RX: CRC mismatch %u != %u\r\n"), I2C_MY_ADDRESS, ERROR_STRING, crc, rx_buffer[rx_buffer_length - 1]);
+    // LOGE(F("%l: [ %s ] RX: CRC mismatch %l != %l"), I2C_MY_ADDRESS, ERROR_STRING, crc, rx_buffer[rx_buffer_length - 1]);
     is_rx_error = true;
     i2c_rx_error_count++;
   }
@@ -442,9 +439,9 @@ void received_data () {
     i2c_rx_success_count++;
   }
 
-  SERIAL_DEBUG(F("%u: Received %u bytes: "), I2C_MY_ADDRESS, rx_buffer_length);
-  SERIAL_DEBUG_ARRAY_CLEAN((void *) rx_buffer, rx_buffer_length, UINT8, F("%u  "));
-  SERIAL_DEBUG_CLEAN(F("\r\n"));
+  LOGT(F("%l: Received %l bytes: "), I2C_MY_ADDRESS, rx_buffer_length);
+  //SERIAL_DEBUG_ARRAY_CLEAN((void *) rx_buffer, rx_buffer_length, UINT8, F("%l  "));
+  //LOGT(F(""));
   reset_i2c_buffer((void *) rx_buffer, (uint8_t *) &rx_buffer_length);
 }
 
@@ -466,16 +463,16 @@ void send_data (uint8_t write_data_length, uint8_t i2c_other_address) {
 
   tx_buffer[write_data_length] = crc8(tx_buffer, write_data_length);
 
-  SERIAL_DEBUG(F("%u: Send %u bytes: "), I2C_MY_ADDRESS, write_data_length + 1);
-  SERIAL_DEBUG_ARRAY_CLEAN(tx_buffer, write_data_length + 1, UINT8, F("%u  "));
-  SERIAL_DEBUG_CLEAN(F("\r\n"));
+  LOGT(F("%l: Send %l bytes: "), I2C_MY_ADDRESS, write_data_length + 1);
+  //LOGT_ARRAY_CLEAN(tx_buffer, write_data_length + 1, UINT8, F("%l  "));
+  //LOGT(F(""));
 
   Wire.beginTransmission(i2c_other_address);
   Wire.write(tx_buffer, write_data_length + 1);
   uint8_t status = Wire.endTransmission();
 
   if (status) {
-    // SERIAL_ERROR(F("%u: [ %s ] TX: %u\r\n"), I2C_MY_ADDRESS, ERROR_STRING, status);
+    // LOGE(F("%l: [ %s ] TX: %l"), I2C_MY_ADDRESS, ERROR_STRING, status);
     i2c_tx_error_count++;
   } else {
     i2c_tx_success_count++;
@@ -514,30 +511,51 @@ void request_data (uint8_t length, uint8_t i2c_other_address) {
   if (is_rq_error) {
     if (rq_buffer_length != length + 1) {
       // Error: ricevuto una quantità errata di dati
-      // SERIAL_ERROR(F("%u: [ %s ] RQ %u bytes but got %u bytes\r\n"), I2C_MY_ADDRESS, ERROR_STRING, length + 1, rq_buffer_length);
+      // LOGE(F("%l: [ %s ] RQ %l bytes but got %l bytes"), I2C_MY_ADDRESS, ERROR_STRING, length + 1, rq_buffer_length);
     } else {
       // Error: il numero di bytes ricevuti è corretto ma i dati sono corrotti
-      // SERIAL_INFO(F("%u: [ %s ] RQ %u bytes: CRC mismatch!\r\n"), I2C_MY_ADDRESS, ERROR_STRING, rq_buffer_length);
+      // LOGN(F("%l: [ %s ] RQ %l bytes: CRC mismatch!"), I2C_MY_ADDRESS, ERROR_STRING, rq_buffer_length);
     }
   } else {
     // No error: just print for debug request data
-    SERIAL_DEBUG(F("%u: RQ %u bytes but got %u bytes: "), I2C_MY_ADDRESS, rq_buffer_length, length + 1);
-    SERIAL_DEBUG_ARRAY_CLEAN((void *) rq_buffer, rq_buffer_length, UINT8, F("%u  "));
-    SERIAL_DEBUG_CLEAN(F("\r\n"));
+    LOGT(F("%l: RQ %l bytes but got %l bytes: "), I2C_MY_ADDRESS, rq_buffer_length, length + 1);
+    //LOGT_ARRAY_CLEAN((void *) rq_buffer, rq_buffer_length, UINT8, F("%l  "));
+    //LOGT(F(""));
   }
 
   // check_i2c_bus();
   reset_i2c_buffer(rq_buffer, &rq_buffer_length);
 }
 
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  Log.begin(LOG_LEVEL, &Serial);
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
+
 void setup() {
   init_wdt(WDT_TIMER);
-  SERIAL_BEGIN(115200);
+  Serial.begin(115200);
+  init_logging();
   // init_buffers();
   init_wire();
   init_system();
   randomSeed(analogRead(0));
-  SERIAL_INFO(F("\r\n%u: Partito...\r\n\r\n"), I2C_MY_ADDRESS);
+  LOGN(F("%l: Partito..."), I2C_MY_ADDRESS);
   wdt_reset();
 }
 
@@ -655,7 +673,7 @@ void loop() {
     // Only for debug
     if (millis() - start_print_status_delay_ms >= PRINT_STATUS_DELAY_MS) {
       start_print_status_delay_ms = millis();
-      SERIAL_INFO(F("%u: I2C [ ERR/SUC ]:\t\tRX [ %u/%u ]\t\tTX [ %u/%u ]\t\tRQ [ %u/%u ]\t\tTT [ %u/%u ]\r\n"), I2C_MY_ADDRESS, i2c_rx_error_count, i2c_rx_success_count, i2c_tx_error_count, i2c_tx_success_count, i2c_rq_error_count, i2c_rq_success_count, i2c_rx_error_count + i2c_tx_error_count + i2c_rq_error_count, i2c_rx_success_count + i2c_tx_success_count + i2c_rq_success_count);
+      LOGN(F("%l: I2C [ ERR/SUC ]:\t\tRX [ %l/%l ]\t\tTX [ %l/%l ]\t\tRQ [ %l/%l ]\t\tTT [ %l/%l ]"), I2C_MY_ADDRESS, i2c_rx_error_count, i2c_rx_success_count, i2c_tx_error_count, i2c_tx_success_count, i2c_rq_error_count, i2c_rq_success_count, i2c_rx_error_count + i2c_tx_error_count + i2c_rq_error_count, i2c_rx_success_count + i2c_tx_success_count + i2c_rq_success_count);
     }
 
     // I2C Bus Check
