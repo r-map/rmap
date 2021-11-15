@@ -82,6 +82,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define CONFIGURATION_RESET_PIN                 (8)
 
+/*!
+\def SDCARD_CHIP_SELECT_PIN
+\brief Chip select for SDcard SPI.
+*/#define SDCARD_CHIP_SELECT_PIN 7
+
+/*!
+\def SPI_SPEED
+\brief Clock speed for SPI and SDcard.
+*/
+#define SPI_SPEED SD_SCK_MHZ(4)
+
 /*********************************************************************
 * POWER DOWN
 *********************************************************************/

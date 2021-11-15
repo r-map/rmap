@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_RAIN_SERIAL_TRACE_LEVEL
-
 #include "i2c-rain.h"
 
 /*!
@@ -37,12 +29,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
    init_wdt(WDT_TIMER);
-   SERIAL_BEGIN(115200);
+   Serial.begin(115200);
    init_pins();
+   init_spi();
+   init_logging();
    load_configuration();
    init_buffers();
    init_wire();
-   init_spi();
    init_rtc();
    #if (USE_TIMER_1)
    init_timer1();
@@ -91,7 +84,7 @@ void loop() {
       case TASKS_EXECUTION:
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          LOGE(F("Restart I2C BUS"));
           init_wire();
           wdt_reset();
         }
@@ -121,6 +114,53 @@ void loop() {
       break;
    }
 }
+
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
+
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 	if (millis() - *time_ms > debouncing_ms) {
@@ -185,6 +225,7 @@ void init_pins() {
    pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
    pinMode(TIPPING_BUCKET_PIN, INPUT_PULLUP);
    attachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN), tipping_bucket_interrupt_handler, LOW);
+   pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
@@ -197,6 +238,7 @@ void init_wire() {
 }
 
 void init_spi() {
+  SPI.begin();
 }
 
 void init_rtc() {
@@ -223,16 +265,16 @@ void init_sensors () {
 void print_configuration() {
    char stima_name[20];
    getStimaNameByType(stima_name, configuration.module_type);
-   SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-   SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-   SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-   SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+   LOGN(F("--> type: %s"), stima_name);
+   LOGN(F("--> version: %d"), configuration.module_version);
+   LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 }
 
 void save_configuration(bool is_default) {
    if (is_default) {
-      SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
       configuration.module_type = MODULE_TYPE;
       configuration.module_version = MODULE_VERSION;
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -240,7 +282,7 @@ void save_configuration(bool is_default) {
       configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
    }
    else {
-      SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Save configuration... [ %s ]"), OK_STRING);
       configuration.i2c_address = writable_data_ptr->i2c_address;
       configuration.is_oneshot = writable_data_ptr->is_oneshot;
       configuration.is_continuous = writable_data_ptr->is_continuous;
@@ -260,7 +302,7 @@ void load_configuration() {
       save_configuration(CONFIGURATION_DEFAULT);
    }
    else {
-      SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Load configuration... [ %s ]"), OK_STRING);
       print_configuration();
    }
 
@@ -368,15 +410,15 @@ void tipping_bucket_task () {
 	   // re-read pin status to filter spikes 
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
-	     SERIAL_INFO(F("Rain tips count: %u\r\n"), rain.tips_count);
+	     LOGN(F("Rain tips count: %l"), rain.tips_count);
 	   }else{
-	     SERIAL_INFO(F("Skip spike\r\n"));
+	     LOGN(F("Skip spike"));
 	     tipping_bucket_state = TIPPING_BUCKET_END;
 	     break;
 	   }
 	 }
 	 else {
-	   SERIAL_INFO(F("Rain tips!\r\n"));
+	   LOGN(F("Rain tips!"));
 	 }
 
          //tipping_bucket_state = TIPPING_BUCKET_END;
@@ -391,7 +433,7 @@ void tipping_bucket_task () {
       case TIPPING_BUCKET_END:
 
 	 if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
-	     SERIAL_ERROR(F("wrong timing or stalled tipping bucket"));
+	     LOGE(F("wrong timing or stalled tipping bucket"));
 
 	     start_time_ms=millis();
 	     delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS;
@@ -429,13 +471,13 @@ void reset_buffers() {
 }
 
 void command_task() {
-   #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+   #ifdef DISABLE_LOGGING
    char buffer[30];
    #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_RAIN_COMMAND_ONESHOT_START:
-         #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+         #ifdef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT START");
          #endif
          is_oneshot = true;
@@ -446,7 +488,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_ONESHOT_STOP:
-         #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+         #ifdef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT STOP");
          #endif
          is_oneshot = true;
@@ -457,7 +499,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_ONESHOT_START_STOP:
-         #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+         #ifdef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT START-STOP");
          #endif
          is_oneshot = true;
@@ -468,7 +510,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_TEST_READ:
-         #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+         #ifdef DISABLE_LOGGING
          strcpy(buffer, "TEST READ");
          #endif
          is_test_read = true;
@@ -476,7 +518,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_SAVE:
-         SERIAL_DEBUG(F("Execute [ %s ]\r\n"), SAVE_STRING);
+         LOGT(F("Execute [ %s ]"), SAVE_STRING);
          //is_oneshot = false;
          //is_continuous = false;
          //is_start = false;
@@ -486,12 +528,12 @@ void command_task() {
       break;
    }
 
-   #if (SERIAL_TRACE_LEVEL > SERIAL_TRACE_LEVEL_OFF)
+   #ifdef DISABLE_LOGGING
    if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      SERIAL_DEBUG(F("Execute [ %s ]\r\n"), buffer);
+      LOGT(F("Execute [ %s ]"), buffer);
    }
    else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      SERIAL_DEBUG(F("Ignore [ %s ]\r\n"), buffer);
+      LOGT(F("Ignore [ %s ]"), buffer);
    }
    #endif
 
@@ -526,5 +568,5 @@ void commands() {
    }
 
    interrupts();
-   SERIAL_INFO(F("Total rain : %u\r\n"), readable_data_read_ptr->rain.tips_count);
+   LOGN(F("Total rain : %l"), readable_data_read_ptr->rain.tips_count);
 }

@@ -38,6 +38,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <typedef.h>
 #include <registers-rain.h>
+#include <debug_config.h>
+#include <SdFat.h>
+#include <StreamUtils.h>
+#include <ArduinoLog.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -242,6 +246,26 @@ state_t state;
 */
 tipping_bucket_state_t tipping_bucket_state;
 
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var SD
+\brief SD-Card structure.
+*/
+SdFat SD;
+
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
+
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
@@ -376,6 +400,13 @@ void reset_buffers(void);
 \return void.
 */
 void exchange_buffers(void);
+
+/*!
+\fn void init_logging(void)
+\brief Init logging system.
+\return void.
+*/
+void init_logging();
 
 /*********************************************************************
 * TASKS
