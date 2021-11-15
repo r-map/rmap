@@ -1,10 +1,9 @@
-#include <debug_config.h>
 
-#define SERIAL_TRACE_LEVEL                (SERIAL_TRACE_LEVEL_DEBUG)
+#define LOG_LEVEL LOG_LEVEL_TRACE
 
-#include <debug.h>
 #include <gsm_config.h>
 #include <sim800Client.h>
+#include <ArduinoLog.h>
 
 #define SIM800_ON_OFF_PIN     (5)
 #define SIM800_GSM_APN        (GSM_APN_TIM)
@@ -57,7 +56,7 @@ void gsm_task() {
      sim800_connection_status = 0;
      state_after_wait = GSM_INIT;
      gsm_state = GSM_SWITCH_ON;
-     SERIAL_DEBUG(F("GSM_SWITCH_ON\r\n"));
+     LOGT(F("GSM_SWITCH_ON"));
      break;
      
    case GSM_SWITCH_ON:
@@ -66,11 +65,11 @@ void gsm_task() {
      // success
      if (sim800_status == SIM800_OK) {
        gsm_state = GSM_AUTOBAUD;
-       SERIAL_DEBUG(F("GSM_AUTOBAUD\r\n"));     
+       LOGT(F("GSM_AUTOBAUD"));     
      }
      else if (sim800_status == SIM800_ERROR) {
 	  gsm_state = GSM_END;
-	  SERIAL_DEBUG(F("GSM_END\r\n"));     
+	  LOGT(F("GSM_END"));     
      }
      // wait...
      break;
@@ -84,12 +83,12 @@ void gsm_task() {
        start_time_ms = millis();
        state_after_wait = GSM_SETUP;
        gsm_state = GSM_WAIT_STATE;
-       SERIAL_DEBUG(F("GSM_WAIT_STATE\r\n"));
+       LOGT(F("GSM_WAIT_STATE"));
      }
      // fail
      else if (sim800_status == SIM800_ERROR) {
        gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_WAIT_FOR_SWITCH_OFF\r\n"));
+       LOGT(F("GSM_WAIT_FOR_SWITCH_OFF"));
      }
      // wait...
      break;
@@ -100,13 +99,13 @@ void gsm_task() {
      // success
      if (sim800_status == SIM800_OK) {
        gsm_state = GSM_START_CONNECTION;
-       SERIAL_DEBUG(F("GSM_START_CONNECTIO\r\n"));
+       LOGT(F("GSM_START_CONNECTIO"));
      }
      // fail
      else if (sim800_status == SIM800_ERROR) {
        is_error = true;
        gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_WAIT_FOR_SWITCH_OFF\r\n"));
+       LOGT(F("GSM_WAIT_FOR_SWITCH_OFF"));
      }
      // wait...
      break;
@@ -117,13 +116,13 @@ void gsm_task() {
      // success
      if (sim800_status == SIM800_OK) {
        gsm_state = GSM_CHECK_OPERATION;
-       SERIAL_DEBUG(F("GSM_CHECK_OPERATION\r\n"));
+       LOGT(F("GSM_CHECK_OPERATION"));
      }
      // fail
      else if (sim800_status == SIM800_ERROR) {
        is_error = true;
        gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_WAIT_FOR_SWITCH_OFF\r\n"));       
+       LOGT(F("GSM_WAIT_FOR_SWITCH_OFF"));       
      }
      // wait...
      break;
@@ -132,12 +131,12 @@ void gsm_task() {
      // do nothing
      if (true) {
             gsm_state = GSM_OPEN_UDP_SOCKET;
-	    SERIAL_DEBUG(F("GSM_OPEN_UDP_SOCKET\r\n"));	    
+	    LOGT(F("GSM_OPEN_UDP_SOCKET"));	    
      }
      // wait for mqtt send terminate
      else {
        gsm_state = GSM_SUSPEND;
-       SERIAL_DEBUG(F("GSM_SUSPEND\r\n"));
+       LOGT(F("GSM_SUSPEND"));
        state_after_wait = GSM_STOP_CONNECTION;
      }
      break;
@@ -152,7 +151,7 @@ void gsm_task() {
        is_event_client_executed = true;
        state_after_wait = GSM_STOP_CONNECTION;
        gsm_state = GSM_SUSPEND;
-       SERIAL_DEBUG(F("GSM_SUSPEND\r\n"));
+       LOGT(F("GSM_SUSPEND"));
      }
      // fail
      else if (sim800_connection_status == 2) {
@@ -160,7 +159,7 @@ void gsm_task() {
        is_event_client_executed = true;
        is_error = true;
        gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_WAIT_FOR_SWITCH_OFF\r\n"));
+       LOGT(F("GSM_WAIT_FOR_SWITCH_OFF"));
      }
      // wait
      break;
@@ -169,7 +168,7 @@ void gsm_task() {
      is_client_connected = true;
      is_event_client_executed = true;
      gsm_state = state_after_wait;
-     SERIAL_DEBUG(F("GSM_%d\r\n"),gsm_state);
+     LOGT(F("GSM_%d"),gsm_state);
      noInterrupts();
      is_event_gsm = false;
      ready_tasks_count--;
@@ -182,13 +181,13 @@ void gsm_task() {
      // success
      if (sim800_status == SIM800_OK) {
        gsm_state = GSM_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_SWITCH_OFF\r\n"));
+       LOGT(F("GSM_SWITCH_OFF"));
      }
      // fail
      else if (sim800_status == SIM800_ERROR) {
        is_error = true;
        gsm_state = GSM_SWITCH_OFF;
-       SERIAL_DEBUG(F("GSM_SWITCH_OFF\r\n"));
+       LOGT(F("GSM_SWITCH_OFF"));
      }
      // wait
      break;
@@ -198,7 +197,7 @@ void gsm_task() {
      start_time_ms = millis();
      state_after_wait = GSM_SWITCH_OFF;
      gsm_state = GSM_WAIT_STATE;
-     SERIAL_DEBUG(F("GSM_WAIT_STATE\r\n"));
+     LOGT(F("GSM_WAIT_STATE"));
      break;
      
    case GSM_SWITCH_OFF:
@@ -210,7 +209,7 @@ void gsm_task() {
        start_time_ms = millis();
        state_after_wait = GSM_END;
        gsm_state = GSM_WAIT_STATE;
-       SERIAL_DEBUG(F("GSM_WAIT_STATE\r\n"));
+       LOGT(F("GSM_WAIT_STATE"));
      }
      // fail
      else if (sim800_status == SIM800_ERROR) {
@@ -219,7 +218,7 @@ void gsm_task() {
        }
        else {
 	 gsm_state = GSM_END;
-	 SERIAL_DEBUG(F("GSM_end\r\n"));
+	 LOGT(F("GSM_end"));
        }
      }
      // wait...
@@ -236,28 +235,44 @@ void gsm_task() {
      ready_tasks_count--;
      interrupts();
      gsm_state = GSM_INIT;
-     SERIAL_DEBUG(F("GSM_INIT\r\n"));
+     LOGT(F("GSM_INIT"));
      break;
      
    case GSM_WAIT_STATE:
      if (millis() - start_time_ms > delay_ms) {
        gsm_state = state_after_wait;
-       SERIAL_DEBUG(F("GSM_%d\r\n"),gsm_state);
+       LOGT(F("GSM_%d"),gsm_state);
      }
      break;
      
    }
 }
 
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
 void setup() {
-  SERIAL_BEGIN(115200);
+  Serial.begin(115200);
+  Log.begin(LOG_LEVEL, &Serial);
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
   delay(10000);
   s800.init(SIM800_ON_OFF_PIN);
   //s800.setTimeout(1000);
   is_event_gsm = true;
   ready_tasks_count = 1;
   gsm_state = GSM_INIT;
-  SERIAL_DEBUG(F("GSM_INIT\r\n"));
+  LOGT(F("GSM_INIT"));
 }
 
 void loop() {
