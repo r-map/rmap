@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_WIND_SERIAL_TRACE_LEVEL
-
 #include "i2c-wind.h"
 
 /*!
@@ -38,12 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
   init_wdt(WDT_TIMER);
-  SERIAL_BEGIN(115200);
+  Serial.begin(115200);
   init_pins();
+  init_spi();
+  init_logging();
   load_configuration();
   init_buffers();
   init_wire();
-  init_spi();
   init_rtc();
   #if (USE_TIMER_1)
   init_timer1();
@@ -82,7 +75,7 @@ void loop() {
     case TASKS_EXECUTION:
       // I2C Bus Check
       if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-        SERIAL_DEBUG(F("Restart I2C BUS\r\n"));
+        LOGT(F("Restart I2C BUS"));
         init_wire();
         wdt_reset();
       }
@@ -113,6 +106,50 @@ void loop() {
       #endif
     break;
   }
+}
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
 }
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
@@ -250,16 +287,16 @@ void init_system() {
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
-  SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-  SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-  SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-  SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+  LOGN(F("--> type: %s"), stima_name);
+  LOGN(F("--> version: %d"), configuration.module_version);
+  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 }
 
 void save_configuration(bool is_default) {
   if (is_default) {
-    SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
     configuration.module_version = MODULE_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -267,7 +304,7 @@ void save_configuration(bool is_default) {
     configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
   }
   else {
-    SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
     configuration.is_continuous = writable_data.is_continuous;
@@ -287,7 +324,7 @@ void load_configuration() {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
-    SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Load configuration... [ %s ]"), OK_STRING);
     print_configuration();
   }
 
@@ -298,41 +335,41 @@ void load_configuration() {
 
 void init_sensors () {
   if (configuration.is_continuous) {
-    SERIAL_INFO(F("\r\n"));
-    SERIAL_INFO(F("--> acquiring %u~%u samples in %u minutes\r\n"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("--> max %u samples error in %u minutes (observation)\r\n"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("--> max %u samples error in 10 minutes\r\n"), WMO_REPORT_SAMPLE_ERROR_MAX);
-    SERIAL_INFO(F("--> max %u samples error in %u minutes (report)\r\n\r\n"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F(""));
+    LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
+    LOGN(F("--> max %l samples error in %l minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
+    LOGN(F("--> max %l samples error in 10 minutes"), WMO_REPORT_SAMPLE_ERROR_MAX);
+    LOGN(F("--> max %l samples error in %l minutes (report)"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
 
     #if (USE_SENSOR_GWS)
-    SERIAL_INFO(F("sc: speed sample count\r\n"));
-    SERIAL_INFO(F("dc: direction sample count\r\n"));
-    SERIAL_INFO(F("speed: sensor speed\r\n"));
-    SERIAL_INFO(F("dir: sensor direction\r\n"));
-    SERIAL_DEBUG(F("ua: average u component over 10'\r\n"));
-    SERIAL_DEBUG(F("va: average v component over 10'\r\n"));
-    SERIAL_INFO(F("vs10: vectorial average speed over 10'\r\n"));
-    SERIAL_INFO(F("vd10: vectorial average speed over 10'\r\n"));
-    SERIAL_DEBUG(F("ub: average u component over %u'\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    SERIAL_DEBUG(F("vb: average v component over %u'\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("vsr: vectorial average speed over %u'\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("vdr: vectorial average speed over %u'\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("ss: scalar average speed over %u'\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("pgs: peak gust speed\r\n"));
-    SERIAL_INFO(F("pgd: peak gust direction\r\n"));
-    SERIAL_INFO(F("lgs: long gust speed'\r\n"));
-    SERIAL_INFO(F("lgd: long gust direction'\r\n"));
-    SERIAL_INFO(F("C1: %% of sample <= 1.0 m/s \r\n"));
-    SERIAL_INFO(F("C2: %% of sample <= 2.0 m/s \r\n"));
-    SERIAL_INFO(F("C4: %% of sample <= 4.0 m/s \r\n"));
-    SERIAL_INFO(F("C7: %% of sample <= 7.0 m/s \r\n"));
-    SERIAL_INFO(F("C10: %% of sample <= 10.0 m/s \r\n"));
-    SERIAL_INFO(F("CXX: %% of sample > 10.0 m/s \r\n\r\n"));
+    LOGN(F("sc: speed sample count"));
+    LOGN(F("dc: direction sample count"));
+    LOGN(F("speed: sensor speed"));
+    LOGN(F("dir: sensor direction"));
+    LOGT(F("ua: average u component over 10'"));
+    LOGT(F("va: average v component over 10'"));
+    LOGN(F("vs10: vectorial average speed over 10'"));
+    LOGN(F("vd10: vectorial average speed over 10'"));
+    LOGT(F("ub: average u component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGT(F("vb: average v component over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("vsr: vectorial average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("vdr: vectorial average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("ss: scalar average speed over %l'"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("pgs: peak gust speed"));
+    LOGN(F("pgd: peak gust direction"));
+    LOGN(F("lgs: long gust speed'"));
+    LOGN(F("lgd: long gust direction'"));
+    LOGN(F("C1: %% of sample <= 1.0 m/s "));
+    LOGN(F("C2: %% of sample <= 2.0 m/s "));
+    LOGN(F("C4: %% of sample <= 4.0 m/s "));
+    LOGN(F("C7: %% of sample <= 7.0 m/s "));
+    LOGN(F("C10: %% of sample <= 10.0 m/s "));
+    LOGN(F("CXX: %% of sample > 10.0 m/s "));
 
-    #if (SERIAL_TRACE_LEVEL < SERIAL_TRACE_LEVEL_DEBUG)
-    SERIAL_INFO(F("sc\tdc\tspeed\tdir\tvs10\tvd10\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX\r\n\r\n"));
+    #if (LOG_LEVEL < LOG_LEVEL_TRACE)
+    LOGN(F("sc\tdc\tspeed\tdir\tvs10\tvd10\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
     #else
-    SERIAL_DEBUG(F("sc\tdc\tspeed\tdir\tua\tva\tvs10\tvd10\tub\tvb\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX\r\n\r\n"));
+    LOGT(F("sc\tdc\tspeed\tdir\tua\tva\tvs10\tvd10\tub\tvb\tvsr\tvdr\tss\tpgs\tpgd\tlgs\tlgd\tC1\tC2\tC4\tC7\tC10\tCXX"));
     #endif
     #endif
   }
@@ -588,7 +625,7 @@ void make_report () {
 
     if (i == 0) {
       #if (USE_SENSOR_GWS)
-      SERIAL_INFO(F("%u\t%u\t%.2f\t%.0f\t"), wind_speed_samples.count, wind_direction_samples.count, speed, direction);
+      LOGN(F("%l\t%l\t%2\t%0\t"), wind_speed_samples.count, wind_direction_samples.count, speed, direction);
       #endif
     }
 
@@ -688,19 +725,19 @@ void wind_task () {
       wind_acquisition_count++;
 
       wind_state = WIND_READING;
-      SERIAL_TRACE(F("WIND_INIT --> WIND_READING\r\n"));
+      LOGV(F("WIND_INIT --> WIND_READING"));
     break;
 
     case WIND_READING:
       if (Serial1.available()) {
         uart_rx_buffer_length = Serial1.readBytes(uart_rx_buffer, UART_RX_BUFFER_LENGTH);
         wind_state = WIND_ELABORATE;
-        SERIAL_TRACE(F("WIND_READING --> WIND_ELABORATE\r\n"));
+        LOGV(F("WIND_READING --> WIND_ELABORATE"));
       }
       else {
         is_error = true;
         wind_state = WIND_ELABORATE;
-        SERIAL_TRACE(F("WIND_READING --> WIND_ELABORATE\r\n"));
+        LOGV(F("WIND_READING --> WIND_ELABORATE"));
       }
     break;
 
@@ -718,7 +755,7 @@ void wind_task () {
       samples_processing();
 
       wind_state = WIND_END;
-      SERIAL_TRACE(F("WIND_ELABORATE --> WIND_END\r\n"));
+      LOGV(F("WIND_ELABORATE --> WIND_END"));
     break;
 
     case WIND_END:
@@ -727,7 +764,7 @@ void wind_task () {
       ready_tasks_count--;
       interrupts();
       wind_state = WIND_INIT;
-      SERIAL_TRACE(F("WIND_END --> WIND_INIT\r\n"));
+      LOGV(F("WIND_END --> WIND_INIT"));
     break;
 
     case WIND_WAIT_STATE:
@@ -784,13 +821,13 @@ void reset_report_buffer () {
 }
 
 void command_task() {
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   char buffer[30];
   #endif
 
   switch(i2c_rx_data[1]) {
     case I2C_WIND_COMMAND_ONESHOT_START:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT START");
       #endif
       is_oneshot = true;
@@ -802,7 +839,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_ONESHOT_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT STOP");
       #endif
       is_oneshot = true;
@@ -814,7 +851,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_ONESHOT_START_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT START-STOP");
       #endif
       is_oneshot = true;
@@ -826,7 +863,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_CONTINUOUS_START:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS START");
       #endif
       is_oneshot = false;
@@ -838,7 +875,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_CONTINUOUS_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS STOP");
       #endif
       is_oneshot = false;
@@ -850,7 +887,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_CONTINUOUS_START_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS START-STOP");
       #endif
       is_oneshot = false;
@@ -862,7 +899,7 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_TEST_READ:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "TEST READ");
       #endif
       is_test = true;
@@ -870,18 +907,18 @@ void command_task() {
     break;
 
     case I2C_WIND_COMMAND_SAVE:
-      SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+      LOGV(F("Execute command [ SAVE ]"));
       save_configuration(CONFIGURATION_CURRENT);
       init_wire();
     break;
   }
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    SERIAL_TRACE(F("Execute [ %s ]\r\n"), buffer);
+    LOGV(F("Execute [ %s ]"), buffer);
   }
   else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    SERIAL_TRACE(F("Ignore [ %s ]\r\n"), buffer);
+    LOGV(F("Ignore [ %s ]"), buffer);
   }
   #endif
 
