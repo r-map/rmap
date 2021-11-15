@@ -25,9 +25,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stima_module.h>
 #include "stima-config.h"
+#include "debug_config.h"
 #include <typedef.h>
 #include <registers.h>
 #include <debug.h>
+#include <ArduinoLog.h>
+#include <StreamUtils.h>
+
 #include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
@@ -66,6 +70,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 #include <ethernet_config.h>
 #include <Ethernet2.h>
+#if (USE_MQTT)
+#include <IPStack.h>
+#endif
 
 #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
 #include <gsm_config.h>
@@ -77,9 +84,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #if (USE_MQTT)
-#include <IPStack.h>
 #include <Countdown.h>
 #include <MQTTClient.h>
+
 #endif
 
 /*********************************************************************
@@ -337,6 +344,21 @@ JsonRPC streamRpc(false);
 \brief SD-Card structure.
 */
 SdFat SD;
+
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
 
 /*!
 \var read_data_file
@@ -657,6 +679,14 @@ rpc_state_t rpc_state;
 *********************************************************************/
 void reboot();
 time_t getSystemTime();
+
+/*!
+\fn void init_logging(void)
+\brief Init logging system.
+\return void.
+*/
+void init_logging(void);
+
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.

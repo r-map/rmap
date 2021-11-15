@@ -24,40 +24,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _DEBUG_CONFIG_H
 
 /*!
-\def SERIAL_TRACE_LEVEL_OFF
-\brief Debug level for disable debug on serial interface.
+\def DISABLE_LOGGING
+\brief fully disable logging
+define the macro to fully disable logging, and reduce project size
 */
-#define SERIAL_TRACE_LEVEL_OFF            (0)
+//#define DISABLE_LOGGING
 
 /*!
-\def SERIAL_TRACE_LEVEL_ERROR
-\brief Debug level for print error message on serial interface.
+\def ENABLE_SDCARD_LOGGING
+\brief Enable logging on SDcard
+define to 1 the macro to enable logging on a file on SDcard.
 */
-#define SERIAL_TRACE_LEVEL_ERROR          (1)
+#define ENABLE_SDCARD_LOGGING              (0)
 
 /*!
-\def SERIAL_TRACE_LEVEL_WARNING
-\brief Debug level for print warning message on serial interface.
+\def LOG_LEVEL
+\brief logging level at compile time
+Available levels are:
+LOG_LEVEL_SILENT
+LOG_LEVEL_FATAL
+LOG_LEVEL_ERROR
+LOG_LEVEL_WARNING
+LOG_LEVEL_NOTICE
+LOG_LEVEL_TRACE
+LOG_LEVEL_VERBOSE
 */
-#define SERIAL_TRACE_LEVEL_WARNING        (2)
+#define LOG_LEVEL   LOG_LEVEL_NOTICE
 
 /*!
-\def SERIAL_TRACE_LEVEL_INFO
-\brief Debug level for print informations message on serial interface.
+\def DEBUG_MEMORY
+\brief Activate debug of memory use and stack heap collision on serial interface.
 */
-#define SERIAL_TRACE_LEVEL_INFO           (3)
-
-/*!
-\def SERIAL_TRACE_LEVEL_DEBUG
-\brief Debug level for print verbose informations message on serial interface.
-*/
-#define SERIAL_TRACE_LEVEL_DEBUG          (4)
-
-/*!
-\def SERIAL_TRACE_LEVEL_TRACE
-\brief Debug level for print detailed informations message on serial interface.
-*/
-#define SERIAL_TRACE_LEVEL_TRACE          (5)
+#define DEBUG_MEMORY                      (0)
 
 /*!
 \def LCD_TRACE_LEVEL_OFF
@@ -138,51 +136,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SAVE_STRING                       ("SAVE")
 
 /*!
-\def SENSOR_DRIVER_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for SensorDriver library.
-*/
-#define SENSOR_DRIVER_SERIAL_TRACE_LEVEL  (SERIAL_TRACE_LEVEL_TRACE)
-
-/*!
-\def SIM800_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for Sim800 library.
-*/
-#define SIM800_SERIAL_TRACE_LEVEL         (SERIAL_TRACE_LEVEL_TRACE)
-
-/*!
-\def OPC_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for Opcxx library.
-*/
-#define OPC_SERIAL_TRACE_LEVEL            (SERIAL_TRACE_LEVEL_OFF)
-
-/*!
-\def I2C_TH_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for i2c-th sketch.
-*/
-#define I2C_TH_SERIAL_TRACE_LEVEL         (SERIAL_TRACE_LEVEL_OFF)
-
-/*!
-\def I2C_RAIN_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for i2c-rain sketch.
-*/
-#define I2C_RAIN_SERIAL_TRACE_LEVEL       (SERIAL_TRACE_LEVEL_OFF)
-
-/*!
-\def I2C_OPC_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for i2c-opc sketch.
-*/
-#define I2C_OPC_SERIAL_TRACE_LEVEL        (SERIAL_TRACE_LEVEL_OFF)
-
-/*!
-\def STIMA_SERIAL_TRACE_LEVEL
-\brief Serial trace level debug for stima sketch.
-*/
-#define STIMA_SERIAL_TRACE_LEVEL           (SERIAL_TRACE_LEVEL_TRACE)
-
-/*!
 \def STIMA_LCD_TRACE_LEVEL
 \brief Lcd trace level debug for stima sketch.
 */
-#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_OFF)
+#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
 
 #endif

@@ -26,11 +26,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 STACK_DECLARE
 #endif
 
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL    (STIMA_SERIAL_TRACE_LEVEL)
 
 /*!
 \def LCD_TRACE_LEVEL
