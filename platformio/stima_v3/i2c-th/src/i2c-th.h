@@ -40,6 +40,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typedef.h>
 #include <registers-th.h>
 #include <SensorDriver.h>
+#include <debug_config.h>
+#include <SdFat.h>
+#include <StreamUtils.h>
+#include <ArduinoLog.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -317,6 +321,26 @@ state_t state;
 */
 sensors_reading_state_t sensors_reading_state;
 
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var SD
+\brief SD-Card structure.
+*/
+SdFat SD;
+
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
+
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
@@ -510,6 +534,15 @@ template<typename sample_g, typename observation_g> bool make_observation_from_s
 \return void.
 */
 template<typename sample_g, typename observation_g, typename value_v, typename val_v> bool make_value_from_samples_and_observations(sample_g *sample, observation_g *observation, value_v *value);
+
+
+/*!
+\fn void init_logging(void)
+\brief Init logging system.
+\return void.
+*/
+void init_logging();
+
 
 /*********************************************************************
 * TASKS

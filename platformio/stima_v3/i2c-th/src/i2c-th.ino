@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_TH_SERIAL_TRACE_LEVEL
-
 #include "i2c-th.h"
 
 /*!
@@ -38,12 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
    init_wdt(WDT_TIMER);
-   SERIAL_BEGIN(115200);
+   Serial.begin(115200);
    init_pins();
+   init_spi();
+   init_logging();
    load_configuration();
    init_buffers();
    init_wire();
-   init_spi();
    init_rtc();
    #if (USE_TIMER_1)
    init_timer1();
@@ -88,7 +81,7 @@ void loop() {
 
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          LOGE(F("Restart I2C BUS"));
           init_wire();
           wdt_reset();
         }
@@ -108,6 +101,52 @@ void loop() {
       break;
    }
 }
+
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 	if (millis() - *time_ms > debouncing_ms) {
@@ -181,6 +220,7 @@ void init_tasks() {
 
 void init_pins() {
    pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
+   pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
@@ -193,6 +233,7 @@ void init_wire() {
 }
 
 void init_spi() {
+  SPI.begin();
 }
 
 void init_rtc() {
@@ -232,18 +273,18 @@ void init_system() {
 void print_configuration() {
    char stima_name[20];
    getStimaNameByType(stima_name, configuration.module_type);
-   SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-   SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-   SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-   SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-   SERIAL_INFO(F("--> i2c temperature address: 0x%X (%d)\r\n"), configuration.i2c_temperature_address, configuration.i2c_temperature_address);
-   SERIAL_INFO(F("--> i2c humidity address: 0x%X (%d)\r\n\r\n"), configuration.i2c_humidity_address, configuration.i2c_humidity_address);
+   LOGN(F("--> type: %s"), stima_name);
+   LOGN(F("--> version: %d"), configuration.module_version);
+   LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+   LOGN(F("--> i2c temperature address: 0x%X (%d)"), configuration.i2c_temperature_address, configuration.i2c_temperature_address);
+   LOGN(F("--> i2c humidity address: 0x%X (%d)"), configuration.i2c_humidity_address, configuration.i2c_humidity_address);
 }
 
 void save_configuration(bool is_default) {
    if (is_default) {
-      SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
       configuration.module_type = MODULE_TYPE;
       configuration.module_version = MODULE_VERSION;
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -266,7 +307,7 @@ void save_configuration(bool is_default) {
       #endif
    }
    else {
-      SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Save configuration... [ %s ]"), OK_STRING);
       configuration.i2c_address = writable_data.i2c_address;
       configuration.is_oneshot = writable_data.is_oneshot;
       configuration.is_continuous = writable_data.is_continuous;
@@ -288,7 +329,7 @@ void load_configuration() {
       save_configuration(CONFIGURATION_DEFAULT);
    }
    else {
-      SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+      LOGN(F("Load configuration... [ %s ]"), OK_STRING);
       print_configuration();
    }
 
@@ -299,26 +340,26 @@ void load_configuration() {
 void init_sensors () {
    sensors_count = 0;
 
-   SERIAL_INFO(F("Sensors...\r\n"));
+   LOGN(F("Sensors..."));
 
    #if (USE_SENSOR_ADT)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   SERIAL_INFO(F("--> %u: %s-%s: %s\t [ %s ]\r\n"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    #if (USE_SENSOR_HIH)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, configuration.i2c_humidity_address, 1, sensors, &sensors_count);
-   SERIAL_INFO(F("--> %u: %s-%s: %s\t [ %s ]\r\n"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    #if (USE_SENSOR_HYT)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   SERIAL_INFO(F("--> %u: %s-%s: %s\t [ %s ]\r\n"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    if (configuration.is_continuous) {
-      SERIAL_INFO(F("--> acquiring %u~%u samples in %u minutes\r\n\r\n"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
-      SERIAL_INFO(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT\r\n"));
+      LOGN(F("--> acquiring %l~%l samples in %l minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
+      LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
    }
 }
 
@@ -499,7 +540,7 @@ template<typename observation_g, typename length_v, typename value_v> value_v re
 }
 
 void samples_processing(bool is_force_processing) {
-  SERIAL_DEBUG(F("%.0f\t \t \t \t \t%.0f\t \t \t \t \t%u\t%u\t%s\r\n"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, is_force_processing ? "F" : "N");
+  LOGT(F("%0\t \t \t \t \t%0\t \t \t \t \t%l\t%l\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, is_force_processing ? "F" : "N");
 
   bool is_observations_processing = false;
 
@@ -510,16 +551,16 @@ void samples_processing(bool is_force_processing) {
   bool is_processing_humidity = make_observation_from_samples(is_force_processing, &humidity_samples, &humidity_observations);
 
   if (is_processing_temperature || is_processing_humidity) {
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
+    #if (LOG_LEVEL >= LOG_LEVEL_TRACE)
     resetBackObservation(&temperature_observations, OBSERVATION_COUNT);
     resetBackObservation(&humidity_observations, OBSERVATION_COUNT);
 
     uint16_t temperature = readBackObservation<observation_t, uint16_t, uint16_t>(&temperature_observations, OBSERVATION_COUNT);
     uint16_t humidity = readBackObservation<observation_t, uint16_t, uint16_t>(&humidity_observations, OBSERVATION_COUNT);
 
-    SERIAL_DEBUG(F("O----------------------------------------------------------------------------------------------\r\n"));
-    SERIAL_DEBUG(F("\t%u\t \t \t \t \t%u\t \t \t \t%u/%u\t%u/%u\r\n"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
-    SERIAL_DEBUG(F("O----------------------------------------------------------------------------------------------\r\n"));
+    LOGT(F("O----------------------------------------------------------------------------------------------"));
+    LOGT(F("\t%l\t \t \t \t \t%l\t \t \t \t%l/%l\t%l/%l"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
+    LOGT(F("O----------------------------------------------------------------------------------------------"));
     #endif
 
     //! assign new value for samples_count
@@ -538,59 +579,59 @@ void samples_processing(bool is_force_processing) {
 
   exchange_buffers();
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
+  #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
   if (is_observations_processing) {
-    SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
+    LOGN(F("R----------------------------------------------------------------------------------------------"));
     if (ISVALID(readable_data_read_ptr->temperature.sample)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.sample);
+      LOGN(F("%l\t"), readable_data_read_ptr->temperature.sample);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med60)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.med60);
+      LOGN(F("%l\t"), readable_data_read_ptr->temperature.med60);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.min)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.min);
+      LOGN(F("%l\t"), readable_data_read_ptr->temperature.min);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.med);
+      LOGN(F("%l\t"), readable_data_read_ptr->temperature.med);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.max)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->temperature.max);
+      LOGN(F("%l\t"), readable_data_read_ptr->temperature.max);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.sample)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.sample);
+      LOGN(F("%l\t"), readable_data_read_ptr->humidity.sample);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med60)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.med60);
+      LOGN(F("%l\t"), readable_data_read_ptr->humidity.med60);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.min)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.min);
+      LOGN(F("%l\t"), readable_data_read_ptr->humidity.min);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med)) {
-      SERIAL_INFO(F("%u\t"), readable_data_read_ptr->humidity.med);
+      LOGN(F("%l\t"), readable_data_read_ptr->humidity.med);
     }
-    else SERIAL_INFO(F("-----\t"));
+    else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.max)) {
-      SERIAL_INFO(F("%u\r\n"), readable_data_read_ptr->humidity.max);
+      LOGN(F("%l"), readable_data_read_ptr->humidity.max);
     }
-    else SERIAL_INFO(F("-----\r\n"));
-    SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
+    else LOGN(F("-----"));
+    LOGN(F("R----------------------------------------------------------------------------------------------"));
   }
   #endif
 }
@@ -871,7 +912,7 @@ void sensors_reading_task () {
               interrupts();
             }
 
-            #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
+            #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
             delay_ms = 10;
             start_time_ms = millis();
             state_after_wait = SENSORS_READING_END;
@@ -957,13 +998,13 @@ uint16_t readBackObservation (observation_t *buffer, uint16_t length) {
 }
 
 void command_task() {
-   #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
    char buffer[30];
    #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_TH_COMMAND_ONESHOT_START:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT START");
          #endif
          is_oneshot = true;
@@ -974,7 +1015,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_ONESHOT_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT STOP");
          #endif
          is_oneshot = true;
@@ -985,7 +1026,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_ONESHOT_START_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT START-STOP");
          #endif
          is_oneshot = true;
@@ -996,7 +1037,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "CONTINUOUS START");
          #endif
          is_oneshot = false;
@@ -1007,7 +1048,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "CONTINUOUS STOP");
          #endif
          is_oneshot = false;
@@ -1018,7 +1059,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
-        #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+        #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
         strcpy(buffer, "CONTINUOUS START-STOP");
         #endif
         is_oneshot = false;
@@ -1029,7 +1070,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_TEST_READ:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "TEST READ");
          #endif
          is_test_read = true;
@@ -1041,18 +1082,18 @@ void command_task() {
         is_continuous = false;
         is_start = false;
         is_stop = false;
-        SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+        LOGV(F("Execute command [ SAVE ]"));
         save_configuration(CONFIGURATION_CURRENT);
         init_wire();
       break;
    }
 
-   #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
    if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      SERIAL_TRACE(F("Execute [ %s ]\r\n"), buffer);
+      LOGV(F("Execute [ %s ]"), buffer);
    }
    else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      SERIAL_TRACE(F("Ignore [ %s ]\r\n"), buffer);
+      LOGV(F("Ignore [ %s ]"), buffer);
    }
    #endif
 
@@ -1070,7 +1111,7 @@ void tests() {
       if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
         readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
         readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
-        SERIAL_DEBUG(F("%.0f\t \t \t \t \t%.0f\t \t \t \t \t%u\t%u\t%s\r\n"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
+        LOGT(F("%0\t \t \t \t \t%0\t \t \t \t \t%l\t%l\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
         exchange_buffers();
       }
     }
