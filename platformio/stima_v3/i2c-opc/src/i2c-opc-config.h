@@ -85,6 +85,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define OPC_CHIP_SELECT                               (10)
 
+/*!
+\def SDCARD_CHIP_SELECT_PIN
+\brief Chip select for SDcard SPI.
+*/#define SDCARD_CHIP_SELECT_PIN 7
+
+/*!
+\def SPI_SPEED
+\brief Clock speed for SPI and SDcard.
+*/
+#define SPI_SPEED SD_SCK_MHZ(4)
+
 /*********************************************************************
 * POWER DOWN
 *********************************************************************/

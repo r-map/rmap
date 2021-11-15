@@ -40,6 +40,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <typedef.h>
 #include <registers-opc.h>
 #include <opcxx.h>
+#include <debug_config.h>
+#include <SdFat.h>
+#include <StreamUtils.h>
+#include <ArduinoLog.h>
+
 
 /*********************************************************************
 * TYPEDEF
@@ -211,6 +216,27 @@ typedef enum {
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
+
+#if (ENABLE_SDCARD_LOGGING)   
+/*!
+\var SD
+\brief SD-Card structure.
+*/
+SdFat SD;
+
+/*!
+\var logFile
+\brief File for logging on SD-Card.
+*/
+File logFile;
+
+/*!
+\var loggingStream
+\brief stream for logging on Serial and  SD-Card together.
+*/
+WriteLoggingStream loggingStream(logFile,Serial);
+#endif
+
 /*!
 \var configuration
 \brief Configuration data.
@@ -401,6 +427,14 @@ Opcn3 opcn(OPC_CHIP_SELECT, OPC_POWER_PIN, OPC_SPI_POWER_PIN, SENSORS_SAMPLE_TIM
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
+
+/*!
+\fn void init_logging(void)
+\brief Init logging system.
+\return void.
+*/
+void init_logging();
+
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.

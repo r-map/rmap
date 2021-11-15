@@ -20,13 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_OPC_SERIAL_TRACE_LEVEL
 
 #include "i2c-opc.h"
 
@@ -38,12 +31,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
    init_wdt(WDT_TIMER);
-   SERIAL_BEGIN(115200);
+   Serial.begin(115200);
    init_pins();
+   init_spi();
+   init_logging();
    load_configuration();
    init_buffers();
    init_wire();
-   init_spi();
    init_rtc();
    #if (USE_TIMER_1)
    init_timer1();
@@ -78,7 +72,7 @@ void loop() {
       case TASKS_EXECUTION:
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          SERIAL_ERROR(F("Restart I2C BUS\r\n"));
+          LOGE(F("Restart I2C BUS"));
           init_wire();
           wdt_reset();
         }
@@ -112,6 +106,52 @@ void loop() {
       break;
    }
 }
+
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
 	if (millis() - *time_ms > debouncing_ms) {
@@ -231,8 +271,9 @@ void init_tasks() {
 }
 
 void init_pins() {
-   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
-   opcn.initPins();
+  pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
+  opcn.initPins();
+  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
@@ -285,26 +326,26 @@ void init_system() {
 void print_configuration() {
    char stima_name[20];
    getStimaNameByType(stima_name, configuration.module_type);
-   SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-   SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-   SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-   SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-   // SERIAL_INFO(F("--> configuration variables: "));
+   LOGN(F("--> type: %s"), stima_name);
+   LOGN(F("--> version: %d"), configuration.module_version);
+   LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+   // LOGN(F("--> configuration variables: "));
    // for (uint16_t i = 0; i < OPCXX_CONFIGURATION_VARIABLES_LENGTH; i++) {
-   //   SERIAL_INFO_CLEAN(F("%X"), configuration.configuration_variables[i]);
+   //   LOGN(F("%X"), configuration.configuration_variables[i]);
    // }
-   // SERIAL_INFO_CLEAN(F("\r\n"));
-   // SERIAL_INFO(F("--> configuration variables 2: "));
+   // LOGN(F(""));
+   // LOGN(F("--> configuration variables 2: "));
    // for (uint16_t i = 0; i < OPCXX_CONFIGURATION_VARIABLES_2_LENGTH; i++) {
-   //   SERIAL_INFO_CLEAN(F("%X"), configuration.configuration_variables_2[i]);
+   //   LOGN(F("%X"), configuration.configuration_variables_2[i]);
    // }
-   // SERIAL_INFO_CLEAN(F("\r\n"));
+   // LOGN(F(""));
 }
 
 void save_configuration(bool is_default) {
   if (is_default) {
-    SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
     configuration.module_version = MODULE_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -314,7 +355,7 @@ void save_configuration(bool is_default) {
     // memset(configuration.configuration_variables_2, 0, OPCXX_CONFIGURATION_VARIABLES_2_LENGTH);
   }
   else {
-    SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
     configuration.is_continuous = writable_data.is_continuous;
@@ -334,7 +375,7 @@ void load_configuration() {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
-    SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Load configuration... [ %s ]"), OK_STRING);
     print_configuration();
   }
 
@@ -347,7 +388,7 @@ void init_sensors () {
   opcn.init();
 
   if (configuration.is_continuous) {
-     SERIAL_INFO(F("\r\n--> acquiring %u~%u samples in %u minutes (max %u samples error)\r\n\r\n"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES, SENSORS_SAMPLE_COUNT_TOLERANCE);
+     LOGN(F("--> acquiring %l~%l samples in %l minutes (max %l samples error)"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES, SENSORS_SAMPLE_COUNT_TOLERANCE);
   }
 }
 
@@ -517,19 +558,19 @@ template<typename observation_g, typename length_v, typename value_v> value_v re
 }
 
 void samples_processing(bool is_force_processing) {
-  SERIAL_DEBUG(F("%u/%u\t%.1f %.1f %.1f\t"), pm1_samples.count + pm1_samples.error_count, samples_count, pm1_samples.values, pm25_samples.values, pm10_samples.values);
+  LOGT(F("%l/%l\t%1 %1 %1\t"), pm1_samples.count + pm1_samples.error_count, samples_count, pm1_samples.values, pm25_samples.values, pm10_samples.values);
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
+  #if (LOG_LEVEL >= LOG_LEVEL_TRACE)
   for (uint8_t index = 0; index < OPC_BINS_LENGTH; index++) {
-    SERIAL_DEBUG_CLEAN(F("%.0f "), bins_samples[index].values);
+    LOGT(F("%0 "), bins_samples[index].values);
   }
   #endif
 
   #if (USE_SENSOR_OE3)
-  SERIAL_DEBUG_CLEAN(F("\t%.1f %.0f"), temperature_samples.values, humidity_samples.values);
+  LOGT(F("\t%1 %0"), temperature_samples.values, humidity_samples.values);
   #endif
 
-  SERIAL_DEBUG_CLEAN(F("\t\t%s\r\n"), is_force_processing ? "F" : "N");
+  LOGT(F("\t\t%s"), is_force_processing ? "F" : "N");
 
   bool is_processing = false;
   bool is_observations_processing = false;
@@ -549,7 +590,7 @@ void samples_processing(bool is_force_processing) {
   #endif
 
   if (is_processing) {
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
+    #if (LOG_LEVEL >= LOG_LEVEL_TRACE)
     resetBackObservation(&pm1_observations, OBSERVATION_COUNT);
     resetBackObservation(&pm25_observations, OBSERVATION_COUNT);
     resetBackObservation(&pm10_observations, OBSERVATION_COUNT);
@@ -567,22 +608,22 @@ void samples_processing(bool is_force_processing) {
     float pm25 = readBackObservation<float_observation_t, uint16_t, float>(&pm25_observations, OBSERVATION_COUNT);
     float pm10 = readBackObservation<float_observation_t, uint16_t, float>(&pm10_observations, OBSERVATION_COUNT);
 
-    SERIAL_DEBUG(F("O----------------------------------------------------------------------------------------------\r\n"));
-    SERIAL_DEBUG(F("%u/%u\t%.1f %.1f %.1f\t"), pm1_samples.count, samples_count, pm1, pm25, pm10);
+    LOGT(F("O----------------------------------------------------------------------------------------------"));
+    LOGT(F("%l/%l\t%1 %1 %1\t"), pm1_samples.count, samples_count, pm1, pm25, pm10);
     for (uint8_t i = 0; i < OPC_BINS_LENGTH; i++) {
       uint16_t bin = readBackObservation<uint16_observation_t, uint16_t, uint16_t>(&bins_observations[i], OBSERVATION_COUNT);
-      SERIAL_DEBUG_CLEAN(F("%u "), bin);
+      LOGT(F("%l "), bin);
     }
 
     #if (USE_SENSOR_OE3)
     float temperature = readBackObservation<float_observation_t, uint16_t, float>(&temperature_observations, OBSERVATION_COUNT);
     float humidity = readBackObservation<float_observation_t, uint16_t, float>(&humidity_observations, OBSERVATION_COUNT);
 
-    SERIAL_DEBUG_CLEAN(F("\t%.1f %.0f"), temperature, humidity);
+    LOGT(F("\t%1 %0"), temperature, humidity);
     #endif
 
-    SERIAL_DEBUG_CLEAN(F("\r\n"));
-    SERIAL_DEBUG(F("O----------------------------------------------------------------------------------------------\r\n"));
+    LOGT(F(""));
+    LOGT(F("O----------------------------------------------------------------------------------------------"));
     #endif
 
     //! assign new value for samples_count
@@ -623,192 +664,192 @@ void samples_processing(bool is_force_processing) {
     exchange_buffers();
   }
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_INFO)
+  #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
   if (is_observations_processing) {
-    SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
-    SERIAL_INFO(F("\t"));
+    LOGN(F("R----------------------------------------------------------------------------------------------"));
+    LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_med[0])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[0]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_med[0]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_sigma[0])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[0]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_sigma[0]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_med[1])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[1]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_med[1]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_sigma[1])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[1]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_sigma[1]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_med[2])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_med[2]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_med[2]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->pm_sigma[2])) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm_sigma[2]);
+      LOGN(F("%1 "), readable_data_read_ptr->pm_sigma[2]);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.sample)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.sample);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.sample);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.med60)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.med60);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.med60);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.min)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.min);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.min);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.med)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.med);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.med);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.sigma)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.sigma);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.sigma);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm1.max)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm1.max);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm1.max);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.sample)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.sample);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.sample);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.med60)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.med60);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.med60);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.min)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.min);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.min);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.med)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.med);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.med);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.sigma)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.sigma);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.sigma);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm25.max)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm25.max);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm25.max);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.sample)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.sample);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm10.sample);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.med60)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.med60);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm10.med60);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.min)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.min);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm10.min);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.med)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->pm10.med);
+    //   LOGN(F("%1 "), readable_data_read_ptr->pm10.med);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.sigma)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f\t"), readable_data_read_ptr->pm10.sigma);
+    //   LOGN(F("%1\t"), readable_data_read_ptr->pm10.sigma);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->pm10.max)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f\t"), readable_data_read_ptr->pm10.max);
+    //   LOGN(F("%1\t"), readable_data_read_ptr->pm10.max);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
 
     for (uint8_t i = 0; i < OPC_BINS_LENGTH; i++) {
       if (ISVALID(readable_data_read_ptr->bins_med[i])) {
-        SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins_med[i]);
+        LOGN(F("%l "), readable_data_read_ptr->bins_med[i]);
       }
-      else SERIAL_INFO_CLEAN(F("\t"));
+      else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].sample)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].sample);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].sample);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].med60)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].med60);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].med60);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].min)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].min);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].min);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].med)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].med);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].med);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].sigma)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].sigma);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].sigma);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
 
       // if (ISVALID(readable_data_read_ptr->bins[i].max)) {
-      //   SERIAL_INFO_CLEAN(F("%u "), readable_data_read_ptr->bins[i].max);
+      //   LOGN(F("%l "), readable_data_read_ptr->bins[i].max);
       // }
-      // else SERIAL_INFO_CLEAN(F("\t"));
+      // else LOGN(F("\t"));
     }
 
     #if (USE_SENSOR_OE3)
     if (ISVALID(readable_data_read_ptr->temperature_med)) {
-      SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->temperature_med);
+      LOGN(F("%1 "), readable_data_read_ptr->temperature_med);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity_med)) {
-      SERIAL_INFO_CLEAN(F("%.0f "), readable_data_read_ptr->humidity_med);
+      LOGN(F("%0 "), readable_data_read_ptr->humidity_med);
     }
-    else SERIAL_INFO_CLEAN(F("\t"));
+    else LOGN(F("\t"));
 
     // if (ISVALID(readable_data_read_ptr->temperature.med)) {
-    //   SERIAL_INFO_CLEAN(F("%.1f "), readable_data_read_ptr->temperature.med);
+    //   LOGN(F("%1 "), readable_data_read_ptr->temperature.med);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
     //
     // if (ISVALID(readable_data_read_ptr->humidity.med)) {
-    //   SERIAL_INFO_CLEAN(F("%.0f "), readable_data_read_ptr->humidity.med);
+    //   LOGN(F("%0 "), readable_data_read_ptr->humidity.med);
     // }
-    // else SERIAL_INFO_CLEAN(F("\t"));
+    // else LOGN(F("\t"));
     #endif
 
-    SERIAL_INFO_CLEAN(F("\r\n"));
-    SERIAL_INFO(F("R----------------------------------------------------------------------------------------------\r\n"));
+    LOGN(F(""));
+    LOGN(F("R----------------------------------------------------------------------------------------------"));
   }
   #endif
 }
@@ -989,11 +1030,11 @@ void opc_task () {
 
       if (is_opc_setted) {
         opc_state = OPC_SEND_COMMAND_READ_HISTOGRAM;
-        SERIAL_TRACE(F("OPC_INIT --> OPC_SEND_COMMAND_READ_HISTOGRAM\r\n"));
+        LOGV(F("OPC_INIT --> OPC_SEND_COMMAND_READ_HISTOGRAM"));
       }
       else {
         opc_state = OPC_SWITCH_ON;
-        SERIAL_TRACE(F("OPC_INIT --> OPC_SWITCH_ON\r\n"));
+        LOGV(F("OPC_INIT --> OPC_SWITCH_ON"));
       }
       break;
 
@@ -1004,18 +1045,18 @@ void opc_task () {
         delay_ms = OPCXX_SWITCH_ON_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_FAN_DAC;
-        SERIAL_TRACE(F("OPC_SWITCH_ON -->> OPC_SEND_COMMAND_FAN_DAC\r\n"));
+        LOGV(F("OPC_SWITCH_ON -->> OPC_SEND_COMMAND_FAN_DAC"));
       }
       else {
         opc_state = OPC_SEND_COMMAND_FAN_DAC;
-        SERIAL_TRACE(F("OPC_SWITCH_ON --> OPC_SEND_COMMAND_FAN_DAC\r\n"));
+        LOGV(F("OPC_SWITCH_ON --> OPC_SEND_COMMAND_FAN_DAC"));
       }
       break;
 
     case OPC_SEND_COMMAND_FAN_DAC:
       opcn.setFanDacCmd(OPCXX_FAN_DAC_MAX);
       opc_state = OPC_WAIT_RESULT_FAN_DAC;
-      SERIAL_TRACE(F("OPC_SEND_COMMAND_FAN_DAC --> OPC_WAIT_RESULT_FAN_DAC\r\n"));
+      LOGV(F("OPC_SEND_COMMAND_FAN_DAC --> OPC_WAIT_RESULT_FAN_DAC"));
       break;
 
     case OPC_WAIT_RESULT_FAN_DAC:
@@ -1029,7 +1070,7 @@ void opc_task () {
         delay_ms = OPCXX_GENERIC_OPERATION_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_FAN_ON;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_DAC -->> OPC_SEND_COMMAND_FAN_ON\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_DAC -->> OPC_SEND_COMMAND_FAN_ON"));
       }
       //! retry
       else if (opcxx_status == OPCXX_ERROR && (retry++) < OPC_RETRY_COUNT_MAX) {
@@ -1037,21 +1078,21 @@ void opc_task () {
         delay_ms = OPCXX_RETRY_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_FAN_DAC;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_DAC -->> OPC_SEND_COMMAND_FAN_DAC\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_DAC -->> OPC_SEND_COMMAND_FAN_DAC"));
       }
       //! fail
       else if (opcxx_status == OPCXX_ERROR || retry >= OPC_RETRY_COUNT_MAX) {
         retry = 0;
         is_error = true;
         opc_state = OPC_END;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_DAC --> OPC_END\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_DAC --> OPC_END"));
       }
       break;
 
     case OPC_SEND_COMMAND_FAN_ON:
       opcn.fanOnCmd();
       opc_state = OPC_WAIT_RESULT_FAN_ON;
-      SERIAL_TRACE(F("OPC_SEND_COMMAND_FAN_ON --> OPC_WAIT_RESULT_FAN_ON\r\n"));
+      LOGV(F("OPC_SEND_COMMAND_FAN_ON --> OPC_WAIT_RESULT_FAN_ON"));
       break;
 
     case OPC_WAIT_RESULT_FAN_ON:
@@ -1065,7 +1106,7 @@ void opc_task () {
         delay_ms = OPCXX_FAN_ON_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_LASER_ON;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_ON -->> OPC_SEND_COMMAND_LASER_ON\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_ON -->> OPC_SEND_COMMAND_LASER_ON"));
       }
       //! retry
       else if (opcxx_status == OPCXX_ERROR && (retry++) < OPC_RETRY_COUNT_MAX) {
@@ -1073,21 +1114,21 @@ void opc_task () {
         delay_ms = OPCXX_RETRY_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_FAN_DAC;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_ON -->> OPC_SEND_COMMAND_FAN_ON\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_ON -->> OPC_SEND_COMMAND_FAN_ON"));
       }
       //! fail
       else if (opcxx_status == OPCXX_ERROR || retry >= OPC_RETRY_COUNT_MAX) {
         retry = 0;
         is_error = true;
         opc_state = OPC_END;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_FAN_ON --> OPC_END\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_FAN_ON --> OPC_END"));
       }
       break;
 
     case OPC_SEND_COMMAND_LASER_ON:
       opcn.laserOnCmd();
       opc_state = OPC_WAIT_RESULT_LASER_ON;
-      SERIAL_TRACE(F("OPC_SEND_COMMAND_LASER_ON --> OPC_WAIT_RESULT_LASER_ON\r\n"));
+      LOGV(F("OPC_SEND_COMMAND_LASER_ON --> OPC_WAIT_RESULT_LASER_ON"));
       break;
 
     case OPC_WAIT_RESULT_LASER_ON:
@@ -1102,7 +1143,7 @@ void opc_task () {
         delay_ms = OPCXX_LASER_ON_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_END;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_LASER_ON -->> OPC_END\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_LASER_ON -->> OPC_END"));
       }
       //! retry
       else if (opcxx_status == OPCXX_ERROR && (retry++) < OPC_RETRY_COUNT_MAX) {
@@ -1110,21 +1151,21 @@ void opc_task () {
         delay_ms = OPCXX_RETRY_DELAY_MS;
         opc_state = OPC_WAIT_STATE;
         state_after_wait = OPC_SEND_COMMAND_LASER_ON;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_LASER_ON -->> OPC_SEND_COMMAND_LASER_ON\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_LASER_ON -->> OPC_SEND_COMMAND_LASER_ON"));
       }
       //! fail
       else if (opcxx_status == OPCXX_ERROR || retry >= OPC_RETRY_COUNT_MAX) {
         retry = 0;
         is_error = true;
         opc_state = OPC_END;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_LASER_ON --> OPC_END\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_LASER_ON --> OPC_END"));
       }
       break;
 
     case OPC_SEND_COMMAND_READ_HISTOGRAM:
       opcn.readHistogramCmd();
       opc_state = OPC_WAIT_RESULT_READ_HISTOGRAM;
-      SERIAL_TRACE(F("OPC_SEND_COMMAND_READ_HISTOGRAM --> OPC_WAIT_RESULT_READ_HISTOGRAM\r\n"));
+      LOGV(F("OPC_SEND_COMMAND_READ_HISTOGRAM --> OPC_WAIT_RESULT_READ_HISTOGRAM"));
       break;
 
     case OPC_WAIT_RESULT_READ_HISTOGRAM:
@@ -1135,7 +1176,7 @@ void opc_task () {
         retry = 0;
         is_error = false;
         opc_state = OPC_READ_HISTOGRAM;
-        SERIAL_TRACE(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_READ_HISTOGRAM\r\n"));
+        LOGV(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_READ_HISTOGRAM"));
       }
       else if (opcxx_status == OPCXX_ERROR || opcxx_status == OPCXX_ERROR_RESULT) {
         opcn.resetHistogram();
@@ -1145,11 +1186,11 @@ void opc_task () {
         if (is_opc_first_read) {
           is_opc_first_read = false;
           opc_state = OPC_END;
-          SERIAL_TRACE(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_END\r\n"));
+          LOGV(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_END"));
         }
         else {
           opc_state = OPC_READ_HISTOGRAM;
-          SERIAL_TRACE(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_READ_HISTOGRAM\r\n"));
+          LOGV(F("OPC_WAIT_RESULT_READ_HISTOGRAM -->> OPC_READ_HISTOGRAM"));
         }
       }
       break;
@@ -1175,7 +1216,7 @@ void opc_task () {
         interrupts();
       }
       opc_state = OPC_END;
-      SERIAL_TRACE(F("OPC_READ_HISTOGRAM -->> OPC_END\r\n"));
+      LOGV(F("OPC_READ_HISTOGRAM -->> OPC_END"));
       break;
 
     case OPC_END:
@@ -1195,7 +1236,7 @@ void opc_task () {
       ready_tasks_count--;
       interrupts();
       opc_state = OPC_INIT;
-      SERIAL_TRACE(F("OPC_END --> OPC_INIT\r\n"));
+      LOGV(F("OPC_END --> OPC_INIT"));
       break;
 
     case OPC_WAIT_STATE:
@@ -1258,13 +1299,14 @@ void reset_observations_buffer() {
 }
 
 void command_task() {
-   #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+
+   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
    char buffer[30];
    #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_OPC_COMMAND_ONESHOT_START:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT START");
          #endif
          is_oneshot = true;
@@ -1275,7 +1317,7 @@ void command_task() {
       break;
 
       case I2C_OPC_COMMAND_ONESHOT_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT STOP");
          #endif
          is_oneshot = true;
@@ -1286,7 +1328,7 @@ void command_task() {
       break;
 
       case I2C_OPC_COMMAND_ONESHOT_START_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "ONESHOT START-STOP");
          #endif
          is_oneshot = true;
@@ -1297,7 +1339,7 @@ void command_task() {
       break;
 
       case I2C_OPC_COMMAND_CONTINUOUS_START:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "CONTINUOUS START");
          #endif
          is_oneshot = false;
@@ -1308,7 +1350,7 @@ void command_task() {
       break;
 
       case I2C_OPC_COMMAND_CONTINUOUS_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "CONTINUOUS STOP");
          #endif
          is_oneshot = false;
@@ -1319,7 +1361,7 @@ void command_task() {
       break;
 
       case I2C_OPC_COMMAND_CONTINUOUS_START_STOP:
-         #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
          strcpy(buffer, "CONTINUOUS START-STOP");
          #endif
          is_oneshot = false;
@@ -1334,18 +1376,18 @@ void command_task() {
          is_continuous = false;
          is_start = false;
          is_stop = false;
-         SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+         LOGV(F("Execute command [ SAVE ]"));
          save_configuration(CONFIGURATION_CURRENT);
          init_wire();
       break;
    }
 
-   #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
    if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      SERIAL_TRACE(F("Execute [ %s ]\r\n"), buffer);
+      LOGV(F("Execute [ %s ]"), buffer);
    }
    else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      SERIAL_TRACE(F("Ignore [ %s ]\r\n"), buffer);
+      LOGV(F("Ignore [ %s ]"), buffer);
    }
    #endif
 
