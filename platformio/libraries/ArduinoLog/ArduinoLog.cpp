@@ -149,6 +149,12 @@ void Logging::printFormat(const char format, va_list *args) {
     }
     return;
   }
+
+  if( isdigit(format) ) {
+    _logOutput->print(va_arg( *args, double ),(uint8_t)(format - '0'));
+    return;
+  }
+  
 #endif	  
 }
  

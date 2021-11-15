@@ -25,6 +25,7 @@ typedef void (*printfunction)(Print*);
 
 //#include <stdint.h>
 //#include <stddef.h>
+
 // *************************************************************************
 //  Uncomment line below to fully disable logging, and reduce project size
 // ************************************************************************
@@ -60,6 +61,9 @@ typedef void (*printfunction)(Print*);
 * %c	replace with an character
 * %d	replace with an integer value
 * %l	replace with an long value
+* %D	replace with an float value
+* %F	replace with an double value
+* %[0-9]replace with an double value formatted with specified number of decimal
 * %x	replace and convert integer value into hex
 * %X	like %x but combine with 0x123AB
 * %b	replace and convert integer value into binary
