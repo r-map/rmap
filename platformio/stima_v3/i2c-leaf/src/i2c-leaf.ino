@@ -122,13 +122,13 @@ void init_logging(){
   Serial.println("\nInitializing SD card..." );
   
   if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
-    Serial.println   ("initialization failed. Things to check:" );
-    Serial.println   ("* is a card inserted?" );
-    Serial.println   ("* is your wiring correct?" );
-    Serial.println   ("* did you change the chipSelect pin to match your shield or module?" );
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
-    Serial.println   ("Wiring is correct and a card is present." );
-    Serial.println   ("The FAT type of the volume: ");
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
   }
   
