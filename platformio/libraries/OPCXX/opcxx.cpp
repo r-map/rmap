@@ -20,13 +20,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this library.
-*/
-#define SERIAL_TRACE_LEVEL OPC_SERIAL_TRACE_LEVEL
-
 #include "opcxx.h"
 
 /*********************************************************************
@@ -59,14 +52,14 @@ void Opcxx::initPins () {
 void Opcxx::switchOn() {
   digitalWrite(spi_power_pin, HIGH);
   digitalWrite(power_pin, HIGH);
-  SERIAL_INFO(F("%s [ %s ]\r\n"), OPCNXX_STRING, ON_STRING);
+  LOGN(F("%s [ %s ]"), OPCNXX_STRING, ON_STRING);
 }
 
 void Opcxx::switchOff() {
   is_on = false;
   digitalWrite(spi_power_pin, LOW);
   digitalWrite(power_pin, LOW);
-  SERIAL_INFO(F("%s [ %s ]\r\n"), OPCNXX_STRING, OFF_STRING);
+  LOGN(F("%s [ %s ]"), OPCNXX_STRING, OFF_STRING);
 }
 
 void Opcxx::setOn () {
@@ -124,10 +117,10 @@ opcxx_state_t Opcxx::setFanDacRst() {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s Set Fan Dac [ %s ]\r\n"), OPCNXX_STRING, OK_STRING);
+    LOGN(F("%s Set Fan Dac [ %s ]"), OPCNXX_STRING, OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s Set Fan Dac [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+    LOGE(F("%s Set Fan Dac [ %s ]"), OPCNXX_STRING, ERROR_STRING);
   }
 
   return opcxx_state;
@@ -137,10 +130,10 @@ opcxx_state_t Opcxx::fanOnOffRst(bool is_on) {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s set Fan [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
+    LOGN(F("%s set Fan [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s set Fan [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
+    LOGE(F("%s set Fan [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
   }
 
   return opcxx_state;
@@ -150,10 +143,10 @@ opcxx_state_t Opcxx::laserOnOffRst(bool is_on) {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s set Laser [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
+    LOGN(F("%s set Laser [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s set Laser [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
+    LOGE(F("%s set Laser [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
   }
 
   return opcxx_state;
@@ -163,10 +156,10 @@ opcxx_state_t Opcxx::laserSwitchOnOffRst(bool is_on) {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s set Laser Switch [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
+    LOGN(F("%s set Laser Switch [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s set Laser [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
+    LOGE(F("%s set Laser [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
   }
 
   return opcxx_state;
@@ -176,10 +169,10 @@ opcxx_state_t Opcxx::fanLaserOnOffRst(bool is_on) {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s set Fan-Laser [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
+    LOGN(F("%s set Fan-Laser [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s set Fan-Laser [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
+    LOGE(F("%s set Fan-Laser [ %s ] [ %s ]"), OPCNXX_STRING, is_on ? ON_STRING : OFF_STRING, ERROR_STRING);
   }
 
   return opcxx_state;
@@ -189,10 +182,10 @@ opcxx_state_t Opcxx::highLowGainRst(bool is_high) {
   opcxx_state_t opcxx_state = sendCommand();
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s set Gain [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_high ? "HIGH" : "LOW", OK_STRING);
+    LOGN(F("%s set Gain [ %s ] [ %s ]"), OPCNXX_STRING, is_high ? "HIGH" : "LOW", OK_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s set Gain [ %s ] [ %s ]\r\n"), OPCNXX_STRING, is_high ? "HIGH" : "LOW", ERROR_STRING);
+    LOGE(F("%s set Gain [ %s ] [ %s ]"), OPCNXX_STRING, is_high ? "HIGH" : "LOW", ERROR_STRING);
   }
 
   return opcxx_state;
@@ -235,16 +228,15 @@ opcxx_state_t Opcn2::sendCommand() {
       for (uint16_t k = 0; k < response_length; k++) {
         if (expected_response[k] != *getResponse(k)) {
           is_error = true;
-          SERIAL_TRACE_CLEAN(F("%s Command [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+          LOGV(F("%s Command [ %s ]"), OPCNXX_STRING, ERROR_STRING);
           break;
         }
       }
 
-      SERIAL_TRACE_CLEAN(F(""));
       for (uint16_t k = 0; k < length; k++) {
-        SERIAL_TRACE_CLEAN(F("%0x"), *getResponse(k));
+        LOGV(F("%0x"), *getResponse(k));
       }
-      SERIAL_TRACE_CLEAN(F("\r\n"));
+      LOGV(F(""));
 
       // success
       if (!is_error) {
@@ -336,10 +328,10 @@ opcxx_state_t Opcn2::readStatusRst() {
     status.fan_dac = *Opcxx::getResponse(3);
     status.laser_dac = *Opcxx::getResponse(4);
 
-    SERIAL_INFO(F("%s Read status [ %s ] FAN DAC [ %u ] Laser DAC [ %u ]\r\n"), OPCNXX_STRING, OK_STRING, status.fan_dac, status.laser_dac);
+    LOGN(F("%s Read status [ %s ] FAN DAC [ %u ] Laser DAC [ %u ]"), OPCNXX_STRING, OK_STRING, status.fan_dac, status.laser_dac);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s Read status [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+    LOGE(F("%s Read status [ %s ]"), OPCNXX_STRING, ERROR_STRING);
     memset(&status, 0, sizeof(opcn2_status_t));
   }
 
@@ -460,38 +452,39 @@ opcxx_state_t Opcn2::readHistogramRst() {
   }
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s Read Histogram [ %s ]\r\n"), OPCNXX_STRING, OK_STRING);
+    LOGN(F("%s Read Histogram [ %s ]"), OPCNXX_STRING, OK_STRING);
   } else if (opcxx_state == OPCXX_ERROR || opcxx_state == OPCXX_ERROR_RESULT) {
-    SERIAL_ERROR(F("%s Read Histogram [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+    LOGE(F("%s Read Histogram [ %s ]"), OPCNXX_STRING, ERROR_STRING);
   }
 
   if (opcxx_state != OPCXX_BUSY) {
-    #if (SERIAL_TRACE_LEVEL == SERIAL_TRACE_LEVEL_INFO)
-    SERIAL_INFO(F("--> BIN [0-15]:\t[ "));
-    SERIAL_INFO_ARRAY_CLEAN(histogram.bins, OPCN2_BINS_LENGTH, UINT16, F("%u  "));
-    SERIAL_INFO_CLEAN(F(" ] [ %s ]\r\n"), is_reading_error ? ERROR_STRING : OK_STRING);
+    #if (LOG_LEVEL == LOG_LEVEL_NOTICE)
+    LOGN(F("--> BIN [0-15]:\t[ "));
+    //    TODO !
+    //LOG_ARRAY_CLEAN(histogram.bins, OPCN2_BINS_LENGTH, UINT16, F("%u  "));
+    LOGN_CLEAN(F(" ] [ %s ]"), is_reading_error ? ERROR_STRING : OK_STRING);
 
-    SERIAL_INFO(F("--> PM [1,2.5,10]:\t[ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %s ]\r\n"), histogram.pm1, histogram.pm25, histogram.pm10, is_reading_error ? ERROR_STRING : OK_STRING);
-    SERIAL_INFO(F("--> Sample Flow Rate\t[ %.3f ml/s ]\r\n"), histogram.sample_flow_rate);
-    SERIAL_INFO(F("--> Sampling Period:\t[ %.3f s ] [ %.3f s ] [ %s ]\r\n"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
+    LOGN(F("--> PM [1,2.5,10]:\t[ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %s ]"), histogram.pm1, histogram.pm25, histogram.pm10, is_reading_error ? ERROR_STRING : OK_STRING);
+    LOGN(F("--> Sample Flow Rate\t[ %.3f ml/s ]"), histogram.sample_flow_rate);
+    LOGN(F("--> Sampling Period:\t[ %.3f s ] [ %.3f s ] [ %s ]"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
     #endif
 
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
+    #if (LOG_LEVEL == LOG_LEVEL_TRACE)
     for (uint8_t i = 0; i < OPCN2_BINS_LENGTH; i++) {
-      SERIAL_DEBUG(F("--> BIN %02u\t\t[ %u ]\r\n"), i, histogram.bins[i]);
+      LOGT(F("--> BIN %02u\t\t[ %u ]"), i, histogram.bins[i]);
     }
 
-    SERIAL_DEBUG(F("--> BIN 1 MToF\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin1_mtof, getBinXMToFToUS(histogram.bin1_mtof));
-    SERIAL_DEBUG(F("--> BIN 3 MToF\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin3_mtof, getBinXMToFToUS(histogram.bin3_mtof));
-    SERIAL_DEBUG(F("--> BIN 5 MToF\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin5_mtof, getBinXMToFToUS(histogram.bin5_mtof));
-    SERIAL_DEBUG(F("--> BIN 7 MToF\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin7_mtof, getBinXMToFToUS(histogram.bin7_mtof));
-    SERIAL_DEBUG(F("--> PM 1\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm1);
-    SERIAL_DEBUG(F("--> PM 2.5\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm25);
-    SERIAL_DEBUG(F("--> PM 10\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm10);
-    SERIAL_DEBUG(F("--> Sample Flow Rate\t[ %.3f ml/s ]\r\n"), histogram.sample_flow_rate);
-    SERIAL_DEBUG(F("--> Sampling Period\t[ %.3f s ] [ %.3f s ] [ %s ]\r\n"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
-    // SERIAL_DEBUG(F("--> Temperature\t[ %.1f C ]\r\n"), histogram.temp_pressure);
-    SERIAL_DEBUG(F("--> Checksum\t\t[ %u ] [ %s ]\r\n"), histogram.checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
+    LOGT(F("--> BIN 1 MToF\t\t[ %u ] [ %.3f us ]"), histogram.bin1_mtof, getBinXMToFToUS(histogram.bin1_mtof));
+    LOGT(F("--> BIN 3 MToF\t\t[ %u ] [ %.3f us ]"), histogram.bin3_mtof, getBinXMToFToUS(histogram.bin3_mtof));
+    LOGT(F("--> BIN 5 MToF\t\t[ %u ] [ %.3f us ]"), histogram.bin5_mtof, getBinXMToFToUS(histogram.bin5_mtof));
+    LOGT(F("--> BIN 7 MToF\t\t[ %u ] [ %.3f us ]"), histogram.bin7_mtof, getBinXMToFToUS(histogram.bin7_mtof));
+    LOGT(F("--> PM 1\t\t[ %.3f ug/m3 ]"), histogram.pm1);
+    LOGT(F("--> PM 2.5\t\t[ %.3f ug/m3 ]"), histogram.pm25);
+    LOGT(F("--> PM 10\t\t[ %.3f ug/m3 ]"), histogram.pm10);
+    LOGT(F("--> Sample Flow Rate\t[ %.3f ml/s ]"), histogram.sample_flow_rate);
+    LOGT(F("--> Sampling Period\t[ %.3f s ] [ %.3f s ] [ %s ]"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
+    // LOGT(F("--> Temperature\t[ %.1f C ]"), histogram.temp_pressure);
+    LOGT(F("--> Checksum\t\t[ %u ] [ %s ]"), histogram.checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
     #endif
   }
 
@@ -530,7 +523,7 @@ opcxx_state_t Opcn3::sendCommand() {
       writeSPI(buffer[i], &response[i]);
       endSPI();
 
-      // SERIAL_INFO(F("%i --->> 0x%X ---> 0x%X\r\n"), i, buffer[i], response[i]);
+      // LOGN(F("%i --->> 0x%X ---> 0x%X"), i, buffer[i], response[i]);
 
       start_time_ms = millis();
       command_state = OPCXX_COMMAND_WAIT_STATE;
@@ -561,7 +554,7 @@ opcxx_state_t Opcn3::sendCommand() {
       for (i = 2; i < length; i++) {
         writeSPI(buffer[i], &response[i]);
         delayMicroseconds(OPCXX_PARA_GENERIC_DELAY_US);
-        // SERIAL_INFO(F("%i --->> 0x%X ---> 0x%X\r\n"), i - 2, buffer[i], response[i]);
+        // LOGN(F("%i --->> 0x%X ---> 0x%X"), i - 2, buffer[i], response[i]);
       }
       endSPI();
       command_state = OPCXX_COMMAND_END;
@@ -571,16 +564,16 @@ opcxx_state_t Opcn3::sendCommand() {
       for (uint16_t k = 0; k < response_length; k++) {
         if (expected_response[k] != *getResponse(k)) {
           is_error = true;
-          SERIAL_TRACE_CLEAN(F("%s Command [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+          LOGV(F("%s Command [ %s ]"), OPCNXX_STRING, ERROR_STRING);
           break;
         }
       }
 
-      SERIAL_TRACE_CLEAN(F(""));
+      LOGV(F(""));
       for (uint16_t k = 0; k < length; k++) {
-        SERIAL_TRACE_CLEAN(F("%0x"), *getResponse(k));
+        LOGV(F("%0x"), *getResponse(k));
       }
-      SERIAL_TRACE_CLEAN(F("\r\n"));
+      LOGV(F(""));
 
       // success
       if (!is_error) {
@@ -684,13 +677,13 @@ opcxx_state_t Opcn3::readStatusRst() {
     status.is_high_gain_on = (*Opcxx::getResponse(7)) & 0b00000001;
     status.is_auto_gain_toggle_on = (*Opcxx::getResponse(7)) & 0b00000010;
 
-    SERIAL_INFO(F("%s Read status [ %s ]\r\n"), OPCNXX_STRING, OK_STRING);
-    SERIAL_INFO(F("--> Fan ON [ %s ] Fan DAC [ %u ]\r\n"), status.is_fan_on ? YES_STRING : NO_STRING, status.fan_dac);
-    SERIAL_INFO(F("--> Laser ON [ %s ] Laser DAC [ %u ]\r\n"), status.is_laser_on ? YES_STRING : NO_STRING, status.laser_dac);
-    SERIAL_INFO(F("--> Laser switch [ %u ] Gain [ %s ] Auto Gain [ %s ]\r\n"), status.laser_switch, status.is_high_gain_on ? "HIGH" : "LOW", status.is_auto_gain_toggle_on ? ON_STRING : OFF_STRING);
+    LOGN(F("%s Read status [ %s ]"), OPCNXX_STRING, OK_STRING);
+    LOGN(F("--> Fan ON [ %s ] Fan DAC [ %u ]"), status.is_fan_on ? YES_STRING : NO_STRING, status.fan_dac);
+    LOGN(F("--> Laser ON [ %s ] Laser DAC [ %u ]"), status.is_laser_on ? YES_STRING : NO_STRING, status.laser_dac);
+    LOGN(F("--> Laser switch [ %u ] Gain [ %s ] Auto Gain [ %s ]"), status.laser_switch, status.is_high_gain_on ? "HIGH" : "LOW", status.is_auto_gain_toggle_on ? ON_STRING : OFF_STRING);
   }
   else if (opcxx_state == OPCXX_ERROR) {
-    SERIAL_ERROR(F("%s Read status [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+    LOGE(F("%s Read status [ %s ]"), OPCNXX_STRING, ERROR_STRING);
     memset(&status, 0, sizeof(opcn3_status_t));
   }
 
@@ -883,48 +876,49 @@ opcxx_state_t Opcn3::readHistogramRst() {
   }
 
   if (opcxx_state == OPCXX_OK) {
-    SERIAL_INFO(F("%s Read Histogram [ %s ]\r\n"), OPCNXX_STRING, OK_STRING);
+    LOGN(F("%s Read Histogram [ %s ]"), OPCNXX_STRING, OK_STRING);
   } else if (opcxx_state == OPCXX_ERROR || opcxx_state == OPCXX_ERROR_RESULT) {
-    SERIAL_ERROR(F("%s Read Histogram [ %s ]\r\n"), OPCNXX_STRING, ERROR_STRING);
+    LOGE(F("%s Read Histogram [ %s ]"), OPCNXX_STRING, ERROR_STRING);
   }
 
   if (opcxx_state != OPCXX_BUSY) {
-    #if (SERIAL_TRACE_LEVEL == SERIAL_TRACE_LEVEL_INFO)
-    SERIAL_INFO(F("--> BIN [0-23]\t\t[ "));
-    SERIAL_INFO_ARRAY_CLEAN(histogram.bins, OPCN3_BINS_LENGTH, UINT16, F("%u  "));
-    SERIAL_INFO_CLEAN(F(" ] [ %s ]\r\n"), is_reading_error ? ERROR_STRING : OK_STRING);
+    #if (LOG_LEVEL == LOG_LEVEL_NOTICE)
+    LOGN(F("--> BIN [0-23]\t\t[ "));
+    // TODO
+    //LOGN_ARRAY_CLEAN(histogram.bins, OPCN3_BINS_LENGTH, UINT16, F("%u  "));
+    LOGN(F(" ] [ %s ]"), is_reading_error ? ERROR_STRING : OK_STRING);
 
-    SERIAL_INFO(F("--> PM [1,2.5,10]\t[ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %s ]\r\n"), histogram.pm1, histogram.pm25, histogram.pm10, is_reading_error ? ERROR_STRING : OK_STRING);
-    SERIAL_INFO(F("--> Temperature\t[ %.1f C ]\r\n"), histogram.temperature);
-    SERIAL_INFO(F("--> Humidity\t\t[ %.0f %% ]\r\n"), histogram.humidity);
-    SERIAL_INFO(F("--> Sample Flow Rate\t[ %.3f ml/s ]\r\n"), histogram.sample_flow_rate);
-    SERIAL_INFO(F("--> Sampling Period\t[ %.3f s ] [ %.3f s ] [ %s ]\r\n"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
-    SERIAL_INFO(F("--> Checksum\t\t[ 0x%X 0x%X ] [ %s ]\r\n"), histogram.checksum, checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
+    LOGN(F("--> PM [1,2.5,10]\t[ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %.1f ug/m3 ] [ %s ]"), histogram.pm1, histogram.pm25, histogram.pm10, is_reading_error ? ERROR_STRING : OK_STRING);
+    LOGN(F("--> Temperature\t[ %.1f C ]"), histogram.temperature);
+    LOGN(F("--> Humidity\t\t[ %.0f %% ]"), histogram.humidity);
+    LOGN(F("--> Sample Flow Rate\t[ %.3f ml/s ]"), histogram.sample_flow_rate);
+    LOGN(F("--> Sampling Period\t[ %.3f s ] [ %.3f s ] [ %s ]"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
+    LOGN(F("--> Checksum\t\t[ 0x%X 0x%X ] [ %s ]"), histogram.checksum, checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
     #endif
 
-    #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_DEBUG)
+    #if (LOG_LEVEL == LOG_LEVEL_TRACE)
     for (uint8_t i = 0; i < OPCN3_BINS_LENGTH; i++) {
-      SERIAL_DEBUG(F("--> BIN %02u\t\t\t[ %u ]\r\n"), i, histogram.bins[i]);
+      LOGT(F("--> BIN %02u\t\t\t[ %u ]"), i, histogram.bins[i]);
     }
 
-    SERIAL_DEBUG(F("--> BIN 1 MToF\t\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin1_mtof, getBinXMToFToUS(histogram.bin1_mtof));
-    SERIAL_DEBUG(F("--> BIN 3 MToF\t\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin3_mtof, getBinXMToFToUS(histogram.bin3_mtof));
-    SERIAL_DEBUG(F("--> BIN 5 MToF\t\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin5_mtof, getBinXMToFToUS(histogram.bin5_mtof));
-    SERIAL_DEBUG(F("--> BIN 7 MToF\t\t\t[ %u ] [ %.3f us ]\r\n"), histogram.bin7_mtof, getBinXMToFToUS(histogram.bin7_mtof));
-    SERIAL_DEBUG(F("--> PM 1\t\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm1);
-    SERIAL_DEBUG(F("--> PM 2.5\t\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm25);
-    SERIAL_DEBUG(F("--> PM 10\t\t\t[ %.3f ug/m3 ]\r\n"), histogram.pm10);
-    SERIAL_DEBUG(F("--> Temperature\t\t[ %.1f C ]\r\n"), histogram.temperature);
-    SERIAL_DEBUG(F("--> Humidity\t\t\t[ %.0f %% ]\r\n"), histogram.humidity);
-    SERIAL_DEBUG(F("--> Sample Flow Rate\t\t[ %.3f ml/s ]\r\n"), histogram.sample_flow_rate);
-    SERIAL_DEBUG(F("--> Sampling Period\t\t[ %.3f s ] [ %.3f s ] [ %s ]\r\n"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
-    SERIAL_DEBUG(F("--> Reject count Glitch\t[ %u ]\r\n"), histogram.reject_count_glitch);
-    SERIAL_DEBUG(F("--> Reject count LongTOF\t[ %u ]\r\n"), histogram.reject_count_long_tof);
-    SERIAL_DEBUG(F("--> Reject count Ratio\t\t[ %u ]\r\n"), histogram.reject_count_ratio);
-    SERIAL_DEBUG(F("--> Reject count Out of Range\t[ %u ]\r\n"), histogram.reject_count_out_of_range);
-    SERIAL_DEBUG(F("--> Fan rev count\t\t[ %u ]\r\n"), histogram.fan_rev_count);
-    SERIAL_DEBUG(F("--> Laser Status\t\t[ %u ] [ %s ]\r\n"), histogram.laser_status, histogram.laser_status <= 60 ? OFF_STRING : ON_STRING);
-    SERIAL_DEBUG(F("--> Checksum\t\t[ 0x%X 0x%X ] [ %s ]\r\n"), histogram.checksum, checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
+    LOGT(F("--> BIN 1 MToF\t\t\t[ %u ] [ %.3f us ]"), histogram.bin1_mtof, getBinXMToFToUS(histogram.bin1_mtof));
+    LOGT(F("--> BIN 3 MToF\t\t\t[ %u ] [ %.3f us ]"), histogram.bin3_mtof, getBinXMToFToUS(histogram.bin3_mtof));
+    LOGT(F("--> BIN 5 MToF\t\t\t[ %u ] [ %.3f us ]"), histogram.bin5_mtof, getBinXMToFToUS(histogram.bin5_mtof));
+    LOGT(F("--> BIN 7 MToF\t\t\t[ %u ] [ %.3f us ]"), histogram.bin7_mtof, getBinXMToFToUS(histogram.bin7_mtof));
+    LOGT(F("--> PM 1\t\t\t[ %.3f ug/m3 ]"), histogram.pm1);
+    LOGT(F("--> PM 2.5\t\t\t[ %.3f ug/m3 ]"), histogram.pm25);
+    LOGT(F("--> PM 10\t\t\t[ %.3f ug/m3 ]"), histogram.pm10);
+    LOGT(F("--> Temperature\t\t[ %.1f C ]"), histogram.temperature);
+    LOGT(F("--> Humidity\t\t\t[ %.0f %% ]"), histogram.humidity);
+    LOGT(F("--> Sample Flow Rate\t\t[ %.3f ml/s ]"), histogram.sample_flow_rate);
+    LOGT(F("--> Sampling Period\t\t[ %.3f s ] [ %.3f s ] [ %s ]"), histogram.sampling_period, sampling_period_s, is_sampling_period_error ? ERROR_STRING : OK_STRING);
+    LOGT(F("--> Reject count Glitch\t[ %u ]"), histogram.reject_count_glitch);
+    LOGT(F("--> Reject count LongTOF\t[ %u ]"), histogram.reject_count_long_tof);
+    LOGT(F("--> Reject count Ratio\t\t[ %u ]"), histogram.reject_count_ratio);
+    LOGT(F("--> Reject count Out of Range\t[ %u ]"), histogram.reject_count_out_of_range);
+    LOGT(F("--> Fan rev count\t\t[ %u ]"), histogram.fan_rev_count);
+    LOGT(F("--> Laser Status\t\t[ %u ] [ %s ]"), histogram.laser_status, histogram.laser_status <= 60 ? OFF_STRING : ON_STRING);
+    LOGT(F("--> Checksum\t\t[ 0x%X 0x%X ] [ %s ]"), histogram.checksum, checksum, histogram.checksum == checksum ? OK_STRING : ERROR_STRING);
     #endif
   }
 

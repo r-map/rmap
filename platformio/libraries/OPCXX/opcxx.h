@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define _OPCXX_H
 
 #include <Arduino.h>
-#include <debug.h>
+#include <ArduinoLog.h>
 #include <SPI.h>
 #include <utility.h>
 #include "i2c_utility.h"
