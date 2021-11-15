@@ -20,14 +20,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#include <debug_config.h>
-
-/*!
-\def SERIAL_TRACE_LEVEL
-\brief Serial debug level for this sketch.
-*/
-#define SERIAL_TRACE_LEVEL I2C_RADIATION_SERIAL_TRACE_LEVEL
-
 #include "i2c-radiation.h"
 
 /*!
@@ -38,12 +30,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 void setup() {
   init_wdt(WDT_TIMER);
-  SERIAL_BEGIN(115200);
+  Serial.begin(115200);
   init_pins();
+  init_spi();
+  init_logging();
   load_configuration();
   init_buffers();
   init_wire();
-  init_spi();
   init_rtc();
   #if (USE_TIMER_1)
   init_timer1();
@@ -78,7 +71,7 @@ void loop() {
     case TASKS_EXECUTION:
       // I2C Bus Check
       if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-        SERIAL_DEBUG(F("Restart I2C BUS\r\n"));
+        LOGT(F("Restart I2C BUS"));
         init_wire();
         wdt_reset();
       }
@@ -114,6 +107,52 @@ void loop() {
     break;
   }
 }
+
+
+void logPrefix(Print* _logOutput) {
+  char m[12];
+  sprintf(m, "%10lu ", millis());
+  _logOutput->print("#");
+  _logOutput->print(m);
+  _logOutput->print(": ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
+
+void init_logging(){
+  
+#if (ENABLE_SDCARD_LOGGING)      
+  Serial.println("\nInitializing SD card..." );
+  
+  if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.println   (F("initialization failed. Things to check:"));
+    Serial.println   (F("* is a card inserted?"));
+    Serial.println   (F("* is your wiring correct?"));
+    Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
+  } else {
+    Serial.println   (F("Wiring is correct and a card is present."));
+    Serial.println   (F("The FAT type of the volume: "));
+    Serial.println   (SD.vol()->fatType());
+  }
+  
+  logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
+  if (logFile) {
+    logFile.seekEnd(0);
+    Log.begin(LOG_LEVEL, &loggingStream);
+  } else {
+    Log.begin(LOG_LEVEL, &Serial);
+  }
+#else
+  Log.begin(LOG_LEVEL, &Serial);
+#endif
+  
+  Log.setPrefix(logPrefix);
+  Log.setSuffix(logSuffix);
+}
+
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
   if (millis() - *time_ms > debouncing_ms) {
@@ -195,6 +234,7 @@ void init_tasks() {
 
 void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
+  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
 }
 
 void init_wire() {
@@ -210,6 +250,7 @@ void init_wire() {
 }
 
 void init_spi() {
+  SPI.begin();
 }
 
 void init_rtc() {
@@ -251,23 +292,23 @@ void init_system() {
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
-  SERIAL_INFO(F("--> type: %s\r\n"), stima_name);
-  SERIAL_INFO(F("--> version: %d\r\n"), configuration.module_version);
-  SERIAL_INFO(F("--> i2c address: 0x%X (%d)\r\n"), configuration.i2c_address, configuration.i2c_address);
-  SERIAL_INFO(F("--> oneshot: %s\r\n"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  SERIAL_INFO(F("--> continuous: %s\r\n"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+  LOGN(F("--> type: %s"), stima_name);
+  LOGN(F("--> version: %d"), configuration.module_version);
+  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
+  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 
   #if (USE_SENSOR_DSR)
-  SERIAL_INFO(F("--> adc voltage offset +: %.0f\r\n"), configuration.adc_voltage_offset_1);
-  SERIAL_INFO(F("--> adc voltage offset *: %.3f\r\n"), configuration.adc_voltage_offset_2);
-  SERIAL_INFO(F("--> adc voltage min: %.0f mV\r\n"), configuration.adc_voltage_min);
-  SERIAL_INFO(F("--> adc voltage max: %.0f mV\r\n"), configuration.adc_voltage_max);
+  LOGN(F("--> adc voltage offset +: %0"), configuration.adc_voltage_offset_1);
+  LOGN(F("--> adc voltage offset *: %3"), configuration.adc_voltage_offset_2);
+  LOGN(F("--> adc voltage min: %0 mV"), configuration.adc_voltage_min);
+  LOGN(F("--> adc voltage max: %0 mV"), configuration.adc_voltage_max);
   #endif
 }
 
 void save_configuration(bool is_default) {
   if (is_default) {
-    SERIAL_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
     configuration.module_version = MODULE_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
@@ -281,7 +322,7 @@ void save_configuration(bool is_default) {
 
   }
   else {
-    SERIAL_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
     configuration.is_continuous = writable_data.is_continuous;
@@ -309,7 +350,7 @@ void load_configuration() {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
-    SERIAL_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
+    LOGN(F("Load configuration... [ %s ]"), OK_STRING);
     print_configuration();
   }
 
@@ -324,17 +365,17 @@ void load_configuration() {
 
 void init_sensors () {
   if (configuration.is_continuous) {
-    SERIAL_INFO(F("\r\n"));
-    SERIAL_INFO(F("--> acquiring %u~%u samples in %u minutes\r\n"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("--> max %u samples error in %u minutes (observation)\r\n"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
-    SERIAL_INFO(F("--> max %u samples error in %u minutes (report)\r\n\r\n"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F(""));
+    LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
+    LOGN(F("--> max %l samples error in %l minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
+    LOGN(F("--> max %l samples error in %l minutes (report)"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
 
     #if (USE_SENSOR_DSR)
-    SERIAL_INFO(F("sc: sample count\r\n"));
-    SERIAL_INFO(F("rad: solar radiation [ W/m2 ]\r\n"));
-    SERIAL_INFO(F("avg: average solar radiation over %u' [ W/m2 ]\r\n"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
+    LOGN(F("sc: sample count"));
+    LOGN(F("rad: solar radiation [ W/m2 ]"));
+    LOGN(F("avg: average solar radiation over %l' [ W/m2 ]"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
 
-    SERIAL_INFO(F("sc\trad\tavg\r\n\r\n"));
+    LOGN(F("sc\trad\tavg"));
     #endif
   }
 }
@@ -534,7 +575,7 @@ void make_report () {
 
     if (i == 0) {
       #if (USE_SENSOR_DSR)
-      SERIAL_INFO(F("%u\t%.0f\t"), solar_radiation_samples.count, solar_radiation);
+      LOGN(F("%l\t%0\t"), solar_radiation_samples.count, solar_radiation);
       #endif
     }
 
@@ -554,7 +595,7 @@ void make_report () {
   #endif
 
   #if (USE_SENSOR_DSR)
-  SERIAL_INFO_CLEAN(F("%.0f\r\n"), readable_data_write_ptr->solar_radiation.avg);
+  LOGN_CLEAN(F("%0"), readable_data_write_ptr->solar_radiation.avg);
   #endif
 }
 
@@ -593,7 +634,7 @@ void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float i
 
   *offset = ideal - getSolarRadiationMv(value, 0);
 
-  SERIAL_INFO(F("Solar Radiation: ideal %.0f mV - read %.0f mV = offset %.0f mV\r\n"), ideal, getSolarRadiationMv(value, 0), *offset);
+  LOGN(F("Solar Radiation: ideal %0 mV - read %0 mV = offset %0 mV"), ideal, getSolarRadiationMv(value, 0), *offset);
 }
 
 void solar_radiation_task () {
@@ -616,10 +657,10 @@ void solar_radiation_task () {
       start_time_ms = millis();
       state_after_wait = SOLAR_RADIATION_READING;
       solar_radiation_state = SOLAR_RADIATION_WAIT_STATE;
-      SERIAL_TRACE(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_READING\r\n"));
+      LOGV(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_READING"));
       #else
       solar_radiation_state = SOLAR_RADIATION_ELABORATE;
-      SERIAL_TRACE(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_ELABORATE\r\n"));
+      LOGV(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_ELABORATE"));
       #endif
     break;
 
@@ -636,7 +677,7 @@ void solar_radiation_task () {
       }
       else {
         solar_radiation_state = SOLAR_RADIATION_ELABORATE;
-        SERIAL_TRACE(F("SOLAR_RADIATION_READING --> SOLAR_RADIATION_ELABORATE\r\n"));
+        LOGV(F("SOLAR_RADIATION_READING --> SOLAR_RADIATION_ELABORATE"));
       }
       #endif
     break;
@@ -650,7 +691,7 @@ void solar_radiation_task () {
       samples_processing();
 
       solar_radiation_state = SOLAR_RADIATION_END;
-      SERIAL_TRACE(F("SOLAR_RADIATION_ELABORATE --> SOLAR_RADIATION_END\r\n"));
+      LOGV(F("SOLAR_RADIATION_ELABORATE --> SOLAR_RADIATION_END"));
     break;
 
     case SOLAR_RADIATION_END:
@@ -659,7 +700,7 @@ void solar_radiation_task () {
       ready_tasks_count--;
       interrupts();
       solar_radiation_state = SOLAR_RADIATION_INIT;
-      SERIAL_TRACE(F("SOLAR_RADIATION_END --> SOLAR_RADIATION_INIT\r\n"));
+      LOGV(F("SOLAR_RADIATION_END --> SOLAR_RADIATION_INIT"));
     break;
 
     case SOLAR_RADIATION_WAIT_STATE:
@@ -708,13 +749,13 @@ void reset_report_buffer () {
 }
 
 void command_task() {
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   char buffer[30];
   #endif
 
   switch(i2c_rx_data[1]) {
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_START:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT START");
       #endif
       is_oneshot = true;
@@ -726,7 +767,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT STOP");
       #endif
       is_oneshot = true;
@@ -738,7 +779,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_START_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "ONESHOT START-STOP");
       #endif
       is_oneshot = true;
@@ -750,7 +791,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS START");
       #endif
       is_oneshot = false;
@@ -762,7 +803,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS STOP");
       #endif
       is_oneshot = false;
@@ -774,7 +815,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "CONTINUOUS START-STOP");
       #endif
       is_oneshot = false;
@@ -786,7 +827,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_TEST_READ:
-      #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
       strcpy(buffer, "TEST READ");
       #endif
       is_test = true;
@@ -794,18 +835,18 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_SAVE:
-      SERIAL_TRACE(F("Execute command [ SAVE ]\r\n"));
+      LOGV(F("Execute command [ SAVE ]"));
       save_configuration(CONFIGURATION_CURRENT);
       init_wire();
     break;
   }
 
-  #if (SERIAL_TRACE_LEVEL >= SERIAL_TRACE_LEVEL_TRACE)
+  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
   if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    SERIAL_TRACE(F("Execute [ %s ]\r\n"), buffer);
+    LOGV(F("Execute [ %s ]"), buffer);
   }
   else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    SERIAL_TRACE(F("Ignore [ %s ]\r\n"), buffer);
+    LOGV(F("Ignore [ %s ]"), buffer);
   }
   #endif
 
