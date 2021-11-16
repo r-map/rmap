@@ -16,15 +16,18 @@
 #define GSM_PASSWORD   ("")
 #define TOPIC "test/MQTTClient/sim800"
 #define HOSTNAME "test.rmap.cc"
+#define DATE_TIME_STRING_LENGTH (20)
 #ifndef ARDUINO_ARCH_AVR
 HardwareSerial Serial1(PB11, PB10);
 #endif
 
 
+#include <debug_config.h>
 #include <sim800Client.h>
 #include <Sim800IPStack.h>
 #include <Countdown.h>
 #include <MQTTClient.h>
+#include <ArduinoLog.h>
 
 unsigned int arrivedcount = 0;
 
@@ -53,11 +56,12 @@ MQTT::Client<IPStack, Countdown, 120, 2> client = MQTT::Client<IPStack, Countdow
 
 bool initmodem(void)
 {
-  Serial.println("try to init sim800");
+  LOGN("try to init sim800");
   if(s800.init(SIM800_ON_OFF_PIN)){
-    Serial.println("initialized sim800");
+    s800.setTimeout(6000);
+    LOGN("initialized sim800");
   }else{
-    Serial.println("error initializing sim800");
+    LOGN("error initializing sim800");
     return false;
   }
     
@@ -65,10 +69,10 @@ bool initmodem(void)
     int rc = s800.switchOn();
     if (rc == SIM800_OK) {
       delay(SIM800_WAIT_FOR_AUTOBAUD_DELAY_MS);
-      Serial.println("switch on OK");
+      LOGN("switch on OK");
       break;
     }else if (rc == SIM800_ERROR){
-      Serial.println("switch on failed");
+      LOGN("switch on failed");
       return false;
     }
   }
@@ -77,10 +81,10 @@ bool initmodem(void)
     int rc =s800.initAutobaud();
     if (rc == SIM800_OK) {
       delay(SIM800_WAIT_FOR_AUTOBAUD_DELAY_MS);
-      Serial.println("autobaud OK");
+      LOGN("autobaud OK");
       break;
     }else if (rc == SIM800_ERROR){
-      Serial.println("autobaud failed");
+      LOGN("autobaud failed");
       return false;
     }
   }
@@ -88,10 +92,10 @@ bool initmodem(void)
   while(true){
     int rc =s800.setup();
     if (rc == SIM800_OK) {
-      Serial.println("setup OK");
+      LOGN("setup OK");
       break;
     }else if (rc == SIM800_ERROR){
-      Serial.println("setup failed");
+      LOGN("setup failed");
       return false;
     }
   }
@@ -100,10 +104,10 @@ bool initmodem(void)
   while(true){
     int rc =s800.startConnection(GSM_APN,GSM_USERNAME,GSM_PASSWORD);
     if (rc == SIM800_OK) {
-      Serial.println("start connection OK");
+      LOGN("start connection OK");
       break;
     }else if (rc == SIM800_ERROR){
-      Serial.println("start connection failed");
+      LOGN("start connection failed");
       return false;
     }
   }
@@ -177,19 +181,17 @@ bool publish(void)
   message.dup = false;
   message.payload = (void*)buf;
 
-  Serial.println("Publish");
+  LOGN("Publish");
   
 #ifdef ENABLE_QOS0
-  Serial.println("Send QoS 0 message:");
   strcpy(buf, "Hello World! QoS 0 message");
-  Serial.println(buf);
+  LOGN("Send QoS 0 message: %s",buf);
   message.qos = MQTT::QOS0;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(TOPIC, message);
   if (rc != 0)
   {
-    Serial.print("rc from MQTT pubblish is ");
-    Serial.println(rc);
+    LOGN("rc from MQTT pubblish is %d",rc);
     errorcount++;
   }else{
     arrivedcount++;
@@ -200,13 +202,12 @@ bool publish(void)
   int i=0;
   while (arrivedcount > 0 && i++ < REPEATWAIT)
     {
-      Serial.println("Waiting for QoS 0 message");
+      LOGN("Waiting for QoS 0 message");
       client.yield(TIMEOUT);
     }
 
   if (arrivedcount > 0 ){
-    Serial.print("message lost, Q0S 0: ");
-    Serial.println(arrivedcount);
+    LOGN("message lost, Q0S 0: %d",arrivedcount);
   }
   arrivedcount=0;
   
@@ -214,16 +215,14 @@ bool publish(void)
 #endif
 
 #ifdef ENABLE_QOS1 
-  Serial.println("Send QoS 1 message:");
   strcpy(buf, "Hello World! QoS 1 message");
-  Serial.println(buf);
+  LOGN("Send QoS 1 message: %s",buf);
   message.qos = MQTT::QOS1;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(TOPIC, message);
   if (rc != 0)
   {
-    Serial.print("rc from MQTT pubblish is ");
-    Serial.println(rc);
+    LOGN("rc from MQTT pubblish is %d",rc);
     errorcount++;
   }else{
     arrivedcount ++;
@@ -234,13 +233,12 @@ bool publish(void)
   int ii=0;
   while (arrivedcount > 0 && ii++ < REPEATWAIT)
     {
-      Serial.println("Waiting for QoS 1 message");
+      LOGN("Waiting for QoS 1 message");
       client.yield(TIMEOUT);
     }
 
   if (arrivedcount > 0 ){
-      Serial.print("message lost, Q0S 1: ");
-      Serial.println(arrivedcount);
+      LOGN("message lost, Q0S 1: %d",arrivedcount);
   }
 
   arrivedcount=0;
@@ -249,16 +247,14 @@ bool publish(void)
 #endif
   
 #ifdef ENABLE_QOS2
-  Serial.println("Send QoS 2 message:");
   strcpy(buf, "Hello World! QoS 2 message");
-  Serial.println(buf);
+  LOGN("Send QoS 2 message: %s",buf);
   message.qos = MQTT::QOS2;
   message.payloadlen = strlen(buf)+1;
   rc = client.publish(TOPIC, message);
   if (rc != 0)
   {
-    Serial.print("rc from MQTT pubblish is ");
-    Serial.println(rc);
+    LOGN("rc from MQTT pubblish is %d",rc);
     errorcount++;
   }else{
     arrivedcount ++;
@@ -270,34 +266,46 @@ bool publish(void)
   int iii=0;
   while (arrivedcount > 0 && iii++ < REPEATWAIT)
     {
-      Serial.println("Waiting for QoS 2 message");
+      LOGN("Waiting for QoS 2 message");
       client.yield(TIMEOUT);  
     }
 
   if (arrivedcount > 0 ){
-    Serial.print("message lost, Q0S 2: ");
-    Serial.println(arrivedcount);
+    LOGN("message lost, Q0S 2: %d",arrivedcount);
   }
   
 #endif
 #endif
   
-  Serial.print("Total sent: ");
-  Serial.println(sentcount);
-  Serial.print("Total error: ");
-  Serial.println(errorcount);
+  LOGN("Total sent: %d Total error: %d",sentcount,errorcount);
  
   return true;
 }
 
+
+void logPrefix(Print* _logOutput) {
+  char dt[DATE_TIME_STRING_LENGTH];
+  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());  
+  _logOutput->print("#");
+  _logOutput->print(dt);
+  _logOutput->print(" ");
+}
+
+void logSuffix(Print* _logOutput) {
+  _logOutput->print('\n');
+  //_logOutput->flush();  // we use this to flush every log message
+}
 
 
 
 void setup()
 {
   Serial.begin(115200);
-  delay(5000);
-  Serial.println("MQTT Hello example");
+  Log.begin(LOG_LEVEL,&Serial);
+  Log.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
+  Log.setSuffix(logSuffix); // Uncomment to get newline as suffix
+  delay(2000);
+  LOGN("MQTT test");
 
   while(!initmodem()){
     delay(5000);
@@ -314,5 +322,7 @@ void setup()
 
 void loop()
 { 
-  if (publish()) Serial.println("publish OK");
+  if (publish()){
+    LOGN("publish OK");
+  }
 }
