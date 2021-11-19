@@ -503,15 +503,15 @@ coming from recovery json RPC.
 
 /*!
 \def NTP_RETRY_DELAY_MS
-\brief Wait time between two attempts.
+\brief Wait time between two NTP attempts.
 */
-#define NTP_RETRY_DELAY_MS                            (100)
+#define NTP_RETRY_DELAY_MS                            (1000)
 
 /*!
 \def NTP_TIME_FOR_RESYNC_S
 \brief Maximum seconds for resync time over ntp.
 */
-#define NTP_TIME_FOR_RESYNC_S                         (SECS_PER_WEEK)
+#define NTP_TIME_FOR_RESYNC_S                         (SECS_PER_DAY)
 
 #define NTP_MAX_DIFF_VALID_TIME_S                     (SECS_PER_DAY)
 

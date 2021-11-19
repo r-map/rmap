@@ -323,6 +323,13 @@ typedef enum {
 * GLOBAL VARIABLE
 *********************************************************************/
 
+
+/*!
+\var is_datetime_set
+\brief A valid date and time is setted and usable by station.
+*/
+bool  is_datetime_set;
+
 /*!
 \var have_to_reboot
 \brief Request for a reboot as soon as possible.

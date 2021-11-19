@@ -72,7 +72,6 @@ void setup() {
 void loop() {
    switch (state) {
       case INIT:
-	 have_to_reboot =false;
          init_sensors();
          wdt_reset();
          state = TASKS_EXECUTION;
@@ -326,6 +325,9 @@ void init_tasks() {
    last_lcd_begin = 0;
 
    is_time_for_sensors_reading_updated = false;
+
+   have_to_reboot = false;
+   is_datetime_set = false;
 }
 
 void init_pins() {
@@ -382,6 +384,40 @@ void init_spi() {
    SPI.begin();
 }
 
+#if (USE_RTC)
+
+bool set_datetime_rtc(const time_t time){
+
+  tmElements_t tm;
+  breakTime(time,tm);
+  tm.Year = tmYearToY2k(tm.Year);
+  return Pcf8563::setDateTime(tm.Hour,
+			      tm.Minute,
+			      tm.Second,
+			      tm.Day,
+			      tm.Month,
+			      tm.Year,0,0);
+}
+
+bool get_datetime_rtc(time_t &time){
+
+  tmElements_t tm;
+
+  if (Pcf8563::getDateTime(&tm.Hour,
+			   &tm.Minute,
+			   &tm.Second,
+			   &tm.Day,
+			   &tm.Month,
+			   &tm.Year)){
+
+    tm.Year = y2kYearToTm(tm.Year);
+    time = makeTime(tm);
+    return true;
+  }
+  time=0;
+  return false;
+}
+
 void init_rtc() {
    Pcf8563::disableAlarm();
    Pcf8563::disableTimer();
@@ -389,7 +425,16 @@ void init_rtc() {
    Pcf8563::setClockoutFrequency(RTC_FREQUENCY);
    Pcf8563::enableClockout();
    attachInterrupt(digitalPinToInterrupt(RTC_INTERRUPT_PIN), rtc_interrupt_handler, RISING);
+
+   time_t datetime;
+   if (get_datetime_rtc(datetime)){
+     system_time=datetime;     
+     setTime(system_time);
+     is_datetime_set = true;
+     LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+   }
 }
+#endif
 
 void init_system() {
    #if (USE_POWER_DOWN)
@@ -800,10 +845,23 @@ int configure(JsonObject params, JsonObject result) {
       #endif
       else if (strcmp(it.key().c_str(), "date") == 0) {
          #if (USE_RTC)
+
+	 tmElements_t tm;
+	 tm.Year   = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>()-2000);
+	 tm.Month  = it.value().as<JsonArray>()[1].as<int>();
+	 tm.Day    = it.value().as<JsonArray>()[2].as<int>();
+	 tm.Hour   = it.value().as<JsonArray>()[3].as<int>();
+	 tm.Minute = it.value().as<JsonArray>()[4].as<int>();
+	 tm.Second = it.value().as<JsonArray>()[5].as<int>();
+	
+	 system_time = makeTime(tm);
+	 setTime(system_time);
+	 /*	 
          Pcf8563::disable();
          Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
          Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
          Pcf8563::enable();
+	 */
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
          setSyncProvider(getSystemTime);
          #elif (USE_TIMER_1)
@@ -1335,7 +1393,8 @@ void supervisor_task() {
          interrupts();
 
          if (!is_event_time && is_event_time_executed) {
-            // if NTP sync fail, reset variable anyway
+
+	    // if NTP sync fail, reset variable anyway
             if (do_ntp_sync || ((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S)) {
                last_ntp_sync = system_time;
                do_ntp_sync = false;
@@ -1358,8 +1417,14 @@ void supervisor_task() {
             }
             #endif
 
-            supervisor_state = SUPERVISOR_MANAGE_LEVEL_TASK;
-            LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_MANAGE_LEVEL_TASK"));
+	    if (is_supervisor_first_run && !is_datetime_set) {
+	      have_to_reboot = true;
+	      supervisor_state = SUPERVISOR_END;
+	      LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_END"));
+	    }else{
+	      supervisor_state = SUPERVISOR_MANAGE_LEVEL_TASK;
+	      LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_MANAGE_LEVEL_TASK"));
+	    }
          }
       break;
 
@@ -1560,6 +1625,7 @@ void time_task() {
 
       case TIME_SEND_ONLINE_REQUEST:
          #if (USE_NTP)
+	LOGT(F("NTP send request"));
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
          is_ntp_request_ok = Ntp::sendRequest(&eth_udp_client, readable_configuration.ntp_server);
 
@@ -1569,7 +1635,8 @@ void time_task() {
 
          // success
          if (is_ntp_request_ok) {
-            retry = 0;
+	   LOGT(F("NTP send request success"));
+	   retry = 0;
             time_state = TIME_WAIT_ONLINE_RESPONSE;
             LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_ONLINE_RESPONSE"));
          }
@@ -1597,6 +1664,7 @@ void time_task() {
 
       case TIME_WAIT_ONLINE_RESPONSE:
          #if (USE_NTP)
+	LOGT(F("NTP receive response"));
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
          current_ntp_time = Ntp::getResponse(&eth_udp_client);
 
@@ -1614,11 +1682,14 @@ void time_task() {
          }
 
          if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
-            retry = 0;
+
+	    LOGT(F("NTP receive response success"));
+	    retry = 0;
             system_time = current_ntp_time;
             setTime(system_time);
             last_ntp_sync = current_ntp_time;
-            LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+	    is_datetime_set = true;
+	    LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
             #if (USE_RTC)
             time_state = TIME_SET_SYNC_NTP_PROVIDER;
             LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
@@ -1631,12 +1702,13 @@ void time_task() {
          else if (++retry < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
-            state_after_wait = TIME_WAIT_ONLINE_RESPONSE;
+            state_after_wait = TIME_SEND_ONLINE_REQUEST;
             time_state = TIME_WAIT_STATE;
             LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
          }
          // fail
          else {
+            LOGE(F("NTP response... [ %s ]"), FAIL_STRING);
             retry = 0;
             #if (USE_RTC)
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
@@ -1651,16 +1723,14 @@ void time_task() {
 
       case TIME_SET_SYNC_NTP_PROVIDER:
          #if (USE_NTP)
-         is_set_rtc_ok &= Pcf8563::disable();
-         is_set_rtc_ok &= Pcf8563::setDate(day(), month(), year()-2000, weekday()-1, 0);
-         is_set_rtc_ok &= Pcf8563::setTime(hour(), minute(), second());
-         is_set_rtc_ok &= Pcf8563::enable();
-
+	 is_set_rtc_ok = set_datetime_rtc(system_time);
+  
          if (!is_set_rtc_ok) {
            i2c_error++;
          }
 
          if (is_set_rtc_ok) {
+	    LOGN(F("RTC set... [ %s ]"), OK_STRING);
             retry = 0;
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
             LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
@@ -1676,6 +1746,7 @@ void time_task() {
          }
          // fail
          else {
+	   LOGE(F("RTC set... [ %s ]"), FAIL_STRING);
            retry = 0;
            time_state = TIME_SET_SYNC_RTC_PROVIDER;
            LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
@@ -1686,7 +1757,7 @@ void time_task() {
       case TIME_SET_SYNC_RTC_PROVIDER:
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
          setSyncProvider(getSystemTime);
-         LOGT(F("Current System date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+         LOGN(F("Current System date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
          time_state = TIME_END;
          LOGV(F("TIME_SET_SYNC_RTC_PROVIDER --> TIME_END"));
       break;
