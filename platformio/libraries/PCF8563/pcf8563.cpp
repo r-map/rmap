@@ -256,9 +256,6 @@ namespace Pcf8563 {
       month &= ~PCF8563_CENTURY_MASK;
     else month |= PCF8563_CENTURY_MASK;
 
-   //  fai una getDateTime in sequenza più veloce ?
-   //  wire.xxx è sempre in sequenza ? start-stop
-
     Wire.beginTransmission(PCF8563_READ_ADDRESS);
     Wire.write(PCF8563_DAY_ADDRESS);
     Wire.write(decToBcd(day));
@@ -281,11 +278,15 @@ namespace Pcf8563 {
     if (Wire.available() < PCF8563_TIME_LENGTH+PCF8563_DATE_LENGTH)
       return false;
 
-   *seconds = bcdToDec(Wire.read() & PCF8563_SECOND_MASK);
-  	*minutes = bcdToDec(Wire.read() & PCF8563_MINUTE_MASK);
-  	*hours = bcdToDec(Wire.read() & PCF8563_HOUR_MASK);
+    uint8_t data = Wire.read();   
+    if(data & (1<<7)) {
+      return false;//if clock integrity is not guaranteed return false
+    }
+    *seconds = bcdToDec(data & PCF8563_SECOND_MASK);
+    *minutes = bcdToDec(Wire.read() & PCF8563_MINUTE_MASK);
+    *hours = bcdToDec(Wire.read() & PCF8563_HOUR_MASK);
 
-   *day = bcdToDec(Wire.read() & PCF8563_DAY_MASK);
+    *day = bcdToDec(Wire.read() & PCF8563_DAY_MASK);
 
     if (weekday)
   	   *weekday = bcdToDec(Wire.read() & PCF8563_WEEKDAY_MASK);
@@ -308,13 +309,18 @@ namespace Pcf8563 {
     if (Wire.endTransmission())
       return false;
 
-   	Wire.requestFrom(PCF8563_READ_ADDRESS, PCF8563_TIME_LENGTH);
+    Wire.requestFrom(PCF8563_READ_ADDRESS, PCF8563_TIME_LENGTH);
     if (Wire.available() < PCF8563_TIME_LENGTH)
       return false;
 
-   	*seconds = bcdToDec(Wire.read() & PCF8563_SECOND_MASK);
-  	*minutes = bcdToDec(Wire.read() & PCF8563_MINUTE_MASK);
-  	*hours = bcdToDec(Wire.read() & PCF8563_HOUR_MASK);
+    uint8_t data = Wire.read();   
+    if(data & (1<<7)) {
+      return false;//if clock integrity is not guaranteed return false
+    }
+    
+    *seconds = bcdToDec(data & PCF8563_SECOND_MASK);
+    *minutes = bcdToDec(Wire.read() & PCF8563_MINUTE_MASK);
+    *hours = bcdToDec(Wire.read() & PCF8563_HOUR_MASK);
 
     return true;
   }
@@ -334,6 +340,72 @@ namespace Pcf8563 {
     return true;
   }
 
+
+  bool setDateTime(uint8_t hours, uint8_t minutes, uint8_t seconds, uint8_t day, uint8_t month, uint8_t year, uint8_t weekday, uint8_t century){
+    if (hours > 23 || minutes > 59 || seconds > 59)
+      return false;
+    
+    Wire.beginTransmission(PCF8563_READ_ADDRESS);
+    Wire.write(PCF8563_VL_SECOND_ADDRESS);
+    Wire.write(decToBcd(seconds));
+    Wire.write(decToBcd(minutes));
+    Wire.write(decToBcd(hours));
+  
+    if (day < 1)
+      return false;
+    
+    switch (month) {
+    case 1:
+    case 3:
+    case 5:
+    case 7:
+    case 8:
+    case 10:
+    case 12:
+      if (day > 31)
+	return false;
+      break;
+      
+    case 2:
+      if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
+	if (day > 29)
+	  return false;
+      }
+      else {
+	if (day > 28)
+	  return false;
+      }
+      break;
+      
+    case 4:
+    case 6:
+    case 9:
+    case 11:
+      if (day > 30)
+	return false;
+      break;
+      
+    default:
+      return false;
+      break;
+    }
+    
+    if (year > 99 || weekday > 6 || century > 1)
+      return false;
+    
+    month = decToBcd(month);
+    
+    if (century == 1)
+      month &= ~PCF8563_CENTURY_MASK;
+    else month |= PCF8563_CENTURY_MASK;
+
+    Wire.write(decToBcd(day));
+    Wire.write(decToBcd(weekday));
+    Wire.write(month);
+    Wire.write(decToBcd(year));
+    return (Wire.endTransmission() == 0);
+  }
+  
   bool enableClockout() {
     uint8_t clockout_control;
 

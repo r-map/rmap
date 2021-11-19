@@ -633,6 +633,7 @@ namespace Pcf8563 {
    \param[out] *weekday weekday alarm.
    \param[out] *century weekday alarm.
    \return true if succesful, false otherwise.
+    Attention: clock integrity is not checked!
    */
    bool getDate(uint8_t *day, uint8_t *month, uint8_t *year, uint8_t *weekday = NULL, uint8_t *century = NULL);
 
@@ -668,6 +669,23 @@ namespace Pcf8563 {
    */
    bool setTime(uint8_t hours, uint8_t minutes, uint8_t seconds);
 
+
+   /*!
+   \fn bool setDateTime( uint8_t hours, uint8_t minutes, uint8_t seconds, uint8_t day, uint8_t month, uint8_t year, uint8_t weekday, uint8_t century = 0)
+   \brief Write date and time register.
+   \param[in] day hours alarm.
+   \param[in] month minutes alarm.
+   \param[in] year day alarm.
+   \param[in] weekday weekday alarm.
+   \param[in] century weekday alarm.
+   \param[in] hours hours alarm.
+   \param[in] minutes minutes alarm.
+   \param[in] seconds day alarm.
+   \return true if succesful, false otherwise.
+   */
+  bool setDateTime( uint8_t hours, uint8_t minutes, uint8_t seconds, uint8_t day, uint8_t month, uint8_t year, uint8_t weekday, uint8_t century = 0);
+
+  
    /*!
    \fn int16_t getDaysFromTwoDate (int16_t d1, int16_t m1, int16_t y1, int16_t d2, int16_t m2, int16_t y2)
    \brief Calculate numbers of days from two date.
