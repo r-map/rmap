@@ -75,6 +75,7 @@ void loop() {
          init_sensors();
          wdt_reset();
          state = TASKS_EXECUTION;
+	 LOGV(F("INIT ---> TASKS_EXECUTION"));
       break;
 
       #if (USE_POWER_DOWN)
@@ -86,6 +87,7 @@ void loop() {
        
          init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
          state = TASKS_EXECUTION;
+	 LOGV(F("ENTER_POWER_DOWN ---> TASKS_EXECUTION"));
       break;
       #endif
 
@@ -97,6 +99,9 @@ void loop() {
           // LCD_BEGIN(&lcd, LCD_COLUMNS, LCD_ROWS);
           wdt_reset();
         }
+
+	//LOGV("is_event_rtc:%t,is_event_supervisor:%t,is_event_gsm:%t,is_event_sensors_reading:%t,is_event_data_saving:%t,is_event_mqtt:%t,is_event_time:%t,is_event_rpc:%t,have_to_reboot:%t",
+	//     is_event_rtc,is_event_supervisor,is_event_gsm,is_event_sensors_reading,is_event_data_saving,is_event_mqtt,is_event_time,is_event_rpc,have_to_reboot);
 
         if (is_event_rtc) {
           rtc_task();
@@ -155,8 +160,10 @@ void loop() {
           wdt_reset();
 	  if (have_to_reboot) {
 	    state = REBOOT;
+	    LOGV(F("TASK_EXECUTION ---> REBOOT"));
 	  }else{
 	    state = END;
+	    LOGV(F("TASK_EXECUTION ---> END"));
 	  }
         }
       break;
@@ -177,8 +184,10 @@ void loop() {
 
          #if (USE_POWER_DOWN)
          state = ENTER_POWER_DOWN;
+	 LOGV(F("END ---> ENTER_POWER_DOWN"));
          #else
          state = TASKS_EXECUTION;
+	 LOGV(F("END ---> TASK_EXECUTION"));
          #endif
       break;
 
@@ -1905,6 +1914,7 @@ void gsm_task() {
          sim800_connection_status = 0;
          state_after_wait = GSM_INIT;
          gsm_state = GSM_SWITCH_ON;
+	 LOGV(F("GSM_INIT ---> GSM_SWITCH_ON"));
       break;
 
       case GSM_SWITCH_ON:
@@ -1913,9 +1923,11 @@ void gsm_task() {
          // success
          if (sim800_status == SIM800_OK) {
             gsm_state = GSM_AUTOBAUD;
+	    LOGV(F("GSM_SWITCH_ON ---> GSM_AUTOBAUD"));
          }
          else if (sim800_status == SIM800_ERROR) {
             gsm_state = GSM_END;
+	    LOGV(F("GSM_SWITCH_ON ---> GSM_END"));
          }
          // wait...
       break;
@@ -1929,11 +1941,12 @@ void gsm_task() {
             start_time_ms = millis();
             state_after_wait = GSM_SETUP;
             gsm_state = GSM_WAIT_STATE;
-
+	    LOGV(F("GSM_AUTOBAUD ---> GSM_WAIT_STATE"));
          }
          // fail
          else if (sim800_status == SIM800_ERROR) {
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
+	    LOGV(F("GSM_AUTOBAUD ---> GSM_WAIT_FOR_SWITCH_OFF"));	    
          }
          // wait...
       break;
@@ -1944,11 +1957,13 @@ void gsm_task() {
          // success
          if (sim800_status == SIM800_OK) {
             gsm_state = GSM_START_CONNECTION;
+	    LOGV(F("GSM_SETUP ---> GSM_START_CONNECTION"));
          }
          // fail
          else if (sim800_status == SIM800_ERROR) {
             is_error = true;
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
+	    LOGV(F("GSM_SETUP ---> GSM_WAIT_FOR_SWITCH_OFF"));
          }
          // wait...
       break;
@@ -1959,11 +1974,13 @@ void gsm_task() {
          // success
          if (sim800_status == SIM800_OK) {
             gsm_state = GSM_CHECK_OPERATION;
+	    LOGV(F("GSM_START_CONNECTION ---> GSM_CHECK_OPERATION"));
          }
          // fail
          else if (sim800_status == SIM800_ERROR) {
             is_error = true;
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
+	    LOGV(F("GSM_START_CONNECTION ---> GSM_WAIT_FOR_SWITCH_OFF"));
          }
          // wait...
       break;
@@ -1972,11 +1989,13 @@ void gsm_task() {
          // open udp socket for query NTP
          if (do_ntp_sync) {
             gsm_state = GSM_OPEN_UDP_SOCKET;
+	    LOGV(F("GSM_CHECK_OPERATION ---> GSM_OPEN_UDP_SOCKET"));
          }
          // wait for mqtt send terminate
          else {
             gsm_state = GSM_SUSPEND;
             state_after_wait = GSM_STOP_CONNECTION;
+	    LOGV(F("GSM_CHECK_OPERATION ---> GSM_STOP_CONNECTION"));
          }
       break;
 
@@ -1990,6 +2009,7 @@ void gsm_task() {
             is_event_client_executed = true;
             state_after_wait = GSM_STOP_CONNECTION;
             gsm_state = GSM_SUSPEND;
+	    LOGV(F("GSM_OPEN_UDP_SOCKET ---> GSM_SUSPEND"));
          }
          // fail
          else if (sim800_connection_status == 2) {
@@ -1997,6 +2017,7 @@ void gsm_task() {
             is_event_client_executed = true;
             is_error = true;
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
+	    LOGV(F("GSM_OPEN_UDP_SOCKET ---> GSM_WAIT_FOR_SWITCH_OFF"));
          }
          // wait
       break;
@@ -2017,11 +2038,13 @@ void gsm_task() {
          // success
          if (sim800_status == SIM800_OK) {
             gsm_state = GSM_SWITCH_OFF;
+	    LOGV(F("GSM_STOP_CONNECTION ---> GSM_SWITCH_OFF"));
          }
          // fail
          else if (sim800_status == SIM800_ERROR) {
             is_error = true;
             gsm_state = GSM_SWITCH_OFF;
+	    LOGV(F("GSM_STOP_CONNECTION ---> GSM_SWITCH_OFF"));
          }
          // wait
       break;
@@ -2031,6 +2054,7 @@ void gsm_task() {
          start_time_ms = millis();
          state_after_wait = GSM_SWITCH_OFF;
          gsm_state = GSM_WAIT_STATE;
+	 LOGV(F("GSM_WAIT_FOR_SWITCH_OFF ---> GSM_WAIT_STATE"));
       break;
 
       case GSM_SWITCH_OFF:
@@ -2042,6 +2066,7 @@ void gsm_task() {
             start_time_ms = millis();
             state_after_wait = GSM_END;
             gsm_state = GSM_WAIT_STATE;
+	    LOGV(F("GSM_SWITCH_OFF ---> GSM_WAIT_STATE"));
          }
          // fail
          else if (sim800_status == SIM800_ERROR) {
@@ -2050,6 +2075,7 @@ void gsm_task() {
             }
             else {
                gsm_state = GSM_END;
+	       LOGV(F("GSM_SWITCH_OFF ---> GSM_END"));
             }
          }
          // wait...
@@ -2066,6 +2092,7 @@ void gsm_task() {
          ready_tasks_count--;
          interrupts();
          gsm_state = GSM_INIT;
+	 LOGV(F("GSM_END ---> GSM_INIT"));
       break;
 
       case GSM_WAIT_STATE:
