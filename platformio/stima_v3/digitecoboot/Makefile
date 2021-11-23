@@ -7,6 +7,7 @@ SD_CS_BIT     	= 3	# Bit of the SD CS pin
 USE_LED       	= 0	# Debug with two (defined in asmfunc.S)
 USE_FAT16     	= 0	# Enable Fat16 support, disabled by default. If enabled, disable Fat32 to keep size of bootloader within limits
 USE_FAT32     	= 1	# Enable Fat32 support, enabled by default to allow the use of sd cards > 2GB
+AVRDUDE         = avrdude -v -c stk500v1 -P /dev/ttyUSB0 -b19200 -p $(MCU_AVRDUDE) # edit this line for your programmer
 
 #----------------------------------------------------------------------
 # Other configuration
@@ -37,10 +38,26 @@ MYTARGET	= $(PROGRAM)_$(TARGET)
 #---------------------------------------------------------------------------
 # Generic build instructions
 #---------------------------------------------------------------------------
-all:	clean $(MYTARGET).elf lst text bin size
+all:	clean $(MYTARGET).elf lst text bin size fuse flash lock
 
 %.elf: $(OBJ)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^ $(LIBS)
+
+# rule for programming fuse bits:
+fuse:
+	@[ "$(LOCK)" != "" -a "$(HFUSE)" != "" -a "$(LFUSE)" != "" -a "$(EFUSE)" != "" ] || \
+		{ echo "*** Edit Makefile and choose values for FUSE!"; exit 1; }
+	$(AVRDUDE) -e -U lock:w:$(UNLOCK):m -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m -U efuse:w:$(EFUSE):m
+
+# rule for uploading firmware:
+flash: $(MYTARGET).hex
+	$(AVRDUDE) -U flash:w:$(MYTARGET).hex:i
+
+# rule for lock bootloader:
+lock:
+	@[ "$(LOCK)" != "" ] || \
+		{ echo "*** Edit Makefile and choose values for LOCK!"; exit 1; }
+	$(AVRDUDE) -U lock:w:$(LOCK):m
 
 clean:
 	rm -fr *.o *.elf *.eps *.bak *.a *.bin
@@ -62,6 +79,7 @@ lst: $(MYTARGET).lst
 text: $(MYTARGET).hex
 %.hex: %.elf
 	$(OBJCOPY) -j .text -j .data -j .fuse -O ihex $< $@
+
 # --- make bin just to check size :)
 bin: $(MYTARGET).bin
 %.bin: %.hex
