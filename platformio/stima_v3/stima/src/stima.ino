@@ -193,7 +193,7 @@ void loop() {
 
       case REBOOT:
 	if (strlen(rpcpayload) == 0 || !mqtt_client.isConnected()){
-	  LOGT(F("Reboot"));
+	  LOGN(F("Reboot"));
 	  if (mqtt_client.isConnected()){
 	    mqtt_client.yield(6000L);   
 	    wdt_reset();
@@ -228,7 +228,7 @@ void logSuffix(Print* _logOutput) {
 void init_logging(){
    #if (ENABLE_SDCARD_LOGGING)      
    if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-     LOGN(F("sdcard opened"));
+     LOGN(F("SDCARD opened"));
      is_sdcard_open = true;
    }
 
@@ -1205,7 +1205,7 @@ time_t getSystemTime() {
 }
 
 void realreboot() {
-  LOGT(F("bye bye"));
+  LOGF(F("bye bye"));
   init_wdt(WDTO_1S);
   while(true);
 }
@@ -1523,7 +1523,7 @@ void supervisor_task() {
         if (is_supervisor_first_run) {
 	  if (!is_sdcard_open) {
 	    if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	      LOGN(F("sdcard opened"));
+	      LOGN(F("SDCARD opened"));
 	      is_sdcard_open=true;
 	    }
 	  }
@@ -1733,8 +1733,9 @@ void time_task() {
 
       case TIME_SET_SYNC_NTP_PROVIDER:
          #if (USE_NTP)
+         #if (USE_RTC)
 	 is_set_rtc_ok = set_datetime_rtc(system_time);
-  
+         #endif
          if (!is_set_rtc_ok) {
            i2c_error++;
          }
@@ -2328,9 +2329,9 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             }
 
             for (i = 0; i < readable_configuration.sensors_count; i++) {
-              LOGT(F("JSON <-- %s"), &json_sensors_data[i][0]);
+              LOGN(F("JSON <-- %s"), &json_sensors_data[i][0]);
 
-              // LOGT(F("Valori: %ld %ld %ld\t%s"), values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2], json_sensors_data[i]);
+              //LOGT(F("Values: %l %l %l\t%s"), values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2], json_sensors_data[i]);
 
               if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
                 if (ISVALID(values_readed_from_sensor[i][0])) {
@@ -2468,7 +2469,7 @@ void data_saving_task() {
 
       case DATA_SAVING_OPEN_SDCARD:
          if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	    LOGN(F("sdcard opened"));
+	    LOGN(F("SDCARD opened"));
             retry = 0;
             is_sdcard_open = true;
             data_saving_state = DATA_SAVING_OPEN_FILE;
@@ -2586,7 +2587,7 @@ void data_saving_task() {
 
       case DATA_SAVING_END:
          LOGN(F("[ %d ] data stored in sdcard... [ %s ]"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
-         LCD_INFO(&lcd, false, true, F("sdcard %u data %s"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
+         LCD_INFO(&lcd, false, true, F("SDCARD %u data %s"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
 
          noInterrupts();
          if (!is_event_supervisor) {
@@ -2703,7 +2704,7 @@ void mqtt_task() {
 
       case MQTT_OPEN_SDCARD:
          if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	   LOGN(F("sdcard opened"));
+	   LOGN(F("SDCARD opened"));
             retry = 0;
             is_sdcard_open = true;
             is_sdcard_error = false;
@@ -3008,7 +3009,7 @@ void mqtt_task() {
 	  strncpy(payload+6+strlen(readable_configuration.constantdata[i].value),"\"}\0",3);
 	  
 	  if (mqttPublish(full_topic_buffer,payload)){
-	    LOGT(F("MQTT <-- %s %s"), full_topic_buffer, payload);
+	    LOGN(F("MQTT <-- %s %s"), full_topic_buffer, payload);
 	  }else{
 	    is_mqtt_error = true;
 	    LOGE(F("MQTT ERROR <-- %s %s"), full_topic_buffer, payload);
@@ -3103,7 +3104,7 @@ void mqtt_task() {
 
          // mqtt json success
          if (is_mqtt_processing_json && mqttPublish(full_topic_buffer, &message_buffer[k][0])) {
-            LOGT(F("MQTT <-- %s %s"), &topic_buffer[k][0], &message_buffer[k][0]);
+            LOGN(F("MQTT <-- %s %s"), &topic_buffer[k][0], &message_buffer[k][0]);
             //retry = 0;
             k++;
             mqtt_data_count++;
@@ -3112,7 +3113,7 @@ void mqtt_task() {
          }
          // mqtt sdcard success
          else if (is_mqtt_processing_sdcard && mqttPublish(full_topic_buffer, &message_buffer[0][0])) {
-            LOGT(F("MQTT <-- %s %s"), &topic_buffer[0][0], &message_buffer[0][0]);
+            LOGN(F("MQTT(SD) <-- %s %s"), &topic_buffer[0][0], &message_buffer[0][0]);
             //retry = 0;
             mqtt_data_count++;
             mqtt_state = MQTT_SD_LOOP;

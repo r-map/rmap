@@ -275,11 +275,11 @@ void print_configuration() {
    getStimaNameByType(stima_name, configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
    LOGN(F("--> version: %d"), configuration.module_version);
-   LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
    LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-   LOGN(F("--> i2c temperature address: 0x%X (%d)"), configuration.i2c_temperature_address, configuration.i2c_temperature_address);
-   LOGN(F("--> i2c humidity address: 0x%X (%d)"), configuration.i2c_humidity_address, configuration.i2c_humidity_address);
+   LOGN(F("--> i2c temperature address: %X (%d)"), configuration.i2c_temperature_address, configuration.i2c_temperature_address);
+   LOGN(F("--> i2c humidity address: %X (%d)"), configuration.i2c_humidity_address, configuration.i2c_humidity_address);
 }
 
 void save_configuration(bool is_default) {
@@ -344,21 +344,21 @@ void init_sensors () {
 
    #if (USE_SENSOR_ADT)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    #if (USE_SENSOR_HIH)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, configuration.i2c_humidity_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    #if (USE_SENSOR_HYT)
    SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %l: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
    #endif
 
    if (configuration.is_continuous) {
-      LOGN(F("--> acquiring %l~%l samples in %l minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
+      LOGN(F("--> acquiring %d~%d samples in %d minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
       LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
    }
 }
@@ -583,52 +583,52 @@ void samples_processing(bool is_force_processing) {
   if (is_observations_processing) {
     LOGN(F("R----------------------------------------------------------------------------------------------"));
     if (ISVALID(readable_data_read_ptr->temperature.sample)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->temperature.sample);
+      LOGN(F("%d\t"), readable_data_read_ptr->temperature.sample);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med60)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->temperature.med60);
+      LOGN(F("%d\t"), readable_data_read_ptr->temperature.med60);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.min)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->temperature.min);
+      LOGN(F("%d\t"), readable_data_read_ptr->temperature.min);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->temperature.med);
+      LOGN(F("%d\t"), readable_data_read_ptr->temperature.med);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->temperature.max)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->temperature.max);
+      LOGN(F("%d\t"), readable_data_read_ptr->temperature.max);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.sample)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->humidity.sample);
+      LOGN(F("%d\t"), readable_data_read_ptr->humidity.sample);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med60)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->humidity.med60);
+      LOGN(F("%d\t"), readable_data_read_ptr->humidity.med60);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.min)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->humidity.min);
+      LOGN(F("%d\t"), readable_data_read_ptr->humidity.min);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med)) {
-      LOGN(F("%l\t"), readable_data_read_ptr->humidity.med);
+      LOGN(F("%d\t"), readable_data_read_ptr->humidity.med);
     }
     else LOGN(F("-----\t"));
 
     if (ISVALID(readable_data_read_ptr->humidity.max)) {
-      LOGN(F("%l"), readable_data_read_ptr->humidity.max);
+      LOGN(F("%d"), readable_data_read_ptr->humidity.max);
     }
     else LOGN(F("-----"));
     LOGN(F("R----------------------------------------------------------------------------------------------"));

@@ -267,7 +267,7 @@ void print_configuration() {
    getStimaNameByType(stima_name, configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
    LOGN(F("--> version: %d"), configuration.module_version);
-   LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
    LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 }
