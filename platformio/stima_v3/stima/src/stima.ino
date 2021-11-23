@@ -550,6 +550,7 @@ void init_sensors () {
       LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
       if (!sensors[i]->isSetted()) {
         sensors_error_count++;
+	wdt_reset();
         LCD_INFO(&lcd, false, true, F("%s %s"), readable_configuration.sensors[i].type, FAIL_STRING);
       }
     }
