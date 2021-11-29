@@ -35,7 +35,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
-#include <lcd_config.h>
 
 #ifdef ARDUINO_ARCH_AVR
 #include <avr/sleep.h>
@@ -435,13 +434,6 @@ MQTT::Client<IPStack, Countdown, MQTT_ROOT_TOPIC_LENGTH+MQTT_SENSOR_TOPIC_LENGTH
 #endif
 
 /*!
-\fn LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, LCD_COLUMNS, LCD_ROWS)
-\brief LCD structure.
-\return void.
-*/
-LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, LCD_COLUMNS, LCD_ROWS);
-
-/*!
 \var sensors[USE_SENSORS_COUNT]
 \brief SensorDriver array structure.
 */
@@ -518,12 +510,6 @@ bool do_ntp_sync;
 \brief Last date and time when ntp sync was performed.
 */
 time_t last_ntp_sync;
-
-/*!
-\var last_lcd_begin
-\brief Last date and time when LCD was initializated.
-*/
-time_t last_lcd_begin;
 
 #if (USE_SDCARD)
 /*!
