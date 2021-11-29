@@ -34,7 +34,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <i2c_config.h>
 #include <json_config.h>
 #include <ntp_config.h>
+
+#if (USE_LCD)
 #include <lcd_config.h>
+#endif
 
 #ifdef ARDUINO_ARCH_AVR
 #include <avr/sleep.h>
@@ -482,13 +485,14 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client
 
 #endif
 
+#if (USE_LCD)
 /*!
 \fn hd44780_I2Cexp lcd(LCD_I2C_ADDRESS)
 \brief LCD object.
 \return void.
 */
-
 hd44780_I2Cexp lcd(LCD_I2C_ADDRESS);
+#endif
 
 /*!
 \var sensors[USE_SENSORS_COUNT]
@@ -568,11 +572,13 @@ bool do_ntp_sync;
 */
 time_t last_ntp_sync;
 
+#if (USE_LCD)
 /*!
 \var last_lcd_begin
 \brief Last date and time when LCD was initializated.
 */
 time_t last_lcd_begin;
+#endif
 
 #if (USE_SDCARD)
 /*!

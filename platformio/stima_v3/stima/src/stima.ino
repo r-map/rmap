@@ -44,7 +44,9 @@ void setup() {
    init_rpc();
    init_tasks();
    init_logging();
+   #if (USE_LCD)
    init_lcd();
+   #endif
    load_configuration();
    init_buffers();
    init_spi();
@@ -332,8 +334,9 @@ void init_tasks() {
    system_time = 0;
    last_ntp_sync = -NTP_TIME_FOR_RESYNC_S;
 
+   #if (USE_LCD)
    last_lcd_begin = 0;
-
+   #endif
    is_time_for_sensors_reading_updated = false;
 
    have_to_reboot = false;
@@ -395,6 +398,7 @@ void init_spi() {
 }
 
 
+#if (USE_LCD)
 void init_lcd() {
   if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
     {
@@ -405,7 +409,7 @@ void init_lcd() {
   lcd.lineWrap();
     //lcd.autoscroll();
 }
-
+#endif
 
 #if (USE_RTC)
 
@@ -552,6 +556,7 @@ void init_sensors () {
   uint8_t sensors_count = 0;
   uint8_t sensors_error_count = 0;
 
+  #if (USE_LCD)
   lcd.print(F("--- www.rmap.cc ---"));
   lcd.setCursor(0, 1);
   lcd.print(stima_name);
@@ -563,7 +568,8 @@ void init_sensors () {
   lcd.setCursor(0, 2);
   lcd.print(F("Sensors count: "));
   lcd.print(readable_configuration.sensors_count);
-
+  #endif
+  
   if (readable_configuration.sensors_count) {
     // read sensors configuration, create and setup
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
@@ -572,10 +578,12 @@ void init_sensors () {
       if (!sensors[i]->isSetted()) {
         sensors_error_count++;
 	wdt_reset();
+        #if (USE_LCD)
 	lcd.setCursor(0, 3);
         lcd.print(readable_configuration.sensors[i].type);
 	lcd.print(":");
 	lcd.print(FAIL_STRING);
+	#endif
       }
     }
   }
@@ -763,8 +771,10 @@ void load_configuration() {
 
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
       LOGN(F("Wait configuration..."));
+      #if (USE_LCD)
       lcd.clear();
       lcd.print(F("Wait configuration"));
+      #endif
    }
 
    while (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
@@ -828,15 +838,19 @@ int configure(JsonObject params, JsonObject result) {
       if (strcmp(it.key().c_str(), "reset") == 0) {
          if (it.value().as<bool>() == true) {
 	    set_default_configuration();
+            #if (USE_LCD)
 	    lcd.clear();
             lcd.print(F("Reset configuration"));
+	    #endif
          }
       }
       else if (strcmp(it.key().c_str(), "save") == 0) {
          if (it.value().as<bool>() == true) {
             save_configuration(CONFIGURATION_CURRENT);
+            #if (USE_LCD)
 	    lcd.clear();
             lcd.print(F("Save configuration"));
+	    #endif
          }
       }
       #if (USE_MQTT)
@@ -1239,8 +1253,10 @@ void realreboot() {
 
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject params, JsonObject result) {
+   #if (USE_LCD)
    lcd.clear();
    lcd.print(F("Reboot"));
+   #endif
    LOGT(F("Reboot"));
    result[F("state")] = "done";
    have_to_reboot=true;
@@ -1499,6 +1515,7 @@ void supervisor_task() {
 
             if (next_ptr_time_for_sensors_reading) {
                LOGN(F("--> starting at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+               #if (USE_LCD)
 	       lcd.clear();
                lcd.print(F("start acq: "));
 	       lcd.print(hour(next_ptr_time_for_sensors_reading));
@@ -1506,6 +1523,7 @@ void supervisor_task() {
 	       lcd.print( minute(next_ptr_time_for_sensors_reading));
                lcd.print(F(":"));
 	       lcd.print(second(next_ptr_time_for_sensors_reading));
+	       #endif
             }
 
             if (next_ptr_time_for_testing_sensors) {
@@ -1513,7 +1531,7 @@ void supervisor_task() {
             }
          }
          #endif
-
+	 #if (USE_LCD)
          // reinit lcd display
          if (last_lcd_begin == 0) {
             last_lcd_begin = now();
@@ -1523,7 +1541,8 @@ void supervisor_task() {
 	    LOGT(F("Reinitialize LCD"));
             init_lcd();
          }
-
+	 #endif
+	 
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          #if (USE_MQTT)
          noInterrupts();
@@ -1571,9 +1590,11 @@ void supervisor_task() {
             LOGE(F("SD Card... [ %s ]"), FAIL_STRING);
 	    LOGE(F("--> is card inserted?"));
 	    LOGE(F("--> there is a valid FAT32 filesystem?"));
+            #if (USE_LCD)
 	    lcd.setCursor(0, 2);
 	    lcd.print( F("SD Card: "));
 	    lcd.print(FAIL_STRING);
+	    #endif
           }
         }
         #endif
@@ -1621,6 +1642,7 @@ void rtc_task() {
     if (is_time_for_sensors_reading_updated) {
       is_time_for_sensors_reading_updated = false;
       LOGN(F("Next acquisition scheduled at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
+      #if (USE_LCD)
       lcd.clear();
       lcd.print(F("next acq: "));
       lcd.print(hour(next_ptr_time_for_sensors_reading));
@@ -1628,6 +1650,7 @@ void rtc_task() {
       lcd.print(minute(next_ptr_time_for_sensors_reading));
       lcd.print(F(":"));
       lcd.print(second(next_ptr_time_for_sensors_reading));
+      #endif
     }
     #endif
   }
@@ -1874,6 +1897,7 @@ void ethernet_task() {
             LOGN(F("--> gateway: %d.%d.%d.%d"), Ethernet.gatewayIP()[0], Ethernet.gatewayIP()[1], Ethernet.gatewayIP()[2], Ethernet.gatewayIP()[3]);
             LOGN(F("--> primary dns: %d.%d.%d.%d"), Ethernet.dnsServerIP()[0], Ethernet.dnsServerIP()[1], Ethernet.dnsServerIP()[2], Ethernet.dnsServerIP()[3]);
 
+            #if (USE_LCD)
 	    lcd.clear();
             lcd.print(F("ip: "));
 	    lcd.print(Ethernet.localIP()[0]);
@@ -1883,7 +1907,7 @@ void ethernet_task() {
 	    lcd.print(Ethernet.localIP()[2]);
 	    lcd.print(F("."));
 	    lcd.print(Ethernet.localIP()[3]);
-
+	    #endif
             ethernet_state = ETHERNET_OPEN_UDP_SOCKET;
             LOGV(F("ETHERNET_CONNECT --> ETHERNET_OPEN_UDP_SOCKET"));
          }
@@ -1901,9 +1925,11 @@ void ethernet_task() {
             ethernet_state = ETHERNET_END;
             LOGV(F("ETHERNET_CONNECT --> ETHERNET_END"));
             LOGE(F("Ethernet %s: [ %s ]"), ERROR_STRING, readable_configuration.is_dhcp_enable ? "DHCP" : "Static");
+            #if (USE_LCD)
 	    lcd.setCursor(0, 2);
             lcd.print(F("ethernet "));
 	    lcd.print(ERROR_STRING);
+	    #endif
          }
       break;
 
@@ -2369,6 +2395,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             #endif
           }
 
+          #if (USE_LCD)
           // normal OR test: print
           if (!is_first_run || is_test) {
 	    lcd.setCursor(0, 1);
@@ -2454,7 +2481,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	      */
             }
           }
-
+	  #endif
+	  
           sensors_reading_state = SENSORS_READING_END;
           LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_END"));
         }
@@ -2641,12 +2669,14 @@ void data_saving_task() {
 
       case DATA_SAVING_END:
          LOGN(F("[ %d ] data stored in sdcard... [ %s ]"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
+         #if (USE_LCD)
 	 lcd.setCursor(0, 2);
          lcd.print(F("SDCARD "));
 	 lcd.print(sd_data_count);
 	 lcd.print(F(" data "));
 	 lcd.print(is_sdcard_error ? ERROR_STRING : OK_STRING);
-
+         #endif
+	 
          noInterrupts();
          if (!is_event_supervisor) {
             is_event_supervisor = true;
@@ -3376,11 +3406,13 @@ void mqtt_task() {
       case MQTT_END:
          if (is_mqtt_published_data) {
             LOGN(F("[ %d ] data published through mqtt... [ %s ]"), mqtt_data_count, is_mqtt_error ? ERROR_STRING : OK_STRING);
+            #if (USE_LCD)
 	    lcd.setCursor(0, 3);
             lcd.print(F("MQTT   "));
 	    lcd.print(mqtt_data_count);
 	    lcd.print(F(" data "));
 	    lcd.print(is_mqtt_error ? ERROR_STRING : OK_STRING);
+	    #endif
          }
 
          noInterrupts();

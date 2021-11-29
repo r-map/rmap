@@ -62,6 +62,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 /*!
+\def USE_LCD
+\brief LCD support.
+*/
+#define USE_LCD                                       (true)
+
+/*!
 \def USE_SDCARD
 \brief SD-Card support.
 */
