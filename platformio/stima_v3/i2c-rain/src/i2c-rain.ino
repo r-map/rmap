@@ -68,6 +68,10 @@ void loop() {
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
+         #if (ENABLE_SDCARD_LOGGING)   
+	 logFile.flush();
+	 #endif
+	 Serial.flush();	
          // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
          wdt_disable();
 
@@ -410,7 +414,7 @@ void tipping_bucket_task () {
 	   // re-read pin status to filter spikes 
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
-	     LOGN(F("Rain tips count: %l"), rain.tips_count);
+	     LOGN(F("Rain tips count: %d"), rain.tips_count);
 	   }else{
 	     LOGN(F("Skip spike"));
 	     tipping_bucket_state = TIPPING_BUCKET_END;
@@ -568,5 +572,5 @@ void commands() {
    }
 
    interrupts();
-   LOGN(F("Total rain : %l"), readable_data_read_ptr->rain.tips_count);
+   LOGN(F("Total rain : %d"), readable_data_read_ptr->rain.tips_count);
 }

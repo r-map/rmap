@@ -84,7 +84,7 @@ void sdErrorHalt() {
     cout << F("SD error: ") << hex << int(card.errorCode());
     cout << ',' << int(card.errorData()) << dec << endl;
   }
-  SysCall::halt();
+  while (true) {}
 }
 //------------------------------------------------------------------------------
 #if DEBUG_PRINT
@@ -463,11 +463,11 @@ void setup() {
   Serial.begin(9600);
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   cout << F("Type any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   // Discard any extra characters.
   do {
@@ -487,7 +487,7 @@ void setup() {
          "Warning, all data on the card will be erased.\n"
          "Enter 'Y' to continue: ");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   c = Serial.read();
@@ -511,7 +511,7 @@ void setup() {
          "Enter option: ");
 
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   c = Serial.read();
   cout << c << endl;

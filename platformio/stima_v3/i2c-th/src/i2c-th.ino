@@ -62,6 +62,10 @@ void loop() {
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
+         #if (ENABLE_SDCARD_LOGGING)   
+	 logFile.flush();
+	 #endif
+	 Serial.flush();	
         //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
         init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
         state = TASKS_EXECUTION;
@@ -359,7 +363,7 @@ void init_sensors () {
 
    if (configuration.is_continuous) {
       LOGN(F("--> acquiring %d~%d samples in %d minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
-      LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
+      //LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
    }
 }
 
@@ -540,7 +544,7 @@ template<typename observation_g, typename length_v, typename value_v> value_v re
 }
 
 void samples_processing(bool is_force_processing) {
-  LOGT(F("%0\t \t \t \t \t%0\t \t \t \t \t%l\t%l\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, is_force_processing ? "F" : "N");
+  LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, is_force_processing ? "F" : "N");
 
   bool is_observations_processing = false;
 
@@ -558,9 +562,9 @@ void samples_processing(bool is_force_processing) {
     uint16_t temperature = readBackObservation<observation_t, uint16_t, uint16_t>(&temperature_observations, OBSERVATION_COUNT);
     uint16_t humidity = readBackObservation<observation_t, uint16_t, uint16_t>(&humidity_observations, OBSERVATION_COUNT);
 
-    LOGT(F("O----------------------------------------------------------------------------------------------"));
-    LOGT(F("\t%l\t \t \t \t \t%l\t \t \t \t%l/%l\t%l/%l"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
-    LOGT(F("O----------------------------------------------------------------------------------------------"));
+    LOGT(F("O->"));
+    LOGT(F("\t%d\t%d\t%d/%d\t%d/%d"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
+    LOGT(F("O<-"));
     #endif
 
     //! assign new value for samples_count
@@ -581,57 +585,58 @@ void samples_processing(bool is_force_processing) {
 
   #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
   if (is_observations_processing) {
-    LOGN(F("R----------------------------------------------------------------------------------------------"));
+    LOGN(F("R->"));
+
     if (ISVALID(readable_data_read_ptr->temperature.sample)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->temperature.sample);
+      LOGN(F("T-SMP: %d"), readable_data_read_ptr->temperature.sample);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("T-SMP: -----"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med60)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->temperature.med60);
+      LOGN(F("T-IST: %d"), readable_data_read_ptr->temperature.med60);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("T-IST: -----"));
 
     if (ISVALID(readable_data_read_ptr->temperature.min)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->temperature.min);
+      LOGN(F("T-MIN: %d"), readable_data_read_ptr->temperature.min);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("T-MIN: -----"));
 
     if (ISVALID(readable_data_read_ptr->temperature.med)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->temperature.med);
+      LOGN(F("T-MED: %d"), readable_data_read_ptr->temperature.med);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("T-MED: -----"));
 
     if (ISVALID(readable_data_read_ptr->temperature.max)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->temperature.max);
+      LOGN(F("T-MAX: %d"), readable_data_read_ptr->temperature.max);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("T-MAX: -----"));
 
     if (ISVALID(readable_data_read_ptr->humidity.sample)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->humidity.sample);
+      LOGN(F("H-SMP: %d"), readable_data_read_ptr->humidity.sample);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("H-SMP: -----"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med60)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->humidity.med60);
+      LOGN(F("H-IST: %d"), readable_data_read_ptr->humidity.med60);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("H-IST: -----"));
 
     if (ISVALID(readable_data_read_ptr->humidity.min)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->humidity.min);
+      LOGN(F("H-MIN: %d"), readable_data_read_ptr->humidity.min);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("H-MIN: -----"));
 
     if (ISVALID(readable_data_read_ptr->humidity.med)) {
-      LOGN(F("%d\t"), readable_data_read_ptr->humidity.med);
+      LOGN(F("H-MED: %d"), readable_data_read_ptr->humidity.med);
     }
-    else LOGN(F("-----\t"));
+    else LOGN(F("H-MED: -----"));
 
     if (ISVALID(readable_data_read_ptr->humidity.max)) {
-      LOGN(F("%d"), readable_data_read_ptr->humidity.max);
+      LOGN(F("H-MAX: %d"), readable_data_read_ptr->humidity.max);
     }
-    else LOGN(F("-----"));
-    LOGN(F("R----------------------------------------------------------------------------------------------"));
+    else LOGN(F("H-MAX: -----"));
+    LOGN(F("R<-"));
   }
   #endif
 }
@@ -1111,7 +1116,7 @@ void tests() {
       if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
         readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
         readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
-        LOGT(F("%0\t \t \t \t \t%0\t \t \t \t \t%l\t%l\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
+        LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
         exchange_buffers();
       }
     }

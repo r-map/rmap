@@ -36,13 +36,16 @@ const uint8_t SD_CS_PIN = SS;
 const uint8_t SD_CS_PIN = SDCARD_SS_PIN;
 #endif  // SDCARD_SS_PIN
 
+// Try max SPI clock for an SD. Reduce SPI_CLOCK if errors occur.
+#define SPI_CLOCK SD_SCK_MHZ(50)
+
 // Try to select the best SD card configuration.
 #if HAS_SDIO_CLASS
 #define SD_CONFIG SdioConfig(FIFO_SDIO)
-#elif ENABLE_DEDICATED_SPI
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI)
+#elif  ENABLE_DEDICATED_SPI
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, DEDICATED_SPI, SPI_CLOCK)
 #else  // HAS_SDIO_CLASS
-#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI)
+#define SD_CONFIG SdSpiConfig(SD_CS_PIN, SHARED_SPI, SPI_CLOCK)
 #endif  // HAS_SDIO_CLASS
 //==============================================================================
 // Serial output stream
@@ -70,7 +73,7 @@ void sdErrorHalt() {
     cout << F(" = ") << int(m_card->errorCode()) << endl;
     cout << F("SD errorData = ") << int(m_card->errorData()) << endl;
   }
-  SysCall::halt();
+  while (true) {}
 }
 //------------------------------------------------------------------------------
 void clearSerialInput() {
@@ -155,12 +158,12 @@ void setup() {
   Serial.begin(9600);
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
   printConfig(SD_CONFIG);
   cout << F("\nType any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   // Discard any extra characters.
   clearSerialInput();
@@ -180,7 +183,7 @@ void setup() {
          "Warning, all data on the card will be erased.\n"
          "Enter 'Y' to continue: ");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   c = Serial.read();
   cout << c << endl;
@@ -227,7 +230,7 @@ void setup() {
          "Enter option: ");
 
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
   c = Serial.read();
   cout << c << endl;

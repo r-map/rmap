@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2011-2020 Bill Greiman
+ * Copyright (c) 2011-2021 Bill Greiman
  * This file is part of the SdFat library for SD memory cards.
  *
  * MIT License
@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "FatFormatter.h"
+#include "FatLib.h"
 // Set nonzero to use calculated CHS in MBR.  Should not be required.
 #define USE_LBA_TO_CHS 1
 
@@ -45,7 +45,7 @@ const uint16_t FAT16_ROOT_SECTOR_COUNT =
 #define writeMsg(str) if (m_pr) m_pr->write(str)
 #endif  // PRINT_FORMAT_PROGRESS
 //------------------------------------------------------------------------------
-bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
+bool FatFormatter::format(FsBlockDevice* dev, uint8_t* secBuf, print_t* pr) {
   bool rtn;
   m_dev = dev;
   m_secBuf = secBuf;
@@ -72,7 +72,7 @@ bool FatFormatter::format(BlockDevice* dev, uint8_t* secBuf, print_t* pr) {
     // SDXC cards
     m_sectorsPerCluster = 128;
   }
-  rtn = m_sectorCount < 0X400000 ? makeFat16() :makeFat32();
+  rtn = m_sectorCount < 0X400000 ? makeFat16() : makeFat32();
   if (rtn) {
     writeMsg("Format Done\r\n");
   } else {

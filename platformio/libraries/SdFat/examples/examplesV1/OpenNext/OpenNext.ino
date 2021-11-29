@@ -18,12 +18,12 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
 
   Serial.println("Type any character to start");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   // Initialize at the highest speed supported by the board that is

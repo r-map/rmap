@@ -146,7 +146,7 @@ void setup() {
 
   // Wait for USB Serial
   while (!Serial) {
-    SysCall::yield();
+    yield();
   }
 
   // use uppercase in hex and use 0X base prefix
@@ -179,7 +179,7 @@ void loop() {
   // F stores strings in flash to save RAM
   cout << F("\ntype any character to start\n");
   while (!Serial.available()) {
-    SysCall::yield();
+    yield();
   }
 
   uint32_t t = millis();
