@@ -203,6 +203,12 @@ void loop() {
 	  ipstack.disconnect();
 	  wdt_reset();
 	  LOGT(F("MQTT Disconnect... [ %s ]"), OK_STRING);
+
+          #if (USE_SDCARD)
+	  SD.end();
+	  is_sdcard_open=false;	  
+          #endif
+
 	  realreboot();
 	}
       break;
@@ -227,9 +233,12 @@ void logSuffix(Print* _logOutput) {
 
 void init_logging(){
    #if (ENABLE_SDCARD_LOGGING)      
-   if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-     LOGN(F("SDCARD opened"));
-     is_sdcard_open = true;
+   if (!is_sdcard_open) {
+     if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
+       LOGN(F("SDCARD opened"));
+       is_sdcard_open = true;
+       is_sdcard_error = false;
+     }
    }
 
    if (is_sdcard_open && sdcard_open_file(&SD, &logFile, SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND)) {
@@ -1525,6 +1534,7 @@ void supervisor_task() {
 	    if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
 	      LOGN(F("SDCARD opened"));
 	      is_sdcard_open=true;
+	      is_sdcard_error = false;
 	    }
 	  }
 	  if (is_sdcard_open){
@@ -2468,13 +2478,14 @@ void data_saving_task() {
       break;
 
       case DATA_SAVING_OPEN_SDCARD:
-         if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	    LOGN(F("SDCARD opened"));
-            retry = 0;
-            is_sdcard_open = true;
-            data_saving_state = DATA_SAVING_OPEN_FILE;
-            LOGV(F("DATA_SAVING_OPEN_SDCARD ---> DATA_SAVING_OPEN_FILE"));
-         }
+	 if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
+	   LOGN(F("SDCARD opened"));
+	   retry = 0;
+	   is_sdcard_open = true;
+	   is_sdcard_error = false;
+	   data_saving_state = DATA_SAVING_OPEN_FILE;
+	   LOGV(F("DATA_SAVING_OPEN_SDCARD ---> DATA_SAVING_OPEN_FILE"));
+	 }
          // retry
          else if ((++retry) < DATA_SAVING_RETRY_COUNT_MAX) {
             delay_ms = DATA_SAVING_DELAY_MS;
@@ -2513,7 +2524,7 @@ void data_saving_task() {
             start_time_ms = millis();
             state_after_wait = DATA_SAVING_OPEN_FILE;
             data_saving_state = DATA_SAVING_WAIT_STATE;
-            LOGV(F("DATA_SAVING_OPEN_SDCARD ---> DATA_SAVING_WAIT_STATE"));
+            LOGV(F("DATA_SAVING_OPEN_FILE ---> DATA_SAVING_WAIT_STATE"));
          }
          // fail
          else {

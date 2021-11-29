@@ -46,7 +46,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 
 #if (USE_SDCARD)
-#include <SdFat.h>
 #include <sdcard_utility.h>
 #endif
 
@@ -484,11 +483,12 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client
 #endif
 
 /*!
-\fn LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, LCD_COLUMNS, LCD_ROWS)
-\brief LCD structure.
+\fn hd44780_I2Cexp lcd(LCD_I2C_ADDRESS)
+\brief LCD object.
 \return void.
 */
-LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, LCD_COLUMNS, LCD_ROWS);
+
+hd44780_I2Cexp lcd(LCD_I2C_ADDRESS);
 
 /*!
 \var sensors[USE_SENSORS_COUNT]

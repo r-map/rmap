@@ -1,3 +1,8 @@
+#define SPI_DRIVER_SELECT 1
+#define USE_SD_CRC 2
+#define SDFAT_FILE_TYPE 1
+#define USE_LONG_FILE_NAMES 1
+
 #include <SPI.h>
 #include <SdFat.h>
 
@@ -49,6 +54,7 @@ void loop(void) {
     Serial.println(F("file test.txt do not exists\r\n"));   
   }	  
 
+  SD.end();
   
   delay(5000);
 
