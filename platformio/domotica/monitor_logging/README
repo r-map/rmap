@@ -1,0 +1,20 @@
+monitoring and logging  module
+
+comunication device:
+Serial:   logging
+Serial1:  polling and receive logging messages
+I2C: RTC , display
+pins: buzzer
+pins: encoder
+
+task:
+watchdog management with alarm on reboot
+read datetime from RTC at boot
+wait for polling message and alarm when timeout happen
+read logging messages, add timestamp and append it to SDcard
+
+function managed by encoder:
+* alarm reset
+* alarm test
+* activate/deactivate alarm function
+* datetime setting and save it on RTC

@@ -1,0 +1,36 @@
+#######################################
+# Syntax Coloring Map For Ultrasound
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+set	 KEYWORD2
+get	 KEYWORD2
+stop	KEYWORD2
+start	KEYWORD2
+SetOutput	KEYWORD2
+GetOutput	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+DS1307_SEC	LITERAL1
+DS1307_MIN	LITERAL1
+DS1307_HR	LITERAL1
+DS1307_DOW	LITERAL1
+DS1307_DATE	LITERAL1
+DS1307_MTH	LITERAL1
+DS1307_YR	LITERAL1
+
+DS1307_SQW1HZ 	LITERAL1
+DS1307_SQW4KHZ	LITERAL1
+DS1307_SQW8KHZ	LITERAL1
+DS1307_SQW32KHZ	LITERAL1
