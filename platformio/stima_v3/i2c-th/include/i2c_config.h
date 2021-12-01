@@ -26,8 +26,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*!
 \def I2C_BUS_CLOCK
 \brief I2C bus clock in Hertz.
+30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz 
 */
-#define I2C_BUS_CLOCK                   (50000L)
+#define I2C_BUS_CLOCK                   (30418L)
 
 /*!
 \def I2C_MAX_DATA_LENGTH
@@ -39,6 +40,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MAX_ERROR_COUNT
 \brief Max i2c error for bus restart.
 */
-#define I2C_MAX_ERROR_COUNT             (5)
+#define I2C_MAX_ERROR_COUNT             (10)
 
 #endif

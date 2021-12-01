@@ -90,7 +90,7 @@ void loop() {
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
           LOGE(F("Restart I2C BUS"));
-          init_wire();
+          reset_wire();
           wdt_reset();
         }
 
@@ -363,34 +363,43 @@ void init_pins() {
    #endif
 }
 
-void init_wire() {
-   // uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
-   //
-   // if (i2c_bus_state) {
-   //    LOGE(F("I2C bus error: Could not clear!!!"));
-   //    while(1);
-   // }
-   //
-   // switch (i2c_bus_state) {
-   //    case 1:
-   //       LOGE(F("SCL clock line held low"));
-   //    break;
-   //
-   //    case 2:
-   //       LOGE(F("SCL clock line held low by slave clock stretch"));
-   //    break;
-   //
-   //    case 3:
-   //       LOGE(F("SDA data line held low"));
-   //    break;
-   // }
 
+void init_wire() {
    i2c_error = 0;
+   Wire.begin();
+   Wire.setClock(I2C_BUS_CLOCK);
+}
+
+
+void reset_wire() {
+  uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+  
+   switch (i2c_bus_state) {
+   case 1:
+     LOGE(F("SCL clock line held low"));
+     break;
+    
+   case 2:
+     LOGE(F("SCL clock line held low by slave clock stretch"));
+     break;
+    
+   case 3:
+     LOGE(F("SDA data line held low"));
+     break;
+   }
+
+   /*
+   if (i2c_bus_state) {
+     LOGE(F("I2C bus error: Could not clear!!!"));
+     //while(1);
+    have_to_reboot = true;
+   }
+   */
+    
 #ifdef ARDUINO_ARCH_AVR
    Wire.end();
 #endif
-   Wire.begin();
-   Wire.setClock(I2C_BUS_CLOCK);
+   init_wire();
 }
 
 void init_spi() {
