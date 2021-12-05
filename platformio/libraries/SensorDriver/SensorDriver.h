@@ -65,13 +65,15 @@ class SensorDriver {
 public:
 
    /*!
-   \fn SensorDriver(const char* driver, const char* type)
+   \fn SensorDriver(const char* driver, const char* type ,bool* is_setted,bool* is_prepared)
    \brief Constructor for SensorDriver.
    \param[in] *driver driver's type.
    \param[in] *type sensor's type.
+   \param[in] *is_setted sensor's status.
+   \param[in] *is_prepared sensor's status.
    \return void.
    */
-   SensorDriver(const char* driver, const char* type);
+   SensorDriver(const char* driver, const char* type, bool *is_setted, bool *is_prepared);
 
    /*!
    \fn SensorDriver *create(const char* driver, const char* type)
@@ -201,14 +203,14 @@ public:
    \brief Check if sensor was setted.
    \return true if setted, false otherwise.
    */
-   virtual bool isSetted();
+   bool isSetted();
 
    /*!
    \fn bool isPrepared()
    \brief Check if sensor was preapared.
    \return true if preapared, false otherwise.
    */
-   virtual bool isPrepared();
+   bool isPrepared();
 
    /*!
    \fn void resetPrepared()
@@ -279,7 +281,8 @@ protected:
    uint8_t _buffer[I2C_MAX_DATA_LENGTH];
 
    bool _is_test;
-
+   bool *_is_setted;
+   bool *_is_prepared;
 
    /*!
    \fn void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0)
@@ -290,23 +293,16 @@ protected:
    \param[in] node the sensor's node.
    \return void.
    */
-   static void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0);
-
+   void printInfo();
 
 };
 
 #if (USE_SENSOR_ADT)
 class SensorDriverAdt7420 : public SensorDriver {
 public:
-   SensorDriverAdt7420(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+   SensorDriverAdt7420(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("adt7420 create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -316,14 +312,12 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+  int temperature;
+  
    enum {
       INIT,
       READ,
@@ -342,15 +336,9 @@ protected:
 #if (USE_SENSOR_HIH)
 class SensorDriverHih6100 : public SensorDriver {
 public:
-   SensorDriverHih6100(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+   SensorDriverHih6100(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("hih6100 create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -360,14 +348,13 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   uint16_t temperature;
+   uint16_t humidity;
+  
    enum {
       INIT,
       READ,
@@ -387,15 +374,9 @@ protected:
 #include <hyt2x1.h>
 class SensorDriverHyt2X1 : public SensorDriver {
 public:
-   SensorDriverHyt2X1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+   SensorDriverHyt2X1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("hyt2x1 create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -405,14 +386,15 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   float humidity;
+   float temperature;
+   float humidity_confirmation;
+   float temperature_confirmation;
+  
    enum {
       INIT,
       READ,
@@ -434,15 +416,9 @@ protected:
 #include "registers-windsonic.h"
 class SensorDriverDw1 : public SensorDriver {
 public:
-   SensorDriverDw1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %S ]"), OK_STRING);
+   SensorDriverDw1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("dw1 create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -453,14 +429,13 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   double speed;
+   double direction;
+  
    enum {
       INIT,
       SET_MEANU_ADDRESS,
@@ -484,15 +459,9 @@ protected:
 #include "registers-rain.h"
 class SensorDriverRain : public SensorDriver {
 public:
-   SensorDriverRain(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+  SensorDriverRain(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared ) {
+      SensorDriver::printInfo();
+      LOGT(F("rain create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -502,14 +471,12 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   uint8_t rain_data[I2C_RAIN_TIPS_LENGTH];
+  
    enum {
       INIT,
       SET_RAIN_ADDRESS,
@@ -530,15 +497,10 @@ protected:
 #include "registers-th.h"
 class SensorDriverTh : public SensorDriver {
 public:
-   SensorDriverTh(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
+  SensorDriverTh(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
 
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %S ]"), OK_STRING);
+      SensorDriver::printInfo();
+      LOGT(F("th create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -548,14 +510,13 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
+   uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
+  
    enum {
       INIT,
       SET_TEMPERATURE_ADDRESS,
@@ -578,15 +539,9 @@ protected:
 #include "digiteco_power.h"
 class SensorDriverDigitecoPower : public SensorDriver {
 public:
-   SensorDriverDigitecoPower(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+   SensorDriverDigitecoPower(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("digitecopower create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -596,13 +551,16 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
+
+   float battery_charge;
+   float battery_voltage;
+   float battery_current;
+   float input_voltage;
+   float input_current;
+   float output_voltage;
 
    enum {
       INIT,
@@ -634,15 +592,9 @@ protected:
 #include "registers-wind.h"
 class SensorDriverWind : public SensorDriver {
 public:
-  SensorDriverWind(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-    _is_setted = is_setted;
-    _is_prepared = is_prepared;
-
-    *_is_setted = false;
-    *_is_prepared = false;
-
-    SensorDriver::printInfo(driver, type);
-    LOGT(F(" create... [ %s ]"), OK_STRING);
+  SensorDriverWind(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+    SensorDriver::printInfo();
+    LOGT(F("wind create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);
@@ -652,14 +604,16 @@ public:
   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
   #endif
 
-  bool isSetted();
-  bool isPrepared();
   void resetPrepared();
 
 protected:
-  bool *_is_setted;
-  bool *_is_prepared;
 
+   uint8_t variable_length;
+   uint8_t data_length;
+
+   uint8_t variable_count;
+   uint8_t offset;
+  
   enum {
     INIT,
     SET_ADDRESS,
@@ -674,15 +628,9 @@ protected:
 #include "registers-radiation.h"
 class SensorDriverSolarRadiation : public SensorDriver {
 public:
-  SensorDriverSolarRadiation(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-    _is_setted = is_setted;
-    _is_prepared = is_prepared;
-
-    *_is_setted = false;
-    *_is_prepared = false;
-
-    SensorDriver::printInfo(driver, type);
-    LOGT(F(" create... [ %s ]"), OK_STRING);
+  SensorDriverSolarRadiation(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+    SensorDriver::printInfo();
+    LOGT(F("solarradiation create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);
@@ -692,14 +640,16 @@ public:
   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
   #endif
 
-  bool isSetted();
-  bool isPrepared();
   void resetPrepared();
 
 protected:
-  bool *_is_setted;
-  bool *_is_prepared;
 
+  uint8_t variable_length;
+  uint8_t data_length;
+
+  uint8_t variable_count;
+  uint8_t offset;
+  
   enum {
     INIT,
     SET_ADDRESS,
@@ -714,15 +664,9 @@ protected:
 #include "registers-opc.h"
 class SensorDriverOpc : public SensorDriver {
 public:
-   SensorDriverOpc(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-      _is_setted = is_setted;
-      _is_prepared = is_prepared;
-
-      *_is_setted = false;
-      *_is_prepared = false;
-
-      SensorDriver::printInfo(driver, type);
-      LOGT(F(" create... [ %s ]"), OK_STRING);
+   SensorDriverOpc(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+      SensorDriver::printInfo();
+      LOGT(F("opc create... [ %s ]"), OK_STRING);
    };
    void setup(const uint8_t address, const uint8_t node = 0);
    void prepare(bool is_test = false);
@@ -732,14 +676,17 @@ public:
    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
    #endif
 
-   bool isSetted();
-   bool isPrepared();
    void resetPrepared();
 
 protected:
-   bool *_is_setted;
-   bool *_is_prepared;
 
+   uint8_t variable_length;
+   uint8_t data_length;
+   uint8_t data[VALUES_TO_READ_FROM_SENSOR_COUNT];
+
+   uint8_t variable_count;
+   uint8_t offset;
+  
    enum {
       INIT,
       SET_ADDRESS,
@@ -763,15 +710,9 @@ protected:
 #include "registers-leaf.h"
 class SensorDriverLeaf : public SensorDriver {
 public:
-  SensorDriverLeaf(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type) {
-    _is_setted = is_setted;
-    _is_prepared = is_prepared;
-
-    *_is_setted = false;
-    *_is_prepared = false;
-
-    SensorDriver::printInfo(driver, type);
-    LOGT(F(" create... [ %s ]"), OK_STRING);
+  SensorDriverLeaf(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+    SensorDriver::printInfo();
+    LOGT(F("leaf create... [ %s ]"), OK_STRING);
   };
   void setup(const uint8_t address, const uint8_t node = 0);
   void prepare(bool is_test = false);
@@ -781,14 +722,16 @@ public:
   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
   #endif
 
-  bool isSetted();
-  bool isPrepared();
   void resetPrepared();
 
 protected:
-  bool *_is_setted;
-  bool *_is_prepared;
 
+  uint8_t variable_length;
+  uint8_t data_length;
+
+  uint8_t variable_count;
+  uint8_t offset;
+  
   enum {
     INIT,
     SET_ADDRESS,

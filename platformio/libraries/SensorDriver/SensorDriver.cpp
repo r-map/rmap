@@ -24,58 +24,58 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace _SensorDriver {
   #if (USE_SENSOR_ADT)
-  bool _is_adt_setted;
-  bool _is_adt_prepared;
+  static bool _is_adt_setted = false;
+  static bool _is_adt_prepared = false;
   #endif
 
   #if (USE_SENSOR_HIH)
-  bool _is_hih_setted;
-  bool _is_hih_prepared;
+  static bool _is_hih_setted = false;
+  static bool _is_hih_prepared = false;
   #endif
 
   #if (USE_SENSOR_HYT)
-  bool _is_hyt_setted;
-  bool _is_hyt_prepared;
+  static bool _is_hyt_setted = false;
+  static bool _is_hyt_prepared = false;
   #endif
 
   #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-  bool _is_tb_setted;
-  bool _is_tb_prepared;
+  static bool _is_tb_setted = false;
+  static bool _is_tb_prepared = false;
   #endif
 
   #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
-  bool _is_th_setted;
-  bool _is_th_prepared;
+  static bool _is_th_setted = false;
+  static bool _is_th_prepared = false;
   #endif
 
   #if (USE_SENSOR_DW1)
-  bool _is_dw1_setted;
-  bool _is_dw1_prepared;
+  static bool _is_dw1_setted = false;
+  static bool _is_dw1_prepared = false;
   #endif
 
   #if (USE_SENSOR_DEP)
-  bool _is_dep_setted;
-  bool _is_dep_prepared;
+  static bool _is_dep_setted = false;
+  static bool _is_dep_prepared = false;
   #endif
 
   #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
-  bool _is_wind_setted;
-  bool _is_wind_prepared;
+  static bool _is_wind_setted = false;
+  static bool _is_wind_prepared = false;
   #endif
 
   #if (USE_SENSOR_DSA)
-  bool _is_sr_setted;
-  bool _is_sr_prepared;
+  static bool _is_sr_setted = false;
+  static bool _is_sr_prepared = false;
   #endif
 
   #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
-  bool _is_opc_setted;
-  bool _is_opc_prepared;
+  static bool _is_opc_setted = false;
+  static bool _is_opc_prepared = false;
   #endif
 
   #if (USE_SENSOR_LWT)
-  bool _is_leaf_setted;
-  bool _is_leaf_prepared;
+  static bool _is_leaf_setted = false;
+  static bool _is_leaf_prepared = false;
   #endif
 }
 
@@ -83,9 +83,13 @@ namespace _SensorDriver {
 * SensorDriver
 *********************************************************************/
 
-SensorDriver::SensorDriver(const char* driver, const char* type) {
+SensorDriver::SensorDriver(const char* driver, const char* type, bool *is_setted, bool *is_prepared) {
   _driver = driver;
   _type = type;
+
+  _is_setted = is_setted;
+  _is_prepared = is_prepared;
+  
 }
 
 SensorDriver *SensorDriver::create(const char* driver, const char* type) {
@@ -197,6 +201,14 @@ bool SensorDriver::isReaded() {
   return _is_readed;
 }
 
+bool SensorDriver::isSetted() {
+  return *_is_setted;
+}
+
+bool SensorDriver::isPrepared() {
+  return *_is_prepared;
+}
+
 void SensorDriver::createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count) {
   sensors[*sensors_count] = SensorDriver::create(driver, type);
   if (sensors[*sensors_count]) {
@@ -205,29 +217,17 @@ void SensorDriver::createAndSetup(const char* driver, const char* type, const ui
   }
 }
 
-void SensorDriver::printInfo(const char* driver, const char* type, const uint8_t address, const uint8_t node) {
-  LOGT(F("SensorDriver %s-%s"), driver, type);
-
-  if (address) {
-    LOGT(F(" 0x%x (%d)"), address, address);
-  }
-
-  if (node) {
-    LOGT(F(" on node %d"), node);
-  }
+void SensorDriver::printInfo() {
+  //LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d"), _driver, _type, _address, _address, _node);
+  LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d %T %T"), SensorDriver::getDriver(), SensorDriver::getType(),
+       SensorDriver::getAddress(), SensorDriver::getAddress(), SensorDriver::getNode(),
+       SensorDriver::isSetted(),SensorDriver::isPrepared());
 }
 
 //------------------------------------------------------------------------------
 // ADT7420
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_ADT)
-bool SensorDriverAdt7420::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverAdt7420::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverAdt7420::resetPrepared() {
   _get_state = INIT;
@@ -236,7 +236,9 @@ void SensorDriverAdt7420::resetPrepared() {
 
 void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
+
+  _delay_ms = 0;
 
   if (!*_is_setted) {
     Wire.beginTransmission(_address);
@@ -244,23 +246,20 @@ void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      LOGT(F(" setup... [ %s ]"), FAIL_STRING);
+      LOGE(F("adt7420 setup... [ %s ]"), FAIL_STRING);
       return;
     }
-
+    LOGT(F("adt7420 setup... [ %s ]"), OK_STRING);
     *_is_setted = true;
-    LOGT(F(" setup... [ %s ]"), OK_STRING);
   }
   else {
-    LOGT(F(" setup... [ %s ]"), YES_STRING);
+    LOGT(F("adt7420 setup... [ %s ]"), YES_STRING);
   }
 
-  _delay_ms = 0;
-  *_is_setted = true;
 }
 
 void SensorDriverAdt7420::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
 
   if (!*_is_prepared) {
     Wire.beginTransmission(_address);
@@ -268,17 +267,17 @@ void SensorDriverAdt7420::prepare(bool is_test) {
     Wire.write(0x20); // Set resolution and one shot
 
     if (Wire.endTransmission()) {
-      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
+      LOGE(F("adt7420 prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
     _delay_ms = 250;
 
-    LOGT(F(" prepare... [ %s ]"), OK_STRING);
+    LOGT(F("adt7420 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    LOGT(F(" prepare... [ %s ]"), YES_STRING);
+    LOGT(F("adt7420 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -286,7 +285,6 @@ void SensorDriverAdt7420::prepare(bool is_test) {
 }
 
 void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
-  static int temperature;
   uint8_t msb;
   uint8_t lsb;
 
@@ -362,15 +360,19 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
       }
     }
 
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
-
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("adt7420 get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("adt7420 get... [ %s ]"), FAIL_STRING);
+    }
+    
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> temperature: %d"), values[0]);
+        LOGT(F("adt7420--> temperature: %d"), values[0]);
       }
       else {
-        LOGT(F("--> temperature: ---"));
+        LOGT(F("adt7420--> temperature: ---"));
       }
     }
 
@@ -408,13 +410,6 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
 // HIH6100
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_HIH)
-bool SensorDriverHih6100::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverHih6100::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverHih6100::resetPrepared() {
   _get_state = INIT;
@@ -423,30 +418,44 @@ void SensorDriverHih6100::resetPrepared() {
 
 void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
-  LOGT(F(" setup... [ %s ]"), OK_STRING);
+  SensorDriver::printInfo();
+
+
   _delay_ms = 0;
-  *_is_setted = true;
+
+  if (!*_is_setted) {
+  
+    Wire.beginTransmission(_address);
+    
+    if (Wire.endTransmission() == 0) {
+      *_is_setted = true;
+      LOGT(F("hih6100 setup... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("hih6100 setup... [ %s ]"), ERROR_STRING);
+    }
+  }else {
+    LOGT(F("hih6100 setup... [ %s ]"), YES_STRING);
+  } 
 }
 
 void SensorDriverHih6100::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
 
   if (!*_is_prepared) {
     Wire.beginTransmission(_address);
 
     if (Wire.endTransmission()) {
-      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
+      LOGE(F("hih6100 prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
     _delay_ms = 40;
 
-    LOGT(F(" prepare... [ %s ]"), OK_STRING);
+    LOGT(F("hih6100 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    LOGT(F(" prepare... [ %s ]"), YES_STRING);
+    LOGT(F("hih6100 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -454,8 +463,6 @@ void SensorDriverHih6100::prepare(bool is_test) {
 }
 
 void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
-  static uint16_t temperature;
-  static uint16_t humidity;
   uint8_t x;
   uint8_t y;
   uint8_t s;
@@ -551,24 +558,28 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
       }
     }
 
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("hih6100 get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("hih6100 get... [ %s ]"), FAIL_STRING);
+    }
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> humidity: %d"), values[0]);
+        LOGT(F("hih6100--> humidity: %d"), values[0]);
       }
       else {
-        LOGT(F("--> humidity: ---"));
+        LOGT(F("hih6100--> humidity: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        LOGT(F("--> temperature: %d"), values[1]);
+        LOGT(F("hih6100--> temperature: %d"), values[1]);
       }
       else {
-        LOGT(F("--> temperature: ---"));
+        LOGT(F("hih6100--> temperature: ---"));
       }
     }
 
@@ -613,13 +624,6 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
 // HYT2X1
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_HYT)
-bool SensorDriverHyt2X1::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverHyt2X1::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverHyt2X1::resetPrepared() {
   _get_state = INIT;
@@ -628,25 +632,38 @@ void SensorDriverHyt2X1::resetPrepared() {
 
 void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
-  *_is_setted = true;
+  SensorDriver::printInfo();
+
   _delay_ms = 0;
-  LOGT(F(" setup... [ %s ]"), OK_STRING);
+
+  if (!*_is_setted) {
+    Wire.beginTransmission(_address);
+
+    if (Wire.endTransmission() == 0) {
+      *_is_setted = true;
+      LOGT(F("hyt2x1 setup... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("hyt2x1 setup... [ %s ]"), ERROR_STRING);
+    }
+  }else{
+    LOGT(F("hyt2x1 setup... [ %s ]"), YES_STRING);
+  } 
 }
 
 void SensorDriverHyt2X1::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   *_is_prepared = Hyt2X1::hyt_initRead(_address);
-  LOGT(F(" prepare... [ %s ]"), *_is_prepared ? OK_STRING : FAIL_STRING);
+  if (*_is_prepared){
+    LOGT(F("hyt2x1 prepare... [ %s ]"), OK_STRING);
+  }else{
+    LOGE(F("hyt2x1 prepare... [ %s ]"), FAIL_STRING);
+  }
+
   _delay_ms = HYT2X1_CONVERSION_TIME_MS;
   _start_time_ms = millis();
 }
 
 void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
-  static float humidity;
-  static float temperature;
-  static float humidity_confirmation;
-  static float temperature_confirmation;
   uint8_t status = HYT2X1_ERROR;
 
   switch (_get_state) {
@@ -725,24 +742,28 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
         }
       }
 
-      SensorDriver::printInfo(_driver, _type, _address, _node);
-      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+      SensorDriver::printInfo();
+      if (_is_success){
+	LOGT(F("hyt2x1 get... [ %s ]"), OK_STRING);
+      }else{
+	LOGE(F("hyt2x1 get... [ %s ]"), FAIL_STRING);
+      }
 
       if (length >= 1) {
         if (ISVALID(values[0])) {
-          LOGT(F("--> humidity: %d"), values[0]);
+          LOGT(F("hyt2x1--> humidity: %d"), values[0]);
         }
         else {
-          LOGT(F("--> humidity: ---"));
+          LOGT(F("hyt2x1--> humidity: ---"));
         }
       }
 
       if (length >= 2) {
         if (ISVALID(values[1])) {
-          LOGT(F("--> temperature: %d"), values[1]);
+          LOGT(F("hyt2x1--> temperature: %d"), values[1]);
         }
         else {
-          LOGT(F("--> temperature: ---"));
+          LOGT(F("hyt2x1--> temperature: ---"));
         }
       }
 
@@ -803,14 +824,6 @@ void SensorDriverDw1::getSDfromUV(int32_t u, int32_t v, double *speed, double *d
   *direction = ((uint16_t) *direction) % 360;
 }
 
-bool SensorDriverDw1::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverDw1::isPrepared() {
-  return *_is_prepared;
-}
-
 void SensorDriverDw1::resetPrepared() {
   _get_state = INIT;
   *_is_prepared = false;
@@ -818,14 +831,22 @@ void SensorDriverDw1::resetPrepared() {
 
 void SensorDriverDw1::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
-  *_is_setted = true;
+  SensorDriver::printInfo();
+
   _delay_ms = 0;
-  LOGT(F(" setup... [ %s ]"), OK_STRING);
+
+  Wire.beginTransmission(_address);
+
+  if (Wire.endTransmission() == 0) {
+    *_is_setted = true;
+    LOGT(F("dw1 setup... [ %s ]"), OK_STRING);
+  }else{
+    LOGE(F("dw1 setup... [ %s ]"), ERROR_STRING);
+  }
 }
 
 void SensorDriverDw1::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
 
   if (!*_is_prepared) {
     Wire.beginTransmission(_address);
@@ -834,16 +855,16 @@ void SensorDriverDw1::prepare(bool is_test) {
     _delay_ms = 3000;
 
     if (Wire.endTransmission()) {
-      LOGT(F(" prepare... [ %s ]"), FAIL_STRING);
+      LOGT(F("dw1 prepare... [ %s ]"), FAIL_STRING);
       return;
     }
 
     *_is_prepared = true;
 
-    LOGT(F(" prepare... [ %s ]"), OK_STRING);
+    LOGT(F("dw1 prepare... [ %s ]"), OK_STRING);
   }
   else {
-    LOGT(F(" prepare... [ %s ]"), YES_STRING);
+    LOGT(F("dw1 prepare... [ %s ]"), YES_STRING);
     _delay_ms = 0;
   }
 
@@ -852,8 +873,8 @@ void SensorDriverDw1::prepare(bool is_test) {
 
 void SensorDriverDw1::get(int32_t *values, uint8_t length) {
   const float raddeg = 180 / M_PI;
-  static double speed = UINT16_MAX;
-  static double direction = UINT16_MAX;
+  speed = UINT16_MAX;
+  direction = UINT16_MAX;
   uint16_t msb;
   uint16_t lsb;
 
@@ -982,35 +1003,39 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     break;
 
     case END:
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("dw1 get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("dw1 get... [ %s ]"), FAIL_STRING);
+    }
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> mean u: %d"), values[0]);
+        LOGT(F("dw1--> mean u: %d"), values[0]);
       }
       else {
-        LOGT(F("--> mean u: ---"));
+        LOGT(F("dw1--> mean u: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        LOGT(F("--> mean v: %d"), values[1]);
+        LOGT(F("dw1--> mean v: %d"), values[1]);
       }
       else {
-        LOGT(F("--> mean v: ---"));
+        LOGT(F("dw1--> mean v: ---"));
       }
     }
 
     if (ISVALID(values[0]) && ISVALID(values[1]) && length >= 2) {
       values[0] = (int32_t) direction;
       values[1] = (int32_t) round(speed);
-      LOGT(F("--> direction: %d"), values[0]);
-      LOGT(F("--> speed: %d"), values[1]);
+      LOGT(F("dw1--> direction: %d"), values[0]);
+      LOGT(F("dw1--> speed: %d"), values[1]);
     } else {
-      LOGT(F("--> direction: ---"));
-      LOGT(F("--> speed: ---"));
+      LOGT(F("dw1--> direction: ---"));
+      LOGT(F("dw1--> speed: ---"));
     }
 
     _start_time_ms = millis();
@@ -1057,13 +1082,6 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
 //------------------------------------------------------------------------------
 
 #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-bool SensorDriverRain::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverRain::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverRain::resetPrepared() {
   _get_state = INIT;
@@ -1072,14 +1090,22 @@ void SensorDriverRain::resetPrepared() {
 
 void SensorDriverRain::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
-  *_is_setted = true;
+  SensorDriver::printInfo();
+
   _delay_ms = 0;
-  LOGT(F(" setup... [ %s ]"), OK_STRING);
+
+  Wire.beginTransmission(_address);
+
+  if (Wire.endTransmission() == 0) {
+    *_is_setted = true;
+    LOGT(F("rain setup... [ %s ]"), OK_STRING);
+  }else{
+    LOGE(F("rain setup... [ %s ]"), ERROR_STRING);
+  }
 }
 
 void SensorDriverRain::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
@@ -1124,7 +1150,6 @@ void SensorDriverRain::prepare(bool is_test) {
 }
 
 void SensorDriverRain::get(int32_t *values, uint8_t length) {
-  static uint8_t rain_data[I2C_RAIN_TIPS_LENGTH];
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1224,15 +1249,19 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
       values[0] *= RAIN_FOR_TIP;
     }
 
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("rain get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("rain get... [ %s ]"), FAIL_STRING);
+    }
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> rain tips: %d"), values[0]);
+        LOGT(F("rain--> rain tips: %d"), values[0]);
       }
       else {
-        LOGT(F("--> rain tips: ---"));
+        LOGT(F("rain--> rain tips: ---"));
       }
     }
 
@@ -1276,13 +1305,6 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
 //------------------------------------------------------------------------------
 
 #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
-bool SensorDriverTh::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverTh::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverTh::resetPrepared() {
   _get_state = INIT;
@@ -1291,7 +1313,7 @@ void SensorDriverTh::resetPrepared() {
 
 void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _delay_ms = 0;
@@ -1323,11 +1345,11 @@ void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("th setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverTh::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
@@ -1374,14 +1396,12 @@ void SensorDriverTh::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
 
 void SensorDriverTh::get(int32_t *values, uint8_t length) {
-  static uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
-  static uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1624,24 +1644,28 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       }
     }
 
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("th get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("th get... [ %s ]"), FAIL_STRING);
+    }
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> temperature: %d"), values[0]);
+        LOGT(F("th--> temperature: %d"), values[0]);
       }
       else {
-        LOGT(F("--> temperature: ---"));
+        LOGT(F("th--> temperature: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        LOGT(F("--> humidity: %d"), values[1]);
+        LOGT(F("th--> humidity: %d"), values[1]);
       }
       else {
-        LOGT(F("--> humidity: ---"));
+        LOGT(F("th--> humidity: ---"));
       }
     }
 
@@ -1687,13 +1711,6 @@ void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer,
 //------------------------------------------------------------------------------
 
 #if (USE_SENSOR_DEP)
-bool SensorDriverDigitecoPower::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverDigitecoPower::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverDigitecoPower::resetPrepared() {
   _get_state = INIT;
@@ -1702,14 +1719,22 @@ void SensorDriverDigitecoPower::resetPrepared() {
 
 void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
-  *_is_setted = true;
+  SensorDriver::printInfo();
+
   _delay_ms = 0;
-  LOGT(F(" setup... [ %s ]"), OK_STRING);
+
+  Wire.beginTransmission(_address);
+
+  if (Wire.endTransmission() == 0) {
+    *_is_setted = true;
+    LOGT(F("digitecopower setup... [ %s ]"), OK_STRING);
+  }else{
+    LOGE(F("digitecopower setup... [ %s ]"), ERROR_STRING);
+  }
 }
 
 void SensorDriverDigitecoPower::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   _delay_ms = 0;
   *_is_prepared = true;
   _start_time_ms = millis();
@@ -1717,12 +1742,6 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
 }
 
 void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
-  static float battery_charge;
-  static float battery_voltage;
-  static float battery_current;
-  static float input_voltage;
-  static float input_current;
-  static float output_voltage;
 
   switch (_get_state) {
     case INIT:
@@ -1949,60 +1968,64 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
 
-    SensorDriver::printInfo(_driver, _type, _address, _node);
-    LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+    SensorDriver::printInfo();
+    if (_is_success){
+      LOGT(F("digitecopower get... [ %s ]"), OK_STRING);
+    }else{
+      LOGE(F("digitecopower get... [ %s ]"), FAIL_STRING);
+    }
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("--> battery charge: %ld %%"), values[0]);
+        LOGT(F("digitecopower--> battery charge: %ld %%"), values[0]);
       }
       else {
-        LOGT(F("--> battery charge: ---"));
+        LOGT(F("digitecopower--> battery charge: ---"));
       }
     }
 
     if (length >= 2) {
       if (ISVALID(values[1])) {
-        LOGT(F("--> battery voltage: %ld V"), values[1]);
+        LOGT(F("digitecopower--> battery voltage: %ld V"), values[1]);
       }
       else {
-        LOGT(F("--> battery voltage: ---"));
+        LOGT(F("digitecopower--> battery voltage: ---"));
       }
     }
 
     if (length >= 4) {
       if (ISVALID(values[3])) {
-        LOGT(F("--> battery current: %ld mA"), values[2]);
+        LOGT(F("digitecopower--> battery current: %ld mA"), values[2]);
       }
       else {
-        LOGT(F("--> battery current: ---"));
+        LOGT(F("digitecopower--> battery current: ---"));
       }
     }
 
     if (length >= 3) {
       if (ISVALID(values[2])) {
-        LOGT(F("--> input voltage: %ld V"), values[2]);
+        LOGT(F("digitecopower--> input voltage: %ld V"), values[2]);
       }
       else {
-        LOGT(F("--> input voltage: ---"));
+        LOGT(F("digitecopower--> input voltage: ---"));
       }
     }
 
     if (length >= 5) {
       if (ISVALID(values[4])) {
-        LOGT(F("--> input current: %ld mA"), values[4]);
+        LOGT(F("digitecopower--> input current: %ld mA"), values[4]);
       }
       else {
-        LOGT(F("--> input current: ---"));
+        LOGT(F("digitecopower--> input current: ---"));
       }
     }
 
     if (length >= 6) {
       if (ISVALID(values[5])) {
-        LOGT(F("--> output voltage: %ld V"), values[5]);
+        LOGT(F("digitecopower--> output voltage: %ld V"), values[5]);
       }
       else {
-        LOGT(F("--> output voltage: ---"));
+        LOGT(F("digitecopower--> output voltage: ---"));
       }
     }
 
@@ -2077,13 +2100,6 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
 // USE_SENSOR_DWB:
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
-bool SensorDriverWind::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverWind::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverWind::resetPrepared() {
   _get_state = INIT;
@@ -2092,7 +2108,7 @@ void SensorDriverWind::resetPrepared() {
 
 void SensorDriverWind::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _delay_ms = 0;
@@ -2124,11 +2140,11 @@ void SensorDriverWind::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("wind setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverWind::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
@@ -2162,16 +2178,11 @@ void SensorDriverWind::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("wind prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
 void SensorDriverWind::get(int32_t *values, uint8_t length) {
-  static uint8_t variable_length;
-  static uint8_t data_length;
-
-  static uint8_t variable_count;
-  static uint8_t offset;
 
   bool is_i2c_write;
   uint8_t i;
@@ -2403,8 +2414,12 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
       break;
 
     case END:
-      SensorDriver::printInfo(_driver, _type, _address, _node);
-      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+      SensorDriver::printInfo();
+      if (_is_success){
+	LOGT(F("wind get... [ %s ]"), OK_STRING);
+      }else{
+	LOGE(F("wind get... [ %s ]"), FAIL_STRING);
+      }
 
       _start_time_ms = millis();
       _delay_ms = 0;
@@ -2418,7 +2433,6 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
 #if (USE_JSON)
 void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
   SensorDriverWind::get(values, length);
-  static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2473,12 +2487,11 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWE)
     if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
       if (length >= 1) {
-        variable_length = 6;
         json["d"] = 51;
 
         JsonArray &p = json.createNestedArray("p");
 
-        for (uint8_t i = 0; i < variable_length; i++) {
+        for (uint8_t i = 0; i < 6; i++) {
           if (ISVALID(values[i])) {
             p.add(values[i]);
           }
@@ -2518,13 +2531,6 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
 // USE_SENSOR_DSA: average solar radiation
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_DSA)
-bool SensorDriverSolarRadiation::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverSolarRadiation::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverSolarRadiation::resetPrepared() {
   _get_state = INIT;
@@ -2533,7 +2539,7 @@ void SensorDriverSolarRadiation::resetPrepared() {
 
 void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _delay_ms = 0;
@@ -2565,11 +2571,11 @@ void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node
     _is_success = true;
   }
 
-  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("solarradiation setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverSolarRadiation::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
@@ -2603,16 +2609,11 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("solarradiation prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
 void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
-  static uint8_t variable_length;
-  static uint8_t data_length;
-
-  static uint8_t variable_count;
-  static uint8_t offset;
 
   bool is_i2c_write;
   uint8_t i;
@@ -2751,17 +2752,21 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
       break;
 
     case END:
-      SensorDriver::printInfo(_driver, _type, _address, _node);
-      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+      SensorDriver::printInfo();
+      if (_is_success){
+	LOGT(F("solarradiation get... [ %s ]"), OK_STRING);
+      }else{
+	LOGE(F("solarradiation get... [ %s ]"), FAIL_STRING);
+      }
 
       #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> solar radiation: %ld"), values[0]);
+            LOGT(F("solarradiation--> solar radiation: %ld"), values[0]);
           }
           else {
-            LOGT(F("--> solar radiation: ---"));
+            LOGT(F("solarradiation--> solar radiation: ---"));
           }
         }
       }
@@ -2779,7 +2784,6 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
 #if (USE_JSON)
 void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
   SensorDriverSolarRadiation::get(values, length);
-  static uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2811,13 +2815,6 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
 // USE_SENSOR_OE3: Temperature and Humidity average continuous
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
-bool SensorDriverOpc::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverOpc::isPrepared() {
-  return *_is_prepared;
-}
 
 void SensorDriverOpc::resetPrepared() {
   _get_state = INIT;
@@ -2826,7 +2823,7 @@ void SensorDriverOpc::resetPrepared() {
 
 void SensorDriverOpc::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _delay_ms = 0;
@@ -2858,11 +2855,11 @@ void SensorDriverOpc::setup(const uint8_t address, const uint8_t node) {
     _is_success = true;
   }
 
-  LOGT(F(" setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("opc setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 }
 
 void SensorDriverOpc::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
@@ -2896,17 +2893,11 @@ void SensorDriverOpc::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("opc prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
 void SensorDriverOpc::get(int32_t *values, uint8_t length) {
-  static uint8_t variable_length;
-  static uint8_t data_length;
-  static uint8_t data[VALUES_TO_READ_FROM_SENSOR_COUNT];
-
-  static uint8_t variable_count;
-  static uint8_t offset;
 
   bool is_i2c_write;
   uint8_t i;
@@ -3210,35 +3201,39 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       break;
 
     case END:
-      SensorDriver::printInfo(_driver, _type, _address, _node);
-      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+      SensorDriver::printInfo();
+      if (_is_success){
+	LOGT(F("opc get... [ %s ]"), OK_STRING);
+      }else{
+	LOGE(F("opc get... [ %s ]"), FAIL_STRING);
+      }
 
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> PM 1: %ld"), values[0]);
+            LOGT(F("opc--> PM 1: %ld"), values[0]);
           }
           else {
-            LOGT(F("--> PM 1: ---"));
+            LOGT(F("opc--> PM 1: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            LOGT(F("--> PM 2.5: %ld"), values[1]);
+            LOGT(F("opc--> PM 2.5: %ld"), values[1]);
           }
           else {
-            LOGT(F("--> PM 2.5: ---"));
+            LOGT(F("opc--> PM 2.5: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID(values[2])) {
-            LOGT(F("--> PM 10: %ld"), values[2]);
+            LOGT(F("opc--> PM 10: %ld"), values[2]);
           }
           else {
-            LOGT(F("--> PM 10: ---"));
+            LOGT(F("opc--> PM 10: ---"));
           }
         }
       }
@@ -3248,28 +3243,28 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> PM 1 sigma: %ld"), values[0]);
+            LOGT(F("opc--> PM 1 sigma: %ld"), values[0]);
           }
           else {
-            LOGT(F("--> PM 1 sigma: ---"));
+            LOGT(F("opc--> PM 1 sigma: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            LOGT(F("--> PM 2.5 sigma: %ld"), values[1]);
+            LOGT(F("opc--> PM 2.5 sigma: %ld"), values[1]);
           }
           else {
-            LOGT(F("--> PM 2.5 sigma: ---"));
+            LOGT(F("opc--> PM 2.5 sigma: ---"));
           }
         }
 
         if (length >= 3) {
           if (ISVALID(values[2])) {
-            LOGT(F("--> PM 10 sigma: %ld"), values[2]);
+            LOGT(F("opc--> PM 10 sigma: %ld"), values[2]);
           }
           else {
-            LOGT(F("--> PM 10 sigma: ---"));
+            LOGT(F("opc--> PM 10 sigma: ---"));
           }
         }
       }
@@ -3279,14 +3274,14 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> BIN [0-%d]:\t[ "), variable_length - 1);
+            LOGT(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("%l"),values[i]);
 	    }
             LOGT(F(" ]"));
           }
           else {
-            LOGT(F("--> BIN [0-%d]:\t[ "), variable_length - 1);
+            LOGT(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("-"));
 	    }
@@ -3300,14 +3295,14 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+            LOGT(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("%l"),values[i]);
 	    }
             LOGT_CLEAN(F(" ]"));
           }
           else {
-            LOGT(F("--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
+            LOGT(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("-"));
 	    }
@@ -3321,19 +3316,19 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGT(F("--> Temperature: %ld"), values[0]);
+            LOGT(F("opc--> Temperature: %ld"), values[0]);
           }
           else {
-            LOGT(F("--> Temperature: ---"));
+            LOGT(F("opc--> Temperature: ---"));
           }
         }
 
         if (length >= 2) {
           if (ISVALID(values[1])) {
-            LOGT(F("--> Humidity: %ld"), values[1]);
+            LOGT(F("opc--> Humidity: %ld"), values[1]);
           }
           else {
-            LOGT(F("--> Humidity: ---"));
+            LOGT(F("opc--> Humidity: ---"));
           }
         }
       }
@@ -3351,7 +3346,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 #if (USE_JSON)
 void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
   SensorDriverOpc::get(values, length);
-  static uint8_t variable_length;
+  uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -3436,14 +3431,6 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_LWT)
 
-bool SensorDriverLeaf::isSetted() {
-  return *_is_setted;
-}
-
-bool SensorDriverLeaf::isPrepared() {
-  return *_is_prepared;
-}
-
 void SensorDriverLeaf::resetPrepared() {
   _get_state = INIT;
   *_is_prepared = false;
@@ -3451,14 +3438,14 @@ void SensorDriverLeaf::resetPrepared() {
 
 void SensorDriverLeaf::setup(const uint8_t address, const uint8_t node) {
   SensorDriver::setup(address, node);
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   *_is_setted = true;
   _delay_ms = 0;
   LOGT(F(" setup... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverLeaf::prepare(bool is_test) {
-  SensorDriver::printInfo(_driver, _type, _address, _node);
+  SensorDriver::printInfo();
   bool is_i2c_write = false;
   uint8_t i = 0;
   _is_success = false;
@@ -3498,17 +3485,12 @@ void SensorDriverLeaf::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+  LOGT(F("leaf prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
 
 void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
-  static uint8_t variable_length;
-  static uint8_t data_length;
-
-  static uint8_t variable_count;
-  static uint8_t offset;
 
   bool is_i2c_write;
   uint8_t i;
@@ -3644,17 +3626,21 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
       break;
 
     case END:
-      SensorDriver::printInfo(_driver, _type, _address, _node);
-      LOGT(F(" get... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+      SensorDriver::printInfo();
+      if (_is_success){
+	LOGT(F("leaf get... [ %s ]"), OK_STRING);
+      }else{
+	LOGE(F("leaf get... [ %s ]"), FAIL_STRING);
+      }
 
       #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
           if (ISVALID(values[0])) {
-            LOGN(F("--> Leaf Wet Time: %ld minutes"), values[0]);
+            LOGN(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
           }
           else {
-            LOGT(F("--> Leaf Wet Time: --- minutes"));
+            LOGT(F("leaf--> Leaf Wet Time: --- minutes"));
           }
         }
       }
