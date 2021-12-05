@@ -345,8 +345,12 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     i2c_rx_data[i] = Wire.read();
   }
 
-  //! check crc: ok
-  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    readable_data_length = 0;
+    LOGN(F("No CRC: size %d"),rx_data_length);
+  } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
+    //! check crc: ok    
     rx_data_length--;
 
     // it is a registers read?
@@ -390,6 +394,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
   } else {
     readable_data_length = 0;
+    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
@@ -475,13 +480,13 @@ void reset_buffers() {
 }
 
 void command_task() {
-   #ifdef DISABLE_LOGGING
+   #ifndef DISABLE_LOGGING
    char buffer[30];
    #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_RAIN_COMMAND_ONESHOT_START:
-         #ifdef DISABLE_LOGGING
+         #ifndef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT START");
          #endif
          is_oneshot = true;
@@ -492,7 +497,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_ONESHOT_STOP:
-         #ifdef DISABLE_LOGGING
+         #ifndef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT STOP");
          #endif
          is_oneshot = true;
@@ -503,7 +508,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_ONESHOT_START_STOP:
-         #ifdef DISABLE_LOGGING
+         #ifndef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT START-STOP");
          #endif
          is_oneshot = true;
@@ -514,7 +519,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_TEST_READ:
-         #ifdef DISABLE_LOGGING
+         #ifndef DISABLE_LOGGING
          strcpy(buffer, "TEST READ");
          #endif
          is_test_read = true;
@@ -522,7 +527,7 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_SAVE:
-         LOGT(F("Execute [ %s ]"), SAVE_STRING);
+         LOGN(F("Execute [ %s ]"), SAVE_STRING);
          //is_oneshot = false;
          //is_continuous = false;
          //is_start = false;
@@ -532,12 +537,12 @@ void command_task() {
       break;
    }
 
-   #ifdef DISABLE_LOGGING
+   #ifndef DISABLE_LOGGING
    if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      LOGT(F("Execute [ %s ]"), buffer);
+      LOGN(F("Execute [ %s ]"), buffer);
    }
    else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      LOGT(F("Ignore [ %s ]"), buffer);
+      LOGN(F("Ignore [ %s ]"), buffer);
    }
    #endif
 

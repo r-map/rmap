@@ -572,11 +572,7 @@ void init_sensors () {
   lcd.print(F(" V:"));
   lcd.print(readable_configuration.module_main_version);
   lcd.print(F("."));
-  lcd.print(readable_configuration.module_minor_version);
-  
-  lcd.setCursor(0, 2);
-  lcd.print(F("Sensors count: "));
-  lcd.print(readable_configuration.sensors_count);
+  lcd.print(readable_configuration.module_minor_version);  
   #endif
   
   if (readable_configuration.sensors_count) {
@@ -589,12 +585,20 @@ void init_sensors () {
 	wdt_reset();
         #if (USE_LCD)
 	lcd.setCursor(0, 3);
-        lcd.print(readable_configuration.sensors[i].type);
+	lcd.print(readable_configuration.sensors[i].type);
 	lcd.print(":");
 	lcd.print(FAIL_STRING);
 	#endif
       }
     }
+    #if (USE_LCD)
+    lcd.setCursor(0, 2);
+    lcd.print(F("Sensors count: "));
+    lcd.print(readable_configuration.sensors_count-sensors_error_count);
+    lcd.print(F("/"));
+    lcd.print(readable_configuration.sensors_count);
+    #endif
+    
   }
 }
 
@@ -1435,10 +1439,12 @@ void supervisor_task() {
             if ((++retry < SUPERVISOR_CONNECTION_RETRY_COUNT_MAX) || (millis() - start_time_ms < SUPERVISOR_CONNECTION_TIMEOUT_MS)) {
                is_event_client_executed = false;
                supervisor_state = SUPERVISOR_CONNECTION_LEVEL_TASK;
+	       LOGE(F("Supervisor connection... [ retry ]"));
                LOGV(F("SUPERVISOR_WAIT_CONNECTION_LEVEL_TASK ---> SUPERVISOR_CONNECTION_LEVEL_TASK"));
             }
             // fail
             else {
+	       LOGE(F("Supervisor connection... [ %s ]"), FAIL_STRING);
                supervisor_state = SUPERVISOR_TIME_LEVEL_TASK;
                LOGV(F("SUPERVISOR_WAIT_CONNECTION_LEVEL_TASK ---> SUPERVISOR_TIME_LEVEL_TASK"));
             }
@@ -1719,7 +1725,7 @@ void time_task() {
 
          // success
          if (is_ntp_request_ok) {
-	   LOGT(F("NTP send request success"));
+	   LOGN(F("NTP send request success"));
 	   retry = 0;
             time_state = TIME_WAIT_ONLINE_RESPONSE;
             LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_ONLINE_RESPONSE"));
@@ -1730,6 +1736,7 @@ void time_task() {
             start_time_ms = millis();
             state_after_wait = TIME_SEND_ONLINE_REQUEST;
             time_state = TIME_WAIT_STATE;
+            LOGE(F("NTP request... [ retry ]"));
             LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_STATE"));
          }
          // fail: use old rtc time
@@ -1766,8 +1773,7 @@ void time_task() {
          }
 
          if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
-
-	    LOGT(F("NTP receive response success"));
+            LOGN(F("NTP response... [ %s ]"), OK_STRING);
 	    retry = 0;
             system_time = current_ntp_time;
             setTime(system_time);
@@ -1788,6 +1794,7 @@ void time_task() {
             start_time_ms = millis();
             state_after_wait = TIME_SEND_ONLINE_REQUEST;
             time_state = TIME_WAIT_STATE;
+            LOGE(F("NTP response... [ retry ]"));
             LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
          }
          // fail
@@ -1827,6 +1834,7 @@ void time_task() {
             start_time_ms = millis();
             state_after_wait = TIME_SET_SYNC_NTP_PROVIDER;
             time_state = TIME_WAIT_STATE;
+            LOGE(F("RTC set... [ retry ]"));
             LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_NTP_PROVIDER"));
          }
          // fail
@@ -1926,6 +1934,7 @@ void ethernet_task() {
             start_time_ms = millis();
             state_after_wait = ETHERNET_CONNECT;
             ethernet_state = ETHERNET_WAIT_STATE;
+            LOGE(F("Ethernet retry: [ %s ]") readable_configuration.is_dhcp_enable ? "DHCP" : "Static");
             LOGV(F("ETHERNET_CONNECT --> ETHERNET_WAIT_STATE"));
          }
          // fail
@@ -1956,6 +1965,7 @@ void ethernet_task() {
             start_time_ms = millis();
             state_after_wait = ETHERNET_OPEN_UDP_SOCKET;
             ethernet_state = ETHERNET_WAIT_STATE;
+            LOGE(F("--> udp socket on local port: %d [ retry ]"), ETHERNET_DEFAULT_LOCAL_UDP_PORT);
             LOGV(F("ETHERNET_OPEN_UDP_SOCKET --> ETHERNET_WAIT_STATE"));
          }
          // fail
@@ -2289,10 +2299,12 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             start_time_ms = millis();
             state_after_wait = SENSORS_READING_PREPARE;
             sensors_reading_state = SENSORS_READING_WAIT_STATE;
+            LOGE(F("Sensor is prepared... [ retry ]"));
             LOGV(F("SENSORS_READING_IS_PREPARED ---> SENSORS_READING_WAIT_STATE"));
          }
          // fail
          else {
+	   LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
             if (do_get) {
                sensors_reading_state = SENSORS_READING_GET;
                LOGV(F("SENSORS_READING_IS_PREPARED ---> SENSORS_READING_GET"));
@@ -2343,18 +2355,21 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                start_time_ms = millis();
                state_after_wait = SENSORS_READING_GET;
                sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	       LOGE(F("Sensor is getted... [ retry ]"));
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_WAIT_STATE"));
             }
             // fail
             else {
                retry = 0;
                sensors_reading_state = SENSORS_READING_READ;
+	       LOGE(F("Sensor is getted... [ %s ]"),FAIL_STRING);
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
             }
          }
          // not end
          else {
             sensors_reading_state = SENSORS_READING_GET;
+            LOGT(F("Sensor is prepared... [ not end ]"));
             LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_GET"));
          }
       break;
@@ -2415,10 +2430,12 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	    }
 
             for (i = 0; i < readable_configuration.sensors_count; i++) {
-              LOGN(F("JSON <-- %s"), &json_sensors_data[i][0]);
 
-              //LOGT(F("Values: %l %l %l\t%s"), values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2], json_sensors_data[i]);
-
+              LOGN(F("[%s] %s-%s-%d Values: %l %l %l\tJson: %s"), is_test? "Test" : "Report",
+		   sensors[i]->getDriver(),sensors[i]->getType(),sensors[i]->getAddress(),
+		   values_readed_from_sensor[i][0], values_readed_from_sensor[i][1], values_readed_from_sensor[i][2],
+		   &json_sensors_data[i]);
+	      
               if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
                 if (ISVALID(values_readed_from_sensor[i][0])) {
                   lcd.print((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0);
@@ -2572,6 +2589,7 @@ void data_saving_task() {
             start_time_ms = millis();
             state_after_wait = DATA_SAVING_OPEN_SDCARD;
             data_saving_state = DATA_SAVING_WAIT_STATE;
+            LOGE(F("SDcard data saving open sdcard... [ retry ]"));
             LOGV(F("DATA_SAVING_OPEN_SDCARD ---> DATA_SAVING_WAIT_STATE"));
          }
          // fail
@@ -2604,6 +2622,7 @@ void data_saving_task() {
             start_time_ms = millis();
             state_after_wait = DATA_SAVING_OPEN_FILE;
             data_saving_state = DATA_SAVING_WAIT_STATE;
+            LOGE(F("SDcard openfile... [ retry ]"));
             LOGV(F("DATA_SAVING_OPEN_FILE ---> DATA_SAVING_WAIT_STATE"));
          }
          // fail
@@ -2659,6 +2678,7 @@ void data_saving_task() {
             start_time_ms = millis();
             state_after_wait = DATA_SAVING_WRITE_FILE;
             data_saving_state = DATA_SAVING_WAIT_STATE;
+            LOGE(F("SDcard writing data on  file %s... [ retry ]"), file_name);
             LOGV(F("DATA_SAVING_WRITE_FILE ---> DATA_SAVING_WAIT_STATE"));
          }
          // fail
@@ -2814,7 +2834,8 @@ void mqtt_task() {
             start_time_ms = millis();
             state_after_wait = MQTT_OPEN_SDCARD;
             mqtt_state = MQTT_WAIT_STATE;
-            LOGV(F("MQTT_OPEN_SDCARD ---> MQTT_PTR_DATA_WAIT_STATE"));
+            LOGE(F("MQTT open SDcard... [ retry ]"));
+	    LOGV(F("MQTT_OPEN_SDCARD ---> MQTT_PTR_DATA_WAIT_STATE"));
          }
          // fail
          else {
@@ -2857,6 +2878,7 @@ void mqtt_task() {
             start_time_ms = millis();
             state_after_wait = MQTT_OPEN_PTR_FILE;
             mqtt_state = MQTT_WAIT_STATE;
+            LOGE(F("SD Card open file %s... [ retry ]"), SDCARD_MQTT_PTR_FILE_NAME);
             LOGV(F("MQTT_OPEN_PTR_FILE ---> MQTT_PTR_DATA_WAIT_STATE"));
          }
          // fail
@@ -3025,6 +3047,7 @@ void mqtt_task() {
             start_time_ms = millis();
             state_after_wait = MQTT_CONNECT;
             mqtt_state = MQTT_WAIT_STATE;
+            LOGE(F("MQTT Connection... [ retry ]"));
             LOGV(F("MQTT_CONNECT ---> MQTT_WAIT_STATE"));
          }
          // fail
@@ -3318,6 +3341,7 @@ void mqtt_task() {
                start_time_ms = millis();
                state_after_wait = MQTT_ON_DISCONNECT;
                mqtt_state = MQTT_WAIT_STATE;
+               LOGE(F("MQTT on disconnect publish message... [ retry ]"));
                LOGV(F("MQTT_ON_DISCONNECT ---> MQTT_WAIT_STATE"));
             }
             // fail
@@ -3384,6 +3408,7 @@ void mqtt_task() {
                start_time_ms = millis();
                state_after_wait = MQTT_PTR_UPDATE;
                mqtt_state = MQTT_WAIT_STATE;
+               LOGE(F("SD Card writing ptr data on file %s... [ retry ]"), SDCARD_MQTT_PTR_FILE_NAME);
                LOGV(F("MQTT_PTR_UPDATE ---> MQTT_WAIT_STATE"));
             }
             // fail

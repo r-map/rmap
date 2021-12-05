@@ -423,6 +423,11 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     i2c_rx_data[i] = Wire.read();
   }
 
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    readable_data_length = 0;
+    LOGN(F("No CRC: size %d"),rx_data_length);
+  } else   
   //! check crc: ok
   if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
     rx_data_length--;
@@ -474,6 +479,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
   } else {
     readable_data_length = 0;
+    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
@@ -562,9 +568,7 @@ void samples_processing(bool is_force_processing) {
     uint16_t temperature = readBackObservation<observation_t, uint16_t, uint16_t>(&temperature_observations, OBSERVATION_COUNT);
     uint16_t humidity = readBackObservation<observation_t, uint16_t, uint16_t>(&humidity_observations, OBSERVATION_COUNT);
 
-    LOGT(F("O->"));
-    LOGT(F("\t%d\t%d\t%d/%d\t%d/%d"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
-    LOGT(F("O<-"));
+    LOGT(F("O->\t%d\t%d\t%d/%d\t%d/%d O<-"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
     #endif
 
     //! assign new value for samples_count
@@ -916,15 +920,7 @@ void sensors_reading_task () {
               samples_processing(false);
               interrupts();
             }
-
-            #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-            delay_ms = 10;
-            start_time_ms = millis();
-            state_after_wait = SENSORS_READING_END;
-            sensors_reading_state = SENSORS_READING_WAIT_STATE;
-            #else
             sensors_reading_state = SENSORS_READING_END;
-            #endif
          }
       break;
 
@@ -1003,13 +999,13 @@ uint16_t readBackObservation (observation_t *buffer, uint16_t length) {
 }
 
 void command_task() {
-   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+   #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
    char buffer[30];
    #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_TH_COMMAND_ONESHOT_START:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "ONESHOT START");
          #endif
          is_oneshot = true;
@@ -1020,7 +1016,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_ONESHOT_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "ONESHOT STOP");
          #endif
          is_oneshot = true;
@@ -1031,7 +1027,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_ONESHOT_START_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "ONESHOT START-STOP");
          #endif
          is_oneshot = true;
@@ -1042,7 +1038,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "CONTINUOUS START");
          #endif
          is_oneshot = false;
@@ -1053,7 +1049,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "CONTINUOUS STOP");
          #endif
          is_oneshot = false;
@@ -1064,7 +1060,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
-        #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+        #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
         strcpy(buffer, "CONTINUOUS START-STOP");
         #endif
         is_oneshot = false;
@@ -1075,7 +1071,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_TEST_READ:
-         #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
          strcpy(buffer, "TEST READ");
          #endif
          is_test_read = true;
@@ -1087,18 +1083,18 @@ void command_task() {
         is_continuous = false;
         is_start = false;
         is_stop = false;
-        LOGV(F("Execute command [ SAVE ]"));
+        LOGN(F("Execute command [ SAVE ]"));
         save_configuration(CONFIGURATION_CURRENT);
         init_wire();
       break;
    }
 
-   #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
+   #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
    if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      LOGV(F("Execute [ %s ]"), buffer);
+      LOGN(F("Execute [ %s ]"), buffer);
    }
    else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      LOGV(F("Ignore [ %s ]"), buffer);
+      LOGN(F("Ignore [ %s ]"), buffer);
    }
    #endif
 
