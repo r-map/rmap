@@ -247,6 +247,8 @@ void init_logging(){
 
    Log.setPrefix(logPrefix); // Uncomment to get timestamps as prefix
    Log.setSuffix(logSuffix); // Uncomment to get newline as suffix
+
+   LOGF(F("Logging started"));
 }
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
