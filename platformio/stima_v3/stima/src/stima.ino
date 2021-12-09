@@ -229,7 +229,7 @@ void init_logging(){
    #if (ENABLE_SDCARD_LOGGING)      
    if (!is_sdcard_open) {
      if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-       LOGN(F("SDCARD opened"));
+       LOGN(F("SDCARD opened Logging"));
        is_sdcard_open = true;
        is_sdcard_error = false;
      }
@@ -1590,7 +1590,7 @@ void supervisor_task() {
         if (is_supervisor_first_run) {
 	  if (!is_sdcard_open) {
 	    if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	      LOGN(F("SDCARD opened"));
+	      LOGN(F("SDCARD opened Test SDcard"));
 	      is_sdcard_open=true;
 	      is_sdcard_error = false;
 	    }
@@ -2576,7 +2576,12 @@ void data_saving_task() {
 
       case DATA_SAVING_OPEN_SDCARD:
 	 if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	   LOGN(F("SDCARD opened"));
+	   LOGN(F("SDCARD opened Data Saving"));
+
+           #if (ENABLE_SDCARD_LOGGING)      
+	   init_logging();
+	   #endif
+	   
 	   retry = 0;
 	   is_sdcard_open = true;
 	   is_sdcard_error = false;
@@ -2821,7 +2826,12 @@ void mqtt_task() {
 
       case MQTT_OPEN_SDCARD:
          if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-	   LOGN(F("SDCARD opened"));
+	   LOGN(F("SDCARD opened MQTT"));
+
+            #if (ENABLE_SDCARD_LOGGING)      
+            init_logging();
+	    #endif
+	    
             retry = 0;
             is_sdcard_open = true;
             is_sdcard_error = false;
@@ -3426,16 +3436,19 @@ void mqtt_task() {
 
       case MQTT_CLOSE_PTR_FILE:
          mqtt_ptr_file.close();
-         mqtt_state = MQTT_CLOSE_SDCARD;
-         LOGV(F("MQTT_CLOSE_PTR_FILE ---> MQTT_CLOSE_SDCARD"));
+         //mqtt_state = MQTT_CLOSE_SDCARD;
+         mqtt_state = MQTT_END;
+         LOGV(F("MQTT_CLOSE_PTR_FILE ---> MQTT_END"));
          break;
 
+	 /*
       case MQTT_CLOSE_SDCARD:
          is_sdcard_error = false;
          is_sdcard_open = false;
          mqtt_state = MQTT_END;
          LOGV(F("MQTT_CLOSE_SDCARD ---> MQTT_END"));
          break;
+	 */
 
       case MQTT_END:
          if (is_mqtt_published_data) {
