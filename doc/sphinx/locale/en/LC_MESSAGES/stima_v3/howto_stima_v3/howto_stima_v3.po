@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-25 19:46+0200\n"
+"POT-Creation-Date: 2021-12-10 15:05+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -384,8 +384,8 @@ msgid "kicad/r-map_v3/Microduino_GSM_DE/SIM800C_DE"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:232
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:815
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:858
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:837
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:880
 msgid "Stima I2C-HUB"
 msgstr ""
 
@@ -1220,223 +1220,268 @@ msgstr ""
 msgid ""
 "Caricare il bootloader attraverso un programmatore impostando i seguenti "
 "parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended fuse 0xFD, High "
-"fuse 0xD0 Per usare arduino come programmatore riferirsi a: "
-"https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP e questo è un "
-"esempio dei comandi da impartire a avrdude:"
+"fuse 0xD0"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:777
+msgid "Questo è un esempio dei comandi da impartire a avrdude:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:779
+msgid ""
+"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -e "
+"-Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:m"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:780
 msgid ""
-"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -e "
-"-Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:"
-msgstr ""
-
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:781
-msgid ""
-"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -V -U "
+"avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -V -U "
 "digitecoboot_atmega1284p.hex"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:782
-msgid "avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -U lock:w:0x0F:m"
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:781
+msgid "avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -U lock:w:0x0F:m"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:784
+msgid "Per usare arduino come programmatore riferirsi a:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:784
+msgid "https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:786
+msgid ""
+"E' possibile utilizzare due moduli microduino core+, uno 1284p16m da "
+"usare come programmatore e il secondo con la stessa tensione di "
+"funzionamento da programmare collegati come da schema: "
+"|image_arduino_isp_schema|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:789
+msgid "Un esempio di connessione rapida: |image_arduino_microduino_photo|"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:792
+msgid ""
+"Programmare il microduino-core+ da usare come ISP con il firmware "
+"ArduinoIsp in ambiente platformio che si trova in "
+"platformio/stima_v3/arduino_isp"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:796
+msgid "ed eseguire:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:798
+msgid "make atmega644p_isp"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:800
+msgid "oppure:"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:802
+msgid "make atmega1284p_isp"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:808
 msgid "Compilazione del firmware in formato binario"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:788
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:810
 msgid ""
 "Compilare il firmware per i moduli Stima secondo quanto scritto ai punti "
 "precedenti"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:790
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:812
 msgid ""
 "Localizzare il file firmware.elf compilato, solitamente -  "
 "rmap/platformio/stima_v3/stima/.pio/build/1284p16m"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:792
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:814
 msgid ""
 "Attraverso una consolle o il prompt dei comandi, eseguire -  "
 "~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy -I ihex -O "
 "binary firmware.elf FIRMWARE.BIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:796
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:818
 msgid "Upload del firmware tramite micro SD-Card attraverso Digitecoboot"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:798
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:820
 msgid "Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:799
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:821
 msgid ""
 "Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima "
 "GSM/GPRS, Stima I2C-TH o Stima-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:801
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:823
 msgid ""
 "Alimentare il modulo e attendere 30 secondi per la fine del caricamento "
 "del firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:803
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:825
 msgid "Spegnere il modulo e rimuovere la micro SD-Card contenente il firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:805
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:827
 msgid ""
 "Se necessario, inserire la micro SD-Card utile per il funzionamento del "
 "modulo (senza il file FIRMWARE.BIN)"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:807
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:829
 msgid "Alimentare il modulo"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:810
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:832
 msgid "Assemblaggio stazione Stima"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:812
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:834
 msgid "Per assemblare una stazione Stima, è necessario disporre di:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:814
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:836
 msgid "Stima I2C-Master nella versione GSM/GPRS o Ethernet"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:816
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:856
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:838
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:878
 msgid "Stima I2C-TH"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:817
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:857
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:839
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:879
 msgid "Stima I2C-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:818
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:840
 msgid ""
 "Sensore di temperatura e umidità Digiteco TU022 (con sensore HYT221 o "
 "HYT271) oppure sensore di temperatura ADT7420 e sensore di umidità "
 "HIH6100"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:821
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:843
 msgid ""
 "Pluviometro Digiteco PL005 o Digiteco PL010 o qualsiasi altro pluviometro"
 " con uscita a contatto"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:823
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:845
 msgid "Cavi di collegamento:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:825
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:847
 msgid ""
 "per sensore di temperatura e umidità Digiteco TU022: cavo 4 poli con "
 "connettore a vite lato sensore e connettore 4 pin lato HUB"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:827
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:849
 msgid ""
 "o per sensori ADT7420 e HIH6100 con cavi a 4 poli per sensore a saldare "
 "lato sensore e connettore 4 pin lato HUB"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:829
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:851
 msgid ""
 "per pluviometro a contatto: cavo a 2 poli con connettore 4 pin lato "
 "modulo Stima I2C-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:832
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:854
 msgid "Antenna dual/quad band GPRS con connettore SMA per stazione GSM/GPRS"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:833
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:855
 msgid "Contenitore stagno IP66 310x425x160"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:834
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:856
 msgid ""
 "Batteria sigillata al piombo 12V e relativi cavi di collegamento con "
 "fusibile di protezione"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:836
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:858
 msgid "Pannello fotovoltaico 20W o sorgente di alimentazione continua 12-30 V"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:838
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:860
 msgid ""
 "DigitecoPower: se presente batteria tampone 12V con pannello fotovoltaico"
 " o sorgente di alimentazione esterna DC"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:840
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:862
 msgid "Palo acciaio inox diametro 48 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:841
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:863
 msgid "Collare alluminio anodizzato per fissaggio a palo diametro 48 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:842
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:864
 msgid "Morsetto alluminio anodizzato per fissaggio a sensore diametro 40 mm"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:843
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:865
 msgid ""
 "Braccetto alluminio anodizzato cilindrico per fissaggio del morsetto "
 "sensore al collare del palo"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:845
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:867
 msgid "Supporto per pluviometro"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:846
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:868
 msgid "Display I2C LCD con supporto in alluminio"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:847
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:869
 msgid "Supporti per moduli Stima su guida DIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:849
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:871
 msgid ""
 "Una volta aver collegato i sensori, i moduli Stima, compilato i firmware "
 "e configurato tutti i moduli, così come illustrato nei capitoli "
 "precedenti, la stazione è pronta per essere utilizzata."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:853
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:875
 msgid "Di seguito un esempio di installazione di una stazione Stima GSM/GPRS con:"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:859
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:881
 msgid "DigitecoPower"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:860
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:882
 msgid "Batteria sigillata 12V"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:861
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:883
 msgid "Pannello fotovoltaico"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:863
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:885
 msgid "|image22|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:865
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:887
 msgid ""
 "A partire da sinistra, è visibile il modulo Stima GSM/GPRS dotato di "
 "connettore tipo SMA per il collegamento dell’antenna. Al centro è "
@@ -1447,18 +1492,18 @@ msgid ""
 "collegamento di ulteriori sensori e moduli su bus I\\ :sup:`2`\\ C."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:873
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:895
 msgid ""
 "Sono ben visibili i jumper, uno per porta, per la selezione della "
 "corrispondente tensione di alimentazione (5V o 3.3V) per i moduli Stima e"
 " per i sensori I2C."
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:877
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:899
 msgid "|image23|"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:879
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:901
 msgid "|image24|"
 msgstr ""
 
@@ -1564,5 +1609,34 @@ msgstr ""
 #~ "Compilare il firmware e caricarlo "
 #~ "attraverso il cavo USB tramite il "
 #~ "comando:"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "avrdude  -v -patmega1284p -cavrisp "
+#~ "-P/dev/ttyACM0 -b19200 -e -Ulock:w:0x3F:m "
+#~ "-Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "avrdude  -v -patmega1284p -cavrisp "
+#~ "-P/dev/ttyACM0 -b19200 -V -U "
+#~ "digitecoboot_atmega1284p.hex"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "avrdude  -v -patmega1284p -cavrisp "
+#~ "-P/dev/ttyACM0 -b19200 -U lock:w:0x0F:m"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Caricare il bootloader attraverso un "
+#~ "programmatore impostando i seguenti parametri:"
+#~ " stk500v1, 19200 baud, Low fuse 0xFF,"
+#~ " Extended fuse 0xFD, High fuse 0xD0"
+#~ " Per usare arduino come programmatore "
+#~ "riferirsi a: "
+#~ "https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP e "
+#~ "questo è un esempio dei comandi da"
+#~ " impartire a avrdude:"
 #~ msgstr ""
 

@@ -1,10 +1,11 @@
-RFC rmap versione 2.7
+RFC rmap versione 2.8
 =====================
 
 Storia del documento
 --------------------
 
-- 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro "sd"
+- 2021/11/21 v. 2.8 : corretto topic MQTT per RPC
+- 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro 'sd'
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
 - 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
@@ -139,7 +140,7 @@ Ogni dato è un valore associato a 6 metadati univoci.
    misura , campo di misura e cifre significative
 
 Ogni dato può essere dotato inoltre di attributi (a esempio prodotti dal
-controllo di qualità) definiti dalla stessa tabella variabili. E'
+controllo di qualità) definiti dalla stessa tabella variabili. E`
 inoltre possibile associare dei dati statici (di anagrafica, ossia
 invariabili nel tempo, timerange e level) con i soli metadati
 longitudine, latitudine, identicativo, report
@@ -744,7 +745,7 @@ posizionata nel punto \`(9.15454, 4451485)\` (`lon`, \`lat`) con i
 seguenti dati (`data`) statici (l'elemento dell'array che non ha
 \`level\` e \`timerange`):
 
--  Nome della stazione (`B01019`): "Torriglia"
+-  Nome della stazione (`B01019`): 'Torriglia'
 -  Altezza della stazione (`B07030`): 769.0m
 -  Altezza barometrica della stazione (`B07031`): 769.0m
 
@@ -907,7 +908,7 @@ segnalazione di sconnessione gestita male con will (retained):
    
    maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
-payload : **{"v": "error01"}**
+payload : **{'v': 'error01'}**
 
 poi questo messaggio viene "ricoperto" con:
 
@@ -919,7 +920,7 @@ payload : **{ "v": "conn"}**
 
 alla disconnessione allo stesso topic dovrà essere inviato:
 
-payload : **{ "v": "disconn"}**
+payload : **{ 'v': 'disconn'}**
 
 Data e Constant Data
 ^^^^^^^^^^^^^^^^^^^^
@@ -1003,9 +1004,9 @@ Il topic e come quello della forma standard senza l'ultimo parametro
 
 Il payload prevede due parametri:
 
--  "d" che descrive quale elemento della tabella D è preso in
+-  'd' che descrive quale elemento della tabella D è preso in
    considerazione
--  "p" con un array di valori corrispondenti ai "VAR" descritti
+-  'p' con un array di valori corrispondenti ai "VAR" descritti
    nell'elemento in tabella D
 
 Ad esempio:
@@ -1040,10 +1041,10 @@ standard senza i parametri "VAR", "LEVEL" e "TRANGE". Ad esempio:
 
 Il payload prevede due parametri:
 
--  "e" che descrive quale elemento della tabella E è preso in
+-  ''e' che descrive quale elemento della tabella E è preso in
    considerazione
--  "p" con un array di valori corrispondenti ai "VAR", "LEVEL" e
-   "TRANGE" descritti nell'elemento in tabella E
+-  'p' con un array di valori corrispondenti ai "VAR", "LEVEL" e
+   'TRANGE' descritti nell'elemento in tabella E
 
 Ad esempio:
 
@@ -1069,18 +1070,21 @@ Remote procedure over MQTT
 
 Le RPC sono in formato json (json-rpc) e utilizzano due topics MQTT:
 
+-  topiccom è il topic utilizzato per l'invio delle richieste RPC al
+   server
+
 ::
    
-   topiccom="rpc/<user>/<mac>/com"
-   topicres="rpc/<user>/<mac>/res"
+   rpc/IDENT/COORDS/NETWORK/com
 
--  topiccom è il topic utilizzato per l'invio delle richieste RPC al
-   server mentre topicres è il topic utilizzato dal server per le
+-  topicres è il topic utilizzato dal server per le
    risposte.
--  user è l'utente e dovrà essere lo stesso utilizzato per
-   l'autenticazione al broker MQTT.
--  mac è l'identificativo univoco del device (numerico 12 cifre, ossia 6
-   numeri di 2 cifre)
+
+::
+   
+   rpc/IDENT/COORDS/NETWORK/res
+   
+IDENT corrisponde all'utente utilizzato per l'autenticazione al broker MQTT.
 
 Il payload seguirà le specifiche `JSON-RPC 2.0
 Specification <https://www.jsonrpc.org/specification>`__
@@ -1131,9 +1135,9 @@ parametri:
    operazione è l'ultima ad essere effettuata dal server (default false)
 -  array sens:
 
-   -  char tr: timerange (esempio: "1,0,60") (no default)
-   -  char lev: level (esempio "1,-,-,-") (no default)
-   -  char var: variabile tabella B (esempio "B13011") (no default)
+   -  char tr: timerange (esempio: '1,0,60') (no default)
+   -  char lev: level (esempio '1,-,-,-') (no default)
+   -  char var: variabile tabella B (esempio 'B13011') (no default)
    -  any ext: configurazione relativa a una implementazione specifica
       di un sensore nella stazione OPZIONALE:
       
@@ -1190,7 +1194,7 @@ esempio:
 
 ::
 
-   {"jsonrpc": "2.0", "method": "sdrecovery", "id": 0}
+   {"jsonrpc": "2.0", "method": "recovery", "id": 0}
 
 - resend
       

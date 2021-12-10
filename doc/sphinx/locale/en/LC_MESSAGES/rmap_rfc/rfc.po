@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-15 16:19+0200\n"
+"POT-Creation-Date: 2021-11-23 11:12+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -19,7 +19,7 @@ msgstr ""
 "Generated-By: Babel 2.8.0\n"
 
 #: ../../rmap_rfc/rfc.rst:2
-msgid "RFC rmap versione 2.7"
+msgid "RFC rmap versione 2.8"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:5
@@ -27,51 +27,55 @@ msgid "Storia del documento"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:7
-msgid ""
-"2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; "
-"corretto configure RPC e aggiunto parametro \"sd\""
+msgid "2021/11/21 v. 2.8 : corretto topic MQTT per RPC"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:8
-msgid "2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget"
+msgid ""
+"2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; "
+"corretto configure RPC e aggiunto parametro 'sd'"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:9
+msgid "2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget"
+msgstr ""
+
+#: ../../rmap_rfc/rfc.rst:10
 msgid ""
 "2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei "
 "valori interi nel formato json;"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:10
+#: ../../rmap_rfc/rfc.rst:11
 msgid "2020/10/09 v. 2.4 : specificato il formato della data in json"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:11
+#: ../../rmap_rfc/rfc.rst:12
 msgid "2019/06/18 v. 2.3 : aggiunte specifiche JSRPC"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:14
+#: ../../rmap_rfc/rfc.rst:15
 msgid "Definizioni"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:17
+#: ../../rmap_rfc/rfc.rst:18
 msgid "Campionamento e processo di misurazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:19
+#: ../../rmap_rfc/rfc.rst:20
 msgid ""
 "Campionamento è il processo per ottenere una discretizzata sequenza di "
 "misure di una quantità."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:21
+#: ../../rmap_rfc/rfc.rst:22
 msgid ""
 "Misurazione: processo volto a ottenere sperimentalmente uno o più valori "
 "che possono essere ragionevolmente attribuiti a una grandezza (UNI CEI "
 "70099:2008);"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:24
+#: ../../rmap_rfc/rfc.rst:25
 msgid ""
 "Valore: elemento di un sistema di misura che è direttamente influenzato "
 "dal fenomeno, corpo o sostanza che propongono la grandezza da sottoporre "
@@ -80,14 +84,14 @@ msgid ""
 "analisi di serie, un'osservazione è derivata da un numero di campioni."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:30
+#: ../../rmap_rfc/rfc.rst:31
 msgid ""
 "Risultato di misura: insieme di valori attribuiti a un misurando "
 "congiuntamente a ogni altra informazione pertinente disponibile (UNI CEI "
 "70099:2008);"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:33
+#: ../../rmap_rfc/rfc.rst:34
 msgid ""
 "Taratura (Calibration): operazione eseguita in condizioni specificate, "
 "che in una prima fase stabilisce una relazione tra i valori di una "
@@ -99,7 +103,7 @@ msgid ""
 "\"calibrazione\" non dovrebbe essere usato per designare la taratura."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:42
+#: ../../rmap_rfc/rfc.rst:43
 msgid ""
 "Trasduttore di misura: dispositivo, impiegato in una misurazione, che "
 "fornisce una grandezza di uscita avente una relazione specificata con la "
@@ -108,7 +112,7 @@ msgid ""
 "misurazione del pH, tubo di Bourdon, lama bimetallica."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:47
+#: ../../rmap_rfc/rfc.rst:48
 msgid ""
 "Variabili atmosferiche come la velocità del vento, temperatura, pressione"
 " e umidità sono funzioni di quattro dimensioni - due orizzontali, una "
@@ -118,48 +122,48 @@ msgid ""
 " con incertezze accettabili nelle stime delle medie e variabilità."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:56 ../../rmap_rfc/rfc.rst:893
+#: ../../rmap_rfc/rfc.rst:57 ../../rmap_rfc/rfc.rst:894
 msgid "Data Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:58
+#: ../../rmap_rfc/rfc.rst:59
 msgid ""
 "Dati Level I , sono le letture dirette degli strumenti espresse in "
 "appropriate unità fisiche e georeferenziate (campionamenti)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:60
+#: ../../rmap_rfc/rfc.rst:61
 msgid ""
 "Dati Level II, dati riconosciuti come variabili meteorologiche "
 "(osservazioni/misurazioni); possono essere ottenuti direttamente da "
 "strumenti o derivati dai dati Level I"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:63
+#: ../../rmap_rfc/rfc.rst:64
 msgid ""
 "Dati Level III sono quelli contenuti in dataset internamente consistenti,"
 " generalmente su grigliato."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:66
+#: ../../rmap_rfc/rfc.rst:67
 msgid "I dati scambiati a livello internazionale sono livello II o livello III"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:69
+#: ../../rmap_rfc/rfc.rst:70
 msgid "Report"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:71
+#: ../../rmap_rfc/rfc.rst:72
 msgid ""
 "Un report è un insieme (sincrono) di osservazioni a livello II completo "
 "di metadati o con la possibilità di ricostruire i metadati."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:75
+#: ../../rmap_rfc/rfc.rst:76
 msgid "Protocolli per R-map"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:77
+#: ../../rmap_rfc/rfc.rst:78
 msgid ""
 "MQTT (Message Queue Telemetry Transport) è un protocollo "
 "publish/subscribe particolarmente leggero, adatto per la comunicazione "
@@ -167,7 +171,7 @@ msgid ""
 "message broker."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:81
+#: ../../rmap_rfc/rfc.rst:82
 msgid ""
 "AMQP (Advanced Message Queuing Protocol) è protocollo per comunicazioni "
 "attraverso code di messaggi. Sono garantite l'interoperabilità, la "
@@ -175,150 +179,150 @@ msgid ""
 "Rabbitmq exporta un broker MQTT e fornisce delle api web"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:88
+#: ../../rmap_rfc/rfc.rst:89
 msgid "Sistema di misura"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:90
+#: ../../rmap_rfc/rfc.rst:91
 msgid "Un `sistema di misura` è costituito da 3 componenti:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:93
+#: ../../rmap_rfc/rfc.rst:94
 msgid ""
 "sensore: trasforma le variazioni di una grandezza misurata in variazioni "
 "di una grandezza di tipo elettrico;"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:94
+#: ../../rmap_rfc/rfc.rst:95
 msgid "sistema di controllo deputato a svolgere le seguenti funzioni:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:96
+#: ../../rmap_rfc/rfc.rst:97
 msgid ""
 "acquisizione ad intervalli prestabiliti dei segnali provenienti dal "
 "sensore;"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:98
+#: ../../rmap_rfc/rfc.rst:99
 msgid "eventuale memorizzazione locale dei dati;"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:99
+#: ../../rmap_rfc/rfc.rst:100
 msgid "trasmissione dei dati."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:101
+#: ../../rmap_rfc/rfc.rst:102
 msgid "sistema di alimentazione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:104
+#: ../../rmap_rfc/rfc.rst:105
 msgid "Visione generale"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:106
+#: ../../rmap_rfc/rfc.rst:107
 msgid ""
 "Seguendo un semplice flusso dei dati di una rete rmap compatibile si "
 "possono prevedere le seguenti fasi:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:109
+#: ../../rmap_rfc/rfc.rst:110
 msgid "digitalizzazione dei campionamenti o osservazioni"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:110
+#: ../../rmap_rfc/rfc.rst:111
 msgid "pubblicazione dei campionamenti su broker MQTT con root topic sample/"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:111
+#: ../../rmap_rfc/rfc.rst:112
 msgid "pubblicazione delle osservazioni su broker MQTT con root topic report/"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:113
+#: ../../rmap_rfc/rfc.rst:114
 msgid ""
 "eventuale trasformazione dei campionamenti (level I) in osservazioni "
 "(level II) e eventuale pubblicazione sul broker MQTT"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:115
+#: ../../rmap_rfc/rfc.rst:116
 msgid "composizione di un report"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:116
+#: ../../rmap_rfc/rfc.rst:117
 msgid "invio del report ad un broker tramite AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:117
+#: ../../rmap_rfc/rfc.rst:118
 msgid "archiviazione dei dati in modo permanente"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:118
+#: ../../rmap_rfc/rfc.rst:119
 msgid "disponibilità dei dati in archivio tramite web services"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:120
+#: ../../rmap_rfc/rfc.rst:121
 msgid ""
 "Questo è uno schema tra i più semplici; rimane la possibilità di "
 "articolarlo replicando i servizi, distribuendoli in rete etc."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:124
+#: ../../rmap_rfc/rfc.rst:125
 msgid "Data Model: Dati e Metadati"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:126
+#: ../../rmap_rfc/rfc.rst:127
 msgid "Ogni dato è un valore associato a 6 metadati univoci."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:128
+#: ../../rmap_rfc/rfc.rst:129
 msgid ""
 "Time: date time della osservazione o di termine del periodo di "
 "osservazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:130
+#: ../../rmap_rfc/rfc.rst:131
 msgid ""
 "Longitudine, latitudine e identificativo: coordinate geografiche e "
 "identificativo del generatore del dati"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:132
+#: ../../rmap_rfc/rfc.rst:133
 msgid ""
 "Network: definisce stazioni con caratteristiche omogenee (classe degli "
 "strumenti, rappresentatività e/o stazioni mobili o fisse)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:134
+#: ../../rmap_rfc/rfc.rst:135
 msgid ""
 "Time range: indica osservazione o tempo della previsione ed eventuale "
 "elaborazione “statistica” in forma codificata tramite tabella"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:136
+#: ../../rmap_rfc/rfc.rst:137
 msgid ""
 "Level: le coordinate verticali (eventualmente strato) in forma codificata"
 " tramite tabella"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:138
+#: ../../rmap_rfc/rfc.rst:139
 msgid ""
 "Variabile: parametro fisico definito con una descrizione, unità di misura"
 " , campo di misura e cifre significative"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:141
+#: ../../rmap_rfc/rfc.rst:142
 msgid ""
 "Ogni dato può essere dotato inoltre di attributi (a esempio prodotti dal "
-"controllo di qualità) definiti dalla stessa tabella variabili. E' inoltre"
+"controllo di qualità) definiti dalla stessa tabella variabili. E` inoltre"
 " possibile associare dei dati statici (di anagrafica, ossia invariabili "
 "nel tempo, timerange e level) con i soli metadati longitudine, "
 "latitudine, identicativo, report"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:148
+#: ../../rmap_rfc/rfc.rst:149
 msgid "Time"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:150
+#: ../../rmap_rfc/rfc.rst:151
 msgid ""
 "L'istante di riferimento del dato in ora GMT: si riferisce all'istante "
 "finale della misurazione. Di conseguenza, una precipitazione cumulata su "
@@ -327,33 +331,33 @@ msgid ""
 "2015-08-05."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:157
+#: ../../rmap_rfc/rfc.rst:158
 msgid "Longitudine, latitudine e identificativo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:159
+#: ../../rmap_rfc/rfc.rst:160
 msgid "Le coordinate sono espresse con rappresentazione sessadecimale."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:161
+#: ../../rmap_rfc/rfc.rst:162
 msgid "longitudine: coordinate geografiche (ETRF89 - WGS84)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:162
+#: ../../rmap_rfc/rfc.rst:163
 msgid "latitudine: coordinate geografiche (ETRF89 - WGS84)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:163
+#: ../../rmap_rfc/rfc.rst:164
 msgid ""
 "identificativo : identificativo fornitore dati/volo aereo/nave "
 "(obbligatorio nel caso di stazioni mobili)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:167
+#: ../../rmap_rfc/rfc.rst:168
 msgid "Network"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:169
+#: ../../rmap_rfc/rfc.rst:170
 msgid ""
 "Definisce stazioni con caratteristiche omogenee: classe degli strumenti, "
 "rappresentatività e/o stazioni mobili o fisse. Per le stazioni che non "
@@ -361,57 +365,57 @@ msgid ""
 " segue la seguente regola:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:174
+#: ../../rmap_rfc/rfc.rst:175
 msgid ""
 "\"fixed\" per tutte le stazioni fisse, le cui coordinate non variano nel "
 "tempo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:176
+#: ../../rmap_rfc/rfc.rst:177
 msgid ""
 "\"mobile\" per tutte le stazioni/punti di misura le cui coordinate "
 "cambiano nel tempo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:180
+#: ../../rmap_rfc/rfc.rst:181
 msgid "Time range"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:182
+#: ../../rmap_rfc/rfc.rst:183
 msgid ""
 "Definition of the main concepts related to the description of time range "
 "and statistical processing for observed and forecast data:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:185
+#: ../../rmap_rfc/rfc.rst:186
 msgid ""
 "Validity time is defined as the time at which the data are measured or at"
 " which forecast is valid; for statistically processed data, the validity "
 "time is the end of the time interval."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:189
+#: ../../rmap_rfc/rfc.rst:190
 msgid ""
 "Reference time is defined as the nominal time of an observation for "
 "observed values, or as the time at which a model forecast starts for "
 "forecast values."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:193
+#: ../../rmap_rfc/rfc.rst:194
 msgid ""
 "The date and time in rmap are always the validity date and time of a "
 "value, regardless of the value being an observation or a forecast."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:196
+#: ../../rmap_rfc/rfc.rst:197
 msgid "The Timerange field is composed by:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:198
+#: ../../rmap_rfc/rfc.rst:199
 msgid "pindicator : integer from table timerange ( unsigned integer)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:199
+#: ../../rmap_rfc/rfc.rst:200
 msgid ""
 "P1 is defined as the difference in seconds between validity time and "
 "reference time. For forecasts it is the positive forecast time. For "
@@ -421,211 +425,211 @@ msgid ""
 "(unsigned integer)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:205
+#: ../../rmap_rfc/rfc.rst:206
 msgid ""
 "P2 is defined as the duration of the period over which statistical "
 "processing is performed, and is always nonnegative. Note that, for "
 "instantaneous values, P2 is always zero. (usigned integer)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:209
+#: ../../rmap_rfc/rfc.rst:210
 msgid ""
 "The following table lists the possible values for pindicator and the "
 "interpretation of the corresponding values of P1 and P2 specifying a time"
 " range:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:214
+#: ../../rmap_rfc/rfc.rst:215
 msgid "Pindicator"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:214 ../../rmap_rfc/rfc.rst:530
-#: ../../rmap_rfc/rfc.rst:590
+#: ../../rmap_rfc/rfc.rst:215 ../../rmap_rfc/rfc.rst:531
+#: ../../rmap_rfc/rfc.rst:591
 msgid "Description"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:216 ../../rmap_rfc/rfc.rst:293
-#: ../../rmap_rfc/rfc.rst:592 ../../rmap_rfc/rfc.rst:595
-#: ../../rmap_rfc/rfc.rst:598 ../../rmap_rfc/rfc.rst:601
-#: ../../rmap_rfc/rfc.rst:604 ../../rmap_rfc/rfc.rst:609
-#: ../../rmap_rfc/rfc.rst:613 ../../rmap_rfc/rfc.rst:619
+#: ../../rmap_rfc/rfc.rst:217 ../../rmap_rfc/rfc.rst:294
+#: ../../rmap_rfc/rfc.rst:593 ../../rmap_rfc/rfc.rst:596
+#: ../../rmap_rfc/rfc.rst:599 ../../rmap_rfc/rfc.rst:602
+#: ../../rmap_rfc/rfc.rst:605 ../../rmap_rfc/rfc.rst:610
+#: ../../rmap_rfc/rfc.rst:614 ../../rmap_rfc/rfc.rst:620
 msgid "0"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:216
+#: ../../rmap_rfc/rfc.rst:217
 msgid "Average"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:218 ../../rmap_rfc/rfc.rst:295
+#: ../../rmap_rfc/rfc.rst:219 ../../rmap_rfc/rfc.rst:296
 msgid "1"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:218
+#: ../../rmap_rfc/rfc.rst:219
 msgid "Accumulation"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:220 ../../rmap_rfc/rfc.rst:298
-#: ../../rmap_rfc/rfc.rst:624 ../../rmap_rfc/rfc.rst:628
-#: ../../rmap_rfc/rfc.rst:631
+#: ../../rmap_rfc/rfc.rst:221 ../../rmap_rfc/rfc.rst:299
+#: ../../rmap_rfc/rfc.rst:625 ../../rmap_rfc/rfc.rst:629
+#: ../../rmap_rfc/rfc.rst:632
 msgid "2"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:220
+#: ../../rmap_rfc/rfc.rst:221
 msgid "Maximum"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:222 ../../rmap_rfc/rfc.rst:300
+#: ../../rmap_rfc/rfc.rst:223 ../../rmap_rfc/rfc.rst:301
 msgid "3"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:222
+#: ../../rmap_rfc/rfc.rst:223
 msgid "Minimum"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:224 ../../rmap_rfc/rfc.rst:302
+#: ../../rmap_rfc/rfc.rst:225 ../../rmap_rfc/rfc.rst:303
 msgid "4"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:224
+#: ../../rmap_rfc/rfc.rst:225
 msgid ""
 "Difference (value at the end of the time range minus value at the "
 "beginning)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:228 ../../rmap_rfc/rfc.rst:304
+#: ../../rmap_rfc/rfc.rst:229 ../../rmap_rfc/rfc.rst:305
 msgid "5"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:228
+#: ../../rmap_rfc/rfc.rst:229
 msgid "Root Mean Square"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:230 ../../rmap_rfc/rfc.rst:308
+#: ../../rmap_rfc/rfc.rst:231 ../../rmap_rfc/rfc.rst:309
 msgid "6"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:230
+#: ../../rmap_rfc/rfc.rst:231
 msgid "Standard Deviation"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:232 ../../rmap_rfc/rfc.rst:310
+#: ../../rmap_rfc/rfc.rst:233 ../../rmap_rfc/rfc.rst:311
 msgid "7"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:232
+#: ../../rmap_rfc/rfc.rst:233
 msgid "Covariance (temporal variance)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:234 ../../rmap_rfc/rfc.rst:312
+#: ../../rmap_rfc/rfc.rst:235 ../../rmap_rfc/rfc.rst:313
 msgid "8"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:234
+#: ../../rmap_rfc/rfc.rst:235
 msgid ""
 "Difference (value at the beginning of the time range minus value at the "
 "end)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:238 ../../rmap_rfc/rfc.rst:315
+#: ../../rmap_rfc/rfc.rst:239 ../../rmap_rfc/rfc.rst:316
 msgid "9"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:238
+#: ../../rmap_rfc/rfc.rst:239
 msgid "Ratio"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:240
+#: ../../rmap_rfc/rfc.rst:241
 msgid "51"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:240
+#: ../../rmap_rfc/rfc.rst:241
 msgid "Climatological Mean Value"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:242
+#: ../../rmap_rfc/rfc.rst:243
 msgid "10-191"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:242 ../../rmap_rfc/rfc.rst:293
-#: ../../rmap_rfc/rfc.rst:317 ../../rmap_rfc/rfc.rst:321
-#: ../../rmap_rfc/rfc.rst:350 ../../rmap_rfc/rfc.rst:359
-#: ../../rmap_rfc/rfc.rst:363
+#: ../../rmap_rfc/rfc.rst:243 ../../rmap_rfc/rfc.rst:294
+#: ../../rmap_rfc/rfc.rst:318 ../../rmap_rfc/rfc.rst:322
+#: ../../rmap_rfc/rfc.rst:351 ../../rmap_rfc/rfc.rst:360
+#: ../../rmap_rfc/rfc.rst:364
 msgid "Reserved"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:244
+#: ../../rmap_rfc/rfc.rst:245
 msgid "192-254"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:244
+#: ../../rmap_rfc/rfc.rst:245
 msgid "Reserved for Local Use"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:246 ../../rmap_rfc/rfc.rst:365
+#: ../../rmap_rfc/rfc.rst:247 ../../rmap_rfc/rfc.rst:366
 msgid "200"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:246
+#: ../../rmap_rfc/rfc.rst:247
 msgid "Vectorial mean"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:248 ../../rmap_rfc/rfc.rst:369
+#: ../../rmap_rfc/rfc.rst:249 ../../rmap_rfc/rfc.rst:370
 msgid "201"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:248
+#: ../../rmap_rfc/rfc.rst:249
 msgid "Mode"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:250
+#: ../../rmap_rfc/rfc.rst:251
 msgid "202"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:250
+#: ../../rmap_rfc/rfc.rst:251
 msgid "Standard deviation vectorial mean"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:252
+#: ../../rmap_rfc/rfc.rst:253
 msgid "203"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:252
+#: ../../rmap_rfc/rfc.rst:253
 msgid "Vectorial maximum"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:254 ../../rmap_rfc/rfc.rst:373
+#: ../../rmap_rfc/rfc.rst:255 ../../rmap_rfc/rfc.rst:374
 msgid "204"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:254
+#: ../../rmap_rfc/rfc.rst:255
 msgid "Vectorial minimum"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:256
+#: ../../rmap_rfc/rfc.rst:257
 msgid "205"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:256
+#: ../../rmap_rfc/rfc.rst:257
 msgid "Product with a valid time ranging inside the given period"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:259 ../../rmap_rfc/rfc.rst:459
+#: ../../rmap_rfc/rfc.rst:260 ../../rmap_rfc/rfc.rst:460
 msgid "254"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:259
+#: ../../rmap_rfc/rfc.rst:260
 msgid "Istantaneous value"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:263
+#: ../../rmap_rfc/rfc.rst:264
 msgid "Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:265
+#: ../../rmap_rfc/rfc.rst:266
 msgid "Level/layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:267
+#: ../../rmap_rfc/rfc.rst:268
 msgid ""
 "This table lists the possible values for leveltype1 or leveltype2 and the"
 " interpretation of the corresponding numerical value l1 or l2. Leveltype "
@@ -636,608 +640,608 @@ msgid ""
 " not strictly define physical surfaces."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:275
+#: ../../rmap_rfc/rfc.rst:276
 msgid ""
 "The idea is borrowed from the GRIB edition 2 fixed surface concept and "
 "the values for leveltype coincide with the GRIB standard where possible."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:278
+#: ../../rmap_rfc/rfc.rst:279
 msgid "The level field is composed by:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:280
+#: ../../rmap_rfc/rfc.rst:281
 msgid "leveltype1 : from level table (unsigned integer value)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:281
+#: ../../rmap_rfc/rfc.rst:282
 msgid "l1 : first level defined by leveltype1 (unsigned integer value)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:282
+#: ../../rmap_rfc/rfc.rst:283
 msgid ""
 "leveltype2 : from level table (unsigned integer value); needed with layer"
 " only, missing otherwise (unsigned integer value)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:284
+#: ../../rmap_rfc/rfc.rst:285
 msgid ""
 "l2 : second level defined by leveltype2 ; needed with layer only, missing"
 " otherwise (unsigned integer value)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:287
+#: ../../rmap_rfc/rfc.rst:288
 msgid "Should be everytime l1 < l2"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:290
+#: ../../rmap_rfc/rfc.rst:291
 msgid "leveltype"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:290
+#: ../../rmap_rfc/rfc.rst:291
 msgid "Meaning"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:290
+#: ../../rmap_rfc/rfc.rst:291
 msgid "unit/contents of l1/l2"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:295
+#: ../../rmap_rfc/rfc.rst:296
 msgid "Ground or Water Surface"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:298
+#: ../../rmap_rfc/rfc.rst:299
 msgid "Cloud Base Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:300
+#: ../../rmap_rfc/rfc.rst:301
 msgid "Level of Cloud Tops"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:302
+#: ../../rmap_rfc/rfc.rst:303
 msgid "Level of 0C Isotherm"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:304
+#: ../../rmap_rfc/rfc.rst:305
 msgid "Level of Adiabatic Condensation Lifted from the Surface"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:308
+#: ../../rmap_rfc/rfc.rst:309
 msgid "Maximum Wind Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:310
+#: ../../rmap_rfc/rfc.rst:311
 msgid "Tropopause"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:312
+#: ../../rmap_rfc/rfc.rst:313
 msgid "Nominal Top of the Atmosphere"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:315
+#: ../../rmap_rfc/rfc.rst:316
 msgid "Sea Bottom"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:317
+#: ../../rmap_rfc/rfc.rst:318
 msgid "10-19"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:319
+#: ../../rmap_rfc/rfc.rst:320
 msgid "20"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:319
+#: ../../rmap_rfc/rfc.rst:320
 msgid "Isothermal Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:319 ../../rmap_rfc/rfc.rst:340
-#: ../../rmap_rfc/rfc.rst:418
+#: ../../rmap_rfc/rfc.rst:320 ../../rmap_rfc/rfc.rst:341
+#: ../../rmap_rfc/rfc.rst:419
 msgid "K/10"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:321
+#: ../../rmap_rfc/rfc.rst:322
 msgid "21-99"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:323
+#: ../../rmap_rfc/rfc.rst:324
 msgid "100"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:323
+#: ../../rmap_rfc/rfc.rst:324
 msgid "Isobaric Surface"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:323 ../../rmap_rfc/rfc.rst:343
+#: ../../rmap_rfc/rfc.rst:324 ../../rmap_rfc/rfc.rst:344
 msgid "Pa"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:325
+#: ../../rmap_rfc/rfc.rst:326
 msgid "101"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:325
+#: ../../rmap_rfc/rfc.rst:326
 msgid "Mean Sea Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:327
+#: ../../rmap_rfc/rfc.rst:328
 msgid "102"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:327
+#: ../../rmap_rfc/rfc.rst:328
 msgid "Specific Altitude Above Mean Sea Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:327 ../../rmap_rfc/rfc.rst:330
-#: ../../rmap_rfc/rfc.rst:337 ../../rmap_rfc/rfc.rst:357
-#: ../../rmap_rfc/rfc.rst:361
+#: ../../rmap_rfc/rfc.rst:328 ../../rmap_rfc/rfc.rst:331
+#: ../../rmap_rfc/rfc.rst:338 ../../rmap_rfc/rfc.rst:358
+#: ../../rmap_rfc/rfc.rst:362
 msgid "mm"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:330
+#: ../../rmap_rfc/rfc.rst:331
 msgid "103"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:330
+#: ../../rmap_rfc/rfc.rst:331
 msgid "Specified Height Level Above Ground"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:333
+#: ../../rmap_rfc/rfc.rst:334
 msgid "104"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:333
+#: ../../rmap_rfc/rfc.rst:334
 msgid "Sigma Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:335
+#: ../../rmap_rfc/rfc.rst:336
 msgid "105"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:335
+#: ../../rmap_rfc/rfc.rst:336
 msgid "Hybrid Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:337
+#: ../../rmap_rfc/rfc.rst:338
 msgid "106"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:337
+#: ../../rmap_rfc/rfc.rst:338
 msgid "Depth Below Land Surface"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:340
+#: ../../rmap_rfc/rfc.rst:341
 msgid "107"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:340
+#: ../../rmap_rfc/rfc.rst:341
 msgid "Isentropic (theta) Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:343
+#: ../../rmap_rfc/rfc.rst:344
 msgid "108"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:343
+#: ../../rmap_rfc/rfc.rst:344
 msgid "Level at Specified Pressure Difference from Ground to Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:347
+#: ../../rmap_rfc/rfc.rst:348
 msgid "109"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:347
+#: ../../rmap_rfc/rfc.rst:348
 msgid "Potential Vorticity Surface"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:347
+#: ../../rmap_rfc/rfc.rst:348
 msgid "10-9 K m2 kg-1 s-1"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:350
+#: ../../rmap_rfc/rfc.rst:351
 msgid "110"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:352
+#: ../../rmap_rfc/rfc.rst:353
 msgid "111"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:352
+#: ../../rmap_rfc/rfc.rst:353
 msgid "Eta (NAM) Level (see note below)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:352
+#: ../../rmap_rfc/rfc.rst:353
 msgid "1/10000"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:355
+#: ../../rmap_rfc/rfc.rst:356
 msgid "112"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:355
+#: ../../rmap_rfc/rfc.rst:356
 msgid "116 Reserved"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:357
+#: ../../rmap_rfc/rfc.rst:358
 msgid "117"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:357
+#: ../../rmap_rfc/rfc.rst:358
 msgid "Mixed Layer Depth"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:359
+#: ../../rmap_rfc/rfc.rst:360
 msgid "118-159"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:361
+#: ../../rmap_rfc/rfc.rst:362
 msgid "160"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:361
+#: ../../rmap_rfc/rfc.rst:362
 msgid "Depth Below Sea Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:363
+#: ../../rmap_rfc/rfc.rst:364
 msgid "161-191"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:365
+#: ../../rmap_rfc/rfc.rst:366
 msgid "Entire atmosphere (considered as a single layer)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:369
+#: ../../rmap_rfc/rfc.rst:370
 msgid "Entire ocean (considered as a single layer)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:373
+#: ../../rmap_rfc/rfc.rst:374
 msgid "Highest tropospheric freezing level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:376
+#: ../../rmap_rfc/rfc.rst:377
 msgid "206"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:376
+#: ../../rmap_rfc/rfc.rst:377
 msgid "Grid scale cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:379
+#: ../../rmap_rfc/rfc.rst:380
 msgid "207"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:379
+#: ../../rmap_rfc/rfc.rst:380
 msgid "Grid scale cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:382
+#: ../../rmap_rfc/rfc.rst:383
 msgid "209"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:382
+#: ../../rmap_rfc/rfc.rst:383
 msgid "Boundary layer cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:385
+#: ../../rmap_rfc/rfc.rst:386
 msgid "210"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:385
+#: ../../rmap_rfc/rfc.rst:386
 msgid "Boundary layer cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:388
+#: ../../rmap_rfc/rfc.rst:389
 msgid "211"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:388
+#: ../../rmap_rfc/rfc.rst:389
 msgid "Boundary layer cloud layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:391
+#: ../../rmap_rfc/rfc.rst:392
 msgid "212"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:391
+#: ../../rmap_rfc/rfc.rst:392
 msgid "Low cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:394
+#: ../../rmap_rfc/rfc.rst:395
 msgid "213"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:394
+#: ../../rmap_rfc/rfc.rst:395
 msgid "Low cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:396
+#: ../../rmap_rfc/rfc.rst:397
 msgid "214"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:396
+#: ../../rmap_rfc/rfc.rst:397
 msgid "Low cloud layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:398
+#: ../../rmap_rfc/rfc.rst:399
 msgid "215"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:398
+#: ../../rmap_rfc/rfc.rst:399
 msgid "Cloud ceiling"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:400
+#: ../../rmap_rfc/rfc.rst:401
 msgid "220"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:400
+#: ../../rmap_rfc/rfc.rst:401
 msgid "Planetary Boundary Layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:403
+#: ../../rmap_rfc/rfc.rst:404
 msgid "222"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:403
+#: ../../rmap_rfc/rfc.rst:404
 msgid "Middle cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:406
+#: ../../rmap_rfc/rfc.rst:407
 msgid "223"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:406
+#: ../../rmap_rfc/rfc.rst:407
 msgid "Middle cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:409
+#: ../../rmap_rfc/rfc.rst:410
 msgid "224"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:409
+#: ../../rmap_rfc/rfc.rst:410
 msgid "Middle cloud layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:411
+#: ../../rmap_rfc/rfc.rst:412
 msgid "232"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:411
+#: ../../rmap_rfc/rfc.rst:412
 msgid "High cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:414
+#: ../../rmap_rfc/rfc.rst:415
 msgid "233"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:414
+#: ../../rmap_rfc/rfc.rst:415
 msgid "High cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:416
+#: ../../rmap_rfc/rfc.rst:417
 msgid "234"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:416
+#: ../../rmap_rfc/rfc.rst:417
 msgid "High cloud layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:418
+#: ../../rmap_rfc/rfc.rst:419
 msgid "235"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:418
+#: ../../rmap_rfc/rfc.rst:419
 msgid "Ocean Isotherm Level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:420
+#: ../../rmap_rfc/rfc.rst:421
 msgid "240"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:420
+#: ../../rmap_rfc/rfc.rst:421
 msgid "Ocean Mixed Layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:422
+#: ../../rmap_rfc/rfc.rst:423
 msgid "241"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:422
+#: ../../rmap_rfc/rfc.rst:423
 msgid "Ordered Sequence of Data"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:425
+#: ../../rmap_rfc/rfc.rst:426
 msgid "242"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:425
+#: ../../rmap_rfc/rfc.rst:426
 msgid "Convective cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:428
+#: ../../rmap_rfc/rfc.rst:429
 msgid "243"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:428
+#: ../../rmap_rfc/rfc.rst:429
 msgid "Convective cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:431
+#: ../../rmap_rfc/rfc.rst:432
 msgid "244"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:431
+#: ../../rmap_rfc/rfc.rst:432
 msgid "Convective cloud layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:434
+#: ../../rmap_rfc/rfc.rst:435
 msgid "245"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:434
+#: ../../rmap_rfc/rfc.rst:435
 msgid "Lowest level of the wet bulb zero"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:437
+#: ../../rmap_rfc/rfc.rst:438
 msgid "246"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:437
+#: ../../rmap_rfc/rfc.rst:438
 msgid "Maximum equivalent potential temperature level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:441
+#: ../../rmap_rfc/rfc.rst:442
 msgid "247"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:441
+#: ../../rmap_rfc/rfc.rst:442
 msgid "Equilibrium level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:443
+#: ../../rmap_rfc/rfc.rst:444
 msgid "248"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:443
+#: ../../rmap_rfc/rfc.rst:444
 msgid "Shallow convective cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:446
+#: ../../rmap_rfc/rfc.rst:447
 msgid "249"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:446
+#: ../../rmap_rfc/rfc.rst:447
 msgid "Shallow convective cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:449
+#: ../../rmap_rfc/rfc.rst:450
 msgid "251"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:449
+#: ../../rmap_rfc/rfc.rst:450
 msgid "Deep convective cloud bottom level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:452
+#: ../../rmap_rfc/rfc.rst:453
 msgid "252"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:452
+#: ../../rmap_rfc/rfc.rst:453
 msgid "Deep convective cloud top level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:455
+#: ../../rmap_rfc/rfc.rst:456
 msgid "253"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:455
+#: ../../rmap_rfc/rfc.rst:456
 msgid "Lowest bottom level of supercooled liquid water layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:459
+#: ../../rmap_rfc/rfc.rst:460
 msgid "Highest top level of supercooled liquid water layer"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:463
+#: ../../rmap_rfc/rfc.rst:464
 msgid "256"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:463
+#: ../../rmap_rfc/rfc.rst:464
 msgid "Clouds"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:465
+#: ../../rmap_rfc/rfc.rst:466
 msgid "257"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:465
+#: ../../rmap_rfc/rfc.rst:466
 msgid "Information about the station that generated the data"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:469
+#: ../../rmap_rfc/rfc.rst:470
 msgid "258"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:469
+#: ../../rmap_rfc/rfc.rst:470
 msgid ""
 "(use when ltype1=256) Cloud Data group, L1 = 1 low clouds, 2 middle "
 "clouds, 3 high clouds, 0 others"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:475
+#: ../../rmap_rfc/rfc.rst:476
 msgid "259"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:475
+#: ../../rmap_rfc/rfc.rst:476
 msgid "(use when ltype1=256) Individual cloud groups, L1 = group number"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:480
+#: ../../rmap_rfc/rfc.rst:481
 msgid "260"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:480
+#: ../../rmap_rfc/rfc.rst:481
 msgid "(use when ltype1=256) Cloud drift, L1 = group number"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:484
+#: ../../rmap_rfc/rfc.rst:485
 msgid "261"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:484
+#: ../../rmap_rfc/rfc.rst:485
 msgid ""
 "(use when ltype1=256) Cloud elevation, L1 = group number; (use when "
 "ltype1=264) L2 = swell wave group number"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:491
+#: ../../rmap_rfc/rfc.rst:492
 msgid "262"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:491
+#: ../../rmap_rfc/rfc.rst:492
 msgid "(use when ltype1=256) Direction and elevation of clouds, L1 is ignored"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:496
+#: ../../rmap_rfc/rfc.rst:497
 msgid "263"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:496
+#: ../../rmap_rfc/rfc.rst:497
 msgid ""
 "(use when ltype1=256) Cloud groups with bases below station level, L1 = "
 "group number"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:502
+#: ../../rmap_rfc/rfc.rst:503
 msgid "264"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:502
+#: ../../rmap_rfc/rfc.rst:503
 msgid "Waves"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:504
+#: ../../rmap_rfc/rfc.rst:505
 msgid "265"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:504
+#: ../../rmap_rfc/rfc.rst:505
 msgid "Non-physical data level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:504
+#: ../../rmap_rfc/rfc.rst:505
 msgid "engineering ordinal level"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:509
+#: ../../rmap_rfc/rfc.rst:510
 msgid "Variabile"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:511
+#: ../../rmap_rfc/rfc.rst:512
 msgid ""
 "La tabella B (vedi codifica BUFR del WMO) descrive i dati e la loro "
 "eventuale codifica."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:514
+#: ../../rmap_rfc/rfc.rst:515
 msgid ""
 "I dati possono essere inviati come numeri a virgola mobile o stringhe di "
 "caratteri. Il formato consigliato è quello a stringhe di caratteri per "
@@ -1251,22 +1255,22 @@ msgid ""
 " \"units\" per il fattore di scala \"scale\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:525
+#: ../../rmap_rfc/rfc.rst:526
 msgid ""
 "Le restanti colonne della tabella B vengono utilizzate nella de/codifica "
 "in formato Bufr e Crex. Fare riferimento a "
 "http://www.wmo.int/pages/prog/www/WMOCodes.html"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:532
+#: ../../rmap_rfc/rfc.rst:533
 msgid "The description in table B is a simple description of the data."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:535 ../../rmap_rfc/rfc.rst:590
+#: ../../rmap_rfc/rfc.rst:536 ../../rmap_rfc/rfc.rst:591
 msgid "Units"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:537
+#: ../../rmap_rfc/rfc.rst:538
 msgid ""
 "The units of Table B entries refer to the format of how the data is "
 "represented. The data may be numeric or character. When data is in "
@@ -1278,11 +1282,11 @@ msgid ""
 "Kelvin."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:547 ../../rmap_rfc/rfc.rst:590
+#: ../../rmap_rfc/rfc.rst:548 ../../rmap_rfc/rfc.rst:591
 msgid "Scale"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:549
+#: ../../rmap_rfc/rfc.rst:550
 msgid ""
 "The scale refers to the power of 10 that the element has been multiplied "
 "by in order to retain the desired precision in the transmitted data when "
@@ -1298,11 +1302,11 @@ msgid ""
 "usage."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:563
+#: ../../rmap_rfc/rfc.rst:564
 msgid "Other values in the table B used in Bufr de/coding"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:565
+#: ../../rmap_rfc/rfc.rst:566
 msgid ""
 "The reference value is a value that is to be subtracted from the data "
 "after multiplication by the scale factor, if any, before encoding into "
@@ -1314,307 +1318,307 @@ msgid ""
 "nce value -9000 would give 5450 that would be encoded."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:574
+#: ../../rmap_rfc/rfc.rst:575
 msgid ""
 "To obtain the original value in decoding, adding back the -9000 reference"
 " value to 5450 would result in -3550, then dividing by the scale (100) "
 "would obtain -35.50."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:578
+#: ../../rmap_rfc/rfc.rst:579
 msgid ""
 "The data width of Table B entries is a count of how many bits the largest"
 " possible value of an individual data item occupies."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:582
+#: ../../rmap_rfc/rfc.rst:583
 msgid "Tabella variabile (B table)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:584
+#: ../../rmap_rfc/rfc.rst:585
 msgid "B table example; SAMPLE VALUES ONLY ! (the full table is big !)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:586
+#: ../../rmap_rfc/rfc.rst:587
 msgid ""
 "Get the full table from: https://github.com/ARPA-"
 "SIMC/dballe/blob/master/tables/dballe.txt"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:590
+#: ../../rmap_rfc/rfc.rst:591
 msgid "Code"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:592
+#: ../../rmap_rfc/rfc.rst:593
 msgid "001001"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:592
+#: ../../rmap_rfc/rfc.rst:593
 msgid "WMO BLOCK NUMBER"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:592 ../../rmap_rfc/rfc.rst:595
+#: ../../rmap_rfc/rfc.rst:593 ../../rmap_rfc/rfc.rst:596
 msgid "Numeric"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:595
+#: ../../rmap_rfc/rfc.rst:596
 msgid "001002"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:595
+#: ../../rmap_rfc/rfc.rst:596
 msgid "WMO STATION NUMBER"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:598
+#: ../../rmap_rfc/rfc.rst:599
 msgid "001006"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:598
+#: ../../rmap_rfc/rfc.rst:599
 msgid "AIRCRAFT FLIGHT NUMBER"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:598 ../../rmap_rfc/rfc.rst:604
-#: ../../rmap_rfc/rfc.rst:609
+#: ../../rmap_rfc/rfc.rst:599 ../../rmap_rfc/rfc.rst:605
+#: ../../rmap_rfc/rfc.rst:610
 msgid "Character"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:601
+#: ../../rmap_rfc/rfc.rst:602
 msgid "001007"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:601
+#: ../../rmap_rfc/rfc.rst:602
 msgid "SATELLITE IDENTIFIER"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:601
+#: ../../rmap_rfc/rfc.rst:602
 msgid "CODE TABLE 1007"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:604
+#: ../../rmap_rfc/rfc.rst:605
 msgid "001008"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:604
+#: ../../rmap_rfc/rfc.rst:605
 msgid "AIRCRAFT REGISTRATION NUMBER OR OTHER IDENTIFICATION"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:609
+#: ../../rmap_rfc/rfc.rst:610
 msgid "001011"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:609
+#: ../../rmap_rfc/rfc.rst:610
 msgid "SHIP OR MOBILE LAND STATION IDENTIFIER"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:613
+#: ../../rmap_rfc/rfc.rst:614
 msgid "001012"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:613
+#: ../../rmap_rfc/rfc.rst:614
 msgid "DIRECTION OF MOTION OF MOVING OBSERVING PLATFORM*\\*"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:613
+#: ../../rmap_rfc/rfc.rst:614
 msgid "DEGREE TRUE"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:619
+#: ../../rmap_rfc/rfc.rst:620
 msgid "001013"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:619
+#: ../../rmap_rfc/rfc.rst:620
 msgid "SPEED OF MOTION OF MOVING OBSERVING PLATFORM\\*"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:619
+#: ../../rmap_rfc/rfc.rst:620
 msgid "M/S"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:624
+#: ../../rmap_rfc/rfc.rst:625
 msgid "012101"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:624
+#: ../../rmap_rfc/rfc.rst:625
 msgid "TEMPERATURE/DRY -BULB TEMPERATURE"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:624 ../../rmap_rfc/rfc.rst:628
-#: ../../rmap_rfc/rfc.rst:631
+#: ../../rmap_rfc/rfc.rst:625 ../../rmap_rfc/rfc.rst:629
+#: ../../rmap_rfc/rfc.rst:632
 msgid "K"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:628
+#: ../../rmap_rfc/rfc.rst:629
 msgid "012102"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:628
+#: ../../rmap_rfc/rfc.rst:629
 msgid "WET-BULB TEMPERATURE"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:631
+#: ../../rmap_rfc/rfc.rst:632
 msgid "012103"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:631
+#: ../../rmap_rfc/rfc.rst:632
 msgid "DEW-POINT TEMPERATURE"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:636
+#: ../../rmap_rfc/rfc.rst:637
 msgid "Formati"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:638
+#: ../../rmap_rfc/rfc.rst:639
 msgid "L'accentramento dei dati della rete comprende due passaggi:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:640
+#: ../../rmap_rfc/rfc.rst:641
 msgid ""
 "composizione di un report composto da una selezione di osservazioni "
 "(sincrone) di tipo II"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:642
+#: ../../rmap_rfc/rfc.rst:643
 msgid "invio a un concentratore tramite protocollo AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:645
+#: ../../rmap_rfc/rfc.rst:646
 msgid "BUFR"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:647
+#: ../../rmap_rfc/rfc.rst:648
 msgid ""
 "Il formato BUFR è definito dal WMO: "
 "http://www.wmo.int/pages/prog/www/WMOCodes.html"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:650
+#: ../../rmap_rfc/rfc.rst:651
 msgid "Sono utilizzabili solo alcuni template definiti dal WMO o da ECMWF:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:652
+#: ../../rmap_rfc/rfc.rst:653
 msgid "acars-ecmwf - ACARS ECMWF (4.145)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:653
+#: ../../rmap_rfc/rfc.rst:654
 msgid "acars-wmo - ACARS WMO"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:654
+#: ../../rmap_rfc/rfc.rst:655
 msgid "airep-ecmwf - AIREP ECMWF (4.142)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:655
+#: ../../rmap_rfc/rfc.rst:656
 msgid "amdar-ecmwf - AMDAR ECMWF (4.144)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:656
+#: ../../rmap_rfc/rfc.rst:657
 msgid "amdar-wmo - AMDAR WMO"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:657
+#: ../../rmap_rfc/rfc.rst:658
 msgid "buoy - Buoy (1.21)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:658
+#: ../../rmap_rfc/rfc.rst:659
 msgid "metar - Metar (0.140)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:659
+#: ../../rmap_rfc/rfc.rst:660
 msgid "pilot-ecmwf - Pilot (2.91)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:660
+#: ../../rmap_rfc/rfc.rst:661
 msgid "pilot-wmo - Pilot (2.1, 2.2, 2.3)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:661
+#: ../../rmap_rfc/rfc.rst:662
 msgid "pollution - Pollution (8.171)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:662
+#: ../../rmap_rfc/rfc.rst:663
 msgid "ship - Synop ship (autodetect)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:663
+#: ../../rmap_rfc/rfc.rst:664
 msgid "ship-abbr - Synop ship (abbreviated) (1.9)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:664
+#: ../../rmap_rfc/rfc.rst:665
 msgid "ship-auto - Synop ship (auto) (1.13)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:665
+#: ../../rmap_rfc/rfc.rst:666
 msgid "ship-plain - Synop ship (normal) (1.11)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:666
+#: ../../rmap_rfc/rfc.rst:667
 msgid "ship-reduced - Synop ship (reduced) (1.19)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:667
+#: ../../rmap_rfc/rfc.rst:668
 msgid "ship-second - Synop ship (second record) (1.12)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:668
+#: ../../rmap_rfc/rfc.rst:669
 msgid "ship-wmo - Ship WMO"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:669
+#: ../../rmap_rfc/rfc.rst:670
 msgid "synop-ecmwf - Synop ECMWF (autodetect) (0.1)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:670
+#: ../../rmap_rfc/rfc.rst:671
 msgid "synop-ecmwf-auto - Synop ECMWF land auto (0.3)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:671
+#: ../../rmap_rfc/rfc.rst:672
 msgid "synop-ecmwf-land - Synop ECMWF land (0.1)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:672
+#: ../../rmap_rfc/rfc.rst:673
 msgid "synop-ecmwf-land-high - Synop ECMWF land high level station (0.1)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:673
+#: ../../rmap_rfc/rfc.rst:674
 msgid "synop-wmo - Synop WMO (0.1)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:674
+#: ../../rmap_rfc/rfc.rst:675
 msgid "temp-ecmwf - Temp ECMWF (autodetect)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:675
+#: ../../rmap_rfc/rfc.rst:676
 msgid "temp-ecmwf-land - Temp ECMWF land (2.101)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:676
+#: ../../rmap_rfc/rfc.rst:677
 msgid "temp-ecmwf-ship - Temp ECMWF ship (2.102)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:677
+#: ../../rmap_rfc/rfc.rst:678
 msgid "temp-radar - Temp radar doppler wind profile (6.1)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:678
+#: ../../rmap_rfc/rfc.rst:679
 msgid "temp-ship - Temp ship (autodetect)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:679
+#: ../../rmap_rfc/rfc.rst:680
 msgid "temp-wmo - Temp WMO (2.101)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:681
+#: ../../rmap_rfc/rfc.rst:682
 msgid ""
 "E' possibile e consigliato usare un template denominato \"generic\" "
 "specifico per il Data Model descritto sopra con il quale è possibile la "
 "codifica di tutti i dati pubblicabili secondo lo standard RMAP."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:686
+#: ../../rmap_rfc/rfc.rst:687
 msgid "generic template"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:688
+#: ../../rmap_rfc/rfc.rst:689
 msgid ""
 "Il template generic non è qui documentato in quanto al momento non "
 "esistono specifiche stabili. Per la scrittura e lettura di un messaggio "
@@ -1623,46 +1627,46 @@ msgid ""
 "tramite tools disponibili."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:695 ../../rmap_rfc/rfc.rst:1581
+#: ../../rmap_rfc/rfc.rst:696 ../../rmap_rfc/rfc.rst:1585
 msgid "Json"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:697
+#: ../../rmap_rfc/rfc.rst:698
 msgid ""
 "Ogni oggetto json è un report con tutti i dati di una certa stazione per "
 "un certo istante di riferimento."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:700
+#: ../../rmap_rfc/rfc.rst:701
 msgid "La stazione è identificata univocamente dai seguenti campi:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:702
+#: ../../rmap_rfc/rfc.rst:703
 msgid ""
 "\\`ident`: identificativo opzionale della stazione (necessario solo se la"
 " stazione è mobile, generalmente nullo per stazioni fisse)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:704
+#: ../../rmap_rfc/rfc.rst:705
 msgid "\\`lon`: longitudine"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:705
+#: ../../rmap_rfc/rfc.rst:706
 msgid "\\`lat`: latitudine"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:706
+#: ../../rmap_rfc/rfc.rst:707
 msgid "\\`network`: nome della rete a cui appartiene la stazione (minuscolo)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:708
+#: ../../rmap_rfc/rfc.rst:709
 msgid ""
 "Le latitudini e longitudini devono essere scritte come coordinate "
 "geodetiche espresse in sessadecimale, come numero intero dopo aver "
 "moltiplicato per 10^5 (quindi espresso in 10^-5 gradi sessadecimali)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:712
+#: ../../rmap_rfc/rfc.rst:713
 msgid ""
 "L'istante di riferimento è il campo \\`datetime\\` che si riferisce "
 "all'istante finale della misurazione. Di conseguenza, una precipitazione "
@@ -1674,23 +1678,23 @@ msgid ""
 "rimane quello consigliato."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:722
+#: ../../rmap_rfc/rfc.rst:723
 msgid ""
 "I dati sono nel campo \\`data\\` sotto forma di array. Ogni elemento "
 "dell'array è un oggetto con i seguenti campi:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:725
+#: ../../rmap_rfc/rfc.rst:726
 msgid "livello: coordinate verticali. Si veda il capitolo dedicato."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:726
+#: ../../rmap_rfc/rfc.rst:727
 msgid ""
 "timerange: definisce il periodo di tempo e l'eventuale processamento "
 "(e.g. dato istantaneo, media oraria, etc). Si veda il capitolo dedicato."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:729
+#: ../../rmap_rfc/rfc.rst:730
 msgid ""
 "vars: oggetto i cui campi sono i codici della tabella B locale, i.e. i "
 "parametri misurati (vedi tabella relativa). Ognuno di questi è associato "
@@ -1699,18 +1703,18 @@ msgid ""
 "cui è associato un valore)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:735
+#: ../../rmap_rfc/rfc.rst:736
 msgid ""
 "Tra questi, un solo elemento non ha i campi \\`level\\` e \\`timerange`. "
 "Tali dati sono relativi a dati invarianti della stazione in se (e.g. il "
 "nome, l'altezza, etc.)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:740
+#: ../../rmap_rfc/rfc.rst:741
 msgid "Esempio"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:742
+#: ../../rmap_rfc/rfc.rst:743
 msgid ""
 "Stazione fissa (`ident: null`) delle rete (`network`) \\`rer\\` "
 "posizionata nel punto \\`(9.15454, 4451485)\\` (`lon`, \\`lat`) con i "
@@ -1718,131 +1722,131 @@ msgid ""
 "\\`level\\` e \\`timerange`):"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:747
-msgid "Nome della stazione (`B01019`): \"Torriglia\""
-msgstr ""
-
 #: ../../rmap_rfc/rfc.rst:748
-msgid "Altezza della stazione (`B07030`): 769.0m"
+msgid "Nome della stazione (`B01019`): 'Torriglia'"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:749
+msgid "Altezza della stazione (`B07030`): 769.0m"
+msgstr ""
+
+#: ../../rmap_rfc/rfc.rst:750
 msgid "Altezza barometrica della stazione (`B07031`): 769.0m"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:751
+#: ../../rmap_rfc/rfc.rst:752
 msgid ""
 "E per l'istante di riferimento \"2015-07-30T15:30:00Z\" ha registrato i "
 "seguenti dati:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:754
+#: ../../rmap_rfc/rfc.rst:755
 msgid ""
 "Al suolo (`level: [1, null, null, null]`) le seguenti cumulate orarie "
 "(`timerange: [1, 0, 3600]`):"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:757
+#: ../../rmap_rfc/rfc.rst:758
 msgid "Precipitazione (`B13011`): 0.0"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:759
+#: ../../rmap_rfc/rfc.rst:760
 msgid ""
 "A 2m dal suolo (`level: [103, 2000, null, null]`) i seguenti valori "
 "istantanei:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:762
+#: ../../rmap_rfc/rfc.rst:763
 msgid ""
 "Temperatura (`B12101`): 297.15K. Il dato è stato invalidato manualmente "
 "(attributo \\`B33196: 1`)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:764
+#: ../../rmap_rfc/rfc.rst:765
 msgid "Umidità relativa (`B13003`): 50%"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:839
+#: ../../rmap_rfc/rfc.rst:840
 msgid "JSON Lines text format"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:841
+#: ../../rmap_rfc/rfc.rst:842
 msgid ""
 "In alternativa al formato json è possibile utilizzare questa variante che"
 " in molti casi risulta vantaggiosa."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:844
+#: ../../rmap_rfc/rfc.rst:845
 msgid ""
 "La documentazione del formato JSON Lines text format, chiamato anche "
 "newline-delimited JSON è reperibile qui: http://jsonlines.org/"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:848
+#: ../../rmap_rfc/rfc.rst:849
 msgid "Protocolli"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:850
+#: ../../rmap_rfc/rfc.rst:851
 msgid ""
 "L'accentramento dei dati della rete può essere effettuato a differenti "
 "livelli determinati dall'hardware disponibile, dal tipo di connettività e"
 " dai dati da inviare:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:854
+#: ../../rmap_rfc/rfc.rst:855
 msgid ""
 "invio dei dati (campionamenti o osservazioni) a un broker tramite "
 "protocollo MQTT"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:856
+#: ../../rmap_rfc/rfc.rst:857
 msgid ""
 "invio di un report composto da un insieme di osservazioni (sincrone) di "
 "tipo II a un broker tramite protocollo AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:860
+#: ../../rmap_rfc/rfc.rst:861
 msgid "Dati e Metadati su MQTT"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:863
+#: ../../rmap_rfc/rfc.rst:864
 msgid "Versioni del protocollo utilizzabili"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:865
+#: ../../rmap_rfc/rfc.rst:866
 msgid "MQTT protocol versions 3.1 and 3.1.1"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:867
+#: ../../rmap_rfc/rfc.rst:868
 msgid "Non utilizzare SSL/TLS"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:870 ../../rmap_rfc/rfc.rst:1374
+#: ../../rmap_rfc/rfc.rst:871 ../../rmap_rfc/rfc.rst:1378
 msgid "Autenticazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:872
+#: ../../rmap_rfc/rfc.rst:873
 msgid ""
 "MQTT provides username/password authentication as part of the protocol. "
 "To pubblish mqtt messages on a rmap server follow standard registration "
 "procedure on rmap server and get username and password."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:877
+#: ../../rmap_rfc/rfc.rst:878
 msgid "Quality of Service"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:879
+#: ../../rmap_rfc/rfc.rst:880
 msgid ""
 "E possibile utilizzare Quality of Service 0 o 1. Ovviamente quando "
 "possibile è consigliato utilizzare QoS 1."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:883
+#: ../../rmap_rfc/rfc.rst:884
 msgid "Client ID"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:885
+#: ../../rmap_rfc/rfc.rst:886
 msgid ""
 "MQTT 3.1.1 allows clients to connect with a zero length client id and "
 "have the broker generate a client id for them. Use this method as "
@@ -1850,208 +1854,206 @@ msgid ""
 "starting with the username used in authentication."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:895
+#: ../../rmap_rfc/rfc.rst:896
 msgid ""
 "I dati pubblicati nel root path MQTT **sample/** appartengono solo al "
 "level type I"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:897
+#: ../../rmap_rfc/rfc.rst:898
 msgid ""
 "I dati pubblicati nel root path MQTT **report/** appartengono solo al "
 "level type II"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:901
+#: ../../rmap_rfc/rfc.rst:902
 msgid "Stato della connessione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:903
+#: ../../rmap_rfc/rfc.rst:904
 msgid ""
 "Alla connessione deve essere inviato dalla stazione una eventuale "
 "segnalazione di sconnessione gestita male con will (retained):"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:910
-msgid "payload : **{\"v\": \"error01\"}**"
+#: ../../rmap_rfc/rfc.rst:911
+msgid "payload : **{'v': 'error01'}**"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:912
+#: ../../rmap_rfc/rfc.rst:913
 msgid "poi questo messaggio viene \"ricoperto\" con:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:918
+#: ../../rmap_rfc/rfc.rst:919
 msgid "payload : **{ \"v\": \"conn\"}**"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:920
+#: ../../rmap_rfc/rfc.rst:921
 msgid "alla disconnessione allo stesso topic dovrà essere inviato:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:922
-msgid "payload : **{ \"v\": \"disconn\"}**"
+#: ../../rmap_rfc/rfc.rst:923
+msgid "payload : **{ 'v': 'disconn'}**"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:925
+#: ../../rmap_rfc/rfc.rst:926
 msgid "Data e Constant Data"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:928
+#: ../../rmap_rfc/rfc.rst:929
 msgid "Data"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:930
+#: ../../rmap_rfc/rfc.rst:931
 msgid ""
 "Ogni topic corrisponde ai metadati univoci, mentre il payload è composto "
 "dal valore, eventuali attributi e dall'instante temporale. Json è il "
 "formato per il payload."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:934
+#: ../../rmap_rfc/rfc.rst:935
 msgid "Forma simbilica del topic:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:940
+#: ../../rmap_rfc/rfc.rst:941
 msgid ""
 "**IDENT**: identificativo dell'utente che pubblica i dati o "
 "identificativo della stazione per stazioni mobili, “-” per stazioni fisse"
 " non associate a un singolo utente"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:943
+#: ../../rmap_rfc/rfc.rst:944
 msgid ""
 "**COORDS**: nella forma lon,lat. Le coordinate sono espresse con "
 "rappresentazione sessadecimale nella forma int(valore*10^5) con eventuale"
 " segno negativo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:946
+#: ../../rmap_rfc/rfc.rst:947
 msgid "**NETWORK**: etichetta massimo 16 caratteri"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:947
+#: ../../rmap_rfc/rfc.rst:948
 msgid ""
 "**TRANGE**: nella forma indicator,p1,p2; Indicator e p2 interi senza "
 "segno, p1 intero con eventuale segno negativo. “-” per valori non "
 "significativi"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:950
+#: ../../rmap_rfc/rfc.rst:951
 msgid ""
 "**LEVEL**: nella forma type1,l1,type2,l2; Type1, type2 interi con "
 "eventuale segno negativo, l1e l2 interi con eventuale segno negativo. “-”"
 " per valori non significativi"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:953
+#: ../../rmap_rfc/rfc.rst:954
 msgid "**VAR**: nella forma BXXYYY come da tabelle B codice BUFR WMO"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:955
+#: ../../rmap_rfc/rfc.rst:956
 msgid ""
 "Il payload è in formato JSON: **{ “v”: VALUE, “t”: TIME, “a”: { “BXXYYY”:"
 " VALUE, … } }**"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:958
+#: ../../rmap_rfc/rfc.rst:959
 msgid ""
 "**VALUE**: valore in formato intero o a virgola mobile o stringa (vedi "
 "specifiche precedenti)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:960
+#: ../../rmap_rfc/rfc.rst:961
 msgid ""
 "**TIME**: formato YYYY-mm-ddTHH:MM:SS.MSC (secondi e millisecondi "
 "opzionali) un sottoinsime delle specifiche in "
 "https://tools.ietf.org/html/rfc3339"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:964
+#: ../../rmap_rfc/rfc.rst:965
 msgid ""
 "Gli attributi (“a”) solitamente per controllo di qualità sono opzionali; "
 "la chiave fa riferimento alla tabella B e VALUE ha la stessa "
 "rappresentazione di VALUE descritto sopra."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:969
+#: ../../rmap_rfc/rfc.rst:970
 msgid "Constant Data"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:971
+#: ../../rmap_rfc/rfc.rst:972
 msgid ""
 "I metadati per i dati costanti (anagrafica) sono caratterizzati da questo"
 " path:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:978
+#: ../../rmap_rfc/rfc.rst:979
 msgid ""
 "con payload simile a quello dei dati, in particolare dovrà essere omessa "
 "la chiave “t”."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:981
+#: ../../rmap_rfc/rfc.rst:982
 msgid "payload : **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:984
+#: ../../rmap_rfc/rfc.rst:985
 msgid "Estensioni"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:986
+#: ../../rmap_rfc/rfc.rst:987
 msgid ""
 "Queste estensioni sono state create per ottimizzare in alcuni casi "
 "l'invio dei dati. Possono essere utilizzate solo quando il loro utilizzo "
 "comporti un risparmio sul numero di byte necessari per la trasmissione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:991
+#: ../../rmap_rfc/rfc.rst:992
 msgid "Prima forma contratta tabella D"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:993
+#: ../../rmap_rfc/rfc.rst:994
 msgid ""
 "In questa forma contratta non è previsto l'invio di attributi del dato. "
 "In questa forma contratta non è necessario inviare messaggi relativi allo"
 " stato della connessione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:997
+#: ../../rmap_rfc/rfc.rst:998
 msgid ""
 "Il topic e come quello della forma standard senza l'ultimo parametro "
 "\"VAR\". Ad esempio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1004 ../../rmap_rfc/rfc.rst:1041
+#: ../../rmap_rfc/rfc.rst:1005 ../../rmap_rfc/rfc.rst:1042
 msgid "Il payload prevede due parametri:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1006
-msgid ""
-"\"d\" che descrive quale elemento della tabella D è preso in "
-"considerazione"
+#: ../../rmap_rfc/rfc.rst:1007
+msgid "'d' che descrive quale elemento della tabella D è preso in considerazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1008
+#: ../../rmap_rfc/rfc.rst:1009
 msgid ""
-"\"p\" con un array di valori corrispondenti ai \"VAR\" descritti "
+"'p' con un array di valori corrispondenti ai \"VAR\" descritti "
 "nell'elemento in tabella D"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1011 ../../rmap_rfc/rfc.rst:1048
-#: ../../rmap_rfc/rfc.rst:1322 ../../rmap_rfc/rfc.rst:1452
-#: ../../rmap_rfc/rfc.rst:1515 ../../rmap_rfc/rfc.rst:1543
+#: ../../rmap_rfc/rfc.rst:1012 ../../rmap_rfc/rfc.rst:1049
+#: ../../rmap_rfc/rfc.rst:1326 ../../rmap_rfc/rfc.rst:1456
+#: ../../rmap_rfc/rfc.rst:1519 ../../rmap_rfc/rfc.rst:1547
 msgid "Ad esempio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1017
+#: ../../rmap_rfc/rfc.rst:1018
 msgid "Tabella D"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1030
+#: ../../rmap_rfc/rfc.rst:1031
 msgid "Seconda forma contratta tabella E"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1032
+#: ../../rmap_rfc/rfc.rst:1033
 msgid ""
 "In questa forma contratta non è previsto l'invio di attributi del dato. "
 "In questa forma contratta non è necessario inviare messaggi relativi allo"
@@ -2059,358 +2061,352 @@ msgid ""
 "senza i parametri \"VAR\", \"LEVEL\" e \"TRANGE\". Ad esempio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1043
-msgid ""
-"\"e\" che descrive quale elemento della tabella E è preso in "
-"considerazione"
+#: ../../rmap_rfc/rfc.rst:1044
+msgid "''e' che descrive quale elemento della tabella E è preso in considerazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1045
+#: ../../rmap_rfc/rfc.rst:1046
 msgid ""
-"\"p\" con un array di valori corrispondenti ai \"VAR\", \"LEVEL\" e "
-"\"TRANGE\" descritti nell'elemento in tabella E"
+"'p' con un array di valori corrispondenti ai \"VAR\", \"LEVEL\" e "
+"'TRANGE' descritti nell'elemento in tabella E"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1054
+#: ../../rmap_rfc/rfc.rst:1055
 msgid "Tabella E"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1068
+#: ../../rmap_rfc/rfc.rst:1069
 msgid "Remote procedure over MQTT"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1070
+#: ../../rmap_rfc/rfc.rst:1071
 msgid "Le RPC sono in formato json (json-rpc) e utilizzano due topics MQTT:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1077
-msgid ""
-"topiccom è il topic utilizzato per l'invio delle richieste RPC al server "
-"mentre topicres è il topic utilizzato dal server per le risposte."
+#: ../../rmap_rfc/rfc.rst:1073
+msgid "topiccom è il topic utilizzato per l'invio delle richieste RPC al server"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1080
-msgid ""
-"user è l'utente e dovrà essere lo stesso utilizzato per l'autenticazione "
-"al broker MQTT."
+msgid "topicres è il topic utilizzato dal server per le risposte."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1082
+#: ../../rmap_rfc/rfc.rst:1087
 msgid ""
-"mac è l'identificativo univoco del device (numerico 12 cifre, ossia 6 "
-"numeri di 2 cifre)"
+"IDENT corrisponde all'utente utilizzato per l'autenticazione al broker "
+"MQTT."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1085
+#: ../../rmap_rfc/rfc.rst:1089
 msgid ""
 "Il payload seguirà le specifiche `JSON-RPC 2.0 Specification "
 "<https://www.jsonrpc.org/specification>`__"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1088
+#: ../../rmap_rfc/rfc.rst:1092
 msgid "Ogni payload comando/risposta Jsonrpc non deve superare i 144 caratteri."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1090
+#: ../../rmap_rfc/rfc.rst:1094
 msgid ""
 "Non sono ammessi accessi concorrenziali e ogni utente è tenuto a gestire "
 "di conseguenza gli accessi."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1094
+#: ../../rmap_rfc/rfc.rst:1098
 msgid "Remote procedure supportate"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1096
+#: ../../rmap_rfc/rfc.rst:1100
 msgid "configure"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1099
+#: ../../rmap_rfc/rfc.rst:1103
 msgid "Configura la stazione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1101 ../../rmap_rfc/rfc.rst:1173
-#: ../../rmap_rfc/rfc.rst:1217 ../../rmap_rfc/rfc.rst:1233
-#: ../../rmap_rfc/rfc.rst:1255 ../../rmap_rfc/rfc.rst:1280
+#: ../../rmap_rfc/rfc.rst:1105 ../../rmap_rfc/rfc.rst:1177
+#: ../../rmap_rfc/rfc.rst:1221 ../../rmap_rfc/rfc.rst:1237
+#: ../../rmap_rfc/rfc.rst:1259 ../../rmap_rfc/rfc.rst:1284
 msgid "parametri:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1103
+#: ../../rmap_rfc/rfc.rst:1107
 msgid ""
 "bool reset: se true riporta le configurazioni ai valori di default e "
 "rimuove ogni sensore precedentemente configurato; questa operazione è la "
 "prima ad essere effettuata dal server (default false)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1106
+#: ../../rmap_rfc/rfc.rst:1110
 msgid ""
 "char datalevel: \"sample\" o \"report\"; prima parte del path di "
 "pubblicazione su MQTT per i dati (default \"report\")"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1108
+#: ../../rmap_rfc/rfc.rst:1112
 msgid ""
 "char network: \"fixed\" o \"mobile\"; prima parte del path di "
 "pubblicazione su MQTT per i dati (default \"fixed\")"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1110
+#: ../../rmap_rfc/rfc.rst:1114
 msgid ""
 "int lat: latitudine espressa con rappresentazione sessadecimale nella "
 "forma int(valore*10^5) con eventuale segno negativo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1112
+#: ../../rmap_rfc/rfc.rst:1116
 msgid ""
 "int lon: longitudine espressa con rappresentazione sessadecimale nella "
 "forma int(valore*10^5) con eventuale segno negativo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1114
+#: ../../rmap_rfc/rfc.rst:1118
 msgid ""
 "char mqttmaintpath: prima parte del path di pubblicazione su MQTT per i "
 "messaggi di funzionamento (default \"maint\")"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1116
+#: ../../rmap_rfc/rfc.rst:1120
 msgid "int sampletime: intervallo tra le misure in secondi (default 900)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1117
+#: ../../rmap_rfc/rfc.rst:1121
 msgid "char mqttserver: server MQTT (default \"rmap.cc\")"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1118
+#: ../../rmap_rfc/rfc.rst:1122
 msgid "char mqttuser: MQTT user ( no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1119
+#: ../../rmap_rfc/rfc.rst:1123
 msgid "char mqttpass: MQTT password ( no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1120
+#: ../../rmap_rfc/rfc.rst:1124
 msgid "char ntpserver: NTP server (no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1121
+#: ../../rmap_rfc/rfc.rst:1125
 msgid ""
 "array int[6] date: set date and time [esempio: 2014,2,10,18,45,18] (no "
 "default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1123
+#: ../../rmap_rfc/rfc.rst:1127
 msgid ""
 "array byte mac[6]: ethernet mac address (esempio: use (0,0,0,0,0,1) for "
 "board1, use (0,0,0,0,0,2) for board2 etc.) (no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1125
+#: ../../rmap_rfc/rfc.rst:1129
 msgid "JSON object sd:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1127
+#: ../../rmap_rfc/rfc.rst:1131
 msgid ""
 "char btable: constant station data (e.g. station name and heigth) coded "
 "as described by bufr table B btable and written as string"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1130
+#: ../../rmap_rfc/rfc.rst:1134
 msgid ""
 "bool save: if true save configuration into permanent memory; questa "
 "operazione è l'ultima ad essere effettuata dal server (default false)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1132
+#: ../../rmap_rfc/rfc.rst:1136
 msgid "array sens:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1134
-msgid "char tr: timerange (esempio: \"1,0,60\") (no default)"
+#: ../../rmap_rfc/rfc.rst:1138
+msgid "char tr: timerange (esempio: '1,0,60') (no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1135
-msgid "char lev: level (esempio \"1,-,-,-\") (no default)"
+#: ../../rmap_rfc/rfc.rst:1139
+msgid "char lev: level (esempio '1,-,-,-') (no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1136
-msgid "char var: variabile tabella B (esempio \"B13011\") (no default)"
+#: ../../rmap_rfc/rfc.rst:1140
+msgid "char var: variabile tabella B (esempio 'B13011') (no default)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1137
+#: ../../rmap_rfc/rfc.rst:1141
 msgid ""
 "any ext: configurazione relativa a una implementazione specifica di un "
 "sensore nella stazione OPZIONALE:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1140
+#: ../../rmap_rfc/rfc.rst:1144
 msgid "ad esempio nella implementazione Stima ext contiene:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1142
+#: ../../rmap_rfc/rfc.rst:1146
 msgid "char driver: driver locale del sensore"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1143
+#: ../../rmap_rfc/rfc.rst:1147
 msgid "char type: driver remoto"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1144
+#: ../../rmap_rfc/rfc.rst:1148
 msgid "int address: address I2C"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1146
+#: ../../rmap_rfc/rfc.rst:1150
 msgid "esempi:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1148
+#: ../../rmap_rfc/rfc.rst:1152
 msgid "reset, configurazione e salvatataggio in una unica RPC"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1154
+#: ../../rmap_rfc/rfc.rst:1158
 msgid "reset, configurazione, addizione sensori e salvataggio in differenti RPC"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1168
+#: ../../rmap_rfc/rfc.rst:1172
 msgid "pinout"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1171
+#: ../../rmap_rfc/rfc.rst:1175
 msgid "Attuatore che accende/spegne uno o più pin."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1175
+#: ../../rmap_rfc/rfc.rst:1179
 msgid "array di oggetti con la seguente struttura:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1177
+#: ../../rmap_rfc/rfc.rst:1181
 msgid "integer n: pin number"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1178
+#: ../../rmap_rfc/rfc.rst:1182
 msgid "bool s: true=on; false=off"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1184
+#: ../../rmap_rfc/rfc.rst:1188
 msgid "recovery"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1187
+#: ../../rmap_rfc/rfc.rst:1191
 msgid "Richiede il re-invio dei dati non trasmessi al server; senza parametri"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1189 ../../rmap_rfc/rfc.rst:1206
-#: ../../rmap_rfc/rfc.rst:1221 ../../rmap_rfc/rfc.rst:1244
-#: ../../rmap_rfc/rfc.rst:1267 ../../rmap_rfc/rfc.rst:1292
+#: ../../rmap_rfc/rfc.rst:1193 ../../rmap_rfc/rfc.rst:1210
+#: ../../rmap_rfc/rfc.rst:1225 ../../rmap_rfc/rfc.rst:1248
+#: ../../rmap_rfc/rfc.rst:1271 ../../rmap_rfc/rfc.rst:1296
 msgid "esempio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1195
+#: ../../rmap_rfc/rfc.rst:1199
 msgid "resend"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1198
+#: ../../rmap_rfc/rfc.rst:1202
 msgid ""
 "Richiede il re-invio dei dati non trasmessi al server da una data "
 "iniziale a una data finale"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1201
+#: ../../rmap_rfc/rfc.rst:1205
 msgid ""
 "int[6] dts: start date and time; anno, mese, giorno, ora, minuti, secondi"
 " [esempio: 2014,2,10,18,45,18]"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1203
+#: ../../rmap_rfc/rfc.rst:1207
 msgid ""
 "int[6] dte: end date and time; anno, mese, giorno, ora, minuti, secondi "
 "[esempio: 2015,3,25,12,0,0]"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1212
+#: ../../rmap_rfc/rfc.rst:1216
 msgid "reboot"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1215
+#: ../../rmap_rfc/rfc.rst:1219
 msgid "Richiede il riavvio della stazione"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1219
+#: ../../rmap_rfc/rfc.rst:1223
 msgid "bool update: true=update firmware available on SDcard"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1228
+#: ../../rmap_rfc/rfc.rst:1232
 msgid "prepare"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1231
+#: ../../rmap_rfc/rfc.rst:1235
 msgid "Richiede l'attivazione di un sensore e inizio misurazione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1235 ../../rmap_rfc/rfc.rst:1257
-#: ../../rmap_rfc/rfc.rst:1282
+#: ../../rmap_rfc/rfc.rst:1239 ../../rmap_rfc/rfc.rst:1261
+#: ../../rmap_rfc/rfc.rst:1286
 msgid "int    node: nodo per l'eventuale comunicazione radio"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1236 ../../rmap_rfc/rfc.rst:1258
-#: ../../rmap_rfc/rfc.rst:1283
+#: ../../rmap_rfc/rfc.rst:1240 ../../rmap_rfc/rfc.rst:1262
+#: ../../rmap_rfc/rfc.rst:1287
 msgid "char driver: nome del driver del sensore (trasporto) ( 3 caratteri)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1237 ../../rmap_rfc/rfc.rst:1259
-#: ../../rmap_rfc/rfc.rst:1284
+#: ../../rmap_rfc/rfc.rst:1241 ../../rmap_rfc/rfc.rst:1263
+#: ../../rmap_rfc/rfc.rst:1288
 msgid "char   type: nome del tipo del sensore ( driver sensore) (3 caratteri)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1238 ../../rmap_rfc/rfc.rst:1260
-#: ../../rmap_rfc/rfc.rst:1285
+#: ../../rmap_rfc/rfc.rst:1242 ../../rmap_rfc/rfc.rst:1264
+#: ../../rmap_rfc/rfc.rst:1289
 msgid "int address: indirizzo del sensore"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1240
+#: ../../rmap_rfc/rfc.rst:1244
 msgid "ritorna:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1242
+#: ../../rmap_rfc/rfc.rst:1246
 msgid ""
 "int waittime: tempo di attesa prima di poter richiedere il risultato "
 "della misura (millisec)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1250
+#: ../../rmap_rfc/rfc.rst:1254
 msgid "getjson"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1253
+#: ../../rmap_rfc/rfc.rst:1257
 msgid "Richiede i valori delle misure; necessita una precedente rpc \"prepare\""
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1262 ../../rmap_rfc/rfc.rst:1287
+#: ../../rmap_rfc/rfc.rst:1266 ../../rmap_rfc/rfc.rst:1291
 msgid "ritorna una serie di Bcode:value :"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1264 ../../rmap_rfc/rfc.rst:1289
+#: ../../rmap_rfc/rfc.rst:1268 ../../rmap_rfc/rfc.rst:1293
 msgid "char Bcode: codice della variabile come da tabella B"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1265 ../../rmap_rfc/rfc.rst:1290
+#: ../../rmap_rfc/rfc.rst:1269 ../../rmap_rfc/rfc.rst:1294
 msgid "int  value: valore della misura espresso come intero"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1276
+#: ../../rmap_rfc/rfc.rst:1280
 msgid "prepandget"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1278
+#: ../../rmap_rfc/rfc.rst:1282
 msgid ""
 "Prepara il sensore per le misure e dopo apportuna attesa restituisce i "
 "valori delle misure."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1304
+#: ../../rmap_rfc/rfc.rst:1308
 msgid "HTTP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1306
+#: ../../rmap_rfc/rfc.rst:1310
 msgid ""
 "E' possibile utilizzare il protocollo http con una get per inviare i "
 "dati; la get http sarà immediatamente convertita dal server in una "
@@ -2418,201 +2414,201 @@ msgid ""
 "utilizzato solo come \"bridge\" a mqtt quando dovesse essere necessario."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1311
+#: ../../rmap_rfc/rfc.rst:1315
 msgid "I parametri della get sono:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1313
+#: ../../rmap_rfc/rfc.rst:1317
 msgid "**topic** il topic mqtt"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1314
+#: ../../rmap_rfc/rfc.rst:1318
 msgid "**payload** il payload mqtt"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1315
+#: ../../rmap_rfc/rfc.rst:1319
 msgid "**username** username dell'utente"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1316
+#: ../../rmap_rfc/rfc.rst:1320
 msgid "**password** password dell'utente"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1317
+#: ../../rmap_rfc/rfc.rst:1321
 msgid "**time** richiede data e ora nella risposta del server (opzionale)"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1319
+#: ../../rmap_rfc/rfc.rst:1323
 msgid ""
 "Se l'invio dei dati ha successo la risposta terminerà con la stringa "
 "\"OK\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1324 ../../rmap_rfc/rfc.rst:1336
-#: ../../rmap_rfc/rfc.rst:1346
+#: ../../rmap_rfc/rfc.rst:1328 ../../rmap_rfc/rfc.rst:1340
+#: ../../rmap_rfc/rfc.rst:1350
 msgid "get:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1330 ../../rmap_rfc/rfc.rst:1342
-#: ../../rmap_rfc/rfc.rst:1352
+#: ../../rmap_rfc/rfc.rst:1334 ../../rmap_rfc/rfc.rst:1346
+#: ../../rmap_rfc/rfc.rst:1356
 msgid "risposta:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1332 ../../rmap_rfc/rfc.rst:1344
+#: ../../rmap_rfc/rfc.rst:1336 ../../rmap_rfc/rfc.rst:1348
 msgid "``OK``"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1334
+#: ../../rmap_rfc/rfc.rst:1338
 msgid "Per dati non differiti è possibile omettere la chiave \"t\" nel payload."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1354
+#: ../../rmap_rfc/rfc.rst:1358
 msgid "``19/06/18,13:06:59+00 please set topic``"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1357
+#: ../../rmap_rfc/rfc.rst:1361
 msgid "AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1359
+#: ../../rmap_rfc/rfc.rst:1363
 msgid ""
 "AMQP is a binary messaging protocol and semantic framework for "
 "microservices and enterprise messaging."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1362
+#: ../../rmap_rfc/rfc.rst:1366
 msgid "https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1365
+#: ../../rmap_rfc/rfc.rst:1369
 msgid "Versioni del protocollo supportate"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1367
+#: ../../rmap_rfc/rfc.rst:1371
 msgid "0-9-1"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1368
+#: ../../rmap_rfc/rfc.rst:1372
 msgid "0-9"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1369
+#: ../../rmap_rfc/rfc.rst:1373
 msgid "0-8"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1376
+#: ../../rmap_rfc/rfc.rst:1380
 msgid "La pubblicazione dei messaggi è ammessa solo dopo autenticazione."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1378
+#: ../../rmap_rfc/rfc.rst:1382
 msgid ""
 "L'autenticazione si effettua tramite una coppia username/password fornite"
 " dall'amministratore del server."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1382
+#: ../../rmap_rfc/rfc.rst:1386
 msgid "Tls"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1384
+#: ../../rmap_rfc/rfc.rst:1388
 msgid ""
 "L'uso di TLS (amqps) non è richiesto, ma potrà essere implementato in "
 "future versioni di queste specifiche."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1388
+#: ../../rmap_rfc/rfc.rst:1392
 msgid "Formati dei messaggi"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1390
+#: ../../rmap_rfc/rfc.rst:1394
 msgid ""
 "Il report che costituisce il messaggio dovrà essere scritto nei formati "
 "json, jsonline o bufr sopra descritti."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1394
+#: ../../rmap_rfc/rfc.rst:1398
 msgid "BUFR messages over AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1396
+#: ../../rmap_rfc/rfc.rst:1400
 msgid ""
 "Il payload dovrà essere inviato con protocollo AMQP al broker tramite "
 "autenticazione su exchange \"rmap_bufr\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1400
+#: ../../rmap_rfc/rfc.rst:1404
 msgid "JSON Line messages over AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1402
+#: ../../rmap_rfc/rfc.rst:1406
 msgid ""
 "Il payload dovrà essere inviato con protocollo AMQP al broker tramite "
 "autenticazione su exchange \"rmap_jsonline\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1406
+#: ../../rmap_rfc/rfc.rst:1410
 msgid "JSON messages over AMQP"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1408
+#: ../../rmap_rfc/rfc.rst:1412
 msgid ""
 "Il payload dovrà essere inviato con protocollo AMQP al broker tramite "
 "autenticazione su exchange \"rmap_dbajson\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1412
+#: ../../rmap_rfc/rfc.rst:1416
 msgid "RMAP web services"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1415
+#: ../../rmap_rfc/rfc.rst:1419
 msgid "Composizione degli URL per un HTTP GET request"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1418
+#: ../../rmap_rfc/rfc.rst:1422
 msgid "Versioning"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1420
+#: ../../rmap_rfc/rfc.rst:1424
 msgid "Le \\`API\\` avranno come prefisso la versione in uso."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1422
+#: ../../rmap_rfc/rfc.rst:1426
 msgid "Ad esempio, serie temporale mensile usando la versione 1:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1429
+#: ../../rmap_rfc/rfc.rst:1433
 msgid "Format"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1431
+#: ../../rmap_rfc/rfc.rst:1435
 msgid "Il secondo prametro delle api è il formato; questa la scelta:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1433
+#: ../../rmap_rfc/rfc.rst:1437
 msgid "dbajson"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1434
+#: ../../rmap_rfc/rfc.rst:1438
 msgid "jsonline"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1435
+#: ../../rmap_rfc/rfc.rst:1439
 msgid "geojson"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1437
+#: ../../rmap_rfc/rfc.rst:1441
 msgid "ad esempio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1444
+#: ../../rmap_rfc/rfc.rst:1448
 msgid "metadati"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1446
+#: ../../rmap_rfc/rfc.rst:1450
 msgid "La \"base\" della richiesta è quella descritta per il topic MQTT, i.e.:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1458
+#: ../../rmap_rfc/rfc.rst:1462
 msgid ""
 "E' l'URL che identifica la misurazione effettuata dalla stazione fissa "
 "(`-`) con longitudine 12,07738 e latitudine 44.60016 (`1207738,4460016`) "
@@ -2621,120 +2617,120 @@ msgid ""
 "(`B12101`)."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1464
+#: ../../rmap_rfc/rfc.rst:1468
 msgid ""
 "Ogni parametro incluso nelle \"/\" può essere sostituito con \"*\" "
 "equivalente a dire \"tutti\"."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1468
+#: ../../rmap_rfc/rfc.rst:1472
 msgid "Anagrafica"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1470
+#: ../../rmap_rfc/rfc.rst:1474
 msgid ""
 "Elenco stazioni indipendenti dal timerange e livello sono specificati "
 "così:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1478 ../../rmap_rfc/rfc.rst:1490
-#: ../../rmap_rfc/rfc.rst:1574
+#: ../../rmap_rfc/rfc.rst:1482 ../../rmap_rfc/rfc.rst:1494
+#: ../../rmap_rfc/rfc.rst:1578
 msgid ""
 "I dati restituiti sono analoghi a quelli restituiti con una richiesta "
 "dati."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1481
+#: ../../rmap_rfc/rfc.rst:1485
 msgid ""
 "I dati costanti nel tempo e indipendenti dal timerange e livello sono "
 "specificati così:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1494
+#: ../../rmap_rfc/rfc.rst:1498
 msgid "Serie dei dati o sommario"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1497
+#: ../../rmap_rfc/rfc.rst:1501
 msgid "Serie temporale"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1499
+#: ../../rmap_rfc/rfc.rst:1503
 msgid "Serie temporale annuale,mensile, giornaliera e oraria:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1508 ../../rmap_rfc/rfc.rst:1537
+#: ../../rmap_rfc/rfc.rst:1512 ../../rmap_rfc/rfc.rst:1541
 msgid "nel dettaglio:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1525
+#: ../../rmap_rfc/rfc.rst:1529
 msgid "Serie spaziale"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1527
+#: ../../rmap_rfc/rfc.rst:1531
 msgid ""
 "Serie spaziale di una rete, con granularità giornaliera o oraria (± 30 "
 "minuti):"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1535
+#: ../../rmap_rfc/rfc.rst:1539
 msgid "\"ident\" e \"coords\" possono assumere il valore \"*\""
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1551
+#: ../../rmap_rfc/rfc.rst:1555
 msgid "Riassuntivo"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1553
+#: ../../rmap_rfc/rfc.rst:1557
 msgid "Riassuntivo di tutto il database:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1559
+#: ../../rmap_rfc/rfc.rst:1563
 msgid "Riassuntivo di una stazione (fissa o mobile):"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1567
+#: ../../rmap_rfc/rfc.rst:1571
 msgid "Riassuntivo di una misurazione in un dato mese:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1578
+#: ../../rmap_rfc/rfc.rst:1582
 msgid "Formati dati"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1583
+#: ../../rmap_rfc/rfc.rst:1587
 msgid "Vedi sopra formato \\`Json\\`"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1586
+#: ../../rmap_rfc/rfc.rst:1590
 msgid "Jsonline"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1588
+#: ../../rmap_rfc/rfc.rst:1592
 msgid "Vedi sopra formato \\`Jsonline\\`"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1591
+#: ../../rmap_rfc/rfc.rst:1595
 msgid "Geojson"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1593
+#: ../../rmap_rfc/rfc.rst:1597
 msgid "http://geojson.org/"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1595
+#: ../../rmap_rfc/rfc.rst:1599
 msgid "Questo un esempio di \\`GeoJSON`:"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1625
+#: ../../rmap_rfc/rfc.rst:1629
 msgid "Ritrasmissioni e correzioni"
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1627
+#: ../../rmap_rfc/rfc.rst:1631
 msgid ""
 "I dati possono essere ritrasmessi e sarà l'ultimo dato ricevuto a vincere"
 " sui vecchi."
 msgstr ""
 
-#: ../../rmap_rfc/rfc.rst:1630
+#: ../../rmap_rfc/rfc.rst:1634
 #, python-format
 msgid ""
 "Attenzione va posta alla gestione degli attributi che possono contenere "
@@ -2812,5 +2808,87 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "coded as described by bufr table B btable and written as string"
+#~ msgstr ""
+
+#~ msgid "RFC rmap versione 2.7"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "2021/10/15 v. 2.7 : corretto topic "
+#~ "MQTT per constant station data; corretto"
+#~ " configure RPC e aggiunto parametro "
+#~ "\"sd\""
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Ogni dato può essere dotato inoltre "
+#~ "di attributi (a esempio prodotti dal "
+#~ "controllo di qualità) definiti dalla "
+#~ "stessa tabella variabili. E' inoltre "
+#~ "possibile associare dei dati statici (di"
+#~ " anagrafica, ossia invariabili nel tempo,"
+#~ " timerange e level) con i soli "
+#~ "metadati longitudine, latitudine, identicativo, "
+#~ "report"
+#~ msgstr ""
+
+#~ msgid "Nome della stazione (`B01019`): \"Torriglia\""
+#~ msgstr ""
+
+#~ msgid "payload : **{\"v\": \"error01\"}**"
+#~ msgstr ""
+
+#~ msgid "payload : **{ \"v\": \"disconn\"}**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "\"d\" che descrive quale elemento della"
+#~ " tabella D è preso in considerazione"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "\"p\" con un array di valori "
+#~ "corrispondenti ai \"VAR\" descritti "
+#~ "nell'elemento in tabella D"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "\"e\" che descrive quale elemento della"
+#~ " tabella E è preso in considerazione"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "\"p\" con un array di valori "
+#~ "corrispondenti ai \"VAR\", \"LEVEL\" e "
+#~ "\"TRANGE\" descritti nell'elemento in tabella"
+#~ " E"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "topiccom è il topic utilizzato per "
+#~ "l'invio delle richieste RPC al server"
+#~ " mentre topicres è il topic "
+#~ "utilizzato dal server per le risposte."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "user è l'utente e dovrà essere lo"
+#~ " stesso utilizzato per l'autenticazione al"
+#~ " broker MQTT."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "mac è l'identificativo univoco del "
+#~ "device (numerico 12 cifre, ossia 6 "
+#~ "numeri di 2 cifre)"
+#~ msgstr ""
+
+#~ msgid "char tr: timerange (esempio: \"1,0,60\") (no default)"
+#~ msgstr ""
+
+#~ msgid "char lev: level (esempio \"1,-,-,-\") (no default)"
+#~ msgstr ""
+
+#~ msgid "char var: variabile tabella B (esempio \"B13011\") (no default)"
 #~ msgstr ""
 

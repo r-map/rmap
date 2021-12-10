@@ -773,15 +773,34 @@ Compilazione e caricamento del bootloader Digitecoboot
 5. Caricare il bootloader attraverso un programmatore impostando i
    seguenti parametri: stk500v1, 19200 baud, Low fuse 0xFF, Extended
    fuse 0xFD, High fuse 0xD0
-   Per usare arduino come programmatore riferirsi a:
-   https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP
-   e questo è un esempio dei comandi da impartire a avrdude:
    
-   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -e -Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:
-   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -V -U digitecoboot_atmega1284p.hex
-   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyACM0 -b19200 -U lock:w:0x0F:m
+   Questo è un esempio dei comandi da impartire a avrdude:
+   
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -e -Ulock:w:0x3F:m -Uefuse:w:0xFD:m -Uhfuse:w:0xD0:m -Ulfuse:w:0xFF:m
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -V -U digitecoboot_atmega1284p.hex
+   - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -U lock:w:0x0F:m
 
+Per usare arduino come programmatore riferirsi a:
+   https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP
+ 
+E' possibile utilizzare due moduli microduino core+, uno 1284p16m da usare come programmatore e il secondo con la stessa tensione di funzionamento da programmare collegati come da schema:
+|image_arduino_isp_schema|
 
+Un esempio di connessione rapida:
+|image_arduino_microduino_photo|
+
+Programmare il microduino-core+ da usare come ISP con il firmware
+ArduinoIsp in ambiente platformio che si trova in
+platformio/stima_v3/arduino_isp
+
+ed eseguire:
+
+-  make atmega644p_isp
+
+oppure:
+
+- make atmega1284p_isp  
+     
 Compilazione del firmware in formato binario
 --------------------------------------------
 
@@ -953,3 +972,10 @@ e per i sensori I2C.
 .. |image24| image:: Pictures/1000000000000512000006C284D72348DD042022.jpg
    :width: 15cm
    :height: 20.001cm
+
+
+.. |image_arduino_isp_schema| image:: Pictures/microduino-arduino-isp.png
+.. |image_arduino_microduino_photo| image:: Pictures/microduino-microduino-isp.png
+
+				      
+	    
