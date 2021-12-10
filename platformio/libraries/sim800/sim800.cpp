@@ -400,6 +400,8 @@ bool SIM800::init(uint8_t _on_off_pin, uint8_t _reset_pin) {
    sim800_connection_state = SIM800_CONNECTION_INIT;
    sim800_connection_stop_state = SIM800_CONNECTION_STOP_INIT;
    sim800_exit_transparent_mode_state = SIM800_EXIT_TRANSPARENT_MODE_INIT;
+   sim800_rssi = SIM800_RSSI_UNKNOWN;
+   sim800_ber = SIM800_BER_UNKNOWN;
 
    modem->begin(SIM800_SERIAL_PORT_BAUD_RATE);
 
@@ -514,6 +516,14 @@ sim800_status_t SIM800::getCsq(uint8_t *rssi, uint8_t *ber) {
 
    return at_command_status;
 }
+
+
+
+void SIM800::getLastCsq(uint8_t *rssi, uint8_t *ber) {
+  *rssi=sim800_rssi;
+  *ber=sim800_ber;
+}
+
 
 sim800_status_t SIM800::getCgatt(bool *is_attached) {
    sim800_status_t at_command_status;
@@ -723,8 +733,6 @@ sim800_status_t SIM800::setup() {
    sim800_status_t at_command_status;
    uint8_t n;
    uint8_t stat;
-   uint8_t rssi;
-   uint8_t ber;
 
    switch (sim800_setup_state) {
 
@@ -790,7 +798,7 @@ sim800_status_t SIM800::setup() {
          break;
 
       case SIM800_SETUP_GET_SIGNAL_QUALITY:
-         at_command_status = getSignalQuality(&rssi, &ber);
+         at_command_status = getSignalQuality(&sim800_rssi, &sim800_ber);
 
          // success or fail: dont care
          if (at_command_status == SIM800_OK || at_command_status == SIM800_ERROR) {
@@ -798,7 +806,7 @@ sim800_status_t SIM800::setup() {
          }
 
          if (at_command_status != SIM800_BUSY) {
-	   LOGN(F("SIM800 signal [ %s ] [ rssi %d, ber %d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)rssi, (int)ber);
+	   LOGN(F("SIM800 signal [ %s ] [ rssi %d, ber %d ]"), printStatus(at_command_status, OK_STRING, ERROR_STRING), (int)sim800_rssi, (int)sim800_ber);
          }
 
          // wait
@@ -1310,6 +1318,8 @@ sim800_status_t SIM800::stopConnection() {
       case SIM800_CONNECTION_STOP_END:
          sim800_status = (is_error ? SIM800_ERROR : SIM800_OK);
          sim800_connection_stop_state = SIM800_CONNECTION_STOP_INIT;
+	 sim800_rssi = SIM800_RSSI_UNKNOWN;
+	 sim800_ber = SIM800_BER_UNKNOWN;
          LOGN(F("SIM800 stop connection... [ %s ]"), printStatus(sim800_status, OK_STRING, FAIL_STRING));
          break;
 

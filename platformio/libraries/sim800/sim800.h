@@ -564,6 +564,7 @@ public:
    */
    sim800_status_t getCreg(uint8_t *n, uint8_t *stat);
 
+
    /*!
    \fn sim800_status_t getCsq(uint8_t *rssi, uint8_t *ber)
    \brief Send CSQ AT command for reading signal quality.
@@ -573,6 +574,14 @@ public:
    */
    sim800_status_t getCsq(uint8_t *rssi, uint8_t *ber);
 
+   /*!
+   \fn void getLastCsq(uint8_t *rssi, uint8_t *ber)
+   \brief return signal quality when connected.
+   \param[out] *rssi pointer to variable containing rssi value.
+   \param[out] *ber pointer to variable containing ber value.
+   */
+   void getLastCsq(uint8_t *rssi, uint8_t *ber);
+  
    /*!
    \fn sim800_status_t getCgatt(bool *is_attached)
    \brief Send CGATT AT command for check if gprs is attached.
@@ -770,6 +779,31 @@ private:
    \brief sim800 exit transparent mode sequence state.
    */
    sim800_exit_transparent_mode_state_t sim800_exit_transparent_mode_state;
+
+   /*!
+   \var sim800_rssi
+   \brief sim800 rssi of the active connection.
+   */
+   uint8_t sim800_rssi;
+
+  /*!
+   \var sim800_ber
+   \brief sim800 ber of the active connection.
+   */
+   uint8_t sim800_ber;
+
+  /*!
+   \var sim800_imei
+   \brief sim800 IMEI.
+   */
+  //char sim800_imei[16];
+
+  /*!
+   \var sim800_ip
+   \brief sim800 IP of the active connection.
+   */
+  //char sim800_ip[16];
+
 };
 
 #endif

@@ -1661,7 +1661,7 @@ void rtc_task() {
       LOGN(F("Next acquisition scheduled at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
       #if (USE_LCD)
       lcd.clear();
-      lcd.print(F("next acq: "));
+      lcd.print(F("N: "));
       lcd.print(hour(next_ptr_time_for_sensors_reading));
       lcd.print(F(":"));
       lcd.print(minute(next_ptr_time_for_sensors_reading));
@@ -2124,7 +2124,19 @@ void gsm_task() {
       break;
 
       case GSM_SUSPEND:
-         is_client_connected = true;
+	
+         #if (USE_LCD)
+	 uint8_t rssi;
+	 uint8_t ber; 
+	 s800.getLastCsq(&rssi,&ber);
+	 lcd.setCursor(12, 0);
+	 lcd.print(F("rf:"));
+	 lcd.print(rssi);
+	 lcd.print(F("/"));
+	 lcd.print(ber);
+         #endif
+
+	 is_client_connected = true;
          is_event_client_executed = true;
          gsm_state = state_after_wait;
          noInterrupts();
@@ -2425,6 +2437,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
           // normal OR test: print
           if (!is_first_run || is_test) {
 	    lcd.setCursor(0, 1);
+	    lcd.print(F("                    "));
+	    lcd.setCursor(0, 1);
 	    if (is_test){
 	      lcd.print(F("T "));
 	    }else{
@@ -2440,7 +2454,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	      
               if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
                 if (ISVALID(values_readed_from_sensor[i][0])) {
-                  lcd.print((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0);
+                  lcd.print((values_readed_from_sensor[i][0] - SENSOR_DRIVER_C_TO_K) / 100.0,1);
                   lcd.print(F("C "));
 		}
                 else {
@@ -2467,7 +2481,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	      */
               else if (strcmp(sensors[i]->getType(), "TBR") == 0) {
                 if (ISVALID(values_readed_from_sensor[i][0])) {
-                  lcd.print((values_readed_from_sensor[i][0]/10.0));
+                  lcd.print((values_readed_from_sensor[i][0]/10.0),1);
                   lcd.print(F("mm "));
                 }
                 else {
