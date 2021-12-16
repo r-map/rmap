@@ -237,7 +237,9 @@ void init_wire() {
 }
 
 void init_spi() {
+#if (ENABLE_SDCARD_LOGGING)      
   SPI.begin();
+#endif
 }
 
 void init_rtc() {
@@ -809,7 +811,7 @@ void sensors_reading_task () {
          //! prepare sensor and get delay for complete operation
          sensors[i]->prepare();
          delay_ms = sensors[i]->getDelay();
-         start_time_ms = sensors[i]->getStartTime();
+	 start_time_ms = sensors[i]->getStartTime();
 
          //! if there is any delay, wait it. Otherwise go to next.
          if (delay_ms) {
@@ -829,15 +831,18 @@ void sensors_reading_task () {
         //! retry
         else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
           i2c_error++;
-          delay_ms = sensors[i]->getDelay();
-          start_time_ms = sensors[i]->getStartTime();
-          state_after_wait = SENSORS_READING_PREPARE;
-          sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	  delay_ms = SENSORS_RETRY_DELAY_MS;
+	  start_time_ms = millis();
+	  state_after_wait = SENSORS_READING_PREPARE;
+	  sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	  LOGE(F("Sensor is prepared... [ retry ]"));
         }
         //! fail
         else {
-          sensors_reading_state = SENSORS_READING_GET;
-        }
+	  sensors_reading_state = SENSORS_READING_END;
+	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
+	  retry = 0;
+	}
       break;
 
       case SENSORS_READING_GET:
@@ -864,19 +869,22 @@ void sensors_reading_task () {
           }
           //! retry
           else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
-            i2c_error++;
-            delay_ms = sensors[i]->getDelay();
-            start_time_ms = sensors[i]->getStartTime();
-            state_after_wait = SENSORS_READING_PREPARE;
-            sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	    i2c_error++;
+	    delay_ms = SENSORS_RETRY_DELAY_MS;
+	    start_time_ms = millis();
+	    state_after_wait = SENSORS_READING_GET;
+	    sensors_reading_state = SENSORS_READING_WAIT_STATE;
+	    LOGE(F("Sensor is getted... [ retry ]"));
           }
           //! fail
           else {
+	    LOGE(F("Sensor is getted... [ %s ]"),FAIL_STRING);
             sensors_reading_state = SENSORS_READING_READ;
           }
         }
         //! process other internal sensor state
         else {
+	  LOGT(F("Sensor is prepared... [ not end ]"));
           sensors_reading_state = SENSORS_READING_GET;
         }
       break;
@@ -916,9 +924,7 @@ void sensors_reading_task () {
          else {
             //! if it is in continuous mode, do samples processing
             if (configuration.is_continuous) {
-              noInterrupts();
               samples_processing(false);
-              interrupts();
             }
             sensors_reading_state = SENSORS_READING_END;
          }
@@ -941,9 +947,11 @@ void sensors_reading_task () {
 }
 
 void exchange_buffers() {
+   noInterrupts();
    readable_data_temp_ptr = readable_data_write_ptr;
    readable_data_write_ptr = readable_data_read_ptr;
    readable_data_read_ptr = readable_data_temp_ptr;
+   interrupts();
 }
 
 void reset_samples_buffer() {
@@ -1106,7 +1114,6 @@ void command_task() {
 
 void tests() {
   if (is_test_read) {
-    noInterrupts();
 
     if (temperature_samples.count && humidity_samples.count) {
       if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
@@ -1117,7 +1124,6 @@ void tests() {
       }
     }
 
-    interrupts();
   }
 }
 

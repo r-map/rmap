@@ -160,7 +160,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def SENSORS_SAMPLE_COUNT_TOLERANCE
 \brief Maximum invalid sample count for generate a valid observations.
 */
-#define SENSORS_SAMPLE_COUNT_TOLERANCE                (2)
+#define SENSORS_SAMPLE_COUNT_TOLERANCE                (SENSORS_SAMPLE_COUNT_MAX/20)
 
 /*!
 \def USE_SENSORS_COUNT
@@ -179,7 +179,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def TIMER1_INTERRUPT_TIME_MS
 \brief Value in milliseconds for generating timer1 interrupt.
 */
-#define TIMER1_INTERRUPT_TIME_MS                      (4000)
+#define TIMER1_INTERRUPT_TIME_MS                      (SENSORS_SAMPLE_TIME_MS)
 
 /*!
 \def TIMER1_OVERFLOW_TIME_MS
@@ -207,5 +207,11 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Maximum number of retry for sensors reading.
 */
 #define SENSORS_RETRY_COUNT_MAX                       (3)
+
+/*!
+\def SENSORS_RETRY_DELAY_MS
+\brief Waiting for reading between two attempts.
+*/
+#define SENSORS_RETRY_DELAY_MS                        (50)
 
 #endif
