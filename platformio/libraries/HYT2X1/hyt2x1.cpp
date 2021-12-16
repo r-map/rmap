@@ -43,6 +43,7 @@ namespace Hyt2X1 {
 
     //! not enough data
     if (Wire.available() < HYT2X1_READ_HT_DATA_LENGTH) {
+      LOGE(F("hyt_read %d < %d"),Wire.available(),HYT2X1_READ_HT_DATA_LENGTH);
       return HYT2X1_ERROR;
     }
 
@@ -51,16 +52,19 @@ namespace Hyt2X1 {
 
     //! command mode
     if ((humidity_raw_data & HYT2X1_COMMAND_MODE_BIT_MASK) >> 15) {
+      LOGE(F("hyt_read command mode error"));
       return HYT2X1_ERROR;
     }
 
     //! no new data
     if ((humidity_raw_data & HYT2X1_NO_NEW_DATA_BIT_MASK) >> 14) {
+      LOGE(F("hyt_read no new data error"));
       is_new_data = false;
     }
 
     //! data not valid
     if (is_new_data && (humidity_raw_data > HYT2X1_READ_MAX)) {
+      LOGE(F("hyt_read data not valid error"));
       return HYT2X1_ERROR;
     }
 
