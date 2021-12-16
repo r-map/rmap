@@ -98,17 +98,19 @@ void verbose (const char *format, va_list logVariables);
 where the format string can be used to format the log variables
 
 ```
-* %s	display as string (char*)
-* %c	display as single character
-* %d	display as integer value
-* %l	display as long value
-* %x	display as hexadecimal value
-* %X	display as hexadecimal value prefixed by `0x`
-* %b	display as  binary number
-* %B	display as  binary number, prefixed by `0b'
-* %t	display as boolean value "t" or "f"
-* %T	display as boolean value "true" or "false"
-* %D,%F display as double value
+* %s	replace with an string (char*)
+* %c	replace with an character
+* %d	replace with an integer value
+* %l	replace with an long value
+* %D	replace with an float value
+* %F	replace with an double value
+* %[0-9]replace with an double value formatted with specified number of decimal
+* %x	replace and convert integer value into hex
+* %X	like %x but combine with 0x123AB
+* %b	replace and convert integer value into binary
+* %B	like %x but combine with 0b10100011
+* %t	replace and convert boolean value into "t" or "f"
+* %T	like %t but convert into "true" or "false"
 ```
 
 The format string may come from flash memory.
