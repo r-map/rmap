@@ -1,0 +1,171 @@
+   1               	# 1 "asmfunc.S"
+   1               	;---------------------------------------------------------------------------;
+   0               	
+   0               	
+   2               	; MMC hardware controls and Flash controls
+   3               	;---------------------------------------------------------------------------;
+   4               	; Hardware dependent macros to be modified -> do this in Makefile
+   5               	#include "spi_pins.h"
+   1               	// MOSI, MISO, and SCK pin definitions for all standard ATmega microcontrollers
+   6               	
+   7               	; ALL Pins given as Port (A,B,C,...) plus number
+   8               	
+   9               	; LED Pins
+  10               	; #define	DDR_SS	_SFR_IO_ADDR(DDRB), 0	// SS pin (PIN, PORT)
+  11               	; #define PORT_SS _SFR_IO_ADDR(PORTB), 0
+  12               	
+  13               	#define	DDR_PW	_SFR_IO_ADDR(DDRB), 1	// Power pin (PIN, PORT)
+  14               	#define PORT_PW _SFR_IO_ADDR(PORTB), 1
+  15               	
+  16               	;SD CARD PINS
+  17               	#define	DDR_CS	_SFR_IO_ADDR(SD_CS_DDR), SD_CS_BIT
+  18               	#define	PORT_CS	_SFR_IO_ADDR(SD_CS_PORT), SD_CS_BIT
+  19               	
+  20               	;---------------------------------------------------------------------------;
+  23               	.list
+  24               	.text
+  25               	
+  26               	;---------------------------------------------------------------------------;
+  27               	; LED Function START
+  28               	
+  29               	#ifdef USE_LED
+  30               	
+  31               	.global init_leds
+  32               	.func init_leds
+  33               	init_leds:
+  34:asmfunc.S     **** 	sbi DDR_PW
+  35:asmfunc.S     **** 	ret
+  36               	.endfunc
+  37               	
+  38               	.global led_power_on
+  39               	.func led_power_on
+  40               	led_power_on:
+  41:asmfunc.S     **** 	sbi PORT_PW
+  42:asmfunc.S     **** 	ret
+  43               	.endfunc
+  44               	
+  45               	.global led_power_off
+  46               	.func led_power_off
+  47               	led_power_off:
+  48:asmfunc.S     **** 	cbi PORT_PW
+  49:asmfunc.S     **** 	ret
+  50               	.endfunc
+  51               	
+  52               	.global led_power_toggle
+  53               	.func led_power_toggle
+  54               	led_power_toggle:
+  55:asmfunc.S     **** 	sbis PORT_PW
+  56:asmfunc.S     **** 	jmp led_power_on
+  57:asmfunc.S     **** 	jmp led_power_off
+  58               	.endfunc
+  59               	
+  60               	#endif
+  61               	
+  62               	; LED Function END
+  63               	;---------------------------------------------------------------------------;
+  64               	
+  65               	;---------------------------------------------------------------------------;
+  66               	; Initialize MMC port
+  67               	;
+  68               	; void init_spi (void);
+  69               	
+  70               	.global init_spi
+  71               	.func init_spi
+  72               	init_spi:
+  73:asmfunc.S     **** 	sbi	DDR_CS		; CS: output
+  74:asmfunc.S     **** 	sbi	DDR_DI		; DI: output
+  75:asmfunc.S     **** 	sbi	DDR_CK		; SCLK: output
+  76:asmfunc.S     **** 	sbi	PORT_DO		; DO: pull-up
+  77:asmfunc.S     **** 	ret
+  78               	.endfunc
+  79               	
+  80               	;---------------------------------------------------------------------------;
+  81               	; Delay 100 microseconds
+  82               	;
+  83               	; void dly_us (UINT n);
+  84               	
+  85               	.global dly_100us
+  86               	.func dly_100us
+  87               	dly_100us:
+  88:asmfunc.S     **** 	ldi	r24, lo8(F_CPU / 100000)	/* Loop counter */
+  89:asmfunc.S     **** 1:	sbiw	r30, 1		/* 10 clocks per loop */
+  90:asmfunc.S     **** 	sbiw	r30, 1
+  91:asmfunc.S     **** 	sbiw	r30, 1
+  92:asmfunc.S     **** 	nop
+  93:asmfunc.S     **** 	dec	r24
+  94:asmfunc.S     **** 	brne	1b
+  95:asmfunc.S     **** 	ret
+  96               	.endfunc
+  97               	
+  98               	;---------------------------------------------------------------------------;
+  99               	; Select MMC
+ 100               	;
+ 101               	; void select (void);
+ 102               	
+ 103               	.global select
+ 104               	.func select
+ 105               	select:
+ 106:asmfunc.S     **** 	rcall	deselect
+ 107:asmfunc.S     **** 	cbi	PORT_CS
+ 108:asmfunc.S     **** 	rjmp	rcv_spi
+ 109               	.endfunc
+ 110               	
+ 111               	;---------------------------------------------------------------------------;
+ 112               	; Deselect MMC
+ 113               	;
+ 114               	; void deselect (void);
+ 115               	
+ 116               	.global deselect
+ 117               	.func deselect
+ 118               	deselect:
+ 119:asmfunc.S     **** 	sbi	PORT_CS
+ 120               		; Goto next function
+ 121               	.endfunc
+ 122               	
+ 123               	;---------------------------------------------------------------------------;
+ 124               	; Receive a byte
+ 125               	;
+ 126               	; BYTE rcv_spi (void);
+ 127               	
+ 128               	.global rcv_spi
+ 129               	.func rcv_spi
+ 130               	rcv_spi:
+ 131:asmfunc.S     **** 	ldi	r24, 0xFF	; Send 0xFF to receive data
+ 132               		; Goto next function
+ 133               	.endfunc
+ 134               	
+ 135               	;---------------------------------------------------------------------------;
+ 136               	; Transmit a byte
+ 137               	;
+ 138               	; void xmit_spi (BYTE);
+ 139               	
+ 140               	.global xmit_spi
+ 141               	.func xmit_spi
+ 142               	xmit_spi:
+ 143:asmfunc.S     **** 	ldi	r25, 8
+ 144:asmfunc.S     **** 1:	sbrc	r24, 7		; DI = Bit to sent
+ 145:asmfunc.S     **** 	sbi	PORT_DI		;
+ 146:asmfunc.S     **** 	sbrs	r24, 7		;
+ 147:asmfunc.S     **** 	cbi	PORT_DI		; /
+ 148:asmfunc.S     **** 	lsl	r24		; Get DO from MMC
+ 149:asmfunc.S     **** 	sbic	PIN_DO		;
+ 150:asmfunc.S     **** 	inc	r24		; /
+ 151:asmfunc.S     **** 	sbi	PORT_CK		; A positive pulse to SCLK
+ 152:asmfunc.S     **** 	cbi	PORT_CK		; /
+ 153:asmfunc.S     **** 	dec	r25		; Repeat 8 times
+ 154:asmfunc.S     **** 	brne	1b		; /
+ 155:asmfunc.S     **** 	ret
+ 156               	.endfunc
+DEFINED SYMBOLS
+           asmfunc.S:33     .text:0000000000000000 init_leds
+           asmfunc.S:40     .text:0000000000000004 led_power_on
+           asmfunc.S:47     .text:0000000000000008 led_power_off
+           asmfunc.S:54     .text:000000000000000c led_power_toggle
+           asmfunc.S:72     .text:0000000000000016 init_spi
+           asmfunc.S:87     .text:0000000000000020 dly_100us
+           asmfunc.S:105    .text:0000000000000030 select
+           asmfunc.S:118    .text:0000000000000036 deselect
+           asmfunc.S:130    .text:0000000000000038 rcv_spi
+           asmfunc.S:142    .text:000000000000003a xmit_spi
+
+NO UNDEFINED SYMBOLS

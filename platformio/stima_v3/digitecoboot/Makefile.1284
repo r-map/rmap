@@ -15,13 +15,13 @@ atmega1284p_isp: BAUD_RATE  = 115200
 
 atmega1284p_isp: MCU_AVRDUDE = atmega1284p
 # 8192 byte boot
-atmega1284p_isp: HFUSE     ?= 0xD0
+atmega1284p_isp: HFUSE     ?= 0xD8
 # Full Swing xtal (16MHz) 16KCK/14CK+65ms
 atmega1284p_isp: LFUSE     ?= 0xFF
 # 2.7V brownout
 atmega1284p_isp: EFUSE     ?= 0xFD
-atmega1284p_isp: UNLOCK    ?= 0x3F
-atmega1284p_isp: LOCK      ?= 0x0F
+atmega1284p_isp: UNLOCK    ?= 0xFF
+atmega1284p_isp: LOCK      ?= 0xCF
 
 atmega1284p_isp: $(PROGRAM)_atmega1284p.hex
 atmega1284p_isp: $(PROGRAM)_atmega1284p.lst

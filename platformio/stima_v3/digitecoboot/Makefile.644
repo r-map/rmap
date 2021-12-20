@@ -15,13 +15,13 @@ atmega644p_isp: BAUD_RATE = 57600
 
 atmega644p_isp: MCU_AVRDUDE = atmega644p
 # 8192 byte boot
-atmega644p_isp: HFUSE ?= 0xD0
+atmega644p_isp: HFUSE ?= 0xD8
 # Full Swing xtal (16MHz) 16KCK/14CK+65ms
 atmega644p_isp: LFUSE ?= 0xFF
 # 2.7V brownout
 atmega644p_isp: EFUSE ?= 0xFD
-atmega644p_isp: UNLOCK ?= 0x3F
-atmega644p_isp: LOCK ?= 0x0F
+atmega644p_isp: UNLOCK ?= 0xFF
+atmega644p_isp: LOCK ?= 0xCF
 
 atmega644p_isp: $(PROGRAM)_atmega644p.hex
 atmega644p_isp: $(PROGRAM)_atmega644p.lst
