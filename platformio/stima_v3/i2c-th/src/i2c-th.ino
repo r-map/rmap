@@ -411,6 +411,7 @@ void i2c_request_interrupt_handler() {
   }
 
    //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+   //LOGV("request_interrupt_handler: %d-%d",readable_data_address,readable_data_length);
    Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
    Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
 }
@@ -441,16 +442,17 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
       // length (in bytes) of data to be read in readable_data_read_ptr
       readable_data_length = i2c_rx_data[1];
+      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
+      //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
         is_event_command_task = true;
         ready_tasks_count++;
       }
-      interrupts();
+      //interrupts();
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
@@ -788,7 +790,8 @@ bool observations_processing() {
 
 void sensors_reading_task () {
    static uint8_t i;
-   static uint8_t retry;
+   static uint8_t retry_prepare;
+   static uint8_t retry_get;
    static sensors_reading_state_t state_after_wait;
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
@@ -802,7 +805,8 @@ void sensors_reading_task () {
          }
 
          i = 0;
-         retry = 0;
+         retry_prepare = 0;
+         retry_get = 0;
          state_after_wait = SENSORS_READING_INIT;
          sensors_reading_state = SENSORS_READING_PREPARE;
       break;
@@ -827,9 +831,10 @@ void sensors_reading_task () {
         //! success
         if (sensors[i]->isPrepared()) {
           sensors_reading_state = SENSORS_READING_GET;
+	  retry_prepare = 0;
         }
         //! retry
-        else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+        else if ((++retry_prepare) < SENSORS_RETRY_COUNT_MAX) {
           i2c_error++;
 	  delay_ms = SENSORS_RETRY_DELAY_MS;
 	  start_time_ms = millis();
@@ -841,7 +846,7 @@ void sensors_reading_task () {
         else {
 	  sensors_reading_state = SENSORS_READING_END;
 	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
-	  retry = 0;
+	  retry_prepare = 0;
 	}
       break;
 
@@ -868,11 +873,12 @@ void sensors_reading_task () {
             sensors_reading_state = SENSORS_READING_READ;
           }
           //! retry
-          else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
+          else if ((++retry_get) < SENSORS_RETRY_COUNT_MAX) {
 	    i2c_error++;
 	    delay_ms = SENSORS_RETRY_DELAY_MS;
 	    start_time_ms = millis();
-	    state_after_wait = SENSORS_READING_GET;
+	    //state_after_wait = SENSORS_READING_GET;
+	    state_after_wait = SENSORS_READING_PREPARE;
 	    sensors_reading_state = SENSORS_READING_WAIT_STATE;
 	    LOGE(F("Sensor is getted... [ retry ]"));
           }
@@ -884,7 +890,7 @@ void sensors_reading_task () {
         }
         //! process other internal sensor state
         else {
-	  LOGT(F("Sensor is prepared... [ not end ]"));
+	  LOGT(F("Sensor is getted... [ not end ]"));
           sensors_reading_state = SENSORS_READING_GET;
         }
       break;
@@ -917,7 +923,8 @@ void sensors_reading_task () {
       case SENSORS_READING_NEXT:
          //! go to next sensor
          if ((++i) < sensors_count) {
-            retry = 0;
+            retry_prepare = 0;
+            retry_get = 0;
             sensors_reading_state = SENSORS_READING_PREPARE;
          }
          //! end (there are no other sensors to read)

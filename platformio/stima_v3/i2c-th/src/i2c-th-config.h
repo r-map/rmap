@@ -206,12 +206,12 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def SENSORS_RETRY_COUNT_MAX
 \brief Maximum number of retry for sensors reading.
 */
-#define SENSORS_RETRY_COUNT_MAX                       (3)
+#define SENSORS_RETRY_COUNT_MAX                       (2)
 
 /*!
 \def SENSORS_RETRY_DELAY_MS
 \brief Waiting for reading between two attempts.
 */
-#define SENSORS_RETRY_DELAY_MS                        (50)
+#define SENSORS_RETRY_DELAY_MS                        (100)
 
 #endif
