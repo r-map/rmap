@@ -1441,7 +1441,7 @@ void supervisor_task() {
             if ((++retry < SUPERVISOR_CONNECTION_RETRY_COUNT_MAX) || (millis() - start_time_ms < SUPERVISOR_CONNECTION_TIMEOUT_MS)) {
                is_event_client_executed = false;
                supervisor_state = SUPERVISOR_CONNECTION_LEVEL_TASK;
-	       LOGE(F("Supervisor connection... [ retry ]"));
+	       LOGT(F("Supervisor connection... [ task ]"));
                LOGV(F("SUPERVISOR_WAIT_CONNECTION_LEVEL_TASK ---> SUPERVISOR_CONNECTION_LEVEL_TASK"));
             }
             // fail
@@ -2369,21 +2369,21 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                start_time_ms = millis();
                state_after_wait = SENSORS_READING_GET;
                sensors_reading_state = SENSORS_READING_WAIT_STATE;
-	       LOGE(F("Sensor is getted... [ retry ]"));
+	       LOGE(F("Sensor is getted... [ retry ] %s"),sensors[i]->getType());
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_WAIT_STATE"));
             }
             // fail
             else {
                retry = 0;
                sensors_reading_state = SENSORS_READING_READ;
-	       LOGE(F("Sensor is getted... [ %s ]"),FAIL_STRING);
+	       LOGE(F("Sensor is getted... [ %s ] %s"),FAIL_STRING,sensors[i]->getType());
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
             }
          }
          // not end
          else {
             sensors_reading_state = SENSORS_READING_GET;
-            LOGT(F("Sensor is prepared... [ not end ]"));
+            LOGT(F("Sensor is getted... [ not end ]"));
             LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_GET"));
          }
       break;
