@@ -74,8 +74,8 @@ namespace _SensorDriver {
   #endif
 
   #if (USE_SENSOR_LWT)
-  static bool _is_leaf_setted = false;
-  static bool _is_leaf_prepared = false;
+  bool _is_leaf_setted[SENSOR_LEAF_MAX]= {false};
+  bool _is_leaf_prepared[SENSOR_LEAF_MAX]= {false};  
   #endif
 }
 
@@ -163,6 +163,16 @@ void SensorDriver::setup(const uint8_t address, const uint8_t node) {
   _address = address;
   _node = node;
   _start_time_ms = 0;
+}
+
+
+void SensorDriver::prepare(bool is_test){
+}
+
+void SensorDriver::get(int32_t *values, uint8_t length){
+}
+
+void SensorDriver::resetPrepared(){
 }
 
 const char *SensorDriver::getDriver() {
@@ -697,6 +707,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
         _get_state = READ_CONFIRMATION;
       }
       else {
+	LOGE(F("hyt2x1 get read error"));
         _is_success = false;
         _get_state = END;
       }
@@ -712,10 +723,12 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
           _is_success = true;
         }
         else {
+	  LOGE(F("hyt2x1 get NO confirmation by values %D/%D %D/%D"),humidity,humidity_confirmation,temperature,temperature_confirmation );
           _is_success = false;
         }
       }
       else {
+	LOGE(F("hyt2x1 get NO confirmation by read error: %d"),status);
         _is_success = false;
       }
       _delay_ms = 0;
@@ -1234,13 +1247,8 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     _delay_ms = 0;
     _is_end = false;
+    _get_state = END;
 
-    if (_is_success) {
-      _get_state = END;
-    }
-    else {
-      _get_state = END;
-    }
     break;
 
     case END:
@@ -1388,6 +1396,8 @@ void SensorDriverTh::prepare(bool is_test) {
       if (Wire.endTransmission() == 0) {
         _is_success = true;
         *_is_prepared = true;
+      }else{
+	LOGE(F("th prepare... endTransmission"));
       }
     }
   }
@@ -1416,10 +1426,12 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     _is_end = false;
 
     if (*_is_prepared && length >= 1) {
+      LOGT(F("th get INIT"));
       _is_success = true;
       _get_state = SET_TEMPERATURE_ADDRESS;
     }
     else {
+      LOGE(F("th get INIT"));
       _is_success = false;
       _get_state = END;
     }
@@ -1463,13 +1475,17 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
         _buffer[i++] = I2C_TH_TEMPERATURE_MAX_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else _is_success = false;
+      else{
+	LOGE(F("th type mismatch %s for temp write"),_type);
+	_is_success = false;
+      }
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  LOGT(F("th get... ERROR SET_TEMPERATURE_ADDRESS"));
           _is_success = false;
         }
       }
@@ -1498,11 +1514,15 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
       data_length = I2C_TH_TEMPERATURE_MAX_LENGTH;
     }
-    else _is_success = false;
+    else{
+      _is_success = false;
+      LOGE(F("th type mismatch %s for temp read"),_type);
+    }
 
       if (_is_success) {
         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
+	  LOGT(F("th get... ERROR READ_TEMPERATURE"));
           _is_success = false;
         }
       }
@@ -1513,6 +1533,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
         }
 
         if (crc8(temperature_data, data_length) != Wire.read()) {
+	  LOGT(F("th get... ERROR READ_TEMPERATURE CRC error"));
           _is_success = false;
         }
       }
@@ -1563,13 +1584,17 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       _buffer[i++] = I2C_TH_HUMIDITY_MAX_LENGTH;
       _buffer[i] = crc8(_buffer, i);
     }
-    else _is_success = false;
-
+    else{
+      LOGE(F("th type mismatch %s for humid write"),_type);
+      _is_success = false;
+    }
+    
     if (is_i2c_write) {
       Wire.beginTransmission(_address);
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission()) {
+	LOGT(F("th get... ERROR SET_HUMIDITY_ADDRESS"));
         _is_success = false;
       }
     }
@@ -1601,11 +1626,15 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
         data_length = I2C_TH_HUMIDITY_MAX_LENGTH;
       }
-      else _is_success = false;
-
+      else{
+	LOGE(F("th type mismatch %s for humid read"),_type);
+	_is_success = false;
+      }
+      
       if (_is_success) {
         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
+	  LOGT(F("th get... ERROR READ_HUMIDITY"));
           _is_success = false;
         }
       }
@@ -1616,6 +1645,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
         }
 
         if (crc8(humidity_data, data_length) != Wire.read()) {
+	  LOGT(F("th get... ERROR READ_HUMIDITY CRC error"));
           _is_success = false;
         }
       }
@@ -1630,17 +1660,11 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
       if (_is_success) {
         values[0] = ((uint16_t)(temperature_data[1] << 8) | (temperature_data[0]));
       }
-      else {
-        _is_success = false;
-      }
     }
 
     if (length >= 2) {
       if (_is_success) {
         values[1] = ((uint16_t)(humidity_data[1] << 8) | (humidity_data[0]));
-      }
-      else {
-        _is_success = false;
       }
     }
 
