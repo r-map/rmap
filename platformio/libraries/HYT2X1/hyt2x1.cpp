@@ -58,7 +58,7 @@ namespace Hyt2X1 {
 
     //! no new data
     if ((humidity_raw_data & HYT2X1_NO_NEW_DATA_BIT_MASK) >> 14) {
-      LOGE(F("hyt_read no new data error"));
+      LOGT(F("hyt_read no new data"));
       is_new_data = false;
     }
 
@@ -73,7 +73,7 @@ namespace Hyt2X1 {
     temperature_raw_data >>= 2;
 
     *humidity = (100.0 / HYT2X1_READ_MAX) * humidity_raw_data;
-    *temperature = ((165.0 / HYT2X1_READ_MAX) * temperature_raw_data) - 40.0;
+    *temperature = ((165.0 / HYT2X1_READ_MAX) * temperature_raw_data) + HYT2X1_TEMPERATURE_MIN;
 
     if (is_new_data) {
       return HYT2X1_SUCCESS;
