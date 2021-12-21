@@ -582,12 +582,12 @@ void init_sensors () {
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
       SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
       LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-      if (!sensors[i]->isSetted()) {
+      if (!sensors[sensors_count-1]->isSetted()) {
         sensors_error_count++;
 	wdt_reset();
         #if (USE_LCD)
 	lcd.setCursor(0, 3);
-	lcd.print(readable_configuration.sensors[i].type);
+	lcd.print(readable_configuration.sensors[sensors_count-1].type);
 	lcd.print(":");
 	lcd.print(FAIL_STRING);
 	#endif
