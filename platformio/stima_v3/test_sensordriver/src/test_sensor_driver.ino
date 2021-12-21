@@ -2,6 +2,7 @@
 #define LOG_LEVEL LOG_LEVEL_NOTICE
 
 #include <i2c_config.h>
+#include <debug_config.h>
 #include <SensorDriver.h>
 #if (USE_JSON)
 #include <json_utility.h>
@@ -16,7 +17,7 @@
 #define SENSORS_RETRY_DELAY_MS                        (50)
 
 
-#define DELAY_ACQ_MS          (320000)
+#define DELAY_ACQ_MS          (60000)
 #define DELAY_TEST_MS         (5000)
 
 typedef enum {
@@ -59,54 +60,54 @@ void init_sensors () {
   is_test = false;
   sensors_count = 0;
   
-  LOGN(F("Sensors..."));
+  LOGN(F("Sensors:"));
 
   #if (USE_SENSOR_ADT)
   address = 0x48;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_HIH)
   address = 0x27;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_HYT)
   address = 0x28;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_ITH)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ITH, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_MTH)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_MTH, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_NTH)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_NTH, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_XTH)
   address = 0x23;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_XTH, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_TBR)
   address = 0x21;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_TBR, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   // 0x22 for davis wind
@@ -114,13 +115,13 @@ void init_sensors () {
   #if (USE_SENSOR_DW1)
   address = 0x25;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DW1, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 
   #if (USE_SENSOR_DEP)
   address = 0x30;
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DEP, address, 1, sensors, &sensors_count);
-  LOGN(F("--> %l: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
 }
 
@@ -214,9 +215,9 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     }
     // retry
     else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
-      LOGN(F("prepare %s %l [ ERROR ]"), sensors[i]->getType(), retry);
-      Serial.println("ERRORE ++ 1");	
+      LOGT(F("prepare %s %l [ ERROR ]"), sensors[i]->getType(), retry);
       i2c_error++;
+      LOGT("is prepared i2c_error: %d",i2c_error);	
       delay_ms = SENSORS_RETRY_DELAY_MS;
       start_time_ms = millis();
       state_after_wait = SENSORS_READING_PREPARE;
@@ -225,6 +226,7 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     }
     // fail
     else {
+      LOGE("is prepared ERROR i2c_error: %d",i2c_error);	
       if (do_get) {
 	sensors_reading_state = SENSORS_READING_GET;
 	LOGV(F("SENSORS_READING_IS_PREPARED ---> SENSORS_READING_GET"));
@@ -245,8 +247,7 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     #endif
 
     delay_ms = sensors[i]->getDelay();
-    Serial.print("Devo aspettare: ");
-    Serial.println(delay_ms);
+    LOGT(F("Devo aspettare: %l"),delay_ms);
     start_time_ms = sensors[i]->getStartTime();
 
     if (delay_ms) {
@@ -271,8 +272,8 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
       }
       // retry
       else if ((++retry) < SENSORS_RETRY_COUNT_MAX) {
-	Serial.println("ERRORE ++ 2");
 	i2c_error++;
+	LOGT("is getted i2c_error: %d",i2c_error);	
 	delay_ms = SENSORS_RETRY_DELAY_MS;
 	start_time_ms = millis();
 	state_after_wait = SENSORS_READING_GET;
@@ -282,14 +283,14 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
       // fail
       else {
 	retry = 0;
-	Serial.println("GRANDE MEGA FALLIMENTO");
+	LOGE("is getted ERROR i2c_error: %d",i2c_error);	
 	sensors_reading_state = SENSORS_READING_READ;
 	LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
       }
     }
     // not end
     else {
-      Serial.println("I2C lavora");
+      LOGT("I2C is working");
       sensors_reading_state = SENSORS_READING_GET;
       LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_GET"));
     }
@@ -317,17 +318,17 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     else {
       //if (!is_first_run || is_test) {
       for (i = 0; i < sensors_count; i++) {
-	LOGN(F("test:%s type:%s:\t"), is_test ? "true" : "false",sensors[i]->getType());
+	LOGN(F("start sensor %s %s-%s:"), is_test ? "Test" : "Report",sensors[i]->getDriver(),sensors[i]->getType());
 	
 	for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
-	  LOGN(F("%ld\t"), values_readed_from_sensor[i][v]);
+	  LOGN(F("value %d: %l"), i,values_readed_from_sensor[i][v]);
 	}
 	
           #if (USE_JSON)
-	  LOGN(F("%s"), &json_sensors_data[i][0]);
+	  LOGN(F("JSON -> %s"), &json_sensors_data[i][0]);
           #endif
 	  
-	  LOGN(F(""));
+	  LOGN(F("end sensor"));
       }
 	//}
 
@@ -352,7 +353,7 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     break;
     
   case SENSORS_READING_WAIT_STATE:
-    Serial.println("Wait");
+    LOGV("Wait sensor");
     delay(10);
     if (millis() - start_time_ms > delay_ms) {
       sensors_reading_state = state_after_wait;
@@ -361,19 +362,51 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
   }
 }
 
-void check_i2c_bus () {
-  if (i2c_error > I2C_MAX_ERROR_COUNT) {
-    LOGE(F("Restart I2C BUS"));
-    init_wire();
-  }
+void reset_wire() {
+  uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+  
+   switch (i2c_bus_state) {
+   case 1:
+     LOGE(F("SCL clock line held low"));
+     break;
+    
+   case 2:
+     LOGE(F("SCL clock line held low by slave clock stretch"));
+     break;
+    
+   case 3:
+     LOGE(F("SDA data line held low"));
+     break;
+   }
+
+   /*
+   if (i2c_bus_state) {
+     LOGE(F("I2C bus error: Could not clear!!!"));
+     //while(1);
+    have_to_reboot = true;
+   }
+   */
+    
+#ifdef ARDUINO_ARCH_AVR
+   Wire.end();
+#endif
+   init_wire();
 }
 
 
 void init_wire() {
   i2c_error = 0;
-  Wire.end();
   Wire.begin();
   Wire.setClock(I2C_BUS_CLOCK);
+}
+
+void check_i2c_bus () {
+  if (i2c_error > I2C_MAX_ERROR_COUNT) {
+    LOGE(F("Restart I2C BUS"));
+    // 
+    reset_wire();
+    init_wire();
+  }
 }
 
 void logPrefix(Print* _logOutput) {
