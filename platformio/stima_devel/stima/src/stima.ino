@@ -805,7 +805,7 @@ void set_default_configuration() {
    writable_configuration.report_seconds = 0;
 
    writable_configuration.sensors_count = 0;
-   memset(writable_configuration.sensors, 0, sizeof(sensor_t) * USE_SENSORS_COUNT);
+   memset(writable_configuration.sensors, 0, sizeof(sensor_t) * SENSORS_MAX);
 
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    char temp_string[20];
@@ -1021,7 +1021,7 @@ int configure(JsonObject params, JsonObject result) {
    }
 
    if (is_sensor_config) {
-     if (writable_configuration.sensors_count < USE_SENSORS_COUNT)
+     if (writable_configuration.sensors_count < SENSORS_MAX)
        writable_configuration.sensors_count++;
      else {
        is_error = true;
