@@ -23,6 +23,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SENSOR_CONFIG_H
 #define SENSOR_CONFIG_H
 
+
+/*!
+\def SENSOR_MAX
+\brief Max number of sensor.
+*/
+#define SENSORS_MAX      (1)
+
+/*!
+\def SENSOR_UNIQUE_MAX
+\brief Max number of unique sensor.
+unique sensors are sensors that can ghave more driver but only one i2c address and only one setup and prepare
+*/
+#define SENSORS_UNIQUE_MAX      (1)
+
 /*!
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
@@ -206,6 +220,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Enable if you want use MICS4514 report average sensor.
 */
 #define USE_SENSOR_MMI              (false)
+
+/*!
+\def USE_SENSOR_GWS
+\brief Enable if you want use Gill Windsonic sensor.
+*/
+#define USE_SENSOR_GWS              (false)
 
 /*!
 \def USE_SENSOR_XMI

@@ -162,16 +162,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SENSORS_SAMPLE_COUNT_TOLERANCE                (SENSORS_SAMPLE_COUNT_MAX/20)
 
-/*!
-\def USE_SENSORS_COUNT
-\brief Sensors count.
-*/
-#define USE_SENSORS_COUNT                             (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT)
-
-#if (USE_SENSORS_COUNT == 0)
-#error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
-#endif
-
 /*********************************************************************
 * TIMER1
 *********************************************************************/

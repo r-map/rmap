@@ -259,7 +259,7 @@ bool is_test_read;
 \var sensors
 \brief SensorDriver buffer for storing sensors parameter.
 */
-SensorDriver *sensors[USE_SENSORS_COUNT];
+SensorDriver *sensors[SENSORS_MAX];
 
 /*!
 \var sensors_count

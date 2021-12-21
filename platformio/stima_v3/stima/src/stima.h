@@ -126,7 +126,7 @@ typedef struct {
    char ntp_server[NTP_SERVER_LENGTH];                      //!< ntp server
    #endif
 
-   sensor_t sensors[USE_SENSORS_COUNT];                     //!< SensorDriver buffer for storing sensors parameter
+   sensor_t sensors[SENSORS_MAX];                           //!< SensorDriver buffer for storing sensors parameter
    uint8_t sensors_count;                                   //!< configured sensors number
    uint16_t report_seconds;                                 //!< seconds for report values
 
@@ -495,10 +495,10 @@ hd44780_I2Cexp lcd(LCD_I2C_ADDRESS);
 #endif
 
 /*!
-\var sensors[USE_SENSORS_COUNT]
+\var sensors[SENSORS_MAX]
 \brief SensorDriver array structure.
 */
-SensorDriver *sensors[USE_SENSORS_COUNT];
+SensorDriver *sensors[SENSORS_MAX];
 
 /*!
 \var is_first_run
@@ -613,13 +613,13 @@ char maint_topic[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
 \var json_sensors_data
 \brief buffer containing the data read by sensors in json text format.
 */
-char json_sensors_data[USE_SENSORS_COUNT][JSON_BUFFER_LENGTH];
+char json_sensors_data[SENSORS_MAX][JSON_BUFFER_LENGTH];
 
 /*!
 \var values_readed_from_sensor
 \brief buffer containing the data read by sensors in numeric format.
 */
-int32_t values_readed_from_sensor[USE_SENSORS_COUNT][VALUES_TO_READ_FROM_SENSOR_COUNT];
+int32_t values_readed_from_sensor[SENSORS_MAX][VALUES_TO_READ_FROM_SENSOR_COUNT];
 
 /*!
 \var system_time

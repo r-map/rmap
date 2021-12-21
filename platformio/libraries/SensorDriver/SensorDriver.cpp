@@ -23,73 +23,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "SensorDriver.h"
 
 namespace _SensorDriver {
-  #if (USE_SENSOR_ADT)
-  static bool _is_adt_setted = false;
-  static bool _is_adt_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_HIH)
-  static bool _is_hih_setted = false;
-  static bool _is_hih_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_HYT)
-  static bool _is_hyt_setted = false;
-  static bool _is_hyt_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-  static bool _is_tb_setted = false;
-  static bool _is_tb_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
-  static bool _is_th_setted = false;
-  static bool _is_th_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_DW1)
-  static bool _is_dw1_setted = false;
-  static bool _is_dw1_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_DEP)
-  static bool _is_dep_setted = false;
-  static bool _is_dep_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
-  static bool _is_wind_setted = false;
-  static bool _is_wind_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_DSA)
-  static bool _is_sr_setted = false;
-  static bool _is_sr_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
-  static bool _is_opc_setted = false;
-  static bool _is_opc_prepared = false;
-  #endif
-
-  #if (USE_SENSOR_LWT)
-  bool _is_leaf_setted[SENSOR_LEAF_MAX]= {false};
-  bool _is_leaf_prepared[SENSOR_LEAF_MAX]= {false};  
-  #endif
+  static bool _is_setted_pool[SENSORS_UNIQUE_MAX]= {false};
+  static bool _is_prepared_pool[SENSORS_UNIQUE_MAX]= {false};
+  static uint8_t _pool_new_pointer=0;
+  static uint8_t _pool_pointers[SENSORS_MAX];
 }
 
 /*********************************************************************
 * SensorDriver
 *********************************************************************/
 
-SensorDriver::SensorDriver(const char* driver, const char* type, bool *is_setted, bool *is_prepared) {
+SensorDriver::SensorDriver(const char* driver, const char* type) {
   _driver = driver;
-  _type = type;
-
-  _is_setted = is_setted;
-  _is_prepared = is_prepared;
-  
+  _type = type;  
 }
 
 SensorDriver *SensorDriver::create(const char* driver, const char* type) {
@@ -100,57 +46,57 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
 
   #if (USE_SENSOR_ADT)
   else if (strcmp(type, SENSOR_TYPE_ADT) == 0)
-  return new SensorDriverAdt7420(driver, type, &_SensorDriver::_is_adt_setted, &_SensorDriver::_is_adt_prepared);
+  return new SensorDriverAdt7420(driver, type);
   #endif
 
   #if (USE_SENSOR_HIH)
   else if (strcmp(type, SENSOR_TYPE_HIH) == 0)
-  return new SensorDriverHih6100(driver, type, &_SensorDriver::_is_hih_setted, &_SensorDriver::_is_hih_prepared);
+  return new SensorDriverHih6100(driver, type);
   #endif
 
   #if (USE_SENSOR_HYT)
   else if (strcmp(type, SENSOR_TYPE_HYT) == 0)
-  return new SensorDriverHyt2X1(driver, type, &_SensorDriver::_is_hyt_setted, &_SensorDriver::_is_hyt_prepared);
+  return new SensorDriverHyt2X1(driver, type);
   #endif
 
   #if (USE_SENSOR_DW1)
   else if (strcmp(type, SENSOR_TYPE_DW1) == 0)
-  return new SensorDriverDw1(driver, type, &_SensorDriver::_is_dw1_setted, &_SensorDriver::_is_dw1_prepared);
+  return new SensorDriverDw1(driver, type);
   #endif
 
   #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
   else if (strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
-  return new SensorDriverRain(driver, type, &_SensorDriver::_is_tb_setted, &_SensorDriver::_is_tb_prepared);
+  return new SensorDriverRain(driver, type);
   #endif
 
   #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
   else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
-  return new SensorDriverTh(driver, type, &_SensorDriver::_is_th_setted, &_SensorDriver::_is_th_prepared);
+  return new SensorDriverTh(driver, type);
   #endif
 
   #if (USE_SENSOR_DEP)
   else if (strcmp(type, SENSOR_TYPE_DEP) == 0)
-  return new SensorDriverDigitecoPower(driver, type, &_SensorDriver::_is_dep_setted, &_SensorDriver::_is_dep_prepared);
+  return new SensorDriverDigitecoPower(driver, type);
   #endif
 
   #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
   else if ((strcmp(type, SENSOR_TYPE_DWA) == 0) || (strcmp(type, SENSOR_TYPE_DWB) == 0) || (strcmp(type, SENSOR_TYPE_DWC) == 0) || (strcmp(type, SENSOR_TYPE_DWD) == 0) || (strcmp(type, SENSOR_TYPE_DWE) == 0) || (strcmp(type, SENSOR_TYPE_DWF) == 0))
-  return new SensorDriverWind(driver, type, &_SensorDriver::_is_wind_setted, &_SensorDriver::_is_wind_prepared);
+  return new SensorDriverWind(driver, type);
   #endif
 
   #if (USE_SENSOR_DSA)
   else if (strcmp(type, SENSOR_TYPE_DSA) == 0)
-  return new SensorDriverSolarRadiation(driver, type, &_SensorDriver::_is_sr_setted, &_SensorDriver::_is_sr_prepared);
+  return new SensorDriverSolarRadiation(driver, type);
   #endif
 
   #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
   else if ((strcmp(type, SENSOR_TYPE_OA2) == 0) || (strcmp(type, SENSOR_TYPE_OB2) == 0) || (strcmp(type, SENSOR_TYPE_OC2) == 0) || (strcmp(type, SENSOR_TYPE_OD2) == 0) || (strcmp(type, SENSOR_TYPE_OA3) == 0) || (strcmp(type, SENSOR_TYPE_OB3) == 0) || (strcmp(type, SENSOR_TYPE_OC3) == 0) || (strcmp(type, SENSOR_TYPE_OD3) == 0) || (strcmp(type, SENSOR_TYPE_OE3) == 0))
-  return new SensorDriverOpc(driver, type, &_SensorDriver::_is_opc_setted, &_SensorDriver::_is_opc_prepared);
+  return new SensorDriverOpc(driver, type);
   #endif
 
   #if (USE_SENSOR_LWT)
   else if (strcmp(type, SENSOR_TYPE_LWT) == 0)
-  return new SensorDriverLeaf(driver, type, &_SensorDriver::_is_leaf_setted, &_SensorDriver::_is_leaf_prepared);
+  return new SensorDriverLeaf(driver, type);
   #endif
 
   else {
@@ -159,10 +105,12 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   }
 }
 
-void SensorDriver::setup(const uint8_t address, const uint8_t node) {
+void SensorDriver::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
   _address = address;
   _node = node;
   _start_time_ms = 0;
+  _is_setted = is_setted;
+  _is_prepared = is_prepared;
 }
 
 
@@ -220,9 +168,38 @@ bool SensorDriver::isPrepared() {
 }
 
 void SensorDriver::createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count) {
+
+  uint8_t index;  
+  bool found = false;
+
+  if (*sensors_count >= SENSORS_MAX) return;
+
+  for (uint8_t i = 0; i < *sensors_count; i++) {
+    if (
+	strcmp(sensors[i]->getDriver(),driver) == 0
+	//&&
+	//strcmp(sensors[i]->getType(),type)  == 0
+	&&
+	sensors[i]->getAddress() == address
+	)
+      {
+	index=_SensorDriver::_pool_pointers[i];
+	found=true;
+      }
+  }
+
+  if (!found){    
+    index=_SensorDriver::_pool_new_pointer;
+    _SensorDriver::_pool_pointers[*sensors_count]=index;
+    _SensorDriver::_pool_new_pointer++;
+  }
+
+  LOGT(F("pool index: %d"),index);
+  if (index >= SENSORS_UNIQUE_MAX) return;
+
   sensors[*sensors_count] = SensorDriver::create(driver, type);
   if (sensors[*sensors_count]) {
-    sensors[*sensors_count]->setup(address, node);
+    sensors[*sensors_count]->setup(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
     (*sensors_count)++;
   }
 }
@@ -244,8 +221,8 @@ void SensorDriverAdt7420::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverAdt7420::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
   _delay_ms = 0;
@@ -426,8 +403,8 @@ void SensorDriverHih6100::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverHih6100::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
 
@@ -640,8 +617,8 @@ void SensorDriverHyt2X1::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverHyt2X1::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
   _delay_ms = 0;
@@ -842,8 +819,8 @@ void SensorDriverDw1::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverDw1::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverDw1::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
   _delay_ms = 0;
@@ -1101,8 +1078,8 @@ void SensorDriverRain::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverRain::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverRain::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
   _delay_ms = 0;
@@ -1319,8 +1296,8 @@ void SensorDriverTh::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverTh::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverTh::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
@@ -1741,8 +1718,8 @@ void SensorDriverDigitecoPower::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverDigitecoPower::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
 
   _delay_ms = 0;
@@ -2130,8 +2107,8 @@ void SensorDriverWind::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverWind::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverWind::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
@@ -2561,8 +2538,8 @@ void SensorDriverSolarRadiation::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverSolarRadiation::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
@@ -2845,8 +2822,8 @@ void SensorDriverOpc::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverOpc::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverOpc::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
   bool is_i2c_write;
   uint8_t i;
@@ -3460,8 +3437,8 @@ void SensorDriverLeaf::resetPrepared() {
   *_is_prepared = false;
 }
 
-void SensorDriverLeaf::setup(const uint8_t address, const uint8_t node) {
-  SensorDriver::setup(address, node);
+void SensorDriverLeaf::setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared) {
+  SensorDriver::setup(address, node, is_setted, is_prepared);
   SensorDriver::printInfo();
   *_is_setted = true;
   _delay_ms = 0;

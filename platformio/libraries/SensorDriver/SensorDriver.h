@@ -65,15 +65,13 @@ class SensorDriver {
 public:
 
    /*!
-   \fn SensorDriver(const char* driver, const char* type ,bool* is_setted,bool* is_prepared)
+   \fn SensorDriver(const char* driver, const char* type)
    \brief Constructor for SensorDriver.
    \param[in] *driver driver's type.
    \param[in] *type sensor's type.
-   \param[in] *is_setted sensor's status.
-   \param[in] *is_prepared sensor's status.
    \return void.
    */
-   SensorDriver(const char* driver, const char* type, bool *is_setted, bool *is_prepared);
+   SensorDriver(const char* driver, const char* type);
 
    /*!
    \fn SensorDriver *create(const char* driver, const char* type)
@@ -98,13 +96,15 @@ public:
    static void createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count);
 
    /*!
-   \fn void setup(const uint8_t address, const uint8_t node = 0)
+   \fn void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared)
    \brief Setup sensor.
    \param[in] address sensor's address.
    \param[in] node sensor's node.
+   \param[in] *is_setted sensor's status.
+   \param[in] *is_prepared sensor's status.
    \return void.
    */
-   virtual void setup(const uint8_t address, const uint8_t node = 0);
+   virtual void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
 
    /*!
    \fn void prepare()
@@ -300,11 +300,11 @@ protected:
 #if (USE_SENSOR_ADT)
 class SensorDriverAdt7420 : public SensorDriver {
 public:
-   SensorDriverAdt7420(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverAdt7420(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("adt7420 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -336,11 +336,11 @@ protected:
 #if (USE_SENSOR_HIH)
 class SensorDriverHih6100 : public SensorDriver {
 public:
-   SensorDriverHih6100(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverHih6100(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("hih6100 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -374,11 +374,11 @@ protected:
 #include <hyt2x1.h>
 class SensorDriverHyt2X1 : public SensorDriver {
 public:
-   SensorDriverHyt2X1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverHyt2X1(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("hyt2x1 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -416,11 +416,11 @@ protected:
 #include "registers-windsonic.h"
 class SensorDriverDw1 : public SensorDriver {
 public:
-   SensorDriverDw1(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverDw1(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("dw1 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
    void getSDfromUV(int32_t u, int32_t v, double *speed, double *direction);
@@ -459,11 +459,11 @@ protected:
 #include "registers-rain.h"
 class SensorDriverRain : public SensorDriver {
 public:
-  SensorDriverRain(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared ) {
+  SensorDriverRain(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("rain create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -497,12 +497,12 @@ protected:
 #include "registers-th.h"
 class SensorDriverTh : public SensorDriver {
 public:
-  SensorDriverTh(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+  SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
 
       SensorDriver::printInfo();
       LOGT(F("th create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -539,11 +539,11 @@ protected:
 #include "digiteco_power.h"
 class SensorDriverDigitecoPower : public SensorDriver {
 public:
-   SensorDriverDigitecoPower(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverDigitecoPower(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("digitecopower create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -592,11 +592,11 @@ protected:
 #include "registers-wind.h"
 class SensorDriverWind : public SensorDriver {
 public:
-  SensorDriverWind(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+  SensorDriverWind(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
     LOGT(F("wind create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node = 0);
+  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 
@@ -628,11 +628,11 @@ protected:
 #include "registers-radiation.h"
 class SensorDriverSolarRadiation : public SensorDriver {
 public:
-  SensorDriverSolarRadiation(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+  SensorDriverSolarRadiation(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
     LOGT(F("solarradiation create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node = 0);
+  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 
@@ -664,11 +664,11 @@ protected:
 #include "registers-opc.h"
 class SensorDriverOpc : public SensorDriver {
 public:
-   SensorDriverOpc(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+   SensorDriverOpc(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
       LOGT(F("opc create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node = 0);
+   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -710,11 +710,11 @@ protected:
 #include "registers-leaf.h"
 class SensorDriverLeaf : public SensorDriver {
 public:
-  SensorDriverLeaf(const char* driver, const char* type, bool *is_setted, bool *is_prepared) : SensorDriver(driver, type, is_setted, is_prepared) {
+  SensorDriverLeaf(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
     LOGT(F("leaf create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node = 0);
+  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 

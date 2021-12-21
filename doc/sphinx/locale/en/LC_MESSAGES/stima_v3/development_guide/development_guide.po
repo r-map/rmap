@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"POT-Creation-Date: 2021-12-21 14:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.8.0\n"
 
 #: ../../stima_v3/development_guide/development_guide.rst:2
 msgid "Guida per lo sviluppo software"
@@ -151,19 +151,21 @@ msgid "Costruttore"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:141
-#: ../../stima_v3/development_guide/development_guide.rst:180
-#: ../../stima_v3/development_guide/development_guide.rst:193
+#: ../../stima_v3/development_guide/development_guide.rst:182
+#: ../../stima_v3/development_guide/development_guide.rst:195
 msgid "const char\\* driver: stringa di 3 caratteri contenente il nome del driver"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:143
-#: ../../stima_v3/development_guide/development_guide.rst:182
-#: ../../stima_v3/development_guide/development_guide.rst:195
+#: ../../stima_v3/development_guide/development_guide.rst:184
+#: ../../stima_v3/development_guide/development_guide.rst:197
 msgid "const char\\* type: stringa di 3 caratteri contenente il nome del sensore"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:146
-msgid "virtual void setup(const uint8_t address, const uint8_t node = 0)"
+msgid ""
+"virtual void setup(const uint8_t address, const uint8_t node , bool "
+"*is_setted, bool *is_prepared)"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:148
@@ -171,7 +173,7 @@ msgid "operazioni di inizializzazione del sensore"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:149
-#: ../../stima_v3/development_guide/development_guide.rst:197
+#: ../../stima_v3/development_guide/development_guide.rst:199
 msgid "const uint8_t address: indirizzo I\\ :sup:`2`\\ C del sensore"
 msgstr ""
 
@@ -179,15 +181,23 @@ msgstr ""
 msgid "const uint8_t node: nodo all’interno della rete"
 msgstr ""
 
+#: ../../stima_v3/development_guide/development_guide.rst:151
+msgid "bool *is_setted: setup sensor's status."
+msgstr ""
+
 #: ../../stima_v3/development_guide/development_guide.rst:152
-msgid "virtual void prepare(bool is_test = false)"
+msgid "bool *is_prepared: prepared sensor's status."
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:154
+msgid "virtual void prepare(bool is_test = false)"
+msgstr ""
+
+#: ../../stima_v3/development_guide/development_guide.rst:156
 msgid "inizializzazione del sensore precedente alla lettura"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:155
+#: ../../stima_v3/development_guide/development_guide.rst:157
 msgid ""
 "bool is_test: se false il sensore viene preparato per effettuare le "
 "normali procedura di lettura, se true il sensore si predispone per "
@@ -195,183 +205,183 @@ msgid ""
 " dello stesso"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:160
+#: ../../stima_v3/development_guide/development_guide.rst:162
 msgid "virtual void get(int32_t \\*values, uint8_t length)"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:162
+#: ../../stima_v3/development_guide/development_guide.rst:164
 msgid ""
 "lettura dei valori dal sensore in formato numerico intero a 32 bit con "
 "segno"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:164
-#: ../../stima_v3/development_guide/development_guide.rst:171
+#: ../../stima_v3/development_guide/development_guide.rst:166
+#: ../../stima_v3/development_guide/development_guide.rst:173
 msgid "int32_t \\*values: puntatore all’array di ritorno dei valori"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:165
-#: ../../stima_v3/development_guide/development_guide.rst:172
+#: ../../stima_v3/development_guide/development_guide.rst:167
+#: ../../stima_v3/development_guide/development_guide.rst:174
 msgid "uint8_t length: numero di valori da leggere dal sensore"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:167
+#: ../../stima_v3/development_guide/development_guide.rst:169
 msgid ""
 "virtual void getJson(int32_t \\*values, uint8_t length, char "
 "\\*json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH)"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:170
+#: ../../stima_v3/development_guide/development_guide.rst:172
 msgid "lettura dei valori dal sensore in formato JSON"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:173
+#: ../../stima_v3/development_guide/development_guide.rst:175
 msgid "char \\*json_buffer: buffer di ritorno della stringa contente il JSON"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:175
+#: ../../stima_v3/development_guide/development_guide.rst:177
 msgid "size_t json_buffer_length: lunghezza del buffer"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:177
+#: ../../stima_v3/development_guide/development_guide.rst:179
 msgid "static SensorDriver \\*create(const char\\* driver, const char\\* type)"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:179
+#: ../../stima_v3/development_guide/development_guide.rst:181
 msgid "crea un’istanza di SensorDriver per un sensore specifico"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:185
+#: ../../stima_v3/development_guide/development_guide.rst:187
 msgid ""
 "static void createAndSetup(const char\\* driver, const char\\* type, "
 "const uint8_t address, const uint8_t node, SensorDriver \\*sensors[], "
 "uint8_t \\*sensors_count)"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:189
+#: ../../stima_v3/development_guide/development_guide.rst:191
 msgid ""
 "richiama in sequenza i metodi create e setup assegnando la nuova istanza "
 "del sensore all’array delle istanze dei sensori incrementandone la "
 "variabile corrispondente che ne indica la dimensione"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:198
+#: ../../stima_v3/development_guide/development_guide.rst:200
 msgid "int8_t node: nodo all’interno della rete"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:199
+#: ../../stima_v3/development_guide/development_guide.rst:201
 msgid "const u SensorDriver \\*sensors[]: array delle istanze dei sensori"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:200
+#: ../../stima_v3/development_guide/development_guide.rst:202
 msgid "uint8_t \\*sensors_count: numero di istanze create"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:202
+#: ../../stima_v3/development_guide/development_guide.rst:204
 msgid "char \\*getDriver()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:204
+#: ../../stima_v3/development_guide/development_guide.rst:206
 msgid "ritorna il puntatore alla stringa contente il driver del sensore"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:206
+#: ../../stima_v3/development_guide/development_guide.rst:208
 msgid "char \\*getType()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:208
+#: ../../stima_v3/development_guide/development_guide.rst:210
 msgid "ritorna il puntatore alla stringa contente il tipo del sensore"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:210
+#: ../../stima_v3/development_guide/development_guide.rst:212
 msgid "uint8_t getAddress()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:212
+#: ../../stima_v3/development_guide/development_guide.rst:214
 msgid "ritorna l’indirizzo I\\ :sup:`2`\\ C del sensore"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:214
+#: ../../stima_v3/development_guide/development_guide.rst:216
 msgid "uint8_t getNode()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:216
+#: ../../stima_v3/development_guide/development_guide.rst:218
 msgid "ritorna il nodo del sensore"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:218
+#: ../../stima_v3/development_guide/development_guide.rst:220
 msgid "uint32_t_t getStartTime()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:220
+#: ../../stima_v3/development_guide/development_guide.rst:222
 msgid ""
 "ritorna il valore in millisecondi relativo all’istante iniziale in cui "
 "viene richiesto il delay"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:223
+#: ../../stima_v3/development_guide/development_guide.rst:225
 msgid "uint32_t_t getDelay()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:225
+#: ../../stima_v3/development_guide/development_guide.rst:227
 msgid "ritorna il valore in millisecondi indicante l’attesa richiesta"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:227
+#: ../../stima_v3/development_guide/development_guide.rst:229
 msgid "bool isEnd()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:229
+#: ../../stima_v3/development_guide/development_guide.rst:231
 msgid ""
 "ritorna true quando la procedura get del sensore è terminata, false se la"
 " procedura è in corso"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:232
+#: ../../stima_v3/development_guide/development_guide.rst:234
 msgid "bool isSuccess()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:234
+#: ../../stima_v3/development_guide/development_guide.rst:236
 msgid ""
 "ritorna true se la procedura get termina con successo, false in caso "
 "contrario"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:237
+#: ../../stima_v3/development_guide/development_guide.rst:239
 msgid "bool isSetted()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:239
+#: ../../stima_v3/development_guide/development_guide.rst:241
 msgid ""
 "ritorna true se l’operazione setup è stata eseguita con successo, false "
 "in caso contrario"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:242
+#: ../../stima_v3/development_guide/development_guide.rst:244
 msgid "bool isPrepared()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:244
+#: ../../stima_v3/development_guide/development_guide.rst:246
 msgid ""
 "ritorna true se l’operazione prepare è stata eseguita con successo, false"
 " in caso contrario"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:247
+#: ../../stima_v3/development_guide/development_guide.rst:249
 msgid "void resetPrepared()"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:249
+#: ../../stima_v3/development_guide/development_guide.rst:251
 msgid ""
 "resetta il flag indicante la corretta esecuzione della procedura prepare "
 "(flag ritornato dalla procedura isPrepared())"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:253
+#: ../../stima_v3/development_guide/development_guide.rst:255
 msgid "Microcontrollori e hardware in modalità risparmio energetico"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:255
+#: ../../stima_v3/development_guide/development_guide.rst:257
 msgid ""
 "Per garantire il funzionamento della stazione con batteria e pannello "
 "fotovoltaico, i microcontrollori sono impostati in modalità a basso "
@@ -381,21 +391,21 @@ msgid ""
 "periferiche dei microprocessori)."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:262
+#: ../../stima_v3/development_guide/development_guide.rst:264
 msgid ""
 "In particolare i moduli Stima Ethernet o Stima GSM/GPRS sono posti in "
 "modalità power down e risvegliati con interrupt dell’RTC con cadenza del "
 "secondo."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:266
+#: ../../stima_v3/development_guide/development_guide.rst:268
 msgid ""
 "Analogamente, il modulo Stima I2C-Rain è risvegliato dall’interrupt "
 "dovuto ad una basculata del pluviometro e il modulo Stima I2C-TH viene "
 "svegliato tramite interrupt del timer interno."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:270
+#: ../../stima_v3/development_guide/development_guide.rst:272
 msgid ""
 "Entrambi i moduli Stima I2C-Rain e Stima I2C-TH possono essere "
 "risvegliati attraverso matching dell’indirizzo I\\ :sup:`2`\\ C del "
@@ -407,14 +417,14 @@ msgid ""
 "indirizzamento I\\ :sup:`2`\\ C del dispositivo specifico."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:279
+#: ../../stima_v3/development_guide/development_guide.rst:281
 msgid ""
 "Tutti i dati acquisiti e le relative ed eventuali elaborazioni "
 "effettuate, sono salvate su scheda SD-Card e conseguentemente inviati al "
 "server RMAP."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:283
+#: ../../stima_v3/development_guide/development_guide.rst:285
 msgid ""
 "Per assolvere tali funzioni ed ottimizzare il funzionamento complessivo "
 "della stazione meteorologica in merito ad overhead del tempo di cpu per "
@@ -423,7 +433,7 @@ msgid ""
 " i dati dei sensori relativi a quel giorno."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:289
+#: ../../stima_v3/development_guide/development_guide.rst:291
 msgid ""
 "Per gestire la modalità di invio dati al server, è presente un unico file"
 " in cui viene scritto di volta in volta, il puntatore corrispondente alla"
@@ -434,71 +444,74 @@ msgid ""
 "ricercare il primo dato utile successivo a tale data."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:297
+#: ../../stima_v3/development_guide/development_guide.rst:299
 msgid "Nello specifico, ogni file di dati assume il nome nel formato::"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:301
+#: ../../stima_v3/development_guide/development_guide.rst:303
 msgid "in cui:"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:304
+#: ../../stima_v3/development_guide/development_guide.rst:306
 msgid "Simbolo"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:304
+#: ../../stima_v3/development_guide/development_guide.rst:306
 msgid "Descrizione"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:306
+#: ../../stima_v3/development_guide/development_guide.rst:308
 msgid "aaaa"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:306
+#: ../../stima_v3/development_guide/development_guide.rst:308
 msgid "anno con 4 cifre"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:307
+#: ../../stima_v3/development_guide/development_guide.rst:309
 msgid "mm"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:307
+#: ../../stima_v3/development_guide/development_guide.rst:309
 msgid "mese con 2 cifre"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:308
+#: ../../stima_v3/development_guide/development_guide.rst:310
 msgid "gg"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:308
+#: ../../stima_v3/development_guide/development_guide.rst:310
 msgid "giorno con 2 cifre"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:311
+#: ../../stima_v3/development_guide/development_guide.rst:313
 msgid ""
 "In ogni file, ogni riga corrisponde ad un dato di un sensore ed in "
 "particolare, ogni riga è della lunghezza di::"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:316
+#: ../../stima_v3/development_guide/development_guide.rst:318
 msgid ""
 "Tali valori sono delle #define situate nel file mqtt_config.h nella "
 "cartella arduino/sketchbook/libraries/RmapConfig."
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:320
+#: ../../stima_v3/development_guide/development_guide.rst:322
 msgid "Ogni riga è salvata nel formato::"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:320
+#: ../../stima_v3/development_guide/development_guide.rst:322
 msgid "TRANGE/LEVEL/VAR {“v”: VALUE, “t”:TIME}"
 msgstr ""
 
-#: ../../stima_v3/development_guide/development_guide.rst:322
+#: ../../stima_v3/development_guide/development_guide.rst:324
 msgid ""
 "Il file contenente il puntatore all’ultimo dato trasmetto assume il nome "
 "mqtt_ptr.txt e contiene un dato binario della dimensione di 4 bytes senza"
 " segno corrispondente al numero di secondi dal 00:00:00 del 01/01/1970 "
 "indicante la data ed ora dell’ultimo dato trasmetto attraverso MQTT."
 msgstr ""
+
+#~ msgid "virtual void setup(const uint8_t address, const uint8_t node = 0)"
+#~ msgstr ""
 

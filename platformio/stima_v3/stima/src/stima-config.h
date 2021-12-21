@@ -382,18 +382,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define TIMER1_TCNT1_VALUE                            ((uint16_t)(0xFFFF - (float)(1.0 * 0xFFFF * TIMER1_INTERRUPT_TIME_MS / TIMER1_OVERFLOW_TIME_MS)))
 
-/*********************************************************************
-* SENSORS
-*********************************************************************/
-/*!
-\def USE_SENSORS_COUNT
-\brief Sensors count.
-*/
-#define USE_SENSORS_COUNT                             (USE_SENSOR_ITH + USE_SENSOR_MTH + USE_SENSOR_NTH + USE_SENSOR_XTH + USE_SENSOR_TBS + USE_SENSOR_TBR + USE_SENSOR_DW1 + USE_SENSOR_DEP + USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_OA2 + USE_SENSOR_OB2 + USE_SENSOR_OC2 + USE_SENSOR_OD2 + USE_SENSOR_OA3 + USE_SENSOR_OB3 + USE_SENSOR_OC3 + USE_SENSOR_OD3 + USE_SENSOR_OE3 + USE_SENSOR_LWT)
-
-#if (USE_SENSORS_COUNT == 0)
-#error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
-#endif
 
 /*********************************************************************
 * CONSTANT DATA
