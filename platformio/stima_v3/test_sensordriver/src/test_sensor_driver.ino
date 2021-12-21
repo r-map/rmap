@@ -12,7 +12,6 @@
 #include <ArduinoLog.h>
 
 #define I2C_BUS_CLOCK                                 (50000L)
-#define USE_SENSORS_COUNT                             (10)
 #define SENSORS_RETRY_COUNT_MAX                       (3)
 #define SENSORS_RETRY_DELAY_MS                        (50)
 
@@ -33,15 +32,15 @@ typedef enum {
 } sensors_reading_state_t;
 
 uint8_t sensors_count;
-SensorDriver *sensors[USE_SENSORS_COUNT];
+SensorDriver *sensors[SENSORS_MAX];
 bool is_first_run;
 bool is_test;
 bool is_event_sensors_reading;
 bool do_reset_first_run;
 
-int32_t values_readed_from_sensor[USE_SENSORS_COUNT][VALUES_TO_READ_FROM_SENSOR_COUNT];
+int32_t values_readed_from_sensor[SENSORS_MAX][VALUES_TO_READ_FROM_SENSOR_COUNT];
 #if (USE_JSON)
-char json_sensors_data[USE_SENSORS_COUNT][JSON_BUFFER_LENGTH];
+char json_sensors_data[SENSORS_MAX][JSON_BUFFER_LENGTH];
 char topic_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_SENSOR_TOPIC_LENGTH];
 char message_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_MESSAGE_LENGTH];
 #endif
