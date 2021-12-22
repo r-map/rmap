@@ -95,8 +95,20 @@ public:
    */
    static void createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count);
 
+
    /*!
-   \fn void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared)
+   \fn void init(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared)
+   \brief Initialize sensor.
+   \param[in] address sensor's address.
+   \param[in] node sensor's node.
+   \param[in] *is_setted sensor's status.
+   \param[in] *is_prepared sensor's status.
+   \return void.
+   */
+   void init(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+
+   /*!
+   \fn void setup()
    \brief Setup sensor.
    \param[in] address sensor's address.
    \param[in] node sensor's node.
@@ -104,7 +116,7 @@ public:
    \param[in] *is_prepared sensor's status.
    \return void.
    */
-   virtual void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   virtual void setup();
 
    /*!
    \fn void prepare()
@@ -213,12 +225,27 @@ public:
    bool isPrepared();
 
    /*!
+   \fn void resetSetted()
+   \brief Reset setted internal state of sensor.
+   \return void.
+   */
+   void resetSetted();
+  
+   /*!
    \fn void resetPrepared()
    \brief Reset preapred internal state of sensor.
    \return void.
    */
    virtual void resetPrepared();
 
+   /*!
+   \fn uint8_t getErrorCount()
+   \brief Get the sensor's error count.
+   \return the sensor's errors count fron the last i2c transaction with success.
+   */
+   uint16_t getErrorCount();
+
+  
 protected:
    /*!
    \var _driver
@@ -280,6 +307,12 @@ protected:
    */
    uint8_t _buffer[I2C_MAX_DATA_LENGTH];
 
+   /*!
+   \var _error_count
+   \brief Internal sensor's counter of errors. Every i2c transaction with success the counter is reset.
+   */
+   uint16_t _error_count;
+  
    bool _is_test;
    bool *_is_setted;
    bool *_is_prepared;
@@ -304,7 +337,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("adt7420 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -340,7 +373,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("hih6100 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -378,7 +411,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("hyt2x1 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -420,7 +453,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("dw1 create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
    void getSDfromUV(int32_t u, int32_t v, double *speed, double *direction);
@@ -463,7 +496,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("rain create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -502,7 +535,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("th create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -543,7 +576,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("digitecopower create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -596,7 +629,7 @@ public:
     SensorDriver::printInfo();
     LOGT(F("wind create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+  void setup();
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 
@@ -632,7 +665,7 @@ public:
     SensorDriver::printInfo();
     LOGT(F("solarradiation create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+  void setup();
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 
@@ -668,7 +701,7 @@ public:
       SensorDriver::printInfo();
       LOGT(F("opc create... [ %s ]"), OK_STRING);
    };
-   void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+   void setup();
    void prepare(bool is_test = false);
    void get(int32_t *values, uint8_t length);
 
@@ -714,7 +747,7 @@ public:
     SensorDriver::printInfo();
     LOGT(F("leaf create... [ %s ]"), OK_STRING);
   };
-  void setup(const uint8_t address, const uint8_t node, bool *is_setted, bool *is_prepared);
+  void setup();
   void prepare(bool is_test = false);
   void get(int32_t *values, uint8_t length);
 

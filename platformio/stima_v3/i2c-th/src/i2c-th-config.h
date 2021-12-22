@@ -124,6 +124,18 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define WDT_TIMER                                     (WDTO_8S)
 
+
+
+/*********************************************************************
+* SENSORS
+*********************************************************************/
+
+/*!
+\def SENSORS_ERROR_COUNT_MAX
+\brief Max number of i2c error for a sensor before didable sensor and retry setup
+*/
+#define SENSOR_ERROR_COUNT_MAX                        (20)
+
 /*********************************************************************
 * HUMIDITY AND TEMPERATURE SENSORS
 *********************************************************************/

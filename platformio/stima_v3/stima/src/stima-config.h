@@ -260,6 +260,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 /*********************************************************************
+* SENSORS
+*********************************************************************/
+
+/*!
+\def SENSORS_ERROR_COUNT_MAX
+\brief Max number of i2c error for a sensor before didable sensor and retry setup
+*/
+#define SENSOR_ERROR_COUNT_MAX                        (20)
+
+/*********************************************************************
 * POWER DOWN
 *********************************************************************/
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)

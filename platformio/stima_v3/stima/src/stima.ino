@@ -2259,8 +2259,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             }
 
             state_after_wait = SENSORS_READING_INIT;
-            sensors_reading_state = SENSORS_READING_PREPARE;
-            LOGV(F("SENSORS_READING_INIT ---> SENSORS_READING_PREPARE"));
+            sensors_reading_state = SENSORS_SETUP_CHECK;
+            LOGV(F("SENSORS_READING_INIT ---> SENSORS_SETUP_CHECK"));
          }
          else if (do_get) {
             sensors_reading_state = SENSORS_READING_GET;
@@ -2272,6 +2272,28 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          }
       break;
 
+   case SENSORS_SETUP_CHECK:
+
+        LOGV(F("Sensor error count: %d"),sensors[i]->getErrorCount());
+     
+	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
+	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
+	  sensors[i]->resetSetted();
+	}
+	
+	if (!sensors[i]->isSetted()) {
+	  sensors[i]->setup();
+	}
+
+        if (sensors[i]->isSetted()) {
+	  sensors_reading_state = SENSORS_READING_PREPARE;
+	}else{
+	  LOGE(F("Skip failed Sensor"));
+	  sensors_reading_state = SENSORS_READING_NEXT;
+	} 
+
+	break;
+      
       case SENSORS_READING_PREPARE:
          sensors[i]->prepare(is_test);
          delay_ms = sensors[i]->getDelay();
@@ -2403,8 +2425,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
         // next sensor
         if ((++i) < readable_configuration.sensors_count) {
           retry = 0;
-          sensors_reading_state = SENSORS_READING_PREPARE;
-          LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_PREPARE"));
+          sensors_reading_state = SENSORS_SETUP_CHECK;
+          LOGV(F("SENSORS_READING_NEXT ---> SENSORS_SETUP_CHECK"));
         }
         // success: all sensors readed
         else {

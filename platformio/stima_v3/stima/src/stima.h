@@ -224,6 +224,7 @@ typedef enum {
 */
 typedef enum {
    SENSORS_READING_INIT,            //!< init task variables
+   SENSORS_SETUP_CHECK,             //!< check errors and if required try a sensor setup
    SENSORS_READING_PREPARE,         //!< prepare sensor
    SENSORS_READING_IS_PREPARED,     //!< check if the sensor has been prepared
    SENSORS_READING_GET,             //!< read and get values from sensor

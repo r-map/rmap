@@ -808,11 +808,35 @@ void sensors_reading_task () {
          retry_prepare = 0;
          retry_get = 0;
          state_after_wait = SENSORS_READING_INIT;
-         sensors_reading_state = SENSORS_READING_PREPARE;
+         sensors_reading_state = SENSORS_SETUP_CHECK;
       break;
 
-      case SENSORS_READING_PREPARE:
-         //! prepare sensor and get delay for complete operation
+   case SENSORS_SETUP_CHECK:
+
+        LOGV(F("Sensor error count: %d"),sensors[i]->getErrorCount());
+     
+	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
+	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
+	  sensors[i]->resetSetted();
+	}
+	
+	if (!sensors[i]->isSetted()) {
+	  sensors[i]->setup();
+	}
+
+        if (sensors[i]->isSetted()) {
+	  sensors_reading_state = SENSORS_READING_PREPARE;
+	}else{
+	  LOGE(F("Skip failed Sensor"));
+	  sensors_reading_state = SENSORS_READING_NEXT;
+	} 
+
+	break;
+
+	
+   case SENSORS_READING_PREPARE:
+
+        //! prepare sensor and get delay for complete operation
          sensors[i]->prepare();
          delay_ms = sensors[i]->getDelay();
 	 start_time_ms = sensors[i]->getStartTime();
@@ -825,8 +849,9 @@ void sensors_reading_task () {
          else {
             sensors_reading_state = SENSORS_READING_IS_PREPARED;
          }
-      break;
 
+	 break;
+	 
       case SENSORS_READING_IS_PREPARED:
         //! success
         if (sensors[i]->isPrepared()) {
@@ -925,7 +950,7 @@ void sensors_reading_task () {
          if ((++i) < sensors_count) {
             retry_prepare = 0;
             retry_get = 0;
-            sensors_reading_state = SENSORS_READING_PREPARE;
+            sensors_reading_state = SENSORS_SETUP_CHECK;
          }
          //! end (there are no other sensors to read)
          else {
