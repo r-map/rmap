@@ -869,7 +869,7 @@ void sensors_reading_task () {
         }
         //! fail
         else {
-	  sensors_reading_state = SENSORS_READING_END;
+	  sensors_reading_state = SENSORS_READING_NEXT;
 	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
 	  retry_prepare = 0;
 	}

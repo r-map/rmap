@@ -46,6 +46,7 @@ void setup() {
    init_logging();
    #if (USE_LCD)
    init_lcd();
+   wdt_reset();
    #endif
    load_configuration();
    init_buffers();
@@ -414,6 +415,7 @@ void init_lcd() {
   if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
     {
       LOGE(F(" Error initializing LCD"));
+      return;
     }
   
   lcd.clear();
@@ -2274,7 +2276,15 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
    case SENSORS_SETUP_CHECK:
 
-        LOGV(F("Sensor error count: %d"),sensors[i]->getErrorCount());
+         // initialize to missing value
+	 for (uint8_t ii=0; ii<VALUES_TO_READ_FROM_SENSOR_COUNT; ii++) {
+	   values_readed_from_sensor[i][ii]=UINT16_MAX;
+	 }
+	 json_sensors_data[i][0]='\0';
+	      
+        LOGN(F("Sensor %s-%s-%d error count: %d"),
+	     sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(),
+	     sensors[i]->getErrorCount());
      
 	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
 	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
