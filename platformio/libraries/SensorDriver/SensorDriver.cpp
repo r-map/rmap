@@ -115,6 +115,9 @@ void SensorDriver::init(const uint8_t address, const uint8_t node, bool *is_sett
 }
 
 
+void SensorDriver::setup(){
+}
+
 void SensorDriver::prepare(bool is_test){
 }
 
