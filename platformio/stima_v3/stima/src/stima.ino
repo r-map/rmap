@@ -574,9 +574,9 @@ void init_sensors () {
   lcd.setCursor(0, 1);
   lcd.print(stima_name);
   lcd.print(F(" V:"));
-  lcd.print(readable_configuration.module_main_version);
+  lcd.print(MODULE_MAIN_VERSION);
   lcd.print(F("."));
-  lcd.print(readable_configuration.module_minor_version);  
+  lcd.print(MODULE_MINOR_VERSION);  
   #endif
   
   if (readable_configuration.sensors_count) {
@@ -688,7 +688,8 @@ void mqttRxCallback(MQTT::MessageData &md) {
 void print_configuration() {
    getStimaNameByType(stima_name, readable_configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
-   LOGN(F("--> version: %d.%d"), readable_configuration.module_main_version, readable_configuration.module_minor_version);
+   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+   LOGN(F("--> configuration version: %d.%d"), readable_configuration.module_main_version, readable_configuration.module_minor_version);
    LOGN(F("--> sensors: %d"), readable_configuration.sensors_count);
    LOGN(F("--> ConstantData: %d"), readable_configuration.constantdata_count);
    for (uint8_t i=0; i<readable_configuration.constantdata_count; i++) {
@@ -723,7 +724,7 @@ void print_configuration() {
 void set_default_configuration() {
    writable_configuration.module_type = MODULE_TYPE;
    writable_configuration.module_main_version = MODULE_MAIN_VERSION;
-   writable_configuration.module_minor_version = MODULE_MINOR_VERSION;
+   writable_configuration.module_minor_version = MODULE_CONFIGURATION_VERSION;
 
    writable_configuration.report_seconds = 900;
 
@@ -802,7 +803,7 @@ void load_configuration() {
    LOGN(F("Configuration received... [ %s ]"), OK_STRING);
 
    if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
-       //|| writable_configuration.module_minor_version != MODULE_MINOR_VERSION
+       || writable_configuration.module_minor_version != MODULE_CONFIGURATION_VERSION
        ) {
       save_configuration(CONFIGURATION_DEFAULT);
    }
