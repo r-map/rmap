@@ -20,9 +20,10 @@ atmega644p_isp: HFUSE ?= 0xD8
 atmega644p_isp: LFUSE ?= 0xFF
 # 2.7V brownout
 atmega644p_isp: EFUSE ?= 0xFD
-atmega644p_isp: UNLOCK ?= 0xFF
-atmega644p_isp: LOCK ?= 0xCF
+atmega644p_isp: UNLOCK ?= 0x3F
+atmega644p_isp: LOCK ?= 0x0F
 
+atmega644p_isp: clean
 atmega644p_isp: $(PROGRAM)_atmega644p.hex
 atmega644p_isp: $(PROGRAM)_atmega644p.lst
 atmega644p_isp: fuse flash lock
