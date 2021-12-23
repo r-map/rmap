@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-10 15:05+0100\n"
+"POT-Creation-Date: 2021-12-23 13:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1286,57 +1286,69 @@ msgstr ""
 msgid "make atmega1284p_isp"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:808
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:805
 msgid "Compilazione del firmware in formato binario"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:810
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:807
 msgid ""
 "Compilare il firmware per i moduli Stima secondo quanto scritto ai punti "
 "precedenti"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:812
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:809
 msgid ""
 "Localizzare il file firmware.elf compilato, solitamente -  "
 "rmap/platformio/stima_v3/stima/.pio/build/1284p16m"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:814
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:811
 msgid ""
 "Attraverso una consolle o il prompt dei comandi, eseguire -  "
 "~/.platformio/packages/toolchain-atmelavr/bin//avr-objcopy -I ihex -O "
 "binary firmware.elf FIRMWARE.BIN"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:818
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:815
 msgid "Upload del firmware tramite micro SD-Card attraverso Digitecoboot"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:820
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:817
 msgid "Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:821
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:818
+msgid ""
+"Creare un file sulla scheda SD con il nome esattamente corrispondente "
+"alla versione del firmware: ad esempio \"3.6\""
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:820
 msgid ""
 "Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima "
 "GSM/GPRS, Stima I2C-TH o Stima-Rain"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:823
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:822
 msgid ""
 "Alimentare il modulo e attendere 30 secondi per la fine del caricamento "
 "del firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:825
-msgid "Spegnere il modulo e rimuovere la micro SD-Card contenente il firmware"
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:824
+msgid ""
+"Spegnere il modulo e rimuovere eventualmente la micro SD-Card contenente "
+"il firmware"
 msgstr ""
 
-#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:827
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:826
 msgid ""
-"Se necessario, inserire la micro SD-Card utile per il funzionamento del "
-"modulo (senza il file FIRMWARE.BIN)"
+"6. Verificare sul display LCD la corretta versione del firmware 6. Se "
+"necessario, inserire la micro SD-Card utile per il funzionamento"
+msgstr ""
+
+#: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:828
+msgid "del modulo (senza il file FIRMWARE.BIN)"
 msgstr ""
 
 #: ../../stima_v3/howto_stima_v3/howto_stima_v3.rst:829
@@ -1638,5 +1650,14 @@ msgstr ""
 #~ "https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP e "
 #~ "questo è un esempio dei comandi da"
 #~ " impartire a avrdude:"
+#~ msgstr ""
+
+#~ msgid "Spegnere il modulo e rimuovere la micro SD-Card contenente il firmware"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Se necessario, inserire la micro SD-"
+#~ "Card utile per il funzionamento del "
+#~ "modulo (senza il file FIRMWARE.BIN)"
 #~ msgstr ""
 

@@ -801,7 +801,9 @@ void load_configuration() {
 
    LOGN(F("Configuration received... [ %s ]"), OK_STRING);
 
-   if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION || writable_configuration.module_minor_version != MODULE_MINOR_VERSION) {
+   if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
+       //|| writable_configuration.module_minor_version != MODULE_MINOR_VERSION
+       ) {
       save_configuration(CONFIGURATION_DEFAULT);
    }
 
@@ -1614,7 +1616,12 @@ void supervisor_task() {
 	    lcd.print( F("SD Card: "));
 	    lcd.print(FAIL_STRING);
 	    #endif
-          }
+          }else{
+	    // remove firmware to do not redo update the next reboot
+	    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
+	      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
+	    }
+	  }
         }
         #endif
 

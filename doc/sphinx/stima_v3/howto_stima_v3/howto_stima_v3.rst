@@ -815,15 +815,18 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 -----------------------------------------------------------------
 
 1. Copiare il file FIRMWARE.BIN su una micro SD-Card formattata in FAT32
-2. Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima
+2. Creare un file sulla scheda SD con il nome esattamente corrispondente alla
+   versione del firmware: ad esempio "3.6"
+3. Inserire la micro SD-Card in uno dei moduli Stima Ethernet, Stima
    GSM/GPRS, Stima I2C-TH o Stima-Rain
-3. Alimentare il modulo e attendere 30 secondi per la fine del
+4. Alimentare il modulo e attendere 30 secondi per la fine del
    caricamento del firmware
-4. Spegnere il modulo e rimuovere la micro SD-Card contenente il
+5. Spegnere il modulo e rimuovere eventualmente la micro SD-Card contenente il
    firmware
-5. Se necessario, inserire la micro SD-Card utile per il funzionamento
+6. Verificare sul display LCD la corretta versione del firmware
+6. Se necessario, inserire la micro SD-Card utile per il funzionamento
    del modulo (senza il file FIRMWARE.BIN)
-6. Alimentare il modulo
+7. Alimentare il modulo
 
 Assemblaggio stazione Stima
 ---------------------------

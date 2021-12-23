@@ -56,4 +56,15 @@ bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, oflag_t para
 */
 void sdcard_make_filename(time_t time, char *file_name);
 
+
+/*!
+\fn void sdcard_remove_firmware(const uint8_t main_version, const uint8_t minor_version)
+\brief Remove the firmware corrispondig to the version requested. Remove file named "mainversion.minorversion" and "FIRMWARE.BIN" if the first exist.
+\param[in] *SD pointer to sdcard instance.
+\param[in] firmware main version.
+\param[in] firmware minor version.
+\return bool (true if firmware was removed).
+*/
+bool sdcard_remove_firmware(SdFat *SD, const uint8_t main_version, const uint8_t minor_version);
+
 #endif

@@ -45,3 +45,22 @@ bool sdcard_open_file(SdFat *SD, File *file, const char *file_name, oflag_t para
 void sdcard_make_filename(time_t time, char *file_name) {
    snprintf(file_name, SDCARD_FILES_NAME_MAX_LENGTH, "%04u_%02u_%02u.txt", year(time), month(time), day(time));
 }
+
+
+bool sdcard_remove_firmware(SdFat *SD, const uint8_t main_version, const uint8_t minor_version){
+
+  char *firmware = "FIRMWARE.BIN";
+  char firmware_done[11];
+  char version[7];
+
+  sprintf(version,"%d.%d",main_version,minor_version);
+  sprintf(firmware_done,"%d_%d.BIN",main_version,minor_version);
+  
+  if (SD->exists(version)){
+    SD->remove(firmware_done);  
+    if (SD->rename(firmware, firmware_done)){  
+      if (SD->remove(version)) return true;
+    }
+  }
+  return false;
+}
