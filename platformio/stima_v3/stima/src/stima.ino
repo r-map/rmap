@@ -1622,6 +1622,8 @@ void supervisor_task() {
 	    // remove firmware to do not redo update the next reboot
 	    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
 	      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
+	      lcd.setCursor(0, 2);
+	      lcd.print( F("NEW Firmware loaded"));
 	    }
 	  }
         }
