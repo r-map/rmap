@@ -117,7 +117,7 @@ void logPrefix(Print* _logOutput) {
 
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
-  //_logOutput->flush();  // we use this to flush every log message
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 void init_logging(){

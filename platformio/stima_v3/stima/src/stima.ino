@@ -58,6 +58,8 @@ void setup() {
    #endif
    init_system();
    wdt_reset();
+   delay(1000);  // wait other board go ready
+   wdt_reset();
 }
 
 /*!
@@ -222,7 +224,7 @@ void logPrefix(Print* _logOutput) {
 
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
-  //_logOutput->flush();  // we use this to flush every log message
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 
@@ -230,7 +232,6 @@ void init_logging(){
    #if (ENABLE_SDCARD_LOGGING)      
    if (!is_sdcard_open) {
      if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
-       LOGN(F("SDCARD opened Logging"));
        is_sdcard_open = true;
        is_sdcard_error = false;
      }
