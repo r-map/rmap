@@ -618,9 +618,9 @@ char json_sensors_data[SENSORS_MAX][JSON_BUFFER_LENGTH];
 
 /*!
 \var values_readed_from_sensor
-\brief buffer containing the data read by sensors in numeric format.
+\brief buffer containing the data read by sensor in numeric format.
 */
-int32_t values_readed_from_sensor[SENSORS_MAX][VALUES_TO_READ_FROM_SENSOR_COUNT];
+int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
 
 /*!
 \var system_time
