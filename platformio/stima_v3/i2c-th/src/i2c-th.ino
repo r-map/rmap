@@ -796,6 +796,7 @@ void sensors_reading_task () {
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
    static int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
+   static char json_sensors_data[JSON_BUFFER_LENGTH];
 
    switch (sensors_reading_state) {
       case SENSORS_READING_INIT:
@@ -877,7 +878,7 @@ void sensors_reading_task () {
 
       case SENSORS_READING_GET:
          //! get VALUES_TO_READ_FROM_SENSOR_COUNT values from sensor and store it in values_readed_from_sensor.
-         sensors[i]->get(values_readed_from_sensor, VALUES_TO_READ_FROM_SENSOR_COUNT);
+	sensors[i]->getJson(values_readed_from_sensor, VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data);
          delay_ms = sensors[i]->getDelay();
          start_time_ms = sensors[i]->getStartTime();
 
@@ -922,6 +923,7 @@ void sensors_reading_task () {
 
       case SENSORS_READING_READ:
         //! read sensor value
+	/*
         #if (USE_SENSOR_ADT)
         if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
           addSample(&temperature_samples, &temperature_observations, values_readed_from_sensor[0]);
@@ -941,7 +943,20 @@ void sensors_reading_task () {
           addSample(&temperature_samples, &temperature_observations, values_readed_from_sensor[1]);
         }
         #endif
-
+	*/
+	{
+	  StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
+	  DeserializationError error = deserializeJson(doc,json_sensors_data);
+	  if (error) {
+	    LOGE(F("deserializeJson() failed with code %s"),error.f_str());
+	  }else{
+	    unsigned long int value = doc["B12101"] | UINT32_MAX;
+	    addSample(&temperature_samples, &temperature_observations, value);
+	    
+	    value = doc["B13003"] | UINT32_MAX;
+	    addSample(&humidity_samples, &humidity_observations, value);
+	  }
+	}
         sensors_reading_state = SENSORS_READING_NEXT;
       break;
 

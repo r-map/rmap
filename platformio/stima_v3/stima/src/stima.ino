@@ -2301,9 +2301,6 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
    case SENSORS_SETUP_CHECK:
 
          // initialize to missing value
-	 for (uint8_t ii=0; ii<VALUES_TO_READ_FROM_SENSOR_COUNT; ii++) {
-	   values_readed_from_sensor[ii]=UINT16_MAX;
-	 }
 	 json_sensors_data[i][0]='\0';
 	 
         LOGN(F("Sensor %s-%s-%d error count: %d"),
@@ -2388,11 +2385,11 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_GET:
-        if (is_test) {
-          sensors[i]->get(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT);
-        }
-        else {
-          sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0]);
+	
+	int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
+	sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data_test);
+        if (!is_test) {
+          strcpy(json_sensors_data[i],json_sensors_data_test);
         }
 
         delay_ms = sensors[i]->getDelay();
@@ -2449,26 +2446,33 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          #if (USE_LCD)
 	 // normal OR test: print
 	 if (!is_first_run || is_test) {	   
-	   LOGN(F("[%s] %s-%s-%d Values: %l %l %l\tJson: %s"), is_test? "Test" : "Report",
-		sensors[i]->getDriver(),sensors[i]->getType(),sensors[i]->getAddress(),
-		values_readed_from_sensor[0], values_readed_from_sensor[1], values_readed_from_sensor[2],
-		&json_sensors_data[i]);
+	   LOGN(F("[%s] %s-%s-%d\tJson: %s \tMetadata: %s"), is_test? "Test" : "Report",
+	 	sensors[i]->getDriver(),sensors[i]->getType(),sensors[i]->getAddress(),
+		&json_sensors_data_test,
+		readable_configuration.sensors[i].mqtt_topic);
 	   
-	   if ((strcmp(sensors[i]->getType(), "ITH") == 0) || (strcmp(sensors[i]->getType(), "HYT") == 0) || (strcmp(sensors[i]->getType(), "OE3") == 0)) {
-	     if (ISVALID(values_readed_from_sensor[0])) {
-	      lcd.print((values_readed_from_sensor[0] - SENSOR_DRIVER_C_TO_K) / 100.0,1);
-	      lcd.print(F("C "));
+	   StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
+	   DeserializationError error = deserializeJson(doc,json_sensors_data_test);
+	   if (error) {
+	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
+	   }else{
+	     
+	     unsigned long int value = doc["B12101"] | UINT32_MAX;
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
+	       lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1);
+	       lcd.print(F("C "));
 	     }
-	     else {
-	       lcd.print(F("--.-C "));
-	     }
-	    
-	     if (ISVALID(values_readed_from_sensor[1])) {
-	       lcd.print(values_readed_from_sensor[1]);
+
+	     value = doc["B13003"] | UINT32_MAX;
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
+	       lcd.print(value);
 	       lcd.print(F("% "));
 	     }
-	     else {
-	       lcd.print(F("---% "));
+	     
+	     value = doc["B13011"] | UINT32_MAX;
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){	     
+	       lcd.print((value/10.0),1);
+	       lcd.print(F("mm "));
 	     }
 	   }
 	   /*
@@ -2479,19 +2483,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	     else {
 	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--- --- --- ug/m3");
 	     }
-	     }
-	   */
-	   else if (strcmp(sensors[i]->getType(), "TBR") == 0) {
-	     if (ISVALID(values_readed_from_sensor[0])) {
-	       lcd.print((values_readed_from_sensor[0]/10.0),1);
-	       lcd.print(F("mm "));
-	     }
-	     else {
-	       lcd.print(F("--.-mm "));
-	     }
-	   }
-	   /*
-	     else if (strcmp(sensors[i]->getType(), "LWT") == 0) {
+	     }else if (strcmp(sensors[i]->getType(), "LWT") == 0) {
 	     if (ISVALID(values_readed_from_sensor[i][0])) {
 	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f'", (values_readed_from_sensor[i][0]*10.0/60.0));
 	     }
@@ -2524,7 +2516,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	     }
 	   */
 	 }
-	 #endif
+         #endif
 
 	 if (driver && type && address && node) {
             sensors_reading_state = SENSORS_READING_END;

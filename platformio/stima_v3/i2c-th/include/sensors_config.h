@@ -41,7 +41,7 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
 */
-#define USE_JSON                    (false)
+#define USE_JSON                    (true)
 
 /*!
 \def USE_SENSOR_ADT
@@ -270,13 +270,13 @@ Maximum number of values to be read by the sensors.
 \def STATISTICAL_DATA_COUNT
 \brief How much observations are needed for generating a report.
 */
-#define STATISTICAL_DATA_COUNT               (15)
+#define STATISTICAL_DATA_COUNT               (3)
 
 /*!
 \def OBSERVATION_COUNT
 \brief Observations buffer length.
 */
-#define OBSERVATION_COUNT                    (STATISTICAL_DATA_COUNT * 2)
+#define OBSERVATION_COUNT                    (STATISTICAL_DATA_COUNT * 25)
 
 /*!
 \def OBSERVATION_COUNT_TOLLERANCE

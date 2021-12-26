@@ -617,10 +617,10 @@ char maint_topic[MQTT_ROOT_TOPIC_LENGTH + MQTT_SENSOR_TOPIC_LENGTH];
 char json_sensors_data[SENSORS_MAX][JSON_BUFFER_LENGTH];
 
 /*!
-\var values_readed_from_sensor
-\brief buffer containing the data read by sensor in numeric format.
+\var json_sensors_data_test
+\brief buffer containing the data read by sensors in json text format for test only.
 */
-int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
+char json_sensors_data_test[JSON_BUFFER_LENGTH];
 
 /*!
 \var system_time
