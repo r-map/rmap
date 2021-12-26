@@ -124,6 +124,9 @@ void SensorDriver::prepare(bool is_test){
 void SensorDriver::get(int32_t *values, uint8_t length){
 }
 
+void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length){
+}
+
 void SensorDriver::resetPrepared(){
 }
 
@@ -364,7 +367,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
         values[0] = (temperature*6.25) + SENSOR_DRIVER_C_TO_K;
       }
       else {
-        values[0] = UINT16_MAX;
+        values[0] = UINT32_MAX;
       }
     }
 
@@ -558,7 +561,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
         values[0] = round(float(humidity) / 16382. * 100);
       }
       else {
-        values[0] = UINT16_MAX;
+        values[0] = UINT32_MAX;
       }
     }
 
@@ -567,7 +570,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
         values[1] = round((float(temperature) / 16382. * 165. - 40.) * 100) + SENSOR_DRIVER_C_TO_K;
       }
       else {
-        values[1] = UINT16_MAX;
+        values[1] = UINT32_MAX;
       }
     }
 
@@ -684,10 +687,10 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      humidity = UINT16_MAX;
-      temperature = UINT16_MAX;
-      humidity_confirmation = UINT16_MAX;
-      temperature_confirmation = UINT16_MAX;
+      humidity = UINT32_MAX;
+      temperature = UINT32_MAX;
+      humidity_confirmation = UINT32_MAX;
+      temperature_confirmation = UINT32_MAX;
       memset(values, UINT8_MAX, length * sizeof(int32_t));
 
     _is_readed = false;
@@ -752,7 +755,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
           values[0] = round(humidity);
         }
         else {
-          values[0] = UINT16_MAX;
+          values[0] = UINT32_MAX;
         }
       }
 
@@ -761,7 +764,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
           values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
         }
         else {
-          values[1] = UINT16_MAX;
+          values[1] = UINT32_MAX;
         }
       }
 
@@ -899,8 +902,8 @@ void SensorDriverDw1::prepare(bool is_test) {
 
 void SensorDriverDw1::get(int32_t *values, uint8_t length) {
   const float raddeg = 180 / M_PI;
-  speed = UINT16_MAX;
-  direction = UINT16_MAX;
+  speed = UINT32_MAX;
+  direction = UINT32_MAX;
   uint16_t msb;
   uint16_t lsb;
 
@@ -2489,7 +2492,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
             }
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
@@ -2826,7 +2829,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
             values[variable_count] = (int32_t) round(val);
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
@@ -3209,7 +3212,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             values[variable_count] = (int32_t) round(val * 10.0);
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
@@ -3247,7 +3250,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             values[variable_count] = (int32_t) round(val);
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
@@ -3274,7 +3277,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             }
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
@@ -3701,7 +3704,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
             values[variable_count] = (uint16_t)(round(val / 10.0));
           }
           else {
-            values[variable_count] = UINT16_MAX;
+            values[variable_count] = UINT32_MAX;
             _is_success = false;
           }
 
