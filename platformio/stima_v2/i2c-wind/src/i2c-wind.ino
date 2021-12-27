@@ -43,7 +43,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #include <avr/wdt.h>
 #endif
 #include "Wire.h"
-#include "registers-wind.h"         //Register definitions
+#include "registers-wind_v2.h"         //Register definitions
 #include "config.h"
 //#include "circular.h"
 #include "IntBuffer.h"

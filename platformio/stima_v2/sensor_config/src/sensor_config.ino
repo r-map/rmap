@@ -19,7 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Wire.h"
 #include <Arduino.h>
-#include <registers-wind.h>         //Register definitions
+#include <registers-wind_v2.h>         //Register definitions
 #include <registers-windsonic.h>         //Register definitions
 #include <registers-th_v2.h>         //Register definitions
 #include <registers-rain_v2.h>         //Register definitions
