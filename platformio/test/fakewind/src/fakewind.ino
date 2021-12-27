@@ -42,7 +42,7 @@ i puntatori a buffer1 e buffer2 vengono scambiati in una operazione atomica al c
 #define VERSION 01             //Software version for cross checking
 
 #include "Wire.h"
-#include "registers-wind.h"      //Register definitions
+#include "registers-wind_v2.h"      //Register definitions
 #include "config.h"
 
 #include "EEPROMAnything.h"#
