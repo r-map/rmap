@@ -504,7 +504,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     break;
 
     case READ:
-    Wire.requestFrom(_address, (uint8_t) 4);
+    Wire.requestFrom(_address, (uint8_t)  4);
 
     if (Wire.available() < 4) {
       _error_count++;
@@ -901,7 +901,6 @@ void SensorDriverDw1::prepare(bool is_test) {
 }
 
 void SensorDriverDw1::get(int32_t *values, uint8_t length) {
-  const float raddeg = 180 / M_PI;
   speed = UINT32_MAX;
   direction = UINT32_MAX;
   uint16_t msb;
@@ -2232,9 +2231,12 @@ void SensorDriverWind::setup() {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_setted = true;
-      }
+      }else{
+	_error_count++;
+      }	
     }
   }
   else {
@@ -2269,8 +2271,11 @@ void SensorDriverWind::prepare(bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
+      }else{
+	_error_count++;
       }
     }
   }
@@ -2412,8 +2417,11 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  _error_count = 0;
           _is_success = false;
-        }
+        }else{
+	  _error_count++;
+	}
       }
 
       _delay_ms = 0;
@@ -2429,10 +2437,13 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
 
     case READ_VALUE:
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address, (uint8_t) (data_length + 1));
         if (Wire.available() < (data_length + 1)) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       if (_is_success) {
@@ -2590,7 +2601,7 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
       if (length >= 1) {
         json["d"] = 51;
 
-        JsonArray &p = json.createNestedArray("p");
+        JsonArray p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < 6; i++) {
           if (ISVALID(values[i])) {
@@ -2662,9 +2673,12 @@ void SensorDriverSolarRadiation::setup() {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_setted = true;
-      }
+      }else{
+	_error_count++;
+      }	
     }
   }
   else {
@@ -2699,8 +2713,11 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
+      }else{
+	_error_count++;
       }
     }
   }
@@ -2770,8 +2787,11 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       _delay_ms = 0;
@@ -2789,8 +2809,11 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
       if (_is_success) {
         Wire.requestFrom(_address, data_length + 1);
         if (Wire.available() < (data_length + 1)) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       if (_is_success) {
@@ -2945,8 +2968,11 @@ void SensorDriverOpc::setup() {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_setted = true;
+      }else{
+	_error_count++;
       }
     }
   }
@@ -2982,8 +3008,11 @@ void SensorDriverOpc::prepare(bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
+      }else{
+	_error_count++;
       }
     }
   }
@@ -3152,8 +3181,11 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       _delay_ms = 0;
@@ -3398,14 +3430,14 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("%l"),values[i]);
 	    }
-            LOGT_CLEAN(F(" ]"));
+            LOGT(F(" ]"));
           }
           else {
             LOGT(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("-"));
 	    }
-            LOGT_CLEAN(F(" ]"));
+            LOGT(F(" ]"));
           }
         }
       }
@@ -3487,7 +3519,7 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
       if (length >= 1) {
         json["d"] = 52;
 
-        JsonArray &p = json.createNestedArray("p");
+        JsonArray p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < variable_length; i++) {
           if (ISVALID(values[i])) {
@@ -3573,8 +3605,11 @@ void SensorDriverLeaf::prepare(bool is_test) {
       Wire.write(_buffer, i+1);
 
       if (Wire.endTransmission() == 0) {
+	_error_count = 0;
         _is_success = true;
         *_is_prepared = true;
+      }else{
+	_error_count++;
       }
     }
   }
@@ -3645,8 +3680,11 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       _delay_ms = 0;
@@ -3662,10 +3700,13 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
 
     case READ_VALUE:
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+        Wire.requestFrom(_address,(uint8_t) ( data_length + 1));
         if (Wire.available() < (data_length + 1)) {
+	  _error_count++;
           _is_success = false;
-        }
+        }else{
+	  _error_count = 0;
+	}
       }
 
       if (_is_success) {
