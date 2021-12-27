@@ -309,7 +309,7 @@ class SensorDriverTmp : public SensorDriver
 
 
 #if defined (DAVISWIND1)
-#include "registers-wind.h"
+#include "registers-wind_v2.h"
 
  class SensorDriverDw1 : public SensorDriver
  {
