@@ -829,6 +829,9 @@ void sensors_reading_task () {
 	  sensors_reading_state = SENSORS_READING_PREPARE;
 	}else{
 	  LOGE(F("Skip failed Sensor"));
+	  addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
+	  addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
+	  
 	  sensors_reading_state = SENSORS_READING_NEXT;
 	} 
 
@@ -871,6 +874,9 @@ void sensors_reading_task () {
         //! fail
         else {
 	  sensors_reading_state = SENSORS_READING_NEXT;
+	  addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
+	  addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
+
 	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
 	  retry_prepare = 0;
 	}
@@ -949,6 +955,8 @@ void sensors_reading_task () {
 	  DeserializationError error = deserializeJson(doc,json_sensors_data);
 	  if (error) {
 	    LOGE(F("deserializeJson() failed with code %s"),error.f_str());
+	    addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
+	    addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
 	  }else{
 	    unsigned long int value = doc["B12101"] | UINT32_MAX;
 	    addSample(&temperature_samples, &temperature_observations, value);
