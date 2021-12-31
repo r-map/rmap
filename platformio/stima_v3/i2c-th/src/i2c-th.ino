@@ -134,6 +134,11 @@ void init_logging(){
     Serial.println   (F("Wiring is correct and a card is present."));
     Serial.println   (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
+
+    // remove firmware to do not redo update the next reboot
+    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
+      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
+    }
   }
   
   logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
@@ -194,7 +199,8 @@ void init_buffers() {
    writable_data_ptr = &writable_data;
 
    readable_data_write_ptr->module_type = MODULE_TYPE;
-   readable_data_write_ptr->module_version = MODULE_VERSION;
+   readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
+   readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
    memset((void *) &readable_data_write_ptr->humidity, UINT8_MAX, sizeof(value_t));
    memset((void *) &readable_data_write_ptr->temperature, UINT8_MAX, sizeof(value_t));
 
@@ -280,7 +286,8 @@ void print_configuration() {
    char stima_name[20];
    getStimaNameByType(stima_name, configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
-   LOGN(F("--> version: %d"), configuration.module_version);
+   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+   LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
    LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
@@ -292,7 +299,8 @@ void save_configuration(bool is_default) {
    if (is_default) {
       LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
       configuration.module_type = MODULE_TYPE;
-      configuration.module_version = MODULE_VERSION;
+      configuration.module_main_version = MODULE_MAIN_VERSION;
+      configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
       configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
       configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
@@ -331,7 +339,7 @@ void load_configuration() {
    //! read configuration from eeprom
    ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
 
-   if (configuration.module_type != MODULE_TYPE || configuration.module_version != MODULE_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+   if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
       save_configuration(CONFIGURATION_DEFAULT);
    }
    else {

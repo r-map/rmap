@@ -689,7 +689,7 @@ void print_configuration() {
    getStimaNameByType(stima_name, readable_configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
    LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
-   LOGN(F("--> configuration version: %d.%d"), readable_configuration.module_main_version, readable_configuration.module_minor_version);
+   LOGN(F("--> configuration version: %d.%d"), readable_configuration.module_main_version, readable_configuration.module_configuration_version);
    LOGN(F("--> sensors: %d"), readable_configuration.sensors_count);
    LOGN(F("--> ConstantData: %d"), readable_configuration.constantdata_count);
    for (uint8_t i=0; i<readable_configuration.constantdata_count; i++) {
@@ -724,7 +724,7 @@ void print_configuration() {
 void set_default_configuration() {
    writable_configuration.module_type = MODULE_TYPE;
    writable_configuration.module_main_version = MODULE_MAIN_VERSION;
-   writable_configuration.module_minor_version = MODULE_CONFIGURATION_VERSION;
+   writable_configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
 
    writable_configuration.report_seconds = 900;
 
@@ -803,7 +803,7 @@ void load_configuration() {
    LOGN(F("Configuration received... [ %s ]"), OK_STRING);
 
    if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
-       || writable_configuration.module_minor_version != MODULE_CONFIGURATION_VERSION
+       || writable_configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION
        ) {
       save_configuration(CONFIGURATION_DEFAULT);
    }
@@ -2300,10 +2300,10 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
    case SENSORS_SETUP_CHECK:
 
-         // initialize to missing value
-	 json_sensors_data[i][0]='\0';
+        // initialize to missing value
+        json_sensors_data[i][0]='\0';
 	 
-        LOGN(F("Sensor %s-%s-%d error count: %d"),
+	if (sensors[i]->getErrorCount() > 0) LOGN(F("Sensor %s-%s-%d error count: %d"),
 	     sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(),
 	     sensors[i]->getErrorCount());
      

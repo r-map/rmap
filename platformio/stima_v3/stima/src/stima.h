@@ -109,7 +109,7 @@ typedef struct {
 */
 typedef struct {
    uint8_t module_main_version;                             //!< module main version
-   uint8_t module_minor_version;                            //!< module minor version
+   uint8_t module_configuration_version;                    //!< module configuration version
    uint8_t module_type;                                     //!< module type
 
    #if (USE_MQTT)

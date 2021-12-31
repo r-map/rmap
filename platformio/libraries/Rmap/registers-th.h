@@ -107,16 +107,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_TH_TYPE_ADDRESS                     (I2C_READ_REGISTER_START_ADDRESS)
 
 /*!
-\def I2C_TH_VERSION_LENGTH
-\brief length of the version variable for i2c-th module.
+\def I2C_TH_MAIN_VERSION_LENGTH
+\brief length of the main version variable for i2c-th module.
 */
-#define I2C_TH_VERSION_LENGTH                   (0x01)
+#define I2C_TH_MAIN_VERSION_LENGTH                   (0x01)
 
 /*!
-\def I2C_TH_VERSION_ADDRESS
-\brief address of the version variable for i2c-th module.
+\def I2C_TH_MAIN_VERSION_ADDRESS
+\brief address of the main version variable for i2c-th module.
 */
-#define I2C_TH_VERSION_ADDRESS                  (I2C_TH_TYPE_ADDRESS + I2C_TH_TYPE_LENGTH)
+#define I2C_TH_MAIN_VERSION_ADDRESS                  (I2C_TH_TYPE_ADDRESS + I2C_TH_TYPE_LENGTH)
+
+/*!
+\def I2C_TH_MINOR_VERSION_LENGTH
+\brief length of the minor version variable for i2c-th module.
+*/
+#define I2C_TH_MINOR_VERSION_LENGTH                   (0x01)
+
+/*!
+\def I2C_TH_MINOR_VERSION_ADDRESS
+\brief address of the minor version variable for i2c-th module.
+*/
+#define I2C_TH_MINOR_VERSION_ADDRESS                  (I2C_TH_MAIN_VERSION_ADDRESS + I2C_TH_MAIN_VERSION_LENGTH)
 
 /*!
 \def I2C_TH_TEMPERATURE_SAMPLE_LENGTH
@@ -128,7 +140,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_TH_TEMPERATURE_SAMPLE_ADDRESS
 \brief address of the temperature sample variable for i2c-th module.
 */
-#define I2C_TH_TEMPERATURE_SAMPLE_ADDRESS       (I2C_TH_VERSION_ADDRESS + I2C_TH_VERSION_LENGTH)
+#define I2C_TH_TEMPERATURE_SAMPLE_ADDRESS       (I2C_TH_MINOR_VERSION_ADDRESS + I2C_TH_MINOR_VERSION_LENGTH)
 
 /*!
 \def I2C_TH_TEMPERATURE_MED60_LENGTH

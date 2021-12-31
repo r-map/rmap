@@ -31,6 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <avr/wdt.h>
 #include <i2c_utility.h>
 #include <rmap_utility.h>
+#include <sdcard_utility.h>
 #if (USE_JSON)
 #include <json_utility.h>
 #endif
@@ -51,7 +52,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief EEPROM saved configuration.
 */
 typedef struct {
-   uint8_t module_version;    //!< module version
+   uint8_t module_main_version;        //!< module main version
+   uint8_t module_configuration_version;   //!< module configuration version
    uint8_t module_type;       //!< module type
    uint8_t i2c_address;       //!< i2c address
    bool is_oneshot;           //!< enable or disable oneshot mode
@@ -63,8 +65,9 @@ typedef struct {
 \brief Readable data through i2c bus.
 */
 typedef struct {
-   uint8_t module_type;      //!< module version
-   uint8_t module_version;   //!< module type
+   uint8_t module_type;                //!< module type
+   uint8_t module_main_version;        //!< module main version
+   uint8_t module_minor_version;       //!< module minor version
    rain_t rain;              //!< rain data
 } readable_data_t;
 

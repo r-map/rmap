@@ -29,10 +29,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * MODULE
 *********************************************************************/
 /*!
-\def MODULE_VERSION
-\brief Module version.
+\def MODULE_MAIN_VERSION
+\brief Module main version.
 */
-#define MODULE_VERSION                                (3)
+#define MODULE_MAIN_VERSION                           (3)
+
+/*!
+\def MODULE_MINOR_VERSION
+\brief Module minor version.
+*/
+#define MODULE_MINOR_VERSION                          (5)
+
+/*!
+\def MODULE_CONFIGURATION_VERSION
+\brief Module version of compatibile configuration. If you change it, you have to reconfigure.
+*/
+#define MODULE_CONFIGURATION_VERSION                  (1)
 
 /*!
 \def MODULE_TYPE
