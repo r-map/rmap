@@ -579,6 +579,13 @@ time_t last_ntp_sync;
 \brief Last date and time when LCD was initializated.
 */
 time_t last_lcd_begin;
+
+/*!
+\var lcd_error
+\brief Error happen with LCD.
+*/
+bool lcd_error;
+
 #endif
 
 #if (USE_SDCARD)

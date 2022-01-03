@@ -421,6 +421,7 @@ void init_lcd() {
   lcd.clear();
   lcd.lineWrap();
     //lcd.autoscroll();
+  lcd_error=false;
 }
 #endif
 
@@ -570,13 +571,13 @@ void init_sensors () {
   uint8_t sensors_error_count = 0;
 
   #if (USE_LCD)
-  lcd.print(F("--- www.rmap.cc ---"));
-  lcd.setCursor(0, 1);
-  lcd.print(stima_name);
-  lcd.print(F(" V:"));
-  lcd.print(MODULE_MAIN_VERSION);
-  lcd.print(F("."));
-  lcd.print(MODULE_MINOR_VERSION);  
+  lcd_error |= lcd.print(F("--- www.rmap.cc ---"));
+  lcd_error |= lcd.setCursor(0, 1);
+  lcd_error |= lcd.print(stima_name);
+  lcd_error |= lcd.print(F(" V:"));
+  lcd_error |= lcd.print(MODULE_MAIN_VERSION);
+  lcd_error |= lcd.print(F("."));
+  lcd_error |= lcd.print(MODULE_MINOR_VERSION);  
   #endif
   
   if (readable_configuration.sensors_count) {
@@ -588,19 +589,19 @@ void init_sensors () {
         sensors_error_count++;
 	wdt_reset();
         #if (USE_LCD)
-	lcd.setCursor(0, 3);
-	lcd.print(readable_configuration.sensors[sensors_count-1].type);
-	lcd.print(":");
-	lcd.print(FAIL_STRING);
+	lcd_error |= lcd.setCursor(0, 3);
+	lcd_error |= lcd.print(readable_configuration.sensors[sensors_count-1].type);
+	lcd_error |= lcd.print(":");
+	lcd_error |= lcd.print(FAIL_STRING);
 	#endif
       }
     }
     #if (USE_LCD)
-    lcd.setCursor(0, 2);
-    lcd.print(F("Sensors count: "));
-    lcd.print(readable_configuration.sensors_count-sensors_error_count);
-    lcd.print(F("/"));
-    lcd.print(readable_configuration.sensors_count);
+    lcd_error |= lcd.setCursor(0, 2);
+    lcd_error |= lcd.print(F("Sensors count: "));
+    lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count);
+    lcd_error |= lcd.print(F("/"));
+    lcd_error |= lcd.print(readable_configuration.sensors_count);
     #endif
     
   }
@@ -790,8 +791,8 @@ void load_configuration() {
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
       LOGN(F("Wait configuration..."));
       #if (USE_LCD)
-      lcd.clear();
-      lcd.print(F("Wait configuration"));
+      lcd_error |= lcd.clear();
+      lcd_error |= lcd.print(F("Wait configuration"));
       #endif
    }
 
@@ -859,8 +860,8 @@ int configure(JsonObject params, JsonObject result) {
          if (it.value().as<bool>() == true) {
 	    set_default_configuration();
             #if (USE_LCD)
-	    lcd.clear();
-            lcd.print(F("Reset configuration"));
+	    lcd_error |= lcd.clear();
+            lcd_error |= lcd.print(F("Reset configuration"));
 	    #endif
          }
       }
@@ -868,8 +869,8 @@ int configure(JsonObject params, JsonObject result) {
          if (it.value().as<bool>() == true) {
             save_configuration(CONFIGURATION_CURRENT);
             #if (USE_LCD)
-	    lcd.clear();
-            lcd.print(F("Save configuration"));
+	    lcd_error |= lcd.clear();
+            lcd_error |= lcd.print(F("Save configuration"));
 	    #endif
          }
       }
@@ -1274,8 +1275,8 @@ void realreboot() {
 #if (USE_RPC_METHOD_REBOOT)
 int reboot(JsonObject params, JsonObject result) {
    #if (USE_LCD)
-   lcd.clear();
-   lcd.print(F("Reboot"));
+   lcd_error |= lcd.clear();
+   lcd_error |= lcd.print(F("Reboot"));
    #endif
    LOGT(F("Reboot"));
    result[F("state")] = "done";
@@ -1538,13 +1539,13 @@ void supervisor_task() {
             if (next_ptr_time_for_sensors_reading) {
                LOGN(F("--> starting at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
                #if (USE_LCD)
-	       lcd.clear();
-               lcd.print(F("start acq: "));
-	       lcd.print(hour(next_ptr_time_for_sensors_reading));
-               lcd.print(F(":"));
-	       lcd.print( minute(next_ptr_time_for_sensors_reading));
-               lcd.print(F(":"));
-	       lcd.print(second(next_ptr_time_for_sensors_reading));
+	       lcd_error |= lcd.clear();
+               lcd_error |= lcd.print(F("start acq: "));
+	       lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading));
+               lcd_error |= lcd.print(F(":"));
+	       lcd_error |= lcd.print( minute(next_ptr_time_for_sensors_reading));
+               lcd_error |= lcd.print(F(":"));
+	       lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading));
 	       #endif
             }
 
@@ -1558,9 +1559,10 @@ void supervisor_task() {
          if (last_lcd_begin == 0) {
             last_lcd_begin = now();
          }
-         else if ((now() - last_lcd_begin > LCD_TIME_FOR_REINITIALIZE_S)) {
+         else if ((now() - last_lcd_begin > LCD_TIME_FOR_REINITIALIZE_S) || lcd_error) {
             last_lcd_begin = now();
-	    LOGT(F("Reinitialize LCD"));
+            if (lcd_error) LOGE(F("LCD ERROR"));
+	    LOGN(F("Reinitialize LCD"));
             init_lcd();
          }
 	 #endif
@@ -1613,16 +1615,16 @@ void supervisor_task() {
 	    LOGE(F("--> is card inserted?"));
 	    LOGE(F("--> there is a valid FAT32 filesystem?"));
             #if (USE_LCD)
-	    lcd.setCursor(0, 2);
-	    lcd.print( F("SD Card: "));
-	    lcd.print(FAIL_STRING);
+	    lcd_error |= lcd.setCursor(0, 2);
+	    lcd_error |= lcd.print( F("SD Card: "));
+	    lcd_error |= lcd.print(FAIL_STRING);
 	    #endif
           }else{
 	    // remove firmware to do not redo update the next reboot
 	    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
 	      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
-	      lcd.setCursor(0, 2);
-	      lcd.print( F("NEW Firmware loaded"));
+	      lcd_error |= lcd.setCursor(0, 2);
+	      lcd_error |= lcd.print( F("NEW Firmware loaded"));
 	    }
 	  }
         }
@@ -1672,13 +1674,13 @@ void rtc_task() {
       is_time_for_sensors_reading_updated = false;
       LOGN(F("Next acquisition scheduled at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
       #if (USE_LCD)
-      lcd.clear();
-      lcd.print(F("N: "));
-      lcd.print(hour(next_ptr_time_for_sensors_reading));
-      lcd.print(F(":"));
-      lcd.print(minute(next_ptr_time_for_sensors_reading));
-      lcd.print(F(":"));
-      lcd.print(second(next_ptr_time_for_sensors_reading));
+      lcd_error |= lcd.clear();
+      lcd_error |= lcd.print(F("N: "));
+      lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading));
+      lcd_error |= lcd.print(F(":"));
+      lcd_error |= lcd.print(minute(next_ptr_time_for_sensors_reading));
+      lcd_error |= lcd.print(F(":"));
+      lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading));
       #endif
     }
     #endif
@@ -1929,15 +1931,15 @@ void ethernet_task() {
             LOGN(F("--> primary dns: %d.%d.%d.%d"), Ethernet.dnsServerIP()[0], Ethernet.dnsServerIP()[1], Ethernet.dnsServerIP()[2], Ethernet.dnsServerIP()[3]);
 
             #if (USE_LCD)
-	    lcd.clear();
-            lcd.print(F("ip: "));
-	    lcd.print(Ethernet.localIP()[0]);
-	    lcd.print(F("."));
-	    lcd.print(Ethernet.localIP()[1]);
-	    lcd.print(F("."));
-	    lcd.print(Ethernet.localIP()[2]);
-	    lcd.print(F("."));
-	    lcd.print(Ethernet.localIP()[3]);
+	    lcd_error |= lcd.clear();
+            lcd_error |= lcd.print(F("ip: "));
+	    lcd_error |= lcd.print(Ethernet.localIP()[0]);
+	    lcd_error |= lcd.print(F("."));
+	    lcd_error |= lcd.print(Ethernet.localIP()[1]);
+	    lcd_error |= lcd.print(F("."));
+	    lcd_error |= lcd.print(Ethernet.localIP()[2]);
+	    lcd_error |= lcd.print(F("."));
+	    lcd_error |= lcd.print(Ethernet.localIP()[3]);
 	    #endif
             ethernet_state = ETHERNET_OPEN_UDP_SOCKET;
             LOGV(F("ETHERNET_CONNECT --> ETHERNET_OPEN_UDP_SOCKET"));
@@ -1958,9 +1960,9 @@ void ethernet_task() {
             LOGV(F("ETHERNET_CONNECT --> ETHERNET_END"));
             LOGE(F("Ethernet %s: [ %s ]"), ERROR_STRING, readable_configuration.is_dhcp_enable ? "DHCP" : "Static");
             #if (USE_LCD)
-	    lcd.setCursor(0, 2);
-            lcd.print(F("ethernet "));
-	    lcd.print(ERROR_STRING);
+	    lcd_error |= lcd.setCursor(0, 2);
+            lcd_error |= lcd.print(F("ethernet "));
+	    lcd_error |= lcd.print(ERROR_STRING);
 	    #endif
          }
       break;
@@ -2141,11 +2143,11 @@ void gsm_task() {
 	 uint8_t rssi;
 	 uint8_t ber; 
 	 s800.getLastCsq(&rssi,&ber);
-	 lcd.setCursor(12, 0);
-	 lcd.print(F("rf:"));
-	 lcd.print(rssi);
-	 lcd.print(F("/"));
-	 lcd.print(ber);
+	 lcd_error |= lcd.setCursor(12, 0);
+	 lcd_error |= lcd.print(F("rf:"));
+	 lcd_error |= lcd.print(rssi);
+	 lcd_error |= lcd.print(F("/"));
+	 lcd_error |= lcd.print(ber);
          #endif
 
 	 is_client_connected = true;
@@ -2259,13 +2261,13 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          #if (USE_LCD)
 	 // normal OR test: print
 	 if (!is_first_run || is_test) {
-	   lcd.setCursor(0, 1);
-	   lcd.print(F("                    "));
-	   lcd.setCursor(0, 1);
+	   lcd_error |= lcd.setCursor(0, 1);
+	   lcd_error |= lcd.print(F("                    "));
+	   lcd_error |= lcd.setCursor(0, 1);
 	   if (is_test){
-	     lcd.print(F("T "));
+	     lcd_error |= lcd.print(F("T "));
 	   }else{
-	     lcd.print(F("R "));
+	     lcd_error |= lcd.print(F("R "));
 	   }
 	 }
 	 #endif
@@ -2459,20 +2461,20 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	     
 	     unsigned long int value = doc["B12101"] | UINT32_MAX;
 	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
-	       lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1);
-	       lcd.print(F("C "));
+	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1);
+	       lcd_error |= lcd.print(F("C "));
 	     }
 
 	     value = doc["B13003"] | UINT32_MAX;
 	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
-	       lcd.print(value);
-	       lcd.print(F("% "));
+	       lcd_error |= lcd.print(value);
+	       lcd_error |= lcd.print(F("% "));
 	     }
 	     
 	     value = doc["B13011"] | UINT32_MAX;
 	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){	     
-	       lcd.print((value/10.0),1);
-	       lcd.print(F("mm "));
+	       lcd_error |= lcd.print((value/10.0),1);
+	       lcd_error |= lcd.print(F("mm "));
 	     }
 	   }
 	   /*
@@ -2757,11 +2759,11 @@ void data_saving_task() {
       case DATA_SAVING_END:
          LOGN(F("[ %d ] data stored in sdcard... [ %s ]"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
          #if (USE_LCD)
-	 lcd.setCursor(0, 2);
-         lcd.print(F("SDCARD "));
-	 lcd.print(sd_data_count);
-	 lcd.print(F(" data "));
-	 lcd.print(is_sdcard_error ? ERROR_STRING : OK_STRING);
+	 lcd_error |= lcd.setCursor(0, 2);
+         lcd_error |= lcd.print(F("SDCARD "));
+	 lcd_error |= lcd.print(sd_data_count);
+	 lcd_error |= lcd.print(F(" data "));
+	 lcd_error |= lcd.print(is_sdcard_error ? ERROR_STRING : OK_STRING);
          #endif
 	 
          noInterrupts();
@@ -3507,11 +3509,11 @@ void mqtt_task() {
          if (is_mqtt_published_data) {
             LOGN(F("[ %d ] data published through mqtt... [ %s ]"), mqtt_data_count, is_mqtt_error ? ERROR_STRING : OK_STRING);
             #if (USE_LCD)
-	    lcd.setCursor(0, 3);
-            lcd.print(F("MQTT   "));
-	    lcd.print(mqtt_data_count);
-	    lcd.print(F(" data "));
-	    lcd.print(is_mqtt_error ? ERROR_STRING : OK_STRING);
+	    lcd_error |= lcd.setCursor(0, 3);
+            lcd_error |= lcd.print(F("MQTT   "));
+	    lcd_error |= lcd.print(mqtt_data_count);
+	    lcd_error |= lcd.print(F(" data "));
+	    lcd_error |= lcd.print(is_mqtt_error ? ERROR_STRING : OK_STRING);
 	    #endif
          }
 
