@@ -887,6 +887,7 @@ void sensors_reading_task () {
 
 	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
 	  retry_prepare = 0;
+          i2c_error++;
 	}
       break;
 
@@ -910,6 +911,7 @@ void sensors_reading_task () {
         if (sensors[i]->isEnd() && !sensors[i]->isReaded()) {
           //! success
           if (sensors[i]->isSuccess()) {
+	    i2c_error = 0;
             sensors_reading_state = SENSORS_READING_READ;
           }
           //! retry
@@ -924,6 +926,7 @@ void sensors_reading_task () {
           }
           //! fail
           else {
+	    i2c_error++;
 	    LOGE(F("Sensor is getted... [ %s ]"),FAIL_STRING);
             sensors_reading_state = SENSORS_READING_READ;
           }

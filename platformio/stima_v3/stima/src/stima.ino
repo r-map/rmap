@@ -2384,6 +2384,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                LOGV(F("SENSORS_READING_IS_PREPARED ---> SENSORS_READING_END"));
             }
             retry = 0;
+            i2c_error++;
          }
       break;
 
@@ -2432,6 +2433,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             // fail
             else {
                retry = 0;
+               i2c_error++;
                sensors_reading_state = SENSORS_READING_READ;
 	       LOGE(F("Sensor is getted... [ %s ] %s"),FAIL_STRING,sensors[i]->getType());
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
