@@ -1839,6 +1839,7 @@ void time_task() {
 
          if (is_set_rtc_ok) {
 	    LOGN(F("RTC set... [ %s ]"), OK_STRING);
+	    i2c_error = 0;
             retry = 0;
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
             LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
@@ -2414,6 +2415,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             // success
             if (sensors[i]->isSuccess()) {
                retry = 0;
+	       i2c_error = 0;
                sensors_reading_state = SENSORS_READING_READ;
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
             }
