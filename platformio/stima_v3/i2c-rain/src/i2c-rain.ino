@@ -42,7 +42,9 @@ void setup() {
    #endif
 
    power_adc_disable();
+   #if !(ENABLE_SDCARD_LOGGING)   
    power_spi_disable();
+   #endif
    //power_timer0_disable();
    #if (USE_TIMER_1 == false)
    power_timer1_disable(); 
@@ -70,6 +72,7 @@ void loop() {
       case ENTER_POWER_DOWN:
          #if (ENABLE_SDCARD_LOGGING)   
 	 logFile.flush();
+	 power_spi_disable();
 	 #endif
 	 Serial.flush();	
          // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
@@ -80,7 +83,9 @@ void loop() {
 
          // enable watchdog
          init_wdt(WDT_TIMER);
-
+         #if (ENABLE_SDCARD_LOGGING)   
+	 power_spi_enable();
+	 #endif
          state = TASKS_EXECUTION;
       break;
       #endif
@@ -117,6 +122,7 @@ void loop() {
          #endif
       break;
    }
+   wdt_reset();
 }
 
 
@@ -145,7 +151,7 @@ void init_logging(){
     Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
     Serial.println   (F("Wiring is correct and a card is present."));
-    Serial.println   (F("The FAT type of the volume: "));
+    Serial.print     (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
 
      // remove firmware to do not redo update the next reboot
@@ -327,13 +333,13 @@ void tipping_bucket_interrupt_handler() {
    // reading TIPPING_BUCKET_PIN value to be sure the interrupt has occurred
    if (digitalRead(TIPPING_BUCKET_PIN) == LOW) {
       detachInterrupt(digitalPinToInterrupt(TIPPING_BUCKET_PIN));
-      noInterrupts();
+      //noInterrupts();
       // enable Tipping bucket task
       if (!is_event_tipping_bucket) {
          is_event_tipping_bucket = true;
          ready_tasks_count++;
       }
-      interrupts();
+      //interrupts();
    }
 }
 
@@ -356,7 +362,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
     readable_data_length = 0;
-    LOGN(F("No CRC: size %d"),rx_data_length);
+    //LOGN(F("No CRC: size %d"),rx_data_length);
   } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
     //! check crc: ok    
     rx_data_length--;
@@ -371,13 +377,13 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
+      //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
         is_event_command_task = true;
         ready_tasks_count++;
       }
-      interrupts();
+      //interrupts();
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
@@ -402,7 +408,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
   } else {
     readable_data_length = 0;
-    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
@@ -535,7 +541,9 @@ void command_task() {
       break;
 
       case I2C_RAIN_COMMAND_SAVE:
-         LOGN(F("Execute [ %s ]"), SAVE_STRING);
+         #ifndef DISABLE_LOGGING
+         strcpy(buffer, "SAVE");
+	 #endif
          //is_oneshot = false;
          //is_continuous = false;
          //is_start = false;
@@ -543,6 +551,10 @@ void command_task() {
          save_configuration(CONFIGURATION_CURRENT);
          init_wire();
       break;
+      #ifndef DISABLE_LOGGING
+      default:
+         strcpy(buffer, "UNKNOWN");
+      #endif
    }
 
    #ifndef DISABLE_LOGGING
