@@ -234,7 +234,7 @@ const char filename[13] ="FIRMWARE.BIN\0"; 	// EDIT FILENAME HERE
  */
 
 #if !defined(OPTIBOOT_CUSTOMVER)
-#define OPTIBOOT_CUSTOMVER 0
+#define OPTIBOOT_CUSTOMVER 1
 #endif
 
 unsigned const int __attribute__((section(".version")))
@@ -753,9 +753,11 @@ watchdogConfig(WATCHDOG_1S);
   UART_newline();
 #endif
 
-  // Check SD FILE First (Then Start Application IF File Exist & Flash Writed)
-  checkFile();
-
+  for(uint8_t i=0;i<10;i++) {
+    // Check SD FILE First (Then Start Application IF File Exist & Flash Writed)
+    checkFile();
+  }
+  
   /* Forever loop: exits by causing WDT reset */
   for (;;) {
 
