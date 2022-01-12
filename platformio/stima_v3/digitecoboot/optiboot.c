@@ -395,7 +395,7 @@ void appStart(uint8_t rstFlags) __attribute__ ((naked));
 // APP DE
 void write_flash_page(void);
 static uint8_t pagecmp(void);
-void doFlash(void);
+uint8_t doFlash(void);
 void checkFile(void);
 #if UART_REPORT
   void UART_puts(const char * str);
@@ -526,7 +526,7 @@ static uint8_t pagecmp()
 }
 
 // Write All Flash (loop program)
-void doFlash() {
+uint8_t doFlash() {
 	#if USE_LED
 	uint8_t i;
 	// Start Programming: Flash WRITE Wildly for 1 secs
@@ -548,15 +548,15 @@ void doFlash() {
 			  led_power_on();
 			#endif
 			write_flash_page();
-		} else {
+			if (pagecmp()) return 0;
 		#if USE_LED
+		} else {
 		  led_power_off();
 		#endif
-
-    watchdogReset();
-
 		}
+		watchdogReset();
 	}
+	return 1;
 }
 
 // Check SD File for Uploading
@@ -583,7 +583,7 @@ void checkFile() {
     return;
 	}
 
-  doFlash();
+	if (doFlash()==0) return;
 
 	#if USE_LED
 	  uint8_t i;
