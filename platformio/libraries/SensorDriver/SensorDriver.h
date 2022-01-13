@@ -508,7 +508,7 @@ public:
 
 protected:
 
-   uint8_t rain_data[I2C_RAIN_TIPS_LENGTH];
+   uint8_t rain_data[I2C_RAIN_LENGTH];
   
    enum {
       INIT,

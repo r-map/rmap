@@ -61,15 +61,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define TIPPING_BUCKET_PIN                      (2)
 
-/*!
-\def DEBOUNCING_TIPPING_BUCKET_TIME_MS
-\brief Debouncing tipping bucket time in milliseconds.
-*/
-#define DEBOUNCING_TIPPING_BUCKET_TIME_MS       (50)
 
 /*********************************************************************
 * CONFIGURATION
 *********************************************************************/
+
+/*!
+\def CONFIGURATION_DEFAULT_TIPPING_BUCKET_TIME_MS
+\brief Tipping bucket time in milliseconds.
+*/
+#define CONFIGURATION_DEFAULT_TIPPING_BUCKET_TIME_MS                  (50)
+
+/*!
+\def CONFIGURATION_DEFAULT_RAIN_FOR_TIP
+brief How much mm of rain for one tip of tipping bucket rain gauge.
+*/
+#define CONFIGURATION_DEFAULT_RAIN_FOR_TIP                            (1)
+
 /*!
 \def CONFIGURATION_DEFAULT_IS_ONESHOT
 \brief Oneshot mode for default.
@@ -118,7 +126,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def DEBOUNCING_POWER_DOWN_TIME_MS
 \brief Debounce power down ms.
 */
-#define DEBOUNCING_POWER_DOWN_TIME_MS           (DEBOUNCING_TIPPING_BUCKET_TIME_MS + 10)
+#define DEBOUNCING_POWER_DOWN_TIME_MS           (10)
 
 /*!
 \def USE_TIMER_1

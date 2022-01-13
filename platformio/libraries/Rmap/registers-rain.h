@@ -101,22 +101,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_RAIN_MINOR_VERSION_ADDRESS              (I2C_RAIN_MAIN_VERSION_ADDRESS + I2C_RAIN_MAIN_VERSION_LENGTH)
 
 /*!
-\def I2C_RAIN_TIPS_LENGTH
-\brief length of the rain tips variable for i2c-rain module.
+\def I2C_RAIN_LENGTH
+\brief length of the rain variable for i2c-rain module.
 */
-#define I2C_RAIN_TIPS_LENGTH                  (0x02)
+#define I2C_RAIN_LENGTH                  (0x02)
 
 /*!
-\def I2C_RAIN_TIPS_ADDRESS
-\brief address of the rain tips variable for i2c-rain module.
+\def I2C_RAIN_ADDRESS
+\brief address of the rain (Hg/m^2) variable for i2c-rain module.
 */
-#define I2C_RAIN_TIPS_ADDRESS                 (I2C_RAIN_MINOR_VERSION_ADDRESS + I2C_RAIN_MINOR_VERSION_LENGTH)
+#define I2C_RAIN_ADDRESS                 (I2C_RAIN_MINOR_VERSION_ADDRESS + I2C_RAIN_MINOR_VERSION_LENGTH)
 
 /*!
 \def I2C_RAIN_READABLE_DATA_LENGTH
 \brief length of the readable variables for i2c-rain module. Need to be update with with last 2 define!!!
 */
-#define I2C_RAIN_READABLE_DATA_LENGTH         (I2C_RAIN_TIPS_ADDRESS + I2C_RAIN_TIPS_LENGTH - I2C_READ_REGISTER_START_ADDRESS)
+#define I2C_RAIN_READABLE_DATA_LENGTH         (I2C_RAIN_ADDRESS + I2C_RAIN_LENGTH - I2C_READ_REGISTER_START_ADDRESS)
 
 /*********************************************************************
 * Writable registers: Specifying the length in bytes of the data by I2C_{MODULE_NAME}_{DATA_NAME}_LENGTH, the corresponding address is calculated automatically
@@ -158,10 +158,35 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_RAIN_CONTINUOUS_ADDRESS            (I2C_RAIN_ONESHOT_ADDRESS + I2C_RAIN_ONESHOT_LENGTH)
 
 /*!
+\def I2C_RAIN_TIPTIME_LENGTH
+\brief length of the tipping bucket time in milliseconds variable for i2c-rain module.
+*/
+#define I2C_RAIN_TIPTIME_LENGTH             (0x02)
+
+/*!
+\def I2C_RAIN_TIPTIME_ADDRESS
+\brief address of the tipping bucket time in milliseconds variable for i2c-rain module.
+*/
+#define I2C_RAIN_TIPTIME_ADDRESS            (I2C_RAIN_CONTINUOUS_ADDRESS + I2C_RAIN_CONTINUOUS_LENGTH)
+
+/*!
+\def I2C_RAIN_RAINFORTIP_LENGTH
+\brief length of the Rain for tip (Hg/m^2) variable for i2c-rain module.
+*/
+#define I2C_RAIN_RAINFORTIP_LENGTH             (0x01)
+
+/*!
+\def I2C_RAIN_RAINFORTIP_ADDRESS
+\brief address of the Rain for tip  (Hg/m^2) variable for i2c-rain module.
+*/
+#define I2C_RAIN_RAINFORTIP_ADDRESS            (I2C_RAIN_TIPTIME_ADDRESS + I2C_RAIN_TIPTIME_LENGTH)
+
+
+/*!
 \def I2C_RAIN_WRITABLE_DATA_LENGTH
 \brief length of the writable variables for i2c-rain module.
 */
-#define I2C_RAIN_WRITABLE_DATA_LENGTH         (I2C_RAIN_CONTINUOUS_ADDRESS + I2C_RAIN_CONTINUOUS_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
+#define I2C_RAIN_WRITABLE_DATA_LENGTH         (I2C_RAIN_CONTINUOUS_ADDRESS + I2C_RAIN_CONTINUOUS_LENGTH + I2C_RAIN_TIPTIME_LENGTH + I2C_RAIN_RAINFORTIP_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
 
 // Readable registers errors checking
 #if I2C_RAIN_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS

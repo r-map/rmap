@@ -233,7 +233,7 @@ void init_tasks() {
    tipping_bucket_state = TIPPING_BUCKET_INIT;
 
    // reset tipping bucket debounce value
-   rain_tips_event_occurred_time_ms = -DEBOUNCING_TIPPING_BUCKET_TIME_MS;
+   rain_tips_event_occurred_time_ms = -configuration.tipping_bucket_time_ms;
    interrupts();
 }
 
@@ -287,6 +287,8 @@ void print_configuration() {
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
    LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
+   LOGN(F("--> Tipping bucket time in milliseconds: %d"), configuration.tipping_bucket_time_ms);
+   LOGN(F("--> How much mm of rain for one tip of tipping bucket rain gauge: %d"), configuration.rain_for_tip);
 }
 
 void save_configuration(bool is_default) {
@@ -298,12 +300,16 @@ void save_configuration(bool is_default) {
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
       configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
       configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
+      configuration.tipping_bucket_time_ms=CONFIGURATION_DEFAULT_TIPPING_BUCKET_TIME_MS;
+      configuration.rain_for_tip=CONFIGURATION_DEFAULT_RAIN_FOR_TIP;
    }
    else {
       LOGN(F("Save configuration... [ %s ]"), OK_STRING);
       configuration.i2c_address = writable_data_ptr->i2c_address;
       configuration.is_oneshot = writable_data_ptr->is_oneshot;
       configuration.is_continuous = writable_data_ptr->is_continuous;
+      configuration.tipping_bucket_time_ms = writable_data_ptr->tipping_bucket_time_ms;
+      configuration.rain_for_tip = writable_data_ptr->rain_for_tip;
    }
 
    // write configuration to eeprom
@@ -327,6 +333,9 @@ void load_configuration() {
    // set configuration value to writable register
    writable_data.i2c_address = configuration.i2c_address;
    writable_data.is_oneshot = configuration.is_oneshot;
+   writable_data.is_continuous = configuration.is_continuous;
+   writable_data.tipping_bucket_time_ms = configuration.tipping_bucket_time_ms;
+   writable_data.rain_for_tip = configuration.rain_for_tip;
 }
 
 void tipping_bucket_interrupt_handler() {
@@ -421,7 +430,7 @@ void tipping_bucket_task () {
    switch (tipping_bucket_state) {
       case TIPPING_BUCKET_INIT:
 	start_time_ms=millis();
-	delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS/2;
+	delay_ms=configuration.tipping_bucket_time_ms/2;
 	state_after_wait=TIPPING_BUCKET_READ;
 	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 	
@@ -446,7 +455,7 @@ void tipping_bucket_task () {
 
          //tipping_bucket_state = TIPPING_BUCKET_END;
 	start_time_ms=millis();
-	delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS*2;
+	delay_ms=configuration.tipping_bucket_time_ms*2;
 	state_after_wait=TIPPING_BUCKET_END;
 	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 
@@ -459,7 +468,7 @@ void tipping_bucket_task () {
 	     LOGE(F("wrong timing or stalled tipping bucket"));
 
 	     start_time_ms=millis();
-	     delay_ms=DEBOUNCING_TIPPING_BUCKET_TIME_MS;
+	     delay_ms=configuration.tipping_bucket_time_ms;
 	     state_after_wait=TIPPING_BUCKET_END;
 	     tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
 	 }

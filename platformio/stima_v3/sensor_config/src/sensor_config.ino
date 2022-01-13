@@ -137,7 +137,7 @@ void loop() {
 	int new_address;
 	int oneshot;
 	int sensortype;
-
+	
 	new_address= -1;
 	while (new_address < 1 || new_address > 127){
 	  Serial.println(F("digit new i2c address for i2c-wind (1-127)"));
@@ -339,33 +339,32 @@ void loop() {
       }
     case 'r':
       {
-	int new_address;
-  int old_address;
+	int new_address=-1;
+	int old_address=-1;
 	int oneshot;
-
-  old_address=-1;
-	new_address=-1;
-
-  while (old_address < 1 || old_address > 127){
-    Serial.println(F("digit old i2c address for i2c-rain (1-127)"));
-    old_address=Serial.parseInt();
-  }
-  
+	uint16_t tipping_bucket_time_ms=0;
+	uint8_t rain_for_tip=0;
+	
+	while (old_address < 1 || old_address > 127){
+	  Serial.println(F("digit old i2c address for i2c-rain (1-127)"));
+	  old_address=Serial.parseInt();
+	}
+	
 	while (new_address < 1 || new_address > 127){
 	  Serial.println(F("digit new i2c address for i2c-rain (1-127)"));
 	  new_address=Serial.parseInt();
 	}
-
+	
 	delay(1000);
-
+	
 	Wire.beginTransmission(old_address);
 	Wire.write(I2C_RAIN_ADDRESS_ADDRESS);
-  Wire.write(I2C_RAIN_ADDRESS_LENGTH);
+	Wire.write(I2C_RAIN_ADDRESS_LENGTH);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	delay(1000);
-
+	
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
 	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-rain (0/1)"));
@@ -373,28 +372,53 @@ void loop() {
 	  Serial.println(oneshot);
 	}
 	delay(1000);
-
+	
 	Wire.beginTransmission(old_address);
 	Wire.write(I2C_RAIN_ONESHOT_ADDRESS);
-  Wire.write(I2C_RAIN_ONESHOT_LENGTH);
+	Wire.write(I2C_RAIN_ONESHOT_LENGTH);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-  Wire.beginTransmission(old_address);
-  Wire.write(I2C_RAIN_CONTINUOUS_ADDRESS);
-  Wire.write(I2C_RAIN_CONTINUOUS_LENGTH);
-  Wire.write(!(bool)oneshot);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
+	Wire.beginTransmission(old_address);
+	Wire.write(I2C_RAIN_CONTINUOUS_ADDRESS);
+	Wire.write(I2C_RAIN_CONTINUOUS_LENGTH);
+	Wire.write(!(bool)oneshot);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	
+	while (tipping_bucket_time_ms < 2 || tipping_bucket_time_ms > 1000){
+	  Serial.println(F("Tipping bucket time in milliseconds for i2c-rain (2-1000)"));
+	  tipping_bucket_time_ms=Serial.parseInt();
+	}
+	
+	delay(1000);
+	Wire.beginTransmission(old_address);
+	Wire.write(I2C_RAIN_TIPTIME_ADDRESS);
+	Wire.write(I2C_RAIN_TIPTIME_LENGTH);
+	Wire.write(tipping_bucket_time_ms);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	while (rain_for_tip < 1 || rain_for_tip > 20){
+	  Serial.println(F("Rain for tip for i2c-rain (1-20)"));
+	  rain_for_tip=Serial.parseInt();
+	}
+	
+	delay(1000);
+	Wire.beginTransmission(old_address);
+	Wire.write(I2C_RAIN_RAINFORTIP_ADDRESS);
+	Wire.write(I2C_RAIN_RAINFORTIP_LENGTH);
+	Wire.write(rain_for_tip);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
 	delay(1000);
 	Wire.beginTransmission(old_address);
 	Wire.write(I2C_COMMAND_ID);
 	Wire.write(I2C_RAIN_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	Serial.println(F("Done; switch off"));
 	delay(10000);
-
+	
 	displayHelp();
 	break;
       }

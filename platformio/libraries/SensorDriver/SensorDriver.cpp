@@ -1195,7 +1195,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
   switch (_get_state) {
     case INIT:
     memset(values, UINT8_MAX, length * sizeof(int32_t));
-    memset(rain_data, UINT8_MAX, I2C_RAIN_TIPS_LENGTH);
+    memset(rain_data, UINT8_MAX, I2C_RAIN_LENGTH);
 
     _is_readed = false;
     _is_end = false;
@@ -1220,8 +1220,8 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 
       if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_RAIN_TIPS_ADDRESS;
-        _buffer[i++] = I2C_RAIN_TIPS_LENGTH;
+        _buffer[i++] = I2C_RAIN_ADDRESS;
+        _buffer[i++] = I2C_RAIN_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
       else _is_success = false;
@@ -1252,7 +1252,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 
     case READ_RAIN:
       if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
-        data_length = I2C_RAIN_TIPS_LENGTH;
+        data_length = I2C_RAIN_LENGTH;
       }
       else _is_success = false;
 
@@ -1287,7 +1287,6 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     case END:
     if (length >= 1) {
       values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
-      values[0] *= RAIN_FOR_TIP;
     }
 
     SensorDriver::printInfo();
@@ -1299,10 +1298,10 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 
     if (length >= 1) {
       if (ISVALID(values[0])) {
-        LOGT(F("rain--> rain tips: %d"), values[0]);
+        LOGT(F("rain--> rain : %d"), values[0]);
       }
       else {
-        LOGT(F("rain--> rain tips: ---"));
+        LOGT(F("rain--> rain: ---"));
       }
     }
 

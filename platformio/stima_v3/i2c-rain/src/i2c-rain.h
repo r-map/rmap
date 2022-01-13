@@ -52,12 +52,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief EEPROM saved configuration.
 */
 typedef struct {
-   uint8_t module_main_version;        //!< module main version
+   uint8_t module_main_version;            //!< module main version
    uint8_t module_configuration_version;   //!< module configuration version
-   uint8_t module_type;       //!< module type
-   uint8_t i2c_address;       //!< i2c address
-   bool is_oneshot;           //!< enable or disable oneshot mode
-   bool is_continuous;        //!< enable or disable continuous mode
+   uint8_t module_type;                    //!< module type
+   uint8_t i2c_address;                    //!< i2c address
+   bool is_oneshot;                        //!< enable or disable oneshot mode
+   bool is_continuous;                     //!< enable or disable continuous mode
+   uint16_t  tipping_bucket_time_ms;       //!< Tipping bucket time in milliseconds
+   uint8_t  rain_for_tip;                  //!< How much mm of rain for one tip of tipping bucket rain gauge
 } configuration_t;
 
 /*!
@@ -79,6 +81,8 @@ typedef struct {
    uint8_t i2c_address;    //!< i2c address
    bool is_oneshot;        //!< enable or disable oneshot mode
    bool is_continuous;     //!< enable or disable continuous mode
+   uint16_t  tipping_bucket_time_ms;       //!< Tipping bucket time in milliseconds
+   uint8_t  rain_for_tip;                  //!< How much mm of rain for one tip of tipping bucket rain gauge
 } writable_data_t;
 
 /*********************************************************************
