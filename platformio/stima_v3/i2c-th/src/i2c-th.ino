@@ -132,7 +132,7 @@ void init_logging(){
     Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
     Serial.println   (F("Wiring is correct and a card is present."));
-    Serial.println   (F("The FAT type of the volume: "));
+    Serial.print     (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
 
     // remove firmware to do not redo update the next reboot
