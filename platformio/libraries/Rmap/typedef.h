@@ -51,10 +51,11 @@ typedef struct {
 
 /*!
 \struct rain_t
-\brief Rain tips struct for storing rain tips count.
+\brief Rain tips struct for storing rain data.
 */
 typedef struct {
   uint16_t tips_count;  //!< rain gauge tips counter
+  uint16_t rain;        //!< rain (Hg/m^2)
 } rain_t;
 
 /*!

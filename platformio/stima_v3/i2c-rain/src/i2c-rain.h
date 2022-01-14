@@ -70,7 +70,7 @@ typedef struct {
    uint8_t module_type;                //!< module type
    uint8_t module_main_version;        //!< module main version
    uint8_t module_minor_version;       //!< module minor version
-   rain_t rain;              //!< rain data
+   rain_t rain;                        //!< rain data
 } readable_data_t;
 
 /*!

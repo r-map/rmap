@@ -442,6 +442,7 @@ void tipping_bucket_task () {
 	   // re-read pin status to filter spikes 
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
+	     rain.rain=rain.tips_count * configuration.rain_for_tip;
 	     LOGN(F("Rain tips count: %d"), rain.tips_count);
 	   }else{
 	     LOGN(F("Skip spike"));
@@ -500,6 +501,7 @@ void exchange_buffers() {
 void reset_buffers() {
    memset((void *) &readable_data_write_ptr->rain, UINT8_MAX, sizeof(rain_t));
    rain.tips_count = 0;
+   rain.rain = 0;
 }
 
 void command_task() {
@@ -584,6 +586,7 @@ void command_task() {
 void tests() {
   noInterrupts();
   readable_data_write_ptr->rain.tips_count = rain.tips_count;
+  readable_data_write_ptr->rain.rain = rain.rain;
   exchange_buffers();
   is_test_read = false;
   interrupts();
@@ -594,6 +597,7 @@ void commands() {
 
    if (configuration.is_oneshot && is_oneshot && is_stop) {
       readable_data_write_ptr->rain.tips_count = rain.tips_count;
+      readable_data_write_ptr->rain.rain = rain.rain;
       exchange_buffers();
    }
 
@@ -606,5 +610,6 @@ void commands() {
    }
 
    interrupts();
-   LOGN(F("Total rain : %d"), readable_data_read_ptr->rain.tips_count);
+   LOGN(F("Total tips : %d"), readable_data_read_ptr->rain.tips_count);
+   LOGN(F("Total rain : %d"), readable_data_read_ptr->rain.rain);
 }
