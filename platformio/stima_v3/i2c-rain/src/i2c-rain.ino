@@ -396,30 +396,40 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
-      rx_data_length -= 2;
+      rx_data_length -= 1;
 
       if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == I2C_RAIN_ADDRESS_LENGTH) {
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_RAIN_ONESHOT_ADDRESS && rx_data_length == I2C_RAIN_ONESHOT_LENGTH) {
+	//LOGN("write add %d",I2C_RAIN_ONESHOT_ADDRESS);
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == I2C_RAIN_CONTINUOUS_LENGTH) {
+	//LOGN("write add %d",I2C_RAIN_CONTINUOUS_ADDRESS);
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_RAIN_TIPTIME_ADDRESS && rx_data_length == I2C_RAIN_TIPTIME_LENGTH) {
+	//LOGN("write add %d",I2C_RAIN_TIPTIME_ADDRESS);
         is_i2c_data_ok = true;
       }
       else if (i2c_rx_data[0] == I2C_RAIN_RAINFORTIP_ADDRESS && rx_data_length == I2C_RAIN_RAINFORTIP_LENGTH) {
+	//LOGN("write add %d",I2C_RAIN_RAINFORTIP_ADDRESS);
         is_i2c_data_ok = true;
       }
 
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-          ((uint8_t *)(writable_data_ptr))[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 2];
+	  //LOGN("write DATA %d:%d",i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i, i2c_rx_data[i + 1]);
+          ((uint8_t *)(writable_data_ptr))[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
         }
       }
+      /*
+      else{
+	LOGE("wrong rxdata address: %d length %d",i2c_rx_data[0],rx_data_length);
+      }
+      */
     }
   } else {
     readable_data_length = 0;
