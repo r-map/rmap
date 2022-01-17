@@ -19,18 +19,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Wire.h"
 #include <Arduino.h>
-//#include "registers-wind.h"         //Register definitions
-//#include "registers-windsonic.h"         //Register definitions
-#include "registers-th.h"         //Register definitions
-#include "registers-rain.h"         //Register definitions
-//#include "registers-sdsmics.h"         //Register definitions
-//#include <HIH61XXCommander.h>
+#include "registers-wind.h"                //Register definitions
+#include "registers-th.h"                  //Register definitions
+#include "registers-rain.h"                //Register definitions
 
 byte start_address = 1;
 byte end_address = 127;
 
 
-const char version[] = "1.0";
+const char version[] = "1.1";
 
 
 //extern "C" { 
@@ -89,11 +86,8 @@ void displayHelp()
   Serial.println();
   Serial.println(F("Sensor to config:"));
   Serial.println(F("\tw = i2c-wind"));
-  Serial.println(F("\ts = i2c-windsonic"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
-  Serial.println(F("\td = i2c-sds011"));
-  Serial.println(F("\th = hih humidity sensor"));
   //Serial.println(F("Output:"));
   //Serial.println(F("\tp = toggle printAll - printFound."));
   //Serial.println(F("\th = toggle header - noHeader."));
@@ -130,10 +124,10 @@ void loop() {
   char command = getCommand();
   switch (command)
     {
-
+      
     case 'w':
       {
-
+	
 	int new_address;
 	int oneshot;
 	int sensortype;
@@ -145,14 +139,14 @@ void loop() {
 	  Serial.println(new_address);
 	}
 	delay(1000);
-
-	//Wire.beginTransmission(I2C_WIND_DEFAULTADDRESS);
-	//Wire.write(I2C_WIND_ADDRESS);
-	//Wire.write(new_address);
-	//if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
+	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+	Wire.write(I2C_WIND_ADDRESS_ADDRESS);
+	Wire.write(new_address);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
 	delay(1000);
-
+	
 	sensortype=-1;
 	while (sensortype < 1 || sensortype > 2){
 	  Serial.println(F("digit sensortype code for i2c-wind (1 Davis, 2 Inspeed)"));
@@ -160,14 +154,14 @@ void loop() {
 	  Serial.println(sensortype);
 	}
 	delay(1000);
-
-	//Wire.beginTransmission(I2C_WIND_DEFAULTADDRESS);
-	//Wire.write(I2C_WIND_SENSORTYPE);
+	
+	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+	Wire.write(I2C_WIND_TYPE_ADDRESS);
 	Wire.write((uint8_t)sensortype);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	delay(1000);
-
+	
 	oneshot=-1;
 	while (oneshot < 0 || oneshot > 1){
 	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-wind (0/1)"));
@@ -175,68 +169,21 @@ void loop() {
 	  Serial.println(oneshot);
 	}
 	delay(1000);
-
-	//Wire.beginTransmission(I2C_WIND_DEFAULTADDRESS);
-	//Wire.write(I2C_WIND_ONESHOT);
+	
+	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+	Wire.write(I2C_WIND_ONESHOT_ADDRESS);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	delay(1000);
-	//Wire.beginTransmission(I2C_WIND_DEFAULTADDRESS);
-	//Wire.write(I2C_WIND_COMMAND);
-	//Wire.write(I2C_WIND_COMMAND_SAVE);
+	Wire.beginTransmission(I2C_WIND_DEFAULT_ADDRESS);
+	Wire.write(I2C_COMMAND_ID);
+	Wire.write(I2C_WIND_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	Serial.println(F("Done; switch off"));
 	delay(10000);
-
-
-	displayHelp();
-	break;
-      }
-
-    case 's':
-      {
-	int new_address;
-	int oneshot;
-
-	new_address= -1;
-	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-windsonic (1-127)"));
-	  new_address=Serial.parseInt();
-	  Serial.println(new_address);
-	}
-	delay(1000);
-
-	//Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
-	//Wire.write(I2C_WINDSONIC_ADDRESS);
-	Wire.write(new_address);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-
-	oneshot=-1;
-	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-windsonic (0/1)"));
-	  oneshot=Serial.parseInt();
-	  Serial.println(oneshot);
-	}
-	delay(1000);
-
-	//Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
-	//Wire.write(I2C_WINDSONIC_ONESHOT);
-	Wire.write((bool)oneshot);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	//Wire.beginTransmission(I2C_WINDSONIC_DEFAULTADDRESS);
-	//Wire.write(I2C_WINDSONIC_COMMAND);
-	//Wire.write(I2C_WINDSONIC_COMMAND_SAVE);
-	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-
-	Serial.println(F("Done; switch off"));
-	delay(10000);
-
+	
 
 	displayHelp();
 	break;
@@ -245,33 +192,25 @@ void loop() {
     case 't':
       {
 	int new_address;
-  int old_address;
-  int oneshot;
-
-  old_address=-1;
-  new_address=-1;
-
-  while (old_address < 1 || old_address > 127){
-    Serial.println(F("digit old i2c address for i2c-th (1-127)"));
-    old_address=Serial.parseInt();
-  }
-
+	int oneshot;
+	
 	new_address=-1;
+	
 	while (new_address < 1 || new_address > 127){
 	  Serial.println(F("digit new i2c address for i2c-th (1-127)"));
 	  new_address=Serial.parseInt();
 	}
-
+	
 	delay(1000);
-
-	Wire.beginTransmission(old_address);
-  Wire.write(I2C_TH_ADDRESS_ADDRESS);
-  Wire.write(I2C_TH_ADDRESS_LENGTH);
-  Wire.write(new_address);
+	
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
+	Wire.write(I2C_TH_ADDRESS_ADDRESS);
+	Wire.write(I2C_TH_ADDRESS_LENGTH);
+	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	delay(1000);
-
+	
 	new_address=-1;
 	while (new_address < 1 || new_address > 127){
 	  Serial.println(F("digit new i2c temperature address for i2c-th (1-127)"));
@@ -280,9 +219,9 @@ void loop() {
 	}
 	delay(1000);
 
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
 	Wire.write(I2C_TH_TEMPERATURE_ADDRESS_ADDRESS);
-  Wire.write(I2C_TH_TEMPERATURE_ADDRESS_LENGTH);
+	Wire.write(I2C_TH_TEMPERATURE_ADDRESS_LENGTH);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
@@ -296,9 +235,9 @@ void loop() {
 	}
 	delay(1000);
 
-	Wire.beginTransmission(old_address);
-  Wire.write(I2C_TH_HUMIDITY_ADDRESS_ADDRESS);
-  Wire.write(I2C_TH_HUMIDITY_ADDRESS_LENGTH);
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
+	Wire.write(I2C_TH_HUMIDITY_ADDRESS_ADDRESS);
+	Wire.write(I2C_TH_HUMIDITY_ADDRESS_LENGTH);
 	Wire.write(new_address);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
@@ -312,25 +251,25 @@ void loop() {
 	}
 	delay(1000);
 
-	Wire.beginTransmission(old_address);
-  Wire.write(I2C_TH_ONESHOT_ADDRESS);
-  Wire.write(I2C_TH_ONESHOT_LENGTH);
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
+	Wire.write(I2C_TH_ONESHOT_ADDRESS);
+	Wire.write(I2C_TH_ONESHOT_LENGTH);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-  Wire.beginTransmission(old_address);
-  Wire.write(I2C_TH_CONTINUOUS_ADDRESS);
-  Wire.write(I2C_TH_CONTINUOUS_LENGTH);
-  Wire.write(!(bool)oneshot);
-  if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
+	Wire.write(I2C_TH_CONTINUOUS_ADDRESS);
+	Wire.write(I2C_TH_CONTINUOUS_LENGTH);
+	Wire.write(!(bool)oneshot);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
 	delay(1000);
-
-  Wire.beginTransmission(old_address);
+	
+	Wire.beginTransmission(I2C_TH_DEFAULT_ADDRESS);
 	Wire.write(I2C_COMMAND_ID);
-  Wire.write(I2C_TH_COMMAND_SAVE);
+	Wire.write(I2C_TH_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-
+	
 	Serial.println(F("Done; switch off"));
 	delay(10000);
 
@@ -340,15 +279,9 @@ void loop() {
     case 'r':
       {
 	int new_address=-1;
-	int old_address=-1;
 	int oneshot;
 	uint16_t tipping_bucket_time_ms=0;
 	uint8_t rain_for_tip=0;
-	
-	while (old_address < 1 || old_address > 127){
-	  Serial.println(F("digit old i2c address for i2c-rain (1-127)"));
-	  old_address=Serial.parseInt();
-	}
 	
 	while (new_address < 1 || new_address > 127){
 	  Serial.println(F("digit new i2c address for i2c-rain (1-127)"));
@@ -357,7 +290,7 @@ void loop() {
 	
 	delay(1000);
 	
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_RAIN_ADDRESS_ADDRESS);
 	Wire.write(I2C_RAIN_ADDRESS_LENGTH);
 	Wire.write(new_address);
@@ -373,13 +306,13 @@ void loop() {
 	}
 	delay(1000);
 	
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_RAIN_ONESHOT_ADDRESS);
 	Wire.write(I2C_RAIN_ONESHOT_LENGTH);
 	Wire.write((bool)oneshot);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 	
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_RAIN_CONTINUOUS_ADDRESS);
 	Wire.write(I2C_RAIN_CONTINUOUS_LENGTH);
 	Wire.write(!(bool)oneshot);
@@ -392,7 +325,7 @@ void loop() {
 	}
 	
 	delay(1000);
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_RAIN_TIPTIME_ADDRESS);
 	Wire.write(I2C_RAIN_TIPTIME_LENGTH);
 	Wire.write(tipping_bucket_time_ms);
@@ -404,14 +337,14 @@ void loop() {
 	}
 	
 	delay(1000);
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_RAIN_RAINFORTIP_ADDRESS);
 	Wire.write(I2C_RAIN_RAINFORTIP_LENGTH);
 	Wire.write(rain_for_tip);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 	
 	delay(1000);
-	Wire.beginTransmission(old_address);
+	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
 	Wire.write(I2C_COMMAND_ID);
 	Wire.write(I2C_RAIN_COMMAND_SAVE);
 	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
@@ -422,111 +355,6 @@ void loop() {
 	displayHelp();
 	break;
       }
-
-
-    case 'd':
-      {
-	int new_address;
-	int oneshot;
-
-	new_address=-1;
-	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-sds011 (1-127)"));
-	  new_address=Serial.parseInt();
-	  Serial.println(new_address);
-	}
-
-	delay(1000);
-
-	//Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
-	//Wire.write(I2C_SDSMICS_ADDRESS);
-	Wire.write(new_address);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-
-	oneshot=-1;
-	while (oneshot < 0 || oneshot > 1){
-	  Serial.println(F("digit 1 for oneshotmode; 0 for continous mode for i2c-sds011 (0/1)"));
-	  oneshot=Serial.parseInt();
-	  Serial.println(oneshot);
-	}
-	delay(1000);
-
-	//Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
-	//Wire.write(I2C_SDSMICS_ONESHOT);
-	Wire.write((bool)oneshot);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	delay(1000);
-	//Wire.beginTransmission(I2C_SDSMICS_DEFAULTADDRESS);
-	//Wire.write(I2C_SDSMICS_COMMAND);
-	//Wire.write(I2C_SDSMICS_COMMAND_SAVE);
-	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
-
-	Serial.println(F("Done; switch off"));
-	delay(10000);
-
-	displayHelp();
-	break;
-      }
-
-    case 'h':
-      {
-	int address;
-	int powerpin;
-
-
-	Serial.println(F("If you want to use Command Mode to setup HIH61xx sensor you MUST use one pin to power the HIH!"));
-	Serial.println(F("If not this will not work!\n\n"));
-
-	address=-1;
-	while (address < 1 || address > 127){
-	  Serial.println(F("digit old i2c address for HIH sensor (1-127)"));
-	  address=Serial.parseInt();
-	  Serial.println(address);
-	}
-
-
-	powerpin=-1;
-	while (powerpin < 1 || powerpin > 50){
-	  Serial.println(F("digit the pin number for power HIH sensor (1-127)"));
-	  powerpin=Serial.parseInt();
-	  Serial.println(powerpin);
-	}
-
-	delay(1000);
-	//  Create an HIH61XXCommander with I2C address, powered by one digital pin
-	//  If you want to use Command Mode you MUST use the powerPin!
-	//HIH61XXCommander hih(address, powerpin);
-
-	//  start the sensor, eeprom data is automatically read.
-	//hih.start();
-
-	Serial.println("started HIH fo command mode");
-
-	address=-1;
-	while (address < 1 || address > 127){
-	  Serial.println(F("digit new i2c address for HIH sensor (1-127)"));
-	  address=Serial.parseInt();
-	  Serial.println(address);
-	}
-
-	//  This is how you change the I2C address to 0x28:
-	//hih.setAddress(address);
-	//hih.restart();
-
-	//  Make sure we're not in Command Mode any more:
-	//hih.leaveCommandMode();
-
-
-	Serial.println(F("Done; switch off"));
-	delay(10000);
-
-	displayHelp();
-	break;
-      }
-
 
     case 'i':
       {
