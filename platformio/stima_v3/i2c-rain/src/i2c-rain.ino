@@ -371,7 +371,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
     readable_data_length = 0;
-    //LOGN(F("No CRC: size %d"),rx_data_length);
+    LOGN(F("No CRC: size %d"),rx_data_length);
   } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
     //! check crc: ok    
     rx_data_length--;
@@ -407,6 +407,12 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == I2C_RAIN_CONTINUOUS_LENGTH) {
         is_i2c_data_ok = true;
       }
+      else if (i2c_rx_data[0] == I2C_RAIN_TIPTIME_ADDRESS && rx_data_length == I2C_RAIN_TIPTIME_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_RAIN_RAINFORTIP_ADDRESS && rx_data_length == I2C_RAIN_RAINFORTIP_LENGTH) {
+        is_i2c_data_ok = true;
+      }
 
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
@@ -417,7 +423,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
   } else {
     readable_data_length = 0;
-    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
