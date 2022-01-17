@@ -77,11 +77,11 @@ void loop() {
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
-         #if (ENABLE_SDCARD_LOGGING)   
+         #if (ENABLE_SDCARD_LOGGING)
 	 logFile.flush();
 	 #endif
 	 Serial.flush();
-       
+
          init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
          state = TASKS_EXECUTION;
 	 LOGV(F("ENTER_POWER_DOWN ---> TASKS_EXECUTION"));
@@ -175,7 +175,7 @@ void loop() {
 	 //MEMORY_PRINT_STACKSTART
 	 //MEMORY_PRINT_END
 	 //MEMORY_PRINT_HEAPSIZE
-	 //FREERAM_PRINT;  
+	 //FREERAM_PRINT;
 	 #endif
 
          #if (USE_POWER_DOWN)
@@ -191,7 +191,7 @@ void loop() {
 	if (strlen(rpcpayload) == 0 || !mqtt_client.isConnected()){
 	  LOGN(F("Reboot"));
 	  if (mqtt_client.isConnected()){
-	    mqtt_client.yield(6000L);   
+	    mqtt_client.yield(6000L);
 	    wdt_reset();
 	    mqtt_client.disconnect();
 	    wdt_reset();
@@ -202,7 +202,7 @@ void loop() {
 
           #if (USE_SDCARD)
 	  SD.end();
-	  is_sdcard_open=false;	  
+	  is_sdcard_open=false;
           #endif
 
 	  realreboot();
@@ -215,7 +215,7 @@ void loop() {
 
 void logPrefix(Print* _logOutput) {
   char dt[DATE_TIME_STRING_LENGTH];
-  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());  
+  snprintf(dt, DATE_TIME_STRING_LENGTH, "%04u-%02u-%02uT%02u:%02u:%02u", year(), month(), day(), hour(), minute(), second());
   _logOutput->print("#");
   _logOutput->print(dt);
   _logOutput->print(" ");
@@ -228,7 +228,7 @@ void logSuffix(Print* _logOutput) {
 
 
 void init_logging(){
-   #if (ENABLE_SDCARD_LOGGING)      
+   #if (ENABLE_SDCARD_LOGGING)
    if (!is_sdcard_open) {
      if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
        is_sdcard_open = true;
@@ -362,7 +362,7 @@ void init_pins() {
    #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
    s800.init(GSM_ON_OFF_PIN);
    s800.setTimeout(IP_STACK_TIMEOUT_MS);
-   
+
    #endif
 }
 
@@ -376,16 +376,16 @@ void init_wire() {
 
 void reset_wire() {
   uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
-  
+
    switch (i2c_bus_state) {
    case 1:
      LOGE(F("SCL clock line held low"));
      break;
-    
+
    case 2:
      LOGE(F("SCL clock line held low by slave clock stretch"));
      break;
-    
+
    case 3:
      LOGE(F("SDA data line held low"));
      break;
@@ -398,7 +398,7 @@ void reset_wire() {
     have_to_reboot = true;
    }
    */
-    
+
 #ifdef ARDUINO_ARCH_AVR
    Wire.end();
 #endif
@@ -417,7 +417,7 @@ void init_lcd() {
       LOGE(F(" Error initializing LCD"));
       return;
     }
-  
+
   lcd.clear();
   lcd.lineWrap();
     //lcd.autoscroll();
@@ -469,7 +469,7 @@ void init_rtc() {
 
    time_t datetime;
    if (get_datetime_rtc(datetime)){
-     system_time=datetime;     
+     system_time=datetime;
      setTime(system_time);
      is_datetime_set = true;
      LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
@@ -515,7 +515,7 @@ void init_rpc() {
    #if (USE_RPC_METHOD_RECOVERY && USE_MQTT)
    streamRpc.registerMethod("recovery", &recovery);
    #endif
-   
+
 }
 
 void init_wdt(uint8_t wdt_timer) {
@@ -577,9 +577,9 @@ void init_sensors () {
   lcd_error |= lcd.print(F(" V:"))==0;
   lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
   lcd_error |= lcd.print(F("."))==0;
-  lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;  
+  lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
   #endif
-  
+
   if (readable_configuration.sensors_count) {
     // read sensors configuration, create and setup
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
@@ -603,7 +603,7 @@ void init_sensors () {
     lcd_error |= lcd.print(F("/"))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count)==0;
     #endif
-    
+
   }
 }
 
@@ -642,35 +642,57 @@ bool mqttConnect(char *username, char *password) {
 }
 
 bool mqttPublish(const char *topic, const char *message, bool is_retained) {
-   MQTT::Message tx_message;
-   tx_message.qos = MQTT::QOS1;
-   tx_message.retained = is_retained;
-   tx_message.dup = false;
-   tx_message.payload = (void*) message;
-   tx_message.payloadlen = strlen(message);
+  bool is_ascii = true;
+  bool status = true;
 
-   LOGV(F("MQTT TX: %s"), (char*)tx_message.payload);
-   LOGV(F("--> len %d"), tx_message.payloadlen);
+  // BUG: check if all characters are printable ASCII
+  for (uint8_t i = 0; i < strlen(topic); i++) {
+    if ((topic[i] < 0x20) || (topic[i] > 0x7E)) {
+      is_ascii = false;
+      break;
+    }
+  }
 
-   MQTT::returnCode rc = (MQTT::returnCode) mqtt_client.publish(topic, tx_message)   ;
-   switch (rc){
-   case MQTT::BUFFER_OVERFLOW:
-     LOGV(F("publish BUFFER_OVERFLOW"));
-     break;
-   case MQTT::FAILURE:
-     LOGV(F("publish FAILURE"));
-       break;
-   case MQTT::SUCCESS:
-     LOGV(F("publish SUCCESS"));
-     break;
-   }
+  for (uint8_t i = 0; i < strlen(message); i++) {
+    if ((message[i] < 0x20) || (message[i] > 0x7E)) {
+      is_ascii = false;
+      break;
+    }
+  }
 
-   return (rc == MQTT::SUCCESS);
+  // if yes publish it to MQTT otherwise they are discarded (corrupted message)
+  if (is_ascii) {
+    MQTT::Message tx_message;
+    tx_message.qos = MQTT::QOS1;
+    tx_message.retained = is_retained;
+    tx_message.dup = false;
+    tx_message.payload = (void*) message;
+    tx_message.payloadlen = strlen(message);
+
+    LOGV(F("MQTT TX: %s"), (char*)tx_message.payload);
+    LOGV(F("--> len %d"), tx_message.payloadlen);
+
+    MQTT::returnCode rc = (MQTT::returnCode) mqtt_client.publish(topic, tx_message);
+    switch (rc){
+    	case MQTT::BUFFER_OVERFLOW:
+     		LOGV(F("publish BUFFER_OVERFLOW"));
+     	break;
+   	case MQTT::FAILURE:
+     		LOGV(F("publish FAILURE"));
+        break;
+   	case MQTT::SUCCESS:
+     		LOGV(F("publish SUCCESS"));
+     	break;
+     }
+    status = (rc == MQTT::SUCCESS);
+  }
+
+  return status;
 }
 
 void mqttRxCallback(MQTT::MessageData &md) {
   MQTT::Message &rx_message = md.message;
-  
+
   LOGT(F("MQTT RX: %s"), (char*)rx_message.payload);
   LOGV(F("--> len %d"), rx_message.payloadlen);
   LOGV(F("--> qos %d"), rx_message.qos);
@@ -689,7 +711,7 @@ void mqttRxCallback(MQTT::MessageData &md) {
 void print_configuration() {
    getStimaNameByType(stima_name, readable_configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
-   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
    LOGN(F("--> configuration version: %d.%d"), readable_configuration.module_main_version, readable_configuration.module_configuration_version);
    LOGN(F("--> sensors: %d"), readable_configuration.sensors_count);
    LOGN(F("--> ConstantData: %d"), readable_configuration.constantdata_count);
@@ -733,7 +755,7 @@ void set_default_configuration() {
    memset(writable_configuration.sensors, 0, sizeof(sensor_t) * SENSORS_MAX);
 
    writable_configuration.constantdata_count = 0;
-   
+
    #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
    char temp_string[20];
    writable_configuration.is_dhcp_enable = CONFIGURATION_DEFAULT_ETHERNET_DHCP_ENABLE;
@@ -785,7 +807,7 @@ void save_configuration(bool is_default) {
 }
 
 void load_configuration() {
-  
+
    ee_read(&writable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
 
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
@@ -907,7 +929,7 @@ int configure(JsonObject params, JsonObject result) {
 	    is_error = true;
 	  }
 	}
-	
+
       }
       #endif
       #if (USE_NTP)
@@ -925,10 +947,10 @@ int configure(JsonObject params, JsonObject result) {
 	 tm.Hour   = it.value().as<JsonArray>()[3].as<int>();
 	 tm.Minute = it.value().as<JsonArray>()[4].as<int>();
 	 tm.Second = it.value().as<JsonArray>()[5].as<int>();
-	
+
 	 system_time = makeTime(tm);
 	 setTime(system_time);
-	 /*	 
+	 /*
          Pcf8563::disable();
          Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
          Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
@@ -984,7 +1006,7 @@ int configure(JsonObject params, JsonObject result) {
        writable_configuration.sensors_count++;
      else {
        is_error = true;
-     }     
+     }
    }
 
    if (is_error) {
@@ -1185,16 +1207,16 @@ int prepandget(JsonObject params, JsonObject result) {
 int recovery(JsonObject params, JsonObject result) {
   static int state;
   static int tmpstate;
-  static time_t ptr_time;  
+  static time_t ptr_time;
   static File mqtt_ptr_rpc_file;
-  
+
   switch (rpc_state) {
   case RPC_INIT:
 
     state = E_BUSY;
     {
       bool found=false;
-    
+
       for (JsonPair it : params) {
 	if (strcmp(it.key().c_str(), "dts") == 0) {
 	  found=true;
@@ -1205,7 +1227,7 @@ int recovery(JsonObject params, JsonObject result) {
 	    rpc_state = RPC_END;
 	    break;
 	  }
-	  
+
 	  tmElements_t datetime;
 	  datetime.Year = CalendarYrToTm(it.value().as<JsonArray>()[0].as<int>());
 	  datetime.Month = it.value().as<JsonArray>()[1].as<int>();
@@ -1215,23 +1237,23 @@ int recovery(JsonObject params, JsonObject result) {
 	  datetime.Second = it.value().as<JsonArray>()[5].as<int>();
 	  ptr_time = makeTime(datetime);
 	  LOGN(F("RPC Data pointer... [ %d/%d/%d %d:%d:%d ]"), datetime.Day, datetime.Month, tmYearToCalendar(datetime.Year), datetime.Hour, datetime.Minute, datetime.Second);
-	  
+
 	  rpc_state = RPC_EXECUTE;
-	  
+
 	  break;
 	}
       }
-      
+
       if (!found){
 	tmpstate = E_INVALID_PARAMS;
 	result[F("state")] = F("error");
 	LOGE(F("Invalid params [ %s ]"), FAIL_STRING);
-	
+
 	rpc_state = RPC_END;
       }
-    }    
+    }
     break;
-    
+
   case RPC_EXECUTE:
 
     if (mqtt_ptr_rpc_file.seekSet(0) && mqtt_ptr_rpc_file.write(&ptr_time, sizeof(time_t)) == sizeof(time_t)) {
@@ -1247,9 +1269,9 @@ int recovery(JsonObject params, JsonObject result) {
       result[F("state")] = F("error");
       LOGE(F("SD Card writing ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
     }
-    
+
     rpc_state = RPC_END;
-        
+
   case RPC_END:
 
     rpc_state = RPC_INIT;
@@ -1566,7 +1588,7 @@ void supervisor_task() {
             init_lcd();
          }
 	 #endif
-	 
+
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          #if (USE_MQTT)
          noInterrupts();
@@ -2062,7 +2084,7 @@ void gsm_task() {
          // fail
          else if (sim800_status == SIM800_ERROR) {
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
-	    LOGV(F("GSM_AUTOBAUD ---> GSM_WAIT_FOR_SWITCH_OFF"));	    
+	    LOGV(F("GSM_AUTOBAUD ---> GSM_WAIT_FOR_SWITCH_OFF"));
          }
          // wait...
       break;
@@ -2139,10 +2161,10 @@ void gsm_task() {
       break;
 
       case GSM_SUSPEND:
-	
+
          #if (USE_LCD)
 	 uint8_t rssi;
-	 uint8_t ber; 
+	 uint8_t ber;
 	 s800.getLastCsq(&rssi,&ber);
 	 lcd_error |= lcd.setCursor(12, 0);
 	 lcd_error |= lcd.print(F("rf:"))==0;
@@ -2272,7 +2294,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   }
 	 }
 	 #endif
-	 
+
          if (do_prepare) {
             LOGN(F("Sensors reading..."));
             retry = 0;
@@ -2305,16 +2327,16 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
         // initialize to missing value
         json_sensors_data[i][0]='\0';
-	 
+
 	if (sensors[i]->getErrorCount() > 0) LOGN(F("Sensor %s-%s-%d error count: %d"),
 	     sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(),
 	     sensors[i]->getErrorCount());
-     
+
 	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
 	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
 	  sensors[i]->resetSetted();
 	}
-	
+
 	if (!sensors[i]->isSetted()) {
 	  sensors[i]->setup();
 	}
@@ -2324,10 +2346,10 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	}else{
 	  LOGE(F("Skip failed Sensor"));
 	  sensors_reading_state = SENSORS_READING_NEXT;
-	} 
+	}
 
 	break;
-      
+
       case SENSORS_READING_PREPARE:
          sensors[i]->prepare(is_test);
          delay_ms = sensors[i]->getDelay();
@@ -2389,7 +2411,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_GET:
-	
+
 	int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
 	sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data_test);
         if (!is_test) {
@@ -2448,35 +2470,35 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_READ:
-	
+
          #if (USE_LCD)
 	 // normal OR test: print
-	 if (!is_first_run || is_test) {	   
+	 if (!is_first_run || is_test) {
 	   LOGN(F("[%s] %s-%s-%d\tJson: %s \tMetadata: %s"), is_test? "Test" : "Report",
 	 	sensors[i]->getDriver(),sensors[i]->getType(),sensors[i]->getAddress(),
 		&json_sensors_data_test,
 		readable_configuration.sensors[i].mqtt_topic);
-	   
+
 	   StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
 	   DeserializationError error = deserializeJson(doc,json_sensors_data_test);
 	   if (error) {
 	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
 	   }else{
-	     
+
 	     unsigned long int value = doc["B12101"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
 	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1)==0;
 	       lcd_error |= lcd.print(F("C "))==0;
 	     }
 
 	     value = doc["B13003"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){	     
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
 	       lcd_error |= lcd.print(value)==0;
 	       lcd_error |= lcd.print(F("% "))==0;
 	     }
-	     
+
 	     value = doc["B13011"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){	     
+	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){
 	       lcd_error |= lcd.print((value/10.0),1)==0;
 	       lcd_error |= lcd.print(F("mm "))==0;
 	     }
@@ -2504,7 +2526,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	     else {
 	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
 	     }
-	     
+
 	     if (ISVALID(values_readed_from_sensor[i][0])) {
 	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[i][0], 0b11011111);
 	     }
@@ -2567,7 +2589,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             interrupts();
             #endif
           }
-	  
+
           sensors_reading_state = SENSORS_READING_END;
           LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_END"));
         }
@@ -2637,10 +2659,10 @@ void data_saving_task() {
 	 if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
 	   LOGN(F("SDCARD opened Data Saving"));
 
-           #if (ENABLE_SDCARD_LOGGING)      
+           #if (ENABLE_SDCARD_LOGGING)
 	   init_logging();
 	   #endif
-	   
+
 	   retry = 0;
 	   is_sdcard_open = true;
 	   is_sdcard_error = false;
@@ -2769,7 +2791,7 @@ void data_saving_task() {
 	 lcd_error |= lcd.print(F(" data "))==0;
 	 lcd_error |= lcd.print(is_sdcard_error ? ERROR_STRING : OK_STRING)==0;
          #endif
-	 
+
          noInterrupts();
          if (!is_event_supervisor) {
             is_event_supervisor = true;
@@ -2825,7 +2847,7 @@ void mqtt_task() {
    int read_bytes_count;
    static char comtopic[MQTT_RPC_TOPIC_LENGTH+3];    // static is required here for MQTTClient
    //static uint8_t mqtt_numretry_rpc_response;
-   
+
    // check every loop to send RPC response
    // callback driven !
 
@@ -2837,7 +2859,7 @@ void mqtt_task() {
      mqtt_numretry_rpc_response=0;
    }
    */
-   
+
    if (strlen(rpcpayload) > 0 && mqtt_client.isConnected()){
      char restopic[MQTT_RPC_TOPIC_LENGTH+3];
      strcpy(restopic,readable_configuration.mqtt_rpc_topic);
@@ -2851,7 +2873,7 @@ void mqtt_task() {
        //mqtt_numretry_rpc_response++;
      }
    }
-   
+
    switch (mqtt_state) {
       case MQTT_INIT:
          retry = 0;
@@ -2861,14 +2883,14 @@ void mqtt_task() {
          is_mqtt_error = false;
          is_mqtt_published_data = false;
 	 is_mqtt_constantdata = false;
-	 is_mqtt_rpc_delay =false;	 
+	 is_mqtt_rpc_delay =false;
          mqtt_data_count = 0;
 	 //mqtt_numretry_rpc_response =0;
-	 
+
 	 strcpy(comtopic,readable_configuration.mqtt_rpc_topic);
 	 strcat(comtopic, "com");
 	 rpcpayload[0]=0;
-	 
+
          if (!is_sdcard_open && !is_sdcard_error) {
             mqtt_state = MQTT_OPEN_SDCARD;
             LOGV(F("MQTT_PTR_DATA_INIT ---> MQTT_OPEN_SDCARD"));
@@ -2887,10 +2909,10 @@ void mqtt_task() {
          if (sdcard_init(&SD, SDCARD_CHIP_SELECT_PIN)) {
 	   LOGN(F("SDCARD opened MQTT"));
 
-            #if (ENABLE_SDCARD_LOGGING)      
+            #if (ENABLE_SDCARD_LOGGING)
             init_logging();
 	    #endif
-	    
+
             retry = 0;
             is_sdcard_open = true;
             is_sdcard_error = false;
@@ -2923,17 +2945,17 @@ void mqtt_task() {
       case MQTT_OPEN_PTR_FILE:
 	 // if we have SDCARD_MQTT_PTR_RPC_FILE_NAME rename as current SDCARD_MQTT_PTR_FILE_NAME
 	 if (SD.exists(SDCARD_MQTT_PTR_RPC_FILE_NAME)) {
-	   LOGN(F("file %s exists"),SDCARD_MQTT_PTR_RPC_FILE_NAME );   
+	   LOGN(F("file %s exists"),SDCARD_MQTT_PTR_RPC_FILE_NAME );
 	   if (SD.remove(SDCARD_MQTT_PTR_FILE_NAME)) {
-	     LOGN(F("file %s removed"),SDCARD_MQTT_PTR_FILE_NAME );   
+	     LOGN(F("file %s removed"),SDCARD_MQTT_PTR_FILE_NAME );
 	   }
 	   // rename file coming from recovery rpc if exist
 	   if (SD.rename(SDCARD_MQTT_PTR_RPC_FILE_NAME, SDCARD_MQTT_PTR_FILE_NAME)) {
 	     LOGN(F("PTR RPC file renamed to PTR file"));
 	   }
 	 } else {
-	   LOGN(F("file %s do not exists"),SDCARD_MQTT_PTR_RPC_FILE_NAME );   
-	 }	  
+	   LOGN(F("file %s do not exists"),SDCARD_MQTT_PTR_RPC_FILE_NAME );
+	 }
 
          // try to open file. if ok, read ptr data.
          if (sdcard_open_file(&SD, &mqtt_ptr_file, SDCARD_MQTT_PTR_FILE_NAME, O_RDWR | O_CREAT)) {
@@ -3100,7 +3122,7 @@ void mqtt_task() {
          }
 
 	 mqtt_client.setMessageHandler(comtopic, mqttRxCallback);   // messages queued for persistent client are sended at connect time and we have to "remember" the subscription
-	 
+
          ipstack_status = ipstack.connect(readable_configuration.mqtt_server, readable_configuration.mqtt_port);
 
          // success
@@ -3169,7 +3191,7 @@ void mqtt_task() {
 	  mqtt_session_present=true;
 	  mqtt_client.setMessageHandler(comtopic, NULL); // remove previous handler
 	                                                 // MessageHandler in MQTTClient is not cleared betwen sessions
-	  
+
 	  bool is_mqtt_subscribed = mqtt_client.subscribe(comtopic, MQTT::QOS1, mqttRxCallback) == 0;  // subscribe and set new handler
 	  LOGT(F("MQTT Subscription %s [ %s ]"), comtopic, is_mqtt_subscribed ? OK_STRING : FAIL_STRING);
 	}
@@ -3186,9 +3208,9 @@ void mqtt_task() {
 	}
 
 	// publish constant station data without retry
-	if (i < readable_configuration.constantdata_count) {	  
+	if (i < readable_configuration.constantdata_count) {
 	  //memset(full_topic_buffer, 0, MQTT_ROOT_TOPIC_LENGTH + 14 + CONSTANTDATA_BTABLE_LENGTH);
-	  strncpy(full_topic_buffer, readable_configuration.mqtt_root_topic, MQTT_ROOT_TOPIC_LENGTH);	  
+	  strncpy(full_topic_buffer, readable_configuration.mqtt_root_topic, MQTT_ROOT_TOPIC_LENGTH);
 	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic), "-,-,-/-,-,-,-/", 14);
 	  strncpy(full_topic_buffer + strlen(readable_configuration.mqtt_root_topic)+14, readable_configuration.constantdata[i].btable, CONSTANTDATA_BTABLE_LENGTH);
 	  char payload[CONSTANTDATA_BTABLE_LENGTH+9];
@@ -3196,7 +3218,7 @@ void mqtt_task() {
 	  strncpy(payload,"{\"v\":\"",6);
 	  strncpy(payload+6,readable_configuration.constantdata[i].value,strlen(readable_configuration.constantdata[i].value));
 	  strncpy(payload+6+strlen(readable_configuration.constantdata[i].value),"\"}\0",3);
-	  
+
 	  if (mqttPublish(full_topic_buffer,payload)){
 	    LOGN(F("MQTT <-- %s %s"), full_topic_buffer, payload);
 	  }else{
@@ -3209,9 +3231,9 @@ void mqtt_task() {
 	}
 
 	i++;
-	  
+
       break;
-      
+
       case MQTT_CHECK:
          // ptr data is found: send data saved on sdcard
          if (!is_sdcard_error) {
@@ -3390,7 +3412,7 @@ void mqtt_task() {
 	 LOGV(F("MQTT_RPC_DELAY ---> MQTT_WAIT_STATE_RPC"));
 
          break;
-	 
+
       case MQTT_ON_DISCONNECT:
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          if (is_mqtt_error) {
