@@ -685,6 +685,8 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
      	break;
      }
     status = (rc == MQTT::SUCCESS);
+  }else{
+    LOGE(F("skip not printable ASCII message"));
   }
 
   return status;
