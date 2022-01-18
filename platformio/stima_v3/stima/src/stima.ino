@@ -1822,10 +1822,10 @@ void time_task() {
 	    LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
             #if (USE_RTC)
             time_state = TIME_SET_SYNC_NTP_PROVIDER;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
+            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_NTP_PROVIDER"));
             #elif (USE_TIMER_1)
             time_state = TIME_SET_SYNC_NTP_PROVIDER;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
+            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_NTP_PROVIDER"));
             #endif
          }
          // retry
