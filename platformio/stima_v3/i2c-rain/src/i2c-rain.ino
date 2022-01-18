@@ -42,15 +42,15 @@ void setup() {
    #endif
 
    power_adc_disable();
-   #if !(ENABLE_SDCARD_LOGGING)   
+   #if !(ENABLE_SDCARD_LOGGING)
    power_spi_disable();
    #endif
    //power_timer0_disable();
    #if (USE_TIMER_1 == false)
-   power_timer1_disable(); 
+   power_timer1_disable();
    #endif
    power_timer2_disable();
-   
+
    init_system();
    wdt_reset();
 }
@@ -70,11 +70,11 @@ void loop() {
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
-         #if (ENABLE_SDCARD_LOGGING)   
+         #if (ENABLE_SDCARD_LOGGING)
 	 logFile.flush();
 	 power_spi_disable();
 	 #endif
-	 Serial.flush();	
+	 Serial.flush();
          // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
          wdt_disable();
 
@@ -83,7 +83,7 @@ void loop() {
 
          // enable watchdog
          init_wdt(WDT_TIMER);
-         #if (ENABLE_SDCARD_LOGGING)   
+         #if (ENABLE_SDCARD_LOGGING)
 	 power_spi_enable();
 	 #endif
          state = TASKS_EXECUTION;
@@ -140,10 +140,10 @@ void logSuffix(Print* _logOutput) {
 }
 
 void init_logging(){
-  
-#if (ENABLE_SDCARD_LOGGING)      
+
+#if (ENABLE_SDCARD_LOGGING)
   Serial.println("\nInitializing SD card..." );
-  
+
   if (!SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
     Serial.println   (F("initialization failed. Things to check:"));
     Serial.println   (F("* is a card inserted?"));
@@ -157,9 +157,9 @@ void init_logging(){
      // remove firmware to do not redo update the next reboot
     if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
       LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
-    }   
+    }
   }
-  
+
   logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
   if (logFile) {
     logFile.seekEnd(0);
@@ -170,7 +170,7 @@ void init_logging(){
 #else
   Log.begin(LOG_LEVEL, &Serial);
 #endif
-  
+
   Log.setPrefix(logPrefix);
   Log.setSuffix(logSuffix);
 }
@@ -262,12 +262,39 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
+  start_timer();
+}
+
+void start_timer() {
+  TCCR1A = 0x00;                //!< Normal timer operation
+  TCCR1B = 0x05;                //!< 1:1024 prescaler
+  TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
+  TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+  TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
+}
+
+void stop_timer() {
+  TCCR1B = 0x00;                //!< Stop
+  TIMSK1 &= ~(1 << TOIE1);      //!< Disable overflow interrupt
+  TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+  TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
+}
+
+/*!
+\fn ISR(TIMER1_OVF_vect)
+\brief Timer1 overflow interrupts routine.
+\return void.
+*/
+ISR(TIMER1_OVF_vect) {
+  //! Pre-load timer counter register
+  TCNT1 = TIMER1_TCNT1_VALUE;
+  i2c_error++;
 }
 #endif
 
 void init_system() {
    #if (USE_POWER_DOWN)
-   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+   set_sleep_mode(SLEEP_MODE_IDLE);
    awakened_event_occurred_time_ms = millis();
    #endif
 
@@ -282,7 +309,7 @@ void print_configuration() {
    char stima_name[20];
    getStimaNameByType(stima_name, configuration.module_type);
    LOGN(F("--> type: %s"), stima_name);
-   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+   LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
    LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
@@ -373,7 +400,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     readable_data_length = 0;
     LOGN(F("No CRC: size %d"),rx_data_length);
   } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
-    //! check crc: ok    
+    //! check crc: ok
     rx_data_length--;
 
     // it is a registers read?
@@ -449,13 +476,13 @@ void tipping_bucket_task () {
 	delay_ms=configuration.tipping_bucket_time_ms/2;
 	state_after_wait=TIPPING_BUCKET_READ;
 	tipping_bucket_state = TIPPING_BUCKET_WAIT_STATE;
-	
+
       break;
 
       case TIPPING_BUCKET_READ:
          // increment rain tips if oneshot mode is on and oneshot start command It has been received
          if (configuration.is_oneshot && is_oneshot && is_start) {
-	   // re-read pin status to filter spikes 
+	   // re-read pin status to filter spikes
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
 	     rain.rain=rain.tips_count * configuration.rain_for_tip;
@@ -478,7 +505,7 @@ void tipping_bucket_task () {
 
      break;
 
-      
+
       case TIPPING_BUCKET_END:
 
 	 if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {

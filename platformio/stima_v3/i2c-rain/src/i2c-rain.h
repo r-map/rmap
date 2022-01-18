@@ -253,7 +253,7 @@ state_t state;
 */
 tipping_bucket_state_t tipping_bucket_state;
 
-#if (ENABLE_SDCARD_LOGGING)   
+#if (ENABLE_SDCARD_LOGGING)
 /*!
 \var SD
 \brief SD-Card structure.
@@ -349,6 +349,20 @@ void init_rtc(void);
 \return void.
 */
 void init_timer1(void);
+
+/*!
+\fn void start_timer(void)
+\brief Start Timer1 module.
+\return void.
+*/
+void start_timer(void);
+
+/*!
+\fn void stop_timer(void)
+\brief Stop Timer1 module.
+\return void.
+*/
+void stop_timer(void);
 #endif
 
 /*!

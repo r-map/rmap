@@ -132,7 +132,7 @@ brief How much mm of rain for one tip of tipping bucket rain gauge.
 \def USE_TIMER_1
 \brief Enable or disable timer1.
 */
-#define USE_TIMER_1                             (false)
+#define USE_TIMER_1                             (true)
 
 /*********************************************************************
 * WATCHDOG
@@ -146,5 +146,33 @@ WDTO_15MS, WDTO_30MS, WDTO_60MS, WDTO_120MS, WDTO_250MS, WDTO_500MS,
 WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define WDT_TIMER                               (WDTO_4S)
+
+/*********************************************************************
+* TIMER1
+*********************************************************************/
+/*!
+\def TIMER1_INTERRUPT_TIME_MS
+\brief Value in milliseconds for generating timer1 interrupt: 100 - 8000 [ms].
+*/
+#define TIMER1_INTERRUPT_TIME_MS                      (4000)
+
+/*!
+\def TIMER1_OVERFLOW_TIME_MS
+\brief Timer1 timer overflow with 1024 prescaler at 8 or 16 MHz.
+*/
+#if (F_CPU == 8000000L)
+#define TIMER1_OVERFLOW_TIME_MS                       (8388)
+#elif (F_CPU == 16000000L)
+#define TIMER1_OVERFLOW_TIME_MS                       (4194) // IMPOSSIBILE CON SENSORS_SAMPLE_TIME_MS a 5000
+#if (SENSORS_SAMPLE_TIME_MS > 4000)
+#error "compilare a 3.3V"
+#endif
+#endif
+
+/*!
+\def TIMER1_TCNT1_VALUE
+\brief Timer1 timer overflow with 1024 prescaler at 8 MHz.
+*/
+#define TIMER1_TCNT1_VALUE                            ((uint16_t)(0xFFFF - (float)(1.0 * 0xFFFF * TIMER1_INTERRUPT_TIME_MS / TIMER1_OVERFLOW_TIME_MS)))
 
 #endif
