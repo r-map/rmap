@@ -793,13 +793,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
         }
       }
 
-      if (_is_success) {
-        _delay_ms = 0;
-      }
-      else {
-        _delay_ms = HYT2X1_CONVERSION_TIME_MS;
-      }
-
+      _delay_ms = 0;
       _start_time_ms = millis();
       _is_end = true;
       _is_readed = false;

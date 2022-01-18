@@ -224,7 +224,7 @@ seguito.
 
 -  uint32_t_t getDelay()
 
-   -  ritorna il valore in millisecondi indicante l’attesa richiesta
+   -  ritorna il valore in millisecondi indicante l’attesa richiesta per i metodi prepare e get
 
 -  bool isEnd()
 
