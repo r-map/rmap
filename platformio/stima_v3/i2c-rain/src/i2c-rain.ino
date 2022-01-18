@@ -93,7 +93,7 @@ void loop() {
       case TASKS_EXECUTION:
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          LOGE(F("Restart I2C BUS"));
+          LOGN(F("Restart I2C BUS"));
           init_wire();
           wdt_reset();
         }
@@ -341,8 +341,6 @@ void save_configuration(bool is_default) {
 
    // write configuration to eeprom
    ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-   print_configuration();
 }
 
 void load_configuration() {
@@ -354,8 +352,9 @@ void load_configuration() {
    }
    else {
       LOGN(F("Load configuration... [ %s ]"), OK_STRING);
-      print_configuration();
    }
+
+   print_configuration();
 
    // set configuration value to writable register
    writable_data.i2c_address = configuration.i2c_address;
@@ -460,7 +459,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
   } else {
     readable_data_length = 0;
-    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
