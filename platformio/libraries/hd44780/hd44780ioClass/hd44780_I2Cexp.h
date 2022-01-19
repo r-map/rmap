@@ -329,7 +329,7 @@ int getProp(I2CexpProp propID)
 }
 
 // added for RMAP project
-void hd44780_I2Cexp::setAddr(uint8_t addr){ _addr = addr; }
+void setAddr(uint8_t addr){ _addr = addr; }
 
 private:
 // ====================
