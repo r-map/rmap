@@ -488,11 +488,11 @@ MQTT::Client<IPStack, Countdown, MQTT_PACKET_SIZE, 1> mqtt_client = MQTT::Client
 
 #if (USE_LCD)
 /*!
-\fn hd44780_I2Cexp lcd(LCD_I2C_ADDRESS)
+\fn hd44780_I2Cexp lcd
 \brief LCD object.
 \return void.
 */
-hd44780_I2Cexp lcd(LCD_I2C_ADDRESS);
+hd44780_I2Cexp lcd;
 #endif
 
 /*!

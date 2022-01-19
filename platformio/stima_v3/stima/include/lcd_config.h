@@ -25,9 +25,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def LCD_I2C_ADDRESS
-\brief Default LCD i2c address.
+\brief LCD i2c address.
 */
 #define LCD_I2C_ADDRESS          (0x3F)
+
+/*!
+\def LCD_I2C_SECONDARY_ADDRESS
+\brief Try this I2C address for LCD if LCD_I2C_ADDRESS fail.
+*/
+#define LCD_I2C_SECONDARY_ADDRESS          (0x27)
 
 /*!
 \def LCD_COLUMNS

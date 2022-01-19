@@ -412,12 +412,19 @@ void init_spi() {
 
 #if (USE_LCD)
 void init_lcd() {
+  lcd.setAddr(LCD_I2C_ADDRESS);
   if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
     {
-      LOGE(F(" Error initializing LCD"));
-      return;
-    }
+      LOGN(F(" Error initializing LCD primary addr"));
 
+      lcd.setAddr(LCD_I2C_SECONDARY_ADDRESS);
+      if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
+	{
+	  LOGE(F(" Error initializing LCD"));
+	  return;
+	}
+    }
+  
   lcd.clear();
   lcd.lineWrap();
     //lcd.autoscroll();
