@@ -328,6 +328,9 @@ int getProp(I2CexpProp propID)
 	}
 }
 
+// added for RMAP project
+void hd44780_I2Cexp::setAddr(uint8_t addr){ _addr = addr; }
+
 private:
 // ====================
 // === private data ===
@@ -375,7 +378,8 @@ static uint8_t AutoInst;
 	 * hd44780 i/o interfaces should be the constructor
 	 * So we go ahead and call it here.
 	 */
-	Wire.begin();
+        // in RMAP project we do not want it !
+	//Wire.begin();
 
 	// auto locate i2c expander and magically detect pin mappings
 
