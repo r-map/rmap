@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef _HARDWARE_CONFIG_H
 #define _HARDWARE_CONFIG_H
 
-#define I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP 250
+#define I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP 1000
 
 #define TWI_TIMEOUT 1000
 
