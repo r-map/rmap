@@ -113,6 +113,12 @@ brief How much mm of rain for one tip of tipping bucket rain gauge.
 */
 #define SPI_SPEED SD_SCK_MHZ(4)
 
+/*!
+\def I2C_MAX_TIME
+\brief Max i2c time in seconds before i2c restart.
+*/
+#define I2C_MAX_TIME             (12)
+
 /*********************************************************************
 * POWER DOWN
 *********************************************************************/

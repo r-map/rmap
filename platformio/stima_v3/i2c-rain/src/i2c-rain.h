@@ -188,6 +188,12 @@ volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 volatile uint8_t i2c_error;
 
 /*!
+\var i2c_time
+\brief Time in seconds from last I2C reset.
+*/
+volatile uint8_t i2c_time;
+
+/*!
 \var ready_tasks_count
 \brief Number of tasks ready to execute.
 */

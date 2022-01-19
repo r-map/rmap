@@ -93,11 +93,17 @@ void loop() {
       case TASKS_EXECUTION:
         // I2C Bus Check
         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          LOGN(F("Restart I2C BUS"));
+          LOGE(F("Restart I2C BUS by errorcount"));
           init_wire();
           wdt_reset();
         }
 
+        if (i2c_time >= I2C_MAX_TIME) {
+          LOGN(F("Restart I2C BUS"));
+          init_wire();
+          wdt_reset();
+        }
+	
         if (is_event_tipping_bucket) {
           tipping_bucket_task();
           wdt_reset();
@@ -216,6 +222,7 @@ void init_buffers() {
    readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
    memset((void *) &readable_data_read_ptr->rain, UINT8_MAX, sizeof(rain_t));
    rain.tips_count = UINT16_MAX;
+   rain.rain = UINT16_MAX;
 
    // copy readable_data_2 in readable_data_1
    memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
@@ -246,6 +253,7 @@ void init_pins() {
 
 void init_wire() {
   i2c_error = 0;
+  i2c_time = 0;
   Wire.end();
   Wire.begin(configuration.i2c_address);
   Wire.setClock(I2C_BUS_CLOCK);
@@ -288,7 +296,7 @@ void stop_timer() {
 ISR(TIMER1_OVF_vect) {
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
-  i2c_error++;
+  i2c_time+=TIMER1_INTERRUPT_TIME_MS/1000;
 }
 #endif
 
