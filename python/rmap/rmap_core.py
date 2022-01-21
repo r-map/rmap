@@ -1457,8 +1457,12 @@ def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc"
             for deserialized_object in serializers.deserialize("json",body):
                 if object_auth(deserialized_object.object,ident):
                     try:
-                        print("save:",deserialized_object.object)
-                        deserialized_object.save()
+                        try:
+                            StationMetadata.objects.get(slug=deserialized_object.object.slug,ident__username=deserialized_object.object.ident.username).delete()
+                        except:
+                            pass
+			print("save:",deserialized_object.object)
+                        deserialized_object.save(force_insert=True)
                     except Exception as e:
                         print((" [E] Error saving in DB",e))
                         #close django connection to DB
@@ -1624,12 +1628,13 @@ def configdb(username="rmap",password="rmap",
         print("elaborate station: ",station)
 
         try:
-            mystation=StationMetadata.objects.get(slug=station,ident__username=username)
+            StationMetadata.objects.get(slug=station,ident__username=username).delete()
         except ObjectDoesNotExist:
-            if (stationname is None):
-                stationname=""
-            mystation=StationMetadata(slug=station,name=stationname)
+            pass
 
+        if (stationname is None):
+            stationname=""
+        mystation=StationMetadata(slug=station,name=stationname)
         user=User.objects.get(username=username)
             
         mystation.ident=user
@@ -1650,11 +1655,11 @@ def configdb(username="rmap",password="rmap",
     except:
         raise # "Error\nsetting station"
 
-    # remove all StationConstantData
-    try:
-        StationConstantData.objects.filter(stationmetadata=mystation).delete()
-    except:
-        pass
+    ## remove all StationConstantData
+    #try:
+    #    StationConstantData.objects.filter(stationmetadata=mystation).delete()
+    #except:
+    #    pass
 
     for btable,value in constantdata.items():
 
