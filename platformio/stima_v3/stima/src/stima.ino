@@ -625,7 +625,7 @@ bool mqttConnect(char *username, char *password) {
    MQTT::connackData data ;
    options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
    options.will.topicName.cstring = maint_topic;
-   options.will.message.cstring = MQTT_ON_ERROR_MESSAGE;
+   options.will.message.cstring = (char *) MQTT_ON_ERROR_MESSAGE;
    options.will.retained = true;
    options.will.qos = MQTT::QOS1;
    options.willFlag = true;
