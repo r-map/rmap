@@ -758,7 +758,8 @@ void set_default_configuration() {
    writable_configuration.module_main_version = MODULE_MAIN_VERSION;
    writable_configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
 
-   writable_configuration.report_seconds = 900;
+   writable_configuration.report_seconds = MQTT_TX_S;
+   writable_configuration.transmit_seconds = MQTT_TX_S;
 
    writable_configuration.sensors_count = 0;
    memset(writable_configuration.sensors, 0, sizeof(sensor_t) * SENSORS_MAX);
@@ -920,6 +921,10 @@ int configure(JsonObject params, JsonObject result) {
       }
       else if (strcmp(it.key().c_str(), "mqttsampletime") == 0) {
          writable_configuration.report_seconds = it.value().as<unsigned int>();
+         writable_configuration.transmit_seconds = writable_configuration.report_seconds;
+      }
+      else if (strcmp(it.key().c_str(), "mqtttxtime") == 0) {
+         writable_configuration.transmit_seconds = it.value().as<unsigned int>();
       }
       else if (strcmp(it.key().c_str(), "mqttuser") == 0) {
          strncpy(writable_configuration.mqtt_username, it.value().as<const char*>(), MQTT_USERNAME_LENGTH);

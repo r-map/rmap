@@ -554,4 +554,10 @@ coming from recovery json RPC.
 */
 #define DATE_TIME_STRING_LENGTH                       (25)
 
+/*!
+\def MQTT_TX_S
+\brief Default MQTT TX seconds.
+*/
+#define MQTT_TX_S                                     (900)
+
 #endif
