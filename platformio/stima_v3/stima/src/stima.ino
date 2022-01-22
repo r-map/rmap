@@ -40,6 +40,7 @@ void setup() {
    Serial.begin(115200);
    init_pins();
    init_wire();
+   init_spi();
    init_rpc();
    init_tasks();
    init_logging();
@@ -47,14 +48,13 @@ void setup() {
    init_lcd();
    wdt_reset();
    #endif
-   load_configuration();
-   init_buffers();
-   init_spi();
    #if (USE_RTC)
    init_rtc();
    #elif (USE_TIMER_1)
    init_timer1();
    #endif
+   init_buffers();
+   load_configuration();
    init_system();
    wdt_reset();
    delay(1000);  // wait other board go ready
@@ -343,7 +343,7 @@ void init_tasks() {
    is_time_for_sensors_reading_updated = false;
 
    have_to_reboot = false;
-   is_datetime_set = false;
+   is_rtc_first_time_get = false;
 }
 
 void init_pins() {
@@ -433,40 +433,37 @@ void init_lcd() {
 #endif
 
 #if (USE_RTC)
-
-bool set_datetime_rtc(const time_t time){
-
-  tmElements_t tm;
-  breakTime(time,tm);
-  tm.Year = tmYearToY2k(tm.Year);
-  return Pcf8563::setDateTime(tm.Hour,
-			      tm.Minute,
-			      tm.Second,
-			      tm.Day,
-			      tm.Month,
-			      tm.Year,0,0);
+bool set_datetime_rtc(const time_t time) {
+   bool is_set_rtc_ok = true;
+   is_set_rtc_ok &= Pcf8563::disable();
+   is_set_rtc_ok &= Pcf8563::setDate(day(time), month(time), year(time)-2000, weekday(time)-1, 0);
+   is_set_rtc_ok &= Pcf8563::setTime(hour(time), minute(time), second(time));
+   is_set_rtc_ok &= Pcf8563::enable();
+   return is_set_rtc_ok;
 }
 
-bool get_datetime_rtc(time_t &time){
+bool get_datetime_rtc(time_t *time) {
+   bool is_rtc_error = false;
+   time_t current_rtc_time = 0;
 
-  tmElements_t tm;
+   for (uint8_t i = 0; i < 2; i++) {
+      current_rtc_time = Pcf8563::getTime();
 
-  if (Pcf8563::getDateTime(&tm.Hour,
-			   &tm.Minute,
-			   &tm.Second,
-			   &tm.Day,
-			   &tm.Month,
-			   &tm.Year)){
+      if ((current_rtc_time <= MIN_VALID_START_TIME_S) || (current_rtc_time - Pcf8563::getTime()) >= 3) {
+         is_rtc_error = true;
+      }
+   }
 
-    tm.Year = y2kYearToTm(tm.Year);
-    time = makeTime(tm);
-    return true;
-  }
-  time=0;
-  return false;
+   if (!is_rtc_error) {
+      *time = current_rtc_time;
+   }
+
+   return !is_rtc_error;
 }
 
 void init_rtc() {
+   time_t current_rtc_time = 0;
+
    Pcf8563::disableAlarm();
    Pcf8563::disableTimer();
    Pcf8563::disableClockout();
@@ -474,12 +471,11 @@ void init_rtc() {
    Pcf8563::enableClockout();
    attachInterrupt(digitalPinToInterrupt(RTC_INTERRUPT_PIN), rtc_interrupt_handler, RISING);
 
-   time_t datetime;
-   if (get_datetime_rtc(datetime)){
-     system_time=datetime;
-     setTime(system_time);
-     is_datetime_set = true;
-     LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+   if (get_datetime_rtc(&current_rtc_time)) {
+      system_time = current_rtc_time;
+      setTime(system_time);
+      is_rtc_first_time_get = true;
+      LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
    }
 }
 #endif
@@ -1423,7 +1419,7 @@ void supervisor_task() {
          #endif
             #if (USE_NTP)
             // need ntp sync ?
-            if (!do_ntp_sync && ((now() - last_ntp_sync > NTP_TIME_FOR_RESYNC_S) || !is_time_set)) {
+            if (!do_ntp_sync && (((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S) || !is_time_set)) {
                do_ntp_sync = true;
                LOGT(F("Requested NTP time sync..."));
             }
@@ -1479,7 +1475,7 @@ void supervisor_task() {
          // error
          if (!*is_event_client && is_event_client_executed && !is_client_connected) {
             // retry
-            if ((++retry < SUPERVISOR_CONNECTION_RETRY_COUNT_MAX) || (millis() - start_time_ms < SUPERVISOR_CONNECTION_TIMEOUT_MS)) {
+            if (((++retry) < SUPERVISOR_CONNECTION_RETRY_COUNT_MAX) && (millis() - start_time_ms < SUPERVISOR_CONNECTION_TIMEOUT_MS)) {
                is_event_client_executed = false;
                supervisor_state = SUPERVISOR_CONNECTION_LEVEL_TASK;
 	       LOGT(F("Supervisor connection... [ task ]"));
@@ -1506,7 +1502,7 @@ void supervisor_task() {
 
          if (!is_event_time && is_event_time_executed) {
 
-	    // if NTP sync fail, reset variable anyway
+            // if NTP sync fail, reset variable anyway
             if (do_ntp_sync || ((now() - last_ntp_sync) > NTP_TIME_FOR_RESYNC_S)) {
                last_ntp_sync = system_time;
                do_ntp_sync = false;
@@ -1529,14 +1525,8 @@ void supervisor_task() {
             }
             #endif
 
-	    if (is_supervisor_first_run && !is_datetime_set) {
-	      have_to_reboot = true;
-	      supervisor_state = SUPERVISOR_END;
-	      LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_END"));
-	    }else{
-	      supervisor_state = SUPERVISOR_MANAGE_LEVEL_TASK;
-	      LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_MANAGE_LEVEL_TASK"));
-	    }
+            supervisor_state = SUPERVISOR_MANAGE_LEVEL_TASK;
+            LOGV(F("SUPERVISOR_TIME_LEVEL_TASK ---> SUPERVISOR_MANAGE_LEVEL_TASK"));
          }
       break;
 
@@ -1574,22 +1564,29 @@ void supervisor_task() {
             if (next_ptr_time_for_sensors_reading) {
                LOGN(F("--> starting at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
                #if (USE_LCD)
-	       lcd_error |= lcd.clear();
+               lcd_error |= lcd.clear();
                lcd_error |= lcd.print(F("start acq: "))==0;
-	       lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading))==0;
+               lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading))==0;
                lcd_error |= lcd.print(F(":"))==0;
-	       lcd_error |= lcd.print( minute(next_ptr_time_for_sensors_reading))==0;
+               lcd_error |= lcd.print( minute(next_ptr_time_for_sensors_reading))==0;
                lcd_error |= lcd.print(F(":"))==0;
-	       lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
-	       #endif
+               lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
+               #endif
             }
 
             if (next_ptr_time_for_testing_sensors) {
                LOGN(F("--> testing at: %d:%d:%d"), hour(next_ptr_time_for_testing_sensors), minute(next_ptr_time_for_testing_sensors), second(next_ptr_time_for_testing_sensors));
             }
          }
+         else if (is_supervisor_first_run && !is_time_set) {
+            if (is_rtc_first_time_get) {
+               LOGN(F("--> There is only RTC time. Doing reboot and retry"));
+            }
+            // it's not possible start station without date and time
+            have_to_reboot = true;
+         }
          #endif
-	 #if (USE_LCD)
+         #if (USE_LCD)
          // reinit lcd display
          if (last_lcd_begin == 0) {
             last_lcd_begin = now();
@@ -1597,10 +1594,10 @@ void supervisor_task() {
          else if ((now() - last_lcd_begin > LCD_TIME_FOR_REINITIALIZE_S) || lcd_error) {
             last_lcd_begin = now();
             if (lcd_error) LOGE(F("LCD ERROR"));
-	    LOGN(F("Reinitialize LCD"));
+            LOGN(F("Reinitialize LCD"));
             init_lcd();
          }
-	 #endif
+         #endif
 
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH)
          #if (USE_MQTT)
@@ -1727,6 +1724,7 @@ void time_task() {
    static time_state_t state_after_wait;
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
+   static bool is_time_get;
 
    #if (USE_NTP)
    static bool is_set_rtc_ok;
@@ -1735,38 +1733,60 @@ void time_task() {
    bool is_ntp_request_ok;
    #endif
 
+   #if (USE_RTC)
+   static time_t current_rtc_time;
+   #endif
+
    switch (time_state) {
       case TIME_INIT:
+         retry = 0;
+         state_after_wait = TIME_INIT;
+         is_time_get = true;
+
          #if (USE_NTP)
          current_ntp_time = 0;
          is_set_rtc_ok = true;
          #endif
-         retry = 0;
-         state_after_wait = TIME_INIT;
 
          #if (USE_NTP)
          if (is_client_connected) {
-            time_state = TIME_SEND_ONLINE_REQUEST;
-            LOGV(F("TIME_INIT --> TIME_SEND_ONLINE_REQUEST"));
+            time_state = TIME_SEND_NTP_REQUEST;
+            LOGV(F("TIME_INIT --> TIME_SEND_NTP_REQUEST"));
+         }
+         else if (!is_client_connected && is_time_set) {
+            time_state = TIME_END;
+            LOGV(F("TIME_INIT --> TIME_END\r\n"));
          }
          else {
-            time_state = TIME_SET_SYNC_RTC_PROVIDER;
-            LOGV(F("TIME_INIT --> TIME_SET_SYNC_RTC_PROVIDER"));
+            time_state = TIME_CHECK_OPERATION;
+            LOGV(F("TIME_INIT --> TIME_CHECK_OPERATION"));
          }
          #else
-         #if (USE_RTC)
-         time_state = TIME_SET_SYNC_RTC_PROVIDER;
-         LOGV(F("TIME_INIT --> TIME_SET_SYNC_RTC_PROVIDER"));
-         #elif (USE_TIMER_1)
-         time_state = TIME_END;
-         LOGV(F("TIME_INIT --> TIME_END"));
-         #endif
+         time_state = TIME_CHECK_OPERATION;
+         LOGV(F("TIME_INIT --> TIME_CHECK_OPERATION"));
          #endif
       break;
 
-      case TIME_SEND_ONLINE_REQUEST:
+      case TIME_CHECK_OPERATION:
+         #if (USE_RTC)
+         if (!is_time_set) {
+            current_rtc_time = 0;
+            time_state = TIME_GET_RTC;
+            LOGV(F("TIME_CHECK_OPERATION --> TIME_GET_RTC"));
+         }
+         else {
+         time_state = TIME_END;
+            LOGV(F("TIME_CHECK_OPERATION --> TIME_END"));
+         }
+         #else
+         time_state = TIME_END;
+         LOGV(F("TIME_CHECK_OPERATION --> TIME_END"));
+         #endif
+      break;
+
+      case TIME_SEND_NTP_REQUEST:
          #if (USE_NTP)
-	LOGT(F("NTP send request"));
+         LOGT(F("NTP send request"));
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
          is_ntp_request_ok = Ntp::sendRequest(&eth_udp_client, readable_configuration.ntp_server);
 
@@ -1776,37 +1796,32 @@ void time_task() {
 
          // success
          if (is_ntp_request_ok) {
-	   LOGN(F("NTP send request success"));
-	   retry = 0;
-            time_state = TIME_WAIT_ONLINE_RESPONSE;
-            LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_ONLINE_RESPONSE"));
+            LOGN(F("NTP send request success"));
+            retry = 0;
+            time_state = TIME_WAIT_NTP_RESPONSE;
+            LOGV(F("TIME_SEND_NTP_REQUEST --> TIME_WAIT_NTP_RESPONSE"));
          }
          // retry
          else if (++retry < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
-            state_after_wait = TIME_SEND_ONLINE_REQUEST;
+            state_after_wait = TIME_SEND_NTP_REQUEST;
             time_state = TIME_WAIT_STATE;
             LOGE(F("NTP request... [ retry ]"));
-            LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_STATE"));
+            LOGV(F("TIME_SEND_NTP_REQUEST --> TIME_WAIT_STATE"));
          }
-         // fail: use old rtc time
+         // fail: use old rtc time o something else
          else {
             LOGE(F("NTP request... [ %s ]"), FAIL_STRING);
-            #if (USE_RTC)
-            time_state = TIME_SET_SYNC_RTC_PROVIDER;
-            LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_SET_SYNC_RTC_PROVIDER"));
-            #elif (USE_TIMER_1)
-            time_state = TIME_END;
-            LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_END"));
-            #endif
+            time_state = TIME_CHECK_OPERATION;
+            LOGV(F("TIME_SEND_NTP_REQUEST --> TIME_CHECK_OPERATION"));
          }
          #endif
       break;
 
-      case TIME_WAIT_ONLINE_RESPONSE:
+      case TIME_WAIT_NTP_RESPONSE:
          #if (USE_NTP)
-	LOGT(F("NTP receive response"));
+         LOGT(F("NTP receive response"));
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
          current_ntp_time = Ntp::getResponse(&eth_udp_client);
 
@@ -1816,99 +1831,122 @@ void time_task() {
          #endif
 
          if (is_time_set && (system_time > current_ntp_time)) {
-           diff_ntp_time = system_time - current_ntp_time;
+            diff_ntp_time = system_time - current_ntp_time;
          } else if (is_time_set) {
-           diff_ntp_time = current_ntp_time - system_time;
+            diff_ntp_time = current_ntp_time - system_time;
          } else {
-           diff_ntp_time = 0;
+            diff_ntp_time = 0;
          }
 
-         if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
+         if ((current_ntp_time > MIN_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
             LOGN(F("NTP response... [ %s ]"), OK_STRING);
-	    retry = 0;
+            retry = 0;
             system_time = current_ntp_time;
-            setTime(system_time);
             last_ntp_sync = current_ntp_time;
-	    is_datetime_set = true;
-	    LOGT(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+            do_ntp_sync = false;
+            is_time_set = true;
+            setTime(system_time);
+            LOGN(F("Current NTP date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
             #if (USE_RTC)
-            time_state = TIME_SET_SYNC_NTP_PROVIDER;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_NTP_PROVIDER"));
-            #elif (USE_TIMER_1)
-            time_state = TIME_SET_SYNC_NTP_PROVIDER;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_NTP_PROVIDER"));
+            time_state = TIME_SET_RTC;
+            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_SET_RTC"));
+            #else
+            is_time_set = true;
+            time_state = TIME_SET_PROVIDER;
+            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_SET_PROVIDER"));
             #endif
          }
          // retry
-         else if (++retry < NTP_RETRY_COUNT_MAX) {
+         else if ((++retry) < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
-            state_after_wait = TIME_SEND_ONLINE_REQUEST;
+            state_after_wait = TIME_WAIT_NTP_RESPONSE;
             time_state = TIME_WAIT_STATE;
-            LOGE(F("NTP response... [ retry ]"));
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_WAIT_STATE"));
+            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_WAIT_NTP_RESPONSE"));
          }
          // fail
          else {
             LOGE(F("NTP response... [ %s ]"), FAIL_STRING);
             retry = 0;
-            #if (USE_RTC)
-            time_state = TIME_SET_SYNC_RTC_PROVIDER;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_RTC_PROVIDER"));
-            #elif (USE_TIMER_1)
-            time_state = TIME_END;
-            LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_END"));
-            #endif
+            time_state = TIME_CHECK_OPERATION;
+            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_CHECK_OPERATION"));
          }
          #endif
       break;
 
-      case TIME_SET_SYNC_NTP_PROVIDER:
-         #if (USE_NTP)
+      case TIME_SET_RTC:
          #if (USE_RTC)
-	 is_set_rtc_ok = set_datetime_rtc(system_time);
-         #endif
+         is_set_rtc_ok = set_datetime_rtc(now());
+
          if (!is_set_rtc_ok) {
-           i2c_error++;
+            i2c_error++;
          }
 
          if (is_set_rtc_ok) {
-	    LOGN(F("RTC set... [ %s ]"), OK_STRING);
-	    i2c_error = 0;
+            LOGN(F("RTC set... [ %s ]"), OK_STRING);
+            i2c_error = 0;
             retry = 0;
-            time_state = TIME_SET_SYNC_RTC_PROVIDER;
-            LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
+            time_state = TIME_SET_PROVIDER;
+            LOGV(F("TIME_SET_RTC --> TIME_SET_PROVIDER"));
          }
          // retry
          else if (++retry < NTP_RETRY_COUNT_MAX) {
             is_set_rtc_ok = true;
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
-            state_after_wait = TIME_SET_SYNC_NTP_PROVIDER;
+            state_after_wait = TIME_SET_RTC;
             time_state = TIME_WAIT_STATE;
-            LOGE(F("RTC set... [ retry ]"));
-            LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_NTP_PROVIDER"));
+            LOGV(F("TIME_SET_RTC --> TIME_SET_RTC"));
          }
          // fail
          else {
-	   LOGE(F("RTC set... [ %s ]"), FAIL_STRING);
-           retry = 0;
-           time_state = TIME_SET_SYNC_RTC_PROVIDER;
-           LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
+            LOGE(F("RTC set... [ %s ]"), FAIL_STRING);
+            retry = 0;
+            time_state = TIME_SET_PROVIDER;
+            LOGV(F("TIME_SET_RTC --> TIME_SET_PROVIDER"));
          }
          #endif
       break;
 
-      case TIME_SET_SYNC_RTC_PROVIDER:
-         setSyncInterval(NTP_TIME_FOR_RESYNC_S);
+      case TIME_GET_RTC:
+         #if (USE_RTC)
+         is_time_get = get_datetime_rtc(&current_rtc_time);
+
+         if (is_time_get) {
+            retry = 0;
+            system_time = current_rtc_time;
+            is_time_set = true;
+            setTime(system_time);
+            LOGN(F("Current RTC date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
+            time_state = TIME_SET_PROVIDER;
+            LOGV(F("TIME_GET_RTC --> TIME_SET_PROVIDER"));
+         }
+         // retry
+         else if (++retry < NTP_RETRY_COUNT_MAX) {
+            is_time_get = true;
+            delay_ms = NTP_RETRY_DELAY_MS;
+            start_time_ms = millis();
+            state_after_wait = TIME_GET_RTC;
+            time_state = TIME_WAIT_STATE;
+            LOGV(F("TIME_GET_RTC --> TIME_GET_RTC"));
+         }
+         // fail
+         else {
+            retry = 0;
+            time_state = TIME_END;
+            LOGV(F("TIME_GET_RTC --> TIME_END"));
+         }
+         #endif
+      break;
+
+      case TIME_SET_PROVIDER:
          setSyncProvider(getSystemTime);
          LOGN(F("Current System date and time: %d/%d/%d %d:%d:%d"), day(), month(), year(), hour(), minute(), second());
          time_state = TIME_END;
-         LOGV(F("TIME_SET_SYNC_RTC_PROVIDER --> TIME_END"));
+         LOGV(F("TIME_SET_PROVIDER --> TIME_END"));
       break;
 
       case TIME_END:
-         is_time_set = true;
          is_event_time_executed = true;
          noInterrupts();
          is_event_time = false;
@@ -2137,6 +2175,7 @@ void gsm_task() {
       break;
 
       case GSM_CHECK_OPERATION:
+         #if (USE_NTP)
          // open udp socket for query NTP
          if (do_ntp_sync) {
             gsm_state = GSM_OPEN_UDP_SOCKET;
@@ -2148,9 +2187,15 @@ void gsm_task() {
             state_after_wait = GSM_STOP_CONNECTION;
             LOGV(F("GSM_CHECK_OPERATION ---> GSM_STOP_CONNECTION"));
          }
+         #else
+         gsm_state = GSM_SUSPEND;
+         state_after_wait = GSM_STOP_CONNECTION;
+         LOGV(F("GSM_CHECK_OPERATION ---> GSM_STOP_CONNECTION"));
+         #endif
       break;
 
       case GSM_OPEN_UDP_SOCKET:
+         #if (USE_NTP)
          sim800_connection_status = s800.connection(SIM800_CONNECTION_UDP, readable_configuration.ntp_server, NTP_SERVER_PORT);
 
          // success
@@ -2171,6 +2216,7 @@ void gsm_task() {
             LOGV(F("GSM_OPEN_UDP_SOCKET ---> GSM_WAIT_FOR_SWITCH_OFF"));
          }
          // wait
+         #endif
       break;
 
       case GSM_SUSPEND:

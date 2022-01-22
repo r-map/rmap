@@ -241,13 +241,15 @@ typedef enum {
 \brief Time task finite state machine.
 */
 typedef enum {
-   TIME_INIT,                    //!< init task variables
-   TIME_SEND_ONLINE_REQUEST,     //!< send ntp request
-   TIME_WAIT_ONLINE_RESPONSE,    //!< wait ntp response
-   TIME_SET_SYNC_NTP_PROVIDER,   //!< set ntp time
-   TIME_SET_SYNC_RTC_PROVIDER,   //!< set rtc time
-   TIME_END,                     //!< performs end operations and deactivate task
-   TIME_WAIT_STATE               //!< non-blocking waiting time
+   TIME_INIT,                     //!< init task variables
+   TIME_CHECK_OPERATION,          //!<
+   TIME_SEND_NTP_REQUEST,         //!< send ntp request
+   TIME_WAIT_NTP_RESPONSE,        //!< wait ntp response
+   TIME_SET_RTC,                  //!< set time to rtc
+   TIME_GET_RTC,                  //!< get time from rtc
+   TIME_SET_PROVIDER,             //!< set time provider
+   TIME_END,                      //!< performs end operations and deactivate task
+   TIME_WAIT_STATE                //!< non-blocking waiting time
 } time_state_t;
 
 #if (USE_SDCARD)
@@ -305,7 +307,7 @@ typedef enum {
 
    MQTT_PTR_UPDATE,        //!< update mqtt data file pointer
    MQTT_CLOSE_PTR_FILE,    //!< close mqtt data file pointer
-   MQTT_CLOSE_SDCARD,      //!< close sdcard
+   // MQTT_CLOSE_SDCARD,      //!< close sdcard
 
    MQTT_END,               //!< performs end operations and deactivate task
    MQTT_WAIT_STATE,        //!< non-blocking waiting time
@@ -329,10 +331,10 @@ typedef enum {
 
 
 /*!
-\var is_datetime_set
-\brief A valid date and time is setted and usable by station.
+\var is_rtc_first_time_get
+\brief First rtc time get from it at station power up.
 */
-bool  is_datetime_set;
+bool  is_rtc_first_time_get;
 
 /*!
 \var have_to_reboot

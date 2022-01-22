@@ -266,6 +266,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #endif
 
+/*!
+\def MIN_VALID_START_TIME_S
+\brief seconds for 00:00:00 01/01/2019 since 00:00:00 01/01/1970.
+*/
+#define MIN_VALID_START_TIME_S                        (1546300800UL)
+
 /*********************************************************************
 * SENSORS
 *********************************************************************/
