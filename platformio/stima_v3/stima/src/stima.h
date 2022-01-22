@@ -129,6 +129,7 @@ typedef struct {
    sensor_t sensors[SENSORS_MAX];                           //!< SensorDriver buffer for storing sensors parameter
    uint8_t sensors_count;                                   //!< configured sensors number
    uint16_t report_seconds;                                 //!< seconds for report values
+   uint16_t transmit_seconds;                               //!< seconds for transmit report values
 
    constantdata_t constantdata[USE_CONSTANTDATA_COUNT];     //!< Constantdata buffer for storing constant station data parameter
    uint8_t constantdata_count;                              //!< configured constantdata number
@@ -885,13 +886,13 @@ void save_configuration(bool);
 void set_default_configuration(void);
 
 /*!
-\fn void setNextTimeForSensorReading(time_t *next_time)
+\fn void setNextTime(time_t *next_time)
 \brief Calculate next hour, minute and second for sensors reading.
 \param *next_time: Pointer to next scheduled time for sensors reading
 \param time_s: next time in seconds
 \return void.
 */
-void setNextTimeForSensorReading(time_t *next_time, uint16_t time_s);
+void setNextTime(time_t *next_time, uint16_t time_s);
 
 #if (USE_MQTT)
 /*!

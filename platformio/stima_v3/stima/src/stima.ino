@@ -614,7 +614,7 @@ void init_sensors () {
   }
 }
 
-void setNextTimeForSensorReading (time_t *next_time, uint16_t time_s) {
+void setNextTime (time_t *next_time, uint16_t time_s) {
    time_t counter = (now() / time_s);
    *next_time = (time_t) ((++counter) * time_s);
 }
@@ -1321,8 +1321,7 @@ void interrupt_task_1s () {
   setTime(system_time);
 
   #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
-  if (is_time_set && now() >= next_ptr_time_for_sensors_reading && next_ptr_time_for_sensors_reading) {
-
+  if (is_time_set && (now() >= next_ptr_time_for_sensors_reading) && next_ptr_time_for_sensors_reading) {
     sensor_reading_time.Day = day(next_ptr_time_for_sensors_reading);
     sensor_reading_time.Month = month(next_ptr_time_for_sensors_reading);
     sensor_reading_time.Year = CalendarYrToTm(year(next_ptr_time_for_sensors_reading));
@@ -1330,7 +1329,7 @@ void interrupt_task_1s () {
     sensor_reading_time.Minute = minute(next_ptr_time_for_sensors_reading);
     sensor_reading_time.Second = second(next_ptr_time_for_sensors_reading);
 
-    setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
+    setNextTime((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
     is_time_for_sensors_reading_updated = true;
     do_reset_first_run = true;
 
@@ -1352,7 +1351,7 @@ void interrupt_task_1s () {
   }
 
   if (is_time_set && now() >= next_ptr_time_for_testing_sensors && next_ptr_time_for_testing_sensors) {
-    setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
+    setNextTime((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
     noInterrupts();
     if (!is_event_sensors_reading) {
       is_test = !is_first_test;
@@ -1544,10 +1543,10 @@ void supervisor_task() {
          #if (MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM)
          if (is_supervisor_first_run && is_time_set) {
             if (readable_configuration.report_seconds) {
-               setNextTimeForSensorReading((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
+               setNextTime((time_t *) &next_ptr_time_for_sensors_reading, readable_configuration.report_seconds);
 
                // testing sensors
-               setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
+               setNextTime((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
 
                LOGN(F("Acquisition scheduling..."));
                LOGN(F("--> observations every %d minutes"), OBSERVATIONS_MINUTES);
