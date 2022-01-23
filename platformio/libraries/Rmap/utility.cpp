@@ -31,11 +31,11 @@ uint16_t getUINT16FromUINT8(uint8_t byte_0, uint8_t byte_1) {
 }
 
 uint32_t getUINT32FromUINT8(uint8_t *buffer) {
-  return (uint32_t) (buffer[3] << 24 | buffer[2] << 16 | buffer[1] << 8 | buffer[0]);
+  return (uint32_t) ((uint32_t)(buffer[3]) << 24 | (uint32_t)(buffer[2]) << 16 | (uint32_t)(buffer[1]) << 8 | buffer[0]);
 }
 
 uint32_t getUINT32FromUINT8(uint8_t byte_0, uint8_t byte_1, uint8_t byte_2, uint8_t byte_3) {
-  return (uint32_t) (byte_3 << 24 | byte_2 << 16 | byte_1 << 8 | byte_0);
+  return (uint32_t) ((uint32_t)(byte_3) << 24 | (uint32_t)(byte_2) << 16 | (uint32_t)(byte_1) << 8 | byte_0);
 }
 
 float getIEE754FloatFrom4UINT8(uint8_t *buffer) {
