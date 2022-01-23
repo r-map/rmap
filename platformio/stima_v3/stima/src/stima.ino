@@ -72,146 +72,141 @@ void loop() {
          init_sensors();
          wdt_reset();
          state = TASKS_EXECUTION;
-	 LOGV(F("INIT ---> TASKS_EXECUTION"));
+         LOGV(F("INIT ---> TASKS_EXECUTION"));
       break;
 
       #if (USE_POWER_DOWN)
       case ENTER_POWER_DOWN:
          #if (ENABLE_SDCARD_LOGGING)
-	 logFile.flush();
-	 #endif
-	 Serial.flush();
+         logFile.flush();
+         #endif
+         Serial.flush();
 
          init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
          state = TASKS_EXECUTION;
-	 LOGV(F("ENTER_POWER_DOWN ---> TASKS_EXECUTION"));
+         LOGV(F("ENTER_POWER_DOWN ---> TASKS_EXECUTION"));
       break;
       #endif
 
       case TASKS_EXECUTION:
-        // I2C Bus Check
-        if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          LOGE(F("Restart I2C BUS"));
-          reset_wire();
-          wdt_reset();
-        }
+         // I2C Bus Check
+         if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+            LOGE(F("Restart I2C BUS"));
+            reset_wire();
+            wdt_reset();
+         }
 
-	//LOGV("is_event_rtc:%t,is_event_supervisor:%t,is_event_gsm:%t,is_event_sensors_reading:%t,is_event_data_saving:%t,is_event_mqtt:%t,is_event_time:%t,is_event_rpc:%t,have_to_reboot:%t",
-	//     is_event_rtc,is_event_supervisor,is_event_gsm,is_event_sensors_reading,is_event_data_saving,is_event_mqtt,is_event_time,is_event_rpc,have_to_reboot);
+         if (is_event_rtc) {
+            rtc_task();
+            wdt_reset();
+         }
 
-        if (is_event_rtc) {
-          rtc_task();
-          wdt_reset();
-        }
+         if (is_event_supervisor) {
+            supervisor_task();
+            wdt_reset();
+         }
 
-        if (is_event_supervisor) {
-          supervisor_task();
-          wdt_reset();
-        }
+         #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
+         if (is_event_ethernet) {
+            ethernet_task();
+            wdt_reset();
+         }
 
-        #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
-        if (is_event_ethernet) {
-          ethernet_task();
-          wdt_reset();
-        }
+         #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
+         if (is_event_gsm) {
+            gsm_task();
+            wdt_reset();
+         }
 
-        #elif (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_GSM)
-        if (is_event_gsm) {
-          gsm_task();
-          wdt_reset();
-        }
+         #endif
 
-        #endif
+         if (is_event_sensors_reading) {
+            sensors_reading_task();
+            wdt_reset();
+         }
 
-        if (is_event_sensors_reading) {
-          sensors_reading_task();
-          wdt_reset();
-        }
+         #if (USE_SDCARD)
+         if (is_event_data_saving) {
+            data_saving_task();
+            wdt_reset();
+         }
+         #endif
 
-        #if (USE_SDCARD)
-        if (is_event_data_saving) {
-          data_saving_task();
-          wdt_reset();
-        }
-        #endif
+         #if (USE_MQTT)
+         if (is_event_mqtt) {
+            mqtt_task();
+            wdt_reset();
+         }
+         #endif
 
-        #if (USE_MQTT)
-        if (is_event_mqtt) {
-          mqtt_task();
-          wdt_reset();
-	}
-        #endif
+         if (is_event_time) {
+            time_task();
+            wdt_reset();
+         }
 
-        if (is_event_time) {
-          time_task();
-          wdt_reset();
-        }
+         streamRpc.parseStream(&is_event_rpc, &Serial);
+         if (is_event_rpc) {
+            wdt_reset();
+         }
 
-        streamRpc.parseStream(&is_event_rpc, &Serial);
-        if (is_event_rpc) {
-          wdt_reset();
-        }
-
-        if ((ready_tasks_count == 0) && (!is_event_rpc)) {
-          wdt_reset();
-	  if (have_to_reboot) {
-	    state = REBOOT;
-	    LOGV(F("TASK_EXECUTION ---> REBOOT"));
-	  }else{
-	    state = END;
-	    LOGV(F("TASK_EXECUTION ---> END"));
-	  }
-        }
+         if ((ready_tasks_count == 0) && (!is_event_rpc)) {
+            wdt_reset();
+            if (have_to_reboot) {
+               state = REBOOT;
+               LOGV(F("TASK_EXECUTION ---> REBOOT"));
+            }else{
+               state = END;
+               LOGV(F("TASK_EXECUTION ---> END"));
+            }
+         }
       break;
 
       case END:
          #if (DEBUG_MEMORY)
-	 //SRamDisplay();
-	 LOGT(F("Stack painted free: %d"), post_StackCount());
-	 //STACKPAINT_PRINT
-	 //MEMORY_PRINT_START
-	 //MEMORY_PRINT_HEAPSTART
-	 //MEMORY_PRINT_HEAPEND
-	 //MEMORY_PRINT_STACKSTART
-	 //MEMORY_PRINT_END
-	 //MEMORY_PRINT_HEAPSIZE
-	 //FREERAM_PRINT;
-	 #endif
+         //SRamDisplay();
+         LOGT(F("Stack painted free: %d"), post_StackCount());
+         //STACKPAINT_PRINT
+         //MEMORY_PRINT_START
+         //MEMORY_PRINT_HEAPSTART
+         //MEMORY_PRINT_HEAPEND
+         //MEMORY_PRINT_STACKSTART
+         //MEMORY_PRINT_END
+         //MEMORY_PRINT_HEAPSIZE
+         //FREERAM_PRINT;
+         #endif
 
          #if (USE_POWER_DOWN)
          state = ENTER_POWER_DOWN;
-	 LOGV(F("END ---> ENTER_POWER_DOWN"));
+         LOGV(F("END ---> ENTER_POWER_DOWN"));
          #else
          state = TASKS_EXECUTION;
-	 LOGV(F("END ---> TASK_EXECUTION"));
+         LOGV(F("END ---> TASK_EXECUTION"));
          #endif
       break;
 
       case REBOOT:
-	if (strlen(rpcpayload) == 0 || !mqtt_client.isConnected()){
-	  LOGN(F("Reboot"));
-	  if (mqtt_client.isConnected()){
-	    mqtt_client.yield(6000L);
-	    wdt_reset();
-	    mqtt_client.disconnect();
-	    wdt_reset();
-	  }
-	  ipstack.disconnect();
-	  wdt_reset();
-	  LOGT(F("MQTT Disconnect... [ %s ]"), OK_STRING);
+         if (strlen(rpcpayload) == 0 || !mqtt_client.isConnected()){
+            LOGN(F("Reboot"));
+            if (mqtt_client.isConnected()){
+               mqtt_client.yield(6000L);
+               wdt_reset();
+               mqtt_client.disconnect();
+               wdt_reset();
+            }
+            ipstack.disconnect();
+            wdt_reset();
+            LOGT(F("MQTT Disconnect... [ %s ]"), OK_STRING);
 
-          #if (USE_SDCARD)
-	  SD.end();
-	  is_sdcard_open=false;
-          #endif
+            #if (USE_SDCARD)
+            SD.end();
+            is_sdcard_open=false;
+            #endif
 
-	  realreboot();
-	}
+            realreboot();
+         }
       break;
-
    }
 }
-
 
 void logPrefix(Print* _logOutput) {
   char dt[DATE_TIME_STRING_LENGTH];
@@ -253,33 +248,32 @@ void init_logging(){
 }
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
-	if (millis() - *time_ms > debouncing_ms) {
-		*time_ms = millis();
+   if (millis() - *time_ms > debouncing_ms) {
+      *time_ms = millis();
 
-    power_adc_disable();
-    power_spi_disable();
-    power_timer0_disable();
-    #if (USE_TIMER_1 == false)
-    power_timer1_disable();
-    #endif
-    power_timer2_disable();
+      power_adc_disable();
+      power_spi_disable();
+      power_timer0_disable();
+      #if (USE_TIMER_1 == false)
+      power_timer1_disable();
+      #endif
+      power_timer2_disable();
 
-		noInterrupts ();
-		sleep_enable();
+      noInterrupts ();
+      sleep_enable();
+      interrupts ();
 
-		interrupts ();
+      sleep_cpu();
+      sleep_disable();
 
-		sleep_cpu();
-		sleep_disable();
-
-		power_adc_enable();
-    power_spi_enable();
-    power_timer0_enable();
-    #if (USE_TIMER_1 == false)
-    power_timer1_enable();
-    #endif
-    power_timer2_enable();
-	}
+      power_adc_enable();
+      power_spi_enable();
+      power_timer0_enable();
+      #if (USE_TIMER_1 == false)
+      power_timer1_enable();
+      #endif
+      power_timer2_enable();
+   }
 }
 
 void init_buffers() {
@@ -375,33 +369,25 @@ void init_wire() {
 
 
 void reset_wire() {
-  uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+   uint8_t i2c_bus_state = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
 
    switch (i2c_bus_state) {
-   case 1:
-     LOGE(F("SCL clock line held low"));
-     break;
+      case 1:
+      LOGE(F("SCL clock line held low"));
+      break;
 
-   case 2:
-     LOGE(F("SCL clock line held low by slave clock stretch"));
-     break;
+      case 2:
+      LOGE(F("SCL clock line held low by slave clock stretch"));
+      break;
 
-   case 3:
-     LOGE(F("SDA data line held low"));
-     break;
+      case 3:
+      LOGE(F("SDA data line held low"));
+      break;
    }
 
-   /*
-   if (i2c_bus_state) {
-     LOGE(F("I2C bus error: Could not clear!!!"));
-     //while(1);
-    have_to_reboot = true;
-   }
-   */
-
-#ifdef ARDUINO_ARCH_AVR
+   #ifdef ARDUINO_ARCH_AVR
    Wire.end();
-#endif
+   #endif
    init_wire();
 }
 
@@ -412,23 +398,23 @@ void init_spi() {
 
 #if (USE_LCD)
 void init_lcd() {
-  lcd.setAddr(LCD_I2C_ADDRESS);
-  if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
-    {
+   lcd.setAddr(LCD_I2C_ADDRESS);
+   if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
+   {
       LOGN(F(" Error initializing LCD primary addr"));
 
       lcd.setAddr(LCD_I2C_SECONDARY_ADDRESS);
       if(lcd.begin(LCD_COLUMNS, LCD_ROWS)) // non zero status means it was unsuccesful
-	{
-	  LOGE(F(" Error initializing LCD"));
-	  return;
-	}
-    }
-  
-  lcd.clear();
-  lcd.lineWrap();
-    //lcd.autoscroll();
-  lcd_error=false;
+      {
+         LOGE(F(" Error initializing LCD"));
+         return;
+      }
+   }
+
+   lcd.clear();
+   lcd.lineWrap();
+   //lcd.autoscroll();
+   lcd_error=false;
 }
 #endif
 
@@ -566,48 +552,48 @@ void rtc_interrupt_handler() {
 #endif
 
 void init_sensors () {
-  do_reset_first_run = false;
-  is_first_run = true;
-  is_first_test = true;
-  is_test = false;
-  uint8_t sensors_count = 0;
-  uint8_t sensors_error_count = 0;
+   do_reset_first_run = false;
+   is_first_run = true;
+   is_first_test = true;
+   is_test = false;
+   uint8_t sensors_count = 0;
+   uint8_t sensors_error_count = 0;
 
-  #if (USE_LCD)
-  lcd_error |= lcd.print(F("--- www.rmap.cc ---"))==0;
-  lcd_error |= lcd.setCursor(0, 1);
-  lcd_error |= lcd.print(stima_name)==0;
-  lcd_error |= lcd.print(F(" V:"))==0;
-  lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
-  lcd_error |= lcd.print(F("."))==0;
-  lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
-  #endif
+   #if (USE_LCD)
+   lcd_error |= lcd.print(F("--- www.rmap.cc ---"))==0;
+   lcd_error |= lcd.setCursor(0, 1);
+   lcd_error |= lcd.print(stima_name)==0;
+   lcd_error |= lcd.print(F(" V:"))==0;
+   lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
+   lcd_error |= lcd.print(F("."))==0;
+   lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
+   #endif
 
-  if (readable_configuration.sensors_count) {
-    // read sensors configuration, create and setup
-    for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
-      SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
-      LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-      if (!sensors[sensors_count-1]->isSetted()) {
-        sensors_error_count++;
-	wdt_reset();
-        #if (USE_LCD)
-	lcd_error |= lcd.setCursor(0, 3);
-	lcd_error |= lcd.print(readable_configuration.sensors[sensors_count-1].type)==0;
-	lcd_error |= lcd.print(":")==0;
-	lcd_error |= lcd.print(FAIL_STRING)==0;
-	#endif
+   if (readable_configuration.sensors_count) {
+      // read sensors configuration, create and setup
+      for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
+         SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
+         LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
+         if (!sensors[sensors_count-1]->isSetted()) {
+            sensors_error_count++;
+            wdt_reset();
+            #if (USE_LCD)
+            lcd_error |= lcd.setCursor(0, 3);
+            lcd_error |= lcd.print(readable_configuration.sensors[sensors_count-1].type)==0;
+            lcd_error |= lcd.print(":")==0;
+            lcd_error |= lcd.print(FAIL_STRING)==0;
+            #endif
+         }
       }
-    }
-    #if (USE_LCD)
-    lcd_error |= lcd.setCursor(0, 2);
-    lcd_error |= lcd.print(F("Sensors count: "))==0;
-    lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count)==0;
-    lcd_error |= lcd.print(F("/"))==0;
-    lcd_error |= lcd.print(readable_configuration.sensors_count)==0;
-    #endif
+      #if (USE_LCD)
+      lcd_error |= lcd.setCursor(0, 2);
+      lcd_error |= lcd.print(F("Sensors count: "))==0;
+      lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count)==0;
+      lcd_error |= lcd.print(F("/"))==0;
+      lcd_error |= lcd.print(readable_configuration.sensors_count)==0;
+      #endif
 
-  }
+   }
 }
 
 void setNextTime (time_t *next_time, uint16_t time_s) {
@@ -645,54 +631,55 @@ bool mqttConnect(char *username, char *password) {
 }
 
 bool mqttPublish(const char *topic, const char *message, bool is_retained) {
-  bool is_ascii = true;
-  bool status = true;
+   bool is_ascii = true;
+   bool status = true;
 
-  // BUG: check if all characters are printable ASCII
-  for (uint8_t i = 0; i < strlen(topic); i++) {
-    if ((topic[i] < 0x20) || (topic[i] > 0x7E)) {
-      is_ascii = false;
-      break;
-    }
-  }
+   // BUG: check if all characters are printable ASCII
+   for (uint8_t i = 0; i < strlen(topic); i++) {
+      if ((topic[i] < 0x20) || (topic[i] > 0x7E)) {
+         is_ascii = false;
+         break;
+      }
+   }
 
-  for (uint8_t i = 0; i < strlen(message); i++) {
-    if ((message[i] < 0x20) || (message[i] > 0x7E)) {
-      is_ascii = false;
-      break;
-    }
-  }
+   for (uint8_t i = 0; i < strlen(message); i++) {
+      if ((message[i] < 0x20) || (message[i] > 0x7E)) {
+         is_ascii = false;
+         break;
+      }
+   }
 
-  // if yes publish it to MQTT otherwise they are discarded (corrupted message)
-  if (is_ascii) {
-    MQTT::Message tx_message;
-    tx_message.qos = MQTT::QOS1;
-    tx_message.retained = is_retained;
-    tx_message.dup = false;
-    tx_message.payload = (void*) message;
-    tx_message.payloadlen = strlen(message);
+   // if yes publish it to MQTT otherwise they are discarded (corrupted message)
+   if (is_ascii) {
+      MQTT::Message tx_message;
+      tx_message.qos = MQTT::QOS1;
+      tx_message.retained = is_retained;
+      tx_message.dup = false;
+      tx_message.payload = (void*) message;
+      tx_message.payloadlen = strlen(message);
 
-    LOGV(F("MQTT TX: %s"), (char*)tx_message.payload);
-    LOGV(F("--> len %d"), tx_message.payloadlen);
+      LOGV(F("MQTT TX: %s"), (char*)tx_message.payload);
+      LOGV(F("--> len %d"), tx_message.payloadlen);
 
-    MQTT::returnCode rc = (MQTT::returnCode) mqtt_client.publish(topic, tx_message);
-    switch (rc){
-    	case MQTT::BUFFER_OVERFLOW:
-     		LOGV(F("publish BUFFER_OVERFLOW"));
-     	break;
-   	case MQTT::FAILURE:
-     		LOGV(F("publish FAILURE"));
-        break;
-   	case MQTT::SUCCESS:
-     		LOGV(F("publish SUCCESS"));
-     	break;
-     }
-    status = (rc == MQTT::SUCCESS);
-  }else{
-    LOGE(F("skip not printable ASCII message"));
-  }
+      MQTT::returnCode rc = (MQTT::returnCode) mqtt_client.publish(topic, tx_message);
+      switch (rc){
+         case MQTT::BUFFER_OVERFLOW:
+            LOGV(F("publish BUFFER_OVERFLOW"));
+         break;
+         case MQTT::FAILURE:
+            LOGV(F("publish FAILURE"));
+         break;
+         case MQTT::SUCCESS:
+            LOGV(F("publish SUCCESS"));
+         break;
+      }
+      status = (rc == MQTT::SUCCESS);
+   }
+   else {
+      LOGE(F("skip not printable ASCII message"));
+   }
 
-  return status;
+   return status;
 }
 
 void mqttRxCallback(MQTT::MessageData &md) {
@@ -813,7 +800,6 @@ void save_configuration(bool is_default) {
 }
 
 void load_configuration() {
-
    ee_read(&writable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
 
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
@@ -832,8 +818,8 @@ void load_configuration() {
    LOGN(F("Configuration received... [ %s ]"), OK_STRING);
 
    if (writable_configuration.module_type != MODULE_TYPE || writable_configuration.module_main_version != MODULE_MAIN_VERSION
-       || writable_configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION
-       ) {
+      || writable_configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION
+   ) {
       save_configuration(CONFIGURATION_DEFAULT);
    }
 
@@ -881,25 +867,25 @@ int configure(JsonObject params, JsonObject result) {
 
    //LOGN(F("params.isNull %s"), params.isNull() ? "true" : "false");
    if (params.isNull()) is_mqtt_rpc_delay=true;  // configure without params is used
-                                                 // to set a long delay before disconnect
-                                                 // after the data are sended
+   // to set a long delay before disconnect
+   // after the data are sended
    for (JsonPair it : params) {
       if (strcmp(it.key().c_str(), "reset") == 0) {
          if (it.value().as<bool>() == true) {
-	    set_default_configuration();
+            set_default_configuration();
             #if (USE_LCD)
-	    lcd_error |= lcd.clear();
+            lcd_error |= lcd.clear();
             lcd_error |= lcd.print(F("Reset configuration"))==0;
-	    #endif
+            #endif
          }
       }
       else if (strcmp(it.key().c_str(), "save") == 0) {
          if (it.value().as<bool>() == true) {
             save_configuration(CONFIGURATION_CURRENT);
             #if (USE_LCD)
-	    lcd_error |= lcd.clear();
+            lcd_error |= lcd.clear();
             lcd_error |= lcd.print(F("Save configuration"))==0;
-	    #endif
+            #endif
          }
       }
       #if (USE_MQTT)
@@ -929,16 +915,16 @@ int configure(JsonObject params, JsonObject result) {
          strncpy(writable_configuration.mqtt_password, it.value().as<const char*>(), MQTT_PASSWORD_LENGTH);
       }
       else if (strcmp(it.key().c_str(), "sd") == 0) {
-	for (JsonPair sd : it.value().as<JsonObject>()) {
-	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd.key().c_str(), CONSTANTDATA_BTABLE_LENGTH);
-	  strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd.value().as<const char*>(), CONSTANTDATA_VALUE_LENGTH);
+         for (JsonPair sd : it.value().as<JsonObject>()) {
+            strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].btable, sd.key().c_str(), CONSTANTDATA_BTABLE_LENGTH);
+            strncpy(writable_configuration.constantdata[writable_configuration.constantdata_count].value, sd.value().as<const char*>(), CONSTANTDATA_VALUE_LENGTH);
 
-	  if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT)
-	    writable_configuration.constantdata_count++;
-	  else {
-	    is_error = true;
-	  }
-	}
+            if (writable_configuration.sensors_count < USE_CONSTANTDATA_COUNT)
+            writable_configuration.constantdata_count++;
+            else {
+               is_error = true;
+            }
+         }
 
       }
       #endif
@@ -950,22 +936,22 @@ int configure(JsonObject params, JsonObject result) {
       else if (strcmp(it.key().c_str(), "date") == 0) {
          #if (USE_RTC)
 
-	 tmElements_t tm;
-	 tm.Year   = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>()-2000);
-	 tm.Month  = it.value().as<JsonArray>()[1].as<int>();
-	 tm.Day    = it.value().as<JsonArray>()[2].as<int>();
-	 tm.Hour   = it.value().as<JsonArray>()[3].as<int>();
-	 tm.Minute = it.value().as<JsonArray>()[4].as<int>();
-	 tm.Second = it.value().as<JsonArray>()[5].as<int>();
+         tmElements_t tm;
+         tm.Year   = y2kYearToTm(it.value().as<JsonArray>()[0].as<int>()-2000);
+         tm.Month  = it.value().as<JsonArray>()[1].as<int>();
+         tm.Day    = it.value().as<JsonArray>()[2].as<int>();
+         tm.Hour   = it.value().as<JsonArray>()[3].as<int>();
+         tm.Minute = it.value().as<JsonArray>()[4].as<int>();
+         tm.Second = it.value().as<JsonArray>()[5].as<int>();
 
-	 system_time = makeTime(tm);
-	 setTime(system_time);
-	 /*
+         system_time = makeTime(tm);
+         setTime(system_time);
+         /*
          Pcf8563::disable();
          Pcf8563::setDate(it.value().as<JsonArray>()[2].as<int>(), it.value().as<JsonArray>()[1].as<int>(), it.value().as<JsonArray>()[0].as<int>() - 2000, weekday()-1, 0);
          Pcf8563::setTime(it.value().as<JsonArray>()[3].as<int>(), it.value().as<JsonArray>()[4].as<int>(), it.value().as<JsonArray>()[5].as<int>());
          Pcf8563::enable();
-	 */
+         */
          setSyncInterval(NTP_TIME_FOR_RESYNC_S);
          setSyncProvider(getSystemTime);
          #elif (USE_TIMER_1)
@@ -977,9 +963,9 @@ int configure(JsonObject params, JsonObject result) {
          for (uint8_t i=0; i<ETHERNET_MAC_LENGTH; i++) {
             writable_configuration.ethernet_mac[i] = it.value().as<JsonArray>()[i];
          }
-	 #else
-	 LOGV(F("Configuration mac parameter ignored"));
-	 #endif
+         #else
+         LOGV(F("Configuration mac parameter ignored"));
+         #endif
       }
       #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_GSM || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_GSM)
       else if (strcmp(it.key().c_str(), "gsmapn") == 0) {
@@ -1012,11 +998,11 @@ int configure(JsonObject params, JsonObject result) {
    }
 
    if (is_sensor_config) {
-     if (writable_configuration.sensors_count < SENSORS_MAX)
-       writable_configuration.sensors_count++;
-     else {
-       is_error = true;
-     }
+      if (writable_configuration.sensors_count < SENSORS_MAX)
+      writable_configuration.sensors_count++;
+      else {
+         is_error = true;
+      }
    }
 
    if (is_error) {
