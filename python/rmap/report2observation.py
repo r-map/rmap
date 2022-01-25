@@ -131,15 +131,15 @@ class report2observation(object):
           logging.error("skip message: %s : %s"% (msg.topic,msg.payload))
           return
 
-      logging.info("ident=%s username=%s password=%s lonlat=%s network=fixed host=localhost prefix=sample maintprefix=maint" % (ident,rmap.settings.mqttuser,"fakepassword",lonlat))
-      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host="rmap.cc",prefix=prefix,maintprefix="maint",logfunc=logging.debug,qos=0)  # attention qos 0 for fast publish
+      logging.info("ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(ident,rmap.settings.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
+      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix="maint",logfunc=logging.debug,qos=0)  # attention qos 0 for fast publish
 
       mqtt.connect()
       
       try:
         dindex=0
         for val in st["p"]:
-          if ( var is not None ):
+          if ( val is not None ):
             bcode=bcodes[dindex]
             timerange=timeranges[dindex]
             level=levels[dindex]
@@ -148,7 +148,9 @@ class report2observation(object):
             logging.info("timerange={} level={} bcode={} val={}".format(timerange,level,bcode,val))
             mqtt.data(timerange=timerange,level=level,datavar=datavar)
             dindex+=1
-
+      except:
+        raise
+            
       finally:
         mqtt.disconnect()
 
@@ -212,10 +214,10 @@ if __name__ == '__main__':
     logging.info('Starting up report2observation')
 
   
-    MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
+    MQTT_HOST = os.environ.get('MQTT_HOST', 'localhost')
     subtopics=["test/+/+/+","test/+/+/+/+/+"]
-    mqttuser="pat1"
-    mqttpassword="1password"    
+    mqttuser="user"
+    mqttpassword="password"    
     
     r2o=report2observation(MQTT_HOST,mqttuser, mqttpassword ,subtopics)
     r2o.run()
