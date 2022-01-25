@@ -136,19 +136,23 @@ class report2observation(object):
 
       mqtt.connect()
       
-      dindex=0
-      for val in st["p"]:
-        bcode=bcodes[dindex]
-        timerange=timeranges[dindex]
-        level=levels[dindex]
-        datavar={bcode:{"t": dt,"v": val}}
+      try:
+        dindex=0
+        for val in st["p"]:
+          if ( var is not None ):
+            bcode=bcodes[dindex]
+            timerange=timeranges[dindex]
+            level=levels[dindex]
+            datavar={bcode:{"t": dt,"v": val}}
 
-        logging.info("timerange=%s level=%s bcode=%s val=%d" % (timerange,level,bcode,val))
-        mqtt.data(timerange=timerange,level=level,datavar=datavar)
-        dindex+=1
-      
-      mqtt.disconnect()
+            logging.info("timerange={} level={} bcode={} val={}".format(timerange,level,bcode,val))
+            mqtt.data(timerange=timerange,level=level,datavar=datavar)
+            dindex+=1
 
+      finally:
+        mqtt.disconnect()
+
+          
     except Exception as exception:
       logging.error("Topic %s error decoding or publishing; payload: [%s]" %
                     (msg.topic, msg.payload))

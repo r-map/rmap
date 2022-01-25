@@ -1461,7 +1461,7 @@ def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc"
                             StationMetadata.objects.get(slug=deserialized_object.object.slug,ident__username=deserialized_object.object.ident.username).delete()
                         except:
                             pass
-			print("save:",deserialized_object.object)
+                        print("save:",deserialized_object.object)
                         deserialized_object.save(force_insert=True)
                     except Exception as e:
                         print((" [E] Error saving in DB",e))
