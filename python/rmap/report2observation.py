@@ -147,7 +147,7 @@ class report2observation(object):
 
             logging.info("timerange={} level={} bcode={} val={}".format(timerange,level,bcode,val))
             mqtt.data(timerange=timerange,level=level,datavar=datavar)
-            dindex+=1
+          dindex+=1
       except:
         raise
             
