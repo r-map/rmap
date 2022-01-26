@@ -1846,9 +1846,9 @@ void time_task() {
          else if ((++retry) < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
-            state_after_wait = TIME_WAIT_NTP_RESPONSE;
+            state_after_wait = TIME_SEND_NTP_REQUEST;
             time_state = TIME_WAIT_STATE;
-            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_WAIT_NTP_RESPONSE"));
+            LOGV(F("TIME_WAIT_NTP_RESPONSE --> TIME_SEND_NTP_REQUEST"));
          }
          // fail
          else {
