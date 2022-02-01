@@ -167,7 +167,7 @@ void loop() {
       case END:
          #if (DEBUG_MEMORY)
 	 //SRamDisplay();
-	 LOGT(F("Stack painted free: %d"), post_StackCount());
+	 LOGN(F("Stack painted free: %d"), post_StackCount());
 	 //STACKPAINT_PRINT
 	 //MEMORY_PRINT_START
 	 //MEMORY_PRINT_HEAPSTART
