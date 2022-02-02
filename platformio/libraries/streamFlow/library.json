@@ -1,13 +1,13 @@
 {
-  "name": "streamFlow",
-  "keywords": "Arduino Streams Print",
-  "description": "Arduino light streams",
-  "repository":
-  {
-    "type": "git",
-    "url": "https://github.com/neu-rah/streamFlow",
-    "branch": "master"
-  },
-  "frameworks": "arduino",
-  "platforms": "*"
+    "name": "streamFlow",
+    "keywords": "Arduino Streams Print",
+    "description": "Arduino light streams",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/neu-rah/streamFlow",
+        "branch": "master"
+    },
+    "frameworks": "arduino",
+    "platforms": "*",
+    "version": "0.0.0-alpha+sha.bf16ce8926"
 }
