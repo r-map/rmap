@@ -487,8 +487,8 @@ void request_data (uint8_t length, uint8_t i2c_other_address) {
 
   Wire.requestFrom(i2c_other_address, length + 1);
 
-  while  (Wire.requestAvailable() > 0) {
-    rq_buffer[rq_buffer_length] = Wire.requestRead();
+  while  (Wire.available() > 0) {
+    rq_buffer[rq_buffer_length] = Wire.read();
     rq_buffer_length++;
   }
 
