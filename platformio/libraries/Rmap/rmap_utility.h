@@ -28,8 +28,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include "stima_module.h"
 
-#define ISVALID(v)      ((uint16_t) v != UINT16_MAX)
-
 /*!
 \fn void getStimaNameByType(char *name, uint8_t type)
 \brief Return a STIMA's name starting from a module type stored in configuration.

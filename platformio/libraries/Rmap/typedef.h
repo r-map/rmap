@@ -37,6 +37,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define TYPE_LENGTH         (5)
 
+#define ISVALID(v)          (((uint16_t) v != UINT16_MAX) && (!isnan(v)))
+
 /*!
 \struct sensor_t
 \brief Sensor struct for storing sensor configuration parameter.
