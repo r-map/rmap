@@ -140,8 +140,10 @@ void SensorDriver::prepare(bool is_test){
 void SensorDriver::get(int32_t *values, uint8_t length){
 }
 
+#if (USE_JSON)
 void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length){
 }
+#endif
 
 void SensorDriver::resetPrepared(){
 }
