@@ -64,15 +64,31 @@ SensorDriver *SensorDriver::create(const char* driver, const char* type) {
   return new SensorDriverDw1(driver, type);
   #endif
 
-  #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-  else if (strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
-  return new SensorDriverRain(driver, type);
+  // THR
+  #if (USE_MODULE_THR && (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH || USE_SENSOR_TBS || USE_SENSOR_TBR))
+  else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0 || strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
+  return new SensorDriverThr(driver, type);
   #endif
 
-  #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
-  else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
-  return new SensorDriverTh(driver, type);
+  #if (!USE_MODULE_THR && (USE_SENSOR_TBS || USE_SENSOR_TBR))
+  else if (strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
+  return new SensorDriverThr(driver, type);
   #endif
+
+  #if (!USE_MODULE_THR && (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH))
+  else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
+  return new SensorDriverThr(driver, type);
+  #endif
+
+  // #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+  // else if (strcmp(type, SENSOR_TYPE_TBS) == 0 || strcmp(type, SENSOR_TYPE_TBR) == 0)
+  // return new SensorDriverRain(driver, type);
+  // #endif
+  //
+  // #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+  // else if (strcmp(type, SENSOR_TYPE_STH) == 0 || strcmp(type, SENSOR_TYPE_ITH) == 0 || strcmp(type, SENSOR_TYPE_MTH) == 0 || strcmp(type, SENSOR_TYPE_NTH) == 0 || strcmp(type, SENSOR_TYPE_XTH) == 0)
+  // return new SensorDriverTh(driver, type);
+  // #endif
 
   #if (USE_SENSOR_DEP)
   else if (strcmp(type, SENSOR_TYPE_DEP) == 0)
@@ -1109,225 +1125,225 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
 // TBR: oneshot
 //------------------------------------------------------------------------------
 
-#if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-
-void SensorDriverRain::resetPrepared() {
-  _get_state = INIT;
-  *_is_prepared = false;
-}
-
-void SensorDriverRain::setup() {
-  SensorDriver::printInfo();
-
-  _delay_ms = 0;
-
-  Wire.beginTransmission(_address);
-
-  if (Wire.endTransmission() == 0) {
-    _error_count = 0;
-    *_is_setted = true;
-    LOGT(F("rain setup... [ %s ]"), OK_STRING);
-  }else{
-    _error_count++;
-    LOGE(F("rain setup... [ %s ]"), ERROR_STRING);
-  }
-}
-
-void SensorDriverRain::prepare(bool is_test) {
-  SensorDriver::printInfo();
-  bool is_i2c_write;
-  uint8_t i;
-
-  if (!*_is_prepared) {
-    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
-    is_i2c_write = false;
-    i = 0;
-
-    if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_COMMAND_ID;
-
-      if (is_test) {
-        _buffer[i++] = I2C_RAIN_COMMAND_TEST_READ;
-      }
-      else {
-        _buffer[i++] = I2C_RAIN_COMMAND_ONESHOT_START_STOP;
-      }
-      _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 0;
-    }
-
-    if (is_i2c_write) {
-      Wire.beginTransmission(_address);
-      Wire.write(_buffer, i+1);
-
-      if (Wire.endTransmission() == 0) {
-	_error_count = 0;
-        _is_success = true;
-        *_is_prepared = true;
-      }else{
-	_error_count++;
-	_is_success = false;
-      }
-    }
-  }
-  else {
-    _is_success = true;
-    _delay_ms = 0;
-  }
-
-  LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
-
-  _start_time_ms = millis();
-}
-
-void SensorDriverRain::get(int32_t *values, uint8_t length) {
-  uint8_t data_length;
-  bool is_i2c_write;
-  uint8_t i;
-
-  switch (_get_state) {
-    case INIT:
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
-    memset(rain_data, UINT8_MAX, I2C_RAIN_LENGTH);
-
-    _is_readed = false;
-    _is_end = false;
-
-    if (*_is_prepared && length >= 1) {
-      _is_success = true;
-      _get_state = SET_RAIN_ADDRESS;
-    }
-    else {
-      _is_success = false;
-      _get_state = END;
-    }
-
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    break;
-
-    case SET_RAIN_ADDRESS:
-      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
-      is_i2c_write = false;
-      i = 0;
-
-      if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
-        is_i2c_write = true;
-        _buffer[i++] = I2C_RAIN_ADDRESS;
-        _buffer[i++] = I2C_RAIN_LENGTH;
-        _buffer[i] = crc8(_buffer, i);
-      }
-      else _is_success = false;
-
-      if (is_i2c_write) {
-        Wire.beginTransmission(_address);
-        Wire.write(_buffer, i+1);
-
-        if (Wire.endTransmission()) {
-	  _error_count++;
-          _is_success = false;
-        }else{
-	  _error_count = 0;
-	  _is_success = true;
-	}
-      }
-
-      _delay_ms = 0;
-      _start_time_ms = millis();
-
-      if (_is_success) {
-        _get_state = READ_RAIN;
-      }
-      else {
-        _get_state = END;
-      }
-    break;
-
-    case READ_RAIN:
-      if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
-        data_length = I2C_RAIN_LENGTH;
-      }
-      else _is_success = false;
-
-      if (_is_success) {
-        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
-        if (Wire.available() < (data_length + 1)) {
-          _is_success = false;
-	  _error_count++;
-	}else{
-	  _error_count = 0;
-	  _is_success = true;	  
-        }
-      }
-
-      if (_is_success) {
-        for (i = 0; i < data_length; i++) {
-          rain_data[i] = Wire.read();
-        }
-
-        if (crc8(rain_data, data_length) != Wire.read()) {
-          _is_success = false;
-        }
-      }
-
-    _start_time_ms = millis();
-    _delay_ms = 0;
-    _is_end = false;
-    _get_state = END;
-
-    break;
-
-    case END:
-    if (length >= 1) {
-      values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
-    }
-
-    SensorDriver::printInfo();
-    if (_is_success){
-      LOGT(F("rain get... [ %s ]"), OK_STRING);
-    }else{
-      LOGE(F("rain get... [ %s ]"), FAIL_STRING);
-    }
-
-    if (length >= 1) {
-      if (ISVALID(values[0])) {
-        LOGT(F("rain--> rain : %d"), values[0]);
-      }
-      else {
-        LOGT(F("rain--> rain: ---"));
-      }
-    }
-
-    _start_time_ms = millis();
-    _delay_ms = 20;
-    _is_end = true;
-    _is_readed = false;
-    _get_state = INIT;
-    break;
-  }
-}
-
-#if (USE_JSON)
-void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverRain::get(values, length);
-
-  if (_is_end && !_is_readed) {
-    StaticJsonDocument<JSON_BUFFER_LENGTH> json;
-
-    if (length >= 1) {
-      if (ISVALID(values[0])) {
-        json["B13011"] = values[0];
-      }
-      else json["B13011"] = nullptr;
-    }
-
-    serializeJson(json,json_buffer, json_buffer_length);
-  }
-}
-#endif
-
-#endif
+// #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+//
+// void SensorDriverRain::resetPrepared() {
+//   _get_state = INIT;
+//   *_is_prepared = false;
+// }
+//
+// void SensorDriverRain::setup() {
+//   SensorDriver::printInfo();
+//
+//   _delay_ms = 0;
+//
+//   Wire.beginTransmission(_address);
+//
+//   if (Wire.endTransmission() == 0) {
+//     _error_count = 0;
+//     *_is_setted = true;
+//     LOGT(F("rain setup... [ %s ]"), OK_STRING);
+//   }else{
+//     _error_count++;
+//     LOGE(F("rain setup... [ %s ]"), ERROR_STRING);
+//   }
+// }
+//
+// void SensorDriverRain::prepare(bool is_test) {
+//   SensorDriver::printInfo();
+//   bool is_i2c_write;
+//   uint8_t i;
+//
+//   if (!*_is_prepared) {
+//     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//     is_i2c_write = false;
+//     i = 0;
+//
+//     if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_COMMAND_ID;
+//
+//       if (is_test) {
+//         _buffer[i++] = I2C_RAIN_COMMAND_TEST_READ;
+//       }
+//       else {
+//         _buffer[i++] = I2C_RAIN_COMMAND_ONESHOT_START_STOP;
+//       }
+//       _buffer[i] = crc8(_buffer, i);
+//       _delay_ms = 0;
+//     }
+//
+//     if (is_i2c_write) {
+//       Wire.beginTransmission(_address);
+//       Wire.write(_buffer, i+1);
+//
+//       if (Wire.endTransmission() == 0) {
+// 	_error_count = 0;
+//         _is_success = true;
+//         *_is_prepared = true;
+//       }else{
+// 	_error_count++;
+// 	_is_success = false;
+//       }
+//     }
+//   }
+//   else {
+//     _is_success = true;
+//     _delay_ms = 0;
+//   }
+//
+//   LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+//
+//   _start_time_ms = millis();
+// }
+//
+// void SensorDriverRain::get(int32_t *values, uint8_t length) {
+//   uint8_t data_length;
+//   bool is_i2c_write;
+//   uint8_t i;
+//
+//   switch (_get_state) {
+//     case INIT:
+//     memset(values, UINT8_MAX, length * sizeof(int32_t));
+//     memset(rain_data, UINT8_MAX, I2C_RAIN_LENGTH);
+//
+//     _is_readed = false;
+//     _is_end = false;
+//
+//     if (*_is_prepared && length >= 1) {
+//       _is_success = true;
+//       _get_state = SET_RAIN_ADDRESS;
+//     }
+//     else {
+//       _is_success = false;
+//       _get_state = END;
+//     }
+//
+//     _delay_ms = 0;
+//     _start_time_ms = millis();
+//     break;
+//
+//     case SET_RAIN_ADDRESS:
+//       memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//       is_i2c_write = false;
+//       i = 0;
+//
+//       if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_RAIN_ADDRESS;
+//         _buffer[i++] = I2C_RAIN_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else _is_success = false;
+//
+//       if (is_i2c_write) {
+//         Wire.beginTransmission(_address);
+//         Wire.write(_buffer, i+1);
+//
+//         if (Wire.endTransmission()) {
+// 	  _error_count++;
+//           _is_success = false;
+//         }else{
+// 	  _error_count = 0;
+// 	  _is_success = true;
+// 	}
+//       }
+//
+//       _delay_ms = 0;
+//       _start_time_ms = millis();
+//
+//       if (_is_success) {
+//         _get_state = READ_RAIN;
+//       }
+//       else {
+//         _get_state = END;
+//       }
+//     break;
+//
+//     case READ_RAIN:
+//       if (strcmp(_type, SENSOR_TYPE_TBS) == 0 || strcmp(_type, SENSOR_TYPE_TBR) == 0) {
+//         data_length = I2C_RAIN_LENGTH;
+//       }
+//       else _is_success = false;
+//
+//       if (_is_success) {
+//         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
+//         if (Wire.available() < (data_length + 1)) {
+//           _is_success = false;
+// 	  _error_count++;
+// 	}else{
+// 	  _error_count = 0;
+// 	  _is_success = true;
+//         }
+//       }
+//
+//       if (_is_success) {
+//         for (i = 0; i < data_length; i++) {
+//           rain_data[i] = Wire.read();
+//         }
+//
+//         if (crc8(rain_data, data_length) != Wire.read()) {
+//           _is_success = false;
+//         }
+//       }
+//
+//     _start_time_ms = millis();
+//     _delay_ms = 0;
+//     _is_end = false;
+//     _get_state = END;
+//
+//     break;
+//
+//     case END:
+//     if (length >= 1) {
+//       values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+//     }
+//
+//     SensorDriver::printInfo();
+//     if (_is_success){
+//       LOGT(F("rain get... [ %s ]"), OK_STRING);
+//     }else{
+//       LOGE(F("rain get... [ %s ]"), FAIL_STRING);
+//     }
+//
+//     if (length >= 1) {
+//       if (ISVALID(values[0])) {
+//         LOGT(F("rain--> rain : %d"), values[0]);
+//       }
+//       else {
+//         LOGT(F("rain--> rain: ---"));
+//       }
+//     }
+//
+//     _start_time_ms = millis();
+//     _delay_ms = 20;
+//     _is_end = true;
+//     _is_readed = false;
+//     _get_state = INIT;
+//     break;
+//   }
+// }
+//
+// #if (USE_JSON)
+// void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+//   SensorDriverRain::get(values, length);
+//
+//   if (_is_end && !_is_readed) {
+//     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
+//
+//     if (length >= 1) {
+//       if (ISVALID(values[0])) {
+//         json["B13011"] = values[0];
+//       }
+//       else json["B13011"] = nullptr;
+//     }
+//
+//     serializeJson(json,json_buffer, json_buffer_length);
+//   }
+// }
+// #endif
+//
+// #endif
 
 //------------------------------------------------------------------------------
 // I2C-TH
@@ -1338,439 +1354,860 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
 // XTH: continuous max
 //------------------------------------------------------------------------------
 
-#if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+// #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+//
+// void SensorDriverTh::resetPrepared() {
+//   _get_state = INIT;
+//   *_is_prepared = false;
+// }
+//
+// void SensorDriverTh::setup() {
+//   SensorDriver::printInfo();
+//   bool is_i2c_write;
+//   uint8_t i;
+//   _delay_ms = 0;
+//   _is_success = false;
+//
+//   if (!*_is_setted) {
+//     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//     is_i2c_write = false;
+//     i = 0;
+//
+//     if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_COMMAND_ID;
+//       _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//
+//     if (is_i2c_write) {
+//       Wire.beginTransmission(_address);
+//       Wire.write(_buffer, i+1);
+//
+//       if (Wire.endTransmission() == 0) {
+// 	_error_count = 0;
+//         _is_success = true;
+//         *_is_setted = true;
+//       }else{
+// 	_error_count++;
+//       }
+//     }
+//   }
+//   else {
+//     _is_success = true;
+//   }
+//
+//   LOGT(F("th setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+// }
+//
+// void SensorDriverTh::prepare(bool is_test) {
+//   SensorDriver::printInfo();
+//   bool is_i2c_write;
+//   uint8_t i;
+//   _is_success = false;
+//
+//   if (!*_is_prepared) {
+//     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//     is_i2c_write = false;
+//     i = 0;
+//
+//     if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_COMMAND_ID;
+//       _buffer[i++] = I2C_TH_COMMAND_ONESHOT_START_STOP;
+//       _buffer[i] = crc8(_buffer, i);
+//       i++;
+//       _delay_ms = 150;
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_COMMAND_ID;
+//
+//       if (is_test) {
+//         _buffer[i++] = I2C_TH_COMMAND_TEST_READ;
+//       }
+//       else {
+//         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
+//       }
+//       _buffer[i] = crc8(_buffer, i);
+//       _delay_ms = 0;
+//     }
+//
+//     if (is_i2c_write) {
+//       Wire.beginTransmission(_address);
+//       Wire.write(_buffer, i+1);
+//
+//       if (Wire.endTransmission() == 0) {
+// 	_error_count = 0;
+//         _is_success = true;
+//         *_is_prepared = true;
+//       }else{
+// 	_error_count++;
+// 	LOGE(F("th prepare... endTransmission"));
+//       }
+//     }
+//   }
+//   else {
+//     _is_success = true;
+//     _delay_ms = 0;
+//   }
+//
+//   LOGT(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
+//
+//   _start_time_ms = millis();
+// }
+//
+// void SensorDriverTh::get(int32_t *values, uint8_t length) {
+//   uint8_t data_length;
+//   bool is_i2c_write;
+//   uint8_t i;
+//
+//   switch (_get_state) {
+//     case INIT:
+//       memset(values, UINT8_MAX, length * sizeof(int32_t));
+//       memset(temperature_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
+//       memset(humidity_data, UINT8_MAX, I2C_TH_HUMIDITY_DATA_MAX_LENGTH);
+//
+//     _is_readed = false;
+//     _is_end = false;
+//
+//     if (*_is_prepared && length >= 1) {
+//       LOGT(F("th get INIT"));
+//       _is_success = true;
+//       _get_state = SET_TEMPERATURE_ADDRESS;
+//     }
+//     else {
+//       LOGE(F("th get INIT"));
+//       _is_success = false;
+//       _get_state = END;
+//     }
+//
+//     _delay_ms = 0;
+//     _start_time_ms = millis();
+//     break;
+//
+//     case SET_TEMPERATURE_ADDRESS:
+//       memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//       is_i2c_write = false;
+//       i = 0;
+//
+//       if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_ADDRESS;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MED60_ADDRESS;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MED60_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MED_ADDRESS;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MED_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MIN_ADDRESS;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MIN_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//         is_i2c_write = true;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MAX_ADDRESS;
+//         _buffer[i++] = I2C_TH_TEMPERATURE_MAX_LENGTH;
+//         _buffer[i] = crc8(_buffer, i);
+//       }
+//       else{
+// 	LOGE(F("th type mismatch %s for temp write"),_type);
+// 	_is_success = false;
+//       }
+//
+//       if (is_i2c_write) {
+//         Wire.beginTransmission(_address);
+//         Wire.write(_buffer, i+1);
+//
+//         if (Wire.endTransmission()) {
+// 	  LOGT(F("th get... ERROR SET_TEMPERATURE_ADDRESS"));
+// 	  _error_count++;
+//           _is_success = false;
+//         }else{
+// 	  _error_count = 0;
+// 	}
+//       }
+//
+//     if (_is_success) {
+//       _get_state = READ_TEMPERATURE;
+//     }
+//     else {
+//       _get_state = END;
+//     }
+//     break;
+//
+//     case READ_TEMPERATURE:
+//     if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+//       data_length = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+//       data_length = I2C_TH_TEMPERATURE_MED60_LENGTH;
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+//       data_length = I2C_TH_TEMPERATURE_MED_LENGTH;
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+//       data_length = I2C_TH_TEMPERATURE_MIN_LENGTH;
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//       data_length = I2C_TH_TEMPERATURE_MAX_LENGTH;
+//     }
+//     else{
+//       _is_success = false;
+//       LOGE(F("th type mismatch %s for temp read"),_type);
+//     }
+//
+//       if (_is_success) {
+//         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
+//         if (Wire.available() < (data_length + 1)) {
+// 	  LOGT(F("th get... ERROR READ_TEMPERATURE"));
+// 	  _error_count++;
+//           _is_success = false;
+//         }else{
+// 	  _error_count = 0;
+// 	}
+//       }
+//
+//       if (_is_success) {
+//         for (i = 0; i < data_length; i++) {
+//           temperature_data[i] = Wire.read();
+//         }
+//
+//         if (crc8(temperature_data, data_length) != Wire.read()) {
+// 	  LOGT(F("th get... ERROR READ_TEMPERATURE CRC error"));
+//           _is_success = false;
+//         }
+//       }
+//
+//     _delay_ms = 0;
+//     _start_time_ms = millis();
+//
+//     if (_is_success && length >= 2) {
+//       _get_state = SET_HUMIDITY_ADDRESS;
+//     }
+//     else {
+//       _get_state = END;
+//     }
+//     break;
+//
+//     case SET_HUMIDITY_ADDRESS:
+//       memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+//       is_i2c_write = false;
+//       i = 0;
+//
+//     if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_ADDRESS;
+//       _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MED60_ADDRESS;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MED60_LENGTH;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MED_ADDRESS;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MED_LENGTH;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MIN_ADDRESS;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MIN_LENGTH;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//     else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//       is_i2c_write = true;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MAX_ADDRESS;
+//       _buffer[i++] = I2C_TH_HUMIDITY_MAX_LENGTH;
+//       _buffer[i] = crc8(_buffer, i);
+//     }
+//     else{
+//       LOGE(F("th type mismatch %s for humid write"),_type);
+//       _is_success = false;
+//     }
+//
+//     if (is_i2c_write) {
+//       Wire.beginTransmission(_address);
+//       Wire.write(_buffer, i+1);
+//
+//       if (Wire.endTransmission()) {
+// 	LOGT(F("th get... ERROR SET_HUMIDITY_ADDRESS"));
+// 	_error_count++;
+//         _is_success = false;
+//       }else{
+// 	_error_count = 0;
+//       }
+//     }
+//
+//     _delay_ms = 0;
+//     _start_time_ms = millis();
+//
+//     if (_is_success) {
+//       _get_state = READ_HUMIDITY;
+//     }
+//     else {
+//       _get_state = END;
+//     }
+//     break;
+//
+//     case READ_HUMIDITY:
+//       if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+//         data_length = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+//         data_length = I2C_TH_HUMIDITY_MED60_LENGTH;
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+//         data_length = I2C_TH_HUMIDITY_MED_LENGTH;
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+//         data_length = I2C_TH_HUMIDITY_MIN_LENGTH;
+//       }
+//       else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+//         data_length = I2C_TH_HUMIDITY_MAX_LENGTH;
+//       }
+//       else{
+// 	LOGE(F("th type mismatch %s for humid read"),_type);
+// 	_is_success = false;
+//       }
+//
+//       if (_is_success) {
+//         Wire.requestFrom(_address, (uint8_t)(data_length + 1));
+//         if (Wire.available() < (data_length + 1)) {
+// 	  LOGT(F("th get... ERROR READ_HUMIDITY"));
+// 	  _error_count++;
+//           _is_success = false;
+//         }else{
+// 	  _error_count = 0;
+// 	}
+//       }
+//
+//       if (_is_success) {
+//         for (i = 0; i < data_length; i++) {
+//           humidity_data[i] = Wire.read();
+//         }
+//
+//         if (crc8(humidity_data, data_length) != Wire.read()) {
+// 	  LOGT(F("th get... ERROR READ_HUMIDITY CRC error"));
+//           _is_success = false;
+//         }
+//       }
+//
+//     _delay_ms = 0;
+//     _start_time_ms = millis();
+//     _get_state = END;
+//     break;
+//
+//     case END:
+//     if (length >= 1) {
+//       if (_is_success) {
+//         values[0] = ((uint16_t)(temperature_data[1] << 8) | (temperature_data[0]));
+//       }
+//     }
+//
+//     if (length >= 2) {
+//       if (_is_success) {
+//         values[1] = ((uint16_t)(humidity_data[1] << 8) | (humidity_data[0]));
+//       }
+//     }
+//
+//     SensorDriver::printInfo();
+//     if (_is_success){
+//       LOGT(F("th get... [ %s ]"), OK_STRING);
+//     }else{
+//       LOGE(F("th get... [ %s ]"), FAIL_STRING);
+//     }
+//
+//     if (length >= 1) {
+//       if (ISVALID(values[0])) {
+//         LOGT(F("th--> temperature: %d"), values[0]);
+//       }
+//       else {
+//         LOGT(F("th--> temperature: ---"));
+//       }
+//     }
+//
+//     if (length >= 2) {
+//       if (ISVALID(values[1])) {
+//         LOGT(F("th--> humidity: %d"), values[1]);
+//       }
+//       else {
+//         LOGT(F("th--> humidity: ---"));
+//       }
+//     }
+//
+//     _start_time_ms = millis();
+//     _delay_ms = 0;
+//     _is_end = true;
+//     _is_readed = false;
+//     _get_state = INIT;
+//     break;
+//   }
+// }
+//
+// #if (USE_JSON)
+// void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+//   SensorDriverTh::get(values, length);
+//
+//   if (_is_end && !_is_readed) {
+//     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
+//
+//     if (length >= 1) {
+//       if (ISVALID(values[0])) {
+//         json["B12101"] = values[0];
+//       }
+//       else json["B12101"] = nullptr;
+//     }
+//
+//     if (length >= 2) {
+//       if (ISVALID(values[1])) {
+//         json["B13003"] = values[1];
+//       }
+//       else json["B13003"] = nullptr;
+//     }
+//
+//     serializeJson(json,json_buffer, json_buffer_length);
+//   }
+// }
+// #endif
+//
+// #endif
 
-void SensorDriverTh::resetPrepared() {
-  _get_state = INIT;
-  *_is_prepared = false;
+
+//------------------------------------------------------------------------------
+// I2C-THR
+// STH: oneshot
+// ITH: continuous istantaneous
+// MTH: continuous average
+// NTH: continuous min
+// XTH: continuous max
+// TBS: rain tips (oneshot or continuous)
+//------------------------------------------------------------------------------
+#if (USE_MODULE_THR && (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH || USE_SENSOR_TBS || USE_SENSOR_TBR))
+void SensorDriverThr::resetPrepared() {
+   _get_state = INIT;
+   *_is_prepared = false;
 }
 
-void SensorDriverTh::setup() {
-  SensorDriver::printInfo();
-  bool is_i2c_write;
-  uint8_t i;
-  _delay_ms = 0;
-  _is_success = false;
+void SensorDriverThr::setup() {
+   SensorDriver::printInfo();
+   bool is_i2c_write;
+   uint8_t i;
+   _delay_ms = 0;
+   _is_success = false;
 
-  if (!*_is_setted) {
-    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
-    is_i2c_write = false;
-    i = 0;
-
-    if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_COMMAND_ID;
-      _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START;
-      _buffer[i] = crc8(_buffer, i);
-    }
-
-    if (is_i2c_write) {
-      Wire.beginTransmission(_address);
-      Wire.write(_buffer, i+1);
-
-      if (Wire.endTransmission() == 0) {
-	_error_count = 0;
-        _is_success = true;
-        *_is_setted = true;
-      }else{
-	_error_count++;
-      }
-    }
-  }
-  else {
-    _is_success = true;
-  }
-
-  LOGT(F("th setup... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
-}
-
-void SensorDriverTh::prepare(bool is_test) {
-  SensorDriver::printInfo();
-  bool is_i2c_write;
-  uint8_t i;
-  _is_success = false;
-
-  if (!*_is_prepared) {
-    memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
-    is_i2c_write = false;
-    i = 0;
-
-    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_COMMAND_ID;
-      _buffer[i++] = I2C_TH_COMMAND_ONESHOT_START_STOP;
-      _buffer[i] = crc8(_buffer, i);
-      i++;
-      _delay_ms = 150;
-    }
-    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0 || strcmp(_type, SENSOR_TYPE_MTH) == 0 || strcmp(_type, SENSOR_TYPE_NTH) == 0 || strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_COMMAND_ID;
-
-      if (is_test) {
-        _buffer[i++] = I2C_TH_COMMAND_TEST_READ;
-      }
-      else {
-        _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
-      }
-      _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 0;
-    }
-
-    if (is_i2c_write) {
-      Wire.beginTransmission(_address);
-      Wire.write(_buffer, i+1);
-
-      if (Wire.endTransmission() == 0) {
-	_error_count = 0;
-        _is_success = true;
-        *_is_prepared = true;
-      }else{
-	_error_count++;
-	LOGE(F("th prepare... endTransmission"));
-      }
-    }
-  }
-  else {
-    _is_success = true;
-    _delay_ms = 0;
-  }
-
-  LOGT(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
-
-  _start_time_ms = millis();
-}
-
-void SensorDriverTh::get(int32_t *values, uint8_t length) {
-  uint8_t data_length;
-  bool is_i2c_write;
-  uint8_t i;
-
-  switch (_get_state) {
-    case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
-      memset(temperature_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
-      memset(humidity_data, UINT8_MAX, I2C_TH_HUMIDITY_DATA_MAX_LENGTH);
-
-    _is_readed = false;
-    _is_end = false;
-
-    if (*_is_prepared && length >= 1) {
-      LOGT(F("th get INIT"));
-      _is_success = true;
-      _get_state = SET_TEMPERATURE_ADDRESS;
-    }
-    else {
-      LOGE(F("th get INIT"));
-      _is_success = false;
-      _get_state = END;
-    }
-
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    break;
-
-    case SET_TEMPERATURE_ADDRESS:
+   if (!*_is_setted) {
       memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
       is_i2c_write = false;
       i = 0;
 
+      #if (USE_MODULE_THR || USE_MODULE_TH)
+      if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+         _buffer[i++] = I2C_THR_COMMAND_ONESHOT_START;
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #if (USE_MODULE_THR)
+      else if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0) || (strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+      #elif (USE_MODULE_TH)
+      else if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0)) {
+      #endif
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+         _buffer[i++] = I2C_THR_COMMAND_CONTINUOUS_START;
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #endif
+
+      #if (USE_MODULE_RAIN)
+      if ((strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+         _buffer[i++] = I2C_THR_COMMAND_ONESHOT_START;
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #endif
+
+      if (is_i2c_write) {
+         Wire.beginTransmission(_address);
+         Wire.write(_buffer, i+1);
+
+         if (Wire.endTransmission() == 0) {
+            _is_success = true;
+            *_is_setted = true;
+         }
+      }
+   }
+   else {
+      _is_success = true;
+   }
+   LOGT(F("thr setup... [ %s ]"), _is_success ? OK_STRING : FAIL_STRING);
+}
+
+void SensorDriverThr::prepare(bool is_test) {
+   SensorDriver::printInfo();
+   bool is_i2c_write;
+   uint8_t i;
+   _is_success = false;
+   _is_test = is_test;
+
+   if (!*_is_prepared) {
+      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+      is_i2c_write = false;
+      i = 0;
+
+      #if (USE_MODULE_THR || USE_MODULE_TH)
+      if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+
+         if (is_test) {
+            _buffer[i++] = I2C_THR_COMMAND_TEST_READ;
+         }
+         else {
+            _buffer[i++] = I2C_THR_COMMAND_ONESHOT_START_STOP;
+         }
+
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #if (USE_MODULE_THR)
+      else if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0) || (strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+      #elif (USE_MODULE_TH)
+      else if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0)) {
+      #endif
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+
+         if (is_test) {
+            _buffer[i++] = I2C_THR_COMMAND_TEST_READ;
+         }
+         else {
+            _buffer[i++] = I2C_THR_COMMAND_CONTINUOUS_START_STOP;
+         }
+
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #endif
+
+      #if (USE_MODULE_RAIN)
+      if ((strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+         is_i2c_write = true;
+         _buffer[i++] = I2C_COMMAND_ID;
+
+         if (is_test) {
+            _buffer[i++] = I2C_THR_COMMAND_TEST_READ;
+         }
+         else {
+            _buffer[i++] = I2C_THR_COMMAND_ONESHOT_START_STOP;
+         }
+
+         _buffer[i] = crc8(_buffer, i);
+         _delay_ms = 0;
+      }
+      #endif
+
+      if (is_i2c_write) {
+         Wire.beginTransmission(_address);
+         Wire.write(_buffer, i+1);
+
+         if (Wire.endTransmission() == 0) {
+            _is_success = true;
+            *_is_prepared = true;
+         }
+      }
+   }
+   else {
+      _is_success = true;
+      _delay_ms = 0;
+   }
+
+   _start_time_ms = millis();
+}
+
+void SensorDriverThr::get(int32_t *values, uint8_t length) {
+  // static uint8_t variable_length;
+  // static uint8_t data_length;
+  //
+  // static uint8_t variable_count;
+  // static uint8_t offset;
+
+  bool is_i2c_write;
+  uint8_t i;
+
+  // float val;
+  // uint8_t *val_ptr;
+
+  switch (_get_state) {
+    case INIT:
+      memset(values, UINT8_MAX, length * sizeof(int32_t));
+      val = (float) UINT16_MAX;
+
+      if ((strcmp(_type, SENSOR_TYPE_STH) == 0) || (strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0)) {
+        variable_length = 2;
+      }
+      else if ((strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+        variable_length = 1;
+      }
+
+      variable_count = 0;
+      data_length = 0;
+
+      _error_count = 0;
+      _is_readed = false;
+      _is_end = false;
+
+      if (*_is_prepared && length >= 1) {
+        _is_success = true;
+        _get_state = SET_ADDRESS;
+      }
+      else {
+        _is_success = false;
+        _get_state = END;
+      }
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+    break;
+
+    case SET_ADDRESS:
+      val = (float) UINT16_MAX;
+      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
+      is_i2c_write = false;
+      offset = 0;
+      i = 0;
+
+      #if (USE_MODULE_TH || USE_MODULE_THR)
+
+      #if (USE_SENSOR_STH)
       if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_ADDRESS;
-        _buffer[i++] = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
+        data_length = I2C_THR_SAMPLE_LENGTH;
+        _buffer[i++] = I2C_THR_SAMPLE_ADDRESS;
+        _buffer[i++] = I2C_THR_SAMPLE_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
+      #endif
+
+      #if (USE_SENSOR_ITH)
+      if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MED60_ADDRESS;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MED60_LENGTH;
+        data_length = I2C_THR_IST_LENGTH;
+        _buffer[i++] = I2C_THR_IST_ADDRESS;
+        _buffer[i++] = I2C_THR_IST_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
+      #endif
+
+      #if (USE_SENSOR_NTH)
+      if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MED_ADDRESS;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MED_LENGTH;
+        data_length = I2C_THR_MIN_LENGTH;
+        _buffer[i++] = I2C_THR_MIN_ADDRESS;
+        _buffer[i++] = I2C_THR_MIN_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
+      #endif
+
+      #if (USE_SENSOR_MTH)
+      if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MIN_ADDRESS;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MIN_LENGTH;
+        data_length = I2C_THR_AVG_LENGTH;
+        _buffer[i++] = I2C_THR_AVG_ADDRESS;
+        _buffer[i++] = I2C_THR_AVG_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
+      #endif
+
+      #if (USE_SENSOR_XTH)
+      if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MAX_ADDRESS;
-        _buffer[i++] = I2C_TH_TEMPERATURE_MAX_LENGTH;
+        data_length = I2C_THR_MAX_LENGTH;
+        _buffer[i++] = I2C_THR_MAX_ADDRESS;
+        _buffer[i++] = I2C_THR_MAX_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      else{
-	LOGE(F("th type mismatch %s for temp write"),_type);
-	_is_success = false;
+      #endif
+
+      #endif
+
+      #if (USE_MODULE_THR || USE_MODULE_RAIN)
+      #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+      if ((strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+        is_i2c_write = true;
+        data_length = I2C_THR_RAIN_LENGTH;
+        _buffer[i++] = I2C_THR_RAIN_ADDRESS;
+        _buffer[i++] = I2C_THR_RAIN_LENGTH;
+        _buffer[i] = crc8(_buffer, i);
       }
+      #endif
+      #endif
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
-	  LOGT(F("th get... ERROR SET_TEMPERATURE_ADDRESS"));
-	  _error_count++;
           _is_success = false;
-        }else{
-	  _error_count = 0;
-	}	  
+          _error_count++;
+        }
       }
 
-    if (_is_success) {
-      _get_state = READ_TEMPERATURE;
-    }
-    else {
-      _get_state = END;
-    }
-    break;
-
-    case READ_TEMPERATURE:
-    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
-      data_length = I2C_TH_TEMPERATURE_SAMPLE_LENGTH;
-    }
-    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
-      data_length = I2C_TH_TEMPERATURE_MED60_LENGTH;
-    }
-    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
-      data_length = I2C_TH_TEMPERATURE_MED_LENGTH;
-    }
-    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
-      data_length = I2C_TH_TEMPERATURE_MIN_LENGTH;
-    }
-    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-      data_length = I2C_TH_TEMPERATURE_MAX_LENGTH;
-    }
-    else{
-      _is_success = false;
-      LOGE(F("th type mismatch %s for temp read"),_type);
-    }
+      _delay_ms = 0;
+      _start_time_ms = millis();
 
       if (_is_success) {
-        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
+        _get_state = READ_VALUE;
+      }
+      else {
+        _get_state = END;
+      }
+    break;
+
+    case READ_VALUE:
+      if (_is_success) {
+        Wire.requestFrom(_address, (uint8_t) (data_length + 1));
         if (Wire.available() < (data_length + 1)) {
-	  LOGT(F("th get... ERROR READ_TEMPERATURE"));
-	  _error_count++;
           _is_success = false;
-        }else{
-	  _error_count = 0;
-	}	  
+        }
       }
 
       if (_is_success) {
+        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
         for (i = 0; i < data_length; i++) {
-          temperature_data[i] = Wire.read();
+          _buffer[i] = Wire.read();
         }
 
-        if (crc8(temperature_data, data_length) != Wire.read()) {
-	  LOGT(F("th get... ERROR READ_TEMPERATURE CRC error"));
+        if (crc8(_buffer, data_length) != Wire.read()) {
           _is_success = false;
         }
       }
 
-    _delay_ms = 0;
-    _start_time_ms = millis();
+      _delay_ms = 0;
+      _start_time_ms = millis();
 
-    if (_is_success && length >= 2) {
-      _get_state = SET_HUMIDITY_ADDRESS;
-    }
-    else {
-      _get_state = END;
-    }
+      if (_is_success) {
+         LOGN(F("thr GET_VALUE --> value: %D"), val);
+        _get_state = GET_VALUE;
+      }
+      else {
+         LOGN(F("thr END --> value: %D"), val);
+         _error_count++;
+        _get_state = END;
+      }
     break;
 
-    case SET_HUMIDITY_ADDRESS:
-      memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
-      is_i2c_write = false;
-      i = 0;
+    case GET_VALUE:
+      if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0) || (strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+        if (length >= variable_count + 1) {
+          val_ptr = (uint8_t*) &val;
 
-    if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_ADDRESS;
-      _buffer[i++] = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
-      _buffer[i] = crc8(_buffer, i);
-    }
-    else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_TH_HUMIDITY_MED60_ADDRESS;
-      _buffer[i++] = I2C_TH_HUMIDITY_MED60_LENGTH;
-      _buffer[i] = crc8(_buffer, i);
-    }
-    else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_TH_HUMIDITY_MED_ADDRESS;
-      _buffer[i++] = I2C_TH_HUMIDITY_MED_LENGTH;
-      _buffer[i] = crc8(_buffer, i);
-    }
-    else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_TH_HUMIDITY_MIN_ADDRESS;
-      _buffer[i++] = I2C_TH_HUMIDITY_MIN_LENGTH;
-      _buffer[i] = crc8(_buffer, i);
-    }
-    else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-      is_i2c_write = true;
-      _buffer[i++] = I2C_TH_HUMIDITY_MAX_ADDRESS;
-      _buffer[i++] = I2C_TH_HUMIDITY_MAX_LENGTH;
-      _buffer[i] = crc8(_buffer, i);
-    }
-    else{
-      LOGE(F("th type mismatch %s for humid write"),_type);
-      _is_success = false;
-    }
-    
-    if (is_i2c_write) {
-      Wire.beginTransmission(_address);
-      Wire.write(_buffer, i+1);
+          for (i = 0; i < 4; i++) {
+            *(val_ptr + i) = _buffer[offset + i];
+          }
 
-      if (Wire.endTransmission()) {
-	LOGT(F("th get... ERROR SET_HUMIDITY_ADDRESS"));
-	_error_count++;
-        _is_success = false;
-      }else{
-	_error_count = 0;
-      }	
-    }
+          if (_is_success && ISVALID(val)) {
+            values[variable_count] = (int32_t) round(val);
+            LOGN(F("thr --> value: %l %D"), values[variable_count], val);
+          }
+          else {
+            values[variable_count] = UINT16_MAX;
+            _error_count++;
+            _is_success = false;
+            LOGN(F("thr --> value: --- %D"), val);
+          }
 
-    _delay_ms = 0;
-    _start_time_ms = millis();
-
-    if (_is_success) {
-      _get_state = READ_HUMIDITY;
-    }
-    else {
-      _get_state = END;
-    }
-    break;
-
-    case READ_HUMIDITY:
-      if (strcmp(_type, SENSOR_TYPE_STH) == 0) {
-        data_length = I2C_TH_HUMIDITY_SAMPLE_LENGTH;
-      }
-      else if (strcmp(_type, SENSOR_TYPE_ITH) == 0) {
-        data_length = I2C_TH_HUMIDITY_MED60_LENGTH;
-      }
-      else if (strcmp(_type, SENSOR_TYPE_MTH) == 0) {
-        data_length = I2C_TH_HUMIDITY_MED_LENGTH;
-      }
-      else if (strcmp(_type, SENSOR_TYPE_NTH) == 0) {
-        data_length = I2C_TH_HUMIDITY_MIN_LENGTH;
-      }
-      else if (strcmp(_type, SENSOR_TYPE_XTH) == 0) {
-        data_length = I2C_TH_HUMIDITY_MAX_LENGTH;
-      }
-      else{
-	LOGE(F("th type mismatch %s for humid read"),_type);
-	_is_success = false;
-      }
-      
-      if (_is_success) {
-        Wire.requestFrom(_address, (uint8_t)(data_length + 1));
-        if (Wire.available() < (data_length + 1)) {
-	  LOGT(F("th get... ERROR READ_HUMIDITY"));
-	  _error_count++;
-          _is_success = false;
-        }else{
-	  _error_count = 0;
-	}
-      }
-
-      if (_is_success) {
-        for (i = 0; i < data_length; i++) {
-          humidity_data[i] = Wire.read();
-        }
-
-        if (crc8(humidity_data, data_length) != Wire.read()) {
-	  LOGT(F("th get... ERROR READ_HUMIDITY CRC error"));
-          _is_success = false;
+          offset += 4;
         }
       }
 
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    _get_state = END;
+      variable_count++;
+
+      _delay_ms = 0;
+      _start_time_ms = millis();
+
+      if ((variable_count >= length) || (variable_count >= variable_length)) {
+        _get_state = END;
+      }
+      else if (variable_count == 3) {
+        _get_state = SET_ADDRESS;
+      }
     break;
 
     case END:
-    if (length >= 1) {
-      if (_is_success) {
-        values[0] = ((uint16_t)(temperature_data[1] << 8) | (temperature_data[0]));
-      }
-    }
-
-    if (length >= 2) {
-      if (_is_success) {
-        values[1] = ((uint16_t)(humidity_data[1] << 8) | (humidity_data[0]));
-      }
-    }
-
-    SensorDriver::printInfo();
-    if (_is_success){
-      LOGT(F("th get... [ %s ]"), OK_STRING);
-    }else{
-      LOGE(F("th get... [ %s ]"), FAIL_STRING);
-    }
-
-    if (length >= 1) {
-      if (ISVALID(values[0])) {
-        LOGT(F("th--> temperature: %d"), values[0]);
-      }
-      else {
-        LOGT(F("th--> temperature: ---"));
-      }
-    }
-
-    if (length >= 2) {
-      if (ISVALID(values[1])) {
-        LOGT(F("th--> humidity: %d"), values[1]);
-      }
-      else {
-        LOGT(F("th--> humidity: ---"));
-      }
-    }
-
-    _start_time_ms = millis();
-    _delay_ms = 0;
-    _is_end = true;
-    _is_readed = false;
-    _get_state = INIT;
+      SensorDriver::printInfo();
+      _start_time_ms = millis();
+      _delay_ms = 0;
+      _is_end = true;
+      _is_readed = false;
+      _get_state = INIT;
     break;
-  }
+}
 }
 
 #if (USE_JSON)
-void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverTh::get(values, length);
+void SensorDriverThr::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
+  SensorDriverThr::get(values, length);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
-    if (length >= 1) {
-      if (ISVALID(values[0])) {
-        json["B12101"] = values[0];
+    #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+    if ((strcmp(_type, SENSOR_TYPE_ITH) == 0) || (strcmp(_type, SENSOR_TYPE_MTH) == 0) || (strcmp(_type, SENSOR_TYPE_NTH) == 0) || (strcmp(_type, SENSOR_TYPE_XTH) == 0)) {
+      if (length >= 1) {
+        if (ISVALID(values[0])) {
+          json["B12101"] = values[0];
+        }
+        else json["B12101"] = nullptr;
       }
-      else json["B12101"] = nullptr;
-    }
 
-    if (length >= 2) {
-      if (ISVALID(values[1])) {
-        json["B13003"] = values[1];
+      if (length >= 2) {
+        if (ISVALID(values[1])) {
+          json["B13003"] = values[1];
+        }
+        else json["B13003"] = nullptr;
       }
-      else json["B13003"] = nullptr;
     }
+    #endif
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+    if ((strcmp(_type, SENSOR_TYPE_TBS) == 0) || (strcmp(_type, SENSOR_TYPE_TBR) == 0)) {
+      if (length >= 1) {
+        if (ISVALID(values[0])) {
+          json["B13011"] = values[0];
+        }
+        else json["B13011"] = nullptr;
+      }
+    }
+    #endif
+
+    serializeJson(json, json_buffer, json_buffer_length);
   }
 }
 #endif
 
 #endif
+
 
 //------------------------------------------------------------------------------
 // DigitEco Power
