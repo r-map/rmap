@@ -64,8 +64,28 @@ void getStimaNameByType(char *name, uint8_t type) {
       strcpy(name, STIMA_MODULE_NAME_OPC);
       break;
 
+    case STIMA_MODULE_TYPE_LEAF:
+    strcpy(name, STIMA_MODULE_NAME_LEAF);
+    break;
+
+    case STIMA_MODULE_TYPE_WIND:
+    strcpy(name, STIMA_MODULE_NAME_WIND);
+    break;
+
+    case STIMA_MODULE_TYPE_SOLAR_RADIATION:
+    strcpy(name, STIMA_MODULE_NAME_SOLAR_RADIATION);
+    break;
+
+    case STIMA_MODULE_TYPE_THR:
+    strcpy(name, STIMA_MODULE_NAME_THR);
+    break;
+
+    case STIMA_MODULE_TYPE_GAS:
+    strcpy(name, STIMA_MODULE_NAME_GAS);
+    break;
+
     default:
-      strcpy(name, "DEFAULT");
+    strcpy(name, "ERROR");
       break;
   }
 }
