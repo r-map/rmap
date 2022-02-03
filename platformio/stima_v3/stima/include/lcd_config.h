@@ -47,4 +47,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define LCD_ROWS                 (4)
 
+#define LCD_PAGES                (2)
+
 #endif
