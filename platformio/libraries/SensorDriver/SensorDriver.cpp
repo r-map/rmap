@@ -202,47 +202,40 @@ uint16_t SensorDriver::getErrorCount() {
 
 void SensorDriver::createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count) {
 
-  uint8_t index;  
-  bool found = false;
+   uint8_t index;
+   bool found = false;
 
-  if (*sensors_count >= SENSORS_MAX) return;
+   if (*sensors_count >= SENSORS_MAX) return;
 
-  for (uint8_t i = 0; i < *sensors_count; i++) {
-    if (
-	strcmp(sensors[i]->getDriver(),driver) == 0
-	//&&
-	//strcmp(sensors[i]->getType(),type)  == 0
-	&&
-	sensors[i]->getAddress() == address
-	)
-      {
-	index=_SensorDriver::_pool_pointers[i];
-	found=true;
+   for (uint8_t i = 0; i < *sensors_count; i++) {
+      if ((strcmp(sensors[i]->getDriver(),driver) == 0) && (sensors[i]->getAddress() == address)) {
+         index=_SensorDriver::_pool_pointers[i];
+         found=true;
       }
-  }
+   }
 
-  if (!found){    
-    index=_SensorDriver::_pool_new_pointer;
-    _SensorDriver::_pool_pointers[*sensors_count]=index;
-    _SensorDriver::_pool_new_pointer++;
-  }
+   if (!found){
+      index=_SensorDriver::_pool_new_pointer;
+      _SensorDriver::_pool_pointers[*sensors_count]=index;
+      _SensorDriver::_pool_new_pointer++;
+   }
 
-  LOGT(F("pool index: %d"),index);
-  if (index >= SENSORS_UNIQUE_MAX) return;
+   LOGT(F("pool index: %d"),index);
+   if (index >= SENSORS_UNIQUE_MAX) return;
 
-  sensors[*sensors_count] = SensorDriver::create(driver, type);
-  if (sensors[*sensors_count]) {
-    sensors[*sensors_count]->init(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
-    sensors[*sensors_count]->setup();
-    (*sensors_count)++;
-  }
+   sensors[*sensors_count] = SensorDriver::create(driver, type);
+   if (sensors[*sensors_count]) {
+      sensors[*sensors_count]->init(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
+      sensors[*sensors_count]->setup();
+      (*sensors_count)++;
+   }
 }
 
 void SensorDriver::printInfo() {
-  //LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d"), _driver, _type, _address, _address, _node);
-  LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d %T %T"), SensorDriver::getDriver(), SensorDriver::getType(),
-       SensorDriver::getAddress(), SensorDriver::getAddress(), SensorDriver::getNode(),
-       SensorDriver::isSetted(),SensorDriver::isPrepared());
+   //LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d"), _driver, _type, _address, _address, _node);
+   LOGV(F("SensorDriver %s-%s 0x%x (%d) on node %d %T %T"), SensorDriver::getDriver(), SensorDriver::getType(),
+   SensorDriver::getAddress(), SensorDriver::getAddress(), SensorDriver::getNode(),
+   SensorDriver::isSetted(),SensorDriver::isPrepared());
 }
 
 //------------------------------------------------------------------------------
@@ -789,7 +782,8 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       SensorDriver::printInfo();
       if (_is_success){
 	LOGT(F("hyt2x1 get... [ %s ]"), OK_STRING);
-      }else{
+         }
+         else {
 	LOGE(F("hyt2x1 get... [ %s ]"), FAIL_STRING);
       }
 
@@ -2218,245 +2212,230 @@ void SensorDriverThr::getJson(int32_t *values, uint8_t length, char *json_buffer
 #if (USE_SENSOR_DEP)
 
 void SensorDriverDigitecoPower::resetPrepared() {
-  _get_state = INIT;
-  *_is_prepared = false;
+   _get_state = INIT;
+   *_is_prepared = false;
 }
 
 void SensorDriverDigitecoPower::setup() {
-  SensorDriver::printInfo();
+   SensorDriver::printInfo();
 
-  _delay_ms = 0;
+   _delay_ms = 0;
 
-  Wire.beginTransmission(_address);
+   Wire.beginTransmission(_address);
 
-  if (Wire.endTransmission() == 0) {
-    *_is_setted = true;
-    _error_count = 0;
-    LOGT(F("digitecopower setup... [ %s ]"), OK_STRING);
-  }else{
-    _error_count++;
-    LOGE(F("digitecopower setup... [ %s ]"), ERROR_STRING);
-  }
+   if (Wire.endTransmission() == 0) {
+      *_is_setted = true;
+      _error_count = 0;
+      LOGT(F("digitecopower setup... [ %s ]"), OK_STRING);
+   }
+   else {
+      _error_count++;
+      LOGE(F("digitecopower setup... [ %s ]"), ERROR_STRING);
+   }
 }
 
 void SensorDriverDigitecoPower::prepare(bool is_test) {
-  SensorDriver::printInfo();
-  _delay_ms = 0;
-  *_is_prepared = true;
-  _start_time_ms = millis();
-  LOGT(F(" prepare... [ %s ]"), OK_STRING);
+   SensorDriver::printInfo();
+   _delay_ms = 0;
+   *_is_prepared = true;
+   _start_time_ms = millis();
+   LOGT(F(" prepare... [ %s ]"), OK_STRING);
 }
 
 void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
+   switch (_get_state) {
+      case INIT:
+         memset(values, UINT8_MAX, length * sizeof(int32_t));
 
-  switch (_get_state) {
-    case INIT:
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+         _is_readed = false;
+         _is_end = false;
+         _error_count = 0;
 
-    _is_readed = false;
-    _is_end = false;
+         if (*_is_prepared && length >= 1) {
+            _is_success = true;
+         }
+         else {
+            _error_count++;
+            _is_success = false;
+            _get_state = END;
+         }
 
-    if (*_is_prepared && length >= 1) {
-      _is_success = true;
       _get_state = SET_BATTERY_CHARGE_ADDRESS;
-    }
-    else {
-      _is_success = false;
-      _get_state = END;
-    }
+         _delay_ms = 0;
+         _start_time_ms = millis();
+      break;
 
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_BATTERY_CHARGE_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_BATTERY_CHARGE;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case READ_BATTERY_CHARGE:
     _is_success = DigitecoPower::de_read(_address, &battery_charge);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success && length >= 2) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success && length >= 2) {
-      _error_count = 0;
       _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_BATTERY_VOLTAGE_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_BATTERY_VOLTAGE;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case READ_BATTERY_VOLTAGE:
     _is_success = DigitecoPower::de_read(_address, &battery_voltage);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success && length >= 3) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success && length >= 3) {
-      _error_count = 0;
       _get_state = SET_BATTERY_CURRENT_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_BATTERY_CURRENT_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_BATTERY_CURRENT;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case READ_BATTERY_CURRENT:
     _is_success = DigitecoPower::de_read(_address, &battery_current);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success && length >= 4) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success && length >= 4) {
-      _error_count = 0;
       _get_state = SET_INPUT_VOLTAGE_ADDRESS;
-    }
-    else {
-      _error_count++;      
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_INPUT_VOLTAGE_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_INPUT_VOLTAGE;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case READ_INPUT_VOLTAGE:
     _is_success = DigitecoPower::de_read(_address, &input_voltage);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success && length >= 5) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success && length >= 5) {
-      _error_count = 0;
       _get_state = SET_INPUT_CURRENT_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_INPUT_CURRENT_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_CURRENT_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_INPUT_CURRENT;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case READ_INPUT_CURRENT:
     _is_success = DigitecoPower::de_read(_address, &input_current);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success && length >= 6) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success && length >= 6) {
-      _error_count = 0;
       _get_state = SET_OUTPUT_VOLTAGE_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
 
     case SET_OUTPUT_VOLTAGE_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_OUTPUT_VOLTAGE_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
+         if (_is_success) {
+         }
+         else {
+            _error_count++;
+            _get_state = END;
+         }
+      break;
 
-    if (_is_success) {
-      _error_count = 0;
       _get_state = READ_OUTPUT_VOLTAGE;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
+         _delay_ms = 0;
+         _start_time_ms = millis();
+         _get_state = END;
+      break;
 
     case READ_OUTPUT_VOLTAGE:
     _is_success = DigitecoPower::de_read(_address, &output_voltage);
-    if (_is_success){
-      _error_count = 0;
-    }else{
-      _error_count++;
-    }
-    _delay_ms = 0;
-    _start_time_ms = millis();
-    _get_state = END;
-    break;
+      case END:
+         if (length >= 1) {
+            if (_is_success) {
+            }
+            else {
+               values[0] = UINT16_MAX;
+            }
 
-    case END:
-    if (length >= 1) {
-      if (_is_success) {
         values[0] = battery_charge;
-      }
-      else {
-        _is_success = false;
-      }
-    }
 
-    if (length >= 2) {
       if (_is_success) {
         values[1] = battery_voltage * 10;
       }
