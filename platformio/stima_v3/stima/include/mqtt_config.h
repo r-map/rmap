@@ -101,6 +101,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MQTT_TIMEOUT_MS                (6000)
 
 /*!
+\def MQTT_YIELD_S
+\brief .
+*/
+#define MQTT_YIELD_S                    (10)
+
+/*!
 \def MQTT_DEFAULT_SERVER
 \brief Default MQTT server.
 */
