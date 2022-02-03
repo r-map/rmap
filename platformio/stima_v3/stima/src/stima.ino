@@ -2369,6 +2369,125 @@ void gsm_task() {
 
 #endif
 
+void print_lcd_sensor_value (int32_t *values_readed_from_sensor, uint8_t sensor_index) {
+   for (uint8_t i = 0; i < LCD_ROWS; i++) {
+      lcd_count[i] = 0;
+   }
+
+   // ROW 0
+   if ((strcmp(sensors[sensor_index]->getType(), "ITH") == 0) || (strcmp(sensors[sensor_index]->getType(), "HYT") == 0) || (strcmp(sensors[sensor_index]->getType(), "OE3") == 0)) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "%.1fC ", ((values_readed_from_sensor[0] - SENSOR_DRIVER_C_TO_K) / 100.0));
+      }
+      else {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0], LCD_COLUMNS, "--.-C ");
+      }
+
+      if (ISVALID(values_readed_from_sensor[1])) {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%ld%% ", values_readed_from_sensor[1]);
+      }
+      else {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "---%% ");
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "DEP") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%.1fV", (values_readed_from_sensor[0]/10.0));
+      }
+      else {
+         lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "--.-V");
+      }
+   }
+   // ROW 1
+   else if ((strcmp(sensors[sensor_index]->getType(), "OA2") == 0) || (strcmp(sensors[sensor_index]->getType(), "OA3") == 0)) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f %.0f %.0f ug/m3", values_readed_from_sensor[0]/10.0, values_readed_from_sensor[1]/10.0, values_readed_from_sensor[2]/10.0);
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--- --- --- ug/m3");
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "TBR") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fmm ", (values_readed_from_sensor[0]/10.0));
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-mm ");
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "LWT") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f'", (values_readed_from_sensor[0]*10.0/60.0));
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--'");
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "DW1") == 0) {
+      if (ISVALID(values_readed_from_sensor[1])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[1]/10.0));
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
+      }
+
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[0], 0b11011111);
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "---%c", 0b11011111);
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "DWA") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[0]/10.0));
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
+      }
+
+      if (ISVALID(values_readed_from_sensor[1])) {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[1], 0b11011111);
+      }
+      else {
+         lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "---%c", 0b11011111);
+      }
+   }
+   // ROW 2
+   else if (strcmp(sensors[sensor_index]->getType(), "DSA") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[2] += snprintf(&lcd_buffer[2][0]+lcd_count[2], LCD_COLUMNS-lcd_count[2], "%.0fW/m2 ", (values_readed_from_sensor[0] * 1.0));
+      }
+      else {
+         lcd_count[2] += snprintf(&lcd_buffer[2][0]+lcd_count[2], LCD_COLUMNS-lcd_count[2], "----W/m2 ");
+      }
+   }
+   else if (strcmp(sensors[sensor_index]->getType(), "CO2") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[2] += snprintf(&lcd_buffer[2][0]+lcd_count[2], LCD_COLUMNS-lcd_count[2], "%.1fmA ", (values_readed_from_sensor[0] / 100000.0));
+      }
+      else {
+         lcd_count[2] += snprintf(&lcd_buffer[2][0]+lcd_count[2], LCD_COLUMNS-lcd_count[2], "--.-mA ");
+      }
+   }
+   // ROW 3
+   else if (strcmp(sensors[sensor_index]->getType(), "NO2") == 0) {
+      if (ISVALID(values_readed_from_sensor[0])) {
+         lcd_count[3] += snprintf(&lcd_buffer[3][0]+lcd_count[3], LCD_COLUMNS-lcd_count[3], "%.1fmV ", (values_readed_from_sensor[0] / 100000.0));
+      }
+      else {
+         lcd_count[3] += snprintf(&lcd_buffer[3][0]+lcd_count[3], LCD_COLUMNS-lcd_count[3], "--.-mV ");
+      }
+
+      if (ISVALID(values_readed_from_sensor[1])) {
+         lcd_count[3] += snprintf(&lcd_buffer[3][0]+lcd_count[3], LCD_COLUMNS-lcd_count[3], "%.1fmV ", (values_readed_from_sensor[1] / 100000.0));
+      }
+      else {
+         lcd_count[3] += snprintf(&lcd_buffer[3][0]+lcd_count[3], LCD_COLUMNS-lcd_count[3], "--.-mV ");
+      }
+   }
+}
+
 void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *type, uint8_t address, uint8_t node, uint8_t *sensor_index, uint32_t *wait_time) {
    static uint8_t i;
    static uint8_t retry;
@@ -2376,6 +2495,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
    static bool is_sensor_found;
+   static int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
 
    switch (sensors_reading_state) {
       case SENSORS_READING_INIT:
@@ -2410,8 +2530,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             }
 
             state_after_wait = SENSORS_READING_INIT;
-            sensors_reading_state = SENSORS_SETUP_CHECK;
-            LOGV(F("SENSORS_READING_INIT ---> SENSORS_SETUP_CHECK"));
+            sensors_reading_state = SENSORS_READING_IS_SETTED;
+            LOGV(F("SENSORS_READING_INIT ---> SENSORS_READING_IS_SETTED"));
          }
          else if (do_get) {
             sensors_reading_state = SENSORS_READING_GET;
@@ -2423,32 +2543,33 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          }
       break;
 
-   case SENSORS_SETUP_CHECK:
+      case SENSORS_READING_IS_SETTED:
+         // initialize to missing value
+         json_sensors_data[i][0]='\0';
 
-        // initialize to missing value
-        json_sensors_data[i][0]='\0';
+         if (sensors[i]->getErrorCount() > 0) {
+            LOGN(F("Sensor %s-%s-%d error count: %d"), sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(), sensors[i]->getErrorCount());
+         }
 
-	if (sensors[i]->getErrorCount() > 0) LOGN(F("Sensor %s-%s-%d error count: %d"),
-	     sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(),
-	     sensors[i]->getErrorCount());
+         if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
+            LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
+            sensors[i]->resetSetted();
+         }
 
-	if (sensors[i]->getErrorCount() > SENSOR_ERROR_COUNT_MAX){
-	  LOGE(F("Sensor i2c error > SENSOR_ERROR_COUNT_MAX"));
-	  sensors[i]->resetSetted();
-	}
+         if (!sensors[i]->isSetted()) {
+            sensors[i]->setup();
+         }
 
-	if (!sensors[i]->isSetted()) {
-	  sensors[i]->setup();
-	}
-
-        if (sensors[i]->isSetted()) {
-	  sensors_reading_state = SENSORS_READING_PREPARE;
-	}else{
-	  LOGE(F("Skip failed Sensor"));
-	  sensors_reading_state = SENSORS_READING_NEXT;
-	}
-
-	break;
+         if (sensors[i]->isSetted()) {
+            sensors_reading_state = SENSORS_READING_PREPARE;
+            LOGV(F("SENSORS_READING_IS_SETTED ---> SENSORS_READING_PREPARE"));
+         }
+         else {
+            LOGE(F("Skip failed Sensor"));
+            sensors_reading_state = SENSORS_READING_NEXT;
+            LOGV(F("SENSORS_READING_IS_SETTED ---> SENSORS_READING_NEXT"));
+         }
+      break;
 
       case SENSORS_READING_PREPARE:
          sensors[i]->prepare(is_test);
@@ -2511,25 +2632,20 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_GET:
+         sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0]);
 
-	int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
-	sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data_test);
-        if (!is_test) {
-          strcpy(json_sensors_data[i],json_sensors_data_test);
-        }
+         delay_ms = sensors[i]->getDelay();
+         start_time_ms = sensors[i]->getStartTime();
 
-        delay_ms = sensors[i]->getDelay();
-        start_time_ms = sensors[i]->getStartTime();
-
-        if (delay_ms) {
-          state_after_wait = SENSORS_READING_IS_GETTED;
-          sensors_reading_state = SENSORS_READING_WAIT_STATE;
-          LOGV(F("SENSORS_READING_GET ---> SENSORS_READING_WAIT_STATE"));
-        }
-        else {
-          sensors_reading_state = SENSORS_READING_IS_GETTED;
-          LOGV(F("SENSORS_READING_GET ---> SENSORS_READING_IS_GETTED"));
-        }
+         if (delay_ms) {
+            state_after_wait = SENSORS_READING_IS_GETTED;
+            sensors_reading_state = SENSORS_READING_WAIT_STATE;
+            LOGV(F("SENSORS_READING_GET ---> SENSORS_READING_WAIT_STATE"));
+         }
+         else {
+            sensors_reading_state = SENSORS_READING_IS_GETTED;
+            LOGV(F("SENSORS_READING_GET ---> SENSORS_READING_IS_GETTED"));
+         }
       break;
 
       case SENSORS_READING_IS_GETTED:
@@ -2538,7 +2654,6 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             // success
             if (sensors[i]->isSuccess()) {
                retry = 0;
-	       i2c_error = 0;
                sensors_reading_state = SENSORS_READING_READ;
                LOGV(F("SENSORS_READING_IS_GETTED ---> SENSORS_READING_READ"));
             }
@@ -2570,83 +2685,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_READ:
-
-         #if (USE_LCD)
-	 // normal OR test: print
-	 if (!is_first_run || is_test) {
-	   LOGN(F("[%s] %s-%s-%d\tJson: %s \tMetadata: %s"), is_test? "Test" : "Report",
-	 	sensors[i]->getDriver(),sensors[i]->getType(),sensors[i]->getAddress(),
-		&json_sensors_data_test,
-		readable_configuration.sensors[i].mqtt_topic);
-
-	   StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
-	   DeserializationError error = deserializeJson(doc,json_sensors_data_test);
-	   if (error) {
-	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
-	   }else{
-
-	     unsigned long int value = doc["B12101"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
-	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1)==0;
-	       lcd_error |= lcd.print(F("C "))==0;
-	     }
-
-	     value = doc["B13003"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
-	       lcd_error |= lcd.print(value)==0;
-	       lcd_error |= lcd.print(F("% "))==0;
-	     }
-
-	     value = doc["B13011"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){
-	       lcd_error |= lcd.print((value/10.0),1)==0;
-	       lcd_error |= lcd.print(F("mm "))==0;
-	     }
-	   }
-	   /*
-	     else if (strcmp(sensors[i]->getType(), "OA3") == 0) {
-	     if (ISVALID(values_readed_from_sensor[i][0])) {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f %.0f %.0f ug/m3", values_readed_from_sensor[i][0]/10.0, values_readed_from_sensor[i][1]/10.0, values_readed_from_sensor[i][2]/10.0);
-	     }
-	     else {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--- --- --- ug/m3");
-	     }
-	     }else if (strcmp(sensors[i]->getType(), "LWT") == 0) {
-	     if (ISVALID(values_readed_from_sensor[i][0])) {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.0f'", (values_readed_from_sensor[i][0]*10.0/60.0));
-	     }
-	     else {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--'");
-	     }
-	     }
-	     else if (strcmp(sensors[i]->getType(), "DW1") == 0) {
-	     if (ISVALID(values_readed_from_sensor[i][1])) {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%.1fm/s ", (values_readed_from_sensor[i][1]/10.0));
-	     }
-	     else {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "--.-m/s ");
-	     }
-
-	     if (ISVALID(values_readed_from_sensor[i][0])) {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "%ld%c", values_readed_from_sensor[i][0], 0b11011111);
-	     }
-	     else {
-	     lcd_count[1] += snprintf(&lcd_buffer[1][0]+lcd_count[1], LCD_COLUMNS-lcd_count[1], "---%c", 0b11011111);
-	     }
-	     }
-	     else if (strcmp(sensors[i]->getType(), "DEP") == 0) {
-	     if (ISVALID(values_readed_from_sensor[i][0])) {
-	     lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "%.1fV", (values_readed_from_sensor[i][1]/10.0));
-	     }
-	     else {
-	     lcd_count[0] += snprintf(&lcd_buffer[0][0]+lcd_count[0], LCD_COLUMNS-lcd_count[0], "--.-V");
-	     }
-	     }
-	   */
-	 }
-         #endif
-
-	 if (driver && type && address && node) {
+         if (driver && type && address && node) {
             sensors_reading_state = SENSORS_READING_END;
             LOGV(F("SENSORS_READING_READ ---> SENSORS_READING_END"));
          }
@@ -2657,64 +2696,85 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       break;
 
       case SENSORS_READING_NEXT:
-        // next sensor
-        if ((++i) < readable_configuration.sensors_count) {
-          retry = 0;
-          sensors_reading_state = SENSORS_SETUP_CHECK;
-          LOGV(F("SENSORS_READING_NEXT ---> SENSORS_SETUP_CHECK"));
-        }
-        // success: all sensors readed
-        else {
-          // first time: read ptr data from sdcard
-          if (is_first_run && !is_test) {
-            #if (USE_MQTT)
-            noInterrupts();
-            if (!is_event_supervisor && is_event_mqtt_paused) {
-              is_event_supervisor = true;
-              ready_tasks_count++;
-            }
-            interrupts();
-            #endif
-          }
+         // next sensor
+         if ((i+1) < readable_configuration.sensors_count) {
+            // normal OR test: print
+            if (!is_first_run || is_test) {
+               LOGN(F("[%s] %s-%s [%d] \t %s\t%s"), is_test ? "TEST" : "REPORT", sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(), readable_configuration.sensors[i].mqtt_topic, &json_sensors_data[i][0]);
 
-          // other time but not in test: save data to sdcard
-          // normal AND NOT test: save
-          if (!is_first_run && !is_test) {
-            #if (USE_SDCARD)
-            noInterrupts();
-            if (!is_event_data_saving) {
-              is_event_data_saving = true;
-              ready_tasks_count++;
+               #if (USE_LCD)
+               do_print_lcd_sensor_value = true;
+               print_lcd_sensor_value(&values_readed_from_sensor[0], i);
+               #endif
             }
-            interrupts();
-            #endif
-          }
 
-          sensors_reading_state = SENSORS_READING_END;
-          LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_END"));
-        }
-        break;
+            i++;
+            retry = 0;
+            sensors_reading_state = SENSORS_READING_IS_SETTED;
+            LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_IS_SETTED"));
+         }
+         // success: all sensors readed
+         else {
+            // first time: read ptr data from sdcard
+            if (is_first_run && !is_test) {
+               #if (USE_MQTT)
+               noInterrupts();
+               if (!is_event_supervisor && is_event_mqtt_paused) {
+                  is_event_supervisor = true;
+                  ready_tasks_count++;
+               }
+               interrupts();
+               #endif
+            }
+
+            // other time but not in test: save data to sdcard
+            // normal AND NOT test: save
+            if (!is_first_run && !is_test) {
+               #if (USE_SDCARD)
+               noInterrupts();
+               if (!is_event_data_saving) {
+                  is_event_data_saving = true;
+                  ready_tasks_count++;
+               }
+               interrupts();
+               #endif
+            }
+            // normal in TEST
+            else if (!is_first_run && is_test) {
+               #if (USE_MQTT)
+               if (!is_event_supervisor && is_event_mqtt_paused) {
+                  is_event_supervisor = true;
+                  ready_tasks_count++;
+               }
+               #endif
+            }
+
+            delay_ms = SENSORS_RETRY_DELAY_MS;
+            start_time_ms = millis();
+            state_after_wait = SENSORS_READING_END;
+            sensors_reading_state = SENSORS_READING_WAIT_STATE;
+            LOGV(F("SENSORS_READING_NEXT ---> SENSORS_READING_END"));
+         }
+      break;
 
       case SENSORS_READING_END:
-        is_first_test = false;
+         is_first_test = false;
 
-        if (do_reset_first_run) {
-          is_first_run = false;
-        }
+         if (do_reset_first_run) {
+            is_first_run = false;
+         }
 
-        noInterrupts();
-        if (is_event_sensors_reading) {
-          is_event_sensors_reading = false;
-          ready_tasks_count--;
-        }
+         noInterrupts();
+         is_event_sensors_reading = false;
+         ready_tasks_count--;
 
-        if (is_event_sensors_reading_rpc) {
-          is_event_sensors_reading_rpc = false;
-        }
-        interrupts();
+         if (is_event_sensors_reading_rpc) {
+            is_event_sensors_reading_rpc = false;
+         }
+         interrupts();
 
-        sensors_reading_state = SENSORS_READING_INIT;
-        LOGV(F("SENSORS_READING_END ---> SENSORS_READING_INIT"));
+         sensors_reading_state = SENSORS_READING_INIT;
+         LOGV(F("SENSORS_READING_END ---> SENSORS_READING_INIT"));
       break;
 
       case SENSORS_READING_WAIT_STATE:
