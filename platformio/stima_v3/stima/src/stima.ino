@@ -90,7 +90,7 @@ void loop() {
       case TASKS_EXECUTION:
          // I2C Bus Check
          if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-            LOGE(F("Restart I2C BUS"));
+            LOGT(F("Restart I2C BUS"));
             reset_wire();
             wdt_reset();
          }
@@ -326,7 +326,6 @@ void init_tasks() {
    is_mqtt_subscribed = false;
    is_mqtt_connected = false;
    mqtt_error_count = 0;
-   setted_ptr_time_data = 0;
    mqtt_session_present=false;
    #endif
 

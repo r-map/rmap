@@ -421,20 +421,25 @@ File test_file;
 File mqtt_ptr_file;
 
 /*!
-\var is_mqtt_rpc_delay; 
+\var is_mqtt_rpc_delay;
 \brief An MQTT RPC happened and we have to wait some time before disconnect waiting for some more RPC to come.
 */
-bool is_mqtt_rpc_delay; 
+bool is_mqtt_rpc_delay;
+
+bool is_mqtt_subscribed;
+bool is_mqtt_connected;
+
+uint8_t mqtt_error_count;
 
 /*!
-\var rpcpayload; 
+\var rpcpayload;
 \brief The MQTT RPC payload for RPC response.
 */
 char rpcpayload[MQTT_RPC_RESPONSE_LENGTH];
 
 
 /*!
-\var mqtt_session_present; 
+\var mqtt_session_present;
 \brief The MQTT session is present on the broker for a Persistent Session.
 */
 bool mqtt_session_present;
@@ -587,7 +592,14 @@ time_t last_lcd_begin;
 \var lcd_error
 \brief Error happen with LCD.
 */
-bool lcd_error;
+bool is_lcd_error;
+bool is_lcd_printed;
+bool do_print_lcd_sensor_value;
+uint8_t lcd_page;
+time_t last_lcd_print;
+
+static char lcd_buffer[LCD_ROWS][LCD_COLUMNS];
+static uint8_t lcd_count[LCD_ROWS];
 
 #endif
 
@@ -649,6 +661,9 @@ volatile time_t next_ptr_time_for_sensors_reading;
 \brief Next scheduled time (in seconds since 01/01/1970 00:0:00) for sensors reading.
 */
 volatile time_t next_ptr_time_for_testing_sensors;
+
+time_t next_ptr_time_for_mqtt_tx;
+time_t next_ptr_time_for_mqtt_yield;
 
 /*!
 \var sensor_reading_time
@@ -1115,6 +1130,8 @@ bool is_event_mqtt;
 \brief If true, the MQTT task is in pause (need resume).
 */
 bool is_event_mqtt_paused;
+
+bool is_event_mqtt_yield;
 
 /*!
 \fn void mqtt_task(void)
