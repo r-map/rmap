@@ -1179,16 +1179,16 @@ void make_report () {
    copy_oneshot_data();
 
    // TEST
-   readable_data_write_ptr->thr.ist_temperature = 100.0;
-   readable_data_write_ptr->thr.min_temperature = 120.0;
-   readable_data_write_ptr->thr.avg_temperature = 140.0;
-   readable_data_write_ptr->thr.max_temperature = 160.0;
-   readable_data_write_ptr->thr.sigma_temperature = 180.0;
-   readable_data_write_ptr->thr.ist_humidity = 200.0;
-   readable_data_write_ptr->thr.min_humidity = 210.0;
-   readable_data_write_ptr->thr.avg_humidity = 230.0;
-   readable_data_write_ptr->thr.max_humidity = 250.0;
-   readable_data_write_ptr->thr.sigma_humidity = 270.0;
+   // readable_data_write_ptr->thr.ist_temperature = 100.0;
+   // readable_data_write_ptr->thr.min_temperature = 120.0;
+   // readable_data_write_ptr->thr.avg_temperature = 140.0;
+   // readable_data_write_ptr->thr.max_temperature = 160.0;
+   // readable_data_write_ptr->thr.sigma_temperature = 180.0;
+   // readable_data_write_ptr->thr.ist_humidity = 200.0;
+   // readable_data_write_ptr->thr.min_humidity = 210.0;
+   // readable_data_write_ptr->thr.avg_humidity = 230.0;
+   // readable_data_write_ptr->thr.max_humidity = 250.0;
+   // readable_data_write_ptr->thr.sigma_humidity = 270.0;
 
    #if (USE_SENSOR_ADT || USE_SENSOR_HYT)
    LOGN(F("%D\t%D\t%D\t%D\t%D\t"), readable_data_write_ptr->thr.ist_temperature, readable_data_write_ptr->thr.min_temperature, readable_data_write_ptr->thr.avg_temperature, readable_data_write_ptr->thr.max_temperature, readable_data_write_ptr->thr.sigma_temperature);
@@ -1213,8 +1213,9 @@ void copy_oneshot_data () {
    readable_data_write_ptr->thr.rain_tips = (float) rain_tips;
    readable_data_write_ptr->thr.rain = (float) (rain_tips * configuration.rain_for_tip);
 
-   readable_data_write_ptr->thr.rain_tips = 12.0;
-   readable_data_write_ptr->thr.rain = 24.0;
+   // TEST
+   // readable_data_write_ptr->thr.rain_tips = 12.0;
+   // readable_data_write_ptr->thr.rain = 24.0;
    #endif
 }
 

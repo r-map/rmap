@@ -270,7 +270,7 @@ Maximum number of values to be read by the sensors.
 \def STATISTICAL_DATA_COUNT
 \brief How much observations are needed for generating a report.
 */
-#define STATISTICAL_DATA_COUNT               (2)
+#define STATISTICAL_DATA_COUNT               (15)
 
 /*!
 \def OBSERVATION_COUNT
