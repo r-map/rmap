@@ -352,6 +352,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #endif
 
+#define LCD_PRINT_DELAY_MS                            (1000)
+
 /*********************************************************************
 * WATCHDOG
 *********************************************************************/
