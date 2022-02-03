@@ -51,26 +51,4 @@ typedef struct {
   char mqtt_topic[MQTT_SENSOR_TOPIC_LENGTH];    //!< sensor's mqtt topic path
 } sensor_t;
 
-/*!
-\struct rain_t
-\brief Rain tips struct for storing rain data.
-*/
-typedef struct {
-  uint16_t tips_count;  //!< rain gauge tips counter
-  uint16_t rain;        //!< rain (Hg/m^2)
-} rain_t;
-
-/*!
-\struct value_t
-\brief Value struct for storing sample, observation and minium, average and maximum measurement.
-*/
-typedef struct {
-  uint16_t sample; //!< last sample
-  uint16_t med60;  //!< last observation
-  uint16_t med;    //!< average values of observations
-  uint16_t max;    //!< maximum values of observations
-  uint16_t min;    //!< minium values of observations
-  uint16_t sigma;  //!< standard deviation of observations
-} value_t;
-
 #endif
