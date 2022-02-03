@@ -148,12 +148,17 @@ void loop() {
             wdt_reset();
          }
 
+         #if (USE_LCD)
+         lcd_task();
+         #endif
+
          if ((ready_tasks_count == 0) && (!is_event_rpc)) {
             wdt_reset();
             if (have_to_reboot) {
                state = REBOOT;
                LOGV(F("TASK_EXECUTION ---> REBOOT"));
-            }else{
+            }
+            else {
                state = END;
                LOGV(F("TASK_EXECUTION ---> END"));
             }
@@ -332,7 +337,12 @@ void init_tasks() {
 
    #if (USE_LCD)
    last_lcd_begin = 0;
+   last_lcd_print = -LCD_PRINT_DELAY_MS;
+   lcd_page = 0;
+   is_lcd_printed = false;
+   do_print_lcd_sensor_value = false;
    #endif
+
    is_time_for_sensors_reading_updated = false;
 
    have_to_reboot = false;
@@ -425,6 +435,37 @@ void init_lcd() {
    wdt_reset();
 }
 
+void lcd_task () {
+   if (millis() - last_lcd_print < LCD_PRINT_DELAY_MS) {
+      last_lcd_print = millis();
+
+      if ((lcd_page == 0) && do_print_lcd_sensor_value) {
+         if (!is_event_sensors_reading) {
+            do_print_lcd_sensor_value = false;
+            is_lcd_printed = true;
+            lcd.clear();
+            for (uint8_t lcd_row = 0; lcd_row < LCD_ROWS; lcd_row++) {
+               is_lcd_error |= lcd.setCursor(lcd_row, 0);
+               is_lcd_error |= lcd.print(lcd_buffer[lcd_row])==0;
+            }
+         }
+      }
+      // else if (lcd_page == 1) {
+      // }
+      // else if (lcd_page == 2) {
+      // }
+
+      if (is_lcd_printed) {
+         is_lcd_printed = false;
+         if (lcd_page < LCD_PAGES) {
+            lcd_page++;
+         }
+         else {
+            lcd_page = 0;
+         }
+      }
+   }
+}
 #endif
 
 #if (USE_RTC)
