@@ -209,6 +209,9 @@ void init_buffers() {
 
    reset_samples_buffer();
    reset_observations_buffer();
+
+   readable_data_address=0xFF;
+   readable_data_length=0;
 }
 
 void init_tasks() {
@@ -219,6 +222,7 @@ void init_tasks() {
 
    is_event_command_task = false;
    is_event_sensors_reading = false;
+   is_test_read = false;
 
    sensors_reading_state = SENSORS_READING_INIT;
 
@@ -418,16 +422,17 @@ void i2c_request_interrupt_handler() {
     }
   }
 
-   //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
-   //LOGV("request_interrupt_handler: %d-%d",readable_data_address,readable_data_length);
-   Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
-   Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+  //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+  Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
+  Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+  //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+  
+  readable_data_address=0xFF;
+  readable_data_length=0;
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
   bool is_i2c_data_ok = false;
-
-  readable_data_length = 0;
 
   // read rx_data_length bytes of data from i2c bus
   for (uint8_t i = 0; i < rx_data_length; i++) {
@@ -436,8 +441,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
-    readable_data_length = 0;
-    LOGN(F("No CRC: size %d"),rx_data_length);
+    //LOGN(F("No CRC: size %d"),rx_data_length);
   } else   
   //! check crc: ok
   if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
@@ -490,8 +494,9 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       }
     }
   } else {
+    readable_data_address=0xFF;
     readable_data_length = 0;
-    LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
@@ -1097,6 +1102,7 @@ void command_task() {
          is_continuous = false;
          is_start = false;
          is_stop = true;
+	 is_test_read = false;
          commands();
       break;
 
@@ -1108,6 +1114,7 @@ void command_task() {
          is_continuous = false;
          is_start = true;
          is_stop = true;
+	 is_test_read = false;
          commands();
       break;
 
@@ -1119,6 +1126,7 @@ void command_task() {
          is_continuous = true;
          is_start = true;
          is_stop = false;
+	 is_test_read = false;
          commands();
       break;
 
@@ -1130,7 +1138,8 @@ void command_task() {
          is_continuous = true;
          is_start = false;
          is_stop = true;
-         commands();
+	 is_test_read = false;
+	 commands();
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
@@ -1141,6 +1150,7 @@ void command_task() {
         is_continuous = true;
         is_start = true;
         is_stop = true;
+	is_test_read = false;
         commands();
       break;
 
@@ -1179,15 +1189,12 @@ void command_task() {
 }
 
 void tests() {
-  if (is_test_read) {
-
-    if (temperature_samples.count && humidity_samples.count) {
-      if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
-        readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
-        readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
-        LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
-        exchange_buffers();
-      }
+  if (temperature_samples.count && humidity_samples.count) {
+    if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
+      readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
+      readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
+      LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
+      exchange_buffers();
     }
 
   }
