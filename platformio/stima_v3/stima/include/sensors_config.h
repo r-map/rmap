@@ -28,14 +28,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def SENSOR_MAX
 \brief Max number of sensor.
 */
-#define SENSORS_MAX      (10)
+#define SENSORS_MAX                 (10)
 
 /*!
 \def SENSOR_UNIQUE_MAX
 \brief Max number of unique sensor.
 unique sensors are sensors that can ghave more driver but only one i2c address and only one setup and prepare
 */
-#define SENSORS_UNIQUE_MAX      (5)
+#define SENSORS_UNIQUE_MAX          (5)
+
+/*!
+\def USE_THR
+\brief Enable if you want use one module for TH and RAIN. Disable if you want use one module for TH and one for RAIN.
+*/
+#define USE_THR                     (true)
 
 /*!
 \def USE_JSON
@@ -240,12 +246,6 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 #define USE_SENSOR_RF24             (false)
 
 /*!
-\def RAIN_FOR_TIP
-\brief How much mm of rain for one tip of tipping bucket rain gauge.
-*/
-#define RAIN_FOR_TIP                (1)
-
-/*!
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
@@ -286,6 +286,27 @@ Maximum number of values to be read by the sensors.
 
 #if (OBSERVATION_COUNT < STATISTICAL_DATA_COUNT)
 #error OBSERVATION_COUNT must be major of STATISTICAL_DATA_COUNT !!!
+#endif
+
+#define USE_TH_SENSORS                        (USE_SENSOR_ADT || USE_SENSOR_HIH || USE_SENSOR_HYT || USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+#define USE_RAIN_SENSORS                      (USE_SENSOR_TBR || USE_SENSOR_TBS)
+
+#if (USE_TH_SENSORS && !USE_RAIN_SENSORS)
+#define USE_MODULE_THR                        (false)
+#define USE_MODULE_TH                         (true)
+#define USE_MODULE_RAIN                       (false)
+#elif (!USE_TH_SENSORS && USE_RAIN_SENSORS)
+#define USE_MODULE_THR                        (false)
+#define USE_MODULE_TH                         (false)
+#define USE_MODULE_RAIN                       (true)
+#elif (USE_TH_SENSORS && USE_RAIN_SENSORS && USE_THR)
+#define USE_MODULE_THR                        (true)
+#define USE_MODULE_TH                         (false)
+#define USE_MODULE_RAIN                       (false)
+#elif (USE_THR == 0)
+#define USE_MODULE_THR                        (false)
+#define USE_MODULE_TH                         (true)
+#define USE_MODULE_RAIN                       (true)
 #endif
 
 #endif
