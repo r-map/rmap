@@ -57,8 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_MESSAGE_LENGTH
 \brief Length in bytes for mqtt message.
 */
-#define MQTT_MESSAGE_LENGTH            (40)
-
+#define MQTT_MESSAGE_LENGTH               (50)
 /*!
 \def MQTT_RPC_COMMAND_LENGTH
 \brief Length in bytes for mqtt rpc command message.
