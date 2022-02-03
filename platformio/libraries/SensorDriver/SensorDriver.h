@@ -23,7 +23,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef SENSOR_DRIVER_H
 #define SENSOR_DRIVER_H
 
+#include <stdint.h>
 #include <debug_config.h>
+#include "typedef.h"
 #include <ArduinoLog.h>
 #include "SensorDriverSensors.h"
 #include "sensors_config.h"
@@ -49,8 +51,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Kelvin to Celsius constant conversion.
 */
 #define SENSOR_DRIVER_C_TO_K      (27315l)
-
-#define ISVALID(v)                ((uint16_t) v != UINT16_MAX)
 
 #if (USE_JSON)
 #include <json_config.h>
@@ -488,13 +488,13 @@ protected:
 };
 #endif
 
-#if (USE_SENSOR_TBS || USE_SENSOR_TBR)
-#include "registers-rain.h"
-class SensorDriverRain : public SensorDriver {
+#if (USE_MODULE_THR && (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH || USE_SENSOR_TBS || USE_SENSOR_TBR))
+#include "registers-thr.h"
+class SensorDriverThr : public SensorDriver {
 public:
-  SensorDriverRain(const char* driver, const char* type) : SensorDriver(driver, type) {
+   SensorDriverThr(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("rain create... [ %s ]"), OK_STRING);
+      LOGT(F("thr create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -507,66 +507,103 @@ public:
    void resetPrepared();
 
 protected:
+   uint8_t variable_length;
+   uint8_t data_length;
+   uint8_t variable_count;
+   uint8_t offset;
 
-   uint8_t rain_data[I2C_RAIN_LENGTH];
-  
+   float val;
+   uint8_t *val_ptr;
+
    enum {
       INIT,
-      SET_RAIN_ADDRESS,
-      READ_RAIN,
+      SET_ADDRESS,
+      READ_VALUE,
+      GET_VALUE,
       END
    } _get_state;
-
-   /*!
-   \var values[]
-   \brief Internal sensor's variable for values readed from sensors.
-   */
-   int32_t values[];
-
 };
 #endif
 
-#if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
-#include "registers-th.h"
-class SensorDriverTh : public SensorDriver {
-public:
-  SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
+// #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
+// #include "registers-rain.h"
+// class SensorDriverRain : public SensorDriver {
+// public:
+//   SensorDriverRain(const char* driver, const char* type) : SensorDriver(driver, type) {
+//       SensorDriver::printInfo();
+//       LOGT(F("rain create... [ %s ]"), OK_STRING);
+//    };
+//    void setup();
+//    void prepare(bool is_test = false);
+//    void get(int32_t *values, uint8_t length);
+//
+//    #if (USE_JSON)
+//    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+//    #endif
+//
+//    void resetPrepared();
+//
+// protected:
+//
+//    uint8_t rain_data[I2C_RAIN_LENGTH];
+//
+//    enum {
+//       INIT,
+//       SET_RAIN_ADDRESS,
+//       READ_RAIN,
+//       END
+//    } _get_state;
+//
+//    /*!
+//    \var values[]
+//    \brief Internal sensor's variable for values readed from sensors.
+//    */
+//    int32_t values[];
+//
+// };
+// #endif
 
-      SensorDriver::printInfo();
-      LOGT(F("th create... [ %s ]"), OK_STRING);
-   };
-   void setup();
-   void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
-
-   #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
-   #endif
-
-   void resetPrepared();
-
-protected:
-
-   uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
-   uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
-  
-   enum {
-      INIT,
-      SET_TEMPERATURE_ADDRESS,
-      READ_TEMPERATURE,
-      SET_HUMIDITY_ADDRESS,
-      READ_HUMIDITY,
-      END
-   } _get_state;
-
-   /*!
-   \var values[]
-   \brief Internal sensor's variable for values readed from sensors.
-   */
-   int32_t values[];
-
-};
-#endif
+// #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
+// #include "registers-th.h"
+// class SensorDriverTh : public SensorDriver {
+// public:
+//   SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
+//
+//       SensorDriver::printInfo();
+//       LOGT(F("th create... [ %s ]"), OK_STRING);
+//    };
+//    void setup();
+//    void prepare(bool is_test = false);
+//    void get(int32_t *values, uint8_t length);
+//
+//    #if (USE_JSON)
+//    void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+//    #endif
+//
+//    void resetPrepared();
+//
+// protected:
+//
+//    uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
+//    uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
+//
+//    enum {
+//       INIT,
+//       SET_TEMPERATURE_ADDRESS,
+//       READ_TEMPERATURE,
+//       SET_HUMIDITY_ADDRESS,
+//       READ_HUMIDITY,
+//       END
+//    } _get_state;
+//
+//    /*!
+//    \var values[]
+//    \brief Internal sensor's variable for values readed from sensors.
+//    */
+//    int32_t values[];
+//
+// };
+// #endif
 
 #if (USE_SENSOR_DEP)
 #include "digiteco_power.h"
