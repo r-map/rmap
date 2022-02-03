@@ -44,6 +44,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MAX_ERROR_COUNT
 \brief Max i2c error for bus restart.
 */
-#define I2C_MAX_ERROR_COUNT             (3)
+#define I2C_MAX_ERROR_COUNT             (1)
 
 #endif
