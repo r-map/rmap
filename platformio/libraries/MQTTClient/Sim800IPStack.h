@@ -42,6 +42,7 @@ public:
    }
 
    int write(unsigned char* buffer, int len, unsigned long timeout) {
+      client->setTimeout(timeout);
       return client->write((uint8_t*)buffer, len);
    }
 
