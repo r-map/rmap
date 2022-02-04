@@ -212,12 +212,22 @@ def handle_signals(mqttclient):
 
 def main(host, keepalive, port, topics, username, password, debug,
          overwrite_date, outfile,
-         readfromfile,fileinput,roottopic):
+         readfromfile,fileinput,roottopic,fileinfo):
     
     if (readfromfile):
 
-        MQTT_SENSOR_TOPIC_LENGTH=30
-        MQTT_MESSAGE_LENGTH=200
+        try:
+            with open(fileinfo) as i:
+                model=i.readline()
+                majorversion=i.readline()
+                minorversion=i.readline()
+                roottopic=i.readline()[:-1]
+                MQTT_SENSOR_TOPIC_LENGTH=int(i.readline())
+                MQTT_MESSAGE_LENGTH=int(i.readline())
+        except:
+            MQTT_SENSOR_TOPIC_LENGTH=38
+            MQTT_MESSAGE_LENGTH=44
+        
         reclen=MQTT_SENSOR_TOPIC_LENGTH+MQTT_MESSAGE_LENGTH
         with fileinput as f:
             while True:
@@ -272,7 +282,9 @@ if __name__ == '__main__':
     parser.add_argument("-f", "--file",dest="fileinput",
                         help="file to read; require -i (default: standard input)",
                         default="-",type=argparse.FileType('rb'))
-
+    parser.add_argument("-a", "--fileinfo",dest="fileinfo",
+                        help="info file to read; require -i (default: default info)",
+                        default="info.dat")
     parser.add_argument("-r", "--roottopic",
                         help="root topic used when reading from file (default %(default)s)",
                         default="test/myuser/1212345,4512345/fixed/")
@@ -309,5 +321,5 @@ if __name__ == '__main__':
         debug=args.debug, overwrite_date=args.overwrite_date,
         outfile=sys.stdout.buffer,
         readfromfile=args.readfromfile,fileinput=args.fileinput,
-        roottopic=args.roottopic
+        roottopic=args.roottopic,fileinfo=args.fileinfo
     )
