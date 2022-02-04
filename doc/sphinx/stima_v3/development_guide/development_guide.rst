@@ -143,13 +143,13 @@ seguito.
    -  const char\* type: stringa di 3 caratteri contenente il nome del
       sensore
 
--  virtual void setup(const uint8_t address, const uint8_t node , bool *is_setted, bool *is_prepared)
+-  virtual void setup(const uint8_t address, const uint8_t node , bool \*is_setted, bool \*is_prepared)
    
    -  operazioni di inizializzazione del sensore
    -  const uint8_t address: indirizzo I\ :sup:`2`\ C del sensore
    -  const uint8_t node: nodo all’interno della rete
-   -  bool *is_setted: setup sensor's status.
-   -  bool *is_prepared: prepared sensor's status.
+   -  bool \*is_setted: setup sensor's status.
+   -  bool \*is_prepared: prepared sensor's status.
 
 -  virtual void prepare(bool is_test = false)
 

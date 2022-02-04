@@ -107,7 +107,7 @@ html_theme = 'alabaster'
 
 html_logo="../logo_stima.png"
 #html_logo="../../../python/static/rmap/rmap-01.png"
-html_favicon="../../python/static/img/favicon.ico"
+html_favicon="../favicon.ico"
 #html_add_permalinks="rmap"
 #html_split_index=True
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-12-21 14:33+0100\n"
+"POT-Creation-Date: 2022-02-03 17:47+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -165,7 +165,7 @@ msgstr ""
 #: ../../stima_v3/development_guide/development_guide.rst:146
 msgid ""
 "virtual void setup(const uint8_t address, const uint8_t node , bool "
-"*is_setted, bool *is_prepared)"
+"\\*is_setted, bool \\*is_prepared)"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:148
@@ -182,11 +182,11 @@ msgid "const uint8_t node: nodo all’interno della rete"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:151
-msgid "bool *is_setted: setup sensor's status."
+msgid "bool \\*is_setted: setup sensor's status."
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:152
-msgid "bool *is_prepared: prepared sensor's status."
+msgid "bool \\*is_prepared: prepared sensor's status."
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:154
@@ -324,7 +324,9 @@ msgid "uint32_t_t getDelay()"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:227
-msgid "ritorna il valore in millisecondi indicante l’attesa richiesta"
+msgid ""
+"ritorna il valore in millisecondi indicante l’attesa richiesta per i "
+"metodi prepare e get"
 msgstr ""
 
 #: ../../stima_v3/development_guide/development_guide.rst:229
@@ -513,5 +515,20 @@ msgid ""
 msgstr ""
 
 #~ msgid "virtual void setup(const uint8_t address, const uint8_t node = 0)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "virtual void setup(const uint8_t address, "
+#~ "const uint8_t node , bool *is_setted,"
+#~ " bool *is_prepared)"
+#~ msgstr ""
+
+#~ msgid "bool *is_setted: setup sensor's status."
+#~ msgstr ""
+
+#~ msgid "bool *is_prepared: prepared sensor's status."
+#~ msgstr ""
+
+#~ msgid "ritorna il valore in millisecondi indicante l’attesa richiesta"
 #~ msgstr ""
 
