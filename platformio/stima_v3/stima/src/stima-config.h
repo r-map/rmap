@@ -333,10 +333,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SDCARD_CHIP_SELECT_PIN                        (7)
 
 /*!
-\def SDCARD_TEST_FILE_NAME
+\def SDCARD_INFO_FILE_NAME
 \brief File name for testing SD-Card.
 */
-#define SDCARD_TEST_FILE_NAME                        ("temp.txt")
+#define SDCARD_INFO_FILE_NAME                        ("info.dat")
 
 /*!
 \def SDCARD_LOGGING_FILE_NAME

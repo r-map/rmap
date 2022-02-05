@@ -1636,8 +1636,14 @@ void supervisor_task() {
 	    }
 	  }
 	  if (is_sdcard_open){
-	    if (sdcard_open_file(&SD, &test_file, SDCARD_TEST_FILE_NAME, O_RDWR | O_CREAT | O_APPEND)) {
-              is_sdcard_ok = test_file.close();
+	    if (sdcard_open_file(&SD, &test_file, SDCARD_INFO_FILE_NAME, O_RDWR | O_CREAT )) {
+	      test_file.println(stima_name);
+	      test_file.println(MODULE_MAIN_VERSION);
+	      test_file.println(MODULE_MINOR_VERSION);
+	      test_file.println(readable_configuration.mqtt_root_topic);
+	      test_file.println(MQTT_SENSOR_TOPIC_LENGTH);
+	      test_file.println(MQTT_MESSAGE_LENGTH);
+	      is_sdcard_ok = test_file.close();
             }
           }
 
