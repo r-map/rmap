@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_SENSOR_TOPIC_LENGTH
 \brief Length in bytes for mqtt sensor topic.
 */
-#define MQTT_SENSOR_TOPIC_LENGTH       (35)
+#define MQTT_SENSOR_TOPIC_LENGTH       (38)
 
 /*!
 \def MQTT_CLIENT_ID_LENGTH
@@ -57,7 +57,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_MESSAGE_LENGTH
 \brief Length in bytes for mqtt message.
 */
-#define MQTT_MESSAGE_LENGTH            (40)
+#define MQTT_MESSAGE_LENGTH            (44)
 
 /*!
 \def MQTT_RPC_COMMAND_LENGTH
