@@ -1,7 +1,7 @@
 /**********************************************************************
 Copyright (C) 2018  Paolo Paruno <p.patruno@iperbole.bologna.it>
 authors:
-Paolo Paruno <p.patruno@iperbole.bologna.it>
+Paolo Patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
@@ -22,35 +22,41 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * This program test multimaster I2C
  * 
 **********************************************************************/
+#include <ArduinoLog.h>
+#include "Wire.h"
+#include <avr/wdt.h>
+
+// logging level at compile time Available levels are:
+// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR,
+// LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
+#define LOG_LEVEL   LOG_LEVEL_WARNING
 
 #define VERSION 01             //Software version for cross checking
 
+#ifndef I2C_MY_ADDRESS
 #define I2C_MY_ADDRESS 10
+#endif
+
+#ifndef I2C_OTHER_ADDRESS
 #define I2C_OTHER_ADDRESS 11
+#endif
 
 // set the I2C clock frequency 
-#define I2C_CLOCK 30418
+//#define I2C_CLOCK 30418
+#define I2C_CLOCK 100000
 
-//#define  I2C_HOW_MANY_BUSY_CHECKS_AFTER_STOP  10
-
-#define MAX_SENT_BYTES     BUFFER_LENGTH   //maximum amount of data that I could receive from a master device 
-
+#define MAX_SENT_BYTES     25 //amount of data that I send from a master device (max BUFFER_LENGTH)
+#define REQUESTED_BYTES    20 //amount of data that I send from a master device (max BUFFER_LENGTH)
 /*
 extern "C" {
     #include "utility/twi.h"
 }
 */
-// logging level at compile time
-// Available levels are:
-// LOG_LEVEL_SILENT, LOG_LEVEL_FATAL, LOG_LEVEL_ERROR, LOG_LEVEL_WARNING, LOG_LEVEL_NOTICE, LOG_LEVEL_VERBOSE
-#define LOG_LEVEL   LOG_LEVEL_ERROR
-#include <ArduinoLog.h>
-#include "Wire.h"
 
-
-volatile static uint8_t         receivedData[MAX_SENT_BYTES];
-volatile static uint8_t         new_data=0;                        //new data received 
-
+volatile uint8_t         new_data=0;                        //new data received
+volatile uint8_t         newreceivedData[BUFFER_LENGTH];
+uint8_t                  data=0;                            //data received
+uint8_t                  receivedData[BUFFER_LENGTH];
 uint8_t errorcount=0;
 
 /**
@@ -128,171 +134,138 @@ int I2C_ClearBus() {
 //
 void requestEvent()
 {
-  Wire.write(51);
-  Wire.write(52);
-  Wire.write(53);
-  Wire.write(54);
-  Wire.write(55);
-  Wire.write(56);
-  Wire.write(57);
-  Wire.write(58);
-  Wire.write(59);
-  Wire.write(60);
-  Wire.write(61);
-  Wire.write(62);
-  Wire.write(63);
-  Wire.write(64);
-  Wire.write(65);
-  Wire.write(66);
-  Wire.write(67);
-  Wire.write(68);
-  Wire.write(69);
-  Wire.write(70);
+  //LOGW("requested to me: %d bytes" CR, howMany);
   //Write up to 32 byte, since master is responsible for reading and sending NACK
-  //32 byte limit is in the Wire library, we have to live with it unless writing our own wire library
+  //32 byte limit is in the Wire library, we have to live with it unless set it at compile time
+  for (uint8_t i=0; i<REQUESTED_BYTES; i++){
+    Wire.write(i);
+  }
 }
 
 //Handler for receiving data
 void receiveEvent( int bytesReceived)
 {
-  //LOGN("receive event, bytes: %d" CR,bytesReceived);
+  //LOGW("receive event, bytes: %d" CR,bytesReceived);
   new_data=bytesReceived;
   for (int a = 0; a < bytesReceived; a++) {
-    if (a < MAX_SENT_BYTES) {
-      receivedData[a] = Wire.read();
-      //LOGN("received: %X" CR, receivedCommands[a]);
+      newreceivedData[a] = Wire.read();
+      //LOGW("received: %X" CR, newreceivedData[a]);
       //    } else {
       //Wire.read();  // if we receive more data then allowed just throw it away
-    }
   }
-  if ( new_data > MAX_SENT_BYTES) new_data = MAX_SENT_BYTES;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//Check for new incoming command on I2C
+//Check for new incoming data on I2C
 void received_data(){
   unsigned long startt=millis();
   unsigned long delms=random(5000);
   LOGT("wait: %d ms" CR, delms);
-  while (new_data == 0 && (millis()-startt) < delms) delay(1);
-  LOGN("Received data: %d" CR, new_data);
-  noInterrupts();
-  for (int a = 0; a < new_data; a++) {
-    LOGN("received: %d" CR, receivedData[a]);
+  while ((millis()-startt) < delms){
+    wdt_reset();
+
+    noInterrupts();
+    if (new_data > 0) {
+      data=new_data;
+      for (int a = 0; a < new_data; a++) {
+	receivedData[a]=newreceivedData[a];
+      }
+      new_data=0;
+    }
+    interrupts();
+
+    if (data > 0) {
+      LOGW("Received data: %d" CR, data);
+      for (int a = 0; a < data; a++) {
+	LOGN("received byte: %d: value %d" CR, a, receivedData[a]);
+      }
+      data=0;
+    }
   }
-  new_data=0;
-  interrupts();
 }
 
 void send_data(){
-  LOGN(F("Send Data" CR));
-
-  digitalWrite(3,HIGH);
+  LOGW(F("Send Data" CR));
 
   Wire.beginTransmission(I2C_OTHER_ADDRESS);
-  Wire.write(1);
-  Wire.write(2);
-  Wire.write(3);
-  Wire.write(4);
-  Wire.write(5);
-  Wire.write(6);
-  Wire.write(7);
-  Wire.write(8);
-  Wire.write(9);
-  Wire.write(10);
-  Wire.write(11);
-  Wire.write(12);
-  Wire.write(13);
-  Wire.write(14);
-  Wire.write(15);
-  Wire.write(16);
-  Wire.write(17);
-  Wire.write(18);
-  Wire.write(19);
-  Wire.write(20);
-  Wire.write(21);
-  Wire.write(22);
-  Wire.write(23);
-  Wire.write(24);
-  Wire.write(25);
-  Wire.write(26);
-  Wire.write(27);
-  Wire.write(28);
-  Wire.write(29);
-  Wire.write(30);
-  Wire.write(31);
-  Wire.write(32);
-
+  for (uint8_t i=0; i<MAX_SENT_BYTES; i++){
+    Wire.write(i);
+  }
+  
   uint8_t status=Wire.endTransmission(); // End Write Transmission 
   if (status != 0){
-    LOGE(F("Wire error %d" CR),status);
+    LOGE(F("Write error %d" CR),status);
     errorcount++;
-    /*
-      twi_stop();
-      delay(10);
-      pinMode(SDA, INPUT_PULLUP);
-      for (int i = 0; i < 8; i++) {
-      pinMode(SCL, OUTPUT);
-      digitalWrite(SCL, LOW);
-      delayMicroseconds(6);
-      pinMode(SCL, INPUT_PULLUP);
-      delayMicroseconds(6);
-      }
-      twi_init();
-      twi_setAddress(I2C_MY_ADDRESS);
-      twi_setFrequency(I2C_CLOCK);
-    */
-
-    if (errorcount >10 ){
-      errorcount=0;
-      //http://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
-      int rtn = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
-      if (rtn != 0) {
-	LOGE(F("I2C bus error. Could not clear" CR));
-	if (rtn == 1) {
-	  LOGE(F("SCL clock line held low" CR));
-	} else if (rtn == 2) {
-	  LOGE(F("SCL clock line held low by slave clock stretch" CR));
-	} else if (rtn == 3) {
-	  LOGE(F("SDA data line held low" CR));
-	}
-      } else { // bus clear
-	// re-enable Wire
-	// now can start Wire Arduino master
-	
-	Wire.begin(I2C_MY_ADDRESS);
-	//set the i2c clock 
-	Wire.setClock(I2C_CLOCK);
-	
-	//The Wire library enables the internal pullup resistors for SDA and SCL.
-	//You can turn them off after Wire.begin()
-	// do not need this with patched Wire library
-	//digitalWrite( SDA, LOW);
-        //digitalWrite( SCL, LOW);
-	
-	digitalWrite( SDA, HIGH);
-	digitalWrite( SCL, HIGH);
-	
-	Wire.onRequest(requestEvent);          // Set up event handlers
-	Wire.onReceive(receiveEvent);
-	
-      }
-    }
-    digitalWrite(3,LOW);
+  }else{
+    LOGW(F("written %d bytes" CR),MAX_SENT_BYTES);
+    errorcount=0;
   }
 }
 
 void request_data(){
   LOGN(F("Request Data" CR));
-  Wire.requestFrom(I2C_OTHER_ADDRESS,20);
-  uint8_t a=1;
+  uint8_t howMany = Wire.requestFrom(I2C_OTHER_ADDRESS,REQUESTED_BYTES);
+  LOGW(F("requested %d: received %d" CR),REQUESTED_BYTES,howMany);
+  if (howMany != REQUESTED_BYTES){
+    errorcount++;
+    LOGE(F("requested %d: received %d" CR),REQUESTED_BYTES, howMany);
+  }else{
+    errorcount=0;
+  }
+
+  uint8_t a=0;
   while  (Wire.available()>0) {   // slave may send less than requested
-    LOGN(F("requested %d: %d" CR),a++,Wire.read());
+    LOGN(F("requested byte number: %d; value: %d" CR),a++,Wire.read());
   }
 }
 
+
+void checkI2C(){  
+  if (errorcount >10 ){
+    
+    LOGE(F("I2C bus error. RESET!" CR));
+    errorcount=0;
+
+    //http://www.forward.com.au/pfod/ArduinoProgramming/I2C_ClearBus/index.html
+    int rtn = I2C_ClearBus(); // clear the I2C bus first before calling Wire.begin()
+    if (rtn != 0) {
+      LOGE(F("I2C bus error. Could not clear" CR));
+      if (rtn == 1) {
+	LOGE(F("SCL clock line held low" CR));
+      } else if (rtn == 2) {
+	LOGE(F("SCL clock line held low by slave clock stretch" CR));
+      } else if (rtn == 3) {
+	LOGE(F("SDA data line held low" CR));
+      }
+    } else { // bus clear
+      // re-enable Wire
+      // now can start Wire Arduino master
+      Wire.begin(I2C_MY_ADDRESS);
+      //set the i2c clock 
+      Wire.setClock(I2C_CLOCK);
+      
+      //The Wire library enables the internal pullup resistors for SDA and SCL.
+      //You can turn them off after Wire.begin()
+      // do not need this with patched Wire library
+      //digitalWrite( SDA, LOW);
+      //digitalWrite( SCL, LOW);
+      
+      //digitalWrite( SDA, HIGH);
+      //digitalWrite( SCL, HIGH);
+      
+      Wire.onRequest(requestEvent);          // Set up event handlers
+      Wire.onReceive(receiveEvent);
+      
+    }
+  }
+}  
+
 void setup() {
+
+  wdt_disable();
+  wdt_reset();
+  wdt_enable(WDTO_8S);
   
   randomSeed(analogRead(0));
   Serial.begin(115200);        // connect to the serial port
@@ -307,6 +280,7 @@ void setup() {
   Log.begin(LOG_LEVEL, &Serial);
 
   LOGF(F("Start i2c-multimaster firmware version: %d" CR),VERSION);
+  LOGF(F("I2C myaddress: %d  other address: %d" CR),I2C_MY_ADDRESS, I2C_OTHER_ADDRESS);
 
   //Start I2C communication routines
   Wire.begin(I2C_MY_ADDRESS);
@@ -322,8 +296,8 @@ void setup() {
   //digitalWrite( SDA, LOW);
   //digitalWrite( SCL, LOW);
 
-  digitalWrite( SDA, HIGH);
-  digitalWrite( SCL, HIGH);
+  //digitalWrite( SDA, HIGH);
+  //digitalWrite( SCL, HIGH);
 
   Wire.onRequest(requestEvent);          // Set up event handlers
   Wire.onReceive(receiveEvent);
@@ -337,5 +311,7 @@ void loop() {
   received_data();
   send_data();
   request_data();
+  checkI2C();
+  wdt_reset();
   
 }
