@@ -1158,7 +1158,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         transport=jsonrpc.TransportMQTT( host=myhost, user=myuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
 
                 except ObjectDoesNotExist:
-                    print("transport TCPIP not present for this board")
+                    print("transport MQTT not present for this board")
                     return
 
                 
@@ -1595,6 +1595,21 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
                 myboard.save()
 
 
+
+def configuser(username="rmap",password="rmap"):
+
+    try:
+        user = User.objects.create_user(username, username+'@rmap.cc', password)            
+        #trap IntegrityError for user that already exist
+    except IntegrityError:
+        pass
+    except:
+        raise
+
+    updateusername(oldusername=username,newusername=username,newpassword=password)
+        
+
+                
 def configdb(username="rmap",password="rmap",
              station="home",lat=0,lon=0,constantdata={},network="fixed",
              mqttusername="your user",
@@ -1613,15 +1628,8 @@ def configdb(username="rmap",password="rmap",
              mqttrootpath=None,
              mqttmaintpath=None):
 
-    try:
-        user = User.objects.create_user(username, username+'@rmap.cc', password)            
-        #trap IntegrityError for user that already exist
-    except IntegrityError:
-        pass
-    except:
-        raise
 
-    updateusername(oldusername=username,newusername=username,newpassword=password)
+    configuser(username,password)
         
     try:
 

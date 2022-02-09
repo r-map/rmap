@@ -214,7 +214,7 @@ class rmapmqtt:
 
         try:
             if ( not self.loop_started):
-                print("loop")
+                #print("loop")
                 rc = self.mqttc.loop(timeout)
                 #if rc != mqtt.MQTT_ERR_SUCCESS:
                   #raise Exception("loop",rc)

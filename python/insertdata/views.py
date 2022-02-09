@@ -593,6 +593,7 @@ def insertNewStation(request):
             slug=slugify(name)
             board_slug="default"
             template=newstationform.cleaned_data['template']
+            host = get_current_site(request)
             
             if name:
                 try:
@@ -621,9 +622,9 @@ def insertNewStation(request):
 
                     rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
                                  ,serialactivate=False
-                                 ,mqttactivate=True, mqttserver="rmap.cc", mqttusername=ident, mqttpassword="fakepassword", mqttsamplerate=30
+                                 ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword="fakepassword", mqttsamplerate=30
                                  ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername="rmap", amqppassword="fakepassword", amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+                                ,amqpactivate=False, amqpusername="rmap", amqppassword="fakepassword", amqpserver=host, queue="rmap", exchange="rmap"
                                  ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
                     )
                     
@@ -695,6 +696,7 @@ def insertNewStationDetail(request,slug=None):
                     mystation.lat=rmap.rmap_core.truncate(lat,5)
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
+                    host = get_current_site(request)
 
                     # this in not very good ! we need to specify better in template the type (report/sample)
                     if ("_report_" in template):
@@ -731,9 +733,9 @@ def insertNewStationDetail(request,slug=None):
 
                     rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
                                 ,serialactivate=True
-                                ,mqttactivate=True, mqttserver="rmap.cc", mqttusername=ident, mqttpassword=password, mqttsamplerate=mqttsamplerate
+                                ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword=password, mqttsamplerate=mqttsamplerate
                                 ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername=ident, amqppassword=password, amqpserver="rmap.cc", queue="rmap", exchange="rmap"
+                                ,amqpactivate=False, amqpusername=ident, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
                                 ,tcpipactivate=True, tcpipname="master", tcpipntpserver="it.pool.ntp.org", tcpipgsmapn="ibox.tim.it"
                     )
 

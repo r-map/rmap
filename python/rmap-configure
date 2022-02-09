@@ -69,6 +69,7 @@ parser.add_argument('--version', action='version', version="%(prog)s "+__version
 parser.add_argument('--list_stations',action="store_true", help="list all stations, board and transports")
 parser.add_argument('--list_boards',action="store_true", help="list all board and transports on station ")
 parser.add_argument('--list_sensors',action="store_true", help="list all board on board ")
+parser.add_argument('--configuser',action="store_true", help="configure new or old user (set/create user with password")
 parser.add_argument('--wizard',action="store_true", help="wizard configuration tool (simple set user, password, location on station")
 parser.add_argument('--delsensor',action="store_true", help="del sensor from module of station")
 parser.add_argument('--delsensors',action="store_true", help="ATTENTIONS delete ALL sensor from module of station")
@@ -145,6 +146,7 @@ parser.add_argument('--amqpdebug', action="store_true", help="activate amqp (pik
 
 args = parser.parse_args()
 
+
 if (args.amqpdebug):
     import sys
     logger=logging.getLogger('pika')
@@ -154,6 +156,17 @@ if (args.amqpdebug):
 #truncate lon and lat to have coordinate as RMAP specification
 if not (args.lon is None): args.lon=rmap.rmap_core.truncate(args.lon,5)
 if not (args.lat is None): args.lat=rmap.rmap_core.truncate(args.lat,5)
+
+if args.configuser:
+
+    if (args.username is None or
+        args.password is None):
+        print(" selected configuser without username or password")
+        raise SystemExit(1)
+
+    rmap.rmap_core.configuser(username=args.username,password=args.password)
+
+    print("END of user configuration")
 
 if args.wizard:
 

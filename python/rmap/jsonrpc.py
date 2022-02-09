@@ -885,7 +885,7 @@ class TransportMQTT(Transport):
 
         self.mqttc.loop_stop()
         self.mqttc.disconnect()
-        self.log("Disconnected from broker; exiting on signal %d", signum)
+        self.log("Disconnected from broker; exiting on signal %d" % signum)
         self.connected=False
 
         sys.exit(signum)
@@ -926,8 +926,12 @@ class TransportMQTT(Transport):
     def send(self, string):
         """write data to mqtt broker """
 
+        self.start=time.time()        
         while not self.connected:
             self.log( "wait for connect" )
+            if (time.time() - self.start) > self.timeout:
+                self.log( "timeout" )
+                return
             time.sleep(1)
         mi=self.mqttc.publish(self.topiccom, payload=string, qos=1, retain=False)
         self.log( "mqtt publish : %s" % (string) )
