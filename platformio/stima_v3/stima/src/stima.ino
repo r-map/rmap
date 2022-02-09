@@ -40,21 +40,20 @@ void setup() {
    Serial.begin(115200);
    init_pins();
    init_wire();
+   init_spi();
    init_rpc();
    init_tasks();
    init_logging();
    #if (USE_LCD)
    init_lcd();
-   wdt_reset();
    #endif
-   load_configuration();
-   init_buffers();
-   init_spi();
    #if (USE_RTC)
    init_rtc();
    #elif (USE_TIMER_1)
    init_timer1();
    #endif
+   init_buffers();
+   load_configuration();
    init_system();
    wdt_reset();
    delay(1000);  // wait other board go ready
@@ -625,7 +624,7 @@ bool mqttConnect(char *username, char *password) {
    MQTT::connackData data ;
    options.MQTTVersion = 4;   // Version of MQTT to be used.  3 = 3.1 4 = 3.1.1
    options.will.topicName.cstring = maint_topic;
-   options.will.message.cstring = MQTT_ON_ERROR_MESSAGE;
+   options.will.message.cstring = (char *) MQTT_ON_ERROR_MESSAGE;
    options.will.retained = true;
    options.will.qos = MQTT::QOS1;
    options.willFlag = true;
@@ -1231,6 +1230,7 @@ int recovery(JsonObject params, JsonObject result) {
 	  found=true;
 	  if (!sdcard_open_file(&SD, &mqtt_ptr_rpc_file, SDCARD_MQTT_PTR_RPC_FILE_NAME, O_RDWR | O_CREAT)) {
 	    tmpstate = E_INTERNAL_ERROR;
+	    is_sdcard_error = true;
 	    result[F("state")] = F("error");
 	    LOGE(F("SD Card opening ptr data on file %s... [ %s ]"), SDCARD_MQTT_PTR_RPC_FILE_NAME, FAIL_STRING);
 	    rpc_state = RPC_END;
@@ -2906,7 +2906,7 @@ void mqtt_task() {
 	 strcat(comtopic, "com");
 	 rpcpayload[0]=0;
 
-         if (!is_sdcard_open && !is_sdcard_error) {
+         if (!is_sdcard_open || is_sdcard_error) {
             mqtt_state = MQTT_OPEN_SDCARD;
             LOGV(F("MQTT_PTR_DATA_INIT ---> MQTT_OPEN_SDCARD"));
          }
