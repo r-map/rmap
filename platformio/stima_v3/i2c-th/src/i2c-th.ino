@@ -822,10 +822,10 @@ void sensors_reading_task () {
          retry_prepare = 0;
          retry_get = 0;
          state_after_wait = SENSORS_READING_INIT;
-         sensors_reading_state = SENSORS_SETUP_CHECK;
+         sensors_reading_state = SENSORS_READING_SETUP_CHECK;
       break;
 
-   case SENSORS_SETUP_CHECK:
+   case SENSORS_READING_SETUP_CHECK:
 
         LOGV(F("Sensor error count: %d"),sensors[i]->getErrorCount());
      
@@ -989,7 +989,7 @@ void sensors_reading_task () {
          if ((++i) < sensors_count) {
             retry_prepare = 0;
             retry_get = 0;
-            sensors_reading_state = SENSORS_SETUP_CHECK;
+            sensors_reading_state = SENSORS_READING_SETUP_CHECK;
          }
          //! end (there are no other sensors to read)
          else {
