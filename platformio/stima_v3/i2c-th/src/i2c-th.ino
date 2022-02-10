@@ -1,5 +1,3 @@
-/**@file i2c-th.ino */
-
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
@@ -229,6 +227,11 @@ void init_tasks() {
    //! reset samples_count value
    samples_count = SENSORS_SAMPLE_COUNT_MIN;
 
+   is_oneshot = false;
+   is_continuous = false;
+   is_start = false;
+   is_stop = false;
+
    interrupts();
 }
 
@@ -353,6 +356,7 @@ void load_configuration() {
 
    writable_data.i2c_address = configuration.i2c_address;
    writable_data.is_oneshot = configuration.is_oneshot;
+   writable_data.is_continuous = configuration.is_continuous;
 }
 
 void init_sensors () {
@@ -379,6 +383,34 @@ void init_sensors () {
       LOGN(F("--> acquiring %d~%d samples in %d minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
       //LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
    }
+
+   LOGN(F("tsc: temperature sample count"));
+   LOGN(F("tmp: temperature sample"));
+
+   LOGN(F("hsc: humidity sample count"));
+   LOGN(F("hum: humidity sample"));
+
+   LOGN(F("tist: average temperature in the ist %d minutes"), OBSERVATIONS_MINUTES);
+   LOGN(F("tmin: minimum temperature"));
+   LOGN(F("tavg: average temperature"));
+   LOGN(F("tmax: maximum temperature"));
+   LOGN(F("tsgm: sigma temperature"));
+
+   LOGN(F("hist: average humidity in the ist %d minutes"), OBSERVATIONS_MINUTES);
+   LOGN(F("hmin: minimum humidity"));
+   LOGN(F("havg: average humidity"));
+   LOGN(F("hmax: maximum humidity"));
+   LOGN(F("hsig: sigma humidity"));
+
+
+   LOGN(F("tsc\ttmp\t"));
+
+   LOGN(F("hsc\thum\t"));
+
+   LOGN(F("tist\ttmin\ttavg\ttmax\ttsgm\t"));
+
+   LOGN(F("hist\thmin\thavg\thmax\thsgm\t"));
+
 }
 
 /*!
@@ -421,12 +453,13 @@ void i2c_request_interrupt_handler() {
       break;
     }
   }
+  if (readable_data_length) {
+    //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+    Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
+    Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+    //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+  }
 
-  //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
-  Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
-  Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-  //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-  
   readable_data_address=0xFF;
   readable_data_length=0;
 }
