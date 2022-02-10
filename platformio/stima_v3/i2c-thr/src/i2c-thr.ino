@@ -504,7 +504,7 @@ ISR(TIMER1_OVF_vect) {
 
    i2c_time+=TIMER1_INTERRUPT_TIME_MS/1000;
 
-   //! check if SENSORS_SAMPLE_TIME_MS ms have passed since ist time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
+   //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
    #if (USE_MODULE_THR || USE_MODULE_TH)
    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
       if (!is_event_sensors_reading) {
@@ -543,8 +543,6 @@ void i2c_request_interrupt_handler() {
       Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
       //! write crc8
       Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-   } else {
-      Wire.write(UINT16_MAX);
    }
 }
 
@@ -558,6 +556,10 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       i2c_rx_data[i] = Wire.read();
    }
 
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    //LOGN(F("No CRC: size %d"),rx_data_length);
+  } else   
    //! check crc: ok
    if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
       rx_data_length--;
@@ -569,25 +571,38 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
          // length (in bytes) of data to be read in readable_data_read_ptr
          readable_data_length = i2c_rx_data[1];
+      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
       }
       // it is a command?
       else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-         noInterrupts();
+      //noInterrupts();
          // enable Command task
          if (!is_event_command_task) {
             is_event_command_task = true;
             ready_tasks_count++;
          }
-         interrupts();
+      //interrupts();
       }
       // it is a registers write?
       else if (is_writable_register(i2c_rx_data[0])) {
-         rx_data_length -= 2;
+         rx_data_length -= 1;
 
+#if (USE_MODULE_THR)
          if (i2c_rx_data[0] == I2C_THR_ADDRESS_ADDRESS && rx_data_length == I2C_THR_ADDRESS_LENGTH) {
             is_i2c_data_ok = true;
          }
-         else if (i2c_rx_data[0] == I2C_THR_ONESHOT_ADDRESS && rx_data_length == I2C_THR_ONESHOT_LENGTH) {
+#endif
+#if (USE_MODULE_RAIN)
+         if (i2c_rx_data[0] == I2C_RAIN_ADDRESS_ADDRESS && rx_data_length == I2C_RAIN_ADDRESS_LENGTH) {
+            is_i2c_data_ok = true;
+         }
+#endif
+#if (USE_MODULE_TH)
+         if (i2c_rx_data[0] == I2C_TH_ADDRESS_ADDRESS && rx_data_length == I2C_TH_ADDRESS_LENGTH) {
+            is_i2c_data_ok = true;
+         }
+#endif
+	 else if (i2c_rx_data[0] == I2C_THR_ONESHOT_ADDRESS && rx_data_length == I2C_THR_ONESHOT_LENGTH) {
             is_i2c_data_ok = true;
          }
          else if (i2c_rx_data[0] == I2C_THR_CONTINUOUS_ADDRESS && rx_data_length == I2C_THR_CONTINUOUS_LENGTH) {
@@ -603,12 +618,14 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
          if (is_i2c_data_ok) {
             for (uint8_t i = 0; i < rx_data_length; i++) {
                // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-               ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 2];
+               ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
             }
          }
       }
    } else {
+      readable_data_address=0xFF;
       readable_data_length = 0;
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
       i2c_error++;
    }
 }
@@ -843,29 +860,6 @@ void sensors_reading_task () {
 	  }
 	}
 
-
-//! read sensor value
-         #if (USE_SENSOR_ADT)
-         if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
-            addValue<sample_t, uint16_t, float>(&temperature_samples, SAMPLES_COUNT, values_readed_from_sensor[0]);
-         }
-         #endif
-
-         #if (USE_SENSOR_HIH)
-         if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
-            addValue<sample_t, uint16_t, float>(&humidity_samples, SAMPLES_COUNT, values_readed_from_sensor[0]);
-            addValue<sample_t, uint16_t, float>(&temperature_samples, SAMPLES_COUNT, values_readed_from_sensor[1]);
-         }
-         #endif
-
-         #if (USE_SENSOR_HYT)
-         if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
-         }
-         #endif
-
-#endif
-
-	
         sensors_reading_state = SENSORS_READING_NEXT;
       break;
 
@@ -1140,7 +1134,6 @@ void make_report () {
       #endif
    }
 
-   #if (USE_SENSOR_ADT || USE_SENSOR_HYT)
    bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT);
    float temperature = bufferReadBack<sample_t, uint16_t, float>(&temperature_samples, SAMPLES_COUNT);
 
