@@ -38,7 +38,7 @@ class sampleThread : public Thread {
 public:
   
   sampleThread(int i, int delayInSeconds)
-    : Thread("Thread One", 200, 1), 
+    : Thread("Thread Sample", 200, 1), 
       Id (i), 
       DelayInSeconds(delayInSeconds)
   {
@@ -77,6 +77,7 @@ void setup (void)
   //Start logging
 
   frtosLog.notice(F("Testing FreeRTOS C++ wrappers with logger"));                     // Info string with Newline
+  frtosLog.notice(F("VERSION 1"));                     // Info string with Newline
   
   static sampleThread p1(1, 2);
   static sampleThread p2(2, 5);
