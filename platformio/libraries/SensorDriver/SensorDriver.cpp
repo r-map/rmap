@@ -962,7 +962,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       lsb = Wire.read();
       msb = Wire.read();
 
-      if (ISVALID_UINT8(lsb) || ISVALID_UINT8(msb) {
+      if (ISVALID_UINT8(lsb) || ISVALID_UINT8(msb)) {
 	values[0] = ((int) (msb << 8) | lsb);
         values[0] -= OFFSET;
       }
