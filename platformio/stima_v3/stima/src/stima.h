@@ -304,7 +304,7 @@ typedef enum {
 
    MQTT_PTR_UPDATE,        //!< update mqtt data file pointer
    MQTT_CLOSE_PTR_FILE,    //!< close mqtt data file pointer
-   MQTT_CLOSE_SDCARD,      //!< close sdcard
+   //   MQTT_CLOSE_SDCARD,      //!< close sdcard
 
    MQTT_END,               //!< performs end operations and deactivate task
    MQTT_WAIT_STATE,        //!< non-blocking waiting time

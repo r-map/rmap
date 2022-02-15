@@ -1928,8 +1928,8 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
     break;
 
-    case READ_BATTERY_CURRENT:
-    _is_success = DigitecoPower::de_read(_address, &battery_current);
+      case READ_BATTERY_CHARGE:
+         _is_success = DigitecoPower::de_read(_address, &battery_charge);
     _delay_ms = 0;
     _start_time_ms = millis();
 
