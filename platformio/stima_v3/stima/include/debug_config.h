@@ -1,5 +1,3 @@
-/**@file debug_config.h */
-
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
@@ -56,36 +54,6 @@ LOG_LEVEL_VERBOSE
 \brief Activate debug of memory use and stack heap collision on serial interface.
 */
 #define DEBUG_MEMORY                      (0)
-
-/*!
-\def LCD_TRACE_LEVEL_OFF
-\brief Debug level for print error message on lcd interface.
-*/
-#define LCD_TRACE_LEVEL_OFF               (0)
-
-/*!
-\def LCD_TRACE_LEVEL_ERROR
-\brief Debug level for print error message on lcd.
-*/
-#define LCD_TRACE_LEVEL_ERROR             (1)
-
-/*!
-\def LCD_TRACE_LEVEL_WARNING
-\brief Debug level for print detailed informations message on serial interface.
-*/
-#define LCD_TRACE_LEVEL_WARNING           (2)
-
-/*!
-\def LCD_TRACE_LEVEL_INFO
-\brief Debug level for print informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_INFO              (3)
-
-/*!
-\def LCD_TRACE_LEVEL_DEBUG
-\brief Debug level for print verbose informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_DEBUG             (4)
 
 /*!
 \def OK_STRING

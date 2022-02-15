@@ -27,8 +27,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdint.h>
 #include "stima_module.h"
+#include <float.h>
 
 #define ISVALID(v)      ((uint16_t) v != UINT16_MAX)
+
+#define ISVALID_UINT32(v)      ( v != UINT32_MAX)
+#define ISVALID_INT32(v)      ( v != INT32_MAX)
+#define ISVALID_UINT16(v)      ( v != UINT16_MAX)
+#define ISVALID_INT16(v)      ( v != INT16_MAX)
+#define ISVALID_UINT8(v)      ( v != UINT8_MAX)
+#define ISVALID_INT8(v)      ( v != INT8_MAX)
+#define ISVALID_FLOAT(v)      ( v != FLT_MAX)
 
 /*!
 \fn void getStimaNameByType(char *name, uint8_t type)

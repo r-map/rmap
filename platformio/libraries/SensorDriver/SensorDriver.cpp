@@ -124,8 +124,10 @@ void SensorDriver::prepare(bool is_test){
 void SensorDriver::get(int32_t *values, uint8_t length){
 }
 
+#if (USE_JSON)
 void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length){
 }
+#endif
 
 void SensorDriver::resetPrepared(){
 }
@@ -297,7 +299,9 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
   switch (_get_state) {
     case INIT:
     temperature = 0;
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+    for (uint8_t i =0; i < length; i++) {
+      values[i]=INT32_MAX;
+    }
 
     _is_success = true;
     _is_readed = false;
@@ -367,7 +371,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
         values[0] = (temperature*6.25) + SENSOR_DRIVER_C_TO_K;
       }
       else {
-        values[0] = UINT32_MAX;
+        values[0] = INT32_MAX;
       }
     }
 
@@ -379,7 +383,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
     }
     
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("adt7420--> temperature: %d"), values[0]);
       }
       else {
@@ -404,7 +408,7 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B12101"] = values[0];
       }
       else json["B12101"] = nullptr;
@@ -485,7 +489,9 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     case INIT:
     temperature = 0;
     humidity = 0;
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+    for (uint8_t i =0; i < length; i++) {
+      values[i]=INT32_MAX;
+    }
 
     _is_success = true;
     _is_readed = false;
@@ -561,7 +567,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
         values[0] = round(float(humidity) / 16382. * 100);
       }
       else {
-        values[0] = UINT32_MAX;
+        values[0] = INT32_MAX;
       }
     }
 
@@ -570,7 +576,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
         values[1] = round((float(temperature) / 16382. * 165. - 40.) * 100) + SENSOR_DRIVER_C_TO_K;
       }
       else {
-        values[1] = UINT32_MAX;
+        values[1] = INT32_MAX;
       }
     }
 
@@ -582,7 +588,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("hih6100--> humidity: %d"), values[0]);
       }
       else {
@@ -591,7 +597,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         LOGT(F("hih6100--> temperature: %d"), values[1]);
       }
       else {
@@ -616,14 +622,14 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B13003"] = values[0];
       }
       else json["B13003"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         json["B12101"] = values[1];
       }
       else json["B12101"] = nullptr;
@@ -687,11 +693,13 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      humidity = UINT32_MAX;
-      temperature = UINT32_MAX;
-      humidity_confirmation = UINT32_MAX;
-      temperature_confirmation = UINT32_MAX;
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
+      humidity = FLT_MAX;
+      temperature = FLT_MAX;
+      humidity_confirmation = FLT_MAX;
+      temperature_confirmation = FLT_MAX;
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
     _is_readed = false;
     _is_end = false;
@@ -751,20 +759,20 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
 
     case END:
       if (length >= 1) {
-        if (_is_success) {
+            if (_is_success && ISVALID_FLOAT(humidity)) {
           values[0] = round(humidity);
         }
         else {
-          values[0] = UINT32_MAX;
+          values[0] = INT32_MAX;
         }
       }
 
       if (length >= 2) {
-        if (_is_success) {
+        if (_is_success  && ISVALID_FLOAT(temperature)) {
           values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
         }
         else {
-          values[1] = UINT32_MAX;
+          values[1] = INT32_MAX;
         }
       }
 
@@ -776,7 +784,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       }
 
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           LOGT(F("hyt2x1--> humidity: %d"), values[0]);
         }
         else {
@@ -785,7 +793,7 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           LOGT(F("hyt2x1--> temperature: %d"), values[1]);
         }
         else {
@@ -810,14 +818,14 @@ void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buf
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B13003"] = values[0];
       }
       else json["B13003"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         json["B12101"] = values[1];
       }
       else json["B12101"] = nullptr;
@@ -895,14 +903,16 @@ void SensorDriverDw1::prepare(bool is_test) {
 }
 
 void SensorDriverDw1::get(int32_t *values, uint8_t length) {
-  speed = UINT32_MAX;
-  direction = UINT32_MAX;
+  speed = INT32_MAX;
+  direction = INT32_MAX;
   uint16_t msb;
   uint16_t lsb;
 
   switch (_get_state) {
     case INIT:
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
     _is_readed = false;
     _is_end = false;
@@ -951,8 +961,9 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     if (_is_success) {
       lsb = Wire.read();
       msb = Wire.read();
-      values[0] = ((int) (msb << 8) | lsb);
-      if (ISVALID(values[0])) {
+
+      if (ISVALID_UINT8(lsb) || ISVALID_UINT8(msb) {
+	values[0] = ((int) (msb << 8) | lsb);
         values[0] -= OFFSET;
       }
     }
@@ -1001,8 +1012,9 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       _error_count = 0;
       lsb = Wire.read();
       msb = Wire.read();
-      values[1] = ((uint16_t) (msb << 8) | lsb);
-      if (ISVALID(values[1])) {
+
+      if (ISVALID_UINT8(lsb) || ISVALID_UINT8(msb)) {
+	values[1] = ((uint16_t) (msb << 8) | lsb);
         values[1] -= OFFSET;
       }
     }
@@ -1039,7 +1051,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("dw1--> mean u: %d"), values[0]);
       }
       else {
@@ -1048,7 +1060,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         LOGT(F("dw1--> mean v: %d"), values[1]);
       }
       else {
@@ -1056,7 +1068,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
       }
     }
 
-    if (ISVALID(values[0]) && ISVALID(values[1]) && length >= 2) {
+    if (ISVALID_INT32(values[0]) && ISVALID_INT32(values[1]) && length >= 2) {
       values[0] = (int32_t) direction;
       values[1] = (int32_t) round(speed);
       LOGT(F("dw1--> direction: %d"), values[0]);
@@ -1083,14 +1095,14 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B11001"] = values[0];
       }
       else json["B11001"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         json["B11002"] = values[1];
       }
       else json["B11002"] = nullptr;
@@ -1188,7 +1200,9 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
     memset(rain_data, UINT8_MAX, I2C_RAIN_LENGTH);
 
     _is_readed = false;
@@ -1280,7 +1294,9 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 
     case END:
     if (length >= 1) {
-      values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+      if ( ISVALID_UINT8(rain_data[0]) || ISVALID_UINT8(rain_data[1])){
+	values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+      }
     }
 
     SensorDriver::printInfo();
@@ -1291,7 +1307,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("rain--> rain : %d"), values[0]);
       }
       else {
@@ -1316,7 +1332,7 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B13011"] = values[0];
       }
       else json["B13011"] = nullptr;
@@ -1448,7 +1464,10 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
+
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
       memset(temperature_data, UINT8_MAX, I2C_TH_TEMPERATURE_DATA_MAX_LENGTH);
       memset(humidity_data, UINT8_MAX, I2C_TH_HUMIDITY_DATA_MAX_LENGTH);
 
@@ -1699,14 +1718,14 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
 
     case END:
     if (length >= 1) {
-      if (_is_success) {
-        values[0] = ((uint16_t)(temperature_data[1] << 8) | (temperature_data[0]));
+      if (_is_success && ( ISVALID_UINT8(temperature_data[0]) || ISVALID_UINT8(temperature_data[1] ))) {	
+        values[0] = ((int32_t)(temperature_data[1] << 8) | (temperature_data[0]));
       }
     }
 
     if (length >= 2) {
-      if (_is_success) {
-        values[1] = ((uint16_t)(humidity_data[1] << 8) | (humidity_data[0]));
+      if (_is_success && ( ISVALID_UINT8(humidity_data[0]) || ISVALID_UINT8(humidity_data[1] ))) {	
+        values[1] = ((int32_t)(humidity_data[1] << 8) | (humidity_data[0]));
       }
     }
 
@@ -1718,7 +1737,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("th--> temperature: %d"), values[0]);
       }
       else {
@@ -1727,7 +1746,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         LOGT(F("th--> humidity: %d"), values[1]);
       }
       else {
@@ -1752,14 +1771,14 @@ void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer,
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B12101"] = values[0];
       }
       else json["B12101"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         json["B13003"] = values[1];
       }
       else json["B13003"] = nullptr;
@@ -1812,7 +1831,9 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-    memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
     _is_readed = false;
     _is_end = false;
@@ -2070,7 +2091,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         LOGT(F("digitecopower--> battery charge: %ld %%"), values[0]);
       }
       else {
@@ -2079,7 +2100,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         LOGT(F("digitecopower--> battery voltage: %ld V"), values[1]);
       }
       else {
@@ -2088,7 +2109,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 4) {
-      if (ISVALID(values[3])) {
+      if (ISVALID_INT32(values[3])) {
         LOGT(F("digitecopower--> battery current: %ld mA"), values[2]);
       }
       else {
@@ -2097,7 +2118,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 3) {
-      if (ISVALID(values[2])) {
+      if (ISVALID_INT32(values[2])) {
         LOGT(F("digitecopower--> input voltage: %ld V"), values[2]);
       }
       else {
@@ -2106,7 +2127,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 5) {
-      if (ISVALID(values[4])) {
+      if (ISVALID_INT32(values[4])) {
         LOGT(F("digitecopower--> input current: %ld mA"), values[4]);
       }
       else {
@@ -2115,7 +2136,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 6) {
-      if (ISVALID(values[5])) {
+      if (ISVALID_INT32(values[5])) {
         LOGT(F("digitecopower--> output voltage: %ld V"), values[5]);
       }
       else {
@@ -2140,42 +2161,42 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B25192"] = values[0];
       }
       else json["B25192"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID(values[1])) {
+      if (ISVALID_INT32(values[1])) {
         json["B25025"] = values[1];
       }
       else json["B25025"] = nullptr;
     }
 
     if (length >= 4) {
-      if (ISVALID(values[3])) {
+      if (ISVALID_INT32(values[3])) {
         json["B25193"] = values[3];
       }
       else json["B25193"] = nullptr;
     }
 
      if (length >= 3) {
-       if (ISVALID(values[2])) {
+       if (ISVALID_INT32(values[2])) {
          json["B25194"] = values[2];
        }
        else json["B25194"] = nullptr;
      }
 
      if (length >= 5) {
-       if (ISVALID(values[4])) {
+       if (ISVALID_INT32(values[4])) {
          json["B00005"] = values[4];
        }
        else json["B00005"] = nullptr;
      }
 
      if (length >= 6) {
-       if (ISVALID(values[5])) {
+       if (ISVALID_INT32(values[5])) {
          json["B00006"] = values[5];
        }
        else json["B00006"] = nullptr;
@@ -2293,30 +2314,32 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
       if (strcmp(_type, SENSOR_TYPE_DWA) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWB) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 2;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 1;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 6;
       }
       else if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 2;
       }
 
@@ -2471,7 +2494,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
               // speed
               if ((variable_count == 0)) {
@@ -2496,7 +2519,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
             }
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -2545,14 +2568,14 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWA || USE_SENSOR_DWB)
     if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B11002"] = values[0];
         }
         else json["B11002"] = nullptr;
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           json["B11001"] = values[1];
         }
         else json["B11001"] = nullptr;
@@ -2563,14 +2586,14 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWC)
     if (strcmp(_type, SENSOR_TYPE_DWC) == 0) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B11041"] = values[0];
         }
         else json["B11041"] = nullptr;
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           json["B11209"] = values[1];
         }
         else json["B11209"] = nullptr;
@@ -2581,7 +2604,7 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWD)
     if (strcmp(_type, SENSOR_TYPE_DWD) == 0) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B11002"] = values[0];
         }
         else json["B11002"] = nullptr;
@@ -2597,7 +2620,7 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
         JsonArray p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < 6; i++) {
-          if (ISVALID(values[i])) {
+          if (ISVALID_INT32(values[i])) {
             p.add(values[i]);
           }
           else p.add(nullptr);;
@@ -2609,14 +2632,14 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     #if (USE_SENSOR_DWF)
     if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B11043"] = values[0];
         }
         else json["B11043"] = nullptr;
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           json["B11210"] = values[1];
         }
         else json["B11210"] = nullptr;
@@ -2733,10 +2756,12 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 1;
       }
 
@@ -2841,11 +2866,11 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             values[variable_count] = (int32_t) round(val);
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -2878,7 +2903,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("solarradiation--> solar radiation: %ld"), values[0]);
           }
           else {
@@ -2907,7 +2932,7 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
     #if (USE_SENSOR_DSA)
     if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B14198"] = values[0];
         }
         else json["B14198"] = nullptr;
@@ -3028,8 +3053,10 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
-      val = UINT16_MAX;
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
+      val = FLT_MAX;
 
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         variable_length = 3;
@@ -3233,11 +3260,11 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             values[variable_count] = (int32_t) round(val * 10.0);
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -3255,7 +3282,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             if (variable_count >= 13) {
               val = val * 100000.0;
             }
@@ -3275,7 +3302,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             values[variable_count] = (int32_t) round(val);
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -3293,7 +3320,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             if (variable_count == 0) {
               values[variable_count] = (int32_t) round(val * 100.0) + SENSOR_DRIVER_C_TO_K;
             }
@@ -3302,7 +3329,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
             }
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -3335,7 +3362,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OA2 || USE_SENSOR_OA3)
       if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0)) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("opc--> PM 1: %ld"), values[0]);
           }
           else {
@@ -3344,7 +3371,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (ISVALID(values[1])) {
+          if (ISVALID_INT32(values[1])) {
             LOGT(F("opc--> PM 2.5: %ld"), values[1]);
           }
           else {
@@ -3353,7 +3380,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 3) {
-          if (ISVALID(values[2])) {
+          if (ISVALID_INT32(values[2])) {
             LOGT(F("opc--> PM 10: %ld"), values[2]);
           }
           else {
@@ -3366,7 +3393,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OB2 || USE_SENSOR_OB3)
       if ((strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("opc--> PM 1 sigma: %ld"), values[0]);
           }
           else {
@@ -3375,7 +3402,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (ISVALID(values[1])) {
+          if (ISVALID_INT32(values[1])) {
             LOGT(F("opc--> PM 2.5 sigma: %ld"), values[1]);
           }
           else {
@@ -3384,7 +3411,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 3) {
-          if (ISVALID(values[2])) {
+          if (ISVALID_INT32(values[2])) {
             LOGT(F("opc--> PM 10 sigma: %ld"), values[2]);
           }
           else {
@@ -3397,7 +3424,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OC2 || USE_SENSOR_OC3)
       if ((strcmp(_type, SENSOR_TYPE_OC2) == 0) || (strcmp(_type, SENSOR_TYPE_OC3) == 0)) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("opc--> BIN [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("%l"),values[i]);
@@ -3418,7 +3445,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OD2 || USE_SENSOR_OD3)
       if ((strcmp(_type, SENSOR_TYPE_OD2) == 0) || (strcmp(_type, SENSOR_TYPE_OD3) == 0)) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("opc--> BIN sigma [0-%d]:\t[ "), variable_length - 1);
 	    for (int i=0; i<variable_length; i++) {
 	      LOGT(F("%l"),values[i]);
@@ -3439,7 +3466,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_OE3)
       if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGT(F("opc--> Temperature: %ld"), values[0]);
           }
           else {
@@ -3448,7 +3475,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
         }
 
         if (length >= 2) {
-          if (ISVALID(values[1])) {
+          if (ISVALID_INT32(values[1])) {
             LOGT(F("opc--> Humidity: %ld"), values[1]);
           }
           else {
@@ -3478,21 +3505,21 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
     #if (USE_SENSOR_OA2 || USE_SENSOR_OA3 || USE_SENSOR_OB2 || USE_SENSOR_OB3)
     if ((strcmp(_type, SENSOR_TYPE_OA2) == 0) || (strcmp(_type, SENSOR_TYPE_OA3) == 0) || (strcmp(_type, SENSOR_TYPE_OB2) == 0) || (strcmp(_type, SENSOR_TYPE_OB3) == 0)) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B15203"] = values[0];
         }
         else json["B15203"] = nullptr;
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           json["B15198"] = values[1];
         }
         else json["B15198"] = nullptr;
       }
 
       if (length >= 3) {
-        if (ISVALID(values[2])) {
+        if (ISVALID_INT32(values[2])) {
           json["B15195"] = values[2];
         }
         else json["B15195"] = nullptr;
@@ -3515,7 +3542,7 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
         JsonArray p = json.createNestedArray("p");
 
         for (uint8_t i = 0; i < variable_length; i++) {
-          if (ISVALID(values[i])) {
+          if (ISVALID_INT32(values[i])) {
             p.add(values[i]);
           }
           else p.add(nullptr);;
@@ -3527,14 +3554,14 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
     #if (USE_SENSOR_OE3)
     if (strcmp(_type, SENSOR_TYPE_OE3) == 0) {
       if (length >= 1) {
-        if (ISVALID(values[0])) {
+        if (ISVALID_INT32(values[0])) {
           json["B12101"] = values[0];
         }
         else json["B12101"] = nullptr;
       }
 
       if (length >= 2) {
-        if (ISVALID(values[1])) {
+        if (ISVALID_INT32(values[1])) {
           json["B13003"] = values[1];
         }
         else json["B13003"] = nullptr;
@@ -3626,10 +3653,12 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
     case INIT:
-      memset(values, UINT8_MAX, length * sizeof(int32_t));
+      for (uint8_t i =0; i < length; i++) {
+	values[i]=INT32_MAX;
+      }
 
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
-        val = (float) UINT16_MAX;
+        val = FLT_MAX;
         variable_length = 1;
       }
 
@@ -3734,11 +3763,11 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
             *(val_ptr + i) = _buffer[offset + i];
           }
 
-          if (_is_success && ISVALID(val)) {
+          if (_is_success && ISVALID_FLOAT(val)) {
             values[variable_count] = (uint16_t)(round(val / 10.0));
           }
           else {
-            values[variable_count] = UINT32_MAX;
+            values[variable_count] = INT32_MAX;
             _is_success = false;
           }
 
@@ -3768,7 +3797,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
       #if (USE_SENSOR_LWT)
       if (strcmp(_type, SENSOR_TYPE_LWT) == 0) {
         if (length >= 1) {
-          if (ISVALID(values[0])) {
+          if (ISVALID_INT32(values[0])) {
             LOGN(F("leaf--> Leaf Wet Time: %ld minutes"), values[0]);
           }
           else {
@@ -3795,7 +3824,7 @@ void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffe
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID(values[0])) {
+      if (ISVALID_INT32(values[0])) {
         json["B13212"] = values[0];
       }
       else json["B13212"] = nullptr;

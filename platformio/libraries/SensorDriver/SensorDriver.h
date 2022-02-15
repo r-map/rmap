@@ -27,6 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <ArduinoLog.h>
 #include "SensorDriverSensors.h"
 #include "sensors_config.h"
+#include "rmap_utility.h"
 #include "i2c_config.h"
 #include "i2c_utility.h"
 #include <Arduino.h>
@@ -50,7 +51,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define SENSOR_DRIVER_C_TO_K      (27315l)
 
-#define ISVALID(v)                ((uint16_t) v != UINT16_MAX)
 
 #if (USE_JSON)
 #include <json_config.h>

@@ -2500,20 +2500,20 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
 	   }else{
 
-	     unsigned long int value = doc["B12101"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
+	     int32_t value = doc["B12101"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
 	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1)==0;
 	       lcd_error |= lcd.print(F("C "))==0;
 	     }
 
-	     value = doc["B13003"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
+	     value = doc["B13003"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
 	       lcd_error |= lcd.print(value)==0;
 	       lcd_error |= lcd.print(F("% "))==0;
 	     }
 
-	     value = doc["B13011"] | UINT32_MAX;
-	     if (ISVALID(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){
+	     value = doc["B13011"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){
 	       lcd_error |= lcd.print((value/10.0),1)==0;
 	       lcd_error |= lcd.print(F("mm "))==0;
 	     }
