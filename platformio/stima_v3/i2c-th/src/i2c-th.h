@@ -49,6 +49,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*********************************************************************
 * TYPEDEF
 *********************************************************************/
+
+/*!
+\struct sensor_t
+\brief sensors configuration.
+*/
+typedef struct {
+   char type[4];           //!< sensor type
+   uint8_t i2c_address;    //!< i2c address of sensor
+} sensor_conf_t;
+
+
+
 /*!
 \struct configuration_t
 \brief EEPROM saved configuration.
@@ -60,8 +72,7 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
-   uint8_t i2c_temperature_address;    //!< i2c address of temperature sensor
-   uint8_t i2c_humidity_address;       //!< i2c address of humidity sensor
+   sensor_conf_t sensors[2];           //!< sensors configurations
 } configuration_t;
 
 /*!
@@ -84,29 +95,29 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
-   uint8_t i2c_temperature_address;    //!< i2c address of temperature sensor
-   uint8_t i2c_humidity_address;       //!< i2c address of humidity sensor
+   sensor_conf_t sensors[2];           //!< sensors configurations
 } writable_data_t;
 
 /*!
 \struct sample_t
-\brief Samples values for measured temperature and humidity
+\brief samples data
 */
 typedef struct {
-   float values;          //!< buffer containing the measured samples
-   uint8_t count;         //!< number of good samples
-   uint8_t error_count;   //!< number of bad samples
+   int32_t values[SAMPLES_COUNT_MAX];        //!< samples buffer
+   uint16_t count;                            //!< samples counter
+   int32_t *read_ptr;                        //!< reader pointer
+   int32_t *write_ptr;                       //!< writer pointer
 } sample_t;
 
 /*!
 \struct observation_t
-\brief Observations values for temperature and humidity
+\brief Observations values for temperature and humidity   NOT USED
 */
 typedef struct {
-   uint16_t med[OBSERVATION_COUNT];    //!< buffer containing the mean values calculated on a one sample buffer respectively
+   int32_t values[OBSERVATION_COUNT];    //!< buffer containing the mean values calculated on a one sample buffer respectively
    uint16_t count;                     //!< number of observations
-   uint16_t *read_ptr;                 //!< reader pointer to buffer (read observations for calculate report value)
-   uint16_t *write_ptr;                //!< writer pointer to buffer (add new observation)
+   uint32_t *read_ptr;                 //!< reader pointer to buffer (read observations for calculate report value)
+   uint32_t *write_ptr;                //!< writer pointer to buffer (add new observation)
 } observation_t;
 
 /*********************************************************************
@@ -242,18 +253,6 @@ bool is_start;
 bool is_stop;
 
 /*!
-\var is_oneshot
-\brief Received command is in oneshot mode.
-*/
-bool is_oneshot;
-
-/*!
-\var is_continuous
-\brief Received command is in continuous mode.
-*/
-bool is_continuous;
-
-/*!
 \var is_test_read
 \brief Received command is in continuous mode.
 */
@@ -278,34 +277,10 @@ uint8_t sensors_count;
 sample_t temperature_samples;
 
 /*!
-\var temperature_observations
-\brief Temperature observations.
-*/
-observation_t temperature_observations;
-
-/*!
 \var humidity_samples
 \brief Humidity samples.
 */
 sample_t humidity_samples;
-
-/*!
-\var humidity_observations
-\brief Humidity observations.
-*/
-observation_t humidity_observations;
-
-/*!
-\var samples_count
-\brief Number of samples to be acquired for make one observation.
-*/
-uint8_t samples_count;
-
-/*!
-\var do_buffers_reset
-\brief Force a buffers reset.
-*/
-bool do_buffers_reset;
 
 /*!
 \var timer_counter
@@ -494,16 +469,6 @@ void reset_observations_buffer(void);
 */
 void exchange_buffers(void);
 
-template<typename sample_g, typename observation_g, typename value_v> void addSample(sample_g *sample, observation_g *observation, value_v value);
-
-template<typename observation_g, typename value_v> value_v readCurrentObservation(observation_g *buffer);
-template<typename observation_g, typename value_v> void writeCurrentObservation(observation_g *buffer, value_v value);
-template<typename observation_g, typename length_v> void resetObservation(observation_g *buffer, length_v length);
-template<typename observation_g, typename length_v> void resetBackPmObservation(observation_g *buffer, length_v length);
-template<typename observation_g, typename length_v> void incrementObservation(observation_g *buffer, length_v length);
-template<typename observation_g, typename length_v, typename value_v> void addObservation(observation_g *buffer, length_v length, value_v value);
-template<typename observation_g, typename length_v, typename value_v> value_v readBackObservation(observation_g *buffer, length_v length);
-
 /*!
 \fn void samples_processing(bool is_force_processing)
 \brief Main routine for processing the samples to calculate an observation.
@@ -511,34 +476,6 @@ template<typename observation_g, typename length_v, typename value_v> value_v re
 \return void.
 */
 void samples_processing(bool is_force_processing);
-
-/*!
-\fn void observations_processing(void)
-\brief Main routine for processing the observations to calculate a value for report.
-\return void.
-*/
-bool observations_processing(void);
-
-/*!
-\fn bool make_observation_from_samples(bool is_force_processing, sample_t *sample, observation_t *observation)
-\brief Processing the samples to calculate an observation when the number of the samples reaches the exact samples_count value.
-\param is_force_processing if is true, force the calculation of the observation provided there is a minimum number of samples.
-\param *sample input samples.
-\param *observation output observation.
-\return void.
-*/
-template<typename sample_g, typename observation_g> bool make_observation_from_samples(bool is_force_processing, sample_g *sample, observation_g *observation);
-
-/*!
-\fn bool make_value_from_samples_and_observations(sample_t *sample, observation_t *observation, volatile value_t *value)
-\brief Processing the observations to calculate a value for report when the number of the observations reaches the minimum value of STATISTICAL_DATA_COUNT.
-\param *sample input samples.
-\param *observation input observation.
-\param *value output value for report.
-\return void.
-*/
-template<typename sample_g, typename observation_g, typename value_v, typename val_v> bool make_value_from_samples_and_observations(sample_g *sample, observation_g *observation, value_v *value);
-
 
 /*!
 \fn void init_logging(void)

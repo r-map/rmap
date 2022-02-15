@@ -32,18 +32,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_TH_DEFAULT_ADDRESS                  (0x23)
 
 /*!
-\def I2C_TH_TEMPERATURE_DEFAULT_ADDRESS
-\brief Default address for temperature sensor for i2c-th module.
-*/
-#define I2C_TH_TEMPERATURE_DEFAULT_ADDRESS      (0x49)
-
-/*!
-\def I2C_TH_HUMIDITY_DEFAULT_ADDRESS
-\brief Default address for humidity sensor for i2c-th module.
-*/
-#define I2C_TH_HUMIDITY_DEFAULT_ADDRESS         (0x27)
-
-/*!
 \def I2C_TH_COMMAND_SAVE
 \brief Save command for i2c-th module.
 */
@@ -320,41 +308,57 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_TH_ONESHOT_ADDRESS                  (I2C_TH_ADDRESS_ADDRESS + I2C_TH_ADDRESS_LENGTH)
 
-/*!
-\def I2C_TH_CONTINUOUS_LENGTH
-\brief length of the continuous variable for i2c-th module.
-*/
-#define I2C_TH_CONTINUOUS_LENGTH                (0x01)
 
 /*!
-\def I2C_TH_CONTINUOUS_ADDRESS
-\brief address of the continuous variable for i2c-th module.
+\def I2C_SENSOR1_TYPE_LENGTH
+\brief length of the SENSOR 1 TYPE variable for i2c-th module.
 */
-#define I2C_TH_CONTINUOUS_ADDRESS               (I2C_TH_ONESHOT_ADDRESS + I2C_TH_ONESHOT_LENGTH)
+#define I2C_TH_SENSOR1_TYPE_LENGTH       (0x04)
 
 /*!
-\def I2C_TH_TEMPERATURE_ADDRESS_LENGTH
-\brief length of the temperature address variable for i2c-th module.
+\def I2C_TH_SENSORS1_TYPE_ADDRESS
+\brief address of the SENSOR 1 TYPE variable for i2c-th module.
 */
-#define I2C_TH_TEMPERATURE_ADDRESS_LENGTH       (0x01)
+#define I2C_TH_SENSOR1_TYPE_ADDRESS      (I2C_TH_ONESHOT_ADDRESS + I2C_TH_ONESHOT_LENGTH)
 
 /*!
-\def I2C_TH_TEMPERATURE_ADDRESS_ADDRESS
-\brief address of the temperature address variable for i2c-th module.
+\def I2C_TH_SENSOR1_I2C_ADDRESS_LENGTH
+\brief length of the SENSOR 1 address variable for i2c-th module.
 */
-#define I2C_TH_TEMPERATURE_ADDRESS_ADDRESS      (I2C_TH_CONTINUOUS_ADDRESS + I2C_TH_CONTINUOUS_LENGTH)
+#define I2C_TH_SENSOR1_I2C_ADDRESS_LENGTH          (0x01)
 
 /*!
-\def I2C_TH_HUMIDITY_ADDRESS_LENGTH
-\brief length of the humidity address variable for i2c-th module.
+\def I2C_TH_SENSOR1_I2C_ADDRESS_ADDRESS
+\brief address of the sensor 1 address for i2c-th module.
 */
-#define I2C_TH_HUMIDITY_ADDRESS_LENGTH          (0x01)
+#define I2C_TH_SENSOR1_I2C_ADDRESS_ADDRESS         (I2C_TH_SENSOR1_TYPE_ADDRESS + I2C_TH_SENSOR1_TYPE_LENGTH)
+
+
 
 /*!
-\def I2C_TH_HUMIDITY_ADDRESS_ADDRESS
-\brief address of the humidity address variable for i2c-th module.
+\def I2C_SENSOR2_TYPE_LENGTH
+\brief length of the SENSOR 2 TYPE variable for i2c-th module.
 */
-#define I2C_TH_HUMIDITY_ADDRESS_ADDRESS         (I2C_TH_TEMPERATURE_ADDRESS_ADDRESS + I2C_TH_TEMPERATURE_ADDRESS_LENGTH)
+#define I2C_TH_SENSOR2_TYPE_LENGTH       (0x04)
+
+/*!
+\def I2C_TH_SENSORS1_TYPE_ADDRESS
+\brief address of the SENSOR 2 TYPE variable for i2c-th module.
+*/
+#define I2C_TH_SENSOR2_TYPE_ADDRESS      (I2C_TH_SENSOR1_I2C_ADDRESS_ADDRESS + I2C_TH_SENSOR1_I2C_ADDRESS_LENGTH)
+
+/*!
+\def I2C_TH_SENSOR2_I2C_ADDRESS_LENGTH
+\brief length of the SENSOR 2 address variable for i2c-th module.
+*/
+#define I2C_TH_SENSOR2_I2C_ADDRESS_LENGTH          (0x01)
+
+/*!
+\def I2C_TH_SENSOR2_I2C_ADDRESS_ADDRESS
+\brief address of the sensor 2 address for i2c-th module.
+*/
+#define I2C_TH_SENSOR2_I2C_ADDRESS_ADDRESS         (I2C_TH_SENSOR2_TYPE_ADDRESS + I2C_TH_SENSOR2_TYPE_LENGTH)
+
 
 /*!
 \def I2C_TH_WRITABLE_DATA_LENGTH

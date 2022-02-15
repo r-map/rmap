@@ -38,13 +38,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (6)
+#define MODULE_MINOR_VERSION                          (7)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
 \brief Module version of compatibile configuration. If you change it, you have to reconfigure.
 */
-#define MODULE_CONFIGURATION_VERSION                  (1)
+#define MODULE_CONFIGURATION_VERSION                  (2)
 
 /*!
 \def MODULE_TYPE
@@ -60,12 +60,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Oneshot mode for default.
 */
 #define CONFIGURATION_DEFAULT_IS_ONESHOT              (false)
-
-/*!
-\def CONFIGURATION_DEFAULT_IS_CONTINUOUS
-\brief Continuous mode for default.
-*/
-#define CONFIGURATION_DEFAULT_IS_CONTINUOUS           (true)
 
 /*!
 \def CONFIGURATION_DEFAULT_I2C_ADDRESS
@@ -160,31 +154,26 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SENSORS_SAMPLE_TIME_MS                        (4000)
 
-/*!
-\def SENSORS_SAMPLE_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MIN                      ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
 
-#if (OBSERVATIONS_MINUTES * 60 % SENSORS_SAMPLE_TIME_MS / 1000 == 0)
-/*!
-\def SENSORS_SAMPLE_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MAX                      (SENSORS_SAMPLE_COUNT_MIN)
-#else
-/*!
-\def SENSORS_SAMPLE_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define SENSORS_SAMPLE_COUNT_MAX                      (SENSORS_SAMPLE_COUNT_MIN + 1)
-#endif
+#define SAMPLES_COUNT_MAX                                 (((60000 * OBSERVATIONS_MINUTES) / SENSORS_SAMPLE_TIME_MS) + 10)
 
 /*!
-\def SENSORS_SAMPLE_COUNT_TOLERANCE
+\def OBSERVATION_SAMPLE_ERROR_MAX
 \brief Maximum invalid sample count for generate a valid observations.
 */
-#define SENSORS_SAMPLE_COUNT_TOLERANCE                (SENSORS_SAMPLE_COUNT_MAX/20)
+#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(SAMPLES_COUNT_MAX/10)))
+
+/*!
+\def OBSERVATION_SAMPLES_COUNT
+\brief Sample count  in OBSERVATIONS_MINUTES minutes.
+*/
+#define OBSERVATION_SAMPLES_COUNT                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
+
+
+#define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(1))
+#define RMAP_REPORT_VALID_MIN                         ((uint16_t)(2))
+
+
 
 /*********************************************************************
 * TIMER1

@@ -1,5 +1,5 @@
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -206,33 +206,26 @@ void init_buffers() {
    memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
 
    reset_samples_buffer();
-   reset_observations_buffer();
+   reset_report_buffer();
 
    readable_data_address=0xFF;
    readable_data_length=0;
 }
 
 void init_tasks() {
-   noInterrupts();
 
    //! no tasks ready
    ready_tasks_count = 0;
 
    is_event_command_task = false;
    is_event_sensors_reading = false;
-   is_test_read = false;
 
    sensors_reading_state = SENSORS_READING_INIT;
 
-   //! reset samples_count value
-   samples_count = SENSORS_SAMPLE_COUNT_MIN;
-
-   is_oneshot = false;
-   is_continuous = false;
    is_start = false;
    is_stop = false;
+   is_test_read = false;
 
-   interrupts();
 }
 
 void init_pins() {
@@ -297,9 +290,12 @@ void print_configuration() {
    LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
-   LOGN(F("--> i2c temperature address: %X (%d)"), configuration.i2c_temperature_address, configuration.i2c_temperature_address);
-   LOGN(F("--> i2c humidity address: %X (%d)"), configuration.i2c_humidity_address, configuration.i2c_humidity_address);
+   for (uint8_t i=0; i< 2; i++){
+     if (strlen(configuration.sensors[i].type) == 3){
+       LOGN(F("--> sensor[%d] type: %s"), i, configuration.sensors[i].type);
+       LOGN(F("--> sensor[%d] i2c address: %X (%d)"), i, configuration.sensors[i].i2c_address, configuration.sensors[i].i2c_address);
+     }
+   }
 }
 
 void save_configuration(bool is_default) {
@@ -310,30 +306,20 @@ void save_configuration(bool is_default) {
       configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
       configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
-      configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
-      configuration.i2c_temperature_address = CONFIGURATION_DEFAULT_TEMPERATURE_ADDRESS;
-      configuration.i2c_humidity_address = CONFIGURATION_DEFAULT_HUMIDITY_ADDRESS;
 
-      #if (USE_SENSOR_ADT)
-      configuration.i2c_temperature_address = 0x28;
-      #endif
-
-      #if (USE_SENSOR_HIH)
-      configuration.i2c_humidity_address = 0x28;
-      #endif
-
-      #if (USE_SENSOR_HYT)
-      configuration.i2c_temperature_address = HYT2X1_DEFAULT_ADDRESS;
-      configuration.i2c_humidity_address = HYT2X1_DEFAULT_ADDRESS;
-      #endif
+      strncpy (configuration.sensors[0].type,SENSOR_TYPE_HYT,4);
+      configuration.sensors[0].i2c_address = HYT2X1_DEFAULT_ADDRESS;
+      configuration.sensors[1].type[0]='\0';
+      configuration.sensors[1].i2c_address = 255;	  
    }
    else {
       LOGN(F("Save configuration... [ %s ]"), OK_STRING);
       configuration.i2c_address = writable_data.i2c_address;
       configuration.is_oneshot = writable_data.is_oneshot;
-      configuration.is_continuous = writable_data.is_continuous;
-      configuration.i2c_temperature_address = writable_data.i2c_temperature_address;
-      configuration.i2c_humidity_address = writable_data.i2c_humidity_address;
+      strncpy(configuration.sensors[0].type,writable_data.sensors[0].type,4);
+      configuration.sensors[0].i2c_address=writable_data.sensors[0].i2c_address;
+      strncpy(configuration.sensors[1].type,writable_data.sensors[1].type,4);
+      configuration.sensors[1].i2c_address=writable_data.sensors[1].i2c_address;
    }
 
    //! write configuration to eeprom
@@ -356,7 +342,11 @@ void load_configuration() {
 
    writable_data.i2c_address = configuration.i2c_address;
    writable_data.is_oneshot = configuration.is_oneshot;
-   writable_data.is_continuous = configuration.is_continuous;
+
+   strncpy(writable_data.sensors[0].type, configuration.sensors[0].type,4);
+   writable_data.sensors[0].i2c_address=configuration.sensors[0].i2c_address;
+   strncpy(writable_data.sensors[1].type, configuration.sensors[1].type,4);
+   writable_data.sensors[1].i2c_address=configuration.sensors[1].i2c_address;
 }
 
 void init_sensors () {
@@ -364,53 +354,16 @@ void init_sensors () {
 
    LOGN(F("Sensors..."));
 
-   #if (USE_SENSOR_ADT)
-   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_ADT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
-   #endif
-
-   #if (USE_SENSOR_HIH)
-   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, configuration.i2c_humidity_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HIH, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
-   #endif
-
-   #if (USE_SENSOR_HYT)
-   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, configuration.i2c_temperature_address, 1, sensors, &sensors_count);
-   LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, SENSOR_TYPE_HYT, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
-   #endif
-
-   if (configuration.is_continuous) {
-      LOGN(F("--> acquiring %d~%d samples in %d minutes"), SENSORS_SAMPLE_COUNT_MIN, SENSORS_SAMPLE_COUNT_MAX, OBSERVATIONS_MINUTES);
-      //LOGN(F("T-SMP\tT-IST\tT-MIN\tT-MED\tT-MAX\tH-SMP\tH-IST\tH-MIN\tH-MED\tH-MAX\tT-CNT\tH-CNT"));
+   for (uint8_t i=0; i < 2; i++){
+     if (strlen(configuration.sensors[i].type) == 3){
+       SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, &sensors_count);
+       LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, configuration.sensors[i].type, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+     }
    }
-
-   LOGN(F("tsc: temperature sample count"));
-   LOGN(F("tmp: temperature sample"));
-
-   LOGN(F("hsc: humidity sample count"));
-   LOGN(F("hum: humidity sample"));
-
-   LOGN(F("tist: average temperature in the ist %d minutes"), OBSERVATIONS_MINUTES);
-   LOGN(F("tmin: minimum temperature"));
-   LOGN(F("tavg: average temperature"));
-   LOGN(F("tmax: maximum temperature"));
-   LOGN(F("tsgm: sigma temperature"));
-
-   LOGN(F("hist: average humidity in the ist %d minutes"), OBSERVATIONS_MINUTES);
-   LOGN(F("hmin: minimum humidity"));
-   LOGN(F("havg: average humidity"));
-   LOGN(F("hmax: maximum humidity"));
-   LOGN(F("hsig: sigma humidity"));
-
-
-   LOGN(F("tsc\ttmp\t"));
-
-   LOGN(F("hsc\thum\t"));
-
-   LOGN(F("tist\ttmin\ttavg\ttmax\ttsgm\t"));
-
-   LOGN(F("hist\thmin\thavg\thmax\thsgm\t"));
-
+   
+   if (!configuration.is_oneshot) {
+      LOGN(F("--> report computed from samples average in %d minutes"), OBSERVATIONS_MINUTES);
+   }
 }
 
 /*!
@@ -426,12 +379,10 @@ ISR(TIMER1_OVF_vect) {
    timer_counter += TIMER1_INTERRUPT_TIME_MS;
 
    //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor reading task
-   if (executeTimerTaskEach(timer_counter, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous && is_continuous && is_start) {
+   if (executeTimerTaskEach(timer_counter, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot && is_start) {
       if (!is_event_sensors_reading) {
-         noInterrupts();
          is_event_sensors_reading = true;
          ready_tasks_count++;
-         interrupts();
       }
    }
 
@@ -509,13 +460,16 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       else if (i2c_rx_data[0] == I2C_TH_ONESHOT_ADDRESS && rx_data_length == I2C_TH_ONESHOT_LENGTH) {
         is_i2c_data_ok = true;
       }
-      else if (i2c_rx_data[0] == I2C_TH_CONTINUOUS_ADDRESS && rx_data_length == I2C_TH_CONTINUOUS_LENGTH) {
+      else if (i2c_rx_data[0] == I2C_TH_SENSOR1_TYPE_ADDRESS && rx_data_length == I2C_TH_SENSOR1_TYPE_LENGTH) {
         is_i2c_data_ok = true;
       }
-      else if (i2c_rx_data[0] == I2C_TH_TEMPERATURE_ADDRESS_ADDRESS && rx_data_length == I2C_TH_TEMPERATURE_ADDRESS_LENGTH) {
+      else if (i2c_rx_data[0] == I2C_TH_SENSOR1_I2C_ADDRESS_ADDRESS && rx_data_length == I2C_TH_SENSOR1_I2C_ADDRESS_LENGTH) {
         is_i2c_data_ok = true;
       }
-      else if (i2c_rx_data[0] == I2C_TH_HUMIDITY_ADDRESS_ADDRESS && rx_data_length == I2C_TH_HUMIDITY_ADDRESS_LENGTH) {
+      else if (i2c_rx_data[0] == I2C_TH_SENSOR2_TYPE_ADDRESS && rx_data_length == I2C_TH_SENSOR2_TYPE_LENGTH) {
+        is_i2c_data_ok = true;
+      }
+      else if (i2c_rx_data[0] == I2C_TH_SENSOR2_I2C_ADDRESS_ADDRESS && rx_data_length == I2C_TH_SENSOR2_I2C_ADDRESS_LENGTH) {
         is_i2c_data_ok = true;
       }
 
@@ -534,305 +488,8 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   }
 }
 
-template<typename sample_g, typename observation_g, typename value_v> void addSample(sample_g *sample, observation_g *observation, value_v value) {
-  if (ISVALID(value)) {
-    sample->values = value;
-    sample->count++;
-    float med = (float) readCurrentObservation<observation_g, value_v>(observation);
-    med += ((float) sample->values - med) / (float) (sample->count);
-    writeCurrentObservation(observation, (value_v) med);
-  }
-  else {
-    sample->values = UINT16_MAX;
-    sample->error_count++;
-  }
-}
 
-template<typename observation_g, typename value_v> value_v readCurrentObservation(observation_g *buffer) {
-  return *buffer->write_ptr;
-}
 
-template<typename observation_g, typename value_v> void writeCurrentObservation(observation_g *buffer, value_v value) {
-  *buffer->write_ptr = value;
-}
-
-template<typename observation_g, typename length_v> void resetObservation(observation_g *buffer, length_v length) {
-  for (length_v i = 0; i < OBSERVATION_COUNT; i++) {
-    buffer->med[i] = UINT16_MAX;
-  }
-
-  buffer->count = 0;
-  buffer->read_ptr = buffer->med;
-  buffer->write_ptr = buffer->med;
-}
-
-template<typename observation_g, typename length_v> void resetBackObservation(observation_g *buffer, length_v length) {
-  if (buffer->write_ptr == buffer->med) {
-    buffer->read_ptr = buffer->med+length-1;
-  }
-  else buffer->read_ptr = buffer->write_ptr-1;
-}
-
-template<typename observation_g, typename length_v> void incrementObservation(observation_g *buffer, length_v length) {
-  if (buffer->count < length) {
-    buffer->count++;
-  }
-
-  if (buffer->write_ptr+1 < buffer->med + length) {
-    buffer->write_ptr++;
-  } else buffer->write_ptr = buffer->med;
-}
-
-template<typename observation_g, typename length_v, typename value_v> void addObservation(observation_g *buffer, length_v length, value_v value) {
-  *buffer->write_ptr = value;
-  incrementObservation(buffer, length);
-}
-
-template<typename observation_g, typename length_v, typename value_v> value_v readBackObservation(observation_g *buffer, length_v length) {
-  value_v value = *buffer->read_ptr;
-
-  if (buffer->read_ptr == buffer->med) {
-    buffer->read_ptr = buffer->med+length-1;
-  }
-  else buffer->read_ptr--;
-
-  return value;
-}
-
-void samples_processing(bool is_force_processing) {
-  LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, is_force_processing ? "F" : "N");
-
-  bool is_observations_processing = false;
-
-  //! if true, a new temperature observation was calculated
-  bool is_processing_temperature = make_observation_from_samples(is_force_processing, &temperature_samples, &temperature_observations);
-
-  //! if true, a new humidity observation was calculated
-  bool is_processing_humidity = make_observation_from_samples(is_force_processing, &humidity_samples, &humidity_observations);
-
-  if (is_processing_temperature || is_processing_humidity) {
-    #if (LOG_LEVEL >= LOG_LEVEL_TRACE)
-    resetBackObservation(&temperature_observations, OBSERVATION_COUNT);
-    resetBackObservation(&humidity_observations, OBSERVATION_COUNT);
-
-    uint16_t temperature = readBackObservation<observation_t, uint16_t, uint16_t>(&temperature_observations, OBSERVATION_COUNT);
-    uint16_t humidity = readBackObservation<observation_t, uint16_t, uint16_t>(&humidity_observations, OBSERVATION_COUNT);
-
-    LOGT(F("O->\t%d\t%d\t%d/%d\t%d/%d O<-"), temperature, humidity, temperature_samples.count, samples_count, humidity_samples.count, samples_count);
-    #endif
-
-    //! assign new value for samples_count
-    if (is_force_processing) {
-      samples_count = SENSORS_SAMPLE_COUNT_MAX;
-    }
-    else samples_count = (samples_count == SENSORS_SAMPLE_COUNT_MAX ? SENSORS_SAMPLE_COUNT_MIN : SENSORS_SAMPLE_COUNT_MAX);
-
-    is_observations_processing = observations_processing();
-  }
-
-  if (is_force_processing || is_processing_temperature || is_processing_humidity) {
-    //! reset samples's buffer values
-    reset_samples_buffer();
-  }
-
-  exchange_buffers();
-
-  #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-  if (is_observations_processing) {
-    LOGN(F("R->"));
-
-    if (ISVALID(readable_data_read_ptr->temperature.sample)) {
-      LOGN(F("T-SMP: %d"), readable_data_read_ptr->temperature.sample);
-    }
-    else LOGN(F("T-SMP: -----"));
-
-    if (ISVALID(readable_data_read_ptr->temperature.med60)) {
-      LOGN(F("T-IST: %d"), readable_data_read_ptr->temperature.med60);
-    }
-    else LOGN(F("T-IST: -----"));
-
-    if (ISVALID(readable_data_read_ptr->temperature.min)) {
-      LOGN(F("T-MIN: %d"), readable_data_read_ptr->temperature.min);
-    }
-    else LOGN(F("T-MIN: -----"));
-
-    if (ISVALID(readable_data_read_ptr->temperature.med)) {
-      LOGN(F("T-MED: %d"), readable_data_read_ptr->temperature.med);
-    }
-    else LOGN(F("T-MED: -----"));
-
-    if (ISVALID(readable_data_read_ptr->temperature.max)) {
-      LOGN(F("T-MAX: %d"), readable_data_read_ptr->temperature.max);
-    }
-    else LOGN(F("T-MAX: -----"));
-
-    if (ISVALID(readable_data_read_ptr->humidity.sample)) {
-      LOGN(F("H-SMP: %d"), readable_data_read_ptr->humidity.sample);
-    }
-    else LOGN(F("H-SMP: -----"));
-
-    if (ISVALID(readable_data_read_ptr->humidity.med60)) {
-      LOGN(F("H-IST: %d"), readable_data_read_ptr->humidity.med60);
-    }
-    else LOGN(F("H-IST: -----"));
-
-    if (ISVALID(readable_data_read_ptr->humidity.min)) {
-      LOGN(F("H-MIN: %d"), readable_data_read_ptr->humidity.min);
-    }
-    else LOGN(F("H-MIN: -----"));
-
-    if (ISVALID(readable_data_read_ptr->humidity.med)) {
-      LOGN(F("H-MED: %d"), readable_data_read_ptr->humidity.med);
-    }
-    else LOGN(F("H-MED: -----"));
-
-    if (ISVALID(readable_data_read_ptr->humidity.max)) {
-      LOGN(F("H-MAX: %d"), readable_data_read_ptr->humidity.max);
-    }
-    else LOGN(F("H-MAX: -----"));
-    LOGN(F("R<-"));
-  }
-  #endif
-}
-
-template<typename sample_g, typename observation_g> bool make_observation_from_samples(bool is_force_processing, sample_g *sample, observation_g *observation) {
-  //! when true, indicates that sufficient samples have been acquired for the calculation of an observation
-  bool is_processing_end;
-
-  //! force processing when total samples count (sample->count + sample->error_count >= (SENSORS_SAMPLE_COUNT_MAX - SENSORS_SAMPLE_COUNT_TOLERANCE))
-  if (is_force_processing && samples_count == SENSORS_SAMPLE_COUNT_MAX) {
-    is_processing_end = (sample->count + sample->error_count >= (SENSORS_SAMPLE_COUNT_MAX - SENSORS_SAMPLE_COUNT_TOLERANCE));
-  }
-  //! force processing when total samples count (sample->count + sample->error_count >= (SENSORS_SAMPLE_COUNT_MIN - SENSORS_SAMPLE_COUNT_TOLERANCE))
-  else if (is_force_processing && samples_count == SENSORS_SAMPLE_COUNT_MIN) {
-    is_processing_end = (sample->count + sample->error_count >= (SENSORS_SAMPLE_COUNT_MIN - SENSORS_SAMPLE_COUNT_TOLERANCE));
-  }
-  //! normal behavior: processing when correct sample count ((sample->count + sample->error_count) == samples_count)
-  else is_processing_end = ((sample->count + sample->error_count) == samples_count);
-
-  if (is_processing_end) {
-    if (sample->error_count > SENSORS_SAMPLE_COUNT_TOLERANCE) {
-      //! add missing observation to observations buffer
-      addObservation(observation, OBSERVATION_COUNT, UINT16_MAX);
-    }
-    else {
-      //! increment ptr for set new calculted observation to observations buffer
-      incrementObservation(observation, OBSERVATION_COUNT);
-    }
-  }
-
-  return is_processing_end;
-}
-
-template<typename sample_g, typename observation_g, typename value_v, typename val_v> bool make_value_from_samples_and_observations(sample_g *sample, observation_g *observation, value_v *value) {
-  //! reset value to default
-  value->sample = UINT16_MAX;
-  value->med60 = UINT16_MAX;
-  value->med = UINT16_MAX;
-  value->max = UINT16_MAX;
-  value->min = UINT16_MAX;
-  value->sigma = UINT16_MAX;
-
-  //! if true, you can calculate the value for report (there are at least STATISTICAL_DATA_COUNT observations)
-  bool is_processing = (observation->count >= STATISTICAL_DATA_COUNT);
-
-  //! good observation counter
-  uint16_t count = 0;
-
-  //! error observation counter
-  uint16_t error_count = 0;
-
-  //! current observation's value
-  val_v current = UINT16_MAX;
-
-  //! minimum value
-  float mymin = UINT16_MAX;
-
-  //! average value
-  float med = 0;
-
-  float sum = 0;
-  float sum2 = 0;
-
-  //! maximum value
-  float mymax = 0;
-
-  //! standard deviation value
-  float sigma = 0;
-
-  if (is_processing) {
-    resetBackObservation(observation, OBSERVATION_COUNT);
-
-    //! loop backwards in last STATISTICAL_DATA_COUNT observations array
-    for (uint16_t i = 0; i < STATISTICAL_DATA_COUNT; i++) {
-      current = readBackObservation<observation_g, uint16_t, val_v>(observation, OBSERVATION_COUNT);
-
-      //! if it is a good observation, calculate sum, minimum and maximum value. Otherwise increment error counter.
-      if (ISVALID(current)) {
-        count++;
-
-        //! check and assing minimum value
-        mymin = min(mymin, current);
-
-        //! check and assing maximum value
-        mymax = max(mymax, current);
-
-        //! average calculation
-        med += ((float) current - med) / (float) (count);
-
-        //!  standard deviation
-        sum2 += current * current;
-        sum += current;
-
-      } else error_count++;
-    }
-
-    //! calculate report value only if there are enough good observations
-    if (error_count <= OBSERVATION_COUNT_TOLLERANCE) {
-      //! assign last sample to report value
-      value->sample = (val_v) sample->values;
-
-      //! assign last observation to report value
-      value->med60 = (val_v) current;
-
-      //! average
-      value->med = (val_v) med;
-
-      //! assign maximum observation to report value
-      value->max = (val_v) mymax;
-
-      //! assign minimum observation to report value
-      value->min = (val_v) mymin;
-
-      //! calculate standard deviation: make sense for count >=2
-      if (count > 1) {
-        sigma = round(sqrt((sum2 - (sum * sum) / count) / count));
-        //! assign standard deviation to standard deviation report value
-        value->sigma = (val_v) sigma;
-      }
-    }
-  }
-
-  return is_processing;
-}
-
-//------------------------------------------------------------------------------
-// I2C-TH
-// STH: oneshot                   --> xxx.sample
-// ITH: continuous istantaneous   --> xxx.med60
-// MTH: continuous average        --> xxx.med
-// NTH: continuous min            --> xxx.min
-// XTH: continuous max            --> xxx.max
-//------------------------------------------------------------------------------
-bool observations_processing() {
-  //! if true, a new temperature report was calculated
-  bool is_processing_temperature = make_value_from_samples_and_observations<sample_t, observation_t, volatile value_t, float>(&temperature_samples, &temperature_observations, &readable_data_write_ptr->temperature);
-
-  //! if true, a new humidty report was calculated
-  bool is_processing_humidty = make_value_from_samples_and_observations<sample_t, observation_t, volatile value_t, float>(&humidity_samples, &humidity_observations, &readable_data_write_ptr->humidity);
-
-  return is_processing_temperature || is_processing_humidty;
-}
 
 void sensors_reading_task () {
    static uint8_t i;
@@ -875,8 +532,8 @@ void sensors_reading_task () {
 	  sensors_reading_state = SENSORS_READING_PREPARE;
 	}else{
 	  LOGE(F("Skip failed Sensor"));
-	  addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
-	  addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
+	  addValue<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX, INT32_MAX);
+	  addValue<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX, INT32_MAX);
 	  
 	  sensors_reading_state = SENSORS_READING_NEXT;
 	} 
@@ -920,8 +577,8 @@ void sensors_reading_task () {
         //! fail
         else {
 	  sensors_reading_state = SENSORS_READING_NEXT;
-	  addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
-	  addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
+	  addValue<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX, INT32_MAX);
+	  addValue<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX, INT32_MAX);
 
 	  LOGE(F("Sensor is prepared... [ %s ]"),FAIL_STRING);
 	  retry_prepare = 0;
@@ -978,40 +635,21 @@ void sensors_reading_task () {
 
       case SENSORS_READING_READ:
         //! read sensor value
-	/*
-        #if (USE_SENSOR_ADT)
-        if (strcmp(sensors[i]->getType(), SENSOR_TYPE_ADT) == 0) {
-          addSample(&temperature_samples, &temperature_observations, values_readed_from_sensor[0]);
-        }
-        #endif
-
-        #if (USE_SENSOR_HIH)
-        if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HIH) == 0) {
-          addSample(&humidity_samples, &humidity_observations, values_readed_from_sensor[0]);
-          addSample(&temperature_samples, &temperature_observations, values_readed_from_sensor[1]);
-        }
-        #endif
-
-        #if (USE_SENSOR_HYT)
-        if (strcmp(sensors[i]->getType(), SENSOR_TYPE_HYT) == 0) {
-          addSample(&humidity_samples, &humidity_observations, values_readed_from_sensor[0]);
-          addSample(&temperature_samples, &temperature_observations, values_readed_from_sensor[1]);
-        }
-        #endif
-	*/
 	{
 	  StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
 	  DeserializationError error = deserializeJson(doc,json_sensors_data);
 	  if (error) {
 	    LOGE(F("deserializeJson() failed with code %s"),error.f_str());
-	    addSample(&temperature_samples, &temperature_observations, UINT32_MAX);
-	    addSample(&humidity_samples, &humidity_observations, UINT32_MAX);
+            addValue<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX, INT32_MAX);
+            addValue<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX, INT32_MAX);
 	  }else{
-	    unsigned long int value = doc["B12101"] | UINT32_MAX;
-	    addSample(&temperature_samples, &temperature_observations, value);
+	    unsigned long int value = doc["B12101"] | INT32_MAX;
+            addValue<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX, value);
+	    LOGN(F("Temperature sample: %d"), value);
 	    
-	    value = doc["B13003"] | UINT32_MAX;
-	    addSample(&humidity_samples, &humidity_observations, value);
+	    value = doc["B13003"] | INT32_MAX;
+            addValue<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX, value);
+	    LOGN(F("Humidity sample: %d"), value);
 	  }
 	}
         sensors_reading_state = SENSORS_READING_NEXT;
@@ -1027,8 +665,8 @@ void sensors_reading_task () {
          //! end (there are no other sensors to read)
          else {
             //! if it is in continuous mode, do samples processing
-            if (configuration.is_continuous) {
-              samples_processing(false);
+            if (!configuration.is_oneshot) {
+              samples_processing();
             }
             sensors_reading_state = SENSORS_READING_END;
          }
@@ -1050,6 +688,296 @@ void sensors_reading_task () {
    }
 }
 
+// legge dato puntato e incrementa puntatore
+template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length) {
+   value_v value = *buffer->read_ptr;
+
+   if (buffer->read_ptr == buffer->values+length-1) {
+      buffer->read_ptr = buffer->values;
+   }
+   else buffer->read_ptr++;
+
+   return value;
+}
+
+// legge dato puntato e decrementa puntatore
+template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length) {
+   value_v value = *buffer->read_ptr;
+
+   if (buffer->read_ptr == buffer->values) {
+      buffer->read_ptr = buffer->values+length-1;
+   }
+   else buffer->read_ptr--;
+
+   return value;
+}
+
+// setta il puntatore di lettura sul dato ultimo scritto
+template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length) {
+   if (buffer->write_ptr == buffer->values) {
+      buffer->read_ptr = buffer->values+length-1;
+   }
+   else buffer->read_ptr = buffer->write_ptr-1;
+}
+
+
+// reset of buffer (no data) setting all data to missing
+template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
+   memset(buffer->values, UINT8_MAX, length * sizeof(value_v));
+   buffer->count = 0;
+   buffer->read_ptr = buffer->values;
+   buffer->write_ptr = buffer->values;
+}
+
+
+// used by addValue
+template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length) {
+   if (buffer->count < length) {
+      buffer->count++;
+   }
+
+   if (buffer->write_ptr+1 < buffer->values + length) {
+      buffer->write_ptr++;
+   } else buffer->write_ptr = buffer->values;
+}
+
+// add a value at the end of the circular buffer
+template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value) {
+   *buffer->write_ptr = (value_v) value;
+   incrementBuffer<buffer_g, length_v>(buffer, length);
+}
+
+void make_report (bool init=false) {
+
+
+  static uint16_t valid_count_humidity;
+  static uint16_t error_count_humidity;
+  
+  static uint16_t valid_count_temperature;
+  static uint16_t error_count_temperature;
+  
+  static uint16_t valid_count_humidity_o;
+  static uint16_t error_count_humidity_o;
+  
+  static uint16_t valid_count_temperature_o;
+  static uint16_t error_count_temperature_o;
+
+  static int32_t avg_temperature;
+  static float sum1_temperature;
+  static float sum2_temperature;
+  
+  static int32_t avg_humidity;
+  static float sum1_humidity;
+  static float sum2_humidity;
+  
+  static int32_t ist_temperature_o;
+  static int32_t avg_temperature_o;
+  static int32_t min_temperature_o;
+  static int32_t max_temperature_o;
+  
+  static int32_t ist_humidity_o;
+  static int32_t avg_humidity_o;
+  static int32_t min_humidity_o;
+  static int32_t max_humidity_o;
+
+  if (init) {
+    valid_count_humidity = 0;
+    error_count_humidity = 0;
+    
+    valid_count_temperature = 0;
+    error_count_temperature = 0;
+    
+    valid_count_humidity_o = 0;
+    error_count_humidity_o = 0;
+    
+    valid_count_temperature_o = 0;
+    error_count_temperature_o = 0;
+    
+    avg_temperature = 0;
+    sum1_temperature = 0;
+    sum2_temperature = 0;
+    
+    avg_humidity = 0;
+    sum1_humidity = 0;
+    sum2_humidity = 0;
+    
+    ist_temperature_o = INT32_MAX;
+    avg_temperature_o = 0;
+    min_temperature_o = INT32_MAX;
+    max_temperature_o = INT32_MIN;
+    
+    ist_humidity_o = INT32_MAX;
+    avg_humidity_o = 0;
+    min_humidity_o = INT32_MAX;
+    max_humidity_o = INT32_MIN;
+
+    return;
+  }
+    
+  bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+  uint16_t sample_count = OBSERVATION_SAMPLES_COUNT;
+  if (temperature_samples.count < OBSERVATION_SAMPLES_COUNT) {
+    sample_count = temperature_samples.count;
+  }
+   
+  LOGN(F("Sample count %d:%d"),sample_count,OBSERVATION_SAMPLES_COUNT);
+  
+   for (uint16_t i = 0; i < sample_count; i++) {
+     
+     int32_t temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+     
+     if (i == 0) {
+
+       if (ISVALID_INT32(temperature)) {
+	 readable_data_write_ptr->temperature.sample = temperature;
+       }
+
+       LOGN(F("Temperature  count : %d"), temperature_samples.count);
+     }
+     LOGT(F("Temperature value: %d"), temperature);
+     
+     if (ISVALID_INT32(temperature)) {
+       valid_count_temperature++;
+       avg_temperature += round((float)(temperature - avg_temperature) / valid_count_temperature);
+     }
+     else {
+       error_count_temperature++;
+     }
+     
+     bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT) == 0);
+     if (is_new_observation) {
+       LOGN(F("temperature is new observation"));
+       
+       if (valid_count_temperature && (error_count_temperature <= OBSERVATION_SAMPLE_ERROR_MAX)) {
+	 valid_count_temperature_o++;
+	 
+	 LOGN(F("valid_count_temperature_o %d"),valid_count_temperature_o);
+	 
+	 avg_temperature_o += round((float) (avg_temperature - avg_temperature_o) / valid_count_temperature_o);
+	 
+	 if (i <= OBSERVATION_SAMPLES_COUNT) {
+	   ist_temperature_o = avg_temperature;
+	 }
+	 
+	 if (avg_temperature <= min_temperature_o) {
+	   min_temperature_o = avg_temperature;
+	 }
+	 
+	 if (avg_temperature >= max_temperature_o) {
+	   max_temperature_o = avg_temperature;
+	 }
+	 
+	 sum1_temperature += avg_temperature;
+	 sum2_temperature += avg_temperature * avg_temperature;
+       } else {
+	 error_count_temperature_o++;
+       }
+
+       bufferReset<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+       
+       avg_temperature = 0;
+       valid_count_temperature = 0;
+       error_count_temperature = 0;
+     }
+   }
+   
+   LOGT(F("valid_count_temperature_o %d RMAP_REPORT_VALID_MIN %d error_count_temperature_o %d RMAP_REPORT_ERROR_MAX %d"),valid_count_temperature_o, RMAP_REPORT_VALID_MIN, error_count_temperature_o, RMAP_REPORT_ERROR_MAX);
+   
+   if ((valid_count_temperature_o >= RMAP_REPORT_VALID_MIN) && (error_count_temperature_o <= RMAP_REPORT_ERROR_MAX)) {
+     readable_data_write_ptr->temperature.med60 = ist_temperature_o;
+     readable_data_write_ptr->temperature.min = min_temperature_o;
+     readable_data_write_ptr->temperature.med = avg_temperature_o;
+     readable_data_write_ptr->temperature.max = max_temperature_o;
+     readable_data_write_ptr->temperature.sigma = sqrt((sum2_temperature - (sum1_temperature * sum1_temperature) / (float) (valid_count_temperature_o)) / (float) (valid_count_temperature_o));
+   }
+
+   LOGN(F("temperature sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->temperature.sample,readable_data_write_ptr->temperature.med60, readable_data_write_ptr->temperature.min, readable_data_write_ptr->temperature.med, readable_data_write_ptr->temperature.max, readable_data_write_ptr->temperature.sigma);
+   
+   
+   // HUMIDITY
+
+   bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);   
+   sample_count = OBSERVATION_SAMPLES_COUNT;
+   if (humidity_samples.count < OBSERVATION_SAMPLES_COUNT) {
+     sample_count = humidity_samples.count;
+   }
+   
+   for (uint16_t i = 0; i < sample_count; i++) {
+          
+     int32_t humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+
+     if (i == 0) {
+       if (ISVALID_INT32(humidity)) {
+	 readable_data_write_ptr->humidity.sample = humidity;
+       }
+       LOGN(F("Humidity     count : %d"), humidity_samples.count);
+     }
+     LOGT(F("Humidity    value: %d"), humidity);   
+     
+     if (ISVALID_INT32(humidity)) {
+       valid_count_humidity++;
+       avg_humidity += round((float) (humidity - avg_humidity) / valid_count_humidity);
+     }
+     else {
+       error_count_humidity++;
+     }
+     
+     bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT) == 0);
+     if (is_new_observation) {
+       LOGN(F("humidity is new observation"));
+       if (valid_count_humidity && (error_count_humidity <= OBSERVATION_SAMPLE_ERROR_MAX)) {
+	 valid_count_humidity_o++;
+	 LOGN(F("valid_count_humidity_o %d"),valid_count_humidity_o);
+	 avg_humidity_o += round((float) (avg_humidity - avg_humidity_o) / valid_count_humidity_o);
+	 
+	 if (i <= OBSERVATION_SAMPLES_COUNT) {
+	   ist_humidity_o = avg_humidity;
+	 }
+	 
+	 if (avg_humidity <= min_humidity_o) {
+	   min_humidity_o = avg_humidity;
+	 }
+	 
+	 if (avg_humidity >= max_humidity_o) {
+	   max_humidity_o = avg_humidity;
+	 }
+	 
+	 sum1_humidity += avg_humidity;
+	 sum2_humidity += avg_humidity * avg_humidity;
+       }
+       else {
+	 error_count_humidity_o++;
+       }
+       
+       bufferReset<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+
+       avg_humidity = 0;
+       valid_count_humidity = 0;
+       error_count_humidity = 0;
+     }
+   }
+   
+   LOGN(F("valid_count_humidity_o %d RMAP_REPORT_VALID_MIN %d error_count_humidity_o %d RMAP_REPORT_ERROR_MAX %d"),valid_count_humidity_o, RMAP_REPORT_VALID_MIN, error_count_humidity_o, RMAP_REPORT_ERROR_MAX);
+   
+   if ((valid_count_humidity_o >= RMAP_REPORT_VALID_MIN) && (error_count_humidity_o <= RMAP_REPORT_ERROR_MAX)) {
+
+      readable_data_write_ptr->humidity.med60 = ist_humidity_o;
+      readable_data_write_ptr->humidity.min = min_humidity_o;
+      readable_data_write_ptr->humidity.med = avg_humidity_o;
+      readable_data_write_ptr->humidity.max = max_humidity_o;
+      readable_data_write_ptr->humidity.sigma = sqrt((sum2_humidity - (sum1_humidity * sum1_humidity) / (float) (valid_count_humidity_o)) / (float) (valid_count_humidity_o));
+   }
+
+   LOGN(F("humidity   sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->humidity.sample,readable_data_write_ptr->humidity.med60, readable_data_write_ptr->humidity.min, readable_data_write_ptr->humidity.med, readable_data_write_ptr->humidity.max, readable_data_write_ptr->humidity.sigma);
+
+}
+
+void samples_processing() {
+  LOGN(F("SAMPLE PROCESSING"));
+  reset_report_buffer();
+  make_report();
+}
+
 void exchange_buffers() {
    noInterrupts();
    readable_data_temp_ptr = readable_data_write_ptr;
@@ -1059,80 +987,38 @@ void exchange_buffers() {
 }
 
 void reset_samples_buffer() {
-  temperature_samples.values = UINT16_MAX;
-  temperature_samples.count = 0;
-  temperature_samples.error_count = 0;
-
-  humidity_samples.values = UINT16_MAX;
-  humidity_samples.count = 0;
-  humidity_samples.error_count = 0;
+   bufferReset<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+   bufferReset<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
 }
 
-void reset_observations_buffer() {
-  resetObservation(&temperature_observations, OBSERVATION_COUNT);
-  resetObservation(&humidity_observations, OBSERVATION_COUNT);
+void reset_report_buffer () {
+   readable_data_write_ptr->temperature.sample =  UINT16_MAX;
+   readable_data_write_ptr->temperature.med60 =  UINT16_MAX;
+   readable_data_write_ptr->temperature.med =  UINT16_MAX;
+   readable_data_write_ptr->temperature.max =  UINT16_MAX;
+   readable_data_write_ptr->temperature.min =  UINT16_MAX;
+   readable_data_write_ptr->temperature.sigma =  UINT16_MAX;
+   readable_data_write_ptr->humidity.sample =  UINT16_MAX;
+   readable_data_write_ptr->humidity.med60 =  UINT16_MAX;
+   readable_data_write_ptr->humidity.med =  UINT16_MAX;
+   readable_data_write_ptr->humidity.max =  UINT16_MAX;
+   readable_data_write_ptr->humidity.min =  UINT16_MAX;
+   readable_data_write_ptr->humidity.sigma = UINT16_MAX;
 }
 
-void resetObservation (observation_t *buffer, uint16_t length) {
-  memset((void *) buffer->med, UINT8_MAX, length * sizeof(uint16_t));
-  buffer->count = 0;
-  buffer->read_ptr = buffer->med;
-  buffer->write_ptr = buffer->med;
-}
-
-void resetBackObservation (observation_t *buffer, uint16_t length) {
-  if (buffer->write_ptr == buffer->med) {
-    buffer->read_ptr = buffer->med+length-1;
-  }
-  else buffer->read_ptr = buffer->write_ptr-1;
-}
-
-void addObservation (observation_t *buffer, uint16_t length, uint16_t value) {
-  *buffer->write_ptr = value;
-
-  if (buffer->count < length) {
-    buffer->count++;
-  }
-
-  if (buffer->write_ptr+1 < buffer->med + length) {
-    buffer->write_ptr++;
-  } else buffer->write_ptr = buffer->med;
-}
-
-uint16_t readBackObservation (observation_t *buffer, uint16_t length) {
-  uint16_t value = *buffer->read_ptr;
-
-  if (buffer->read_ptr == buffer->med) {
-    buffer->read_ptr = buffer->med+length-1;
-  }
-  else buffer->read_ptr--;
-
-  return value;
-}
 
 void command_task() {
-   #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-   char buffer[30];
-   #endif
 
    switch(i2c_rx_data[1]) {
       case I2C_TH_COMMAND_ONESHOT_START:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "ONESHOT START");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
+	 LOGN(F("Execute [ ONESHOT START ]"));
          is_start = true;
          is_stop = false;
          commands();
       break;
 
       case I2C_TH_COMMAND_ONESHOT_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "ONESHOT STOP");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
+	 LOGN(F("Execute [ ONESHOT STOP ]"));
          is_start = false;
          is_stop = true;
 	 is_test_read = false;
@@ -1140,11 +1026,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_ONESHOT_START_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "ONESHOT START-STOP");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
+	 LOGN(F("Execute [ ONESHOT START-STOP ]"));
          is_start = true;
          is_stop = true;
 	 is_test_read = false;
@@ -1152,11 +1034,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "CONTINUOUS START");
-         #endif
-         is_oneshot = false;
-         is_continuous = true;
+	 LOGN(F("Execute [ CONTINUOUS START ]"));
          is_start = true;
          is_stop = false;
 	 is_test_read = false;
@@ -1164,11 +1042,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_STOP:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "CONTINUOUS STOP");
-         #endif
-         is_oneshot = false;
-         is_continuous = true;
+	 LOGN(F("Execute [ CONTINUOUS STOP ]"));
          is_start = false;
          is_stop = true;
 	 is_test_read = false;
@@ -1176,11 +1050,7 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
-        #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-        strcpy(buffer, "CONTINUOUS START-STOP");
-        #endif
-        is_oneshot = false;
-        is_continuous = true;
+	LOGN(F("Execute [ CONTINUOUS START-STOP ]"));
         is_start = true;
         is_stop = true;
 	is_test_read = false;
@@ -1188,32 +1058,23 @@ void command_task() {
       break;
 
       case I2C_TH_COMMAND_TEST_READ:
-         #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-         strcpy(buffer, "TEST READ");
-         #endif
-         is_test_read = true;
+	 LOGN(F("Execute [ TEST READ ]"));
+	 is_test_read = true;
          tests();
       break;
 
       case I2C_TH_COMMAND_SAVE:
-        is_oneshot = false;
-        is_continuous = false;
         is_start = false;
         is_stop = false;
         LOGN(F("Execute command [ SAVE ]"));
         save_configuration(CONFIGURATION_CURRENT);
         init_wire();
       break;
-   }
 
-   #if (LOG_LEVEL >= LOG_LEVEL_NOTICE)
-   if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      LOGN(F("Execute [ %s ]"), buffer);
+      default:
+	LOGN(F("Ignore unknow command"));
+	
    }
-   else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      LOGN(F("Ignore [ %s ]"), buffer);
-   }
-   #endif
 
    noInterrupts();
    is_event_command_task = false;
@@ -1222,36 +1083,32 @@ void command_task() {
 }
 
 void tests() {
-  if (temperature_samples.count && humidity_samples.count) {
-    if (ISVALID(temperature_samples.values) && ISVALID(humidity_samples.values)) {
-      readable_data_write_ptr->temperature.sample = (uint16_t) temperature_samples.values;
-      readable_data_write_ptr->humidity.sample = (uint16_t) humidity_samples.values;
-      LOGT(F("%0\t%0\t%d\t%d\t%s"), temperature_samples.values, humidity_samples.values, temperature_samples.count, humidity_samples.count, "T");
-      exchange_buffers();
-    }
-
-  }
+   exchange_buffers();
 }
 
 void commands() {
-   noInterrupts();
 
   //! CONTINUOUS START
-  if (configuration.is_continuous && is_continuous && is_start && !is_stop) {
+  if (!configuration.is_oneshot && is_start && !is_stop) {
+    init_timer1();
+    make_report(true);
     reset_samples_buffer();
-    reset_observations_buffer();
+    reset_report_buffer();
   }
   //! CONTINUOUS STOP
-  else if (configuration.is_continuous && is_continuous && !is_start && is_stop) {
-    samples_processing(true);
+  else if (!configuration.is_oneshot && !is_start && is_stop) {
+      exchange_buffers();
   }
   //! CONTINUOUS START-STOP
-  else if (configuration.is_continuous && is_continuous && is_start && is_stop) {
-    TCNT1 = TIMER1_TCNT1_VALUE;
-    samples_processing(true);
+  else if (!configuration.is_oneshot && is_start && is_stop) {
+    exchange_buffers();
+    init_timer1();
+    reset_samples_buffer();
+    reset_report_buffer();
+    make_report(true);
   }
   //! ONESHOT START
-  else if (configuration.is_oneshot && is_oneshot && is_start && !is_stop) {
+  else if (configuration.is_oneshot && is_start && !is_stop) {
     reset_samples_buffer();
 
     if (!is_event_sensors_reading) {
@@ -1260,23 +1117,31 @@ void commands() {
     }
   }
   //! ONESHOT STOP
-  else if (configuration.is_oneshot && is_oneshot && !is_start && is_stop) {
-    readable_data_write_ptr->temperature.sample = temperature_samples.values;
-    readable_data_write_ptr->humidity.sample = humidity_samples.values;
+  else if (configuration.is_oneshot && !is_start && is_stop) {
+
+    bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+    int32_t temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+    bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+    int32_t humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+   
+    readable_data_write_ptr->temperature.sample = temperature;
+    readable_data_write_ptr->humidity.sample = humidity;
     exchange_buffers();
   }
   //! ONESHOT START-STOP
-  else if (configuration.is_oneshot && is_oneshot && is_start && is_stop) {
-    readable_data_write_ptr->temperature.sample = temperature_samples.values;
-    readable_data_write_ptr->humidity.sample = humidity_samples.values;
+  else if (configuration.is_oneshot && is_start && is_stop) {
+    bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+    int32_t temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+    bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+    int32_t humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+   
+    readable_data_write_ptr->temperature.sample = temperature;
+    readable_data_write_ptr->humidity.sample = humidity;
     exchange_buffers();
-    reset_samples_buffer();
-
-      if (!is_event_sensors_reading) {
-         is_event_sensors_reading = true;
-         ready_tasks_count++;
-      }
-   }
-
-   interrupts();
+    
+    if (!is_event_sensors_reading) {
+      is_event_sensors_reading = true;
+      ready_tasks_count++;
+    }
+  }
 }
