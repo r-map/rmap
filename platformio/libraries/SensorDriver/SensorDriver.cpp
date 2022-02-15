@@ -1837,12 +1837,14 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 
     _is_readed = false;
     _is_end = false;
+         _error_count = 0;
 
     if (*_is_prepared && length >= 1) {
       _is_success = true;
-      _get_state = SET_BATTERY_CHARGE_ADDRESS;
+            _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
     }
     else {
+            _error_count++;
       _is_success = false;
       _get_state = END;
     }
@@ -1851,38 +1853,8 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     break;
 
-    case SET_BATTERY_CHARGE_ADDRESS:
-    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
-
-    if (_is_success) {
-      _error_count = 0;
-      _get_state = READ_BATTERY_CHARGE;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
-
-    case READ_BATTERY_CHARGE:
-    _is_success = DigitecoPower::de_read(_address, &battery_charge);
-    _delay_ms = 0;
-    _start_time_ms = millis();
-
-    if (_is_success && length >= 2) {
-      _error_count = 0;
-      _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
-
-    case SET_BATTERY_VOLTAGE_ADDRESS:
-    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
+      case SET_BATTERY_VOLTAGE_ADDRESS:
+         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
 
@@ -1896,53 +1868,23 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
     break;
 
-    case READ_BATTERY_VOLTAGE:
-    _is_success = DigitecoPower::de_read(_address, &battery_voltage);
+      case READ_BATTERY_VOLTAGE:
+         _is_success = DigitecoPower::de_read(_address, &battery_voltage);
     _delay_ms = 0;
     _start_time_ms = millis();
 
-    if (_is_success && length >= 3) {
-      _error_count = 0;
-      _get_state = SET_BATTERY_CURRENT_ADDRESS;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
-
-    case SET_BATTERY_CURRENT_ADDRESS:
-    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
-    _delay_ms = 0;
-    _start_time_ms = millis();
-
-    if (_is_success) {
-      _error_count = 0;
-      _get_state = READ_BATTERY_CURRENT;
-    }
-    else {
-      _error_count++;
-      _get_state = END;
-    }
-    break;
-
-    case READ_BATTERY_CURRENT:
-    _is_success = DigitecoPower::de_read(_address, &battery_current);
-    _delay_ms = 0;
-    _start_time_ms = millis();
-
-    if (_is_success && length >= 4) {
+    if (_is_success && length >= 2) {
       _error_count = 0;
       _get_state = SET_INPUT_VOLTAGE_ADDRESS;
     }
     else {
-      _error_count++;      
+      _error_count++;
       _get_state = END;
     }
     break;
 
-    case SET_INPUT_VOLTAGE_ADDRESS:
-    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
+      case SET_INPUT_VOLTAGE_ADDRESS:
+         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
 
@@ -1957,7 +1899,67 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     break;
 
     case READ_INPUT_VOLTAGE:
-    _is_success = DigitecoPower::de_read(_address, &input_voltage);
+         _is_success = DigitecoPower::de_read(_address, &input_voltage);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 3) {
+      _error_count = 0;
+      _get_state = SET_BATTERY_CHARGE_ADDRESS;
+    }
+    else {
+      _error_count++;
+      _get_state = END;
+    }
+    break;
+
+      case SET_BATTERY_CHARGE_ADDRESS:
+         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _error_count = 0;
+      _get_state = READ_BATTERY_CHARGE;
+    }
+    else {
+      _error_count++;
+      _get_state = END;
+    }
+    break;
+
+    case READ_BATTERY_CURRENT:
+    _is_success = DigitecoPower::de_read(_address, &battery_current);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success && length >= 4) {
+      _error_count = 0;
+      _get_state = SET_BATTERY_CURRENT_ADDRESS;
+    }
+    else {
+      _error_count++;      
+      _get_state = END;
+    }
+    break;
+
+      case SET_BATTERY_CURRENT_ADDRESS:
+         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
+    _delay_ms = 0;
+    _start_time_ms = millis();
+
+    if (_is_success) {
+      _error_count = 0;
+      _get_state = READ_BATTERY_CURRENT;
+    }
+    else {
+      _error_count++;
+      _get_state = END;
+    }
+    break;
+
+      case READ_BATTERY_CURRENT:
+         _is_success = DigitecoPower::de_read(_address, &battery_current);
     _delay_ms = 0;
     _start_time_ms = millis();
 
@@ -2031,55 +2033,85 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     case END:
     if (length >= 1) {
       if (_is_success) {
-        values[0] = battery_charge;
+               values[0] = battery_voltage * 10;
       }
       else {
+               values[0] = INT32_MAX;
+            }
+
+            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+            if ((battery_voltage <= 0.0) || (battery_voltage >= 50.0)) {
         _is_success = false;
+               values[0] = INT32_MAX;
       }
     }
 
     if (length >= 2) {
       if (_is_success) {
-        values[1] = battery_voltage * 10;
+               values[1] = input_voltage * 10;
       }
       else {
+               values[1] = INT32_MAX;
+            }
+
+            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+            if ((input_voltage <= -10.0) || (input_voltage >= 50.0)) {
         _is_success = false;
+               values[1] = INT32_MAX;
       }
     }
 
-    if (length >= 4) {
+         if (length >= 3) {
       if (_is_success) {
-        values[3] = battery_current;
+               values[2] = battery_charge;
       }
       else {
+               values[2] = INT32_MAX;
+            }
+
+            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+            if ((battery_charge < 0.0) || (battery_charge > 100.0)) {
         _is_success = false;
+               values[2] = INT32_MAX;
       }
     }
 
-    if (length >= 3) {
+         if (length >= 4) {
       if (_is_success) {
-        values[2] = input_voltage * 10;
+               values[3] = battery_current * 100.0;
       }
       else {
-        _is_success = false;
+               values[3] = INT32_MAX;
       }
     }
 
     if (length >= 5) {
       if (_is_success) {
-        values[4] = input_current * 1000;
+               values[4] = input_current * 1000.0;
       }
       else {
+               values[4] = INT32_MAX;
+            }
+
+            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+            if ((input_current < 0.0) || (input_current > 5000.0)) {
         _is_success = false;
+               values[4] = INT32_MAX;
       }
     }
 
     if (length >= 6) {
       if (_is_success) {
-        values[5] = output_voltage * 10;
+               values[5] = output_voltage * 10.0;
       }
       else {
+               values[5] = INT32_MAX;
+            }
+
+            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+            if ((input_current < 0.0) || (output_voltage > 50.0)) {
         _is_success = false;
+               values[5] = INT32_MAX;
       }
     }
 
@@ -2092,43 +2124,43 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
-        LOGT(F("digitecopower--> battery charge: %ld %%"), values[0]);
+        LOGT(F("digitecopower--> battery voltage: %l V"), values[0]);
       }
       else {
-        LOGT(F("digitecopower--> battery charge: ---"));
+               LOGT(F("digitecopower--> battery voltage: ---"));
       }
     }
 
     if (length >= 2) {
-      if (ISVALID_INT32(values[1])) {
-        LOGT(F("digitecopower--> battery voltage: %ld V"), values[1]);
+            if (ISVALID_INT32(values[1])) {
+               LOGT(F("digitecopower--> input voltage: %l V"), values[1]);
       }
       else {
-        LOGT(F("digitecopower--> battery voltage: ---"));
+               LOGT(F("digitecopower--> input voltage: ---"));
       }
     }
 
-    if (length >= 4) {
-      if (ISVALID_INT32(values[3])) {
-        LOGT(F("digitecopower--> battery current: %ld mA"), values[2]);
+         if (length >= 3) {
+            if (ISVALID_INT32(values[2])) {
+               LOGT(F("digitecopower--> battery charge: %l %%"), values[2]);
       }
       else {
-        LOGT(F("digitecopower--> battery current: ---"));
+               LOGT(F("digitecopower--> battery charge: ---"));
       }
     }
 
-    if (length >= 3) {
-      if (ISVALID_INT32(values[2])) {
-        LOGT(F("digitecopower--> input voltage: %ld V"), values[2]);
+         if (length >= 4) {
+            if (ISVALID_INT32(values[3])) {
+               LOGT(F("digitecopower--> battery current: %l mA"), values[3]);
       }
       else {
-        LOGT(F("digitecopower--> input voltage: ---"));
+               LOGT(F("digitecopower--> battery current: ---"));
       }
     }
 
     if (length >= 5) {
-      if (ISVALID_INT32(values[4])) {
-        LOGT(F("digitecopower--> input current: %ld mA"), values[4]);
+            if (ISVALID_INT32(values[4])) {
+               LOGT(F("digitecopower--> input current: %l mA"), values[4]);
       }
       else {
         LOGT(F("digitecopower--> input current: ---"));
@@ -2136,8 +2168,8 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     }
 
     if (length >= 6) {
-      if (ISVALID_INT32(values[5])) {
-        LOGT(F("digitecopower--> output voltage: %ld V"), values[5]);
+            if (ISVALID_INT32(values[5])) {
+               LOGT(F("digitecopower--> output voltage: %l V"), values[5]);
       }
       else {
         LOGT(F("digitecopower--> output voltage: ---"));
@@ -2161,42 +2193,42 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
     if (length >= 1) {
-      if (ISVALID_INT32(values[0])) {
-        json["B25192"] = values[0];
+         if (ISVALID_INT32(values[0])) {
+            json["B25025"] = values[0];
       }
-      else json["B25192"] = nullptr;
+         else json["B25025"] = nullptr;
     }
 
     if (length >= 2) {
-      if (ISVALID_INT32(values[1])) {
-        json["B25025"] = values[1];
+         if (ISVALID_INT32(values[1])) {
+            json["B25194"] = values[1];
       }
-      else json["B25025"] = nullptr;
+         else json["B25194"] = nullptr;
+      }
+
+      if (length >= 3) {
+         if (ISVALID_INT32(values[2])) {
+            json["B25192"] = values[2];
+         }
+         else json["B25192"] = nullptr;
     }
 
     if (length >= 4) {
-      if (ISVALID_INT32(values[3])) {
+         if (ISVALID_INT32(values[3])) {
         json["B25193"] = values[3];
       }
       else json["B25193"] = nullptr;
-    }
-
-     if (length >= 3) {
-       if (ISVALID_INT32(values[2])) {
-         json["B25194"] = values[2];
-       }
-       else json["B25194"] = nullptr;
      }
 
      if (length >= 5) {
-       if (ISVALID_INT32(values[4])) {
+         if (ISVALID_INT32(values[4])) {
          json["B00005"] = values[4];
        }
        else json["B00005"] = nullptr;
      }
 
      if (length >= 6) {
-       if (ISVALID_INT32(values[5])) {
+         if (ISVALID_INT32(values[5])) {
          json["B00006"] = values[5];
        }
        else json["B00006"] = nullptr;
