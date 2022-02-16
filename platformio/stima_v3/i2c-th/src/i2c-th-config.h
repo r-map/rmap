@@ -158,16 +158,17 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define SAMPLES_COUNT_MAX                                 (((60000 * OBSERVATIONS_MINUTES) / SENSORS_SAMPLE_TIME_MS) + 10)
 
 /*!
-\def OBSERVATION_SAMPLE_ERROR_MAX
-\brief Maximum invalid sample count for generate a valid observations.
-*/
-#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(SAMPLES_COUNT_MAX/10)))
-
-/*!
 \def OBSERVATION_SAMPLES_COUNT
 \brief Sample count  in OBSERVATIONS_MINUTES minutes.
 */
 #define OBSERVATION_SAMPLES_COUNT                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
+
+
+/*!
+\def OBSERVATION_SAMPLE_ERROR_MAX
+\brief Maximum invalid sample count for generate a valid observations.
+*/
+#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT/10.)))
 
 
 #define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(1))

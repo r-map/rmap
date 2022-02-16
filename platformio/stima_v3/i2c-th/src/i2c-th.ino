@@ -393,6 +393,8 @@ ISR(TIMER1_OVF_vect) {
 }
 
 void i2c_request_interrupt_handler() {
+
+  /*
   if (is_test_read) {
     switch(readable_data_address) {
       case I2C_TH_TEMPERATURE_MED60_ADDRESS:
@@ -404,6 +406,8 @@ void i2c_request_interrupt_handler() {
       break;
     }
   }
+  */
+
   if (readable_data_length) {
     //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
     Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
@@ -748,44 +752,28 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 }
 
 void make_report (bool init=false) {
-
-
-  static uint16_t valid_count_humidity;
-  static uint16_t error_count_humidity;
-  
-  static uint16_t valid_count_temperature;
-  static uint16_t error_count_temperature;
   
   static uint16_t valid_count_humidity_o;
   static uint16_t error_count_humidity_o;
   
   static uint16_t valid_count_temperature_o;
   static uint16_t error_count_temperature_o;
-
-  static int32_t avg_temperature;
-  static float sum1_temperature;
-  static float sum2_temperature;
   
-  static int32_t avg_humidity;
-  static float sum1_humidity;
-  static float sum2_humidity;
-  
-  static int32_t ist_temperature_o;
   static int32_t avg_temperature_o;
   static int32_t min_temperature_o;
   static int32_t max_temperature_o;
   
-  static int32_t ist_humidity_o;
   static int32_t avg_humidity_o;
   static int32_t min_humidity_o;
   static int32_t max_humidity_o;
 
+  static float sum1_temperature;
+  static float sum2_temperature;
+
+  static float sum1_humidity;
+  static float sum2_humidity;
+  
   if (init) {
-    valid_count_humidity = 0;
-    error_count_humidity = 0;
-    
-    valid_count_temperature = 0;
-    error_count_temperature = 0;
     
     valid_count_humidity_o = 0;
     error_count_humidity_o = 0;
@@ -793,188 +781,179 @@ void make_report (bool init=false) {
     valid_count_temperature_o = 0;
     error_count_temperature_o = 0;
     
-    avg_temperature = 0;
-    sum1_temperature = 0;
-    sum2_temperature = 0;
-    
-    avg_humidity = 0;
-    sum1_humidity = 0;
-    sum2_humidity = 0;
-    
-    ist_temperature_o = INT32_MAX;
     avg_temperature_o = 0;
     min_temperature_o = INT32_MAX;
     max_temperature_o = INT32_MIN;
     
-    ist_humidity_o = INT32_MAX;
     avg_humidity_o = 0;
     min_humidity_o = INT32_MAX;
     max_humidity_o = INT32_MIN;
 
+    sum1_temperature=0;
+    sum2_temperature=0;
+
+    sum1_humidity=0;
+    sum2_humidity=0;
+    
     return;
   }
-    
-  bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
-  uint16_t sample_count = OBSERVATION_SAMPLES_COUNT;
-  if (temperature_samples.count < OBSERVATION_SAMPLES_COUNT) {
-    sample_count = temperature_samples.count;
-  }
-   
-  LOGN(F("Sample count %d:%d"),sample_count,OBSERVATION_SAMPLES_COUNT);
   
-   for (uint16_t i = 0; i < sample_count; i++) {
-     
-     int32_t temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
-     
-     if (i == 0) {
+  // TEMPERATURE
+  
+  uint16_t valid_count_temperature=0;
+  uint16_t error_count_temperature=0;
+  int32_t avg_temperature=0;
+  
+  bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+  int32_t temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+  LOGN(F("sample temperature value: %l"), temperature);
+  if (ISVALID_INT32(temperature)) {
+    readable_data_write_ptr->temperature.sample = temperature;
+  }else{
+    readable_data_write_ptr->temperature.sample =  UINT16_MAX;    
+  }
+  bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
 
-       if (ISVALID_INT32(temperature)) {
-	 readable_data_write_ptr->temperature.sample = temperature;
-       }
+  LOGN(F("temperature sample count %d:%d"),temperature_samples.count,OBSERVATION_SAMPLES_COUNT);
 
-       LOGN(F("Temperature  count : %d"), temperature_samples.count);
-     }
-     LOGT(F("Temperature value: %d"), temperature);
-     
-     if (ISVALID_INT32(temperature)) {
-       valid_count_temperature++;
-       avg_temperature += round((float)(temperature - avg_temperature) / valid_count_temperature);
-     }
-     else {
-       error_count_temperature++;
-     }
-     
-     bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT) == 0);
-     if (is_new_observation) {
-       LOGN(F("temperature is new observation"));
-       
-       if (valid_count_temperature && (error_count_temperature <= OBSERVATION_SAMPLE_ERROR_MAX)) {
-	 valid_count_temperature_o++;
-	 
-	 LOGN(F("valid_count_temperature_o %d"),valid_count_temperature_o);
-	 
-	 avg_temperature_o += round((float) (avg_temperature - avg_temperature_o) / valid_count_temperature_o);
-	 
-	 if (i <= OBSERVATION_SAMPLES_COUNT) {
-	   ist_temperature_o = avg_temperature;
-	 }
-	 
-	 if (avg_temperature <= min_temperature_o) {
-	   min_temperature_o = avg_temperature;
-	 }
-	 
-	 if (avg_temperature >= max_temperature_o) {
-	   max_temperature_o = avg_temperature;
-	 }
-	 
-	 sum1_temperature += avg_temperature;
-	 sum2_temperature += avg_temperature * avg_temperature;
-       } else {
-	 error_count_temperature_o++;
-       }
+  if (temperature_samples.count == OBSERVATION_SAMPLES_COUNT) {
+    for (uint16_t i = 0; i < OBSERVATION_SAMPLES_COUNT; i++) {
+    
+      temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+      LOGT(F("Temperature %d value: %l"), i, temperature);
+      
+      if (ISVALID_INT32(temperature)) {
+	valid_count_temperature++;
+	avg_temperature += round((float)(temperature - avg_temperature) / valid_count_temperature);
+      } else {
+	error_count_temperature++;
+      }
+    }
 
-       bufferReset<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
-       
-       avg_temperature = 0;
-       valid_count_temperature = 0;
-       error_count_temperature = 0;
-     }
-   }
-   
-   LOGT(F("valid_count_temperature_o %d RMAP_REPORT_VALID_MIN %d error_count_temperature_o %d RMAP_REPORT_ERROR_MAX %d"),valid_count_temperature_o, RMAP_REPORT_VALID_MIN, error_count_temperature_o, RMAP_REPORT_ERROR_MAX);
-   
-   if ((valid_count_temperature_o >= RMAP_REPORT_VALID_MIN) && (error_count_temperature_o <= RMAP_REPORT_ERROR_MAX)) {
-     readable_data_write_ptr->temperature.med60 = ist_temperature_o;
-     readable_data_write_ptr->temperature.min = min_temperature_o;
-     readable_data_write_ptr->temperature.med = avg_temperature_o;
-     readable_data_write_ptr->temperature.max = max_temperature_o;
-     readable_data_write_ptr->temperature.sigma = sqrt((sum2_temperature - (sum1_temperature * sum1_temperature) / (float) (valid_count_temperature_o)) / (float) (valid_count_temperature_o));
-   }
+    bufferReset<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
+    
+    LOGN(F("temperature new observation with %d:%d errors"),error_count_temperature,OBSERVATION_SAMPLE_ERROR_MAX);
+      
+    if (valid_count_temperature && (error_count_temperature <= OBSERVATION_SAMPLE_ERROR_MAX)) {
+      valid_count_temperature_o++;
+      
+      avg_temperature_o += round((float) (avg_temperature - avg_temperature_o) / valid_count_temperature_o);
+      
+      readable_data_write_ptr->temperature.med60 = avg_temperature;
+      
+      if (avg_temperature <= min_temperature_o) {
+	min_temperature_o = avg_temperature;
+      }
+      
+      if (avg_temperature >= max_temperature_o) {
+	max_temperature_o = avg_temperature;
+      }
+      
+      sum1_temperature += avg_temperature;
+      sum2_temperature += avg_temperature * avg_temperature;
+    } else {
+      readable_data_write_ptr->temperature.med60 =  UINT16_MAX;
+      error_count_temperature_o++;
+    }     
+  }
+  
+  LOGN(F("REPORT temperature valid_count:%d VALID_MIN:%d error_count:%d ERROR_MAX:%d"),valid_count_temperature_o, RMAP_REPORT_VALID_MIN, error_count_temperature_o, RMAP_REPORT_ERROR_MAX);
+  
+  if ((valid_count_temperature_o >= RMAP_REPORT_VALID_MIN) && (error_count_temperature_o <= RMAP_REPORT_ERROR_MAX)) {
+    readable_data_write_ptr->temperature.min = min_temperature_o;
+    readable_data_write_ptr->temperature.med = avg_temperature_o;
+    readable_data_write_ptr->temperature.max = max_temperature_o;
+    readable_data_write_ptr->temperature.sigma = sqrt((sum2_temperature - (sum1_temperature * sum1_temperature) / (float) (valid_count_temperature_o)) / (float) (valid_count_temperature_o));
+  }else{
+    readable_data_write_ptr->temperature.min   =  UINT16_MAX;
+    readable_data_write_ptr->temperature.med   =  UINT16_MAX;
+    readable_data_write_ptr->temperature.max   =  UINT16_MAX;
+    readable_data_write_ptr->temperature.sigma =  UINT16_MAX;
+  }
 
-   LOGN(F("temperature sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->temperature.sample,readable_data_write_ptr->temperature.med60, readable_data_write_ptr->temperature.min, readable_data_write_ptr->temperature.med, readable_data_write_ptr->temperature.max, readable_data_write_ptr->temperature.sigma);
-   
-   
-   // HUMIDITY
+  LOGN(F("temperature sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->temperature.sample,readable_data_write_ptr->temperature.med60, readable_data_write_ptr->temperature.min, readable_data_write_ptr->temperature.med, readable_data_write_ptr->temperature.max, readable_data_write_ptr->temperature.sigma);
+  
+  
+  // HUMIDITY
+    
+  uint16_t valid_count_humidity=0;
+  uint16_t error_count_humidity=0;
+  int32_t avg_humidity=0;
+      
+  bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);   
+  int32_t humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);      
+  LOGN(F("sample humidity value: %l"), humidity);   
+  if (ISVALID_INT32(humidity)) {
+    readable_data_write_ptr->humidity.sample = humidity;
+  }else{
+    readable_data_write_ptr->humidity.sample =  UINT16_MAX;    
+  }
+  
+  bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);   
 
-   bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);   
-   sample_count = OBSERVATION_SAMPLES_COUNT;
-   if (humidity_samples.count < OBSERVATION_SAMPLES_COUNT) {
-     sample_count = humidity_samples.count;
-   }
-   
-   for (uint16_t i = 0; i < sample_count; i++) {
-          
-     int32_t humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+  LOGN(F("humidity sample count %d:%d"),humidity_samples.count,OBSERVATION_SAMPLES_COUNT);
 
-     if (i == 0) {
-       if (ISVALID_INT32(humidity)) {
-	 readable_data_write_ptr->humidity.sample = humidity;
-       }
-       LOGN(F("Humidity     count : %d"), humidity_samples.count);
-     }
-     LOGT(F("Humidity    value: %d"), humidity);   
-     
-     if (ISVALID_INT32(humidity)) {
-       valid_count_humidity++;
-       avg_humidity += round((float) (humidity - avg_humidity) / valid_count_humidity);
-     }
-     else {
-       error_count_humidity++;
-     }
-     
-     bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT) == 0);
-     if (is_new_observation) {
-       LOGN(F("humidity is new observation"));
-       if (valid_count_humidity && (error_count_humidity <= OBSERVATION_SAMPLE_ERROR_MAX)) {
-	 valid_count_humidity_o++;
-	 LOGN(F("valid_count_humidity_o %d"),valid_count_humidity_o);
-	 avg_humidity_o += round((float) (avg_humidity - avg_humidity_o) / valid_count_humidity_o);
-	 
-	 if (i <= OBSERVATION_SAMPLES_COUNT) {
-	   ist_humidity_o = avg_humidity;
-	 }
-	 
-	 if (avg_humidity <= min_humidity_o) {
-	   min_humidity_o = avg_humidity;
-	 }
-	 
-	 if (avg_humidity >= max_humidity_o) {
-	   max_humidity_o = avg_humidity;
-	 }
-	 
-	 sum1_humidity += avg_humidity;
-	 sum2_humidity += avg_humidity * avg_humidity;
-       }
-       else {
-	 error_count_humidity_o++;
-       }
-       
-       bufferReset<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+  if (humidity_samples.count == OBSERVATION_SAMPLES_COUNT) {
+    for (uint16_t i = 0; i < OBSERVATION_SAMPLES_COUNT; i++) {
+    
+      humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);      
+      LOGT(F("Humidity %d value: %l"), i, humidity);   
+      
+      if (ISVALID_INT32(humidity)) {
+	valid_count_humidity++;
+	avg_humidity += round((float) (humidity - avg_humidity) / valid_count_humidity);
+      } else {
+	error_count_humidity++;
+      }
+    }
+    bufferReset<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
+    
+    LOGN(F("humidity new observation with %d:%d errors"),error_count_humidity,OBSERVATION_SAMPLE_ERROR_MAX);
+    if (valid_count_humidity && (error_count_humidity <= OBSERVATION_SAMPLE_ERROR_MAX)) {
+      valid_count_humidity_o++;
 
-       avg_humidity = 0;
-       valid_count_humidity = 0;
-       error_count_humidity = 0;
-     }
-   }
-   
-   LOGN(F("valid_count_humidity_o %d RMAP_REPORT_VALID_MIN %d error_count_humidity_o %d RMAP_REPORT_ERROR_MAX %d"),valid_count_humidity_o, RMAP_REPORT_VALID_MIN, error_count_humidity_o, RMAP_REPORT_ERROR_MAX);
-   
-   if ((valid_count_humidity_o >= RMAP_REPORT_VALID_MIN) && (error_count_humidity_o <= RMAP_REPORT_ERROR_MAX)) {
-
-      readable_data_write_ptr->humidity.med60 = ist_humidity_o;
-      readable_data_write_ptr->humidity.min = min_humidity_o;
-      readable_data_write_ptr->humidity.med = avg_humidity_o;
-      readable_data_write_ptr->humidity.max = max_humidity_o;
-      readable_data_write_ptr->humidity.sigma = sqrt((sum2_humidity - (sum1_humidity * sum1_humidity) / (float) (valid_count_humidity_o)) / (float) (valid_count_humidity_o));
-   }
-
-   LOGN(F("humidity   sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->humidity.sample,readable_data_write_ptr->humidity.med60, readable_data_write_ptr->humidity.min, readable_data_write_ptr->humidity.med, readable_data_write_ptr->humidity.max, readable_data_write_ptr->humidity.sigma);
-
+      avg_humidity_o += round((float) (avg_humidity - avg_humidity_o) / valid_count_humidity_o);
+      
+      readable_data_write_ptr->humidity.med60 = avg_humidity;
+      
+      if (avg_humidity <= min_humidity_o) {
+	min_humidity_o = avg_humidity;
+      }
+      
+      if (avg_humidity >= max_humidity_o) {
+	max_humidity_o = avg_humidity;
+      }
+      
+      sum1_humidity += avg_humidity;
+      sum2_humidity += avg_humidity * avg_humidity;
+    }
+    else {
+      readable_data_write_ptr->humidity.med60 =  UINT16_MAX;    
+      error_count_humidity_o++;
+    }
+  }
+  
+  LOGN(F("REPORT humidity valid_count:%d VALID_MIN:%d error_count:%d ERROR_MAX:%d"),valid_count_humidity_o, RMAP_REPORT_VALID_MIN, error_count_humidity_o, RMAP_REPORT_ERROR_MAX);
+  
+  if ((valid_count_humidity_o >= RMAP_REPORT_VALID_MIN) && (error_count_humidity_o <= RMAP_REPORT_ERROR_MAX)) {  
+    readable_data_write_ptr->humidity.min = min_humidity_o;
+    readable_data_write_ptr->humidity.med = avg_humidity_o;
+    readable_data_write_ptr->humidity.max = max_humidity_o;
+    readable_data_write_ptr->humidity.sigma = sqrt((sum2_humidity - (sum1_humidity * sum1_humidity) / (float) (valid_count_humidity_o)) / (float) (valid_count_humidity_o));
+  }else{
+    readable_data_write_ptr->humidity.min  =  UINT16_MAX;
+    readable_data_write_ptr->humidity.med  =  UINT16_MAX;
+    readable_data_write_ptr->humidity.max  =  UINT16_MAX;
+    readable_data_write_ptr->humidity.sigma = UINT16_MAX;
+  }    
+  
+  LOGN(F("humidity   sample:%d\tmed60:%d\tmin:%d\tmed:%d\tmax:%d\tsigma:%d"), readable_data_write_ptr->humidity.sample,readable_data_write_ptr->humidity.med60, readable_data_write_ptr->humidity.min, readable_data_write_ptr->humidity.med, readable_data_write_ptr->humidity.max, readable_data_write_ptr->humidity.sigma);
+  
 }
 
 void samples_processing() {
   LOGN(F("SAMPLE PROCESSING"));
-  reset_report_buffer();
+  //reset_report_buffer();
   make_report();
 }
 
