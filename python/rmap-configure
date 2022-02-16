@@ -47,7 +47,7 @@ import argparse
 import django
 from django.core import serializers
 import urllib.request, urllib.error, urllib.parse
-import base64
+import base64, datetime
 import logging
 
 # go to share dir for virtualenv
@@ -80,6 +80,9 @@ parser.add_argument('--modify_station',action="store_true", help="modify station
 parser.add_argument('--dump_station',action="store_true", help="dump station configuration in json format with natural keys")
 parser.add_argument('--upload_to_server',action="store_true", help="upload configuration to server")
 parser.add_argument('--download_from_server',action="store_true", help="download station configuration from server")
+parser.add_argument('--rpc_mqtt_reboot',action="store_true", help="execute reboot RPC over MQTT")
+parser.add_argument('--rpc_mqtt_recovery',action="store_true", help="execute recovery data RPC over MQTT")
+parser.add_argument('--datetimestart', default=None, type=datetime.datetime.fromisoformat, help="recovery data starting from this date and time in iso format (2011-11-04T12:05:23)" )
 parser.add_argument('--station_slug',  default=rmap.settings.stationslug, help="work on station defined by this slug")
 parser.add_argument('--board_slug',  default=None, help="work on board defined by this slug")
 parser.add_argument('--device',  default=None, help="use this device for serial transport")
@@ -375,6 +378,42 @@ if args.modify_station:
     rmap.rmap_core.modifystation(station_slug=args.station_slug,username=args.username,lon=args.lon,lat=args.lat)
 
     print("END of station modification")
+
+
+if args.rpc_mqtt_reboot:
+
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected rpc_mqtt_reboot without username or station_slug")
+        raise SystemExit(1)
+
+    rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                                 board_slug=args.board_slug,
+                                 username=args.username,
+                                 reboot={})
+
+    print("END of rpc_mqtt_reboot")
+    
+
+
+
+
+if args.rpc_mqtt_recovery:
+
+    if (args.username is None or
+        args.datetimestart is None or
+        args.station_slug is None):
+        print(" selected rpc_mqtt_reboot without username or station_slug or datetimestart")
+        raise SystemExit(1)
+    dts=[args.datetimestart.year,args.datetimestart.month,args.datetimestart.day,
+         args.datetimestart.hour,args.datetimestart.minute,args.datetimestart.second]
+    
+    rmap.rmap_core.rpcMQTT(station_slug=args.station_slug,
+                                 board_slug=args.board_slug,
+                                 username=args.username,
+                                 recovery={"dts":dts})
+
+    print("END of rpc_mqtt_recovery")
 
     
 

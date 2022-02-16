@@ -501,7 +501,7 @@ dal datalogger da remoto.
 configure
 .........
 
-la configurazione da remoto è possibile tramite tool a linea di comando::
+La configurazione da remoto è possibile tramite tool a linea di comando::
 
   rmap-configure --config_station --username="myuser" --station_slug="myslug" --transport=mqtt
 
@@ -516,7 +516,6 @@ Tramite un programma python:
 		MQTT_RPCTOPIC = 'rpc/myuser/1112345,4412345/fixed/')
 		MQTT_USERNAME = 'myuser'
 		MQTT_PASSWORD = 'mypassword'
-		DATETIMESTART=[2021,12,22,12,0,0]
 
 		with jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
                           jsonrpc.TransportMQTT(
@@ -538,7 +537,12 @@ Tramite un programma python:
 reboot
 ......
 
-Tramite un programma python:
+Il reboot del modulo master è possibile tramite tool a linea di comando::
+
+  rmap-configure --rpc_mqtt_reboot --username="myuser" --station_slug="myslug"
+
+
+oppure tramite un programma python:
 
 .. code-block:: python
 		
@@ -548,7 +552,6 @@ Tramite un programma python:
 		MQTT_RPCTOPIC = 'rpc/myuser/1112345,4412345/fixed/')
 		MQTT_USERNAME = 'myuser'
 		MQTT_PASSWORD = 'mypassword'
-		DATETIMESTART=[2021,12,22,12,0,0]
 
 		with jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
                           jsonrpc.TransportMQTT(
@@ -563,7 +566,13 @@ Tramite un programma python:
 recovery
 ........
 
-Tramite un programma python:
+Il recupero dei dati salvati su SDcard è possibile tramite tool a linea di comando
+specificando la data iniziale dei dati da recuperare (fino a data e ora corrente)::
+
+  rmap-configure --rpc_mqtt_recovery --username="myuser" --station_slug="myslug" --datetime="2022-02-16T12:00"
+
+
+oppure tramite un programma python:
 
 .. code-block:: python
 		

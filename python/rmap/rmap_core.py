@@ -1063,6 +1063,47 @@ def modifystation(station_slug=None,username=None,lon=None,lat=None):
 
 
 
+# example rpcsMQTT(station_slug="test", username="myusername",recovery={"dts":[2022,2,16,12,0,0]})
+def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
+                   username=None,**kwargs):
+
+    if (station_slug is None): return
+    if (username is None): return
+
+    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+
+    if not mystation.active:
+        print("disactivated station: do nothing!")
+        return
+
+    for board in mystation.board_set.all():
+
+        if board_slug is not None and board.slug != board_slug:
+            continue
+
+        try:
+            if ( board.transportmqtt.active):
+                print("mqtt Transport", board.transporttcpip)
+
+                myhost =board.transportmqtt.mqttserver
+                myuser =board.transportmqtt.mqttuser
+                mypassword =board.transportmqtt.mqttpassword
+                myrpctopic="rpc/"+str(mystation.ident)+"/"+\
+                    "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
+                    "/"+mystation.network+"/"
+                
+                transport=jsonrpc.TransportMQTT( host=myhost, user=myuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
+
+        except ObjectDoesNotExist:
+            print("transport MQTT not present for this board")
+            return
+
+        rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
+        if (rpcproxy is None): return
+
+        for myrpc in kwargs.keys():
+            print(myrpc,getattr(rpcproxy, myrpc)(**kwargs[myrpc] ))
+        
         
 def configstation(transport_name="serial",station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"),
                   device=None,baudrate=None,host=None,transport=None,username=None):

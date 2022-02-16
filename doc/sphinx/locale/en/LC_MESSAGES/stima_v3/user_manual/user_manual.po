@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-02-03 17:45+0100\n"
+"POT-Creation-Date: 2022-02-16 17:07+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,71 +26,871 @@ msgstr ""
 msgid "Hardware"
 msgstr ""
 
+#: ../../stima_v3/user_manual/user_manual.rst:6
+msgid "Descrizione dell'hardware e delle sue principali funzioni."
+msgstr ""
+
 #: ../../stima_v3/user_manual/user_manual.rst:8
-msgid "Board"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:10
-msgid "RTC"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:11
-msgid "supercondensatore ~24h"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:13
-msgid "Core+"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:14
-msgid "8/16 Mhz 5V/3.3V"
+msgid ""
+"Il datalogger è composto da moduli a loro volta composti board. Una "
+"descrizione con alcune foto si trova a "
+"https://doc.rmap.cc/stima_v3/howto_stima_v3/howto_stima_v3.html e "
+"https://doc.rmap.cc/stima_v3/doxygen/index.html a cui fare riferimento "
+"per maggiori dettagli. I moduli si interconnettono tra loro tramite bus "
+"I2C. Le board si interconnettono tramite interfaccia basata sullo "
+"standard UPIN-27."
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:16
-msgid "USB"
+msgid "funzioni svolte dalle Board"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:17
-msgid "caricare firmware debug"
+#: ../../stima_v3/user_manual/user_manual.rst:19
+msgid "RTC"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:20
-msgid "SDcard"
+msgid "determina la base dei tempi per il modulo master"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:21
-msgid "aggiornamento firmware salvataggio dati debug"
+msgid ""
+"conserva data e ora anche in mancanza di alimentazione tramite la carica "
+"accumulata in un supercondensatore per non più di ~24h"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:25
-msgid "I2C"
+msgid "Core+"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:26
-msgid "connessione e reset"
+msgid ""
+"Contiene il microcontrollore in queste due versioni: * 8 MHz 3.3V * 16 "
+"MHz 5V"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:28
-msgid "GSM"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:29
-msgid "SIM antenna"
+#: ../../stima_v3/user_manual/user_manual.rst:31
+msgid "USB"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:32
-msgid "HUB"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:33
-msgid "interconnessione alimentazione separazione BUS I2C e adattamento tensioni"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:37
-msgid "Display"
+msgid ""
+"E' una interfaccia USB con la porta seriale del microcontrollore. "
+"Permette di: * caricare firmware * effettuare debug"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:38
+#: ../../stima_v3/user_manual/user_manual.rst:190
+msgid "SDcard"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:39
+msgid ""
+"Permette di utilizzare una SDcard per effettuare: * aggiornamento "
+"firmware * salvataggio dati * debug"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:45
+msgid "I2C"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:46
+msgid "Espone una * connessione e reset"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:50
+msgid "GSM"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:51
+msgid "SIM"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:52
+msgid "antenna"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:55
+msgid "HUB"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:56
+msgid "interconnessione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:57
+msgid "alimentazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:58
+msgid "separazione BUS I2C e adattamento tensioni"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:61
+msgid "Display"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:62
+#: ../../stima_v3/user_manual/user_manual.rst:597
 msgid "Diagnostica"
 msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:66
+msgid "Funzioni software"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:69
+msgid "Accensione e supervisione (supervisor task)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:72
+msgid "RTC task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:75
+msgid "Time task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:78
+msgid "GSM task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:81
+msgid "Sensors reading task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:84
+msgid "Data saving task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:87
+msgid "MQTT task"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:91
+msgid "Messa in opera"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:94
+msgid "Connessione e disconnessione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:97
+msgid "Impilamento board"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:99
+#: ../../stima_v3/user_manual/user_manual.rst:106
+msgid "Fare riferimento a:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:101
+#: ../../stima_v3/user_manual/user_manual.rst:108
+msgid "https://doc.rmap.cc/stima_v3/howto_stima_v3/howto_stima_v3.html e"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:102
+#: ../../stima_v3/user_manual/user_manual.rst:109
+msgid "https://doc.rmap.cc/stima_v3/doxygen/index.html"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:105
+msgid "Connessione moduli"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:111
+msgid "Effettuare tutte le operazioni senza alimentazione elettrica."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:113
+msgid ""
+"Per la connessione elettrica tra moduli bisogna quindi conoscere la "
+"tensione di funzionamento di ciascun modulo/dispositivo da connettere e "
+"verificare la predisposizione corretta del ponticello di configurazione "
+"hardware sulla board I2C-hub."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:120
+msgid "Regolazione Display"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:122
+msgid ""
+"Il display dispone di una apposita vite di regolazione (trimmer) del "
+"contrasto che deve essere regolato per rendere il display leggibile. Una "
+"cattica regolazione del contrasto rende i caratteri sul display "
+"completamente invisibili.  Dispone inoltre di un pulsante per attivare la"
+" retroilluminazione.  Accendere la stazione per avere qualche messaggio "
+"visualizzato sul display, premere il pulsante di retrilluminazione e "
+"procedere alla regolazione fino a una visualizzazione ottimale."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:134
+msgid "Assemblaggio scatola stazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:137
+msgid ""
+"I moduli possono essere montati in qualsiasi ordine.  Sulla piastra HUB "
+"deve verificare se l’alimentazione e’ impostat a 3.3 V o 5 V; Tale "
+"tensione si può impostare spostando il ponticello corrispondente. Nei "
+"moduli nell board base e’ riportata una piccola saldatura in prossimita’ "
+"della del valore stampato 3 V o 5 V che indica a quale tensione funziona "
+"il modulo.  Il modulo primario ed il display hanno una tensione di "
+"funzionamento di 5V.  I cavi interni di collegamento tra moduli ed HUB "
+"hanno come differenza solo da lunghezza."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:146
+msgid ""
+"Quando si connette un cavo fare attenzione nel momento dell'inserimento a"
+" non piegare i pin sulla scheda HUB."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:150
+msgid "Sostituzione  batteria"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:152
+msgid ""
+"Per misurare la tensione della batteria a vuoto è necessario staccare un "
+"polo per misurare la tensione reale senza il contributo del pannello "
+"solare."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:156
+msgid ""
+"Se c'è da cambiare la batteria bisogna staccare il connettore in hub, in "
+"modo da non bloccare la stazione. Staccando il connettore non si incorre "
+"infatti nel problema di alimentare il datalogger con una tensione sotto i"
+" 6 V."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:161
+msgid ""
+"Per il cambio batteria procedere prima staccando il polo nero (-) e poi "
+"il rosso (+). Poi connettere prima il polo rosso e poi il nero alla nuova"
+" batteria."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:165
+msgid ""
+"Per togliere e ridare tensione alla stazione occorre agire sul regolatore"
+" di carica pannello-batteria nel modo seguente:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:168
+msgid "Facendo riferimento alla figura"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:172
+msgid ""
+"rimuovere il positivo del pannello dal regolatore di carica, individuato "
+"dal numero 1"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:173
+msgid ""
+"rimuovere il positivo della batteria dal regolatore di carica, "
+"individuato dal numero 3"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:174
+msgid "aspettare 10 secondi"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:175
+msgid "ricollegare la batteria attraverso il pin numero 3"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:176
+msgid "ricollegare la batteria attraverso il pin numero 1"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:178
+msgid "Quindi la sequenza dei collegamenti è 1-3-3-1"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:181
+msgid "Antenna"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:183
+msgid ""
+"Di solito l’antenna e’ posizionata internamento della scatola stazione, "
+"ma può essere posizionata all'esterno praticando un foro alla base della "
+"scatola e facendo uscire il cavo tramite un passacavo. Il connettore e’ "
+"standard quindi si può usare anche una antenna esterna di tipo "
+"direzionale."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:193
+msgid "Formattazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:195
+msgid ""
+"La formattazione della SDcard deve essere eseguita in modo corretto per "
+"garantire il funzionamento del datalogger. Sono accettati due tipi di "
+"formattazione:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:199
+msgid "FAT16"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:200
+msgid "FAT32"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:202
+msgid ""
+"Per essere certi di formattare correttamentela card ci sono due "
+"possibilità:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:204
+msgid "per windows e MAC https://www.sdcard.org/downloads/formatter/"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:205
+msgid ""
+"per tutti i sistemi l'apposito firmware SdFormatter messo a disposizione "
+"con Stima V3"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:207
+msgid "Il metodo consigliato è il secondo."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:210
+msgid "Come formattare l'SDcard con il firmware SdFormatter."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:212
+msgid ""
+"Inserire l'SDcard nel modulo master e collegare solo il modulo master "
+"tramite cavo USB. eseguire::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:218
+msgid "e seguire le indicazioni del programma."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:222
+#: ../../stima_v3/user_manual/user_manual.rst:425
+msgid "Aggiornamento Firmware"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:223
+msgid "(Vedi sotto)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:226
+msgid "Logging"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:227
+msgid "(vedi sotto in diagnostica)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:230
+#: ../../stima_v3/user_manual/user_manual.rst:472
+msgid "Recupero dati"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:231
+msgid "(vedi sotto)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:234
+msgid "Configurazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:237
+msgid "Creare un nuovo utente RMAP"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:240
+#: ../../stima_v3/user_manual/user_manual.rst:271
+msgid "Tramite interfaccia WEB"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:242
+msgid ""
+"Per iscriversi alla piattarforma RMAP bisogna collegarsi al sito: "
+"http://rmap.cc/"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:245
+msgid ""
+"andare con il mouse sul menù \"Il mio RMAP\", sulla destra della barra "
+"nera, e clickare su \"Entra\"."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:248
+msgid ""
+"Apparirà una maschera che chiede utente e password.  Nella seconda riga "
+"sotto a questa maschera clickare sul bottone blu \"Registrazione\" e si "
+"verrà inoltrati automaticamente alla maschera di registrazione."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:252
+msgid "Per registrarsi bisognerà scegliere ed inviare le seguenti informazioni:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:254
+msgid ""
+"username (una stringa lunga al massimo 9 caratteri che possono essere sia"
+" lettere che numeri);"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:255
+msgid "la propria e-mail"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:256
+msgid "la password (da inserire due volte per sicurezza)."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:258
+msgid ""
+"Quindi bisogna clickare sul quadratino per dichiarare di aver letto le "
+"Condizioni di Servizio (descritte nel quadrato sotto riportato). "
+"Completate queste operazioni si può procedere a clickare su \"Invia\". "
+"Fatto questo il server RMAP invierà una mail di conferma all'indirizzo "
+"indicato nella maschera di registrazione.  La registrazione verrà "
+"conclusa aprendo il mail e confermando la propria intenzione di "
+"iscriversi seguendo il link indicato."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:268
+msgid "Configurare una nuova stazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:273
+msgid ""
+"Tramite interfaccia WEB è possibile definire solo stazioni di modello "
+"(tipo e sensori) predefinito. Per modelli di stazione non predefiniti "
+"utilizzare la modalità a linea di comando."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:278
+msgid "In modalità guidata"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:280
+#: ../../stima_v3/user_manual/user_manual.rst:321
+msgid ""
+"Per poter registrare una nuova stazione è utile aver configurato un "
+"utente RMAP."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:283
+msgid "Seguire il link: https://rmap.cc/insertdata/newstation"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:286
+msgid "Si può seguire alternativamente una delle due seguenti procedure:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:288
+msgid ""
+"indicare l'indirizzo esatto della stazione (il sito utilizza il DataBase "
+"geografico di OpenStreetMap che riconosce gli indirizzi solo se indicati "
+"con precisione, quindi è necessario inserire l'indirizzo con nome "
+"completo della via, es: \"viale Antonio Silvani 6, Bologna\", oppure \" "
+"via degli Albergati 32, Zola Predosa, Bologna\")."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:294
+msgid ""
+"utilizzare la mappa sottostante, clickare sul segnaposto (quello a forma "
+"di goccia, ultimo in basso dei quattro centrali a sinistra della mappa) e"
+" posizionarlo sul punto preciso della mappa, con doppio click bottone "
+"sinistro del mouse. Se la posizione scelta non è corretta, si potrà "
+"cancellare la posizione (selezionare l'ultimo bottone a sinistra nella "
+"mappa a forma di bidone e poi clickare sul segnaposto) e riposizionare il"
+" marker, oppure spostare il segnaposto nella posizione corretta "
+"direttamente sulla mappa (selezionando prima il penultimo bottone a "
+"sinistra a forma di matita su foglio \"edit layers\", spostando il "
+"segnaposto e riclickando su \"edit layer\" per salvare la nuova "
+"posizione). Queste funzionalità potrebbero non essere disponibili su "
+"Android."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:307
+msgid ""
+"Individuata la posizione bisognerà indicare il nome della nuova stazione "
+"ed infine il modello (tipo e template sensori)."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:310
+msgid ""
+"La procedura di inserimento della nuova stazione si concluderà quindi "
+"clickando su \"invia\"."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:313
+msgid ""
+"In questa modalità non è possibile inserire i dati relativi al nome "
+"stazione e altezza dal livello medio del mare, ma poi è possibile "
+"integrarli tramite il modulo qui di seguito descritto"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:319
+msgid "Tramite modulo"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:324
+msgid ""
+"Seguire il link: https://rmap.cc/insertdata/newstationdetail e "
+"autenticarsi"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:328
+msgid "compilare con i dati e confermare."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:332
+msgid "A linea di comando"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:333
+msgid "Il tool a linea di comando da utilizzare per configurare le stazioni è::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:337
+msgid ""
+"Quando si utizzano i tool a linea di comando bisogna sempre considerare "
+"che saranno presenti due database:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:340
+msgid "database sul server RMAP (persistente)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:341
+msgid "database locale (volatile)"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:343
+msgid ""
+"Mentre il database sul server RMAP è per definizione persistente quello "
+"locale se non già presente va creato utilizzando il comando::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:348
+msgid ""
+"Successivamente sono disponibili due comandi per mantenere i due database"
+" sincronizzati:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:351
+msgid "upload configuration to server::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:355
+msgid "download station configuration from server::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:362
+msgid "Con modello (tipo e template sensori) predefinito"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:364
+msgid "In questa modalità bisogna disporre di:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:366
+#: ../../stima_v3/user_manual/user_manual.rst:488
+msgid "myuser: nome utente RMAP"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:367
+#: ../../stima_v3/user_manual/user_manual.rst:489
+msgid "mypassword: password utente RMAP"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:368
+#: ../../stima_v3/user_manual/user_manual.rst:371
+msgid "mystationname: nome stazione esteso"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:369
+msgid "myslug: nome stazione breve"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:370
+msgid "mystationmodel: modello stazione e template sensori connessi"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:372
+msgid "myheight: altezza stazione in metri"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:373
+msgid ""
+"mqttsamplerate: ogni quanti secondi deve essere elaborato e inviato un "
+"report"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:374
+msgid "mytcpipntpserver: NTP server da utilizzare per sincronizzare l'ora"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:375
+msgid ""
+"myapn: apn del provider GSM corrispondente alla schda SIM inserita in "
+"stazione (default=\"ibox.tim.it\")"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:377
+msgid "Comandi da impartire per configurare la stazione::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:383
+msgid "Esempio di configurazione::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:391
+msgid "Con modello (tipo e template sensori) non predefinito"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:393
+msgid ""
+"In questa modalità bisogna avere piena padronanza del data model, dei "
+"sensori connessi e dei relativi metadati."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:395
+msgid "Qui un esempio di configurazione::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:412
+msgid "Modificare la configurazione di una stazione esistente"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:417
+msgid "Trasferire la configurazione al datalogger"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:419
+msgid ""
+"Ecco il comando da impartire per trasferire e salvare la configurazione "
+"nel datalogger::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:429
+#: ../../stima_v3/user_manual/user_manual.rst:624
+msgid "Tramite SDcard"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:431
+msgid ""
+"Per l'aggiornamento del firmware è necessario avere a disposizione due "
+"file:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:433
+#: ../../stima_v3/user_manual/user_manual.rst:455
+msgid "FIRMWARE.BIN"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:434
+msgid "\"majorversion\" . \"minorversion\""
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:436
+msgid ""
+"majorversion e minorversion indicano la versione del firmware in oggetto "
+"ad esempio::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:441
+msgid ""
+"I due file andranno posti nella cartella principale della SDcard. "
+"Inserire l'SDcard nel modulo che necessita aggiornamento a modulo non "
+"alimentato e alimentare il modulo e attendere almeno 30 secondi."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:445
+msgid ""
+"E' possibile verificare se l'aggiornamento ha avuto buon fine con il "
+"modulo master tramite il display LCD che all'accensione deve visualizzare"
+" la nuova versione del firmware."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:451
+msgid "Tramite porta USB"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:453
+msgid ""
+"Per l'aggiornamento del firmware è necessario avere a disposizione un "
+"file:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:457
+msgid ""
+"che dorà risiedere nella cartella corrente da dove si eseguiranno i "
+"comandi."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:459
+msgid ""
+"Collegare il modulo tramite cavo USB e dovrà essere l'unico dispositivo "
+"USB collegato in modalità seriale."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:462
+msgid "Per il modulo master e impartire il comando::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:466
+msgid "Per gli altri moduli impartire il comando::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:474
+msgid ""
+"Una volta recuperata la scheda Sdcard dal datalogger i dati possono "
+"essere letti con apposito tool linea di comando."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:477
+msgid "Sono necessari almeno due file:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:479
+msgid "AAAA_MM_GG.txt : AAAA = anno ; MM = mese ; GG = giorno"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:480
+msgid "info.dat  : metadati"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:482
+msgid ""
+"Eseguire il seguente comando dalla stessa cartella contenete i file con i"
+" dati::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:486
+msgid "dove:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:492
+msgid "Remote Procedure Call"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:494
+msgid ""
+"I dati vengono salvati sul modulo master ed è quella SD card che deve "
+"essere asportata dopo aver scollegato l'alimentazione."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:497
+msgid ""
+"Le remote procedure call permettono di far eseguire delle operazioni dal "
+"datalogger da remoto."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:502
+msgid "configure"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:504
+msgid "La configurazione da remoto è possibile tramite tool a linea di comando::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:509
+msgid "Tramite un programma python:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:538
+msgid "reboot"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:540
+msgid "Il reboot del modulo master è possibile tramite tool a linea di comando::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:545
+#: ../../stima_v3/user_manual/user_manual.rst:575
+msgid "oppure tramite un programma python:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:567
+msgid "recovery"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:569
+msgid ""
+"Il recupero dei dati salvati su SDcard è possibile tramite tool a linea "
+"di comando specificando la data iniziale dei dati da recuperare (fino a "
+"data e ora corrente)::"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:600
+msgid "tramite DISPLAY"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:603
+msgid "Temporizzazioni"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:606
+msgid "Segnale Radio GSM/GPRS"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:609
+msgid "Dati sensori"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:612
+msgid "Salvataggio e invio dati"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:615
+msgid "Messaggi di errore"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:618
+msgid "tramite monitoraggio MQTT"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:621
+msgid "Tramite porta seriale"
+msgstr ""
+
+#~ msgid "Board"
+#~ msgstr ""
+
+#~ msgid "supercondensatore ~24h"
+#~ msgstr ""
+
+#~ msgid "8/16 Mhz 5V/3.3V"
+#~ msgstr ""
+
+#~ msgid "caricare firmware debug"
+#~ msgstr ""
+
+#~ msgid "aggiornamento firmware salvataggio dati debug"
+#~ msgstr ""
+
+#~ msgid "connessione e reset"
+#~ msgstr ""
+
+#~ msgid "SIM antenna"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "interconnessione alimentazione separazione BUS "
+#~ "I2C e adattamento tensioni"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "la configurazione da remoto è possibile"
+#~ " tramite tool a linea di comando::"
+#~ msgstr ""
 
