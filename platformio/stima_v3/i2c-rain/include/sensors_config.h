@@ -240,52 +240,10 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 #define USE_SENSOR_RF24             (false)
 
 /*!
-\def RAIN_FOR_TIP
-\brief How much mm of rain for one tip of tipping bucket rain gauge.
-*/
-#define RAIN_FOR_TIP                (1)
-
-/*!
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
 #define VALUES_TO_READ_FROM_SENSOR_COUNT      (3)
 #define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
-
-// sampling every 3-15 seconds --> watchdog timer (SENSORS_SAMPLE_TIME_S in relative modules)
-// observations with processing every 1-10 minutes (minutes for processing sampling)
-// report every 5-60 minutes (> OBSERVATIONS_MINUTES)
-// reported data is calulate by moving average on STATISTICAL_DATA_MINUTES window
-
-// observations every 1-10 minutes (minutes for processing samples)
-// report every 5-60 minutes (minutes for report. > n * OBSERVATIONS_MINUTES)
-
-/*!
-\def OBSERVATIONS_MINUTES
-\brief How much minutes for calculate an observations by processing sampling. Tipically 1-10 minutes.
-*/
-#define OBSERVATIONS_MINUTES                 (1)
-
-/*!
-\def STATISTICAL_DATA_COUNT
-\brief How much observations are needed for generating a report.
-*/
-#define STATISTICAL_DATA_COUNT               (15)
-
-/*!
-\def OBSERVATION_COUNT
-\brief Observations buffer length.
-*/
-#define OBSERVATION_COUNT                    (STATISTICAL_DATA_COUNT * 2)
-
-/*!
-\def OBSERVATION_COUNT_TOLLERANCE
-\brief Tolerance of observations for generating a valid report.
-*/
-#define OBSERVATION_COUNT_TOLLERANCE         (1)
-
-#if (OBSERVATION_COUNT < STATISTICAL_DATA_COUNT)
-#error OBSERVATION_COUNT must be major of STATISTICAL_DATA_COUNT !!!
-#endif
 
 #endif

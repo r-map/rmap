@@ -145,7 +145,14 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*********************************************************************
 * HUMIDITY AND TEMPERATURE SENSORS
 *********************************************************************/
-// observations with processing every 1-10 minutes (minutes for processing sampling)
+
+/*!
+\def OBSERVATIONS_MINUTES
+\brief How much minutes for calculate an observations by processing sampling. Tipically 1-10 minutes.
+*/
+#define OBSERVATIONS_MINUTES                 (1)
+
+  // observations with processing every 1-10 minutes (minutes for processing sampling)
 // report every 5-60 minutes (> OBSERVATIONS_MINUTES)
 
 /*!
@@ -162,6 +169,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Sample count  in OBSERVATIONS_MINUTES minutes.
 */
 #define OBSERVATION_SAMPLES_COUNT                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
+
+
+///*!
+//\def OBSERVATION_COUNT
+//\brief Observations buffer length.
+//*/
+//#define OBSERVATION_COUNT                    (STATISTICAL_DATA_COUNT * 25)
 
 
 /*!

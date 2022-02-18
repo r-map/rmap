@@ -1550,7 +1550,6 @@ void supervisor_task() {
                setNextTimeForSensorReading((time_t *) &next_ptr_time_for_testing_sensors, SENSORS_TESTING_DELAY_S);
 
                LOGN(F("Acquisition scheduling..."));
-               LOGN(F("--> observations every %d minutes"), OBSERVATIONS_MINUTES);
             }
 
             if (readable_configuration.report_seconds >= 60) {

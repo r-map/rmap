@@ -109,16 +109,16 @@ typedef struct {
    int32_t *write_ptr;                       //!< writer pointer
 } sample_t;
 
-/*!
-\struct observation_t
-\brief Observations values for temperature and humidity   NOT USED
-*/
-typedef struct {
-   int32_t values[OBSERVATION_COUNT];    //!< buffer containing the mean values calculated on a one sample buffer respectively
-   uint16_t count;                     //!< number of observations
-   uint32_t *read_ptr;                 //!< reader pointer to buffer (read observations for calculate report value)
-   uint32_t *write_ptr;                //!< writer pointer to buffer (add new observation)
-} observation_t;
+///*!
+//\struct observation_t
+//\brief Observations values for temperature and humidity   NOT USED
+//*/
+//typedef struct {
+//   int32_t values[OBSERVATION_COUNT];    //!< buffer containing the mean values calculated on a one sample buffer respectively
+//   uint16_t count;                     //!< number of observations
+//   uint32_t *read_ptr;                 //!< reader pointer to buffer (read observations for calculate report value)
+//   uint32_t *write_ptr;                //!< writer pointer to buffer (add new observation)
+//} observation_t;
 
 /*********************************************************************
 * TYPEDEF for Finite State Machine
