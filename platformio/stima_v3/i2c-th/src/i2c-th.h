@@ -223,6 +223,12 @@ volatile uint8_t readable_data_length;
 volatile uint8_t i2c_rx_data[I2C_MAX_DATA_LENGTH];
 
 /*!
+\var lastcommand
+\brief last command received.
+*/
+volatile uint8_t lastcommand;
+
+/*!
 \var i2c_error
 \brief Number of i2c error.
 */

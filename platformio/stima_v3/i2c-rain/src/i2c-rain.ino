@@ -423,6 +423,8 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
+	lastcommand=i2c_rx_data[1];
+	memset((void *) &readable_data_write_ptr->rain, UINT8_MAX, sizeof(rain_t));
         is_event_command_task = true;
         ready_tasks_count++;
       }
@@ -559,7 +561,7 @@ void command_task() {
    char buffer[30];
    #endif
 
-   switch(i2c_rx_data[1]) {
+   switch(lastcommand) {
       case I2C_RAIN_COMMAND_ONESHOT_START:
          #ifndef DISABLE_LOGGING
          strcpy(buffer, "ONESHOT START");
@@ -630,6 +632,7 @@ void command_task() {
    noInterrupts();
    is_event_command_task = false;
    ready_tasks_count--;
+   lastcommand=I2C_RAIN_COMMAND_NONE;
    interrupts();
 }
 

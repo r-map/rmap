@@ -1430,7 +1430,7 @@ void SensorDriverTh::prepare(bool is_test) {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 0;
+      _delay_ms = 10;
     }
 
     if (is_i2c_write) {

@@ -222,6 +222,7 @@ void init_tasks() {
 
    sensors_reading_state = SENSORS_READING_INIT;
 
+   lastcommand=I2C_TH_COMMAND_NONE;
    is_start = false;
    is_stop = false;
    is_test_read = false;
@@ -449,7 +450,9 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
-        is_event_command_task = true;
+	reset_readable_data_read();    //make shure read old data wil be impossible
+	lastcommand=i2c_rx_data[1];    // record command to be executed
+        is_event_command_task = true;  // activate command task
         ready_tasks_count++;
       }
       //interrupts();
@@ -985,10 +988,24 @@ void reset_report_buffer () {
    readable_data_write_ptr->humidity.sigma = UINT16_MAX;
 }
 
+void reset_readable_data_read() {
+   readable_data_read_ptr->temperature.sample =  UINT16_MAX;
+   readable_data_read_ptr->temperature.med60 =  UINT16_MAX;
+   readable_data_read_ptr->temperature.med =  UINT16_MAX;
+   readable_data_read_ptr->temperature.max =  UINT16_MAX;
+   readable_data_read_ptr->temperature.min =  UINT16_MAX;
+   readable_data_read_ptr->temperature.sigma =  UINT16_MAX;
+   readable_data_read_ptr->humidity.sample =  UINT16_MAX;
+   readable_data_read_ptr->humidity.med60 =  UINT16_MAX;
+   readable_data_read_ptr->humidity.med =  UINT16_MAX;
+   readable_data_read_ptr->humidity.max =  UINT16_MAX;
+   readable_data_read_ptr->humidity.min =  UINT16_MAX;
+   readable_data_read_ptr->humidity.sigma = UINT16_MAX;
+}
 
 void command_task() {
 
-   switch(i2c_rx_data[1]) {
+   switch(lastcommand) {
       case I2C_TH_COMMAND_ONESHOT_START:
 	 LOGN(F("Execute [ ONESHOT START ]"));
          is_start = true;
@@ -1058,6 +1075,7 @@ void command_task() {
    noInterrupts();
    is_event_command_task = false;
    ready_tasks_count--;
+   lastcommand =I2C_TH_COMMAND_NONE;
    interrupts();
 }
 
