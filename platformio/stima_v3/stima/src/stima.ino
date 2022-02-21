@@ -644,6 +644,8 @@ bool mqttConnect(char *username, char *password) {
      LOGT(F("MQTT sessionPresent: %s"), data.sessionPresent ? "true" : "false");
      mqtt_session_present=data.sessionPresent;
    }
+
+   wdt_reset();
    return returnstatus;
 }
 
@@ -695,6 +697,8 @@ bool mqttPublish(const char *topic, const char *message, bool is_retained) {
     LOGE(F("skip not printable ASCII message"));
   }
 
+  wdt_reset();
+
   return status;
 }
 
@@ -711,7 +715,6 @@ void mqttRxCallback(MQTT::MessageData &md) {
   is_event_rpc=true;
   while (is_event_rpc) {                                  // here we block because pahoMQTT is blocking
     streamRpc.parseCharpointer(&is_event_rpc, (char*)rx_message.payload, rx_message.payloadlen, rpcpayload, MQTT_RPC_RESPONSE_LENGTH );
-    wdt_reset();
   }
 }
 #endif

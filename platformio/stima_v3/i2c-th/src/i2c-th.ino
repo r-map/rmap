@@ -341,6 +341,19 @@ void load_configuration() {
       print_configuration();
    }
 
+   wdt_reset();
+   
+   if (!configuration.is_oneshot) {
+     LOGN(F("--> samples every %d ms: "),SENSORS_SAMPLE_TIME_MS);
+     LOGN(F("--> number of samples in %d minutes: %d"),OBSERVATIONS_MINUTES, OBSERVATION_SAMPLES_COUNT);
+     LOGN(F("--> time error for 5min  report: %d ms"), 5*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
+     LOGN(F("--> time error for 15min report: %d ms"),15*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
+     LOGN(F("--> time error for 30min report: %d ms"),30*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
+     LOGN(F("--> time error for 60min report: %d ms"),60*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
+   }
+
+   wdt_reset();
+   
    writable_data.i2c_address = configuration.i2c_address;
    writable_data.is_oneshot = configuration.is_oneshot;
 
@@ -351,20 +364,16 @@ void load_configuration() {
 }
 
 void init_sensors () {
-   sensors_count = 0;
+  sensors_count = 0;
 
-   LOGN(F("Sensors..."));
-
-   for (uint8_t i=0; i < 2; i++){
-     if (strlen(configuration.sensors[i].type) == 3){
-       SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, &sensors_count);
-       LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, configuration.sensors[i].type, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
-     }
-   }
-   
-   if (!configuration.is_oneshot) {
-      LOGN(F("--> report computed from samples average in %d minutes"), OBSERVATIONS_MINUTES);
-   }
+  LOGN(F("Sensors..."));
+  
+  for (uint8_t i=0; i < 2; i++){
+    if (strlen(configuration.sensors[i].type) == 3){
+      SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, 1, sensors, &sensors_count);
+      LOGN(F("--> %d: %s-%s: %s\t [ %s ]"), sensors_count, SENSOR_DRIVER_I2C, configuration.sensors[i].type, "", sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+    }
+  }
 }
 
 /*!

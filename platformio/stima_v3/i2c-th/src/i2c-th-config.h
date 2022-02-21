@@ -158,17 +158,18 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 /*!
 \def SENSORS_SAMPLE_TIME_MS
 \brief Milliseconds for sampling sensors: 2000 - 8000 [ms]
+setting it to 3980 ms we gain 20 ms every sample, 300 ms every observation, 4500 every report (15minutes)
 */
-#define SENSORS_SAMPLE_TIME_MS                        (4000)
+#define SENSORS_SAMPLE_TIME_MS                    (3980)
 
 
-#define SAMPLES_COUNT_MAX                                 (((60000 * OBSERVATIONS_MINUTES) / SENSORS_SAMPLE_TIME_MS) + 10)
+#define SAMPLES_COUNT_MAX                         (((OBSERVATIONS_MINUTES * 60000UL) / SENSORS_SAMPLE_TIME_MS) + 10)
 
 /*!
 \def OBSERVATION_SAMPLES_COUNT
 \brief Sample count  in OBSERVATIONS_MINUTES minutes.
 */
-#define OBSERVATION_SAMPLES_COUNT                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
+#define OBSERVATION_SAMPLES_COUNT                 (((OBSERVATIONS_MINUTES * 60000UL) / SENSORS_SAMPLE_TIME_MS ))
 
 
 ///*!
@@ -182,7 +183,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def OBSERVATION_SAMPLE_ERROR_MAX
 \brief Maximum invalid sample count for generate a valid observations.
 */
-#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT/10.)))
+#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT/10.))+1)
 
 
 #define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(1))
