@@ -346,10 +346,6 @@ void load_configuration() {
    if (!configuration.is_oneshot) {
      LOGN(F("--> samples every %d ms: "),SENSORS_SAMPLE_TIME_MS);
      LOGN(F("--> number of samples in %d minutes: %d"),OBSERVATIONS_MINUTES, OBSERVATION_SAMPLES_COUNT);
-     LOGN(F("--> time error for 5min  report: %d ms"), 5*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
-     LOGN(F("--> time error for 15min report: %d ms"),15*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
-     LOGN(F("--> time error for 30min report: %d ms"),30*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
-     LOGN(F("--> time error for 60min report: %d ms"),60*(60000-(SENSORS_SAMPLE_TIME_MS*OBSERVATION_SAMPLES_COUNT)));
    }
 
    wdt_reset();
@@ -784,6 +780,10 @@ void make_report (bool init=false) {
 
   static float sum1_humidity;
   static float sum2_humidity;
+
+  static uint16_t temperature_sample_for_observation;
+  static uint16_t humidity_sample_for_observation;
+
   
   if (init) {
     
@@ -806,6 +806,9 @@ void make_report (bool init=false) {
 
     sum1_humidity=0;
     sum2_humidity=0;
+
+    temperature_sample_for_observation=OBSERVATION_SAMPLES_COUNT-1;
+    humidity_sample_for_observation=OBSERVATION_SAMPLES_COUNT-1;
     
     return;
   }
@@ -826,10 +829,11 @@ void make_report (bool init=false) {
   }
   bufferPtrResetBack<sample_t, uint16_t>(&temperature_samples, SAMPLES_COUNT_MAX);
 
-  LOGN(F("temperature sample count %d:%d"),temperature_samples.count,OBSERVATION_SAMPLES_COUNT);
+  LOGN(F("temperature sample count %d:%d"),temperature_samples.count,temperature_sample_for_observation);
 
-  if (temperature_samples.count == OBSERVATION_SAMPLES_COUNT) {
-    for (uint16_t i = 0; i < OBSERVATION_SAMPLES_COUNT; i++) {
+  if (temperature_samples.count == temperature_sample_for_observation) {
+    temperature_sample_for_observation=OBSERVATION_SAMPLES_COUNT;
+    for (uint16_t i = 0; i < temperature_samples.count; i++) {
     
       temperature = bufferReadBack<sample_t, uint16_t, int32_t>(&temperature_samples, SAMPLES_COUNT_MAX);
       LOGT(F("Temperature %d value: %l"), i, temperature);
@@ -903,10 +907,11 @@ void make_report (bool init=false) {
   
   bufferPtrResetBack<sample_t, uint16_t>(&humidity_samples, SAMPLES_COUNT_MAX);   
 
-  LOGN(F("humidity sample count %d:%d"),humidity_samples.count,OBSERVATION_SAMPLES_COUNT);
+  LOGN(F("humidity sample count %d:%d"),humidity_samples.count,humidity_sample_for_observation);
 
-  if (humidity_samples.count == OBSERVATION_SAMPLES_COUNT) {
-    for (uint16_t i = 0; i < OBSERVATION_SAMPLES_COUNT; i++) {
+  if (humidity_samples.count == humidity_sample_for_observation) {
+    humidity_sample_for_observation=OBSERVATION_SAMPLES_COUNT;
+    for (uint16_t i = 0; i < humidity_samples.count; i++) {
     
       humidity = bufferReadBack<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);      
       LOGT(F("Humidity %d value: %l"), i, humidity);   
@@ -1089,7 +1094,10 @@ void command_task() {
 }
 
 void tests() {
-   exchange_buffers();
+   //! copy readable_data_2 in readable_data_1
+   noInterrupts();
+   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+   interrupts();
 }
 
 void commands() {
@@ -1097,9 +1105,9 @@ void commands() {
   //! CONTINUOUS START
   if (!configuration.is_oneshot && is_start && !is_stop) {
     init_timer1();
-    make_report(true);
     reset_samples_buffer();
     reset_report_buffer();
+    make_report(true);
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {

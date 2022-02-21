@@ -160,7 +160,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief Milliseconds for sampling sensors: 2000 - 8000 [ms]
 setting it to 3980 ms we gain 20 ms every sample, 300 ms every observation, 4500 every report (15minutes)
 */
-#define SENSORS_SAMPLE_TIME_MS                    (3980)
+#define SENSORS_SAMPLE_TIME_MS                    (4000)
 
 
 #define SAMPLES_COUNT_MAX                         (((OBSERVATIONS_MINUTES * 60000UL) / SENSORS_SAMPLE_TIME_MS) + 10)
