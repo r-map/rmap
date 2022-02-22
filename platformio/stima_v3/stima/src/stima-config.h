@@ -530,7 +530,7 @@ coming from recovery json RPC.
 \def LCD_TIME_FOR_REINITIALIZE_S
 \brief Maximum seconds for reinitialize LCD.
 */
-#define LCD_TIME_FOR_REINITIALIZE_S                   (SECS_PER_HOUR)
+#define LCD_TIME_FOR_REINITIALIZE_S                   (SECS_PER_DAY)
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)
 /*!

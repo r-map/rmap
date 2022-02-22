@@ -1597,6 +1597,15 @@ void supervisor_task() {
             if (lcd_error) LOGE(F("LCD ERROR"));
 	    LOGN(F("Reinitialize LCD"));
             init_lcd();
+	    lcd_error |= lcd.clear();
+	    lcd_error |= lcd.print(F("N: "))==0;
+	    lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading))==0;
+	    lcd_error |= lcd.print(F(":"))==0;
+	    lcd_error |= lcd.print(minute(next_ptr_time_for_sensors_reading))==0;
+	    lcd_error |= lcd.print(F(":"))==0;
+	    lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
+	    lcd_error |= lcd.setCursor(0, 2);
+	    lcd_error |= lcd.print(F("DISPLAY Restarted"))==0;
          }
 	 #endif
 
