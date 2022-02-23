@@ -376,16 +376,21 @@ In questa modalità bisogna disporre di:
 
 Comandi da impartire per configurare la stazione::
 
-  rmap-configure --wizard --station_slug="myslug" --height="myheight" --stationname="mystationname" --username="myusername --password="mypassword" --server=rmap.cc --lat="mylat" --lon="mylon"  --mqttrootpath=report --mqttmaintpath=maint
+  rmap-configure --wizard --station_slug="myslug" --height="myheight" --stationname="mystationname" --username="myusername --password="mypassword" --lat="mylat" --lon="mylon"
   rmap-configure --addboard --station_slug="myslug" --board_slug=default --user="myuser" --serialactivate --mqttactivate --mqttuser="myuser" --mqttpassword="myuser" --mqttsamplerate="mymqttsamplerate" --tcpipactivate --tcpipntpserver="mytcpipntpserver" --tcpipname=stima --tcpipgsmapn="myapn"
-  rmap-configure --addsensors_by_template="mystationmodel" --station_slug="myslug" --board_slug=default --user="myuser" --password="mypassword" --server=rmap.cc --upload_to_server
+  rmap-configure --addsensors_by_template="mystationmodel" --station_slug="myslug" --board_slug=default --user="myuser" --password="mypassword" --upload_to_server
   
 Esempio di configurazione::
   
-  rmap-configure --wizard --station_slug=malborghetto --height=2 --stationname="Malborghetto di Boara" --username="myuser" --password="mypassword" --server=rmap.cc --lat=44.85892 --lon=11.65625  --mqttrootpath=report --mqttmaintpath=maint
-  rmap-configure --addboard --station_slug=malborghetto --board_slug=default --user="myuser" --serialactivate --mqttactivate --mqttuser="myuser" --mqttpassword="myuser" --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima --tcpipgsmapn internet.wind
-  rmap-configure --addsensors_by_template=stima_report_thpbwr --station_slug=malborghetto --board_slug=default --user="myuser" --password="mypassword" --server=rmap.cc --upload_to_server
+  rmap-configure --wizard --station_slug=malborghetto --height=2 --stationname="Malborghetto di Boara" --username="myuser" --password="mypassword" --lat=44.85892 --lon=11.65625
+  rmap-configure --addboard --station_slug=malborghetto --board_slug=default --user="myuser" --serialactivate --mqttactivate --mqttuser="myuser" --mqttpassword="myuser" --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima --tcpipgsmapn internet.wind 
+  rmap-configure --addsensors_by_template=stima_report_thpbwr --station_slug=malborghetto --board_slug=default --user="myuser" --password="mypassword"  --upload_to_server
 
+Eseguire::
+
+  rmap-configure --help
+
+per avere indicazioni su altri parametri per particolari personalizzazioni.
 
 Con modello (tipo e template sensori) non predefinito
 """""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -394,8 +399,8 @@ In questa modalità bisogna avere piena padronanza del data model, dei sensori c
 
 Qui un esempio di configurazione::
   
-  rmap-configure --wizard --station_slug="myslug" --height="altezzametri" --stationname=""""nome stazione"""" --username="myuser" --password="mypassword" --server=rmap.cc --lat="latitudine" --lon="longitudine"  --mqttrootpath=report --mqttmaintpath=maint
-  rmap-configure --addboard --station_slug="myslug" --board_slug=default --user="myuser" --serialactivate --server=test.rmap.cc --mqttactivate --mqttuser="myuser" --mqttpassword="mypassword" --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima --tcpipgsmapn ibox.tim.it
+  rmap-configure --wizard --station_slug="myslug" --height="altezzametri" --stationname=""""nome stazione"""" --username="myuser" --password="mypassword" --server=test.rmap.cc --lat="latitudine" --lon="longitudine"  --mqttrootpath=report --mqttmaintpath=maint
+  rmap-configure --addboard --station_slug="myslug" --board_slug=default --user="myuser" --serialactivate --server=test.rmap.cc --mqttactivate --mqttuser="myuser" --mqttpassword="mypassword" --mqttsamplerate=900 --tcpipactivate --tcpipntpserver="it.pool.ntp.org" --tcpipname=stima --tcpipgsmapn ibox.tim.it --server=test.rmap.cc
   rmap-configure --delsensors --station_slug="myslug" --board_slug=default --user="myuser"
   rmap-configure --addsensor  --station_slug="myslug" --board_slug=default --user="myuser" --sensorname="temperatura e umidità istantanea" --driver=I2C --type=ITH --address=35 --timerange="254,0,0" --level="103,2000,-,-" 
   rmap-configure --addsensor  --station_slug="myslug" --board_slug=default --user="myuser" --sensorname="temperatura e umidità minima"     --driver=I2C --type=NTH --address=35 --timerange="3,0,900" --level="103,2000,-,-" 
@@ -403,7 +408,7 @@ Qui un esempio di configurazione::
   rmap-configure --addsensor  --station_slug="myslug" --board_slug=default --user="myuser" --sensorname="temperatura e umidità massima"    --driver=I2C --type=XTH --address=35 --timerange="2,0,900" --level="103,2000,-,-" 
   rmap-configure --addsensor  --station_slug="myslug" --board_slug=default --user="myuser" --sensorname="pioggia"                          --driver=I2C --type=TBR --address=33 --timerange="1,0,900" --level="1,-,-,-" 
   
-  rmap-configure  --station_slug="myslug" --board_slug=default --user="myuser" --password="mypassword" --server=rmap.cc --upload_to_server
+  rmap-configure  --station_slug="myslug" --board_slug=default --user="myuser" --password="mypassword" --server=test.rmap.cc --upload_to_server
   rmap-configure --config_station --station_slug="myslug"  --board_slug=default --username="myuser" --baudrate=115200 --device=/dev/ttyUSB0
 
 
