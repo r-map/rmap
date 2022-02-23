@@ -33,6 +33,17 @@
         }
     },
     {
+        "model": "stations.bcode",
+        "fields": {
+            "bcode": "B25194",
+            "description": "Photovoltaic panel voltage",
+            "unit": "V",
+            "offset": 0.0,
+            "scale": 1.0,
+            "userunit": "V"
+        }
+    },
+    {
         "model": "stations.sensortype",
         "fields": {
             "active": true,
@@ -42,7 +53,7 @@
             "bcodes": [
                 ["B25025"],
                 ["B25192"],
-                ["B25193"]
+                ["B25194"]
             ]
         }
     },
