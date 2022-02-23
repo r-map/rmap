@@ -1830,291 +1830,258 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
 void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 
   switch (_get_state) {
-    case INIT:
-      for (uint8_t i =0; i < length; i++) {
-	values[i]=INT32_MAX;
-      }
+  case INIT:
+    for (uint8_t i =0; i < length; i++) {
+      values[i]=INT32_MAX;
+    }
 
+    battery_charge = FLT_MAX;
+    battery_voltage = FLT_MAX;
+    battery_current = FLT_MAX;
+    input_voltage = FLT_MAX;
+    input_current = FLT_MAX;
+    output_voltage = FLT_MAX;
+   
     _is_readed = false;
     _is_end = false;
-         _error_count = 0;
-
+    _error_count = 0;
+    
     if (*_is_prepared && length >= 1) {
       _is_success = true;
-            _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
-    }
-    else {
-            _error_count++;
+      _get_state = SET_BATTERY_VOLTAGE_ADDRESS;
+    } else {
+      _error_count++;
       _is_success = false;
       _get_state = END;
     }
-
+    
     _delay_ms = 0;
     _start_time_ms = millis();
     break;
-
-      case SET_BATTERY_VOLTAGE_ADDRESS:
-         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
+    
+  case SET_BATTERY_VOLTAGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_VOLTAGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_BATTERY_VOLTAGE;
     }
     else {
+      LOGE(F("digitecopower get set battery voltage"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-      case READ_BATTERY_VOLTAGE:
-         _is_success = DigitecoPower::de_read(_address, &battery_voltage);
+    
+  case READ_BATTERY_VOLTAGE:
+    _is_success = DigitecoPower::de_read(_address, &battery_voltage);
     _delay_ms = 0;
     _start_time_ms = millis();
-
-    if (_is_success && length >= 2) {
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((battery_voltage >= 0.0) || (battery_voltage < 50.0))) {
+      values[0] = battery_voltage * 10;
       _error_count = 0;
-      _get_state = SET_INPUT_VOLTAGE_ADDRESS;
-    }
-    else {
+      if (length >= 2) {
+	_get_state = SET_INPUT_VOLTAGE_ADDRESS;
+      }else {
+	_get_state = END;
+      }
+    }else {
+      LOGE(F("digitecopower get read battery voltage"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-      case SET_INPUT_VOLTAGE_ADDRESS:
-         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
+    
+  case SET_INPUT_VOLTAGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_VOLTAGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_INPUT_VOLTAGE;
     }
     else {
+      LOGE(F("digitecopower get set input voltage"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-    case READ_INPUT_VOLTAGE:
-         _is_success = DigitecoPower::de_read(_address, &input_voltage);
+    
+  case READ_INPUT_VOLTAGE:
+    _is_success = DigitecoPower::de_read(_address, &input_voltage);
     _delay_ms = 0;
     _start_time_ms = millis();
-
-    if (_is_success && length >= 3) {
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((input_voltage > -10.0) || (input_voltage < 50.0))) {
+      values[1] = input_voltage * 10;
       _error_count = 0;
-      _get_state = SET_BATTERY_CHARGE_ADDRESS;
+      if (length >= 3) {
+	_get_state = SET_BATTERY_CHARGE_ADDRESS;
+      }else {
+	_get_state = END;
+      }
     }
     else {
+      LOGE(F("digitecopower get read input voltage"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-      case SET_BATTERY_CHARGE_ADDRESS:
-         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
+    
+  case SET_BATTERY_CHARGE_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CHARGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_BATTERY_CHARGE;
     }
     else {
+      LOGE(F("digitecopower get set battery charge"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-      case READ_BATTERY_CHARGE:
-         _is_success = DigitecoPower::de_read(_address, &battery_charge);
+    
+  case READ_BATTERY_CHARGE:
+    _is_success = DigitecoPower::de_read(_address, &battery_charge);
     _delay_ms = 0;
     _start_time_ms = millis();
-
-    if (_is_success && length >= 4) {
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((battery_charge >= 0.0) || (battery_charge <= 100.0))) {
+      values[2] = battery_charge;
       _error_count = 0;
-      _get_state = SET_BATTERY_CURRENT_ADDRESS;
+      if (length >= 4) {
+	_get_state = SET_BATTERY_CURRENT_ADDRESS;
+      }else {
+	_get_state = END;
+      }
     }
     else {
+      LOGE(F("digitecopower get read battery charge"));      
       _error_count++;      
       _get_state = END;
     }
     break;
-
-      case SET_BATTERY_CURRENT_ADDRESS:
-         _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
+    
+  case SET_BATTERY_CURRENT_ADDRESS:
+    _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_BATTERY_CURRENT_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_BATTERY_CURRENT;
     }
     else {
+      LOGE(F("digitecopower get set battery current"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-      case READ_BATTERY_CURRENT:
-         _is_success = DigitecoPower::de_read(_address, &battery_current);
+    
+  case READ_BATTERY_CURRENT:
+    _is_success = DigitecoPower::de_read(_address, &battery_current);
     _delay_ms = 0;
     _start_time_ms = millis();
-
-    if (_is_success && length >= 5) {
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((battery_current >= -5000.0) || (battery_current <= 5000.0))) {
+      values[3] = battery_current * 100.0;
       _error_count = 0;
-      _get_state = SET_INPUT_CURRENT_ADDRESS;
+      if (length >= 5) {
+	_get_state = SET_INPUT_CURRENT_ADDRESS;
+      }else {
+	_get_state = END;
+      }
     }
     else {
+      LOGE(F("digitecopower get read battery current"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-    case SET_INPUT_CURRENT_ADDRESS:
+    
+  case SET_INPUT_CURRENT_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_INPUT_CURRENT_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_INPUT_CURRENT;
     }
     else {
+      LOGE(F("digitecopower get set input current"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-    case READ_INPUT_CURRENT:
+    
+  case READ_INPUT_CURRENT:
     _is_success = DigitecoPower::de_read(_address, &input_current);
     _delay_ms = 0;
     _start_time_ms = millis();
-
-    if (_is_success && length >= 6) {
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((input_current >= 0.0) || (input_current <= 5000.0))) {
+      values[4] = input_current * 1000.0;
       _error_count = 0;
-      _get_state = SET_OUTPUT_VOLTAGE_ADDRESS;
+      if (length >= 6) {
+	_get_state = SET_OUTPUT_VOLTAGE_ADDRESS;
+      }else {
+	_get_state = END;
+      }
     }
     else {
+      LOGE(F("digitecopower get read input current"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-    case SET_OUTPUT_VOLTAGE_ADDRESS:
+    
+  case SET_OUTPUT_VOLTAGE_ADDRESS:
     _is_success = DigitecoPower::de_send(_address, DIGITECO_POWER_OUTPUT_VOLTAGE_ADDRESS);
     _delay_ms = 0;
     _start_time_ms = millis();
-
+    
     if (_is_success) {
       _error_count = 0;
       _get_state = READ_OUTPUT_VOLTAGE;
     }
     else {
+      LOGE(F("digitecopower get set output voltage"));      
       _error_count++;
       _get_state = END;
     }
     break;
-
-    case READ_OUTPUT_VOLTAGE:
+    
+  case READ_OUTPUT_VOLTAGE:
     _is_success = DigitecoPower::de_read(_address, &output_voltage);
-    if (_is_success){
+    
+    // There is NO CRC on DigitecoPower: workaround until it will to be implemented
+    if (_is_success && ((output_voltage <0.0) || (output_voltage > 50.0))){
+      values[5] = output_voltage * 10.0;
       _error_count = 0;
-    }else{
+    } else {
+      LOGE(F("digitecopower get read output voltage"));      
       _error_count++;
     }
     _delay_ms = 0;
     _start_time_ms = millis();
     _get_state = END;
     break;
-
-    case END:
-    if (length >= 1) {
-      if (_is_success) {
-               values[0] = battery_voltage * 10;
-      }
-      else {
-               values[0] = INT32_MAX;
-            }
-
-            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-            if ((battery_voltage <= 0.0) || (battery_voltage >= 50.0)) {
-        _is_success = false;
-               values[0] = INT32_MAX;
-      }
-    }
-
-    if (length >= 2) {
-      if (_is_success) {
-               values[1] = input_voltage * 10;
-      }
-      else {
-               values[1] = INT32_MAX;
-            }
-
-            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-            if ((input_voltage <= -10.0) || (input_voltage >= 50.0)) {
-        _is_success = false;
-               values[1] = INT32_MAX;
-      }
-    }
-
-         if (length >= 3) {
-      if (_is_success) {
-               values[2] = battery_charge;
-      }
-      else {
-               values[2] = INT32_MAX;
-            }
-
-            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-            if ((battery_charge < 0.0) || (battery_charge > 100.0)) {
-        _is_success = false;
-               values[2] = INT32_MAX;
-      }
-    }
-
-         if (length >= 4) {
-      if (_is_success) {
-               values[3] = battery_current * 100.0;
-      }
-      else {
-               values[3] = INT32_MAX;
-      }
-    }
-
-    if (length >= 5) {
-      if (_is_success) {
-               values[4] = input_current * 1000.0;
-      }
-      else {
-               values[4] = INT32_MAX;
-            }
-
-            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-            if ((input_current < 0.0) || (input_current > 5000.0)) {
-        _is_success = false;
-               values[4] = INT32_MAX;
-      }
-    }
-
-    if (length >= 6) {
-      if (_is_success) {
-               values[5] = output_voltage * 10.0;
-      }
-      else {
-               values[5] = INT32_MAX;
-            }
-
-            // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-            if ((input_current < 0.0) || (output_voltage > 50.0)) {
-        _is_success = false;
-               values[5] = INT32_MAX;
-      }
-    }
-
+    
+  case END:
+        
     SensorDriver::printInfo();
     if (_is_success){
       LOGT(F("digitecopower get... [ %s ]"), OK_STRING);
@@ -2127,55 +2094,55 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
         LOGT(F("digitecopower--> battery voltage: %l V"), values[0]);
       }
       else {
-               LOGT(F("digitecopower--> battery voltage: ---"));
+	LOGT(F("digitecopower--> battery voltage: ---"));
       }
     }
-
+    
     if (length >= 2) {
-            if (ISVALID_INT32(values[1])) {
-               LOGT(F("digitecopower--> input voltage: %l V"), values[1]);
+      if (ISVALID_INT32(values[1])) {
+	LOGT(F("digitecopower--> input voltage: %l V"), values[1]);
       }
       else {
-               LOGT(F("digitecopower--> input voltage: ---"));
+	LOGT(F("digitecopower--> input voltage: ---"));
       }
     }
-
-         if (length >= 3) {
-            if (ISVALID_INT32(values[2])) {
-               LOGT(F("digitecopower--> battery charge: %l %%"), values[2]);
+    
+    if (length >= 3) {
+      if (ISVALID_INT32(values[2])) {
+	LOGT(F("digitecopower--> battery charge: %l %%"), values[2]);
       }
       else {
-               LOGT(F("digitecopower--> battery charge: ---"));
+	LOGT(F("digitecopower--> battery charge: ---"));
       }
     }
-
-         if (length >= 4) {
-            if (ISVALID_INT32(values[3])) {
-               LOGT(F("digitecopower--> battery current: %l mA"), values[3]);
+    
+    if (length >= 4) {
+      if (ISVALID_INT32(values[3])) {
+	LOGT(F("digitecopower--> battery current: %l mA"), values[3]);
       }
       else {
-               LOGT(F("digitecopower--> battery current: ---"));
+	LOGT(F("digitecopower--> battery current: ---"));
       }
     }
-
+    
     if (length >= 5) {
-            if (ISVALID_INT32(values[4])) {
-               LOGT(F("digitecopower--> input current: %l mA"), values[4]);
+      if (ISVALID_INT32(values[4])) {
+	LOGT(F("digitecopower--> input current: %l mA"), values[4]);
       }
       else {
         LOGT(F("digitecopower--> input current: ---"));
       }
     }
-
+    
     if (length >= 6) {
-            if (ISVALID_INT32(values[5])) {
-               LOGT(F("digitecopower--> output voltage: %l V"), values[5]);
+      if (ISVALID_INT32(values[5])) {
+	LOGT(F("digitecopower--> output voltage: %l V"), values[5]);
       }
       else {
         LOGT(F("digitecopower--> output voltage: ---"));
       }
     }
-
+    
     _start_time_ms = millis();
     _delay_ms = 0;
     _is_end = true;
