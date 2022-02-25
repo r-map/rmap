@@ -1604,7 +1604,7 @@ void supervisor_task() {
 	    lcd_error |= lcd.print(minute(next_ptr_time_for_sensors_reading))==0;
 	    lcd_error |= lcd.print(F(":"))==0;
 	    lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
-	    lcd_error |= lcd.setCursor(0, 2);
+	    lcd_error |= lcd.setCursor(0, 3);
 	    lcd_error |= lcd.print(F("DISPLAY Restarted"))==0;
          }
 	 #endif
@@ -1663,7 +1663,7 @@ void supervisor_task() {
 	    LOGE(F("--> is card inserted?"));
 	    LOGE(F("--> there is a valid FAT32 filesystem?"));
             #if (USE_LCD)
-	    lcd_error |= lcd.setCursor(0, 2);
+	    lcd_error |= lcd.setCursor(0, 3);
 	    lcd_error |= lcd.print( F("SD Card: "))==0;
 	    lcd_error |= lcd.print(FAIL_STRING)==0;
 	    #endif
@@ -1671,7 +1671,7 @@ void supervisor_task() {
 	    // remove firmware to do not redo update the next reboot
 	    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
 	      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
-	      lcd_error |= lcd.setCursor(0, 2);
+	      lcd_error |= lcd.setCursor(0, 3);
 	      lcd_error |= lcd.print( F("NEW Firmware loaded"))==0;
 	    }
 	  }
@@ -2193,6 +2193,8 @@ void gsm_task() {
 	 uint8_t ber;
 	 s800.getLastCsq(&rssi,&ber);
 	 lcd_error |= lcd.setCursor(12, 0);
+	 lcd_error |= lcd.print(F("        "))==0;
+	 lcd_error |= lcd.setCursor(12, 0);
 	 lcd_error |= lcd.print(F("rf:"))==0;
 	 lcd_error |= lcd.print(rssi)==0;
 	 lcd_error |= lcd.print(F("/"))==0;
@@ -2312,6 +2314,10 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	 if (!is_first_run || is_test) {
 	   lcd_error |= lcd.setCursor(0, 1);
 	   lcd_error |= lcd.print(F("                    "))==0;
+	   lcd_error |= lcd.setCursor(0, 2);
+	   lcd_error |= lcd.print(F("                    "))==0;
+	   //lcd_error |= lcd.setCursor(0, 3);
+	   //lcd_error |= lcd.print(F("                    "))==0;
 	   lcd_error |= lcd.setCursor(0, 1);
 	   if (is_test){
 	     lcd_error |= lcd.print(F("T "))==0;
@@ -2510,25 +2516,58 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   if (error) {
 	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
 	   }else{
-
+	     // line 1
 	     int32_t value = doc["B12101"] | INT32_MAX;
 	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
+	       lcd_error |= lcd.setCursor(2, 1);
 	       lcd_error |= lcd.print((value - SENSOR_DRIVER_C_TO_K) / 100.0,1)==0;
 	       lcd_error |= lcd.print(F("C "))==0;
 	     }
 
 	     value = doc["B13003"] | INT32_MAX;
 	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/103,2000,-,-/")==0){
+	       lcd_error |= lcd.setCursor(9, 1);
 	       lcd_error |= lcd.print(value)==0;
 	       lcd_error |= lcd.print(F("% "))==0;
 	     }
 
 	     value = doc["B13011"] | INT32_MAX;
-	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0){
-	       lcd_error |= lcd.print((value/10.0),1)==0;
-	       lcd_error |= lcd.print(F("mm "))==0;
+	     if (ISVALID_INT32(value)){
+	       if  (strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,300/1,-,-,-/")==0  ||
+		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0  ||
+		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,1800/1,-,-,-/")==0 ||
+		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,3600/1,-,-,-/")==0
+		    ){
+		 lcd_error |= lcd.setCursor(13, 1);
+		 lcd_error |= lcd.print((value/10.0),1)==0;
+		 lcd_error |= lcd.print(F("mm "))==0;
+	       }
+	     }
+
+	     // line 2	     
+	     value = doc["B25025"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+	       lcd_error |= lcd.setCursor(0, 2);
+	       lcd_error |= lcd.print((value/10.),1)==0;
+	       lcd_error |= lcd.print(F("Vb "))==0;
+	     }
+
+	     value = doc["B25192"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+	       lcd_error |= lcd.setCursor(7, 2);
+	       lcd_error |= lcd.print(value)==0;
+	       lcd_error |= lcd.print(F("% "))==0;
+	     }
+	     
+	     value = doc["B25194"] | INT32_MAX;
+	     if (ISVALID_INT32(value) && strcmp(readable_configuration.sensors[i].mqtt_topic,"254,0,0/265,1,-,-/")==0){
+	       lcd_error |= lcd.setCursor(12, 2);
+	       lcd_error |= lcd.print((value/10.),1)==0;
+	       lcd_error |= lcd.print(F("Vp "))==0;
 	     }
 	   }
+	   // line 3
+	   //lcd_error |= lcd.setCursor(0, 3);
 	   /*
 	     else if (strcmp(sensors[i]->getType(), "OA3") == 0) {
 	     if (ISVALID(values_readed_from_sensor[i][0])) {
@@ -2811,11 +2850,12 @@ void data_saving_task() {
       case DATA_SAVING_END:
          LOGN(F("[ %d ] data stored in sdcard... [ %s ]"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
          #if (USE_LCD)
-	 lcd_error |= lcd.setCursor(0, 2);
-         lcd_error |= lcd.print(F("SDCARD "))==0;
+	 lcd_error |= lcd.setCursor(0, 3);
+	 lcd_error |= lcd.print(F("                    "))==0;
+	 lcd_error |= lcd.setCursor(0, 3);
+         lcd_error |= lcd.print(F("SD "))==0;
 	 lcd_error |= lcd.print(sd_data_count)==0;
-	 lcd_error |= lcd.print(F(" data "))==0;
-	 lcd_error |= lcd.print(is_sdcard_error ? ERROR_STRING : OK_STRING)==0;
+	 lcd_error |= lcd.print(is_sdcard_error ? " KO" : " OK")==0;
          #endif
 
          noInterrupts();
@@ -3561,11 +3601,10 @@ void mqtt_task() {
          if (is_mqtt_published_data) {
             LOGN(F("[ %d ] data published through mqtt... [ %s ]"), mqtt_data_count, is_mqtt_error ? ERROR_STRING : OK_STRING);
             #if (USE_LCD)
-	    lcd_error |= lcd.setCursor(0, 3);
-            lcd_error |= lcd.print(F("MQTT   "))==0;
+	    lcd_error |= lcd.setCursor(10, 3);
+            lcd_error |= lcd.print(F("MQTT "))==0;
 	    lcd_error |= lcd.print(mqtt_data_count)==0;
-	    lcd_error |= lcd.print(F(" data "))==0;
-	    lcd_error |= lcd.print(is_mqtt_error ? ERROR_STRING : OK_STRING)==0;
+	    lcd_error |= lcd.print(is_mqtt_error ? " KO" : " OK")==0;
 	    #endif
          }
 

@@ -87,12 +87,12 @@ uint8_t I2C_ClearBus() {
   pinMode(SDA, INPUT_PULLUP); // Make SDA (data) and SCL (clock) pins Inputs with pullup.
   pinMode(SCL, INPUT_PULLUP);
 
-  boolean SCL_LOW = (digitalRead(SCL) == LOW); // Check is SCL is Low.
+  bool SCL_LOW = (digitalRead(SCL) == LOW); // Check is SCL is Low.
   if (SCL_LOW) { //If it is held low Arduno cannot become the I2C master. 
     return 1; //I2C bus error. Could not clear SCL clock line held low
   }
 
-  boolean SDA_LOW = (digitalRead(SDA) == LOW);  // vi. Check SDA input.
+  bool SDA_LOW = (digitalRead(SDA) == LOW);  // vi. Check SDA input.
   int clockCount = 20; // > 2x9 clock
 
   while (SDA_LOW && (clockCount > 0)) { //  vii. If SDA is Low,

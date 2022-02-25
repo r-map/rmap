@@ -1869,7 +1869,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_BATTERY_VOLTAGE;
     }
     else {
-      LOGE(F("digitecopower get set battery voltage"));      
+      //LOGE(F("digitecopower get set battery voltage"));      
       _error_count++;
       _get_state = END;
     }
@@ -1890,7 +1890,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 	_get_state = END;
       }
     }else {
-      LOGE(F("digitecopower get read battery voltage"));      
+      //LOGE(F("digitecopower get read battery voltage"));      
       _error_count++;
       _get_state = END;
     }
@@ -1906,7 +1906,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_INPUT_VOLTAGE;
     }
     else {
-      LOGE(F("digitecopower get set input voltage"));      
+      //LOGE(F("digitecopower get set input voltage"));      
       _error_count++;
       _get_state = END;
     }
@@ -1928,7 +1928,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
     else {
-      LOGE(F("digitecopower get read input voltage"));      
+      //LOGE(F("digitecopower get read input voltage"));      
       _error_count++;
       _get_state = END;
     }
@@ -1944,7 +1944,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_BATTERY_CHARGE;
     }
     else {
-      LOGE(F("digitecopower get set battery charge"));      
+      //LOGE(F("digitecopower get set battery charge"));      
       _error_count++;
       _get_state = END;
     }
@@ -1966,7 +1966,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
     else {
-      LOGE(F("digitecopower get read battery charge"));      
+      //LOGE(F("digitecopower get read battery charge"));      
       _error_count++;      
       _get_state = END;
     }
@@ -1982,7 +1982,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_BATTERY_CURRENT;
     }
     else {
-      LOGE(F("digitecopower get set battery current"));      
+      //LOGE(F("digitecopower get set battery current"));      
       _error_count++;
       _get_state = END;
     }
@@ -2004,7 +2004,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
     else {
-      LOGE(F("digitecopower get read battery current"));      
+      //LOGE(F("digitecopower get read battery current"));      
       _error_count++;
       _get_state = END;
     }
@@ -2020,7 +2020,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_INPUT_CURRENT;
     }
     else {
-      LOGE(F("digitecopower get set input current"));      
+      //LOGE(F("digitecopower get set input current"));      
       _error_count++;
       _get_state = END;
     }
@@ -2042,7 +2042,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       }
     }
     else {
-      LOGE(F("digitecopower get read input current"));      
+      //LOGE(F("digitecopower get read input current"));      
       _error_count++;
       _get_state = END;
     }
@@ -2058,7 +2058,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       _get_state = READ_OUTPUT_VOLTAGE;
     }
     else {
-      LOGE(F("digitecopower get set output voltage"));      
+      //LOGE(F("digitecopower get set output voltage"));      
       _error_count++;
       _get_state = END;
     }
@@ -2072,7 +2072,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
       values[5] = output_voltage * 10.0;
       _error_count = 0;
     } else {
-      LOGE(F("digitecopower get read output voltage"));      
+      //LOGE(F("digitecopower get read output voltage"));      
       _error_count++;
     }
     _delay_ms = 0;
