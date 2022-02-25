@@ -164,18 +164,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_RAIN_ONESHOT_ADDRESS              (I2C_RAIN_ADDRESS_ADDRESS + I2C_RAIN_ADDRESS_LENGTH)
 
 /*!
-\def I2C_RAIN_CONTINUOUS_LENGTH
-\brief length of the continuous variable for i2c-rain module.
-*/
-#define I2C_RAIN_CONTINUOUS_LENGTH             (0x01)
-
-/*!
-\def I2C_RAIN_CONTINUOUS_ADDRESS
-\brief address of the continuous variable for i2c-rain module.
-*/
-#define I2C_RAIN_CONTINUOUS_ADDRESS            (I2C_RAIN_ONESHOT_ADDRESS + I2C_RAIN_ONESHOT_LENGTH)
-
-/*!
 \def I2C_RAIN_TIPTIME_LENGTH
 \brief length of the tipping bucket time in milliseconds variable for i2c-rain module.
 */
@@ -185,7 +173,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_RAIN_TIPTIME_ADDRESS
 \brief address of the tipping bucket time in milliseconds variable for i2c-rain module.
 */
-#define I2C_RAIN_TIPTIME_ADDRESS            (I2C_RAIN_CONTINUOUS_ADDRESS + I2C_RAIN_CONTINUOUS_LENGTH)
+#define I2C_RAIN_TIPTIME_ADDRESS            (I2C_RAIN_ONESHOT_ADDRESS + I2C_RAIN_ONESHOT_LENGTH)
 
 /*!
 \def I2C_RAIN_RAINFORTIP_LENGTH

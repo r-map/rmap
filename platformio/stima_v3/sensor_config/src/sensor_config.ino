@@ -137,7 +137,7 @@ void loop() {
 	
 	new_address= -1;
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-wind (1-127)"));
+	  Serial.println(F("digit new i2c address for i2c-wind (1-127) (default I2C_WIND_DEFAULT_ADDRESS)"));
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -208,7 +208,7 @@ void loop() {
 	new_address=-1;
 	
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-th (1-127)"));
+	  Serial.println(F("digit new i2c address for i2c-th (1-127) (default I2C_TH_DEFAULT_ADDRESS)"));
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -336,7 +336,7 @@ void loop() {
 	uint8_t rain_for_tip=0;
 	
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-rain (1-127)"));
+	  Serial.println(F("digit new i2c address for i2c-rain (1-127) (default I2C_RAIN_DEFAULT_ADDRESS)"));
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -354,7 +354,7 @@ void loop() {
 	
 	oneshot=-1;
 	while (oneshot < 1 || oneshot > 2){
-	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-rain (1/2)"));
+	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-rain (1/2) (1 is not supported for now)"));
 	  oneshot=Serial.parseInt();
 	  Serial.println(oneshot);
 	}
@@ -368,14 +368,6 @@ void loop() {
 	Wire.write(buffer,I2C_RAIN_ONESHOT_LENGTH+2);
 	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
 
-	Wire.beginTransmission(I2C_RAIN_DEFAULT_ADDRESS);
-	buffer[0]=I2C_RAIN_CONTINUOUS_ADDRESS;
-	buffer[1]=!(bool)(oneshot-1);
-	buffer[I2C_RAIN_CONTINUOUS_LENGTH+1]=crc8(buffer, I2C_RAIN_CONTINUOUS_LENGTH+1);
-	Wire.write(buffer,I2C_RAIN_CONTINUOUS_LENGTH+2);
-	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
-
-	
 	while (tipping_bucket_time_ms < 2 || tipping_bucket_time_ms > 1000){
 	  Serial.println(F("Tipping bucket time in milliseconds for i2c-rain (2-1000)"));
 	  tipping_bucket_time_ms=Serial.parseInt();

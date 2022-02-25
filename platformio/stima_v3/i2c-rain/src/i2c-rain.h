@@ -57,7 +57,6 @@ typedef struct {
    uint8_t module_type;                    //!< module type
    uint8_t i2c_address;                    //!< i2c address
    bool is_oneshot;                        //!< enable or disable oneshot mode
-   bool is_continuous;                     //!< enable or disable continuous mode
    uint16_t  tipping_bucket_time_ms;       //!< Tipping bucket time in milliseconds
    uint8_t  rain_for_tip;                  //!< How much mm of rain for one tip of tipping bucket rain gauge
 } configuration_t;
@@ -80,7 +79,6 @@ typedef struct {
 typedef struct {
    uint8_t i2c_address;    //!< i2c address
    bool is_oneshot;        //!< enable or disable oneshot mode
-   bool is_continuous;     //!< enable or disable continuous mode
    uint16_t  tipping_bucket_time_ms;       //!< Tipping bucket time in milliseconds
    uint8_t  rain_for_tip;                  //!< How much mm of rain for one tip of tipping bucket rain gauge
 } writable_data_t;
@@ -222,24 +220,6 @@ bool is_start;
 \brief Execute stop command.
 */
 bool is_stop;
-
-/*!
-\var is_oneshot
-\brief Received command is in oneshot mode.
-*/
-bool is_oneshot;
-
-/*!
-\var is_continuous
-\brief Received command is in continuous mode.
-*/
-bool is_continuous;
-
-/*!
-\var is_test_read
-\brief Received command is for reading value for test.
-*/
-bool is_test_read;
 
 /*!
 \var rain_tips_event_occurred_time_ms

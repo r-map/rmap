@@ -1,7 +1,7 @@
 /**@file i2c-rain.ino */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -321,7 +321,6 @@ void print_configuration() {
    LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
    LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
    LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
    LOGN(F("--> Tipping bucket time in milliseconds: %d"), configuration.tipping_bucket_time_ms);
    LOGN(F("--> How much mm of rain for one tip of tipping bucket rain gauge: %d"), configuration.rain_for_tip);
 }
@@ -334,7 +333,6 @@ void save_configuration(bool is_default) {
       configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
       configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
       configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
-      configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
       configuration.tipping_bucket_time_ms=CONFIGURATION_DEFAULT_TIPPING_BUCKET_TIME_MS;
       configuration.rain_for_tip=CONFIGURATION_DEFAULT_RAIN_FOR_TIP;
    }
@@ -342,7 +340,6 @@ void save_configuration(bool is_default) {
       LOGN(F("Save configuration... [ %s ]"), OK_STRING);
       configuration.i2c_address = writable_data_ptr->i2c_address;
       configuration.is_oneshot = writable_data_ptr->is_oneshot;
-      configuration.is_continuous = writable_data_ptr->is_continuous;
       configuration.tipping_bucket_time_ms = writable_data_ptr->tipping_bucket_time_ms;
       configuration.rain_for_tip = writable_data_ptr->rain_for_tip;
    }
@@ -367,7 +364,6 @@ void load_configuration() {
    // set configuration value to writable register
    writable_data.i2c_address = configuration.i2c_address;
    writable_data.is_oneshot = configuration.is_oneshot;
-   writable_data.is_continuous = configuration.is_continuous;
    writable_data.tipping_bucket_time_ms = configuration.tipping_bucket_time_ms;
    writable_data.rain_for_tip = configuration.rain_for_tip;
 }
@@ -441,10 +437,6 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 	//LOGN("write add %d",I2C_RAIN_ONESHOT_ADDRESS);
         is_i2c_data_ok = true;
       }
-      else if (i2c_rx_data[0] == I2C_RAIN_CONTINUOUS_ADDRESS && rx_data_length == I2C_RAIN_CONTINUOUS_LENGTH) {
-	//LOGN("write add %d",I2C_RAIN_CONTINUOUS_ADDRESS);
-        is_i2c_data_ok = true;
-      }
       else if (i2c_rx_data[0] == I2C_RAIN_TIPTIME_ADDRESS && rx_data_length == I2C_RAIN_TIPTIME_LENGTH) {
 	//LOGN("write add %d",I2C_RAIN_TIPTIME_ADDRESS);
         is_i2c_data_ok = true;
@@ -490,7 +482,7 @@ void tipping_bucket_task () {
 
       case TIPPING_BUCKET_READ:
          // increment rain tips if oneshot mode is on and oneshot start command It has been received
-         if (configuration.is_oneshot && is_oneshot && is_start) {
+         if (configuration.is_oneshot && is_start) {
 	   // re-read pin status to filter spikes
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
@@ -503,7 +495,7 @@ void tipping_bucket_task () {
 	   }
 	 }
 	 else {
-	   LOGN(F("Rain tips!"));
+	   LOGN(F("SKIP rain tips! (not started or continous mode)"));
 	 }
 
          //tipping_bucket_state = TIPPING_BUCKET_END;
@@ -557,109 +549,86 @@ void reset_buffers() {
 }
 
 void command_task() {
-   #ifndef DISABLE_LOGGING
-   char buffer[30];
-   #endif
+  switch(lastcommand) {
+  case I2C_RAIN_COMMAND_ONESHOT_START:
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT START");
+      is_start = true;
+      is_stop = false;
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START");
+    }      
+    break;
+    
+  case I2C_RAIN_COMMAND_ONESHOT_STOP:
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT STOP");
+      is_start = false;
+      is_stop = true;
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
+    }
+    break;
+    
+  case I2C_RAIN_COMMAND_ONESHOT_START_STOP:
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT START-STOP");
+      is_start = true;
+      is_stop = true;
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
+    }
+    break;
+    
+  case I2C_RAIN_COMMAND_TEST_READ:
+    LOGN(F("Execute [ %s ]"), "TEST READ");
+    is_start = false;
+    is_stop = true;
+    break;
+    
+  case I2C_RAIN_COMMAND_SAVE:
+    LOGN(F("Execute [ %s ]"), "SAVE");
+    save_configuration(CONFIGURATION_CURRENT);
+    init_wire();
+    is_start = false;
+    is_stop = false;
+    break;
+    
+  default:
+    LOGE(F("Command UNKNOWN"));
+    is_start = false;
+    is_stop = false;
+  }
 
-   switch(lastcommand) {
-      case I2C_RAIN_COMMAND_ONESHOT_START:
-         #ifndef DISABLE_LOGGING
-         strcpy(buffer, "ONESHOT START");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
-         is_start = true;
-         is_stop = false;
-         commands();
-      break;
-
-      case I2C_RAIN_COMMAND_ONESHOT_STOP:
-         #ifndef DISABLE_LOGGING
-         strcpy(buffer, "ONESHOT STOP");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
-         is_start = false;
-         is_stop = true;
-         commands();
-      break;
-
-      case I2C_RAIN_COMMAND_ONESHOT_START_STOP:
-         #ifndef DISABLE_LOGGING
-         strcpy(buffer, "ONESHOT START-STOP");
-         #endif
-         is_oneshot = true;
-         is_continuous = false;
-         is_start = true;
-         is_stop = true;
-         commands();
-      break;
-
-      case I2C_RAIN_COMMAND_TEST_READ:
-         #ifndef DISABLE_LOGGING
-         strcpy(buffer, "TEST READ");
-         #endif
-         is_test_read = true;
-         tests();
-      break;
-
-      case I2C_RAIN_COMMAND_SAVE:
-         #ifndef DISABLE_LOGGING
-         strcpy(buffer, "SAVE");
-	 #endif
-         //is_oneshot = false;
-         //is_continuous = false;
-         //is_start = false;
-         //is_stop = false;
-         save_configuration(CONFIGURATION_CURRENT);
-         init_wire();
-      break;
-      #ifndef DISABLE_LOGGING
-      default:
-         strcpy(buffer, "UNKNOWN");
-      #endif
-   }
-
-   #ifndef DISABLE_LOGGING
-   if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-      LOGN(F("Execute [ %s ]"), buffer);
-   }
-   else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-      LOGN(F("Ignore [ %s ]"), buffer);
-   }
-   #endif
-
-   noInterrupts();
-   is_event_command_task = false;
-   ready_tasks_count--;
-   lastcommand=I2C_RAIN_COMMAND_NONE;
-   interrupts();
-}
-
-void tests() {
+  commands();
+  
   noInterrupts();
-  readable_data_write_ptr->rain.tips_count = rain.tips_count;
-  readable_data_write_ptr->rain.rain = rain.rain;
-  exchange_buffers();
-  is_test_read = false;
+  is_event_command_task = false;
+  ready_tasks_count--;
+  lastcommand=I2C_RAIN_COMMAND_NONE;
   interrupts();
 }
+
 
 void commands() {
    noInterrupts();
 
-   if (configuration.is_oneshot && is_oneshot && is_stop) {
-      readable_data_write_ptr->rain.tips_count = rain.tips_count;
-      readable_data_write_ptr->rain.rain = rain.rain;
-      exchange_buffers();
-   }
+   if (configuration.is_oneshot){
 
-   if (configuration.is_oneshot && is_oneshot && is_start) {
-      reset_buffers();
-   }
-   else if (is_start) {
-      reset_buffers();
-      exchange_buffers();
+     if (is_stop) {
+       readable_data_write_ptr->rain.tips_count = rain.tips_count;
+       readable_data_write_ptr->rain.rain = rain.rain;
+       exchange_buffers();
+     }
+
+     if (is_start) {
+       reset_buffers();
+     }
+
+   } else {
+
+     LOGE(F("Continous mode not supported!"));
+
    }
 
    interrupts();
