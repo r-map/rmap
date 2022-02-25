@@ -137,7 +137,8 @@ void loop() {
 	
 	new_address= -1;
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-wind (1-127) (default I2C_WIND_DEFAULT_ADDRESS)"));
+	  Serial.print(F("digit new i2c address for i2c-wind (1-127) default: "));
+	  Serial.println(I2C_WIND_DEFAULT_ADDRESS);
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -208,7 +209,8 @@ void loop() {
 	new_address=-1;
 	
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-th (1-127) (default I2C_TH_DEFAULT_ADDRESS)"));
+	  Serial.print(F("digit new i2c address for i2c-th (1-127) default: "));
+	  Serial.println(I2C_TH_DEFAULT_ADDRESS);
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
@@ -336,7 +338,8 @@ void loop() {
 	uint8_t rain_for_tip=0;
 	
 	while (new_address < 1 || new_address > 127){
-	  Serial.println(F("digit new i2c address for i2c-rain (1-127) (default I2C_RAIN_DEFAULT_ADDRESS)"));
+	  Serial.print(F("digit new i2c address for i2c-rain (1-127) default: "));
+	  Serial.println(I2C_RAIN_DEFAULT_ADDRESS);
 	  new_address=Serial.parseInt();
 	  Serial.println(new_address);
 	}
