@@ -482,7 +482,7 @@ void tipping_bucket_task () {
 
       case TIPPING_BUCKET_READ:
          // increment rain tips if oneshot mode is on and oneshot start command It has been received
-         if (configuration.is_oneshot && is_start) {
+         if (configuration.is_oneshot && is_started) {
 	   // re-read pin status to filter spikes
 	   if (digitalRead(TIPPING_BUCKET_PIN) == LOW)  {
 	     rain.tips_count++;
@@ -584,20 +584,17 @@ void command_task() {
     LOGN(F("Execute [ %s ]"), "TEST READ");
     is_start = false;
     is_stop = true;
+    is_test = true;
     break;
     
   case I2C_RAIN_COMMAND_SAVE:
     LOGN(F("Execute [ %s ]"), "SAVE");
     save_configuration(CONFIGURATION_CURRENT);
     init_wire();
-    is_start = false;
-    is_stop = false;
     break;
     
   default:
     LOGE(F("Command UNKNOWN"));
-    is_start = false;
-    is_stop = false;
   }
 
   commands();
@@ -619,10 +616,12 @@ void commands() {
        readable_data_write_ptr->rain.tips_count = rain.tips_count;
        readable_data_write_ptr->rain.rain = rain.rain;
        exchange_buffers();
+       if (! is_test) is_started=false;
      }
 
      if (is_start) {
        reset_buffers();
+       is_started=true;
      }
 
    } else {
@@ -630,8 +629,12 @@ void commands() {
      LOGE(F("Continous mode not supported!"));
 
    }
-
+   
    interrupts();
+   is_start = false;
+   is_stop = false;
+   is_test = false;
+
    LOGN(F("Total tips : %d"), readable_data_read_ptr->rain.tips_count);
    LOGN(F("Total rain : %d"), readable_data_read_ptr->rain.rain);
 }

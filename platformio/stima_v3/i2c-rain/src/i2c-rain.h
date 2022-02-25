@@ -222,6 +222,18 @@ bool is_start;
 bool is_stop;
 
 /*!
+\var is_test
+\brief Execute stop command in test mode.
+*/
+bool is_test;
+
+/*!
+\var is_started
+\brief Start command is active and measure is active.
+*/
+bool is_started;
+
+/*!
 \var rain_tips_event_occurred_time_ms
 \brief System time (in millisecond) when rain tips occured.
 */
