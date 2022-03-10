@@ -1837,7 +1837,7 @@ void time_task() {
          }
 
          if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
-            LOGN(F("NTP response... [ %s ]"), OK_STRING);
+	    LOGN(F("NTP response... [ %s ] diff time: %lms"), OK_STRING,diff_ntp_time);
 	    retry = 0;
             system_time = current_ntp_time;
             setTime(system_time);
@@ -2514,7 +2514,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   StaticJsonDocument<JSON_BUFFER_LENGTH*2> doc;
 	   DeserializationError error = deserializeJson(doc,json_sensors_data_test);
 	   if (error) {
-	     LOGE(F("deserializeJson() failed with code %s"),error.f_str());
+	     LOGE(F("deserializeJson() failed with code %s"),error.c_str());
 	   }else{
 	     // line 1
 	     int32_t value = doc["B12101"] | INT32_MAX;
@@ -3474,7 +3474,7 @@ void mqtt_task() {
 	 state_after_wait = MQTT_ON_DISCONNECT;
 	 mqtt_state = MQTT_WAIT_STATE_RPC;
 
-	 LOGV(F("MQTT_WAIT_STATE_RPC: %lu"),delay_ms);
+	 LOGV(F("MQTT_WAIT_STATE_RPC: %lms"),delay_ms);
 	 LOGV(F("MQTT_RPC_DELAY ---> MQTT_WAIT_STATE_RPC"));
 
          break;
