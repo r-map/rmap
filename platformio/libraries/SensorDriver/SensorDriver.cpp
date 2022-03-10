@@ -1430,7 +1430,7 @@ void SensorDriverTh::prepare(bool is_test) {
         _buffer[i++] = I2C_TH_COMMAND_CONTINUOUS_START_STOP;
       }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 10;
+      _delay_ms = 15;
     }
 
     if (is_i2c_write) {
@@ -1881,7 +1881,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((battery_voltage >= 0.0) || (battery_voltage < 50.0))) {
+    if (_is_success && ((battery_voltage >= 0.0) && (battery_voltage < 50.0))) {
       values[0] = battery_voltage * 10;
       _error_count = 0;
       if (length >= 2) {
@@ -1918,7 +1918,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((input_voltage > -10.0) || (input_voltage < 50.0))) {
+    if (_is_success && ((input_voltage > -10.0) && (input_voltage < 50.0))) {
       values[1] = input_voltage * 10;
       _error_count = 0;
       if (length >= 3) {
@@ -1956,7 +1956,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((battery_charge >= 0.0) || (battery_charge <= 100.0))) {
+    if (_is_success && ((battery_charge >= 0.0) && (battery_charge <= 100.0))) {
       values[2] = battery_charge;
       _error_count = 0;
       if (length >= 4) {
@@ -1994,7 +1994,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((battery_current >= -5000.0) || (battery_current <= 5000.0))) {
+    if (_is_success && ((battery_current >= -5000.0) && (battery_current <= 5000.0))) {
       values[3] = battery_current * 100.0;
       _error_count = 0;
       if (length >= 5) {
@@ -2032,7 +2032,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _start_time_ms = millis();
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((input_current >= 0.0) || (input_current <= 5000.0))) {
+    if (_is_success && ((input_current >= 0.0) && (input_current <= 5000.0))) {
       values[4] = input_current * 1000.0;
       _error_count = 0;
       if (length >= 6) {
@@ -2068,7 +2068,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
     _is_success = DigitecoPower::de_read(_address, &output_voltage);
     
     // There is NO CRC on DigitecoPower: workaround until it will to be implemented
-    if (_is_success && ((output_voltage <0.0) || (output_voltage > 50.0))){
+    if (_is_success && ((output_voltage <0.0) && (output_voltage > 50.0))){
       values[5] = output_voltage * 10.0;
       _error_count = 0;
     } else {
