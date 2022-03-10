@@ -418,6 +418,7 @@ void i2c_request_interrupt_handler() {
     //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
     Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
     Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+    // attention: logging inside ISR !
     //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
   }
 
@@ -435,6 +436,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
+    // attention: logging inside ISR !
     //LOGN(F("No CRC: size %d"),rx_data_length);
   } else   
   //! check crc: ok
@@ -448,6 +450,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
       // length (in bytes) of data to be read in readable_data_read_ptr
       readable_data_length = i2c_rx_data[1];
+      // attention: logging inside ISR !
       //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
     }
     // it is a command?
@@ -455,7 +458,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
-	reset_readable_data_read();    //make shure read old data wil be impossible
+	reset_readable_data_read();    // make shure read old data wil be impossible
 	lastcommand=i2c_rx_data[1];    // record command to be executed
         is_event_command_task = true;  // activate command task
         ready_tasks_count++;
@@ -495,6 +498,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
   } else {
     readable_data_address=0xFF;
     readable_data_length = 0;
+    // attention: logging inside ISR !
     //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
@@ -1024,6 +1028,7 @@ void command_task() {
 	 LOGN(F("Execute [ ONESHOT START ]"));
          is_start = true;
          is_stop = false;
+	 is_test_read = false;
          commands();
       break;
 
@@ -1069,8 +1074,10 @@ void command_task() {
 
       case I2C_TH_COMMAND_TEST_READ:
 	 LOGN(F("Execute [ TEST READ ]"));
+         //is_start = true;
+         is_stop = false;
 	 is_test_read = true;
-         tests();
+	 commands();
       break;
 
       case I2C_TH_COMMAND_SAVE:
@@ -1093,7 +1100,7 @@ void command_task() {
    interrupts();
 }
 
-void tests() {
+void copy_buffers() {
    //! copy readable_data_2 in readable_data_1
    noInterrupts();
    memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
@@ -1102,24 +1109,33 @@ void tests() {
 
 void commands() {
 
+  //! CONTINUOUS TEST
+  if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {
+    copy_buffers();
+    //exchange_buffers();
+  }
   //! CONTINUOUS START
-  if (!configuration.is_oneshot && is_start && !is_stop) {
-    init_timer1();
+  else if (!configuration.is_oneshot && is_start && !is_stop && !is_test_read) {
+
+    stop_timer();
     reset_samples_buffer();
     reset_report_buffer();
     make_report(true);
+    start_timer();
   }
   //! CONTINUOUS STOP
   else if (!configuration.is_oneshot && !is_start && is_stop) {
-      exchange_buffers();
+    copy_buffers();
+    //exchange_buffers();
   }
   //! CONTINUOUS START-STOP
   else if (!configuration.is_oneshot && is_start && is_stop) {
+    stop_timer();
     exchange_buffers();
-    init_timer1();
     reset_samples_buffer();
     reset_report_buffer();
     make_report(true);
+    start_timer();
   }
   //! ONESHOT START
   else if (configuration.is_oneshot && is_start && !is_stop) {
