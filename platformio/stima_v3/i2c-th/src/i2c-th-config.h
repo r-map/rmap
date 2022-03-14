@@ -201,22 +201,16 @@ setting it to 3980 ms we gain 20 ms every sample, 300 ms every observation, 4500
 #define TIMER1_INTERRUPT_TIME_MS                      (SENSORS_SAMPLE_TIME_MS)
 
 /*!
-\def TIMER1_OVERFLOW_TIME_MS
-\brief Timer1 timer overflow with 1024 prescaler at 8 MHz.
-*/
-#define TIMER1_OVERFLOW_TIME_MS                       (8388)
-
-/*!
 \def TIMER1_TCNT1_VALUE
-\brief Timer1 timer overflow with 1024 prescaler at 8 MHz.
+\brief Timer1 timer overflow with 1024 prescaler.
 */
-#define TIMER1_TCNT1_VALUE                            ((uint16_t)(0xFFFF - (float)(1.0 * 0xFFFF * TIMER1_INTERRUPT_TIME_MS / TIMER1_OVERFLOW_TIME_MS)))
+#define TIMER1_TCNT1_VALUE                            (0xFFFFUL - (TIMER1_INTERRUPT_TIME_MS*1000UL/(1024 / (F_CPU/1000000)))+1)
 
 /*!
 \def TIMER1_VALUE_MAX_MS
 \brief Maximum timer1 counter value for timed tasks.
 */
-#define TIMER1_VALUE_MAX_MS                           (12000)
+#define TIMER1_VALUE_MAX_MS                           (TIMER1_INTERRUPT_TIME_MS * 3)
 
 /*********************************************************************
 * TASKS

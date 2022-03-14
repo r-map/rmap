@@ -88,10 +88,12 @@ void loop() {
           wdt_reset();
         }
 
+	noInterrupts();
         if (ready_tasks_count == 0) {
           wdt_reset();
           state = END;
         }
+	interrupts();	
       break;
 
       case END:
@@ -202,11 +204,11 @@ void init_buffers() {
    memset((void *) &readable_data_write_ptr->humidity, UINT8_MAX, sizeof(value_t));
    memset((void *) &readable_data_write_ptr->temperature, UINT8_MAX, sizeof(value_t));
 
-   //! copy readable_data_2 in readable_data_1
-   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+   //! copy readable_data_write in readable_data_read
+   copy_buffers();
 
    reset_samples_buffer();
-   reset_report_buffer();
+   reset_data(readable_data_write_ptr);
 
    readable_data_address=0xFF;
    readable_data_length=0;
@@ -259,9 +261,10 @@ void init_timer1() {
 
 void start_timer() {
    TCCR1A = 0x00;                //!< Normal timer operation
-   TCCR1B = 0x05;                //!< 1:1024 prescaler
+   TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
    TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
    TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+   timer_counter = 0;
    TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
 
@@ -458,7 +461,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
-	reset_readable_data_read();    // make shure read old data wil be impossible
+	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
 	lastcommand=i2c_rx_data[1];    // record command to be executed
         is_event_command_task = true;  // activate command task
         ready_tasks_count++;
@@ -974,7 +977,7 @@ void make_report (bool init=false) {
 
 void samples_processing() {
   LOGN(F("SAMPLE PROCESSING"));
-  //reset_report_buffer();
+  //reset_data(readable_data_write_ptr);
   make_report();
 }
 
@@ -991,34 +994,19 @@ void reset_samples_buffer() {
    bufferReset<sample_t, uint16_t, int32_t>(&humidity_samples, SAMPLES_COUNT_MAX);
 }
 
-void reset_report_buffer () {
-   readable_data_write_ptr->temperature.sample =  UINT16_MAX;
-   readable_data_write_ptr->temperature.med60 =  UINT16_MAX;
-   readable_data_write_ptr->temperature.med =  UINT16_MAX;
-   readable_data_write_ptr->temperature.max =  UINT16_MAX;
-   readable_data_write_ptr->temperature.min =  UINT16_MAX;
-   readable_data_write_ptr->temperature.sigma =  UINT16_MAX;
-   readable_data_write_ptr->humidity.sample =  UINT16_MAX;
-   readable_data_write_ptr->humidity.med60 =  UINT16_MAX;
-   readable_data_write_ptr->humidity.med =  UINT16_MAX;
-   readable_data_write_ptr->humidity.max =  UINT16_MAX;
-   readable_data_write_ptr->humidity.min =  UINT16_MAX;
-   readable_data_write_ptr->humidity.sigma = UINT16_MAX;
-}
-
-void reset_readable_data_read() {
-   readable_data_read_ptr->temperature.sample =  UINT16_MAX;
-   readable_data_read_ptr->temperature.med60 =  UINT16_MAX;
-   readable_data_read_ptr->temperature.med =  UINT16_MAX;
-   readable_data_read_ptr->temperature.max =  UINT16_MAX;
-   readable_data_read_ptr->temperature.min =  UINT16_MAX;
-   readable_data_read_ptr->temperature.sigma =  UINT16_MAX;
-   readable_data_read_ptr->humidity.sample =  UINT16_MAX;
-   readable_data_read_ptr->humidity.med60 =  UINT16_MAX;
-   readable_data_read_ptr->humidity.med =  UINT16_MAX;
-   readable_data_read_ptr->humidity.max =  UINT16_MAX;
-   readable_data_read_ptr->humidity.min =  UINT16_MAX;
-   readable_data_read_ptr->humidity.sigma = UINT16_MAX;
+void reset_data(volatile readable_data_t *ptr) {
+   ptr->temperature.sample =  UINT16_MAX;
+   ptr->temperature.med60 =  UINT16_MAX;
+   ptr->temperature.med =  UINT16_MAX;
+   ptr->temperature.max =  UINT16_MAX;
+   ptr->temperature.min =  UINT16_MAX;
+   ptr->temperature.sigma =  UINT16_MAX;
+   ptr->humidity.sample =  UINT16_MAX;
+   ptr->humidity.med60 =  UINT16_MAX;
+   ptr->humidity.med =  UINT16_MAX;
+   ptr->humidity.max =  UINT16_MAX;
+   ptr->humidity.min =  UINT16_MAX;
+   ptr->humidity.sigma = UINT16_MAX;
 }
 
 void command_task() {
@@ -1119,7 +1107,7 @@ void commands() {
 
     stop_timer();
     reset_samples_buffer();
-    reset_report_buffer();
+    reset_data(readable_data_write_ptr);
     make_report(true);
     start_timer();
   }
@@ -1133,7 +1121,7 @@ void commands() {
     stop_timer();
     exchange_buffers();
     reset_samples_buffer();
-    reset_report_buffer();
+    reset_data(readable_data_write_ptr);
     make_report(true);
     start_timer();
   }
@@ -1141,10 +1129,12 @@ void commands() {
   else if (configuration.is_oneshot && is_start && !is_stop) {
     reset_samples_buffer();
 
+    noInterrupts();
     if (!is_event_sensors_reading) {
       is_event_sensors_reading = true;
       ready_tasks_count++;
     }
+    interrupts();
   }
   //! ONESHOT STOP
   else if (configuration.is_oneshot && !is_start && is_stop) {
@@ -1169,9 +1159,11 @@ void commands() {
     readable_data_write_ptr->humidity.sample = humidity;
     exchange_buffers();
     
+    noInterrupts();
     if (!is_event_sensors_reading) {
       is_event_sensors_reading = true;
       ready_tasks_count++;
     }
+    interrupts();
   }
 }

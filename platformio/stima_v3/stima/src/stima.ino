@@ -536,18 +536,18 @@ void init_timer1() {
 }
 
 void start_timer() {
-   TCCR1A = 0x00;                //!< Normal timer operation
-   TCCR1B = 0x05;                //!< 1:1024 prescaler
-   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
-   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
-   TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
+  TCCR1A = 0x00;                //!< Normal timer operation
+  TCCR1B = (1<<CS10) | (1<<CS12);        //!< 1:1024 prescaler
+  TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
+  TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+  TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
 
 void stop_timer() {
-   TCCR1B = 0x00;                //!< Stop
-   TIMSK1 &= ~(1 << TOIE1);      //!< Disable overflow interrupt
-   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
-   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
+  TCCR1B = 0x00;                //!< Stop
+  TIMSK1 &= ~(1 << TOIE1);      //!< Disable overflow interrupt
+  TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+  TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
 }
 
 /*!

@@ -388,16 +388,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define TIMER1_INTERRUPT_TIME_MS                      (1000)
 
 /*!
-\def TIMER1_OVERFLOW_TIME_MS
-\brief Timer1 timer overflow with 1024 prescaler at 16 MHz.
-*/
-#define TIMER1_OVERFLOW_TIME_MS                       (4194)
-
-/*!
 \def TIMER1_TCNT1_VALUE
-\brief Timer1 timer overflow with 1024 prescaler at 8 MHz.
+\brief Timer1 timer overflow with 1024 prescaler.
 */
-#define TIMER1_TCNT1_VALUE                            ((uint16_t)(0xFFFF - (float)(1.0 * 0xFFFF * TIMER1_INTERRUPT_TIME_MS / TIMER1_OVERFLOW_TIME_MS)))
+#define TIMER1_TCNT1_VALUE                            (0xFFFFUL - (TIMER1_INTERRUPT_TIME_MS*1000UL/(1024 / (F_CPU/1000000)))+1)
 
 
 /*********************************************************************
