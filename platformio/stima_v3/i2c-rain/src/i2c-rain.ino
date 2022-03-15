@@ -1,5 +1,3 @@
-/**@file i2c-rain.ino */
-
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
@@ -570,6 +568,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT START");
       is_start = true;
       is_stop = false;
+      commands();
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START");
     }      
@@ -580,6 +579,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT STOP");
       is_start = false;
       is_stop = true;
+      commands();
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
@@ -591,6 +591,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT START-STOP");
       is_start = true;
       is_stop = true;
+      commands();
       inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
@@ -602,6 +603,7 @@ void command_task() {
     is_start = false;
     is_stop = true;
     is_test = true;
+    commands();
     break;
     
   case I2C_RAIN_COMMAND_SAVE:
@@ -613,8 +615,6 @@ void command_task() {
   default:
     LOGE(F("Command UNKNOWN"));
   }
-
-  commands();
   
   noInterrupts();
   is_event_command_task = false;
