@@ -228,7 +228,8 @@ void init_tasks() {
    is_start = false;
    is_stop = false;
    is_test_read = false;
-
+   transaction_time = 0;
+   inside_transaction = false;
 }
 
 void init_pins() {
@@ -399,6 +400,16 @@ ISR(TIMER1_OVF_vect) {
    if (timer_counter >= TIMER1_VALUE_MAX_MS) {
       timer_counter = 0;
    }
+
+   if (inside_transaction) {
+     //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
+     transaction_time += TIMER1_INTERRUPT_TIME_MS;
+     
+     if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
+       transaction_time = 0;
+       inside_transaction = false;
+     }
+   }
 }
 
 void i2c_request_interrupt_handler() {
@@ -427,6 +438,8 @@ void i2c_request_interrupt_handler() {
 
   readable_data_address=0xFF;
   readable_data_length=0;
+  inside_transaction = false;
+ 
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
@@ -1026,6 +1039,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
          commands();
+	 inside_transaction = true;
       break;
 
       case I2C_TH_COMMAND_ONESHOT_START_STOP:
@@ -1034,6 +1048,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
          commands();
+	 inside_transaction = true;
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START:
@@ -1050,6 +1065,7 @@ void command_task() {
          is_stop = true;
 	 is_test_read = false;
 	 commands();
+	 inside_transaction = true;
       break;
 
       case I2C_TH_COMMAND_CONTINUOUS_START_STOP:
@@ -1058,6 +1074,7 @@ void command_task() {
         is_stop = true;
 	is_test_read = false;
         commands();
+	inside_transaction = true;
       break;
 
       case I2C_TH_COMMAND_TEST_READ:
@@ -1097,6 +1114,8 @@ void copy_buffers() {
 
 void commands() {
 
+  if (inside_transaction) return;
+  
   //! CONTINUOUS TEST
   if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {
     copy_buffers();

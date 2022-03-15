@@ -169,3 +169,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define TIMER1_TCNT1_VALUE                            (0xFFFFUL - (TIMER1_INTERRUPT_TIME_MS*1000UL/(1024 / (F_CPU/1000000)))+1)
 
 #endif
+
+/*********************************************************************
+* TASKS
+*********************************************************************/
+
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)

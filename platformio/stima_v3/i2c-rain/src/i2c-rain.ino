@@ -242,6 +242,9 @@ void init_tasks() {
    // reset tipping bucket debounce value
    rain_tips_event_occurred_time_ms = -configuration.tipping_bucket_time_ms;
    interrupts();
+
+   transaction_time = 0;
+   inside_transaction = false;
 }
 
 void init_pins() {
@@ -297,6 +300,16 @@ ISR(TIMER1_OVF_vect) {
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
   i2c_time+=TIMER1_INTERRUPT_TIME_MS/1000;
+
+  if (inside_transaction) {
+    //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
+    transaction_time += TIMER1_INTERRUPT_TIME_MS;
+    
+    if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
+      transaction_time = 0;
+      inside_transaction = false;
+    }
+  }
 }
 #endif
 
@@ -386,6 +399,8 @@ void i2c_request_interrupt_handler() {
    // write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
    Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
    Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+
+   inside_transaction = false;
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
@@ -565,6 +580,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT STOP");
       is_start = false;
       is_stop = true;
+      inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
     }
@@ -575,6 +591,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT START-STOP");
       is_start = true;
       is_stop = true;
+      inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
     }
@@ -608,6 +625,9 @@ void command_task() {
 
 
 void commands() {
+
+   if (inside_transaction) return;
+
    noInterrupts();
 
    if (configuration.is_oneshot){
