@@ -247,6 +247,19 @@ volatile uint8_t ready_tasks_count;
 uint32_t awakened_event_occurred_time_ms;
 
 /*!
+\var inside_transaction
+\brief Status of command transaction.
+*/
+volatile bool inside_transaction;
+
+/*!
+\var transaction_time
+\brief Timer counter variable for compute command transaction timeout.
+*/
+volatile uint16_t transaction_time;
+
+
+/*!
 \var is_start
 \brief Execute start command.
 */

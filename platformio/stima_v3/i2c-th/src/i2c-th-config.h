@@ -227,4 +227,11 @@ setting it to 3980 ms we gain 20 ms every sample, 300 ms every observation, 4500
 */
 #define SENSORS_RETRY_DELAY_MS                        (100)
 
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)
+
+
 #endif
