@@ -1129,10 +1129,8 @@ void SensorDriverRain::resetPrepared(bool is_test) {
 
   _get_state = INIT;
   if (!is_test) {
-    LOGN(F("reset prepared pre -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     _is_previous_prepared = _is_current_prepared;
     _is_current_prepared = false;
-    LOGN(F("reset prepared post-> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
   }
   *_is_prepared = false;
 }
@@ -1197,9 +1195,7 @@ void SensorDriverRain::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
-  LOGN(F("prepare pre -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );  
   if(!is_test)_is_current_prepared = *_is_prepared;
-  LOGN(F("prepare post-> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );  
   LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
@@ -1306,11 +1302,14 @@ void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
 
     case END:
 
-    LOGN(F("get -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
-    if (((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test))  && length >= 1) {
-      if ( ISVALID_UINT8(rain_data[0]) || ISVALID_UINT8(rain_data[1])){
-	values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+    if (((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test))){
+      if (length >= 1) {
+	if ( ISVALID_UINT8(rain_data[0]) || ISVALID_UINT8(rain_data[1])){
+	  values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+	}
       }
+    } else {
+      LOGE(F("rain driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
 
     SensorDriver::printInfo();
@@ -1748,7 +1747,10 @@ void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
 	  values[1] = ((int32_t)(humidity_data[1] << 8) | (humidity_data[0]));
 	}
       }
+    } else {
+      LOGE(F("th driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
+
 
     SensorDriver::printInfo();
     if (_is_success){
