@@ -121,6 +121,7 @@ public:
    /*!
    \fn void prepare()
    \brief Prepare sensor.
+   \param[in] test set test mode.
    \return void.
    */
    virtual void prepare(bool is_test = false);
@@ -130,9 +131,10 @@ public:
    \brief Get value from sensor.
    \param[out] *values pointer to array for getting multiple sensor's value.
    \param[in] length number of values readed from sensor.
+   \param[in] test set test mode.
    \return void.
    */
-   virtual void get(int32_t *values, uint8_t length);
+   virtual void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
    /*!
@@ -142,9 +144,10 @@ public:
    \param[in] length number of values readed from sensor.
    \param[out] *json_buffer pointer to buffer for getting JSON string.
    \param[in] json_buffer_length maximum length of JSON string.s
+   \param[in] test set test mode.
    \return void.
    */
-   virtual void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   virtual void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    /*!
@@ -232,11 +235,12 @@ public:
    void resetSetted();
   
    /*!
-   \fn void resetPrepared()
+   \fn void resetPrepared(bool is_test = false)
    \brief Reset preapred internal state of sensor.
+   \param[in] test set test mode.
    \return void.
    */
-   virtual void resetPrepared();
+   virtual void resetPrepared(bool is_test = false);
 
    /*!
    \fn uint8_t getErrorCount()
@@ -316,6 +320,8 @@ protected:
    bool _is_test;
    bool *_is_setted;
    bool *_is_prepared;
+   bool _is_previous_prepared;
+   bool _is_current_prepared;
 
    /*!
    \fn void printInfo(const char* driver, const char* type, const uint8_t address = 0, const uint8_t node = 0)
@@ -339,13 +345,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -375,13 +381,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -413,13 +419,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -455,14 +461,14 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
    void getSDfromUV(int32_t u, int32_t v, double *speed, double *direction);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -498,13 +504,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -537,13 +543,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -578,13 +584,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -631,13 +637,13 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length);
+  void get(int32_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
-  void resetPrepared();
+  void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -667,13 +673,13 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length);
+  void get(int32_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
-  void resetPrepared();
+  void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -703,13 +709,13 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length);
+   void get(int32_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
-   void resetPrepared();
+   void resetPrepared(bool is_test = false);
 
 protected:
 
@@ -749,13 +755,13 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length);
+  void get(int32_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH);
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
-  void resetPrepared();
+  void resetPrepared(bool is_test = false);
 
 protected:
 
