@@ -2336,7 +2336,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
             }
             else {
                for (i=0; i<readable_configuration.sensors_count; i++) {
-                  sensors[i]->resetPrepared();
+                  sensors[i]->resetPrepared(is_test);
                }
                i = 0;
             }
@@ -2445,7 +2445,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
       case SENSORS_READING_GET:
 
 	int32_t values_readed_from_sensor[VALUES_TO_READ_FROM_SENSOR_COUNT];
-	sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data_test);
+	sensors[i]->getJson(&values_readed_from_sensor[0], VALUES_TO_READ_FROM_SENSOR_COUNT,json_sensors_data_test,JSON_BUFFER_LENGTH,is_test);
         if (!is_test) {
           strcpy(json_sensors_data[i],json_sensors_data_test);
         }

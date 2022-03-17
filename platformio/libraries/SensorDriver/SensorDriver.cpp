@@ -110,6 +110,7 @@ void SensorDriver::init(const uint8_t address, const uint8_t node, bool *is_sett
   _node = node;
   _start_time_ms = 0;
   _is_setted = is_setted;
+  _is_previous_prepared = false;  
   _is_prepared = is_prepared;
   _error_count = 0;
 }
@@ -121,15 +122,15 @@ void SensorDriver::setup(){
 void SensorDriver::prepare(bool is_test){
 }
 
-void SensorDriver::get(int32_t *values, uint8_t length){
+void SensorDriver::get(int32_t *values, uint8_t length, bool is_test){
 }
 
 #if (USE_JSON)
-void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length){
+void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test){
 }
 #endif
 
-void SensorDriver::resetPrepared(){
+void SensorDriver::resetPrepared(bool is_test){
 }
 
 void SensorDriver::resetSetted(){
@@ -234,7 +235,7 @@ void SensorDriver::printInfo() {
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_ADT)
 
-void SensorDriverAdt7420::resetPrepared() {
+void SensorDriverAdt7420::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -292,7 +293,7 @@ void SensorDriverAdt7420::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
+void SensorDriverAdt7420::get(int32_t *values, uint8_t length, bool is_test) {
   uint8_t msb;
   uint8_t lsb;
 
@@ -401,8 +402,8 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverAdt7420::get(values, length);
+void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverAdt7420::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -426,7 +427,7 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_HIH)
 
-void SensorDriverHih6100::resetPrepared() {
+void SensorDriverHih6100::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -480,7 +481,7 @@ void SensorDriverHih6100::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
+void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
   uint8_t x;
   uint8_t y;
   uint8_t s;
@@ -615,8 +616,8 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverHih6100::get(values, length);
+void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverHih6100::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -647,7 +648,7 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_HYT)
 
-void SensorDriverHyt2X1::resetPrepared() {
+void SensorDriverHyt2X1::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -688,7 +689,7 @@ void SensorDriverHyt2X1::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
+void SensorDriverHyt2X1::get(int32_t *values, uint8_t length, bool is_test) {
   uint8_t status = HYT2X1_ERROR;
 
   switch (_get_state) {
@@ -811,8 +812,8 @@ void SensorDriverHyt2X1::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverHyt2X1::get(values, length);
+void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverHyt2X1::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -852,7 +853,7 @@ void SensorDriverDw1::getSDfromUV(int32_t u, int32_t v, double *speed, double *d
   *direction = ((uint16_t) *direction) % 360;
 }
 
-void SensorDriverDw1::resetPrepared() {
+void SensorDriverDw1::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -902,7 +903,7 @@ void SensorDriverDw1::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverDw1::get(int32_t *values, uint8_t length) {
+void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
   speed = INT32_MAX;
   direction = INT32_MAX;
   uint16_t msb;
@@ -1088,8 +1089,8 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverDw1::get(values, length);
+void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverDw1::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1123,8 +1124,14 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
 
 #if (USE_SENSOR_TBS || USE_SENSOR_TBR)
 
-void SensorDriverRain::resetPrepared() {
+void SensorDriverRain::resetPrepared(bool is_test) {
+
+
   _get_state = INIT;
+  if (!is_test) {
+    _is_previous_prepared = _is_current_prepared;
+    _is_current_prepared = false;
+  }
   *_is_prepared = false;
 }
 
@@ -1188,12 +1195,13 @@ void SensorDriverRain::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F(" prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
 
-void SensorDriverRain::get(int32_t *values, uint8_t length) {
+void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1208,7 +1216,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     _is_readed = false;
     _is_end = false;
 
-    if (*_is_prepared && length >= 1) {
+    if ( *_is_prepared && length >= 1) {
       _is_success = true;
       _get_state = SET_RAIN_ADDRESS;
     }
@@ -1293,10 +1301,15 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
     break;
 
     case END:
-    if (length >= 1) {
-      if ( ISVALID_UINT8(rain_data[0]) || ISVALID_UINT8(rain_data[1])){
-	values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+
+    if (((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test))){
+      if (length >= 1) {
+	if ( ISVALID_UINT8(rain_data[0]) || ISVALID_UINT8(rain_data[1])){
+	  values[0] = (uint16_t)(rain_data[1] << 8) | (rain_data[0]);
+	}
       }
+    } else {
+      LOGE(F("rain driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
 
     SensorDriver::printInfo();
@@ -1325,8 +1338,8 @@ void SensorDriverRain::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverRain::get(values, length);
+void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverRain::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1356,8 +1369,12 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
 
 #if (USE_SENSOR_STH || USE_SENSOR_ITH || USE_SENSOR_MTH || USE_SENSOR_NTH || USE_SENSOR_XTH)
 
-void SensorDriverTh::resetPrepared() {
+void SensorDriverTh::resetPrepared(bool is_test) {
   _get_state = INIT;
+  if (!is_test) {
+    _is_previous_prepared = _is_current_prepared;
+    _is_current_prepared = false;
+  }
   *_is_prepared = false;
 }
 
@@ -1452,12 +1469,13 @@ void SensorDriverTh::prepare(bool is_test) {
     _delay_ms = 0;
   }
 
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F("th prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
 
   _start_time_ms = millis();
 }
 
-void SensorDriverTh::get(int32_t *values, uint8_t length) {
+void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1474,7 +1492,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     _is_readed = false;
     _is_end = false;
 
-    if (*_is_prepared && length >= 1) {
+    if ( *_is_prepared && length >= 1) {
       LOGT(F("th get INIT"));
       _is_success = true;
       _get_state = SET_TEMPERATURE_ADDRESS;
@@ -1717,17 +1735,22 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
     break;
 
     case END:
-    if (length >= 1) {
-      if (_is_success && ( ISVALID_UINT8(temperature_data[0]) || ISVALID_UINT8(temperature_data[1] ))) {	
-        values[0] = ((int32_t)(temperature_data[1] << 8) | (temperature_data[0]));
+    if ((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test)) {
+      if (length >= 1) {
+	if (( ISVALID_UINT8(temperature_data[0]) || ISVALID_UINT8(temperature_data[1] ))) {	
+	  values[0] = ((int32_t)(temperature_data[1] << 8) | (temperature_data[0]));
+	}
       }
+
+      if (length >= 2) {
+	if (( ISVALID_UINT8(humidity_data[0]) || ISVALID_UINT8(humidity_data[1] ))) {	
+	  values[1] = ((int32_t)(humidity_data[1] << 8) | (humidity_data[0]));
+	}
+      }
+    } else {
+      LOGE(F("th driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
     }
 
-    if (length >= 2) {
-      if (_is_success && ( ISVALID_UINT8(humidity_data[0]) || ISVALID_UINT8(humidity_data[1] ))) {	
-        values[1] = ((int32_t)(humidity_data[1] << 8) | (humidity_data[0]));
-      }
-    }
 
     SensorDriver::printInfo();
     if (_is_success){
@@ -1764,8 +1787,8 @@ void SensorDriverTh::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverTh::get(values, length);
+void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverTh::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -1797,7 +1820,7 @@ void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer,
 
 #if (USE_SENSOR_DEP)
 
-void SensorDriverDigitecoPower::resetPrepared() {
+void SensorDriverDigitecoPower::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -1827,7 +1850,7 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
   LOGT(F(" prepare... [ %s ]"), OK_STRING);
 }
 
-void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
+void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length, bool is_test) {
 
   switch (_get_state) {
   case INIT:
@@ -2153,8 +2176,8 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverDigitecoPower::get(values, length);
+void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverDigitecoPower::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2215,7 +2238,7 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_DWA || USE_SENSOR_DWB || USE_SENSOR_DWC || USE_SENSOR_DWD || USE_SENSOR_DWE || USE_SENSOR_DWF)
 
-void SensorDriverWind::resetPrepared() {
+void SensorDriverWind::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -2301,7 +2324,7 @@ void SensorDriverWind::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverWind::get(int32_t *values, uint8_t length) {
+void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -2558,8 +2581,8 @@ void SensorDriverWind::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverWind::get(values, length);
+void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverWind::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2659,7 +2682,7 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_DSA)
 
-void SensorDriverSolarRadiation::resetPrepared() {
+void SensorDriverSolarRadiation::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -2745,7 +2768,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
+void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -2922,8 +2945,8 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverSolarRadiation::get(values, length);
+void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverSolarRadiation::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
@@ -2956,7 +2979,7 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_OA2 || USE_SENSOR_OB2 || USE_SENSOR_OC2 || USE_SENSOR_OD2 || USE_SENSOR_OA3 || USE_SENSOR_OB3 || USE_SENSOR_OC3 || USE_SENSOR_OD3 || USE_SENSOR_OE3)
 
-void SensorDriverOpc::resetPrepared() {
+void SensorDriverOpc::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -3042,7 +3065,7 @@ void SensorDriverOpc::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverOpc::get(int32_t *values, uint8_t length) {
+void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -3494,8 +3517,8 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverOpc::get(values, length);
+void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverOpc::get(values, length, is_test);
   uint8_t variable_length;
 
   if (_is_end && !_is_readed) {
@@ -3581,7 +3604,7 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
 //------------------------------------------------------------------------------
 #if (USE_SENSOR_LWT)
 
-void SensorDriverLeaf::resetPrepared() {
+void SensorDriverLeaf::resetPrepared(bool is_test) {
   _get_state = INIT;
   *_is_prepared = false;
 }
@@ -3642,7 +3665,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
+void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -3816,8 +3839,8 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length) {
 }
 
 #if (USE_JSON)
-void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length) {
-  SensorDriverLeaf::get(values, length);
+void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+  SensorDriverLeaf::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
