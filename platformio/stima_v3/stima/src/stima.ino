@@ -56,8 +56,43 @@ void setup() {
    load_configuration();
    init_system();
    wdt_reset();
-   delay(1000);  // wait other board go ready
+
+   #if (USE_LCD)
+   lcd_error |= lcd.print(F("--- www.rmap.cc ---"))==0;
+   lcd_error |= lcd.setCursor(0, 1);
+   lcd_error |= lcd.print(F("Stima station"))==0;
+
+   lcd_error |= lcd.setCursor(0, 2);
+   lcd_error |= lcd.print(stima_name)==0;
+   lcd_error |= lcd.print(F(" V: "))==0;
+   lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
+   lcd_error |= lcd.print(F("."))==0;
+   lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
+
+   lcd_error |= lcd.setCursor(0, 3);
+   lcd_error |= lcd.print(F("Configuration V: "))==0;
+   lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
+
+   lcd_error |= lcd.setCursor(0, 3);
+   lcd_error |= lcd.print(F("Configuration V: "))==0;
+   lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
+
+   delay(5000);
    wdt_reset();
+   
+   lcd_error |= lcd.clear();
+   for (uint8_t i=0; i<readable_configuration.constantdata_count && i<2; i++) {
+     lcd_error |= lcd.setCursor(0, i*2);
+     lcd_error |= lcd.print(readable_configuration.constantdata[i].btable)==0;
+     lcd_error |= lcd.print(":")==0;
+     lcd_error |= lcd.print(readable_configuration.constantdata[i].value)==0;
+   }
+   
+   #endif
+
+   delay(5000);  // wait other board go ready
+   wdt_reset();
+
 }
 
 /*!
@@ -576,17 +611,13 @@ void init_sensors () {
   uint8_t sensors_count = 0;
   uint8_t sensors_error_count = 0;
 
-  #if (USE_LCD)
-  lcd_error |= lcd.print(F("--- www.rmap.cc ---"))==0;
-  lcd_error |= lcd.setCursor(0, 1);
-  lcd_error |= lcd.print(stima_name)==0;
-  lcd_error |= lcd.print(F(" V:"))==0;
-  lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
-  lcd_error |= lcd.print(F("."))==0;
-  lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
-  #endif
-
   if (readable_configuration.sensors_count) {
+
+    #if (USE_LCD)
+    lcd_error |= lcd.clear();
+    lcd_error |= lcd.setCursor(0, 1);
+    #endif
+
     // read sensors configuration, create and setup
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
       SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
@@ -595,15 +626,15 @@ void init_sensors () {
         sensors_error_count++;
 	wdt_reset();
         #if (USE_LCD)
-	lcd_error |= lcd.setCursor(0, 3);
 	lcd_error |= lcd.print(readable_configuration.sensors[sensors_count-1].type)==0;
 	lcd_error |= lcd.print(":")==0;
 	lcd_error |= lcd.print(FAIL_STRING)==0;
+	lcd_error |= lcd.print(";")==0;
 	#endif
       }
     }
     #if (USE_LCD)
-    lcd_error |= lcd.setCursor(0, 2);
+    lcd_error |= lcd.setCursor(0, 0);
     lcd_error |= lcd.print(F("Sensors count: "))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count)==0;
     lcd_error |= lcd.print(F("/"))==0;
@@ -2293,6 +2324,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
    switch (sensors_reading_state) {
       case SENSORS_READING_INIT:
+	 sensor_reading_failed_count=0;
          i = 0;
          is_sensor_found = false;
 
@@ -2310,6 +2342,9 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          }
 
          #if (USE_LCD)
+	 lcd_error |= lcd.setCursor(14, 3);       // clear failed sensors
+	 lcd_error |= lcd.print(F("      "))==0;
+
 	 // normal OR test: print
 	 if (!is_first_run || is_test) {
 	   lcd_error |= lcd.setCursor(0, 1);
@@ -2377,6 +2412,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	  sensors_reading_state = SENSORS_READING_PREPARE;
 	}else{
 	  LOGE(F("Skip failed Sensor"));
+	  sensor_reading_failed_count++;
 	  sensors_reading_state = SENSORS_READING_NEXT;
 	}
 
@@ -2678,6 +2714,14 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
         }
         interrupts();
 
+
+        #if (USE_LCD)
+	lcd_error |= lcd.setCursor(14, 3);
+	lcd_error |= lcd.print(F("FA"))==0;
+	lcd_error |= lcd.print(sensor_reading_failed_count)==0;
+	lcd_error |= lcd.print((sensor_reading_failed_count == 0) ? "OK" : "KO")==0;
+        #endif
+
         sensors_reading_state = SENSORS_READING_INIT;
         LOGV(F("SENSORS_READING_END ---> SENSORS_READING_INIT"));
       break;
@@ -2851,11 +2895,11 @@ void data_saving_task() {
          LOGN(F("[ %d ] data stored in sdcard... [ %s ]"), sd_data_count, is_sdcard_error ? ERROR_STRING : OK_STRING);
          #if (USE_LCD)
 	 lcd_error |= lcd.setCursor(0, 3);
-	 lcd_error |= lcd.print(F("                    "))==0;
+	 lcd_error |= lcd.print(F("             "))==0;
 	 lcd_error |= lcd.setCursor(0, 3);
-         lcd_error |= lcd.print(F("SD "))==0;
+         lcd_error |= lcd.print(F("SD"))==0;
 	 lcd_error |= lcd.print(sd_data_count)==0;
-	 lcd_error |= lcd.print(is_sdcard_error ? " KO" : " OK")==0;
+	 lcd_error |= lcd.print(is_sdcard_error ? "KO" : "OK")==0;
          #endif
 
          noInterrupts();
@@ -3601,10 +3645,10 @@ void mqtt_task() {
          if (is_mqtt_published_data) {
             LOGN(F("[ %d ] data published through mqtt... [ %s ]"), mqtt_data_count, is_mqtt_error ? ERROR_STRING : OK_STRING);
             #if (USE_LCD)
-	    lcd_error |= lcd.setCursor(10, 3);
-            lcd_error |= lcd.print(F("MQTT "))==0;
+	    lcd_error |= lcd.setCursor(7, 3);
+            lcd_error |= lcd.print(F("MQ"))==0;
 	    lcd_error |= lcd.print(mqtt_data_count)==0;
-	    lcd_error |= lcd.print(is_mqtt_error ? " KO" : " OK")==0;
+	    lcd_error |= lcd.print(is_mqtt_error ? "KO" : "OK")==0;
 	    #endif
          }
 

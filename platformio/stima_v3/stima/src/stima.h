@@ -647,6 +647,13 @@ volatile time_t next_ptr_time_for_sensors_reading;
 */
 volatile time_t next_ptr_time_for_testing_sensors;
 
+
+/*!
+\var sensor_reading_failed_count
+\brief Counter for failed and skipped sensors.
+*/
+uint8_t sensor_reading_failed_count;
+
 /*!
 \var sensor_reading_time
 \brief Date and time corresponding to the last reading of the sensors.
