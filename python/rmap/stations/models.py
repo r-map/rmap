@@ -16,6 +16,7 @@ from rmap.utils import nint
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
 from registration.signals import user_activated
+import random
 
 try:
     import dballe
@@ -389,6 +390,13 @@ class TransportMqttManager(models.Manager):
 class TransportMqtt(models.Model):
     """MQTT transport."""
 
+    def genpskkey():
+        def randomchars(length):
+            s = "1234567890ABCDEF"*30
+            return "".join(random.sample(s,length))
+
+        return randomchars(32)
+    
     objects = TransportMqttManager()
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
@@ -396,7 +404,8 @@ class TransportMqtt(models.Model):
     mqttsampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=ugettext_lazy("interval in seconds for publish"))
     mqttserver = models.CharField(max_length=50,default="mqttserver",null=False,blank=False,help_text=ugettext_lazy("MQTT server"))
     mqttuser= models.CharField(max_length=9,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT user"))
-    mqttpassword= models.CharField(max_length=50,default="",null=False,blank=True,help_text=ugettext_lazy("MQTT password"))
+    mqttpassword= models.CharField(max_length=50,default="",null=True,blank=True,help_text=ugettext_lazy("MQTT password"))
+    mqttpskkey= models.CharField(max_length=254,default=genpskkey,null=True,blank=True,help_text=ugettext_lazy("MQTT PSK Key"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)
 

@@ -17,6 +17,8 @@ from rmap.stations.models import StationMetadata
 from rmap.stations.models import StationImage,PHOTO_CATEGORY_CHOICES
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
+import re
+from django.contrib.auth.hashers import make_password
 
 def home(request):
     current_site = get_current_site(request)
@@ -204,6 +206,12 @@ from django.views.decorators.csrf import csrf_exempt
 
 @csrf_exempt  
 def auth(request):
+    '''
+    used for per user authentication
+    we check here and do not demand to mosquitto plugin
+
+    '''
+    
     if 'username' in request.POST and 'password' in request.POST:
         username = request.POST['username']
         password = request.POST['password']
@@ -219,11 +227,156 @@ def auth(request):
     return response
 
 @csrf_exempt  
-def superuser(request):
+def auth_sha(request):
+    '''
+    used for per user authentication
 
+    doble check:
+    * first django auth
+    * second send sha to mosquitto auth plugin for recheck
+    
+    we need this becouse mosquitto pluin use the same method for pskkey
+    to return to mosquitto for TLS
+    
+    '''
     if 'username' in request.POST and 'password' in request.POST:
         username = request.POST['username']
         password = request.POST['password']
+        user = authenticate(username=username, password=password)
+        #print username,password
+        if ( user and password is not None and password != ""):
+
+#    if 'username' in request.POST:
+#        username = request.POST['username']
+            u = User.objects.get(username__exact=username)        
+            response=HttpResponse(u.password)
+            response.status_code=200
+            return response
+
+    response=HttpResponse("deny")
+    response.status_code=403
+    return response
+
+
+
+@csrf_exempt
+def sha(request):
+    '''
+    used for per station authentication
+
+    Slug only Contains:
+    Letters : a-z,A-Z
+    Numbers : 0-9
+    Underscores : _
+    Hyphens : -
+    '''
+
+    payload ="deny"
+    p = re.compile('^[a-zA-Z0-9_-]{1,30}$')
+
+    if 'username' in request.POST:
+        username_station_board=request.POST['username']
+        usb=username_station_board.split("/")
+
+        if(len(usb) == 3):
+            username=p.match(usb[0])
+            if username:
+                username = username.string
+                
+            station_slug = p.match(usb[1])
+            if station_slug:
+                station_slug = station_slug.string
+            
+            board_slug = p.match(usb[2])
+            if board_slug:
+                board_slug = board_slug.string
+ 
+            if (username and station_slug and board_slug):
+                try:
+                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    if mystation is not None:
+                        if mystation.active:
+                            myboard = mystation.board_set.get(slug=board_slug)
+                            if myboard is not None:
+                                if ( myboard.active and myboard.transportmqtt.active):
+                                    myuser = myboard.transportmqtt.mqttuser
+                                    mypassword = myboard.transportmqtt.mqttpassword
+                                    
+                                    if (mypassword):
+                                        response=HttpResponse(make_password(mypassword))
+                                        response.status_code=200
+                                        return response
+                        
+                except ObjectDoesNotExist:
+                    payload="MQTT PSKKEY not present for this user/station/board"
+
+    response=HttpResponse(payload)
+    response.status_code=403
+    return response
+
+
+@csrf_exempt
+def pskkey(request):
+    '''
+    used for per station authentication
+    PSK TLS on mosquitto
+
+    Slug only Contains:
+    Letters : a-z,A-Z
+    Numbers : 0-9
+    Underscores : _
+    Hyphens : -
+    '''
+
+    payload ="deny"
+    p = re.compile('^[a-zA-Z0-9_-]{1,30}$')
+
+    if 'username' in request.POST:
+        username_station_board=request.POST['username']
+        usb=username_station_board.split("/")
+
+        if(len(usb) == 3):
+            username=p.match(usb[0])
+            if username:
+                username = username.string
+                
+            station_slug = p.match(usb[1])
+            if station_slug:
+                station_slug = station_slug.string
+            
+            board_slug = p.match(usb[2])
+            if board_slug:
+                board_slug = board_slug.string
+ 
+            if (username and station_slug and board_slug):
+                try:
+                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    if mystation is not None:
+                        if mystation.active:
+                            myboard = mystation.board_set.get(slug=board_slug)
+                            if myboard is not None:
+                                if ( myboard.active and myboard.transportmqtt.active):
+                                    myuser = myboard.transportmqtt.mqttuser
+                                    mypskkey = myboard.transportmqtt.mqttpskkey
+                                    
+                                    if (mypskkey):
+                                        response=HttpResponse(mypskkey)
+                                        response.status_code=200
+                                        return response
+                        
+                except ObjectDoesNotExist:
+                    payload="MQTT PSKKEY not present for this user/station/board"
+
+    response=HttpResponse(payload)
+    response.status_code=403
+    return response
+
+
+@csrf_exempt  
+def superuser(request):
+
+    if 'username' in request.POST:
+        username = request.POST['username']
         #print username,password
 
         #        user = authenticate(username=username, password=password)
@@ -254,8 +407,8 @@ def acl(request):
         username = request.POST['username']
         topic = request.POST['topic']
         acc = request.POST['acc']
-        #print username,topic,acc
-
+        #print (username,topic,acc)
+        
         #read to all
         if acc == "1":
             response=HttpResponse("allow")
@@ -269,7 +422,7 @@ def acl(request):
             return response
 
         #write to all in rmap/username/# report/username/# mobile/username/# plus new sample/username/# fixed/username/# and rpc/username/#
-        if topic.startswith(("sample/"+username+"/","rmap/"+username+"/","report/"+username+"/","maint/"+username+"/","rpc/"+username+"/")) and acc == "2":
+        if topic.startswith(("sample/"+username+"/","report/"+username+"/","maint/"+username+"/","rpc/"+username+"/")) and acc == "2":
             response=HttpResponse("allow")
             response.status_code=200
             return response

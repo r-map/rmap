@@ -24,6 +24,7 @@ from django.core import management
 import rmap.settings
 import sys, optparse, rmap.daemon
 from rmap import  __version__
+from django.contrib.auth.hashers import make_password
 
 
 def initdb(cwd):
@@ -35,6 +36,9 @@ def initdb(cwd):
                  "dump Data Base (default %default)", default=False)
     p.add_option("--loaddata", type="string",action="store", help=\
                  "restore Data Base (default %default)", default=None)
+    p.add_option("--exportsha", action="store_true",dest="exportsha", help="export hashed password to stdout", default=False)
+    p.add_option("--exportmqttsha", action="store_true",dest="exportmqttsha", help="exportr mqtt hashed password to stdout", default=False)
+    p.add_option("--exportmqttpskkey", action="store_true",dest="exportmqttpskkey", help="export psk key to stdout", default=False)
 
     (options, args) = p.parse_args()
 
@@ -50,7 +54,10 @@ def initdb(cwd):
     if (not options.syncdb and\
         not options.collectstatic and\
         not options.dumpdata and\
-        options.loaddata is None) :
+        options.loaddata is None and\
+        not options.exportsha and\
+        not options.exportmqttsha and\
+        not options.exportmqttpskkey) :
         p.print_help()
         raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata")
 
@@ -72,9 +79,49 @@ def initdb(cwd):
 
         #from django.contrib.auth.models import User
         #u = User.objects.get(username__exact='rmap')
-        #u.set_password('rmap')
+        #print (u.username+":$7"+u.password[u.password.find("$"):])
+        #print (u.username+":"+u.password)
         #u.save()
 
+    if (options.exportsha):
+        from django.contrib.auth.models import User
+        for u in User.objects.all():
+            #print (u.username+":$7"+u.password[u.password.find("$"):])
+            print (u.username+":"+u.password)
+
+
+    if (options.exportmqttsha):
+        from django.contrib.auth.models import User
+        from rmap.stations.models import StationMetadata
+        for u in User.objects.all():
+            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+                if mystation.active:
+                    for myboard in mystation.board_set.all():
+                        if ( myboard.active and myboard.transportmqtt.active):
+                            myuser = myboard.transportmqtt.mqttuser
+                            mypassword = myboard.transportmqtt.mqttpassword
+
+                            if (mypassword):
+                                #print(myuser+":"+make_password(mypassword))
+                                print(u.username+":"+make_password(mypassword))
+                                
+    if (options.exportmqttpskkey):
+        from django.contrib.auth.models import User
+        from rmap.stations.models import StationMetadata
+        for u in User.objects.all():
+            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+                if mystation.active:
+                    for myboard in mystation.board_set.all():
+                        if ( myboard.active and myboard.transportmqtt.active):
+                            myuser = myboard.transportmqtt.mqttuser
+                            mypskkey = myboard.transportmqtt.mqttpskkey
+                            
+                            if (mypskkey):
+                                #print(myuser+":"+mypskkey)
+                                #print(myuser+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
+                                print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
+                                
+            
     if (options.collectstatic):
         management.call_command("collectstatic")
 

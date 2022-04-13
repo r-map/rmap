@@ -41,9 +41,12 @@ urlpatterns = [
     url(r'^auth/vhost',    rmap.views.vhost),
     url(r'^auth/resource', rmap.views.resource),
 
-    url(r'^auth/auth',     rmap.views.auth),
-    url(r'^auth/superuser',rmap.views.superuser),
-    url(r'^auth/acl',      rmap.views.acl),
+    url(r'^auth/auth$',     rmap.views.auth),
+    url(r'^auth/auth_sha$', rmap.views.auth_sha),
+    url(r'^auth/sha$',      rmap.views.sha),
+    url(r'^auth/pskkey$',   rmap.views.pskkey),
+    url(r'^auth/superuser$',rmap.views.superuser),
+    url(r'^auth/acl$',      rmap.views.acl),
 
 
     url(r'^accounts/profile/$',      rmap.views.profile),

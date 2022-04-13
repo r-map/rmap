@@ -1187,7 +1187,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
             if transport_name == "mqtt":
                 try:
                     if ( board.transportmqtt.active):
-                        print("mqtt Transport", board.transporttcpip)
+                        print("mqtt Transport", board.transportmqtt)
 
                         myhost =board.transportmqtt.mqttserver
                         myuser =board.transportmqtt.mqttuser
@@ -1230,6 +1230,12 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                    mqttserver=board.transportmqtt.mqttserver))
                 print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
                                                    mqttpassword=board.transportmqtt.mqttpassword))
+                try:
+                  print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
+                  print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))
+                except:
+                  pass
+                
         except ObjectDoesNotExist:
             print("transport mqtt not present")
 
