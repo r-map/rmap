@@ -1338,13 +1338,9 @@ def export2json(objects):
                                  )
 
     
-def dumpstation(station,user="your user"):
+def dumpstation(user, station_slug, board_slug=None):
 
-    objects=[]
-
-    mystation=StationMetadata.objects.get(slug=station,ident__username=user)
-    objects.append(mystation)
-    for board in mystation.board_set.all():
+    def add_board(objects,board):
         if (board.active):
             objects.append(board)
         
@@ -1352,6 +1348,8 @@ def dumpstation(station,user="your user"):
                 if (sensor.active): objects.append(sensor)
             try:
                 transport=board.transportmqtt
+                transport.mqttpassword=None   # use make_password to generate sha
+                transport.mqttpskkey=None
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
@@ -1362,6 +1360,7 @@ def dumpstation(station,user="your user"):
                 pass
             try:
                 transport=board.transportamqp
+                transport.amqppassword=None   # use make_password to generate sha
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
@@ -1375,10 +1374,25 @@ def dumpstation(station,user="your user"):
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
-            
-    for stationconstantdata in mystation.stationconstantdata_set.all():
+
+    objects=[]
+
+    try:
+        mystation=StationMetadata.objects.get(slug=station_slug,ident__username=user)
+        objects.append(mystation)
+
+        if (board_slug):
+            add_board(objects,mystation.board_set.get(slug=board_slug))
+        else:
+            for board in mystation.board_set.all():
+                add_board(objects,board)
+        
+        for stationconstantdata in mystation.stationconstantdata_set.all():
             if (stationconstantdata.active): objects.append(stationconstantdata)
 
+    except ObjectDoesNotExist:
+        pass
+            
     return export2json(objects)
 
 

@@ -93,8 +93,8 @@ def mystation_localdata(request,ident,slug):
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
 
 
-def mystationmetadata_json(request,ident,slug):
-    return HttpResponse(rmap_core.dumpstation(slug,ident), content_type="application/json")
+def mystationmetadata_json(request,ident,station_slug,board_slug=None):
+    return HttpResponse(rmap_core.dumpstation(ident,station_slug,board_slug), content_type="application/json")
 
 def StationsOnMap(request,ident=None,slug=None):
     if ident is None:
