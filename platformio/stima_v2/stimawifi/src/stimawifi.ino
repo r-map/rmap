@@ -425,7 +425,7 @@ String  rmap_get_remote_config(){
   url+=rmap_user;
   url+="/";
   url+=rmap_slug;
-  url+="/json/";
+  url+="/default/json/";     // get one station, default boards
 
   LOGN(F("readRmapRemoteConfig url: %s" CR),url.c_str());  
   //http.begin("http://rmap.cc/stations/pat1/luftdaten/json/");
@@ -457,11 +457,8 @@ bool publish_maint() {
   char mqttid[100]="";
   strcat(mqttid,rmap_user);
   strcat(mqttid,"/");
-  strcat(mqttid,rmap_longitude);
-  strcat(mqttid,",");
-  strcat(mqttid,rmap_latitude);
-  strcat(mqttid,"/");
-  strcat(mqttid,rmap_network);
+  strcat(mqttid,rmap_slug);
+  strcat(mqttid,"/default");
   
   LOGN(F("mqttid: %s" CR),mqttid);
   
@@ -472,7 +469,7 @@ bool publish_maint() {
   strcat (mainttopic,"/254,0,0/265,0,-,-/B01213");
   LOGN(F("MQTT maint topic: %s" CR),mainttopic);
     
-  if (!mqttclient.connect(mqttid,rmap_user,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
+  if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
     LOGE(F("Error connecting MQTT" CR));
     LOGE(F("Error status %d" CR),mqttclient.state());
     return false;
