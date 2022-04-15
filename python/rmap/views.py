@@ -309,6 +309,9 @@ def sha(request):
                         
                 except ObjectDoesNotExist:
                     payload="MQTT PSKKEY not present for this user/station/board"
+        else:
+            # fallback to legacy per user authentication  //   will be removed
+            return auth_sha(request)
 
     response=HttpResponse(payload)
     response.status_code=403

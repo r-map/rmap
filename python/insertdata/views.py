@@ -175,6 +175,8 @@ class NewStationForm(forms.ModelForm):
     coordinate_slug= forms.CharField(widget=forms.HiddenInput(),required=False)
     name= forms.CharField(required=True,label=__("New station name"),help_text=__('The name of the station to insert'))
     template=forms.ChoiceField(choices=CHOICES,required=True,label=__("station model"),help_text=__('The model of the station to insert'),initial="none")
+    password = forms.CharField(required=True,label=_('Password'),help_text=_('Password for MQTT broker'),widget=forms.PasswordInput)
+    passwordrepeat = forms.CharField(required=True,label=_('Repeat password'),help_text=_('Repeat password for MQTT broker'),widget=forms.PasswordInput)
     
     class Meta:
         model = GeorefencedImage
@@ -590,12 +592,14 @@ def insertNewStation(request):
             lat=geom['coordinates'][1]
             ident=request.user.username
             name=newstationform.cleaned_data['name']
+            password=newstationform.cleaned_data['password']
+            passwordrepeat=newstationform.cleaned_data['passwordrepeat']
             slug=slugify(name)
             board_slug="default"
             template=newstationform.cleaned_data['template']
             host = get_current_site(request)
             
-            if name:
+            if name and (password == passwordrepeat):
                 try:
                     try:
                         print("del station:", ident,slug,ident)
@@ -622,10 +626,10 @@ def insertNewStation(request):
 
                     rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
                                  ,serialactivate=False
-                                 ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword="fakepassword", mqttsamplerate=30
+                                 ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword=password, mqttsamplerate=30
                                  ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername="rmap", amqppassword="fakepassword", amqpserver=host, queue="rmap", exchange="rmap"
-                                 ,tcpipactivate=False, tcpipname="master", tcpipntpserver="ntpserver"
+                                ,amqpactivate=False, amqpusername="rmap", amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
+                                 ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                     )
                     
                     rmap.rmap_core.addsensors_by_template(
