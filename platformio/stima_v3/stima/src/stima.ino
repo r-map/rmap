@@ -783,6 +783,8 @@ void print_configuration() {
    LOGN(F("--> mqtt rpc topic: %s"), readable_configuration.mqtt_rpc_topic);
    LOGN(F("--> mqtt username: %s"), readable_configuration.mqtt_username);
    LOGN(F("--> mqtt password: %s"), readable_configuration.mqtt_password);
+   LOGN(F("--> station slug: %s"), readable_configuration.stationslug);
+   LOGN(F("--> board   slug: %s"), readable_configuration.boardslug);
    #endif
 }
 
@@ -831,6 +833,8 @@ void set_default_configuration() {
    strcpy(writable_configuration.mqtt_rpc_topic, CONFIGURATION_DEFAULT_MQTT_RPC_TOPIC);
    strcpy(writable_configuration.mqtt_username, CONFIGURATION_DEFAULT_MQTT_USERNAME);
    strcpy(writable_configuration.mqtt_password, CONFIGURATION_DEFAULT_MQTT_PASSWORD);
+   strcpy(writable_configuration.stationslug, CONFIGURATION_DEFAULT_STATIONSLUG);
+   strcpy(writable_configuration.boardslug, CONFIGURATION_DEFAULT_BOARDSLUG);
    #endif
 
    LOGN(F("Reset configuration to default value... [ %s ]"), OK_STRING);
@@ -876,7 +880,9 @@ void load_configuration() {
    ee_read(&readable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
 
    #if (USE_MQTT)
-   getMqttClientIdFromMqttTopic(readable_configuration.mqtt_rpc_topic, client_id);
+
+   getMqttClientId(readable_configuration.mqtt_username, readable_configuration.stationslug, readable_configuration.boardslug, client_id);   
+   //getMqttClientIdFromMqttTopic(readable_configuration.mqtt_rpc_topic, client_id);
    getFullTopic(maint_topic, readable_configuration.mqtt_maint_topic, MQTT_STATUS_TOPIC);
    #endif
 
@@ -959,6 +965,15 @@ int configure(JsonObject params, JsonObject result) {
       }
       else if (strcmp(it.key().c_str(), "mqttpassword") == 0) {
          strncpy(writable_configuration.mqtt_password, it.value().as<const char*>(), MQTT_PASSWORD_LENGTH);
+      }
+      else if (strcmp(it.key().c_str(), "stationslug") == 0) {
+         strncpy(writable_configuration.stationslug, it.value().as<const char*>(), STATIONSLUG_LENGTH);
+      }
+      else if (strcmp(it.key().c_str(), "boardslug") == 0) {
+         strncpy(writable_configuration.boardslug, it.value().as<const char*>(), BOARDSLUG_LENGTH);
+      }
+      else if (strcmp(it.key().c_str(), "mqttpskkey") == 0) {
+	//skip it
       }
       else if (strcmp(it.key().c_str(), "sd") == 0) {
 	for (JsonPair sd : it.value().as<JsonObject>()) {
@@ -3234,9 +3249,16 @@ void mqtt_task() {
 	 mqtt_client.setMessageHandler(comtopic, mqttRxCallback);   // messages queued for persistent client are sended at connect time and we have to "remember" the subscription
 
          ipstack_status = ipstack.connect(readable_configuration.mqtt_server, readable_configuration.mqtt_port);
+	 
+	 char mqtt_username[MQTT_PASSWORD_LENGTH + STATIONSLUG_LENGTH + BOARDSLUG_LENGTH];
+	 strcpy (mqtt_username, readable_configuration.mqtt_username);
+	 strcat (mqtt_username, "/");
+	 strcat (mqtt_username, readable_configuration.stationslug);
+	 strcat (mqtt_username, "/");
+	 strcat (mqtt_username, readable_configuration.boardslug);
 
          // success
-         if (ipstack_status == 1 && mqttConnect(readable_configuration.mqtt_username, readable_configuration.mqtt_password)) {
+         if (ipstack_status == 1 && mqttConnect(mqtt_username, readable_configuration.mqtt_password)) {
             retry = 0;
             LOGT(F("MQTT Connection... [ %s ]"), OK_STRING);
             mqtt_state = MQTT_ON_CONNECT;

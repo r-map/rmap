@@ -39,13 +39,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MODULE_MINOR_VERSION
 \brief Module minor version.
 */
-#define MODULE_MINOR_VERSION                          (7)
+#define MODULE_MINOR_VERSION                          (8)
 
 /*!
 \def MODULE_CONFIGURATION_VERSION
 \brief Module version of compatibile configuration. If you change it, you have to reconfigure.
 */
-#define MODULE_CONFIGURATION_VERSION                  (1)
+#define MODULE_CONFIGURATION_VERSION                  (2)
 
 
 /*!
@@ -206,6 +206,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Default mqtt password.
 */
 #define CONFIGURATION_DEFAULT_MQTT_PASSWORD           (MQTT_DEFAULT_PASSWORD)
+
+/*!
+\def CONFIGURATION_DEFAULT_STATIONSLUG
+\brief Default station slug.
+*/
+#define CONFIGURATION_DEFAULT_STATIONSLUG            (DEFAULT_STATIONSLUG)
+
+/*!
+\def CONFIGURATION_DEFAULT_boardSLUG
+\brief Default board slug.
+*/
+#define CONFIGURATION_DEFAULT_BOARDSLUG              (DEFAULT_BOARDSLUG)
+
 #endif
 
 #if (MODULE_TYPE == STIMA_MODULE_TYPE_SAMPLE_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_REPORT_ETH || MODULE_TYPE == STIMA_MODULE_TYPE_PASSIVE_ETH)

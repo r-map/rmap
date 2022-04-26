@@ -96,6 +96,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MQTT_PASSWORD_LENGTH           (30)
 
 /*!
+\def STATIONSLUG_LENGTH
+\brief Length in bytes for station slug.
+*/
+#define STATIONSLUG_LENGTH           (30)
+
+/*!
+\def BOARDSLUG_LENGTH
+\brief Length in bytes for board slug.
+*/
+#define BOARDSLUG_LENGTH           (30)
+
+/*!
 \def MQTT_TIMEOUT_MS
 \brief Timeout in milliseconds for mqtt stack.
 */
@@ -142,6 +154,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Default MQTT password.
 */
 #define MQTT_DEFAULT_PASSWORD          ("")
+
+/*!
+\def DEFAULT_STATIONSLUG
+\brief Default station slug.
+*/
+#define DEFAULT_STATIONSLUG          ("")
+
+/*!
+\def DEFAULT_BOARDSLUG
+\brief Default board slug.
+*/
+#define DEFAULT_BOARDSLUG          ("")
 
 /*!
 \def MQTT_STATUS_TOPIC

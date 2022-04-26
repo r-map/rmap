@@ -118,8 +118,10 @@ typedef struct {
    char mqtt_root_topic[MQTT_ROOT_TOPIC_LENGTH];            //!< mqtt root path
    char mqtt_maint_topic[MQTT_MAINT_TOPIC_LENGTH];          //!< mqtt maint path
    char mqtt_rpc_topic[MQTT_RPC_TOPIC_LENGTH];              //!< mqtt subscribe topic
-   char mqtt_username[MQTT_USERNAME_LENGTH];                //!< mqtt username
+   char mqtt_username[MQTT_USERNAME_LENGTH];                //!< username to compose mqtt username (username/stationslug/boardslug)
    char mqtt_password[MQTT_PASSWORD_LENGTH];                //!< mqtt password
+   char stationslug[STATIONSLUG_LENGTH];                    //!< station slug to compose mqtt username (username/stationslug/boardslug)
+   char boardslug[BOARDSLUG_LENGTH];                        //!< board slug to compose mqtt username (username/stationslug/boardslug)
    #endif
 
    #if (USE_NTP)
