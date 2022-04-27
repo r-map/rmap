@@ -54,6 +54,16 @@ void getMqttClientIdFromMqttTopic(const char *topic, char *client_id) {
    client_id[pch_len-2] = 0;
 }
 
+// migrated to the new format ident/station_slug/board_slug
+void getMqttClientId(const char *username,const char *stationslug,const char *boardslug, char *client_id) {
+   strcpy(client_id, username);
+   strcat(client_id, "/");
+   strcat(client_id, stationslug);
+   strcat(client_id, "/");
+   strcat(client_id, boardslug);
+
+}
+
 // #if (USE_JSON)
 uint8_t jsonToMqtt(const char *json, const char *mqtt_sensor, char topic[][MQTT_SENSOR_TOPIC_LENGTH], char message[][MQTT_MESSAGE_LENGTH], tmElements_t *sensor_reading_time) {
   uint8_t i = 0;

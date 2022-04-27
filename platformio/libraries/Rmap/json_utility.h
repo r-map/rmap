@@ -138,6 +138,18 @@ void getLonLatFromMqttTopic(const char *topic, char *lon, char *lat);
 \return void.
 */
 void getMqttClientIdFromMqttTopic(const char *topic, char *client_id);
+
+/*!
+\fn void getMqttClientId(const char *username,const char *stationslug,const char *boardslug char *client_id)
+\brief Compose mqtt client id from username station slug and board slug.
+\param[in] *username
+\param[in] *stationslug
+\param[in] *boardslug char
+\param[out] *client_id mqtt client id.
+\return void.
+*/
+void getMqttClientId(const char *username,const char *stationslug,const char *boardslug, char *client_id);
+
 #endif
 
 // #endif
