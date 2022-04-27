@@ -94,8 +94,17 @@ def mystation_localdata(request,ident,slug):
 
 
 def mystationmetadata_json(request,ident,station_slug,board_slug=None):
-    return HttpResponse(rmap_core.dumpstation(ident,station_slug,board_slug), content_type="application/json")
+    if request.user.is_authenticated:
+        if request.user.username == ident:
+            return HttpResponse(rmap_core.dumpstation(ident,station_slug,board_slug), content_type="application/json")
+        else:
+            response=HttpResponse("deny")
+            response.status_code=403
+            return response
+    else:
+        return HttpResponse(rmap_core.dumpstation(ident,station_slug,board_slug, without_password=True), content_type="application/json")
 
+    
 def StationsOnMap(request,ident=None,slug=None):
     if ident is None:
         stations=StationMetadata.objects.exclude(lat=0,lon=0)

@@ -1231,11 +1231,15 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 print("mqtt user and password:",rpcproxy.configure(mqttuser=board.transportmqtt.mqttuser,
                                                    mqttpassword=board.transportmqtt.mqttpassword))
                 try:
-                  print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
-                  print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))
+                    print("mqtt pskkey:",rpcproxy.configure(mqttpskkey=board.transportmqtt.mqttpskkey))
                 except:
-                  pass
+                    pass           # to be removed; here fo legacy boards
                 
+                try:
+                    print("station_slug and board_slug:",rpcproxy.configure(stationslug=mystation.slug,boardslug=board.slug))
+                except:
+                    pass           # to be removed; here fo legacy boards
+
         except ObjectDoesNotExist:
             print("transport mqtt not present")
 
@@ -1338,7 +1342,7 @@ def export2json(objects):
                                  )
 
     
-def dumpstation(user, station_slug, board_slug=None):
+def dumpstation(user, station_slug, board_slug=None, without_password=False):
 
     def add_board(objects,board):
         if (board.active):
@@ -1348,8 +1352,9 @@ def dumpstation(user, station_slug, board_slug=None):
                 if (sensor.active): objects.append(sensor)
             try:
                 transport=board.transportmqtt
-                transport.mqttpassword=None   # use make_password to generate sha
-                transport.mqttpskkey=None
+                if without_password:
+                    transport.mqttpassword=None   # use make_password to generate sha
+                    transport.mqttpskkey=None
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
@@ -1360,7 +1365,8 @@ def dumpstation(user, station_slug, board_slug=None):
                 pass
             try:
                 transport=board.transportamqp
-                transport.amqppassword=None   # use make_password to generate sha
+                if without_password:
+                    transport.amqppassword=None   # use make_password to generate sha
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass

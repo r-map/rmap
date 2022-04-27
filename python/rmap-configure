@@ -46,7 +46,7 @@ import argparse
 
 import django
 from django.core import serializers
-import urllib.request, urllib.error, urllib.parse
+import requests
 import base64, datetime
 import logging
 
@@ -491,6 +491,10 @@ if args.upload_to_server:
         print(" selected upload_to_server without username or password or station_slug")
         raise SystemExit(1)
 
+    if (not args.board_slug is None):
+        print(" upload_to_server do not take in account board_slug parameter (work for a full station)")
+        raise SystemExit(1)
+    
     rmap.rmap_core.sendjson2amqp(station=args.station_slug,user=args.username,host=args.server,password=args.password)
 
     print("END of upload_to_server configuration")
@@ -502,10 +506,42 @@ if args.download_from_server:
         print(" selected download_from_server without username or station_slug")
         raise SystemExit(1)
 
+    if (not args.board_slug is None):
+        print(" download_from_server do not take in account board_slug parameter (work for a full station)")
+        raise SystemExit(1)
+
     print("get configuration from:")
-    print("http://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json")
-    body=urllib.request.urlopen("http://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json").read()
-    print(body)
+    print("https://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json")
+
+
+    url = "https://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json"
+    login_url = "https://"+args.server+"/registrazione/login/"
+
+    with requests.Session() as session:
+
+        if args.password is None:
+            print ("ALERT: no password provided so no login will be performed and no secrets data will be downloaded !!!")
+        else:
+            session.get(login_url)
+            csrftoken = session.cookies['csrftoken']
+            r = session.post(login_url, data={"username":args.username, "password":args.password,"csrfmiddlewaretoken":csrftoken, "next": "/"}, headers={"Referer":login_url})
+
+            if r.status_code == 200:
+                if r.text.find('<input type="password" name="password" required id="id_password">') != -1:
+                    print("ALERT: Wrong username or password")
+                    raise SystemExit(1)
+            else:
+                print ("Error code login {}".format(r.status_code))
+                raise SystemExit(1)
+
+        r = session.get(url)
+        if r.status_code != 200:
+            print ("Error code {}".format(r.status_code))
+            raise SystemExit(1)
+
+        body=r.text
+
+    #print(body)
 
     try:
         user = User.objects.create_user(args.username, args.username+'@'+args.server, None)            
@@ -519,6 +555,14 @@ if args.download_from_server:
         print("user:", args.username, "created without password")
     try:
         for deserialized_object in serializers.deserialize("json",body):
+
+            if isinstance(deserialized_object.object,StationMetadata):
+                try:
+                    StationMetadata.objects.get(slug=deserialized_object.object.slug,ident__username=deserialized_object.object.ident).delete()
+                    print ("Removed preexistent: {}:{} from local DB".format(deserialized_object.object.slug,deserialized_object.object.ident))
+                except ObjectDoesNotExist:
+                    print ("StationMetadata do not exist in DB")
+
             try:
                 print("save:",deserialized_object.object)
                 deserialized_object.save()
