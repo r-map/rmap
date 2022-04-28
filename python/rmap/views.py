@@ -19,6 +19,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.cache import never_cache
 import re
 from django.contrib.auth.hashers import make_password
+from rmap.utils import nint
 
 def home(request):
     current_site = get_current_site(request)
@@ -406,11 +407,10 @@ def superuser(request):
 @csrf_exempt  
 def acl(request):
 
-    if 'username' in request.POST and 'topic' in request.POST and 'acc' in request.POST :
-        username = request.POST['username']
+    if 'topic' in request.POST and 'acc' in request.POST :
         topic = request.POST['topic']
         acc = request.POST['acc']
-        #print (username,topic,acc)
+        #print (topic,acc)
         
         #read to all
         if acc == "1":
@@ -424,11 +424,52 @@ def acl(request):
             response.status_code=200
             return response
 
-        #write to all in rmap/username/# report/username/# mobile/username/# plus new sample/username/# fixed/username/# and rpc/username/#
-        if topic.startswith(("sample/"+username+"/","report/"+username+"/","maint/"+username+"/","rpc/"+username+"/")) and acc == "2":
-            response=HttpResponse("allow")
-            response.status_code=200
-            return response
+    if 'username' in request.POST:
+        p = re.compile('^[a-zA-Z0-9_-]{1,30}$')
+        username_station_board=request.POST['username']
+        usb=username_station_board.split("/")
+
+        if(len(usb) == 3):
+            username=p.match(usb[0])
+            if username:
+                username = username.string
+                
+            station_slug = p.match(usb[1])
+            if station_slug:
+                station_slug = station_slug.string
+            
+            board_slug = p.match(usb[2])
+            if board_slug:
+                board_slug = board_slug.string
+ 
+            if (username and station_slug and board_slug):
+                try:
+                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    if mystation is not None:
+                        if mystation.active:
+                            lat=mystation.lat
+                            lon=mystation.lon
+                            myboard = mystation.board_set.get(slug=board_slug)
+                            if myboard is not None:
+                                if ( myboard.active and myboard.transportmqtt.active):
+                                    username = myboard.transportmqtt.mqttuser
+                                    mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)
+                                    
+                except ObjectDoesNotExist:
+                    username=None
+
+        else:
+            username=p.match(request.POST['username'])
+            if username:
+                username = username.string
+            mytopic="/"
+                    
+        if (username):
+            #write to all in report/username/# sample/username/# rpc/username/#
+            if topic.startswith(("sample/"+username+mytopic,"report/"+username+mytopic,"maint/"+username+mytopic,"rpc/"+username+mytopic)) and acc == "2":
+                response=HttpResponse("allow")
+                response.status_code=200
+                return response
 
     response=HttpResponse("deny")
     response.status_code=403
