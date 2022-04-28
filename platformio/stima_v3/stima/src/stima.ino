@@ -635,12 +635,21 @@ void init_sensors () {
     }
     #if (USE_LCD)
     lcd_error |= lcd.setCursor(0, 0);
-    lcd_error |= lcd.print(F("Sensors count: "))==0;
+    lcd_error |= lcd.print(F("Sensor: "))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count)==0;
     lcd_error |= lcd.print(F("/"))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count)==0;
+    lcd_error |= lcd.print((sensors_error_count == 0) ? " OK" : " KO")==0;
+    lcd_error |= lcd.setCursor(0, 1)==0;
+    lcd_error |= lcd.print("user  : ")==0;
+    lcd_error |= lcd.print(readable_configuration.mqtt_username)==0;
+    lcd_error |= lcd.setCursor(0, 2)==0;
+    lcd_error |= lcd.print("statio: ")==0;
+    lcd_error |= lcd.print(readable_configuration.stationslug)==0;
+    lcd_error |= lcd.setCursor(0, 3)==0;
+    lcd_error |= lcd.print("board : ")==0;
+    lcd_error |= lcd.print(readable_configuration.boardslug)==0;
     #endif
-
   }
 }
 
@@ -1618,13 +1627,35 @@ void supervisor_task() {
             if (next_ptr_time_for_sensors_reading) {
                LOGN(F("--> starting at: %d:%d:%d"), hour(next_ptr_time_for_sensors_reading), minute(next_ptr_time_for_sensors_reading), second(next_ptr_time_for_sensors_reading));
                #if (USE_LCD)
-	       lcd_error |= lcd.clear();
-               lcd_error |= lcd.print(F("start acq: "))==0;
+	       //lcd_error |= lcd.clear();
+
+	       lcd_error |= lcd.setCursor(0, 0)==0;
+               lcd_error |= lcd.print(F("            "))==0;
+	       lcd_error |= lcd.setCursor(0, 0)==0;
+               lcd_error |= lcd.print(F("S: "))==0;
 	       lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading))==0;
                lcd_error |= lcd.print(F(":"))==0;
 	       lcd_error |= lcd.print( minute(next_ptr_time_for_sensors_reading))==0;
                lcd_error |= lcd.print(F(":"))==0;
 	       lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
+
+	       
+               #if (USE_MQTT)
+	       lcd_error |= lcd.setCursor(0, 1)==0;
+               lcd_error |= lcd.print(F("                    "))==0;
+	       lcd_error |= lcd.setCursor(0, 1)==0;
+	       lcd_error |= lcd.print("server: ")==0;
+	       lcd_error |= lcd.print(readable_configuration.mqtt_server)==0;
+               #endif
+
+               #if (USE_NTP)
+	       lcd_error |= lcd.setCursor(0, 2)==0;
+               lcd_error |= lcd.print(F("                    "))==0;
+	       lcd_error |= lcd.setCursor(0, 2)==0;
+	       lcd_error |= lcd.print("ntp: ")==0;
+	       lcd_error |= lcd.print(readable_configuration.ntp_server)==0;
+               #endif
+	       
 	       #endif
             }
 
@@ -1782,7 +1813,9 @@ void rtc_task() {
 }
 
 void time_task() {
-   static uint8_t retry;
+   static uint8_t retry_ntp;
+   static uint8_t retry_request;
+   static uint8_t retry_rtc;
    static time_state_t state_after_wait;
    static uint32_t delay_ms;
    static uint32_t start_time_ms;
@@ -1800,7 +1833,9 @@ void time_task() {
          current_ntp_time = 0;
          is_set_rtc_ok = true;
          #endif
-         retry = 0;
+         retry_ntp = 0;
+         retry_request = 0;
+         retry_rtc = 0;
          state_after_wait = TIME_INIT;
 
          #if (USE_NTP)
@@ -1836,12 +1871,12 @@ void time_task() {
          // success
          if (is_ntp_request_ok) {
 	   LOGN(F("NTP send request success"));
-	   retry = 0;
+	   retry_request = 0;
             time_state = TIME_WAIT_ONLINE_RESPONSE;
             LOGV(F("TIME_SEND_ONLINE_REQUEST --> TIME_WAIT_ONLINE_RESPONSE"));
          }
          // retry
-         else if (++retry < NTP_RETRY_COUNT_MAX) {
+         else if (++retry_request < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
             state_after_wait = TIME_SEND_ONLINE_REQUEST;
@@ -1884,7 +1919,6 @@ void time_task() {
 
          if ((current_ntp_time > NTP_VALID_START_TIME_S) && (diff_ntp_time <= NTP_MAX_DIFF_VALID_TIME_S)) {
 	    LOGN(F("NTP response... [ %s ] diff time: %lms"), OK_STRING,diff_ntp_time);
-	    retry = 0;
             system_time = current_ntp_time;
             setTime(system_time);
             last_ntp_sync = current_ntp_time;
@@ -1899,7 +1933,7 @@ void time_task() {
             #endif
          }
          // retry
-         else if (++retry < NTP_RETRY_COUNT_MAX) {
+         else if (++retry_ntp < NTP_RETRY_COUNT_MAX) {
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
             state_after_wait = TIME_SEND_ONLINE_REQUEST;
@@ -1910,7 +1944,6 @@ void time_task() {
          // fail
          else {
             LOGE(F("NTP response... [ %s ]"), FAIL_STRING);
-            retry = 0;
             #if (USE_RTC)
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
             LOGV(F("TIME_WAIT_ONLINE_RESPONSE --> TIME_SET_SYNC_RTC_PROVIDER"));
@@ -1934,12 +1967,11 @@ void time_task() {
          if (is_set_rtc_ok) {
 	    LOGN(F("RTC set... [ %s ]"), OK_STRING);
 	    i2c_error = 0;
-            retry = 0;
             time_state = TIME_SET_SYNC_RTC_PROVIDER;
             LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
          }
          // retry
-         else if (++retry < NTP_RETRY_COUNT_MAX) {
+         else if (++retry_rtc < NTP_RETRY_COUNT_MAX) {
             is_set_rtc_ok = true;
             delay_ms = NTP_RETRY_DELAY_MS;
             start_time_ms = millis();
@@ -1948,10 +1980,9 @@ void time_task() {
             LOGE(F("RTC set... [ retry ]"));
             LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_NTP_PROVIDER"));
          }
-         // fail
+         // fail: use old rtc time
          else {
 	   LOGE(F("RTC set... [ %s ]"), FAIL_STRING);
-           retry = 0;
            time_state = TIME_SET_SYNC_RTC_PROVIDER;
            LOGV(F("TIME_SET_SYNC_NTP_PROVIDER --> TIME_SET_SYNC_RTC_PROVIDER"));
          }
@@ -2228,7 +2259,14 @@ void gsm_task() {
             is_error = true;
             gsm_state = GSM_WAIT_FOR_SWITCH_OFF;
 	    LOGV(F("GSM_OPEN_UDP_SOCKET ---> GSM_WAIT_FOR_SWITCH_OFF"));
-         }
+
+            #if (USE_LCD)
+	    lcd_error |= lcd.setCursor(12, 0);
+	    lcd_error |= lcd.print(F("        "))==0;
+	    lcd_error |= lcd.setCursor(12, 0);
+	    lcd_error |= lcd.print(F("rf: KO"))==0;
+            #endif
+	 }
          // wait
       break;
 
@@ -2357,11 +2395,11 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          }
 
          #if (USE_LCD)
-	 lcd_error |= lcd.setCursor(14, 3);       // clear failed sensors
-	 lcd_error |= lcd.print(F("      "))==0;
 
 	 // normal OR test: print
 	 if (!is_first_run || is_test) {
+	   lcd_error |= lcd.setCursor(14, 3);       // clear failed sensors
+	   lcd_error |= lcd.print(F("      "))==0;
 	   lcd_error |= lcd.setCursor(0, 1);
 	   lcd_error |= lcd.print(F("                    "))==0;
 	   lcd_error |= lcd.setCursor(0, 2);
@@ -2731,10 +2769,12 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
 
         #if (USE_LCD)
-	lcd_error |= lcd.setCursor(14, 3);
-	lcd_error |= lcd.print(F("FA"))==0;
-	lcd_error |= lcd.print(sensor_reading_failed_count)==0;
-	lcd_error |= lcd.print((sensor_reading_failed_count == 0) ? "OK" : "KO")==0;
+	if (!is_first_run){
+	  lcd_error |= lcd.setCursor(14, 3);
+	  lcd_error |= lcd.print(F("FA"))==0;
+	  lcd_error |= lcd.print(sensor_reading_failed_count)==0;
+	  lcd_error |= lcd.print((sensor_reading_failed_count == 0) ? "OK" : "KO")==0;
+	}
         #endif
 
         sensors_reading_state = SENSORS_READING_INIT;
