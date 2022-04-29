@@ -40,7 +40,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2021-10-07T00:00"
+#define SOFTWARE_VERSION "2022-04-25T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -48,7 +48,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
-#define SAMPLETIME 10
+#define DEFAULT_SAMPLETIME 10
 
 #define OLEDI2CADDRESS 0X3C
 
@@ -189,10 +189,11 @@ bool pmspresent =  false;
 char rmap_longitude[11] = "";
 char rmap_latitude[11] = "";
 char rmap_network[31] = "";
-char rmap_server[41]= "rmap.cc";
-char rmap_user[10]="";
-char rmap_password[31]="";
-char rmap_slug[31]="stimawifi";
+char rmap_server[41] = "rmap.cc";
+int  rmap_sampletime = DEFAULT_SAMPLETIME;
+char rmap_user[10] = "";
+char rmap_password[31] = "";
+char rmap_slug[31] = "stimawifi";
 char rmap_mqttrootpath[10] = "sample";
 char rmap_mqttmaintpath[10] = "maint";
 
@@ -683,7 +684,10 @@ void writeconfig_rmap(String payload) {;
 
 int  rmap_config(String payload){
 
-  int status =0;
+  bool status_station = false;
+  bool status_board = false;
+  bool status_sensors = false;
+  int status = 0;
   int ii = 0;
 
   if (! (payload == String())) {
@@ -720,11 +724,45 @@ int  rmap_config(String payload){
 	    strncpy (rmap_network , element["fields"]["network"].as< const char*>(),30);
 	    rmap_network[30]='\0';
 	    LOGN(F("network: %s" CR),rmap_network);
-	    
-	    status = 0;
+
+	    strncpy (rmap_mqttrootpath , element["fields"]["mqttrootpath"].as< const char*>(),9);
+	    rmap_mqttrootpath[9]='\0';
+	    LOGN(F("rmap_mqttrootpath: %s" CR),rmap_mqttrootpath);
+
+	    strncpy (rmap_mqttmaintpath , element["fields"]["mqttmaintpath"].as< const char*>(),9);
+	    rmap_mqttmaintpath[9]='\0';
+	    LOGN(F("rmap_mqttmaintpath: %s" CR),rmap_mqttmaintpath);
+
+	    status_station = true;
 	  }
 	}
 
+	///////////////////////////////////////////////////////////////////////////////
+	// use this to migrate from user authentication to user/station_slug/board_slug
+
+	if  (element["model"] == "stations.transportmqtt"){
+	  if (strcmp(element["fields"]["board"][0].as< const char*>(),"default")){
+	    if (element["fields"]["active"]){
+	      LOGN(F("board metadata found!" CR));
+	      //rmap_sampletime=element["fields"]["mqttsampletime"]     // wrong on server
+	      //LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
+	      if (!element["fields"]["mqttuser"].isNull()){
+		strncpy (rmap_user, element["fields"]["mqttuser"].as< const char*>(),9);
+		rmap_user[9]='\0';
+		LOGN(F("rmap_user: %s" CR),rmap_user);
+	      }
+	      if (!element["fields"]["mqttpassword"].isNull()){
+		strncpy (rmap_password, element["fields"]["mqttpassword"].as< const char*>(),30);
+		rmap_password[30]='\0';
+		LOGN(F("rmap_password: %s" CR),rmap_password);
+	      }
+	      status_board = true;
+	    }
+	  }
+	}
+	///////////////////////////////////////////////////////////////////////////////
+
+	
 	if  (element["model"] == "stations.sensor"){
 	  if (element["fields"]["active"]){
 	    if (ii < SENSORS_LEN) {
@@ -754,12 +792,11 @@ int  rmap_config(String payload){
 	      }
 	      ii++;
 	    }
-	    
-	    status = 0;
+	    status_sensors = true;
 	  }
 	}
-
       }
+      status = (int)(status_station && status_board && status_sensors);
     } else {
       LOGE(F("error parsing array: %s" CR),error.c_str());
       analogWrite(LED_PIN,973);
@@ -1583,7 +1620,7 @@ void setup() {
   LOGN(F("mqtt server: %s" CR),rmap_server);
   mqttclient.setServer(rmap_server, 1883);
 
-  Alarm.timerRepeat(SAMPLETIME, repeats);             // timer for every SAMPLETIME seconds
+  Alarm.timerRepeat(rmap_sampletime, repeats);             // timer for every SAMPLETIME seconds
 
   // millis() and other can have overflow problem
   // so we reset everythings one time a week
