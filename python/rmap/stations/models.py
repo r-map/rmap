@@ -770,8 +770,8 @@ class StationMetadata(models.Model):
 
 #    ident = models.CharField(max_length=9,unique=False,null=False,blank=True, help_text=ugettext_lazy("station identifier (should be equal to your username)"))
 
-    lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=False,blank=False, help_text=ugettext_lazy('Precise Latitude of the station'))
-    lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=False,blank=False, help_text=ugettext_lazy('Precise Longitude of the station'))
+    lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Latitude of the fixed station'))
+    lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Longitude of the fixed station'))
 
     network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, choices=STATION_NETWORK_CHOICES, help_text=ugettext_lazy("station network"))
 
@@ -780,9 +780,13 @@ class StationMetadata(models.Model):
     category = models.CharField(max_length=50, choices=STATION_CATEGORY_CHOICES,help_text=ugettext_lazy("Category of the station"))
 
     def lon_lat(self):
+        if self.lon is None:
+            return "None_None"
         return "%d_%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
     def lonlat(self):
+        if self.lon is None:
+            return "NoneNone"
         return "%d,%d" % (nint(self.lon*100000),nint(self.lat*100000))
 
 
@@ -798,7 +802,14 @@ class StationMetadata(models.Model):
 
                 if self.mqttrootpath != sensor.type.datalevel:
                     raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
-    
+
+        if (self.lat is None and not self.lon is None) or (not self.lat is None and self.lon is None):
+            raise ValidationError(ugettext_lazy('Station have only one coordinate defined (lat/lon).'))
+            
+        if (self.network == "fixed" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
+            raise ValidationError(ugettext_lazy('Station network have inconsistent definition of coordinate (lat/lon).'))
+
+                
     @property
     def geom(self):
         #return PointField({'type': 'Point', 'coordinates': [self.lon, self.lat]})

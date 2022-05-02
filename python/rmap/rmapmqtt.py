@@ -126,7 +126,8 @@ class rmapmqtt:
         self.puback=False
         self.messageinfo=self.mqttc.publish(topic,payload=payload,qos=self.qos,retain=retain)
         rc,self.mid=self.messageinfo
-        while self.messageinfo.is_published() == False:
+        last=time.time()
+        while (((time.time()-last) < timeout) and (self.messageinfo.is_published() == False)):
             if (not self.loop_started):
                 self.loop(.1)
             else:

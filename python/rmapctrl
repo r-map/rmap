@@ -25,6 +25,7 @@ import rmap.settings
 import sys, optparse, rmap.daemon
 from rmap import  __version__
 from django.contrib.auth.hashers import make_password
+from rmap.utils import nint
 
 
 def initdb(cwd):
@@ -36,9 +37,10 @@ def initdb(cwd):
                  "dump Data Base (default %default)", default=False)
     p.add_option("--loaddata", type="string",action="store", help=\
                  "restore Data Base (default %default)", default=None)
-    p.add_option("--exportsha", action="store_true",dest="exportsha", help="export hashed password to stdout", default=False)
-    p.add_option("--exportmqttsha", action="store_true",dest="exportmqttsha", help="exportr mqtt hashed password to stdout", default=False)
-    p.add_option("--exportmqttpskkey", action="store_true",dest="exportmqttpskkey", help="export psk key to stdout", default=False)
+    p.add_option("--exportsha", action="store_true",dest="exportsha", help="export hashed user password to stdout", default=False)
+    p.add_option("--exportmqttsha", action="store_true",dest="exportmqttsha", help="export mqtt (station) hashed password to stdout", default=False)
+    p.add_option("--exportmqttpskkey", action="store_true",dest="exportmqttpskkey", help="export mqtt (station) psk key to stdout", default=False)
+    p.add_option("--exportmqttacl", action="store_true",dest="exportmqttacl", help="export hashed mqtt acl (topic) to stdout", default=False)
 
     (options, args) = p.parse_args()
 
@@ -57,7 +59,8 @@ def initdb(cwd):
         options.loaddata is None and\
         not options.exportsha and\
         not options.exportmqttsha and\
-        not options.exportmqttpskkey) :
+        not options.exportmqttpskkey and\
+        not options.exportmqttacl) :
         p.print_help()
         raise optparse.OptionValueError("you have to set one of --syncdb --collectdb --dumpdata --loaddata")
 
@@ -121,7 +124,37 @@ def initdb(cwd):
                                 #print(myuser+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
                                 print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
                                 
-            
+
+
+    if (options.exportmqttacl):
+
+        print ("topic","read","#")
+        print ("topic","test/#")
+        from django.contrib.auth.models import User
+        from rmap.stations.models import StationMetadata
+        lastusername=None
+        for u in User.objects.all():
+            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+                if mystation.active:
+                    lat=mystation.lat
+                    lon=mystation.lon
+
+                    for myboard in mystation.board_set.all():
+                        if ( myboard.active and myboard.transportmqtt.active):
+                            username = myboard.transportmqtt.mqttuser
+
+                            if mystation.lat is None:
+                                mytopic="/+/%s/" % (mystation.network)
+                            else:
+                                mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
+                            if not lastusername == username: print("user", username)
+                            lastusername=username    
+                            print("pattern","sample/"+username+mytopic)
+                            print("pattern","report/"+username+mytopic)
+                            print("pattern","maint/"+username+mytopic)
+                            print ("pattern","rpc/"+username+mytopic)
+
+                                
     if (options.collectstatic):
         management.call_command("collectstatic")
 

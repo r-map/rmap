@@ -26,6 +26,7 @@ from django.utils.text import slugify
 #from rmap.rmap_core import isRainboInstance
 import rmap.rmap_core
 import decimal
+from django.core.exceptions import ObjectDoesNotExist
 
 class scelta_present_weather(object):
     '''
@@ -353,6 +354,8 @@ def insertDataRainboImpactData(request):
                 datavar["B20203"]={"t": dt,"v": str(value)}
             if (len(datavar)>0):
                 try:
+                    # TODO!
+                    #here we have to use mqtt_user and mqtt_password from transport_mqtt
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
@@ -402,6 +405,8 @@ def insertDataRainboWeatherData(request):
                 datavar["B20003"]={"t": dt,"v": str(value)}
             if (len(datavar)>0):
                 try:
+                    # TODO!
+                    #here we have to use mqtt_user and mqtt_password from transport_mqtt
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
@@ -487,7 +492,8 @@ def insertDataManualData(request):
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
             ident=request.user.username
-
+            board_slug="default"
+            
             #if (not stationlat is None):
             #    if (stationlat != lat):
             #        stationform = StationForm(request.user.get_username())
@@ -513,30 +519,73 @@ def insertDataManualData(request):
                 datavar["B20001"]={"t": dt,"v": str(value)}
 
             print("datavar:",datavar)
+
             if (len(datavar)>0):
                 try:
-
-                    user=rmap.settings.mqttuser
-                    password=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
-
-                    slug=form.cleaned_data['coordinate_slug']
-                    if (slug):
-                        network="fixed"
+                    station_slug=form.cleaned_data['coordinate_slug']
+                    if (station_slug):
+                        # if we have station slug from other form we get it from DB
+                        # fixed station
+                        mystation=StationMetadata.objects.get(ident__username=ident,slug=station_slug)
+                        if mystation is not None:
+                            if mystation.active:
+                                lat=mystation.lat
+                                lon=mystation.lon
+                                network=mystation.network
+                                myboard = mystation.board_set.get(slug=board_slug).split(":")[0]
+                                if myboard is not None:
+                                    if ( myboard.active and myboard.transportmqtt.active):
+                                        mqttuser = myboard.transportmqtt.mqttuser
+                                        mqttpassword = myboard.transportmqtt.mqttpassword
+                                        host = myboard.transportmqtt.mqttserver
+                                    
                     else:
-                        network="mobile"
+                        # no station slug so we are a mobile station
+                        try:
+                            # get default mobile station from DB
+                            station_slug="auto_mobile"
+                            mystation=StationMetadata.objects.get(ident__username=ident,slug=station_slug)
+                            network=mystation.network
+                            myboard = mystation.board_set.get(slug=board_slug)
+                            if myboard is not None:
+                                if ( myboard.active and myboard.transportmqtt.active):
+                                    mqttuser = myboard.transportmqtt.mqttuser
+                                    mqttpassword = myboard.transportmqtt.mqttpassword
+                                    host = myboard.transportmqtt.mqttserver
 
-                    print("<",slug,">","prefix:",prefix)
+                        except ObjectDoesNotExist:
+                            # create new default mobile station in DB
+                            network="mobile"
+                            #host = get_current_site(request)
+                            host="localhost"
+                            mqttuser=ident
+                            mqttpassword=User.objects.make_random_password()
+                            user=User.objects.get(username=ident)
+                            mystation=StationMetadata(slug=station_slug,name="Auto mobile",active=True,network=network,ident=user, mqttrootpath="report",lat=None,lon=None)    
+                            mystation.clean()
+                            mystation.save()
 
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
-                    mqtt.connect()                    
+                            rmap.rmap_core.addboard(station_slug=station_slug,username=ident,board_slug=board_slug,activate=True
+                                                    ,serialactivate=False
+                                                    ,mqttactivate=True, mqttserver=host, mqttusername=mqttuser, mqttpassword=mqttpassword, mqttsamplerate=30
+                                                    ,bluetoothactivate=False, bluetoothname="HC-05"
+                                                    ,amqpactivate=False, amqpusername=ident, amqppassword=mqttpassword, amqpserver=host, queue="rmap", exchange="rmap"
+                                                    ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
+                                                    )
+
+                    print(host, ident,lon,lat,network,prefix,prefix, mqttuser+"/"+station_slug+"/"+board_slug,mqttpassword)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=prefix,
+                                  username=mqttuser+"/"+station_slug+"/"+board_slug,password=mqttpassword)
+                    mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
 
                     timeelapsedform = TimeElapsedForm()
                     form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
                 except:
-                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
+                    raise
+                    #return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
 
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"success":True})
 
@@ -628,7 +677,7 @@ def insertNewStation(request):
                                  ,serialactivate=False
                                  ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword=password, mqttsamplerate=30
                                  ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername="rmap", amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
+                                ,amqpactivate=False, amqpusername=ident, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
                                  ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                     )
                     
@@ -708,7 +757,6 @@ def insertNewStationDetail(request,slug=None):
                     
                     mystation.clean()
                     mystation.save()
-
 
 
                     # remove all StationConstantData

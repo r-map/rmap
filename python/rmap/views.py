@@ -406,20 +406,46 @@ def superuser(request):
 
 @csrf_exempt  
 def acl(request):
+    '''ACC:
+    1 - read access
+    2 - write access
+    3 - read and write access
+    4 - subscribe access
+    8 - unsubscribe access
+
+    #define MOSQ_ACL_NONE 0x00
+    #define MOSQ_ACL_READ 0x01
+    #define MOSQ_ACL_WRITE 0x02
+    #define MOSQ_ACL_SUBSCRIBE 0x04
+    #define MOSQ_ACL_UNSUBSCRIBE 0x08
+
+    access will be one of: MOSQ_ACL_SUBSCRIBE when a client is asking
+    to subscribe to a topic string.  This differs from MOSQ_ACL_READ
+    in that it allows you to deny access to topic strings rather than
+    by pattern.  For example, you may use MOSQ_ACL_SUBSCRIBE to deny
+    subscriptions to ‘#’, but allow all topics in MOSQ_ACL_READ.  This
+    allows clients to subscribe to any topic they want, but not
+    discover what topics are in use on the server.  MOSQ_ACL_READ when
+    a message is about to be sent to a client (i.e. whether it can
+    read that topic or not).  MOSQ_ACL_WRITE when a message has been
+    received from a client (i.e. whether it can write to that topic or
+    not).
+
+    '''
 
     if 'topic' in request.POST and 'acc' in request.POST :
         topic = request.POST['topic']
         acc = request.POST['acc']
         #print (topic,acc)
         
-        #read to all
-        if acc == "1":
+        #read and subscribe to all
+        if acc == "1" or acc == "4":
             response=HttpResponse("allow")
             response.status_code=200
             return response
 
-        #write to all in test/#
-        if topic.startswith(("test/")) and acc == "2":
+        #read and write to all in test/#
+        if topic.startswith(("test/")) and (acc == "2" or acc == "3"):
             response=HttpResponse("allow")
             response.status_code=200
             return response
@@ -465,8 +491,8 @@ def acl(request):
             mytopic="/"
                     
         if (username):
-            #write to all in report/username/# sample/username/# rpc/username/#
-            if topic.startswith(("sample/"+username+mytopic,"report/"+username+mytopic,"maint/"+username+mytopic,"rpc/"+username+mytopic)) and acc == "2":
+            #read and write and subscribe to all in report/username/# sample/username/# rpc/username/#
+            if topic.startswith(("sample/"+username+mytopic,"report/"+username+mytopic,"maint/"+username+mytopic,"rpc/"+username+mytopic)):
                 response=HttpResponse("allow")
                 response.status_code=200
                 return response
