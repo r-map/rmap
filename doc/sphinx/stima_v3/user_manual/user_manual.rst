@@ -12,7 +12,7 @@ I moduli si interconnettono tra loro tramite bus I2C.
 Le board si interconnettono tramite interfaccia basata sullo standard UPIN-27.
 
 
-funzioni svolte dalle Board
+Funzioni svolte dalle Board
 ...........................
 
 RTC
@@ -598,6 +598,16 @@ oppure tramite un programma python:
 			  rpcproxy.recovery(dts=DATETIMESTART)
 
 
+Temporizzazioni
+---------------
+
+TODO
+
+Salvataggio e invio dati
+------------------------
+
+TODO
+			  
 Diagnostica
 -----------
 
@@ -866,26 +876,17 @@ expressed as a percentage
 +------+-----------------------------+
 
 
-Temporizzazioni
-^^^^^^^^^^^^^^^
-
-Segnale Radio GSM/GPRS
-^^^^^^^^^^^^^^^^^^^^^^
-
-Dati sensori
-^^^^^^^^^^^^
-
-Salvataggio e invio dati
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-Messaggi di errore
-^^^^^^^^^^^^^^^^^^
-
-tramite monitoraggio MQTT
+Tramite monitoraggio MQTT
 .........................
+
+TODO
 
 Tramite porta seriale
 .....................
 
+TODO
+
 Tramite SDcard
 ..............
+
+TODO
