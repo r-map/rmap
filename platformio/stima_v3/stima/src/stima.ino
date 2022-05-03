@@ -615,7 +615,7 @@ void init_sensors () {
 
     #if (USE_LCD)
     lcd_error |= lcd.clear();
-    lcd_error |= lcd.setCursor(0, 1);
+    lcd_error |= lcd.setCursor(0, 0);
     #endif
 
     // read sensors configuration, create and setup
@@ -634,6 +634,10 @@ void init_sensors () {
       }
     }
     #if (USE_LCD)
+    wdt_reset();
+    delay(5000);
+    wdt_reset();
+    lcd_error |= lcd.clear();
     lcd_error |= lcd.setCursor(0, 0);
     lcd_error |= lcd.print(F("Sensor: "))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count-sensors_error_count)==0;
@@ -1681,8 +1685,8 @@ void supervisor_task() {
 	    lcd_error |= lcd.print(minute(next_ptr_time_for_sensors_reading))==0;
 	    lcd_error |= lcd.print(F(":"))==0;
 	    lcd_error |= lcd.print(second(next_ptr_time_for_sensors_reading))==0;
-	    lcd_error |= lcd.setCursor(0, 3);
-	    lcd_error |= lcd.print(F("DISPLAY Restarted"))==0;
+	    lcd_error |= lcd.setCursor(12, 0);
+	    lcd_error |= lcd.print(F("LCD: KO"))==0;
          }
 	 #endif
 
@@ -1741,15 +1745,16 @@ void supervisor_task() {
 	    LOGE(F("--> there is a valid FAT32 filesystem?"));
             #if (USE_LCD)
 	    lcd_error |= lcd.setCursor(0, 3);
-	    lcd_error |= lcd.print( F("SD Card: "))==0;
+	    lcd_error |= lcd.print(F("SD Card: "))==0;
 	    lcd_error |= lcd.print(FAIL_STRING)==0;
+	    lcd_error |= lcd.print(F("         "))==0;
 	    #endif
           }else{
 	    // remove firmware to do not redo update the next reboot
 	    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
 	      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
 	      lcd_error |= lcd.setCursor(0, 3);
-	      lcd_error |= lcd.print( F("NEW Firmware loaded"))==0;
+	      lcd_error |= lcd.print( F("NEW Firmware loaded "))==0;
 	    }
 	  }
         }
