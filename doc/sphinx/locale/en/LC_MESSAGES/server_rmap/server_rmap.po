@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-10-13 17:30+0200\n"
+"POT-Creation-Date: 2022-05-03 12:18+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -22,182 +22,421 @@ msgstr ""
 msgid "Server RMAP"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:8
-msgid "Installazione sistema operativo Centos 8"
-msgstr ""
-
-#: ../../server_rmap/server_rmap.rst:10
-msgid "Installare Centos 8."
+#: ../../server_rmap/server_rmap.rst:9
+msgid "Analisi funzionalità RMAP"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:12
-msgid "Aggiunta repository e installazione pacchetti ::"
+msgid "Introduzione"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:27
-msgid "/etc/selinux/config::"
+#: ../../server_rmap/server_rmap.rst:14
+msgid ""
+"Le funzionalità offerte dal server RMAP (`https://rmap.cc "
+"<https://rmap.cc/>`__) sono implementate usando i seguenti software e "
+"servizi (sono elencati solo quelli significativi):"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:18
+msgid ""
+"Broker AMQP (RabbitMQ) per la distribuzione di dati in tempo reale "
+"attraverso un sistema di code, sia da stazione a server che da server a "
+"server."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:21
+msgid "Broker MQTT (Mosquitto) per l’invio di dati da stazioni al server."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:22
+msgid "Arkimet per l’archiviazione dei dati storici"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:23
+msgid "DB-All.e per l’archiviazione dei dati recenti"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:24
+msgid "Una singola applicazione web (Django web framework) che gestisce"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:26
+msgid "Sistema di autenticazione"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:27 ../../server_rmap/server_rmap.rst:82
+#: ../../server_rmap/server_rmap.rst:125
+msgid "Visualizzazione dei dati"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:28 ../../server_rmap/server_rmap.rst:73
+#: ../../server_rmap/server_rmap.rst:127
+msgid "Registrazione utenti"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:29
+msgid "Configurazione di metadati e firmware delle stazioni"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:30
+msgid "Inserimento manuale dati e immagini georeferenziati"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:31
+msgid "Visualizzazione personalizzata per RainBO"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:33
+msgid "|image0|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:36
+msgid "Data ingestion"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:37
+msgid ""
+"Il data ingestion riguarda principalmente l’accoglimento di dati da "
+"stazioni via MQTT e AMQP. I dati che arrivano via MQTT sono poi inoltrati"
+" al broker AMQP, che è il nucleo della movimentazione dei dati "
+"all’interno del sistema. I client che devono inviare dati via MQTT o AMQP"
+" devono passare da un sistema di autenticazione e autorizzazione, "
+"sostanzialmente per garantire che i dati siano inviati solo da utenti "
+"autenticati e che non vadano a sovrapporsi a dati altrui. Entrambi i "
+"broker interrogano il sistema di autenticazione\\ **,** un servizio web "
+"che implementa gli endpoint richiesti da RabbitMQ e Mosquitto. Il "
+"servizio di autorizzazione su AMQP (cioè cosa può pubblicare un utente "
+"autenticato) è invece delegato al demone *identvalidationd*, che prende i"
+" dati dalla coda di ingresso dell’utente e passa alla coda di ingestion "
+"solo i dati per cui il campo ident è uguale al nome utente. I dati che "
+"passano quest’ultimo controllo sono poi inviati:"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:52
+msgid ""
+"Ad altre code AMQP, ad esempio per forniture esterne o per altri "
+"processamenti. Su due di queste code sono inoltrati i dati per il SIMC "
+"(archiviati in Arkimet in formato VM2), una per le stazioni delle reti "
+"*claster* e *rmap* e l’altra per la rete *profe*."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:56
+msgid "Al database DB-All.e che contiene i dati recenti."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:58
+msgid ""
+"Ci sono inoltre alcuni moduli per l’accoglimento di dati da sorgenti che "
+"non usano AMQP o non usano il formato BUFR (e.g. Luftdaten)."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:61
+msgid "|image1|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:64
+msgid "Configurazione delle stazioni"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:66
+msgid ""
+"Questa funzionalità permette l’aggiornamento della configurazione e del "
+"firmware delle stazioni STIMA. L’aggiornamento può essere fatto via HTTP "
+"o AMQP, previa autenticazione presso il corrispondente servizio di "
+"autenticazione. |image2|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:75
+msgid ""
+"Questa funzionalità permette di registrare gli utenti attraverso un "
+"classico processo di iscrizione: l’utente compila una form e riceve una "
+"email per la conferma dell’avvenuta registrazione. Ovviamente, c’è un "
+"dialogo con il servizio di autenticazione. |image3|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:84
+msgid ""
+"Questo servizio permette di visualizzare i dati archiviati (DB-All.e e "
+"Arkimet) sia su mappa che su grafico. Non c’è servizio di autenticazione "
+"e autorizzazione perchè si presuppone che tutti i dati siano pubblici. "
+"Questo sistema è probabilmente necessario per i dati della rete "
+"amatoriale e quindi è necessario che il servizio corrispondente di data "
+"ingestion sia collegato all’importatore dei dati su DB-All.e e Arkimet. "
+"|image4|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:93
+msgid "Cosudo"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:95
+msgid ""
+"Cosudo permette di analizzare i dati osservati per identificare anomalie,"
+" confrontando i dati da stazione con dati radar, satellite e previsti. "
+"Inoltre, permette all’operatore di invalidare dei dati: tali "
+"invalidazioni sono poi inviate ai sistemi del SIMC per applicarle "
+"sull’archivio."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:101
+msgid ""
+"È una applicazione che non necessita di accesso dall’esterno e deve avere"
+" a disposizione i dati dall’archivio del SIMC."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:104
+msgid ""
+"Il sistema di autenticazione è necessario poiché, essendo ospitato sul "
+"server rmap.cc, deve essere reso privato."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:107
+msgid ""
+"Non è ancora operativo e mancano i flussi di alimentazione dei dati. "
+"|image5|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:111 ../../server_rmap/server_rmap.rst:126
+msgid "Inserimento manuale dei dati"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:113
+msgid ""
+"Questa funzionalità permette l’inserimento manuale, da parte di "
+"operatori, di dati e immagini via HTTP e AMQP. I dati attualmente sono le"
+" osservazioni della neve e del tempo (quest’ultimo all’interno del "
+"progetto RainBO). Si appoggia al sistema di autenticazione. |image6|"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:120
+msgid "RainBO"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:122
+msgid ""
+"È l’interfaccia per un progetto, che permette la visualizzazione con "
+"delle viste personalizzate per i seguenti servizi:"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:130
+msgid "Interfaccia web"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:131
+msgid "L’accesso da browser al sistema per alcune funzionalità, quali"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:133
+msgid "Registrazione utente"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:134
+msgid "Configurazione manuale delle stazioni"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:135
+msgid "Visualizzazione dati"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:136
+msgid "Inserimento manuale di dati"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:138
+msgid ""
+"Sono offerte da un sistema monolitico, in cui tutti i vari pezzi sono "
+"interconnessi. È possibile separarli, ma è richiesto un intervento non "
+"banale sul frontend che può essere eseguito solo a valle "
+"dell’organizzazione dei vari pezzi di RMAP su diversi host."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:143
+msgid ""
+"Se una funzionalità usa varie app Django e deve quindi “assemblare” varie"
+" interfacce insieme, allora è necessario fare un repository per la "
+"singola funzionalità che dipende dalle app Django richieste."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:172
+msgid "Installazione sistema operativo Centos 8"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:175
+msgid "Installazione sistema operativo"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:177
+msgid "Installare Centos 8."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:179
+msgid "Aggiunta repository e installazione pacchetti ::"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:194
+msgid "/etc/selinux/config::"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:198
 msgid ""
 "`/etc/tmpfiles.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/tmpfiles.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:38
+#: ../../server_rmap/server_rmap.rst:205
 msgid ""
 "`/etc/sysconfig/crond "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/sysconfig/crond>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:47
+#: ../../server_rmap/server_rmap.rst:214
 msgid "postgresql"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:60
+#: ../../server_rmap/server_rmap.rst:227
 msgid ""
 "`/var/lib/pgsql/data/pg_hba.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/pg_hba.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:62
+#: ../../server_rmap/server_rmap.rst:229
 msgid ""
 "`/var/lib/pgsql/data/postgresql.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/postgresql.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:68
+#: ../../server_rmap/server_rmap.rst:235
 msgid ""
 "`/etc/systemd/system/postgresql.service.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/systemd/system/postgresql.service.d/rmap.conf>`_"
 " ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:88
+#: ../../server_rmap/server_rmap.rst:255
 msgid ""
 "`/etc/rmap/rmap-site.cfg "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap"
 "/rmap-site.cfg>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:90
+#: ../../server_rmap/server_rmap.rst:257
 msgid ""
 "`/etc/rmap/dashboard.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap/dashboard.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:92
+#: ../../server_rmap/server_rmap.rst:259
 msgid ""
 "`/etc/rmap/graphTemplates.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap/graphTemplates.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:110
+#: ../../server_rmap/server_rmap.rst:277
 msgid "apache"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:112
+#: ../../server_rmap/server_rmap.rst:279
 msgid "Collect static files from django apps: ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:128
+#: ../../server_rmap/server_rmap.rst:295
 msgid ""
 "`/etc/httpd/conf.modules.d/00-mpm.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.modules.d/00-mpm.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:130
+#: ../../server_rmap/server_rmap.rst:297
 msgid ""
 "`/etc/httpd/conf.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:132
+#: ../../server_rmap/server_rmap.rst:299
 msgid ""
 "`/etc/httpd/conf.d/rmap.inc "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/httpd/conf.d/rmap.inc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:140
+#: ../../server_rmap/server_rmap.rst:307
 msgid "Arkimet"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:154
+#: ../../server_rmap/server_rmap.rst:321
 msgid ""
 "`/etc/sysconfig/arkimet "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/sysconfig/arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:156
+#: ../../server_rmap/server_rmap.rst:323
 msgid ""
 "`/etc/arkimet/scan/bufr_generic_mobile_rmap.py "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/arkimet/scan/bufr_generic_mobile_rmap.py>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:159
+#: ../../server_rmap/server_rmap.rst:326
 msgid "Replicate structure in:"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:161
+#: ../../server_rmap/server_rmap.rst:328
 msgid ""
 "`/rmap/arkimet  "
 "<https://github.com/r-map/rmap/tree/master/server/rmap/arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:171
+#: ../../server_rmap/server_rmap.rst:338
 msgid "Mosquitto"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:180
+#: ../../server_rmap/server_rmap.rst:347
 msgid ""
 "`/etc/mosquitto/conf.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/conf.d/rmap.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:182
+#: ../../server_rmap/server_rmap.rst:349
 msgid ""
 "`/etc/mosquitto/aclfile "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/aclfile>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:184
+#: ../../server_rmap/server_rmap.rst:351
 msgid "remove everythings and add in /etc/mosquitto/mosquitto.conf ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:196
+#: ../../server_rmap/server_rmap.rst:363
 msgid "if the package use systemV create:"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:198
+#: ../../server_rmap/server_rmap.rst:365
 msgid ""
 "`/etc/monit.d/mosquitto "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/mosquitto>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:202
+#: ../../server_rmap/server_rmap.rst:369
 msgid "Rabbitmq"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:211
+#: ../../server_rmap/server_rmap.rst:378
 msgid ""
 "`/etc/rabbitmq/enabled_plugins "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/enabled_plugins>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:213
+#: ../../server_rmap/server_rmap.rst:380
 msgid ""
 "`/etc/rabbitmq/rabbitmq-env.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq"
 "/rabbitmq-env.conf>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:215
+#: ../../server_rmap/server_rmap.rst:382
 msgid ""
 "`/etc/rabbitmq/rabbitmq.config "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:223
+#: ../../server_rmap/server_rmap.rst:390
 msgid ""
 "login at management interface with user \"guest\" and password \"guest\" "
 "on overview page use import definition to configure exchange, queue and "
@@ -205,11 +444,11 @@ msgid ""
 "with a new real user"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:227
+#: ../../server_rmap/server_rmap.rst:394
 msgid "Per attivare uno showell: ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:232
+#: ../../server_rmap/server_rmap.rst:399
 msgid ""
 "problema non risolto: se si trasferiscono dati scritti da un utente "
 "autenticandosi con un altro utente la security su user_id lo vieta. "
@@ -218,83 +457,83 @@ msgid ""
 "formato json sopra ma non funziona"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:238
+#: ../../server_rmap/server_rmap.rst:405
 msgid "Monit"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:244
+#: ../../server_rmap/server_rmap.rst:411
 msgid ""
 "`/etc/monitrc "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monitrc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:246
+#: ../../server_rmap/server_rmap.rst:413
 msgid ""
 "`/etc/monit.d/rmap "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/rmap>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:254
+#: ../../server_rmap/server_rmap.rst:421
 msgid "Cron"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:256
+#: ../../server_rmap/server_rmap.rst:423
 msgid ""
 "`/etc/cron.d/arpae_aq_ckan "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:258
+#: ../../server_rmap/server_rmap.rst:425
 msgid ""
 "`/etc/cron.d/dballe2arkimet "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/dballe2arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:260
+#: ../../server_rmap/server_rmap.rst:427
 msgid ""
 "`/etc/cron.d/luftdaten "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/luftdaten>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:262
+#: ../../server_rmap/server_rmap.rst:429
 msgid ""
 "`/etc/cron.d/makeexplorer "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/makeexplorer>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:266
+#: ../../server_rmap/server_rmap.rst:433
 msgid "Sincronizzazione DB da un server"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:269
+#: ../../server_rmap/server_rmap.rst:436
 msgid "Server di origine"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:275
+#: ../../server_rmap/server_rmap.rst:442
 msgid "rimuovere le prime righe che non sono json ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:285
+#: ../../server_rmap/server_rmap.rst:452
 msgid "Server di destinazione"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:287
+#: ../../server_rmap/server_rmap.rst:454
 msgid "Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap) ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:306
+#: ../../server_rmap/server_rmap.rst:473
 msgid "Arkiweb"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:307
+#: ../../server_rmap/server_rmap.rst:474
 msgid "AL MOMENTO NON DISPONIBILE SU CENTOS 8 NOT AVAILABLE ON CENTOS 8"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:314
+#: ../../server_rmap/server_rmap.rst:481
 msgid "/etc/httpd/conf.d/arkiweb.conf ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:359
+#: ../../server_rmap/server_rmap.rst:526
 msgid "/rmap/arkimet/arkiweb.config"
 msgstr ""
 
@@ -397,5 +636,14 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "/rmap/arkimet/arkiweb.config ::"
+#~ msgstr ""
+
+#~ msgid "Server di origine"
+#~ msgstr ""
+
+#~ msgid "Server di destinazione"
+#~ msgstr ""
+
+#~ msgid "Installazioen sistema operativo"
 #~ msgstr ""
 

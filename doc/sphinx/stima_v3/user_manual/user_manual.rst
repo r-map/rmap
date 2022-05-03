@@ -604,6 +604,268 @@ Diagnostica
 tramite DISPLAY
 ...............
 
+Messaggi all'accensione
+^^^^^^^^^^^^^^^^^^^^^^^
+
+**Prima schermata attesa configurazione:**
+
++-------------------------------------------------+
+| Wait configuration                              |
++-------------------------------------------------+
+|                                                 |
++-------------------------------------------------+
+|                                                 |
++-------------------------------------------------+
+|                                                 |
++-------------------------------------------------+
+
+E' stato inserito il ponticello per la configurazione e la stazione rimane in attesa;
+Per attivare la stazioen bisogna rimuovere il ponticello.
+
+**Prima schermata, tipo e versioni:**
+	    
++-------------------------------------------------+
+| ---- www.rmap.cc ----                           |
++-------------------------------------------------+
+| Stima station                                   |
++-------------------------------------------------+
+| <station type> V: <firmware version>            |
++-------------------------------------------------+
+| Configuration V: <configuration version>        |
++-------------------------------------------------+
+
+* **station type**: tipo di stazione definito a tempo compilazione
+* **firmware version**: versione del firmware
+* **configuration version**: versione della configurazione per compatibilità
+
+
+**Seconda schermata, dati costanti di stazione:**
+
++-------------------------------------------------+
+| <bcode1>: <constant station data 1>             |
++-------------------------------------------------+
+|                                                 |
++-------------------------------------------------+
+| <bcode2>: <constant station data 2>             |
++-------------------------------------------------+
+|                                                 |
++-------------------------------------------------+
+
+* **bcode1**: codice della prima variabile come da tabella B; Get the full table from: https://github.com/ARPA-SIMC/dballe/blob/master/tables/dballe.txt
+* **constant station data 1**: value 1
+* **bcode2**: codice della secondavariabile come da tabella B; Get the full table from: https://github.com/ARPA-SIMC/dballe/blob/master/tables/dballe.txt
+* **constant station data 2**: value 2 
+
+**Terza schermata, stato sensori e metadati di configurazione:**
+
++---------+---------------------------------------+
+| Sensor: |   <sensor ok>/<sensor total> <OKKO>   |
++---------+---------------------------------------+
+| user    | <user>                                |
++---------+---------------------------------------+
+| station | <station>                             |
++---------+---------------------------------------+
+| board   | <board>                               |
++---------+---------------------------------------+
+
+* **sensor ok**: numero sensori rilevati
+* **sensor total**: numero tolale sensori previsti
+* **OKKO**: stato riassuntivo dei sensori ( OK: tutto bene; KO: malfunzionamento)
+* **user**: mqtt username
+* **station**: station slug
+* **board**: board slug
+
+**Quarta schermata, stato sensori e metadati di configurazione:**
+
++---------+---------------------------------------+
+| Sensor: |   <sensor ok>/<sensor total> <OKKO>   |
++---------+---------------------------------------+
+| server  | <mqtt server>                         |
++---------+---------------------------------------+
+| ntp     | <ntp server>                          |
++---------+---------------------------------------+
+| board   | <board>                               |
++---------+---------------------------------------+
+
+* **sensor ok**: numero sensori rilevati
+* **sensor total**: numero tolale sensori previsti
+* **OKKO**: stato riassuntivo dei sensori ( OK: tutto bene; KO: malfunzionamento)
+* **server**: mqtt server name
+* **ntp**: ntp server name
+* **board**: board slug
+
+**Messaggi visualizzati nella quarta riga del display:**
+
+* **SD Card: KO**: c'è un problema nell'utilizzo dell'SDcard
+* **NEW Firmware loaded**: è stato appena affettuato un aggiornamento del firmware e il firmware è stato rinominato sull'SDcard
+
+
+Messaggi durante il funzionamento
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
++------+------------+-----------------------------+
+| <SN>:| <h>:<m>:<s>| rf:<rssi>/<ber> <LCD: KO>   |
++------+------------+-------------+---------------+
+| <RT> | temp       | humidity    | precipitation |
++------+------------+-------------+---------------+
+|    battery        | charge      | solar panel   |
++------+------------+-------------+---------------+
+|SD<SN><SOKKO>      |MQ<MN><MOKKO>|FA<FN><FOKKO>  |
++-------------------+-------------+---------------+
+
+
+* **SN**: orario prossima elaborazione: S inizio periodo report; N fine periodo report
+* **h**: ora GMT
+* **m**: minuti
+* **s**: secondi
+* **rssi**: qualità segnale radio; vedi tabella sotto (oppure KO in caso di errore)
+* **ber**:  qualità segnale radio; vedi tabella sotto (oppure KO in caso di errore)
+* **LCD**: KO: messaggio se l'LCD ha avuto errori ed è stato reinizializzato 
+  
+ultimi dati acquisiti:
+
+* **RT**: i dati visualizzati si riferiscono a: T test; R report
+* **temp**: temperatura e unità di misura
+* **humidity**: umidità e unità di misura
+* **precipitation**: precipitazione e unità di misura
+* **battery**: tensione batteria e unità di misura
+* **charge**: carica batteria e unità di misura
+* **solar** panel: tensione pannello solare e unità di misura
+
+ultime oprazioni eseguite:
+
+* **SN**: numero di dati scritti su SDcard
+* **SOKKO**: stato riassuntivo scrittura SDcard ( OK: tutto bene; KO: malfunzionamento)
+* **MN**: numero di dati inviati al broker MQTT
+* **MOKKO**: stato riassuntivo invio dati MQTT ( OK: tutto bene; KO: malfunzionamento)
+* **FN**: numero di dati con acquisizione fallita dai sensori
+* **FOKKO**: stato riassuntivo acquisizione dati dai sensori ( OK: tutto bene; KO: malfunzionamento)
+
+**rssi**:
+
++---------+-----------------------------+
+| RSI     | value                       |
++=========+=============================+
+| 0       | -115 dBm or less            |
++---------+-----------------------------+
+| 1       | -111 dBm                    |
++---------+-----------------------------+
+| 2 to 30 | -110 dBm to -54 dBm         |
++---------+-----------------------------+
+| 31      | -52 dBm or greater          |
++---------+-----------------------------+
+| 99      | not known or not detectable |
++---------+-----------------------------+
+
+dBm is short for decibel per milliwatt and is a common unit for signal
+strength. -115 dbm is the lowest signal strength value and would
+typically mean that the station is on a network blind spot. -111 dBm
+is also a bad number for signal reception. I was able to connect to a
+network at -70 dBm. Here is a handy list of dBm levels and what they
+mean:
+
+RSSI Condition:
+
++------+-----------+
+| dBm  | mean      |
++======+===========+
+| -109 | Marginal  |
++------+-----------+
+| -107 | Marginal  |
++------+-----------+
+| -105 | Marginal  |
++------+-----------+
+| -103 | Marginal  |
++------+-----------+
+| -101 | Marginal  |
++------+-----------+
+| -99  | Marginal  |
++------+-----------+
+| -97  | Marginal  |
++------+-----------+
+| -95  | Marginal  |
++------+-----------+
+| -93  | OK        |
++------+-----------+
+| -91  | OK        |
++------+-----------+
+| -89  | OK        |
++------+-----------+
+| -87  | OK        |
++------+-----------+
+| -85  | OK        |
++------+-----------+
+| -83  | Good      |
++------+-----------+
+| -81  | Good      |
++------+-----------+
+| -79  | Good      |
++------+-----------+
+| -77  | Good      |
++------+-----------+
+| -75  | Good      |
++------+-----------+
+| -73  | Excellent |
++------+-----------+
+| -71  | Excellent |
++------+-----------+
+| -69  | Excellent |
++------+-----------+
+| -67  | Excellent |
++------+-----------+
+| -65  | Excellent |
++------+-----------+
+| -63  | Excellent |
++------+-----------+
+| -61  | Excellent |
++------+-----------+
+| -59  | Excellent |
++------+-----------+
+| -57  | Excellent |
++------+-----------+
+| -55  | Excellent |
++------+-----------+
+| -53  | Excellent |
++------+-----------+
+
+If you will compare this to smartphones, marginal is one bar, OK is
+two bars, good is three bars and excellent is four bars.
+
+**ber** (bit error rate):
+
+In digital transmission, the number of bit errors is the number of
+received bits of a data stream over a communication channel that have
+been altered due to noise, interference, distortion or bit
+synchronization errors.
+
+The bit error rate (BER) is the number of bit errors per unit
+time. The bit error ratio (also BER) is the number of bit errors
+divided by the total number of transferred bits during a studied time
+interval. Bit error ratio is a unitless performance measure, often
+expressed as a percentage
+
++------+-----------------------------+
+| bear | mean                        |
++------+-----------------------------+
+|  0   |  BER  < 0.2%                |
++------+-----------------------------+
+|  1   | 0.2%  < BER < 0.4%          |
++------+-----------------------------+
+|  2   | 0.4%  < BER < 0.8%          |
++------+-----------------------------+
+|  3   | 0.8%  < BER < 1.6%          |
++------+-----------------------------+
+|  4   | 1.6%  < BER < 3.2%          |
++------+-----------------------------+
+|  5   | 3.2%  < BER < 6.4%          |
++------+-----------------------------+
+|  6   | 6.4%  < BER < 12.8%         |
++------+-----------------------------+
+|  7   | 12.8% < BER                 |
++------+-----------------------------+
+| 99   | not known or not detectable |
++------+-----------------------------+
+
+
 Temporizzazioni
 ^^^^^^^^^^^^^^^
 

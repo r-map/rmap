@@ -4,8 +4,175 @@
 Server RMAP 
 =====================================
 
+
+Analisi funzionalità RMAP
+-------------------------
+
+Introduzione
+............
+
+Le funzionalità offerte dal server RMAP
+(`https://rmap.cc <https://rmap.cc/>`__) sono implementate usando i
+seguenti software e servizi (sono elencati solo quelli significativi):
+
+-  Broker AMQP (RabbitMQ) per la distribuzione di dati in tempo reale
+   attraverso un sistema di code, sia da stazione a server che da server
+   a server.
+-  Broker MQTT (Mosquitto) per l’invio di dati da stazioni al server.
+-  Arkimet per l’archiviazione dei dati storici
+-  DB-All.e per l’archiviazione dei dati recenti
+-  Una singola applicazione web (Django web framework) che gestisce
+
+   -  Sistema di autenticazione
+   -  Visualizzazione dei dati
+   -  Registrazione utenti
+   -  Configurazione di metadati e firmware delle stazioni
+   -  Inserimento manuale dati e immagini georeferenziati
+   -  Visualizzazione personalizzata per RainBO
+
+|image0|
+
+Data ingestion
+..............
+Il data ingestion riguarda principalmente l’accoglimento di dati da
+stazioni via MQTT e AMQP. I dati che arrivano via MQTT sono poi
+inoltrati al broker AMQP, che è il nucleo della movimentazione dei dati
+all’interno del sistema. I client che devono inviare dati via MQTT o
+AMQP devono passare da un sistema di autenticazione e autorizzazione,
+sostanzialmente per garantire che i dati siano inviati solo da utenti
+autenticati e che non vadano a sovrapporsi a dati altrui. Entrambi i
+broker interrogano il sistema di autenticazione\ **,** un servizio web
+che implementa gli endpoint richiesti da RabbitMQ e Mosquitto. Il
+servizio di autorizzazione su AMQP (cioè cosa può pubblicare un utente
+autenticato) è invece delegato al demone *identvalidationd*, che prende
+i dati dalla coda di ingresso dell’utente e passa alla coda di ingestion
+solo i dati per cui il campo ident è uguale al nome utente. I dati che
+passano quest’ultimo controllo sono poi inviati:
+
+-  Ad altre code AMQP, ad esempio per forniture esterne o per altri
+   processamenti. Su due di queste code sono inoltrati i dati per il
+   SIMC (archiviati in Arkimet in formato VM2), una per le stazioni
+   delle reti *claster* e *rmap* e l’altra per la rete *profe*.
+-  Al database DB-All.e che contiene i dati recenti.
+
+Ci sono inoltre alcuni moduli per l’accoglimento di dati da sorgenti che
+non usano AMQP o non usano il formato BUFR (e.g. Luftdaten).
+
+|image1|
+
+Configurazione delle stazioni
+.............................
+
+Questa funzionalità permette l’aggiornamento della configurazione e del
+firmware delle stazioni STIMA. L’aggiornamento può essere fatto via HTTP
+o AMQP, previa autenticazione presso il corrispondente servizio di
+autenticazione.
+|image2|
+
+Registrazione utenti
+....................
+
+Questa funzionalità permette di registrare gli utenti attraverso un
+classico processo di iscrizione: l’utente compila una form e riceve una
+email per la conferma dell’avvenuta registrazione. Ovviamente, c’è un
+dialogo con il servizio di autenticazione.
+|image3|
+
+Visualizzazione dei dati
+........................
+
+Questo servizio permette di visualizzare i dati archiviati (DB-All.e e
+Arkimet) sia su mappa che su grafico. Non c’è servizio di autenticazione
+e autorizzazione perchè si presuppone che tutti i dati siano pubblici.
+Questo sistema è probabilmente necessario per i dati della rete
+amatoriale e quindi è necessario che il servizio corrispondente di data
+ingestion sia collegato all’importatore dei dati su DB-All.e e Arkimet.
+|image4|
+
+Cosudo
+......
+
+Cosudo permette di analizzare i dati osservati per identificare
+anomalie, confrontando i dati da stazione con dati radar, satellite e
+previsti. Inoltre, permette all’operatore di invalidare dei dati: tali
+invalidazioni sono poi inviate ai sistemi del SIMC per applicarle
+sull’archivio.
+
+È una applicazione che non necessita di accesso dall’esterno e deve
+avere a disposizione i dati dall’archivio del SIMC.
+
+Il sistema di autenticazione è necessario poiché, essendo ospitato sul
+server rmap.cc, deve essere reso privato.
+
+Non è ancora operativo e mancano i flussi di alimentazione dei dati.
+|image5|
+
+Inserimento manuale dei dati
+............................
+
+Questa funzionalità permette l’inserimento manuale, da parte di
+operatori, di dati e immagini via HTTP e AMQP. I dati attualmente sono
+le osservazioni della neve e del tempo (quest’ultimo all’interno del
+progetto RainBO). Si appoggia al sistema di autenticazione.
+|image6|
+
+RainBO
+......
+
+È l’interfaccia per un progetto, che permette la visualizzazione con
+delle viste personalizzate per i seguenti servizi:
+
+-  Visualizzazione dei dati
+-  Inserimento manuale dei dati
+-  Registrazione utenti
+
+Interfaccia web
+...............
+L’accesso da browser al sistema per alcune funzionalità, quali
+
+-  Registrazione utente
+-  Configurazione manuale delle stazioni
+-  Visualizzazione dati
+-  Inserimento manuale di dati
+
+Sono offerte da un sistema monolitico, in cui tutti i vari pezzi sono
+interconnessi. È possibile separarli, ma è richiesto un intervento non
+banale sul frontend che può essere eseguito solo a valle
+dell’organizzazione dei vari pezzi di RMAP su diversi host.
+
+Se una funzionalità usa varie app Django e deve quindi “assemblare”
+varie interfacce insieme, allora è necessario fare un repository per la
+singola funzionalità che dipende dalle app Django richieste.
+
+.. |image0| image:: images/Pictures/100000000000070A0000053E6107640098E107D3.png
+   :width: 16.51cm
+   :height: 12.312cm
+.. |image1| image:: images/Pictures/10000000000006F3000006BFD6FD52DC1D86FE41.png
+   :width: 16.51cm
+   :height: 16.016cm
+.. |image2| image:: images/Pictures/100002010000080000000507B85AB66754A5EF29.png
+   :width: 16.51cm
+   :height: 10.372cm
+.. |image3| image:: images/Pictures/10000000000005B80000043555ABB73FC42635F9.png
+   :width: 16.51cm
+   :height: 12.136cm
+.. |image4| image:: images/Pictures/1000020100000800000003D765E8704309FFEAAE.png
+   :width: 16.51cm
+   :height: 7.938cm
+.. |image5| image:: images/Pictures/1000020100000800000007ABE34B7E3A4D8E30E3.png
+   :width: 16.51cm
+   :height: 15.84cm
+.. |image6| image:: images/Pictures/1000020100000800000004695F2A049FAE8C7BE3.png
+   :width: 16.51cm
+   :height: 9.102cm
+
+
+
 Installazione sistema operativo Centos 8
 ----------------------------------------
+
+Installazione sistema operativo
+...............................
 
 Installare Centos 8.
 
@@ -44,7 +211,7 @@ Aggiunta repository e installazione pacchetti
    chown -R rmap:rmap /var/log/rmap
 
 postgresql
-----------
+..........
 ::
 
    dnf module disable postgresql:10
@@ -107,7 +274,7 @@ postgresql
    exit
 
 apache
-------
+......
 
 Collect static files from django apps:
 ::
@@ -137,7 +304,7 @@ Collect static files from django apps:
    service httpd start``
    
 Arkimet
--------
+.......
 
 ::
    
@@ -168,7 +335,7 @@ Replicate structure in:
 
 
 Mosquitto
----------
+.........
 
 ::
    
@@ -199,7 +366,7 @@ if the package use systemV create:
 
 
 Rabbitmq
---------
+........
 
 ::
    
@@ -235,7 +402,7 @@ https://www.rabbitmq.com/shovel-dynamic.html
 bisognerebbe riuscire a settare "user_id" tramite il parametro "dest-publish-properties" nel formato json sopra ma non funziona
 
 Monit
------
+.....
 
 ::
    
@@ -251,7 +418,7 @@ Monit
  service monit start
 
 Cron
-----
+....
 
 `/etc/cron.d/arpae_aq_ckan <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_
 
@@ -263,7 +430,7 @@ Cron
 
 
 Sincronizzazione DB da un server
---------------------------------
+................................
 
 Server di origine
 ~~~~~~~~~~~~~~~~~
@@ -303,7 +470,7 @@ Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap)
 
    
 Arkiweb
--------
+.......
 AL MOMENTO NON DISPONIBILE SU CENTOS 8
 NOT AVAILABLE ON CENTOS 8
 
