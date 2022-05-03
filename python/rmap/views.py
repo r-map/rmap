@@ -456,6 +456,7 @@ def acl(request):
         usb=username_station_board.split("/")
 
         if(len(usb) == 3):
+            # new acl for user/station_slug/board_slug auth
             username=p.match(usb[0])
             if username:
                 username = username.string
@@ -479,23 +480,30 @@ def acl(request):
                             if myboard is not None:
                                 if ( myboard.active and myboard.transportmqtt.active):
                                     username = myboard.transportmqtt.mqttuser
-                                    mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)
+                                    mynetwork=mystation.network
+                                    if lat is None:
+                                        mytopic="/"
+                                    else:
+                                        mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)
                                     
                 except ObjectDoesNotExist:
                     username=None
 
         else:
+            # legacy acl for user auth
             username=p.match(request.POST['username'])
             if username:
                 username = username.string
             mytopic="/"
+            mynetwork=None
                     
         if (username):
             #read and write and subscribe to all in report/username/# sample/username/# rpc/username/#
             if topic.startswith(("sample/"+username+mytopic,"report/"+username+mytopic,"maint/"+username+mytopic,"rpc/"+username+mytopic)):
-                response=HttpResponse("allow")
-                response.status_code=200
-                return response
+                if True if (mynetwork is None) else (topic.split("/")[3] == mynetwork):
+                    response=HttpResponse("allow")
+                    response.status_code=200
+                    return response
 
     response=HttpResponse("deny")
     response.status_code=403

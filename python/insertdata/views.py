@@ -359,12 +359,13 @@ def insertDataRainboImpactData(request):
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
+                    maintprefix=rmap.settings.topicmaint
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
 
                     print("<",slug,">","prefix:",prefix)
 
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=user,password=password)
                     mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -410,11 +411,12 @@ def insertDataRainboWeatherData(request):
                     user=rmap.settings.mqttuser
                     password=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
+                    maintprefix=rmap.settings.topicmaint
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
                     print(user,password,network,prefix)
                     print("<",slug,">","prefix:",prefix)
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=prefix,username=user,password=password)
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=user,password=password)
                     mqtt.connect()                    
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -523,6 +525,8 @@ def insertDataManualData(request):
             if (len(datavar)>0):
                 try:
                     prefix=rmap.settings.topicreport
+                    maintprefix=rmap.settings.topicmaint
+                    print(prefix,maintprefix)
                     station_slug=form.cleaned_data['coordinate_slug']
                     if (station_slug):
                         # if we have station slug from other form we get it from DB
@@ -533,7 +537,7 @@ def insertDataManualData(request):
                                 lat=mystation.lat
                                 lon=mystation.lon
                                 network=mystation.network
-                                myboard = mystation.board_set.get(slug=board_slug).split(":")[0]
+                                myboard = mystation.board_set.get(slug=board_slug)
                                 if myboard is not None:
                                     if ( myboard.active and myboard.transportmqtt.active):
                                         mqttuser = myboard.transportmqtt.mqttuser
@@ -557,8 +561,8 @@ def insertDataManualData(request):
                         except ObjectDoesNotExist:
                             # create new default mobile station in DB
                             network="mobile"
-                            #host = get_current_site(request)
-                            host="localhost"
+                            host = get_current_site(request).domain.split(":")[0]
+                            #host="localhost"
                             mqttuser=ident
                             mqttpassword=User.objects.make_random_password()
                             user=User.objects.get(username=ident)
@@ -575,7 +579,7 @@ def insertDataManualData(request):
                                                     )
 
                     print(host, ident,lon,lat,network,prefix,prefix, mqttuser+"/"+station_slug+"/"+board_slug,mqttpassword)
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=prefix,
+                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=maintprefix,
                                   username=mqttuser+"/"+station_slug+"/"+board_slug,password=mqttpassword)
                     mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
@@ -584,8 +588,7 @@ def insertDataManualData(request):
                     timeelapsedform = TimeElapsedForm()
                     form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
                 except:
-                    raise
-                    #return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
+                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
 
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"success":True})
 
@@ -646,7 +649,7 @@ def insertNewStation(request):
             slug=slugify(name)
             board_slug="default"
             template=newstationform.cleaned_data['template']
-            host = get_current_site(request)
+            host = get_current_site(request).domain.split(":")[0]
             
             if name and (password == passwordrepeat):
                 try:
@@ -749,7 +752,7 @@ def insertNewStationDetail(request,slug=None):
                     mystation.lat=rmap.rmap_core.truncate(lat,5)
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
-                    host = get_current_site(request)
+                    host = get_current_site(request).split(":")[0]
 
                     # this in not very good ! we need to specify better in template the type (report/sample)
                     if ("_report_" in template):

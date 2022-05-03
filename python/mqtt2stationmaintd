@@ -272,7 +272,7 @@ def main(self):
 
     #    mqtt2stationmaint.main(
     #        host=self.options.host,
-    #        topics=rmap.settings.topicmaint, username=self.options.username, password=self.options.pw,
+    #        topics=rmap.settings.subtopicmaint, username=self.options.username, password=self.options.pw,
     #        debug=self.options.debug, overwrite_date=self.options.overwrite_date,
     #    )
 
@@ -282,11 +282,11 @@ def main(self):
  
     mqttclient = MyMQTTClass(
         userdata={
-            "topics": [rmap.settings.topicmaint],
+            "topics": [rmap.settings.subtopicmaint],
             "logging": logging,
             "overwrite_date": OVERWRITE_DATE,
             "qos":0},
-        client_id=mqttuser+"/mqttstaionmaint/"+rmap.settings.topicmaint,
+        client_id=mqttuser+"/mqttstaionmaint/"+rmap.settings.subtopicmaint,
         clean_session=True
         # qos=1 required by clean_session=False
     )

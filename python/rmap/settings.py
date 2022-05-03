@@ -203,6 +203,7 @@ configspec['mqtt2stationmaintd']['lockfile']  = "string(default='mqtt2stationmai
 configspec['mqtt2stationmaintd']['user']      = "string(default=None)"
 configspec['mqtt2stationmaintd']['group']     = "string(default=None)"
 configspec['mqtt2stationmaintd']['topicmaint']   = "string(default='maint')"
+configspec['mqtt2stationmaintd']['subtopicmaint']   = "string(default='maint/#')"
 
 configspec['composereportd']={}
 configspec['composereportd']['logfile']  = "string(default='composereportd.log')"
@@ -384,6 +385,7 @@ lockfilemqtt2stationmaintd         = config['mqtt2stationmaintd']['lockfile']
 usermqtt2stationmaintd             = config['mqtt2stationmaintd']['user']
 groupmqtt2stationmaintd            = config['mqtt2stationmaintd']['group']
 topicmaint                         = config['mqtt2stationmaintd']['topicmaint']
+subtopicmaint                      = config['mqtt2stationmaintd']['subtopicmaint']
 
 # section composereportd
 logfilecomposereportd              = config['composereportd']['logfile']
