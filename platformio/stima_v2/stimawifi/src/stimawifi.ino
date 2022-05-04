@@ -387,6 +387,7 @@ String FullPage(){
   return ptr;
 }
 
+void writeconfig();
 
 // web server response function
 void handle_FullPage() {
@@ -464,10 +465,16 @@ bool publish_maint() {
   LOGN(F("mqttid: %s" CR),mqttid);
   
   char mainttopic[100]="1/";
-  strcpy (mainttopic,rmap_mqttmaintpath);
+  strcat(mainttopic,rmap_mqttmaintpath);
   strcat(mainttopic,"/");
   strcat(mainttopic,rmap_user);
-  strcat (mainttopic,"//254,0,0/265,0,-,-/B01213");
+  strcat(mainttopic,"//");  
+  strcat(mainttopic,rmap_longitude);
+  strcat(mainttopic,",");
+  strcat(mainttopic,rmap_latitude);
+  strcat(mainttopic,"/");
+  strcat(mainttopic,rmap_network);
+  strcat(mainttopic,"/254,0,0/265,0,-,-/B01213");
   LOGN(F("MQTT maint topic: %s" CR),mainttopic);
     
   if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
@@ -490,7 +497,7 @@ bool publish_maint() {
 
 bool publish_data(const char* values, const char* timerange, const char* level) {
   
-  char topic[100]="1/";
+  char topic[100];
   StaticJsonDocument<500> doc;
 
   LOGN(F("have to publish: %s" CR),values);
@@ -519,7 +526,8 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
     strcat(payload,value);
     strcat(payload,"}");
     
-    strcpy(topic,rmap_mqttrootpath);
+    strcpy(topic,"1/");
+    strcat(topic,rmap_mqttrootpath);
     strcat(topic,"/");
     strcat(topic,rmap_user);
     strcat(topic,"//");  
@@ -553,7 +561,7 @@ void firmware_upgrade() {
   doc["user"] = rmap_user;
   doc["slug"] = rmap_slug;
   char buffer[256];
-  deserializeJson(doc, buffer, sizeof(buffer));
+  serializeJson(doc, buffer, sizeof(buffer));
   LOGN(F("url for firmware update: %s" CR),update_url);
   LOGN(F("version for firmware update: %s" CR),buffer);
 
@@ -741,7 +749,7 @@ int  rmap_config(String payload){
 	// use this to migrate from user authentication to user/station_slug/board_slug
 
 	if  (element["model"] == "stations.transportmqtt"){
-	  if (strcmp(element["fields"]["board"][0].as< const char*>(),"default")){
+	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
 	      LOGN(F("board metadata found!" CR));
 	      //rmap_sampletime=element["fields"]["mqttsampletime"]     // wrong on server
@@ -755,6 +763,8 @@ int  rmap_config(String payload){
 		strncpy (rmap_password, element["fields"]["mqttpassword"].as< const char*>(),30);
 		rmap_password[30]='\0';
 		LOGN(F("rmap_password: %s" CR),rmap_password);
+		// save new user and password (station auth)
+		writeconfig();
 	      }
 	      status_board = true;
 	    }
@@ -782,7 +792,7 @@ int  rmap_config(String payload){
 	      
 	      sd[ii]=SensorDriver::create(sensors[ii].driver,sensors[ii].type);
 	      if (sd[ii] == 0){
-		LOGN(F("%s:%s driver not created !" CR),sensors[ii].driver,sensors[ii].type);
+		LOGE(F("%s:%s driver not created !" CR),sensors[ii].driver,sensors[ii].type);
 	      }else{		
 		if (!(sd[ii]->setup(sensors[ii].driver, sensors[ii].address, -1, sensors[ii].type) == SD_SUCCESS)) {
 		  LOGE(F("sensor not present or broken" CR));
@@ -796,7 +806,7 @@ int  rmap_config(String payload){
 	  }
 	}
       }
-      status = (int)(status_station && status_board && status_sensors);
+      status = (int)!(status_station && status_board && status_sensors);
     } else {
       LOGE(F("error parsing array: %s" CR),error.c_str());
       analogWrite(LED_PIN,973);
@@ -1060,7 +1070,7 @@ void display_values(const char* values) {
 
 bool publish_constantdata() {
 
-  char topic[100]="1/";
+  char topic[100];
   String payload=readconfig_rmap();
 
   if (! (payload == String())) {
@@ -1087,7 +1097,8 @@ bool publish_constantdata() {
 	    strcat(payload,value);
 	    strcat(payload,"\"}");
       
-	    strcpy(topic,rmap_mqttrootpath);
+	    strcpy(topic,"1/");
+	    strcat(topic,rmap_mqttrootpath);
 	    strcat(topic,"/");
 	    strcat(topic,rmap_user);
 	    strcat(topic,"//");  
