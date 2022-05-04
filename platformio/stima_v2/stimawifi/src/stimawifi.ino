@@ -463,11 +463,11 @@ bool publish_maint() {
   
   LOGN(F("mqttid: %s" CR),mqttid);
   
-  char mainttopic[100]="";
+  char mainttopic[100]="1/";
   strcpy (mainttopic,rmap_mqttmaintpath);
   strcat(mainttopic,"/");
-  strcat(mainttopic,mqttid);
-  strcat (mainttopic,"/254,0,0/265,0,-,-/B01213");
+  strcat(mainttopic,rmap_user);
+  strcat (mainttopic,"//254,0,0/265,0,-,-/B01213");
   LOGN(F("MQTT maint topic: %s" CR),mainttopic);
     
   if (!mqttclient.connect(mqttid,mqttid,rmap_password,mainttopic,1,1,"{\"v\":\"error01\"}")){
@@ -490,7 +490,7 @@ bool publish_maint() {
 
 bool publish_data(const char* values, const char* timerange, const char* level) {
   
-  char topic[100]="";
+  char topic[100]="1/";
   StaticJsonDocument<500> doc;
 
   LOGN(F("have to publish: %s" CR),values);
@@ -522,7 +522,7 @@ bool publish_data(const char* values, const char* timerange, const char* level) 
     strcpy(topic,rmap_mqttrootpath);
     strcat(topic,"/");
     strcat(topic,rmap_user);
-    strcat(topic,"/");  
+    strcat(topic,"//");  
     strcat(topic,rmap_longitude);
     strcat(topic,",");
     strcat(topic,rmap_latitude);
@@ -1060,7 +1060,7 @@ void display_values(const char* values) {
 
 bool publish_constantdata() {
 
-  char topic[100]="";
+  char topic[100]="1/";
   String payload=readconfig_rmap();
 
   if (! (payload == String())) {
@@ -1090,7 +1090,7 @@ bool publish_constantdata() {
 	    strcpy(topic,rmap_mqttrootpath);
 	    strcat(topic,"/");
 	    strcat(topic,rmap_user);
-	    strcat(topic,"/");  
+	    strcat(topic,"//");  
 	    strcat(topic,rmap_longitude);
 	    strcat(topic,",");
 	    strcat(topic,rmap_latitude);
