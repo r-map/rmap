@@ -653,13 +653,13 @@ void init_sensors () {
     lcd_error |= lcd.print(F("/"))==0;
     lcd_error |= lcd.print(readable_configuration.sensors_count)==0;
     lcd_error |= lcd.print((sensors_error_count == 0) ? " OK" : " KO")==0;
-    lcd_error |= lcd.setCursor(0, 1)==0;
+    lcd_error |= lcd.setCursor(0, 1);
     lcd_error |= lcd.print("user  : ")==0;
     lcd_error |= lcd.print(readable_configuration.mqtt_username)==0;
-    lcd_error |= lcd.setCursor(0, 2)==0;
+    lcd_error |= lcd.setCursor(0, 2);
     lcd_error |= lcd.print("statio: ")==0;
     lcd_error |= lcd.print(readable_configuration.stationslug)==0;
-    lcd_error |= lcd.setCursor(0, 3)==0;
+    lcd_error |= lcd.setCursor(0, 3);
     lcd_error |= lcd.print("board : ")==0;
     lcd_error |= lcd.print(readable_configuration.boardslug)==0;
     #endif
@@ -1642,9 +1642,9 @@ void supervisor_task() {
                #if (USE_LCD)
 	       //lcd_error |= lcd.clear();
 
-	       lcd_error |= lcd.setCursor(0, 0)==0;
+	       lcd_error |= lcd.setCursor(0, 0);
                lcd_error |= lcd.print(F("            "))==0;
-	       lcd_error |= lcd.setCursor(0, 0)==0;
+	       lcd_error |= lcd.setCursor(0, 0);
                lcd_error |= lcd.print(F("S: "))==0;
 	       lcd_error |= lcd.print(hour(next_ptr_time_for_sensors_reading))==0;
                lcd_error |= lcd.print(F(":"))==0;
@@ -1654,7 +1654,7 @@ void supervisor_task() {
 
 	       
                #if (USE_MQTT)
-	       lcd_error |= lcd.setCursor(0, 1)==0;
+	       lcd_error |= lcd.setCursor(0, 1);
                lcd_error |= lcd.print(F("                    "))==0;
 	       lcd_error |= lcd.setCursor(0, 1)==0;
 	       lcd_error |= lcd.print("server: ")==0;
@@ -1662,9 +1662,9 @@ void supervisor_task() {
                #endif
 
                #if (USE_NTP)
-	       lcd_error |= lcd.setCursor(0, 2)==0;
+	       lcd_error |= lcd.setCursor(0, 2);
                lcd_error |= lcd.print(F("                    "))==0;
-	       lcd_error |= lcd.setCursor(0, 2)==0;
+	       lcd_error |= lcd.setCursor(0, 2);
 	       lcd_error |= lcd.print("ntp: ")==0;
 	       lcd_error |= lcd.print(readable_configuration.ntp_server)==0;
                #endif
