@@ -620,8 +620,17 @@ void init_sensors () {
 
     // read sensors configuration, create and setup
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
-      SensorDriver::createAndSetup(readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].node, sensors, &sensors_count);
-      LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count, readable_configuration.sensors[i].driver, readable_configuration.sensors[i].type, readable_configuration.sensors[i].address, readable_configuration.sensors[i].mqtt_topic, sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
+      SensorDriver::createAndSetup(readable_configuration.sensors[i].driver,
+				   readable_configuration.sensors[i].type,
+				   readable_configuration.sensors[i].address,
+				   readable_configuration.sensors[i].node,
+				   sensors, &sensors_count);
+      LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count,
+	   readable_configuration.sensors[i].driver,
+	   readable_configuration.sensors[i].type,
+	   readable_configuration.sensors[i].address,
+	   readable_configuration.sensors[i].mqtt_topic,
+	   sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
       if (!sensors[sensors_count-1]->isSetted()) {
         sensors_error_count++;
 	wdt_reset();

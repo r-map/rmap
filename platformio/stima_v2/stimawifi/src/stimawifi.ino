@@ -48,7 +48,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 #define WIFI_SSED "STIMA-config"
 #define WIFI_PASSWORD  "bellastima"
-#define DEFAULT_SAMPLETIME 10
+#define DEFAULT_SAMPLETIME 30
 
 #define OLEDI2CADDRESS 0X3C
 
@@ -745,20 +745,21 @@ int  rmap_config(String payload){
 	  }
 	}
 
-	///////////////////////////////////////////////////////////////////////////////
-	// use this to migrate from user authentication to user/station_slug/board_slug
-
 	if  (element["model"] == "stations.transportmqtt"){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
 	      LOGN(F("board metadata found!" CR));
-	      //rmap_sampletime=element["fields"]["mqttsampletime"]     // wrong on server
-	      //LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
+	      rmap_sampletime=element["fields"]["mqttsampletime"];     // wrong on server
+	      LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
 	      if (!element["fields"]["mqttuser"].isNull()){
 		strncpy (rmap_user, element["fields"]["mqttuser"].as< const char*>(),9);
 		rmap_user[9]='\0';
 		LOGN(F("rmap_user: %s" CR),rmap_user);
 	      }
+
+	      ///////////////////////////////////////////////////////////////////////////////
+	      // use this to migrate from user authentication to user/station_slug/board_slug
+
 	      if (!element["fields"]["mqttpassword"].isNull()){
 		strncpy (rmap_password, element["fields"]["mqttpassword"].as< const char*>(),30);
 		rmap_password[30]='\0';
@@ -766,11 +767,12 @@ int  rmap_config(String payload){
 		// save new user and password (station auth)
 		writeconfig();
 	      }
+	      ///////////////////////////////////////////////////////////////////////////////
+
 	      status_board = true;
 	    }
 	  }
 	}
-	///////////////////////////////////////////////////////////////////////////////
 
 	
 	if  (element["model"] == "stations.sensor"){
@@ -1310,6 +1312,9 @@ void setup() {
   digitalWrite( SCL, LOW);
 #endif
 
+  espClient.setTimeout(5000); // esp32 issue https://github.com/espressif/arduino-esp32/issues/3732
+ 
+  
   Wire.begin(SDA,SCL);
   Wire.setClock(I2C_CLOCK);
 
@@ -1629,8 +1634,9 @@ void setup() {
   LOGN(F("Time: %s" CR),ctime(&tnow));
   
   LOGN(F("mqtt server: %s" CR),rmap_server);
-  mqttclient.setServer(rmap_server, 1883);
 
+  mqttclient.setServer(rmap_server, 1883);
+  
   Alarm.timerRepeat(rmap_sampletime, repeats);             // timer for every SAMPLETIME seconds
 
   // millis() and other can have overflow problem

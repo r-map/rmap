@@ -134,6 +134,16 @@ def initdb(cwd):
         from rmap.stations.models import StationMetadata
         lastusername=None
         for u in User.objects.all():
+            # legacy patterns
+            username=u.username
+            print("user", username)
+            
+            for network in ("fixed","mobile"):
+                for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
+                    mytopic="pattern {}/{}/+/{}/#".format(prefix,username,network)
+                    print (mytopic)
+            
+            # V1 patterns
             for mystation in StationMetadata.objects.filter(ident__username=u.username):
                 if mystation.active:
                     lat=mystation.lat
@@ -143,16 +153,17 @@ def initdb(cwd):
                         if ( myboard.active and myboard.transportmqtt.active):
                             username = myboard.transportmqtt.mqttuser
 
-                            if mystation.lat is None:
-                                mytopic="/+/%s/" % (mystation.network)
-                            else:
-                                mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
                             if not lastusername == username: print("user", username)
-                            lastusername=username    
-                            print("pattern","sample/"+username+mytopic)
-                            print("pattern","report/"+username+mytopic)
-                            print("pattern","maint/"+username+mytopic)
-                            print ("pattern","rpc/"+username+mytopic)
+                            lastusername=username
+                            
+                            if mystation.lat is None:
+                                postfix="%s/+/%s/#" % (username,mystation.network)
+                            else:
+                                postfix="/%d,%d/%s/#" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
+
+                            for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
+                                mytopic="pattern 1/{}/{}/{}".format(prefix,username,postfix)
+                                print (mytopic)
 
                                 
     if (options.collectstatic):

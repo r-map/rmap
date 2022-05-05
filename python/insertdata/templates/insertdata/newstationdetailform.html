@@ -7,6 +7,10 @@
 <div class="alert alert-warning" role="alert">{% trans 'Invalid data; retry' %}</div>
 {% endif %}
 
+{% if duplicated  %}
+<div class="alert alert-danger" role="alert">{% trans 'Duplicated station; an other station exist in the same place' %}</div>
+{% endif %}
+
 {% if error  %}
 <div class="alert alert-danger" role="alert">{% trans 'Error on publish data; retry' %}</div>
 {% endif %}

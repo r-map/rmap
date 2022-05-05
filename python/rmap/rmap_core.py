@@ -1279,15 +1279,15 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/"))
             #TODO  check id of status (good only > 0)
 
-        print("mqttrootpath:",rpcproxy.configure(mqttrootpath=mystation.mqttrootpath+"/"+str(mystation.ident)+"/"+\
+        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+str(mystation.ident)+"//"+\
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/"))
 
-        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath=mystation.mqttmaintpath+"/"+str(mystation.ident)+"/"+\
+        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+str(mystation.ident)+"//"+\
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/"))
 
-        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="rpc/"+str(mystation.ident)+"/"+\
+        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+str(mystation.ident)+"//"+\
                                                  "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                                                  "/"+mystation.network+"/"))
 

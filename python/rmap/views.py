@@ -484,27 +484,47 @@ def acl(request):
                                     if lat is None:
                                         mytopic="/"
                                     else:
-                                        mytopic="/%d,%d/%s/" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)
-                                    
+                                        mytopic="/%d,%d/" % (nint(mystation.lon*100000),nint(mystation.lat*100000))
+
+                                    #read and write and subscribe to all in 1/report/username/ident/# 1/sample/username/ident/# 1/maint/username/ident/# 1/rpc/username/ident/#
+                                    if topic.startswith(
+                                            (
+                                                "1/sample/"+username+"/"+mytopic,
+                                                "1/report/"+username+"/"+mytopic,
+                                                "1/maint/"+username+"/"+mytopic,
+                                                "1/rpc/"+username+"/"+mytopic
+                                            )
+                                    ):
+                                        if (topic.split("/")[5] == mynetwork):
+                                            response=HttpResponse("allow")
+                                            response.status_code=200
+                                            return response
+                                        
                 except ObjectDoesNotExist:
-                    username=None
+                    pass
 
         else:
             # legacy acl for user auth
             username=p.match(request.POST['username'])
             if username:
                 username = username.string
-            mytopic="/"
-            mynetwork=None
-                    
-        if (username):
-            #read and write and subscribe to all in report/username/# sample/username/# rpc/username/#
-            if topic.startswith(("sample/"+username+mytopic,"report/"+username+mytopic,"maint/"+username+mytopic,"rpc/"+username+mytopic)):
-                if True if (mynetwork is None) else (topic.split("/")[3] == mynetwork):
-                    response=HttpResponse("allow")
-                    response.status_code=200
-                    return response
+                mytopic="/"
 
+                #read and write and subscribe to all in report/username/# sample/username/# maint/username/# rpc/username/#
+                if topic.startswith(
+                        (
+                            "sample/"+username+mytopic,
+                            "report/"+username+mytopic,
+                            "maint/"+username+mytopic,
+                            "rpc/"+username+mytopic
+                        )
+                ):
+                    # check possible network
+                    if (topic.split("/")[3] == "fixed" or topic.split("/")[3] == "mobile"):
+                        response=HttpResponse("allow")
+                        response.status_code=200
+                        return response
+                
     response=HttpResponse("deny")
     response.status_code=403
     return response

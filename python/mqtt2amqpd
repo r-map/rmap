@@ -38,9 +38,26 @@ import rmap.settings
 from rmap.rmap_core import amqpConsumerProducer
 from rmap.rmap_core import Message
 
-TOPIC_RE = re.compile((
+TOPIC_RE_V0 = re.compile((
     r'^.*/'
     r'(?P<ident>[^/]+)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
+
+TOPIC_RE_V1 = re.compile((
+    r'^1/[^/]+/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<ident>[^/]*)/'
     r'(?P<lon>[0-9-]+),'
     r'(?P<lat>[0-9-]+)/'
     r'(?P<rep>[^/]+)/'
@@ -57,9 +74,10 @@ TOPIC_RE = re.compile((
 
 class MyMQTTClass(mqtt.Client):
 
-    def parse_topic(self,topic):
-        match = TOPIC_RE.match(topic)
+    def parse_topic_v0(self,topic):
+        match = TOPIC_RE_V0.match(topic)
         if match is None:
+            logging.info("SKIP topic V0: {}".format(topic))
             return None
         else:
             g = match.groupdict()
@@ -82,11 +100,43 @@ class MyMQTTClass(mqtt.Client):
                 "var": g["var"],
             }
 
+
+    def parse_topic_v1(self,topic):
+        match = TOPIC_RE_V1.match(topic)
+        if match is None:
+            logging.info("SKIP topic V1: {}".format(topic))
+            return None
+        else:
+            g = match.groupdict()
+            return {
+                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+                "lon": int(g["lon"]),
+                "lat": int(g["lat"]),
+                "rep_memo": g["rep"],
+                "level": (
+                    None if g["lt1"] == "-" else int(g["lt1"]),
+                    None if g["lv1"] == "-" else int(g["lv1"]),
+                    None if g["lt2"] == "-" else int(g["lt2"]),
+                    None if g["lv2"] == "-" else int(g["lv2"]),
+                ),
+                "trange": (
+                    None if g["pind"] == "-" else int(g["pind"]),
+                    None if g["p1"] == "-" else int(g["p1"]),
+                    None if g["p2"] == "-" else int(g["p2"]),
+                ),
+                "var": g["var"],
+            }
+
+        
     def parse_payload(self,payload):
         return json.loads(payload.decode("utf-8"))
 
-    def parse_message(self,topic, payload):
-        t = self.parse_topic(topic)
+    def parse_message(self,topic, payload,version="v0"):
+        if version == "v0":
+            t = self.parse_topic_v0(topic)
+        else:
+            t = self.parse_topic_v1(topic)
+
         if t is None:
             return None
 
@@ -122,11 +172,13 @@ class MyMQTTClass(mqtt.Client):
 
         if userdata["send_queue"]:
             send_queue=userdata["send_queue"]
+
+        version = userdata.get("version","v0")
             
         logging.info('Message: topic '+str(message.topic) +" payload "+str(message.payload))
         
         try:
-            m = self.parse_message(message.topic, message.payload)
+            m = self.parse_message(message.topic, message.payload,version)
             if m is None:
                     return
             msg = dballe.Message("generic")
@@ -169,6 +221,7 @@ class  mydaemon(daemon.Daemon):
         op = super(mydaemon, self).optionparser()
         op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
         op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
+        op.add_option("-v", "--rmapversion",dest="rmapversion", help="RMAP MQTT version (v0/v1) : define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="v0")
         #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
         return op 	  				 
 
@@ -217,27 +270,39 @@ def main(self):
 
     logging.info('Starting up mqtt2amqpd')
 
-    topicdict={"sample":{},"report":{}}
-    topicdict["sample"]["fixed"]  = "{}/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
-    topicdict["sample"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
-    topicdict["report"]["fixed"]  = "{}/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
-    topicdict["report"]["mobile"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
+    topicdict={
+        "sample":{"fixed":{},"mobile":{}},
+        "report":{"fixed":{},"mobile":{}},
+    }
+    topicdict["sample"]["fixed"]["v0"]  = "{}/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
+    topicdict["sample"]["mobile"]["v0"] = "{}/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
+    topicdict["report"]["fixed"]["v0"]  = "{}/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
+    topicdict["report"]["mobile"]["v0"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
+    topicdict["sample"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
+    topicdict["sample"]["mobile"]["v1"] = "1/{}/+/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
+    topicdict["report"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
+    topicdict["report"]["mobile"]["v1"] = "1/{}/+/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
+    
     if not (self.options.datalevel in list(topicdict.keys())):
-        logging.error('Invalid topic')
-        sys.stdout.write("Invalid topic\n")
+        logging.error('Invalid datalevel')
+        sys.stdout.write("Invalid datalevel\n")
         return False
 
     if not (self.options.stationtype in list(topicdict[self.options.datalevel].keys())):
-        logging.error('Invalid topic')
-        sys.stdout.write("Invalid topic\n")
+        logging.error('Invalid stationtype')
+        sys.stdout.write("Invalid stationtype\n")
         return False
 
-    topic = topicdict[self.options.datalevel][self.options.stationtype]
+    if not (self.options.rmapversion in list(topicdict[self.options.datalevel][self.options.stationtype].keys())):
+        logging.error('Invalid rmapversion')
+        sys.stdout.write("Invalid rmapversion\n")
+        return False
+
+    topic = topicdict[self.options.datalevel][self.options.stationtype][self.options.rmapversion]
     logging.info('Topic: %s'% topic)
     
-
     mqttuser=rmap.settings.mqttuser
     mqttpassword=rmap.settings.mqttpassword    
     user=rmap.settings.amqpuser
@@ -255,12 +320,15 @@ def main(self):
     # id parameter empty will generate a random id for you.
 
     mqttclient = MyMQTTClass(
-        userdata={
+        userdata=
+        {
             "topics": [topic],
             "logging": logging,
             "send_queue": send_queue,
-            "qos":1},
-        client_id=user+"/"+self.options.datalevel+"/"+self.options.stationtype,
+            "qos":1,
+            "version":self.options.rmapversion
+        },
+        client_id=user+"/"+self.options.datalevel+"/"+self.options.stationtype+self.options.rmapversion,
         clean_session=False
         # qos=1 required by clean_session=False
     )

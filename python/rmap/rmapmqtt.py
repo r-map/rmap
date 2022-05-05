@@ -57,12 +57,15 @@ class Rmapdonotexist(Exception):
 
 class rmapmqtt:
 
-    def __init__(self,ident="-",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None,qos=1):
+    def __init__(self,ident="",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None,qos=1,version=0,user=None):
 
         self.ident=ident
         self.lonlat=lonlat
         if self.lonlat is None:
-            self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
+            if (lat is None or lon is None):
+                self.lonlat=""
+            else:
+                self.lonlat="%d,%d" % (nint(lon*100000),nint(lat*100000))
         self.network=network
         self.host=host
         self.port=port
@@ -77,6 +80,8 @@ class rmapmqtt:
         self.loop_started=False
         self.messageinfo=None
         self.qos=qos
+        self.version=version
+        self.user=user
         
         # If you want to use a specific client id, use
         # mqttc = mosquitto.Mosquitto("client-id")
@@ -99,14 +104,22 @@ class rmapmqtt:
 
         #self.mqttc.max_inflight_messages_set(1)
 
-        # retained only if the station is fixed
-        self.retain = self.network != "mobile"
+        if (self.version == 0):
+            # retained only if the station is fixed
+            self.retain = self.network != "mobile"
+        else:
+            self.retain = (not lat is None and not lon is None)
 
         # mando stato di connessione della stazione con segnalazione di sconnessione gestita male com will
-        self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
-                    payload=dumps({"v": "error01"}),
-                            qos=self.qos, retain=self.retain)
-
+        if (self.version == 0):
+            self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+                                payload=dumps({"v": "error01"}),
+                                qos=self.qos, retain=self.retain)
+        else:
+            self.mqttc.will_set("1/"+self.maintprefix+"/"+self.user+"/"+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+                                payload=dumps({"v": "error01"}),
+                                qos=self.qos, retain=self.retain)
+            
 
     def connect(self):
         try:
@@ -121,7 +134,11 @@ class rmapmqtt:
 
         try:
             # retained only if the station is fixed
-            topic=self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
+            if (self.version == 0):
+                topic=self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
+            else:
+                topic="1/"+self.maintprefix+"/"+self.user+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
+                
             payload=dumps({ "v": "conn"})
             self.publish(topic,payload,retain=self.retain)
             
@@ -176,12 +193,17 @@ class rmapmqtt:
                 lonlat=self.lonlat
 
             # mando dati di anagrafica
-
             # retained only if the station is fixed
 
             for key,val in anavar.items():
-                rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
-                                      payload=dumps(val),retain=self.retain)
+
+                if (self.version == 0):
+                    rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
+                                    payload=dumps(val),retain=self.retain)
+                else:
+                    rc=self.publish("1/"+self.prefix+"/"+self.user+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
+                                    payload=dumps(val),retain=self.retain)
+                
                 if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish ana",rc)
 
@@ -204,12 +226,20 @@ class rmapmqtt:
                 prefix=self.prefix
                 
             for key,val in datavar.items():
-                rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                if (self.version == 0) :
+                    rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
                                       retain=False
                                   )
-            
+                else:
+                    rc=self.publish("1/"+prefix+"/"+self.user+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                                      timerange+"/"+level+"/"+key,
+                                      payload=dumps(val), 
+                                      retain=False
+                                  )
+
+                
                 if rc != mqtt.MQTT_ERR_SUCCESS:
                     raise Exception("publish data",rc)
 
@@ -271,9 +301,15 @@ class rmapmqtt:
             #clean disconnect
             # retained only if the station is fixed
 
-            self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
-                             payload=dumps({ "v": "disconn"}),
-                                  qos=self.qos,retain=self.retain)
+            if (self.version == 0) :
+                self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+                                                    payload=dumps({ "v": "disconn"}),
+                                                    qos=self.qos,retain=self.retain)
+            else:
+                self.messageinfo=self.mqttc.publish("1/"+self.maintprefix+"/"+self.user+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+                                                    payload=dumps({ "v": "disconn"}),
+                                                    qos=self.qos,retain=self.retain)
+                
             rc,self.mid=self.messageinfo
             if rc != mqtt.MQTT_ERR_SUCCESS:
                 raise Exception("publish status",rc)

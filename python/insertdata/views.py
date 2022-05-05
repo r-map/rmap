@@ -27,6 +27,7 @@ from django.utils.text import slugify
 import rmap.rmap_core
 import decimal
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.utils import IntegrityError
 
 class scelta_present_weather(object):
     '''
@@ -493,7 +494,7 @@ def insertDataManualData(request):
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)+timedelta(hours=int(timeelapsed))
-            ident=request.user.username
+            username=request.user.username
             board_slug="default"
             
             #if (not stationlat is None):
@@ -531,11 +532,12 @@ def insertDataManualData(request):
                     if (station_slug):
                         # if we have station slug from other form we get it from DB
                         # fixed station
-                        mystation=StationMetadata.objects.get(ident__username=ident,slug=station_slug)
+                        mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
                         if mystation is not None:
                             if mystation.active:
                                 lat=mystation.lat
                                 lon=mystation.lon
+                                ident=""
                                 network=mystation.network
                                 myboard = mystation.board_set.get(slug=board_slug)
                                 if myboard is not None:
@@ -549,12 +551,13 @@ def insertDataManualData(request):
                         try:
                             # get default mobile station from DB
                             station_slug="auto_mobile"
-                            mystation=StationMetadata.objects.get(ident__username=ident,slug=station_slug)
+                            mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
                             network=mystation.network
                             myboard = mystation.board_set.get(slug=board_slug)
                             if myboard is not None:
                                 if ( myboard.active and myboard.transportmqtt.active):
                                     mqttuser = myboard.transportmqtt.mqttuser
+                                    ident = mqttuser
                                     mqttpassword = myboard.transportmqtt.mqttpassword
                                     host = myboard.transportmqtt.mqttserver
 
@@ -563,24 +566,24 @@ def insertDataManualData(request):
                             network="mobile"
                             host = get_current_site(request).domain.split(":")[0]
                             #host="localhost"
-                            mqttuser=ident
+                            mqttuser=username
                             mqttpassword=User.objects.make_random_password()
-                            user=User.objects.get(username=ident)
+                            user=User.objects.get(username=username)
                             mystation=StationMetadata(slug=station_slug,name="Auto mobile",active=True,network=network,ident=user, mqttrootpath="report",lat=None,lon=None)    
                             mystation.clean()
                             mystation.save()
 
-                            rmap.rmap_core.addboard(station_slug=station_slug,username=ident,board_slug=board_slug,activate=True
+                            rmap.rmap_core.addboard(station_slug=station_slug,username=username,board_slug=board_slug,activate=True
                                                     ,serialactivate=False
                                                     ,mqttactivate=True, mqttserver=host, mqttusername=mqttuser, mqttpassword=mqttpassword, mqttsamplerate=30
                                                     ,bluetoothactivate=False, bluetoothname="HC-05"
-                                                    ,amqpactivate=False, amqpusername=ident, amqppassword=mqttpassword, amqpserver=host, queue="rmap", exchange="rmap"
+                                                    ,amqpactivate=False, amqpusername=username, amqppassword=mqttpassword, amqpserver=host, queue="rmap", exchange="rmap"
                                                     ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                                                     )
 
-                    print(host, ident,lon,lat,network,prefix,prefix, mqttuser+"/"+station_slug+"/"+board_slug,mqttpassword)
+                    print(host, username, ident,lon,lat,network,prefix,prefix, mqttuser+"/"+station_slug+"/"+board_slug,mqttpassword)
                     mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=maintprefix,
-                                  username=mqttuser+"/"+station_slug+"/"+board_slug,password=mqttpassword)
+                                  username=mqttuser+"/"+station_slug+"/"+board_slug,password=mqttpassword,version=1,user=username)
                     mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -689,6 +692,10 @@ def insertNewStation(request):
                         ,username=ident
                         ,board_slug=board_slug
                         ,template=template)
+
+                except IntegrityError as e:
+                    print(e)
+                    return render(request, 'insertdata/newstationform.html',{'nominatimform':nominatimform,'newstationform':newstationform,"error":True,"duplicated":True})
                     
                 except Exception as e:
                     print(e)
@@ -752,7 +759,7 @@ def insertNewStationDetail(request,slug=None):
                     mystation.lat=rmap.rmap_core.truncate(lat,5)
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
-                    host = get_current_site(request).split(":")[0]
+                    host = get_current_site(request).domain.split(":")[0]
 
                     # this in not very good ! we need to specify better in template the type (report/sample)
                     if ("_report_" in template):
@@ -799,6 +806,10 @@ def insertNewStationDetail(request,slug=None):
                         ,username=ident
                         ,board_slug=board_slug
                         ,template=template)
+
+                except IntegrityError as e:
+                    print(e)
+                    return render(request, 'insertdata/newstationdetailform.html',{'newstationdetailform':newstationdetailform,"error":True,"duplicated":True})
                     
                 except Exception as e:
                     print(e)
