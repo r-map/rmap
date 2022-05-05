@@ -128,8 +128,9 @@ def initdb(cwd):
 
     if (options.exportmqttacl):
 
-        print ("topic","read","#")
-        print ("topic","test/#")
+        #print ("topic","read","#")
+        #print ("topic","test/#")
+
         from django.contrib.auth.models import User
         from rmap.stations.models import StationMetadata
         lastusername=None
@@ -137,11 +138,19 @@ def initdb(cwd):
             # legacy patterns
             username=u.username
             print("user", username)
-            
+            lastusername=username
+
+            # legacy V0 topics
             for network in ("fixed","mobile"):
                 for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
                     mytopic="pattern {}/{}/+/{}/#".format(prefix,username,network)
                     print (mytopic)
+            
+            # read all V1 user's stations
+            for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
+                mytopic="pattern read 1/{}/{}/#".format(prefix,username)
+                print (mytopic)
+            
             
             # V1 patterns
             for mystation in StationMetadata.objects.filter(ident__username=u.username):

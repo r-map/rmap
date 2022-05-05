@@ -438,17 +438,17 @@ def acl(request):
         acc = request.POST['acc']
         #print (topic,acc)
         
-        #read and subscribe to all
-        if acc == "1" or acc == "4":
-            response=HttpResponse("allow")
-            response.status_code=200
-            return response
+        ##read and subscribe to all
+        #if acc == "1" or acc == "4":
+        #    response=HttpResponse("allow")
+        #    response.status_code=200
+        #    return response
 
-        #read and write to all in test/#
-        if topic.startswith(("test/")) and (acc == "2" or acc == "3"):
-            response=HttpResponse("allow")
-            response.status_code=200
-            return response
+        ##read and write to all in test/#
+        #if topic.startswith(("test/")) and (acc == "2" or acc == "3"):
+        #    response=HttpResponse("allow")
+        #    response.status_code=200
+        #    return response
 
     if 'username' in request.POST:
         p = re.compile('^[a-zA-Z0-9_-]{1,30}$')
@@ -504,6 +504,30 @@ def acl(request):
                     pass
 
         else:
+
+            #read and un/subscribe to all user's stations
+            if acc == "1" or acc == "4" or acc == "8":
+                
+                username=p.match(request.POST['username'])
+                if username:
+                    username = username.string
+                    mytopic="/"
+
+                    #read and subscribe to all in report/username/# sample/username/# maint/username/# rpc/username/#
+                    if topic.startswith(
+                            (
+                                "1/sample/"+username+mytopic,
+                                "1/report/"+username+mytopic,
+                                "1/maint/"+username+mytopic,
+                                "1/rpc/"+username+mytopic
+                            )
+                    ):
+                        
+                        response=HttpResponse("allow")
+                        response.status_code=200
+                        return response
+
+
             # legacy acl for user auth
             username=p.match(request.POST['username'])
             if username:
