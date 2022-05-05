@@ -1,4 +1,4 @@
-#!/usr/bin/python3.6
+#!/usr/bin/python3
 # mqtt2stationmaintd - Update station information with the last status
 # received from MQTT maint rootpath
 #
@@ -39,9 +39,26 @@ from rmap.stations.models import StationMaintStatus,StationMetadata
 from rmap import daemon
 import rmap.settings
 
-TOPIC_RE = re.compile((
+TOPIC_RE_V0 = re.compile((
     r'^.*/'
     r'(?P<ident>[^/]+)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
+
+TOPIC_RE_V1 = re.compile((
+    r'^1/[^/]+/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<ident>[^/]*)/'
     r'(?P<lon>[0-9-]+),'
     r'(?P<lat>[0-9-]+)/'
     r'(?P<rep>[^/]+)/'
@@ -58,9 +75,10 @@ TOPIC_RE = re.compile((
 class MyMQTTClass(mqtt.Client):
 
 
-    def parse_topic(self,topic):
-        match = TOPIC_RE.match(topic)
+    def parse_topic_v0(self,topic):
+        match = TOPIC_RE_V0.match(topic)
         if match is None:
+            logging.info("SKIP topic V0: {}".format(topic))
             return None
         else:
             g = match.groupdict()
@@ -84,12 +102,44 @@ class MyMQTTClass(mqtt.Client):
             }
 
 
+    def parse_topic_v1(self,topic):
+        match = TOPIC_RE_V1.match(topic)
+        if match is None:
+            logging.info("SKIP topic V1: {}".format(topic))
+            return None
+        else:
+            g = match.groupdict()
+            return {
+                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+                "lon": int(g["lon"]),
+                "lat": int(g["lat"]),
+                "rep_memo": g["rep"],
+                "level": (
+                    None if g["lt1"] == "-" else int(g["lt1"]),
+                    None if g["lv1"] == "-" else int(g["lv1"]),
+                    None if g["lt2"] == "-" else int(g["lt2"]),
+                    None if g["lv2"] == "-" else int(g["lv2"]),
+                ),
+                "trange": (
+                    None if g["pind"] == "-" else int(g["pind"]),
+                    None if g["p1"] == "-" else int(g["p1"]),
+                    None if g["p2"] == "-" else int(g["p2"]),
+                ),
+                "var": g["var"],
+            }
+
+        
     def parse_payload(self,payload):
         return json.loads(payload)
 
 
     def parse_message(self,topic, payload):
-        msg = self.parse_topic(topic)
+
+        if topic.startswith("1/"):
+            msg = self.parse_topic_v1(topic)
+        else:
+            msg = self.parse_topic_v0(topic)
+        
         if msg is None:
             return None
 
@@ -282,7 +332,7 @@ def main(self):
  
     mqttclient = MyMQTTClass(
         userdata={
-            "topics": [rmap.settings.subtopicmaint],
+            "topics": [rmap.settings.subtopicmaint,"1/"+rmap.settings.subtopicmaint],
             "logging": logging,
             "overwrite_date": OVERWRITE_DATE,
             "qos":0},
