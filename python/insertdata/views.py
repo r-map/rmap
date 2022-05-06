@@ -569,6 +569,7 @@ def insertDataManualData(request):
                             mqttuser=username
                             mqttpassword=User.objects.make_random_password()
                             user=User.objects.get(username=username)
+                            ident=username
                             mystation=StationMetadata(slug=station_slug,name="Auto mobile",active=True,network=network,ident=user, mqttrootpath="report",lat=None,lon=None)    
                             mystation.clean()
                             mystation.save()
@@ -591,7 +592,8 @@ def insertDataManualData(request):
                     timeelapsedform = TimeElapsedForm()
                     form = ManualForm(language_code=request.LANGUAGE_CODE) # An unbound form
                 except:
-                    return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
+                    raise
+                    #return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"error":True})
 
             return render(request, 'insertdata/manualdataform.html',{'form': form,'stationform':stationform,'nominatimform':nominatimform,'timeelapsedform':timeelapsedform,"success":True})
 

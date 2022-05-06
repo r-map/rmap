@@ -140,6 +140,7 @@ class rmapmqtt:
                 topic="1/"+self.maintprefix+"/"+self.user+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
                 
             payload=dumps({ "v": "conn"})
+            print("publish:",topic,payload,self.retain)
             self.publish(topic,payload,retain=self.retain)
             
             self.log("published maint message")
