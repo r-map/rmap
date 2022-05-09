@@ -1,0 +1,15 @@
+{
+    "name": "STM32duino FreeRTOS",
+    "version": "10.3.1",
+    "keywords": "rtos, timing, thread, task, mutex, semaphore",
+    "description": "Real Time Operating System implemented for STM32",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/stm32duino/STM32FreeRTOS.git"
+    },
+    "frameworks": "arduino",
+    "platforms": "ststm32",
+    "build": {
+        "libArchive": false
+    }
+}
