@@ -83,9 +83,14 @@ def main (self):
 
     try:
 
-        subtopics=["report/+/+/+","report/+/+/+/+/+"]
+        subtopics=[
+            "report/+/+/+","report/+/+/+/+/+"
+            ,"1/report/+/+/+/+","1/sample/+/+/+/+"
+            ,"1/report/+/+/+/+/+/+","1/sample/+/+/+/+/+/+"
+        ]
         
-        r2o=report2observation(rmap.settings.amqphost,rmap.settings.mqttuser, rmap.settings.mqttpassword ,subtopics,killer)
+        r2o=report2observation(rmap.settings.amqphost,rmap.settings.mqttuser, rmap.settings.mqttpassword
+                               , subtopics, rmap.settings.topicmaint, killer)
         r2o.run()
         
         #while True:

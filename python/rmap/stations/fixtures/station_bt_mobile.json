@@ -2,13 +2,11 @@
 {
   "fields": {
     "category": "test",
-    "ident": [
+    "user": [
       "rmap"
     ],
     "name": "BT mobile",
     "mqttmaintpath": "mobile",
-    "lon": 0.4,
-    "lat": 0.4,
     "mqttrootpath": "mobile",
     "active": false,
     "slug": "BT_mobile",

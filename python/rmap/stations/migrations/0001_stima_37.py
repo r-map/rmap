@@ -7,11 +7,7 @@ import django.db.models.deletion
 import re
 import rmap.stations.models
 
-from django.core import serializers
-import os
-fixture_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '../fixtures'))
-
-def load_fixture(apps, schema_editor):
+def create_superuser(apps, schema_editor):
     
     from django.core.management import call_command
     call_command("createsuperuser",username="rmap",email="rmap@rmap.cc",interactive=False) 
@@ -21,85 +17,15 @@ def load_fixture(apps, schema_editor):
     u.set_password('rmap')
     u.save()
 
-    def load_fixture_from_file(fixture_file):
-        fixture = open(fixture_file, 'rb')
-        objects = serializers.deserialize('json', fixture, ignorenonexistent=True)
-        for obj in objects:
-            obj.save()
-        fixture.close()
+def delete_superuser(apps, schema_editor):
 
-    for fixture_filename in ("site_rmap.cc.json",):
-        if fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print("load fixture from file: ",fixture_file)
-            load_fixture_from_file(fixture_file)
+    #MyModel = apps.get_model("stations", "UserProfile")
+    #MyModel.objects.get(user=apps.get_model("auth", "User").objects.get(username="rmap")).delete()
+    #apps.get_model("auth", "User").objects.get(username="rmap").delete()
 
-    fixture_file=fixture_dir+"/sensor_type_01.json"
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    for fixture_filename in os.listdir(fixture_dir):
-        if fixture_filename[:3] == "sta" and fixture_filename[-5:] == ".json":
-            
-            fixture_file = os.path.join(fixture_dir, fixture_filename)
-            print("load fixture from file: ",fixture_file)
-            load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_02.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_03.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_04.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_05.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_06.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_07.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    fixture_filename = "sensor_type_08.json"
-    fixture_file = os.path.join(fixture_dir, fixture_filename)
-    print("load fixture from file: ",fixture_file)
-    load_fixture_from_file(fixture_file)
-
-    
-
-def unload_fixture(apps, schema_editor):
-    "Brutally deleting all entries for this model..."
-
-    MyModel = apps.get_model("stations", "StationMetadata")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Board")
-    MyModel.objects.all().delete()
-    MyModel = apps.get_model("stations", "Sensor")
-    MyModel.objects.all().delete()
-
-    MyModel = apps.get_model("stations", "UserProfile")
-    MyModel.objects.get(user=apps.get_model("auth", "User").objects.get(username="rmap")).delete()
-    apps.get_model("auth", "User").objects.get(username="rmap").delete()
-
-    pass
-
-
+    from django.contrib.auth.models import User
+    u = User.objects.get(username__exact='rmap')
+    u.delete()
 
 class Migration(migrations.Migration):
 
@@ -670,7 +596,7 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, default=rmap.stations.models.TransportMqtt.genpskkey, help_text='MQTT PSK Key', max_length=254, null=True),
         ),
         migrations.RunPython(
-            code=load_fixture,
-            reverse_code=unload_fixture,
+            code=create_superuser,
+            reverse_code=delete_superuser,
         ),
     ]

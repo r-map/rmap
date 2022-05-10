@@ -18,7 +18,6 @@ __author__ = "Paolo Patruno"
 __copyright__ = "Copyright (C) 2019 by Paolo Patruno"
 
 
-import rmap.settings
 import paho.mqtt.client as paho
 import os, sys
 import logging
@@ -32,15 +31,18 @@ from  rmap import rmap_core
 
 class report2observation(object):
 
-  def __init__(self,mqtt_host,mqttuser, mqttpassword, subtopics, terminate ):
+  def __init__(self,mqtt_host,mqttuser, mqttpassword, subtopics, topicmaint, terminate):
 
     self.mqtt_host=mqtt_host
     self.subtopics=subtopics
     self.client_id = "report2observation_%d" % (os.getpid())
     self.mqttc = paho.Client(self.client_id, clean_session=True)
     self.terminateevent=terminate
-
-    self.mqttc.username_pw_set(mqttuser,mqttpassword)
+    self.mqttuser=mqttuser
+    self.mqttpassword=mqttpassword
+    self.mqtttopicmaint=topicmaint
+    
+    self.mqttc.username_pw_set(self.mqttuser,self.mqttpassword)
 
     self.mqttc.on_message = self.on_message
     self.mqttc.on_connect = self.on_connect
@@ -91,10 +93,23 @@ class report2observation(object):
 
 
       topics=msg.topic.split("/")
-      prefix= topics[0]
-      ident = topics[1]
-      lonlat=topics[2]
-      network=topics[3]
+
+      if (topics[0] =="1"):
+        version=1
+        prefix= topics[1]
+        user = topics[2]
+        ident = topics[3]
+        lonlat=topics[4]
+        network=topics[5]
+        nexttopic=6
+      else:
+        version=0    
+        prefix= topics[0]
+        user = topics[1]
+        ident = topics[1]
+        lonlat=topics[2]
+        network=topics[3]
+        nexttopic=4
 
       st = json.loads(msg.payload.decode())
       dt=st.get("t")
@@ -103,8 +118,9 @@ class report2observation(object):
         logging.info("try to decode with table d")
 
         d=st["d"]
-        timerange=topics[4]
-        level=topics[5]
+        timerange=topics[nexttopic]
+        nextopic += 1
+        level=topics[nextopic]
         bcodes=rmap_core.dtable[str(d)]
         timeranges=[]
         levels=[]
@@ -131,8 +147,8 @@ class report2observation(object):
           logging.error("skip message: %s : %s"% (msg.topic,msg.payload))
           return
 
-      logging.info("ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(ident,rmap.settings.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
-      mqtt=rmapmqtt.rmapmqtt(ident=ident,username=rmap.settings.mqttuser,password=rmap.settings.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix="maint",logfunc=logging.debug,qos=0)  # attention qos 0 for fast publish
+      logging.info("user={} ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
+      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.topicmaint,logfunc=logging.debug,qos=0,version=version)  # attention qos 0 for fast publish
 
       mqtt.connect()
       

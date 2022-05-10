@@ -62,7 +62,7 @@ def main():
     lat=float(data["station_latitude"])
 
 
-    rmap=rmapmqtt(ident=RMAPUSER,lon=lon,lat=lat,host=host,network="fixed",username=RMAPUSER,password=RMAPPASSWORD,prefix="sample",maintprefix="maint")
+    rmap=rmapmqtt(user=RMAPUSER,lon=lon,lat=lat,host=host,network="fixed",username=RMAPUSER,password=RMAPPASSWORD,prefix="sample",maintprefix="maint")
     rmap.loop_start()
     rmap.connect()
 
@@ -136,7 +136,7 @@ def main():
                     rmap.loop_stop()
                     #raise
                     
-                    rmap=rmapmqtt(ident=RMAPUSER,lon=lon,lat=lat,host=host,network="fixed",username=RMAPUSER,password=RMAPPASSWORD,prefix="sample",maintprefix="maint")
+                    rmap=rmapmqtt(user=RMAPUSER,lon=lon,lat=lat,host=host,network="fixed",username=RMAPUSER,password=RMAPPASSWORD,prefix="sample",maintprefix="maint")
                     rmap.loop_start()
                     rmap.connect()
                     

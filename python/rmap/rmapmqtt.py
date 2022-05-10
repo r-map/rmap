@@ -57,7 +57,8 @@ class Rmapdonotexist(Exception):
 
 class rmapmqtt:
 
-    def __init__(self,ident="",lon=None,lat=None,network="generic",host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None,qos=1,version=0,user=None):
+    def __init__(self,user=None,ident="",lon=None,lat=None,network="fixed"
+                 ,host="localhost",port=1883,username=None,password=None,timeout=60,logfunc=log_stdout,clientid="",prefix="test",maintprefix="test",lonlat=None,qos=1,version=0):
 
         self.ident=ident
         self.lonlat=lonlat
@@ -108,11 +109,12 @@ class rmapmqtt:
             # retained only if the station is fixed
             self.retain = self.network != "mobile"
         else:
+            #self.retain =  True
             self.retain = (not lat is None and not lon is None)
 
         # mando stato di connessione della stazione con segnalazione di sconnessione gestita male com will
         if (self.version == 0):
-            self.mqttc.will_set(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+            self.mqttc.will_set(self.maintprefix+"/"+self.user+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                                 payload=dumps({"v": "error01"}),
                                 qos=self.qos, retain=self.retain)
         else:
@@ -135,7 +137,7 @@ class rmapmqtt:
         try:
             # retained only if the station is fixed
             if (self.version == 0):
-                topic=self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
+                topic=self.maintprefix+"/"+self.user+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
             else:
                 topic="1/"+self.maintprefix+"/"+self.user+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213"
                 
@@ -199,7 +201,7 @@ class rmapmqtt:
             for key,val in anavar.items():
 
                 if (self.version == 0):
-                    rc=self.publish(self.prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
+                    rc=self.publish(self.prefix+"/"+self.user+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
                                     payload=dumps(val),retain=self.retain)
                 else:
                     rc=self.publish("1/"+self.prefix+"/"+self.user+"/"+self.ident+"/"+lonlat+"/"+self.network+"/-,-,-/-,-,-,-/"+key,
@@ -228,7 +230,7 @@ class rmapmqtt:
                 
             for key,val in datavar.items():
                 if (self.version == 0) :
-                    rc=self.publish(prefix+"/"+self.ident+"/"+lonlat+"/"+self.network+"/"+
+                    rc=self.publish(prefix+"/"+self.user+"/"+lonlat+"/"+self.network+"/"+
                                       timerange+"/"+level+"/"+key,
                                       payload=dumps(val), 
                                       retain=False
@@ -303,7 +305,7 @@ class rmapmqtt:
             # retained only if the station is fixed
 
             if (self.version == 0) :
-                self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.ident+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
+                self.messageinfo=self.mqttc.publish(self.maintprefix+"/"+self.user+"/"+self.lonlat+"/"+self.network+"/-,-,-/-,-,-,-/B01213",
                                                     payload=dumps({ "v": "disconn"}),
                                                     qos=self.qos,retain=self.retain)
             else:

@@ -294,7 +294,7 @@ def sha(request):
  
             if (username and station_slug and board_slug):
                 try:
-                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    mystation=StationMetadata.objects.get(user__username=username,slug=station_slug)
                     if mystation is not None:
                         if mystation.active:
                             myboard = mystation.board_set.get(slug=board_slug)
@@ -354,7 +354,7 @@ def pskkey(request):
  
             if (username and station_slug and board_slug):
                 try:
-                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    mystation=StationMetadata.objects.get(user__username=username,slug=station_slug)
                     if mystation is not None:
                         if mystation.active:
                             myboard = mystation.board_set.get(slug=board_slug)
@@ -471,7 +471,7 @@ def acl(request):
  
             if (username and station_slug and board_slug):
                 try:
-                    mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                    mystation=StationMetadata.objects.get(user__username=username,slug=station_slug)
                     if mystation is not None:
                         if mystation.active:
                             lat=mystation.lat
@@ -560,8 +560,8 @@ from django.contrib.auth.decorators import login_required
 @login_required
 @never_cache
 def profile(request):
-    stations=StationMetadata.objects.filter(active=True,ident__username=request.user.get_username())
-    return render(request, 'profile.html',{ 'ident' : request.user.get_username(),"stations":stations})
+    stations=StationMetadata.objects.filter(active=True,user__username=request.user.get_username())
+    return render(request, 'profile.html',{ 'user' : request.user.get_username(),"stations":stations})
 
 @login_required
 @never_cache
@@ -574,14 +574,14 @@ def profile_details(request,mystation_slug):
                 stationimageid=request.POST['stationimageid']
                 mystationslug=request.POST['stationslug']
                 
-                mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+                mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
                 stationimage=StationImage.objects.get(stationmetadata=mystation,id=stationimageid)
                 stationimage.delete()
                 invalid=False
             except:
                 invalid=True
             form = StationImageForm() # An unbound form
-            return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form,"invalid":invalid})
+            return render(request, 'profile_details.html',{"user":request.user.get_username(),"mystation":mystation,'form': form,"invalid":invalid})
             
 
         form = StationImageForm(request.POST, request.FILES) # A form bound to the POST data
@@ -597,7 +597,7 @@ def profile_details(request,mystation_slug):
                 #image=image.read()
                 #body=exifutils.setgeoimage(image,lat,lon,imagedescription=request.user.username,usercomment=comment)
 
-                mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
+                mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
                 stationimage=StationImage(active=True,comment=comment,stationmetadata=mystation,
                                           #date=dt,
                                           category = PHOTO_CATEGORY_CHOICES[0][0],image=image)
@@ -609,18 +609,18 @@ def profile_details(request,mystation_slug):
         else:
 
             form = StationImageForm() # An unbound form
-            mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
-            return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form,"invalid":True})
+            mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
+            return render(request, 'profile_details.html',{"user":request.user.get_username(),"mystation":mystation,'form': form,"invalid":True})
 
     form = StationImageForm() # An unbound form
-    mystation=StationMetadata.objects.get(ident__username=request.user.get_username(),slug=mystation_slug)
-    return render(request, 'profile_details.html',{"ident":request.user.get_username(),"mystation":mystation,'form': form})
+    mystation=StationMetadata.objects.get(user__username=request.user.get_username(),slug=mystation_slug)
+    return render(request, 'profile_details.html',{"user":request.user.get_username(),"mystation":mystation,'form': form})
 
 
 @login_required
 @never_cache
 def profile_details_stationimage(request,mystation_slug,stationimage_id):
-    stationimage=StationImage.objects.get(stationmetadata__ident__username=request.user.get_username(),stationmetadata__slug=mystation_slug,id=stationimage_id)
+    stationimage=StationImage.objects.get(stationmetadata__user__username=request.user.get_username(),stationmetadata__slug=mystation_slug,id=stationimage_id)
     return render(request, 'profile_details_stationimage.html',{"stationimage":stationimage})
 
 #def profile(request):

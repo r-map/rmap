@@ -739,9 +739,9 @@ class StationConstantData(models.Model):
         return '%s' % (self.btable)
 
 class StationMetadataManager(models.Manager):
-    def get_by_natural_key(self, slug, ident):
-        #print "StationMetadataManager: ", slug,ident
-        return self.get(slug=slug, ident=User.objects.get_by_natural_key(ident[0]))
+    def get_by_natural_key(self, slug, user):
+        #print "StationMetadataManager: ", slug,user
+        return self.get(slug=slug, user=User.objects.get_by_natural_key(user[0]))
 
 class StationMetadata(models.Model):
     """Station Metadata."""
@@ -765,10 +765,10 @@ class StationMetadata(models.Model):
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
 
-    ident = models.ForeignKey(User,on_delete=models.CASCADE)
+    user = models.ForeignKey(User,on_delete=models.CASCADE)
     #ident = models.ForeignKey(User, limit_choices_to={'is_staff': True})
 
-#    ident = models.CharField(max_length=9,unique=False,null=False,blank=True, help_text=ugettext_lazy("station identifier (should be equal to your username)"))
+    ident = models.CharField(max_length=9,null=True,blank=True, help_text=ugettext_lazy("identifier for mobile station (should be equal to your username)"))
 
     lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Latitude of the fixed station'))
     lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Longitude of the fixed station'))
@@ -809,6 +809,12 @@ class StationMetadata(models.Model):
         if (self.network == "fixed" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
             raise ValidationError(ugettext_lazy('Station network have inconsistent definition of coordinate (lat/lon).'))
 
+        if (self.ident is None and self.lat is None):
+            raise ValidationError(ugettext_lazy('Station without ident need coordinate (lat/lon).'))
+
+        if (not self.ident is None and not self.lat is None):
+            raise ValidationError(ugettext_lazy('Station with ident cannot have coordinate (lat/lon).'))
+        
                 
     @property
     def geom(self):
@@ -822,7 +828,7 @@ class StationMetadata(models.Model):
     def popupContent(self):
         return  '\
         <p>\
-           ident: <a href="/stationsonmap/{}">{}\
+           user: <a href="/stationsonmap/{}">{}\
            </a>\
         </p>\
         <p>\
@@ -833,10 +839,10 @@ class StationMetadata(models.Model):
            </a>\
         </p>'\
         .format(
-            self.ident,
-            self.ident,
+            self.user,
+            self.user,
             self.name,
-            self.ident,
+            self.user,
             self.slug,
             self.slug,
         )
@@ -845,7 +851,7 @@ class StationMetadata(models.Model):
     def natural_key(self):
         #print "StationMetadata natural_key"
         #print self,self.slug, self.ident.natural_key()
-        return (self.slug, self.ident.natural_key())
+        return (self.slug, self.user.natural_key())
 
     natural_key.dependencies = ['auth.user']
 
@@ -853,10 +859,10 @@ class StationMetadata(models.Model):
         ordering = ['slug']
         verbose_name = 'station'
         verbose_name_plural = 'stations'
-        unique_together = (('slug', 'ident'),('ident', 'lat','lon','network'))
+        unique_together = (('slug', 'user'),('user', 'lat','lon','network'))
 
     def __str__(self):
-        return '%s/%s' % (self.slug,self.ident)
+        return '%s/%s' % (self.slug,self.user)
 
 
 from django.contrib.auth.models import User

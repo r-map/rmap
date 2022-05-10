@@ -68,8 +68,8 @@ class scelta_stations(object):
         self.username=username
 
     def __iter__(self):
-        #self.stations=StationMetadata.objects.filter(active=True,ident__username=self.username).values("slug","lat","lon")
-        self.stations=StationMetadata.objects.filter(active=True,ident__username=self.username).iterator()
+        #self.stations=StationMetadata.objects.filter(active=True,user__username=self.username).values("slug","lat","lon")
+        self.stations=StationMetadata.objects.filter(active=True,user__username=self.username).exclude(lat=None,lon=None).iterator()
         self.first=True
         return self
 
@@ -216,7 +216,7 @@ def insertDataImage(request):
 
             slug=stationform.cleaned_data['station_slug']
             if slug:
-                station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
+                station=StationMetadata.objects.get(user__username=request.user.username,slug=slug)
                 #stationlat=station.lat
                 #stationlon=station.lon
                 POST=request.POST.copy()
@@ -286,7 +286,7 @@ def insertDataImage(request):
                         body=img.writeString()
 
 
-            #grimages=GeorefencedImage.objects.filter(ident__username=ident)
+            #grimages=GeorefencedImage.objects.filter(user__username=user)
             #grimages=GeorefencedImage.objects.filter(id=1)
 
 
@@ -299,7 +299,7 @@ def insertDataImage(request):
             if True:
                 #inserimento diretto in DB
 
-                geoimage=GeorefencedImage(active=True,geom = geom,comment=comment,ident=request.user,
+                geoimage=GeorefencedImage(active=True,geom = geom,comment=comment,user=request.user,
                                       date=dt, category = CATEGORY_CHOICES[1])
 
                 geoimage.image.save('geoimage.jpg',ContentFile(body))
@@ -346,7 +346,7 @@ def insertDataRainboImpactData(request):
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)
-            ident=request.user.username
+            username=request.user.username
             datavar={}
 
             value = form.cleaned_data['impact_detected'] if form.cleaned_data['impact_detected'] != "" else ""
@@ -357,8 +357,8 @@ def insertDataRainboImpactData(request):
                 try:
                     # TODO!
                     #here we have to use mqtt_user and mqtt_password from transport_mqtt
-                    user=rmap.settings.mqttuser
-                    password=rmap.settings.mqttpassword
+                    mqttusername=rmap.settings.mqttuser
+                    mqttpassword=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
                     maintprefix=rmap.settings.topicmaint
                     network="mobile"
@@ -366,7 +366,7 @@ def insertDataRainboImpactData(request):
 
                     print("<",slug,">","prefix:",prefix)
 
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=user,password=password)
+                    mqtt=rmapmqtt(user=username,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=mqttusername,password=mqttpassword)
                     mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -393,7 +393,7 @@ def insertDataRainboWeatherData(request):
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
             dt=datetime.utcnow().replace(microsecond=0)
-            ident=request.user.username
+            username=request.user.username
             datavar={}
 
             #Ascending importance order
@@ -409,15 +409,15 @@ def insertDataRainboWeatherData(request):
                 try:
                     # TODO!
                     #here we have to use mqtt_user and mqtt_password from transport_mqtt
-                    user=rmap.settings.mqttuser
-                    password=rmap.settings.mqttpassword
+                    mqttusername=rmap.settings.mqttuser
+                    mqttpassword=rmap.settings.mqttpassword
                     prefix=rmap.settings.topicreport
                     maintprefix=rmap.settings.topicmaint
                     network="mobile"
                     slug=form.cleaned_data['coordinate_slug']
-                    print(user,password,network,prefix)
-                    print("<",slug,">","prefix:",prefix)
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=user,password=password)
+                    #print(mqttusername,mqttpassword,network,prefix)
+                    #print("<",slug,">","prefix:",prefix)
+                    mqtt=rmapmqtt(user=username,lon=lon,lat=lat,network=network,host="localhost",port=1883,prefix=prefix,maintprefix=maintprefix,username=mqttusername,password=mqttpassword)
                     mqtt.connect()                    
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -452,7 +452,7 @@ def insertDataManualData(request):
 
             slug=stationform.cleaned_data['station_slug']
             if slug:
-                station=StationMetadata.objects.get(ident__username=request.user.username,slug=slug)
+                station=StationMetadata.objects.get(user__username=request.user.username,slug=slug)
                 #stationlat=station.lat
                 #stationlon=station.lon
                 POST=request.POST.copy()
@@ -532,7 +532,7 @@ def insertDataManualData(request):
                     if (station_slug):
                         # if we have station slug from other form we get it from DB
                         # fixed station
-                        mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                        mystation=StationMetadata.objects.get(user__username=username,slug=station_slug)
                         if mystation is not None:
                             if mystation.active:
                                 lat=mystation.lat
@@ -542,7 +542,7 @@ def insertDataManualData(request):
                                 myboard = mystation.board_set.get(slug=board_slug)
                                 if myboard is not None:
                                     if ( myboard.active and myboard.transportmqtt.active):
-                                        mqttuser = myboard.transportmqtt.mqttuser
+                                        mqttusername = myboard.transportmqtt.mqttuser
                                         mqttpassword = myboard.transportmqtt.mqttpassword
                                         host = myboard.transportmqtt.mqttserver
                                     
@@ -551,13 +551,13 @@ def insertDataManualData(request):
                         try:
                             # get default mobile station from DB
                             station_slug="auto_mobile"
-                            mystation=StationMetadata.objects.get(ident__username=username,slug=station_slug)
+                            ident=username
+                            mystation=StationMetadata.objects.get(user__username=username,slug=station_slug)
                             network=mystation.network
                             myboard = mystation.board_set.get(slug=board_slug)
                             if myboard is not None:
                                 if ( myboard.active and myboard.transportmqtt.active):
-                                    mqttuser = myboard.transportmqtt.mqttuser
-                                    ident = mqttuser
+                                    mqttusername = myboard.transportmqtt.mqttuser
                                     mqttpassword = myboard.transportmqtt.mqttpassword
                                     host = myboard.transportmqtt.mqttserver
 
@@ -566,25 +566,24 @@ def insertDataManualData(request):
                             network="mobile"
                             host = get_current_site(request).domain.split(":")[0]
                             #host="localhost"
-                            mqttuser=username
+                            mqttusername=username
                             mqttpassword=User.objects.make_random_password()
                             user=User.objects.get(username=username)
-                            ident=username
-                            mystation=StationMetadata(slug=station_slug,name="Auto mobile",active=True,network=network,ident=user, mqttrootpath="report",lat=None,lon=None)    
+                            mystation=StationMetadata(slug=station_slug,name="Auto mobile",active=True,network=network,user=user,ident=ident, mqttrootpath="report",lat=None,lon=None)    
                             mystation.clean()
                             mystation.save()
 
                             rmap.rmap_core.addboard(station_slug=station_slug,username=username,board_slug=board_slug,activate=True
                                                     ,serialactivate=False
-                                                    ,mqttactivate=True, mqttserver=host, mqttusername=mqttuser, mqttpassword=mqttpassword, mqttsamplerate=30
+                                                    ,mqttactivate=True, mqttserver=host, mqttusername=mqttusername, mqttpassword=mqttpassword, mqttsamplerate=30
                                                     ,bluetoothactivate=False, bluetoothname="HC-05"
-                                                    ,amqpactivate=False, amqpusername=username, amqppassword=mqttpassword, amqpserver=host, queue="rmap", exchange="rmap"
+                                                    ,amqpactivate=False, amqpusername=mqttusername, amqppassword=mqttpassword, amqpserver=host, queue="rmap", exchange="rmap"
                                                     ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                                                     )
 
-                    print(host, username, ident,lon,lat,network,prefix,prefix, mqttuser+"/"+station_slug+"/"+board_slug,mqttpassword)
-                    mqtt=rmapmqtt(ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=maintprefix,
-                                  username=mqttuser+"/"+station_slug+"/"+board_slug,password=mqttpassword,version=1,user=username)
+                    print(host, username, ident,lon,lat,network,prefix,prefix, mqttusername+"/"+station_slug+"/"+board_slug,mqttpassword)
+                    mqtt=rmapmqtt(user=username,ident=ident,lon=lon,lat=lat,network=network,host=host,port=1883,prefix=prefix,maintprefix=maintprefix,
+                                  username=mqttusername+"/"+station_slug+"/"+board_slug,password=mqttpassword,version=1)
                     mqtt.connect()
                     mqtt.data(timerange="254,0,0",level="1,-,-,-",datavar=datavar)
                     mqtt.disconnect()
@@ -647,7 +646,7 @@ def insertNewStation(request):
             geom=newstationform.cleaned_data['geom']
             lon=geom['coordinates'][0]
             lat=geom['coordinates'][1]
-            ident=request.user.username
+            username=request.user.username
             name=newstationform.cleaned_data['name']
             password=newstationform.cleaned_data['password']
             passwordrepeat=newstationform.cleaned_data['passwordrepeat']
@@ -659,17 +658,17 @@ def insertNewStation(request):
             if name and (password == passwordrepeat):
                 try:
                     try:
-                        print("del station:", ident,slug,ident)
-                        mystation=StationMetadata.objects.get(slug__exact=slug,ident__username=ident)
+                        print("del station:", username,slug)
+                        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=username)
                         mystation.delete()
                     except Exception as e:
                         print(e)
                     
-                    print("new station:", name,ident,lon,lat)
+                    print("new station:", name,username,lon,lat)
 
                     mystation=StationMetadata(slug=slug,name=name)
-                    user=User.objects.get(username=ident)
-                    mystation.ident=user
+                    user=User.objects.get(username=username)
+                    mystation.user=user
                     mystation.lat=rmap.rmap_core.truncate(lat,5)
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
@@ -681,17 +680,17 @@ def insertNewStation(request):
                     mystation.clean()
                     mystation.save()
 
-                    rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
+                    rmap.rmap_core.addboard(station_slug=slug,username=username,board_slug=board_slug,activate=True
                                  ,serialactivate=False
-                                 ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword=password, mqttsamplerate=30
+                                 ,mqttactivate=True, mqttserver=host, mqttusername=username, mqttpassword=password, mqttsamplerate=30
                                  ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername=ident, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
+                                ,amqpactivate=False, amqpusername=username, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
                                  ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org"
                     )
                     
                     rmap.rmap_core.addsensors_by_template(
                         station_slug=slug
-                        ,username=ident
+                        ,username=username
                         ,board_slug=board_slug
                         ,template=template)
 
@@ -728,7 +727,7 @@ def insertNewStationDetail(request,slug=None):
             
             lat=newstationdetailform.cleaned_data['latitude']
             lon=newstationdetailform.cleaned_data['longitude']
-            ident=request.user.username
+            username=request.user.username
             mqttsamplerate=newstationdetailform.cleaned_data['mqttsamplerate']
             password=newstationdetailform.cleaned_data['password']
             passwordrepeat=newstationdetailform.cleaned_data['passwordrepeat']
@@ -747,17 +746,17 @@ def insertNewStationDetail(request,slug=None):
             if name and (password == passwordrepeat):
                 try:
                     try:
-                        print("del station:", ident,slug,ident)
-                        mystation=StationMetadata.objects.get(slug__exact=slug,ident__username=ident)
+                        print("del station:", username,slug)
+                        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=username)
                         mystation.delete()
                     except Exception as e:
                         print(e)
                     
-                    print("new station:", name,ident,lon,lat)
+                    print("new station:", name,username,lon,lat)
 
                     mystation=StationMetadata(slug=slug,name=name)
-                    user=User.objects.get(username=ident)
-                    mystation.ident=user
+                    user=User.objects.get(username=username)
+                    mystation.user=user
                     mystation.lat=rmap.rmap_core.truncate(lat,5)
                     mystation.lon=rmap.rmap_core.truncate(lon,5)
                     mystation.active=True
@@ -795,17 +794,17 @@ def insertNewStationDetail(request,slug=None):
                         except:
                             pass
 
-                    rmap.rmap_core.addboard(station_slug=slug,username=ident,board_slug=board_slug,activate=True
+                    rmap.rmap_core.addboard(station_slug=slug,username=username,board_slug=board_slug,activate=True
                                 ,serialactivate=True
-                                ,mqttactivate=True, mqttserver=host, mqttusername=ident, mqttpassword=password, mqttsamplerate=mqttsamplerate
+                                ,mqttactivate=True, mqttserver=host, mqttusername=username, mqttpassword=password, mqttsamplerate=mqttsamplerate
                                 ,bluetoothactivate=False, bluetoothname="HC-05"
-                                ,amqpactivate=False, amqpusername=ident, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
+                                ,amqpactivate=False, amqpusername=username, amqppassword=password, amqpserver=host, queue="rmap", exchange="rmap"
                                 ,tcpipactivate=True, tcpipname="master", tcpipntpserver="it.pool.ntp.org", tcpipgsmapn="ibox.tim.it"
                     )
 
                     rmap.rmap_core.addsensors_by_template(
                         station_slug=slug
-                        ,username=ident
+                        ,username=username
                         ,board_slug=board_slug
                         ,template=template)
 
@@ -842,7 +841,7 @@ def stationModify(request,slug):
         return insertNewStationDetail(request,slug=slug)
     
     try:
-        mystation=StationMetadata.objects.get(slug__exact=slug,ident__username=request.user.username)
+        mystation=StationMetadata.objects.get(slug__exact=slug,user__username=request.user.username)
 
         mystation_dict= {
             "slug":  mystation.slug

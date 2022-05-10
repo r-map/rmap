@@ -130,7 +130,7 @@ class station():
             if username is None:
                 mystation=StationMetadata.objects.filter(slug=self.slug)[0]
             else:
-                mystation=StationMetadata.objects.get(slug=self.slug,ident__username=username)
+                mystation=StationMetadata.objects.get(slug=self.slug,user__username=username)
         except ObjectDoesNotExist:
             print("not existent station in db: do nothing!")
             #raise SystemExit(0)
@@ -141,7 +141,7 @@ class station():
 
         self.lon=mystation.lon
         self.lat=mystation.lat
-        self.mqtt_ident=str(mystation.ident)
+        self.mqtt_user=str(mystation.user)
         self.prefix=mystation.mqttrootpath
         self.maintprefix=mystation.mqttmaintpath
         self.network=mystation.network
@@ -244,7 +244,7 @@ class station():
 
             print("lon:",self.lon)
             print("lat:",self.lat)
-            print("mqtt ident:",self.mqtt_ident)
+            print("mqtt user:",self.mqtt_user)
             print("prefix:",self.prefix)
             print("maintprefix",self.maintprefix)
             print("network:",self.network)
@@ -547,7 +547,7 @@ class station():
         self.mqtt_status = _('Connect Status: connecting')
 
         try:
-            self.rmap=rmapmqtt(ident=self.mqtt_ident,lon=self.lon,lat=self.lat,network=self.network,
+            self.rmap=rmapmqtt(user=self.mqtt_user,lon=self.lon,lat=self.lat,network=self.network,
                                            host=self.mqtt_host,username=self.mqtt_user,password=self.mqtt_password,
                                            prefix=self.prefix,maintprefix=self.maintprefix,logfunc=self.log)
 

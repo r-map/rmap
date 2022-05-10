@@ -10,12 +10,12 @@
 
 {% block content %}
 
-{% if ident %}
-{%trans "Selected user" %}: {{ident}}       <a href="{% url 'stationsonmap' %}">{%trans "Reset ident filter" %}</a>
+{% if user %}
+{%trans "Selected user" %}: {{user}}       <a href="{% url 'stationsonmap' %}">{%trans "Reset user filter" %}</a>
 {% endif %}
 {% if slug %}
 ++
-{%trans "Selected slug" %}: {{slug}}        <a href="{% url 'stationsonmap' %}{{ident}}">{%trans "Reset slug filter" %}</a>
+{%trans "Selected slug" %}: {{slug}}        <a href="{% url 'stationsonmap' %}{{user}}">{%trans "Reset slug filter" %}</a>
 {% endif %}
     <script type="text/javascript">
 

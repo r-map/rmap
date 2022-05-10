@@ -75,9 +75,9 @@
                     <ul class="dropdown-menu">
 		      <li><a href="//{{site.domain}}/stations">{% trans "Show RMAP stations" %}</a></li>
 		      <li><a href="//{{site.domain}}/showdata/-/*/*/*/*/*/stations">{% trans "Show all stations" %}</a></li>
-		      {% if user.is_authenticated %}
-		      <li><a href="//{{site.domain}}/stationsonmap/{{ user.username }}">{% trans "Your RMAP stations" %} {{ user.username }}</a></li>
-		      <li><a href="//{{site.domain}}/showdata/{{ user.username }}/*/*/*/*/*/stations">{% trans "All your stations" %} {{ user.username }}</a></li>
+		      {% if request.user.is_authenticated %}
+		      <li><a href="//{{site.domain}}/stationsonmap/{{ request.user.username }}">{% trans "Your RMAP stations" %} {{ request.user.username }}</a></li>
+		      <li><a href="//{{site.domain}}/showdata/{{ request.user.username }}/*/*/*/*/*/stations">{% trans "All your stations" %} {{ request.user.username }}</a></li>
 		      {% endif %}
 		    </ul>
 		  </li>
@@ -98,8 +98,8 @@
 		  <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-book fa-fw"></i> {% trans "Documentation" %} <span class="caret"></span></a>
                     <ul class="dropdown-menu">
+                      <li><a href="https://doc.rmap.cc">Documentation: Rmap standard RFC and Stima HowTo</a></li>
                       <li><a href="http://www.raspibo.org/wiki/index.php/Gruppo_Meteo">{% trans "The project on RaspiBO site" %}</a></li>
-                      <li><a href="https://doc.rmap.cc">Rmap standard RFC</a></li>
 		    </ul>
 		  </li>
 		  
@@ -127,16 +127,16 @@
 		  </li>
 		  <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false"><i class="fa fa-user fa-fw"></i>&nbsp;
-		      {% if user.is_authenticated %}
-		      {{ user.username }}
+		      {% if request.user.is_authenticated %}
+		      {{ request.user.username }}
 		      {% else %}
 		      {% trans "My RMAP" %}
 	              {% endif %}
                       <span class="caret"></span>
 		    </a>
                     <ul class="dropdown-menu">
-		      {% if user.is_authenticated %}
-		      <li><a href="//{{site.domain}}/accounts/profile">{% trans "Your personal page" %} {{ user.username }}</a></li>
+		      {% if request.user.is_authenticated %}
+		      <li><a href="//{{site.domain}}/accounts/profile">{% trans "Your personal page" %} {{ request.user.username }}</a></li>
 		      <li><a href="{% url 'auth_password_change' %}">{% trans "Change password" %}</a></li>
 		      <li><a href="{% url 'auth_logout' %}">{% trans "Log out" %}</a></li>
 		      {% else %}

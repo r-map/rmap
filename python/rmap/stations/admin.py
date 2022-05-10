@@ -135,12 +135,12 @@ class StationMetadataAdmin(admin.ModelAdmin):
 #        )
 
 
-    list_display = ('name','active','slug','ident','lat','lon','network','mqttrootpath','mqttmaintpath','category')
+    list_display = ('name','active','slug','user','ident','lat','lon','network','mqttrootpath','mqttmaintpath','category')
     list_display_links = ('name', 'slug')
-    list_editable = ('active','ident','lat','lon')
-    search_fields = ['name','slug','ident__username','network']
+    list_editable = ('active','user','ident','lat','lon')
+    search_fields = ['name','slug','user__username','ident','network']
 
-    list_filter = ('ident','network','mqttrootpath','mqttmaintpath','category')
+    list_filter = ('user','ident','network','mqttrootpath','mqttmaintpath','category')
 
 
 admin.site.register(StationMetadata, StationMetadataAdmin)

@@ -2,7 +2,7 @@
 {
   "fields": {
     "category": "test",
-    "ident": [
+    "user": [
       "rmap"
     ],
     "name": "BT fixed",

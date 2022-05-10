@@ -63,7 +63,7 @@
     <table class="table">
       <tr>
 	<th> {% trans 'Active' %}         </th>
-	<th> {% trans 'Ident' %}          </th>
+	<th> {% trans 'User' %}           </th>
 	<th> {% trans 'Lat' %}            </th>
 	<th> {% trans 'Lon' %}            </th>
 	<th> {% trans 'Category' %}       </th>
@@ -76,11 +76,11 @@
 	<i class="fa fa-times "></i>
 	{% endif %}
       </td>
-      <td> {{ object.ident }}   </td>
+      <td> {{ object.user }}   </td>
       <td> {{ object.lat }}     </td>
       <td> {{ object.lon }}     </td>
       <td> {{ object.category }}</td>
-      <td> <a href="{% url 'stationsonmap' object.ident object.slug %}">{{ object.slug }}</a></td>
+      <td> <a href="{% url 'stationsonmap' object.user object.slug %}">{{ object.slug }}</a></td>
     </table>
   </div>
 

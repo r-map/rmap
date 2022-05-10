@@ -182,13 +182,13 @@ def delsensor(station_slug=None,username=None,board_slug=None,name=None):
 
     Sensor.objects.get(name=name,board__slug=board_slug
                                 ,board__stationmetadata__slug=station_slug
-                                ,board__stationmetadata__ident__username=username).delete()
+                                ,board__stationmetadata__user__username=username).delete()
 
 def delsensors(station_slug=None,username=None,board_slug=None):
 
     Sensor.objects.filter(board__slug=board_slug
                                 ,board__stationmetadata__slug=station_slug
-                                ,board__stationmetadata__ident__username=username).delete()
+                                ,board__stationmetadata__user__username=username).delete()
 
 
 def addboard(station_slug=None,username=None,board_slug=None,activate=False
@@ -206,14 +206,14 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     try:
         myboard = Board.objects.get(slug=board_slug
                                     ,stationmetadata__slug=station_slug
-                                    ,stationmetadata__ident__username=username)
+                                    ,stationmetadata__user__username=username)
     except ObjectDoesNotExist :
-        mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+        mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
         myboard=Board(name=board_slug,slug=board_slug,stationmetadata=mystation,active=activate)
         myboard.save()
         myboard = Board.objects.get(slug=board_slug
                                     ,stationmetadata__slug=station_slug
-                                    ,stationmetadata__ident__username=username)
+                                    ,stationmetadata__user__username=username)
 
 
     try:
@@ -293,7 +293,7 @@ def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",d
     try:
         myboard = Board.objects.get(slug=board_slug
                                     ,stationmetadata__slug=station_slug
-                                    ,stationmetadata__ident__username=username)
+                                    ,stationmetadata__user__username=username)
     except ObjectDoesNotExist :
             print("board not present for this station")
             raise
@@ -1047,7 +1047,7 @@ def modifystation(station_slug=None,username=None,lon=None,lat=None):
     if (station_slug is None): return
     if (username is None): return
 
-    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+    mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
 
     if not mystation.active:
         print("disactivated station: do nothing!")
@@ -1070,7 +1070,7 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
     if (station_slug is None): return
     if (username is None): return
 
-    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+    mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
 
     if not mystation.active:
         print("disactivated station: do nothing!")
@@ -1086,10 +1086,10 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
                 print("mqtt Transport", board.transporttcpip)
 
                 #####################################
-                # TODO study how to find mobile stations !
+                # TODO define lat,lon path for mobile stations !
                 #####################################
-                ident =""    # str(mystation.ident)
                 
+                ident = mystation.ident
                 myhost =board.transportmqtt.mqttserver
                 myuser =board.transportmqtt.mqttuser
                 mypassword =board.transportmqtt.mqttpassword
@@ -1117,7 +1117,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
     if (station_slug is None): return
     if (username is None): return
 
-    mystation=StationMetadata.objects.get(slug=station_slug,ident__username=username)
+    mystation=StationMetadata.objects.get(slug=station_slug,user__username=username)
 
     if not mystation.active:
         print("disactivated station: do nothing!")
@@ -1198,7 +1198,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                         myhost =board.transportmqtt.mqttserver
                         myuser =board.transportmqtt.mqttuser
                         mypassword =board.transportmqtt.mqttpassword
-                        myrpctopic="rpc/"+str(mystation.ident)+"/"+\
+                        myrpctopic="rpc/"+str(mystation.user)+"/"+\
                             "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                             "/"+mystation.network+"/"
 
@@ -1285,17 +1285,20 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/"))
             #TODO  check id of status (good only > 0)
 
-        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+str(mystation.ident)+"//"+\
-                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
-                                                 "/"+mystation.network+"/"))
+        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+mystation.user__username\
+                                                 +"/"+mystation.ident+"/"\
+                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                 +"/"+mystation.network+"/"))
 
-        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+str(mystation.ident)+"//"+\
-                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
-                                                 "/"+mystation.network+"/"))
+        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+mystation.user__username\
+                                                 +"/"+mystation.ident+"/"\
+                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                 +"/"+mystation.network+"/"))
 
-        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+str(mystation.ident)+"//"+\
-                                                 "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
-                                                 "/"+mystation.network+"/"))
+        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+mystation.user__username\
+                                                 +"/"+mystation.ident+"/"\
+                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                 +"/"+mystation.network+"/"))
 
         print(">>>>>>> save config")
         print("save",rpcproxy.configure(save=True ))
@@ -1390,7 +1393,7 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False):
     objects=[]
 
     try:
-        mystation=StationMetadata.objects.get(slug=station_slug,ident__username=user)
+        mystation=StationMetadata.objects.get(slug=station_slug,user__username=user)
         objects.append(mystation)
 
         if (board_slug):
@@ -1430,8 +1433,8 @@ def receivegeoimagefromamqp(user="your user",password="your password",host="rmap
             return
   
         #At this point we can check if we trust this authenticated user... 
-        ident=properties.user_id
-        print("Received from user: %r" % ident) 
+        user=properties.user_id
+        print("Received from user: %r" % user) 
 
         try:
             # store image in DB
@@ -1466,20 +1469,20 @@ def receivegeoimagefromamqp(user="your user",password="your password",host="rmap
             print(date)
             print(imgident)
 
-            if (imgident == ident):
+            if (imgident == user):
                 geoimage=GeorefencedImage()
                 geoimage.geom = {'type': 'Point', 'coordinates': [lon, lat]}
                 geoimage.comment=comment
                 geoimage.date=date
 
                 try:
-                    geoimage.ident=User.objects.get(username=ident)
+                    geoimage.ident=User.objects.get(username=user)
                     geoimage.image.save('geoimage.jpg',ContentFile(body))
                     geoimage.save()
                 except User.DoesNotExist:
                     print("user does not exist")
             else:
-                print("reject:",ident)
+                print("reject:",user)
 
         except Exception as e:
             print(e)
@@ -1522,16 +1525,16 @@ def receivejsonfromamqp(user="your user",password="your password",host="rmap.cc"
             return
   
         #At this point we can check if we trust this authenticated user... 
-        ident=properties.user_id
-        print("Received from user: %r" % ident) 
+        user=properties.user_id
+        print("Received from user: %r" % user) 
         
-        #but we check that message content is with the same ident
+        #but we check that message content is with the same user
         try:
             for deserialized_object in serializers.deserialize("json",body):
-                if object_auth(deserialized_object.object,ident):
+                if object_auth(deserialized_object.object,user):
                     try:
                         try:
-                            StationMetadata.objects.get(slug=deserialized_object.object.slug,ident__username=deserialized_object.object.ident.username).delete()
+                            StationMetadata.objects.get(slug=deserialized_object.object.slug,user__username=deserialized_object.object.user.username).delete()
                         except:
                             pass
                         print("save:",deserialized_object.object)
@@ -1592,43 +1595,43 @@ def object_auth(object,user):
     #print type(object)
 
     if isinstance(object,StationMetadata):
-        if object.ident.username == user:
+        if object.user.username == user:
             return True
 
     if isinstance(object,Board):
-        if object.stationmetadata.ident.username == user:
+        if object.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,Sensor):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,TransportRF24Network):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,TransportBluetooth):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,TransportAmqp):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,TransportMqtt):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
         
     if isinstance(object,TransportSerial):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,TransportTcpip):
-        if object.board.stationmetadata.ident.username == user:
+        if object.board.stationmetadata.user.username == user:
             return True
 
     if isinstance(object,StationConstantData):
-        if object.stationmetadata.ident.username == user:
+        if object.stationmetadata.user.username == user:
             return True
 
     return False
@@ -1651,7 +1654,7 @@ def activatestation(username="rmap",station="home",board=None,activate=None,acti
 
     print("elaborate station: ",station)
 
-    mystation=StationMetadata.objects.get(slug=station,ident__username=username)
+    mystation=StationMetadata.objects.get(slug=station,user__username=username)
 
     if not (activate is None):
         mystation.active=activate
@@ -1709,7 +1712,7 @@ def configdb(username="rmap",password="rmap",
         print("elaborate station: ",station)
 
         try:
-            StationMetadata.objects.get(slug=station,ident__username=username).delete()
+            StationMetadata.objects.get(slug=station,user__username=username).delete()
         except ObjectDoesNotExist:
             pass
 
@@ -1718,7 +1721,7 @@ def configdb(username="rmap",password="rmap",
         mystation=StationMetadata(slug=station,name=stationname)
         user=User.objects.get(username=username)
             
-        mystation.ident=user
+        mystation.user=user
         mystation.lat=lat
         mystation.lon=lon
         mystation.network=network
