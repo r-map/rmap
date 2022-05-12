@@ -66,7 +66,7 @@ class distclean(Command):
                 if name[-3:] == ".mo":
                     print('removing: %s' % join(root, name))
                     if not(self.dry_run): os.remove(join(root, name))
-        for root, dirs, files in os.walk('registration/locale'):
+        for root, dirs, files in os.walk('rmap/registration/locale'):
             for name in files:
                 if name[-3:] == ".mo":
                     print('removing: %s' % join(root, name))
@@ -331,11 +331,11 @@ for dirpath, dirnames, filenames in os.walk('insertdata/static'):
         for file in filenames:
             insertdata_package_data.append( os.path.relpath(os.path.join(dirpath, file),'insertdata'))
                     
-for dirpath, dirnames, filenames in os.walk('registration/locale'):
+for dirpath, dirnames, filenames in os.walk('rmap/registration/locale'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
-for dirpath, dirnames, filenames in os.walk('registration/static'):
+for dirpath, dirnames, filenames in os.walk('rmap/registration/static'):
     if filenames:
         for file in filenames:
             registration_package_data.append( os.path.relpath(os.path.join(dirpath, file),'registration'))
@@ -374,7 +374,7 @@ setup(name='rmap',
                 'rmap.network','rmap.network.migrations',
                 'kivy_garden.mapview',
                 'http2mqtt',
-                'registration','registration.management','registration.backends','registration.backends.default','registration.management.commands','registration.migrations',
+                'rmap.registration','rmap.registration.management','rmap.registration.backends','rmap.registration.backends.default','rmap.registration.management.commands','rmap.registration.migrations',
                 'paho','paho.mqtt',
                 'borinud','borinud.v1','borinud.utils','borinud.migrations',
                 'geoimage','geoimage.migrations',
@@ -416,7 +416,7 @@ setup(name='rmap',
           'graphite-dballe':['templates/*']+graphite_dballe_package_data,
           'http2mqtt':['templates/*']+http2mqtt_package_data,
           'insertdata':['templates/insertdata/*']+insertdata_package_data,
-          'registration':['templates/registration/*']+registration_package_data,
+          'rmap.registration':['templates/registration/*']+registration_package_data,
           'showdata':['templates/showdata/*']+showdata_package_data,
           'rainbo':['templates/rainbo/*.html','templates/rainbo/base_service/*.html']+rainbo_package_data,          
           'contacts':['templates/contacts/*']+contacts_package_data,          

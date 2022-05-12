@@ -642,7 +642,7 @@ TEMPLATES= [
 ROOT_URLCONF = 'rmap.urls'
 
 INSTALLED_APPS = [
-    'registration',
+    'rmap.registration',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',

@@ -2,7 +2,7 @@ from django.conf.urls import *
 from . import settings
 from .stations.form import RmapRegistrationForm
 #from registration.forms import RegistrationFormTermsOfService
-from registration.backends.default.views import RegistrationView
+from .registration.backends.default.views import RegistrationView
 from .views import home,wizard,wizard2,wizard_done,wizard_error
 import rmap.views
 import django.views
@@ -36,7 +36,7 @@ urlpatterns = [
 #    url(r'^registrazione/register/$', RegistrationView.as_view(form_class=RegistrationFormTermsOfService), name='registration_register'),
     url(r'^registrazione/register/$', RegistrationView.as_view(form_class= RmapRegistrationForm),name='registration_register'),
 
-    url(r'^registrazione/', include('registration.backends.default.urls')),
+    url(r'^registrazione/', include('rmap.registration.backends.default.urls')),
     url(r'^auth/user',     rmap.views.user),
     url(r'^auth/vhost',    rmap.views.vhost),
     url(r'^auth/resource', rmap.views.resource),

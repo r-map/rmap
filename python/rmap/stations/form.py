@@ -4,7 +4,7 @@ Forms and validation code for user registration.
 from django.utils.translation import ugettext_lazy as _
 from django import forms
 #from registration.forms import RegistrationForm
-from registration.forms import RegistrationFormTermsOfService
+from rmap.registration.forms import RegistrationFormTermsOfService
 from django.core import validators
 import re
 

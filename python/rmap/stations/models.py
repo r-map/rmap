@@ -15,7 +15,7 @@ from rmap.utils import nint
 #from leaflet.forms.fields import PointField
 from django.core.exceptions import ValidationError
 from django.core.validators import validate_comma_separated_integer_list
-from registration.signals import user_activated
+from rmap.registration.signals import user_activated
 import random
 
 try:
