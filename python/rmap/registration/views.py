@@ -11,10 +11,10 @@ from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import FormView
 
-from registration.forms import ResendActivationForm
+from rmap.registration.forms import ResendActivationForm
 
 REGISTRATION_FORM_PATH = getattr(settings, 'REGISTRATION_FORM',
-                                 'registration.forms.RegistrationForm')
+                                 'rmap.registration.forms.RegistrationForm')
 REGISTRATION_FORM = import_string(REGISTRATION_FORM_PATH)
 ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS = getattr(
     settings, 'ACCOUNT_AUTHENTICATED_REGISTRATION_REDIRECTS', True)
