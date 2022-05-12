@@ -183,7 +183,7 @@ Aggiunta repository e installazione pacchetti
   dnf install yum-plugin-copr
   dnf copr enable simc/stable
   dnf copr enable pat1/rmap
-  dnf config-manager --set-enabled PowerTool
+  dnf config-manager --set-enabled powertools
   dnf groupinstall rmap
   dnf copr enable simc/cosudo
   dnf install python3-django-dynamic-map-borinud

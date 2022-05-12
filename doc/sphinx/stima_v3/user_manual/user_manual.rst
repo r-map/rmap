@@ -43,13 +43,15 @@ Permette di utilizzare una SDcard per effettuare:
 
 I2C
 ^^^
-Espone una 
-* connessione e reset
+Espone una:
+* connessione I2C
+* ponticello per effettuare la configurazione
 
 GSM
 ^^^
-* SIM
-* antenna
+E' in realtà composto da due board:
+* SIM: in cui deve essere inserita la SIM card
+* vero e proprio modulo GSM: a cui deve essere connessa l'antenna
 
 HUB
 ^^^
@@ -65,30 +67,45 @@ Display
 Funzioni software
 -----------------
 
+Da scrivere
+
 Accensione e supervisione (supervisor task)
 ...........................................
 
 RTC task
 ........
 
+Da scrivere
+
 Time task
 .........
+
+Da scrivere
 
 GSM task
 ........
 
+Da scrivere
+
 Sensors reading task
 ....................
+
+Da scrivere
 
 Data saving task
 ................
 
+Da scrivere
+
 MQTT task
 .........
 
+Da scrivere
 
 Messa in opera
 --------------
+
+Da scrivere
 
 Connessione e disconnessione
 ............................
@@ -232,6 +249,8 @@ Recupero dati
 
 Configurazione
 --------------
+
+Qui vengono descritte le fasi per effettuare la configurazione della stazione necessaria al suo funzionamento.
 
 Creare un nuovo utente RMAP
 ...........................
@@ -601,12 +620,12 @@ oppure tramite un programma python:
 Temporizzazioni
 ---------------
 
-TODO
+Da scrivere
 
 Salvataggio e invio dati
 ------------------------
 
-TODO
+Da scrivere
 			  
 Diagnostica
 -----------
@@ -879,14 +898,14 @@ expressed as a percentage
 Tramite monitoraggio MQTT
 .........................
 
-TODO
+Da scrivere
 
 Tramite porta seriale
 .....................
 
-TODO
+Da scrivere
 
 Tramite SDcard
 ..............
 
-TODO
+Da scrivere

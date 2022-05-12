@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-03 18:50+0200\n"
+"POT-Creation-Date: 2022-05-12 09:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,7 +42,7 @@ msgid ""
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:16
-msgid "funzioni svolte dalle Board"
+msgid "Funzioni svolte dalle Board"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:19
@@ -80,7 +80,7 @@ msgid ""
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:38
-#: ../../stima_v3/user_manual/user_manual.rst:190
+#: ../../stima_v3/user_manual/user_manual.rst:207
 msgid "SDcard"
 msgstr ""
 
@@ -95,114 +95,131 @@ msgid "I2C"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:46
-msgid "Espone una * connessione e reset"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:50
-msgid "GSM"
+msgid ""
+"Espone una: * connessione I2C * ponticello per effettuare la "
+"configurazione"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:51
-msgid "SIM"
+msgid "GSM"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:52
-msgid "antenna"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:55
-msgid "HUB"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:56
-msgid "interconnessione"
+msgid ""
+"E' in realtà composto da due board: * SIM: in cui deve essere inserita la"
+" SIM card * vero e proprio modulo GSM: a cui deve essere connessa "
+"l'antenna"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:57
-msgid "alimentazione"
+msgid "HUB"
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:58
+msgid "interconnessione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:59
+msgid "alimentazione"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:60
 msgid "separazione BUS I2C e adattamento tensioni"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:61
+#: ../../stima_v3/user_manual/user_manual.rst:63
 msgid "Display"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:62
-#: ../../stima_v3/user_manual/user_manual.rst:602
+#: ../../stima_v3/user_manual/user_manual.rst:64
+#: ../../stima_v3/user_manual/user_manual.rst:631
 msgid "Diagnostica"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:66
+#: ../../stima_v3/user_manual/user_manual.rst:68
 msgid "Funzioni software"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:69
+#: ../../stima_v3/user_manual/user_manual.rst:70
+#: ../../stima_v3/user_manual/user_manual.rst:78
+#: ../../stima_v3/user_manual/user_manual.rst:83
+#: ../../stima_v3/user_manual/user_manual.rst:88
+#: ../../stima_v3/user_manual/user_manual.rst:93
+#: ../../stima_v3/user_manual/user_manual.rst:98
+#: ../../stima_v3/user_manual/user_manual.rst:103
+#: ../../stima_v3/user_manual/user_manual.rst:108
+#: ../../stima_v3/user_manual/user_manual.rst:623
+#: ../../stima_v3/user_manual/user_manual.rst:628
+#: ../../stima_v3/user_manual/user_manual.rst:901
+#: ../../stima_v3/user_manual/user_manual.rst:906
+#: ../../stima_v3/user_manual/user_manual.rst:911
+msgid "Da scrivere"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:73
 msgid "Accensione e supervisione (supervisor task)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:72
+#: ../../stima_v3/user_manual/user_manual.rst:76
 msgid "RTC task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:75
+#: ../../stima_v3/user_manual/user_manual.rst:81
 msgid "Time task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:78
+#: ../../stima_v3/user_manual/user_manual.rst:86
 msgid "GSM task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:81
+#: ../../stima_v3/user_manual/user_manual.rst:91
 msgid "Sensors reading task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:84
+#: ../../stima_v3/user_manual/user_manual.rst:96
 msgid "Data saving task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:87
+#: ../../stima_v3/user_manual/user_manual.rst:101
 msgid "MQTT task"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:91
+#: ../../stima_v3/user_manual/user_manual.rst:106
 msgid "Messa in opera"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:94
+#: ../../stima_v3/user_manual/user_manual.rst:111
 msgid "Connessione e disconnessione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:97
+#: ../../stima_v3/user_manual/user_manual.rst:114
 msgid "Impilamento board"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:99
-#: ../../stima_v3/user_manual/user_manual.rst:106
+#: ../../stima_v3/user_manual/user_manual.rst:116
+#: ../../stima_v3/user_manual/user_manual.rst:123
 msgid "Fare riferimento a:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:101
-#: ../../stima_v3/user_manual/user_manual.rst:108
+#: ../../stima_v3/user_manual/user_manual.rst:118
+#: ../../stima_v3/user_manual/user_manual.rst:125
 msgid "https://doc.rmap.cc/stima_v3/howto_stima_v3/howto_stima_v3.html e"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:102
-#: ../../stima_v3/user_manual/user_manual.rst:109
+#: ../../stima_v3/user_manual/user_manual.rst:119
+#: ../../stima_v3/user_manual/user_manual.rst:126
 msgid "https://doc.rmap.cc/stima_v3/doxygen/index.html"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:105
+#: ../../stima_v3/user_manual/user_manual.rst:122
 msgid "Connessione moduli"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:111
+#: ../../stima_v3/user_manual/user_manual.rst:128
 msgid "Effettuare tutte le operazioni senza alimentazione elettrica."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:113
+#: ../../stima_v3/user_manual/user_manual.rst:130
 msgid ""
 "Per la connessione elettrica tra moduli bisogna quindi conoscere la "
 "tensione di funzionamento di ciascun modulo/dispositivo da connettere e "
@@ -210,11 +227,11 @@ msgid ""
 "hardware sulla board I2C-hub."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:120
+#: ../../stima_v3/user_manual/user_manual.rst:137
 msgid "Regolazione Display"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:122
+#: ../../stima_v3/user_manual/user_manual.rst:139
 msgid ""
 "Il display dispone di una apposita vite di regolazione (trimmer) del "
 "contrasto che deve essere regolato per rendere il display leggibile. Una "
@@ -225,11 +242,11 @@ msgid ""
 "procedere alla regolazione fino a una visualizzazione ottimale."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:134
+#: ../../stima_v3/user_manual/user_manual.rst:151
 msgid "Assemblaggio scatola stazione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:137
+#: ../../stima_v3/user_manual/user_manual.rst:154
 msgid ""
 "I moduli possono essere montati in qualsiasi ordine.  Sulla piastra HUB "
 "deve verificare se l’alimentazione e’ impostat a 3.3 V o 5 V; Tale "
@@ -241,24 +258,24 @@ msgid ""
 "hanno come differenza solo da lunghezza."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:146
+#: ../../stima_v3/user_manual/user_manual.rst:163
 msgid ""
 "Quando si connette un cavo fare attenzione nel momento dell'inserimento a"
 " non piegare i pin sulla scheda HUB."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:150
+#: ../../stima_v3/user_manual/user_manual.rst:167
 msgid "Sostituzione  batteria"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:152
+#: ../../stima_v3/user_manual/user_manual.rst:169
 msgid ""
 "Per misurare la tensione della batteria a vuoto è necessario staccare un "
 "polo per misurare la tensione reale senza il contributo del pannello "
 "solare."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:156
+#: ../../stima_v3/user_manual/user_manual.rst:173
 msgid ""
 "Se c'è da cambiare la batteria bisogna staccare il connettore in hub, in "
 "modo da non bloccare la stazione. Staccando il connettore non si incorre "
@@ -266,56 +283,56 @@ msgid ""
 " 6 V."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:161
+#: ../../stima_v3/user_manual/user_manual.rst:178
 msgid ""
 "Per il cambio batteria procedere prima staccando il polo nero (-) e poi "
 "il rosso (+). Poi connettere prima il polo rosso e poi il nero alla nuova"
 " batteria."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:165
+#: ../../stima_v3/user_manual/user_manual.rst:182
 msgid ""
 "Per togliere e ridare tensione alla stazione occorre agire sul regolatore"
 " di carica pannello-batteria nel modo seguente:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:168
+#: ../../stima_v3/user_manual/user_manual.rst:185
 msgid "Facendo riferimento alla figura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:172
+#: ../../stima_v3/user_manual/user_manual.rst:189
 msgid ""
 "rimuovere il positivo del pannello dal regolatore di carica, individuato "
 "dal numero 1"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:173
+#: ../../stima_v3/user_manual/user_manual.rst:190
 msgid ""
 "rimuovere il positivo della batteria dal regolatore di carica, "
 "individuato dal numero 3"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:174
+#: ../../stima_v3/user_manual/user_manual.rst:191
 msgid "aspettare 10 secondi"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:175
+#: ../../stima_v3/user_manual/user_manual.rst:192
 msgid "ricollegare la batteria attraverso il pin numero 3"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:176
+#: ../../stima_v3/user_manual/user_manual.rst:193
 msgid "ricollegare la batteria attraverso il pin numero 1"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:178
+#: ../../stima_v3/user_manual/user_manual.rst:195
 msgid "Quindi la sequenza dei collegamenti è 1-3-3-1"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:181
+#: ../../stima_v3/user_manual/user_manual.rst:198
 msgid "Antenna"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:183
+#: ../../stima_v3/user_manual/user_manual.rst:200
 msgid ""
 "Di solito l’antenna e’ posizionata internamento della scatola stazione, "
 "ma può essere posizionata all'esterno praticando un foro alla base della "
@@ -324,136 +341,142 @@ msgid ""
 "direzionale."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:193
+#: ../../stima_v3/user_manual/user_manual.rst:210
 msgid "Formattazione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:195
+#: ../../stima_v3/user_manual/user_manual.rst:212
 msgid ""
 "La formattazione della SDcard deve essere eseguita in modo corretto per "
 "garantire il funzionamento del datalogger. Sono accettati due tipi di "
 "formattazione:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:199
+#: ../../stima_v3/user_manual/user_manual.rst:216
 msgid "FAT16"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:200
+#: ../../stima_v3/user_manual/user_manual.rst:217
 msgid "FAT32"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:202
+#: ../../stima_v3/user_manual/user_manual.rst:219
 msgid ""
 "Per essere certi di formattare correttamentela card ci sono due "
 "possibilità:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:204
+#: ../../stima_v3/user_manual/user_manual.rst:221
 msgid "per windows e MAC https://www.sdcard.org/downloads/formatter/"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:205
+#: ../../stima_v3/user_manual/user_manual.rst:222
 msgid ""
 "per tutti i sistemi l'apposito firmware SdFormatter messo a disposizione "
 "con Stima V3"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:207
+#: ../../stima_v3/user_manual/user_manual.rst:224
 msgid "Il metodo consigliato è il secondo."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:210
+#: ../../stima_v3/user_manual/user_manual.rst:227
 msgid "Come formattare l'SDcard con il firmware SdFormatter."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:212
+#: ../../stima_v3/user_manual/user_manual.rst:229
 msgid ""
 "Inserire l'SDcard nel modulo master e collegare solo il modulo master "
 "tramite cavo USB. eseguire::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:218
+#: ../../stima_v3/user_manual/user_manual.rst:235
 msgid "e seguire le indicazioni del programma."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:222
-#: ../../stima_v3/user_manual/user_manual.rst:430
+#: ../../stima_v3/user_manual/user_manual.rst:239
+#: ../../stima_v3/user_manual/user_manual.rst:449
 msgid "Aggiornamento Firmware"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:223
+#: ../../stima_v3/user_manual/user_manual.rst:240
 msgid "(Vedi sotto)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:226
+#: ../../stima_v3/user_manual/user_manual.rst:243
 msgid "Logging"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:227
+#: ../../stima_v3/user_manual/user_manual.rst:244
 msgid "(vedi sotto in diagnostica)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:230
-#: ../../stima_v3/user_manual/user_manual.rst:477
+#: ../../stima_v3/user_manual/user_manual.rst:247
+#: ../../stima_v3/user_manual/user_manual.rst:496
 msgid "Recupero dati"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:231
+#: ../../stima_v3/user_manual/user_manual.rst:248
 msgid "(vedi sotto)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:234
+#: ../../stima_v3/user_manual/user_manual.rst:251
 msgid "Configurazione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:237
+#: ../../stima_v3/user_manual/user_manual.rst:253
+msgid ""
+"Qui vengono descritte le fasi per effettuare la configurazione della "
+"stazione necessaria al suo funzionamento."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:256
 msgid "Creare un nuovo utente RMAP"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:240
-#: ../../stima_v3/user_manual/user_manual.rst:271
+#: ../../stima_v3/user_manual/user_manual.rst:259
+#: ../../stima_v3/user_manual/user_manual.rst:290
 msgid "Tramite interfaccia WEB"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:242
+#: ../../stima_v3/user_manual/user_manual.rst:261
 msgid ""
 "Per iscriversi alla piattarforma RMAP bisogna collegarsi al sito: "
 "http://rmap.cc/"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:245
+#: ../../stima_v3/user_manual/user_manual.rst:264
 msgid ""
 "andare con il mouse sul menù \"Il mio RMAP\", sulla destra della barra "
 "nera, e clickare su \"Entra\"."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:248
+#: ../../stima_v3/user_manual/user_manual.rst:267
 msgid ""
 "Apparirà una maschera che chiede utente e password.  Nella seconda riga "
 "sotto a questa maschera clickare sul bottone blu \"Registrazione\" e si "
 "verrà inoltrati automaticamente alla maschera di registrazione."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:252
+#: ../../stima_v3/user_manual/user_manual.rst:271
 msgid "Per registrarsi bisognerà scegliere ed inviare le seguenti informazioni:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:254
+#: ../../stima_v3/user_manual/user_manual.rst:273
 msgid ""
 "username (una stringa lunga al massimo 9 caratteri che possono essere sia"
 " lettere che numeri);"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:255
+#: ../../stima_v3/user_manual/user_manual.rst:274
 msgid "la propria e-mail"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:256
+#: ../../stima_v3/user_manual/user_manual.rst:275
 msgid "la password (da inserire due volte per sicurezza)."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:258
+#: ../../stima_v3/user_manual/user_manual.rst:277
 msgid ""
 "Quindi bisogna clickare sul quadratino per dichiarare di aver letto le "
 "Condizioni di Servizio (descritte nel quadrato sotto riportato). "
@@ -464,37 +487,37 @@ msgid ""
 "iscriversi seguendo il link indicato."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:268
+#: ../../stima_v3/user_manual/user_manual.rst:287
 msgid "Configurare una nuova stazione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:273
+#: ../../stima_v3/user_manual/user_manual.rst:292
 msgid ""
 "Tramite interfaccia WEB è possibile definire solo stazioni di modello "
 "(tipo e sensori) predefinito. Per modelli di stazione non predefiniti "
 "utilizzare la modalità a linea di comando."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:278
+#: ../../stima_v3/user_manual/user_manual.rst:297
 msgid "In modalità guidata"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:280
-#: ../../stima_v3/user_manual/user_manual.rst:321
+#: ../../stima_v3/user_manual/user_manual.rst:299
+#: ../../stima_v3/user_manual/user_manual.rst:340
 msgid ""
 "Per poter registrare una nuova stazione è utile aver configurato un "
 "utente RMAP."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:283
+#: ../../stima_v3/user_manual/user_manual.rst:302
 msgid "Seguire il link: https://rmap.cc/insertdata/newstation"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:286
+#: ../../stima_v3/user_manual/user_manual.rst:305
 msgid "Si può seguire alternativamente una delle due seguenti procedure:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:288
+#: ../../stima_v3/user_manual/user_manual.rst:307
 msgid ""
 "indicare l'indirizzo esatto della stazione (il sito utilizza il DataBase "
 "geografico di OpenStreetMap che riconosce gli indirizzi solo se indicati "
@@ -503,7 +526,7 @@ msgid ""
 "via degli Albergati 32, Zola Predosa, Bologna\")."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:294
+#: ../../stima_v3/user_manual/user_manual.rst:313
 msgid ""
 "utilizzare la mappa sottostante, clickare sul segnaposto (quello a forma "
 "di goccia, ultimo in basso dei quattro centrali a sinistra della mappa) e"
@@ -519,742 +542,750 @@ msgid ""
 "Android."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:307
+#: ../../stima_v3/user_manual/user_manual.rst:326
 msgid ""
 "Individuata la posizione bisognerà indicare il nome della nuova stazione "
 "ed infine il modello (tipo e template sensori)."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:310
+#: ../../stima_v3/user_manual/user_manual.rst:329
 msgid ""
 "La procedura di inserimento della nuova stazione si concluderà quindi "
 "clickando su \"invia\"."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:313
+#: ../../stima_v3/user_manual/user_manual.rst:332
 msgid ""
 "In questa modalità non è possibile inserire i dati relativi al nome "
 "stazione e altezza dal livello medio del mare, ma poi è possibile "
 "integrarli tramite il modulo qui di seguito descritto"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:319
+#: ../../stima_v3/user_manual/user_manual.rst:338
 msgid "Tramite modulo"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:324
+#: ../../stima_v3/user_manual/user_manual.rst:343
 msgid ""
 "Seguire il link: https://rmap.cc/insertdata/newstationdetail e "
 "autenticarsi"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:328
+#: ../../stima_v3/user_manual/user_manual.rst:347
 msgid "compilare con i dati e confermare."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:332
+#: ../../stima_v3/user_manual/user_manual.rst:351
 msgid "A linea di comando"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:333
+#: ../../stima_v3/user_manual/user_manual.rst:352
 msgid "Il tool a linea di comando da utilizzare per configurare le stazioni è::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:337
+#: ../../stima_v3/user_manual/user_manual.rst:356
 msgid ""
 "Quando si utizzano i tool a linea di comando bisogna sempre considerare "
 "che saranno presenti due database:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:340
+#: ../../stima_v3/user_manual/user_manual.rst:359
 msgid "database sul server RMAP (persistente)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:341
+#: ../../stima_v3/user_manual/user_manual.rst:360
 msgid "database locale (volatile)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:343
+#: ../../stima_v3/user_manual/user_manual.rst:362
 msgid ""
 "Mentre il database sul server RMAP è per definizione persistente quello "
 "locale se non già presente va creato utilizzando il comando::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:348
+#: ../../stima_v3/user_manual/user_manual.rst:367
 msgid ""
 "Successivamente sono disponibili due comandi per mantenere i due database"
 " sincronizzati:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:351
+#: ../../stima_v3/user_manual/user_manual.rst:370
 msgid "upload configuration to server::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:355
+#: ../../stima_v3/user_manual/user_manual.rst:374
 msgid "download station configuration from server::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:362
+#: ../../stima_v3/user_manual/user_manual.rst:381
 msgid "Con modello (tipo e template sensori) predefinito"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:364
+#: ../../stima_v3/user_manual/user_manual.rst:383
 msgid "In questa modalità bisogna disporre di:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:366
-#: ../../stima_v3/user_manual/user_manual.rst:493
+#: ../../stima_v3/user_manual/user_manual.rst:385
+#: ../../stima_v3/user_manual/user_manual.rst:512
 msgid "myuser: nome utente RMAP"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:367
-#: ../../stima_v3/user_manual/user_manual.rst:494
+#: ../../stima_v3/user_manual/user_manual.rst:386
+#: ../../stima_v3/user_manual/user_manual.rst:513
 msgid "mypassword: password utente RMAP"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:368
-#: ../../stima_v3/user_manual/user_manual.rst:371
+#: ../../stima_v3/user_manual/user_manual.rst:387
+#: ../../stima_v3/user_manual/user_manual.rst:390
 msgid "mystationname: nome stazione esteso"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:369
+#: ../../stima_v3/user_manual/user_manual.rst:388
 msgid "myslug: nome stazione breve"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:370
+#: ../../stima_v3/user_manual/user_manual.rst:389
 msgid "mystationmodel: modello stazione e template sensori connessi"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:372
+#: ../../stima_v3/user_manual/user_manual.rst:391
 msgid "myheight: altezza stazione in metri"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:373
+#: ../../stima_v3/user_manual/user_manual.rst:392
 msgid ""
 "mqttsamplerate: ogni quanti secondi deve essere elaborato e inviato un "
 "report"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:374
+#: ../../stima_v3/user_manual/user_manual.rst:393
 msgid "mytcpipntpserver: NTP server da utilizzare per sincronizzare l'ora"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:375
+#: ../../stima_v3/user_manual/user_manual.rst:394
 msgid ""
 "myapn: apn del provider GSM corrispondente alla schda SIM inserita in "
 "stazione (default=\"ibox.tim.it\")"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:377
+#: ../../stima_v3/user_manual/user_manual.rst:396
 msgid "Comandi da impartire per configurare la stazione::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:383
+#: ../../stima_v3/user_manual/user_manual.rst:402
 msgid "Esempio di configurazione::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:389
+#: ../../stima_v3/user_manual/user_manual.rst:408
 msgid "Eseguire::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:393
+#: ../../stima_v3/user_manual/user_manual.rst:412
 msgid ""
 "per avere indicazioni su altri parametri per particolari "
 "personalizzazioni."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:396
+#: ../../stima_v3/user_manual/user_manual.rst:415
 msgid "Con modello (tipo e template sensori) non predefinito"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:398
+#: ../../stima_v3/user_manual/user_manual.rst:417
 msgid ""
 "In questa modalità bisogna avere piena padronanza del data model, dei "
 "sensori connessi e dei relativi metadati."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:400
+#: ../../stima_v3/user_manual/user_manual.rst:419
 msgid "Qui un esempio di configurazione::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:417
+#: ../../stima_v3/user_manual/user_manual.rst:436
 msgid "Modificare la configurazione di una stazione esistente"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:422
+#: ../../stima_v3/user_manual/user_manual.rst:441
 msgid "Trasferire la configurazione al datalogger"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:424
+#: ../../stima_v3/user_manual/user_manual.rst:443
 msgid ""
 "Ecco il comando da impartire per trasferire e salvare la configurazione "
 "nel datalogger::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:434
-#: ../../stima_v3/user_manual/user_manual.rst:891
+#: ../../stima_v3/user_manual/user_manual.rst:453
+#: ../../stima_v3/user_manual/user_manual.rst:909
 msgid "Tramite SDcard"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:436
+#: ../../stima_v3/user_manual/user_manual.rst:455
 msgid ""
 "Per l'aggiornamento del firmware è necessario avere a disposizione due "
 "file:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:438
-#: ../../stima_v3/user_manual/user_manual.rst:460
+#: ../../stima_v3/user_manual/user_manual.rst:457
+#: ../../stima_v3/user_manual/user_manual.rst:479
 msgid "FIRMWARE.BIN"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:439
+#: ../../stima_v3/user_manual/user_manual.rst:458
 msgid "\"majorversion\" . \"minorversion\""
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:441
+#: ../../stima_v3/user_manual/user_manual.rst:460
 msgid ""
 "majorversion e minorversion indicano la versione del firmware in oggetto "
 "ad esempio::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:446
+#: ../../stima_v3/user_manual/user_manual.rst:465
 msgid ""
 "I due file andranno posti nella cartella principale della SDcard. "
 "Inserire l'SDcard nel modulo che necessita aggiornamento a modulo non "
 "alimentato e alimentare il modulo e attendere almeno 30 secondi."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:450
+#: ../../stima_v3/user_manual/user_manual.rst:469
 msgid ""
 "E' possibile verificare se l'aggiornamento ha avuto buon fine con il "
 "modulo master tramite il display LCD che all'accensione deve visualizzare"
 " la nuova versione del firmware."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:456
+#: ../../stima_v3/user_manual/user_manual.rst:475
 msgid "Tramite porta USB"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:458
+#: ../../stima_v3/user_manual/user_manual.rst:477
 msgid ""
 "Per l'aggiornamento del firmware è necessario avere a disposizione un "
 "file:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:462
+#: ../../stima_v3/user_manual/user_manual.rst:481
 msgid ""
 "che dorà risiedere nella cartella corrente da dove si eseguiranno i "
 "comandi."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:464
+#: ../../stima_v3/user_manual/user_manual.rst:483
 msgid ""
 "Collegare il modulo tramite cavo USB e dovrà essere l'unico dispositivo "
 "USB collegato in modalità seriale."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:467
+#: ../../stima_v3/user_manual/user_manual.rst:486
 msgid "Per il modulo master e impartire il comando::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:471
+#: ../../stima_v3/user_manual/user_manual.rst:490
 msgid "Per gli altri moduli impartire il comando::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:479
+#: ../../stima_v3/user_manual/user_manual.rst:498
 msgid ""
 "Una volta recuperata la scheda Sdcard dal datalogger i dati possono "
 "essere letti con apposito tool linea di comando."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:482
+#: ../../stima_v3/user_manual/user_manual.rst:501
 msgid "Sono necessari almeno due file:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:484
+#: ../../stima_v3/user_manual/user_manual.rst:503
 msgid "AAAA_MM_GG.txt : AAAA = anno ; MM = mese ; GG = giorno"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:485
+#: ../../stima_v3/user_manual/user_manual.rst:504
 msgid "info.dat  : metadati"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:487
+#: ../../stima_v3/user_manual/user_manual.rst:506
 msgid ""
 "Eseguire il seguente comando dalla stessa cartella contenete i file con i"
 " dati::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:491
+#: ../../stima_v3/user_manual/user_manual.rst:510
 msgid "dove:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:497
+#: ../../stima_v3/user_manual/user_manual.rst:516
 msgid "Remote Procedure Call"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:499
+#: ../../stima_v3/user_manual/user_manual.rst:518
 msgid ""
 "I dati vengono salvati sul modulo master ed è quella SD card che deve "
 "essere asportata dopo aver scollegato l'alimentazione."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:502
+#: ../../stima_v3/user_manual/user_manual.rst:521
 msgid ""
 "Le remote procedure call permettono di far eseguire delle operazioni dal "
 "datalogger da remoto."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:507
+#: ../../stima_v3/user_manual/user_manual.rst:526
 msgid "configure"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:509
+#: ../../stima_v3/user_manual/user_manual.rst:528
 msgid "La configurazione da remoto è possibile tramite tool a linea di comando::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:514
+#: ../../stima_v3/user_manual/user_manual.rst:533
 msgid "Tramite un programma python:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:543
+#: ../../stima_v3/user_manual/user_manual.rst:562
 msgid "reboot"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:545
+#: ../../stima_v3/user_manual/user_manual.rst:564
 msgid "Il reboot del modulo master è possibile tramite tool a linea di comando::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:550
-#: ../../stima_v3/user_manual/user_manual.rst:580
+#: ../../stima_v3/user_manual/user_manual.rst:569
+#: ../../stima_v3/user_manual/user_manual.rst:599
 msgid "oppure tramite un programma python:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:572
+#: ../../stima_v3/user_manual/user_manual.rst:591
 msgid "recovery"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:574
+#: ../../stima_v3/user_manual/user_manual.rst:593
 msgid ""
 "Il recupero dei dati salvati su SDcard è possibile tramite tool a linea "
 "di comando specificando la data iniziale dei dati da recuperare (fino a "
 "data e ora corrente)::"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:605
+#: ../../stima_v3/user_manual/user_manual.rst:621
+msgid "Temporizzazioni"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:626
+msgid "Salvataggio e invio dati"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:634
 msgid "tramite DISPLAY"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:608
+#: ../../stima_v3/user_manual/user_manual.rst:637
 msgid "Messaggi all'accensione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:610
+#: ../../stima_v3/user_manual/user_manual.rst:639
 msgid "**Prima schermata attesa configurazione:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:613
+#: ../../stima_v3/user_manual/user_manual.rst:642
 msgid "Wait configuration"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:622
+#: ../../stima_v3/user_manual/user_manual.rst:651
 msgid ""
 "E' stato inserito il ponticello per la configurazione e la stazione "
 "rimane in attesa; Per attivare la stazioen bisogna rimuovere il "
 "ponticello."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:625
+#: ../../stima_v3/user_manual/user_manual.rst:654
 msgid "**Prima schermata, tipo e versioni:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:628
+#: ../../stima_v3/user_manual/user_manual.rst:657
 msgid "---- www.rmap.cc ----"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:630
+#: ../../stima_v3/user_manual/user_manual.rst:659
 msgid "Stima station"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:632
+#: ../../stima_v3/user_manual/user_manual.rst:661
 msgid "<station type> V: <firmware version>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:634
+#: ../../stima_v3/user_manual/user_manual.rst:663
 msgid "Configuration V: <configuration version>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:637
+#: ../../stima_v3/user_manual/user_manual.rst:666
 msgid "**station type**: tipo di stazione definito a tempo compilazione"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:638
+#: ../../stima_v3/user_manual/user_manual.rst:667
 msgid "**firmware version**: versione del firmware"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:639
+#: ../../stima_v3/user_manual/user_manual.rst:668
 msgid "**configuration version**: versione della configurazione per compatibilità"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:642
+#: ../../stima_v3/user_manual/user_manual.rst:671
 msgid "**Seconda schermata, dati costanti di stazione:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:645
+#: ../../stima_v3/user_manual/user_manual.rst:674
 msgid "<bcode1>: <constant station data 1>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:649
+#: ../../stima_v3/user_manual/user_manual.rst:678
 msgid "<bcode2>: <constant station data 2>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:654
+#: ../../stima_v3/user_manual/user_manual.rst:683
 msgid ""
 "**bcode1**: codice della prima variabile come da tabella B; Get the full "
 "table from: https://github.com/ARPA-"
 "SIMC/dballe/blob/master/tables/dballe.txt"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:655
+#: ../../stima_v3/user_manual/user_manual.rst:684
 msgid "**constant station data 1**: value 1"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:656
+#: ../../stima_v3/user_manual/user_manual.rst:685
 msgid ""
 "**bcode2**: codice della secondavariabile come da tabella B; Get the full"
 " table from: https://github.com/ARPA-"
 "SIMC/dballe/blob/master/tables/dballe.txt"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:657
+#: ../../stima_v3/user_manual/user_manual.rst:686
 msgid "**constant station data 2**: value 2"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:659
+#: ../../stima_v3/user_manual/user_manual.rst:688
 msgid "**Terza schermata, stato sensori e metadati di configurazione:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:662
-#: ../../stima_v3/user_manual/user_manual.rst:681
+#: ../../stima_v3/user_manual/user_manual.rst:691
+#: ../../stima_v3/user_manual/user_manual.rst:710
 msgid "Sensor:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:662
-#: ../../stima_v3/user_manual/user_manual.rst:681
+#: ../../stima_v3/user_manual/user_manual.rst:691
+#: ../../stima_v3/user_manual/user_manual.rst:710
 msgid "<sensor ok>/<sensor total> <OKKO>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:664
+#: ../../stima_v3/user_manual/user_manual.rst:693
 msgid "user"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:664
+#: ../../stima_v3/user_manual/user_manual.rst:693
 msgid "<user>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:666
+#: ../../stima_v3/user_manual/user_manual.rst:695
 msgid "station"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:666
+#: ../../stima_v3/user_manual/user_manual.rst:695
 msgid "<station>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:668
-#: ../../stima_v3/user_manual/user_manual.rst:687
+#: ../../stima_v3/user_manual/user_manual.rst:697
+#: ../../stima_v3/user_manual/user_manual.rst:716
 msgid "board"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:668
-#: ../../stima_v3/user_manual/user_manual.rst:687
+#: ../../stima_v3/user_manual/user_manual.rst:697
+#: ../../stima_v3/user_manual/user_manual.rst:716
 msgid "<board>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:671
-#: ../../stima_v3/user_manual/user_manual.rst:690
+#: ../../stima_v3/user_manual/user_manual.rst:700
+#: ../../stima_v3/user_manual/user_manual.rst:719
 msgid "**sensor ok**: numero sensori rilevati"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:672
-#: ../../stima_v3/user_manual/user_manual.rst:691
+#: ../../stima_v3/user_manual/user_manual.rst:701
+#: ../../stima_v3/user_manual/user_manual.rst:720
 msgid "**sensor total**: numero tolale sensori previsti"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:673
-#: ../../stima_v3/user_manual/user_manual.rst:692
+#: ../../stima_v3/user_manual/user_manual.rst:702
+#: ../../stima_v3/user_manual/user_manual.rst:721
 msgid ""
 "**OKKO**: stato riassuntivo dei sensori ( OK: tutto bene; KO: "
 "malfunzionamento)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:674
+#: ../../stima_v3/user_manual/user_manual.rst:703
 msgid "**user**: mqtt username"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:675
+#: ../../stima_v3/user_manual/user_manual.rst:704
 msgid "**station**: station slug"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:676
-#: ../../stima_v3/user_manual/user_manual.rst:695
+#: ../../stima_v3/user_manual/user_manual.rst:705
+#: ../../stima_v3/user_manual/user_manual.rst:724
 msgid "**board**: board slug"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:678
+#: ../../stima_v3/user_manual/user_manual.rst:707
 msgid "**Quarta schermata, stato sensori e metadati di configurazione:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:683
+#: ../../stima_v3/user_manual/user_manual.rst:712
 msgid "server"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:683
+#: ../../stima_v3/user_manual/user_manual.rst:712
 msgid "<mqtt server>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:685
+#: ../../stima_v3/user_manual/user_manual.rst:714
 msgid "ntp"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:685
+#: ../../stima_v3/user_manual/user_manual.rst:714
 msgid "<ntp server>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:693
+#: ../../stima_v3/user_manual/user_manual.rst:722
 msgid "**server**: mqtt server name"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:694
+#: ../../stima_v3/user_manual/user_manual.rst:723
 msgid "**ntp**: ntp server name"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:697
+#: ../../stima_v3/user_manual/user_manual.rst:726
 msgid "**Messaggi visualizzati nella quarta riga del display:**"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:699
+#: ../../stima_v3/user_manual/user_manual.rst:728
 msgid "**SD Card: KO**: c'è un problema nell'utilizzo dell'SDcard"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:700
+#: ../../stima_v3/user_manual/user_manual.rst:729
 msgid ""
 "**NEW Firmware loaded**: è stato appena affettuato un aggiornamento del "
 "firmware e il firmware è stato rinominato sull'SDcard"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:704
+#: ../../stima_v3/user_manual/user_manual.rst:733
 msgid "Messaggi durante il funzionamento"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:706
+#: ../../stima_v3/user_manual/user_manual.rst:735
 msgid "<SN>:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:706
+#: ../../stima_v3/user_manual/user_manual.rst:735
 msgid "<h>:<m>:<s>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:706
+#: ../../stima_v3/user_manual/user_manual.rst:735
 msgid "rf:<rssi>/<ber> <LCD: KO>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:708
+#: ../../stima_v3/user_manual/user_manual.rst:737
 msgid "<RT>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:708
+#: ../../stima_v3/user_manual/user_manual.rst:737
 msgid "temp"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:708
+#: ../../stima_v3/user_manual/user_manual.rst:737
 msgid "humidity"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:708
+#: ../../stima_v3/user_manual/user_manual.rst:737
 msgid "precipitation"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:710
+#: ../../stima_v3/user_manual/user_manual.rst:739
 msgid "battery"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:710
+#: ../../stima_v3/user_manual/user_manual.rst:739
 msgid "charge"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:710
+#: ../../stima_v3/user_manual/user_manual.rst:739
 msgid "solar panel"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:712
+#: ../../stima_v3/user_manual/user_manual.rst:741
 msgid "SD<SN><SOKKO>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:712
+#: ../../stima_v3/user_manual/user_manual.rst:741
 msgid "MQ<MN><MOKKO>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:712
+#: ../../stima_v3/user_manual/user_manual.rst:741
 msgid "FA<FN><FOKKO>"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:716
+#: ../../stima_v3/user_manual/user_manual.rst:745
 msgid ""
 "**SN**: orario prossima elaborazione: S inizio periodo report; N fine "
 "periodo report"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:717
+#: ../../stima_v3/user_manual/user_manual.rst:746
 msgid "**h**: ora GMT"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:718
+#: ../../stima_v3/user_manual/user_manual.rst:747
 msgid "**m**: minuti"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:719
+#: ../../stima_v3/user_manual/user_manual.rst:748
 msgid "**s**: secondi"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:720
+#: ../../stima_v3/user_manual/user_manual.rst:749
 msgid ""
 "**rssi**: qualità segnale radio; vedi tabella sotto (oppure KO in caso di"
 " errore)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:721
+#: ../../stima_v3/user_manual/user_manual.rst:750
 msgid ""
 "**ber**:  qualità segnale radio; vedi tabella sotto (oppure KO in caso di"
 " errore)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:722
+#: ../../stima_v3/user_manual/user_manual.rst:751
 msgid "**LCD**: KO: messaggio se l'LCD ha avuto errori ed è stato reinizializzato"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:724
+#: ../../stima_v3/user_manual/user_manual.rst:753
 msgid "ultimi dati acquisiti:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:726
+#: ../../stima_v3/user_manual/user_manual.rst:755
 msgid "**RT**: i dati visualizzati si riferiscono a: T test; R report"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:727
+#: ../../stima_v3/user_manual/user_manual.rst:756
 msgid "**temp**: temperatura e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:728
+#: ../../stima_v3/user_manual/user_manual.rst:757
 msgid "**humidity**: umidità e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:729
+#: ../../stima_v3/user_manual/user_manual.rst:758
 msgid "**precipitation**: precipitazione e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:730
+#: ../../stima_v3/user_manual/user_manual.rst:759
 msgid "**battery**: tensione batteria e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:731
+#: ../../stima_v3/user_manual/user_manual.rst:760
 msgid "**charge**: carica batteria e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:732
+#: ../../stima_v3/user_manual/user_manual.rst:761
 msgid "**solar** panel: tensione pannello solare e unità di misura"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:734
+#: ../../stima_v3/user_manual/user_manual.rst:763
 msgid "ultime oprazioni eseguite:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:736
+#: ../../stima_v3/user_manual/user_manual.rst:765
 msgid "**SN**: numero di dati scritti su SDcard"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:737
+#: ../../stima_v3/user_manual/user_manual.rst:766
 msgid ""
 "**SOKKO**: stato riassuntivo scrittura SDcard ( OK: tutto bene; KO: "
 "malfunzionamento)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:738
+#: ../../stima_v3/user_manual/user_manual.rst:767
 msgid "**MN**: numero di dati inviati al broker MQTT"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:739
+#: ../../stima_v3/user_manual/user_manual.rst:768
 msgid ""
 "**MOKKO**: stato riassuntivo invio dati MQTT ( OK: tutto bene; KO: "
 "malfunzionamento)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:740
+#: ../../stima_v3/user_manual/user_manual.rst:769
 msgid "**FN**: numero di dati con acquisizione fallita dai sensori"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:741
+#: ../../stima_v3/user_manual/user_manual.rst:770
 msgid ""
 "**FOKKO**: stato riassuntivo acquisizione dati dai sensori ( OK: tutto "
 "bene; KO: malfunzionamento)"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:743
+#: ../../stima_v3/user_manual/user_manual.rst:772
 msgid "**rssi**:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:746
+#: ../../stima_v3/user_manual/user_manual.rst:775
 msgid "RSI"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:746
+#: ../../stima_v3/user_manual/user_manual.rst:775
 msgid "value"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:748
-#: ../../stima_v3/user_manual/user_manual.rst:849
+#: ../../stima_v3/user_manual/user_manual.rst:777
+#: ../../stima_v3/user_manual/user_manual.rst:878
 msgid "0"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:748
+#: ../../stima_v3/user_manual/user_manual.rst:777
 msgid "-115 dBm or less"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:750
-#: ../../stima_v3/user_manual/user_manual.rst:851
+#: ../../stima_v3/user_manual/user_manual.rst:779
+#: ../../stima_v3/user_manual/user_manual.rst:880
 msgid "1"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:750
+#: ../../stima_v3/user_manual/user_manual.rst:779
 msgid "-111 dBm"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:752
+#: ../../stima_v3/user_manual/user_manual.rst:781
 msgid "2 to 30"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:752
+#: ../../stima_v3/user_manual/user_manual.rst:781
 msgid "-110 dBm to -54 dBm"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:754
+#: ../../stima_v3/user_manual/user_manual.rst:783
 msgid "31"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:754
+#: ../../stima_v3/user_manual/user_manual.rst:783
 msgid "-52 dBm or greater"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:756
-#: ../../stima_v3/user_manual/user_manual.rst:865
+#: ../../stima_v3/user_manual/user_manual.rst:785
+#: ../../stima_v3/user_manual/user_manual.rst:894
 msgid "99"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:756
-#: ../../stima_v3/user_manual/user_manual.rst:865
+#: ../../stima_v3/user_manual/user_manual.rst:785
+#: ../../stima_v3/user_manual/user_manual.rst:894
 msgid "not known or not detectable"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:759
+#: ../../stima_v3/user_manual/user_manual.rst:788
 msgid ""
 "dBm is short for decibel per milliwatt and is a common unit for signal "
 "strength. -115 dbm is the lowest signal strength value and would "
@@ -1264,187 +1295,187 @@ msgid ""
 "mean:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:766
+#: ../../stima_v3/user_manual/user_manual.rst:795
 msgid "RSSI Condition:"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:769
+#: ../../stima_v3/user_manual/user_manual.rst:798
 msgid "dBm"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:769
-#: ../../stima_v3/user_manual/user_manual.rst:847
+#: ../../stima_v3/user_manual/user_manual.rst:798
+#: ../../stima_v3/user_manual/user_manual.rst:876
 msgid "mean"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:771
+#: ../../stima_v3/user_manual/user_manual.rst:800
 msgid "-109"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:771
-#: ../../stima_v3/user_manual/user_manual.rst:773
-#: ../../stima_v3/user_manual/user_manual.rst:775
-#: ../../stima_v3/user_manual/user_manual.rst:777
-#: ../../stima_v3/user_manual/user_manual.rst:779
-#: ../../stima_v3/user_manual/user_manual.rst:781
-#: ../../stima_v3/user_manual/user_manual.rst:783
-#: ../../stima_v3/user_manual/user_manual.rst:785
+#: ../../stima_v3/user_manual/user_manual.rst:800
+#: ../../stima_v3/user_manual/user_manual.rst:802
+#: ../../stima_v3/user_manual/user_manual.rst:804
+#: ../../stima_v3/user_manual/user_manual.rst:806
+#: ../../stima_v3/user_manual/user_manual.rst:808
+#: ../../stima_v3/user_manual/user_manual.rst:810
+#: ../../stima_v3/user_manual/user_manual.rst:812
+#: ../../stima_v3/user_manual/user_manual.rst:814
 msgid "Marginal"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:773
+#: ../../stima_v3/user_manual/user_manual.rst:802
 msgid "-107"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:775
+#: ../../stima_v3/user_manual/user_manual.rst:804
 msgid "-105"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:777
+#: ../../stima_v3/user_manual/user_manual.rst:806
 msgid "-103"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:779
+#: ../../stima_v3/user_manual/user_manual.rst:808
 msgid "-101"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:781
+#: ../../stima_v3/user_manual/user_manual.rst:810
 msgid "-99"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:783
+#: ../../stima_v3/user_manual/user_manual.rst:812
 msgid "-97"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:785
+#: ../../stima_v3/user_manual/user_manual.rst:814
 msgid "-95"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:787
+#: ../../stima_v3/user_manual/user_manual.rst:816
 msgid "-93"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:787
-#: ../../stima_v3/user_manual/user_manual.rst:789
-#: ../../stima_v3/user_manual/user_manual.rst:791
-#: ../../stima_v3/user_manual/user_manual.rst:793
-#: ../../stima_v3/user_manual/user_manual.rst:795
+#: ../../stima_v3/user_manual/user_manual.rst:816
+#: ../../stima_v3/user_manual/user_manual.rst:818
+#: ../../stima_v3/user_manual/user_manual.rst:820
+#: ../../stima_v3/user_manual/user_manual.rst:822
+#: ../../stima_v3/user_manual/user_manual.rst:824
 msgid "OK"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:789
+#: ../../stima_v3/user_manual/user_manual.rst:818
 msgid "-91"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:791
+#: ../../stima_v3/user_manual/user_manual.rst:820
 msgid "-89"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:793
+#: ../../stima_v3/user_manual/user_manual.rst:822
 msgid "-87"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:795
+#: ../../stima_v3/user_manual/user_manual.rst:824
 msgid "-85"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:797
+#: ../../stima_v3/user_manual/user_manual.rst:826
 msgid "-83"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:797
-#: ../../stima_v3/user_manual/user_manual.rst:799
-#: ../../stima_v3/user_manual/user_manual.rst:801
-#: ../../stima_v3/user_manual/user_manual.rst:803
-#: ../../stima_v3/user_manual/user_manual.rst:805
+#: ../../stima_v3/user_manual/user_manual.rst:826
+#: ../../stima_v3/user_manual/user_manual.rst:828
+#: ../../stima_v3/user_manual/user_manual.rst:830
+#: ../../stima_v3/user_manual/user_manual.rst:832
+#: ../../stima_v3/user_manual/user_manual.rst:834
 msgid "Good"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:799
+#: ../../stima_v3/user_manual/user_manual.rst:828
 msgid "-81"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:801
+#: ../../stima_v3/user_manual/user_manual.rst:830
 msgid "-79"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:803
+#: ../../stima_v3/user_manual/user_manual.rst:832
 msgid "-77"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:805
+#: ../../stima_v3/user_manual/user_manual.rst:834
 msgid "-75"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:807
+#: ../../stima_v3/user_manual/user_manual.rst:836
 msgid "-73"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:807
-#: ../../stima_v3/user_manual/user_manual.rst:809
-#: ../../stima_v3/user_manual/user_manual.rst:811
-#: ../../stima_v3/user_manual/user_manual.rst:813
-#: ../../stima_v3/user_manual/user_manual.rst:815
-#: ../../stima_v3/user_manual/user_manual.rst:817
-#: ../../stima_v3/user_manual/user_manual.rst:819
-#: ../../stima_v3/user_manual/user_manual.rst:821
-#: ../../stima_v3/user_manual/user_manual.rst:823
-#: ../../stima_v3/user_manual/user_manual.rst:825
-#: ../../stima_v3/user_manual/user_manual.rst:827
+#: ../../stima_v3/user_manual/user_manual.rst:836
+#: ../../stima_v3/user_manual/user_manual.rst:838
+#: ../../stima_v3/user_manual/user_manual.rst:840
+#: ../../stima_v3/user_manual/user_manual.rst:842
+#: ../../stima_v3/user_manual/user_manual.rst:844
+#: ../../stima_v3/user_manual/user_manual.rst:846
+#: ../../stima_v3/user_manual/user_manual.rst:848
+#: ../../stima_v3/user_manual/user_manual.rst:850
+#: ../../stima_v3/user_manual/user_manual.rst:852
+#: ../../stima_v3/user_manual/user_manual.rst:854
+#: ../../stima_v3/user_manual/user_manual.rst:856
 msgid "Excellent"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:809
+#: ../../stima_v3/user_manual/user_manual.rst:838
 msgid "-71"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:811
+#: ../../stima_v3/user_manual/user_manual.rst:840
 msgid "-69"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:813
+#: ../../stima_v3/user_manual/user_manual.rst:842
 msgid "-67"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:815
+#: ../../stima_v3/user_manual/user_manual.rst:844
 msgid "-65"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:817
+#: ../../stima_v3/user_manual/user_manual.rst:846
 msgid "-63"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:819
+#: ../../stima_v3/user_manual/user_manual.rst:848
 msgid "-61"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:821
+#: ../../stima_v3/user_manual/user_manual.rst:850
 msgid "-59"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:823
+#: ../../stima_v3/user_manual/user_manual.rst:852
 msgid "-57"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:825
+#: ../../stima_v3/user_manual/user_manual.rst:854
 msgid "-55"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:827
+#: ../../stima_v3/user_manual/user_manual.rst:856
 msgid "-53"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:830
+#: ../../stima_v3/user_manual/user_manual.rst:859
 msgid ""
 "If you will compare this to smartphones, marginal is one bar, OK is two "
 "bars, good is three bars and excellent is four bars."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:833
+#: ../../stima_v3/user_manual/user_manual.rst:862
 msgid "**ber** (bit error rate):"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:835
+#: ../../stima_v3/user_manual/user_manual.rst:864
 msgid ""
 "In digital transmission, the number of bit errors is the number of "
 "received bits of a data stream over a communication channel that have "
@@ -1452,7 +1483,7 @@ msgid ""
 "synchronization errors."
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:840
+#: ../../stima_v3/user_manual/user_manual.rst:869
 msgid ""
 "The bit error rate (BER) is the number of bit errors per unit time. The "
 "bit error ratio (also BER) is the number of bit errors divided by the "
@@ -1461,91 +1492,71 @@ msgid ""
 "percentage"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:847
+#: ../../stima_v3/user_manual/user_manual.rst:876
 msgid "bear"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:849
+#: ../../stima_v3/user_manual/user_manual.rst:878
 msgid "BER  < 0.2%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:851
+#: ../../stima_v3/user_manual/user_manual.rst:880
 msgid "0.2%  < BER < 0.4%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:853
+#: ../../stima_v3/user_manual/user_manual.rst:882
 msgid "2"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:853
+#: ../../stima_v3/user_manual/user_manual.rst:882
 msgid "0.4%  < BER < 0.8%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:855
+#: ../../stima_v3/user_manual/user_manual.rst:884
 msgid "3"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:855
+#: ../../stima_v3/user_manual/user_manual.rst:884
 msgid "0.8%  < BER < 1.6%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:857
+#: ../../stima_v3/user_manual/user_manual.rst:886
 msgid "4"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:857
+#: ../../stima_v3/user_manual/user_manual.rst:886
 msgid "1.6%  < BER < 3.2%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:859
+#: ../../stima_v3/user_manual/user_manual.rst:888
 msgid "5"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:859
+#: ../../stima_v3/user_manual/user_manual.rst:888
 msgid "3.2%  < BER < 6.4%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:861
+#: ../../stima_v3/user_manual/user_manual.rst:890
 msgid "6"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:861
+#: ../../stima_v3/user_manual/user_manual.rst:890
 msgid "6.4%  < BER < 12.8%"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:863
+#: ../../stima_v3/user_manual/user_manual.rst:892
 msgid "7"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:863
+#: ../../stima_v3/user_manual/user_manual.rst:892
 msgid "12.8% < BER"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:870
-msgid "Temporizzazioni"
+#: ../../stima_v3/user_manual/user_manual.rst:899
+msgid "Tramite monitoraggio MQTT"
 msgstr ""
 
-#: ../../stima_v3/user_manual/user_manual.rst:873
-msgid "Segnale Radio GSM/GPRS"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:876
-msgid "Dati sensori"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:879
-msgid "Salvataggio e invio dati"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:882
-msgid "Messaggi di errore"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:885
-msgid "tramite monitoraggio MQTT"
-msgstr ""
-
-#: ../../stima_v3/user_manual/user_manual.rst:888
+#: ../../stima_v3/user_manual/user_manual.rst:904
 msgid "Tramite porta seriale"
 msgstr ""
 
@@ -1599,5 +1610,29 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "MQ<NN><OKKO>"
+#~ msgstr ""
+
+#~ msgid "funzioni svolte dalle Board"
+#~ msgstr ""
+
+#~ msgid "Espone una * connessione e reset"
+#~ msgstr ""
+
+#~ msgid "SIM"
+#~ msgstr ""
+
+#~ msgid "antenna"
+#~ msgstr ""
+
+#~ msgid "Segnale Radio GSM/GPRS"
+#~ msgstr ""
+
+#~ msgid "Dati sensori"
+#~ msgstr ""
+
+#~ msgid "Messaggi di errore"
+#~ msgstr ""
+
+#~ msgid "tramite monitoraggio MQTT"
 #~ msgstr ""
 
