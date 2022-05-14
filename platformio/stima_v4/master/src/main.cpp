@@ -29,7 +29,7 @@
 **/
 
 #include <stdlib.h>
-#include "Arduino.h"
+#include <Arduino.h>
 #include "STM32FreeRTOS.h"
 #include "SdFat.h"
 #include "thread.hpp"
@@ -47,6 +47,53 @@
 // #include "debug.h"
 
 using namespace cpp_freertos;
+
+#define LED1   PC7
+#define LED2   PB7
+#define LED3   PB14
+
+class MyLed : public Thread {
+
+public:
+   MyLed(uint8_t i, uint8_t led, uint16_t onDelayMs, uint16_t offDelayMs) : Thread( 100, 1),
+   Id (i),
+   Led(led),
+   OnDelayMs(onDelayMs),
+   OffDelayMs(offDelayMs)
+   {
+      Start();
+   };
+
+protected:
+   virtual void Run() {
+      pinMode(Led, OUTPUT);
+      while (true) {
+         digitalWrite(Led, HIGH);
+         Delay(Ticks::MsToTicks(OnDelayMs));
+         digitalWrite(Led, LOW);
+         Delay(Ticks::MsToTicks(OffDelayMs));
+      }
+   };
+
+private:
+   uint8_t Id;
+   uint8_t Led;
+   uint16_t OnDelayMs;
+   uint16_t OffDelayMs;
+};
+
+void setup() {
+   Serial.begin(115200);
+
+   static MyLed led_1(1, LED1, 100, 900);
+   static MyLed led_2(2, LED2, 200, 800);
+   static MyLed led_3(3, LED3, 300, 700);
+
+   Thread::StartScheduler();
+ }
+
+ void loop() {
+ }
 
 // //Ethernet interface configuration
 // #define APP_IF_NAME "eth0"
@@ -528,47 +575,6 @@ using namespace cpp_freertos;
 //    }
 // }
 
-#define LED1   PC7
-#define LED2   PB7
-#define LED3   PB14
-
-class MyLed : public Thread {
-
-public:
-   MyLed(uint8_t i, uint8_t led, uint16_t onDelayMs, uint16_t offDelayMs) : Thread( 100, 1),
-   Id (i),
-   Led(led),
-   OnDelayMs(onDelayMs),
-   OffDelayMs(offDelayMs)
-   {
-      Start();
-   };
-
-protected:
-   virtual void Run() {
-      pinMode(Led, OUTPUT);
-      while (true) {
-         digitalWrite(Led, HIGH);
-         Delay(Ticks::MsToTicks(OnDelayMs));
-         digitalWrite(Led, LOW);
-         Delay(Ticks::MsToTicks(OffDelayMs));
-      }
-   };
-
-private:
-   uint8_t Id;
-   uint8_t Led;
-   uint16_t OnDelayMs;
-   uint16_t OffDelayMs;
-};
-
-void setup() {
-   Serial.begin(115200);
-
-   static MyLed led_1(1, LED1, 100, 900);
-   static MyLed led_2(2, LED2, 200, 800);
-   static MyLed led_3(3, LED3, 300, 700);
-
 //    error_t error;
 //    OsTaskId taskId;
 //    NetInterface *interface;
@@ -798,8 +804,8 @@ void setup() {
 //    //Start the execution of tasks
 //    // osStartKernel();
 
-   Thread::StartScheduler();
-}
+   // Thread::StartScheduler();
+// }
 
-void loop() {
-}
+// void loop() {
+// }
