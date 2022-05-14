@@ -1,2 +1,0 @@
-# CycloneCrypto
-Cryptographic Library

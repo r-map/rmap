@@ -1,2 +1,0 @@
-# CycloneSSL
-TLS/DTLS Library
