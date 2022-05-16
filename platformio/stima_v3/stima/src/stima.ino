@@ -46,11 +46,14 @@ void setup() {
    init_logging();
    #if (USE_LCD)
    init_lcd();
+   wdt_reset();
    #endif
    #if (USE_RTC)
    init_rtc();
+   wdt_reset();
    #elif (USE_TIMER_1)
    init_timer1();
+   wdt_reset();
    #endif
    init_buffers();
    load_configuration();
@@ -61,6 +64,7 @@ void setup() {
    lcd_error |= lcd.print(F("--- www.rmap.cc ---"))==0;
    lcd_error |= lcd.setCursor(0, 1);
    lcd_error |= lcd.print(F("Stima station"))==0;
+   wdt_reset();
 
    lcd_error |= lcd.setCursor(0, 2);
    lcd_error |= lcd.print(stima_name)==0;
@@ -68,14 +72,17 @@ void setup() {
    lcd_error |= lcd.print(MODULE_MAIN_VERSION)==0;
    lcd_error |= lcd.print(F("."))==0;
    lcd_error |= lcd.print(MODULE_MINOR_VERSION)==0;
+   wdt_reset();
 
    lcd_error |= lcd.setCursor(0, 3);
    lcd_error |= lcd.print(F("Configuration V: "))==0;
    lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
+   wdt_reset();
 
    lcd_error |= lcd.setCursor(0, 3);
    lcd_error |= lcd.print(F("Configuration V: "))==0;
    lcd_error |= lcd.print(MODULE_CONFIGURATION_VERSION)==0;
+   wdt_reset();
 
    delay(5000);
    wdt_reset();
@@ -86,6 +93,7 @@ void setup() {
      lcd_error |= lcd.print(readable_configuration.constantdata[i].btable)==0;
      lcd_error |= lcd.print(":")==0;
      lcd_error |= lcd.print(readable_configuration.constantdata[i].value)==0;
+     wdt_reset();
    }
    
    #endif
