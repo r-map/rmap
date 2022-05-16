@@ -278,7 +278,8 @@ def on_message(mqttc, obj, msg):
         print("Lon: ",m["lon"]/100000," Lat: ",m["lat"]/100000)
         print("Datetime: ",m["datetime"])
         print("Level: " , dballe.describe_level(*(m["level"])))
-        print("Trange: ", dballe.describe_trange(*(m["trange"])))
+        if m["trange"] != (None, None, None):
+            print("Trange: ", dballe.describe_trange(*(m["trange"])))
         var = dballe.var(m["var"], m["value"])
         try:
             print ("Variable: ",var.info.desc,var.enqd(),var.info.unit)
