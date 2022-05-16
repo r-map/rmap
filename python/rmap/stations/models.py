@@ -537,7 +537,7 @@ class TransportSerial(models.Model):
     )
 
     active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
-    baudrate = models.PositiveIntegerField(default=9600,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=ugettext_lazy("Baud rate"))
+    baudrate = models.PositiveIntegerField(default=115200,null=False,blank=False,choices=SERIAL_BAUDRATE_CHOICES,help_text=ugettext_lazy("Baud rate"))
     device = models.CharField(max_length=30,unique=False,default="/dev/ttyUSB0",null=False,blank=False, choices=SERIAL_DEVICE_CHOICES,help_text=ugettext_lazy("Serial device"))
 
     board = models.OneToOneField("Board",on_delete=models.CASCADE)

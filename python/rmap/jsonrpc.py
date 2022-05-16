@@ -796,7 +796,7 @@ class TransportSERIAL(Transport):
 
     tested with arduino
     """
-    def __init__(self,port='/dev/ttyACM0',baudrate=9600,timeout=5,sleep=2,logfunc=log_dummy):
+    def __init__(self,port='/dev/ttyACM0',baudrate=115200,timeout=5,sleep=2,logfunc=log_dummy):
 
         import serial
 

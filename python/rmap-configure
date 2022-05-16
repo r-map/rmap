@@ -782,7 +782,7 @@ if args.download_from_server:
     #print(body)
 
     try:
-        user = User.objects.create_user(args.username, args.username+'@'+args.server, None)            
+        user = User.objects.create_user(args.username, args.username+'@'+args.server, args.password)            
         #trap IntegrityError for user that already exist
     except IntegrityError:
         print("user already exist")
@@ -790,7 +790,7 @@ if args.download_from_server:
     except:
         raise
     else:
-        print("user:", args.username, "created without password")
+        print("user:", args.username, "created ", "without" if args.password is None else "with", "password")
     try:
         for deserialized_object in serializers.deserialize("json",body):
 
