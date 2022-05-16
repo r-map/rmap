@@ -133,7 +133,7 @@ ESP8266WebServer webserver(STIMAHTTP_PORT);
 #include <HTTPClient.h>
 #include <ESP32httpUpdate.h>
 //#include <ESP32LittleFS.h>
-#include <LITTLEFS.h>
+#include <LittleFS.h>
 #define FIRMWARE_TYPE "WEMOS_D1_MINI32"
 #define PMS_RESET D0
 #define SCL D1
@@ -638,18 +638,10 @@ void firmware_upgrade() {
 
 String readconfig_rmap() {
 
-#if defined(ARDUINO_D1_MINI32)
-  if (LITTLEFS.exists("/rmap.json")) {
-#else
     if (LittleFS.exists("/rmap.json")) {
-#endif
       //file exists, reading and loading
     LOGN(F("reading rmap config file" CR));
-#if defined(ARDUINO_D1_MINI32)
-    File configFile = LITTLEFS.open("/rmap.json", "r");
-#else
     File configFile = LittleFS.open("/rmap.json", "r");
-#endif    
     if (configFile) {
       LOGN(F("opened rmap config file" CR));
 
@@ -675,11 +667,7 @@ void writeconfig_rmap(String payload) {;
   //save the custom parameters to FS
   LOGN(F("saving rmap config" CR));
   
-#if defined(ARDUINO_D1_MINI32)
-  File configFile = LITTLEFS.open("/rmap.json", "w");
-#else
   File configFile = LittleFS.open("/rmap.json", "w");
-#endif
   if (!configFile) {
     LOGE(F("failed to open rmap config file for writing" CR));
   }
@@ -903,18 +891,10 @@ String readconfig_rmap_SPIFFS() {
 
 void readconfig() {
 
-#if defined(ARDUINO_D1_MINI32)
-  if (LITTLEFS.exists("/config.json")) {
-#else
   if (LittleFS.exists("/config.json")) {
-#endif
     //file exists, reading and loading
     LOGN(F("reading config file" CR));
-#if defined(ARDUINO_D1_MINI32)
-    File configFile = LITTLEFS.open("/config.json", "r");
-#else
     File configFile = LittleFS.open("/config.json", "r");
-#endif
     if (configFile) {
       LOGN(F("opened config file" CR));
       size_t size = configFile.size();
@@ -974,11 +954,7 @@ void writeconfig() {;
   json["rmap_mqttrootpath"] = rmap_mqttrootpath;
   json["rmap_mqttmaintpath"] = rmap_mqttmaintpath;
   
-#if defined(ARDUINO_D1_MINI32)
-  File configFile = LITTLEFS.open("/config.json", "w");
-#else
   File configFile = LittleFS.open("/config.json", "w");
-#endif
   if (!configFile) {
     LOGE(F("failed to open config file for writing" CR));
   }
@@ -1390,11 +1366,7 @@ void setup() {
       u8g2.sendBuffer();
       delay(3000);
     }
-#if defined(ARDUINO_D1_MINI32)
-    LITTLEFS.format();
-#else
     LittleFS.format();
-#endif
     LOGN(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
   }
@@ -1429,23 +1401,14 @@ void setup() {
     LOGW(F("filesystem conversion done" CR));
   } else
 #endif
-#if defined(ARDUINO_D1_MINI32)
-    if (LITTLEFS.begin()) {
-#else
     if (LittleFS.begin()) {
-#endif
       LOGN(F("mounted LittleFS file system" CR));
     readconfig();    
   } else {
     LOGE(F("failed to mount FS" CR));
     LOGW(F("Reformat LittleFS" CR));
-#if defined(ARDUINO_D1_MINI32)
-    LITTLEFS.format();
-    LITTLEFS.begin();
-#else
     LittleFS.format();
     LittleFS.begin();    
-#endif
     LOGW(F("Reset wifi configuration" CR));
     wifiManager.resetSettings();
 
