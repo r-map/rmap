@@ -48,7 +48,9 @@ import django
 from django.core import serializers
 import requests
 import base64, datetime
-import logging
+import logging,traceback,re
+import json
+import dballe
 
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
@@ -66,6 +68,8 @@ from django.contrib.auth.models import User
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
 
+parser.add_argument('--serial_monitor',action="store_true", help="serial monitor")
+parser.add_argument('--mqtt_monitor',action="store_true", help="MQTT monitor")
 parser.add_argument('--list_stations',action="store_true", help="list all stations, board and transports")
 parser.add_argument('--list_boards',action="store_true", help="list all board and transports on station ")
 parser.add_argument('--list_sensors',action="store_true", help="list all board on board ")
@@ -150,6 +154,240 @@ parser.add_argument('--amqpdebug', action="store_true", help="activate amqp (pik
 args = parser.parse_args()
 
 
+if (args.serial_monitor):
+
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected serial_monitor without username or station_slug")
+        raise SystemExit(1)
+
+    mystation=StationMetadata.objects.get(slug=args.station_slug,user__username=args.username)
+
+    print("STATION:", mystation)
+
+    for board in mystation.board_set.all():
+        print(">board: ", board.name," slug="+board.slug," active=",board.active)
+        try:
+            if ( board.transportserial.active):
+                device= args.device if args.device else  board.transportserial.device
+                baudrate= args.baudrate if args.baudrate else  board.transportserial.baudrate
+                print("\tSerial Transport device=",device," baudrate=",baudrate)
+
+                from serial.tools import miniterm
+                import sys
+                sys.argv=[sys.argv[0],]
+                miniterm.main( 
+                    default_port=device, 
+                    default_baudrate=baudrate
+                )
+                
+        except ObjectDoesNotExist:
+            print("\ttransport serial not present for this board")
+
+
+
+TOPIC_RE_V1 = re.compile((
+    r'^1/[^/]+/'
+    r'(?P<user>[^/]+)/'
+    r'(?P<ident>[^/]*)/'
+    r'(?P<lon>[0-9-]+),'
+    r'(?P<lat>[0-9-]+)/'
+    r'(?P<rep>[^/]+)/'
+    r'(?P<pind>[0-9]+|-),'
+    r'(?P<p1>[0-9]+|-),'
+    r'(?P<p2>[0-9]+|-)/'
+    r'(?P<lt1>[0-9]+|-),'
+    r'(?P<lv1>[0-9]+|-),'
+    r'(?P<lt2>[0-9]+|-),'
+    r'(?P<lv2>[0-9]+|-)/'
+    r'(?P<var>B[0-9]{5})$'
+))
+
+def parse_topic_v1(topic):
+    match = TOPIC_RE_V1.match(topic)
+    if match is None:
+        logging.info("SKIP topic V1: {}".format(topic))
+        return None
+    else:
+        g = match.groupdict()
+        return {
+            "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+            "lon": int(g["lon"]),
+            "lat": int(g["lat"]),
+            "rep_memo": g["rep"],
+            "level": (
+                None if g["lt1"] == "-" else int(g["lt1"]),
+                None if g["lv1"] == "-" else int(g["lv1"]),
+                None if g["lt2"] == "-" else int(g["lt2"]),
+                None if g["lv2"] == "-" else int(g["lv2"]),
+                ),
+            "trange": (
+                None if g["pind"] == "-" else int(g["pind"]),
+                None if g["p1"] == "-" else int(g["p1"]),
+                None if g["p2"] == "-" else int(g["p2"]),
+            ),
+            "var": g["var"],
+        }
+    
+    
+def parse_payload(payload):
+    return json.loads(payload.decode("utf-8"))
+
+def parse_message(topic, payload):
+    t = parse_topic_v1(topic)
+
+    if t is None:
+        return None
+
+    m = parse_payload(payload)
+    msg = t.copy()
+    msg["value"] = m["v"]
+    if all([t["level"] != (None, None, None, None),
+            t["trange"] != (None, None, None),]):
+        if "t" in m:
+            msg["datetime"] = datetime.datetime.strptime(m["t"], "%Y-%m-%dT%H:%M:%S")
+        else:
+            msg["datetime"] = None
+            #msg["datetime"] = datetime.datetime.now()
+    else:
+        msg["datetime"] = None
+        
+    if "a" in m:
+        msg["attributes"] = m["a"]
+    else:
+        msg["attributes"] = {}
+            
+    return msg
+
+def on_connect(mqttc, obj, flags, rc):
+    print("connect rc: " + str(rc))
+
+
+def on_message(mqttc, obj, msg):
+    print (50*"-","MESSAGE",50*"-")
+    print("Message: " + msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+
+    try:
+        m = parse_message(msg.topic, msg.payload)
+        if m is None:
+            return
+        print ("Parsed: ",m)
+
+        print("Ident (user): ",m["ident"])
+        print("Network: ",m["rep_memo"])
+        print("Lon: ",m["lon"]/100000," Lat: ",m["lat"]/100000)
+        print("Datetime: ",m["datetime"])
+        print("Level: " , dballe.describe_level(*(m["level"])))
+        print("Trange: ", dballe.describe_trange(*(m["trange"])))
+        var = dballe.var(m["var"], m["value"])
+        try:
+            print ("Variable: ",var.info.desc,var.enqd(),var.info.unit)
+        except TypeError:
+            print ("Variable: ",var.info.desc,var.enqc(),var.info.unit)
+
+        for b, v in m["attributes"].items():
+            var=dballe.var(b, v)
+            try:
+                print ("Attribute: ",var.info.desc,var.enqd(),var.info.unit)
+            except TypeError:
+                print ("Attribute: ",var.info.desc,var.enqc(),var.info.unit)
+                
+            #msg = dballe.Message("generic")
+            #if m["ident"] is not None:
+            #    msg.set_named("ident", dballe.var("B01011", m["ident"]))
+            #
+            #msg.set_named("longitude", dballe.var("B06001", m["lon"]))
+            #msg.set_named("latitude", dballe.var("B05001", m["lat"]))
+            #msg.set_named("rep_memo", dballe.var("B01194", m["rep_memo"]))
+            #
+            #if m["datetime"] is not None:
+            #    msg.set_named("year", dballe.var("B04001", m["datetime"].year))
+            #    msg.set_named("month", dballe.var("B04002", m["datetime"].month))
+            #    msg.set_named("day", dballe.var("B04003", m["datetime"].day))
+            #    msg.set_named("hour", dballe.var("B04004", m["datetime"].hour))
+            #    msg.set_named("minute", dballe.var("B04005", m["datetime"].minute))
+            #    msg.set_named("second", dballe.var("B04006", m["datetime"].second))
+            #
+            #var = dballe.var(m["var"], m["value"])
+            #
+            #for b, v in m["attributes"].items():
+            #    var.seta(dballe.var(b, v))
+            #
+            #msg.set(m["level"], m["trange"], var)
+            #
+            #exporter = dballe.Exporter(encoding="BUFR")
+            #totalbody=exporter.to_binary(msg)
+            #print (totalbody)
+
+    except Exception:
+        print("Message not RMAP V1 conforme")
+        print(traceback.format_exc())
+
+def on_publish(mqttc, obj, mid):
+    print("mid: " + str(mid))
+
+
+def on_subscribe(mqttc, obj, mid, granted_qos):
+    print("Subscribed: " + str(mid) + " " + str(granted_qos))
+
+
+def on_log(mqttc, obj, level, string):
+    print(string)
+
+            
+if (args.mqtt_monitor):
+
+    if (args.username is None or
+        args.station_slug is None):
+        print(" selected mqtt_monitor without username or station_slug")
+        raise SystemExit(1)
+
+    mystation=StationMetadata.objects.get(slug=args.station_slug,user__username=args.username)
+
+    print("STATION:", mystation)
+
+    for board in mystation.board_set.all():
+        print(">board: ", board.name," slug="+board.slug," active=",board.active)
+        try:
+            if ( board.transportmqtt.active):
+                print("\tMQTT Transport server=",board.transportmqtt.mqttserver," user=",board.transportmqtt.mqttuser)
+
+                import paho.mqtt.client as mqtt
+
+                mqttc = mqtt.Client()
+                mqttc.on_message = on_message
+                mqttc.on_connect = on_connect
+                mqttc.on_publish = on_publish
+                mqttc.on_subscribe = on_subscribe
+                # Uncomment to enable debug messages
+                # mqttc.on_log = on_log
+                username=board.transportmqtt.mqttuser+"/"+mystation.slug+"/"+board.slug
+                mqttc.username_pw_set(username=username, password=board.transportmqtt.mqttpassword)
+                mqttc.connect(board.transportmqtt.mqttserver, 1883, 60)
+
+
+                mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                    +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
+                    +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                    +"/"+mystation.network+"/#"
+
+                mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                    +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
+                    +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                    +"/"+mystation.network+"/#"
+
+                print ("subscribe to: ")
+                print (mqttrootpath)
+                print (mqttmaintpath)
+                mqttc.subscribe([(mqttrootpath, 0),(mqttmaintpath, 0)])
+
+                mqttc.loop_forever()
+
+                
+        except ObjectDoesNotExist:
+            print("\ttransport mqtt not present for this board")
+
+            
 if (args.amqpdebug):
     import sys
     logger=logging.getLogger('pika')
@@ -310,7 +548,7 @@ if args.list_boards:
         raise SystemExit(1)
 
 
-    mystation=StationMetadata.objects.get(slug=args.station_slug,ident__username=args.username)
+    mystation=StationMetadata.objects.get(slug=args.station_slug,user__username=args.username)
 
     print("STATION:", mystation)
 
@@ -357,7 +595,7 @@ if args.list_sensors:
 
     for mysensor in Sensor.objects.filter(board__slug=args.board_slug
                                 ,board__stationmetadata__slug=args.station_slug
-                                ,board__stationmetadata__ident__username=args.username):
+                                ,board__stationmetadata__user__username=args.username):
     
         print("SENSOR:", mysensor)
         print("active: ",mysensor.active)
@@ -558,7 +796,7 @@ if args.download_from_server:
 
             if isinstance(deserialized_object.object,StationMetadata):
                 try:
-                    StationMetadata.objects.get(slug=deserialized_object.object.slug,ident__username=deserialized_object.object.ident).delete()
+                    StationMetadata.objects.get(slug=deserialized_object.object.slug,user__username=deserialized_object.object.ident).delete()
                     print ("Removed preexistent: {}:{} from local DB".format(deserialized_object.object.slug,deserialized_object.object.ident))
                 except ObjectDoesNotExist:
                     print ("StationMetadata do not exist in DB")

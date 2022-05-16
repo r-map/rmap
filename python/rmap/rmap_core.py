@@ -1168,7 +1168,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
                         print("mybaudrate:",mybaudrate)
 
-                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5,sleep=5)
+                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5,sleep=15)
                         
                 except ObjectDoesNotExist:
                     print("transport serial not present for this board")
@@ -1211,7 +1211,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                 
         rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
         if (rpcproxy is None): return
-
+        
         # with MQTT we send a configure command without params 
         # to say to the station to do not disconnect and wait for RPC
         if transport_name == "mqtt":
@@ -1285,18 +1285,18 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                 mqttpath=sensor.timerange+"/"+sensor.level+"/"))
             #TODO  check id of status (good only > 0)
 
-        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+mystation.user__username\
-                                                 +"/"+mystation.ident+"/"\
+        print("mqttrootpath:",rpcproxy.configure(mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                                                 +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                                                  +"/"+mystation.network+"/"))
 
-        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+mystation.user__username\
-                                                 +"/"+mystation.ident+"/"\
-                                                 +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
-                                                 +"/"+mystation.network+"/"))
+        print("mqttmaintpath:",rpcproxy.configure(mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                                                  +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
+                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
+                                                  +"/"+mystation.network+"/"))
 
-        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+mystation.user__username\
-                                                 +"/"+mystation.ident+"/"\
+        print("mqttrpcpath:",rpcproxy.configure(mqttrpcpath="1/rpc/"+board.transportmqtt.mqttuser\
+                                                  +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
                                                  +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                                                  +"/"+mystation.network+"/"))
 
