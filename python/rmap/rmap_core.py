@@ -1199,14 +1199,17 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     if ( board.transportmqtt.active):
                         print("mqtt Transport", board.transportmqtt)
 
+                        ident = mystation.ident
                         myhost =board.transportmqtt.mqttserver
                         myuser =board.transportmqtt.mqttuser
                         mypassword =board.transportmqtt.mqttpassword
-                        myrpctopic="rpc/"+str(mystation.user)+"/"+\
+
+                        myrpctopic="1/rpc/"+myuser+"/"+ ("" if ident is None else ident) +"/"+\
                             "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                             "/"+mystation.network+"/"
+                        mqttuser=myuser+"/"+mystation.slug+"/"+board.slug
 
-                        transport=jsonrpc.TransportMQTT( host=myhost, user=myuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
+                        transport=jsonrpc.TransportMQTT( host=myhost, user=mqttuser,password=mypassword,rpctopic=myrpctopic,logfunc=logfunc,timeout=board.transportmqtt.mqttsampletime*1.2)
 
                 except ObjectDoesNotExist:
                     print("transport MQTT not present for this board")
