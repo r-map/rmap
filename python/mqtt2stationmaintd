@@ -41,7 +41,7 @@ import rmap.settings
 
 TOPIC_RE_V0 = re.compile((
     r'^.*/'
-    r'(?P<ident>[^/]+)/'
+    r'(?P<user>[^/]+)/'
     r'(?P<lon>[0-9-]+),'
     r'(?P<lat>[0-9-]+)/'
     r'(?P<rep>[^/]+)/'
@@ -83,7 +83,8 @@ class MyMQTTClass(mqtt.Client):
         else:
             g = match.groupdict()
             return {
-                "ident": None if g["ident"] == "-" else g["ident"],
+                "user": None if g["user"] == "-" else g["user"],
+                "ident": None,
                 "lon": int(g["lon"]),
                 "lat": int(g["lat"]),
                 "rep_memo": g["rep"],
@@ -110,7 +111,8 @@ class MyMQTTClass(mqtt.Client):
         else:
             g = match.groupdict()
             return {
-                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+                "user": None if g["user"] == "" else g["user"],
+                "ident": None if g["ident"] == "" else g["ident"],
                 "lon": int(g["lon"]),
                 "lat": int(g["lat"]),
                 "rep_memo": g["rep"],
@@ -198,6 +200,7 @@ class MyMQTTClass(mqtt.Client):
             logging.debug(">>>>>>>>>>>>>>>>>>>>>>>>")
             logging.debug(m["datetime"])
             logging.debug(m["rep_memo"])
+            logging.debug(m["user"])
             logging.debug(m["ident"])
             logging.debug(m["lon"])
             logging.debug(m["lat"])
@@ -219,16 +222,18 @@ class MyMQTTClass(mqtt.Client):
 
                 try:
                     mystation = StationMetadata.objects.get(network=m["rep_memo"]
-                                                        ,lon=m["lon"]/100000.
-                                                        ,lat=m["lat"]/100000.
-                                                        ,ident__username=m["ident"])
+                                                            ,lon=m["lon"]/100000.
+                                                            ,lat=m["lat"]/100000.
+                                                            ,user__username=m["user"]
+                                                            ,ident=m["ident"] )
 
                     if hasattr(mystation, 'stationmaintstatus'):
 
-                        logging.info("update maint information to station {} {} {} {}: {} {}".format
+                        logging.info("update maint information to station {} {} {} {} {}: {} {}".format
                                       (mystation.network
                                        ,mystation.lon
                                        ,mystation.lat
+                                       ,mystation.user
                                        ,mystation.ident
                                        ,m["value"]
                                        ,m["datetime"])                                
@@ -240,10 +245,11 @@ class MyMQTTClass(mqtt.Client):
 
                     else:
 
-                        logging.info("add maint information to station {} {} {} {}: {} {}".format
+                        logging.info("add maint information to station {} {} {} {} {}: {} {}".format
                                       (mystation.network
                                        ,mystation.lon
                                        ,mystation.lat
+                                       ,mystation.user
                                        ,mystation.ident
                                        ,m["value"]
                                        ,m["datetime"])                                
@@ -257,6 +263,7 @@ class MyMQTTClass(mqtt.Client):
                                   (m["rep_memo"]
                                    ,m["lon"]/100000.
                                    ,m["lat"]/100000.
+                                   ,m["user"]
                                    ,m["ident"]))
             else:
                 logging.info("Ignore maint message {} {}".format(message.topic, message.payload.decode("utf-8")))
