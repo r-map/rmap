@@ -93,16 +93,16 @@ def mystation_localdata(request,user,slug):
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
 
 
-def mystationmetadata_json(request,user,station_slug,board_slug=None):
+def mystationmetadata_json(request,user,station_slug,board_slug=None,dump=False):
     if request.user.is_authenticated:
         if request.user.username == user:
-            return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug), content_type="application/json")
+            return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug,dump=dump), content_type="application/json")
         else:
             response=HttpResponse("deny")
             response.status_code=403
             return response
     else:
-        return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug, without_password=True), content_type="application/json")
+        return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug, without_password=True,dump=dump), content_type="application/json")
 
     
 def StationsOnMap(request,user=None,slug=None):

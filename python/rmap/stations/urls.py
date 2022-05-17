@@ -26,12 +26,14 @@ urlpatterns = [
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_detail ,name='mystationmetadata-detail'),
 
-    # will be removed after all stimawifi will be migrated to the API with board name
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$',
                            mystationmetadata_json ,name='mystationmetadata-json'),
 
+                       url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json_dump/$',
+                           mystationmetadata_json, kwargs={'dump':True},name='mystationmetadata-json-dump'),
+    
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/(?P<board_slug>[-_\w]*)/json/$',
-                           mystationmetadata_json ,name='mystationmetadata-json-new'),
+                           mystationmetadata_json ,name='mystationmetadata-board-json'),
 
                        url(r'^delstation/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_del, name='mystationmetadata-del'),

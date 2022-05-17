@@ -261,6 +261,10 @@ def parse_message(topic, payload):
 
 def on_connect(mqttc, obj, flags, rc):
     print("connect rc: " + str(rc))
+    print ("subscribe to: ")
+    print (mqttc.mqttrootpath)
+    print (mqttc.mqttmaintpath)
+    mqttc.subscribe([(mqttc.mqttrootpath, 0),(mqttc.mqttmaintpath, 0)])
 
 
 def on_message(mqttc, obj, msg):
@@ -367,20 +371,16 @@ if (args.mqtt_monitor):
                 mqttc.connect(board.transportmqtt.mqttserver, 1883, 60)
 
 
-                mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
+                mqttc.mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
                     +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
                     +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                     +"/"+mystation.network+"/#"
 
-                mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
+                mqttc.mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
                     +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
                     +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                     +"/"+mystation.network+"/#"
 
-                print ("subscribe to: ")
-                print (mqttrootpath)
-                print (mqttmaintpath)
-                mqttc.subscribe([(mqttrootpath, 0),(mqttmaintpath, 0)])
 
                 mqttc.loop_forever()
 
@@ -749,13 +749,11 @@ if args.download_from_server:
         print(" download_from_server do not take in account board_slug parameter (work for a full station)")
         raise SystemExit(1)
 
-    print("get configuration from:")
-    print("https://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json")
-
-
-    url = "https://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json"
+    url = "https://"+args.server+"/stations/"+args.username+"/"+args.station_slug+"/json_dump"
     login_url = "https://"+args.server+"/registrazione/login/"
 
+    print("get configuration from: {}".format(url))
+    
     with requests.Session() as session:
 
         if args.password is None:

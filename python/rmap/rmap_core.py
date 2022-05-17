@@ -741,7 +741,7 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
         delsensors(station_slug=station_slug,username=username,board_slug=board_slug)
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
 
     if (template == "stima_report_thp"):
         print("setting template:", template)
@@ -751,16 +751,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="I2C",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="I2C",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="I2C",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
 
 
     if (template == "stima_report_thpb"):
@@ -771,16 +771,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="I2C",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="I2C",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="I2C",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Battery charge monitor",driver="I2C",
                   type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
@@ -793,22 +793,22 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="I2C",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="I2C",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="I2C",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Battery charge monitor",driver="I2C",
                   type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Leaf wetness duration",driver="I2C",
-                  type="LWT",address=101,timerange="1,0,900",level="103,2000,-,-")
+                  type="LWT",address=101,timerange="1,0,{P2:d}",level="103,2000,-,-")
         
 
     if (template == "stima_report_thpbwr"):
@@ -819,16 +819,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="I2C",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="I2C",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="I2C",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Battery charge monitor",driver="I2C",
                   type="DEP",address=48,timerange="254,0,0",level="265,1,-,-")
@@ -837,22 +837,22 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="DWA",address=69,timerange="254,0,0",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind vect. average, gust direction",driver="I2C",
-                  type="DWB",address=69,timerange="200,0,900",level="103,10000,-,-")
+                  type="DWB",address=69,timerange="200,0,{P2:d}",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor gust speeds",driver="I2C",
-                  type="DWC",address=69,timerange="2,0,900",level="103,10000,-,-")
+                  type="DWC",address=69,timerange="2,0,{P2:d}",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor scalar average",driver="I2C",
-                  type="DWD",address=69,timerange="0,0,900",level="103,10000,-,-")
+                  type="DWD",address=69,timerange="0,0,{P2:d}",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor frequency",driver="I2C",
-                  type="DWE",address=69,timerange="9,0,900",level="103,10000,-,-")
+                  type="DWE",address=69,timerange="9,0,{P2:d}",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Windsonic wind sensor gust directions",driver="I2C",
-                  type="DWF",address=69,timerange="205,0,900",level="103,10000,-,-")
+                  type="DWF",address=69,timerange="205,0,{P2:d}",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Radiation",driver="I2C",
-                  type="DSA",address=71,timerange="0,0,900",level="1,-,-,-")
+                  type="DSA",address=71,timerange="0,0,{P2:d}",level="1,-,-,-")
 
         
     if (template == "stima_report_thpwb"):
@@ -863,16 +863,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="I2C",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="I2C",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="I2C",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="I2C",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,name="Wind",driver="I2C",
                   type="DW1",address=34,timerange="254,0,0",level="103,10000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
@@ -1029,16 +1029,16 @@ def addsensors_by_template(station_slug=None,username=None,board_slug=None,templ
                   type="ITH",address=35,timerange="254,0,0",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report min values",driver="JRPC",
-                  type="NTH",address=35,timerange="3,0,900",level="103,2000,-,-")
+                  type="NTH",address=35,timerange="3,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report mean values",driver="JRPC",
-                  type="MTH",address=35,timerange="0,0,900",level="103,2000,-,-")
+                  type="MTH",address=35,timerange="0,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Temperature/Humidity report max values",driver="JRPC",
-                  type="XTH",address=35,timerange="2,0,900",level="103,2000,-,-")
+                  type="XTH",address=35,timerange="2,0,{P2:d}",level="103,2000,-,-")
         addsensor(station_slug=station_slug,username=username,board_slug=board_slug,
                   name="Precipitation report",driver="JRPC",
-                  type="TBR",address=33,timerange="1,0,900",level="1,-,-,-")
+                  type="TBR",address=33,timerange="1,0,{P2:d}",level="1,-,-,-")
 
 
 
@@ -1093,7 +1093,11 @@ def rpcMQTT(station_slug=None,board_slug=None,logfunc=jsonrpc.log_file("rpc.log"
                 myhost =board.transportmqtt.mqttserver
                 myuser =board.transportmqtt.mqttuser
                 mypassword =board.transportmqtt.mqttpassword
-                myrpctopic="1/rpc/"+myuser+"/"+ident+"/"+\
+
+                #print (myuser,ident,mystation.lon,mystation.lat,mystation.network)
+                #print(myuser,mystation.slug,board.slug)
+                
+                myrpctopic="1/rpc/"+myuser+"/"+ ("" if ident is None else ident) +"/"+\
                     "%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))+\
                     "/"+mystation.network+"/"
                 mqttuser=myuser+"/"+mystation.slug+"/"+board.slug
@@ -1209,6 +1213,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                     return
 
                 
+        if (transport is None): return
         rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),transport)
         if (rpcproxy is None): return
         
@@ -1277,6 +1282,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         print(">>>> sensors:")
         for sensor in board.sensor_set.all():
             if not sensor.active: continue
+            sensor.timerange=sensor.dynamic_timerange()
             print(sensor)
 
             print("add driver:",rpcproxy.configure(driver=sensor.driver,
@@ -1351,14 +1357,16 @@ def export2json(objects):
                                  )
 
     
-def dumpstation(user, station_slug, board_slug=None, without_password=False):
+def dumpstation(user, station_slug, board_slug=None, without_password=False,dump=False):
 
     def add_board(objects,board):
         if (board.active):
             objects.append(board)
         
             for sensor in board.sensor_set.all():
-                if (sensor.active): objects.append(sensor)
+                if (sensor.active):
+                    if not dump: sensor.timerange=sensor.dynamic_timerange()
+                    objects.append(sensor)
             try:
                 transport=board.transportmqtt
                 if without_password:
@@ -1389,24 +1397,25 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False):
                 if (transport.active): objects.append(transport)
             except ObjectDoesNotExist:
                 pass
-
+            
     objects=[]
 
     try:
         mystation=StationMetadata.objects.get(slug=station_slug,user__username=user)
-        objects.append(mystation)
+        if mystation.active:
+            objects.append(mystation)
 
-        if (board_slug):
-            add_board(objects,mystation.board_set.get(slug=board_slug))
-        else:
-            for board in mystation.board_set.all():
-                add_board(objects,board)
+            if (board_slug):
+                add_board(objects,mystation.board_set.get(slug=board_slug))
+            else:
+                for board in mystation.board_set.all():
+                    add_board(objects,board)
         
-        for stationconstantdata in mystation.stationconstantdata_set.all():
-            if (stationconstantdata.active): objects.append(stationconstantdata)
+            for stationconstantdata in mystation.stationconstantdata_set.all():
+                if (stationconstantdata.active): objects.append(stationconstantdata)
 
     except ObjectDoesNotExist:
-        pass
+        print("Station not found!")
             
     return export2json(objects)
 
@@ -1415,7 +1424,7 @@ def sendjson2amqp(station,user="your user",password="your password",host="rmap.c
 
     print("sendjson2amqp")
 
-    body=dumpstation(station,user)
+    body=dumpstation(user,station,dump=True)
     send2amqp(body,user,password,host,exchange)
 
 

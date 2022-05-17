@@ -157,9 +157,15 @@ class Sensor(models.Model):
         if self.board.stationmetadata.mqttrootpath != self.type.datalevel:
             raise ValidationError(ugettext_lazy('Station and sensor have different data level; change mqttrootpath or active sensors.'))
 
-    
+    def dynamic_timerange(self):
+
+        try:
+            return self.timerange.format(P2=self.board.transportmqtt.mqttsampletime)
+        except:
+            return self.timerange
+        
     def underscored_timerange(self):
-        return self.timerange.replace(',','_')
+        return self.dynamic_timerange().replace(',','_')
 
     def underscored_level(self):
         return self.level.replace(',','_')
@@ -172,9 +178,9 @@ class Sensor(models.Model):
 
     def describe_timerange(self):
         if dballepresent:
-            return dballe.describe_trange(*toint(self.timerange))
+            return dballe.describe_trange(*toint(self.dynamic_timerange()))
         else:
-            return self.timerange
+            return self.dynamic_timerange
 
     def natural_key(self):
         #print "natural key sensor"
