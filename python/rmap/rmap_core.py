@@ -45,6 +45,7 @@ import dballe,io
 import functools
 import logging
 import time
+import requests
 
 #from django.contrib.sites.shortcuts import get_current_site
 #from django.contrib.sites.models import Site
@@ -1318,6 +1319,30 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
         transport.close()
 
 
+def send2http(body="",user=None,password=None,url=None,login_url=None):
+
+    print("send data to: {}".format(url))
+
+    with requests.Session() as session:
+
+        session.get(login_url)
+        csrftoken = session.cookies['csrftoken']
+        r = session.post(login_url, data={"username":user, "password":password,"csrfmiddlewaretoken":csrftoken, "next": "/"}, headers={"Referer":login_url})
+
+        if r.status_code == 200:
+            if r.text.find('<input type="password" name="password" required id="id_password">') != -1:
+                print("ALERT: Wrong username or password")
+                return
+        else:
+            print ("Error code login {}".format(r.status_code))
+            return
+
+        r = session.post(url, data={"body": body})
+    
+    if r.status_code != 200:
+        print ("Error code {}".format(r.status_code))
+    print (r.text)
+        
 def send2amqp(body="",user=None,password=None,host="rmap.cc",exchange=".in.json.configuration",routing_key="config"):
 
     credentials=pika.PlainCredentials(user, password)
@@ -1419,7 +1444,8 @@ def dumpstation(user, station_slug, board_slug=None, without_password=False,dump
 
     except ObjectDoesNotExist:
         print("Station not found!")
-            
+        return None
+    
     return export2json(objects)
 
 
@@ -1428,7 +1454,20 @@ def sendjson2amqp(station,user="your user",password="your password",host="rmap.c
     print("sendjson2amqp")
 
     body=dumpstation(user,station,dump=True)
-    send2amqp(body,user,password,host,exchange)
+    if body is not None:
+        send2amqp(body,user,password,host,exchange)
+
+
+def sendjson2http(station,user="your user",password="your password",host="rmap.cc"):
+
+    print("sendjson2http")
+
+    url = "https://"+host+"/stationsupload/json/"
+    login_url = "https://"+host+"/registrazione/login/"
+                  
+    body=dumpstation(user,station,dump=True)
+    if body is not None:
+        send2http(body,user,password,url,login_url)
 
 
 def receivegeoimagefromamqp(user="your user",password="your password",host="rmap.cc",queue="..jpg.photo"):
