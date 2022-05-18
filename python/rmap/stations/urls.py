@@ -5,6 +5,7 @@ from rmap.stations.views import StationsOnMap
 from rmap.stations.views import mystationmetadata_list
 from rmap.stations.views import mystationmetadata_detail
 from rmap.stations.views import mystationmetadata_json
+from rmap.stations.views import mystationmetadata_upload_json
 from rmap.stations.views import mystationmetadata_del
 from rmap.stations.views import mystation_localdata
 
@@ -26,6 +27,9 @@ urlpatterns = [
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<slug>[-_\w]+)/$',
                            mystationmetadata_detail ,name='mystationmetadata-detail'),
 
+                       url(r'^stationsupload/json/$',
+                           mystationmetadata_upload_json ,name='mystationmetadata-upload-json'),
+    
                        url(r'^stations/(?P<user>[-_\w]+)/(?P<station_slug>[-_\w]+)/json/$',
                            mystationmetadata_json ,name='mystationmetadata-json'),
 

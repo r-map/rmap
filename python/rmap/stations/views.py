@@ -10,7 +10,8 @@ from datetime import datetime,timedelta
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
-
+from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
 
 class StationList(ListView):
     paginate_by = 25
@@ -93,16 +94,62 @@ def mystation_localdata(request,user,slug):
     return render(request, 'stations/stationlocaldata.html',{"object":mystation})
 
 
+@csrf_exempt
+def mystationmetadata_upload_json(request):
+
+    if request.user.is_authenticated:
+        body=request.POST.get("body")
+        #At this point we can check if we trust this authenticated user... 
+        user = request.user.username
+        print("Received from user: %r" % user) 
+        
+        #but we check that message content is with the same user
+        try:
+            for deserialized_object in serializers.deserialize("json",body):
+                if rmap_core.object_auth(deserialized_object.object,user):
+                    try:
+                        StationMetadata.objects.get(slug=deserialized_object.object.slug,user__username=deserialized_object.object.user.username).delete()
+                    except:
+                        pass
+                    print("save:",deserialized_object.object)
+                    deserialized_object.save(force_insert=True)
+                else:
+                    response=HttpResponse("deny")
+                    response.status_code=500
+                    return response
+                    
+        except Exception as e:
+            print(("error in deserialize object; skip it",e))
+            response=HttpResponse("error")
+            response.status_code=500
+            return response
+
+        response=HttpResponse("OK")
+        response.status_code=200
+        return response
+
+    response=HttpResponse("deny")
+    response.status_code=403
+    return response
+
+
 def mystationmetadata_json(request,user,station_slug,board_slug=None,dump=False):
     if request.user.is_authenticated:
         if request.user.username == user:
-            return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug,dump=dump), content_type="application/json")
+            jsonstation = rmap_core.dumpstation(user,station_slug,board_slug,dump=dump)
         else:
             response=HttpResponse("deny")
             response.status_code=403
             return response
     else:
-        return HttpResponse(rmap_core.dumpstation(user,station_slug,board_slug, without_password=True,dump=dump), content_type="application/json")
+        jsonstation = rmap_core.dumpstation(user,station_slug,board_slug, without_password=True,dump=dump)
+
+    if jsonstation is None:
+        response=HttpResponse("error")
+        response.status_code=403
+        return response
+    else:
+        return HttpResponse(jsonstation, content_type="application/json")
 
     
 def StationsOnMap(request,user=None,slug=None):
