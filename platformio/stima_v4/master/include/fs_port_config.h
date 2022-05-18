@@ -27,10 +27,10 @@
  **/
 
 #ifndef _FS_PORT_CONFIG_H
-// #define _FS_PORT_CONFIG_H
+#define _FS_PORT_CONFIG_H
 
 //Select underlying file system
-// #define USE_FATFS
+// #define USE_CUSTOM_FS
 
 //Number of files that can be opened simultaneously
 // #define FS_MAX_FILES 8
