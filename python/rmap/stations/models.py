@@ -774,7 +774,7 @@ class StationMetadata(models.Model):
     user = models.ForeignKey(User,on_delete=models.CASCADE)
     #ident = models.ForeignKey(User, limit_choices_to={'is_staff': True})
 
-    ident = models.CharField(max_length=9,null=True,blank=True, help_text=ugettext_lazy("identifier for mobile station (should be equal to your username)"))
+    ident = models.CharField(max_length=9,null=False,blank=True,default="", help_text=ugettext_lazy("identifier for mobile station (should be equal to your username)"))
 
     lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Latitude of the fixed station'))
     lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Longitude of the fixed station'))
@@ -815,10 +815,10 @@ class StationMetadata(models.Model):
         if (self.network == "fixed" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
             raise ValidationError(ugettext_lazy('Station network have inconsistent definition of coordinate (lat/lon).'))
 
-        if (self.ident is None and self.lat is None):
+        if (self.ident == "" and self.lat is None):
             raise ValidationError(ugettext_lazy('Station without ident need coordinate (lat/lon).'))
 
-        if (not self.ident is None and not self.lat is None):
+        if (not self.ident == "" and not self.lat is None):
             raise ValidationError(ugettext_lazy('Station with ident cannot have coordinate (lat/lon).'))
         
                 
@@ -865,7 +865,7 @@ class StationMetadata(models.Model):
         ordering = ['slug']
         verbose_name = 'station'
         verbose_name_plural = 'stations'
-        unique_together = (('slug', 'user'),('user', 'lat','lon','network'))
+        unique_together = (('slug', 'user'),('ident', 'lat','lon','network'))
 
     def __str__(self):
         return '%s/%s' % (self.slug,self.user)
