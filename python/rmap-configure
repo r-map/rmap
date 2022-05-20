@@ -65,6 +65,16 @@ import rmap.rmap_core
 from django.db import IntegrityError
 from django.contrib.auth.models import User
 
+
+try:
+    tmp=StationMetadata.objects.all()[0]
+    tmp=Sensor.objects.all()[0]
+    tmp=SensorType.objects.all()[0]
+    
+except django.db.utils.OperationalError:
+    print ("ERROR Cannot find DB: run rmapctrl --syncdb")
+    raise SystemExit(1)
+
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
 
