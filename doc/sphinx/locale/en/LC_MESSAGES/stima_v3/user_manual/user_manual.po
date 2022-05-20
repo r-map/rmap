@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-12 09:39+0200\n"
+"POT-Creation-Date: 2022-05-20 23:24+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../stima_v3/user_manual/user_manual.rst:2
 msgid "Manuale Utente"
@@ -150,9 +150,6 @@ msgstr ""
 #: ../../stima_v3/user_manual/user_manual.rst:108
 #: ../../stima_v3/user_manual/user_manual.rst:623
 #: ../../stima_v3/user_manual/user_manual.rst:628
-#: ../../stima_v3/user_manual/user_manual.rst:901
-#: ../../stima_v3/user_manual/user_manual.rst:906
-#: ../../stima_v3/user_manual/user_manual.rst:911
 msgid "Da scrivere"
 msgstr ""
 
@@ -715,7 +712,7 @@ msgid ""
 msgstr ""
 
 #: ../../stima_v3/user_manual/user_manual.rst:453
-#: ../../stima_v3/user_manual/user_manual.rst:909
+#: ../../stima_v3/user_manual/user_manual.rst:944
 msgid "Tramite SDcard"
 msgstr ""
 
@@ -1556,8 +1553,124 @@ msgstr ""
 msgid "Tramite monitoraggio MQTT"
 msgstr ""
 
+#: ../../stima_v3/user_manual/user_manual.rst:901
+msgid ""
+"Questo monitoraggio permette di visualizzare tutti i messaggi che la "
+"stazione invia al server e che il server ha ricevuto correttamente:"
+msgstr ""
+
 #: ../../stima_v3/user_manual/user_manual.rst:904
+msgid "rmap-configure --mqtt_monitor --station_slug=\"myslug\" --user=\"myuser\""
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:906
+msgid ""
+"i dati vengo visualizzati così come pubblicati e anche decodificati e "
+"interpretati."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:911
 msgid "Tramite porta seriale"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:913
+msgid ""
+"Questo monitoraggio permette di visualizzare tutti i messaggi di logging "
+"che la stazione invia sulla porta seriale tramite il connettore USB:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:917
+msgid ""
+"rmap-configure --serial_monitor --station_slug=\"myslug\" "
+"--user=\"myuser\""
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:919
+msgid "Ogni messaggio è composto da:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:922
+msgid "data"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:922
+msgid "importanza del messaggio"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:922
+msgid "messaggio"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:925
+msgid "La data e ora sono in GMT."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:927
+msgid ""
+"La importanza del messaggio è rappresentata da una lettera da "
+"interpretare come da legenda:"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:930
+msgid "F"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:930
+msgid "fatal errors"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:932
+msgid "E"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:932
+msgid "all errors"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:934
+msgid "W"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:934
+msgid "errors, and warnings"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:936
+msgid "N"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:936
+msgid "errors, warnings and notices"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:938
+msgid "T"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:938
+msgid "errors, warnings, notices & traces"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:940
+msgid "V"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:940
+msgid "all"
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:946
+msgid ""
+"Per effettuare questo monitoraggio occorre utilizzare un firmware "
+"appositamente compilato con questa funzione inclusa; il firmware "
+"utilizzati normalmente in produzione non lo permettono."
+msgstr ""
+
+#: ../../stima_v3/user_manual/user_manual.rst:950
+msgid ""
+"Avviata la stazione la stessa messaggistica ottenuta dal monitoraggio "
+"tramite porta seriale verrà scritta in un file sulla SDcard con postfisso"
+" \".log\".  Il file sarà leggibile da PC una volta recuperata la SDcard."
 msgstr ""
 
 #~ msgid "Board"

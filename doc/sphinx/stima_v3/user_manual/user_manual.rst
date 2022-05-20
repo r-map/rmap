@@ -874,7 +874,7 @@ expressed as a percentage
 
 +------+-----------------------------+
 | bear | mean                        |
-+------+-----------------------------+
++======+=============================+
 |  0   |  BER  < 0.2%                |
 +------+-----------------------------+
 |  1   | 0.2%  < BER < 0.4%          |
@@ -898,14 +898,56 @@ expressed as a percentage
 Tramite monitoraggio MQTT
 .........................
 
-Da scrivere
+Questo monitoraggio permette di visualizzare tutti i messaggi che la
+stazione invia al server e che il server ha ricevuto correttamente:
+
+     rmap-configure --mqtt_monitor --station_slug="myslug" --user="myuser"
+
+i dati vengo visualizzati così come pubblicati e anche decodificati e
+interpretati.
+
 
 Tramite porta seriale
 .....................
 
-Da scrivere
+Questo monitoraggio permette di visualizzare tutti i messaggi di
+logging che la stazione invia sulla porta seriale tramite il
+connettore USB:
+
+     rmap-configure --serial_monitor --station_slug="myslug" --user="myuser"
+
+Ogni messaggio è composto da:
+
++------+--------------------------+-----------+
+| data | importanza del messaggio | messaggio | 
++------+--------------------------+-----------+
+
+La data e ora sono in GMT.
+
+La importanza del messaggio è rappresentata da una lettera da interpretare come da legenda:
+
++---+------------------------------------+
+| F | fatal errors                       |
++---+------------------------------------+
+| E | all errors                         |
++---+------------------------------------+
+| W | errors, and warnings               |
++---+------------------------------------+
+| N | errors, warnings and notices       |
++---+------------------------------------+
+| T | errors, warnings, notices & traces |
++---+------------------------------------+
+| V | all                                |
++---+------------------------------------+
 
 Tramite SDcard
 ..............
 
-Da scrivere
+Per effettuare questo monitoraggio occorre utilizzare un firmware
+appositamente compilato con questa funzione inclusa; il firmware
+utilizzati normalmente in produzione non lo permettono.
+
+Avviata la stazione la stessa messaggistica ottenuta dal monitoraggio
+tramite porta seriale verrà scritta in un file sulla SDcard con
+postfisso ".log".  Il file sarà leggibile da PC una volta recuperata
+la SDcard.
