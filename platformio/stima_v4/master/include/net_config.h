@@ -197,16 +197,16 @@
 //LLMNR responder support
 #define LLMNR_RESPONDER_SUPPORT ENABLED
 
-// //WebSocket support
+//WebSocket support
 // #define WEB_SOCKET_SUPPORT ENABLED
-// //Support for WebSocket connections over TLS
+//Support for WebSocket connections over TLS
 // #define WEB_SOCKET_TLS_SUPPORT ENABLED
-//
-// //MQTT client support
-// #define MQTT_CLIENT_SUPPORT ENABLED
-// //MQTT over TLS
-// #define MQTT_CLIENT_TLS_SUPPORT ENABLED
-// //MQTT over WebSocket
+
+//MQTT client support
+#define MQTT_CLIENT_SUPPORT ENABLED
+//MQTT over TLS
+#define MQTT_CLIENT_TLS_SUPPORT ENABLED
+//MQTT over WebSocket
 // #define MQTT_CLIENT_WS_SUPPORT DISABLED
 
 #endif

@@ -1,11 +1,11 @@
 {
-    "name": "CycloneCrypto",
+    "name": "CycloneSSL",
     "version": "2.4.1",
     "keywords": "",
-    "description": "CycloneCrypto folder of Cyclone TCP/IP stack modified in order to work with rmap project",
+    "description": "CycloneSSL folder of Cyclone TCP/IP stack modified in order to work with rmap project",
     "repository": {
         "type": "git",
-        "url": "https://github.com/rmap/CycloneCrypto"
+        "url": "https://github.com/rmap/CycloneSSL"
     },
     "frameworks": "arduino",
     "platforms": "ststm32",

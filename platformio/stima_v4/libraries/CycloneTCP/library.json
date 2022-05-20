@@ -5,7 +5,7 @@
     "description": "CycloneTCP folder of Cyclone TCP/IP stack modified in order to work with rmap project",
     "repository": {
         "type": "git",
-        "url": "https://github.com/rmap/Common"
+        "url": "https://github.com/rmap/CycloneTCP"
     },
     "frameworks": "arduino",
     "platforms": "ststm32",
