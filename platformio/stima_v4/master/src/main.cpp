@@ -35,8 +35,8 @@
 #include "thread.hpp"
 #include "ticks.hpp"
 
-#include "os_port.h"
-// #include "core/net.h"
+// #include "os_port.h"
+#include "core/net.h"
 // #include "enc28j60_driver.h"
 // #include "dhcp/dhcp_client.h"
 // #include "ipv6/slaac.h"

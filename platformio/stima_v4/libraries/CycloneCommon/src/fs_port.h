@@ -115,22 +115,22 @@ typedef struct
 
 //FatFs port?
 #if defined(USE_FATFS)
-   #include "fs_port_fatfs.h"
+   #include "../fs_port/fs_port_fatfs/fs_port_fatfs.h"
 //RL-FlashFS port?
 #elif defined(USE_RL_FS)
-   #include "fs_port_rl_fs.h"
+   #include "../fs_port/fs_port_rl_fs/fs_port_rl_fs.h"
 //SPIFFS port?
 #elif defined(USE_SPIFFS)
    #include "fs_port_spiffs.h"
 //Windows port?
 #elif defined(_WIN32)
-   #include "fs_port_posix.h"
+   #include "../fs_port/fs_port_posix/fs_port_posix.h"
 //POSIX port?
 #elif defined(__linux__) || defined(__FreeBSD__)
-   #include "fs_port_posix.h"
+   #include "../fs_port/fs_port_posix/fs_port_posix.h"
 //Custom port?
-#elif defined(USE_CUSTOM_FS)
-   #include "fs_port_custom.h"
+#elif defined(USE_SDFAT)
+   #include "../fs_port/fs_port_sdfat/fs_port_sdfat.h"
 #endif
 
 //C++ guard
