@@ -25,15 +25,18 @@
 * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 *
 * @author Marco Baldinetti <marco.baldinetti@alling.it>
-* @version 0.0.1
+* @version 0.1
 **/
 
+#define TRACE_LEVEL TRACE_LEVEL_DEBUG
+
 #include <stdlib.h>
-#include "Arduino.h"
 #include "STM32FreeRTOS.h"
-#include "SdFat.h"
 #include "thread.hpp"
 #include "ticks.hpp"
+#include "SdFat.h"
+
+#include "tasks/led_task.h"
 
 #include "core/net.h"
 #include "drivers/eth/enc28j60_driver.h"
@@ -43,54 +46,22 @@
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
 #include "rng/trng.h"
 #include "rng/yarrow.h"
-#include "debug.h"
+#include "mydebug.h"
 
 using namespace cpp_freertos;
 
-#define LED1   PC7
-#define LED2   PB7
-#define LED3   PB14
-
-class MyLed : public Thread {
-
-public:
-  MyLed(uint8_t i, uint8_t led, uint16_t onDelayMs, uint16_t offDelayMs) : Thread(100, 1),
-  Id (i),
-  Led(led),
-  OnDelayMs(onDelayMs),
-  OffDelayMs(offDelayMs)
-  {
-    Start();
-  };
-
-protected:
-  virtual void Run() {
-    pinMode(Led, OUTPUT);
-    while (true) {
-      digitalWrite(Led, HIGH);
-      Delay(Ticks::MsToTicks(OnDelayMs));
-      digitalWrite(Led, LOW);
-      Delay(Ticks::MsToTicks(OffDelayMs));
-    }
-  };
-
-private:
-  uint8_t Id;
-  uint8_t Led;
-  uint16_t OnDelayMs;
-  uint16_t OffDelayMs;
-};
-
 void setup() {
-  Serial.begin(115200);
-  Serial.println("setup OK");
+  SerialDebugInit(115200);
 
-  // TRACE_INFO("Failed to initialize TCP/IP stack!\r\n");
+  LedParam_t ledParam1 = {LED1, 100, 900};
+  LedParam_t ledParam2 = {LED2, 200, 800};
+  LedParam_t ledParam3 = {LED3, 300, 700};
 
-  static MyLed led_1(1, LED1, 100, 900);
-  static MyLed led_2(2, LED2, 200, 800);
-  static MyLed led_3(3, LED3, 300, 700);
-  Serial.println("task OK");
+  TRACE_INFO("Prova\r\n");
+
+  static LedTask led_1(100, 1, ledParam1);
+  static LedTask led_2(100, 1, ledParam2);
+  static LedTask led_3(100, 1, ledParam3);
 
   Thread::StartScheduler();
 }
