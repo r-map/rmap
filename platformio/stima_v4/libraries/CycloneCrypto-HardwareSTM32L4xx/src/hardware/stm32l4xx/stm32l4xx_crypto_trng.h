@@ -1,12 +1,14 @@
 /**
- * @file os_port_config.h
- * @brief RTOS port configuration file
+ * @file stm32l4xx_crypto_trng.h
+ * @brief STM32L4 true random number generator
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ *
+ * This file is part of CycloneCRYPTO Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,10 +28,31 @@
  * @version 2.1.4
  **/
 
-#ifndef _OS_PORT_CONFIG_H
-#define _OS_PORT_CONFIG_H
+#ifndef _STM32L4XX_CRYPTO_TRNG_H
+#define _STM32L4XX_CRYPTO_TRNG_H
 
-//Select underlying RTOS
-#define USE_FREERTOS
+//Dependencies
+#include "core/crypto.h"
+
+//True random number generator
+#ifndef STM32L4XX_CRYPTO_TRNG_SUPPORT
+   #define STM32L4XX_CRYPTO_TRNG_SUPPORT ENABLED
+#elif (STM32L4XX_CRYPTO_TRNG_SUPPORT != ENABLED && STM32L4XX_CRYPTO_TRNG_SUPPORT != DISABLED)
+   #error STM32L4XX_CRYPTO_TRNG_SUPPORT parameter is not valid
+#endif
+
+//C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//TRNG related functions
+error_t trngInit(void);
+error_t trngGetRandomData(uint8_t *data, size_t length);
+
+//C++ guard
+#ifdef __cplusplus
+}
+#endif
 
 #endif

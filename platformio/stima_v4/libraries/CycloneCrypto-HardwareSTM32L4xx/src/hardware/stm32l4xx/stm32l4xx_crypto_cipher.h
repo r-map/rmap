@@ -1,12 +1,14 @@
 /**
- * @file os_port_config.h
- * @brief RTOS port configuration file
+ * @file stm32l4xx_crypto_cipher.h
+ * @brief STM32L4 cipher hardware accelerator
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ *
+ * This file is part of CycloneCRYPTO Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,10 +28,30 @@
  * @version 2.1.4
  **/
 
-#ifndef _OS_PORT_CONFIG_H
-#define _OS_PORT_CONFIG_H
+#ifndef _STM32L4XX_CRYPTO_CIPHER_H
+#define _STM32L4XX_CRYPTO_CIPHER_H
 
-//Select underlying RTOS
-#define USE_FREERTOS
+//Dependencies
+#include "core/crypto.h"
+
+//Cipher hardware accelerator
+#ifndef STM32L4XX_CRYPTO_CIPHER_SUPPORT
+   #define STM32L4XX_CRYPTO_CIPHER_SUPPORT DISABLED
+#elif (STM32L4XX_CRYPTO_CIPHER_SUPPORT != ENABLED && STM32L4XX_CRYPTO_CIPHER_SUPPORT != DISABLED)
+   #error STM32L4XX_CRYPTO_CIPHER_SUPPORT parameter is not valid
+#endif
+
+//C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//Cipher related functions
+error_t crypInit(void);
+
+//C++ guard
+#ifdef __cplusplus
+}
+#endif
 
 #endif

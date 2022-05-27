@@ -1,12 +1,14 @@
 /**
- * @file os_port_config.h
- * @brief RTOS port configuration file
+ * @file stm32l4xx_crypto.h
+ * @brief STM32L4 hardware cryptographic accelerator
  *
  * @section License
  *
  * SPDX-License-Identifier: GPL-2.0-or-later
  *
  * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
+ *
+ * This file is part of CycloneCRYPTO Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,10 +28,26 @@
  * @version 2.1.4
  **/
 
-#ifndef _OS_PORT_CONFIG_H
-#define _OS_PORT_CONFIG_H
+#ifndef _STM32L4XX_CRYPTO_H
+#define _STM32L4XX_CRYPTO_H
 
-//Select underlying RTOS
-#define USE_FREERTOS
+//Dependencies
+#include "core/crypto.h"
+
+//C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+//Global variables
+extern OsMutex stm32l4xxCryptoMutex;
+
+//STM32L4 hardware cryptographic accelerator related functions
+error_t stm32l4xxCryptoInit(void);
+
+//C++ guard
+#ifdef __cplusplus
+}
+#endif
 
 #endif

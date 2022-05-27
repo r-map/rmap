@@ -77,52 +77,52 @@
 
 //No RTOS?
 #if defined(USE_NO_RTOS)
-   #include "../os_port/os_port_none/os_port_none.h"
+   #include "os_port_none.h"
 //ChibiOS/RT port?
 #elif defined(USE_CHIBIOS)
-   #include "../os_port/os_port_chibios/os_port_chibios.h"
+   #include "os_port_chibios.h"
 //CMX-RTX port?
 #elif defined(USE_CMX_RTX)
-   #include "../os_port/os_port_cmx_rtx/os_port_cmx_rtx.h"
+   #include "os_port_cmx_rtx.h"
 //CMSIS-RTOS port?
 #elif defined(USE_CMSIS_RTOS)
-   #include "../os_port/os_port_cmsis_rtos/os_port_cmsis_rtos.h"
+   #include "os_port_cmsis_rtos.h"
 //CMSIS-RTOS2 port?
 #elif defined(USE_CMSIS_RTOS2)
-   #include "../os_port/os_port_cmsis_rtos2/os_port_cmsis_rtos2.h"
+   #include "os_port_cmsis_rtos2.h"
 //FreeRTOS port?
 #elif defined(USE_FREERTOS)
-   #include "../os_port/os_port_freertos/os_port_freertos.h"
+   #include "os_port_freertos.h"
 //SafeRTOS port?
 #elif defined(USE_SAFERTOS)
-   #include "../os_port/os_port_safertos/os_port_safertos.h"
+   #include "os_port_safertos.h"
 //Azure RTOS ThreadX port?
 #elif defined(USE_THREADX)
-   #include "../os_port/os_port_threadx/os_port_threadx.h"
+   #include "os_port_threadx.h"
 //Keil RTX port?
 #elif defined(USE_RTX)
-   #include "../os_port/os_port_rtx/os_port_rtx.h"
+   #include "os_port_rtx.h"
 //Micrium uC/OS-II port?
 #elif defined(USE_UCOS2)
-   #include "../os_port/os_port_ucos2/os_port_ucos2.h"
+   #include "os_port_ucos2.h"
 //Micrium uC/OS-III port?
 #elif defined(USE_UCOS3)
-   #include "../os_port/os_port_ucos3/os_port_ucos3.h"
+   #include "os_port_ucos3.h"
 //Segger embOS port?
 #elif defined(USE_EMBOS)
-   #include "../os_port/os_port_embos/os_port_embos.h"
+   #include "os_port_embos.h"
 //TI SYS/BIOS port?
 #elif defined(USE_SYS_BIOS)
-   #include "../os_port/os_port_sys_bios/os_port_sys_bios.h"
+   #include "os_port_sys_bios.h"
 //Zephyr port?
 #elif defined(USE_ZEPHYR)
-   #include "../os_port/os_port_zephyr/os_port_zephyr.h"
+   #include "os_port_zephyr.h"
 //Windows port?
 #elif defined(_WIN32)
-   #include "../os_port/os_port_windows/os_port_windows.h"
+   #include "os_port_windows.h"
 //POSIX Threads port?
 #elif defined(__linux__) || defined(__FreeBSD__)
-   #include "../os_port/os_port_posix/os_port_posix.h"
+   #include "os_port_posix.h"
 #endif
 
 //Fill block of memory

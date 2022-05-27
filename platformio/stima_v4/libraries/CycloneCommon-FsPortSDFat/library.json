@@ -1,8 +1,8 @@
 {
-    "name": "CycloneCommon",
+    "name": "CycloneCommon-FsPortSDFat",
     "version": "2.4.1",
     "keywords": "",
-    "description": "Common folder of Cyclone TCP/IP stack modified in order to work with rmap project",
+    "description": "SDFat folder of Cyclone TCP/IP stack modified in order to work with rmap project",
     "repository": {
         "type": "git",
         "url": "https://github.com/rmap/Common"
