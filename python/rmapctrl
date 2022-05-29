@@ -169,13 +169,13 @@ def initdb(cwd):
                                 lastusername=username
                             
                                 if mystation.lat is None:
-                                    postfix="%s/+/%s/#" % (username,mystation.network)
+                                    postfix="%s/+/%s/#" % (myboard.transportmqtt.mqttuser,mystation.network)
                                 else:
                                     postfix="/%d,%d/%s/#" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
 
-                                    for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
-                                        mytopic="topic 1/{}/{}/{}".format(prefix,username,postfix)
-                                        print (mytopic)
+                                for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
+                                    mytopic="topic 1/{}/{}/{}".format(prefix,myboard.transportmqtt.mqttuser,postfix)
+                                    print (mytopic)
 
                                 
     if (options.collectstatic):
