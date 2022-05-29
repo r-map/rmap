@@ -107,7 +107,7 @@ def initdb(cwd):
 
                                 if (mypassword):
                                     #print(myuser+":"+make_password(mypassword))
-                                    print(u.username+":"+make_password(mypassword))
+                                    print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+make_password(mypassword))
                         
     if (options.exportmqttpskkey):
         from django.contrib.auth.models import User
@@ -145,12 +145,12 @@ def initdb(cwd):
             # legacy V0 topics
             for network in ("fixed","mobile"):
                 for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
-                    mytopic="pattern {}/{}/+/{}/#".format(prefix,username,network)
+                    mytopic="topic {}/{}/+/{}/#".format(prefix,username,network)
                     print (mytopic)
-            
+
             # read all V1 user's stations
             for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
-                mytopic="pattern read 1/{}/{}/#".format(prefix,username)
+                mytopic="topic read 1/{}/{}/#".format(prefix,username)
                 print (mytopic)
             
             
@@ -163,7 +163,7 @@ def initdb(cwd):
                     for myboard in mystation.board_set.all():
                         if hasattr(myboard, 'transportmqtt'):
                             if ( myboard.active and myboard.transportmqtt.active):
-                                username = myboard.transportmqtt.mqttuser
+                                username = myboard.transportmqtt.mqttuser+"/"+mystation.slug+"/"+myboard.slug
 
                                 if not lastusername == username: print("user", username)
                                 lastusername=username
@@ -174,7 +174,7 @@ def initdb(cwd):
                                     postfix="/%d,%d/%s/#" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
 
                                     for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
-                                        mytopic="pattern 1/{}/{}/{}".format(prefix,username,postfix)
+                                        mytopic="topic 1/{}/{}/{}".format(prefix,username,postfix)
                                         print (mytopic)
 
                                 
