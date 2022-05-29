@@ -97,33 +97,35 @@ def initdb(cwd):
         from django.contrib.auth.models import User
         from rmap.stations.models import StationMetadata
         for u in User.objects.all():
-            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+            for mystation in StationMetadata.objects.filter(user__username=u.username):
                 if mystation.active:
                     for myboard in mystation.board_set.all():
-                        if ( myboard.active and myboard.transportmqtt.active):
-                            myuser = myboard.transportmqtt.mqttuser
-                            mypassword = myboard.transportmqtt.mqttpassword
+                        if hasattr(myboard, 'transportmqtt'):
+                            if ( myboard.active and myboard.transportmqtt.active):
+                                myuser = myboard.transportmqtt.mqttuser
+                                mypassword = myboard.transportmqtt.mqttpassword
 
-                            if (mypassword):
-                                #print(myuser+":"+make_password(mypassword))
-                                print(u.username+":"+make_password(mypassword))
-                                
+                                if (mypassword):
+                                    #print(myuser+":"+make_password(mypassword))
+                                    print(u.username+":"+make_password(mypassword))
+                        
     if (options.exportmqttpskkey):
         from django.contrib.auth.models import User
         from rmap.stations.models import StationMetadata
         for u in User.objects.all():
-            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+            for mystation in StationMetadata.objects.filter(user__username=u.username):
                 if mystation.active:
                     for myboard in mystation.board_set.all():
-                        if ( myboard.active and myboard.transportmqtt.active):
-                            myuser = myboard.transportmqtt.mqttuser
-                            mypskkey = myboard.transportmqtt.mqttpskkey
+                        if hasattr(myboard, 'transportmqtt'):
+                            if ( myboard.active and myboard.transportmqtt.active):
+                                myuser = myboard.transportmqtt.mqttuser
+                                mypskkey = myboard.transportmqtt.mqttpskkey
                             
-                            if (mypskkey):
-                                #print(myuser+":"+mypskkey)
-                                #print(myuser+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
-                                print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
-                                
+                                if (mypskkey):
+                                    #print(myuser+":"+mypskkey)
+                                    #print(myuser+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
+                                    print(u.username+"/"+mystation.slug+"/"+myboard.slug+":"+mypskkey)
+                                    
 
 
     if (options.exportmqttacl):
@@ -153,26 +155,27 @@ def initdb(cwd):
             
             
             # V1 patterns
-            for mystation in StationMetadata.objects.filter(ident__username=u.username):
+            for mystation in StationMetadata.objects.filter(user__username=u.username):
                 if mystation.active:
                     lat=mystation.lat
                     lon=mystation.lon
 
                     for myboard in mystation.board_set.all():
-                        if ( myboard.active and myboard.transportmqtt.active):
-                            username = myboard.transportmqtt.mqttuser
+                        if hasattr(myboard, 'transportmqtt'):
+                            if ( myboard.active and myboard.transportmqtt.active):
+                                username = myboard.transportmqtt.mqttuser
 
-                            if not lastusername == username: print("user", username)
-                            lastusername=username
+                                if not lastusername == username: print("user", username)
+                                lastusername=username
                             
-                            if mystation.lat is None:
-                                postfix="%s/+/%s/#" % (username,mystation.network)
-                            else:
-                                postfix="/%d,%d/%s/#" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
+                                if mystation.lat is None:
+                                    postfix="%s/+/%s/#" % (username,mystation.network)
+                                else:
+                                    postfix="/%d,%d/%s/#" % (nint(mystation.lon*100000),nint(mystation.lat*100000),mystation.network)                                
 
-                            for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
-                                mytopic="pattern 1/{}/{}/{}".format(prefix,username,postfix)
-                                print (mytopic)
+                                    for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
+                                        mytopic="pattern 1/{}/{}/{}".format(prefix,username,postfix)
+                                        print (mytopic)
 
                                 
     if (options.collectstatic):
