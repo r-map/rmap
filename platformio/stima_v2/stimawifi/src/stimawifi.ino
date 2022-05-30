@@ -40,7 +40,7 @@ https://cdn.shopify.com/s/files/1/1509/1638/files/D1_Mini_ESP32_-_pinout.pdf
 
 
 // increment on change
-#define SOFTWARE_VERSION "2022-04-25T00:00"
+#define SOFTWARE_VERSION "2022-05-30T00:00"
 //
 // firmware type for nodemcu is "ESP8266_NODEMCU"
 // firmware type for Wemos D1 mini "ESP8266_WEMOS_D1MINI"
@@ -190,6 +190,7 @@ char rmap_longitude[11] = "";
 char rmap_latitude[11] = "";
 char rmap_network[31] = "";
 char rmap_server[41] = "rmap.cc";
+char rmap_mqtt_server[41] = "rmap.cc";
 int  rmap_sampletime = DEFAULT_SAMPLETIME;
 char rmap_user[10] = "";
 char rmap_password[31] = "";
@@ -737,8 +738,15 @@ int  rmap_config(String payload){
 	  if (element["fields"]["board"][0] == "default"){
 	    if (element["fields"]["active"]){
 	      LOGN(F("board metadata found!" CR));
-	      rmap_sampletime=element["fields"]["mqttsampletime"];     // wrong on server
+	      rmap_sampletime=element["fields"]["mqttsampletime"];
 	      LOGN(F("rmap_sampletime: %d" CR),rmap_sampletime);
+
+	      if (!element["fields"]["mqttserver"].isNull()){
+		strncpy (rmap_mqtt_server, element["fields"]["mqttserver"].as< const char*>(),40);
+		rmap_user[40]='\0';
+		LOGN(F("rmap_mqtt_server: %s" CR),rmap_mqtt_server);
+	      }
+	      
 	      if (!element["fields"]["mqttuser"].isNull()){
 		strncpy (rmap_user, element["fields"]["mqttuser"].as< const char*>(),9);
 		rmap_user[9]='\0';
@@ -832,6 +840,7 @@ void readconfig_SPIFFS() {
 	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
 	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
           if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("rmap_mqtt_server")) strcpy(rmap_mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
           if (doc.containsKey("rmap_slug")) strcpy(rmap_slug, doc["rmap_slug"]);
@@ -842,6 +851,7 @@ void readconfig_SPIFFS() {
 	  LOGN(F("longitude: %s" CR),rmap_longitude);
 	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
+	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
 	  LOGN(F("slug: %s" CR),rmap_slug);
@@ -910,6 +920,7 @@ void readconfig() {
 	  if (doc.containsKey("rmap_longitude"))strcpy(rmap_longitude, doc["rmap_longitude"]);
 	  if (doc.containsKey("rmap_latitude")) strcpy(rmap_latitude, doc["rmap_latitude"]);
           if (doc.containsKey("rmap_server")) strcpy(rmap_server, doc["rmap_server"]);
+          if (doc.containsKey("rmap_mqtt_server")) strcpy(rmap_mqtt_server, doc["rmap_mqtt_server"]);
           if (doc.containsKey("rmap_user")) strcpy(rmap_user, doc["rmap_user"]);
           if (doc.containsKey("rmap_password")) strcpy(rmap_password, doc["rmap_password"]);
           if (doc.containsKey("rmap_slug")) strcpy(rmap_slug, doc["rmap_slug"]);
@@ -920,6 +931,7 @@ void readconfig() {
 	  LOGN(F("longitude: %s" CR),rmap_longitude);
 	  LOGN(F("latitude: %s" CR),rmap_latitude);
 	  LOGN(F("server: %s" CR),rmap_server);
+	  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
 	  LOGN(F("user: %s" CR),rmap_user);
 	  //LOGN(F("password: %s" CR),rmap_password);
 	  LOGN(F("slug: %s" CR),rmap_slug);
@@ -948,6 +960,7 @@ void writeconfig() {;
   json["rmap_longitude"] = rmap_longitude;
   json["rmap_latitude"] = rmap_latitude;
   json["rmap_server"] = rmap_server;
+  json["rmap_mqtt_server"] = rmap_mqtt_server;
   json["rmap_user"] = rmap_user;
   json["rmap_password"] = rmap_password;
   json["rmap_slug"] = rmap_slug;
@@ -1596,9 +1609,9 @@ void setup() {
   time_t tnow = time(nullptr);
   LOGN(F("Time: %s" CR),ctime(&tnow));
   
-  LOGN(F("mqtt server: %s" CR),rmap_server);
+  LOGN(F("mqtt server: %s" CR),rmap_mqtt_server);
 
-  mqttclient.setServer(rmap_server, 1883);
+  mqttclient.setServer(rmap_mqtt_server, 1883);
   
   Alarm.timerRepeat(rmap_sampletime, repeats);             // timer for every SAMPLETIME seconds
 
