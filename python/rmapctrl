@@ -144,7 +144,7 @@ def initdb(cwd):
 
             # admin patterns
             if u.is_superuser:
-                print("#")
+                print("topic #")
             
             # legacy V0 topics
             for network in ("fixed","mobile"):
