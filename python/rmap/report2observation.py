@@ -119,8 +119,8 @@ class report2observation(object):
 
         d=st["d"]
         timerange=topics[nexttopic]
-        nextopic += 1
-        level=topics[nextopic]
+        nexttopic += 1
+        level=topics[nexttopic]
         bcodes=rmap_core.dtable[str(d)]
         timeranges=[]
         levels=[]
@@ -148,7 +148,7 @@ class report2observation(object):
           return
 
       logging.info("user={} ident={} username={} password={} lonlat={} network=fixed host={} prefix={} maintprefix=maint".format(user,ident,self.mqttuser,"fakepassword",lonlat,self.mqtt_host,prefix))
-      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.topicmaint,logfunc=logging.debug,qos=0,version=version)  # attention qos 0 for fast publish
+      mqtt=rmapmqtt.rmapmqtt(user=user,ident=ident,username=self.mqttuser,password=self.mqttpassword,lonlat=lonlat,network=network,host=self.mqtt_host,prefix=prefix,maintprefix=self.mqtttopicmaint,logfunc=logging.debug,qos=0,version=version)  # attention qos 0 for fast publish
 
       mqtt.connect()
       
