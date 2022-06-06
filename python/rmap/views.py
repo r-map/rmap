@@ -381,25 +381,22 @@ def superuser(request):
 
     if 'username' in request.POST:
         username = request.POST['username']
-        #print username,password
+        #print username
 
-        #        user = authenticate(username=username, password=password)
-        #        if user:
-        #            if user.is_superuser:
-        #                response=HttpResponse("allow administrator")
-        #                response.status_code=200
-        #                return response
-        #            else:
-        #                response=HttpResponse("allow management")
-        #                response.status_code=403
-        #                return response
-        
-        # rmap as superuser
-        if username == "rmap":
-            response=HttpResponse("allow")
-            response.status_code=200
-            return response
+        ## rmap as superuser
+        #if username == "rmap":
+        #user = authenticate(username=username, password=password)
+        try:
+            user = User.objects.get(username__exact=username)        
+            if user:
+                if user.is_superuser:
+                    response=HttpResponse("allow")
+                    response.status_code=200
+                    return response
                 
+        except ObjectDoesNotExist:
+            pass
+            
     response=HttpResponse("deny")
     response.status_code=403
     return response

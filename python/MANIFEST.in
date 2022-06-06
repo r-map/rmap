@@ -33,10 +33,10 @@ recursive-include http2mqtt/templates *
 recursive-include insertdata/static *
 recursive-include insertdata/templates *
 
-recursive-include registration/static *
-recursive-include registration/templates *
-recursive-include registration/tests *
-recursive-include registration/locale *
+recursive-include rmap/registration/static *
+recursive-include rmap/registration/templates *
+recursive-include rmap/registration/tests *
+recursive-include rmap/registration/locale *
 
 recursive-include rmap/static *
 recursive-include rmap/templates *

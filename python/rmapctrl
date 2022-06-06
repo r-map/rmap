@@ -137,11 +137,15 @@ def initdb(cwd):
         from rmap.stations.models import StationMetadata
         lastusername=None
         for u in User.objects.all():
-            # legacy patterns
             username=u.username
             print("user", username)
             lastusername=username
 
+
+            # admin patterns
+            if u.is_superuser:
+                print("#")
+            
             # legacy V0 topics
             for network in ("fixed","mobile"):
                 for prefix in (rmap.settings.topicsample,rmap.settings.topicreport,rmap.settings.topicmaint,"rpc"):
