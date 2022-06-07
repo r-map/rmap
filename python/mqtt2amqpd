@@ -101,7 +101,7 @@ class MyMQTTClass(mqtt.Client):
             }
 
 
-    def parse_topic_v1(self,topic):
+    def parse_topic_v1(self,topic,userasident=True):
         match = TOPIC_RE_V1.match(topic)
         if match is None:
             logging.info("SKIP topic V1: {}".format(topic))
@@ -109,7 +109,10 @@ class MyMQTTClass(mqtt.Client):
         else:
             g = match.groupdict()
             return {
-                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+                # TODO manage user to migrate to correct user management and put user as constant station data
+                #"user":  None if g["user"]  == "" else g["user"],
+
+                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"] if userasident else None if g["ident"] == "" else g["ident"],
                 "lon": int(g["lon"]),
                 "lat": int(g["lat"]),
                 "rep_memo": g["rep"],
@@ -131,11 +134,11 @@ class MyMQTTClass(mqtt.Client):
     def parse_payload(self,payload):
         return json.loads(payload.decode("utf-8"))
 
-    def parse_message(self,topic, payload,version="v0"):
+    def parse_message(self,topic, payload,version="v0",userasident=True):
         if version == "v0":
             t = self.parse_topic_v0(topic)
         else:
-            t = self.parse_topic_v1(topic)
+            t = self.parse_topic_v1(topic,userasident)
 
         if t is None:
             return None
@@ -174,11 +177,12 @@ class MyMQTTClass(mqtt.Client):
             send_queue=userdata["send_queue"]
 
         version = userdata.get("version","v0")
+        userasident = userdata.get("userasident",True)
             
         logging.info('Message: topic '+str(message.topic) +" payload "+str(message.payload))
         
         try:
-            m = self.parse_message(message.topic, message.payload,version)
+            m = self.parse_message(message.topic, message.payload,version=version,userasident=userasident)
             if m is None:
                     return
             msg = dballe.Message("generic")
@@ -221,7 +225,8 @@ class  mydaemon(daemon.Daemon):
         op = super(mydaemon, self).optionparser()
         op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
         op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
-        op.add_option("-v", "--rmapversion",dest="rmapversion", help="RMAP MQTT version (v0/v1) : define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="v0")
+        op.add_option("-v", "--rmapversion",dest="rmapversion", help="RMAP MQTT version (v0/v1) (default %default)", default="v0")
+        op.add_option("-u", "--userasident",dest="userasident", help="use user as ident for fixed station too (False for the new functionality) (default %default <legacy mode>)", default=True)
         #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
         return op 	  				 
 
@@ -326,7 +331,8 @@ def main(self):
             "logging": logging,
             "send_queue": send_queue,
             "qos":1,
-            "version":self.options.rmapversion
+            "version":self.options.rmapversion,
+            "userasident":self.options.userasident
         },
         client_id=user+"/"+self.options.datalevel+"/"+self.options.stationtype+self.options.rmapversion,
         clean_session=False
