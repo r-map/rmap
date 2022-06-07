@@ -1,4 +1,4 @@
-%define srcname rmap
+%define srcname rmap-core
 %define version 12.3
 %define release 8
 
@@ -13,16 +13,14 @@ BuildArch: noarch
 Vendor: Paolo Patruno <p.patruno@iperbole.bologna.it>
 Url: https://github.com/r-map/rmap
 BuildRequires: python3-devel (python3-django < 3.0.0) python3-configobj
-BuildRequires: python3-django-imagekit python3-django-geojson
-BuildRequires: python3-django-tagging gettext python3-django-appconf
-BuildRequires: help2man python3-numpy python3-paho-mqtt
+BuildRequires: python3-django-imagekit 
+BuildRequires: gettext python3-django-appconf
+BuildRequires: help2man  python3-numpy python3-paho-mqtt
 Requires: (python3-django < 3.0.0) python3-configobj
-Requires: python3-django-imagekit python3-django-geojson
-Requires: python3-django-tagging python3-django-hosts
-Requires: python3-django-cookie-law python3-django-extensions
-Requires: python3-dballe python3-gdal  python3-requests
-Requires: gettext python3-django-appconf python3-paho-mqtt
+Requires: python3-django-imagekit python3-pilkit python3-dballe
+Requires: python3-django-appconf python3-paho-mqtt python3-requests
 #Requires:corsheaders
+#autoreq: yes
 
 %description
 RMAP: participative environmental monitoring net.
