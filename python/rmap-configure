@@ -133,11 +133,11 @@ parser.add_argument('--addboard',action="store_true", help="add board to module 
 parser.add_argument('--serialactivate',action="store_true", help="activate serial transport")
 parser.add_argument('--mqttactivate',action="store_true", help="activate mqtt transport")
 parser.add_argument('--mqttusername',  default="", help="mqtt username")
-parser.add_argument('--mqttpassword',  default="", help="mqtt password")
+parser.add_argument('--mqttpassword',  default=User.objects.make_random_password(), help="mqtt password")
 parser.add_argument('--mqttsamplerate',type=int,  default=5, help="mqtt samplerate for sensorsin seconds")
 parser.add_argument('--mqttrootpath',  default="sample", help="mqtt topic root path")
 parser.add_argument('--mqttmaintpath',  default="maint", help="mqtt topic maint path for admin RPC")
-parser.add_argument('--network',  default="fixed", help="network (station type)",choices=("fixed","mobile"))
+parser.add_argument('--network',  default="fixed", help="network (station type) usually fixed or mobile")
 
 parser.add_argument('--bluetoothactivate', action="store_true", help="activate bluetooth transport")
 parser.add_argument('--amqpactivate', action="store_true", help="activate amqp transport")
