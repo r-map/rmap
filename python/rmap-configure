@@ -221,7 +221,8 @@ def parse_topic_v1(topic):
     else:
         g = match.groupdict()
         return {
-            "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"],
+            "user": None if g["user"] == "" else g["user"],
+            "ident": None if g["ident"] == "" else g["ident"],
             "lon": int(g["lon"]),
             "lat": int(g["lat"]),
             "rep_memo": g["rep"],
@@ -287,7 +288,8 @@ def on_message(mqttc, obj, msg):
             return
         print ("Parsed: ",m)
 
-        print("Ident (user): ",m["ident"])
+        print("User: ",m["user"])
+        print("Ident: ",m["ident"])
         print("Network: ",m["rep_memo"])
         print("Lon: ",m["lon"]/100000," Lat: ",m["lat"]/100000)
         print("Datetime: ",m["datetime"])
@@ -382,12 +384,12 @@ if (args.mqtt_monitor):
 
 
                 mqttc.mqttrootpath="1/"+mystation.mqttrootpath+"/"+board.transportmqtt.mqttuser\
-                    +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
+                    +"/"+ ("" if mystation.ident is None else mystation.ident) +"/"\
                     +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                     +"/"+mystation.network+"/#"
 
                 mqttc.mqttmaintpath="1/"+mystation.mqttmaintpath+"/"+board.transportmqtt.mqttuser\
-                    +"/"+ ("" if mystation.ident is None else mystatione.ident) +"/"\
+                    +"/"+ ("" if mystation.ident is None else mystation.ident) +"/"\
                     +"%d,%d" % (nint(mystation.lon*100000),nint(mystation.lat*100000))\
                     +"/"+mystation.network+"/#"
 
