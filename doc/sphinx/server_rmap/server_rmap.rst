@@ -168,13 +168,13 @@ singola funzionalità che dipende dalle app Django richieste.
 
 
 
-Installazione sistema operativo Centos 8
-----------------------------------------
+Installazione server completo basato su  Rocky Linux 8
+------------------------------------------------------
 
 Installazione sistema operativo
 ...............................
 
-Installare Centos 8.
+Installare Rocky Linux 8.
 
 Aggiunta repository e installazione pacchetti
 ::
@@ -382,10 +382,11 @@ Rabbitmq
 `/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_
 
 ::
- 
- chkconfig rabbitmq-server on
- service rabbitmq-server start
 
+   mkdir -p /rmap/rabbitmq/mnesia/
+   chown -R rabbitmq:rabbitmq /rmap/rabbitmq
+   chkconfig rabbitmq-server on
+   service rabbitmq-server start
 
 login at management interface with user "guest" and password "guest"
 on overview page use import definition to configure exchange, queue and users
@@ -471,8 +472,7 @@ Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap)
    
 Arkiweb
 .......
-AL MOMENTO NON DISPONIBILE SU CENTOS 8
-NOT AVAILABLE ON CENTOS 8
+AL MOMENTO NON DISPONIBILE !
 
 ::
    
@@ -524,3 +524,156 @@ NOT AVAILABLE ON CENTOS 8
    cp /usr/share/doc/arkiweb/html/example/index.html /var/www/html/arkiweb/index.html
 
 /rmap/arkimet/arkiweb.config
+
+
+
+
+Installazione server solo funzionalità DATA INGESTION basato su  Rocky Linux 8
+------------------------------------------------------------------------------
+
+Installazione sistema operativo
+...............................
+
+Installare Rocky Linux 8.
+
+Aggiunta repository e installazione pacchetti
+::
+
+  dnf -y install epel-release
+  dnf install yum-plugin-copr
+  dnf copr enable simc/stable
+  dnf copr enable pat1/rmap
+  dnf config-manager --set-enabled powertools
+  dnf install python3-rmap-core
+  dnf install mosquitto mosquitto-auth-plug
+  useradd rmap
+  
+/etc/selinux/config::
+
+  SELINUX=disabled
+
+`/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/tmpfiles.d/rmap.conf>`_
+
+::
+
+  mkdir /rmap
+  chmod go+rx /rmap
+
+
+::
+
+   mkdir /var/log/rmap
+   chown -R rmap:rmap /var/log/rmap
+
+`/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rmap/rmap-site.cfg>`_
+
+cambiare la password dell'utente amministratore.
+
+Mosquitto
+.........
+
+::
+   
+   mkdir /etc/mosquitto/conf.d
+   mkdir /rmap/mosquitto
+   chown mosquitto:mosquitto /rmap/mosquitto
+
+   
+`/etc/mosquitto/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/mosquitto/conf.d/rmap.conf>`_
+
+
+remove everythings and add in /etc/mosquitto/mosquitto.conf
+::
+   
+   include_dir /etc/mosquitto/conf.d
+   pid_file /var/run/mosquitto.pid
+
+::
+   
+   chkconfig mosquitto on
+   service mosquitto start
+
+
+Rabbitmq
+........
+
+::
+   
+   curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh |bash
+   curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash
+
+   dnf install rabbitmq-server
+
+`/etc/rabbitmq/enabled_plugins <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/enabled_plugins>`_
+
+`/etc/rabbitmq/rabbitmq-env.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`_
+
+`/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq.config>`_
+
+
+Installare il certificato ssl/tls per il dominio del server in:
+
+::
+   
+   /etc/arpaecert/arpae_it.pem
+
+e impostare gli opportuni privilegi di lettura/scrittura.
+
+::
+
+   mkdir -p /rmap/rabbitmq/mnesia/
+   chown -R rabbitmq:rabbitmq /rmap/rabbitmq
+   chkconfig rabbitmq-server on
+   service rabbitmq-server start
+
+login at management interface with user "guest" and password "guest"
+on overview page use import definition to configure exchange, queue and users
+with the same management interface remove "guest" user and login with a new real user
+
+
+Monit
+.....
+
+::
+   
+   yum install monit
+
+`/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monitrc>`_
+
+`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monit.d/rmap>`_
+
+::
+   
+ chkconfig monit on
+ service monit start
+
+
+Sincronizzazione file statici per autenticazione e autorizzazione da un server RMAP completo
+............................................................................................
+
+Server di origine
+~~~~~~~~~~~~~~~~~
+
+::
+
+   rmapctrl --exportsha > file.pwd
+   rmapctrl --exportmqttsha >> file.pwd
+   rmapctrl --exportmqttacl > aclfile
+   rmapctrl --exportmqttpsk > file.psk
+   
+eventualmente rimuovere le prime righe di messaggistica del logging
+
+
+Server di destinazione
+~~~~~~~~~~~~~~~~~~~~~~
+
+Trasferire i file in /etc/mosquitto/ sul nostro server per la data ingestion.
+Imparire il comando:
+
+::
+
+   /bin/systemctl reload mosquitto.service
+
+
+
+   

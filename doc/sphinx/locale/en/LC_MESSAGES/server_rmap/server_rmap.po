@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-05-03 12:18+0200\n"
+"POT-Creation-Date: 2022-06-07 10:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.8.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../server_rmap/server_rmap.rst:5
 msgid "Server RMAP"
@@ -258,22 +258,22 @@ msgid ""
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:172
-msgid "Installazione sistema operativo Centos 8"
+msgid "Installazione server completo basato su  Rocky Linux 8"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:175
+#: ../../server_rmap/server_rmap.rst:175 ../../server_rmap/server_rmap.rst:535
 msgid "Installazione sistema operativo"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:177
-msgid "Installare Centos 8."
+#: ../../server_rmap/server_rmap.rst:177 ../../server_rmap/server_rmap.rst:537
+msgid "Installare Rocky Linux 8."
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:179
+#: ../../server_rmap/server_rmap.rst:179 ../../server_rmap/server_rmap.rst:539
 msgid "Aggiunta repository e installazione pacchetti ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:194
+#: ../../server_rmap/server_rmap.rst:194 ../../server_rmap/server_rmap.rst:551
 msgid "/etc/selinux/config::"
 msgstr ""
 
@@ -383,7 +383,7 @@ msgid ""
 "<https://github.com/r-map/rmap/tree/master/server/rmap/arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:338
+#: ../../server_rmap/server_rmap.rst:338 ../../server_rmap/server_rmap.rst:573
 msgid "Mosquitto"
 msgstr ""
 
@@ -399,7 +399,7 @@ msgid ""
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/aclfile>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:351
+#: ../../server_rmap/server_rmap.rst:351 ../../server_rmap/server_rmap.rst:585
 msgid "remove everythings and add in /etc/mosquitto/mosquitto.conf ::"
 msgstr ""
 
@@ -413,7 +413,7 @@ msgid ""
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/mosquitto>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:369
+#: ../../server_rmap/server_rmap.rst:369 ../../server_rmap/server_rmap.rst:598
 msgid "Rabbitmq"
 msgstr ""
 
@@ -436,7 +436,7 @@ msgid ""
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:390
+#: ../../server_rmap/server_rmap.rst:391 ../../server_rmap/server_rmap.rst:629
 msgid ""
 "login at management interface with user \"guest\" and password \"guest\" "
 "on overview page use import definition to configure exchange, queue and "
@@ -444,11 +444,11 @@ msgid ""
 "with a new real user"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:394
+#: ../../server_rmap/server_rmap.rst:395
 msgid "Per attivare uno showell: ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:399
+#: ../../server_rmap/server_rmap.rst:400
 msgid ""
 "problema non risolto: se si trasferiscono dati scritti da un utente "
 "autenticandosi con un altro utente la security su user_id lo vieta. "
@@ -457,76 +457,76 @@ msgid ""
 "formato json sopra ma non funziona"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:405
+#: ../../server_rmap/server_rmap.rst:406 ../../server_rmap/server_rmap.rst:635
 msgid "Monit"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:411
+#: ../../server_rmap/server_rmap.rst:412
 msgid ""
 "`/etc/monitrc "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monitrc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:413
+#: ../../server_rmap/server_rmap.rst:414
 msgid ""
 "`/etc/monit.d/rmap "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/monit.d/rmap>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:421
+#: ../../server_rmap/server_rmap.rst:422
 msgid "Cron"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:423
+#: ../../server_rmap/server_rmap.rst:424
 msgid ""
 "`/etc/cron.d/arpae_aq_ckan "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:425
+#: ../../server_rmap/server_rmap.rst:426
 msgid ""
 "`/etc/cron.d/dballe2arkimet "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/dballe2arkimet>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:427
+#: ../../server_rmap/server_rmap.rst:428
 msgid ""
 "`/etc/cron.d/luftdaten "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/luftdaten>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:429
+#: ../../server_rmap/server_rmap.rst:430
 msgid ""
 "`/etc/cron.d/makeexplorer "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/makeexplorer>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:433
+#: ../../server_rmap/server_rmap.rst:434
 msgid "Sincronizzazione DB da un server"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:436
+#: ../../server_rmap/server_rmap.rst:437 ../../server_rmap/server_rmap.rst:655
 msgid "Server di origine"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:442
+#: ../../server_rmap/server_rmap.rst:443
 msgid "rimuovere le prime righe che non sono json ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:452
+#: ../../server_rmap/server_rmap.rst:453 ../../server_rmap/server_rmap.rst:668
 msgid "Server di destinazione"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:454
+#: ../../server_rmap/server_rmap.rst:455
 msgid "Da interfaccia web admin rimuovere TUTTI gli utenti (compreso rmap) ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:473
+#: ../../server_rmap/server_rmap.rst:474
 msgid "Arkiweb"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:474
-msgid "AL MOMENTO NON DISPONIBILE SU CENTOS 8 NOT AVAILABLE ON CENTOS 8"
+#: ../../server_rmap/server_rmap.rst:475
+msgid "AL MOMENTO NON DISPONIBILE !"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:481
@@ -535,6 +535,94 @@ msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:526
 msgid "/rmap/arkimet/arkiweb.config"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:532
+msgid ""
+"Installazione server solo funzionalità DATA INGESTION basato su  Rocky "
+"Linux 8"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:555
+msgid ""
+"`/etc/tmpfiles.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/tmpfiles.d/rmap.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:568
+msgid ""
+"`/etc/rmap/rmap-site.cfg "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/rmap/rmap-site.cfg>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:570
+msgid "cambiare la password dell'utente amministratore."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:582
+msgid ""
+"`/etc/mosquitto/conf.d/rmap.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/mosquitto/conf.d/rmap.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:607
+msgid ""
+"`/etc/rabbitmq/enabled_plugins "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/rabbitmq/enabled_plugins>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:609
+msgid ""
+"`/etc/rabbitmq/rabbitmq-env.conf "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/rabbitmq/rabbitmq-env.conf>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:611
+msgid ""
+"`/etc/rabbitmq/rabbitmq.config "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/rabbitmq/rabbitmq.config>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:614
+msgid "Installare il certificato ssl/tls per il dominio del server in:"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:620
+msgid "e impostare gli opportuni privilegi di lettura/scrittura."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:641
+msgid ""
+"`/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master"
+"/server-data-ingestion/etc/monitrc>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:643
+msgid ""
+"`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master"
+"/server-data-ingestion/etc/monit.d/rmap>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:652
+msgid ""
+"Sincronizzazione file statici per autenticazione e autorizzazione da un "
+"server RMAP completo"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:664
+msgid "eventualmente rimuovere le prime righe di messaggistica del logging"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:670
+msgid ""
+"Trasferire i file in /etc/mosquitto/ sul nostro server per la data "
+"ingestion. Imparire il comando:"
 msgstr ""
 
 #~ msgid "/etc/selinux/config::"
@@ -645,5 +733,14 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "Installazioen sistema operativo"
+#~ msgstr ""
+
+#~ msgid "Installazione sistema operativo Centos 8"
+#~ msgstr ""
+
+#~ msgid "Installare Centos 8."
+#~ msgstr ""
+
+#~ msgid "AL MOMENTO NON DISPONIBILE SU CENTOS 8 NOT AVAILABLE ON CENTOS 8"
 #~ msgstr ""
 

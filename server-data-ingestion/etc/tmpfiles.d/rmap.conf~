@@ -1,3 +1,0 @@
-d /run/wsgirmap 0755 rmap rmap -
-d /var/run/rmap 0755 rmap rmap -
-d /var/run/httpd 0755 rmap rmap -
