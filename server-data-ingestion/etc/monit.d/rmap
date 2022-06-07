@@ -26,20 +26,20 @@
 
 
 
-  check process mqtt2amqpd_sample_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock
-    start program = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.log restart"
-    stop program  = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.log stop"
+#  check process mqtt2amqpd_sample_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock
+#    start program = "/usr/bin/mqtt2amqpd --nouserasident   --datalevel=sample --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.log restart"
+#    stop program  = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_fixed_v1.lock    --stderr=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_fixed_v1.log stop"
 
 #  check process mqtt2amqpd_sample_mobile_v1 with pidfile /var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock
-#    start program = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.log restart"
+#    start program = "/usr/bin/mqtt2amqpd --nouserasident --datalevel=sample --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.log restart"
 #    stop program  = "/usr/bin/mqtt2amqpd --datalevel=sample --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_sample_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.err    --stdout=/var/log/rmap/mqtt2amqpd_sample_mobile_v1.log stop"
 
-#  check process mqtt2amqpd_report_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_fixed_v1.lock
-#    start program = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_fixed_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_fixed_v1.log restart"
-#    stop program  = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_fixed_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_fixed_v1.log stop"
+  check process mqtt2amqpd_report_fixed_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_fixed_v1.lock
+    start program = "/usr/bin/mqtt2amqpd --nouserasident --datalevel=report --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_fixed_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_fixed_v1.log restart"
+    stop program  = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=fixed --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_fixed_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_fixed_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_fixed_v1.log stop"
 
-#check process mqtt2amqpd_report_mobile_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_mobile_v1.lock
-#    start program = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_mobile_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_mobile_v1.log restart"
+#  check process mqtt2amqpd_report_mobile_v1 with pidfile /var/run/rmap/mqtt2amqpd_report_mobile_v1.lock
+#    start program = "/usr/bin/mqtt2amqpd --nouserasident --datalevel=report --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_mobile_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_mobile_v1.log restart"
 #    stop program  = "/usr/bin/mqtt2amqpd --datalevel=report --stationtype=mobile --rmapversion=v1 --pidfile=/var/run/rmap/mqtt2amqpd_report_mobile_v1.lock  --stderr=/var/log/rmap/mqtt2amqpd_report_mobile_v1.err  --stdout=/var/log/rmap/mqtt2amqpd_report_mobile_v1.log stop"
 
 

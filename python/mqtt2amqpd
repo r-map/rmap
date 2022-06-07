@@ -108,11 +108,7 @@ class MyMQTTClass(mqtt.Client):
             return None
         else:
             g = match.groupdict()
-            return {
-                # TODO manage user to migrate to correct user management and put user as constant station data
-                #"user":  None if g["user"]  == "" else g["user"],
-
-                "ident": None if g["user"] == "" else g["user"] if g["ident"] == "" else g["ident"] if userasident else None if g["ident"] == "" else g["ident"],
+            m = {
                 "lon": int(g["lon"]),
                 "lat": int(g["lat"]),
                 "rep_memo": g["rep"],
@@ -129,7 +125,18 @@ class MyMQTTClass(mqtt.Client):
                 ),
                 "var": g["var"],
             }
+            
+            if userasident:
+                if g["ident"] == "":
+                    m["ident"] = None if g["user"] == "" else g["user"]
+                else:
+                    m["ident"] = g["ident"] 
+            else:
+                # TODO manage user to migrate to correct user management and put user as constant station data
+                #m["user"] =  None if g["user"]  == "" else g["user"],
+                m["ident"] = None if g["ident"] == "" else g["ident"]
 
+            return m
         
     def parse_payload(self,payload):
         return json.loads(payload.decode("utf-8"))
@@ -226,7 +233,7 @@ class  mydaemon(daemon.Daemon):
         op.add_option("-d", "--datalevel",dest="datalevel", help="sample or report: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="sample")
         op.add_option("-s", "--stationtype",dest="stationtype", help="fixed or mobile: define the istance to run: select topic, dns,logfile, errorfile and lockfile (default %default)", default="fixed")
         op.add_option("-v", "--rmapversion",dest="rmapversion", help="RMAP MQTT version (v0/v1) (default %default)", default="v0")
-        op.add_option("-u", "--userasident",dest="userasident", help="use user as ident for fixed station too (False for the new functionality) (default %default <legacy mode>)", default=True)
+        op.add_option("-u", "--nouserasident",dest="userasident", action="store_false", help="use user as ident for fixed station too (False for the new functionality) (default %default <legacy mode>)", default=True)
         #op.add_option("-t", "--topic",dest="topic", help="topic root to subscribe on mqtt broker (default %default)", default="rmap")
         return op 	  				 
 
