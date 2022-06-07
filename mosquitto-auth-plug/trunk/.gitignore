@@ -1,8 +1,0 @@
-np
-*.o
-*.so
-*.pyc
-jp*.conf
-Makefile
-*.a
-config.mk

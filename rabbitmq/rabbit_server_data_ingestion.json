@@ -1,0 +1,282 @@
+{
+    "rabbit_version": "3.10.5",
+    "rabbitmq_version": "3.10.5",
+    "product_name": "RabbitMQ",
+    "product_version": "3.10.5",
+    "users": [
+        {
+            "name": "arpaer",
+            "password_hash": "123TA0mtH1njJHJJhQ/vblMoq4t6WSLroplqPkfSihpRJjXA",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": [
+
+            ],
+            "limits": {
+
+            }
+        },
+        {
+            "name": "rmap",
+            "password_hash": "123npYU/Ufk5RNMVsmwlMlGnR8sZOLwv873zwUghSTlwnXxy",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": [
+                "administrator"
+            ],
+            "limits": {
+
+            }
+        },
+        {
+            "name": "cae",
+            "password_hash": "123bkQmGhhPZZBhsJGq/AsaPBrcUlzBKjWdAmYgou/6+KXNt",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": [
+
+            ],
+            "limits": {
+
+            }
+        },
+        {
+            "name": "backup",
+            "password_hash": "123/449MzpFh5dFcsAu2ajXrI+hv3pO9uK6SNjvCi5mM7GVK",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": [
+                "administrator"
+            ],
+            "limits": {
+
+            }
+        }
+    ],
+    "vhosts": [
+        {
+            "name": "/"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "rmap",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        },
+        {
+            "user": "cae",
+            "vhost": "/",
+            "configure": "",
+            "write": "^cae\\..*",
+            "read": "^cae\\..*"
+        },
+        {
+            "user": "backup",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        },
+        {
+            "user": "arpaer",
+            "vhost": "/",
+            "configure": "",
+            "write": "^arpaer\\..*",
+            "read": "^arpaer\\..*"
+        }
+    ],
+    "topic_permissions": [
+
+    ],
+    "parameters": [
+
+    ],
+    "global_parameters": [
+        {
+            "name": "cluster_name",
+            "value": "rabbit@localhost"
+        },
+        {
+            "name": "internal_cluster_id",
+            "value": "rabbitmq-cluster-id-hylaWWPwZvHYEMVQY4af0Q"
+        }
+    ],
+    "policies": [
+
+    ],
+    "queues": [
+        {
+            "name": "arpaer.out.bufr.report_fixed&validated",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        },
+        {
+            "name": "rmap..bufr.sample_fixed",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        },
+        {
+            "name": "rmap..bufr.sample_mobile",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        },
+        {
+            "name": "rmap..bufr.report_fixed",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-dead-letter-exchange": "rmap..bufr.report_fixed.dead",
+                "x-queue-type": "classic"
+            }
+        },
+        {
+            "name": "cae.in.jsonline.arpaer",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        },
+        {
+            "name": "rmap..bufr.report_mobile",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-queue-type": "classic"
+            }
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "cae.in.jsonline.arpaer",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {
+
+            }
+        },
+        {
+            "name": "rmap.mqtt.bufr.report_fixed",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {
+
+            }
+        },
+        {
+            "name": "rmap.mqtt.bufr.report_mobile",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {
+
+            }
+        },
+        {
+            "name": "rmap.mqtt.bufr.sample_mobile",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {
+
+            }
+        },
+        {
+            "name": "rmap.mqtt.bufr.sample_fixed",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {
+
+            }
+        }
+    ],
+    "bindings": [
+        {
+            "source": "cae.in.jsonline.arpaer",
+            "vhost": "/",
+            "destination": "cae.in.jsonline.arpaer",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        },
+        {
+            "source": "rmap.mqtt.bufr.report_fixed",
+            "vhost": "/",
+            "destination": "arpaer.out.bufr.report_fixed&validated",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        },
+        {
+            "source": "rmap.mqtt.bufr.report_fixed",
+            "vhost": "/",
+            "destination": "rmap..bufr.report_fixed",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        },
+        {
+            "source": "rmap.mqtt.bufr.report_mobile",
+            "vhost": "/",
+            "destination": "rmap..bufr.report_mobile",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        },
+        {
+            "source": "rmap.mqtt.bufr.sample_fixed",
+            "vhost": "/",
+            "destination": "rmap..bufr.sample_fixed",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        },
+        {
+            "source": "rmap.mqtt.bufr.sample_mobile",
+            "vhost": "/",
+            "destination": "rmap..bufr.sample_mobile",
+            "destination_type": "queue",
+            "routing_key": "",
+            "arguments": {
+
+            }
+        }
+    ]
+}
