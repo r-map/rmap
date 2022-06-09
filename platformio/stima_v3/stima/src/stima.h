@@ -328,6 +328,11 @@ typedef enum {
 * GLOBAL VARIABLE
 *********************************************************************/
 
+/*!
+\var sensors_count
+\brief number of created sensors drivers.
+*/
+uint8_t sensors_count = 0;
 
 /*!
 \var is_datetime_set

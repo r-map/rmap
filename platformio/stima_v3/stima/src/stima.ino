@@ -616,7 +616,6 @@ void init_sensors () {
   is_first_run = true;
   is_first_test = true;
   is_test = false;
-  uint8_t sensors_count = 0;
   uint8_t sensors_error_count = 0;
 
   if (readable_configuration.sensors_count) {
@@ -628,22 +627,32 @@ void init_sensors () {
 
     // read sensors configuration, create and setup
     for (uint8_t i=0; i<readable_configuration.sensors_count; i++) {
+
+      LOGN(F("try --> %d: %s-%s [ 0x%x ]: %s"), i,
+	   readable_configuration.sensors[i].driver,
+	   readable_configuration.sensors[i].type,
+	   readable_configuration.sensors[i].address,
+	   readable_configuration.sensors[i].mqtt_topic);
+
       SensorDriver::createAndSetup(readable_configuration.sensors[i].driver,
 				   readable_configuration.sensors[i].type,
 				   readable_configuration.sensors[i].address,
 				   readable_configuration.sensors[i].node,
 				   sensors, &sensors_count);
-      LOGN(F("--> %d: %s-%s [ 0x%x ]: %s\t [ %s ]"), sensors_count,
-	   readable_configuration.sensors[i].driver,
-	   readable_configuration.sensors[i].type,
-	   readable_configuration.sensors[i].address,
-	   readable_configuration.sensors[i].mqtt_topic,
+    }
+
+    for (uint8_t i=0; i<sensors_count; i++) {
+      LOGN(F("created --> %d: %s-%s [ 0x%x ] set: %s"), i,
+	   sensors[i]->getDriver(),
+	   sensors[i]->getType(),
+	   sensors[i]->getAddress(),
 	   sensors[i]->isSetted() ? OK_STRING : FAIL_STRING);
-      if (!sensors[sensors_count-1]->isSetted()) {
+
+      if (!sensors[i]->isSetted()) {
         sensors_error_count++;
 	wdt_reset();
         #if (USE_LCD)
-	lcd_error |= lcd.print(readable_configuration.sensors[sensors_count-1].type)==0;
+	lcd_error |= lcd.print(readable_configuration.sensors[i].type)==0;
 	lcd_error |= lcd.print(":")==0;
 	lcd_error |= lcd.print(FAIL_STRING)==0;
 	lcd_error |= lcd.print(";")==0;
@@ -2404,7 +2413,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
          is_sensor_found = false;
 
          if (driver && type && address && node) {
-            while (!is_sensor_found && (i < readable_configuration.sensors_count)) {
+            while (!is_sensor_found && (i < sensors_count)) {
                is_sensor_found = strcmp(sensors[i]->getDriver(), driver) == 0 && strcmp(sensors[i]->getType(), type) == 0 && sensors[i]->getAddress() == address && sensors[i]->getNode() == node;
                if (!is_sensor_found) {
                   i++;
@@ -2445,7 +2454,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
                sensors[i]->resetPrepared();
             }
             else {
-               for (i=0; i<readable_configuration.sensors_count; i++) {
+               for (i=0; i<sensors_count; i++) {
                   sensors[i]->resetPrepared(is_test);
                }
                i = 0;
@@ -2644,7 +2653,8 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
 	     value = doc["B13011"] | INT32_MAX;
 	     if (ISVALID_INT32(value)){
-	       if  (strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,300/1,-,-,-/")==0  ||
+	       if  (strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,180/1,-,-,-/")==0  ||
+		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,300/1,-,-,-/")==0  ||
 		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,900/1,-,-,-/")==0  ||
 		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,1800/1,-,-,-/")==0 ||
 		    strcmp(readable_configuration.sensors[i].mqtt_topic,"1,0,3600/1,-,-,-/")==0
@@ -2734,7 +2744,7 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
       case SENSORS_READING_NEXT:
         // next sensor
-        if ((++i) < readable_configuration.sensors_count) {
+        if ((++i) < sensors_count) {
           retry = 0;
           sensors_reading_state = SENSORS_SETUP_CHECK;
           LOGV(F("SENSORS_READING_NEXT ---> SENSORS_SETUP_CHECK"));
@@ -2907,7 +2917,7 @@ void data_saving_task() {
       break;
 
       case DATA_SAVING_SENSORS_LOOP:
-         if (i < readable_configuration.sensors_count) {
+         if (i < sensors_count) {
             k = 0;
             data_count = jsonToMqtt(&json_sensors_data[i][0], readable_configuration.sensors[i].mqtt_topic, topic_buffer, message_buffer, (tmElements_t *) &sensor_reading_time);
             data_saving_state = DATA_SAVING_DATA_LOOP;
