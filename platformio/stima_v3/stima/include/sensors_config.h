@@ -28,14 +28,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def SENSOR_MAX
 \brief Max number of sensor.
 */
-#define SENSORS_MAX      (10)
+#define SENSORS_MAX      (15)
 
 /*!
 \def SENSOR_UNIQUE_MAX
 \brief Max number of unique sensor.
-unique sensors are sensors that can ghave more driver but only one i2c address and only one setup and prepare
+unique sensors are sensors that can have more driver but only one i2c address and only one setup and prepare
 */
-#define SENSORS_UNIQUE_MAX      (5)
+#define SENSORS_UNIQUE_MAX      (6)
 
 /*!
 \def USE_JSON
@@ -66,6 +66,66 @@ unique sensors are sensors that can ghave more driver but only one i2c address a
 \brief Enable if you want use DigitEco Power sensor.
 */
 #define USE_SENSOR_DEP              (true)
+
+/*!
+\def USE_SENSOR_DES
+\brief Enable if you want use DigitEco Wind Speed sensor.
+*/
+#define USE_SENSOR_DES              (false)
+
+/*!
+\def USE_SENSOR_DED
+\brief Enable if you want use DigitEco Wind Direction sensor.
+*/
+#define USE_SENSOR_DED              (false)
+
+/*!
+\def USE_SENSOR_DSR
+\brief Enable if you want use DigitEco Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSR              (false)
+
+/*!
+\def USE_SENSOR_VSR
+\brief Enable if you want use 0-5V High Resolution Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_VSR              (false)
+
+/*!
+\def USE_SENSOR_DSA
+\brief Enable if you want average Global Solar Radiation sensor.
+*/
+#define USE_SENSOR_DSA              (true)
+
+/*!
+\def USE_SENSOR_DWA
+\brief Enable if you want vectorial average Wind Speed and Direction over 10'.
+*/
+#define USE_SENSOR_DWA              (true)
+
+/*!
+\def USE_SENSOR_DWB
+\brief Enable if you want vectorial average Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWB              (true)
+
+/*!
+\def USE_SENSOR_DWC
+\brief Enable if you want gust Wind Speed and Direction over report time.
+*/
+#define USE_SENSOR_DWC              (true)
+
+/*!
+\def USE_SENSOR_DWD
+\brief Enable if you want average Wind Speed over report time.
+*/
+#define USE_SENSOR_DWD              (true)
+
+/*!
+\def USE_SENSOR_DWE
+\brief Enable if you want class Wind Speed over report time.
+*/
+#define USE_SENSOR_DWE              (true)
 
 /*!
 \def USE_SENSOR_OA2

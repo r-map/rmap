@@ -3180,10 +3180,10 @@ void mqtt_task() {
             mqtt_state = MQTT_PTR_FOUND;
             LOGV(F("MQTT_PTR_READ ---> MQTT_PTR_FOUND"));
          }
-         // not found (no sdcard error): find it by starting from 1th January of this year
+         // not found (no sdcard error): find it by starting from 1th January of previous year
          else if (read_bytes_count >= 0) {
             LOGN(F("Data pointer... [ FIND ]"));
-            datetime.Year = CalendarYrToTm(year(now()));
+            datetime.Year = CalendarYrToTm(year(now()))-1;
             datetime.Month = 1;
             datetime.Day = 1;
             datetime.Hour = 0;

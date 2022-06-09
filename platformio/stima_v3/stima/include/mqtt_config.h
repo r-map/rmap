@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_ROOT_TOPIC_LENGTH
 \brief Length in bytes for mqtt root topic.
 */
-#define MQTT_ROOT_TOPIC_LENGTH         (43)
+#define MQTT_ROOT_TOPIC_LENGTH         (50)
 
 /*!
 \def MQTT_MAINT_TOPIC_LENGTH
