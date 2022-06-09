@@ -29,8 +29,18 @@
 #ifndef _HARDWARE_CONFIG_H
 #define _HARDWARE_CONFIG_H
 
-#define LED1   PC7
-#define LED2   PB7
-#define LED3   PB14
+#define LED1_PIN          (PC7)
+#define LED2_PIN          (PB7)   // A4 - SDA
+#define LED3_PIN          (PB14)
+
+#define SPI1_MOSI         (PA7)   // D11 PA7
+#define SPI1_MISO         (PA6)   // D12 PA6
+#define SPI1_CLK          (PA5)   // D13 PA5
+
+#define ENC28J60_INT_PIN  (PD15)  // D9
+#define ENC28J60_CS_PIN   (PD14)  // D10
+
+#define ETHERNET_INT_PIN  (ENC28J60_INT_PIN)
+#define ETHERNET_CS_PIN   (ENC28J60_CS_PIN)
 
 #endif
