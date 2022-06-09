@@ -116,6 +116,28 @@ typedef unsigned int uint_t;
    #define PRIuSIZE "Iu"
    #define PRIXSIZE "IX"
    #define PRIuTIME "lu"
+#elif defined(USE_STM32_FREERTOS)
+  #undef PRIu8
+  #undef PRIu16
+  #undef PRIu32
+  #undef PRIx8
+  #undef PRIx16
+  #undef PRIx32
+  #undef PRIX8
+  #undef PRIX16
+  #undef PRIX32
+  #define PRIu8 "u"
+  #define PRIu16 "u"
+  #define PRIu32 "u"
+  #define PRIx8 "x"
+  #define PRIx16 "x"
+  #define PRIx32 "x"
+  #define PRIX8 "X"
+  #define PRIX16 "X"
+  #define PRIX32 "X"
+  #define PRIuSIZE "u"
+  #define PRIXSIZE "X"
+  #define PRIuTIME "lu"
 #else
    #define PRIuSIZE "u"
    #define PRIXSIZE "X"
