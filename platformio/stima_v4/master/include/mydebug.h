@@ -31,12 +31,14 @@
 #ifndef _MY_DEBUG_H
 #define _MY_DEBUG_H
 
+#include "compiler_port.h"
+#include "Arduino.h"
 #include "debug_config.h"
 
 #define SerialDebugInit(baud)   (SERIAL_STREAM.begin(baud))
 
 #define TRACE_PRINTF(...) osSuspendAllTasks(), SERIAL_STREAM.printf(__VA_ARGS__), osResumeAllTasks()
-#define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), debugDisplayArray(stderr, p, a, n), osResumeAllTasks()
+#define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), debugDisplayArray(NULL, p, a, n), osResumeAllTasks()
 // #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stderr, p, a), osResumeAllTasks()
 
 #include "debug.h"
