@@ -1,9 +1,10 @@
-RFC rmap versione 2.8
+RFC rmap versione 2.9
 =====================
 
 Storia del documento
 --------------------
 
+- 2022/06/10 v. 2.9 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
 - 2021/11/21 v. 2.8 : corretto topic MQTT per RPC
 - 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro 'sd'
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
@@ -108,9 +109,8 @@ Seguendo un semplice flusso dei dati di una rete rmap compatibile si
 possono prevedere le seguenti fasi:
 
 -  digitalizzazione dei campionamenti o osservazioni
--  pubblicazione dei campionamenti su broker MQTT con root topic sample/
--  pubblicazione delle osservazioni su broker MQTT con root topic
-   report/
+-  pubblicazione dei campionamenti su broker MQTT con root topic "sample"
+-  pubblicazione delle osservazioni su broker MQTT con root topic "report"
 -  eventuale trasformazione dei campionamenti (level I) in osservazioni
    (level II) e eventuale pubblicazione sul broker MQTT
 -  composizione di un report
@@ -700,8 +700,8 @@ un certo istante di riferimento.
 
 La stazione è identificata univocamente dai seguenti campi:
 
--  \`ident`: identificativo opzionale della stazione (necessario solo se
-   la stazione è mobile, generalmente nullo per stazioni fisse).
+-  \`ident`: identificativo della stazione (necessario solo se
+   la stazione è mobile, nullo per stazioni fisse).
 -  \`lon`: longitudine
 -  \`lat`: latitudine
 -  \`network`: nome della rete a cui appartiene la stazione (minuscolo).
@@ -890,13 +890,62 @@ starting with the username used in authentication.
 
 .. _data-level-1:
 
+
+Root topics
+^^^^^^^^^^^
+
+root topic:
+
+::
+
+   <version>/<data_level>
+
+
+maint topic:
+
+::
+
+   <version>/maint
+
+
+rpc topic:
+
+::
+
+   <version>/rpc
+
+
+
+Version
+^^^^^^^
+
+Versione del protocollo RMAP over MQTT
+
+attualmente corrisponde alla versione:
+
+::
+
+   1
+
+
 Data Level
 ^^^^^^^^^^
 
--  I dati pubblicati nel root path MQTT **sample/** appartengono solo al
-   level type I
--  I dati pubblicati nel root path MQTT **report/** appartengono solo al
-   level type II
+-  I dati pubblicati nel root topic MQTT:
+
+   ::
+
+      sample
+
+appartengono solo al data level type I
+
+-  I dati pubblicati nel root topic MQTT:
+
+   ::
+
+      report
+
+appartengono solo al data level type II
 
 Stato della connessione
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -906,7 +955,7 @@ segnalazione di sconnessione gestita male con will (retained):
 
 ::
    
-   maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
+   <roottopic>/USER/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
 payload : **{'v': 'error01'}**
 
@@ -914,7 +963,7 @@ poi questo messaggio viene "ricoperto" con:
 
 ::
    
-   maint/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
+   <mainttopic>/USER/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
 payload : **{ "v": "conn"}**
 
@@ -936,11 +985,11 @@ Forma simbilica del topic:
 
 ::
    
-   <rootpath>/IDENT/COORDS/NETWORK/TRANGE/LEVEL/VAR
+   <roottopic>/USER/IDENT/COORDS/NETWORK/TRANGE/LEVEL/VAR
 
--  **IDENT**: identificativo dell'utente che pubblica i dati o
-   identificativo della stazione per stazioni mobili, “-” per stazioni
-   fisse non associate a un singolo utente
+-  **USER**: utente che pubblica i dati
+-  **IDENT**: identificativo della stazione per stazioni mobili, “”
+   (campo vuoto) per stazioni fisse
 -  **COORDS**: nella forma lon,lat. Le coordinate sono espresse con
    rappresentazione sessadecimale nella forma int(valore*10^5) con
    eventuale segno negativo
@@ -970,11 +1019,11 @@ Constant Data
 '''''''''''''
 
 I metadati per i dati costanti (anagrafica) sono caratterizzati da
-questo path:
+questo topic:
 
 ::
    
-   <rootpath>/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/VAR
+   <roottopic>/USER/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/VAR
 
 con payload simile a quello dei dati, in particolare dovrà essere omessa
 la chiave “t”.
@@ -1000,7 +1049,7 @@ Il topic e come quello della forma standard senza l'ultimo parametro
 
 ::
    
-   test/myuser/1131908,4449301/fixed/254,0,0/103,2000,-,-
+   <roottopic>/myuser//1131908,4449301/fixed/254,0,0/103,2000,-,-
 
 Il payload prevede due parametri:
 
@@ -1037,7 +1086,7 @@ standard senza i parametri "VAR", "LEVEL" e "TRANGE". Ad esempio:
 
 ::
    
-   test/myuser/1131908,4449301/fixed
+   <roottopic>/myuser//1131908,4449301/fixed
 
 Il payload prevede due parametri:
 
@@ -1075,14 +1124,14 @@ Le RPC sono in formato json (json-rpc) e utilizzano due topics MQTT:
 
 ::
    
-   rpc/IDENT/COORDS/NETWORK/com
+   <rpctopic>/USER/IDENT/COORDS/NETWORK/com
 
 -  topicres è il topic utilizzato dal server per le
    risposte.
 
 ::
    
-   rpc/IDENT/COORDS/NETWORK/res
+   <rpctopic>/USER/IDENT/COORDS/NETWORK/res
    
 IDENT corrisponde all'utente utilizzato per l'autenticazione al broker MQTT.
 
@@ -1107,15 +1156,15 @@ parametri:
 -  bool reset: se true riporta le configurazioni ai valori di default e
    rimuove ogni sensore precedentemente configurato; questa operazione è
    la prima ad essere effettuata dal server (default false)
--  char datalevel: "sample" o "report"; prima parte del path di
+-  char datalevel: "sample" o "report"; prima parte del topic di
    pubblicazione su MQTT per i dati (default "report")
--  char network: "fixed" o "mobile"; prima parte del path di
+-  char network: "fixed" o "mobile"; prima parte del topic di
    pubblicazione su MQTT per i dati (default "fixed")
 -  int lat: latitudine espressa con rappresentazione sessadecimale nella
    forma int(valore*10^5) con eventuale segno negativo
 -  int lon: longitudine espressa con rappresentazione sessadecimale
    nella forma int(valore*10^5) con eventuale segno negativo
--  char mqttmaintpath: prima parte del path di pubblicazione su MQTT per
+-  char mqttmainttopic: prima parte del topic di pubblicazione su MQTT per
    i messaggi di funzionamento (default "maint")
 -  int sampletime: intervallo tra le misure in secondi (default 900)
 -  char mqttserver: server MQTT (default "rmap.cc")
@@ -1329,7 +1378,7 @@ Ad esempio:
 
 ::
    
-   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=sample/<myuser>/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0, "t":"2015-07-30T15:30:00"}
+   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=1/sample/<myuser>//945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0, "t":"2015-07-30T15:30:00"}
 
 risposta:
 
@@ -1341,7 +1390,7 @@ Per dati non differiti è possibile omettere la chiave "t" nel payload.
 
 ::
    
-   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=sample/<myuser>/945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0}
+   http://rmap.cc/http2mqtt/?user=<myuser>&password=<password>&topic=1/sample/<myuser>//945000,4530000/fixed/1,0,60/1,-,-,-/B13011&payload={"v":0}
 
 risposta:
 

@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-07 10:57+0200\n"
+"POT-Creation-Date: 2022-06-07 17:19+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -436,7 +436,7 @@ msgid ""
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rabbitmq/rabbitmq.config>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:391 ../../server_rmap/server_rmap.rst:629
+#: ../../server_rmap/server_rmap.rst:391
 msgid ""
 "login at management interface with user \"guest\" and password \"guest\" "
 "on overview page use import definition to configure exchange, queue and "
@@ -457,7 +457,7 @@ msgid ""
 "formato json sopra ma non funziona"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:406 ../../server_rmap/server_rmap.rst:635
+#: ../../server_rmap/server_rmap.rst:406 ../../server_rmap/server_rmap.rst:639
 msgid "Monit"
 msgstr ""
 
@@ -505,7 +505,7 @@ msgstr ""
 msgid "Sincronizzazione DB da un server"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:437 ../../server_rmap/server_rmap.rst:655
+#: ../../server_rmap/server_rmap.rst:437 ../../server_rmap/server_rmap.rst:659
 msgid "Server di origine"
 msgstr ""
 
@@ -513,7 +513,7 @@ msgstr ""
 msgid "rimuovere le prime righe che non sono json ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:453 ../../server_rmap/server_rmap.rst:668
+#: ../../server_rmap/server_rmap.rst:453 ../../server_rmap/server_rmap.rst:672
 msgid "Server di destinazione"
 msgstr ""
 
@@ -597,29 +597,48 @@ msgstr ""
 msgid "e impostare gli opportuni privilegi di lettura/scrittura."
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:641
+#: ../../server_rmap/server_rmap.rst:629
+msgid ""
+"login at management interface with user \"guest\" and password \"guest\" "
+"on overview page use import definition to configure exchange, queue and "
+"users importing the file:"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:633
+msgid ""
+"`rabbit_server_data_ingestion.json "
+"<https://raw.githubusercontent.com/r-map/rmap/master/rabbitmq/rabbit_server_data_ingestion.json>`_"
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:635
+msgid ""
+"with the same management interface set all the user's password and remove"
+" \"guest\" user and login with a new real user."
+msgstr ""
+
+#: ../../server_rmap/server_rmap.rst:645
 msgid ""
 "`/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master"
 "/server-data-ingestion/etc/monitrc>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:643
+#: ../../server_rmap/server_rmap.rst:647
 msgid ""
 "`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master"
 "/server-data-ingestion/etc/monit.d/rmap>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:652
+#: ../../server_rmap/server_rmap.rst:656
 msgid ""
 "Sincronizzazione file statici per autenticazione e autorizzazione da un "
 "server RMAP completo"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:664
+#: ../../server_rmap/server_rmap.rst:668
 msgid "eventualmente rimuovere le prime righe di messaggistica del logging"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:670
+#: ../../server_rmap/server_rmap.rst:674
 msgid ""
 "Trasferire i file in /etc/mosquitto/ sul nostro server per la data "
 "ingestion. Imparire il comando:"

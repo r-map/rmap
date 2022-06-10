@@ -628,7 +628,11 @@ e impostare gli opportuni privilegi di lettura/scrittura.
 
 login at management interface with user "guest" and password "guest"
 on overview page use import definition to configure exchange, queue and users
-with the same management interface remove "guest" user and login with a new real user
+importing the file:
+
+`rabbit_server_data_ingestion.json <https://raw.githubusercontent.com/r-map/rmap/master/rabbitmq/rabbit_server_data_ingestion.json>`_
+
+with the same management interface set all the user's password and remove "guest" user if present and login with a new real user.
 
 
 Monit
