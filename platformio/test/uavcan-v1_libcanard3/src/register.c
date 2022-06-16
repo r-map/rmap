@@ -5,14 +5,19 @@
 #include "register.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
+//#include <assert.h>
 #include <stdbool.h>
 #include <sys/stat.h>
-#include <dirent.h>
+//#include <dirent.h>
 #include <unistd.h>
 
 #define PASTE3_IMPL(x, y, z) x##y##z
 #define PASTE3(x, y, z) PASTE3_IMPL(x, y, z)
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 static const char RegistryDirName[] = "registry";
 
@@ -180,3 +185,7 @@ void registerDoFactoryReset(void)
     }
   */
 }
+
+#ifdef __cplusplus
+}
+#endif

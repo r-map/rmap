@@ -30,6 +30,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 // NOTE: this implementation currently does not differentiate between mutable/immutable registers and does not support
 // volatile registers. It is trivial to extend though.
 
@@ -55,3 +60,7 @@ bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_
 
 /// Erase all registers such that the defaults are used at the next launch.
 void registerDoFactoryReset(void);
+
+#ifdef __cplusplus
+}
+#endif

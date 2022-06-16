@@ -17,6 +17,8 @@
 #include "register.h"
 #include <o1heap.h>
 #include <canard.h>
+#include "canard_dsdl.h"
+#include "bxcan.h"
 
 #include <uavcan/node/Heartbeat_1_0.h>
 #include <uavcan/node/GetInfo_1_0.h>
@@ -47,6 +49,11 @@
 
 
 reg_rmap_module_TH_1_0 module_th_msg = {0};
+
+CanardInstance canard;
+//HardwareSerial Serial2(PA3, PA2);  //uart2
+unsigned long int  next;
+unsigned long int  nextrpc;
 
 
 /// We keep the state of the application here. Feel free to use static variables instead if desired.
@@ -531,7 +538,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_)
         {
             uavcan_pnp_NodeIDAllocationData_2_0 msg = {0};
-            if (uavcan_pnp_NodeIDAllocationData_2_0_deserialize_(&msg, transfer->payload, &size) >= 0)
+            if (uavcan_pnp_NodeIDAllocationData_2_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 processMessagePlugAndPlayNodeIDAllocation(state, &msg);
             }
@@ -567,7 +574,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         {
             uavcan_register_Access_Request_1_0 req  = {0};
             size_t                             size = transfer->payload_size;
-            if (uavcan_register_Access_Request_1_0_deserialize_(&req, transfer->payload, &size) >= 0)
+            if (uavcan_register_Access_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 const uavcan_register_Access_Response_1_0 resp = processRequestRegisterAccess(&req);
                 uint8_t serialized[uavcan_register_Access_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -586,7 +593,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         {
             uavcan_register_List_Request_1_0 req  = {0};
             size_t                           size = transfer->payload_size;
-            if (uavcan_register_List_Request_1_0_deserialize_(&req, transfer->payload, &size) >= 0)
+            if (uavcan_register_List_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 const uavcan_register_List_Response_1_0 resp = {.name = registerGetNameByIndex(req.index)};
                 uint8_t serialized[uavcan_register_List_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -605,7 +612,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         {
             uavcan_node_ExecuteCommand_Request_1_1 req  = {0};
             size_t                                 size = transfer->payload_size;
-            if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, transfer->payload, &size) >= 0)
+            if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(&req);
                 uint8_t serialized[uavcan_node_ExecuteCommand_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -646,6 +653,53 @@ static void canardFree(CanardInstance* const ins, void* const pointer)
 
 extern char** environ;
 
+void CAN_HW_Init(void) {
+
+  GPIO_InitTypeDef GPIO_InitStruct;
+
+  // GPIO Ports Clock Enable
+  __HAL_RCC_GPIOA_CLK_ENABLE();
+
+  // CAN1 clock enable
+  __HAL_RCC_CAN1_CLK_ENABLE();
+
+  // CAN GPIO Configuration
+  // PA11     ------> CAN_RX
+  // PA12     ------> CAN_TX
+
+#if defined (STM32F103x6) || defined (STM32F103xB)
+  GPIO_InitStruct.Pin = GPIO_PIN_11;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  GPIO_InitStruct.Pin = GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+#elif defined (STM32F303x8) || defined (STM32F303xC) || defined (STM32F303xE)
+  GPIO_InitStruct.Pin = GPIO_PIN_11 | GPIO_PIN_12;
+  GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+  GPIO_InitStruct.Alternate = GPIO_AF9_CAN;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+#else
+#warning "Warning untested processor variant"
+#endif
+
+  BxCANTimings timings;
+  bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), 250000, &timings);
+  if (!result) {
+    __ASM volatile("BKPT #01");
+  }
+
+  result = bxCANConfigure(0, timings, false);
+  if (!result) {
+    __ASM volatile("BKPT #01");
+  }
+  
+}
 
 void setup(void) {
 
@@ -661,8 +715,9 @@ void setup(void) {
  
   // Initialize the node with a static node-ID.
   canard = canardInit(&canardAllocate, &canardFree);
-  canard.mtu_bytes      = CANARD_MTU_CAN_CLASSIC;  // Do not use CAN FD
+  //canard.mtu_bytes      = CANARD_MTU_CAN_CLASSIC;  // Do not use CAN FD
 
+  /*
   // TO BE REMOVED !!!!!!!!
   canard.node_id        = (CanardNodeID) 10;
  
@@ -703,7 +758,7 @@ void setup(void) {
 
   next = millis() + 1000;
   nextrpc = millis() + 2500;
-
+  */
   //bxCANattachInterrupt(processReceived);
 
 }
@@ -713,9 +768,6 @@ void setup(void) {
 
 void loop(void)
 {
-    struct timespec ts;
-    (void) clock_gettime(CLOCK_REALTIME, &ts);
-    srand((unsigned) ts.tv_nsec);
 
     State state = {0};
 
@@ -763,6 +815,7 @@ void loop(void)
     val._string.value.count = strlen((const char*) val._string.value.elements);
     registerWrite("reg.udral.service.pitot", &val);
 
+    /*
     // Configure the transport by reading the appropriate standard registers.
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
@@ -777,12 +830,14 @@ void loop(void)
     for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
     {
         if (sock[ifidx] < 0)
-        {
-            return -sock[ifidx];
+        {	
+	  NVIC_SystemReset();
+	  //return -sock[ifidx];
         }
         state.canard_tx_queues[ifidx] = canardTxInit(CAN_TX_QUEUE_CAPACITY, val.natural16.value.elements[0]);
     }
-
+    */
+    
     // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
     // Publications:
     state.port_id.pub.module_th =
@@ -851,7 +906,8 @@ void loop(void)
                               &rx);
         if (res < 0)
         {
-            return -res;
+	    NVIC_SystemReset();
+            //return -res;
         }
     }
     // Service servers:
@@ -866,7 +922,8 @@ void loop(void)
                               &rx);
         if (res < 0)
         {
-            return -res;
+	    NVIC_SystemReset();
+            //return -res;
         }
     }
     {
@@ -880,7 +937,8 @@ void loop(void)
                               &rx);
         if (res < 0)
         {
-            return -res;
+	    NVIC_SystemReset();
+            //return -res;
         }
     }
     {
@@ -894,7 +952,8 @@ void loop(void)
                               &rx);
         if (res < 0)
         {
-            return -res;
+	    NVIC_SystemReset();
+            //return -res;
         }
     }
     {
@@ -908,7 +967,8 @@ void loop(void)
                               &rx);
         if (res < 0)
         {
-            return -res;
+	    NVIC_SystemReset();
+            //return -res;
         }
     }
 
@@ -949,15 +1009,20 @@ void loop(void)
                 // Otherwise just drop it and move on to the next one.
                 if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time))
                 {
-                    const int16_t result = socketcanPush(sock[ifidx], &tqi->frame, 0);  // Non-blocking write attempt.
+
+		  // TODO
+		  /*
+		    const int16_t result = socketcanPush(sock[ifidx], &tqi->frame, 0);  // Non-blocking write attempt.
                     if (result == 0)
                     {
                         break;  // The queue is full, we will try again on the next iteration.
                     }
                     if (result < 0)
                     {
-                        return -result;  // SocketCAN interface failure (link down?)
+		        NVIC_SystemReset();
+                        //return -result;  // SocketCAN interface failure (link down?)
                     }
+		  */
                 }
                 state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
                 tqi = canardTxPeek(que);
@@ -968,6 +1033,8 @@ void loop(void)
         // The order in which we handle the redundant interfaces doesn't matter -- libcanard can accept incoming
         // frames from any of the redundant interface in an arbitrary order. The internal state machine will sort
         // them out and remove duplicates automatically.
+
+	/*
         for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
         {
             CanardFrame   frame                  = {0};
@@ -979,7 +1046,8 @@ void loop(void)
             }
             if (socketcan_result < 0)  // The read operation has failed. This is not a normal condition.
             {
-                return -socketcan_result;
+	        NVIC_SystemReset();
+                //return -socketcan_result;
             }
             // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
             // Wall clock can only be used for time synchronization.
@@ -1001,10 +1069,12 @@ void loop(void)
                 assert(false);  // No other error can possibly occur at runtime.
             }
         }
+	*/
     } while (!g_restart_required);
 
     // It is recommended to postpone restart until all frames are sent though.
     //(void) argc;
     //puts("RESTART ");
+    NVIC_SystemReset();
     //return -execve(argv[0], argv, environ);
 }
