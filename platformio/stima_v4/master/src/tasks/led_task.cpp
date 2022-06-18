@@ -12,8 +12,8 @@ void LedTask::Run() {
   pinMode(LedParam.led, OUTPUT);
   while (true) {
     digitalWrite(LedParam.led, HIGH);
-    Delay(Ticks::MsToTicks(LedParam.onDelayMs));
+    DelayUntil(Ticks::MsToTicks(LedParam.onDelayMs));
     digitalWrite(LedParam.led, LOW);
-    Delay(Ticks::MsToTicks(LedParam.offDelayMs));
+    DelayUntil(Ticks::MsToTicks(LedParam.offDelayMs));
   }
 }

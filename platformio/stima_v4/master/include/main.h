@@ -1,6 +1,6 @@
 /**
- * @file ethernet_task.h
- * @brief Ethernet Task
+ * @file main.h
+ * @brief CycloneTCP configuration file
  *
  * @section License
  *
@@ -8,7 +8,7 @@
  *
  * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
  *
- * This file is part of CycloneCRYPTO Open.
+ * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,21 +28,17 @@
  * @version 2.1.4
  **/
 
-#ifndef _ETHERNET_TASK_H
-#define _ETHERNET_TASK_H
+#ifndef _MAIN_H
+#define _MAIN_H
 
+#include <Arduino.h>
 #include "hardware_config.h"
-#include "net_config.h"
-#include "Arduino.h"
-#include "STM32FreeRTOS.h"
-#include "thread.hpp"
-#include "ticks.hpp"
-
 #include "core/net.h"
 #include "drivers/spi/arduino_spi_driver.h"
+#include "drivers/ext/arduino_interrupt_driver.h"
 #include "drivers/eth/enc28j60_driver.h"
 #include "dhcp/dhcp_client.h"
-#include "ipv6/slaac.h"
+// #include "ipv6/slaac.h"
 // #include "mqtt/mqtt_client.h"
 // #include "http/http_client.h"
 #include "tls.h"
@@ -52,45 +48,9 @@
 #include "rng/yarrow.h"
 #include "mydebug.h"
 
-typedef enum {
-   ETHERNET_STATE_INIT,
-   ETHERNET_STATE_EVENT_HANDLER,
-   ETHERNET_STATE_END
-} EthernetState_t;
+uint8_t seed[32];
+YarrowContext yarrowContext;
 
-typedef struct {
-  EthernetState_t state;
-  NetInterface *interface;
-  MacAddr macAddr;
-  #if (IPV4_SUPPORT == ENABLED)
-  #if (APP_USE_DHCP_CLIENT == DISABLED)
-  Ipv4Addr ipv4Addr;
-  #endif
-  #endif
-  #if (IPV6_SUPPORT == ENABLED)
-  #if (APP_USE_SLAAC == DISABLED)
-  Ipv6Addr ipv6Addr;
-  #endif
-  #endif
-  DhcpClientSettings dhcpClientSettings;
-  DhcpClientContext dhcpClientContext;
-  SlaacSettings slaacSettings;
-  SlaacContext slaacContext;
-  uint16_t tickHandlerMs;
-} EthernetParam_t;
-
-class EthernetTask : public cpp_freertos::Thread {
-
-public:
-  EthernetTask(uint16_t stackSize, uint8_t priority, EthernetParam_t EthernetParam);
-
-protected:
-  virtual void Run();
-
-private:
-  uint16_t stackSize;
-  uint8_t priority;
-  EthernetParam_t EthernetParam;
-};
+error_t initCPRNG(void);
 
 #endif

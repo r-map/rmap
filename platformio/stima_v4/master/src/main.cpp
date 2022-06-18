@@ -28,37 +28,82 @@
  * @version 0.1
  **/
 
-#define TRACE_LEVEL TRACE_LEVEL_VERBOSE
+// #include <stdlib.h>
+// #include "hardware_config.h"
+// #include "net_config.h"
+// #include <Arduino.h>
+// #include "STM32FreeRTOS.h"
+// #include "thread.hpp"
+// #include "ticks.hpp"
 
-#include <stdlib.h>
+// #include "core/net.h"
+// #include "drivers/spi/arduino_spi_driver.h"
+// #include "drivers/ext/arduino_interrupt_driver.h"
+// #include "drivers/eth/enc28j60_driver.h"
+// #include "dhcp/dhcp_client.h"
+// #include "ipv6/slaac.h"
+// // #include "mqtt/mqtt_client.h"
+// // #include "http/http_client.h"
+// #include "tls.h"
+// #include "tls_cipher_suites.h"
+// #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
+// #include "rng/trng.h"
+// #include "rng/yarrow.h"
+// #include "mydebug.h"
+
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"
-#include "ticks.hpp"
+// #include "ticks.hpp"
 // #include "SdFat.h"
 
 #include "tasks/led_task.h"
 #include "tasks/ethernet_task.h"
 
-using namespace cpp_freertos;
+#define TRACE_LEVEL STIMA_TRACE_LEVEL
 
-// Global variables
-HttpClientContext httpClientContext;
-YarrowContext yarrowContext;
-uint8_t seed[32];
-error_t error;
+#include "main.h"
 
 void setup() {
+  osInitKernel();
   SerialDebugInit(115200);
 
-  // Start-up message
-  TRACE_INFO("\r\n");
-  TRACE_INFO("************************************\r\n");
-  TRACE_INFO("*** CycloneTCP HTTPS Client Demo ***\r\n");
-  TRACE_INFO("************************************\r\n");
-  TRACE_INFO("Copyright: 2010-2022 Oryx Embedded SARL\r\n");
-  TRACE_INFO("Compiled: %s %s\r\n", __DATE__, __TIME__);
-  TRACE_INFO("Target: STML496ZG\r\n");
-  TRACE_INFO("\r\n");
+  error_t error = NO_ERROR;
+
+  error = initCPRNG();
+  if (error) {
+    TRACE_ERROR("Failed to initialize Cryptographic Pseudo Random Number Generator!\r\n");
+  }
+  // TCP/IP stack initialization
+  error = netInit();
+  if (error) {
+    TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
+  }
+
+  LedParam_t ledParam1 = {LED1_PIN, 100, 900};
+  LedParam_t ledParam2 = {LED2_PIN, 200, 800};
+  LedParam_t ledParam3 = {LED3_PIN, 300, 700};
+  EthernetParam_t ethernetParam;
+
+  ethernetParam.state = ETHERNET_STATE_INIT;
+  ethernetParam.interface = &netInterface[0];
+  ethernetParam.tickHandlerMs = APP_ETHERNET_TICK_EVENT_HANDLER_MS;
+
+  static LedTask led_1_task(100, OS_TASK_PRIORITY_NORMAL, ledParam1);
+  static LedTask led_2_task(100, OS_TASK_PRIORITY_NORMAL, ledParam2);
+  static LedTask led_3_task(100, OS_TASK_PRIORITY_NORMAL, ledParam3);
+  static EthernetTask eth_task(8192, OS_TASK_PRIORITY_NORMAL, ethernetParam);
+
+  // HttpClientContext httpClientContext;
+  // httpClientTest();
+
+  cpp_freertos::Thread::StartScheduler();
+}
+
+void loop() {}
+
+error_t initCPRNG () {
+  // Global variables
+  error_t error;
 
   // Initialize hardware cryptographic accelerator
   error = stm32l4xxCryptoInit();
@@ -96,32 +141,8 @@ void setup() {
     TRACE_ERROR("Failed to seed PRNG!\r\n");
   }
 
-  // TCP/IP stack initialization
-  error = netInit();
-  // Any error to report?
-  if (error)
-  {
-    // Debug message
-    TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
-  }
-
-  LedParam_t ledParam1 = {LED1_PIN, 100, 900};
-  LedParam_t ledParam2 = {LED2_PIN, 200, 800};
-  LedParam_t ledParam3 = {LED3_PIN, 300, 700};
-  EthernetParam_t ethernetParam;
-  ethernetParam.interface = &netInterface[0];
-
-  static LedTask led_1_task(100, OS_TASK_PRIORITY_NORMAL, ledParam1);
-  static LedTask led_2_task(100, OS_TASK_PRIORITY_NORMAL, ledParam2);
-  static LedTask led_3_task(100, OS_TASK_PRIORITY_NORMAL, ledParam3);
-  static EthernetTask eth_task(8192, OS_TASK_PRIORITY_NORMAL, ethernetParam);
-
-  // httpClientTest();
-
-  Thread::StartScheduler();
+  return error;
 }
-
-void loop() {}
 
 // // List of preferred ciphersuites
 // const uint16_t cipherSuites[] =
