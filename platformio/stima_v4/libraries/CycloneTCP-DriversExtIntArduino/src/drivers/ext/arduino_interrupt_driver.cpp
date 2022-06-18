@@ -43,8 +43,8 @@ const ExtIntDriver extIntDriver = {
 * @return Error code
 **/
 error_t extIntInit(void) {
+  // Serial.println("init int");
   pinMode(ENC28J60_INT_PIN, INPUT);
-  //Successful processing
   return NO_ERROR;
 }
 
@@ -52,29 +52,25 @@ error_t extIntInit(void) {
 * @brief Enable external interrupts
 **/
 void extIntEnableIrq(void) {
-  attachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN), intHandler, FALLING);
-  //Enable EXTI15_10 interrupt
-  // NVIC_EnableIRQ(_ENC28J60_EXT);
+  // Serial.println("init enable");
+  // attachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN), intHandler, LOW);
 }
 
 /**
 * @brief Disable external interrupts
 **/
 void extIntDisableIrq(void) {
-  detachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN));
-  //Disable EXTI15_10 interrupt
-  // NVIC_DisableIRQ(_ENC28J60_EXT);
+  // Serial.println("init disable");
+  // detachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN));
 }
 
 /**
 * @brief External interrupt handler
 **/
 void intHandler(void) {
-  NetInterface *interface;
-  // if(GPIO_Pin == _ENC28J60_EXT_PIN)
-  // {
-  interface = &netInterface[0];
-  enc28j60IrqHandler(interface);
-  TRACE_INFO("INT RICEVUTO\r\n");
+  // if (digitalRead(ENC28J60_INT_PIN) == LOW) {
+    // NetInterface *interface;
+    // interface = &netInterface[0];
+    // enc28j60IrqHandler(interface);
   // }
 }

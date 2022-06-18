@@ -27,6 +27,7 @@
 **/
 
 #include "arduino_spi_driver.h"
+// #define waitspi() while(!(SPSR&(1<<SPIF)))
 
 /**
 * @brief SPI driver
@@ -48,11 +49,12 @@ error_t spiInit(void) {
   SPI.setMISO(SPI1_MISO);
   SPI.setMOSI(SPI1_MOSI);
   SPI.setSCLK(SPI1_CLK);
-  SPI.begin();
-  SPI.setClockDivider(SPI_CLOCK_DIV4);
   pinMode(ETHERNET_CS_PIN, OUTPUT);
   digitalWrite(ETHERNET_CS_PIN, HIGH);
-  // sleep(100);
+  // SPI.setBitOrder(MSBFIRST);
+
+  SPI.begin();
+  // SPI.setClockDivider(SPI_CLOCK_DIV4);
   return NO_ERROR;
 }
 
@@ -61,7 +63,7 @@ error_t spiInit(void) {
 * @param mode SPI mode (0, 1, 2 or 3)
 **/
 error_t spiSetMode(uint_t mode) {
-  // SPI.setDataMode(mode);
+  SPI.setDataMode(mode);
   return NO_ERROR;
 }
 
@@ -87,7 +89,7 @@ void spiAssertCs(void) {
 * @brief Deassert CS
 **/
 void spiDeassertCs(void) {
-  sleep(100);
+  // sleep(100);
   // SPI.endTransaction();
   digitalWrite(ETHERNET_CS_PIN, HIGH);
   // sleep(100);
@@ -99,5 +101,10 @@ void spiDeassertCs(void) {
 * @return The data received from the slave device
 **/
 uint8_t spiTransfer(uint8_t data) {
-  return SPI.transfer(data);
+  uint8_t recv = SPI.transfer(data);
+  // Serial.print("send ");
+  // Serial.println(data);
+  // Serial.print("recv ");
+  // Serial.println(recv);
+  return recv;
 }

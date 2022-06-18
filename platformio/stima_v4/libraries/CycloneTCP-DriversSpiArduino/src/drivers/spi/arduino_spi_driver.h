@@ -29,13 +29,14 @@
 #ifndef _CYCLONE_SPI_DRIVER_ARDUINO_H
 #define _CYCLONE_SPI_DRIVER_ARDUINO_H
 
-#include "Arduino.h"
-#include "SPI.h"
+#include <Arduino.h>
+#include <SPI.h>
 #include "core/net.h"
 #include "error.h"
 #include "hardware_config.h"
 
 //SPI driver
+extern SPIClass SPI;
 extern const SpiDriver spiDriver;
 
 //SPI related functions
