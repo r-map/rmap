@@ -7,8 +7,9 @@ SD_CS_BIT     	= 3	# Bit of the SD CS pin
 USE_LED       	= 0	# Debug with two (defined in asmfunc.S)
 USE_FAT16     	= 0	# Enable Fat16 support, disabled by default. If enabled, disable Fat32 to keep size of bootloader within limits
 USE_FAT32     	= 1	# Enable Fat32 support, enabled by default to allow the use of sd cards > 2GB
-#AVRDUDE         = sleep 5; avrdude -v -c dragon_isp -P usb -p $(MCU_AVRDUDE) # edit this line for your programmer
-AVRDUDE         = avrdude -v -c stk500v1 -P /dev/ttyUSB0 -b19200 -p $(MCU_AVRDUDE) # edit this line for your programmer
+AVRDUDE         = sleep 5; avrdude -v -c dragon_isp -P usb -p $(MCU_AVRDUDE) # edit this line for your programmer
+#AVRDUDE         = avrdude -v -c stk500v1 -P /dev/ttyUSB0 -b19200 -p $(MCU_AVRDUDE) # edit this line for your programmer
+#AVRDUDE         = avrdude -v -c avrisp -P /dev/ttyUSB0 -b19200 -p $(MCU_AVRDUDE) # edit this line for your programmer
 
 #----------------------------------------------------------------------
 # Other configuration

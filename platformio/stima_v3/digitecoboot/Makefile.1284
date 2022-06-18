@@ -26,4 +26,4 @@ atmega1284p_isp: LOCK      ?= 0xCF
 atmega1284p_isp: clean
 atmega1284p_isp: $(PROGRAM)_atmega1284p.hex
 atmega1284p_isp: $(PROGRAM)_atmega1284p.lst
-atmega1284p_isp: fuse flash lock
+atmega1284p_isp: size fuse flash lock

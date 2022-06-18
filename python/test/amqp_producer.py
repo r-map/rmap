@@ -1,18 +1,26 @@
 #!/usr/bin/env python
 import pika
+import ssl
+import logging
 
 user="rmap"
-password="rmap"
-host="localhost"
-exchange="rmap"
+password="div26ic"
+host="rmap.arpae.it"
+exchange="rmap.mqtt.bufr.sample_mobile"
 routing_key="ciao"
 body='Hello World!'
 
-# Legge un file.
-in_file = open("infile","r")
-body = in_file.read()
-in_file.close()
 
+#logging.basicConfig(level=logging.INFO)
+
+# Legge un file.
+#in_file = open("infile","r")
+#body = in_file.read()
+#in_file.close()
+
+#context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+context = ssl.create_default_context()
+context.verify_mode = ssl.CERT_REQUIRED
 
 credentials=pika.PlainCredentials(user, password)
 properties=pika.BasicProperties(
@@ -21,7 +29,8 @@ properties=pika.BasicProperties(
 )
 
 connection = pika.BlockingConnection(pika.ConnectionParameters(
-        host=host,credentials=credentials))
+    ssl_options=pika.SSLOptions(context),
+    host=host, port=5671,credentials=credentials))
 channel = connection.channel()
 
 #channel.queue_declare(queue=queue)

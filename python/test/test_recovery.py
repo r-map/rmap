@@ -36,15 +36,18 @@ import time
 #mac="860719026700066"
 #mac="860719020206417"
 
-#MQTT_HOST = os.environ.get('MQTT_HOST', 'rmap.cc')
-MQTT_MAC = os.environ.get('MQTT_MAC', '')
-MQTT_USERNAME = os.environ.get('MQTT_USERNAME', 'rmap')
-MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', 'rmap')
+MQTT_HOST = os.environ.get('MQTT_HOST', 'test.rmap.cc')
+MQTT_RPCTOPIC = os.environ.get('MQTT_RPCTOPIC', 'rpc/pat1/1165625,4485892/fixed/')
+MQTT_USERNAME = os.environ.get('MQTT_USERNAME', 'pat1')
+MQTT_PASSWORD = os.environ.get('MQTT_PASSWORD', '1password')
 
 
-rpcproxy = jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
-                                jsonrpc.TransportMQTT( user=MQTT_USERNAME,password=MQTT_PASSWORD,mac=MQTT_MAC,logfunc=jsonrpc.log_stdout,timeout=60))
-
-rpcproxy.sdrecovery({})
+with jsonrpc.ServerProxy( jsonrpc.JsonRpc20(),\
+                          jsonrpc.TransportMQTT(
+                              host=MQTT_HOST, user=MQTT_USERNAME,password=MQTT_PASSWORD,
+                              rpctopic=MQTT_RPCTOPIC,
+                              logfunc=jsonrpc.log_stdout,timeout=1000)) as rpcproxy :
+    
+    rpcproxy.recovery(dts=[2021,12,22,12,0,0])
 
 

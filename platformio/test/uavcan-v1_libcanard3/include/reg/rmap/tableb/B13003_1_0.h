@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.2 (serialization was enabled)
 // Source file:   /home/pat1/git/Cyphal-demos/submodules/public_regulated_data_types/reg/rmap/tableb/B13003.1.0.dsdl
-// Generated at:  2022-06-16 10:27:24.762725 UTC
+// Generated at:  2022-06-18 11:05:37.220524 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     reg.rmap.tableb.B13003

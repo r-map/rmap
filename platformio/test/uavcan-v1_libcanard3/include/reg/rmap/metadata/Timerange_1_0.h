@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.2 (serialization was enabled)
 // Source file:   /home/pat1/git/Cyphal-demos/submodules/public_regulated_data_types/reg/rmap/metadata/Timerange.1.0.dsdl
-// Generated at:  2022-06-16 10:27:24.746120 UTC
+// Generated at:  2022-06-18 11:05:37.214444 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     reg.rmap.metadata.Timerange
@@ -36,7 +36,8 @@
 #define REG_RMAP_METADATA_TIMERANGE_1_0_INCLUDED_
 
 #include <nunavut/support/serialization.h>
-#include <uavcan/_register/Value_1_0.h>
+#include <uavcan/primitive/scalar/Natural32_1_0.h>
+#include <uavcan/primitive/scalar/Natural8_1_0.h>
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
@@ -72,21 +73,21 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define reg_rmap_metadata_Timerange_1_0_EXTENT_BYTES_                    777UL
-#define reg_rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 777UL
+#define reg_rmap_metadata_Timerange_1_0_EXTENT_BYTES_                    9UL
+#define reg_rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 9UL
 static_assert(reg_rmap_metadata_Timerange_1_0_EXTENT_BYTES_ >= reg_rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
 typedef struct
 {
-    /// uavcan.register.Value.1.0 Pindicator
-    uavcan_register_Value_1_0 Pindicator;
+    /// uavcan.primitive.scalar.Natural8.1.0 Pindicator
+    uavcan_primitive_scalar_Natural8_1_0 Pindicator;
 
-    /// uavcan.register.Value.1.0 P1
-    uavcan_register_Value_1_0 P1;
+    /// uavcan.primitive.scalar.Natural32.1.0 P1
+    uavcan_primitive_scalar_Natural32_1_0 P1;
 
-    /// uavcan.register.Value.1.0 P2
-    uavcan_register_Value_1_0 P2;
+    /// uavcan.primitive.scalar.Natural32.1.0 P2
+    uavcan_primitive_scalar_Natural32_1_0 P2;
 } reg_rmap_metadata_Timerange_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -115,7 +116,7 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 6216UL)
+    if ((8U * (size_t) capacity_bytes) < 72UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -127,9 +128,9 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_serialize_(
 
 
 
-    {   // uavcan.register.Value.1.0 Pindicator
-        size_t _size_bytes0_ = 259UL;  // Nested object (max) size, in bytes.
-        int8_t _err0_ = uavcan_register_Value_1_0_serialize_(
+    {   // uavcan.primitive.scalar.Natural8.1.0 Pindicator
+        size_t _size_bytes0_ = 1UL;  // Nested object (max) size, in bytes.
+        int8_t _err0_ = uavcan_primitive_scalar_Natural8_1_0_serialize_(
             &obj->Pindicator, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
         {
@@ -151,9 +152,9 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_serialize_(
         offset_bits += _pad0_;
     }
 
-    {   // uavcan.register.Value.1.0 P1
-        size_t _size_bytes1_ = 259UL;  // Nested object (max) size, in bytes.
-        int8_t _err2_ = uavcan_register_Value_1_0_serialize_(
+    {   // uavcan.primitive.scalar.Natural32.1.0 P1
+        size_t _size_bytes1_ = 4UL;  // Nested object (max) size, in bytes.
+        int8_t _err2_ = uavcan_primitive_scalar_Natural32_1_0_serialize_(
             &obj->P1, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
         {
@@ -175,9 +176,9 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // uavcan.register.Value.1.0 P2
-        size_t _size_bytes2_ = 259UL;  // Nested object (max) size, in bytes.
-        int8_t _err4_ = uavcan_register_Value_1_0_serialize_(
+    {   // uavcan.primitive.scalar.Natural32.1.0 P2
+        size_t _size_bytes2_ = 4UL;  // Nested object (max) size, in bytes.
+        int8_t _err4_ = uavcan_primitive_scalar_Natural32_1_0_serialize_(
             &obj->P2, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err4_ < 0)
         {
@@ -199,7 +200,6 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_serialize_(
         offset_bits += _pad2_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-
 
 
 
@@ -249,10 +249,10 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_deserialize_(
 
 
 
-    // uavcan.register.Value.1.0 Pindicator
+    // uavcan.primitive.scalar.Natural8.1.0 Pindicator
     {
         size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err6_ = uavcan_register_Value_1_0_deserialize_(
+        const int8_t _err6_ = uavcan_primitive_scalar_Natural8_1_0_deserialize_(
             &out_obj->Pindicator, &buffer[offset_bits / 8U], &_size_bytes3_);
         if (_err6_ < 0)
         {
@@ -264,10 +264,10 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // uavcan.register.Value.1.0 P1
+    // uavcan.primitive.scalar.Natural32.1.0 P1
     {
         size_t _size_bytes4_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err7_ = uavcan_register_Value_1_0_deserialize_(
+        const int8_t _err7_ = uavcan_primitive_scalar_Natural32_1_0_deserialize_(
             &out_obj->P1, &buffer[offset_bits / 8U], &_size_bytes4_);
         if (_err7_ < 0)
         {
@@ -279,10 +279,10 @@ static inline int8_t reg_rmap_metadata_Timerange_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // uavcan.register.Value.1.0 P2
+    // uavcan.primitive.scalar.Natural32.1.0 P2
     {
         size_t _size_bytes5_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err8_ = uavcan_register_Value_1_0_deserialize_(
+        const int8_t _err8_ = uavcan_primitive_scalar_Natural32_1_0_deserialize_(
             &out_obj->P2, &buffer[offset_bits / 8U], &_size_bytes5_);
         if (_err8_ < 0)
         {

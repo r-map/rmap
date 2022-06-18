@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.2 (serialization was enabled)
 // Source file:   /home/pat1/git/Cyphal-demos/submodules/public_regulated_data_types/reg/rmap/metadata/Metadata.1.0.dsdl
-// Generated at:  2022-06-16 10:27:24.739152 UTC
+// Generated at:  2022-06-18 11:05:37.211019 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     reg.rmap.metadata.Metadata
@@ -73,8 +73,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define reg_rmap_metadata_Metadata_1_0_EXTENT_BYTES_                    1813UL
-#define reg_rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 1813UL
+#define reg_rmap_metadata_Metadata_1_0_EXTENT_BYTES_                    19UL
+#define reg_rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 19UL
 static_assert(reg_rmap_metadata_Metadata_1_0_EXTENT_BYTES_ >= reg_rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -113,7 +113,7 @@ static inline int8_t reg_rmap_metadata_Metadata_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 14504UL)
+    if ((8U * (size_t) capacity_bytes) < 152UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -126,7 +126,7 @@ static inline int8_t reg_rmap_metadata_Metadata_1_0_serialize_(
 
 
     {   // reg.rmap.metadata.Timerange.1.0 timerange
-        size_t _size_bytes0_ = 777UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes0_ = 9UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = reg_rmap_metadata_Timerange_1_0_serialize_(
             &obj->timerange, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
@@ -150,7 +150,7 @@ static inline int8_t reg_rmap_metadata_Metadata_1_0_serialize_(
     }
 
     {   // reg.rmap.metadata.Level.1.0 level
-        size_t _size_bytes1_ = 1036UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes1_ = 10UL;  // Nested object (max) size, in bytes.
         int8_t _err2_ = reg_rmap_metadata_Level_1_0_serialize_(
             &obj->level, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
@@ -173,7 +173,6 @@ static inline int8_t reg_rmap_metadata_Metadata_1_0_serialize_(
         offset_bits += _pad1_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-
 
 
 

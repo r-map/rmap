@@ -844,40 +844,40 @@ void loop(void)
         getPublisherSubjectID("reg.rmap.module.TH.1.0",
 			      reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-
-
     // Set up the default value. It will be used to populate the register if it doesn't exist.
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
+    uavcan_register_Value_1_0_select_natural32_(&val);
+    val.natural32.value.count       = 1;
+    val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
 
 
-    // Set up the default value. It will be used to populate the register if it doesn't exist.
-    //uavcan_register_Value_1_0 val = {0};
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
-    registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.Pindicator = val;
+    registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
+
+    registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.level.L2.value = val.natural32.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P1 = val;
+    module_th_msg.metadata.timerange.P1.value = val.natural32.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P2 = val;
+    module_th_msg.metadata.timerange.P2.value = val.natural32.value.elements[0];
+    
+
+    
+    uavcan_register_Value_1_0_select_natural8_(&val);
+    val.natural16.value.count       = 1;
+    val.natural16.value.elements[0] = UINT8_MAX;  // This means "undefined", per Specification, which is the default.
+
+    registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
     
     
     registerRead("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType1 = val;
-    
-    registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L1 = val;
+    module_th_msg.metadata.level.LevelType1.value = val.natural8.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType2 = val;
+    module_th_msg.metadata.level.LevelType2.value = val.natural8.value.elements[0];
 
-    registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L2 = val;
 
     /*
     registerWrite("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.

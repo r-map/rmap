@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.2 (serialization was enabled)
 // Source file:   /home/pat1/git/Cyphal-demos/submodules/public_regulated_data_types/reg/rmap/sensors/Temperature.1.0.dsdl
-// Generated at:  2022-06-16 10:27:24.772959 UTC
+// Generated at:  2022-06-18 11:05:37.232721 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     reg.rmap.sensors.Temperature
