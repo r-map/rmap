@@ -33,6 +33,8 @@
 
 #include "debug_config.h"
 
+#define APP_ETHERNET_TICK_EVENT_HANDLER_MS    (10)
+
 // Ethernet interface configuration
 #define APP_IF_NAME "eth0"
 #define APP_HOST_NAME "https-client-demo"
@@ -143,7 +145,7 @@
 #define LLMNR_RESPONDER_SUPPORT ENABLED
 
 //HTTP client support
-#define HTTP_CLIENT_SUPPORT ENABLED
+#define HTTP_CLIENT_SUPPORT DISABLED
 //HTTP over TLS
 #define HTTP_CLIENT_TLS_SUPPORT DISABLED
 

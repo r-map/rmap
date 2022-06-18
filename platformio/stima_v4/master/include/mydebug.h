@@ -31,8 +31,8 @@
 #ifndef _MY_DEBUG_H
 #define _MY_DEBUG_H
 
+#include <Arduino.h>
 #include "compiler_port.h"
-#include "Arduino.h"
 #include "debug_config.h"
 
 #define SerialDebugInit(baud)   (SERIAL_STREAM.begin(baud))
