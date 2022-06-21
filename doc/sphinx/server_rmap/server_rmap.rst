@@ -548,11 +548,11 @@ Aggiunta repository e installazione pacchetti
   dnf install mosquitto mosquitto-auth-plug
   useradd rmap
   
-/etc/selinux/config::
+modificare il file /etc/selinux/config::
 
   SELINUX=disabled
 
-`/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/tmpfiles.d/rmap.conf>`_
+scaricare il file `/etc/tmpfiles.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/tmpfiles.d/rmap.conf>`_
 
 ::
 
@@ -565,7 +565,7 @@ Aggiunta repository e installazione pacchetti
    mkdir /var/log/rmap
    chown -R rmap:rmap /var/log/rmap
 
-`/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rmap/rmap-site.cfg>`_
+scaricare il file `/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rmap/rmap-site.cfg>`_
 
 cambiare la password dell'utente amministratore.
 
@@ -579,19 +579,19 @@ Mosquitto
    chown mosquitto:mosquitto /rmap/mosquitto
 
    
-`/etc/mosquitto/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/mosquitto/conf.d/rmap.conf>`_
+scaricare il file `/etc/mosquitto/conf.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/mosquitto/conf.d/rmap.conf>`_
 
 
-remove everythings and add in /etc/mosquitto/mosquitto.conf
+cancellare tutto il contenuto del file /etc/mosquitto/mosquitto.conf e sostituirlo con le seguenti righe:
 ::
    
    include_dir /etc/mosquitto/conf.d
-   pid_file /var/run/mosquitto.pid
+   pid_file /var/run/mosquitto/mosquitto.pid
 
 ::
    
-   chkconfig mosquitto on
-   service mosquitto start
+   systemctl enable mosquitto
+   systemctl start mosquitto
 
 
 Rabbitmq
@@ -604,11 +604,11 @@ Rabbitmq
 
    dnf install rabbitmq-server
 
-`/etc/rabbitmq/enabled_plugins <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/enabled_plugins>`_
+scaricare il file `/etc/rabbitmq/enabled_plugins <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/enabled_plugins>`_
 
-`/etc/rabbitmq/rabbitmq-env.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`_
+scaricare il file `/etc/rabbitmq/rabbitmq-env.conf <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`_
 
-`/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq.config>`_
+scaricare il file `/etc/rabbitmq/rabbitmq.config <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/rabbitmq/rabbitmq.config>`_
 
 
 Installare il certificato ssl/tls per il dominio del server in:
@@ -623,16 +623,16 @@ e impostare gli opportuni privilegi di lettura/scrittura.
 
    mkdir -p /rmap/rabbitmq/mnesia/
    chown -R rabbitmq:rabbitmq /rmap/rabbitmq
-   chkconfig rabbitmq-server on
-   service rabbitmq-server start
+   systemctl enable rabbitmq-server
+   systemctl start rabbitmq-server
 
-login at management interface with user "guest" and password "guest"
-on overview page use import definition to configure exchange, queue and users
-importing the file:
+effettuare il login all'interfaccia di management web: <http://server-fqdn:15672/>
+con user "guest" e password "guest", quindi utilizzare la funzione "import definition" per caricare exchange, queue e users importando il seguente file:
 
 `rabbit_server_data_ingestion.json <https://raw.githubusercontent.com/r-map/rmap/master/rabbitmq/rabbit_server_data_ingestion.json>`_
 
-with the same management interface set all the user's password and remove "guest" user if present and login with a new real user.
+dalla stessa interfaccia di management web impostare le password per tutti gli utenti, rimuovere l'utente "guest" e fare login con uno dei nuovi utenti definiti.
+
 
 
 Monit
@@ -642,14 +642,16 @@ Monit
    
    yum install monit
 
-`/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monitrc>`_
+scaricare il file `/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monitrc>`_
 
-`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monit.d/rmap>`_
+scaricare il file `/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master/server-data-ingestion/etc/monit.d/rmap>`_
 
 ::
-   
- chkconfig monit on
- service monit start
+
+ chmod 0700 /etc/monitrc /etc/monit.d/rmap
+ chown root:root /etc/monitrc /etc/monit.d/rmap
+ systemctl enable monit
+ systemctl start monit
 
 
 Sincronizzazione file statici per autenticazione e autorizzazione da un server RMAP completo
