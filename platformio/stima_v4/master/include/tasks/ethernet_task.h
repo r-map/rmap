@@ -33,24 +33,14 @@
 
 #include "hardware_config.h"
 #include "net_config.h"
-#include "Arduino.h"
-#include "STM32FreeRTOS.h"
+#include "mydebug.h"
+#include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"
 
 #include "core/net.h"
 #include "drivers/spi/arduino_spi_driver.h"
 #include "drivers/eth/enc28j60_driver.h"
-#include "dhcp/dhcp_client.h"
-#include "ipv6/slaac.h"
-// #include "mqtt/mqtt_client.h"
-// #include "http/http_client.h"
-#include "tls.h"
-#include "tls_cipher_suites.h"
-#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
-#include "rng/trng.h"
-#include "rng/yarrow.h"
-#include "mydebug.h"
 
 typedef enum {
    ETHERNET_STATE_INIT,
@@ -59,7 +49,6 @@ typedef enum {
 } EthernetState_t;
 
 typedef struct {
-  EthernetState_t state;
   NetInterface *interface;
   MacAddr macAddr;
   #if (IPV4_SUPPORT == ENABLED)
@@ -82,14 +71,16 @@ typedef struct {
 class EthernetTask : public cpp_freertos::Thread {
 
 public:
-  EthernetTask(uint16_t stackSize, uint8_t priority, EthernetParam_t EthernetParam);
+  EthernetTask(const char *taskName, uint16_t stackSize, uint8_t priority, EthernetParam_t EthernetParam);
 
 protected:
   virtual void Run();
 
 private:
+  char taskName[configMAX_TASK_NAME_LEN];
   uint16_t stackSize;
   uint8_t priority;
+  EthernetState_t state;
   EthernetParam_t EthernetParam;
 };
 
