@@ -35,11 +35,24 @@
 #include "compiler_port.h"
 #include "debug_config.h"
 
+//C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define SerialDebugInit(baud)   (SERIAL_STREAM.begin(baud))
 
-#define TRACE_PRINTF(...) osSuspendAllTasks(), SERIAL_STREAM.printf(__VA_ARGS__), osResumeAllTasks()
-#define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), debugDisplayArray(NULL, p, a, n), osResumeAllTasks()
+#define TRACE_PRINTF(...) SERIAL_STREAM.printf(__VA_ARGS__)
+#define TRACE_ARRAY(p, a, n) debugDisplayArray(p, a, n)
+
+// #define TRACE_PRINTF(...) osSuspendAllTasks(), SERIAL_STREAM.printf(__VA_ARGS__), osResumeAllTasks()
+// #define TRACE_ARRAY(p, a, n) osSuspendAllTasks(), debugDisplayArray(NULL, p, a, n), osResumeAllTasks()
 // #define TRACE_MPI(p, a) osSuspendAllTasks(), mpiDump(stderr, p, a), osResumeAllTasks()
+
+//C++ guard
+#ifdef __cplusplus
+}
+#endif
 
 #include "debug.h"
 

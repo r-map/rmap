@@ -49,7 +49,7 @@
 /*#define configMEMMANG_HEAP_NB             3*/
 
 /* configUSE_CMSIS_RTOS_V2 has to be defined and set to 1 to use CMSIS-RTOSv2 */
-/*#define configUSE_CMSIS_RTOS_V2           1*/
+#define configUSE_CMSIS_RTOS_V2           1
 
 /* End custom definitions for STM32 */
 

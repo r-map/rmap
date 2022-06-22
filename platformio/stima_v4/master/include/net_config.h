@@ -33,11 +33,19 @@
 
 #include "debug_config.h"
 
-#define APP_ETHERNET_TICK_EVENT_HANDLER_MS    (10)
+#define APP_ETHERNET_TICK_EVENT_HANDLER_MS    (100)
+#define APP_MQTT_ATTEMPT_DELAY_MS             (1000)
+#define APP_MQTT_TIMEOUT_MS                   (60000)
+#define APP_MQTT_KEEP_ALIVE_S                 (30)
+#define APP_MQTT_SERVER_NAME_LENGTH           (40)
+#define APP_MQTT_USERNAME_LENGTH              (40)
+#define APP_MQTT_PASSWORD_LENGTH              (40)
+#define APP_MQTT_WILL_TOPIC_LENGTH            (100)
+#define APP_MQTT_WILL_MSG_LENGTH              (100)
 
 // Ethernet interface configuration
 #define APP_IF_NAME "eth0"
-#define APP_HOST_NAME "https-client-demo"
+#define APP_HOST_NAME "STIMA"
 #define APP_MAC_ADDR "9C-49-D0-29-1D-FE"
 
 #define APP_USE_DHCP_CLIENT ENABLED
@@ -57,9 +65,12 @@
 #define APP_IPV6_SECONDARY_DNS "2001:4860:4860::8844"
 
 // Application configuration
-#define APP_HTTP_SERVER_NAME "www.httpbin.org"
-#define APP_HTTP_SERVER_PORT 80
-#define APP_HTTP_URI "/anything"
+#define APP_SERVER_NAME "test.mosquitto.org"
+// #define APP_SERVER_PORT 1883   //MQTT over TCP
+#define APP_SERVER_PORT 8883 //MQTT over TLS
+//#define APP_SERVER_PORT 8884 //MQTT over TLS (mutual authentication)
+//#define APP_SERVER_PORT 8080 //MQTT over WebSocket
+//#define APP_SERVER_PORT 8081 //MQTT over secure WebSocket
 
 #define APP_SET_CIPHER_SUITES DISABLED
 #define APP_SET_SERVER_NAME ENABLED
@@ -144,9 +155,16 @@
 //LLMNR responder support
 #define LLMNR_RESPONDER_SUPPORT ENABLED
 
-//HTTP client support
-#define HTTP_CLIENT_SUPPORT DISABLED
-//HTTP over TLS
-#define HTTP_CLIENT_TLS_SUPPORT DISABLED
+//WebSocket support
+#define WEB_SOCKET_SUPPORT DISABLED
+//Support for WebSocket connections over TLS
+#define WEB_SOCKET_TLS_SUPPORT DISABLED
+
+//MQTT client support
+#define MQTT_CLIENT_SUPPORT ENABLED
+//MQTT over TLS
+#define MQTT_CLIENT_TLS_SUPPORT ENABLED
+//MQTT over WebSocket
+#define MQTT_CLIENT_WS_SUPPORT DISABLED
 
 #endif

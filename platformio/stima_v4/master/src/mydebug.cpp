@@ -42,15 +42,18 @@ void debugDisplayArray(FILE *stream, const char_t *prepend, const void *data, si
   for(uint_t i = 0; i < length; i++) {
     //Beginning of a new line?
     if((i % 16) == 0) {
-      TRACE_PRINTF("%s", prepend);
+      // TRACE_PRINTF("%s", prepend);
+      // TRACE_PRINTF(" ");
+      //  Serial.print(" ");
     }
 
     //Display current data byte
-    TRACE_PRINTF("%02X ", *((const uint8_t *) data + i));
+    // TRACE_PRINTF("%02X ", ((const uint8_t *)data)[i]);
 
     //End of current line?
     if((i % 16) == 15 || i == (length - 1)) {
-      TRACE_PRINTF("\r\n");
+      // TRACE_PRINTF("\r\n");
+      //  SERIAL_STREAM.printf(" ");
     }
   }
 }

@@ -31,8 +31,12 @@
 #ifndef _MAIN_H
 #define _MAIN_H
 
-#include <Arduino.h>
+#include "task_config.h"
 #include "hardware_config.h"
+
+#include <STM32FreeRTOS.h>
+#include "thread.hpp"
+
 #include "core/net.h"
 #include "drivers/spi/arduino_spi_driver.h"
 #include "drivers/ext/arduino_interrupt_driver.h"
@@ -47,6 +51,11 @@
 #include "rng/trng.h"
 #include "rng/yarrow.h"
 #include "mydebug.h"
+
+#include "tasks/led_task.h"
+#include "tasks/hardware_task.h"
+#include "tasks/ethernet_task.h"
+#include "tasks/mqtt_task.h"
 
 uint8_t seed[32];
 YarrowContext yarrowContext;
