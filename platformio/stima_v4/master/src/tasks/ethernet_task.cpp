@@ -1,10 +1,11 @@
+#define TRACE_LEVEL ETHERNET_TASK_TRACE_LEVEL
+
 #include "tasks/ethernet_task.h"
 
 using namespace cpp_freertos;
 
-EthernetTask::EthernetTask(uint16_t stackSize, uint8_t priority, EthernetParam_t ethernetParam) : Thread(stackSize, priority),
-EthernetParam(ethernetParam)
-{
+EthernetTask::EthernetTask(const char *taskName, uint16_t stackSize, uint8_t priority, EthernetParam_t ethernetParam) : Thread(taskName, stackSize, priority), EthernetParam(ethernetParam) {
+  state = ETHERNET_STATE_INIT;
   Start();
 };
 
@@ -12,7 +13,7 @@ void EthernetTask::Run() {
   error_t error;
 
   while (true) {
-    switch (EthernetParam.state) {
+    switch (state) {
       case ETHERNET_STATE_INIT:
         // Set interface name
         netSetInterfaceName(EthernetParam.interface, APP_IF_NAME);
@@ -132,12 +133,13 @@ void EthernetTask::Run() {
         #endif
         #endif
 
-        EthernetParam.state = ETHERNET_STATE_EVENT_HANDLER;
+        state = ETHERNET_STATE_EVENT_HANDLER;
       break;
 
       case ETHERNET_STATE_EVENT_HANDLER:
+        // Thread::Suspend();
         enc28j60IrqHandler(EthernetParam.interface);
-        DelayUntil(Ticks::MsToTicks(EthernetParam.tickHandlerMs));
+        Delay(Ticks::MsToTicks(EthernetParam.tickHandlerMs));
       break;
 
       case ETHERNET_STATE_END:

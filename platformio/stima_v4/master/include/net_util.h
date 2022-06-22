@@ -1,6 +1,6 @@
 /**
- * @file led.h
- * @brief Led Task
+ * @file net_util.h
+ * @brief CycloneTCP configuration file
  *
  * @section License
  *
@@ -8,7 +8,7 @@
  *
  * Copyright (C) 2010-2022 Oryx Embedded SARL. All rights reserved.
  *
- * This file is part of CycloneCRYPTO Open.
+ * This file is part of CycloneTCP Open.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,34 +28,11 @@
  * @version 2.1.4
  **/
 
-#ifndef _LED_TASK_H
-#define _LED_TASK_H
+#ifndef _NET_UTIL_H
+#define _NET_UTIL_H
 
-#include "hardware_config.h"
-#include "Arduino.h"
-#include "STM32FreeRTOS.h"
-#include "thread.hpp"
-#include "ticks.hpp"
+#include "core/net.h"
 
-typedef struct {
-  uint8_t led;
-  uint16_t onDelayMs;
-  uint16_t offDelayMs;
-} LedParam_t;
-
-class LedTask : public cpp_freertos::Thread {
-
-public:
-  LedTask(const char *taskName, uint16_t stackSize, uint8_t priority, LedParam_t ledParam);
-
-protected:
-  virtual void Run();
-
-private:
-  char taskName[configMAX_TASK_NAME_LEN];
-  uint16_t stackSize;
-  uint8_t priority;
-  LedParam_t LedParam;
-};
+bool isNetReady(NetInterface *interface, uint8_t addrListIndex = 0);
 
 #endif
