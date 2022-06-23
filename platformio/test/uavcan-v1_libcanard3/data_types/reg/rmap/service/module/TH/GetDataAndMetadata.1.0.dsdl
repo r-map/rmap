@@ -1,0 +1,9 @@
+# Returns a data and metadata.
+
+@sealed
+
+---
+
+reg.rmap.module.TH.1.0 dataandmetadata
+
+@sealed

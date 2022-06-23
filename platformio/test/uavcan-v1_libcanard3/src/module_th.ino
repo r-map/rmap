@@ -33,6 +33,7 @@
 //#include <uavcan/si/unit/temperature/Scalar_1_0.h>
 
 #include <reg/rmap/_module/TH_1_0.h>
+#include <reg/rmap/service/_module/TH/GetDataAndMetadata_1_0.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -71,6 +72,7 @@ typedef struct State
         struct
         {
             CanardPortID module_th;
+            CanardPortID service_module_th;
         } pub;
     } port_id;
 
@@ -85,6 +87,7 @@ typedef struct State
         uint64_t uavcan_pnp_allocation;
         // Tip: messages published synchronously can share the same transfer-ID.
         uint64_t module_th;
+        //uint64_t service_module_th;  // not required
     } next_transfer_id;
 } State;
 
@@ -131,7 +134,7 @@ static CanardPortID getPublisherSubjectID(const char* const port_name, const cha
 {
     // Deduce the register name from port name.
     char register_name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_] = {0};
-    snprintf(&register_name[0], sizeof(register_name), "uavcan.pub.%s.id", port_name);
+    snprintf(&register_name[0], sizeof(register_name), "%s.id", port_name);
 
     // Set up the default value. It will be used to populate the register if it doesn't exist.
     uavcan_register_Value_1_0 val = {0};
@@ -148,7 +151,7 @@ static CanardPortID getPublisherSubjectID(const char* const port_name, const cha
     // very cheap to implement so all implementations should do so. This register simply contains the name of the
     // type exposed at this port. It should be immutable but it is not strictly required so in this implementation
     // we take shortcuts by making it mutable since it's behaviorally simpler in this specific case.
-    snprintf(&register_name[0], sizeof(register_name), "uavcan.pub.%s.type", port_name);
+    snprintf(&register_name[0], sizeof(register_name), "%s.type", port_name);
     uavcan_register_Value_1_0_select_string_(&val);
     val._string.value.count = nunavutChooseMin(strlen(type_name), uavcan_primitive_String_1_0_value_ARRAY_CAPACITY_);
     memcpy(&val._string.value.elements[0], type_name, val._string.value.count);
@@ -185,6 +188,16 @@ static void sendResponse(State* const                        state,
     send(state, tx_deadline_usec, &meta, payload_size, payload);
 }
 
+
+static void updateSensorsData(void){
+
+  module_th_msg.temperature.val.value                 = (int32_t) (rand() % 2000 + 27315);  // TODO: sample data from the real sensor.
+  module_th_msg.temperature.confidence.value          = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
+  module_th_msg.humidity.val.value                    = (int32_t) (rand() % 100       );  // TODO: sample data from the real sensor.
+  module_th_msg.humidity.confidence.value             = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
+}
+
+
 /// Invoked at the rate of the fastest loop.
 static void handleFastLoop(State* const state, const CanardMicrosecond monotonic_time)
 {
@@ -193,11 +206,7 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
     // Publish differential pressure reading if the subject is enabled and the node is non-anonymous.
     if (!anonymous && (state->port_id.pub.module_th <= CANARD_SUBJECT_ID_MAX))
     {
-
-        module_th_msg.temperature.val.value                 = (int32_t) (rand() % 2000 + 27315);  // TODO: sample data from the real sensor.
-        module_th_msg.temperature.confidence.value          = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
-	module_th_msg.humidity.val.value                    = (int32_t) (rand() % 100       );  // TODO: sample data from the real sensor.
-	module_th_msg.humidity.confidence.value             = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
+      updateSensorsData();
         // Serialize and publish the message:
         uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size = sizeof(serialized);
@@ -295,10 +304,8 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
     // Publish module_th reading if the subject is enabled and the node is non-anonymous.
     if (!anonymous && state->port_id.pub.module_th <= CANARD_SUBJECT_ID_MAX)
     {
-        module_th_msg.temperature.val.value                 = (int32_t) (rand() % 2000 + 27315);  // TODO: sample data from the real sensor.
-        module_th_msg.temperature.confidence.value          = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
-	module_th_msg.humidity.val.value                    = (int32_t) (rand() % 100       );  // TODO: sample data from the real sensor.
-	module_th_msg.humidity.confidence.value             = (uint8_t) (rand() % 100       );  // TODO: sample data from the real sensor.
+
+	updateSensorsData();
 
         // Serialize and publish the message:
         uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -550,7 +557,30 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     }
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
     {
-        if (transfer->metadata.port_id == uavcan_node_GetInfo_1_0_FIXED_PORT_ID_)
+
+	if (transfer->metadata.port_id == state->port_id.pub.service_module_th)
+	{
+            // The request object is empty so we don't bother deserializing it. Just send the response.
+
+	    updateSensorsData();
+	    
+	    // Serialize and publish the message:
+	    uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+	    size_t       serialized_size = sizeof(serialized);
+	    const int8_t res = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
+	    if (res >= 0)
+	      {
+	  // Send the response back. Make sure to re-use the same priority and transfer-ID.
+		// todo
+		//transfer->metadata.transfer_kind  = CanardTransferKindResponse;
+	  sendResponse(state,
+		       transfer->timestamp_usec + MEGA,
+		       &transfer->metadata,
+		       serialized_size,
+		       &serialized[0]);
+	      }
+	}
+      else if (transfer->metadata.port_id == uavcan_node_GetInfo_1_0_FIXED_PORT_ID_)
         {
             // The request object is empty so we don't bother deserializing it. Just send the response.
             const uavcan_node_GetInfo_Response_1_0 resp = processRequestNodeGetInfo();
@@ -844,50 +874,43 @@ void loop(void)
         getPublisherSubjectID("reg.rmap.module.TH.1.0",
 			      reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-
-
+    state.port_id.pub.service_module_th =
+        getPublisherSubjectID("reg.rmap.service.module.TH.GetDataAndMetadata.1.0",
+			      reg_rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
+    
     // Set up the default value. It will be used to populate the register if it doesn't exist.
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
+    uavcan_register_Value_1_0_select_natural32_(&val);
+    val.natural32.value.count       = 1;
+    val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
 
 
-    // Set up the default value. It will be used to populate the register if it doesn't exist.
-    //uavcan_register_Value_1_0 val = {0};
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
-    registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.Pindicator = val;
+    registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
+
+    registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.level.L2.value = val.natural32.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P1 = val;
+    module_th_msg.metadata.timerange.P1.value = val.natural32.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P2 = val;
+    module_th_msg.metadata.timerange.P2.value = val.natural32.value.elements[0];
+    
+
+    
+    uavcan_register_Value_1_0_select_natural8_(&val);
+    val.natural16.value.count       = 1;
+    val.natural16.value.elements[0] = UINT8_MAX;  // This means "undefined", per Specification, which is the default.
+
+    registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
+    module_th_msg.metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
     
     
     registerRead("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType1 = val;
-    
-    registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L1 = val;
+    module_th_msg.metadata.level.LevelType1.value = val.natural8.value.elements[0];
     
     registerRead("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType2 = val;
-
-    registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L2 = val;
-
-    /*
-    registerWrite("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    registerWrite("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    */
+    module_th_msg.metadata.level.LevelType2.value = val.natural8.value.elements[0];
 
     // Subscriptions:
     // (none in this application)
@@ -972,6 +995,25 @@ void loop(void)
         }
     }
 
+// Configure the library to listen for register access service requests.
+    {
+ 
+      static CanardRxSubscription rx;
+      const int8_t                res =  //
+	canardRxSubscribe(&state.canard,
+			       CanardTransferKindRequest,
+			  state.port_id.pub.service_module_th,
+			  reg_rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
+			       CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			       &rx);
+
+      if (res < 0)
+        {
+	  NVIC_SystemReset();
+	  //return -res;
+        }
+    }
+    
     // Now the node is initialized and we're ready to roll.
     state.started_at                           = getMonotonicMicroseconds();
     const CanardMicrosecond fast_loop_period   = MEGA / 100;
