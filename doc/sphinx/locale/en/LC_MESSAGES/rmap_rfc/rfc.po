@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-10 10:12+0200\n"
+"POT-Creation-Date: 2022-06-28 18:01+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,7 +39,7 @@ msgstr ""
 #: ../../rmap_rfc/rfc.rst:9
 msgid ""
 "2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; "
-"corretto configure RPC e aggiunto parametro 'sd'"
+"corretto configure RPC e aggiunto parametro \"sd\""
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:10
@@ -1911,7 +1911,7 @@ msgid ""
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:960
-msgid "payload : **{'v': 'error01'}**"
+msgid "payload : **{\"v\": \"error01\"}**"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:962
@@ -1927,7 +1927,7 @@ msgid "alla disconnessione allo stesso topic dovrà essere inviato:"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:972
-msgid "payload : **{ 'v': 'disconn'}**"
+msgid "payload : **{ \"v\": \"disconn\"}**"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:975
@@ -1955,8 +1955,8 @@ msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:991
 msgid ""
-"**IDENT**: identificativo della stazione per stazioni mobili, “” (campo "
-"vuoto) per stazioni fisse"
+"**IDENT**: identificativo della stazione per stazioni mobili, \"\" (campo"
+" vuoto) per stazioni fisse"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:993
@@ -1973,15 +1973,15 @@ msgstr ""
 #: ../../rmap_rfc/rfc.rst:997
 msgid ""
 "**TRANGE**: nella forma indicator,p1,p2; Indicator e p2 interi senza "
-"segno, p1 intero con eventuale segno negativo. “-” per valori non "
+"segno, p1 intero con eventuale segno negativo. \"-\" per valori non "
 "significativi"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1000
 msgid ""
 "**LEVEL**: nella forma type1,l1,type2,l2; Type1, type2 interi con "
-"eventuale segno negativo, l1e l2 interi con eventuale segno negativo. “-”"
-" per valori non significativi"
+"eventuale segno negativo, l1e l2 interi con eventuale segno negativo. "
+"\"-\" per valori non significativi"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1003
@@ -1990,8 +1990,8 @@ msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1005
 msgid ""
-"Il payload è in formato JSON: **{ “v”: VALUE, “t”: TIME, “a”: { “BXXYYY”:"
-" VALUE, … } }**"
+"Il payload è in formato JSON: **{ \"v\": VALUE, \"t\": TIME, \"a\": { "
+"\"BXXYYY\": VALUE, … } }**"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1008
@@ -2009,8 +2009,8 @@ msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1014
 msgid ""
-"Gli attributi (“a”) solitamente per controllo di qualità sono opzionali; "
-"la chiave fa riferimento alla tabella B e VALUE ha la stessa "
+"Gli attributi (\"a\") solitamente per controllo di qualità sono "
+"opzionali; la chiave fa riferimento alla tabella B e VALUE ha la stessa "
 "rappresentazione di VALUE descritto sopra."
 msgstr ""
 
@@ -2027,11 +2027,11 @@ msgstr ""
 #: ../../rmap_rfc/rfc.rst:1028
 msgid ""
 "con payload simile a quello dei dati, in particolare dovrà essere omessa "
-"la chiave “t”."
+"la chiave \"t\"."
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1031
-msgid "payload : **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**"
+msgid "payload : **{ \"v\": VALUE, \"a\": { \"BXXYYY\": VALUE, … } }**"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1034
@@ -2067,12 +2067,14 @@ msgid "Il payload prevede due parametri:"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1056
-msgid "'d' che descrive quale elemento della tabella D è preso in considerazione"
+msgid ""
+"\"d\" che descrive quale elemento della tabella D è preso in "
+"considerazione"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1058
 msgid ""
-"'p' con un array di valori corrispondenti ai \"VAR\" descritti "
+"\"p\" con un array di valori corrispondenti ai \"VAR\" descritti "
 "nell'elemento in tabella D"
 msgstr ""
 
@@ -2099,13 +2101,15 @@ msgid ""
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1093
-msgid "''e' che descrive quale elemento della tabella E è preso in considerazione"
+msgid ""
+"\"e\" che descrive quale elemento della tabella E è preso in "
+"considerazione"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1095
 msgid ""
-"'p' con un array di valori corrispondenti ai \"VAR\", \"LEVEL\" e "
-"'TRANGE' descritti nell'elemento in tabella E"
+"\"p\" con un array di valori corrispondenti ai \"VAR\", \"LEVEL\" e "
+"\"TRANGE\" descritti nell'elemento in tabella E"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1104
@@ -2258,15 +2262,15 @@ msgid "array sens:"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1187
-msgid "char tr: timerange (esempio: '1,0,60') (no default)"
+msgid "char tr: timerange (esempio: \"1,0,60\") (no default)"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1188
-msgid "char lev: level (esempio '1,-,-,-') (no default)"
+msgid "char lev: level (esempio \"1,-,-,-\") (no default)"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1189
-msgid "char var: variabile tabella B (esempio 'B13011') (no default)"
+msgid "char var: variabile tabella B (esempio \"B13011\") (no default)"
 msgstr ""
 
 #: ../../rmap_rfc/rfc.rst:1190
@@ -3010,5 +3014,94 @@ msgstr ""
 #~ "**IDENT**: identificativo della stazione per"
 #~ " stazioni mobili, “” per stazioni "
 #~ "fisse"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "2021/10/15 v. 2.7 : corretto topic "
+#~ "MQTT per constant station data; corretto"
+#~ " configure RPC e aggiunto parametro "
+#~ "'sd'"
+#~ msgstr ""
+
+#~ msgid "payload : **{'v': 'error01'}**"
+#~ msgstr ""
+
+#~ msgid "payload : **{ 'v': 'disconn'}**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "'d' che descrive quale elemento della"
+#~ " tabella D è preso in considerazione"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "'p' con un array di valori "
+#~ "corrispondenti ai \"VAR\" descritti "
+#~ "nell'elemento in tabella D"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "''e' che descrive quale elemento della"
+#~ " tabella E è preso in considerazione"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "'p' con un array di valori "
+#~ "corrispondenti ai \"VAR\", \"LEVEL\" e "
+#~ "'TRANGE' descritti nell'elemento in tabella"
+#~ " E"
+#~ msgstr ""
+
+#~ msgid "char tr: timerange (esempio: '1,0,60') (no default)"
+#~ msgstr ""
+
+#~ msgid "char lev: level (esempio '1,-,-,-') (no default)"
+#~ msgstr ""
+
+#~ msgid "char var: variabile tabella B (esempio 'B13011') (no default)"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "**IDENT**: identificativo della stazione per"
+#~ " stazioni mobili, “” (campo vuoto) "
+#~ "per stazioni fisse"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "**TRANGE**: nella forma indicator,p1,p2; "
+#~ "Indicator e p2 interi senza segno, "
+#~ "p1 intero con eventuale segno negativo."
+#~ " “-” per valori non significativi"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "**LEVEL**: nella forma type1,l1,type2,l2; "
+#~ "Type1, type2 interi con eventuale segno"
+#~ " negativo, l1e l2 interi con "
+#~ "eventuale segno negativo. “-” per valori"
+#~ " non significativi"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Il payload è in formato JSON: **{"
+#~ " “v”: VALUE, “t”: TIME, “a”: { "
+#~ "“BXXYYY”: VALUE, … } }**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Gli attributi (“a”) solitamente per "
+#~ "controllo di qualità sono opzionali; la"
+#~ " chiave fa riferimento alla tabella B"
+#~ " e VALUE ha la stessa "
+#~ "rappresentazione di VALUE descritto sopra."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "con payload simile a quello dei "
+#~ "dati, in particolare dovrà essere omessa"
+#~ " la chiave “t”."
+#~ msgstr ""
+
+#~ msgid "payload : **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**"
 #~ msgstr ""
 

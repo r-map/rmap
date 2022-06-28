@@ -6,7 +6,7 @@ Storia del documento
 
 - 2022/06/10 v. 2.9 : Versione 1 (precedentemente 0) del protocollo RMAP over MQTT
 - 2021/11/21 v. 2.8 : corretto topic MQTT per RPC
-- 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro 'sd'
+- 2021/10/15 v. 2.7 : corretto topic MQTT per constant station data; corretto configure RPC e aggiunto parametro "sd"
 - 2021/03/10 v. 2.6 : aggiunte alcune jsonrpc: prepare, getjson, prepandget
 - 2021/03/03 v. 2.5 : bug nella descrizione del livello; rimozione dei valori interi nel formato json; 
 - 2020/10/09 v. 2.4 : specificato il formato della data in json
@@ -957,7 +957,7 @@ segnalazione di sconnessione gestita male con will (retained):
    
    <roottopic>/USER/IDENT/COORDS/NETWORK/254,0,0/265,0,-,-/B01213/
 
-payload : **{'v': 'error01'}**
+payload : **{"v": "error01"}**
 
 poi questo messaggio viene "ricoperto" con:
 
@@ -969,7 +969,7 @@ payload : **{ "v": "conn"}**
 
 alla disconnessione allo stesso topic dovrà essere inviato:
 
-payload : **{ 'v': 'disconn'}**
+payload : **{ "v": "disconn"}**
 
 Data e Constant Data
 ^^^^^^^^^^^^^^^^^^^^
@@ -988,22 +988,22 @@ Forma simbilica del topic:
    <roottopic>/USER/IDENT/COORDS/NETWORK/TRANGE/LEVEL/VAR
 
 -  **USER**: utente che pubblica i dati
--  **IDENT**: identificativo della stazione per stazioni mobili, “”
+-  **IDENT**: identificativo della stazione per stazioni mobili, ""
    (campo vuoto) per stazioni fisse
 -  **COORDS**: nella forma lon,lat. Le coordinate sono espresse con
    rappresentazione sessadecimale nella forma int(valore*10^5) con
    eventuale segno negativo
 -  **NETWORK**: etichetta massimo 16 caratteri
 -  **TRANGE**: nella forma indicator,p1,p2; Indicator e p2 interi senza
-   segno, p1 intero con eventuale segno negativo. “-” per valori non
+   segno, p1 intero con eventuale segno negativo. "-" per valori non
    significativi
 -  **LEVEL**: nella forma type1,l1,type2,l2; Type1, type2 interi con
    eventuale segno negativo, l1e l2 interi con eventuale segno negativo.
-   “-” per valori non significativi
+   "-" per valori non significativi
 -  **VAR**: nella forma BXXYYY come da tabelle B codice BUFR WMO
 
-Il payload è in formato JSON: **{ “v”: VALUE, “t”: TIME, “a”: {
-“BXXYYY”: VALUE, … } }**
+Il payload è in formato JSON: **{ "v": VALUE, "t": TIME, "a": {
+"BXXYYY": VALUE, … } }**
 
 -  **VALUE**: valore in formato intero o a virgola mobile o stringa
    (vedi specifiche precedenti)
@@ -1011,7 +1011,7 @@ Il payload è in formato JSON: **{ “v”: VALUE, “t”: TIME, “a”: {
    opzionali) un sottoinsime delle specifiche in
    https://tools.ietf.org/html/rfc3339
 
-Gli attributi (“a”) solitamente per controllo di qualità sono opzionali;
+Gli attributi ("a") solitamente per controllo di qualità sono opzionali;
 la chiave fa riferimento alla tabella B e VALUE ha la stessa
 rappresentazione di VALUE descritto sopra.
 
@@ -1026,9 +1026,9 @@ questo topic:
    <roottopic>/USER/IDENT/COORDS/NETWORK/-,-,-/-,-,-,-/VAR
 
 con payload simile a quello dei dati, in particolare dovrà essere omessa
-la chiave “t”.
+la chiave "t".
 
-payload : **{ “v”: VALUE, “a”: { “BXXYYY”: VALUE, … } }**
+payload : **{ "v": VALUE, "a": { "BXXYYY": VALUE, … } }**
 
 Estensioni
 ^^^^^^^^^^
@@ -1053,9 +1053,9 @@ Il topic e come quello della forma standard senza l'ultimo parametro
 
 Il payload prevede due parametri:
 
--  'd' che descrive quale elemento della tabella D è preso in
+-  "d" che descrive quale elemento della tabella D è preso in
    considerazione
--  'p' con un array di valori corrispondenti ai "VAR" descritti
+-  "p" con un array di valori corrispondenti ai "VAR" descritti
    nell'elemento in tabella D
 
 Ad esempio:
@@ -1090,10 +1090,10 @@ standard senza i parametri "VAR", "LEVEL" e "TRANGE". Ad esempio:
 
 Il payload prevede due parametri:
 
--  ''e' che descrive quale elemento della tabella E è preso in
+-  "e" che descrive quale elemento della tabella E è preso in
    considerazione
--  'p' con un array di valori corrispondenti ai "VAR", "LEVEL" e
-   'TRANGE' descritti nell'elemento in tabella E
+-  "p" con un array di valori corrispondenti ai "VAR", "LEVEL" e
+   "TRANGE" descritti nell'elemento in tabella E
 
 Ad esempio:
 
@@ -1184,9 +1184,9 @@ parametri:
    operazione è l'ultima ad essere effettuata dal server (default false)
 -  array sens:
 
-   -  char tr: timerange (esempio: '1,0,60') (no default)
-   -  char lev: level (esempio '1,-,-,-') (no default)
-   -  char var: variabile tabella B (esempio 'B13011') (no default)
+   -  char tr: timerange (esempio: "1,0,60") (no default)
+   -  char lev: level (esempio "1,-,-,-") (no default)
+   -  char var: variabile tabella B (esempio "B13011") (no default)
    -  any ext: configurazione relativa a una implementazione specifica
       di un sensore nella stazione OPZIONALE:
       

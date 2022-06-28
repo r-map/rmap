@@ -9,14 +9,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-10-09 15:53+0200\n"
+"POT-Creation-Date: 2022-06-28 17:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.7.0\n"
+"Generated-By: Babel 2.9.1\n"
 
 #: ../../stima_v3/stimacode.rst:3
 msgid "Documentazione del codice"
@@ -31,11 +31,23 @@ msgid "Public Members"
 msgstr ""
 
 #: ../../stima_v3/stimacode.rst
+msgid "Public Functions"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Private Members"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Friends"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
 msgid "Defines"
 msgstr ""
 
 #: ../../stima_v3/stimacode.rst
-msgid "Enums"
+msgid "Typedefs"
 msgstr ""
 
 #: ../../stima_v3/stimacode.rst
@@ -44,5 +56,9 @@ msgstr ""
 
 #: ../../stima_v3/stimacode.rst
 msgid "Variables"
+msgstr ""
+
+#: ../../stima_v3/stimacode.rst
+msgid "Enums"
 msgstr ""
 

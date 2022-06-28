@@ -824,9 +824,9 @@ Upload del firmware tramite micro SD-Card attraverso Digitecoboot
 5. Spegnere il modulo e rimuovere eventualmente la micro SD-Card contenente il
    firmware
 6. Verificare sul display LCD la corretta versione del firmware
-6. Se necessario, inserire la micro SD-Card utile per il funzionamento
+7. Se necessario, inserire la micro SD-Card utile per il funzionamento
    del modulo (senza il file FIRMWARE.BIN)
-7. Alimentare il modulo
+8. Alimentare il modulo
 
 Assemblaggio stazione Stima
 ---------------------------

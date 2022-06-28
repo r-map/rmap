@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RMAP e Stima \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-06-07 17:19+0200\n"
+"POT-Creation-Date: 2022-06-28 17:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -273,7 +273,7 @@ msgstr ""
 msgid "Aggiunta repository e installazione pacchetti ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:194 ../../server_rmap/server_rmap.rst:551
+#: ../../server_rmap/server_rmap.rst:194
 msgid "/etc/selinux/config::"
 msgstr ""
 
@@ -399,7 +399,7 @@ msgid ""
 "<https://raw.githubusercontent.com/r-map/rmap/master/server/etc/mosquitto/aclfile>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:351 ../../server_rmap/server_rmap.rst:585
+#: ../../server_rmap/server_rmap.rst:351
 msgid "remove everythings and add in /etc/mosquitto/mosquitto.conf ::"
 msgstr ""
 
@@ -505,7 +505,7 @@ msgstr ""
 msgid "Sincronizzazione DB da un server"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:437 ../../server_rmap/server_rmap.rst:659
+#: ../../server_rmap/server_rmap.rst:437 ../../server_rmap/server_rmap.rst:661
 msgid "Server di origine"
 msgstr ""
 
@@ -513,7 +513,7 @@ msgstr ""
 msgid "rimuovere le prime righe che non sono json ::"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:453 ../../server_rmap/server_rmap.rst:672
+#: ../../server_rmap/server_rmap.rst:453 ../../server_rmap/server_rmap.rst:674
 msgid "Server di destinazione"
 msgstr ""
 
@@ -543,16 +543,20 @@ msgid ""
 "Linux 8"
 msgstr ""
 
+#: ../../server_rmap/server_rmap.rst:551
+msgid "modificare il file /etc/selinux/config::"
+msgstr ""
+
 #: ../../server_rmap/server_rmap.rst:555
 msgid ""
-"`/etc/tmpfiles.d/rmap.conf "
+"scaricare il file `/etc/tmpfiles.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/tmpfiles.d/rmap.conf>`_"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:568
 msgid ""
-"`/etc/rmap/rmap-site.cfg "
+"scaricare il file `/etc/rmap/rmap-site.cfg "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/rmap/rmap-site.cfg>`_"
 msgstr ""
@@ -563,28 +567,34 @@ msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:582
 msgid ""
-"`/etc/mosquitto/conf.d/rmap.conf "
+"scaricare il file `/etc/mosquitto/conf.d/rmap.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/mosquitto/conf.d/rmap.conf>`_"
 msgstr ""
 
+#: ../../server_rmap/server_rmap.rst:585
+msgid ""
+"cancellare tutto il contenuto del file /etc/mosquitto/mosquitto.conf e "
+"sostituirlo con le seguenti righe: ::"
+msgstr ""
+
 #: ../../server_rmap/server_rmap.rst:607
 msgid ""
-"`/etc/rabbitmq/enabled_plugins "
+"scaricare il file `/etc/rabbitmq/enabled_plugins "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/rabbitmq/enabled_plugins>`_"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:609
 msgid ""
-"`/etc/rabbitmq/rabbitmq-env.conf "
+"scaricare il file `/etc/rabbitmq/rabbitmq-env.conf "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/rabbitmq/rabbitmq-env.conf>`_"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:611
 msgid ""
-"`/etc/rabbitmq/rabbitmq.config "
+"scaricare il file `/etc/rabbitmq/rabbitmq.config "
 "<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
 "ingestion/etc/rabbitmq/rabbitmq.config>`_"
 msgstr ""
@@ -599,46 +609,50 @@ msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:629
 msgid ""
-"login at management interface with user \"guest\" and password \"guest\" "
-"on overview page use import definition to configure exchange, queue and "
-"users importing the file:"
+"effettuare il login all'interfaccia di management web: <http://server-"
+"fqdn:15672/> con user \"guest\" e password \"guest\", quindi utilizzare "
+"la funzione \"import definition\" per caricare exchange, queue e users "
+"importando il seguente file:"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:633
+#: ../../server_rmap/server_rmap.rst:632
 msgid ""
 "`rabbit_server_data_ingestion.json "
 "<https://raw.githubusercontent.com/r-map/rmap/master/rabbitmq/rabbit_server_data_ingestion.json>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:635
+#: ../../server_rmap/server_rmap.rst:634
 msgid ""
-"with the same management interface set all the user's password and remove"
-" \"guest\" user and login with a new real user."
+"dalla stessa interfaccia di management web impostare le password per "
+"tutti gli utenti, rimuovere l'utente \"guest\" e fare login con uno dei "
+"nuovi utenti definiti."
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:645
 msgid ""
-"`/etc/monitrc <https://raw.githubusercontent.com/r-map/rmap/master"
-"/server-data-ingestion/etc/monitrc>`_"
+"scaricare il file `/etc/monitrc "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/monitrc>`_"
 msgstr ""
 
 #: ../../server_rmap/server_rmap.rst:647
 msgid ""
-"`/etc/monit.d/rmap <https://raw.githubusercontent.com/r-map/rmap/master"
-"/server-data-ingestion/etc/monit.d/rmap>`_"
+"scaricare il file `/etc/monit.d/rmap "
+"<https://raw.githubusercontent.com/r-map/rmap/master/server-data-"
+"ingestion/etc/monit.d/rmap>`_"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:656
+#: ../../server_rmap/server_rmap.rst:658
 msgid ""
 "Sincronizzazione file statici per autenticazione e autorizzazione da un "
 "server RMAP completo"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:668
+#: ../../server_rmap/server_rmap.rst:670
 msgid "eventualmente rimuovere le prime righe di messaggistica del logging"
 msgstr ""
 
-#: ../../server_rmap/server_rmap.rst:674
+#: ../../server_rmap/server_rmap.rst:676
 msgid ""
 "Trasferire i file in /etc/mosquitto/ sul nostro server per la data "
 "ingestion. Imparire il comando:"
@@ -761,5 +775,68 @@ msgstr ""
 #~ msgstr ""
 
 #~ msgid "AL MOMENTO NON DISPONIBILE SU CENTOS 8 NOT AVAILABLE ON CENTOS 8"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/tmpfiles.d/rmap.conf "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/tmpfiles.d/rmap.conf>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/rmap/rmap-site.cfg "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/rmap/rmap-site.cfg>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/mosquitto/conf.d/rmap.conf "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/mosquitto/conf.d/rmap.conf>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/rabbitmq/enabled_plugins "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/rabbitmq/enabled_plugins>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/rabbitmq/rabbitmq-env.conf "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/rabbitmq/rabbitmq-env.conf>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/rabbitmq/rabbitmq.config "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/rabbitmq/rabbitmq.config>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "login at management interface with user"
+#~ " \"guest\" and password \"guest\" on "
+#~ "overview page use import definition to"
+#~ " configure exchange, queue and users "
+#~ "importing the file:"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "with the same management interface set"
+#~ " all the user's password and remove"
+#~ " \"guest\" user and login with a "
+#~ "new real user."
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/monitrc "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/monitrc>`_"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "`/etc/monit.d/rmap "
+#~ "<https://raw.githubusercontent.com/r-map/rmap/master/server-"
+#~ "data-ingestion/etc/monit.d/rmap>`_"
 #~ msgstr ""
 
