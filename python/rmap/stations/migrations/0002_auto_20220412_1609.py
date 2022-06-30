@@ -16,9 +16,4 @@ class Migration(migrations.Migration):
             name='mqttpassword',
             field=models.CharField(blank=True, default='', help_text='MQTT password', max_length=50, null=True),
         ),
-        migrations.AddField(
-            model_name='transportmqtt',
-            name='mqttpskkey',
-            field=models.CharField(blank=True, default=rmap.stations.models.TransportMqtt.genpskkey, help_text='MQTT PSK Key', max_length=254, null=True),
-        ),
     ]

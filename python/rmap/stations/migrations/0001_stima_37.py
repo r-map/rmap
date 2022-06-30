@@ -325,11 +325,6 @@ class Migration(migrations.Migration):
             name='network',
             field=models.CharField(choices=[(b'fixed', b'For station with fixed coordinate'), (b'mobile', b'For station with mobile coordinate')], default=b'fixed', help_text='station network', max_length=50),
         ),
-        migrations.AddField(
-            model_name='transporttcpip',
-            name='gsmapn',
-            field=models.CharField(default='ibox.tim.it', help_text='APN for gsm access', max_length=50),
-        ),
         migrations.AlterField(
             model_name='stationmetadata',
             name='mqttmaintpath',
@@ -589,11 +584,6 @@ class Migration(migrations.Migration):
         migrations.AlterUniqueTogether(
             name='stationmetadata',
             unique_together={('ident', 'lat', 'lon', 'network'), ('slug', 'ident')},
-        ),
-        migrations.AddField(
-            model_name='transportmqtt',
-            name='mqttpskkey',
-            field=models.CharField(blank=True, default=rmap.stations.models.TransportMqtt.genpskkey, help_text='MQTT PSK Key', max_length=254, null=True),
         ),
         migrations.RunPython(
             code=create_superuser,
