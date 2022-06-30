@@ -184,8 +184,8 @@ Aggiunta repository e installazione pacchetti
   dnf copr enable simc/stable
   dnf copr enable pat1/rmap
   dnf config-manager --set-enabled powertools
-  dnf groupinstall rmap
   dnf copr enable simc/cosudo
+  dnf install python3-rmap
   dnf install python3-django-dynamic-map-borinud
   dnf install mosquitto mosquitto-auth-plug
   dnf install arkimet
@@ -216,17 +216,7 @@ postgresql
 
    dnf module disable postgresql:10
    dnf module enable postgresql:12
-   dnf install postgresql-server postgresql-contrib
-   dnf installpython3-psycopg2
-
-::
-
-   postgresql-setup --initdb --unit postgresql
-
-
-`/var/lib/pgsql/data/pg_hba.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/pg_hba.conf>`_
-
-`/var/lib/pgsql/data/postgresql.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/var/lib/pgsql/data/postgresql.conf>`_
+   dnf install postgresql-server postgresql-contrib python3-psycopg2
 
 ::
 
@@ -235,21 +225,24 @@ postgresql
 `/etc/systemd/system/postgresql.service.d/rmap.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/systemd/system/postgresql.service.d/rmap.conf>`_
 ::
 
- mkdir /rmap/pgsql/
- chown postgres:postgres /rmap/pgsql/
- mv /var/lib/pgsql/data /rmap/pgsql/
- 
- su - postgres
- initdb
- exit
- 
- systemctl enable postgresql.service
- systemctl start postgresql.service
+   mkdir /rmap/pgsql/
+   chown postgres:postgres /rmap/pgsql/
+   postgresql-setup --initdb --unit postgresql
 
- su - postgres
- createuser -P -e rmapadmin
- createdb --owner=rmapadmin rmapadmin
- exit
+
+`/rmap/pgsql/data/pg_hba.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/rmap/pgsql/data/pg_hba.conf>`_
+
+`/rmap/pgsql/data/postgresql.conf <https://raw.githubusercontent.com/r-map/rmap/master/server/rmap/pgsql/data/postgresql.conf>`_
+
+::
+   
+   systemctl enable postgresql.service
+   systemctl start postgresql.service
+
+   su - postgres
+   createuser -P -e rmapadmin
+   createdb --owner=rmapadmin rmapadmin
+   exit
 
 
 `/etc/rmap/rmap-site.cfg <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/rmap/rmap-site.cfg>`_
@@ -273,18 +266,29 @@ postgresql
 
    exit
 
+
+
+::
+   
+   dbadb wipe --dsn="postgresql://rmap:<password>@localhost/report_fixed"
+   dbadb wipe --dsn="postgresql://rmap:<password>@localhost/report_mobile"
+   dbadb wipe --dsn="postgresql://rmap:<password>@localhost/sample_mobile"
+   dbadb wipe --dsn="postgresql://rmap:<password>@localhost/sample_fixed"
+
+   
 apache
 ......
 
 Collect static files from django apps:
 ::
    
-   mkdir /root/tmp/global_static
+   mkdir /root/global_static
    rmapctrl --collectstatic
-   rmdir /root/tmp/global_static
+   rmdir /root/global_static
 
-   yum install python3-mod_wsgi
-
+   dnf install python3-mod_wsgi
+   dnf install mod_security
+   
    useradd -r rmap
    mkdir /home/rmap
    chown rmap:rmap /home/rmap
@@ -352,7 +356,7 @@ remove everythings and add in /etc/mosquitto/mosquitto.conf
 ::
    
    include_dir /etc/mosquitto/conf.d
-   pid_file /var/run/mosquitto.pid
+   pid_file /var/run/mosquitto/mosquitto.pid
 
 ::
    
