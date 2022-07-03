@@ -291,9 +291,9 @@ def main(self):
     topicdict["report"]["fixed"]["v0"]  = "{}/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
     topicdict["report"]["mobile"]["v0"] = "{}/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
-    topicdict["sample"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicsample,"fixed")
+    topicdict["sample"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicsample,"+")
     topicdict["sample"]["mobile"]["v1"] = "1/{}/+/+/+/{}/#".format(rmap.settings.topicsample,"mobile")
-    topicdict["report"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicreport,"fixed")
+    topicdict["report"]["fixed"]["v1"]  = "1/{}/+/+/+/{}/#".format(rmap.settings.topicreport,"+")
     topicdict["report"]["mobile"]["v1"] = "1/{}/+/+/+/{}/#".format(rmap.settings.topicreport,"mobile")
 
     

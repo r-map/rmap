@@ -761,12 +761,6 @@ class StationMetadata(models.Model):
         ('unknown','Unknown & Missing'),
     )
 
-    STATION_NETWORK_CHOICES = (
-        ('fixed',  'For station with fixed coordinate'),
-        ('mobile', 'For station with mobile coordinate'),
-    )
-
-
     name = models.CharField(max_length=255,default="My station",help_text=ugettext_lazy("station name"))
     active = models.BooleanField(ugettext_lazy("Active"),default=True,help_text=ugettext_lazy("Activate the station for measurements"))
     slug = models.SlugField(unique=False, help_text=ugettext_lazy('Auto-generated from name.'))
@@ -779,7 +773,7 @@ class StationMetadata(models.Model):
     lat = models.FloatField(ugettext_lazy("Latitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Latitude of the fixed station'))
     lon = models.FloatField(ugettext_lazy("Longitude"),default=None,null=True,blank=True, help_text=ugettext_lazy('Precise Longitude of the fixed station'))
 
-    network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, choices=STATION_NETWORK_CHOICES, help_text=ugettext_lazy("station network"))
+    network = models.CharField(max_length=50,default="fixed",unique=False,null=False,blank=False, help_text=ugettext_lazy("station network ( mobile for station with mobile coordinate)"))
 
     mqttrootpath = models.CharField(max_length=100,default="sample",null=False,blank=False,help_text=ugettext_lazy("root mqtt path for publish"))
     mqttmaintpath = models.CharField(max_length=100,default="maint",null=False,blank=False,help_text=ugettext_lazy("maint mqtt path for publish"))
@@ -812,7 +806,7 @@ class StationMetadata(models.Model):
         if (self.lat is None and not self.lon is None) or (not self.lat is None and self.lon is None):
             raise ValidationError(ugettext_lazy('Station have only one coordinate defined (lat/lon).'))
             
-        if (self.network == "fixed" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
+        if (self.network != "mobile" and self.lat is None) or (self.network == "mobile" and not self.lat is None):
             raise ValidationError(ugettext_lazy('Station network have inconsistent definition of coordinate (lat/lon).'))
 
         if (self.ident == "" and self.lat is None):

@@ -1285,7 +1285,7 @@ LEAFLET_WIDGET_ATTRS = {
     'timeDimensionControl': True,
 }
 
-MAINSITES=("rmap.cc","rmap.it","test.rmap.cc")
+MAINSITES=("rmap.cc","rmap.it","test.rmap.cc","rmap.arpae.it")
 ALLOWED_HOSTS = ['*']
 
 #django-hosts configuration

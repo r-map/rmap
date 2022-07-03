@@ -112,7 +112,7 @@ class MyMQTTClass(mqtt.Client):
             g = match.groupdict()
             return {
                 "user": None if g["user"] == "" else g["user"],
-                "ident": None if g["ident"] == "" else g["ident"],
+                "ident": g["ident"],
                 "lon": int(g["lon"]),
                 "lat": int(g["lat"]),
                 "rep_memo": g["rep"],
