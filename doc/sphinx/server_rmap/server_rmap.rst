@@ -186,6 +186,7 @@ Aggiunta repository e installazione pacchetti
   dnf config-manager --set-enabled powertools
   dnf copr enable simc/cosudo
   dnf install python3-rmap
+  python3-django-cors-headers
   dnf install python3-django-dynamic-map-borinud
   dnf install mosquitto mosquitto-auth-plug
   dnf install arkimet
@@ -424,6 +425,12 @@ Monit
 
 Cron
 ....
+
+::
+
+   mkdir /rmap/dballe
+   chown -R rmap:rmap /rmap/dballe
+
 
 `/etc/cron.d/arpae_aq_ckan <https://raw.githubusercontent.com/r-map/rmap/master/server/etc/cron.d/arpae_aq_ckan>`_
 
