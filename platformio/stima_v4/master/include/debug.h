@@ -30,8 +30,16 @@
 #define _DEBUG_H
 
 //Dependencies
+#include <Arduino.h>
+#include "compiler_port.h"
+#include "debug_config.h"
 #include <stdio.h>
 #include "os_port.h"
+
+// C++ guard
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 //Trace level definitions
 #define TRACE_LEVEL_OFF      0
@@ -127,21 +135,15 @@
    #define TRACE_VERBOSE_MPI(p, a)
 #endif
 
-//C++ guard
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 //Debug related functions
 void debugInit(uint32_t baudrate);
 
-void debugDisplayArray(FILE *stream,
-   const char_t *prepend, const void *data, size_t length);
+void debugDisplayArray(FILE *stream, const char_t *prepend, const void *data, size_t length);
 
 //Deprecated definitions
 #define TRACE_LEVEL_NO_TRACE TRACE_LEVEL_OFF
 
-//C++ guard
+// C++ guard
 #ifdef __cplusplus
 }
 #endif
