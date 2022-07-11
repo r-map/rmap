@@ -245,4 +245,15 @@
 //scrypt support
 #define SCRYPT_SUPPORT DISABLED
 
+//RSA certificate support
+#define X509_RSA_SUPPORT ENABLED
+//RSA-PSS certificate support
+#define X509_RSA_PSS_SUPPORT DISABLED
+//DSA certificate support
+#define X509_DSA_SUPPORT DISABLED
+//Ed25519 certificate support
+#define X509_ED25519_SUPPORT ENABLED
+//Ed448 certificate support
+#define X509_ED448_SUPPORT ENABLED
+
 #endif

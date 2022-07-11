@@ -33,7 +33,7 @@
 
 #include "hardware_config.h"
 #include "net_config.h"
-#include "mydebug.h"
+#include "debug.h"
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
 #include "ticks.hpp"

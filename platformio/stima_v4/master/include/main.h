@@ -50,7 +50,7 @@
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
 #include "rng/trng.h"
 #include "rng/yarrow.h"
-#include "mydebug.h"
+#include "debug.h"
 
 #include "tasks/led_task.h"
 #include "tasks/hardware_task.h"

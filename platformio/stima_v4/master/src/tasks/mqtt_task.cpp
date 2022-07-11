@@ -6,10 +6,14 @@ using namespace cpp_freertos;
 
 YarrowContext *mqttYarrowContext;
 char_t *mqttTrustedCaList;
+uint8_t *clientPsk;
+uint16_t *cipherSuites;
 
 MqttTask::MqttTask(const char *taskName, uint16_t stackSize, uint8_t priority, MqttParam_t mqttParam) : Thread(taskName, stackSize, priority), MqttParam(mqttParam) {
   mqttYarrowContext = MqttParam.yarrowContext;
   mqttTrustedCaList = MqttParam.trustedCaList;
+  clientPsk = MqttParam.clientPsk;
+  cipherSuites = MqttParam.cipherSuites;
   state = MQTT_STATE_INIT;
   Start();
 };
@@ -80,16 +84,33 @@ void mqttPublishCallback(MqttClientContext *context,
    if(error)
    return error;
 
+   //Preferred cipher suite list
+   error = tlsSetCipherSuites(tlsContext, cipherSuites, arraysize(cipherSuites));
+   //Any error to report?
+   if(error)
+   return error;
+
    //Set the fully qualified domain name of the server
    error = tlsSetServerName(tlsContext, APP_SERVER_NAME);
    //Any error to report?
    if(error)
    return error;
 
-   #if (APP_SERVER_PORT == 8884)
+   #if (APP_SERVER_PORT == 8885)
    //Import client's certificate
-   error = tlsAddCertificate(tlsContext, clientCert, strlen(clientCert),
-   clientKey, strlen(clientKey));
+  //  error = tlsAddCertificate(tlsContext, clientCert, strlen(clientCert), clientKey, strlen(clientKey));
+   //Any error to report?
+   if(error)
+   return error;
+
+   //Set the PSK identity to be used by the client
+   error = tlsSetPskIdentity(tlsContext, APP_CLIENT_PSK_IDENTITY);
+   //Any error to report?
+   if(error)
+   return error;
+
+   //Set the pre-shared key to be used
+   error = tlsSetPsk(tlsContext, clientPsk, sizeof(clientPsk));
    //Any error to report?
    if(error)
    return error;
@@ -229,7 +250,7 @@ void MqttTask::Run() {
 
       case MQTT_STATE_PUBLISH:
         //Send PUBLISH packet
-        error = mqttClientPublish(&MqttParam.mqttClientContext, "board/status", "online", 6, MqttParam.qos, MqttParam.isPublishRetain, NULL);
+        error = mqttClientPublish(&MqttParam.mqttClientContext, "report/myuser/prova", "test", 6, MqttParam.qos, MqttParam.isPublishRetain, NULL);
         if (error) {
           //Connection to MQTT server lost?
           state = MQTT_STATE_CLOSE_CONNECTION;

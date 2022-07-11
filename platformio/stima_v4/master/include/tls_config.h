@@ -97,22 +97,22 @@
 //ECDH_anon key exchange support (insecure)
 #define TLS_ECDH_ANON_KE_SUPPORT DISABLED
 //PSK key exchange support
-#define TLS_PSK_KE_SUPPORT DISABLED
+#define TLS_PSK_KE_SUPPORT ENABLED
 //RSA_PSK key exchange support
-#define TLS_RSA_PSK_KE_SUPPORT DISABLED
+#define TLS_RSA_PSK_KE_SUPPORT ENABLED
 //DHE_PSK key exchange support
-#define TLS_DHE_PSK_KE_SUPPORT DISABLED
+#define TLS_DHE_PSK_KE_SUPPORT ENABLED
 //ECDHE_PSK key exchange support
-#define TLS_ECDHE_PSK_KE_SUPPORT DISABLED
+#define TLS_ECDHE_PSK_KE_SUPPORT ENABLED
 
 //DHE key exchange support (TLS 1.3)
 #define TLS13_DHE_KE_SUPPORT DISABLED
 //ECDHE key exchange support (TLS 1.3)
 #define TLS13_ECDHE_KE_SUPPORT ENABLED
 //PSK-only key exchange support (TLS 1.3)
-#define TLS13_PSK_KE_SUPPORT DISABLED
+#define TLS13_PSK_KE_SUPPORT ENABLED
 //PSK with DHE key exchange support (TLS 1.3)
-#define TLS13_PSK_DHE_KE_SUPPORT DISABLED
+#define TLS13_PSK_DHE_KE_SUPPORT ENABLED
 //PSK with ECDHE key exchange support (TLS 1.3)
 #define TLS13_PSK_ECDHE_KE_SUPPORT ENABLED
 

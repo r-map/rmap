@@ -65,14 +65,16 @@
 #define APP_IPV6_SECONDARY_DNS "2001:4860:4860::8844"
 
 // Application configuration
-#define APP_SERVER_NAME "test.mosquitto.org"
+#define APP_SERVER_NAME "test.rmap.cc"
 // #define APP_SERVER_PORT 1883   //MQTT over TCP
-#define APP_SERVER_PORT 8883 //MQTT over TLS
-//#define APP_SERVER_PORT 8884 //MQTT over TLS (mutual authentication)
+// #define APP_SERVER_PORT 8883 //MQTT over TLS
+#define APP_SERVER_PORT 8885 //MQTT over TLS (mutual authentication)
 //#define APP_SERVER_PORT 8080 //MQTT over WebSocket
 //#define APP_SERVER_PORT 8081 //MQTT over secure WebSocket
 
-#define APP_SET_CIPHER_SUITES DISABLED
+#define APP_CLIENT_PSK_IDENTITY "myuser/settefonti/stima"
+
+#define APP_SET_CIPHER_SUITES ENABLED
 #define APP_SET_SERVER_NAME ENABLED
 #define APP_SET_TRUSTED_CA_LIST ENABLED
 

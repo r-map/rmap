@@ -131,12 +131,52 @@ const char_t trustedCaList[] =
 "KOqkqm57TH2H3eDJAkSnh6/DNFu0Qg=="
 "-----END CERTIFICATE-----";
 
+//Client's PSK
+const uint8_t clientPsk[] = {
+   0xE0, 0x3D, 0x76, 0x4A, 0x6B, 0xF6, 0x4A, 0x46,
+   0x19, 0xE1, 0xBD, 0x46, 0x7E, 0x9B, 0xF0, 0x23};
+
+//List of preferred ciphersuites
+const uint16_t cipherSuites[] =
+{
+  //  TLS_CHACHA20_POLY1305_SHA256,
+  //  TLS_AES_128_GCM_SHA256,
+  //  TLS_AES_256_GCM_SHA384,
+  //  TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+  //  TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+  //  TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+  //  TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+  //  TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+  //  TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+  //  TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,
+  //  TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
+  //  TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,
+  //  TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+  //  TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,
+  //  TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,
+  //  TLS_DHE_RSA_WITH_AES_128_CBC_SHA,
+  //  TLS_DHE_RSA_WITH_AES_256_CBC_SHA,
+  //  TLS_RSA_WITH_AES_128_GCM_SHA256,
+  //  TLS_RSA_WITH_AES_256_GCM_SHA384,
+  //  TLS_RSA_WITH_AES_128_CBC_SHA,
+  //  TLS_RSA_WITH_AES_256_CBC_SHA,
+  //  TLS_RSA_WITH_3DES_EDE_CBC_SHA,
+   TLS_PSK_WITH_RC4_128_SHA, //RFC 4279
+   TLS_PSK_WITH_3DES_EDE_CBC_SHA, //RFC 4279
+   TLS_PSK_WITH_AES_128_CBC_SHA, //RFC 4279
+   TLS_PSK_WITH_AES_256_CBC_SHA, //RFC 4279
+   TLS_DHE_PSK_WITH_RC4_128_SHA, //RFC 4279
+   TLS_DHE_PSK_WITH_3DES_EDE_CBC_SHA, //RFC 4279
+   TLS_DHE_PSK_WITH_AES_128_CBC_SHA, //RFC 4279
+   TLS_DHE_PSK_WITH_AES_256_CBC_SHA, //RFC 4279
+};
+
 void setup() {
   osInitKernel();
-  SerialDebugInit(115200);
-
+  debugInit(115200);
+  
   error_t error = NO_ERROR;
-
+  
   error = initCPRNG();
   if (error) {
     TRACE_ERROR("Failed to initialize Cryptographic Pseudo Random Number Generator!\r\n");
@@ -146,20 +186,20 @@ void setup() {
   if (error) {
     TRACE_ERROR("Failed to initialize TCP/IP stack!\r\n");
   }
-
+  
   LedParam_t ledParam1 = {LED1_PIN, 100, 900};
   LedParam_t ledParam2 = {LED2_PIN, 200, 800};
   LedParam_t ledParam3 = {LED3_PIN, 300, 700};
   // HardwareParam_t hardwareParam;
   EthernetParam_t ethernetParam;
   MqttParam_t mqttParam;
-
+  
   // hardwareParam.interface = &netInterface[0];
   // hardwareParam.tickHandlerMs = APP_ETHERNET_TICK_EVENT_HANDLER_MS;
-
+  
   ethernetParam.interface = &netInterface[0];
   ethernetParam.tickHandlerMs = APP_ETHERNET_TICK_EVENT_HANDLER_MS;
-
+  
   mqttParam.interface = &netInterface[0];
   mqttParam.timeoutMs = APP_MQTT_TIMEOUT_MS;
   mqttParam.attemptDelayMs = APP_MQTT_ATTEMPT_DELAY_MS;
@@ -182,14 +222,16 @@ void setup() {
   mqttParam.isPublishRetain = false;
   mqttParam.yarrowContext = &yarrowContext;
   mqttParam.trustedCaList = (char *)trustedCaList;
-
+  mqttParam.clientPsk = (uint8_t *)clientPsk;
+  mqttParam.cipherSuites = (uint16_t *)cipherSuites;
+  
   static LedTask led_1_task("LED 1 TASK", 100, OS_TASK_PRIORITY_01, ledParam1);
   static LedTask led_2_task("LED 2 TASK", 100, OS_TASK_PRIORITY_01, ledParam2);
   static LedTask led_3_task("LED 3 TASK", 100, OS_TASK_PRIORITY_01, ledParam3);
   // static HardwareTask hw_task("HW TASK", 100, OS_TASK_PRIORITY_11, hardwareParam);
   static EthernetTask eth_task("ETH TASK", 100, OS_TASK_PRIORITY_03, ethernetParam);
   static MqttTask mqtt_task("MQTT TASK", 1024, OS_TASK_PRIORITY_02, mqttParam);
-
+  
   cpp_freertos::Thread::StartScheduler();
 }
 

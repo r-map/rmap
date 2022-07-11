@@ -50,7 +50,7 @@
 #include "rng/trng.h"
 #include "rng/yarrow.h"
 #include "net_util.h"
-#include "mydebug.h"
+#include "debug.h"
 
 typedef enum {
    MQTT_STATE_INIT,
@@ -80,6 +80,8 @@ typedef struct {
   bool isPublishRetain;
   YarrowContext *yarrowContext;
   char_t *trustedCaList;
+  uint8_t *clientPsk;
+  uint16_t *cipherSuites;
 } MqttParam_t;
 
 class MqttTask : public cpp_freertos::Thread {
