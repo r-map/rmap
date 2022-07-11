@@ -26,51 +26,47 @@
 * @version 1.6.5
 **/
 
-#include "mydebug.h"
-#include "arduino_interrupt_driver.h"
+// #include "arduino_interrupt_driver.h"
 
-/**
-* @brief External interrupt line driver
-**/
-const ExtIntDriver extIntDriver = {
-  extIntInit,
-  extIntEnableIrq,
-  extIntDisableIrq
-};
+// /**
+// * @brief External interrupt line driver
+// **/
+// const ExtIntDriver extIntDriver = {
+//   extIntInit,
+//   extIntEnableIrq,
+//   extIntDisableIrq
+// };
 
-/**
-* @brief EXTI configuration
-* @return Error code
-**/
-error_t extIntInit(void) {
-  // Serial.println("init int");
-  pinMode(ENC28J60_INT_PIN, INPUT);
-  return NO_ERROR;
-}
+// /**
+// * @brief EXTI configuration
+// * @return Error code
+// **/
+// error_t extIntInit(void) {
+//   pinMode(ENC28J60_INT_PIN, INPUT);
+//   return NO_ERROR;
+// }
 
-/**
-* @brief Enable external interrupts
-**/
-void extIntEnableIrq(void) {
-  // Serial.println("init enable");
-  // attachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN), intHandler, LOW);
-}
+// /**
+// * @brief Enable external interrupts
+// **/
+// void extIntEnableIrq(void) {
+//   // attachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN), intHandler, LOW);
+// }
 
-/**
-* @brief Disable external interrupts
-**/
-void extIntDisableIrq(void) {
-  // Serial.println("init disable");
-  // detachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN));
-}
+// /**
+// * @brief Disable external interrupts
+// **/
+// void extIntDisableIrq(void) {
+//   // detachInterrupt(digitalPinToInterrupt(ENC28J60_INT_PIN));
+// }
 
-/**
-* @brief External interrupt handler
-**/
-void intHandler(void) {
-  // if (digitalRead(ENC28J60_INT_PIN) == LOW) {
-    // NetInterface *interface;
-    // interface = &netInterface[0];
-    // enc28j60IrqHandler(interface);
-  // }
-}
+// /**
+// * @brief External interrupt handler
+// **/
+// void intHandler(void) {
+//   // if (digitalRead(ENC28J60_INT_PIN) == LOW) {
+//     // NetInterface *interface;
+//     // interface = &netInterface[0];
+//     // enc28j60IrqHandler(interface);
+//   // }
+// }

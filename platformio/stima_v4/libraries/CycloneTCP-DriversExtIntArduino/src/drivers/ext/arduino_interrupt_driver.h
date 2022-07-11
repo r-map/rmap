@@ -26,22 +26,22 @@
  * @version 1.6.5
  **/
 
-#ifndef _CYCLONE_EXT_INT_DRIVER_ARDUINO_H
-#define _CYCLONE_EXT_INT_DRIVER_ARDUINO_H
+// #ifndef _CYCLONE_EXT_INT_DRIVER_ARDUINO_H
+// #define _CYCLONE_EXT_INT_DRIVER_ARDUINO_H
 
-#include "Arduino.h"
-#include "core/net.h"
-#include "drivers/eth/enc28j60_driver.h"
-#include "error.h"
-#include "hardware_config.h"
+// #include "Arduino.h"
+// #include "core/net.h"
+// #include "drivers/eth/enc28j60_driver.h"
+// #include "error.h"
+// #include "hardware_config.h"
 
-//External interrupt line driver
-extern const ExtIntDriver extIntDriver;
+// //External interrupt line driver
+// extern const ExtIntDriver extIntDriver;
 
-//External interrupt related functions
-error_t extIntInit(void);
-void extIntEnableIrq(void);
-void extIntDisableIrq(void);
-void intHandler(void);
+// //External interrupt related functions
+// error_t extIntInit(void);
+// void extIntEnableIrq(void);
+// void extIntDisableIrq(void);
+// void intHandler(void);
 
-#endif
+// #endif
