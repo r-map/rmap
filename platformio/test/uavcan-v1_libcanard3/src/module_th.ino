@@ -52,7 +52,7 @@
 reg_rmap_module_TH_1_0 module_th_msg = {0};
 
 CanardInstance canard;
-//HardwareSerial Serial2(PA3, PA2);  //uart2
+HardwareSerial Serial2(PA3, PA2);  //uart2
 unsigned long int  next;
 unsigned long int  nextrpc;
 
@@ -806,7 +806,7 @@ void loop(void)
     // - https://github.com/OpenCyphal/libcanard/blob/master/README.md
     // - https://github.com/pavel-kirienko/o1heap/blob/master/README.md
     // - https://forum.opencyphal.org/t/uavcanv1-libcanard-nunavut-templates-memory-usage-concerns/1118/4
-    _Alignas(O1HEAP_ALIGNMENT) static uint8_t heap_arena[1024 * 16] = {0};
+    _Alignas(O1HEAP_ALIGNMENT) static uint8_t heap_arena[1024 * 8] = {0};
     state.heap                                                      = o1heapInit(heap_arena, sizeof(heap_arena));
     assert(NULL != state.heap);
 
