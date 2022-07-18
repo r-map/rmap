@@ -2,24 +2,42 @@ Import("env")
 import os
 
 if not os.path.isdir("include"):
-    import subprocess
-
-    print("execute","nnvg  --target-language c -O include   --target-endianness little --generate-support only") 
-    subprocess.check_output(["nnvg", "--target-language", "c", "-O", "include", "--target-endianness", "little", "--generate-support", "only"])
-
-    print("execute","nnvg -I data_types/uavcan -I data_types/reg --target-language c -O include  data_types/reg --target-endianness little --generate-support never") 
-    subprocess.check_output(["nnvg","-I","data_types/uavcan", "-I", "data_types/reg", "--target-language", "c", "-O", "include","data_types/reg", "--target-endianness", "little", "--generate-support", "never"])
-
-    print("execute","nnvg -I data_types/uavcan -I data_types/reg --target-language c -O include  data_types/uavcan --target-endianness little --generate-support never") 
-    subprocess.check_output(["nnvg","-I","data_types/uavcan", "-I", "data_types/reg", "--target-language", "c", "-O", "include","data_types/uavcan", "--target-endianness", "little", "--generate-support", "never"])
 
 
+    # install yakut in platformio virtualenv and use generate_types shortcut
+    try:
+        from nunavut import generate_types
+    except ImportError:
+        env.Execute(
+            env.VerboseAction(
+                '$PYTHONEXE -m pip install "yakut"',
+                "Installing ESP-IDF's Python dependencies",
+            )
+        )
 
-#from nunavut import generate_types
+    from nunavut import generate_types
+    generate_types("c", "data_types/uavcan", "include", omit_serialization_support=False)
+    generate_types("c", "data_types/reg", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
+
+
+
+#  use subprocess to use system installed command nnvg
+
+#    import subprocess
 #
-#generate_types("c", "data_types/uavcan", "include", omit_serialization_support=False)
-#generate_types("c", "data_types/reg", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
+#    print("execute","nnvg  --target-language c -O include   --target-endianness little --generate-support only") 
+#    subprocess.check_output(["nnvg", "--target-language", "c", "-O", "include", "--target-endianness", "little", "--generate-support", "only"])
+#
+#    print("execute","nnvg -I data_types/uavcan -I data_types/reg --target-language c -O include  data_types/reg --target-endianness little --generate-support never") 
+#    subprocess.check_output(["nnvg","-I","data_types/uavcan", "-I", "data_types/reg", "--target-language", "c", "-O", "include","data_types/reg", "--target-endianness", "little", "--generate-support", "never"])
+#
+#    print("execute","nnvg -I data_types/uavcan -I data_types/reg --target-language c -O include  data_types/uavcan --target-endianness little --generate-support never") 
+#    subprocess.check_output(["nnvg","-I","data_types/uavcan", "-I", "data_types/reg", "--target-language", "c", "-O", "include","data_types/uavcan", "--target-endianness", "little", "--generate-support", "never"])
 
+
+
+
+# try to use system installed nunavut and pydsdl python modules
 
 #from pydsdl import read_namespace
 #from nunavut import build_namespace_tree
