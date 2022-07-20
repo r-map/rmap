@@ -54,7 +54,7 @@ void test0(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;
-  TEST_ASSERT_EQUAL_STRING("#N: Logging example\n" ,buf);
+  TEST_ASSERT_EQUAL_STRING("N: Logging example\n" ,buf);
 }
 
 #ifndef REDUCED
@@ -64,7 +64,7 @@ void test1(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with integer values : 100, 10000\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with integer values : 100, 10000\n",buf);
 }
 void test2(){
   LockGuard guard(testsemaphore);
@@ -72,7 +72,7 @@ void test2(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with hex values     : 64, 0x64\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with hex values     : 64, 0x64\n",buf);
 }
 void test3(){
   LockGuard guard(testsemaphore);
@@ -80,7 +80,7 @@ void test3(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with hex values     : 2710, 0x2710\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with hex values     : 2710, 0x2710\n",buf);
 }
 void test4(){
   LockGuard guard(testsemaphore);
@@ -88,7 +88,7 @@ void test4(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with binary values  : 1100100, 0b1100100\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with binary values  : 1100100, 0b1100100\n",buf);
 }
 void test5(){
   LockGuard guard(testsemaphore);
@@ -96,7 +96,7 @@ void test5(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with binary values  : 10011100010000, 0b10011100010000\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with binary values  : 10011100010000, 0b10011100010000\n",buf);
 }
 void test6(){
   LockGuard guard(testsemaphore);
@@ -104,7 +104,7 @@ void test6(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with long values    : 1000000, 100000000\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with long values    : 1000000, 100000000\n",buf);
 }
 void test7(){
   LockGuard guard(testsemaphore);
@@ -112,7 +112,7 @@ void test7(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with bool values    : T, false\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with bool values    : T, false\n",buf);
 }
 void test8(){
   LockGuard guard(testsemaphore);
@@ -120,7 +120,7 @@ void test8(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with string value   : this is a string\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with string value   : this is a string\n",buf);
 }
 void test9(){
   LockGuard guard(testsemaphore);
@@ -128,7 +128,7 @@ void test9(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with string value   : this is a string\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with string value   : this is a string\n",buf);
 }
 void test10(){
   LockGuard guard(testsemaphore);
@@ -136,7 +136,7 @@ void test10(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with float value   : 12.34\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with float value   : 12.34\n",buf);
 }
 void test11(){
   LockGuard guard(testsemaphore);
@@ -144,7 +144,7 @@ void test11(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with float value   : 12.34\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with float value   : 12.34\n",buf);
 }
 void test12(){
   LockGuard guard(testsemaphore);
@@ -152,7 +152,7 @@ void test12(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with double value   : 1234.57\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with double value   : 1234.57\n",buf);
 }
 void test13(){
   LockGuard guard(testsemaphore);
@@ -160,7 +160,7 @@ void test13(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Info with double value   : 1234.57\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Info with double value   : 1234.57\n",buf);
 }
 void test14(){
   LockGuard guard(testsemaphore);
@@ -169,7 +169,7 @@ void test14(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#N: Log as Debug with mixed values  : 100, 10000, 1000000, 100000000, T, false\n",buf);
+  TEST_ASSERT_EQUAL_STRING("N: Log as Debug with mixed values  : 100, 10000, 1000000, 100000000, T, false\n",buf);
 }
 void test15(){
   LockGuard guard(testsemaphore);
@@ -177,7 +177,7 @@ void test15(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#T: Log as Trace with bool value    : true\n",buf);
+  TEST_ASSERT_EQUAL_STRING("T: Log as Trace with bool value    : true\n",buf);
 }
 void test16(){
   LockGuard guard(testsemaphore);
@@ -185,7 +185,7 @@ void test16(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#W: Log as Warning with bool value  : true\n",buf);
+  TEST_ASSERT_EQUAL_STRING("W: Log as Warning with bool value  : true\n",buf);
 }
 void test17(){
   LockGuard guard(testsemaphore);
@@ -193,7 +193,7 @@ void test17(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#E: Log as Error with bool value    : true\n",buf);
+  TEST_ASSERT_EQUAL_STRING("E: Log as Error with bool value    : true\n",buf);
 }
 void test18(){
   LockGuard guard(testsemaphore);
@@ -201,7 +201,7 @@ void test18(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#F: Log as Fatal with bool value    : true\n",buf);
+  TEST_ASSERT_EQUAL_STRING("F: Log as Fatal with bool value    : true\n",buf);
 }
 void test19(){
   LockGuard guard(testsemaphore);
@@ -209,7 +209,7 @@ void test19(){
   #define LEN 120
   char buf[LEN];
   buf[bufferstream.readBytes(buf,LEN)]=0;  
-  TEST_ASSERT_EQUAL_STRING("#V: Log as Verbose with bool value   : false\n\n\n",buf);
+  TEST_ASSERT_EQUAL_STRING("V: Log as Verbose with bool value   : false\n\n\n",buf);
 }
 
 void test20(){
