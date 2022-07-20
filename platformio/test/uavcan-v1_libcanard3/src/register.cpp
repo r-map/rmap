@@ -13,77 +13,114 @@
 
 #define PASTE3_IMPL(x, y, z) x##y##z
 #define PASTE3(x, y, z) PASTE3_IMPL(x, y, z)
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#define SDCARD_CHIP_SELECT_PIN D10
+#define SPI_SPEED SD_SCK_MHZ(4)
 
 static const char RegistryDirName[] = "registry";
 
-static inline FILE* registerOpen(const char* const register_name, const bool write)
-{
-  /*
-    // An actual implementation on an embedded system may need to perform atomic file transactions via rename().
-    char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
-    (void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
-    if (write)
-    {
-        (void) mkdir(RegistryDirName, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+#if SD_FAT_TYPE == 0
+static SdFat SD;
+static File file;
+#elif SD_FAT_TYPE == 1
+static SdFat32 SD;
+static File32 file;
+#elif SD_FAT_TYPE == 2
+static SdExFat SD;
+static ExFile file;
+#elif SD_FAT_TYPE == 3
+static SdFs SD;
+static FsFile file;
+#endif  // SD_FAT_TYPE
+
+void registerSetup() {
+  SPI.begin();
+  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
+  digitalWrite(SDCARD_CHIP_SELECT_PIN, HIGH);
+  Serial.println("\nInitializing SD card...");
+  if (SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
+    Serial.print("The FAT type of the volume: ");
+    Serial.println(SD.vol()->fatType());
+    
+    if (!SD.exists(RegistryDirName)) {
+      if (!SD.mkdir(RegistryDirName)) {
+	Serial.println("Create Folder failed");
+	}
     }
-    return fopen(&file_path[0], write ? "wb" : "rb");
-  */
+  }
+}
+
+
+static bool registerOpen(const char* const register_name, const bool write)
+{
+  // An actual implementation on an embedded system may need to perform atomic file transactions via rename().
+  
+  char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
+  (void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
+  if (write)
+    {
+      if (!file.open(file_path, O_WRONLY | O_CREAT)) {
+	Serial.println("create file failed");
+	return false;
+      }
+    } else {
+    if (!file.open(file_path, O_RDONLY)) {
+      Serial.println("open file failed");
+      return false;
+    }
+  }
+  
+  return true;
+	
 }
 
 void registerRead(const char* const register_name, uavcan_register_Value_1_0* const inout_value)
 {
-  /*
-    assert(inout_value != NULL);
-    bool        init_required = !uavcan_register_Value_1_0_is_empty_(inout_value);
-    FILE* const fp            = registerOpen(&register_name[0], false);
-    if (fp != NULL)
-    {
-        uint8_t serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
-        size_t  sr_size = fread(&serialized[0], 1U, uavcan_register_Value_1_0_EXTENT_BYTES_, fp);
-        (void) fclose(fp);
-        uavcan_register_Value_1_0 out = {0};
-        const int8_t              err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
-        if (err >= 0)
-        {
-            init_required = !registerAssign(inout_value, &out);
-        }
+  assert(inout_value != NULL);
+  bool        init_required = !uavcan_register_Value_1_0_is_empty_(inout_value);
+  bool status  = registerOpen(&register_name[0], false);
+  if (status) {
+    uint8_t serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
+    int  size = file.read(&serialized[0], uavcan_register_Value_1_0_EXTENT_BYTES_);
+    file.close();
+    if (size > 0){
+      size_t sr_size = (size_t) size;
+      uavcan_register_Value_1_0 out = {0};
+      const int8_t              err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
+      if (err >= 0)
+	{
+	  init_required = !registerAssign(inout_value, &out);
+	}
+    } else {
+      init_required = true;
     }
-    if (init_required)
-    {
-        printf("Init register: %s\n", register_name);
-        registerWrite(register_name, inout_value);
+    if (init_required) {
+      printf("Init register: %s\n", register_name);
+      registerWrite(register_name, inout_value);
     }
-  */
+  }
 }
-
 void registerWrite(const char* const register_name, const uavcan_register_Value_1_0* const value)
 {
-  /*
-    uint8_t      serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
-    size_t       sr_size                                             = uavcan_register_Value_1_0_EXTENT_BYTES_;
-    const int8_t err = uavcan_register_Value_1_0_serialize_(value, serialized, &sr_size);
-    if (err >= 0)
+  
+  uint8_t      serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
+  size_t       sr_size                                             = uavcan_register_Value_1_0_EXTENT_BYTES_;
+  const int8_t err = uavcan_register_Value_1_0_serialize_(value, serialized, &sr_size);
+  if (err >= 0)
     {
-        FILE* const fp = registerOpen(&register_name[0], true);
-        if (fp != NULL)
+      bool status = registerOpen(&register_name[0], true);
+        if (status)
         {
-            (void) fwrite(&serialized[0], 1U, sr_size, fp);
-            (void) fclose(fp);
+            file.write(&serialized[0], sr_size);
+	    file.close();
         }
     }
-  */
 }
 
 uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index)
 {
-  /*
     uavcan_register_Name_1_0 out = {0};
     uavcan_register_Name_1_0_initialize_(&out);
+  /*
     DIR* const dp = opendir(RegistryDirName);
     if (dp != NULL)
     {
@@ -112,13 +149,13 @@ uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index)
         }
         (void) closedir(dp);
     }
-    return out;
   */
+    return out;
 }
 
 bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_Value_1_0* const src)
 {
-  /*
+ 
     if (uavcan_register_Value_1_0_is_empty_(dst))
     {
         *dst = *src;
@@ -161,7 +198,6 @@ bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_
     REGISTER_CASE_SAME_TYPE(real32)
     REGISTER_CASE_SAME_TYPE(real16)
     return false;
-  */
 }
 
 void registerDoFactoryReset(void)
@@ -185,7 +221,3 @@ void registerDoFactoryReset(void)
     }
   */
 }
-
-#ifdef __cplusplus
-}
-#endif

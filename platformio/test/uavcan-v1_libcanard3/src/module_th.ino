@@ -52,7 +52,7 @@
 reg_rmap_module_TH_1_0 module_th_msg = {0};
 
 CanardInstance canard;
-HardwareSerial Serial2(PA3, PA2);  //uart2
+//HardwareSerial Serial2(PA3, PA2);  //uart2
 unsigned long int  next;
 unsigned long int  nextrpc;
 
@@ -733,9 +733,12 @@ void CAN_HW_Init(void) {
 
 void setup(void) {
 
-  Serial2.begin(115200);
-  Serial2.print("Initializing...");
-  Serial2.println(HAL_RCC_GetHCLKFreq());
+  Serial.begin(115200);
+  Serial.print("Initializing...");
+  Serial.println(HAL_RCC_GetHCLKFreq());
+
+  delay(5000);
+  registerSetup();
 
   // initialize digital pins
   pinMode(LED_BUILTIN, OUTPUT);
@@ -1052,19 +1055,23 @@ void loop(void)
                 if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time))
                 {
 
-		  // TODO
-		  /*
-		    const int16_t result = socketcanPush(sock[ifidx], &tqi->frame, 0);  // Non-blocking write attempt.
-                    if (result == 0)
+		  const int16_t result =bxCANPush(ifidx,
+						  micros(),
+						  tqi->tx_deadline_usec,
+						  tqi->frame.extended_can_id,
+						  tqi->frame.payload_size,
+						  tqi->frame.payload);
+		    
+		  if (result == 0)
                     {
-                        break;  // The queue is full, we will try again on the next iteration.
+		      break;  // The queue is full, we will try again on the next iteration.
                     }
-                    if (result < 0)
+		  if (result < 0)
                     {
-		        NVIC_SystemReset();
-                        //return -result;  // SocketCAN interface failure (link down?)
+		      NVIC_SystemReset();
+		      //return -result;  // SocketCAN interface failure (link down?)
                     }
-		  */
+		  
                 }
                 state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
                 tqi = canardTxPeek(que);
@@ -1076,25 +1083,32 @@ void loop(void)
         // frames from any of the redundant interface in an arbitrary order. The internal state machine will sort
         // them out and remove duplicates automatically.
 
-	/*
+
         for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
         {
-            CanardFrame   frame                  = {0};
-            uint8_t       buf[CANARD_MTU_CAN_FD] = {0};
-            const int16_t socketcan_result       = socketcanPop(sock[ifidx], &frame, NULL, sizeof(buf), buf, 0, NULL);
-            if (socketcan_result == 0)  // The read operation has timed out with no frames, nothing to do here.
+
+	    uint32_t extended_can_id = 0;
+	    size_t payload_size = CANARD_MTU_CAN_CLASSIC;
+            CanardFrame   frame;
+	    uint8_t payload[CANARD_MTU_CAN_CLASSIC] = {0};
+	      
+	    bool bxcan_result  = bxCANPop(ifidx, &extended_can_id, &payload_size, payload);
+	    
+	    //const int16_t socketcan_result       = socketcanPop(sock[ifidx], &frame, NULL, sizeof(buf), buf, 0, NULL);
+            if (! bxcan_result)  // The read operation has timed out with no frames, nothing to do here.
             {
                 break;
             }
-            if (socketcan_result < 0)  // The read operation has failed. This is not a normal condition.
-            {
-	        NVIC_SystemReset();
-                //return -socketcan_result;
-            }
+
+	    //payload to frame !
+	    frame.extended_can_id = extended_can_id;
+            frame.payload = payload;
+            frame.payload_size = payload_size;
+	    
             // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
             // Wall clock can only be used for time synchronization.
             const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
-            CanardRxTransfer        transfer       = {0};
+            CanardRxTransfer        transfer ; //      = {0};
             const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &frame, ifidx, &transfer, NULL);
             if (canard_result > 0)
             {
@@ -1111,7 +1125,6 @@ void loop(void)
                 assert(false);  // No other error can possibly occur at runtime.
             }
         }
-	*/
     } while (!g_restart_required);
 
     // It is recommended to postpone restart until all frames are sent though.

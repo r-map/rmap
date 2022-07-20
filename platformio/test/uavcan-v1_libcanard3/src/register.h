@@ -29,14 +29,14 @@
 #include <uavcan/_register/Value_1_0.h>
 #include <stdbool.h>
 #include <stdint.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
+#include <SPI.h>
+#include <SdFat.h>
 
 // NOTE: this implementation currently does not differentiate between mutable/immutable registers and does not support
 // volatile registers. It is trivial to extend though.
+
+
+void registerSetup();
 
 /// Reads the specified register from the persistent storage into `inout_value`.
 /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,
@@ -61,6 +61,3 @@ bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_
 /// Erase all registers such that the defaults are used at the next launch.
 void registerDoFactoryReset(void);
 
-#ifdef __cplusplus
-}
-#endif
