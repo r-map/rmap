@@ -13,7 +13,7 @@
 
 #define PASTE3_IMPL(x, y, z) x##y##z
 #define PASTE3(x, y, z) PASTE3_IMPL(x, y, z)
-#define SDCARD_CHIP_SELECT_PIN D10
+#define SDCARD_CHIP_SELECT_PIN PA4
 #define SPI_SPEED SD_SCK_MHZ(4)
 
 static const char RegistryDirName[] = "registry";
@@ -64,7 +64,8 @@ static bool registerOpen(const char* const register_name, const bool write)
       }
     } else {
     if (!file.open(file_path, O_RDONLY)) {
-      Serial.println("open file failed");
+      Serial.print(file_path);
+      Serial.println("->open file failed");
       return false;
     }
   }

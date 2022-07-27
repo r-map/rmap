@@ -40,6 +40,7 @@
 #include <assert.h>
 #include <time.h>
 #include <unistd.h>
+#include <ArduinoLog.h>
 
 #define KILO 1000L
 #define MEGA ((int64_t) KILO * KILO)
@@ -91,6 +92,8 @@ typedef struct State
     } next_transfer_id;
 } State;
 
+State state = {0};
+
 /// This flag is raised when the node is requested to restart.
 static volatile bool g_restart_required = false;
 
@@ -102,9 +105,8 @@ static volatile bool g_restart_required = false;
 /// it may change rate or make leap adjustments. The two kinds of time serve completely different purposes.
 static CanardMicrosecond getMonotonicMicroseconds()
 {
-    time_t ts;
-    ts=millis();
-    return (uint64_t) ts;
+
+    return (CanardMicrosecond)micros();
 }
 
 // Returns the 128-bit unique-ID of the local node. This value is used in uavcan.node.GetInfo.Response and during the
@@ -168,12 +170,14 @@ static void send(State* const                        state,
 {
     for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
     {
-        (void) canardTxPush(&state->canard_tx_queues[ifidx],
+      //Log.verbose(F("send %l-%l %l" CR),(uint32_t)getMonotonicMicroseconds(),(uint32_t)tx_deadline_usec,payload_size);      
+        int32_t frames = canardTxPush(&state->canard_tx_queues[ifidx],
                             &state->canard,
                             tx_deadline_usec,
                             metadata,
                             payload_size,
                             payload);
+	//Log.verbose(F("frame %l" CR),frames);      	
     }
 }
 
@@ -201,6 +205,8 @@ static void updateSensorsData(void){
 /// Invoked at the rate of the fastest loop.
 static void handleFastLoop(State* const state, const CanardMicrosecond monotonic_time)
 {
+  //Log.verbose(F("handleFastLoop" CR));
+  
     const bool anonymous = state->canard.node_id > CANARD_NODE_ID_MAX;
 
     // Publish differential pressure reading if the subject is enabled and the node is non-anonymous.
@@ -229,6 +235,9 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
 /// Invoked every second.
 static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_time)
 {
+
+  //Log.verbose(F("handle1HzLoop" CR));
+  
     const bool anonymous = state->canard.node_id > CANARD_NODE_ID_MAX;
     // Publish heartbeat every second unless the local node is anonymous. Anonymous nodes shall not publish heartbeat.
     if (!anonymous)
@@ -356,6 +365,9 @@ static void fillServers(const CanardTreeNode* const tree, uavcan_node_port_Servi
 /// Invoked every 10 seconds.
 static void handle01HzLoop(State* const state, const CanardMicrosecond monotonic_time)
 {
+
+  //Log.verbose(F("handle01HzLoop" CR));
+
     // Publish the recommended (not required) port introspection message. No point publishing it if we're anonymous.
     // The message is a bit heavy on the stack (about 2 KiB) but this is not a problem for a modern MCU.
     if (state->canard.node_id <= CANARD_NODE_ID_MAX)
@@ -440,7 +452,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(
     }
     case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
     {
-        registerDoFactoryReset();
+        registerDoFactoryReset();    // to be implemented !
         resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
         break;
     }
@@ -715,18 +727,22 @@ void CAN_HW_Init(void) {
   GPIO_InitStruct.Alternate = GPIO_AF9_CAN;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 #else
-#warning "Warning untested processor variant"
+#error "Error untested processor variant"
 #endif
 
   BxCANTimings timings;
   bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), 250000, &timings);
   if (!result) {
-    __ASM volatile("BKPT #01");
+    Log.fatal(F("Error" CR));
+    delay(1000);
+    NVIC_SystemReset();
   }
 
   result = bxCANConfigure(0, timings, false);
   if (!result) {
-    __ASM volatile("BKPT #01");
+    Log.fatal(F("Error" CR));
+    delay(1000);
+    NVIC_SystemReset();
   }
   
 }
@@ -734,402 +750,376 @@ void CAN_HW_Init(void) {
 void setup(void) {
 
   Serial.begin(115200);
-  Serial.print("Initializing...");
-  Serial.println(HAL_RCC_GetHCLKFreq());
-
-  delay(5000);
-  registerSetup();
-
-  // initialize digital pins
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  Log.begin(LOG_LEVEL_VERBOSE, &Serial);
+  Log.notice(F(CR "Initializing..." CR));
+  Log.notice(F("clock : %d" CR), HAL_RCC_GetHCLKFreq());
 
   CAN_HW_Init();
- 
-  // Initialize the node with a static node-ID.
-  canard = canardInit(&canardAllocate, &canardFree);
-  //canard.mtu_bytes      = CANARD_MTU_CAN_CLASSIC;  // Do not use CAN FD
+
+  registerSetup();
+    
+  // A simple node like this one typically does not require more than 8 KiB of heap and 4 KiB of stack.
+  // For the background and related theory refer to the following resources:
+  // - https://github.com/OpenCyphal/libcanard/blob/master/README.md
+  // - https://github.com/pavel-kirienko/o1heap/blob/master/README.md
+  // - https://forum.opencyphal.org/t/uavcanv1-libcanard-nunavut-templates-memory-usage-concerns/1118/4
+  _Alignas(O1HEAP_ALIGNMENT) static uint8_t heap_arena[1024 * 8] = {0};
+  state.heap                                                      = o1heapInit(heap_arena, sizeof(heap_arena));
+  assert(NULL != state.heap);
+
+  // The libcanard instance requires the allocator for managing protocol states.
+  state.canard                = canardInit(&canardAllocate, &canardFree);
+  state.canard.user_reference = &state;  // Make the state reachable from the canard instance.
+
+  // Restore the node-ID from the corresponding standard register. Default to anonymous.
+  uavcan_register_Value_1_0 val = {0};
+  uavcan_register_Value_1_0_select_natural16_(&val);
+  val.natural16.value.count       = 1;
+  val.natural16.value.elements[0] = UINT16_MAX;  // This means undefined (anonymous), per Specification/libcanard.
+  registerRead("uavcan.node.id", &val);  // The names of the standard registers are regulated by the Specification.
+  assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+  state.canard.node_id = (val.natural16.value.elements[0] > CANARD_NODE_ID_MAX)
+    ? 120    // TMP !!
+    //? CANARD_NODE_ID_UNSET
+    : (CanardNodeID) val.natural16.value.elements[0];
+
+  // The description register is optional but recommended because it helps constructing/maintaining large networks.
+  // It simply keeps a human-readable description of the node that should be empty by default.
+  uavcan_register_Value_1_0_select_string_(&val);
+  val._string.value.count = 0;
+  registerRead("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+
+  // The UDRAL cookie is used to mark nodes that are auto-configured by a specific auto-configuration authority.
+  // We don't use this value, it is managed by remote nodes; our only responsibility is to persist it across reboots.
+  // This register is entirely optional though; if not provided, the node will have to be configured manually.
+  uavcan_register_Value_1_0_select_string_(&val);
+  val._string.value.count = 0;  // The value should be empty by default, meaning that the node is not configured.
+  registerRead("udral.pnp.cookie", &val);
+
+  // Announce which UDRAL network services we support by populating appropriate registers. They are supposed to be
+  // immutable (read-only), but in this simplified demo we don't support that, so we make them mutable (do fix this).
+  uavcan_register_Value_1_0_select_string_(&val);
+  strcpy((char*) val._string.value.elements, "airspeed");  // Prefix in port names like "differential_pressure", etc.
+  val._string.value.count = strlen((const char*) val._string.value.elements);
+  registerWrite("reg.udral.service.pitot", &val);
 
   /*
-  // TO BE REMOVED !!!!!!!!
-  canard.node_id        = (CanardNodeID) 10;
- 
-  // Configure the library to listen for register access service requests.
-  static CanardRxSubscription heartbeat_subscription;
-  (void) canardRxSubscribe(&canard, // Subscribe to messages uavcan.node.Heartbeat.
-			   CanardTransferKindMessage,
-			   HeartbeatSubjectID, // The fixed Subject-ID of the Heartbeat message type (see DSDL definition).
-			   12,                  // The maximum payload size (max DSDL object size) from the DSDL definition.
-			   CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-			   &heartbeat_subscription);
-
-  // Ultrasound subscription
-  static CanardRxSubscription ultrasound_subscription;
-  (void)canardRxSubscribe(&canard,
-			  CanardTransferKindMessage,
-			  UltrasoundMessageSubjectID,
-			  10,                  
-			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-			  &ultrasound_subscription);
-
-  // rpc subscriptions
-  static CanardRxSubscription rpc_request_subscription;
-  (void)canardRxSubscribe(&canard,
-			  CanardTransferKindRequest,
-			  RegisterAccessServiceID,  
-			  10,                  
-			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-			  &rpc_request_subscription);
-
-  static CanardRxSubscription rpc_response_subscription;
-  (void)canardRxSubscribe(&canard,
-			  CanardTransferKindResponse,
-			  RegisterAccessServiceID,
-			  10,
-			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-			  &rpc_response_subscription);
-
-  next = millis() + 1000;
-  nextrpc = millis() + 2500;
+  // Configure the transport by reading the appropriate standard registers.
+  uavcan_register_Value_1_0_select_natural16_(&val);
+  val.natural16.value.count       = 1;
+  val.natural16.value.elements[0] = CANARD_MTU_CAN_FD;
+  registerRead("uavcan.can.mtu", &val);
+  assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+  // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
+  // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
+  const int sock[CAN_REDUNDANCY_FACTOR] = {
+  socketcanOpen("vcan0", val.natural16.value.elements[0] > CANARD_MTU_CAN_CLASSIC)  //
+  };
   */
-  //bxCANattachInterrupt(processReceived);
+  for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
+  {
+    state.canard_tx_queues[ifidx] = canardTxInit(CAN_TX_QUEUE_CAPACITY, CANARD_MTU_CAN_CLASSIC);
+  }
+ 
+  // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
+  // Publications:
+  state.port_id.pub.module_th =
+    getPublisherSubjectID("reg.rmap.module.TH.1.0",
+			  reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+
+  state.port_id.pub.module_th = 150;       // TMP
+
+  state.port_id.pub.service_module_th =
+    getPublisherSubjectID("reg.rmap.service.module.TH.GetDataAndMetadata.1.0",
+			  reg_rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
+
+  state.port_id.pub.service_module_th = 151;       // TMP
+  
+  // Set up the default value. It will be used to populate the register if it doesn't exist.
+  uavcan_register_Value_1_0_select_natural32_(&val);
+  val.natural32.value.count       = 1;
+  val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
+
+
+  registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
+
+  registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.level.L2.value = val.natural32.value.elements[0];
+    
+  registerRead("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.timerange.P1.value = val.natural32.value.elements[0];
+    
+  registerRead("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.timerange.P2.value = val.natural32.value.elements[0];
+    
+
+    
+  uavcan_register_Value_1_0_select_natural8_(&val);
+  val.natural16.value.count       = 1;
+  val.natural16.value.elements[0] = UINT8_MAX;  // This means "undefined", per Specification, which is the default.
+
+  registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
+    
+    
+  registerRead("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.level.LevelType1.value = val.natural8.value.elements[0];
+    
+  registerRead("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  module_th_msg.metadata.level.LevelType2.value = val.natural8.value.elements[0];
+
+  // Subscriptions:
+  // (none in this application)
+
+  // Set up subject subscriptions and RPC-service servers.
+  // Message subscriptions:
+  if (state.canard.node_id > CANARD_NODE_ID_MAX)
+    {
+      static CanardRxSubscription rx;
+      const int8_t                res =  //
+	canardRxSubscribe(&state.canard,
+			  CanardTransferKindMessage,
+			  uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_,
+			  uavcan_pnp_NodeIDAllocationData_2_0_EXTENT_BYTES_,
+			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			  &rx);
+      if (res < 0)
+        {
+	  Log.fatal(F("Error" CR));
+	  delay(1000);
+	  NVIC_SystemReset();
+	  //return -res;
+        }
+    }
+  // Service servers:
+  {
+    static CanardRxSubscription rx;
+    const int8_t                res =  //
+      canardRxSubscribe(&state.canard,
+			CanardTransferKindRequest,
+			uavcan_node_GetInfo_1_0_FIXED_PORT_ID_,
+			uavcan_node_GetInfo_Request_1_0_EXTENT_BYTES_,
+			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			&rx);
+    if (res < 0)
+      {
+	Log.fatal(F("Error" CR));
+	delay(1000);
+	NVIC_SystemReset();
+	//return -res;
+      }
+  }
+  {
+    static CanardRxSubscription rx;
+    const int8_t                res =  //
+      canardRxSubscribe(&state.canard,
+			CanardTransferKindRequest,
+			uavcan_node_ExecuteCommand_1_1_FIXED_PORT_ID_,
+			uavcan_node_ExecuteCommand_Request_1_1_EXTENT_BYTES_,
+			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			&rx);
+    if (res < 0)
+      {
+	Log.fatal(F("Error" CR));
+	delay(1000);
+	NVIC_SystemReset();
+	//return -res;
+      }
+  }
+  {
+    static CanardRxSubscription rx;
+    const int8_t                res =  //
+      canardRxSubscribe(&state.canard,
+			CanardTransferKindRequest,
+			uavcan_register_Access_1_0_FIXED_PORT_ID_,
+			uavcan_register_Access_Request_1_0_EXTENT_BYTES_,
+			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			&rx);
+    if (res < 0)
+      {
+	Log.fatal(F("Error" CR));
+	delay(1000);
+	NVIC_SystemReset();
+	//return -res;
+      }
+  }
+  {
+    static CanardRxSubscription rx;
+    const int8_t                res =  //
+      canardRxSubscribe(&state.canard,
+			CanardTransferKindRequest,
+			uavcan_register_List_1_0_FIXED_PORT_ID_,
+			uavcan_register_List_Request_1_0_EXTENT_BYTES_,
+			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			&rx);
+    if (res < 0)
+      {
+	Log.fatal(F("Error" CR));
+	delay(1000);
+	NVIC_SystemReset();
+	//return -res;
+      }
+  }
+
+  // Configure the library to listen for register access service requests.
+  {
+ 
+    static CanardRxSubscription rx;
+    const int8_t                res =  //
+      canardRxSubscribe(&state.canard,
+			CanardTransferKindRequest,
+			state.port_id.pub.service_module_th,
+			reg_rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
+			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+			&rx);
+
+    if (res < 0)
+      {
+	Log.fatal(F("Error" CR));
+	delay(1000);
+	NVIC_SystemReset();
+	//return -res;
+      }
+  }  
+
+
+  // Now the node is initialized and we're ready to roll.
+  state.started_at                           = getMonotonicMicroseconds();
+  
+  // initialize digital pins
+  pinMode(PC13, OUTPUT);
+  digitalWrite(PC13, LOW);
+
+  //Log.notice(F("end setup" CR));
 
 }
-
-
 
 
 void loop(void)
 {
 
-    State state = {0};
-
-    // A simple node like this one typically does not require more than 8 KiB of heap and 4 KiB of stack.
-    // For the background and related theory refer to the following resources:
-    // - https://github.com/OpenCyphal/libcanard/blob/master/README.md
-    // - https://github.com/pavel-kirienko/o1heap/blob/master/README.md
-    // - https://forum.opencyphal.org/t/uavcanv1-libcanard-nunavut-templates-memory-usage-concerns/1118/4
-    _Alignas(O1HEAP_ALIGNMENT) static uint8_t heap_arena[1024 * 8] = {0};
-    state.heap                                                      = o1heapInit(heap_arena, sizeof(heap_arena));
-    assert(NULL != state.heap);
-
-    // The libcanard instance requires the allocator for managing protocol states.
-    state.canard                = canardInit(&canardAllocate, &canardFree);
-    state.canard.user_reference = &state;  // Make the state reachable from the canard instance.
-
-    // Restore the node-ID from the corresponding standard register. Default to anonymous.
-    uavcan_register_Value_1_0 val = {0};
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT16_MAX;  // This means undefined (anonymous), per Specification/libcanard.
-    registerRead("uavcan.node.id", &val);  // The names of the standard registers are regulated by the Specification.
-    assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-    state.canard.node_id = (val.natural16.value.elements[0] > CANARD_NODE_ID_MAX)
-                               ? CANARD_NODE_ID_UNSET
-                               : (CanardNodeID) val.natural16.value.elements[0];
-
-    // The description register is optional but recommended because it helps constructing/maintaining large networks.
-    // It simply keeps a human-readable description of the node that should be empty by default.
-    uavcan_register_Value_1_0_select_string_(&val);
-    val._string.value.count = 0;
-    registerRead("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
-
-    // The UDRAL cookie is used to mark nodes that are auto-configured by a specific auto-configuration authority.
-    // We don't use this value, it is managed by remote nodes; our only responsibility is to persist it across reboots.
-    // This register is entirely optional though; if not provided, the node will have to be configured manually.
-    uavcan_register_Value_1_0_select_string_(&val);
-    val._string.value.count = 0;  // The value should be empty by default, meaning that the node is not configured.
-    registerRead("udral.pnp.cookie", &val);
-
-    // Announce which UDRAL network services we support by populating appropriate registers. They are supposed to be
-    // immutable (read-only), but in this simplified demo we don't support that, so we make them mutable (do fix this).
-    uavcan_register_Value_1_0_select_string_(&val);
-    strcpy((char*) val._string.value.elements, "airspeed");  // Prefix in port names like "differential_pressure", etc.
-    val._string.value.count = strlen((const char*) val._string.value.elements);
-    registerWrite("reg.udral.service.pitot", &val);
-
-    /*
-    // Configure the transport by reading the appropriate standard registers.
-    uavcan_register_Value_1_0_select_natural16_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = CANARD_MTU_CAN_FD;
-    registerRead("uavcan.can.mtu", &val);
-    assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-    // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
-    // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
-    const int sock[CAN_REDUNDANCY_FACTOR] = {
-        socketcanOpen("vcan0", val.natural16.value.elements[0] > CANARD_MTU_CAN_CLASSIC)  //
-    };
-    for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
+  //Log.notice(F("loop" CR));
+  
+  const CanardMicrosecond fast_loop_period   = MEGA / 3;
+  CanardMicrosecond       next_fast_iter_at  = state.started_at + fast_loop_period;
+  CanardMicrosecond       next_1_hz_iter_at  = state.started_at + MEGA;
+  CanardMicrosecond       next_01_hz_iter_at = state.started_at + MEGA * 10;
+  do
     {
-        if (sock[ifidx] < 0)
-        {	
-	  NVIC_SystemReset();
-	  //return -sock[ifidx];
-        }
-        state.canard_tx_queues[ifidx] = canardTxInit(CAN_TX_QUEUE_CAPACITY, val.natural16.value.elements[0]);
-    }
-    */
-    
-    // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
-    // Publications:
-    state.port_id.pub.module_th =
-        getPublisherSubjectID("reg.rmap.module.TH.1.0",
-			      reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-    state.port_id.pub.service_module_th =
-        getPublisherSubjectID("reg.rmap.service.module.TH.GetDataAndMetadata.1.0",
-			      reg_rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
-    
-    // Set up the default value. It will be used to populate the register if it doesn't exist.
-    uavcan_register_Value_1_0_select_natural32_(&val);
-    val.natural32.value.count       = 1;
-    val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
-
-
-    registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
-
-    registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.L2.value = val.natural32.value.elements[0];
-    
-    registerRead("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P1.value = val.natural32.value.elements[0];
-    
-    registerRead("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.P2.value = val.natural32.value.elements[0];
-    
-
-    
-    uavcan_register_Value_1_0_select_natural8_(&val);
-    val.natural16.value.count       = 1;
-    val.natural16.value.elements[0] = UINT8_MAX;  // This means "undefined", per Specification, which is the default.
-
-    registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
-    
-    
-    registerRead("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType1.value = val.natural8.value.elements[0];
-    
-    registerRead("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
-    module_th_msg.metadata.level.LevelType2.value = val.natural8.value.elements[0];
-
-    // Subscriptions:
-    // (none in this application)
-
-    // Set up subject subscriptions and RPC-service servers.
-    // Message subscriptions:
-    if (state.canard.node_id > CANARD_NODE_ID_MAX)
-    {
-        static CanardRxSubscription rx;
-        const int8_t                res =  //
-            canardRxSubscribe(&state.canard,
-                              CanardTransferKindMessage,
-                              uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_,
-                              uavcan_pnp_NodeIDAllocationData_2_0_EXTENT_BYTES_,
-                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-                              &rx);
-        if (res < 0)
+      //Log.notice(F("do" CR));
+      
+      // Run a trivial scheduler polling the loops that run the business logic.
+      CanardMicrosecond monotonic_time = getMonotonicMicroseconds();
+      if (monotonic_time >= next_fast_iter_at)
         {
-	    NVIC_SystemReset();
-            //return -res;
+	  next_fast_iter_at += fast_loop_period;
+	  handleFastLoop(&state, monotonic_time);
         }
-    }
-    // Service servers:
-    {
-        static CanardRxSubscription rx;
-        const int8_t                res =  //
-            canardRxSubscribe(&state.canard,
-                              CanardTransferKindRequest,
-                              uavcan_node_GetInfo_1_0_FIXED_PORT_ID_,
-                              uavcan_node_GetInfo_Request_1_0_EXTENT_BYTES_,
-                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-                              &rx);
-        if (res < 0)
+      if (monotonic_time >= next_1_hz_iter_at)
         {
-	    NVIC_SystemReset();
-            //return -res;
+	  next_1_hz_iter_at += MEGA;
+	  handle1HzLoop(&state, monotonic_time);
         }
-    }
-    {
-        static CanardRxSubscription rx;
-        const int8_t                res =  //
-            canardRxSubscribe(&state.canard,
-                              CanardTransferKindRequest,
-                              uavcan_node_ExecuteCommand_1_1_FIXED_PORT_ID_,
-                              uavcan_node_ExecuteCommand_Request_1_1_EXTENT_BYTES_,
-                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-                              &rx);
-        if (res < 0)
+      if (monotonic_time >= next_01_hz_iter_at)
         {
-	    NVIC_SystemReset();
-            //return -res;
-        }
-    }
-    {
-        static CanardRxSubscription rx;
-        const int8_t                res =  //
-            canardRxSubscribe(&state.canard,
-                              CanardTransferKindRequest,
-                              uavcan_register_Access_1_0_FIXED_PORT_ID_,
-                              uavcan_register_Access_Request_1_0_EXTENT_BYTES_,
-                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-                              &rx);
-        if (res < 0)
-        {
-	    NVIC_SystemReset();
-            //return -res;
-        }
-    }
-    {
-        static CanardRxSubscription rx;
-        const int8_t                res =  //
-            canardRxSubscribe(&state.canard,
-                              CanardTransferKindRequest,
-                              uavcan_register_List_1_0_FIXED_PORT_ID_,
-                              uavcan_register_List_Request_1_0_EXTENT_BYTES_,
-                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-                              &rx);
-        if (res < 0)
-        {
-	    NVIC_SystemReset();
-            //return -res;
-        }
-    }
-
-// Configure the library to listen for register access service requests.
-    {
- 
-      static CanardRxSubscription rx;
-      const int8_t                res =  //
-	canardRxSubscribe(&state.canard,
-			       CanardTransferKindRequest,
-			  state.port_id.pub.service_module_th,
-			  reg_rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
-			       CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
-			       &rx);
-
-      if (res < 0)
-        {
-	  NVIC_SystemReset();
-	  //return -res;
-        }
-    }
-    
-    // Now the node is initialized and we're ready to roll.
-    state.started_at                           = getMonotonicMicroseconds();
-    const CanardMicrosecond fast_loop_period   = MEGA / 100;
-    CanardMicrosecond       next_fast_iter_at  = state.started_at + fast_loop_period;
-    CanardMicrosecond       next_1_hz_iter_at  = state.started_at + MEGA;
-    CanardMicrosecond       next_01_hz_iter_at = state.started_at + MEGA * 10;
-    do
-    {
-        // Run a trivial scheduler polling the loops that run the business logic.
-        CanardMicrosecond monotonic_time = getMonotonicMicroseconds();
-        if (monotonic_time >= next_fast_iter_at)
-        {
-            next_fast_iter_at += fast_loop_period;
-            handleFastLoop(&state, monotonic_time);
-        }
-        if (monotonic_time >= next_1_hz_iter_at)
-        {
-            next_1_hz_iter_at += MEGA;
-            handle1HzLoop(&state, monotonic_time);
-        }
-        if (monotonic_time >= next_01_hz_iter_at)
-        {
-            next_01_hz_iter_at += MEGA * 10;
-            handle01HzLoop(&state, monotonic_time);
+	  next_01_hz_iter_at += MEGA * 10;
+	  handle01HzLoop(&state, monotonic_time);
         }
 
-        // Transmit pending frames from the prioritized TX queues managed by libcanard.
-        for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
+      // Transmit pending frames from the prioritized TX queues managed by libcanard.
+      for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
         {
-            CanardTxQueue* const     que = &state.canard_tx_queues[ifidx];
-            const CanardTxQueueItem* tqi = canardTxPeek(que);  // Find the highest-priority frame.
-            while (tqi != NULL)
+	  CanardTxQueue* const     que = &state.canard_tx_queues[ifidx];
+	  const CanardTxQueueItem* tqi = canardTxPeek(que);  // Find the highest-priority frame.
+	  while (tqi != NULL)
             {
-                // Attempt transmission only if the frame is not yet timed out while waiting in the TX queue.
-                // Otherwise just drop it and move on to the next one.
-                if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time))
+	      // Attempt transmission only if the frame is not yet timed out while waiting in the TX queue.
+	      // Otherwise just drop it and move on to the next one.
+	      if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time))
                 {
 
-		  const int16_t result =bxCANPush(ifidx,
-						  micros(),
-						  tqi->tx_deadline_usec,
-						  tqi->frame.extended_can_id,
-						  tqi->frame.payload_size,
-						  tqi->frame.payload);
-		    
-		  if (result == 0)
-                    {
-		      break;  // The queue is full, we will try again on the next iteration.
-                    }
-		  if (result < 0)
-                    {
-		      NVIC_SystemReset();
-		      //return -result;  // SocketCAN interface failure (link down?)
-                    }
+		  //Log.notice(F("bxCANPush" CR));
 		  
+		  bool result =bxCANPush(ifidx,
+					 micros(),
+					 tqi->tx_deadline_usec,
+					 tqi->frame.extended_can_id,
+					 tqi->frame.payload_size,
+					 tqi->frame.payload);
+		  
+		  if (!result)
+                    {
+		      //Log.fatal(F("BXCAN interface failure" CR));
+		      //delay(1000);
+		      //NVIC_SystemReset();
+
+		      //Log.notice(F("The queue is full, we will try again on the next iteration." CR));
+		      break;
+		    }
                 }
-                state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
-                tqi = canardTxPeek(que);
+	      state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
+	      tqi = canardTxPeek(que);
             }
         }
 
-        // Process received frames by feeding them from SocketCAN to libcanard.
-        // The order in which we handle the redundant interfaces doesn't matter -- libcanard can accept incoming
-        // frames from any of the redundant interface in an arbitrary order. The internal state machine will sort
-        // them out and remove duplicates automatically.
+      // Process received frames by feeding them from SocketCAN to libcanard.
+      // The order in which we handle the redundant interfaces doesn't matter -- libcanard can accept incoming
+      // frames from any of the redundant interface in an arbitrary order. The internal state machine will sort
+      // them out and remove duplicates automatically.
 
 
-        for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
+      for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
         {
 
-	    uint32_t extended_can_id = 0;
-	    size_t payload_size = CANARD_MTU_CAN_CLASSIC;
-            CanardFrame   frame;
-	    uint8_t payload[CANARD_MTU_CAN_CLASSIC] = {0};
+	  uint32_t extended_can_id = 0;
+	  size_t payload_size = CANARD_MTU_CAN_CLASSIC;
+	  CanardFrame   frame;
+	  uint8_t payload[CANARD_MTU_CAN_CLASSIC] = {0};
 	      
-	    bool bxcan_result  = bxCANPop(ifidx, &extended_can_id, &payload_size, payload);
+	  bool bxcan_result  = bxCANPop(ifidx, &extended_can_id, &payload_size, payload);
 	    
-	    //const int16_t socketcan_result       = socketcanPop(sock[ifidx], &frame, NULL, sizeof(buf), buf, 0, NULL);
-            if (! bxcan_result)  // The read operation has timed out with no frames, nothing to do here.
+	  //const int16_t socketcan_result       = socketcanPop(sock[ifidx], &frame, NULL, sizeof(buf), buf, 0, NULL);
+	  if (! bxcan_result)  // The read operation has timed out with no frames, nothing to do here.
             {
-                break;
+	      break;
             }
 
-	    //payload to frame !
-	    frame.extended_can_id = extended_can_id;
-            frame.payload = payload;
-            frame.payload_size = payload_size;
+	  Log.notice(F("bxCANPop" CR));
+	  
+	  //payload to frame !
+	  frame.extended_can_id = extended_can_id;
+	  frame.payload = payload;
+	  frame.payload_size = payload_size;
 	    
-            // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
-            // Wall clock can only be used for time synchronization.
-            const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
-            CanardRxTransfer        transfer ; //      = {0};
-            const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &frame, ifidx, &transfer, NULL);
-            if (canard_result > 0)
+	  // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
+	  // Wall clock can only be used for time synchronization.
+	  const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
+	  CanardRxTransfer        transfer ; //      = {0};
+	  const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &frame, ifidx, &transfer, NULL);
+	  if (canard_result > 0)
             {
-                processReceivedTransfer(&state, &transfer);
-                state.canard.memory_free(&state.canard, (void*) transfer.payload);
+	      processReceivedTransfer(&state, &transfer);
+	      state.canard.memory_free(&state.canard, (void*) transfer.payload);
             }
-            else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
+	  else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
             {
-                (void) 0;  // The frame did not complete a transfer so there is nothing to do.
-                // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
+	      (void) 0;  // The frame did not complete a transfer so there is nothing to do.
+	      // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
             }
-            else
+	  else
             {
-                assert(false);  // No other error can possibly occur at runtime.
+	      assert(false);  // No other error can possibly occur at runtime.
             }
         }
     } while (!g_restart_required);
 
-    // It is recommended to postpone restart until all frames are sent though.
-    //(void) argc;
-    //puts("RESTART ");
-    NVIC_SystemReset();
-    //return -execve(argv[0], argv, environ);
+  // It is recommended to postpone restart until all frames are sent though.
+  //(void) argc;
+  //puts("RESTART ");
+  Log.fatal(F("Error" CR));
+  delay(1000);
+  NVIC_SystemReset();
+  //return -execve(argv[0], argv, environ);
 }
