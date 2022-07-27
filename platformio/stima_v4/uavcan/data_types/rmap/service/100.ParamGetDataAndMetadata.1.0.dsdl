@@ -1,0 +1,20 @@
+# Returns a data and metadata, with specific request sensor type
+
+uint8 value
+
+uint8 ITH = 0
+# ISTANTANEA
+uint8 NTH = 1
+# MINIMA
+uint8 MTH = 2
+# MEDIA
+uint8 XTH = 3
+# MASSIMA
+
+@sealed
+
+---
+
+rmap.module.TH.1.0 dataandmetadata
+
+@sealed

@@ -1,0 +1,5 @@
+# Returns a data and metadata, with specific request sensor type
+
+uint8 i2caddress
+
+@sealed
