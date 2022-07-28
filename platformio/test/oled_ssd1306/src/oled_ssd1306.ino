@@ -17,8 +17,8 @@
 #include <Wire.h>
 
 #if defined(ARDUINO_ARCH_STM32)
-#define WIREX Wire1
-TwoWire WIREX(PB4, PA7);   // D12 A6
+#define WIREX Wire
+//TwoWire WIREX(A4, A6);   // D12 A6
 
 // Define the dimension of the U8*log window
 #define U8LOG_WIDTH 20
@@ -45,8 +45,8 @@ TwoWire WIREX(PB4, PA7);   // D12 A6
 #ifdef USE_U8G2
 #include <U8g2lib.h>
 
-//U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
-U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
+U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
+//U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
 
 // Create a U8g2log object
 U8G2LOG u8g2log;

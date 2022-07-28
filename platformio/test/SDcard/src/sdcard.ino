@@ -33,7 +33,7 @@ SdFile root;
 // Adafruit SD shields and modules: pin 10
 // Sparkfun SD shield: pin 8
 // MKRZero SD: SDCARD_SS_PIN
-const int chipSelect = 7;
+const int chipSelect = PA4;
 
 void setup() {
   // Open serial communications and wait for port to open:

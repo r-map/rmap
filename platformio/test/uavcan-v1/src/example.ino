@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020  Paolo Paruno <p.patruno@iperbole.bologna.it>
+Copyright (C) 2020  Paolo Patruno <p.patruno@iperbole.bologna.it>
 authors:
 Paolo Patruno <p.patruno@iperbole.bologna.it>
 
@@ -29,7 +29,7 @@ static const uint16_t UltrasoundMessageSubjectID = 1610U;
 static const uint16_t RegisterAccessServiceID    = 84U;
 
 CanardInstance canard;
-HardwareSerial Serial2(PA3, PA2);  //uart2
+//HardwareSerial Serial2(PA3, PA2);  //uart2
 unsigned long int  next;
 unsigned long int  nextrpc;
 
@@ -70,7 +70,7 @@ static void publishHeartbeat(CanardInstance* const canard, const uint32_t uptime
   if(canardTxPush(canard, &transfer) < 0 )
     {
       // An error has occurred: either an argument is invalid or we've ran out of memory.
-      Serial2.println("Error canardTxPush");
+      Serial.println("Error canardTxPush");
     }
 }
 
@@ -98,7 +98,7 @@ static void publishUltrasoundMessage(CanardInstance* const canard)
   if (canardTxPush(canard, &transfer) < 0)
     {
       // An error has occurred: either an argument is invalid or we've ran out of memory.
-      Serial2.println("Error canardTxPush");
+      Serial.println("Error canardTxPush");
     }
 
 }
@@ -131,7 +131,7 @@ static void requestRpc(CanardInstance* const canard)
   if (canardTxPush(canard, &transfer) < 0)
     {
       // An error has occurred: either an argument is invalid or we've ran out of memory.
-      Serial2.println("Error canardTxPush");
+      Serial.println("Error canardTxPush");
     }
 }
 
@@ -153,7 +153,7 @@ static void handleRequestTransfer(CanardInstance* const canard, const CanardTran
   if (canardTxPush(canard, &response_transfer) < 0)
     {
       // An error has occurred: either an argument is invalid or we've ran out of memory.
-      Serial2.println("Error canardTxPush");
+      Serial.println("Error canardTxPush");
     }
 }
 
@@ -236,10 +236,10 @@ void processReceived(){
 		  &out_payload_size,
 		  out_payload)) {
     /*
-    Serial2.print("packet received: ");
-    Serial2.print(out_extended_can_id);
-    Serial2.print(" : ");
-    Serial2.println(out_payload_size);
+    Serial.print("packet received: ");
+    Serial.print(out_extended_can_id);
+    Serial.print(" : ");
+    Serial.println(out_payload_size);
     */
     CanardFrame rxf=
       {
@@ -252,10 +252,10 @@ void processReceived(){
     const int8_t result = canardRxAccept(&canard, &rxf, 0, &transfer);
     if ( result == 1 ){
       /*
-      Serial2.print("transfer kind and port_id: ");
-      Serial2.print(transfer.transfer_kind);
-      Serial2.print(" : ");
-      Serial2.println(transfer.port_id);
+      Serial.print("transfer kind and port_id: ");
+      Serial.print(transfer.transfer_kind);
+      Serial.print(" : ");
+      Serial.println(transfer.port_id);
       */
       if ((transfer.transfer_kind == CanardTransferKindMessage) &&
 	  (transfer.port_id == HeartbeatSubjectID)) {
@@ -264,24 +264,24 @@ void processReceived(){
 	uint8_t  vssc   = canardDSDLGetU32((const uint8_t*)transfer.payload, transfer.payload_size, 48,  8);
 	uint8_t  health = canardDSDLGetU8((const uint8_t*)transfer.payload,  transfer.payload_size, 32,  8);
 
-	Serial2.print("Heartbeat -> ");
-	Serial2.print("uptime: ");
-	Serial2.print(uptime);
-	Serial2.print(" mode: ");
-	Serial2.print(mode);
-	Serial2.print(" health: ");
-	Serial2.print(health);
-	Serial2.print(" vssc: ");
-	Serial2.println(vssc);
+	Serial.print("Heartbeat -> ");
+	Serial.print("uptime: ");
+	Serial.print(uptime);
+	Serial.print(" mode: ");
+	Serial.print(mode);
+	Serial.print(" health: ");
+	Serial.print(health);
+	Serial.print(" vssc: ");
+	Serial.println(vssc);
 
       } else if ((transfer.transfer_kind == CanardTransferKindMessage) &&
 		 (transfer.port_id == UltrasoundMessageSubjectID)) {
 	// Deserialize distance from ultrasound message
 	CanardDSDLFloat32 distance = canardDSDLGetF32((const uint8_t*)transfer.payload, transfer.payload_size, 0);          
 	
-	Serial2.print("UltrasoundMessage -> ");
-	Serial2.print("distance: ");
-	Serial2.println(distance);
+	Serial.print("UltrasoundMessage -> ");
+	Serial.print("distance: ");
+	Serial.println(distance);
 
       } else if ((transfer.transfer_kind == CanardTransferKindRequest) &&
 		 (transfer.port_id == RegisterAccessServiceID)) {
@@ -290,18 +290,18 @@ void processReceived(){
 		 (transfer.port_id == RegisterAccessServiceID)) {
 	// Deserialize distance from rpc response
 	CanardDSDLFloat32 temperature = canardDSDLGetF32((const uint8_t*)transfer.payload, transfer.payload_size, 0);          
-	Serial2.print("RPC Message -> ");
-	Serial2.print("temperature: ");
-	Serial2.println(temperature);
+	Serial.print("RPC Message -> ");
+	Serial.print("temperature: ");
+	Serial.println(temperature);
       } else {
-	Serial2.println("transfer kind and port_id not managed");
+	Serial.println("transfer kind and port_id not managed");
       }
       //canard.memory_free(&canard,(void*) transfer.payload);
       free((void*) transfer.payload);
     }else if ( result < 0 ) {
-      Serial2.println("An error has occurred: either an argument is invalid or we've ran out of memory");
+      Serial.println("An error has occurred: either an argument is invalid or we've ran out of memory");
     } else {
-      Serial2.println("The received frame is either invalid or it's a non-last frame of a multi-frame transfer.");
+      Serial.println("The received frame is either invalid or it's a non-last frame of a multi-frame transfer.");
     }
   }
 }
@@ -309,9 +309,9 @@ void processReceived(){
 
 void setup(void) {
 
-  Serial2.begin(115200);
-  Serial2.print("Initializing...");
-  Serial2.println(HAL_RCC_GetHCLKFreq());
+  Serial.begin(115200);
+  Serial.print("Initializing...");
+  Serial.println(HAL_RCC_GetHCLKFreq());
 
   // initialize digital pins
   pinMode(LED_BUILTIN, OUTPUT);
@@ -377,10 +377,10 @@ void setup(void) {
 void loop(void) {  
   if (next <= millis()) {
     /*
-    Serial2.print("It's time to send ");
-    Serial2.print(millis());
-    Serial2.print(":");
-    Serial2.println(next);
+    Serial.print("It's time to send ");
+    Serial.print(millis());
+    Serial.print(":");
+    Serial.println(next);
     */
     digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
     publishUltrasoundMessage(&canard);
@@ -393,10 +393,10 @@ void loop(void) {
   
   if (nextrpc <= millis()) {
     /*    
-    Serial2.print("It's time for rpc ");
-    Serial2.print(millis());
-    Serial2.print(":");
-    Serial2.println(nextrpc);
+    Serial.print("It's time for rpc ");
+    Serial.print(millis());
+    Serial.print(":");
+    Serial.println(nextrpc);
     */
     requestRpc(&canard);
     nextrpc = nextrpc + 3000;

@@ -21,7 +21,7 @@ microduino 1284p16m/644pa16m
 */
 
 
-//#define I2CDISPLAY
+#define I2CDISPLAY
 
 #include <U8g2lib.h>
 #include <menu.h>
@@ -54,9 +54,10 @@ microduino 1284p16m/644pa16m
 #define fontMarginY 1
 
 #if defined(ARDUINO_ARCH_STM32)
-#define WIREX Wire1
-TwoWire WIREX(PB4, PA7);
-U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
+#define WIREX Wire
+//TwoWire WIREX(PB4, PA7);
+//U8G2_SSD1306_64X48_ER_F_2ND_HW_I2C  u8g2(U8G2_R0);
+U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
 #else
 #define WIREX Wire
 U8G2_SSD1306_64X48_ER_F_HW_I2C u8g2(U8G2_R0);
