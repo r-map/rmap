@@ -553,6 +553,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
 {
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
     {
+      Log.notice(F("message"));
         size_t size = transfer->payload_size;
         if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_)
         {
@@ -570,6 +571,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
     {
 
+      Log.notice(F("request portid %d" CR),transfer->metadata.port_id);
 	if (transfer->metadata.port_id == state->port_id.pub.service_module_th)
 	{
             // The request object is empty so we don't bother deserializing it. Just send the response.
@@ -751,7 +753,7 @@ void setup(void) {
 
   Serial.begin(115200);
   Log.begin(LOG_LEVEL_VERBOSE, &Serial);
-  Log.notice(F(CR "Initializing..." CR));
+  Log.notice(F("Initializing..." CR));
   Log.notice(F("clock : %d" CR), HAL_RCC_GetHCLKFreq());
 
   CAN_HW_Init();
@@ -1105,6 +1107,7 @@ void loop(void)
             }
 	  else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
             {
+	      Log.notice(F("nothing to do" CR));
 	      (void) 0;  // The frame did not complete a transfer so there is nothing to do.
 	      // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
             }

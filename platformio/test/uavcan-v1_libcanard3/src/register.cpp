@@ -31,6 +31,8 @@ static ExFile file;
 static SdFs SD;
 static FsFile file;
 #endif  // SD_FAT_TYPE
+static FatFile filedir;
+
 
 void registerSetup() {
   SPI.begin();
@@ -46,6 +48,9 @@ void registerSetup() {
 	Serial.println("Create Folder failed");
 	}
     }
+
+    filedir.open(RegistryDirName, O_RDONLY);
+    SD.chdir(RegistryDirName);
   }
 }
 
@@ -54,17 +59,18 @@ static bool registerOpen(const char* const register_name, const bool write)
 {
   // An actual implementation on an embedded system may need to perform atomic file transactions via rename().
   
-  char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
-  (void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
+  //  char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
+  //(void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
   if (write)
     {
-      if (!file.open(file_path, O_WRONLY | O_CREAT)) {
+      //if (!file.open(file_path, O_WRONLY | O_CREAT)) {
+      if (!file.open(register_name, O_WRONLY | O_CREAT)) {
 	Serial.println("create file failed");
 	return false;
       }
     } else {
-    if (!file.open(file_path, O_RDONLY)) {
-      Serial.print(file_path);
+    if (!file.open(register_name, O_RDONLY)) {
+      Serial.print(register_name);
       Serial.println("->open file failed");
       return false;
     }
@@ -76,6 +82,7 @@ static bool registerOpen(const char* const register_name, const bool write)
 
 void registerRead(const char* const register_name, uavcan_register_Value_1_0* const inout_value)
 {
+
   assert(inout_value != NULL);
   bool        init_required = !uavcan_register_Value_1_0_is_empty_(inout_value);
   bool status  = registerOpen(&register_name[0], false);
@@ -87,71 +94,72 @@ void registerRead(const char* const register_name, uavcan_register_Value_1_0* co
       size_t sr_size = (size_t) size;
       uavcan_register_Value_1_0 out = {0};
       const int8_t              err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
-      if (err >= 0)
-	{
-	  init_required = !registerAssign(inout_value, &out);
-	}
+      if (err >= 0){
+	init_required = !registerAssign(inout_value, &out);
+      }
     } else {
       init_required = true;
     }
-    if (init_required) {
-      printf("Init register: %s\n", register_name);
-      registerWrite(register_name, inout_value);
-    }
   }
+  if (init_required) {
+    printf("Init register: %s\n", register_name);
+    registerWrite(register_name, inout_value);
+  }
+
 }
 void registerWrite(const char* const register_name, const uavcan_register_Value_1_0* const value)
-{
-  
+{ 
+
   uint8_t      serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
   size_t       sr_size                                             = uavcan_register_Value_1_0_EXTENT_BYTES_;
+
   const int8_t err = uavcan_register_Value_1_0_serialize_(value, serialized, &sr_size);
-  if (err >= 0)
-    {
-      bool status = registerOpen(&register_name[0], true);
-        if (status)
-        {
-            file.write(&serialized[0], sr_size);
-	    file.close();
-        }
+  if (err >= 0){
+    bool status = registerOpen(&register_name[0], true);
+    if (status) {
+      printf("write register: %s\n", register_name);
+      file.write(&serialized[0], sr_size);
+      file.close();
     }
+  }
 }
 
 uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index)
 {
-    uavcan_register_Name_1_0 out = {0};
-    uavcan_register_Name_1_0_initialize_(&out);
-  /*
-    DIR* const dp = opendir(RegistryDirName);
-    if (dp != NULL)
-    {
-        // The service definition requires that the ordering is consistent between calls.
-        // We assume here that there will be no new registers added while the listing operation is in progress.
-        // If this is not the case, you will need to implement additional logic to uphold the ordering consistency
-        // guarantee, such as sorting registers by creation time or adding extra metadata.
-        struct dirent* ep = readdir(dp);
-        uint16_t       ii = 0;
-        while (ep != NULL)
-        {
-            if (ep->d_type == DT_REG)
-            {
-                if (ii >= index)
-                {
-                    break;
-                }
-                ++ii;
-            }
-            ep = readdir(dp);
-        }
-        if (ep != NULL)
-        {
-            out.name.count = nunavutChooseMin(strlen(ep->d_name), uavcan_register_Name_1_0_name_ARRAY_CAPACITY_);
-            memcpy(out.name.elements, ep->d_name, out.name.count);
-        }
-        (void) closedir(dp);
+  // The service definition requires that the ordering is consistent between calls.
+  // We assume here that there will be no new registers added while the listing operation is in progress.
+  // If this is not the case, you will need to implement additional logic to uphold the ordering consistency
+  // guarantee, such as sorting registers by creation time or adding extra metadata.
+
+  uavcan_register_Name_1_0 out = {0};
+  uavcan_register_Name_1_0_initialize_(&out);
+  
+  uint16_t       ii = 0;
+  
+  filedir.rewind();
+  
+  while (file.openNext(&filedir, O_READ)) {
+    if (file.isHidden() || file.isDir()) {
+      file.close();
+      continue;
     }
-  */
-    return out;
+      
+    if (ii >= index) {
+      ++ii;
+      break;
+    }
+    ++ii;
+  }
+
+  if (ii > 0){
+    char FileName[120];
+    file.getName(FileName, sizeof(FileName));
+    out.name.count = nunavutChooseMin(strlen(FileName), uavcan_register_Name_1_0_name_ARRAY_CAPACITY_);
+    memcpy(out.name.elements, FileName, out.name.count);
+    file.close();
+  }
+  
+  return out;
 }
 
 bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_Value_1_0* const src)
