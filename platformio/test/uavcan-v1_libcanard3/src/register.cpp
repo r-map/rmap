@@ -38,7 +38,7 @@ void registerSetup() {
   SPI.begin();
   pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
   digitalWrite(SDCARD_CHIP_SELECT_PIN, HIGH);
-  Serial.println("\nInitializing SD card...");
+  Serial.println("Initializing SD card...");
   if (SD.begin(SDCARD_CHIP_SELECT_PIN,SPI_SPEED)){
     Serial.print("The FAT type of the volume: ");
     Serial.println(SD.vol()->fatType());
@@ -61,21 +61,23 @@ static bool registerOpen(const char* const register_name, const bool write)
   
   //  char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
   //(void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
+
+  Serial.print(register_name);
   if (write)
     {
       //if (!file.open(file_path, O_WRONLY | O_CREAT)) {
       if (!file.open(register_name, O_WRONLY | O_CREAT)) {
-	Serial.println("create file failed");
+	Serial.println("->create file failed");
 	return false;
       }
     } else {
     if (!file.open(register_name, O_RDONLY)) {
-      Serial.print(register_name);
       Serial.println("->open file failed");
       return false;
     }
   }
   
+  Serial.println("->opened");
   return true;
 	
 }
@@ -91,6 +93,10 @@ void registerRead(const char* const register_name, uavcan_register_Value_1_0* co
     int  size = file.read(&serialized[0], uavcan_register_Value_1_0_EXTENT_BYTES_);
     file.close();
     if (size > 0){
+
+      Serial.print("Read register: ");
+      Serial.println(register_name);
+
       size_t sr_size = (size_t) size;
       uavcan_register_Value_1_0 out = {0};
       const int8_t              err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
@@ -102,10 +108,9 @@ void registerRead(const char* const register_name, uavcan_register_Value_1_0* co
     }
   }
   if (init_required) {
-    printf("Init register: %s\n", register_name);
+    Serial.println("Init register");
     registerWrite(register_name, inout_value);
   }
-
 }
 void registerWrite(const char* const register_name, const uavcan_register_Value_1_0* const value)
 { 
@@ -135,6 +140,7 @@ uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index)
   uavcan_register_Name_1_0_initialize_(&out);
   
   uint16_t       ii = 0;
+  bool found = false;
   
   filedir.rewind();
   
@@ -145,20 +151,25 @@ uavcan_register_Name_1_0 registerGetNameByIndex(const uint16_t index)
     }
       
     if (ii >= index) {
-      ++ii;
+      found = true;
       break;
     }
     ++ii;
+    file.close();
   }
 
-  if (ii > 0){
+  if (found){
     char FileName[120];
-    file.getName(FileName, sizeof(FileName));
+    file.getName(FileName, sizeof(FileName));    
+    Serial.print("register index:");
+    Serial.print(index);
+    Serial.print(" name: ");
+    Serial.println(FileName);
+
     out.name.count = nunavutChooseMin(strlen(FileName), uavcan_register_Name_1_0_name_ARRAY_CAPACITY_);
     memcpy(out.name.elements, FileName, out.name.count);
     file.close();
   }
-  
   return out;
 }
 
@@ -211,22 +222,18 @@ bool registerAssign(uavcan_register_Value_1_0* const dst, const uavcan_register_
 
 void registerDoFactoryReset(void)
 {
-  /*
-    DIR* const dp = opendir(RegistryDirName);
-    if (dp != NULL)
-    {
-        struct dirent* ep = readdir(dp);
-        while (ep != NULL)
-        {
-            if (ep->d_type == DT_REG)
-            {
-                char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
-                (void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, ep->d_name);
-                (void) unlink(&file_path[0]);
-            }
-            ep = readdir(dp);
-        }
-        (void) closedir(dp);
+
+  Serial.print("factory reset");
+  
+  filedir.rmRfStar();
+  if (!SD.exists(RegistryDirName)) {
+    if (!SD.mkdir(RegistryDirName)) {
+      Serial.println("Create Folder failed");
     }
-  */
+  }
+  filedir.close();
+  
+  filedir.open(RegistryDirName, O_RDONLY);
+  SD.chdir(RegistryDirName);
+
 }

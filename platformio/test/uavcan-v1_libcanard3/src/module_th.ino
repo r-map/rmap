@@ -735,14 +735,14 @@ void CAN_HW_Init(void) {
   BxCANTimings timings;
   bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), 250000, &timings);
   if (!result) {
-    Log.fatal(F("Error" CR));
+    Log.fatal(F("timings Error" CR));
     delay(1000);
     NVIC_SystemReset();
   }
 
   result = bxCANConfigure(0, timings, false);
   if (!result) {
-    Log.fatal(F("Error" CR));
+    Log.fatal(F("configure Error" CR));
     delay(1000);
     NVIC_SystemReset();
   }
@@ -888,7 +888,7 @@ void setup(void) {
 			  &rx);
       if (res < 0)
         {
-	  Log.fatal(F("Error" CR));
+	  Log.fatal(F("subscribe message Error" CR));
 	  delay(1000);
 	  NVIC_SystemReset();
 	  //return -res;
@@ -906,7 +906,7 @@ void setup(void) {
 			&rx);
     if (res < 0)
       {
-	Log.fatal(F("Error" CR));
+	Log.fatal(F("subscribe request Error" CR));
 	delay(1000);
 	NVIC_SystemReset();
 	//return -res;
@@ -923,7 +923,7 @@ void setup(void) {
 			&rx);
     if (res < 0)
       {
-	Log.fatal(F("Error" CR));
+	Log.fatal(F("subscribe command Error" CR));
 	delay(1000);
 	NVIC_SystemReset();
 	//return -res;
@@ -940,7 +940,7 @@ void setup(void) {
 			&rx);
     if (res < 0)
       {
-	Log.fatal(F("Error" CR));
+	Log.fatal(F("subscribe register Error" CR));
 	delay(1000);
 	NVIC_SystemReset();
 	//return -res;
@@ -957,7 +957,7 @@ void setup(void) {
 			&rx);
     if (res < 0)
       {
-	Log.fatal(F("Error" CR));
+	Log.fatal(F("subscribe register list Error" CR));
 	delay(1000);
 	NVIC_SystemReset();
 	//return -res;
@@ -978,7 +978,7 @@ void setup(void) {
 
     if (res < 0)
       {
-	Log.fatal(F("Error" CR));
+	Log.fatal(F("subscribe get Error" CR));
 	delay(1000);
 	NVIC_SystemReset();
 	//return -res;
@@ -1119,10 +1119,8 @@ void loop(void)
     } while (!g_restart_required);
 
   // It is recommended to postpone restart until all frames are sent though.
-  //(void) argc;
-  //puts("RESTART ");
-  Log.fatal(F("Error" CR));
+  Log.fatal(F("Reboot" CR));
   delay(1000);
   NVIC_SystemReset();
-  //return -execve(argv[0], argv, environ);
+
 }
