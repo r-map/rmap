@@ -26,7 +26,7 @@ bool connected=false;
 // Required libraries
 #include <STM32CAN.h>
 
-HardwareSerial Serial2(PA3, PA2);  //uart2
+//HardwareSerial Serial2(PA3, PA2);  //uart2
 
 uint8_t can_speed(char speed){
 
@@ -72,6 +72,7 @@ void command (void){
   #define BUFFERLEN 100
   char buffer[BUFFERLEN];
   char* data;
+  int ide=1;
   int dlc;
   unsigned int id;
   bool send = true;
@@ -79,7 +80,7 @@ void command (void){
   int status = 0;
   char speed='9';
 
-  size_t size=Serial2.readBytesUntil({13}, buffer, BUFFERLEN);
+  size_t size=Serial.readBytesUntil({13}, buffer, BUFFERLEN);
   if (size>0){
     buffer[size]='\0';
     sscanf (buffer,"%1s",&c);
@@ -88,11 +89,11 @@ void command (void){
     case 'T':
       //Serial2.println("command T");
       if (sscanf (buffer,"%1s%8x%1i",&c,&id,&dlc) ==3){
-	rtr = true;
 	data=&buffer[10];
       } else status=1;
       break;
     case 't':
+      ide = 0;
       //Serial2.println("command t");
       if (sscanf (buffer,"%1s%3x%1i",&c,&id,&dlc) ==3){
 	data=&buffer[5];
@@ -106,6 +107,7 @@ void command (void){
       } else status=1;
       break;
     case 'r':
+      ide = 0;
       //Serial2.println("command r");
       if (sscanf (buffer,"%1s%3x%1i",&c,&id,&dlc) ==3){
 	data=&buffer[5];
@@ -148,18 +150,26 @@ void command (void){
 	if (connected) {
 	  if(dlc <= 8) {
 	    CAN_message_t frame;
+	    frame.ide=ide;
 	    frame.id=id;
 	    frame.dlc=dlc;
 	    frame.rtr=rtr;
+	    //Serial2.print("ide:");
+	    //Serial2.println(frame.ide);
+	    //Serial2.print("id:");
 	    //Serial2.println(frame.id);
+	    //Serial2.print("rtr:");
 	    //Serial2.println(frame.rtr);
+	    //Serial2.print("dlc:");
 	    //Serial2.println(frame.dlc);
+	    //Serial2.print("data:");
 	    //Serial2.println(data);
 			
 	    for (int count = 0; count < frame.dlc; count++) {
 	      if (status ==0){
 		if (sscanf(data,"%2x",&frame.data.bytes[count]) == 1){
-		  //Serial2.println(frame.data.bytes[count],HEX);
+		  ////Serial2.print("data HEX:");
+		  ////Serial2.println(frame.data.bytes[count],HEX);
 		  data++;
 		  data++;
 		} else status=1;
@@ -167,13 +177,15 @@ void command (void){
 	    }
 	    
 	    //for (int count = 0; count < frame.dlc; count++) {
-	    //  Serial2.println(frame.data.bytes[count]);
+	    //  //Serial2.println(frame.data.bytes[count]);
 	    //}
 
 	    if (status == 0){
-	      if (Can1.write(frame)) status =0;
-	      //Serial2.print("Done: ");
-	      //Serial2.println(status);
+	      if (Can1.write(frame)) {
+		status =0;
+	      }else{
+		status =1;
+	      }
 	    }
 	  }
 	  else
@@ -186,11 +198,11 @@ void command (void){
   }
 
   if (status == 0){
-    Serial2.print("\r");
+    Serial.print("\r");
     //Serial2.println("OK");
   }else{	  
-    Serial2.print("\a");
-    //Serial2.println("NO");
+    Serial.print("\a");
+    //Serial2.println("KO");
   }    
 }
 
@@ -217,21 +229,24 @@ void data(CAN_message_t &frame) {
      snprintf(buff, sizeof(buff), "%c%03X%1d",c,frame.id,frame.dlc);
    }
 
-   Serial2.print(buff);
+   Serial.print(buff);
    for (int count = 0; count < frame.dlc; count++) {
      snprintf(buff, sizeof(buff), "%02X",frame.data.bytes[count]);
-     Serial2.print(buff);
+     Serial.print(buff);
+     //Serial2.print(buff);
    }
    
-   Serial2.print("\r");
+   Serial.print("\r");
+   //Serial2.println("");
    
 }
 
 
 void setup()
 {
-  Serial2.begin(115200);
-  Serial2.println("Slcan started");
+  Serial.begin(115200);
+  //Serial2.begin(115200);
+  //Serial2.println("Slcan started");
 }
 
 
@@ -243,7 +258,7 @@ void loop(){
     data(incoming);
   }
 
-  if (Serial2.available() > 0) {
+  if (Serial.available() > 0) {
     command();
   }
 
