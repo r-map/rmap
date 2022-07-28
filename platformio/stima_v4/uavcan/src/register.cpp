@@ -16,7 +16,7 @@
 
 // Utilizza dichiarazioni small per variabili e registri fuori dalle specifiche
 // UAVCAN ma abbondantemente nei limiti di ragionevolezza di utilizzo delle stesse
-// TODO: Da finire e test in 8.3
+// TODO: Da finire e provare per test in 8.3
 #define USE_REGISTER_MINIMAL_RAM
 
 #include <stdio.h>

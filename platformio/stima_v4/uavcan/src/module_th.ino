@@ -16,6 +16,7 @@
 #include <uavcan/node/port/List_0_1.h>
 #include <uavcan/_register/Access_1_0.h>
 #include <uavcan/_register/List_1_0.h>
+#include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 #include <uavcan/pnp/NodeIDAllocationData_2_0.h>
 
 #include <rmap/_module/TH_1_0.h>
@@ -37,9 +38,16 @@
 // CAN SPEED RATE HZ
 #define CAN_BIT_RATE 250000ul
 
+// CANARD_MTU_CAN_CLASSIC non supporta PNP_NODE_ALLOCATION_V_10
+#if (CANARD_MTU_MAX == CANARD_MTU_CAN_CLASSIC)
+    #define PNP_NODE_ALLOCATION_V_10
+#else
+    #define PNP_NODE_ALLOCATION_V_20
+#endif
+
 // INIT REGISTER INTERNI
 // #define NODE_FIXED_ID 10
-#define INIT_REGISTER
+// #define INIT_REGISTER
 
 // VARIABILI GLOBALI ISTANZE, TODO: CLASSE c++ ecc...
 
@@ -92,7 +100,8 @@ static volatile bool g_restart_required = false;
 /// Mind the difference between monotonic time and wall time. Monotonic time never changes rate or makes leaps,
 /// it is therefore impossible to synchronize with an external reference. Wall time can be synchronized and therefore
 /// it may change rate or make leap adjustments. The two kinds of time serve completely different purposes.
-// TODO: Microsecond register STM32...
+// TODO: Microsecond register STM32... Microsecond non va bene perchè si resetta mentre
+// Per Cypal non dovrebbe resettarsi uint_64 Bit
 static CanardMicrosecond getMonotonicMicroseconds()
 {
     time_t ts;
@@ -266,9 +275,43 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
         // There are other ways to do it, of course. See the docs in the Specification or in the DSDL definition here:
         // https://github.com/OpenCyphal/public_regulated_data_types/blob/master/uavcan/pnp/8165.NodeIDAllocationData.2.0.dsdl
         // Note that a high-integrity/safety-certified application is unlikely to be able to rely on this feature.
+        #ifdef PNP_NODE_ALLOCATION_V_10
         if (rand() > RAND_MAX / 2)  // NOLINT
         {
-            // Note that this will only work over CAN FD. If you need to run PnP over Classic CAN, use message v1.0.
+            // PnP over Classic CAN, use message v1.0.
+            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+            /// truncated uint48 unique_id_hash
+            // TODO: Creare UniqueId e gestirlo
+            uint64_t local_unique_id_hash = 0x2030405060708090;
+            // msg.allocated_node_id.count
+            // msg.allocated_node_id.(count/element) => Solo in response non in request;
+            msg.unique_id_hash = local_unique_id_hash;
+            //////local_unique_id_hash = getUniqueID_10(msg2.unique_id);
+            uint8_t      serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+            size_t       serialized_size = sizeof(serialized);
+            const int8_t err = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);
+            assert(err >= 0);
+            if (err >= 0)
+            {
+                const CanardTransferMetadata meta = {
+                    .priority       = CanardPrioritySlow,
+                    .transfer_kind  = CanardTransferKindMessage,
+                    .port_id        = uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                    .remote_node_id = CANARD_NODE_ID_UNSET,
+                    .transfer_id    = (CanardTransferID) (state->next_transfer_id.uavcan_pnp_allocation++),
+                };
+                send(state,  // The response will arrive asynchronously eventually.
+                     monotonic_time + MEGA,
+                     &meta,
+                     serialized_size,
+                     &serialized[0]);
+            }
+        }
+        #endif
+        #ifdef PNP_NODE_ALLOCATION_V_20
+        if (rand() > RAND_MAX / 2)  // NOLINT
+        {
+            // PnP CAN FD, use message v2.0.
             uavcan_pnp_NodeIDAllocationData_2_0 msg = {0};
             msg.node_id.value                       = UINT16_MAX;
             getUniqueID(msg.unique_id);
@@ -292,6 +335,7 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
                      &serialized[0]);
             }
         }
+        #endif
     }
 
     // Publish module_th reading if the subject is enabled and the node is non-anonymous.
@@ -392,6 +436,32 @@ static void handle01HzLoop(State* const state, const CanardMicrosecond monotonic
     }
 }
 
+#ifdef PNP_NODE_ALLOCATION_V_10
+static void processMessagePlugAndPlayNodeIDAllocation(State* const                                     state,
+                                                      const uavcan_pnp_NodeIDAllocationData_1_0* const msg)
+{
+    // TODO: Unificare il GetUniqueID x gestione PnP (con comando e scrittura E2/Rnd...)
+    //uint8_t uid[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_] = {0};
+    //getUniqueID(uid);
+    if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX)
+    {
+        printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
+        state->canard.node_id = (CanardNodeID) msg->allocated_node_id.elements[0].value;
+        // Store the value into the non-volatile storage.
+        uavcan_register_Value_1_0 reg = {0};
+        uavcan_register_Value_1_0_select_natural16_(&reg);
+        reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
+        reg.natural16.value.count       = 1;
+        registerWrite("uavcan.node.id", &reg);
+        // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
+        (void) canardRxUnsubscribe(&state->canard,
+                                   CanardTransferKindMessage,
+                                   uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
+    }
+    // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
+}
+#endif
+#ifdef PNP_NODE_ALLOCATION_V_20
 static void processMessagePlugAndPlayNodeIDAllocation(State* const                                     state,
                                                       const uavcan_pnp_NodeIDAllocationData_2_0* const msg)
 {
@@ -414,6 +484,7 @@ static void processMessagePlugAndPlayNodeIDAllocation(State* const              
     }
     // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
 }
+#endif
 
 static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(
     const uavcan_node_ExecuteCommand_Request_1_1* req)
@@ -535,6 +606,17 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
     {
         size_t size = transfer->payload_size;
+        #ifdef PNP_NODE_ALLOCATION_V_10
+        if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_)
+        {
+            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+            if (uavcan_pnp_NodeIDAllocationData_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
+                processMessagePlugAndPlayNodeIDAllocation(state, &msg);
+            }
+        }
+        #endif
+        #ifdef PNP_NODE_ALLOCATION_V_20
         if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_)
         {
             uavcan_pnp_NodeIDAllocationData_2_0 msg = {0};
@@ -543,6 +625,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                 processMessagePlugAndPlayNodeIDAllocation(state, &msg);
             }
         }
+        #endif
         else
         {
             assert(false);  // Seems like we have set up a port subscription without a handler -- bad implementation.
@@ -854,9 +937,9 @@ void loop(void)
 
     // CANARD_BITRATE -> INIT_VALUE + Extra (NOT USED, CAN_MTU_CLASSIC)
     uavcan_register_Value_1_0_select_natural32_(&val);
-    val.natural16.value.count       = 2;
-    val.natural16.value.elements[0] = CAN_BIT_RATE;
-    val.natural16.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+    val.natural32.value.count       = 2;
+    val.natural32.value.elements[0] = CAN_BIT_RATE;
+    val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
     registerWrite("uavcan.can.bitrate", &val);
 
     // Node Name description (Platformio.ini)
@@ -917,9 +1000,9 @@ void loop(void)
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
     uavcan_register_Value_1_0_select_natural32_(&val);
-    val.natural16.value.count       = 2;
-    val.natural16.value.elements[0] = CAN_BIT_RATE;
-    val.natural16.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
+    val.natural32.value.count       = 2;
+    val.natural32.value.elements[0] = CAN_BIT_RATE;
+    val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
     registerRead("uavcan.can.bitrate", &val);
     assert(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
@@ -968,8 +1051,27 @@ void loop(void)
 
     // Set up subject subscriptions and RPC-service servers.
     // Message subscriptions:
+    #ifdef PNP_NODE_ALLOCATION_V_10    
     if (state.canard.node_id > CANARD_NODE_ID_MAX)
     {
+        // PnP over Classic CAN, use message v1.0.
+        static CanardRxSubscription rx;
+        const int8_t                res =  //
+            canardRxSubscribe(&state.canard,
+                              CanardTransferKindMessage,
+                              uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                              uavcan_pnp_NodeIDAllocationData_1_0_EXTENT_BYTES_,
+                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                              &rx);
+        if (res < 0)
+        {
+	        NVIC_SystemReset();
+            //return -res;
+        }
+    }
+    #endif
+    #ifdef PNP_NODE_ALLOCATION_V_20
+    {   // PnP over CAN FD, use message v2.0.
         static CanardRxSubscription rx;
         const int8_t                res =  //
             canardRxSubscribe(&state.canard,
@@ -984,6 +1086,8 @@ void loop(void)
             //return -res;
         }
     }
+    #endif
+
     // Service servers:
     {
         static CanardRxSubscription rx;
@@ -1067,6 +1171,9 @@ void loop(void)
     
     digitalWrite(LED_BUILTIN, LOW);
     bool ledShow;
+    int bTxAttempt = 0;
+    int bRxAttempt = 0;
+    long lastMillis;
 
     // Now the node is initialized and we're ready to roll.
     state.started_at                           = getMonotonicMicroseconds();
@@ -1082,7 +1189,7 @@ void loop(void)
         if (monotonic_time >= next_fast_iter_at)
         {
             next_fast_iter_at += fast_loop_period;
-            handleFastLoop(&state, monotonic_time);
+            //handleFastLoop(&state, monotonic_time);
         }
         if (monotonic_time >= next_1_hz_iter_at)
         {
@@ -1100,9 +1207,6 @@ void loop(void)
             next_01_hz_iter_at += MEGA * 10;
             handle01HzLoop(&state, monotonic_time);
         }
-
-        int bTxAttempt = 0;
-        long lastMillis;
 
         // Transmit pending frames from the prioritized TX queues managed by libcanard.
         for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
@@ -1147,16 +1251,27 @@ void loop(void)
         // them out and remove duplicates automatically.
         for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
         {
-            CanardFrame   frame                       = {0};
-            uint8_t       buf[CANARD_MTU_CAN_CLASSIC] = {0};
+            CanardFrame frame;
+            uint8_t     buf[CANARD_MTU_MAX] = {0};
 
-            if (bxCANPop(0, &frame.extended_can_id, &frame.payload_size, &frame.payload)) {
-
+            frame.extended_can_id = 0;
+            frame.payload_size = sizeof(buf);
+            // The read operation has timed out with no frames, nothing to do here.
+            if (bxCANPop(ifidx, &frame.extended_can_id, &frame.payload_size, buf)) {
+                // Get payload from Buffer
+                frame.payload = buf;
+        
+                // TODO: Remove test
+                bRxAttempt++;
+                if ((millis() - lastMillis) > 333) {
+                    Serial.print("Attempt <- ");
+                    Serial.println(bRxAttempt);
+                    lastMillis = millis();
+                }
                 // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
                 // Wall clock can only be used for time synchronization.
                 const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
-                CanardRxTransfer transfer;
-
+                CanardRxTransfer        transfer ; //      = {0};
                 const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &frame, ifidx, &transfer, NULL);
                 if (canard_result > 0)
                 {
@@ -1165,19 +1280,22 @@ void loop(void)
                 }
                 else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
                 {
-                    // The frame did not complete a transfer so there is nothing to do.
+                    // TODO: Remove test
+                    if ((millis() - lastMillis) > 333) {
+                        Serial.print("Rx Nothing ToDo...");
+                        lastMillis = millis();
+                    }
+                    (void) 0;  // The frame did not complete a transfer so there is nothing to do.
                     // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
-                    (void) 0;
                 }
                 else
                 {
-                    // No other error can possibly occur at runtime.
-                    assert(false);
+                    assert(false);  // No other error can possibly occur at runtime.
                 }
             }
+            else break;
         }
     } while (!g_restart_required);
-
     // It is recommended to postpone restart until all frames are sent though.
     //(void) argc;
     //puts("RESTART ");
