@@ -58,14 +58,10 @@ void registerSetup() {
 static bool registerOpen(const char* const register_name, const bool write)
 {
   // An actual implementation on an embedded system may need to perform atomic file transactions via rename().
-  
-  //  char file_path[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + sizeof(RegistryDirName) + 2] = {0};
-  //(void) snprintf(&file_path[0], sizeof(file_path), "%s/%s", RegistryDirName, register_name);
 
   Serial.print(register_name);
   if (write)
     {
-      //if (!file.open(file_path, O_WRONLY | O_CREAT)) {
       if (!file.open(register_name, O_WRONLY | O_CREAT)) {
 	Serial.println("->create file failed");
 	return false;
@@ -85,18 +81,16 @@ static bool registerOpen(const char* const register_name, const bool write)
 void registerRead(const char* const register_name, uavcan_register_Value_1_0* const inout_value)
 {
 
-  assert(inout_value != NULL);
+  if (inout_value == NULL) return;
   bool        init_required = !uavcan_register_Value_1_0_is_empty_(inout_value);
   bool status  = registerOpen(&register_name[0], false);
   if (status) {
+    Serial.print("Read register: ");
+    Serial.println(register_name);
     uint8_t serialized[uavcan_register_Value_1_0_EXTENT_BYTES_] = {0};
     int  size = file.read(&serialized[0], uavcan_register_Value_1_0_EXTENT_BYTES_);
     file.close();
     if (size > 0){
-
-      Serial.print("Read register: ");
-      Serial.println(register_name);
-
       size_t sr_size = (size_t) size;
       uavcan_register_Value_1_0 out = {0};
       const int8_t              err = uavcan_register_Value_1_0_deserialize_(&out, serialized, &sr_size);
@@ -122,7 +116,8 @@ void registerWrite(const char* const register_name, const uavcan_register_Value_
   if (err >= 0){
     bool status = registerOpen(&register_name[0], true);
     if (status) {
-      printf("write register: %s\n", register_name);
+      Serial.print("write register: ");
+      Serial.println(register_name);
       file.write(&serialized[0], sr_size);
       file.close();
     }

@@ -20,12 +20,23 @@
 #include "canard_dsdl.h"
 #include "bxcan.h"
 
+#if (CANARD_MTU_MAX == CANARD_MTU_CAN_CLASSIC)
+    #define PNP_NODE_ALLOCATION_V_10
+#else
+    #define PNP_NODE_ALLOCATION_V_20
+#endif
+
 #include <uavcan/node/Heartbeat_1_0.h>
 #include <uavcan/node/GetInfo_1_0.h>
 #include <uavcan/node/ExecuteCommand_1_1.h>
 #include <uavcan/node/port/List_0_1.h>
 #include <uavcan/_register/Access_1_0.h>
 #include <uavcan/_register/List_1_0.h>
+
+#ifdef PNP_NODE_ALLOCATION_V_10
+#include <uavcan/pnp/NodeIDAllocationData_1_0.h>
+#endif
+
 #include <uavcan/pnp/NodeIDAllocationData_2_0.h>
 
 // Use /sample/ instead of /unit/ if you need timestamping.
@@ -37,10 +48,19 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <time.h>
 #include <unistd.h>
 #include <ArduinoLog.h>
+
+/// By default, this macro resolves to the standard assert(). The user can redefine this if necessary.
+/// To disable assertion checks completely, make it expand into `(void)(0)`.
+#define RMAP_ASSERT(x) (void)(0)
+
+//// Intentional violation of MISRA: inclusion not at the top of the file to eliminate unnecessary dependency on assert.h.
+//#    include <assert.h>  // NOSONAR
+//// Intentional violation of MISRA: assertion macro cannot be replaced with a function definition.
+//#    define RMAP_ASSERT(x) assert(x)  // NOSONAR
+
 
 #define KILO 1000L
 #define MEGA ((int64_t) KILO * KILO)
@@ -48,7 +68,6 @@
 #define CAN_REDUNDANCY_FACTOR 1
 /// For CAN FD the queue can be smaller.
 #define CAN_TX_QUEUE_CAPACITY 100
-
 
 reg_rmap_module_TH_1_0 module_th_msg = {0};
 
@@ -123,7 +142,7 @@ static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_A
         value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
     registerRead("uavcan.node.unique_id", &value);
-    assert(uavcan_register_Value_1_0_is_unstructured_(&value) &&
+    RMAP_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&value) &&
            value.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
     memcpy(&out[0], &value.unstructured.value, uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
 }
@@ -146,7 +165,7 @@ static CanardPortID getPublisherSubjectID(const char* const port_name, const cha
 
     // Read the register with defensive self-checks.
     registerRead(&register_name[0], &val);
-    assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+    RMAP_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
     const uint16_t result = val.natural16.value.elements[0];
 
     // This part is NOT required but recommended by the Specification for enhanced introspection capabilities. It is
@@ -217,7 +236,7 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
         uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size = sizeof(serialized);
         const int8_t err = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
-        assert(err >= 0);
+        RMAP_ASSERT(err >= 0);
         if (err >= 0)
         {
             const CanardTransferMetadata meta = {
@@ -258,7 +277,7 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
         uint8_t      serialized[uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size                                                        = sizeof(serialized);
         const int8_t err = uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, &serialized[0], &serialized_size);
-        assert(err >= 0);
+        RMAP_ASSERT(err >= 0);
         if (err >= 0)
         {
             const CanardTransferMetadata meta = {
@@ -282,7 +301,43 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
         // There are other ways to do it, of course. See the docs in the Specification or in the DSDL definition here:
         // https://github.com/OpenCyphal/public_regulated_data_types/blob/master/uavcan/pnp/8165.NodeIDAllocationData.2.0.dsdl
         // Note that a high-integrity/safety-certified application is unlikely to be able to rely on this feature.
+
+        #ifdef PNP_NODE_ALLOCATION_V_10
         if (rand() > RAND_MAX / 2)  // NOLINT
+        {
+            // PnP over Classic CAN, use message v1.0.
+            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+            /// truncated uint48 unique_id_hash
+            // TODO: Creare UniqueId e gestirlo
+            uint64_t local_unique_id_hash = 0x2030405060708090;
+            // msg.allocated_node_id.count
+            // msg.allocated_node_id.(count/element) => Solo in response non in request;
+            msg.unique_id_hash = local_unique_id_hash;
+            //////local_unique_id_hash = getUniqueID_10(msg2.unique_id);
+            uint8_t      serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+            size_t       serialized_size = sizeof(serialized);
+            const int8_t err = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);
+            assert(err >= 0);
+            if (err >= 0)
+            {
+                const CanardTransferMetadata meta = {
+                    .priority       = CanardPrioritySlow,
+                    .transfer_kind  = CanardTransferKindMessage,
+                    .port_id        = uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                    .remote_node_id = CANARD_NODE_ID_UNSET,
+                    .transfer_id    = (CanardTransferID) (state->next_transfer_id.uavcan_pnp_allocation++),
+                };
+                send(state,  // The response will arrive asynchronously eventually.
+                     monotonic_time + MEGA,
+                     &meta,
+                     serialized_size,
+                     &serialized[0]);
+            }
+        }
+        #endif
+
+        #ifdef PNP_NODE_ALLOCATION_V_20
+	if (rand() > RAND_MAX / 2)  // NOLINT
         {
             // Note that this will only work over CAN FD. If you need to run PnP over Classic CAN, use message v1.0.
             uavcan_pnp_NodeIDAllocationData_2_0 msg = {0};
@@ -291,7 +346,7 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
             uint8_t      serialized[uavcan_pnp_NodeIDAllocationData_2_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
             size_t       serialized_size = sizeof(serialized);
             const int8_t err = uavcan_pnp_NodeIDAllocationData_2_0_serialize_(&msg, &serialized[0], &serialized_size);
-            assert(err >= 0);
+            RMAP_ASSERT(err >= 0);
             if (err >= 0)
             {
                 const CanardTransferMetadata meta = {
@@ -308,6 +363,7 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
                      &serialized[0]);
             }
         }
+        #endif	
     }
 
     // Publish module_th reading if the subject is enabled and the node is non-anonymous.
@@ -320,7 +376,7 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
         uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size = sizeof(serialized);
         const int8_t err = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
-        assert(err >= 0);
+        RMAP_ASSERT(err >= 0);
 	if (err >= 0)
         {
             const CanardTransferMetadata meta = {
@@ -342,8 +398,8 @@ static void fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port
     {
         fillSubscriptions(tree->lr[0], obj);
         const CanardRxSubscription* crs = (const CanardRxSubscription*) tree;
-        assert(crs->port_id <= CANARD_SUBJECT_ID_MAX);
-        assert(obj->sparse_list.count < uavcan_node_port_SubjectIDList_0_1_sparse_list_ARRAY_CAPACITY_);
+        RMAP_ASSERT(crs->port_id <= CANARD_SUBJECT_ID_MAX);
+        RMAP_ASSERT(obj->sparse_list.count < uavcan_node_port_SubjectIDList_0_1_sparse_list_ARRAY_CAPACITY_);
         obj->sparse_list.elements[obj->sparse_list.count++].value = crs->port_id;
         fillSubscriptions(tree->lr[1], obj);
     }
@@ -356,7 +412,7 @@ static void fillServers(const CanardTreeNode* const tree, uavcan_node_port_Servi
     {
         fillServers(tree->lr[0], obj);
         const CanardRxSubscription* crs = (const CanardRxSubscription*) tree;
-        assert(crs->port_id <= CANARD_SERVICE_ID_MAX);
+        RMAP_ASSERT(crs->port_id <= CANARD_SERVICE_ID_MAX);
         (void) nunavutSetBit(&obj->mask_bitpacked_[0], sizeof(obj->mask_bitpacked_), crs->port_id, true);
         fillServers(tree->lr[1], obj);
     }
@@ -411,6 +467,32 @@ static void handle01HzLoop(State* const state, const CanardMicrosecond monotonic
     }
 }
 
+#ifdef PNP_NODE_ALLOCATION_V_10
+static void processMessagePlugAndPlayNodeIDAllocation(State* const                                     state,
+                                                      const uavcan_pnp_NodeIDAllocationData_1_0* const msg)
+{
+    // TODO: Unificare il GetUniqueID x gestione PnP (con comando e scrittura E2/Rnd...)
+    //uint8_t uid[uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_] = {0};
+    //getUniqueID(uid);
+    if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX)
+    {
+        printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
+        state->canard.node_id = (CanardNodeID) msg->allocated_node_id.elements[0].value;
+        // Store the value into the non-volatile storage.
+        uavcan_register_Value_1_0 reg = {0};
+        uavcan_register_Value_1_0_select_natural16_(&reg);
+        reg.natural16.value.elements[0] = msg->allocated_node_id.elements[0].value;
+        reg.natural16.value.count       = 1;
+        registerWrite("uavcan.node.id", &reg);
+        // We no longer need the subscriber, drop it to free up the resources (both memory and CPU time).
+        (void) canardRxUnsubscribe(&state->canard,
+                                   CanardTransferKindMessage,
+                                   uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_);
+    }
+    // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
+}
+#endif
+#ifdef PNP_NODE_ALLOCATION_V_20
 static void processMessagePlugAndPlayNodeIDAllocation(State* const                                     state,
                                                       const uavcan_pnp_NodeIDAllocationData_2_0* const msg)
 {
@@ -433,6 +515,7 @@ static void processMessagePlugAndPlayNodeIDAllocation(State* const              
     }
     // Otherwise, ignore it: either it is a request from another node or it is a response to another node.
 }
+#endif
 
 static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(
     const uavcan_node_ExecuteCommand_Request_1_1* req)
@@ -452,7 +535,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(
     }
     case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
     {
-        registerDoFactoryReset();    // to be implemented !
+        registerDoFactoryReset();
         resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
         break;
     }
@@ -490,7 +573,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(
 static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req)
 {
     char name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + 1] = {0};
-    assert(req->name.name.count < sizeof(name));
+    RMAP_ASSERT(req->name.name.count < sizeof(name));
     memcpy(&name[0], req->name.name.elements, req->name.name.count);
     name[req->name.name.count] = '\0';
 
@@ -555,6 +638,18 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     {
       Log.notice(F("message"));
         size_t size = transfer->payload_size;
+
+        #ifdef PNP_NODE_ALLOCATION_V_10
+        if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_)
+        {
+            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+            if (uavcan_pnp_NodeIDAllocationData_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
+                processMessagePlugAndPlayNodeIDAllocation(state, &msg);
+            }
+        }
+        #endif
+        #ifdef PNP_NODE_ALLOCATION_V_20
         if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_2_0_FIXED_PORT_ID_)
         {
             uavcan_pnp_NodeIDAllocationData_2_0 msg = {0};
@@ -563,9 +658,10 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                 processMessagePlugAndPlayNodeIDAllocation(state, &msg);
             }
         }
+	#endif
         else
         {
-            assert(false);  // Seems like we have set up a port subscription without a handler -- bad implementation.
+            RMAP_ASSERT(false);  // Seems like we have set up a port subscription without a handler -- bad implementation.
         }
     }
     else if (transfer->metadata.transfer_kind == CanardTransferKindRequest)
@@ -611,7 +707,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
             }
             else
             {
-                assert(false);
+                RMAP_ASSERT(false);
             }
         }
         else if (transfer->metadata.port_id == uavcan_register_Access_1_0_FIXED_PORT_ID_)
@@ -673,19 +769,19 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         }
         else
         {
-            assert(false);  // Seems like we have set up a port subscription without a handler -- bad implementation.
+            RMAP_ASSERT(false);  // Seems like we have set up a port subscription without a handler -- bad implementation.
         }
     }
     else
     {
-        assert(false);  // Bad implementation -- check your subscriptions.
+        RMAP_ASSERT(false);  // Bad implementation -- check your subscriptions.
     }
 }
 
 static void* canardAllocate(CanardInstance* const ins, const size_t amount)
 {
     O1HeapInstance* const heap = ((State*) ins->user_reference)->heap;
-    assert(o1heapDoInvariantsHold(heap));
+    RMAP_ASSERT(o1heapDoInvariantsHold(heap));
     return o1heapAllocate(heap, amount);
 }
 
@@ -767,7 +863,7 @@ void setup(void) {
   // - https://forum.opencyphal.org/t/uavcanv1-libcanard-nunavut-templates-memory-usage-concerns/1118/4
   _Alignas(O1HEAP_ALIGNMENT) static uint8_t heap_arena[1024 * 8] = {0};
   state.heap                                                      = o1heapInit(heap_arena, sizeof(heap_arena));
-  assert(NULL != state.heap);
+  RMAP_ASSERT(NULL != state.heap);
 
   // The libcanard instance requires the allocator for managing protocol states.
   state.canard                = canardInit(&canardAllocate, &canardFree);
@@ -779,10 +875,9 @@ void setup(void) {
   val.natural16.value.count       = 1;
   val.natural16.value.elements[0] = UINT16_MAX;  // This means undefined (anonymous), per Specification/libcanard.
   registerRead("uavcan.node.id", &val);  // The names of the standard registers are regulated by the Specification.
-  assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+  RMAP_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
   state.canard.node_id = (val.natural16.value.elements[0] > CANARD_NODE_ID_MAX)
-    ? 120    // TMP !!
-    //? CANARD_NODE_ID_UNSET
+    ? CANARD_NODE_ID_UNSET
     : (CanardNodeID) val.natural16.value.elements[0];
 
   // The description register is optional but recommended because it helps constructing/maintaining large networks.
@@ -811,7 +906,7 @@ void setup(void) {
   val.natural16.value.count       = 1;
   val.natural16.value.elements[0] = CANARD_MTU_CAN_FD;
   registerRead("uavcan.can.mtu", &val);
-  assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+  RMAP_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
   // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
   // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
   const int sock[CAN_REDUNDANCY_FACTOR] = {
@@ -829,14 +924,10 @@ void setup(void) {
     getPublisherSubjectID("reg.rmap.module.TH.1.0",
 			  reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
-  state.port_id.pub.module_th = 150;       // TMP
-
   state.port_id.pub.service_module_th =
     getPublisherSubjectID("reg.rmap.service.module.TH.GetDataAndMetadata.1.0",
 			  reg_rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
 
-  state.port_id.pub.service_module_th = 151;       // TMP
-  
   // Set up the default value. It will be used to populate the register if it doesn't exist.
   uavcan_register_Value_1_0_select_natural32_(&val);
   val.natural32.value.count       = 1;
@@ -877,6 +968,20 @@ void setup(void) {
   // Set up subject subscriptions and RPC-service servers.
   // Message subscriptions:
   if (state.canard.node_id > CANARD_NODE_ID_MAX)
+
+    #ifdef PNP_NODE_ALLOCATION_V_10    
+    {
+        // PnP over Classic CAN, use message v1.0.
+        static CanardRxSubscription rx;
+        const int8_t                res =  //
+            canardRxSubscribe(&state.canard,
+                              CanardTransferKindMessage,
+                              uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                              uavcan_pnp_NodeIDAllocationData_1_0_EXTENT_BYTES_,
+                              CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                              &rx);
+    #endif
+    #ifdef PNP_NODE_ALLOCATION_V_20    
     {
       static CanardRxSubscription rx;
       const int8_t                res =  //
@@ -886,6 +991,7 @@ void setup(void) {
 			  uavcan_pnp_NodeIDAllocationData_2_0_EXTENT_BYTES_,
 			  CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
 			  &rx);
+      #endif
       if (res < 0)
         {
 	  Log.fatal(F("subscribe message Error" CR));
@@ -1088,7 +1194,7 @@ void loop(void)
 	      break;
             }
 
-	  Log.notice(F("bxCANPop" CR));
+	  //Log.notice(F("bxCANPop" CR));
 	  
 	  //payload to frame !
 	  frame.extended_can_id = extended_can_id;
@@ -1107,13 +1213,13 @@ void loop(void)
             }
 	  else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
             {
-	      Log.notice(F("nothing to do" CR));
+	      //Log.notice(F("nothing to do" CR));
 	      (void) 0;  // The frame did not complete a transfer so there is nothing to do.
 	      // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
             }
 	  else
             {
-	      assert(false);  // No other error can possibly occur at runtime.
+	      RMAP_ASSERT(false);  // No other error can possibly occur at runtime.
             }
         }
     } while (!g_restart_required);

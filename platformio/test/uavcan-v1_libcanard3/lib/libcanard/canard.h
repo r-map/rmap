@@ -113,7 +113,7 @@ extern "C" {
 /// Per the recommendations given in the Cyphal/CAN Specification, other MTU values should not be used.
 #define CANARD_MTU_CAN_CLASSIC 8U
 #define CANARD_MTU_CAN_FD 64U
-#define CANARD_MTU_MAX CANARD_MTU_CAN_FD
+#define CANARD_MTU_MAX CANARD_MTU_CAN_CLASSIC
 
 /// Parameter ranges are inclusive; the lower bound is zero for all. See Cyphal/CAN Specification for background.
 #define CANARD_SUBJECT_ID_MAX 8191U
