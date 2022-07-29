@@ -1,3 +1,3 @@
 slcand -s5 -S115200 /dev/ttyUSB0 can0
-ifconfig can0 up
+ifconfig can0 up  txqueuelen 500
 candump can0
