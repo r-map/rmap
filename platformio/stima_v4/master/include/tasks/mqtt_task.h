@@ -46,9 +46,6 @@
 #include "mqtt/mqtt_client.h"
 #include "tls.h"
 #include "tls_cipher_suites.h"
-#include "hardware/stm32l4xx/stm32l4xx_crypto.h"
-#include "rng/trng.h"
-#include "rng/yarrow.h"
 #include "net_util.h"
 #include "debug.h"
 
@@ -61,10 +58,8 @@ typedef enum {
 } MqttState_t;
 
 typedef struct {
-  NetInterface *interface;
   MqttClientContext mqttClientContext;
-  uint16_t attemptDelayMs;
-  uint16_t timeoutMs;
+  YarrowContext yarrowContext;
   char server[APP_MQTT_SERVER_NAME_LENGTH];
   uint16_t port;
   MqttVersion version;
@@ -72,16 +67,15 @@ typedef struct {
   MqttQosLevel qos;
   uint8_t keepAliveS;
   bool isCleanSession;
+  char clientIdentifier[APP_MQTT_CLIENT_IDENTIFIER_LENGTH];
   char username[APP_MQTT_USERNAME_LENGTH];
   char password[APP_MQTT_PASSWORD_LENGTH];
   char willTopic[APP_MQTT_WILL_TOPIC_LENGTH];
   char willMsg[APP_MQTT_WILL_MSG_LENGTH];
   bool isWillMsgRetain;
   bool isPublishRetain;
-  YarrowContext *yarrowContext;
-  char_t *trustedCaList;
-  uint8_t *clientPsk;
-  uint16_t *cipherSuites;
+  uint16_t attemptDelayMs;
+  uint16_t timeoutMs;
 } MqttParam_t;
 
 class MqttTask : public cpp_freertos::Thread {
@@ -102,6 +96,7 @@ private:
   IpAddr serverIpAddr;
   bool isConnected;
   error_t error;
+  YarrowContext *yarrowContext;
 };
 
 #endif

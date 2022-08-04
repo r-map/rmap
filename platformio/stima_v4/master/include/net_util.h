@@ -32,7 +32,12 @@
 #define _NET_UTIL_H
 
 #include "core/net.h"
+#include "rng/trng.h"
+#include "rng/yarrow.h"
+#include "debug.h"
 
 bool isNetReady(NetInterface *interface, uint8_t addrListIndex = 0);
+
+error_t initCPRNG(YarrowContext *yarrowContex);
 
 #endif

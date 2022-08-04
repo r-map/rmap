@@ -42,24 +42,14 @@
 #include "drivers/ext/arduino_interrupt_driver.h"
 #include "drivers/eth/enc28j60_driver.h"
 #include "dhcp/dhcp_client.h"
-// #include "ipv6/slaac.h"
-// #include "mqtt/mqtt_client.h"
-// #include "http/http_client.h"
 #include "tls.h"
 #include "tls_cipher_suites.h"
 #include "hardware/stm32l4xx/stm32l4xx_crypto.h"
-#include "rng/trng.h"
-#include "rng/yarrow.h"
 #include "debug.h"
 
 #include "tasks/led_task.h"
 #include "tasks/hardware_task.h"
 #include "tasks/ethernet_task.h"
 #include "tasks/mqtt_task.h"
-
-uint8_t seed[32];
-YarrowContext yarrowContext;
-
-error_t initCPRNG(void);
 
 #endif
