@@ -24,6 +24,7 @@ class AD57X1 {
     AD57X1(const uint8_t cs_pin, SPIClass* const _spi, const uint8_t VALUE_OFFSET, const uint32_t spiClockFrequency, uint8_t const ldac_pin, const bool cs_polarity);
     void setValue(const uint32_t value);
     uint32_t readValue();
+  void setTension(const int32_t millivolt);
     void enableOutput();
     void setOffsetBinaryEncoding(const bool enable);
     void setInternalAmplifier(const bool enable);
@@ -80,6 +81,7 @@ class AD57X1 {
       | (0 << SDO_DISABLE_REGISTER)
       | (REFERENCE_RANGE_10V << LINEARITY_COMPENSATION_REGISTER);    // This is the default register after reset (see p. 22 of the datasheet)
     SPISettings spi_settings;
+    bool InternalAmplifier;
 };
 
 class AD5781: public AD57X1 {

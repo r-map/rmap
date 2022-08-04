@@ -15,7 +15,13 @@
 #include "ad57X1.h"
 
 // Use CPOL = 0,  CPHA = 1 for ADI DACs
-AD57X1::AD57X1(uint8_t _cs_pin, SPIClass* const _spi, const uint8_t _VALUE_OFFSET, uint32_t spiClockFrequency, uint8_t _ldac_pin, const bool cs_polarity) : VALUE_OFFSET(_VALUE_OFFSET), spi(_spi), PIN_CS(_cs_pin), PIN_LDAC(_ldac_pin), CS_POLARITY(cs_polarity), spi_settings(SPISettings(spiClockFrequency, MSBFIRST, SPI_MODE1)) {
+AD57X1::AD57X1(uint8_t _cs_pin, SPIClass* const _spi, const uint8_t _VALUE_OFFSET, uint32_t spiClockFrequency, uint8_t _ldac_pin, const bool cs_polarity) :
+  VALUE_OFFSET(_VALUE_OFFSET),
+  spi(_spi), PIN_CS(_cs_pin),
+  PIN_LDAC(_ldac_pin),
+  CS_POLARITY(cs_polarity),
+  spi_settings(SPISettings(spiClockFrequency, MSBFIRST, SPI_MODE1)),
+  InternalAmplifier(false){
 }
 
 void AD57X1::writeSPI(const uint32_t value) {
@@ -53,12 +59,6 @@ uint32_t AD57X1::readSPI(const uint32_t value) {
 }
 
 
-
-
-
-
-
-
 void AD57X1::updateControlRegister() {
   this->writeSPI(this->WRITE_REGISTERS | this->CONTROL_REGISTER | this->controlRegister);
 }
@@ -90,6 +90,18 @@ uint32_t AD57X1::readValue() {
   return this->readSPI(command);
 }
 
+
+void AD57X1::setTension(const int32_t millivolt) {
+
+  uint32_t value;  
+  if (this->InternalAmplifier) {
+    value=((millivolt+5000)/10000.D)*0XFFFFF;
+  } else {
+    value=(millivolt/5000.D)*0XFFFFF;
+  }
+  setValue(value);
+}
+
 void AD57X1::enableOutput() {
   this->setOutputClamp(false);
   this->setTristateMode(false);
@@ -100,6 +112,7 @@ void AD57X1::setInternalAmplifier(const bool enable) {
   // (1 << this->RBUF_REGISTER) : internal amplifier is disabled (default)
   // (0 << this->RBUF_REGISTER) : internal amplifier is enabled
   this->controlRegister = (this->controlRegister & ~(1 << this->RBUF_REGISTER)) | (!enable << this->RBUF_REGISTER);
+  this->InternalAmplifier=enable;
 }
 
 // Setting this to enabled will overrule the tristate mode and clamp the output to GND
