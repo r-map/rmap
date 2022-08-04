@@ -20,13 +20,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "ad57X1.h"
 #include <ArduinoLog.h>
 
-#define CS_AD5791              D10
+#define CS_AD5791                D10
+#define START_SECONDI           1000    // delay to start output tension
 #define PERIOD_SECONDI         43200    // 12h emiperiod (daily sun cicle)
 
 AD5791 ad5791(CS_AD5791, &SPI, 1*1000*1000,-1,0);  // If you experience trasmit errors, this might be due to your board layout.
 
 volatile unsigned long int secondi=0;
-volatile int  START_SECONDI=60;                    // delay to start output tension
+volatile unsigned long int sun_secondi=0;
+volatile int  start_secondi=START_SECONDI;         // delay to start output tension
 HardwareTimer Tim2 = HardwareTimer(TIM2);      
 
 void printTimestamp(Print* _logOutput) {
@@ -39,26 +41,25 @@ void printNewline(Print* _logOutput) {
   _logOutput->print('\n');
 }
 
-void sun_movement(void){
+void time_management(void){
   Log.trace(F("1s tick"));
   secondi++;
-
-  if (secondi >= (START_SECONDI + PERIOD_SECONDI)){
-    secondi = 0;
-    START_SECONDI= 0; // do not delay any more
+  if (secondi <= START_SECONDI){
+    return;
   }
+  start_secondi = 0; // do not delay any more
+  sun_secondi++;
+  sun_movement();  
+}
 
-  if (secondi < START_SECONDI) return;
+void sun_movement(void){
 
-  int32_t millivolt = round(sin(((secondi-START_SECONDI)/float(PERIOD_SECONDI))*PI)*1000.D);
-
+  int32_t millivolt = round(sin((sun_secondi/float(PERIOD_SECONDI))*PI)*1000.D);
   if (millivolt <0) millivolt =0;
-  
-  Log.notice(F("millivolt: %l"),millivolt);
+  Log.notice(F("sun time:%ls ; millivolt: %l"),sun_secondi,millivolt);
   ad5791.setTension(millivolt);
 
 }
-
 
 void setup() {
 
@@ -78,7 +79,7 @@ void setup() {
   ad5791.setTension(0);
 
   Tim2.setOverflow(1, HERTZ_FORMAT);
-  Tim2.attachInterrupt(sun_movement);
+  Tim2.attachInterrupt(time_management);
   Tim2.resume();
 
 }
@@ -88,7 +89,7 @@ void loop() {
   // sleep some time to do not go tired ;)
   delay(10000);
   noInterrupts();
-  long unsigned int mysecondi=secondi;
+  long unsigned int mysecondi=sun_secondi;
   interrupts();
 
   Log.notice("pseduo sun Time : %ds",mysecondi );
