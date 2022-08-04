@@ -39,23 +39,23 @@
 //Multiple precision integer support
 #define MPI_SUPPORT ENABLED
 //Assembly optimizations for time-critical routines
-#define MPI_ASM_SUPPORT DISABLED
+#define MPI_ASM_SUPPORT ENABLED
 
 //Base64 encoding support
 #define BASE64_SUPPORT ENABLED
 //Base64url encoding support
-#define BASE64URL_SUPPORT DISABLED
+#define BASE64URL_SUPPORT ENABLED
 
 //MD2 hash support
-#define MD2_SUPPORT DISABLED
+#define MD2_SUPPORT ENABLED
 //MD4 hash support
-#define MD4_SUPPORT DISABLED
+#define MD4_SUPPORT ENABLED
 //MD5 hash support
 #define MD5_SUPPORT ENABLED
 //RIPEMD-128 hash support
-#define RIPEMD128_SUPPORT DISABLED
+#define RIPEMD128_SUPPORT ENABLED
 //RIPEMD-160 hash support
-#define RIPEMD160_SUPPORT DISABLED
+#define RIPEMD160_SUPPORT ENABLED
 //SHA-1 hash support
 #define SHA1_SUPPORT ENABLED
 //SHA-224 hash support
@@ -67,65 +67,65 @@
 //SHA-512 hash support
 #define SHA512_SUPPORT ENABLED
 //SHA-512/224 hash support
-#define SHA512_224_SUPPORT DISABLED
+#define SHA512_224_SUPPORT ENABLED
 //SHA-512/256 hash support
-#define SHA512_256_SUPPORT DISABLED
+#define SHA512_256_SUPPORT ENABLED
 //SHA3-224 hash support
-#define SHA3_224_SUPPORT DISABLED
+#define SHA3_224_SUPPORT ENABLED
 //SHA3-256 hash support
-#define SHA3_256_SUPPORT DISABLED
+#define SHA3_256_SUPPORT ENABLED
 //SHA3-384 hash support
-#define SHA3_384_SUPPORT DISABLED
+#define SHA3_384_SUPPORT ENABLED
 //SHA3-512 hash support
-#define SHA3_512_SUPPORT DISABLED
+#define SHA3_512_SUPPORT ENABLED
 //SHAKE support
-#define SHAKE_SUPPORT DISABLED
+#define SHAKE_SUPPORT ENABLED
 //cSHAKE support
-#define CSHAKE_SUPPORT DISABLED
+#define CSHAKE_SUPPORT ENABLED
 //Keccak support
-#define KECCAK_SUPPORT DISABLED
+#define KECCAK_SUPPORT ENABLED
 //BLAKE2b support
-#define BLAKE2B_SUPPORT DISABLED
+#define BLAKE2B_SUPPORT ENABLED
 //BLAKE2b-160 hash support
-#define BLAKE2B160_SUPPORT DISABLED
+#define BLAKE2B160_SUPPORT ENABLED
 //BLAKE2b-256 hash support
-#define BLAKE2B256_SUPPORT DISABLED
+#define BLAKE2B256_SUPPORT ENABLED
 //BLAKE2b-384 hash support
-#define BLAKE2B384_SUPPORT DISABLED
+#define BLAKE2B384_SUPPORT ENABLED
 //BLAKE2b-512 hash support
-#define BLAKE2B512_SUPPORT DISABLED
+#define BLAKE2B512_SUPPORT ENABLED
 //BLAKE2s support
-#define BLAKE2S_SUPPORT DISABLED
+#define BLAKE2S_SUPPORT ENABLED
 //BLAKE2s-128 hash support
-#define BLAKE2S128_SUPPORT DISABLED
+#define BLAKE2S128_SUPPORT ENABLED
 //BLAKE2s-160 hash support
-#define BLAKE2S160_SUPPORT DISABLED
+#define BLAKE2S160_SUPPORT ENABLED
 //BLAKE2s-224 hash support
-#define BLAKE2S224_SUPPORT DISABLED
+#define BLAKE2S224_SUPPORT ENABLED
 //BLAKE2s-256 hash support
-#define BLAKE2S256_SUPPORT DISABLED
+#define BLAKE2S256_SUPPORT ENABLED
 //Tiger hash support
-#define TIGER_SUPPORT DISABLED
+#define TIGER_SUPPORT ENABLED
 //Whirlpool hash support
-#define WHIRLPOOL_SUPPORT DISABLED
+#define WHIRLPOOL_SUPPORT ENABLED
 
 //CMAC support
-#define CMAC_SUPPORT DISABLED
+#define CMAC_SUPPORT ENABLED
 //HMAC support
 #define HMAC_SUPPORT ENABLED
 //GMAC support
-#define GMAC_SUPPORT DISABLED
+#define GMAC_SUPPORT ENABLED
 //KMAC support
-#define KMAC_SUPPORT DISABLED
+#define KMAC_SUPPORT ENABLED
 
 //RC2 support
-#define RC2_SUPPORT DISABLED
+#define RC2_SUPPORT ENABLED
 //RC4 support
-#define RC4_SUPPORT DISABLED
+#define RC4_SUPPORT ENABLED
 //RC6 support
-#define RC6_SUPPORT DISABLED
+#define RC6_SUPPORT ENABLED
 //IDEA support
-#define IDEA_SUPPORT DISABLED
+#define IDEA_SUPPORT ENABLED
 //DES support
 #define DES_SUPPORT ENABLED
 //Triple DES support
@@ -133,7 +133,7 @@
 //AES support
 #define AES_SUPPORT ENABLED
 //Blowfish support
-#define BLOWFISH_SUPPORT DISABLED
+#define BLOWFISH_SUPPORT ENABLED
 //Camellia support
 #define CAMELLIA_SUPPORT ENABLED
 //SEED support
@@ -141,22 +141,22 @@
 //ARIA support
 #define ARIA_SUPPORT ENABLED
 //PRESENT support
-#define PRESENT_SUPPORT DISABLED
+#define PRESENT_SUPPORT ENABLED
 //Trivium support
-#define TRIVIUM_SUPPORT DISABLED
+#define TRIVIUM_SUPPORT ENABLED
 
 //ECB mode support
-#define ECB_SUPPORT DISABLED
+#define ECB_SUPPORT ENABLED
 //CBC mode support
 #define CBC_SUPPORT ENABLED
 //CFB mode support
-#define CFB_SUPPORT DISABLED
+#define CFB_SUPPORT ENABLED
 //OFB mode support
-#define OFB_SUPPORT DISABLED
+#define OFB_SUPPORT ENABLED
 //CTR mode support
-#define CTR_SUPPORT DISABLED
+#define CTR_SUPPORT ENABLED
 //XTS mode support
-#define XTS_SUPPORT DISABLED
+#define XTS_SUPPORT ENABLED
 //CCM mode support
 #define CCM_SUPPORT ENABLED
 //GCM mode support
@@ -184,29 +184,29 @@
 #define ECDSA_SUPPORT ENABLED
 
 //secp112r1 elliptic curve support
-#define SECP112R1_SUPPORT DISABLED
+#define SECP112R1_SUPPORT ENABLED
 //secp112r2 elliptic curve support
-#define SECP112R2_SUPPORT DISABLED
+#define SECP112R2_SUPPORT ENABLED
 //secp128r1 elliptic curve support
-#define SECP128R1_SUPPORT DISABLED
+#define SECP128R1_SUPPORT ENABLED
 //secp128r2 elliptic curve support
-#define SECP128R2_SUPPORT DISABLED
+#define SECP128R2_SUPPORT ENABLED
 //secp160k1 elliptic curve support
-#define SECP160K1_SUPPORT DISABLED
+#define SECP160K1_SUPPORT ENABLED
 //secp160r1 elliptic curve support
-#define SECP160R1_SUPPORT DISABLED
+#define SECP160R1_SUPPORT ENABLED
 //secp160r2 elliptic curve support
-#define SECP160R2_SUPPORT DISABLED
+#define SECP160R2_SUPPORT ENABLED
 //secp192k1 elliptic curve support
-#define SECP192K1_SUPPORT DISABLED
+#define SECP192K1_SUPPORT ENABLED
 //secp192r1 elliptic curve support (NIST P-192)
-#define SECP192R1_SUPPORT DISABLED
+#define SECP192R1_SUPPORT ENABLED
 //secp224k1 elliptic curve support
-#define SECP224K1_SUPPORT DISABLED
+#define SECP224K1_SUPPORT ENABLED
 //secp224r1 elliptic curve support (NIST P-224)
 #define SECP224R1_SUPPORT ENABLED
 //secp256k1 elliptic curve support
-#define SECP256K1_SUPPORT DISABLED
+#define SECP256K1_SUPPORT ENABLED
 //secp256r1 elliptic curve support (NIST P-256)
 #define SECP256R1_SUPPORT ENABLED
 //secp384r1 elliptic curve support (NIST P-384)
@@ -214,46 +214,46 @@
 //secp521r1 elliptic curve support (NIST P-521)
 #define SECP521R1_SUPPORT ENABLED
 //brainpoolP160r1 elliptic curve support
-#define BRAINPOOLP160R1_SUPPORT DISABLED
+#define BRAINPOOLP160R1_SUPPORT ENABLED
 //brainpoolP192r1 elliptic curve support
-#define BRAINPOOLP192R1_SUPPORT DISABLED
+#define BRAINPOOLP192R1_SUPPORT ENABLED
 //brainpoolP224r1 elliptic curve support
-#define BRAINPOOLP224R1_SUPPORT DISABLED
+#define BRAINPOOLP224R1_SUPPORT ENABLED
 //brainpoolP256r1 elliptic curve support
-#define BRAINPOOLP256R1_SUPPORT DISABLED
+#define BRAINPOOLP256R1_SUPPORT ENABLED
 //brainpoolP320r1 elliptic curve support
-#define BRAINPOOLP320R1_SUPPORT DISABLED
+#define BRAINPOOLP320R1_SUPPORT ENABLED
 //brainpoolP384r1 elliptic curve support
-#define BRAINPOOLP384R1_SUPPORT DISABLED
+#define BRAINPOOLP384R1_SUPPORT ENABLED
 //brainpoolP512r1 elliptic curve support
-#define BRAINPOOLP512R1_SUPPORT DISABLED
+#define BRAINPOOLP512R1_SUPPORT ENABLED
 //Curve25519 elliptic curve support
 #define X25519_SUPPORT ENABLED
 //Curve448 elliptic curve support
-#define X448_SUPPORT DISABLED
+#define X448_SUPPORT ENABLED
 //Ed25519 elliptic curve support
-#define ED25519_SUPPORT DISABLED
+#define ED25519_SUPPORT ENABLED
 //Ed448 elliptic curve support
-#define ED448_SUPPORT DISABLED
+#define ED448_SUPPORT ENABLED
 
 //HKDF support
 #define HKDF_SUPPORT ENABLED
 //PBKDF support
-#define PBKDF_SUPPORT DISABLED
+#define PBKDF_SUPPORT ENABLED
 //bcrypt support
-#define BCRYPT_SUPPORT DISABLED
+#define BCRYPT_SUPPORT ENABLED
 //scrypt support
-#define SCRYPT_SUPPORT DISABLED
+#define SCRYPT_SUPPORT ENABLED
 
 //RSA certificate support
-#define X509_RSA_SUPPORT ENABLED
+#define X509_RSA_SUPPORT DISABLED
 //RSA-PSS certificate support
 #define X509_RSA_PSS_SUPPORT DISABLED
 //DSA certificate support
 #define X509_DSA_SUPPORT DISABLED
 //Ed25519 certificate support
-#define X509_ED25519_SUPPORT ENABLED
+#define X509_ED25519_SUPPORT DISABLED
 //Ed448 certificate support
-#define X509_ED448_SUPPORT ENABLED
+#define X509_ED448_SUPPORT DISABLED
 
 #endif

@@ -44,9 +44,9 @@
 #define TLS_SERVER_SUPPORT DISABLED
 
 //Minimum version that can be negotiated
-#define TLS_MIN_VERSION TLS_VERSION_1_0
+#define TLS_MIN_VERSION TLS_VERSION_1_2
 //Maximum version that can be negotiated
-#define TLS_MAX_VERSION TLS_VERSION_1_3
+#define TLS_MAX_VERSION TLS_VERSION_1_2
 
 //Session resumption mechanism
 #define TLS_SESSION_RESUME_SUPPORT ENABLED
@@ -54,30 +54,30 @@
 #define TLS_SESSION_CACHE_LIFETIME 3600000
 
 //Session ticket mechanism
-#define TLS_TICKET_SUPPORT DISABLED
+#define TLS_TICKET_SUPPORT ENABLED
 //Lifetime of session tickets
 #define TLS_TICKET_LIFETIME 3600000
 
 //SNI (Server Name Indication) extension
 #define TLS_SNI_SUPPORT ENABLED
 //Maximum Fragment Length extension
-#define TLS_MAX_FRAG_LEN_SUPPORT DISABLED
+#define TLS_MAX_FRAG_LEN_SUPPORT ENABLED
 //Record Size Limit extension
 #define TLS_RECORD_SIZE_LIMIT_SUPPORT ENABLED
 //ALPN (Application-Layer Protocol Negotiation) extension
-#define TLS_ALPN_SUPPORT DISABLED
+#define TLS_ALPN_SUPPORT ENABLED
 //Extended Master Secret extension
 #define TLS_EXT_MASTER_SECRET_SUPPORT ENABLED
 //ClientHello Padding extension
 #define TLS_CLIENT_HELLO_PADDING_SUPPORT ENABLED
 //Signature Algorithms Certificate extension
-#define TLS_SIGN_ALGOS_CERT_SUPPORT DISABLED
+#define TLS_SIGN_ALGOS_CERT_SUPPORT ENABLED
 //RPK (Raw Public Key) support
-#define TLS_RAW_PUBLIC_KEY_SUPPORT DISABLED
+#define TLS_RAW_PUBLIC_KEY_SUPPORT ENABLED
 //Secure renegotiation support
-#define TLS_SECURE_RENEGOTIATION_SUPPORT DISABLED
+#define TLS_SECURE_RENEGOTIATION_SUPPORT ENABLED
 //Fallback SCSV support
-#define TLS_FALLBACK_SCSV_SUPPORT DISABLED
+#define TLS_FALLBACK_SCSV_SUPPORT ENABLED
 
 //Maximum number of certificates the end entity can load
 #define TLS_MAX_CERTIFICATES 3
@@ -85,9 +85,9 @@
 //RSA key exchange support
 #define TLS_RSA_KE_SUPPORT ENABLED
 //DHE_RSA key exchange support
-#define TLS_DHE_RSA_KE_SUPPORT DISABLED
+#define TLS_DHE_RSA_KE_SUPPORT ENABLED
 //DHE_DSS key exchange support
-#define TLS_DHE_DSS_KE_SUPPORT DISABLED
+#define TLS_DHE_DSS_KE_SUPPORT ENABLED
 //DH_anon key exchange support (insecure)
 #define TLS_DH_ANON_KE_SUPPORT DISABLED
 //ECDHE_RSA key exchange support
@@ -106,7 +106,7 @@
 #define TLS_ECDHE_PSK_KE_SUPPORT ENABLED
 
 //DHE key exchange support (TLS 1.3)
-#define TLS13_DHE_KE_SUPPORT DISABLED
+#define TLS13_DHE_KE_SUPPORT ENABLED
 //ECDHE key exchange support (TLS 1.3)
 #define TLS13_ECDHE_KE_SUPPORT ENABLED
 //PSK-only key exchange support (TLS 1.3)
@@ -121,11 +121,11 @@
 //RSA-PSS signature capability
 #define TLS_RSA_PSS_SIGN_SUPPORT ENABLED
 //DSA signature capability
-#define TLS_DSA_SIGN_SUPPORT DISABLED
+#define TLS_DSA_SIGN_SUPPORT ENABLED
 //ECDSA signature capability
 #define TLS_ECDSA_SIGN_SUPPORT ENABLED
 //EdDSA signature capability
-#define TLS_EDDSA_SIGN_SUPPORT DISABLED
+#define TLS_EDDSA_SIGN_SUPPORT ENABLED
 
 //NULL cipher support (insecure)
 #define TLS_NULL_CIPHER_SUPPORT DISABLED
@@ -134,9 +134,9 @@
 //CBC block cipher support
 #define TLS_CBC_CIPHER_SUPPORT ENABLED
 //CCM AEAD support
-#define TLS_CCM_CIPHER_SUPPORT DISABLED
+#define TLS_CCM_CIPHER_SUPPORT ENABLED
 //CCM_8 AEAD support
-#define TLS_CCM_8_CIPHER_SUPPORT DISABLED
+#define TLS_CCM_8_CIPHER_SUPPORT ENABLED
 //GCM AEAD support
 #define TLS_GCM_CIPHER_SUPPORT ENABLED
 //ChaCha20Poly1305 AEAD support
@@ -155,20 +155,20 @@
 //AES 256-bit cipher support
 #define TLS_AES_256_SUPPORT ENABLED
 //Camellia 128-bit cipher support
-#define TLS_CAMELLIA_128_SUPPORT DISABLED
+#define TLS_CAMELLIA_128_SUPPORT ENABLED
 //Camellia 256-bit cipher support
-#define TLS_CAMELLIA_256_SUPPORT DISABLED
+#define TLS_CAMELLIA_256_SUPPORT ENABLED
 //ARIA 128-bit cipher support
-#define TLS_ARIA_128_SUPPORT DISABLED
+#define TLS_ARIA_128_SUPPORT ENABLED
 //ARIA 256-bit cipher support
-#define TLS_ARIA_256_SUPPORT DISABLED
+#define TLS_ARIA_256_SUPPORT ENABLED
 //SEED cipher support
 #define TLS_SEED_SUPPORT DISABLED
 
 //MD5 hash support (insecure)
 #define TLS_MD5_SUPPORT DISABLED
 //SHA-1 hash support (weak)
-#define TLS_SHA1_SUPPORT ENABLED
+#define TLS_SHA1_SUPPORT DISABLED
 //SHA-224 hash support (weak)
 #define TLS_SHA224_SUPPORT DISABLED
 //SHA-256 hash support
@@ -179,13 +179,13 @@
 #define TLS_SHA512_SUPPORT ENABLED
 
 //FFDHE key exchange mechanism
-#define TLS_FFDHE_SUPPORT DISABLED
+#define TLS_FFDHE_SUPPORT ENABLED
 //ffdhe2048 group support
 #define TLS_FFDHE2048_SUPPORT ENABLED
 //ffdhe3072 group support
-#define TLS_FFDHE3072_SUPPORT DISABLED
+#define TLS_FFDHE3072_SUPPORT ENABLED
 //ffdhe4096 group support
-#define TLS_FFDHE4096_SUPPORT DISABLED
+#define TLS_FFDHE4096_SUPPORT ENABLED
 
 //secp160k1 elliptic curve support (weak)
 #define TLS_SECP160K1_SUPPORT DISABLED
@@ -204,7 +204,7 @@
 //secp256k1 elliptic curve support
 #define TLS_SECP256K1_SUPPORT DISABLED
 //secp256r1 elliptic curve support
-#define TLS_SECP256R1_SUPPORT ENABLED
+#define TLS_SECP256R1_SUPPORT DISABLED
 //secp384r1 elliptic curve support
 #define TLS_SECP384R1_SUPPORT DISABLED
 //secp521r1 elliptic curve support
@@ -216,11 +216,11 @@
 //brainpoolP512r1 elliptic curve support
 #define TLS_BRAINPOOLP512R1_SUPPORT DISABLED
 //Curve25519 elliptic curve support
-#define TLS_X25519_SUPPORT ENABLED
+#define TLS_X25519_SUPPORT DISABLED
 //Curve448 elliptic curve support
 #define TLS_X448_SUPPORT DISABLED
 //Ed25519 elliptic curve support
-#define TLS_ED25519_SUPPORT ENABLED
+#define TLS_ED25519_SUPPORT DISABLED
 //Ed448 elliptic curve support
 #define TLS_ED448_SUPPORT DISABLED
 

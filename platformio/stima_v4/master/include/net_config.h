@@ -38,10 +38,13 @@
 #define APP_MQTT_TIMEOUT_MS                   (60000)
 #define APP_MQTT_KEEP_ALIVE_S                 (30)
 #define APP_MQTT_SERVER_NAME_LENGTH           (40)
+#define APP_MQTT_CLIENT_IDENTIFIER_LENGTH     (40)
 #define APP_MQTT_USERNAME_LENGTH              (40)
 #define APP_MQTT_PASSWORD_LENGTH              (40)
 #define APP_MQTT_WILL_TOPIC_LENGTH            (100)
 #define APP_MQTT_WILL_MSG_LENGTH              (100)
+
+#define APP_PSK_IDENTITY_LENGTH               (40)
 
 // Ethernet interface configuration
 #define APP_IF_NAME "eth0"
@@ -65,18 +68,12 @@
 #define APP_IPV6_SECONDARY_DNS "2001:4860:4860::8844"
 
 // Application configuration
-#define APP_SERVER_NAME "test.rmap.cc"
-// #define APP_SERVER_PORT 1883   //MQTT over TCP
-// #define APP_SERVER_PORT 8883 //MQTT over TLS
-#define APP_SERVER_PORT 8885 //MQTT over TLS (mutual authentication)
-//#define APP_SERVER_PORT 8080 //MQTT over WebSocket
-//#define APP_SERVER_PORT 8081 //MQTT over secure WebSocket
+#define APP_MQTT_SERVER_NAME "test.rmap.cc"
+#define APP_MQTT_SERVER_PORT 8885
 
-#define APP_CLIENT_PSK_IDENTITY "myuser/settefonti/stima"
-
+#define APP_CLIENT_PSK_IDENTITY "userv4/stimav4/stima4"
 #define APP_SET_CIPHER_SUITES ENABLED
 #define APP_SET_SERVER_NAME ENABLED
-#define APP_SET_TRUSTED_CA_LIST ENABLED
 
 //Number of network adapters
 #define NET_INTERFACE_COUNT 1
