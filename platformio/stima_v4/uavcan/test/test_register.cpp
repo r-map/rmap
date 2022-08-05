@@ -1,0 +1,162 @@
+#include <Arduino.h>
+#include <Unity.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "register.hpp"
+
+#ifdef USE_LIB_SD
+#include <SD.h>
+#include <SPI.h>
+#endif
+#ifdef USE_LIB_SDFAT
+#include "SdFat.h"
+#endif
+
+//********** FUNCTION DECLARATIONS **********
+void test_spi_sd_init();
+void test_write_register(void);
+void test_read_register(void);
+void test_reg_value_is_natural_16(void);
+void test_reg_value_is_not_natural_16(void);
+void test_register_do_factory_reset(void);
+#ifdef USE_LIB_SD
+void test_register_init(void);
+#endif
+//*******************************************
+
+//********** GLOBAL VARIABLES/CONSTANTS **********
+uavcan_register_Value_1_0 val = {0};
+// Value to save into register file
+const uint16_t data = 66;
+static const char registerName[] = "rmap.testreg.v16nat";
+static const char register2Name[] = "rmap.testreg.v32nat";
+#ifdef USE_LIB_SD
+File sdFileTest;
+static const char registerListName[] = "regs/list.txt";
+static const char registerFileName[] = "regs/01";
+static const char register2FileName[] = "regs/02";
+#endif
+#ifdef USE_LIB_SDFAT
+SdFat sdLocTest;
+SdFile sdFileTest;
+static const char registryDirName[] = "registry";
+static const char registerFileName[] = "registry/rmap.testreg.v16nat";
+static const char register2FileName[] = "registry/rmap.testreg.v32nat";
+#endif
+//************************************************
+
+/**
+ * @brief Test: check if the SPI interface is initialized
+ *
+ */
+void test_spi_sd_init() {
+    TEST_ASSERT_TRUE(setupSd(PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_SS, 18));
+}
+
+#ifdef USE_LIB_SD
+/**
+ * @brief Test: check if the txt file that contains the register names has been created correctly
+ *
+ */
+void test_register_init() {
+    // Create space register with init default value
+    registerInit();
+
+    TEST_ASSERT_TRUE(SD.exists(registerListName));
+}
+#endif
+
+/**
+ * @brief Test: check if the register file is created correctly
+ *
+ */
+void test_write_register() {
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count = 1;
+    val.natural16.value.elements[0] = data;
+    registerWrite(registerName, &val);
+
+#if USE_LIB_SD
+    TEST_ASSERT_TRUE(SD.exists(registerFileName));
+#endif
+
+#ifdef USE_LIB_SDFAT
+    TEST_ASSERT_TRUE(sdFileTest.open(registerFileName));
+    sdFileTest.close();
+#endif
+}
+
+/**
+ * @brief Test: check if the read data coincides with the written one
+ *
+ */
+void test_read_register() {
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count = 1;
+    val.natural16.value.elements[0] = UINT16_MAX;
+    registerRead(registerName, &val);
+
+    TEST_ASSERT_EQUAL(val.natural16.value.elements[0], data);
+}
+
+/**
+ * @brief Test: check if the uavcan register value is natural16
+ *
+ */
+void test_reg_value_is_natural_16() {
+    TEST_ASSERT_TRUE(uavcan_register_Value_1_0_is_natural16_(&val));
+}
+
+/**
+ * @brief Test: check if the uavcan register value is not natural16
+ *
+ */
+void test_reg_value_is_not_natural_16() {
+    uavcan_register_Value_1_0_select_natural32_(&val);
+    val.natural32.value.count = 1;
+    val.natural32.value.elements[0] = data;
+    registerWrite(register2Name, &val);
+    val.natural32.value.elements[0] = UINT32_MAX;
+    registerRead(register2Name, &val);
+
+    TEST_ASSERT_FALSE(uavcan_register_Value_1_0_is_natural16_(&val));
+}
+
+/**
+ * @brief Test: check if the files are deleted correctly (ONLY UAVCAN REGISTERS)
+ *
+ */
+void test_register_do_factory_reset() {
+    registerDoFactoryReset();
+
+#ifdef USE_LIB_SD
+    TEST_ASSERT_TRUE(!SD.exists(registerListName) && !SD.exists(registerFileName) && !SD.exists(register2FileName));
+#endif
+#ifdef USE_LIB_SDFAT
+    TEST_ASSERT_TRUE(!sdLocTest.exists(registerFileName) && !sdLocTest.exists(register2FileName));
+#endif
+}
+
+void setup() {
+    UNITY_BEGIN();
+
+    delay(1000);
+
+    RUN_TEST(test_spi_sd_init);
+    registerDoFactoryReset();
+#ifdef USE_LIB_SD
+    RUN_TEST(test_register_init);
+#endif
+    RUN_TEST(test_write_register);
+    RUN_TEST(test_read_register);
+    RUN_TEST(test_reg_value_is_natural_16);
+    RUN_TEST(test_reg_value_is_not_natural_16);
+    RUN_TEST(test_register_do_factory_reset);
+
+    UNITY_END();
+}
+
+void loop() {
+}
