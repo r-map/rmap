@@ -72,7 +72,8 @@ void setup() {
   Log.notice(F("Starting Fake analog"));
   
   ad5791.begin(true);   // Set the pin modes
-  ad5791.setInternalAmplifier(true); // Enable the internal amplifier. This setup allows connecting an external amplifier in a gain of 2 configuration. See the datasheet for details.
+  // we range from 0 to 1V so no amplifier is not needed
+  //ad5791.setInternalAmplifier(true); // Enable the internal amplifier. This setup allows connecting an external amplifier in a gain of 2 configuration setting output ranging fron -5V to 5V. See the datasheet for details.
   ad5791.enableOutput();    // Turn on the DAC. After startup the output will be clamped to GND and disconnected (tri-state mode)
                             // No need to call updateControlRegister(), because this is a convenience function, which does all that for you
 
