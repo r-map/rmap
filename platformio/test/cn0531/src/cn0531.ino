@@ -25,8 +25,9 @@ void setup() {
   //ad5791.setTristateMode(true);   // Disconnect the output (output will be tri-state)
   //ad5791.updateControlRegister();  // Call this function after changing the controll register, to update the settings
 
-  ad5791.setInternalAmplifier(true); // Enable the internal amplifier. This setup allows connecting an external amplifier in a gain of 2 configuration. See the datasheet for details.
-
+  // without this the output range from 0V to 5V.
+  ad5791.setInternalAmplifier(true); // Enable the internal amplifier. This setup allows connecting an external amplifier in a gain of 2 configuration setting output ranging fron -5V to 5V. See the datasheet for details.
+  
   ad5791.enableOutput();    // Turn on the DAC. After startup the output will be clamped to GND and disconnected (tri-state mode)
                             // No need to call updateControlRegister(), because this is a convenience function, which does all that for you.
 
