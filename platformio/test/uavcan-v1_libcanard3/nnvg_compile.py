@@ -18,6 +18,7 @@ if not os.path.isdir("include"):
     from nunavut import generate_types
     generate_types("c", "data_types/uavcan", "include", omit_serialization_support=False)
     generate_types("c", "data_types/reg", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
+    generate_types("c", "data_types/rmap", "include", omit_serialization_support=False, lookup_directories=["data_types/uavcan",])
 
 
 

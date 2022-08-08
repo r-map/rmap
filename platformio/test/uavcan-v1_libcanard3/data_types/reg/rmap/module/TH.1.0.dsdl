@@ -1,4 +1,0 @@
-reg.rmap.metadata.Metadata.1.0 metadata
-reg.rmap.sensors.Temperature.1.0 temperature
-reg.rmap.sensors.Humidity.1.0 humidity
-@sealed

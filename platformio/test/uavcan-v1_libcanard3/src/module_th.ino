@@ -5,14 +5,28 @@
 ///                         `____/ .___/`___/_/ /_/`____/`__, / .___/_/ /_/`__,_/_/
 ///                             /_/                     /____/_/
 ///
-/// A demo application showcasing the implementation of a simple differential pressure sensor using pure Cyphal.
-/// Find context at https://forum.opencyphal.org/t/problems-with-ds-015/1219
-/// This application is intended to run on GNU/Linux but it is trivially adaptable to baremetal environments.
+/// A demo application showcasing the implementation of a simple plug&play node
+/// This application is intended to run on STM32 bluepill.
 /// Please refer to the enclosed README for details.
 ///
-/// This software is distributed under the terms of the MIT License.
-/// Copyright (C) 2021 OpenCyphal <maintainers@opencyphal.org>
-/// Author: Pavel Kirienko <pavel@opencyphal.org>
+/**********************************************************************
+Copyright (C) 2022  Paolo Paruno <p.patruno@iperbole.bologna.it>
+authors: Paolo Paruno <p.patruno@iperbole.bologna.it>
+         Pavel Kirienko <pavel@opencyphal.org>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License as
+published by the Free Software Foundation; either version 2 of 
+the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+**********************************************************************/
 
 #include "register.h"
 #include <o1heap.h>
@@ -43,8 +57,8 @@
 //#include <uavcan/si/unit/pressure/Scalar_1_0.h>
 //#include <uavcan/si/unit/temperature/Scalar_1_0.h>
 
-#include <reg/rmap/_module/TH_1_0.h>
-#include <reg/rmap/service/_module/TH/GetDataAndMetadata_1_0.h>
+#include <rmap/_module/TH_1_0.h>
+#include <rmap/service/_module/TH/GetDataAndMetadata_1_0.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,7 +83,7 @@
 /// For CAN FD the queue can be smaller.
 #define CAN_TX_QUEUE_CAPACITY 100
 
-reg_rmap_module_TH_1_0 module_th_msg = {0};
+rmap_module_TH_1_0 module_th_msg = {0};
 
 CanardInstance canard;
 //HardwareSerial Serial2(PA3, PA2);  //uart2
@@ -233,9 +247,9 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
     {
       updateSensorsData();
         // Serialize and publish the message:
-        uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+        uint8_t      serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size = sizeof(serialized);
-        const int8_t err = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
+        const int8_t err = rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
         RMAP_ASSERT(err >= 0);
         if (err >= 0)
         {
@@ -373,9 +387,9 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
 	updateSensorsData();
 
         // Serialize and publish the message:
-        uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+        uint8_t      serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t       serialized_size = sizeof(serialized);
-        const int8_t err = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
+        const int8_t err = rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
         RMAP_ASSERT(err >= 0);
 	if (err >= 0)
         {
@@ -675,9 +689,9 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
 	    updateSensorsData();
 	    
 	    // Serialize and publish the message:
-	    uint8_t      serialized[reg_rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+	    uint8_t      serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
 	    size_t       serialized_size = sizeof(serialized);
-	    const int8_t res = reg_rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
+	    const int8_t res = rmap_module_TH_1_0_serialize_(&module_th_msg, &serialized[0], &serialized_size);
 	    if (res >= 0)
 	      {
 	  // Send the response back. Make sure to re-use the same priority and transfer-ID.
@@ -921,29 +935,38 @@ void setup(void) {
   // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
   // Publications:
   state.port_id.pub.module_th =
-    getPublisherSubjectID("reg.rmap.module.TH.1.0",
-			  reg_rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
-
+    getPublisherSubjectID("rmap.module.TH.1.0",
+  			  rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+  
+  //state.port_id.pub.module_th =
+  //  getPublisherSubjectID("uavcan.pub.TH",
+  //			  rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+  
+  
   state.port_id.pub.service_module_th =
-    getPublisherSubjectID("reg.rmap.service.module.TH.GetDataAndMetadata.1.0",
-			  reg_rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
-
+    getPublisherSubjectID("rmap.service.module.TH.GetDataAndMetadata.1.0",
+  			  rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
+  
+  //state.port_id.pub.service_module_th =
+  //  getPublisherSubjectID("uavcan.pub.GetDataAndMetadata",
+  //			  rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
+  
   // Set up the default value. It will be used to populate the register if it doesn't exist.
   uavcan_register_Value_1_0_select_natural32_(&val);
   val.natural32.value.count       = 1;
   val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
+  
 
-
-  registerRead("reg.rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
 
-  registerRead("reg.rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Level.L2", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.level.L2.value = val.natural32.value.elements[0];
     
-  registerRead("reg.rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Timerange.P1", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.timerange.P1.value = val.natural32.value.elements[0];
     
-  registerRead("reg.rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Timerange.P2", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.timerange.P2.value = val.natural32.value.elements[0];
     
 
@@ -952,14 +975,14 @@ void setup(void) {
   val.natural16.value.count       = 1;
   val.natural16.value.elements[0] = UINT8_MAX;  // This means "undefined", per Specification, which is the default.
 
-  registerRead("reg.rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Timerange.Pindicator", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
     
     
-  registerRead("reg.rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Level.LevelType1", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.level.LevelType1.value = val.natural8.value.elements[0];
     
-  registerRead("reg.rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
+  registerRead("rmap.module.TH.metadata.Level.LevelType2", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.level.LevelType2.value = val.natural8.value.elements[0];
 
   // Subscriptions:
@@ -1078,7 +1101,7 @@ void setup(void) {
       canardRxSubscribe(&state.canard,
 			CanardTransferKindRequest,
 			state.port_id.pub.service_module_th,
-			reg_rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
+			rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
 			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
 			&rx);
 
