@@ -1,0 +1,12 @@
+rmap.service.setmode.1.0 parametri
+
+@sealed
+
+---
+
+uint8 stato
+#interprete 
+
+rmap.module.TH.1.0 dataandmetadata
+
+@sealed
