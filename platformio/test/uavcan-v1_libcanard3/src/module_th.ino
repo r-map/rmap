@@ -106,8 +106,11 @@ typedef struct State
         struct
         {
             CanardPortID module_th;
-            CanardPortID service_module_th;
         } pub;
+        struct
+        {
+            CanardPortID service_module_th;
+        } srv;
     } port_id;
 
     /// A transfer-ID is an integer that is incremented whenever a new message is published on a given subject.
@@ -173,7 +176,6 @@ static CanardPortID getPublisherSubjectID(const char* const port_name, const cha
 
     // Set up the default value. It will be used to populate the register if it doesn't exist.
     uavcan_register_Value_1_0 val = {0};
-    uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = UINT16_MAX;  // This means "undefined", per Specification, which is the default.
 
@@ -182,6 +184,9 @@ static CanardPortID getPublisherSubjectID(const char* const port_name, const cha
     RMAP_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
     const uint16_t result = val.natural16.value.elements[0];
 
+    Log.notice(F("getPublisherSubjectID %s; portid %d" CR),&register_name[0],result);
+
+    
     // This part is NOT required but recommended by the Specification for enhanced introspection capabilities. It is
     // very cheap to implement so all implementations should do so. This register simply contains the name of the
     // type exposed at this port. It should be immutable but it is not strictly required so in this implementation
@@ -682,7 +687,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     {
 
       Log.notice(F("request portid %d" CR),transfer->metadata.port_id);
-	if (transfer->metadata.port_id == state->port_id.pub.service_module_th)
+	if (transfer->metadata.port_id == state->port_id.srv.service_module_th)
 	{
             // The request object is empty so we don't bother deserializing it. Just send the response.
 
@@ -894,12 +899,16 @@ void setup(void) {
     ? CANARD_NODE_ID_UNSET
     : (CanardNodeID) val.natural16.value.elements[0];
 
+  Log.notice(F("--> node_id  %d" CR),state.canard.node_id);
+  
   // The description register is optional but recommended because it helps constructing/maintaining large networks.
   // It simply keeps a human-readable description of the node that should be empty by default.
   uavcan_register_Value_1_0_select_string_(&val);
   val._string.value.count = 0;
   registerRead("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
 
+  Log.notice(F("--> node description  %s" CR),&val._string.value.elements[0]);
+  
   // The UDRAL cookie is used to mark nodes that are auto-configured by a specific auto-configuration authority.
   // We don't use this value, it is managed by remote nodes; our only responsibility is to persist it across reboots.
   // This register is entirely optional though; if not provided, the node will have to be configured manually.
@@ -907,6 +916,7 @@ void setup(void) {
   val._string.value.count = 0;  // The value should be empty by default, meaning that the node is not configured.
   registerRead("udral.pnp.cookie", &val);
 
+  /*
   // Announce which UDRAL network services we support by populating appropriate registers. They are supposed to be
   // immutable (read-only), but in this simplified demo we don't support that, so we make them mutable (do fix this).
   uavcan_register_Value_1_0_select_string_(&val);
@@ -914,7 +924,6 @@ void setup(void) {
   val._string.value.count = strlen((const char*) val._string.value.elements);
   registerWrite("reg.udral.service.pitot", &val);
 
-  /*
   // Configure the transport by reading the appropriate standard registers.
   uavcan_register_Value_1_0_select_natural16_(&val);
   val.natural16.value.count       = 1;
@@ -931,32 +940,27 @@ void setup(void) {
   {
     state.canard_tx_queues[ifidx] = canardTxInit(CAN_TX_QUEUE_CAPACITY, CANARD_MTU_CAN_CLASSIC);
   }
- 
-  // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
-  // Publications:
-  state.port_id.pub.module_th =
-    getPublisherSubjectID("rmap.module.TH.1.0",
-  			  rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
-  
-  //state.port_id.pub.module_th =
-  //  getPublisherSubjectID("uavcan.pub.TH",
-  //			  rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
-  
-  
-  state.port_id.pub.service_module_th =
-    getPublisherSubjectID("rmap.service.module.TH.GetDataAndMetadata.1.0",
-  			  rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
-  
-  //state.port_id.pub.service_module_th =
-  //  getPublisherSubjectID("uavcan.pub.GetDataAndMetadata",
-  //			  rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
-  
+   
   // Set up the default value. It will be used to populate the register if it doesn't exist.
   uavcan_register_Value_1_0_select_natural32_(&val);
   val.natural32.value.count       = 1;
   val.natural32.value.elements[0] = UINT32_MAX;  // This means "undefined", per Specification, which is the default.
-  
 
+
+  registerRead("rmap.module.TH.1.0.id", &val);
+  registerRead("uavcan.pub.GetDataAndMetadata.1.0.id", &val);
+
+  // Load the port-IDs from the registers. You can implement hot-reloading at runtime if desired.
+  // Publications:
+  state.port_id.pub.module_th =
+    getPublisherSubjectID("uavcan.pub.TH",
+  			  rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+  
+  // Services:
+  state.port_id.srv.service_module_th =
+    getPublisherSubjectID("uavcan.pub.GetDataAndMetadata",
+  			  rmap_service_module_TH_GetDataAndMetadata_1_0_FULL_NAME_AND_VERSION_);
+  
   registerRead("rmap.module.TH.metadata.Level.L1", &val);  // Unconditionally overwrite existing value because it's read-only.
   module_th_msg.metadata.level.L1.value = val.natural32.value.elements[0];
 
@@ -1100,7 +1104,7 @@ void setup(void) {
     const int8_t                res =  //
       canardRxSubscribe(&state.canard,
 			CanardTransferKindRequest,
-			state.port_id.pub.service_module_th,
+			state.port_id.srv.service_module_th,
 			rmap_service_module_TH_GetDataAndMetadata_Request_1_0_EXTENT_BYTES_,
 			CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
 			&rx);
@@ -1132,7 +1136,7 @@ void loop(void)
 
   //Log.notice(F("loop" CR));
   
-  const CanardMicrosecond fast_loop_period   = MEGA / 3;
+  const CanardMicrosecond fast_loop_period   = MEGA / 2;
   CanardMicrosecond       next_fast_iter_at  = state.started_at + fast_loop_period;
   CanardMicrosecond       next_1_hz_iter_at  = state.started_at + MEGA;
   CanardMicrosecond       next_01_hz_iter_at = state.started_at + MEGA * 10;
