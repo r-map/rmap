@@ -1,3 +1,4 @@
-slcand -s5 -S115200 /dev/ttyUSB0 can0
+# slcand -o -s5 -S115200 /dev/ttyUSB0 can0 -F
+slcand -o -s5 -S115200 /dev/ttyUSB0 can0
 ifconfig can0 up  txqueuelen 500
-candump can0
+candump -dexac can0
