@@ -3,14 +3,22 @@
 /// Author: Pavel Kirienko <pavel@opencyphal.org>
 /// Revis.: Gasperini Moreno <m.gasperini@digiteco.it>
 
-/// TODO: Integrazione logica con sensordrive ( Vedere con Marco e Paolo )
+/// TODO: (ricerca e ricontrolla i TODO vari)
+/// STAMPE CORRETTE E A DEFINE_SOFTWARE E -> LEVEL COME ESEMPIO DI PAOLO
 /// DSDL Esatta e conforme status, command, Lx, ecc. versione FINALE e tutte le altre slave
-/// Funzioni per TimeStamp e File
-/// Inserire disturbatore HW e verifiche restore, reset ecc...
-/// BXCAN AD Interrupt - SLAVE * MASTER SU RX, Filtri?, probabile gestione a NodeID Master + 1 x Yakut ???
+/// Funzioni per TimeStamp
+/// STATO AD ARRAY [x] 1 stato per nodo slave su TX Messaggi -> Converitre C++ istanze
 /// C++/strutture
 /// CanardMicrosecond
 /// CanBitRate Dinamico, Fixed register non mutable...
+
+/// NOTE:
+/// msg->vendor_specific_status_code in Heartbeat può indicare (Fine acq, + altri STATI locali)
+///     Errori, bassa alimentazione 0/1/2, Ho finito acq. in che modalità sono ecc... GIA OK!!!
+///     Va solo gestito in logica master ma funziona correttamente
+/// Capire L1/L2 quali parametri sono in master... x SET Misura ecc...
+/// Funzionalità gestibili entrata in OffLine, uscita in OnLine (Master e Slave)
+/// Funzionalità gestibili tutti i timeOut, OK ciclo STD ma altri possibili (Master e Slave)
 
 // Arduino
 #include <Arduino.h>
@@ -20,12 +28,13 @@
 #include <canard.h>
 #include "bxcan.h"
 // Namespace UAVCAN
+#include <uavcan/node/Heartbeat_1_0.h>
+#include <uavcan/node/GetInfo_1_0.h>
+#include <uavcan/node/ExecuteCommand_1_1.h>
+#include <uavcan/node/port/List_0_1.h>
 #include <uavcan/_register/Access_1_0.h>
 #include <uavcan/_register/List_1_0.h>
-#include <uavcan/node/ExecuteCommand_1_1.h>
-#include <uavcan/node/GetInfo_1_0.h>
-#include <uavcan/node/Heartbeat_1_0.h>
-#include <uavcan/node/port/List_0_1.h>
+#include <uavcan/file/Read_1_1.h>
 #include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
 #include <rmap/_module/TH_1_0.h>
@@ -39,11 +48,6 @@
 // Configurazione modulo, definizioni ed utility generiche
 #include "module_config.hpp"
 
-// INIT REGISTER INTERNI x TEST E/O SETUP RAPIDO
-// #define INIT_REGISTER
-
-// VARIABILI GLOBALI ISTANZE, TODO: CLASSE c++ ecc...
-
 /// We keep the state of the application here. Feel free to use static variables instead if desired.
 typedef struct State {
     CanardMicrosecond started_at;
@@ -51,6 +55,21 @@ typedef struct State {
     O1HeapInstance* heap;
     CanardInstance canard;
     CanardTxQueue canard_tx_queues[CAN_REDUNDANCY_FACTOR];
+
+    // Local File Upload Firmware name e stato...
+    // Stato del nodo locale servi e servizi gestiti collegati. Possibile lettura dai registri e gestione automatica
+    struct
+    {
+        uint8_t  firmware_node_id;
+        char     firmware_filename[FW_NAME_SIZE_MAX];
+        bool     firmware_updating;    
+        bool     firmware_updating_eof;
+        bool     firmware_updating_run;
+        byte     firmware_updating_retry;
+        uint64_t firmware_offset;
+        uint32_t firmware_timeout;
+        uint8_t  node_flag; // Stato del Nodo locale (Flag interno stati/comandi nodi)
+    } local_node;
 
     // Subject ID porte e servizi modulo locale
     struct
@@ -80,7 +99,7 @@ typedef struct State {
     {
         uint32_t synch_timeout;
         uint8_t  state;
-        bool     is_online;
+        uint8_t  node_flag; // Stato del Nodo remoto Master (Flag interno stati/comandi nodi)
     } master;
 
     /// A transfer-ID is an integer that is incremented whenever a new message is published on a given subject.
@@ -93,6 +112,7 @@ typedef struct State {
         uint64_t uavcan_node_heartbeat;
         uint64_t uavcan_node_port_list;
         uint64_t uavcan_pnp_allocation;
+        uint64_t uavcan_file_read_data;
         uint64_t module_th;
     } next_transfer_id;
 } State;
@@ -239,6 +259,40 @@ static void sendResponse(State* const state,
     send(state, tx_deadline_usec, &meta, payload_size, payload);
 }
 
+// *******              FUNZIONI INVOCATE HANDLE CONT_LOOP EV. PREPARATORIE              *********
+
+// FileRead V1.1
+static void handleFileReadBlock_1_1(State* const state, const CanardMicrosecond monotonic_time)
+{
+    // ***** Ricezione di file firmware dalla rete UAVCAN dal nodo chiamante *****
+    // Richiamo in continuazione rapida la funzione fino al riempimento del file
+    // Alla fine processo il firrmware Upload vero e proprio con i relativi check
+    uavcan_file_Read_Request_1_1 remotefile = {0};
+    remotefile.path.path.count = strlen(state->local_node.firmware_filename);
+    memcpy(remotefile.path.path.elements, state->local_node.firmware_filename, remotefile.path.path.count);
+    remotefile.offset = state->local_node.firmware_offset;
+
+    uint8_t      serialized[uavcan_file_Read_Request_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    size_t       serialized_size                                                           = sizeof(serialized);
+    const int8_t err = uavcan_file_Read_Request_1_1_serialize_(&remotefile, &serialized[0], &serialized_size);
+    assert(err >= 0);
+    if (err >= 0)
+    {
+        const CanardTransferMetadata meta = {
+            .priority       = CanardPriorityHigh,
+            .transfer_kind  = CanardTransferKindRequest,
+            .port_id        = uavcan_file_Read_1_1_FIXED_PORT_ID_,
+            .remote_node_id = state->local_node.firmware_node_id,
+            .transfer_id    = (CanardTransferID) (state->next_transfer_id.uavcan_file_read_data++),
+        };
+        send(state,
+                monotonic_time + MEGA,
+                &meta,
+                serialized_size,
+                &serialized[0]);
+    }
+}
+
 // *******              FUNZIONI INVOCATE HANDLE FAST_LOOP EV. PREPARATORIE              *********
 
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo
@@ -287,7 +341,7 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
 
 // *******              FUNZIONI INVOCATE HANDLE 1 SECONDO EV. PREPARATORIE              *********
 
-static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_time) {
+static void handleNormalLoop(State* const state, const CanardMicrosecond monotonic_time) {
     const bool anonymous = state->canard.node_id > CANARD_NODE_ID_MAX;
     // Heartbeat ogni secondo (la funzione è richiesta e non può essere mascherata in UAVCAN)
     // In anonimo invece esegue la richiesta di allocazione node_id con il servizio plug_and_play 1.0
@@ -301,9 +355,18 @@ static void handle1HzLoop(State* const state, const CanardMicrosecond monotonic_
         } else {
             heartbeat.health.value = uavcan_node_Health_1_0_NOMINAL;
         }
-        // TODO: Inserire quà specifici codici per gestione client/server
-        // heartbeat.vendor_specific_status_code -> = XX
-        // Esempio acquisizione: dati (tempo acquisizione finito... pronto a prelievo dati)
+        heartbeat.vendor_specific_status_code = VSC_SOFTWARE_NORMAL;
+        // Comunicazione dei FLAG di Update ed altri VSC privati opzionali
+        if(state->local_node.firmware_updating) {
+            // heartbeat.mode.value = uavcan_node_Mode_1_0_SOFTWARE_UPDATE;
+            heartbeat.vendor_specific_status_code = VSC_SOFTWARE_UPDATE_READ;
+        }
+        // A fine trasferimento completo
+        if(state->local_node.firmware_updating_run) {
+            // Utilizzare questo flag solo in avvio di update (YAKUT Blocca i trasferimenti)
+            // Altrimenti ricomincia il trasferimento da capo da inizio file all'infinito...
+            heartbeat.mode.value = uavcan_node_Mode_1_0_SOFTWARE_UPDATE;
+        }
         uint8_t serialized[uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
         const int8_t err = uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, &serialized[0], &serialized_size);
@@ -391,8 +454,8 @@ static void fillServers(const CanardTreeNode* const tree, uavcan_node_port_Servi
     }
 }
 
-// **************           Pubblicazione vera e propria a 10 secondi           **************
-static void handle01HzLoop(State* const state, const CanardMicrosecond monotonic_time) {
+// **************           Pubblicazione vera e propria a 20 secondi           **************
+static void handleSlowLoop(State* const state, const CanardMicrosecond monotonic_time) {
     // Publish the recommended (not required) port introspection message. No point publishing it if we're anonymous.
     // The message is a bit heavy on the stack (about 2 KiB) but this is not a problem for a modern MCU.
     // L'abilitazione del comando è facoltativa, può essere attivata/disattivata da un comando UAVCAN
@@ -465,69 +528,91 @@ static void processMessagePlugAndPlayNodeIDAllocation(State* const state,
 }
 
 // Chiamate gestioni RPC remote da master (yakut o altro servizio di controllo)
-static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(State* const state,
-                                                                            const uavcan_node_ExecuteCommand_Request_1_1* req) {
+static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(State* state, const uavcan_node_ExecuteCommand_Request_1_1* req,
+                                                                            uint8_t remote_node) {
     uavcan_node_ExecuteCommand_Response_1_1 resp = {0};
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
     // req->parameter (array di byte MAX 255 per i parametri da request)
     // Risposta attuale (resp) 1 Bytes RESERVER (0..6) gli altri #define interne
-    switch (req->command) {
-        // Case standard UAVCAN
-        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE: {
-            char file_name[uavcan_node_ExecuteCommand_Request_1_1_parameter_ARRAY_CAPACITY_ + 1] = {0};
-            memcpy(file_name, req->parameter.elements, req->parameter.count);
-            file_name[req->parameter.count] = '\0';
-            // TODO: invoke the bootloader with the specified file name. See https://github.com/Zubax/kocherga/
-            printf("Firmware update request; filename: '%s' \n", &file_name[0]);
-            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_STATE;  // This is a stub.
+    switch (req->command)
+    {
+        // **************** Comandi standard UAVCAN GENERIC_SPECIFIC_COMMAND ****************
+        // Comando di aggiornamento Firmware compatibile con Yakut e specifice UAVCAN
+        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE:
+        {
+            // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
+            state->local_node.firmware_node_id = remote_node;
+            // Copio la stringa nel name file firmware disponibile su state generale (per download successivo)
+            memcpy(state->local_node.firmware_filename, req->parameter.elements, req->parameter.count);
+            state->local_node.firmware_filename[req->parameter.count] = '\0';
+            Serial.print(F("Firmware update request from node id: "));
+            Serial.println(state->local_node.firmware_node_id);
+            Serial.print(F("Filename to download: "));
+            Serial.println(state->local_node.firmware_filename);
+            // Init varaiabili di download
+            state->local_node.firmware_updating = true;
+            state->local_node.firmware_updating_eof = false;
+            state->local_node.firmware_offset = 0;
+            // Controlla retry continue (da mettere OFF a RX Response di FileRead)
+            state->local_node.firmware_updating_retry = 0;
+            // Avvio la funzione con OK
+            resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET: {
+        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_FACTORY_RESET:
+        {
             registerDoFactoryReset();
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART: {
+        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_RESTART:
+        {
             g_restart_required = true;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES: {
+        case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_STORE_PERSISTENT_STATES:
+        {
             // If your registers are not automatically synchronized with the non-volatile storage, use this command
             // to commit them to the storage explicitly. Otherwise it is safe to remove it.
             // In this demo, the registers are stored in files, so there is nothing to do.
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        // CASE private comandi locali
-        case CMD_ENABLE_PUBLISH_DATA: {
+        // **************** Comandi personalizzati VENDOR_SPECIFIC_COMMAND ****************
+        case CMD_ENABLE_PUBLISH_DATA:
+        {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             state->pub_enabled.module_th = true;
             Serial.println(F("ATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_DISABLE_PUBLISH_DATA: {
+        case CMD_DISABLE_PUBLISH_DATA:
+        {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             state->pub_enabled.module_th = false;
             Serial.println(F("DISATTIVO Trasmissione dati in publish"));
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_ENABLE_PUBLISH_PORT_LIST: {
+        case CMD_ENABLE_PUBLISH_PORT_LIST:
+        {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             state->pub_enabled.port_list = true;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_DISABLE_PUBLISH_PORT_LIST:{
+        case CMD_DISABLE_PUBLISH_PORT_LIST:
+        {
             // Disabilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             state->pub_enabled.port_list = false;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }        
-        default: {
+        default:
+        {
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
             break;
         }
@@ -679,18 +764,21 @@ static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo() {
 // ******************************************************************************************
 static void processReceivedTransfer(State* const state, const CanardRxTransfer* const transfer) {
     // Gestione dei Messaggi in ingresso
-    if (transfer->metadata.transfer_kind == CanardTransferKindMessage) {
-        if (transfer->metadata.port_id == uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_) {
+    if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
+    {
+        if (transfer->metadata.port_id == uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_)
+        {
             // Ricevo messaggi Heartbeat per stato rete (Controllo esistenza del MASTER)
             // Solo a scopo precauzionale per attività da gestire alla cieca (SAVE QUEUE LOG, DATA ecc...)
             size_t size = transfer->payload_size;
             uavcan_node_Heartbeat_1_0 msg = {0};
-            if (uavcan_node_Heartbeat_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
+            if (uavcan_node_Heartbeat_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
                 // Controllo e gestisco solo il nodo MASTER
                 if(transfer->metadata.remote_node_id == NODE_MASTER_ID) {
                     // Entro in OnLine se precedentemente arrivo dall'OffLine
                     // ed eseguo eventuali operazioni di entrata in attività se necessario
-                    if (!state->master.is_online) {
+                    if(IsMasterOffline(state->master.node_flag)) {
                         // Il master è entrato in modalità ONLine e gestisco
                         Serial.println(F("Master controller ONLINE !!! Starting application..."));
                     }
@@ -698,7 +786,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                     Serial.println(msg.vendor_specific_status_code);
                     // Processo e registro il nodo: stato, OnLine e relativi flag
                     // Set internal local millis per controllo Master Offline
-                    state->master.is_online = true;
+                    SetMasterOnline(state->master.node_flag);
                     state->master.state = msg.vendor_specific_status_code;
                     state->master.synch_timeout = millis();
                 }
@@ -789,7 +877,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
             size_t size = transfer->payload_size;
             Serial.println(F("<<-- Ricevuto comando esterno"));
             if (uavcan_node_ExecuteCommand_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
-                const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(state, &req);
+                const uavcan_node_ExecuteCommand_Response_1_1 resp = processRequestExecuteCommand(state, &req, transfer->metadata.remote_node_id);
                 uint8_t serialized[uavcan_node_ExecuteCommand_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
                 if (uavcan_node_ExecuteCommand_Response_1_1_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
@@ -804,7 +892,39 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
             // Gestione di una richiesta senza controllore locale. Se arrivo quà è un errore di sviluppo
             assert(false);
         }
-    } else {
+    } else if (transfer->metadata.transfer_kind == CanardTransferKindResponse) {
+        if (transfer->metadata.port_id == uavcan_file_Read_1_1_FIXED_PORT_ID_)
+        {
+            uavcan_file_Read_Response_1_1 resp  = {0};
+            size_t                         size = transfer->payload_size;
+            if (uavcan_file_Read_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
+                // Reset pending command (Comunico request/Response Serie di comandi OK!!!)
+                ResetLocalPendingFile(state->local_node.node_flag);
+                // Azzero contestualmente le retry di controllo x gestione MAX_RETRY -> ABORT
+                state->local_node.firmware_updating_retry = 0;
+                Serial.print(F("RX FILE READ BLOCK LEN: "));
+                Serial.println(resp.data.value.count);
+                // Save Data in File at Block Position (Init = Rewrite file...)
+                putDataFile(state->local_node.firmware_filename, state->local_node.firmware_offset==0,
+                            resp.data.value.elements, resp.data.value.count);
+                // TODO: Gestire messaggio in req, save struct continuos...
+                // Decodifica e salvataggio del file... SD o Blocchi Flash...
+                // Gestire risposta... per ora sempre OK poi verifica con errori in test
+                // uavcan_file_Write_Response_1_1 resp; // = processRequestReadFile(state, &req);
+                // uint8_t serialized[uavcan_file_Write_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+                // size_t  serialized_size = sizeof(serialized);
+                // Data OK, avanzamento di block per controllo integrità generale messaggio/coerenza/file
+                state->local_node.firmware_offset+=resp.data.value.count;
+                if(resp.data.value.count != uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_) {
+                    // Blocco con EOF!!! Fine trasferimento, nessun altro blocco disponibile
+                    state->local_node.firmware_updating_eof = true;
+                }
+            }
+        }
+    }
+    else
+    {
         // Se arrivo quà è un errore di sviluppo, controllare setup sottoscrizioni e Rqst (non gestito slave)
         assert(false);
     }
@@ -825,7 +945,67 @@ static void canardFree(CanardInstance* const ins, void* const pointer) {
     o1heapFree(heap, pointer);
 }
 
-extern char** environ;
+// ***************** ISR READ RX CAN_BUS, BUFFER RX SETUP ISR, CALLBACK *****************
+// Push data into Array of CanardFrame and relative buffer payload
+// Gestita come coda FIFO (In sostituzione interrupt bxCAN non funzionante correttamente)
+// Puntatori alla coda FiFo (Gestione CODA con define)
+#define bxCANRxQueueEmpty()         (canard_rx_queue.wr_ptr=canard_rx_queue.rd_ptr)
+#define bxCANRxQueueIsEmpty()       (canard_rx_queue.wr_ptr==canard_rx_queue.rd_ptr)
+#define bxCANRxQueueDataPresent()   (canard_rx_queue.wr_ptr!=canard_rx_queue.rd_ptr)
+// For Monitor queue Interrupt RX movement
+#define bxCANRxQueueElement()       (canard_rx_queue.wr_ptr>=canard_rx_queue.rd_ptr ? canard_rx_queue.wr_ptr-canard_rx_queue.rd_ptr: canard_rx_queue.wr_ptr+(CAN_RX_QUEUE_CAPACITY-canard_rx_queue.rd_ptr))
+#define bxCANRxQueueNextElement(x)  (x+1 < CAN_RX_QUEUE_CAPACITY ? x+1 : 0)
+typedef struct Canard_rx_queue
+{
+    // CanardTxQueue (Frame e Buffer x Interrupt gestione Coda FiFo)
+    byte wr_ptr;
+    byte rd_ptr;
+    struct {
+    CanardFrame frame;
+    uint8_t buf[CANARD_MTU_MAX];
+    } msg[CAN_RX_QUEUE_CAPACITY];
+} Canard_rx_queue;
+Canard_rx_queue canard_rx_queue;
+
+// Call Back Opzionale RX_FIFO0 CAN_IFACE (hcan), Usare con più servizi di INT per discriminare
+// Abilitabile in CAN1_RX0_IRQHandler, chiamando -> HAL_CAN_IRQHandler(&CAN_Handle)
+// extern "C" void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+// {
+//    CallBack CODE Here... (quello Interno CAN1_RX0_IRQHandler)
+// }
+
+// INTERRUPT_HANDLER CAN RX (Non modificare extern "C", in C++ non gestirebbe l'ingresso in ISR)
+// Più veloce possibile ISR
+extern "C" void CAN1_RX0_IRQHandler(void)
+{
+    // -> Chiamata opzionale di Handler Call_Back CAN_Handle
+    // La sua chiamata in CAN1_RX0_IRQHandler abilita il CB succesivo
+    // -> HAL_CAN_IRQHandler(&CAN_Handle);
+    // <- HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+    // In questo caso è possibile discriminare con *hcan altre opzioni/stati
+    // In Stima V4 non è necessario altra CB, bxCANPop gestisce il MSG_IN a suo modo
+    // Inserisco il messaggio in un BUFFER Circolare di CanardFrame che vengono gestiti
+    // nel software al momento opportuno, senza così incorrere in perdite di dati
+    byte testElement = canard_rx_queue.wr_ptr;
+    testElement = bxCANRxQueueNextElement(canard_rx_queue.wr_ptr);
+    // Leggo il messaggio già pronto per libreria CANARD (Frame)
+    if (bxCANPop(IFACE_CAN_IDX, &canard_rx_queue.msg[testElement].frame.extended_can_id,
+                                &canard_rx_queue.msg[testElement].frame.payload_size,
+                                canard_rx_queue.msg[testElement].buf)) {
+        if(testElement != canard_rx_queue.rd_ptr) {
+            // Non posso registrare il dato (MAX_QUEUE) se (testElement == canard_rx_queue.rd_ptr) 
+            // raggiunto MAX Buffer. E' più importante non perdere il primo FIFO payload
+            // Quindi non aggiungo il dato ma leggo per svuotare il Buffer FIFO
+            // altrimenti rientro sempre in Interrupt RX e mando in stallo la CPU senza RX...
+            // READ DATA BUFFER MSG ->
+            // Get payload from Buffer (possibilie inizializzazione statica fissa)
+            // Il Buffer non cambia indirizzo quindi basterebbe un'init statico di frame[x].payload
+            canard_rx_queue.msg[testElement].frame.payload = canard_rx_queue.msg[testElement].buf;
+            // Push data in queue (Next_WR, Data in testElement + 1 Element from RX)
+            canard_rx_queue.wr_ptr = testElement;
+        }
+    }
+}
 
 // Setup HW (PIN, interface, filter, baud)
 bool CAN_HW_Init(void) {
@@ -884,11 +1064,12 @@ bool CAN_HW_Init(void) {
     CAN_FilterInitStruct.FilterIdLow = 0x0000;
     CAN_FilterInitStruct.FilterMaskIdHigh = 0x0000;
     CAN_FilterInitStruct.FilterMaskIdLow = 0x0000;
-    CAN_FilterInitStruct.FilterFIFOAssignment = 0;
+    CAN_FilterInitStruct.FilterFIFOAssignment = CAN_RX_FIFO0;
     CAN_FilterInitStruct.FilterBank = 0;
     CAN_FilterInitStruct.FilterMode = CAN_FILTERMODE_IDMASK;
     CAN_FilterInitStruct.FilterScale = CAN_FILTERSCALE_32BIT;
     CAN_FilterInitStruct.FilterActivation = ENABLE;
+
     // Check error initalization CAN filter
     if (HAL_CAN_ConfigFilter(&CAN_Handle, &CAN_FilterInitStruct) != HAL_OK) {
         Serial.println(F("Error initialization filter CAN base"));
@@ -920,6 +1101,16 @@ bool CAN_HW_Init(void) {
         return false;
     }
 
+    // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
+    if (HAL_CAN_ActivateNotification(&CAN_Handle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
+        Serial.println(F("Error initialization interrupt CAN base"));
+        assert(false);
+        return false;
+    }
+    // Setup Priority e CB CAN_IRQ_RX Enable
+    HAL_NVIC_SetPriority(CAN1_RX0_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(CAN1_RX0_IRQn);
+
     // Setup Completato
     return true;
 }
@@ -942,7 +1133,9 @@ void setup(void) {
     //            STARTUP LED E PIN DIAGNOSTICI
     // *****************************************************
     // Output mode for LED BLINK SW LOOP
+    // Input mode for test button
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(USER_BTN, INPUT);
     digitalWrite(LED_BUILTIN, HIGH);
 
     // *****************************************************
@@ -969,7 +1162,8 @@ void setup(void) {
 // *************************************************************************************************
 //                                          MAIN LOOP
 // *************************************************************************************************
-void loop(void) {
+void loop(void)
+{
     uavcan_register_Value_1_0 val = {0};
     State state = {0};
 
@@ -1188,6 +1382,19 @@ void loop(void) {
         if (res < 0) NVIC_SystemReset();
     }
 
+    // Service client: -> Risposta per Read (Receive) File local richiesta esterna (Yakut, Altri)
+    {
+        static CanardRxSubscription rx;
+        const int8_t                res =  //
+            canardRxSubscribe(&state.canard,
+                                CanardTransferKindResponse,
+                                uavcan_file_Read_1_1_FIXED_PORT_ID_,
+                                uavcan_file_Read_Response_1_1_EXTENT_BYTES_,
+                                CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC,
+                                &rx);
+        if (res < 0) NVIC_SystemReset();
+    }
+
     // ********************************************************************************
     //         AVVIA LOOP CANARD PRINCIPALE gestione TX/RX Code -> Messaggi
     // ********************************************************************************
@@ -1199,10 +1406,12 @@ void loop(void) {
     int bRxAttempt = 0;
     long lastMillis = 0;
     long checkTimeout = 0;
+    bool bEventRealTimeLoop = false;
 
     // #define LOG_TX_RX_ATTEMPT
     #define PUBLISH_HEARTBEAT
     #define PUBLISH_LISTPORT
+    #define LOG_RX_PACKET    
 
     // Set START Timetable LOOP RX/TX.
     state.started_at                            = getMonotonicMicroseconds();
@@ -1216,22 +1425,41 @@ void loop(void) {
         CanardMicrosecond monotonic_time = getMonotonicMicroseconds();
         // monotonic_time.
 
+        // Check TimeLine (quasi RealTime...)
+        if ((millis()-checkTimeout)>=10)
+        {
+            // Deadline di controllo per eventi di controllo Rapidi (TimeOut, FileHandler ecc...)
+            // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
+            checkTimeout = millis();
+            // Utilizzo per eventi quasi continuativi... Es. Send/Receive File queue...
+            bEventRealTimeLoop = true;
+        }
+
         // ************************************************************************
         // ***************   CHECK OFFLINE/DEADLINE COMMAND/STATE   ***************
         // ************************************************************************
-        // TEST Check ogni 10 mSec circa ( SOLO TEST COMANDI DA INSERIRE IN TASK )
-        if ((millis()-checkTimeout)>=10)
+        // TEST Check ogni RTL circa ( SOLO TEST COMANDI DA INSERIRE IN TASK_TIME )
+        // Deadline di controllo (checkTimeOut variabile sopra...)
+        if (bEventRealTimeLoop)
         {
-            // Deadline di controllo OFFLINE Master controller
-            checkTimeout = millis();
+            // **********************************************************
+            //          Per il nodo locale SERVER local_node_flag
+            // **********************************************************
+            // Controllo TimeOut Comando file su modulo remoto
+            if(IsLocalPendingFile(state.local_node.node_flag)) {
+                if((checkTimeout - state.local_node.firmware_timeout) > NODE_GETFILE_TIMEOUT_MS) {
+                    // Setto il flag di TimeOUT che il master dovrà gestire (segnalazione BUG al Server?)
+                    SetLocalTimeOutFile(state.local_node.node_flag);
+                }
+            }
             // Check eventuale Nodo Master OFFLINE (Ultimo comando sempre perchè posso)
             // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
             if ((checkTimeout - state.master.synch_timeout) > MASTER_OFFLINE_TIMEOUT_MS) {
                 // Entro in OffLine ed eseguo eventuali operazioni di entrata
                 // N.B. In Heartbeat è stata fatta la cosa contraria, per gestire il ritorno OnLine
-                if (state.master.is_online) {
+                if (IsMasterOnline(state.master.node_flag)) {
                     // Il master è entrato in modalità OFFLine
-                    state.master.is_online = false;
+                    SetMasterOffline(state.master.node_flag);
                     // Attività x Reset e/o riavvio Nodo dopo OnLine -> Offline
                     // Solo TEST Locale TODO: da eliminare
                     Serial.println(F("Master controller OFFLINE !!! Alert"));
@@ -1240,7 +1468,7 @@ void loop(void) {
             else
             {
                 // TODO: SOLO CODICE DI ESEMPIO DA GESTIRE
-                // Il master comunica nell'HeartBeat il suo stato che viene gestito qui se OnLine
+                // Il master comunica nell'HeartBeat il prpori stato che viene gestito qui se OnLine
                 // Gestione attività (es. risparmio energetico, altro in funzione di codice remoto)
                 /*
                 switch (state.master.state) {
@@ -1257,11 +1485,75 @@ void loop(void) {
             }
         }
 
-        // ***************************************************************************
+        // **************************************************************************
+        //                                CANARD UAVCAN
         // Scheduler temporizzato dei messaggi / comandi da inviare alla rete UAVCAN 
-        // ***************************************************************************
+        // **************************************************************************
+
+        // FILE HANDLER ( con controllo continyuativo se avviato bEventRealTimeLoop )
+        if(bEventRealTimeLoop)
+        {
+            // Verifica TimeOUT Occurs per File download
+            if(IsLocalTimeOutFile(state.local_node.node_flag)) {
+                Serial.println(F("Time OUT File... reset state"));
+                ResetLocalPendingFile(state.local_node.node_flag);
+                ResetLocalTimeOutFile(state.local_node.node_flag);
+                // ToDo: Gestire eventuale Retry N Volte per poi abbandonare
+                // o ricominciare il trasferimento da capo...
+                state.local_node.firmware_updating_retry++;
+                if(state.local_node.firmware_updating_retry < NODE_GETFILE_MAX_RETRY) {
+                    Serial.print(F("Next Retry File read: "));
+                    Serial.println(state.local_node.firmware_updating_retry);
+                } else {
+                    Serial.println(F("MAX Retry File occurs"));
+                    Serial.println(F("Uprgading firmware ABORT!!!"));
+                    state.local_node.firmware_updating = false;
+                }
+            }
+            // Verifica file download in corso (entro se in download)
+            if(state.local_node.firmware_updating) {
+                // Se messaggio in pending non faccio niente è attendo la conferma del ResetPending
+                // In caso di errore subentrerà il TimeOut e verrà essere gestita la retry
+                if(!IsLocalPendingFile(state.local_node.node_flag)) {
+                    // Fine pending, con messaggio OK. Verifico se EOF o necessario altro blocco
+                    if(state.local_node.firmware_updating_eof) {
+                        Serial.println(F("RX FILE FIRMWARE COMPLETED !!!"));
+                        Serial.println(state.local_node.firmware_filename);
+                        Serial.print(F("Size: "));
+                        Serial.print(getDataFileInfo(state.local_node.firmware_filename));
+                        Serial.println(F(" (bytes)"));
+                        // Nessun altro evento necessario, chiudo File e stati
+                        // procedo all'aggiornamento Firmware dopo le verifiche di conformità
+                        state.local_node.firmware_updating = false;
+                        // Comunico a HeartBeat (Yakut o Altri) l'avvio dell'aggiornamento
+                        // Per Yakut Pubblicare un HeartBeat prima dell'Avvio quindi con il flag
+                        // state->local_node.firmware_updating_run = true >> HeartBeat Counica Upgrade...
+                        state.local_node.firmware_updating_run = true;
+                        // Il Firmware Upload dovrà partire necessariamente almeno dopo l'invio completo
+                        // di HeartBeat (svuotamento coda), quindi attendiamo 2/3 secondi poi via
+                        // Counque non rispondo più ai comandi di update con firmware_updating_run = true
+                        // FirmwareUpgrade(*NameFile)... -> Fra 2/3 secondi dopo HeartBeat
+                    } else {
+                        // Avvio prima request o nuovo blocco (Set Flag e TimeOut)
+                        // Prima request (state.local_node.firmware_offset == 0)
+                        // Firmmware Posizione blocco gestito automaticamente in sequenza Request/Read
+                        SetLocalPendingFile(state.local_node.node_flag);
+                        state.local_node.firmware_timeout = millis();
+                        // Gestione retry (incremento su TimeOut/Error) Automatico in Init/Request-Response
+                        // Esco se raggiunga un massimo numero di retry x Frame... sopra
+                        // Get Data Block per popolare il File
+                        // Se il Buffer è pieno = 256 Caratteri è necessario continuare
+                        // Altrimenti se inferiore o (0 Compreso) il trasferimento file termina.
+                        // Se = 0 il blocco finale non viene considerato ma serve per il protocollo
+                        // Se l'ultimo buffer dovesse essere pieno discrimina l'eventualità di MaxBuf==Eof 
+                        handleFileReadBlock_1_1(&state, monotonic_time);
+                    }
+                }
+            }
+        }
 
         // LOOP HANDLER >> FAST << 333 msec
+        // Led Running + Publish Data se abilitato
         if (monotonic_time >= next_333_ms_iter_at)
         {
             next_333_ms_iter_at += fast_loop_period;
@@ -1274,13 +1566,13 @@ void loop(void) {
                 digitalWrite(LED_BUILTIN, LOW);
         }
 
-        // LOOP HANDLER >> 1 SECONDO <<
+        // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
         if (monotonic_time >= next_01_sec_iter_at) {
             #ifdef PUBLISH_HEARTBEAT
             Serial.println(F("Publish SLAVE Heartbeat -->> [1 sec]"));
             #endif
             next_01_sec_iter_at += MEGA;
-            handle1HzLoop(&state, monotonic_time);
+            handleNormalLoop(&state, monotonic_time);
         }
 
         // LOOP HANDLER >> 20 SECONDI PUBLISH SERVIZI <<
@@ -1289,17 +1581,28 @@ void loop(void) {
             Serial.println(F("Publish Local PORT LIST -->> [20 sec]"));
             #endif
             next_20_sec_iter_at += MEGA * 20;
-            handle01HzLoop(&state, monotonic_time);
+            handleSlowLoop(&state, monotonic_time);
         }
+
+        // Fine handler quasi RealTime...
+        // Attendo nuovo evento per rielaborare
+        bEventRealTimeLoop = false;
 
         // ***************************************************************************
         //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)
         // ***************************************************************************
         // Transmit pending frames from the prioritized TX queues managed by libcanard.
-        for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++) {
-            CanardTxQueue* const que = &state.canard_tx_queues[ifidx];
+        for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++)
+        {
+            CanardTxQueue* const     que = &state.canard_tx_queues[ifidx];
             const CanardTxQueueItem* tqi = canardTxPeek(que);  // Find the highest-priority frame.
-            while (tqi != NULL) {
+            while (tqi != NULL)
+            {
+                // Delay Microsecond di sicurezza in Send (Migliora sicurezza RX Pacchetti)
+                // Da utilizzare con CPU poco performanti in RX o con controllo Polling gestito Canard
+                #if (CAN_DELAY_MS_SEND > 0)
+                delayMicroseconds(CAN_DELAY_US_SEND);
+                #endif
                 // TODO: Remove test
                 #ifdef LOG_TX_RX_ATTEMPT
                 bTxAttempt++;
@@ -1311,22 +1614,25 @@ void loop(void) {
                 #endif
                 // Attempt transmission only if the frame is not yet timed out while waiting in the TX queue.
                 // Otherwise just drop it and move on to the next one.
-                if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time)) {
+                if ((tqi->tx_deadline_usec == 0) || (tqi->tx_deadline_usec > monotonic_time))
+                {
                     // Non-blocking write attempt.
                     if (bxCANPush(0,
-                                  monotonic_time,
-                                  tqi->tx_deadline_usec,
-                                  tqi->frame.extended_can_id,
-                                  tqi->frame.payload_size,
-                                  tqi->frame.payload)) {
+                        monotonic_time,
+                        tqi->tx_deadline_usec,
+                        tqi->frame.extended_can_id,
+                        tqi->frame.payload_size,
+                        tqi->frame.payload)) {
                         // Push CAN data
                         state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
                         tqi = canardTxPeek(que);
-                    } else {
+                    } else  {
                         // Empty Queue
                         break;
                     }
-                } else {
+                }
+                else
+                {
                     // loop continuo per mancato aggiornamento monotonic_time su TIME_OUT
                     // grandi quantità di dati trasmesse e raggiunto il TIMEOUT Subscription...
                     // TODO: Verificare non blocco come BUG trasmission security BUG!!!
@@ -1339,58 +1645,61 @@ void loop(void) {
             }
         }
 
-        // TODO: Interrupt RX...
         // ***************************************************************************
         //   Gestione Coda messaggi in ricezione (ciclo di caricamento messaggi)
         // ***************************************************************************
-        for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++) {
-            CanardFrame frame;
-            uint8_t buf[CANARD_MTU_MAX] = {0};
-
-            frame.extended_can_id = 0;
-            frame.payload_size = sizeof(buf);
-            // The read operation has timed out with no frames, nothing to do here.
-            if (bxCANPop(ifidx, &frame.extended_can_id, &frame.payload_size, buf))
+        // Gestione con Intererupt RX Only esterean (verifica dati in coda gestionale)
+        if (bxCANRxQueueDataPresent()) {
+            // Leggo l'elemento disponibile in coda BUFFER RX FiFo CanardFrame + Buffer
+            byte getElement = bxCANRxQueueNextElement(canard_rx_queue.rd_ptr);
+            canard_rx_queue.rd_ptr = getElement;
+            // Log Output
+            #ifdef LOG_TX_RX_ATTEMPT
+            bRxAttempt++;
+            if ((millis() - lastMillis) > 333) {
+                Serial.print("RX Attempt <- ");
+                Serial.println(bRxAttempt);
+                lastMillis = millis();
+            }
+            #endif
+            // Log Packet
+            #ifdef LOG_RX_PACKET
+            Serial.print(canard_rx_queue.msg[getElement].frame.payload_size);
+            Serial.print(F(",Val: "));
+            for(int iIdxPl=0; iIdxPl<canard_rx_queue.msg[getElement].frame.payload_size; iIdxPl++) {
+                Serial.print("0x");
+                Serial.print(canard_rx_queue.msg[getElement].buf[iIdxPl] < 16 ? "0" : "");
+                Serial.print(canard_rx_queue.msg[getElement].buf[iIdxPl], HEX);
+                Serial.print(" ");
+            }
+            Serial.println("");
+            #endif
+            // Passaggio CanardFrame Buffered alla RxAccept CANARD
+            // Gestisco la dedaLine a partire da getMonotonicMicroseconds() come WallTimer assoluto
+            const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
+            CanardRxTransfer        transfer;
+            const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
+            if (canard_result > 0)
             {
-                // Get payload from Buffer
-                frame.payload = buf;
+                processReceivedTransfer(&state, &transfer);
+                state.canard.memory_free(&state.canard, (void*) transfer.payload);
+            }
+            else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
+            {
                 // TODO: Remove test
                 #ifdef LOG_TX_RX_ATTEMPT
-                bRxAttempt++;
                 if ((millis() - lastMillis) > 333) {
-                    Serial.print("RX Attempt <- ");
-                    Serial.println(bRxAttempt);
+                    Serial.print("Rx Nothing ToDo...");
                     lastMillis = millis();
                 }
                 #endif
-                // The SocketCAN adapter uses the wall clock for timestamping, but we need monotonic.
-                // Wall clock can only be used for time synchronization.
-                const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
-                CanardRxTransfer transfer;
-                const int8_t canard_result = canardRxAccept(&state.canard, timestamp_usec, &frame, ifidx, &transfer, NULL);
-                if (canard_result > 0)
-                {
-                    processReceivedTransfer(&state, &transfer);
-                    state.canard.memory_free(&state.canard, (void*)transfer.payload);
-                }
-                else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY))
-                {
-                    // TODO: Remove test
-                    #ifdef LOG_TX_RX_ATTEMPT
-                    if ((millis() - lastMillis) > 333) {
-                        Serial.print("Rx Nothing ToDo...");
-                        lastMillis = millis();
-                    }
-                    #endif
-                    (void)0;  // The frame did not complete a transfer so there is nothing to do.
-                    // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
-                }
-                else
-                {
-                    assert(false);  // No other error can possibly occur at runtime.
-                }
+                (void) 0;  // The frame did not complete a transfer so there is nothing to do.
+                // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
             }
-            else break;
+            else
+            {
+                assert(false);  // No other error can possibly occur at runtime.
+            }
         }
     } while (!g_restart_required);
 

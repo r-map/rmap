@@ -355,6 +355,7 @@ void registerDoFactoryReset(void) {
 #define errorExit(msg) errorHalt(F(msg))
 #define initError(msg) initErrorHalt(F(msg))
 static const char RegistryDirName[] = "registry";
+static const char FirmwareDirName[] = "firmware";
 
 // Variabili SD FAT -> ToDo: Istanza C++
 SdFat sdLoc;  // Sd Istanza
@@ -369,6 +370,70 @@ bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, c
         return false;
     }
     return true;
+}
+
+// Scrive dati in append per scrittura sequenziale file firmware
+void putDataFile(const char* const file_name, const bool rewrite, void* buf, size_t count)
+{
+    SdFile fw;
+
+    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
+    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    sdLoc.mkdir(FirmwareDirName);
+    fw.open(&file_path[0], rewrite ? O_RDWR | O_CREAT | O_TRUNC : O_RDWR | O_APPEND);
+    if (fw != NULL) {
+        fw.write(buf, count);
+    }
+    fw.close();
+}
+
+// legge dati in append per trasmissione sequenziale file firmware
+bool getDataFile(const char* const file_name, uint64_t position, void* buf, size_t *count)
+{
+    SdFile fw;
+
+    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
+    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    fw.open(&file_path[0], O_RDONLY);
+    if (fw != NULL) {
+        if(fw.seek(position)) {
+            int retVal = fw.read(buf, *count);            
+            // RetVal OK >=0
+            // 0 = OK Senza Bytes Read...
+            if(retVal>=0) {
+                *count = (size_t)retVal;
+                return true;
+            }
+        }
+    }
+    // Error file read or open or FS...
+    return false;
+}
+
+// Restituisce le info per file firmware e controlli vari
+uint64_t getDataFileInfo(const char* const file_name)
+{
+    SdFile fw;
+    uint64_t lof = 0;
+
+    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
+    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    fw.open(&file_path[0], O_RDONLY);
+    if (fw != NULL) {
+        lof = fw.fileSize();
+        fw.close();
+    }
+    return lof;
+}
+
+// Ritorna vero se il file firmware esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
+bool ccFirwmareFile(const char* const file_name)
+{
+    char register_name[60];
+
+    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
+    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    return sdLoc.exists(&file_path[0]);
 }
 
 // Check if exist or create space register with init default value

@@ -37,6 +37,18 @@ extern "C" {
 // SETUP SD Mode SdFat Library Mode
 bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, const uint32_t sCS, const int speedMHZ);
 
+// Scrive dati in append per scrittura sequenziale file firmware
+void putDataFile(const char* const file_name, const bool rewrite, void* buf, size_t count);
+
+// Legge dati in seek per lettura sequenziale file firmware
+bool getDataFile(const char* const file_name, uint64_t position, void* buf, size_t *count);
+
+// Restituisce le info per file firmware e controlli vari
+uint64_t getDataFileInfo(const char* const file_name);
+
+// Ritorna vero se il file firmware esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
+bool ccFirwmareFile(const char* const file_name);
+
 // NOTE: this implementation currently does not differentiate between mutable/immutable registers and does not support
 // volatile registers. It is trivial to extend though.
 

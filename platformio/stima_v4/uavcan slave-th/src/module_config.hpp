@@ -1,9 +1,14 @@
 #define KILO 1000L
 #define MEGA ((int64_t) KILO * KILO)
 
-// CODA E RIDONDANZA (Nessun proplema verificato, da effettuare TEST con Disturbatore di linea)
+// CODA, RIDONDANZA, TIMEDELAY TX & RX CANARD
 #define CAN_REDUNDANCY_FACTOR 1
 #define CAN_TX_QUEUE_CAPACITY 100
+#define CAN_MAX_IFACE 1
+#define CAN_RX_QUEUE_CAPACITY 100
+#define IFACE_CAN_IDX 0
+#define CAN_DELAY_US_SEND 0
+
 // CAN SPEED RATE HZ
 #define CAN_BIT_RATE 1000000ul
 #define CAN_MTU_BASE 8
@@ -15,7 +20,8 @@
 #define ServicePortID           3
 
 // Messaggi di lunghezza TimeOut Extra <> Standard
-#define CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC 4000000UL
+#define CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC 3500000UL
+#define CANARD_READFILE_TRANSFER_ID_TIMEOUT_USEC 2500000UL
 
 // A compilazione per semplificazione setup nodo (TEST)
 // #define INIT_REGISTER
@@ -26,7 +32,27 @@
 // Nodo fisso per Modulo Slave
 // #define NODE_SLAVE_ID 10
 
+// Gestione FLAG INTERNO per gestione stati nodi remoti e Locali
+// Gestioni Locali semplificata stato Nodi remoti BITS:
+// Utilizzo speculare per nodi Locali (solo quelli utilizzati -> File)
 #define GENERIC_BVAL_UNDEFINED  0xFF
+// Flag e Bit Locali
+#define LocalPendingFileRead        0u
+#define LocalTimeOutFileRead        1u
+// Set/Reset Value Locali
+#define IsLocalPendingFile(x)       bitRead(x, LocalPendingFileRead)
+#define SetLocalPendingFile(x)      bitSet(x, LocalPendingFileRead)
+#define ResetLocalPendingFile(x)    bitClear(x, LocalPendingFileRead)
+#define IsLocalTimeOutFile(x)       bitRead(x, LocalTimeOutFileRead)
+#define SetLocalTimeOutFile(x)      bitSet(x, LocalTimeOutFileRead)
+#define ResetLocalTimeOutFile(x)    bitClear(x, LocalTimeOutFileRead)
+// Flag e Bit Remoti
+#define RemoteMasterOnline          0u
+// Set/Reset Value Remoti
+#define IsMasterOnline(x)           bitRead(x, RemoteMasterOnline)
+#define IsMasterOffline(x)          (!IsMasterOnline(x))
+#define SetMasterOnline(x)          bitSet(x, RemoteMasterOnline)
+#define SetMasterOffline(x)         bitClear(x, RemoteMasterOnline)
 
 // Tipologie Nodi/Sensori remoti (NODE_TYPE) TODO: H.EXTERN!!!
 #define MODULE_TYPE_MASTER      0xFF
@@ -46,8 +72,18 @@
 #define CMD_ENABLE_PUBLISH_PORT_LIST    12
 #define CMD_DISABLE_PUBLISH_PORT_LIST   13
 
+// Servizi di default
 #define DEFAULT_PUBLISH_PORT_LIST       true
 #define DEFAULT_PUBLISH_PORT_DATA       false
 
 // TimeOUT (millisecondi)
-#define MASTER_OFFLINE_TIMEOUT_MS       3000
+#define MASTER_OFFLINE_TIMEOUT_MS   6000
+#define NODE_GETFILE_TIMEOUT_MS     1750
+#define NODE_GETFILE_MAX_RETRY      3
+
+// VENDOR STATUS CODE LOCALI
+#define VSC_SOFTWARE_NORMAL         0x00
+#define VSC_SOFTWARE_UPDATE_READ    0x01
+
+// CODICI E STATUS AGGIORNAMENTO FIRMWARE REMOTI
+#define FW_NAME_SIZE_MAX            50
