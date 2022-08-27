@@ -1322,7 +1322,7 @@ class TransportSocket(Transport):
         if self.s is None:
             self.connect()
         self.log( "--> "+repr(string) )
-        self.s.sendall( string )
+        self.s.sendall( str.encode(string) )
     def recv( self ):
         if self.s is None:
             self.connect()
@@ -1365,7 +1365,7 @@ class TransportSocket(Transport):
                 result = handler(data)
                 if result is not None:
                     self.log( "%s <-- %s" % (repr(addr), repr(result)) )
-                    conn.send( result )
+                    conn.send( str.encode(result) )
                 self.log( "%s close" % repr(addr) )
                 conn.close()
                 n_current += 1
