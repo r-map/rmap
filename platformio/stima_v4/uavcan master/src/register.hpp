@@ -38,13 +38,13 @@ extern "C" {
 bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, const uint32_t sCS, const int speedMHZ);
 
 // Scrive dati in append per scrittura sequenziale file firmware
-void putDataFile(const char* const file_name, const bool rewrite, void* buf, size_t count);
+void putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count);
 
 // Legge dati in seek per lettura sequenziale file firmware
-bool getDataFile(const char* const file_name, uint64_t position, void* buf, size_t *count);
+bool getDataFile(const char* const file_name, const bool is_firmware, uint64_t position, void* buf, size_t *count);
 
 // Restituisce le info per file firmware e controlli vari
-uint64_t getDataFileInfo(const char* const file_name);
+uint64_t getDataFileInfo(const char* const file_name, const bool is_firmware);
 
 // Ritorna vero se il file firmware esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
 bool ccFirwmareFile(const char* const file_name);
@@ -52,8 +52,8 @@ bool ccFirwmareFile(const char* const file_name);
 // NOTE: this implementation currently does not differentiate between mutable/immutable registers and does not support
 // volatile registers. It is trivial to extend though.
 
-// Inizializza lo spazio RAM/ROM/FLASH/SD dei registri se non già inizializzato, ai valori di default
-void registerInit(void);
+// (Re)Inizializza lo spazio RAM/ROM/FLASH/SD dei registri se non già inizializzato, ai valori di default
+void registerSetup(const bool register_init);
 
 /// Reads the specified register from the persistent storage into `inout_value`.
 /// If the register does not exist or it cannot be automatically converted to the type of the provided argument,

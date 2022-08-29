@@ -32,28 +32,6 @@
 // Nodo fisso per Modulo Slave
 // #define NODE_SLAVE_ID 10
 
-// Gestione FLAG INTERNO per gestione stati nodi remoti e Locali
-// Gestioni Locali semplificata stato Nodi remoti BITS:
-// Utilizzo speculare per nodi Locali (solo quelli utilizzati -> File)
-#define GENERIC_BVAL_UNDEFINED  0xFF
-// Flag e Bit Locali
-#define LocalPendingFileRead        0u
-#define LocalTimeOutFileRead        1u
-// Set/Reset Value Locali
-#define IsLocalPendingFile(x)       bitRead(x, LocalPendingFileRead)
-#define SetLocalPendingFile(x)      bitSet(x, LocalPendingFileRead)
-#define ResetLocalPendingFile(x)    bitClear(x, LocalPendingFileRead)
-#define IsLocalTimeOutFile(x)       bitRead(x, LocalTimeOutFileRead)
-#define SetLocalTimeOutFile(x)      bitSet(x, LocalTimeOutFileRead)
-#define ResetLocalTimeOutFile(x)    bitClear(x, LocalTimeOutFileRead)
-// Flag e Bit Remoti
-#define RemoteMasterOnline          0u
-// Set/Reset Value Remoti
-#define IsMasterOnline(x)           bitRead(x, RemoteMasterOnline)
-#define IsMasterOffline(x)          (!IsMasterOnline(x))
-#define SetMasterOnline(x)          bitSet(x, RemoteMasterOnline)
-#define SetMasterOffline(x)         bitClear(x, RemoteMasterOnline)
-
 // Tipologie Nodi/Sensori remoti (NODE_TYPE) TODO: H.EXTERN!!!
 #define MODULE_TYPE_MASTER      0xFF
 #define MODULE_TYPE_TH          0x01
@@ -66,7 +44,11 @@
 #define MODULE_TYPE_WM          0x08
 #define MODULE_TYPE_LIV         0x09
 
+// SET Default value per risposte
+#define GENERIC_BVAL_UNDEFINED  0xFF
+
 // Tipologie di comandi interni / esterni USER_DEFINE UAVCAN
+#define CMD_DOWNLOAD_FILE               5
 #define CMD_ENABLE_PUBLISH_DATA         10
 #define CMD_DISABLE_PUBLISH_DATA        11
 #define CMD_ENABLE_PUBLISH_PORT_LIST    12
@@ -74,16 +56,17 @@
 
 // Servizi di default
 #define DEFAULT_PUBLISH_PORT_LIST       true
-#define DEFAULT_PUBLISH_PORT_DATA       false
+#define DEFAULT_PUBLISH_MODULE_DATA     false
 
 // TimeOUT (millisecondi)
-#define MASTER_OFFLINE_TIMEOUT_MS   6000
-#define NODE_GETFILE_TIMEOUT_MS     1750
+#define MASTER_OFFLINE_TIMEOUT_US   6000000
+#define MASTER_MAXSYNCRO_VALID_US   1250000
+#define NODE_GETFILE_TIMEOUT_US     1750000
 #define NODE_GETFILE_MAX_RETRY      3
 
 // VENDOR STATUS CODE LOCALI
 #define VSC_SOFTWARE_NORMAL         0x00
 #define VSC_SOFTWARE_UPDATE_READ    0x01
 
-// CODICI E STATUS AGGIORNAMENTO FIRMWARE REMOTI
-#define FW_NAME_SIZE_MAX            50
+// CODICI E STATUS AGGIORNAMENTO FILE REMOTI
+#define FILE_NAME_SIZE_MAX          50

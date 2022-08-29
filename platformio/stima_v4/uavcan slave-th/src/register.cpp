@@ -356,6 +356,8 @@ void registerDoFactoryReset(void) {
 #define initError(msg) initErrorHalt(F(msg))
 static const char RegistryDirName[] = "registry";
 static const char FirmwareDirName[] = "firmware";
+static const char FileDirName[] = "file";
+#define fileArchiveDirLen() (sizeof(FirmwareDirName) > sizeof(FileDirName) ? sizeof(FirmwareDirName) : sizeof(FileDirName))
 
 // Variabili SD FAT -> ToDo: Istanza C++
 SdFat sdLoc;  // Sd Istanza
@@ -372,14 +374,18 @@ bool setupSd(const uint32_t bMOSI, const uint32_t bMISO, const uint32_t bSCLK, c
     return true;
 }
 
-// Scrive dati in append per scrittura sequenziale file firmware
-void putDataFile(const char* const file_name, const bool rewrite, void* buf, size_t count)
+// Scrive dati in append per scrittura sequenziale file data remoto
+void putDataFile(const char* const file_name, const bool is_firmware, const bool rewrite, void* buf, size_t count)
 {
     SdFile fw;
-
-    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
-    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
-    sdLoc.mkdir(FirmwareDirName);
+    char file_path[FILE_NAME_SIZE_MAX + fileArchiveDirLen()] = {0};
+    if (is_firmware) {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+        sdLoc.mkdir(FirmwareDirName);
+    } else {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FileDirName, file_name);
+        sdLoc.mkdir(FileDirName);
+    }
     fw.open(&file_path[0], rewrite ? O_RDWR | O_CREAT | O_TRUNC : O_RDWR | O_APPEND);
     if (fw != NULL) {
         fw.write(buf, count);
@@ -388,12 +394,18 @@ void putDataFile(const char* const file_name, const bool rewrite, void* buf, siz
 }
 
 // legge dati in append per trasmissione sequenziale file firmware
-bool getDataFile(const char* const file_name, uint64_t position, void* buf, size_t *count)
+bool getDataFile(const char* const file_name, const bool is_firmware, uint64_t position, void* buf, size_t *count)
 {
     SdFile fw;
 
-    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
-    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    char file_path[FILE_NAME_SIZE_MAX + fileArchiveDirLen()] = {0};
+    if (is_firmware) {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+        sdLoc.mkdir(FirmwareDirName);
+    } else {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FileDirName, file_name);
+        sdLoc.mkdir(FileDirName);
+    }
     fw.open(&file_path[0], O_RDONLY);
     if (fw != NULL) {
         if(fw.seek(position)) {
@@ -411,13 +423,17 @@ bool getDataFile(const char* const file_name, uint64_t position, void* buf, size
 }
 
 // Restituisce le info per file firmware e controlli vari
-uint64_t getDataFileInfo(const char* const file_name)
+uint64_t getDataFileInfo(const char* const file_name, const bool is_firmware)
 {
     SdFile fw;
     uint64_t lof = 0;
 
-    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
-    (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    char file_path[FILE_NAME_SIZE_MAX + fileArchiveDirLen()] = {0};
+    if (is_firmware) {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    } else {
+        (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FileDirName, file_name);
+    }
     fw.open(&file_path[0], O_RDONLY);
     if (fw != NULL) {
         lof = fw.fileSize();
@@ -431,13 +447,13 @@ bool ccFirwmareFile(const char* const file_name)
 {
     char register_name[60];
 
-    char file_path[FW_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
+    char file_path[FILE_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
     (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
     return sdLoc.exists(&file_path[0]);
 }
 
 // Check if exist or create space register with init default value
-void registerInit(void) {
+void registerSetup(const bool register_init) {
     // Check Exixst Space DIR Register
     if (!sdLoc.exists(RegistryDirName)) {
         // Create Registry DIR
@@ -449,7 +465,11 @@ void registerInit(void) {
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count       = 1;
     val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
-    registerRead("uavcan.can.mtu", &val);
+    if(register_init) {
+        registerWrite("uavcan.can.mtu", &val);
+    } else {
+        registerRead("uavcan.can.mtu", &val);
+    }
     // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
     // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
     // TODO: Default a CAN_BIT_RATE, se CAN_BIT_RATE <> readRegister setup bxCAN con nuovo RATE hot reload
@@ -457,7 +477,18 @@ void registerInit(void) {
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
-    registerRead("uavcan.can.bitrate", &val);
+    if(register_init) {
+        registerWrite("uavcan.can.bitrate", &val);
+    } else {
+        registerRead("uavcan.can.bitrate", &val);
+    }
+
+    /* N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
+    if(register_init) {
+        // ...
+        // ...
+    }
+    */
 }
 
 static inline void registerOpen(const char* const register_name, const bool write, SdFile& registerFile) {
