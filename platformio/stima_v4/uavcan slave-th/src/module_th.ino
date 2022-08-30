@@ -83,6 +83,7 @@ typedef struct State {
         struct {
             CanardMicrosecond previous_local_timestamp_usec;
             CanardMicrosecond previous_msg_monotonic_usec;
+            CanardMicrosecond synchronized_last_update;
             CanardMicrosecond synchronized;
             uint8_t previous_transfer_id;
         } timestamp;
@@ -311,10 +312,10 @@ static void handleFileReadBlock_1_1(State* const state, const CanardMicrosecond 
 rmap_module_TH_1_0 prepareSensorsDataValueExample(void) {
     rmap_module_TH_1_0 local_data;
     // TODO: Inserire i dati, passaggio da Update... altro
-    local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);  // TODO: sample data from the real sensor.
-    local_data.temperature.confidence.value = (uint8_t)(rand() % 100);    // TODO: sample data from the real sensor.
-    local_data.humidity.val.value = (int32_t)(rand() % 100);              // TODO: sample data from the real sensor.
-    local_data.humidity.confidence.value = (uint8_t)(rand() % 100);       // TODO: sample data from the real sensor.
+    local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
+    local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
+    local_data.humidity.val.value = (int32_t)(rand() % 100);
+    local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
     return local_data;
 }
 
@@ -845,8 +846,10 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                     {
                         // Il tempo sincronizzato è il time_stamp ricevuto precedente sommato alla differenza reale locale di rx dei due messaggi syncronized_timestamp consecutivi validi
                         state->master.timestamp.synchronized = msg.previous_transmission_timestamp_microsecond + (transfer->timestamp_usec - state->master.timestamp.previous_local_timestamp_usec);
-                        // Aggiusto e sommo la differenza tra il timestamp reale del messaggio ricevuto con il monotonic reale attuale (tempo di esecuzione syncro real)
+                        // Aggiusto e sommo la differenza tra il timestamp reale del messaggio ricevuto con il monotonic reale attuale (al tempo di esecuzione syncro real)
                         state->master.timestamp.synchronized += (getMonotonicMicroseconds(state) - transfer->timestamp_usec);
+                        // TODO: Eliminare solo per FAKE RTC (Usare la procedura sotto...)
+                        state->master.timestamp.synchronized_last_update = getMonotonicMicroseconds(state);
                         Serial.print(F("RX TimeSyncro from master, syncronized value is (uSec): "));
                         Serial.print(state->master.timestamp.synchronized);
                         Serial.print(F(" from 2 message difference is (uSec): "));
@@ -1177,11 +1180,17 @@ bool CAN_HW_Init(void)
     BxCANTimings timings;
     bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
     if (!result) {
-        Serial.println(F("Error redefinition bxCANComputeTimings, loading default..."));
+        Serial.println(F("Error redefinition bxCANComputeTimings, try loading default..."));
         val.natural32.value.count       = 2;
         val.natural32.value.elements[0] = CAN_BIT_RATE;
         val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
         registerWrite("uavcan.can.bitrate", &val);
+        result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
+        if (!result) {
+            Serial.println(F("Error initialization bxCANComputeTimings"));
+            assert(false);
+            return false;
+        }
     }
     // Attivazione bxCAN sulle interfacce richieste, velocità e modalità
     result = bxCANConfigure(0, timings, false);
@@ -1549,12 +1558,11 @@ void loop(void)
 
         // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED sincronizzati)
         // Test con reboot e successiva risincronizzazione automatica (FAKE RTC!!!!)
-        if(bEventRealTimeLoop) {
-            // TODO Eliminare e passare a RTC
-            // Simulo incremento di millisEvent in microsecondi per FAKE RTC
-            state.master.timestamp.synchronized += MILLIS_EVENT * KILO;
-        }
         #ifdef LED_ON_SYNCRO_TIME
+        // TODO Eliminare e passare a RTC
+        // Simulo incremento di millisEvent in microsecondi per FAKE RTC
+        state.master.timestamp.synchronized += monotonic_time - state.master.timestamp.synchronized_last_update;
+        state.master.timestamp.synchronized_last_update = monotonic_time;
         // Verifico LED al secondo... su timeSTamp sincronizzato remoto
         if((state.master.timestamp.synchronized / 1000000) % 2) {
             digitalWrite(LED_BUILTIN, HIGH);

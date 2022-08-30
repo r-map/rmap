@@ -61,6 +61,7 @@ typedef struct State
         // Time stamp
         struct {
             CanardMicrosecond previous_tx_real;
+            bool enable_immediate_tx_real;
         } timestamp;
         // File upload (node_id può essere differente dal master, es. yakut e lo riporto)
         struct
@@ -290,8 +291,7 @@ static void handleSyncroLoop(State* const state, const CanardMicrosecond monoton
     // Da specifica invio il timestamp dell'ultima chiamata in modo che slave sincronizzi il delta
     uavcan_time_Synchronization_1_0 timesyncro;
     timesyncro.previous_transmission_timestamp_microsecond = state->master.timestamp.previous_tx_real;
-    // Tempo trascurabile per la corretta regolazione del TimeStamp Reale al microsecondo
-    state->master.timestamp.previous_tx_real = monotonic_time;
+    state->master.timestamp.enable_immediate_tx_real = true;
 
     uint8_t      serialized[uavcan_time_Synchronization_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
     size_t       serialized_size                                                              = sizeof(serialized);
@@ -1167,11 +1167,17 @@ bool CAN_HW_Init(void)
     BxCANTimings timings;
     bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
     if (!result) {
-        Serial.println(F("Error redefinition bxCANComputeTimings, loading default..."));
+        Serial.println(F("Error redefinition bxCANComputeTimings, try loading default..."));
         val.natural32.value.count       = 2;
         val.natural32.value.elements[0] = CAN_BIT_RATE;
         val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
         registerWrite("uavcan.can.bitrate", &val);
+        result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
+        if (!result) {
+            Serial.println(F("Error initialization bxCANComputeTimings"));
+            assert(false);
+            return false;
+        }
     }
     // Attivazione bxCAN sulle interfacce richieste, velocità e modalità
     result = bxCANConfigure(0, timings, false);
@@ -1731,16 +1737,6 @@ void loop(void)
             }
         }
 
-        // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
-        if (monotonic_time >= next_timesyncro_msg)
-        {
-            #ifdef PUBLISH_TIMESYNCRO
-            Serial.println(F("Publish MASTER Time Syncronization -->> [1 sec]"));
-            #endif
-            next_timesyncro_msg += MEGA;
-            handleSyncroLoop(&state, monotonic_time);
-        }
-
         // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
         if (monotonic_time >= next_01_sec_iter_at) {
             #ifdef PUBLISH_HEARTBEAT
@@ -1750,7 +1746,19 @@ void loop(void)
             handleNormalLoop(&state, monotonic_time);
         }
 
-        // LOOP HANDLER >> 20 SECONDI PUBLISH SERVIZI << Disattivo con Firware Upgrade...
+        // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
+        // Disattivo con Firware Upgrade locale...
+        if ((monotonic_time >= next_timesyncro_msg)&&(!state.master.file.updating))
+        {
+            #ifdef PUBLISH_TIMESYNCRO
+            Serial.println(F("Publish MASTER Time Syncronization -->> [1 sec]"));
+            #endif
+            next_timesyncro_msg += MEGA;
+            handleSyncroLoop(&state, monotonic_time);
+        }
+
+        // LOOP HANDLER >> 20 SECONDI PUBLISH SERVIZI <<
+        // Disattivo con Firware Upgrade locale...
         if ((monotonic_time >= next_20_sec_iter_at)&&(!state.master.file.updating)) {
             next_20_sec_iter_at += MEGA * 20;
             #ifdef PUBLISH_PORTLIST
@@ -2145,6 +2153,16 @@ void loop(void)
                         tqi->frame.extended_can_id,
                         tqi->frame.payload_size,
                         tqi->frame.payload)) {
+                        // Imposto il timestamp reale della trasmissione syncronization_time
+                        // Essendo a priorità immediata (unico) è il primo pacchetto comunque a partire
+                        // Una volta attivata la funzione setto il bool relativo e resetto all'invio
+                        if(state.master.timestamp.enable_immediate_tx_real) {
+                            // Reset var RealTimeStamp
+                            state.master.timestamp.enable_immediate_tx_real = false;
+                            // Salvo RealTimeStamp letto dal tempo monotonic
+                            // TODO: Inviare il vero timeStamp letto da RTC per syncro remoto
+                            state.master.timestamp.previous_tx_real = getMonotonicMicroseconds(&state);
+                        }
                         state.canard.memory_free(&state.canard, canardTxPop(que, tqi));
                         tqi = canardTxPeek(que);
                     } else  {
