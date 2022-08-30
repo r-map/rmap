@@ -17,6 +17,20 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
+/*
+ Il test si svolge in questo modo:
+ 1) avvio con output a 0V per 1000 secondi
+ 2) inizio semi-sinusoide con valori tra 0V e 3V con semiperiodo di 12h
+ 3) inizio periodo con valori costanti a 0V per 12h
+ 4) si ripete dal punto 2)
+ 
+ il modulo dovrebbe avere queste caratteristiche:
+ a programmable 20-bit voltage source. The output range is −5 V to +5 V
+ with ±1 LSB integral nonlinearity (INL), ±1 LSB differential
+ nonlinearity (DNL), and exceptionally low noise and low drift across
+ the entire output range.
+*/
+
 #include "ad57X1.h"
 #include <ArduinoLog.h>
 
@@ -54,7 +68,7 @@ void time_management(void){
 
 void sun_movement(void){
 
-  int32_t millivolt = round(sin((sun_secondi/float(PERIOD_SECONDI))*PI)*1000.D);
+  int32_t millivolt = round(sin((sun_secondi/float(PERIOD_SECONDI))*PI)*3000.D);
   if (millivolt <0) millivolt =0;
   Log.notice(F("sun time:%ls ; millivolt: %l"),sun_secondi,millivolt);
   ad5791.setTension(millivolt);
@@ -72,7 +86,7 @@ void setup() {
   Log.notice(F("Starting Fake analog"));
   
   ad5791.begin(true);   // Set the pin modes
-  // we range from 0 to 1V so no amplifier is not needed
+  // we range from 0 to 3V so no amplifier is not needed
   //ad5791.setInternalAmplifier(true); // Enable the internal amplifier. This setup allows connecting an external amplifier in a gain of 2 configuration setting output ranging fron -5V to 5V. See the datasheet for details.
   ad5791.enableOutput();    // Turn on the DAC. After startup the output will be clamped to GND and disconnected (tri-state mode)
                             // No need to call updateControlRegister(), because this is a convenience function, which does all that for you
