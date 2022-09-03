@@ -1,36 +1,46 @@
 # Imposta i parametri di comando ai moduli remoti
 # Il comando è univoco per tutte le tipologie di nodo e viene fatta una DSDL generica
 
-uint3 comando
+# tipo di comando da eseguire sul modulo
+uint4 comando
 
-uint3 get_istant = 0
 # Lettura dato istantaneo diretto
-
-uint3 get_current = 1
+uint4 get_istant = 0
 # Lettura da memoria a scorrimento ciclo corrente
-
-uint3 get_last = 2
+uint4 get_current = 1
 # Lettura da memoria a scorrimento ciclo ultimato
-
-uint3 reset_last = 3
-# Resetta il flag di ciclo ultimato, pronto a nuovo set
-
-uint3 start_acq = 4
+uint4 get_last = 2
+# Resetta il flag di ciclo ultimato, pronto a set per nuovo ciclo ultimato
+uint4 reset_last = 3
 # Avvia un ciclo che termina dopo acq_second
-
-uint3 stop_acq = 5
+uint4 start_acq = 4
 # Arresta immediatamente un ciclo avviato
-
-uint3 loop_acq = 6
+uint4 stop_acq = 5
 # Avvia un ciclo che termina dopo acq_second e si riavvia automaticamente
-
-uint3 continuos_acq = 7
+uint4 loop_acq = 6
 # Avvia un ciclo che termina solo con comando di stop_acq
+uint4 continuos_acq = 7
+# Sospende un ciclo di acquisizione temporaneamente (manutenzione)
+uint4 suspend_acq = 8
+# Sospende il ciclo di acquisizione temporaneamente (avvia acquisizione parallela per test sensore)
+uint4 manutenzione_acq = 9
 
-uint13 MAX = 7200
-# max 2 ore per la funzione
+# canale/sensore su cui effetuare la lettura (analogico 0..4)
+# comando riservato per scopi futuri o più canali analogici
+# eventuali altri canali fino a MAX 16 vale (12 rimanenti per Digitali, I2C , SPI ecc..)
+uint4 canale
 
-uint13 run_sectime
-# secondi per esecuzione della funzione loop acquisizione
+# costanti di canale Id 01
+uint3 CH01 = 0
+# costanti di canale Id 02
+uint3 CH02 = 1
+# costanti di canale Id 03
+uint3 CH03 = 2
+# costanti di canale Id 04
+uint3 CH04 = 3
+
+uint16 MAX = 43200
+# max 12 ore per la funzione (secondi loop acquisizione o funzione)
+uint16 run_sectime
 
 @sealed

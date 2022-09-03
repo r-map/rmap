@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/uavcan/time/510.GetSynchronizationMasterInfo.0.1.dsdl
-// Generated at:  2022-08-09 08:14:12.117835 UTC
+// Generated at:  2022-09-03 16:11:11.746595 UTC
 // Is deprecated: no
 // Fixed port-ID: 510
 // Full name:     uavcan.time.GetSynchronizationMasterInfo

@@ -1,2 +1,5 @@
-uint8 value
+# confidence (0 - 100%)
+# MAX 100 %
+uint7 MAX = 100
+uint7 value
 @sealed

@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/metadata/Metadata.1.0.dsdl
-// Generated at:  2022-08-09 08:14:13.886127 UTC
+// Generated at:  2022-09-03 16:11:14.590918 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.metadata.Metadata
@@ -73,8 +73,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_metadata_Metadata_1_0_EXTENT_BYTES_                    19UL
-#define rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 19UL
+#define rmap_metadata_Metadata_1_0_EXTENT_BYTES_                    13UL
+#define rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 13UL
 static_assert(rmap_metadata_Metadata_1_0_EXTENT_BYTES_ >= rmap_metadata_Metadata_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -113,7 +113,7 @@ static inline int8_t rmap_metadata_Metadata_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 152UL)
+    if ((8U * (size_t) capacity_bytes) < 104UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -126,7 +126,7 @@ static inline int8_t rmap_metadata_Metadata_1_0_serialize_(
 
 
     {   // rmap.metadata.Timerange.1.0 timerange
-        size_t _size_bytes0_ = 9UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes0_ = 5UL;  // Nested object (max) size, in bytes.
         int8_t _err0_ = rmap_metadata_Timerange_1_0_serialize_(
             &obj->timerange, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
@@ -150,7 +150,7 @@ static inline int8_t rmap_metadata_Metadata_1_0_serialize_(
     }
 
     {   // rmap.metadata.Level.1.0 level
-        size_t _size_bytes1_ = 10UL;  // Nested object (max) size, in bytes.
+        size_t _size_bytes1_ = 8UL;  // Nested object (max) size, in bytes.
         int8_t _err2_ = rmap_metadata_Level_1_0_serialize_(
             &obj->level, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)

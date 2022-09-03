@@ -309,13 +309,35 @@ static void handleFileReadBlock_1_1(State* const state, const CanardMicrosecond 
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
 // TODO: Collegare al modulo sensor_drive per il modulo corrente
 // NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
-rmap_module_TH_1_0 prepareSensorsDataValueExample(void) {
-    rmap_module_TH_1_0 local_data;
+rmap_sensors_TH_1_0 prepareSensorsDataValueExample(byte const sensore) {
+    rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
-    local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
-    local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
-    local_data.humidity.val.value = (int32_t)(rand() % 100);
-    local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+    switch (sensore) {
+        case SENSOR_ITH:
+            // Prepara i dati ITH
+            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
+            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
+            local_data.humidity.val.value = (int32_t)(rand() % 100);
+            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+        case SENSOR_MTH:
+            // Prepara i dati ITH
+            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
+            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
+            local_data.humidity.val.value = (int32_t)(rand() % 100);
+            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+        case SENSOR_NTH:
+            // Prepara i dati ITH
+            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
+            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
+            local_data.humidity.val.value = (int32_t)(rand() % 100);
+            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+        case SENSOR_XTH:
+            // Prepara i dati ITH
+            local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
+            local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
+            local_data.humidity.val.value = (int32_t)(rand() % 100);
+            local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
+    }
     return local_data;
 }
 
@@ -328,9 +350,17 @@ static void handleFastLoop(State* const state, const CanardMicrosecond monotonic
     if ((!anonymous) &&
         (state->publisher_enabled.module_th) &&
         (state->port_id.publisher.module_th <= CANARD_SUBJECT_ID_MAX)) {
-        rmap_module_TH_1_0 module_th_msg = prepareSensorsDataValueExample();
-        // Copio i metadati fissi
-        module_th_msg.metadata = state->module_metadata;        
+        rmap_module_TH_1_0 module_th_msg = {0};
+        // Preparo i dati e metadati fissi
+        // TODO: Aggiorna i valori mobili
+        module_th_msg.ITH = prepareSensorsDataValueExample(SENSOR_ITH);
+        module_th_msg.ITH.metadata = state->module_metadata;
+        module_th_msg.MTH = prepareSensorsDataValueExample(SENSOR_MTH);
+        module_th_msg.MTH.metadata = state->module_metadata;
+        module_th_msg.NTH = prepareSensorsDataValueExample(SENSOR_NTH);
+        module_th_msg.NTH.metadata = state->module_metadata;
+        module_th_msg.XTH = prepareSensorsDataValueExample(SENSOR_XTH);
+        module_th_msg.XTH.metadata = state->module_metadata;
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
         size_t serialized_size = sizeof(serialized);
@@ -407,15 +437,14 @@ static void handleNormalLoop(State* const state, const CanardMicrosecond monoton
         {
             // PnP over Classic CAN, use message v1.0.
             uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
-            /// truncated uint48 unique_id_hash
+            // truncated uint48 unique_id_hash
             // Crea uint_64 con LOW_POWER NODE_TYPE_MAJOR << 8 + NODE_TYPE_MINOR
             uint64_t local_unique_id_hash = 0;
-            local_unique_id_hash |= (uint64_t) NODE_TYPE_MINOR;
-            local_unique_id_hash |= (uint64_t) ((uint16_t) NODE_TYPE_MAJOR << 8);
+            local_unique_id_hash |= (uint64_t) NODE_TYPE_MAJOR;
+            local_unique_id_hash |= (uint64_t) ((uint16_t) NODE_TYPE_MINOR << 8);
             for(byte bRnd=2; bRnd<8; bRnd++) {
                 local_unique_id_hash |= ((uint64_t)(rand() & 0xFF)) << 8*bRnd;
             }
-            // msg.allocated_node_id.count
             // msg.allocated_node_id.(count/element) => Solo in response non in request;
             msg.unique_id_hash = local_unique_id_hash;
             uint8_t serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -662,13 +691,17 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(Stat
 static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(State* state,
                                                                         rmap_service_module_TH_Request_1_0* req) {
     rmap_service_module_TH_Response_1_0 resp = {0};
-    // Richeista parametri univoca a tutti i moduli
+    // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
     // req->parametri.comando (Comando esterno ricevuto 3 BIT)
     // req->parametri.run_sectime (Timer to run 13 bit)
 
     // Copio i metadati fissi
-    resp.dataandmetadata.metadata = state->module_metadata;
+    // TODO: aggiornare i metadati mobili
+    resp.ITH.metadata = state->module_metadata;
+    resp.MTH.metadata = state->module_metadata;
+    resp.NTH.metadata = state->module_metadata;
+    resp.XTH.metadata = state->module_metadata;
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parametri.comando) {
@@ -679,57 +712,65 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(State* st
             // Ritorno lo stato (Copia dal comando...)
             resp.stato = req->parametri.comando;
             // Preparo la risposta di esempio
-            resp.dataandmetadata = prepareSensorsDataValueExample();
+            // TODO: Aggiorna i valori mobili
+            resp.ITH = prepareSensorsDataValueExample(SENSOR_ITH);
+            resp.ITH.metadata = state->module_metadata;
+            resp.MTH = prepareSensorsDataValueExample(SENSOR_MTH);
+            resp.MTH.metadata = state->module_metadata;
+            resp.NTH = prepareSensorsDataValueExample(SENSOR_NTH);
+            resp.NTH.metadata = state->module_metadata;
+            resp.XTH = prepareSensorsDataValueExample(SENSOR_XTH);
+            resp.XTH.metadata = state->module_metadata;
             break;
 
         /// saturated uint3 get_current = 1
         /// Ritorna il dato attuale (ciclo finito o no lo stato di acq_vale)
         case rmap_service_setmode_1_0_get_current:
             // resp.dataandmetadata = prepareSensorsDataGetCurrent();
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 get_last = 2
         /// Ritorna l'ultimo valore valido di acquisizione (riferito al ciclo precedente)
         /// Se utilizzato con loop automatico, shifta il valore senza perdite di tempo riavvia il ciclo
         case rmap_service_setmode_1_0_get_last:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 reset_last = 3
         /// Reset dell'ultimo valore (dopo lettura... potrebbe essere un comando di command standard)
         /// Potremmo collegare lo stato a heartbeat (ciclo di acquisizione finito, dati disponibili...)
         case rmap_service_setmode_1_0_reset_last:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 start_acq = 4
         /// Avvio ciclo di lettura... una tantum start stop automatico, con tempo parametrizzato
         case rmap_service_setmode_1_0_start_acq:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 stop_acq = 5
         /// Arresta ciclo di lettura in ogni condizione (standard o loop)
         case rmap_service_setmode_1_0_stop_acq:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 loop_acq = 6
         /// Avvio ciclo di lettura... in loop automatico continuo, con tempo parametrizzato
         case rmap_service_setmode_1_0_loop_acq:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// saturated uint3 continuos_acq = 7
         /// Avvio ciclo di lettura... in continuo, senza tempo parametrizzato (necessita di stop remoto)
         case rmap_service_setmode_1_0_continuos_acq:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
 
         /// NON Gestito, risposta error (undefined)
         default:
-            resp.stato = GENERIC_BVAL_UNDEFINED;
+            resp.stato = GENERIC_STATE_UNDEFINED;
             break;
     }
 
@@ -1362,29 +1403,33 @@ void loop(void)
 
     // Lettura dei registri RMAP al modulo corrente, con impostazione di default x Startup/Init value
 
-    // Lettura dei registri RMAP 32 Bit relativi al modulo corrente
-    uavcan_register_Value_1_0_select_natural32_(&val);
-    val.natural32.value.count = 1;
-    val.natural32.value.elements[0] = UINT32_MAX;
+    // TODO: Leggere i registri complessivi ITH MTH ECC. di modulo,
+    // Inserire funzione per test registro assert... natural 16 e setup defaul x ogni chiamata
+    // Lettura dei registri RMAP 16 Bit relativi al modulo corrente
+    uavcan_register_Value_1_0_select_natural16_(&val);
+    val.natural16.value.count = 1;
+    val.natural16.value.elements[0] = UINT16_MAX;
     registerRead("rmap.module.TH.metadata.Level.L1", &val);
-    state.module_metadata.level.L1.value = val.natural32.value.elements[0];
+    assert(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
+    // ecc... per tutti i metatdati di tutti i sensori
+    state.module_metadata.level.L1.value = val.natural16.value.elements[0];
     registerRead("rmap.module.TH.metadata.Level.L2", &val);
-    state.module_metadata.level.L2.value = val.natural32.value.elements[0];
+    state.module_metadata.level.L2.value = val.natural16.value.elements[0];
     registerRead("rmap.module.TH.metadata.Timerange.P1", &val);
-    state.module_metadata.timerange.P1.value = val.natural32.value.elements[0];
-    registerRead("rmap.module.TH.metadata.Timerange.P2", &val);
-    state.module_metadata.timerange.P2.value = val.natural32.value.elements[0];
+    state.module_metadata.timerange.P1.value = val.natural16.value.elements[0];
+    // -> state.module_metadata.timerange.P2 (Metatdata rilocato nel Master)
+    // -> Reinviato nel modulo corrente come da richiesta master
+    registerRead("rmap.module.TH.metadata.Level.LevelType1", &val);
+    state.module_metadata.level.LevelType1.value = val.natural16.value.elements[0];
+    registerRead("rmap.module.TH.metadata.Level.LevelType2", &val);
+    state.module_metadata.level.LevelType2.value = val.natural16.value.elements[0];
 
     // Lettura dei registri RMAP 8 Bit relativi al modulo corrente
     uavcan_register_Value_1_0_select_natural8_(&val);
-    val.natural16.value.count = 1;
-    val.natural16.value.elements[0] = UINT8_MAX;
+    val.natural8.value.count = 1;
+    val.natural8.value.elements[0] = UINT8_MAX;
     registerRead("rmap.module.TH.metadata.Timerange.Pindicator", &val);
     state.module_metadata.timerange.Pindicator.value = val.natural8.value.elements[0];
-    registerRead("rmap.module.TH.metadata.Level.LevelType1", &val);
-    state.module_metadata.level.LevelType1.value = val.natural8.value.elements[0];
-    registerRead("rmap.module.TH.metadata.Level.LevelType2", &val);
-    state.module_metadata.level.LevelType2.value = val.natural8.value.elements[0];
 
     // ********************************************************************************
     //               AVVIA SOTTOSCRIZIONI ai messaggi per servizi RPC ecc...

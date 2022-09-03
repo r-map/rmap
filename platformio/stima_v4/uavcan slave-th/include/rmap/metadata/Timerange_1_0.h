@@ -8,8 +8,8 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl
-// Generated at:  2022-08-09 08:49:00.983772 UTC
+// Source file:   C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl
+// Generated at:  2022-09-03 16:10:00.104321 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.metadata.Timerange
@@ -36,24 +36,25 @@
 #define RMAP_METADATA_TIMERANGE_1_0_INCLUDED_
 
 #include <nunavut/support/serialization.h>
-#include <uavcan/primitive/scalar/Natural32_1_0.h>
+#include <uavcan/primitive/scalar/Natural16_1_0.h>
 #include <uavcan/primitive/scalar/Natural8_1_0.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/metadata/Timerange.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -73,8 +74,8 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_metadata_Timerange_1_0_EXTENT_BYTES_                    9UL
-#define rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 9UL
+#define rmap_metadata_Timerange_1_0_EXTENT_BYTES_                    5UL
+#define rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 5UL
 static_assert(rmap_metadata_Timerange_1_0_EXTENT_BYTES_ >= rmap_metadata_Timerange_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
@@ -83,11 +84,11 @@ typedef struct
     /// uavcan.primitive.scalar.Natural8.1.0 Pindicator
     uavcan_primitive_scalar_Natural8_1_0 Pindicator;
 
-    /// uavcan.primitive.scalar.Natural32.1.0 P1
-    uavcan_primitive_scalar_Natural32_1_0 P1;
+    /// uavcan.primitive.scalar.Natural16.1.0 P1
+    uavcan_primitive_scalar_Natural16_1_0 P1;
 
-    /// uavcan.primitive.scalar.Natural32.1.0 P2
-    uavcan_primitive_scalar_Natural32_1_0 P2;
+    /// saturated uint16 P2
+    uint16_t P2;
 } rmap_metadata_Timerange_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -116,7 +117,7 @@ static inline int8_t rmap_metadata_Timerange_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 72UL)
+    if ((8U * (size_t) capacity_bytes) < 40UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -152,9 +153,9 @@ static inline int8_t rmap_metadata_Timerange_1_0_serialize_(
         offset_bits += _pad0_;
     }
 
-    {   // uavcan.primitive.scalar.Natural32.1.0 P1
-        size_t _size_bytes1_ = 4UL;  // Nested object (max) size, in bytes.
-        int8_t _err2_ = uavcan_primitive_scalar_Natural32_1_0_serialize_(
+    {   // uavcan.primitive.scalar.Natural16.1.0 P1
+        size_t _size_bytes1_ = 2UL;  // Nested object (max) size, in bytes.
+        int8_t _err2_ = uavcan_primitive_scalar_Natural16_1_0_serialize_(
             &obj->P1, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
         {
@@ -162,6 +163,15 @@ static inline int8_t rmap_metadata_Timerange_1_0_serialize_(
         }
         // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
         offset_bits += _size_bytes1_ * 8U;  // Advance by the size of the nested object.
+    }
+
+
+
+
+    {   // saturated uint16 P2
+        // Saturation code not emitted -- native representation matches the serialized representation.
+        (void) memmove(&buffer[offset_bits / 8U], &obj->P2, 2U);
+        offset_bits += 16U;
     }
 
 
@@ -174,30 +184,6 @@ static inline int8_t rmap_metadata_Timerange_1_0_serialize_(
             return _err3_;
         }
         offset_bits += _pad1_;
-    }
-
-    {   // uavcan.primitive.scalar.Natural32.1.0 P2
-        size_t _size_bytes2_ = 4UL;  // Nested object (max) size, in bytes.
-        int8_t _err4_ = uavcan_primitive_scalar_Natural32_1_0_serialize_(
-            &obj->P2, &buffer[offset_bits / 8U], &_size_bytes2_);
-        if (_err4_ < 0)
-        {
-            return _err4_;
-        }
-        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
-        offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested object.
-    }
-
-
-    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
-    {
-        const uint8_t _pad2_ = (uint8_t)(8U - offset_bits % 8U);
-        const int8_t _err5_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad2_);  // Optimize?
-        if (_err5_ < 0)
-        {
-            return _err5_;
-        }
-        offset_bits += _pad2_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -251,45 +237,37 @@ static inline int8_t rmap_metadata_Timerange_1_0_deserialize_(
 
     // uavcan.primitive.scalar.Natural8.1.0 Pindicator
     {
-        size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err6_ = uavcan_primitive_scalar_Natural8_1_0_deserialize_(
-            &out_obj->Pindicator, &buffer[offset_bits / 8U], &_size_bytes3_);
-        if (_err6_ < 0)
+        size_t _size_bytes2_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err4_ = uavcan_primitive_scalar_Natural8_1_0_deserialize_(
+            &out_obj->Pindicator, &buffer[offset_bits / 8U], &_size_bytes2_);
+        if (_err4_ < 0)
         {
-            return _err6_;
+            return _err4_;
+        }
+        offset_bits += _size_bytes2_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // uavcan.primitive.scalar.Natural16.1.0 P1
+    {
+        size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err5_ = uavcan_primitive_scalar_Natural16_1_0_deserialize_(
+            &out_obj->P1, &buffer[offset_bits / 8U], &_size_bytes3_);
+        if (_err5_ < 0)
+        {
+            return _err5_;
         }
         offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // uavcan.primitive.scalar.Natural32.1.0 P1
-    {
-        size_t _size_bytes4_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err7_ = uavcan_primitive_scalar_Natural32_1_0_deserialize_(
-            &out_obj->P1, &buffer[offset_bits / 8U], &_size_bytes4_);
-        if (_err7_ < 0)
-        {
-            return _err7_;
-        }
-        offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
 
 
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // uavcan.primitive.scalar.Natural32.1.0 P2
-    {
-        size_t _size_bytes5_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err8_ = uavcan_primitive_scalar_Natural32_1_0_deserialize_(
-            &out_obj->P2, &buffer[offset_bits / 8U], &_size_bytes5_);
-        if (_err8_ < 0)
-        {
-            return _err8_;
-        }
-        offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
+    // saturated uint16 P2
+    out_obj->P2 = nunavutGetU16(&buffer[0], capacity_bytes, offset_bits, 16);
+    offset_bits += 16U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.

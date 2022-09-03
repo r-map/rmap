@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/uavcan/primitive/scalar/Real64.1.0.dsdl
-// Generated at:  2022-08-09 08:14:12.586726 UTC
+// Generated at:  2022-09-03 16:11:11.652839 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.primitive.scalar.Real64

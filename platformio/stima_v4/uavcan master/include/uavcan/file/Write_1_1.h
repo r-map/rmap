@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/uavcan/file/409.Write.1.1.dsdl
-// Generated at:  2022-08-09 08:14:12.399386 UTC
+// Generated at:  2022-09-03 16:11:11.472229 UTC
 // Is deprecated: no
 // Fixed port-ID: 409
 // Full name:     uavcan.file.Write

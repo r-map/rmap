@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/module/TH.1.0.dsdl
-// Generated at:  2022-08-09 08:14:13.901752 UTC
+// Generated at:  2022-09-03 16:11:14.387789 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.module.TH
@@ -36,9 +36,7 @@
 #define RMAP_MODULE_TH_1_0_INCLUDED_
 
 #include <nunavut/support/serialization.h>
-#include <rmap/metadata/Metadata_1_0.h>
-#include <rmap/sensors/Humidity_1_0.h>
-#include <rmap/sensors/Temperature_1_0.h>
+#include <rmap/sensors/TH_1_0.h>
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
@@ -74,21 +72,24 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_module_TH_1_0_EXTENT_BYTES_                    29UL
-#define rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 29UL
+#define rmap_module_TH_1_0_EXTENT_BYTES_                    76UL
+#define rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 76UL
 static_assert(rmap_module_TH_1_0_EXTENT_BYTES_ >= rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
 typedef struct
 {
-    /// rmap.metadata.Metadata.1.0 metadata
-    rmap_metadata_Metadata_1_0 metadata;
+    /// rmap.sensors.TH.1.0 ITH
+    rmap_sensors_TH_1_0 ITH;
 
-    /// rmap.sensors.Temperature.1.0 temperature
-    rmap_sensors_Temperature_1_0 temperature;
+    /// rmap.sensors.TH.1.0 NTH
+    rmap_sensors_TH_1_0 NTH;
 
-    /// rmap.sensors.Humidity.1.0 humidity
-    rmap_sensors_Humidity_1_0 humidity;
+    /// rmap.sensors.TH.1.0 MTH
+    rmap_sensors_TH_1_0 MTH;
+
+    /// rmap.sensors.TH.1.0 XTH
+    rmap_sensors_TH_1_0 XTH;
 } rmap_module_TH_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -117,7 +118,7 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 232UL)
+    if ((8U * (size_t) capacity_bytes) < 608UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -129,10 +130,10 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
 
 
 
-    {   // rmap.metadata.Metadata.1.0 metadata
+    {   // rmap.sensors.TH.1.0 ITH
         size_t _size_bytes0_ = 19UL;  // Nested object (max) size, in bytes.
-        int8_t _err0_ = rmap_metadata_Metadata_1_0_serialize_(
-            &obj->metadata, &buffer[offset_bits / 8U], &_size_bytes0_);
+        int8_t _err0_ = rmap_sensors_TH_1_0_serialize_(
+            &obj->ITH, &buffer[offset_bits / 8U], &_size_bytes0_);
         if (_err0_ < 0)
         {
             return _err0_;
@@ -153,10 +154,10 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
         offset_bits += _pad0_;
     }
 
-    {   // rmap.sensors.Temperature.1.0 temperature
-        size_t _size_bytes1_ = 5UL;  // Nested object (max) size, in bytes.
-        int8_t _err2_ = rmap_sensors_Temperature_1_0_serialize_(
-            &obj->temperature, &buffer[offset_bits / 8U], &_size_bytes1_);
+    {   // rmap.sensors.TH.1.0 NTH
+        size_t _size_bytes1_ = 19UL;  // Nested object (max) size, in bytes.
+        int8_t _err2_ = rmap_sensors_TH_1_0_serialize_(
+            &obj->NTH, &buffer[offset_bits / 8U], &_size_bytes1_);
         if (_err2_ < 0)
         {
             return _err2_;
@@ -177,10 +178,10 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
         offset_bits += _pad1_;
     }
 
-    {   // rmap.sensors.Humidity.1.0 humidity
-        size_t _size_bytes2_ = 5UL;  // Nested object (max) size, in bytes.
-        int8_t _err4_ = rmap_sensors_Humidity_1_0_serialize_(
-            &obj->humidity, &buffer[offset_bits / 8U], &_size_bytes2_);
+    {   // rmap.sensors.TH.1.0 MTH
+        size_t _size_bytes2_ = 19UL;  // Nested object (max) size, in bytes.
+        int8_t _err4_ = rmap_sensors_TH_1_0_serialize_(
+            &obj->MTH, &buffer[offset_bits / 8U], &_size_bytes2_);
         if (_err4_ < 0)
         {
             return _err4_;
@@ -199,6 +200,30 @@ static inline int8_t rmap_module_TH_1_0_serialize_(
             return _err5_;
         }
         offset_bits += _pad2_;
+    }
+
+    {   // rmap.sensors.TH.1.0 XTH
+        size_t _size_bytes3_ = 19UL;  // Nested object (max) size, in bytes.
+        int8_t _err6_ = rmap_sensors_TH_1_0_serialize_(
+            &obj->XTH, &buffer[offset_bits / 8U], &_size_bytes3_);
+        if (_err6_ < 0)
+        {
+            return _err6_;
+        }
+        // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
+        offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested object.
+    }
+
+
+    if (offset_bits % 8U != 0U)  // Pad to 8 bits. TODO: Eliminate redundant padding checks.
+    {
+        const uint8_t _pad3_ = (uint8_t)(8U - offset_bits % 8U);
+        const int8_t _err7_ = nunavutSetUxx(&buffer[0], capacity_bytes, offset_bits, 0U, _pad3_);  // Optimize?
+        if (_err7_ < 0)
+        {
+            return _err7_;
+        }
+        offset_bits += _pad3_;
     }
     // It is assumed that we know the exact type of the serialized entity, hence we expect the size to match.
 
@@ -250,29 +275,14 @@ static inline int8_t rmap_module_TH_1_0_deserialize_(
 
 
 
-    // rmap.metadata.Metadata.1.0 metadata
-    {
-        size_t _size_bytes3_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err6_ = rmap_metadata_Metadata_1_0_deserialize_(
-            &out_obj->metadata, &buffer[offset_bits / 8U], &_size_bytes3_);
-        if (_err6_ < 0)
-        {
-            return _err6_;
-        }
-        offset_bits += _size_bytes3_ * 8U;  // Advance by the size of the nested serialized representation.
-    }
-
-
-    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
-
-    // rmap.sensors.Temperature.1.0 temperature
+    // rmap.sensors.TH.1.0 ITH
     {
         size_t _size_bytes4_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err7_ = rmap_sensors_Temperature_1_0_deserialize_(
-            &out_obj->temperature, &buffer[offset_bits / 8U], &_size_bytes4_);
-        if (_err7_ < 0)
+        const int8_t _err8_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->ITH, &buffer[offset_bits / 8U], &_size_bytes4_);
+        if (_err8_ < 0)
         {
-            return _err7_;
+            return _err8_;
         }
         offset_bits += _size_bytes4_ * 8U;  // Advance by the size of the nested serialized representation.
     }
@@ -280,16 +290,46 @@ static inline int8_t rmap_module_TH_1_0_deserialize_(
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
 
-    // rmap.sensors.Humidity.1.0 humidity
+    // rmap.sensors.TH.1.0 NTH
     {
         size_t _size_bytes5_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
-        const int8_t _err8_ = rmap_sensors_Humidity_1_0_deserialize_(
-            &out_obj->humidity, &buffer[offset_bits / 8U], &_size_bytes5_);
-        if (_err8_ < 0)
+        const int8_t _err9_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->NTH, &buffer[offset_bits / 8U], &_size_bytes5_);
+        if (_err9_ < 0)
         {
-            return _err8_;
+            return _err9_;
         }
         offset_bits += _size_bytes5_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.sensors.TH.1.0 MTH
+    {
+        size_t _size_bytes6_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err10_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->MTH, &buffer[offset_bits / 8U], &_size_bytes6_);
+        if (_err10_ < 0)
+        {
+            return _err10_;
+        }
+        offset_bits += _size_bytes6_ * 8U;  // Advance by the size of the nested serialized representation.
+    }
+
+
+    offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.
+
+    // rmap.sensors.TH.1.0 XTH
+    {
+        size_t _size_bytes7_ = (size_t)(capacity_bytes - nunavutChooseMin((offset_bits / 8U), capacity_bytes));
+        const int8_t _err11_ = rmap_sensors_TH_1_0_deserialize_(
+            &out_obj->XTH, &buffer[offset_bits / 8U], &_size_bytes7_);
+        if (_err11_ < 0)
+        {
+            return _err11_;
+        }
+        offset_bits += _size_bytes7_ * 8U;  // Advance by the size of the nested serialized representation.
     }
 
 

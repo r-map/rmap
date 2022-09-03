@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/tableb/B13003.1.0.dsdl
-// Generated at:  2022-08-09 08:14:13.933165 UTC
+// Generated at:  2022-09-03 16:11:14.153389 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.tableb.B13003
@@ -72,15 +72,18 @@ extern "C" {
 /// When allocating a serialization (TX) buffer, it is safe to use the size of the largest serialized representation
 /// instead of the extent because it provides a tighter bound of the object size; it is safe because the concrete type
 /// is always known during serialization (unlike deserialization). If not sure, use extent everywhere.
-#define rmap_tableb_B13003_1_0_EXTENT_BYTES_                    4UL
-#define rmap_tableb_B13003_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 4UL
+#define rmap_tableb_B13003_1_0_EXTENT_BYTES_                    1UL
+#define rmap_tableb_B13003_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_ 1UL
 static_assert(rmap_tableb_B13003_1_0_EXTENT_BYTES_ >= rmap_tableb_B13003_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
+/// saturated uint7 MAX = 100
+#define rmap_tableb_B13003_1_0_MAX (100U)
+
 typedef struct
 {
-    /// saturated int32 value
-    int32_t value;
+    /// saturated uint7 value
+    uint8_t value;
 } rmap_tableb_B13003_1_0;
 
 /// Serialize an instance into the provided buffer.
@@ -109,7 +112,7 @@ static inline int8_t rmap_tableb_B13003_1_0_serialize_(
 
 
     const size_t capacity_bytes = *inout_buffer_size_bytes;
-    if ((8U * (size_t) capacity_bytes) < 32UL)
+    if ((8U * (size_t) capacity_bytes) < 8UL)
     {
         return -NUNAVUT_ERROR_SERIALIZATION_BUFFER_TOO_SMALL;
     }
@@ -121,10 +124,14 @@ static inline int8_t rmap_tableb_B13003_1_0_serialize_(
 
 
 
-    {   // saturated int32 value
-        // Saturation code not emitted -- native representation matches the serialized representation.
-        (void) memmove(&buffer[offset_bits / 8U], &obj->value, 4U);
-        offset_bits += 32U;
+    {   // saturated uint7 value
+        uint8_t _sat0_ = obj->value;
+        if (_sat0_ > 127U)
+        {
+            _sat0_ = 127U;
+        }
+        buffer[offset_bits / 8U] = (uint8_t)(_sat0_);  // C std, 6.3.1.3 Signed and unsigned integers
+        offset_bits += 7U;
     }
 
 
@@ -188,9 +195,16 @@ static inline int8_t rmap_tableb_B13003_1_0_deserialize_(
 
 
 
-    // saturated int32 value
-    out_obj->value = nunavutGetI32(&buffer[0], capacity_bytes, offset_bits, 32);
-    offset_bits += 32U;
+    // saturated uint7 value
+    if ((offset_bits + 7U) <= capacity_bits)
+    {
+        out_obj->value = buffer[offset_bits / 8U] & 127U;
+    }
+    else
+    {
+        out_obj->value = 0U;
+    }
+    offset_bits += 7U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.

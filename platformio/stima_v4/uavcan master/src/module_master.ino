@@ -32,6 +32,7 @@
 #include <uavcan/_register/List_1_0.h>
 #include <uavcan/file/Read_1_1.h>
 #include <uavcan/time/Synchronization_1_0.h>
+#include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>
@@ -64,9 +65,10 @@ typedef struct State
             bool enable_immediate_tx_real;
         } timestamp;
         // File upload (node_id può essere differente dal master, es. yakut e lo riporto)
+        // AGgiungo file_server_node_id
         struct
         {
-            uint8_t  node_id;
+            uint8_t  server_node_id;
             char     filename[FILE_NAME_SIZE_MAX];
             bool     is_firmware;
             bool     updating;    
@@ -93,20 +95,37 @@ typedef struct State
         uint8_t  node_type;
         // Nodo OnLine / OffLine
         bool     is_online;
-        // Heartbeat pubblicati Rx<-(Stato nodo remoto)
         struct {
             uint8_t  state;                 // Vendor specific code NodeSlave State
             uint8_t  healt;                 // Uavcan healt_state remoto
             uint64_t timeout_us;            // Time heartbeat Remoto x Verifica OffLine
         } heartbeat;
+        struct {
+            // Flag di assegnamento PNP (se TRUE, da scrivere in ROM NON VOLATILE / REGISTER)
+            // Il nodo è stato assegnato e il pnp non deve essere eseguito per quel modulo
+            // se false il pnp è eseguito fino a quando non rilevo un modulo compatibile
+            // con la richiesta (MODULE_TH, MODULE_RAIN ecc...) appena ne trovo uno
+            // Heartbeat pubblicati Rx<-(Stato nodo remoto)
+            // Questo permette l'assegmaneto PNP di tutti i moduli in sequenza (default)
+            // O l'aggiunta successiva previa modifica della configurazione remota
+            bool     is_assigned;           // flag resettato (PNP in funzione)
+        } pnp;
         // Comandi inviati da locale Tx->(Comando + Param) Rx<-(Risposta)
         struct {
             uint8_t  response;              // Stato di risposta ai comandi nodo
             uint64_t timeout_us;            // Time command Remoto x Verifica deadLine Request
             bool     is_pending;            // Funzione in pending (inviato, attesa risposta o timeout)
             bool     is_timeout;            // Funzione in timeout (mancata risposta)
-            uint8_t  next_transfer_id;      // Transfer id relativo
+            uint8_t  next_transfer_id;      // Transfer ID associato alla funzione
         } command;
+        // Accesso ai registri inviati da locale Tx->(Registro + Value) Rx<-(Risposta)
+        struct {
+            uavcan_register_Value_1_0 response; // Valore in risposta al registro x Set (R/W)
+            uint64_t timeout_us;            // Time command Remoto x Verifica deadLine Request
+            bool     is_pending;            // Funzione in pending (inviato, attesa risposta o timeout)
+            bool     is_timeout;            // Funzione in timeout (mancata risposta)
+            uint8_t  next_transfer_id;      // Transfer ID associato alla funzione
+        } register_access;
         // Accesso ai dati dello slave in servizio Tx->(Funzione) Rx<-(Dato + Stato)
         // Puntatore alla struttura dati relativa es. -> rmap_module_TH_1_0 ecc...
         struct {
@@ -115,8 +134,8 @@ typedef struct State
             uint64_t timeout_us;            // Time getData Remoto x Verifica deadline Request
             bool     is_pending;            // Funzione in pending (inviato, attesa risposta o timeout)
             bool     is_timeout;            // Funzione in timeout (mancata risposta)
-            uint8_t  next_transfer_id;      // Accesso ai dati
-        } service;
+            uint8_t  next_transfer_id;      // Transfer ID associato alla funzione
+        } rmap_service;
         // Nome file(locale) per aggiornamento file remoto e relativo stato di funzionamento
         struct {
             char     filename[FILE_NAME_SIZE_MAX];
@@ -168,6 +187,21 @@ byte getQueueNodeFromId(State* const state, CanardNodeID nodeId) {
         // Se trovo il nodo che sta rispondeno nella coda degli allocati...
         if(state->slave[queueId].node_id == nodeId) {
             return queueId;
+        } 
+    }
+    return GENERIC_BVAL_UNDEFINED;
+}
+
+// Ritorna l'indice della coda master allocata in state in funzione del nodeId fisico
+byte getPNPValidIdFromQueueNode(State* const state, uint8_t node_type) {
+    // Cerco la corrispondenza node_id nella coda allocata master per ritorno queueID Index
+    for(byte queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
+        // Se trovo il nodo che sta pubblicando come node_type
+        // nella coda dei nodi configurati ma non ancora allocati...
+        if((state->slave[queueId].node_type == node_type)&&
+            (state->slave[queueId].pnp.is_assigned == false)) {
+            // Ritorno il NodeID configurato da remoto come default da associare
+            return state->slave[queueId].node_id;
         } 
     }
     return GENERIC_BVAL_UNDEFINED;
@@ -272,7 +306,7 @@ static void handleFileReadBlock_1_1(State* const state, const CanardMicrosecond 
             .priority       = CanardPriorityHigh,
             .transfer_kind  = CanardTransferKindRequest,
             .port_id        = uavcan_file_Read_1_1_FIXED_PORT_ID_,
-            .remote_node_id = state->master.file.node_id,
+            .remote_node_id = state->master.file.server_node_id,
             .transfer_id    = (CanardTransferID) (state->next_transfer_id.uavcan_file_read_data++),
         };
         send(state,
@@ -486,6 +520,44 @@ static bool serviceSendCommand(State* const state, const CanardMicrosecond monot
 }
 
 // **************   Invio richiesta dati diretto ad un nodo remoto UAVCAN Get   **************
+static bool serviceSendRegister(State* const state, const CanardMicrosecond monotonic_time,
+                                byte istanza, char *registerName, uavcan_register_Value_1_0 registerValue)
+{
+    // Effettua la richiesta UAVCAN per l'accesso ad un registro remoto di un nodo slave
+    // Utile per la configurazione remota completa o la modifica di un parametro dello slave
+    uavcan_register_Access_Request_1_0 cmdRequest = {0};
+    uint8_t      serialized[uavcan_register_Access_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    size_t       serialized_size = sizeof(serialized);
+
+    // Imposta il comando da inviare ed il timer base
+    cmdRequest.value = registerValue;
+    cmdRequest.name.name.count = strlen(registerName);
+    memcpy(&cmdRequest.name.name.elements[0], registerName, cmdRequest.name.name.count);
+
+    // Serializzo e verifico la conformità del messaggio
+    const int8_t err = uavcan_register_Access_Request_1_0_serialize_(&cmdRequest, &serialized[0], &serialized_size);
+    assert(err >= 0);
+    if (err >= 0)
+    {
+        // Comando a priorità alta
+        const CanardTransferMetadata meta = {
+            .priority       = CanardPriorityHigh,
+            .transfer_kind  = CanardTransferKindRequest,
+            .port_id        = uavcan_register_Access_1_0_FIXED_PORT_ID_,
+            .remote_node_id = state->slave[istanza].node_id,
+            .transfer_id    = (CanardTransferID) (state->slave[istanza].register_access.next_transfer_id++),
+        };
+        send(state,
+                monotonic_time + MEGA,
+                &meta,
+                serialized_size,
+                &serialized[0]);
+        return true;
+    }
+    return false;
+}
+
+// **************   Invio richiesta dati diretto ad un nodo remoto UAVCAN Get   **************
 static bool serviceSendRequestData(State* const state, const CanardMicrosecond monotonic_time,
                                     byte istanza, byte comando, uint16_t run_sectime)
 {
@@ -510,9 +582,9 @@ static bool serviceSendRequestData(State* const state, const CanardMicrosecond m
         const CanardTransferMetadata meta = {
             .priority       = CanardPriorityHigh,
             .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = state->slave[istanza].service.port_id,
+            .port_id        = state->slave[istanza].rmap_service.port_id,
             .remote_node_id = state->slave[istanza].node_id,
-            .transfer_id    = (CanardTransferID) (state->slave[istanza].service.next_transfer_id++),
+            .transfer_id    = (CanardTransferID) (state->slave[istanza].rmap_service.next_transfer_id++),
         };
         send(state,
                 monotonic_time + MEGA,
@@ -544,12 +616,12 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(Stat
         case uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
-            state->master.file.node_id = remote_node;
+            state->master.file.server_node_id = remote_node;
             // Copio la stringa nel name file firmware disponibile su state generale (per download successivo)
             memcpy(state->master.file.filename, req->parameter.elements, req->parameter.count);
             state->master.file.filename[req->parameter.count] = '\0';
             Serial.print(F("Firmware update request from node id: "));
-            Serial.println(state->master.file.node_id);
+            Serial.println(state->master.file.server_node_id);
             Serial.print(F("Filename to download: "));
             Serial.println(state->master.file.filename);
             // Init varaiabili di download
@@ -588,12 +660,12 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(Stat
         case CMD_DOWNLOAD_FILE:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
-            state->master.file.node_id = remote_node;
+            state->master.file.server_node_id = remote_node;
             // Copio la stringa nel name file generico disponibile su state generale (per download successivo)
             memcpy(state->master.file.filename, req->parameter.elements, req->parameter.count);
             state->master.file.filename[req->parameter.count] = '\0';
             Serial.print(F("File download request from node id: "));
-            Serial.println(state->master.file.node_id);
+            Serial.println(state->master.file.server_node_id);
             Serial.print(F("Filename to download: "));
             Serial.println(state->master.file.filename);
             // Init varaiabili di download
@@ -705,8 +777,89 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
     {
         // bool Per assert mancanza handler di eventuale servizio sottoscritto
         bool bKindMessageProcessed = false;
+        // Gestione dei messaggi PNP per allocazione nodi di rete (gestisco come master)
+        if (transfer->metadata.port_id == uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_)
+        {
+            // Richiesta di allocazione Nodo dalla rete con messaggio anonimo V1.0 CAN_MTU 8
+            bKindMessageProcessed = true;
+            uint8_t defaultNodeId = 0;
+            size_t size = transfer->payload_size;
+            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+            if (uavcan_pnp_NodeIDAllocationData_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
+                // Cerco nei moduli conosciuti (in HASH_UNIQUE_ID) invio il tipo modulo...
+                // Verifico se ho un nodo ancora da configurare come da cfg del master
+                // Il nodo deve essere compatibile con il tipo di modulo previsto da allocare
+                Serial.print(F("RX PNP Allocation message request from -> "));
+                switch(msg.unique_id_hash & 0xFF) {
+                    case MODULE_TYPE_TH:
+                        Serial.print(F("Anonimous module TH"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_TH);
+                        break;
+                    case MODULE_TYPE_RAIN:
+                        Serial.print(F("Anonimous module RAIN"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_RAIN);
+                        break;
+                    case MODULE_TYPE_WIND:
+                        Serial.print(F("Anonimous module WIND"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_WIND);
+                        break;
+                    case MODULE_TYPE_RADIATION:
+                        Serial.print(F("Anonimous module RADIATION"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_RADIATION);
+                        break;
+                    case MODULE_TYPE_VWC:
+                        Serial.print(F("Anonimous module VWC"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_VWC);
+                        break;
+                    case MODULE_TYPE_POWER:
+                        Serial.print(F("Anonimous module POWER"));
+                        defaultNodeId = getPNPValidIdFromQueueNode(state, MODULE_TYPE_POWER);
+                        break;
+                    defualt:
+                        // PNP Non gestibile
+                        Serial.print(F("Anonimous module Unknown"));
+                        defaultNodeId = GENERIC_BVAL_UNDEFINED;
+                        break;
+                }
+                Serial.print(F(" [UniqueID:"));
+                Serial.print(msg.unique_id_hash, HEX);
+                Serial.println(F("]"));
+
+                // Risposta immediata diretta (Se nodo ovviamente è riconosciuto...)
+                // Non utilizziamo una Response in quanto l'allocation è sempre un messaggio anonimo
+                // I metadati del trasporto sono come quelli riceuti del transferID quindi è un messaggio
+                // che si comporta parzialmente come una risposta (per rilevamento remoto hash/transfer_id)
+                if(defaultNodeId <= CANARD_NODE_ID_MAX) {
+                    Serial.print(F("Try PNP Allocation with Node_ID -> "));
+                    Serial.println(defaultNodeId);
+                    // Se il nodo proposto viene confermato inizieremo a ricevere heartbeat
+                    // da quel nodeId. A questo punto in Heartbeat settiam il flag pnp.is_assigned
+                    // che conclude la procedura con esito positivo.
+                    msg.allocated_node_id.count = 1;
+                    msg.allocated_node_id.elements[0].value = defaultNodeId;
+                    // The request object is empty so we don't bother deserializing it. Just send the response.
+                    uint8_t      serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+                    size_t       serialized_size = sizeof(serialized);
+                    const int8_t res = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);
+                    // Preparo la pubblicazione anonima in risposta alla richiesta anonima
+                    const CanardTransferMetadata meta = {
+                        .priority       = CanardPriorityNominal,
+                        .transfer_kind  = CanardTransferKindMessage,
+                        .port_id        = uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                        .remote_node_id = CANARD_NODE_ID_UNSET,
+                        .transfer_id    = (CanardTransferID) (transfer->metadata.transfer_id),
+                    };
+                    send(state,
+                            getMonotonicMicroseconds(state) + MEGA,
+                            &meta,
+                            serialized_size,
+                            &serialized[0]);
+                }
+            }
+        }
         // Gestione dei messaggi Heartbeat per stato rete (gestisco come master)
-        if (transfer->metadata.port_id == uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_)
+        else if (transfer->metadata.port_id == uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_)
         {
             bKindMessageProcessed = true;
             size_t size = transfer->payload_size;
@@ -719,17 +872,37 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                 byte queueId = getQueueNodeFromId(state, transfer->metadata.remote_node_id);
                 // Se nodo correttamente allocato e gestito (potrebbe essere Yakut non registrato)
                 if (queueId != GENERIC_BVAL_UNDEFINED) {
+                    // Primo assegnamento da PNP, gestisco eventuale configurazione remota
+                    // e salvataggio del flag di assegnamento in ROM / o Register
+                    if(!state->slave[queueId].pnp.is_assigned) {
+                        // Configura i metadati...
+                        // Configura altri parametri...
+                        // Modifico il flag PNP Executed e termino la procedura PNP
+                        state->slave[queueId].pnp.is_assigned = true;
+                        // Salvo su registro lo stato
+                        uavcan_register_Value_1_0 val = {0};
+                        char registerName[24] = "rmap.pnp.allocateID.";
+                        uavcan_register_Value_1_0_select_natural8_(&val);
+                        val.natural32.value.count       = 1;
+                        val.natural32.value.elements[0] = transfer->metadata.remote_node_id;
+                        // queueId -> index Val = NodeId
+                        itoa(queueId, registerName + strlen(registerName), 10);
+                        registerWrite(registerName, &val);
+                    }
+                    
                     // Rientro in OnLINE da OFFLine o Init
                     // Inizializzo le variabili e gli stati necessari per Reset e corretta gestione
                     if(!state->slave[queueId].is_online) {
                         // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                         state->slave[queueId].command.is_pending = false;
-                        state->slave[queueId].service.is_pending = false;
-                        state->slave[queueId].file.is_pending = false;
                         state->slave[queueId].command.is_timeout = true;
-                        state->slave[queueId].service.is_timeout = true;
+                        state->slave[queueId].register_access.is_pending = false;
+                        state->slave[queueId].register_access.is_timeout = true;
+                        state->slave[queueId].file.is_pending = false;
                         state->slave[queueId].file.is_timeout = true;
                         state->slave[queueId].file.state = FILE_STATE_STANDBY;
+                        state->slave[queueId].rmap_service.is_pending = false;
+                        state->slave[queueId].rmap_service.is_timeout = true;
                     }
                     // Accodo i dati letti dal messaggio (Nodo -> OnLine)
                     state->slave[queueId].is_online = true;  
@@ -936,6 +1109,23 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                 }
             }
         }
+        else if (transfer->metadata.port_id == uavcan_register_Access_1_0_FIXED_PORT_ID_)
+        {
+            uavcan_register_Access_Response_1_0 resp = {0};
+            size_t                              size = transfer->payload_size;
+            if (uavcan_register_Access_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
+            {
+                // Ricerco idNodo nella coda degli allocati del master
+                // Copio la risposta ricevuta nella struttura relativa e resetto il flag pending                
+                byte queueId = getQueueNodeFromId(state, transfer->metadata.remote_node_id);
+                if (queueId != GENERIC_BVAL_UNDEFINED) {
+                    // Resetta il pending del comando del nodo verificato
+                    state->slave[queueId].register_access.is_pending = false;
+                    // Copia la risposta nella variabile di chiamata in state
+                    state->slave[queueId].register_access.response = resp.value;
+                }
+            }
+        }
         else if (transfer->metadata.port_id == uavcan_file_Read_1_1_FIXED_PORT_ID_)
         {
             uavcan_file_Read_Response_1_1 resp  = {0};
@@ -973,7 +1163,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
             if (queueId != GENERIC_BVAL_UNDEFINED) {
                 // Verifico se risposta del servizio corrisponde al chiamante (eventuali + servizi sotto...)
                 // Gestione di tutti i servizi possibili allocabili, valido per tutti i nodi
-                if (transfer->metadata.port_id == state->slave[queueId].service.port_id)
+                if (transfer->metadata.port_id == state->slave[queueId].rmap_service.port_id)
                 {                
                     // *************            Service Modulo TH Response            *************
                     if(state->slave[queueId].node_type == MODULE_TYPE_TH) {
@@ -983,12 +1173,12 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                         if (rmap_service_module_TH_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
                             // Resetta il pending del comando del nodo verificato
-                            state->slave[queueId].service.is_pending = false;
+                            state->slave[queueId].rmap_service.is_pending = false;
                             // Copia la risposta nella variabile di chiamata in state
                             // Oppure gestire qua tutte le altre occorrenze per stima V4
                             // TODO: vedere con Marco Pubblica, registra elimina, display... altro
                             // Per ora copio in una struttura di state response
-                            memcpy(state->slave[queueId].service.module, &resp, sizeof(resp));
+                            memcpy(state->slave[queueId].rmap_service.module, &resp, sizeof(resp));
                         }
                     }
                     // ALTRI MODULI DA INSERIRE QUA... PG, VV, RS, GAS ECC...
@@ -1293,23 +1483,16 @@ void loop(void)
     state.publisher_enabled.port_list = DEFAULT_PUBLISH_PORT_LIST;
 
     // ********************************************************************************
-    //                                   INIT VALUE
+    //            INIT VALUE, Caricamento default e registri locali MASTER
     // ********************************************************************************
     // Reset Slave node_id per ogni nodo collegato. Solo i nodi validi verranno gestiti
     for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
         state.slave[iCnt].node_id = CANARD_NODE_ID_UNSET;
-        state.slave[iCnt].heartbeat.timeout_us = 0;
-        state.slave[iCnt].command.timeout_us = 0;
-        state.slave[iCnt].service.timeout_us = 0;
-        state.slave[iCnt].service.next_transfer_id = 0;
-        state.slave[iCnt].command.next_transfer_id = 0;
-        state.slave[iCnt].service.port_id = UINT16_MAX;
-        state.slave[iCnt].service.module = NULL;
+        state.slave[iCnt].rmap_service.port_id = UINT16_MAX;
+        state.slave[iCnt].rmap_service.module = NULL;
         #ifdef USE_SUB_PUBLISH_SLAVE_DATA
         state.slave[iCnt].publisher.subject_id = UINT16_MAX;
-        state.slave[iCnt].publisher.data_count = 0;
         #endif
-        state.slave[iCnt].file.filename[0] = 0;
         state.slave[iCnt].file.state = FILE_STATE_STANDBY;
     }
 
@@ -1321,17 +1504,42 @@ void loop(void)
     // ********************************************************************************
 
     // TODO:
-    // Read Config Slave Node x Lettura porte e servizi. Non utilizzo registri ma CFG Generale
-    // Vedere poi se meglio utilizzare i registri o anche solo per porzioni di configurazione
-    // Fixed Value adesso !!!
+    // Read Config Slave Node x Lettura porte e servizi.
+    // Possibilità di utilizzo come sotto (registri) - Fixed Value adesso !!!
     state.slave[0].node_id = 125;
     state.slave[0].node_type = MODULE_TYPE_TH;    
-    state.slave[0].service.port_id = 100;
+    state.slave[0].rmap_service.port_id = 100;
     #ifdef USE_SUB_PUBLISH_SLAVE_DATA
     // state.slave[0].subject_id = 5678;
     #endif
-    state.slave[0].service.module = malloc(sizeof(rmap_service_module_TH_Response_1_0));
+    state.slave[0].rmap_service.module = malloc(sizeof(rmap_service_module_TH_Response_1_0));
     strcpy(state.slave[0].file.filename, "stima4.module_th-1.1.app.hex");
+
+    // **********************************************************************************
+    // Lettura registri, parametri per PNP Allocation Verifica locale di assegnamento CFG
+    // **********************************************************************************
+    for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
+        // Lettura registro di allocazione PNP MASTER Locale avvenuta, da eseguire
+        // Possibilità di salvare tutte le informazioni di NODO qui al suo interno
+        // Per rendere disponibili le configurazioni in esterno (Yakut, altri)
+        // Utilizzando la struttupra allocateID.XX (count = n° registri utili)
+        char registerName[24] = "rmap.pnp.allocateID.";
+        uavcan_register_Value_1_0_select_natural8_(&val);
+        val.natural8.value.count       = 1;
+        val.natural8.value.elements[0] = CANARD_NODE_ID_UNSET;
+        // queueId -> index Val = NodeId
+        itoa(iCnt, registerName + strlen(registerName), 10);
+        registerRead(registerName, &val);
+        assert(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == 1));
+        // Il Node_id deve essere valido e uguale a quello programmato in configurazione
+        if((val.natural8.value.elements[0] != CANARD_NODE_ID_UNSET) &&
+            (val.natural8.value.elements[0] == state.slave[iCnt].node_id))
+         {
+            // Assegnamento PNP per nodeQueueID con state.slave[iCnt].node_id
+            // già avvenuto. Non rispondo a eventuali messaggi PNP del tipo per quel nodo
+            state.slave[iCnt].pnp.is_assigned = true;
+        }
+    }
 
     // ********************************************************************************
     // *********               Lettura Registri standard UAVCAN               *********
@@ -1409,7 +1617,7 @@ void loop(void)
         static CanardRxSubscription rx;
         const int8_t                res =  //
             canardRxSubscribe(&state.canard,
-                                CanardTransferKindRequest,
+                                CanardTransferKindMessage,
                                 uavcan_register_List_1_0_FIXED_PORT_ID_,
                                 uavcan_register_List_Request_1_0_EXTENT_BYTES_,
                                 CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC,
@@ -1418,6 +1626,19 @@ void loop(void)
     }
 
     // ******* SOTTOSCRIZIONE MESSAGGI / COMANDI E SERVIZI AD UTILITA' MASTER ********
+
+    // Messaggi PNP_Allocation: -> Allocazione dei nodi standard in PlugAndPlay per i nodi conosciuti
+    {
+        static CanardRxSubscription rx;
+        const int8_t                res =  //
+            canardRxSubscribe(&state.canard,
+                                CanardTransferKindMessage,
+                                uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+                                uavcan_pnp_NodeIDAllocationData_1_0_EXTENT_BYTES_,
+                                CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                                &rx);
+        if (res < 0) NVIC_SystemReset();
+    }
 
     // Messaggi HEARTBEAT: -> Verifica della presenza per stato Nodi (Slave) OnLine / OffLine
     {
@@ -1440,6 +1661,19 @@ void loop(void)
                                 CanardTransferKindResponse,
                                 uavcan_node_ExecuteCommand_1_1_FIXED_PORT_ID_,
                                 uavcan_node_ExecuteCommand_Response_1_1_EXTENT_BYTES_,
+                                CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
+                                &rx);
+        if (res < 0) NVIC_SystemReset();
+    }
+
+    // Service client: -> Risposta per Accesso ai registri richiesta interna (come master)
+    {
+        static CanardRxSubscription rx;
+        const int8_t                res =  //
+            canardRxSubscribe(&state.canard,
+                                CanardTransferKindResponse,
+                                uavcan_register_Access_1_0_FIXED_PORT_ID_,
+                                uavcan_register_Access_Response_1_0_EXTENT_BYTES_,
                                 CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                                 &rx);
         if (res < 0) NVIC_SystemReset();
@@ -1483,8 +1717,8 @@ void loop(void)
     for(byte queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
         // *************   SERVICE    *************
         // Se previsto il servizio request/response con port_id valido
-        if ((state.slave[queueId].service.module) &&
-            (state.slave[queueId].service.port_id <= CANARD_SERVICE_ID_MAX)) {
+        if ((state.slave[queueId].rmap_service.module) &&
+            (state.slave[queueId].rmap_service.port_id <= CANARD_SERVICE_ID_MAX)) {
             // Controllo le varie tipologie di request/service per il nodo
             if(state.slave[queueId].node_type == MODULE_TYPE_TH) {            
                 // Alloco la stottoscrizione in funzione del tipo di modulo
@@ -1493,7 +1727,7 @@ void loop(void)
                 const int8_t                res =  //
                     canardRxSubscribe(&state.canard,
                                         CanardTransferKindResponse,
-                                        state.slave[queueId].service.port_id,
+                                        state.slave[queueId].rmap_service.port_id,
                                         rmap_service_module_TH_Response_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC,
                                         &rx);
@@ -1542,25 +1776,29 @@ void loop(void)
     bool bEventRealTimeLoop = false;
     bool bFileUpload = false;
     bool bFileMessage = false;
+    bool bLastPendingRegister = false;
+    bool bIsPendingRegister = false;
+    bool bIsWriteRegister = false;
 
     #define MILLIS_EVENT 10
     #define PUBLISH_HEARTBEAT
     #define PUBLISH_PORTLIST
     #define LOG_RX_PACKET
-    // #define LED_ON_CAN_DATA_TX
-    // #define LED_ON_CAN_DATA_RX
-    #define LED_ON_SYNCRO_TIME
-    #define TEST_COMMAND
-    #define TEST_DATA
-    #define TEST_FIRMWARE
+    #define LED_ON_CAN_DATA_TX
+    #define LED_ON_CAN_DATA_RX
+    // #define LED_ON_SYNCRO_TIME
+    // #define TEST_COMMAND
+    #define TEST_RMAP_DATA
+    #define TEST_REGISTER
 
     // Set START Timetable LOOP RX/TX.
     state.started_at                            = getMonotonicMicroseconds(&state);
-    CanardMicrosecond       next_01_sec_iter_at = state.started_at + MEGA * 0.5;
+    CanardMicrosecond       next_01_sec_iter_at = state.started_at + MEGA * 0.25;
     CanardMicrosecond       next_timesyncro_msg = state.started_at + MEGA;
     CanardMicrosecond       next_20_sec_iter_at = state.started_at + MEGA * 1.5;
     CanardMicrosecond       test_cmd_cs_iter_at = state.started_at + MEGA * 2.5;
     CanardMicrosecond       test_cmd_vs_iter_at = state.started_at + MEGA * 3.5;
+    CanardMicrosecond       test_cmd_rg_iter_at = state.started_at + MEGA * 4.5;
 
     do {
         // Run a trivial scheduler polling the loops that run the business logic.
@@ -1621,10 +1859,10 @@ void loop(void)
                         }
                         // Controllo TimeOut Comando getData su modulo remoto
                         // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
-                        if(state.slave[queueId].service.is_pending) {
-                            if(monotonic_time > state.slave[queueId].service.timeout_us) {
+                        if(state.slave[queueId].rmap_service.is_pending) {
+                            if(monotonic_time > state.slave[queueId].rmap_service.timeout_us) {
                                 // Setto il flag di TimeOUT che il master dovrà gestire (segnalazione BUG al Server?)
-                                state.slave[queueId].service.is_timeout = true;
+                                state.slave[queueId].rmap_service.is_timeout = true;
                             }
                         }
                         // Controllo TimeOut Comando file su modulo remoto
@@ -1642,14 +1880,17 @@ void loop(void)
                             state.slave[queueId].is_online = false;
                             Serial.print(F("Nodo OFFLINE !!! Alert -> : "));
                             Serial.println(state.slave[queueId].node_id);
-                            // Elimina gli eventuali stati pending e TimeOut
+                            // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
                             // Eventuali altre operazioni quà su Reset Comandi
                             state.slave[queueId].command.is_pending = false;
-                            state.slave[queueId].service.is_pending = false;
-                            state.slave[queueId].file.is_pending = false;
                             state.slave[queueId].command.is_timeout = true;
-                            state.slave[queueId].service.is_timeout = true;
+                            state.slave[queueId].register_access.is_pending = false;
+                            state.slave[queueId].register_access.is_timeout = true;
+                            state.slave[queueId].file.is_pending = false;
                             state.slave[queueId].file.is_timeout = true;
+                            state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                            state.slave[queueId].rmap_service.is_pending = false;
+                            state.slave[queueId].rmap_service.is_timeout = true;
                             // Attività x Reset e/o riavvio Nodo dopo OnLine -> Offline
                             // Solo TEST Locale TODO: da eliminare
                             bIsResetFaultCmd = true;
@@ -1843,7 +2084,7 @@ void loop(void)
         // ***************** FINE TEST COMANDO TX-> RX<- *************************
         #endif
 
-        #ifdef TEST_DATA
+        #ifdef TEST_RMAP_DATA
         // ********************** TEST GETDATA TX-> RX<- *************************
         // LOOP HANDLER >> 0..15 SECONDI x TEST GETDATA <<
         if ((monotonic_time >= test_cmd_vs_iter_at)&&(!state.master.file.updating)) {
@@ -1857,16 +2098,17 @@ void loop(void)
             if(state.slave[queueId].is_online) {
                 // Il comando viene inviato solamente senza altri Pending di Comandi
                 // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                if(!state.slave[queueId].service.is_pending) {
+                if(!state.slave[queueId].rmap_service.is_pending) {
                     // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
                     // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-                    state.slave[queueId].service.is_pending = true;
-                    state.slave[queueId].service.is_timeout = false;
-                    state.slave[queueId].service.timeout_us = monotonic_time + NODE_GETDATA_TIMEOUT_US;
+                    state.slave[queueId].rmap_service.is_pending = true;
+                    state.slave[queueId].rmap_service.is_timeout = false;
+                    state.slave[queueId].rmap_service.timeout_us = monotonic_time + NODE_GETDATA_TIMEOUT_US;
                     // Il comando richiede il dato istantaneo ad un nodo remoto
                     // Semplice TEST di esempio con i parametri in richiesta
                     rmap_service_setmode_1_0 parametri;
                     parametri.comando = rmap_service_setmode_1_0_get_istant;
+                    // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
                     // parametri.run_for_second = 900; ( inutile in get_istant )
                     serviceSendRequestData(&state, monotonic_time, queueId,
                                             rmap_service_setmode_1_0_get_istant, 10);
@@ -1881,18 +2123,18 @@ void loop(void)
 
         // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
         // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-        if (state.slave[0].service.is_timeout) {
+        if (state.slave[0].rmap_service.is_timeout) {
             // TimeOUT di un comando in attesa... gestisco il da farsi
             Serial.print(F("Timeout risposta su richiesta dati al nodo remoto: "));
             Serial.print(state.slave[0].node_id);
             Serial.println(F(", Warning [restore pending command]"));
             // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-            state.slave[0].service.is_pending = false;
-            state.slave[0].service.is_timeout = false;
+            state.slave[0].rmap_service.is_pending = false;
+            state.slave[0].rmap_service.is_timeout = false;
             bIsPendingData = false;
             bLastPendingData = false;
         } else {
-            bIsPendingData = state.slave[0].service.is_pending;
+            bIsPendingData = state.slave[0].rmap_service.is_pending;
             // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
             if(bIsResetFaultCmd) {
                 bIsPendingData = false;
@@ -1908,23 +2150,128 @@ void loop(void)
                     // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
                     // in funzione di state.slave[x].node_type
                     rmap_service_module_TH_Response_1_0* retData =
-                        (rmap_service_module_TH_Response_1_0*) state.slave[0].service.module;
+                        (rmap_service_module_TH_Response_1_0*) state.slave[0].rmap_service.module;
                     // Stampo la risposta corretta
                     Serial.print(F("Ricevuto risposta di richiesta dati dal nodo remoto: "));
                     Serial.print(state.slave[0].node_id);
                     Serial.print(F(", cod. risposta ->: "));
                     Serial.println(retData->stato);
                     // Test data Received e stampa valori con accesso al puntatore in casting per il modulo
-                    Serial.println(F("Value L1, TP, UH: "));
-                    Serial.print(retData->dataandmetadata.metadata.level.L1.value);
+                    Serial.println(F("Value (ITH) L1, TP, UH: "));
+                    Serial.print(retData->ITH.metadata.level.L1.value);
                     Serial.print(F(", "));
-                    Serial.print(retData->dataandmetadata.temperature.val.value);
+                    Serial.print(retData->ITH.temperature.val.value);
                     Serial.print(F(", "));
-                    Serial.println(retData->dataandmetadata.humidity.val.value);
+                    Serial.println(retData->ITH.humidity.val.value);
                 }
             }
         }
         // ***************** FINE TEST GETDATA TX-> RX<- *************************
+        #endif
+
+        #ifdef TEST_REGISTER
+        // ********************** TEST REGISTER TX-> RX<- *************************
+        // LOOP HANDLER >> 0..15 SECONDI x TEST REGISTER ACCESS <<
+        if ((monotonic_time >= test_cmd_rg_iter_at)&&(!state.master.file.updating)) {
+            // TimeOUT variabile in 15 secondi
+            test_cmd_rg_iter_at += MEGA * ((float)(rand() % 60)/4.0);
+            // Invio un comando di set registro in prova al nodo 125
+            // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
+            byte queueId = getQueueNodeFromId(&state, 125);
+            // Il comando viene inviato solamente se il nodo è ONLine
+            if(state.slave[queueId].is_online)
+            {
+                // Il comando viene inviato solamente senza altri Pending di Comandi
+                // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
+                if(!state.slave[queueId].register_access.is_pending) {
+                    // Imposta il pending del registro per verifica sequenza TX-RX e il TimeOut
+                    // Imposta la risposta del registro A UNDEFINED (verrà settato al valore corretto in risposta)
+                    state.slave[queueId].register_access.is_pending = true;
+                    state.slave[queueId].register_access.is_timeout = false;
+                    state.slave[queueId].register_access.timeout_us = monotonic_time + NODE_REGISTER_TIMEOUT_US;
+                    // Preparo il registro da inviare (configurazione generale => sequenza di request/response)
+                    // Semplice TEST di esempio trasmissione di un registro fisso con nome fisso
+                    // Uso in Test uavcan_register_Value_1_0 val utilizzato in ReadRegister iniziale
+                    // Init Var per confronto memCmp di verifica elementi == x TEST Veloce
+                    memset(&val, 0, sizeof(uavcan_register_Value_1_0));
+                    // x SPECIFICHE UAVCAN ->
+                    // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto
+                    // Altrimenti la funzione deve fallire e ritornare NULL
+                    // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
+                    // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
+                    if(bIsWriteRegister) {
+                        // Invio il registro al nodo slave in scrittura
+                        uavcan_register_Value_1_0_select_natural32_(&val);
+                        val.natural32.value.count       = 1;
+                        val.natural32.value.elements[0] = 12345;
+                    } else {
+                        // Richiedo al nodo slave la lettura (Specifiche UAVCAN _empty x Lettura)
+                        uavcan_register_Value_1_0_select_empty_(&val);
+                    }
+                    serviceSendRegister(&state, monotonic_time, queueId,
+                                        "rmap.module.TH.metadata.Level.L2", val);
+                }
+            }
+            // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
+            // popolata nel'apposito registro di state service_module del il servizio relativo
+            // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
+            // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
+            // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
+        }
+
+        // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
+        // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
+        if (state.slave[0].register_access.is_timeout) {
+            // TimeOUT di un comando in attesa... gestisco il da farsi
+            Serial.print(F("Timeout risposta su invio registro al nodo remoto: "));
+            Serial.print(state.slave[0].node_id);
+            Serial.println(F(", Warning [restore pending register]"));
+            // Adesso elimino solo gli stati
+            state.slave[0].register_access.is_pending = false;
+            state.slave[0].register_access.is_timeout = false;
+            // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
+            bIsPendingRegister = false;
+            bLastPendingRegister = false;
+        } else {
+            bIsPendingRegister = state.slave[0].register_access.is_pending;
+            // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
+            if(bIsResetFaultCmd) {
+                bIsPendingRegister = false;
+                bLastPendingRegister = false;
+            }
+            if(bLastPendingRegister != bIsPendingRegister) {
+                bLastPendingRegister = bIsPendingRegister;
+                if(bLastPendingRegister) {
+                    Serial.print(F("Inviato registro R/W al nodo remoto: "));
+                    Serial.println(state.slave[0].node_id);
+                } else {
+                    Serial.print(F("Ricevuto conferma R/W registro dal nodo remoto: "));
+                    Serial.println(state.slave[0].node_id);
+                    Serial.print(F("Totale elementi (Natural32): "));
+                    Serial.println(state.slave[0].register_access.response.unstructured.value.count);
+                    for(byte bElement=0; bElement<state.slave[0].register_access.response.unstructured.value.count; bElement++) {
+                        Serial.print(state.slave[0].register_access.response.natural32.value.elements[bElement]);
+                        Serial.print(" ");                        
+                    }
+                    Serial.println();
+                    // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
+                    // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
+                    // Tecnicamente se != da empty in request ed in request il registro è impostato
+                    // I valori != 0 in elementi extra register.value.count non sono considerati 
+                    if(bIsWriteRegister) {
+                        // TEST BYTE A BYTE...
+                        if(memcmp(&val, &state.slave[0].register_access.response, sizeof(uavcan_register_Value_1_0)) == 0) {
+                            Serial.println("Registro impostato correttamente");
+                        } else {
+                            Serial.println("Registro NON impostato correttamente. ALERT!!!");
+                        }
+                    }
+                    // Inverto da Lettura a scrittura e viceversa per il TEST
+                    bIsWriteRegister = !bIsWriteRegister;
+                }
+            }
+        }
+        // ***************** FINE TEST COMANDO TX-> RX<- *************************
         #endif
 
         // ********************** TEST UPLOAD FIRMWARE/FILE **********************
@@ -2139,7 +2486,7 @@ void loop(void)
                 #endif
                 // Delay Microsecond di sicurezza in Send (Migliora sicurezza RX Pacchetti)
                 // Da utilizzare con CPU poco performanti in RX o con controllo Polling gestito Canard
-                #if (CAN_DELAY_MS_SEND > 0)
+                #if (CAN_DELAY_US_SEND > 0)
                 delayMicroseconds(CAN_DELAY_US_SEND);
                 #endif
                 // Attempt transmission only if the frame is not yet timed out while waiting in the TX queue.

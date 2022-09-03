@@ -32,19 +32,27 @@
 // Nodo fisso per Modulo Slave
 // #define NODE_SLAVE_ID 10
 
+// UTILITA' x PLUG_AND PLAY ED INFO_NODE
 // Tipologie Nodi/Sensori remoti (NODE_TYPE) TODO: H.EXTERN!!!
 #define MODULE_TYPE_MASTER      0xFF
 #define MODULE_TYPE_TH          0x01
-#define MODULE_TYPE_PREC        0x02
+#define MODULE_TYPE_RAIN        0x02
 #define MODULE_TYPE_WIND        0x03
-#define MODULE_TYPE_RS          0x04
-#define MODULE_TYPE_PRES        0x05
-#define MODULE_TYPE_TS          0x06
-#define MODULE_TYPE_US          0x07
-#define MODULE_TYPE_WM          0x08
-#define MODULE_TYPE_LIV         0x09
+#define MODULE_TYPE_RADIATION   0x04
+#define MODULE_TYPE_VWC         0x05
+#define MODULE_TYPE_POWER       0x06
+// MODULE_TYPE_TH -> SUBMODULES (ecc...)
+#define SENS_TYPE_TH_HYT_221    0x01
+#define SENS_TYPE_TH_PT100      0x02
+
+// Tipologie elaborazioni/sensori modulo(i)
+#define SENSOR_ITH              0x01
+#define SENSOR_MTH              0x02
+#define SENSOR_NTH              0x03
+#define SENSOR_XTH              0x04
 
 // SET Default value per risposte
+#define GENERIC_STATE_UNDEFINED 0x0F
 #define GENERIC_BVAL_UNDEFINED  0xFF
 
 // Tipologie di comandi interni / esterni USER_DEFINE UAVCAN

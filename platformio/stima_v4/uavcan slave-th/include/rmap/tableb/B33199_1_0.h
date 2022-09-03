@@ -8,8 +8,8 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl
-// Generated at:  2022-08-09 08:49:00.952517 UTC
+// Source file:   C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl
+// Generated at:  2022-09-03 16:10:00.439678 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.tableb.B33199
@@ -40,19 +40,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/rmap/tableb/B33199.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -77,9 +77,12 @@ extern "C" {
 static_assert(rmap_tableb_B33199_1_0_EXTENT_BYTES_ >= rmap_tableb_B33199_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_,
               "Internal constraint violation");
 
+/// saturated uint7 MAX = 100
+#define rmap_tableb_B33199_1_0_MAX (100U)
+
 typedef struct
 {
-    /// saturated uint8 value
+    /// saturated uint7 value
     uint8_t value;
 } rmap_tableb_B33199_1_0;
 
@@ -121,10 +124,14 @@ static inline int8_t rmap_tableb_B33199_1_0_serialize_(
 
 
 
-    {   // saturated uint8 value
-        // Saturation code not emitted -- native representation matches the serialized representation.
-        buffer[offset_bits / 8U] = (uint8_t)(obj->value);  // C std, 6.3.1.3 Signed and unsigned integers
-        offset_bits += 8U;
+    {   // saturated uint7 value
+        uint8_t _sat0_ = obj->value;
+        if (_sat0_ > 127U)
+        {
+            _sat0_ = 127U;
+        }
+        buffer[offset_bits / 8U] = (uint8_t)(_sat0_);  // C std, 6.3.1.3 Signed and unsigned integers
+        offset_bits += 7U;
     }
 
 
@@ -188,16 +195,16 @@ static inline int8_t rmap_tableb_B33199_1_0_deserialize_(
 
 
 
-    // saturated uint8 value
-    if ((offset_bits + 8U) <= capacity_bits)
+    // saturated uint7 value
+    if ((offset_bits + 7U) <= capacity_bits)
     {
-        out_obj->value = buffer[offset_bits / 8U] & 255U;
+        out_obj->value = buffer[offset_bits / 8U] & 127U;
     }
     else
     {
         out_obj->value = 0U;
     }
-    offset_bits += 8U;
+    offset_bits += 7U;
 
 
     offset_bits = (offset_bits + 7U) & ~(size_t) 7U;  // Align on 8 bits.

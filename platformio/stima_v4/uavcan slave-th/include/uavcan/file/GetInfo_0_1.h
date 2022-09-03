@@ -8,8 +8,8 @@
 // are named with an underscore at the end, like foo_bar_().
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl
-// Generated at:  2022-08-09 08:48:59.296278 UTC
+// Source file:   C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl
+// Generated at:  2022-09-03 16:09:58.115062 UTC
 // Is deprecated: yes
 // Fixed port-ID: 405
 // Full name:     uavcan.file.GetInfo
@@ -52,19 +52,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-test/uavcan/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/file/405.GetInfo.0.1.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus

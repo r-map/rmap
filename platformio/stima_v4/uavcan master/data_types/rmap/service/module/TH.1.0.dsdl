@@ -4,9 +4,12 @@ rmap.service.setmode.1.0 parametri
 
 ---
 
-uint8 stato
-#interprete 
+uint4 stato
+#interprete stato risposta modulo dati
 
-rmap.module.TH.1.0 dataandmetadata
+rmap.sensors.TH.1.0 ITH
+rmap.sensors.TH.1.0 NTH
+rmap.sensors.TH.1.0 MTH
+rmap.sensors.TH.1.0 XTH
 
 @sealed

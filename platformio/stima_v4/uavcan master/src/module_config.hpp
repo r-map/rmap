@@ -36,19 +36,21 @@
 // Numero di nodi massimo da collegare al MASTER, TODO: DA Verificare se malloc...
 #define MAX_NODE_CONNECT 8
 
+// UTILITA' x PLUG_AND PLAY ED INFO_NODE
 // Tipologie Nodi/Sensori remoti (NODE_TYPE) TODO: H.EXTERN!!!
 #define MODULE_TYPE_MASTER      0xFF
 #define MODULE_TYPE_TH          0x01
-#define MODULE_TYPE_PREC        0x02
+#define MODULE_TYPE_RAIN        0x02
 #define MODULE_TYPE_WIND        0x03
-#define MODULE_TYPE_RS          0x04
-#define MODULE_TYPE_PRES        0x05
-#define MODULE_TYPE_TS          0x06
-#define MODULE_TYPE_US          0x07
-#define MODULE_TYPE_WM          0x08
-#define MODULE_TYPE_LIV         0x09
+#define MODULE_TYPE_RADIATION   0x04
+#define MODULE_TYPE_VWC         0x05
+#define MODULE_TYPE_POWER       0x06
+// MODULE_TYPE_TH -> SUBMODULES (ecc...)
+#define SENS_TYPE_TH_HYT_221    0x01
+#define SENS_TYPE_TH_PT100      0x02
 
 // SET Default value per risposte
+#define GENERIC_STATE_UNDEFINED 0x0F
 #define GENERIC_BVAL_UNDEFINED  0xFF
 
 // Tipologie di comandi interni / esterni USER_DEFINE UAVCAN
@@ -66,6 +68,7 @@
 // Ma si riesce ad identificare il TimeOut intervenuto per la sua gestione
 #define NODE_OFFLINE_TIMEOUT_US     6000000
 #define NODE_COMMAND_TIMEOUT_US     1250000
+#define NODE_REGISTER_TIMEOUT_US    1500000
 #define NODE_GETDATA_TIMEOUT_US     1500000
 #define NODE_GETFILE_TIMEOUT_US     1750000
 #define NODE_REQFILE_TIMEOUT_US     4000000

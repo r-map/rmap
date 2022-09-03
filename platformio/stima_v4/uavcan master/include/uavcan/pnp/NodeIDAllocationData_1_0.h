@@ -9,7 +9,7 @@
 //
 // Generator:     nunavut-1.8.3 (serialization was enabled)
 // Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/uavcan/pnp/8166.NodeIDAllocationData.1.0.dsdl
-// Generated at:  2022-08-09 08:14:12.304574 UTC
+// Generated at:  2022-09-03 16:11:11.503392 UTC
 // Is deprecated: no
 // Fixed port-ID: 8166
 // Full name:     uavcan.pnp.NodeIDAllocationData
