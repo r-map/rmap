@@ -781,12 +781,12 @@ Compilazione e caricamento del bootloader Digitecoboot
    - avrdude  -v -patmega1284p -cavrisp -P/dev/ttyUSB0 -b19200 -U lock:w:0x0F:m
 
 Per usare arduino come programmatore riferirsi a:
-   https://www.arduino.cc/en/pmwiki.php?n=Tutorial/ArduinoISP
+   https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP
  
 E' possibile utilizzare due moduli microduino core+, uno 1284p16m da usare come programmatore e il secondo con la stessa tensione di funzionamento da programmare collegati come da schema:
 |image_arduino_isp_schema|
 
-Un esempio di connessione rapida:
+Un esempio di connessione rapida (il condensatore elettrolitico è assente):
 |image_arduino_microduino_photo|
 
 Programmare il microduino-core+ da usare come ISP con il firmware
