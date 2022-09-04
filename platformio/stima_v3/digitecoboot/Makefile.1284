@@ -2,7 +2,7 @@ atmega1284p: TARGET     = atmega1284p
 atmega1284p: MCU_TARGET = atmega1284p
 atmega1284p: F_CPU      = 16000000
 atmega1284p: BOOT_ADR   = 0x1F000
-atmega1284p: BAUD_RATE  = 19200
+atmega1284p: BAUD_RATE  = 57600
 
 atmega1284p: $(PROGRAM)_atmega1284p.hex
 atmega1284p: $(PROGRAM)_atmega1284p.lst
@@ -11,7 +11,7 @@ atmega1284p_isp: TARGET     = atmega1284p
 atmega1284p_isp: MCU_TARGET = atmega1284p
 atmega1284p_isp: F_CPU      = 16000000
 atmega1284p_isp: BOOT_ADR   = 0x1F000
-atmega1284p_isp: BAUD_RATE  = 19200
+atmega1284p_isp: BAUD_RATE  = 57600
 
 atmega1284p_isp: MCU_AVRDUDE = atmega1284p
 # 8192 byte boot
