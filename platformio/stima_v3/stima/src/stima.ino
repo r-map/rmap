@@ -3362,7 +3362,7 @@ void mqtt_task() {
 
       case MQTT_ON_CONNECT:
          getFullTopic(full_topic_buffer, readable_configuration.mqtt_maint_topic, MQTT_STATUS_TOPIC);
-         snprintf(&message_buffer[0][0], MQTT_MESSAGE_LENGTH, MQTT_ON_CONNECT_MESSAGE);
+         snprintf(&message_buffer[0][0], MQTT_MESSAGE_LENGTH, MQTT_ON_CONNECT_MESSAGE,MODULE_MAIN_VERSION,MODULE_MINOR_VERSION);
 
          if (mqttPublish(full_topic_buffer, &message_buffer[0][0]), true) {
 	   //retry = 0;
