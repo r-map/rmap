@@ -177,7 +177,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def MQTT_ON_CONNECT_MESSAGE
 \brief MQTT on connect message.
 */
-#define MQTT_ON_CONNECT_MESSAGE        ("{\"v\":\"conn\"}")
+#define MQTT_ON_CONNECT_MESSAGE        ("{\"v\":\"conn\",\"s\":%d,\"m\":%d}")
 
 /*!
 \def MQTT_ON_DISCONNECT_MESSAGE
