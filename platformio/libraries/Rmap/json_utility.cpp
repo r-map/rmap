@@ -78,6 +78,12 @@ uint8_t jsonToMqtt(const char *json, const char *mqtt_sensor, char topic[][MQTT_
   }
 
   for (JsonPair it : doc.as<JsonObject>()) {
+
+    if (i >= JSONS_TO_READ_FROM_SENSOR_COUNT) {
+      // the buffer is full
+      return i;
+    }
+
     if (strcmp(it.key().c_str(), "d") == 0) {
       snprintf(&topic[i][0], MQTT_SENSOR_TOPIC_LENGTH, "%s", mqtt_sensor);
       snprintf(&message[i][0], MQTT_MESSAGE_LENGTH, "{\"d\":%ld,\"p\":", it.value().as<int32_t>());
