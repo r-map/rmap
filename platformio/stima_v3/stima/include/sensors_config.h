@@ -300,16 +300,10 @@ unique sensors are sensors that can have more driver but only one i2c address an
 #define USE_SENSOR_RF24             (false)
 
 /*!
-\def RAIN_FOR_TIP
-\brief How much mm of rain for one tip of tipping bucket rain gauge.
-*/
-#define RAIN_FOR_TIP                (1)
-
-/*!
 \def VALUES_TO_READ_FROM_SENSOR_COUNT
 Maximum number of values to be read by the sensors.
 */
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (3)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (6)
 #define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
 
 #endif
