@@ -196,25 +196,32 @@ void SensorDriver::createAndSetup(const char* driver, const char* type, const ui
     if (
 	strcmp(sensors[i]->getDriver(),driver) == 0
 	//&&
-	//strcmp(sensors[i]->getType(),type)  == 0
+	//strcmp(sensors[i]->getType(),type)  == 0    // the type is different in the same poll
 	&&
 	sensors[i]->getAddress() == address
 	)
       {
 	index=_SensorDriver::_pool_pointers[i];
+	LOGT(F("found pool index: %d"),index);
 	found=true;
+	break;
       }
   }
 
   if (!found){    
+    if (_SensorDriver::_pool_new_pointer >= SENSORS_UNIQUE_MAX){
+      LOGE(F("pool index: %d out of scope"),_SensorDriver::_pool_new_pointer);
+      sensors[*sensors_count] = NULL;
+      (*sensors_count)++;
+      return;
+    }
+
+    LOGT(F("new pool index: %d"),_SensorDriver::_pool_new_pointer);
     index=_SensorDriver::_pool_new_pointer;
     _SensorDriver::_pool_pointers[*sensors_count]=index;
     _SensorDriver::_pool_new_pointer++;
   }
-
-  LOGT(F("pool index: %d"),index);
-  if (index >= SENSORS_UNIQUE_MAX) return;
-
+  
   sensors[*sensors_count] = SensorDriver::create(driver, type);
   if (sensors[*sensors_count]) {
     sensors[*sensors_count]->init(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
