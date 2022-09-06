@@ -642,6 +642,10 @@ void init_sensors () {
     }
 
     for (uint8_t i=0; i<sensors_count; i++) {
+      if (sensors[i] == NULL) {
+        sensors_error_count++;
+	continue;
+      }
       LOGN(F("created --> %d: %s-%s [ 0x%x ] set: %s"), i,
 	   sensors[i]->getDriver(),
 	   sensors[i]->getType(),
@@ -2414,10 +2418,16 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 
          if (driver && type && address && node) {
             while (!is_sensor_found && (i < sensors_count)) {
-               is_sensor_found = strcmp(sensors[i]->getDriver(), driver) == 0 && strcmp(sensors[i]->getType(), type) == 0 && sensors[i]->getAddress() == address && sensors[i]->getNode() == node;
-               if (!is_sensor_found) {
-                  i++;
-               }
+	      if (sensors[i] == NULL){
+		LOGE(F("Skip NULL Sensor"));
+		sensor_reading_failed_count++;
+		i++;
+		continue;
+	      }
+	      is_sensor_found = strcmp(sensors[i]->getDriver(), driver) == 0 && strcmp(sensors[i]->getType(), type) == 0 && sensors[i]->getAddress() == address && sensors[i]->getNode() == node;
+	      if (!is_sensor_found) {
+		i++;
+	      }
             }
 
             if (is_sensor_found) {
@@ -2445,17 +2455,17 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
 	   }
 	 }
 	 #endif
-
+	 
          if (do_prepare) {
             LOGN(F("Sensors reading..."));
             retry = 0;
 
             if (driver && type && address && node && is_sensor_found) {
-               sensors[i]->resetPrepared();
+               if (sensors[i]) sensors[i]->resetPrepared();
             }
             else {
                for (i=0; i<sensors_count; i++) {
-                  sensors[i]->resetPrepared(is_test);
+		 if (sensors[i]) sensors[i]->resetPrepared(is_test);
                }
                i = 0;
             }
@@ -2479,6 +2489,14 @@ void sensors_reading_task (bool do_prepare, bool do_get, char *driver, char *typ
         // initialize to missing value
         json_sensors_data[i][0]='\0';
 
+	//if driver is NULL skip it
+	if (sensors[i] == NULL){
+	  state_after_wait = SENSORS_SETUP_CHECK;
+	  sensors_reading_state = SENSORS_READING_NEXT;
+	  LOGV(F("SENSORS_READING_INIT ---> SENSORS_READING_NEXT"));
+	  break;
+	}
+	
 	if (sensors[i]->getErrorCount() > 0) LOGN(F("Sensor %s-%s-%d error count: %d"),
 	     sensors[i]->getDriver(), sensors[i]->getType(), sensors[i]->getAddress(),
 	     sensors[i]->getErrorCount());
