@@ -64,7 +64,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 #include <TimeLib.h>
 #include <SensorDriver.h>
-#include <eeprom_utility.h>
 #include <i2c_utility.h>
 #include <arduinoJsonRPC.h>
 

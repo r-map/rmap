@@ -22,8 +22,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <debug_config.h>
 #if (DEBUG_MEMORY)
+#ifdef ARDUINO_ARCH_AVR
 #include <MemoryUsage.h>
 STACK_DECLARE
+#endif
 #endif
 
 #include "stima.h"
@@ -34,7 +36,9 @@ STACK_DECLARE
 \return void.*/
 void setup() {
    #if (DEBUG_MEMORY)
+   #ifdef ARDUINO_ARCH_AVR
    post_StackPaint();
+   #endif
    #endif
    init_wdt(WDT_TIMER);
    Serial.begin(115200);
@@ -208,6 +212,7 @@ void loop() {
 
       case END:
          #if (DEBUG_MEMORY)
+         #ifdef ARDUINO_ARCH_AVR
 	 //SRamDisplay();
 	 LOGN(F("Stack painted free: %d"), post_StackCount());
 	 //STACKPAINT_PRINT
@@ -218,6 +223,7 @@ void loop() {
 	 //MEMORY_PRINT_END
 	 //MEMORY_PRINT_HEAPSIZE
 	 //FREERAM_PRINT;
+	 #endif
 	 #endif
 
          #if (USE_POWER_DOWN)
@@ -892,12 +898,15 @@ void save_configuration(bool is_default) {
       LOGN(F("Save configuration... [ %s ]"), OK_STRING);
    }
 
-   ee_write(&writable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
+   wdt_reset();
+   EEPROM.put(CONFIGURATION_EEPROM_ADDRESS, writable_configuration);
+   wdt_reset();
+   
 }
 
 void load_configuration() {
 
-   ee_read(&writable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
+   EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, writable_configuration);  
 
    if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
       LOGN(F("Wait configuration..."));
@@ -920,7 +929,7 @@ void load_configuration() {
       save_configuration(CONFIGURATION_DEFAULT);
    }
 
-   ee_read(&readable_configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration_t));
+   EEPROM.get(CONFIGURATION_EEPROM_ADDRESS, readable_configuration);  
 
    #if (USE_MQTT)
 
