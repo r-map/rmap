@@ -48,9 +48,9 @@
 /** For Debug - must be one */
 #define ENABLE_ARDUINO_FEATURES 1
 /** For Debug - must be one */
-#define ENABLE_ARDUINO_SERIAL 1
+#define ENABLE_ARDUINO_SERIAL 0
 /** For Debug - must be one */
-#define ENABLE_ARDUINO_STRING 1
+#define ENABLE_ARDUINO_STRING 0
 //------------------------------------------------------------------------------
 #if ENABLE_ARDUINO_FEATURES
 #include "Arduino.h"
@@ -83,7 +83,7 @@
  * contiguous files.  A small amount of flash is flash is used.
  */
 #ifndef USE_FAT_FILE_FLAG_CONTIGUOUS
-#define USE_FAT_FILE_FLAG_CONTIGUOUS 1
+#define USE_FAT_FILE_FLAG_CONTIGUOUS 0
 #endif  // USE_FAT_FILE_FLAG_CONTIGUOUS
 //------------------------------------------------------------------------------
 /**
