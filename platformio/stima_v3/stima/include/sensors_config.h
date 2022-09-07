@@ -27,13 +27,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*!
 \def SENSOR_MAX
 \brief Max number of sensor.
+Max value here is 25
 */
 #define SENSORS_MAX      (15)
 
 /*!
 \def SENSOR_UNIQUE_MAX
-\brief Max number of unique sensor.
+\brief Max number of unique sensor (Stima modules).
 unique sensors are sensors that can have more driver but only one i2c address and only one setup and prepare
+Max value here is 10
 */
 #define SENSORS_UNIQUE_MAX      (6)
 
