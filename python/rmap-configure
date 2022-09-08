@@ -51,6 +51,7 @@ import base64, datetime
 import logging,traceback,re
 import json
 import dballe
+import random
 
 # go to share dir for virtualenv
 ve=os.getenv("VIRTUAL_ENV")
@@ -74,6 +75,15 @@ try:
 except django.db.utils.OperationalError:
     print ("ERROR Cannot find DB: run rmapctrl --syncdb")
     raise SystemExit(1)
+
+
+def genpskkey():
+    def randomchars(length):
+        s = "1234567890ABCDEF"*30
+        return "".join(random.sample(s,length))
+
+    return randomchars(32)
+
 
 parser = argparse.ArgumentParser(description='Configure rmap boards. Thera are some option that are action options and others that are parameter options')
 parser.add_argument('--version', action='version', version="%(prog)s "+__version__)
@@ -130,10 +140,18 @@ parser.add_argument('--timerange',  default="254,0,0", help="sensor timerange (s
 parser.add_argument('--level',  default="103,2000", help="sensor level (see tables)")
 
 parser.add_argument('--addboard',action="store_true", help="add board to module of station")
+
+####
+parser.add_argument('--canactivate',action="store_true", help="activate can transport")
+
+
+####
+
 parser.add_argument('--serialactivate',action="store_true", help="activate serial transport")
 parser.add_argument('--mqttactivate',action="store_true", help="activate mqtt transport")
 parser.add_argument('--mqttusername',  default="", help="mqtt username")
 parser.add_argument('--mqttpassword',  default=User.objects.make_random_password(), help="mqtt password")
+parser.add_argument('--mqttpskkey',  default=genpskkey(), help="mqtt psk key (32 random chars/number)")
 parser.add_argument('--mqttsamplerate',type=int,  default=5, help="mqtt samplerate for sensorsin seconds")
 parser.add_argument('--mqttrootpath',  default="sample", help="mqtt topic root path")
 parser.add_argument('--mqttmaintpath',  default="maint", help="mqtt topic maint path for admin RPC")
@@ -443,6 +461,7 @@ if args.wizard:
                             network=args.network,
                             mqttusername=args.username,
                             mqttpassword=args.password,
+                            mqttpskkey=args.mqttpskkey,
                             mqttserver=args.server,
                             mqttsamplerate=args.mqttsamplerate,
                             mqttrootpath=args.mqttrootpath,
@@ -470,8 +489,9 @@ if args.addboard:
 
     rmap.rmap_core.addboard(station_slug=args.station_slug,username=args.username,board_slug=args.board_slug,activate=True
                             ,serialactivate=args.serialactivate
+                            ,canactivate=args.canactivate
                             ,mqttactivate=args.mqttactivate, mqttserver=args.server
-                            ,mqttusername=args.mqttusername, mqttpassword=args.mqttpassword, mqttsamplerate=args.mqttsamplerate
+                            ,mqttusername=args.mqttusername, mqttpassword=args.mqttpassword,mqttpskkey=args.mqttpskkey, mqttsamplerate=args.mqttsamplerate
                             ,bluetoothactivate=args.bluetoothactivate, bluetoothname=args.bluetoothname
                             ,amqpactivate=args.amqpactivate, amqpusername=args.amqpuser, amqppassword=args.amqppassword
                             ,amqpserver=args.server, queue="rmap", exchange="rmap"

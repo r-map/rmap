@@ -24,7 +24,7 @@
 	  <th>Lon</th>
 	  <th>{% trans 'Station status' %}</th>
 	  <th>{% trans 'Last status update' %}</th>
-	  
+	  <th>{% trans 'Version' %}</th>
 	  <th>Category</th>
 	  <th><i class="fa fa-map"></i> {% trans 'View on the map' %}</th>
 	</tr>
@@ -38,6 +38,7 @@
 	      <td> {{ station.lon}}</td>
 	      <td> {{ station.stationmaintstatus.laststatus}}</td>
 	      <td> {{ station.stationmaintstatus.lastupdate}}</td>
+	      <td> {{ station.stationmaintstatus.firmwaremajor }}.{{ station.stationmaintstatus.firmwareminor }}</td>
 	      <td> {{ station.category}}</td>
 	      <td> <a href="{% url 'stationsonmap' station.user station.slug %}"><i class="fa fa-map-marker "></i> {{ station.name }}</a></td>
 	    </tr>

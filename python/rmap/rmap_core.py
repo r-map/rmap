@@ -24,6 +24,7 @@ from .stations.models import StationConstantData
 from .stations.models import Board
 from .stations.models import Sensor, SensorType
 from .stations.models import TransportRF24Network
+from .stations.models import TransportCan
 from .stations.models import TransportMqtt
 from .stations.models import TransportBluetooth
 from .stations.models import TransportAmqp
@@ -194,7 +195,8 @@ def delsensors(station_slug=None,username=None,board_slug=None):
 
 def addboard(station_slug=None,username=None,board_slug=None,activate=False
               ,serialactivate=False
-              ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
+              ,canactivate=False
+              ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttpskkey=None, mqttsamplerate=5
               ,bluetoothactivate=False, bluetoothname="HC-05"
               ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
               ,tcpipactivate=False, tcpipname="master", tcpipntpserver="pool.ntp.org", tcpipgsmapn="ibox.tim.it"
@@ -227,6 +229,18 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     print("Serial Transport", myboard.transportserial)
     myboard.transportserial.save()
 
+
+    try:
+        transportcan=myboard.transportcan
+    except ObjectDoesNotExist :
+        transportcan=TransportCan()
+
+    transportcan.active=canactivate
+    myboard.transportcan=transportcan
+    print("CAN Transport", myboard.transportcan)
+    myboard.transportcan.save()
+
+
     try:
         transportmqtt=myboard.transportmqtt
     except ObjectDoesNotExist :
@@ -236,6 +250,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     transportmqtt.mqttserver=mqttserver
     transportmqtt.mqttuser=mqttusername
     transportmqtt.mqttpassword=mqttpassword
+    transportmqtt.mqttpskkey=mqttpskkey
     transportmqtt.mqttsampletime=mqttsamplerate
     myboard.transportmqtt=transportmqtt
     print("MQTT Transport", myboard.transportmqtt)
@@ -280,11 +295,7 @@ def addboard(station_slug=None,username=None,board_slug=None,activate=False
     
 
 def addsensor(station_slug=None,username=None,board_slug=None,name="my sensor",driver="TMP",type="TMP",i2cbus=1,address=72,node=1
-              ,timerange="254,0,0",level="0,1",activate=False
-              ,mqttactivate=False, mqttserver="rmap.cc", mqttusername=None, mqttpassword=None, mqttsamplerate=5
-              ,bluetoothactivate=False, bluetoothname="hc-05"
-              ,amqpactivate=False, amqpusername="rmap", amqppassword=None, amqpserver="rmap.cc", queue="..bufr.report_fixed", exchange="..bufr.report_fixed"
-          ):
+              ,timerange="254,0,0",level="0,1",activate=False):
     #,sensortemplate=None):
 
     print("---------------------------")
@@ -1173,7 +1184,7 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
 
                         print("mybaudrate:",mybaudrate)
 
-                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=5,sleep=15)
+                        transport=jsonrpc.TransportSERIAL( logfunc=logfunc,port=mydevice,baudrate=mybaudrate,timeout=1,sleep=3)
                         
                 except ObjectDoesNotExist:
                     print("transport serial not present for this board")
@@ -1311,7 +1322,11 @@ def configstation(transport_name="serial",station_slug=None,board_slug=None,logf
                                                  +"/"+mystation.network+"/"))
 
         print(">>>>>>> save config")
+        if (isinstance(transport, jsonrpc.TransportSERIAL)):
+            transport.ser.timeout=8    # save on eeprom require time
         print("save",rpcproxy.configure(save=True ))
+        if (isinstance(transport, jsonrpc.TransportSERIAL)):
+            transport.ser.timeout=1
 
         print("----------------------------- board configured : REBOOT ---------------------------------")
         print("reboot:",rpcproxy.reboot())
@@ -1741,6 +1756,7 @@ def configdb(username="rmap",password="rmap",
              station="home",lat=0,lon=0,constantdata={},network="fixed",
              mqttusername="your user",
              mqttpassword="your password",
+             mqttpskkey="12345678901234567890123456789012",
              mqttserver="rmap.cc",
              mqttsamplerate=5,
              bluetoothname="hc06",
@@ -1831,6 +1847,7 @@ def configdb(username="rmap",password="rmap",
                 myboard.transportmqtt.mqttserver=mqttserver
                 myboard.transportmqtt.mqttuser=mqttusername
                 myboard.transportmqtt.mqttpassword=mqttpassword
+                myboard.transportmqtt.mqttpskkey=mqttpskkey
                 myboard.transportmqtt.mqttsampletime=mqttsamplerate
                 myboard.transportmqtt.save()
                 

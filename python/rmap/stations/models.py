@@ -125,6 +125,7 @@ class Sensor(models.Model):
     objects = SensorManager()
 
     SENSOR_DRIVER_CHOICES = (
+        ('CAN',  'Cyphal over CAN-BUS'),
         ('I2C',  'I2C drivers'),
         ('RF24',  'RF24 Network jsonrpc'),
         ('SERI',  'SERIAL drivers over serial port'),
@@ -139,7 +140,7 @@ class Sensor(models.Model):
     type = models.ForeignKey('SensorType',null=False,blank=False,help_text=ugettext_lazy("Type of sensor"),on_delete=models.CASCADE)
 
     i2cbus=models.PositiveIntegerField(default=1,null=False,blank=True,help_text=ugettext_lazy("I2C bus number (for raspberry only)"))
-    address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C ddress (decimal)"))
+    address=models.PositiveIntegerField(default=72,null=False,blank=False,help_text=ugettext_lazy("I2C address (decimal)"))
     node=models.PositiveIntegerField(default=1,blank=True,help_text=ugettext_lazy("RF24Network node ddress"))
 
     timerange = models.CharField(max_length=50,unique=False,default="254,0,0",null=False,blank=False,help_text=ugettext_lazy("Sensor metadata from rmap RFC"))
@@ -431,6 +432,40 @@ class TransportMqtt(models.Model):
         return '%s' % (self.mqttserver)
 
 
+class TransportCanManager(models.Manager):
+    def get_by_natural_key(self, board):
+        #print "TransportCanManager: ",board
+        return self.get( board=Board.objects.get_by_natural_key(board[0],board[1]))
+
+
+class TransportCan(models.Model):
+    """CAN transport."""
+
+    objects = TransportCanManager()
+
+    active = models.BooleanField(ugettext_lazy("Active"),default=False,help_text=ugettext_lazy("Activate this transport for measurements"))
+    cansampletime = models.PositiveIntegerField(default=5,null=False,blank=False,help_text=ugettext_lazy("interval in seconds for publish"))
+    node_id = models.PositiveIntegerField(default=100,null=False,blank=False,help_text=ugettext_lazy("Cyphal node_id"))
+    subject = models.CharField(max_length=100,default="",null=True,blank=False,help_text=ugettext_lazy("Cyphal subject"))    
+    subject_id=models.PositiveIntegerField(default=100,null=False,blank=False,help_text=ugettext_lazy("Cyphal subject-ID (decimal)"))
+    board = models.OneToOneField("Board",on_delete=models.CASCADE)
+
+    def natural_key(self):
+        #print "natural key"
+        #print self,self.board.natural_key()
+        return (self.board.natural_key(),)
+
+    natural_key.dependencies = ['stations.board']
+
+    class Meta:
+        ordering = ['node_id']
+        verbose_name = 'CAN transport'
+        verbose_name_plural = 'CAN transport'
+
+    def __str__(self):
+        return '%d' % (self.node_id)
+
+
 class TransportTcpipManager(models.Manager):
     def get_by_natural_key(self, board):
         #print "TransportTcpipManager: ",board
@@ -687,7 +722,8 @@ class StationMaintStatus(models.Model):
     
     laststatus = models.CharField(max_length=128, blank=True,default="",help_text=ugettext_lazy("Last status"))
     lastupdate = models.DateTimeField(null=True,blank=True,help_text=ugettext_lazy("Last status update date"))
-
+    firmwaremajor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware major version"))
+    firmwareminor = models.PositiveIntegerField(default=None,null=True,blank=True,help_text=ugettext_lazy("firmware minor version"))
 
     
 class BoardFirmwareMetadata(models.Model):

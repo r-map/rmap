@@ -148,6 +148,8 @@ class MyMQTTClass(mqtt.Client):
         try:
             p = self.parse_payload(payload)
             msg["value"] = p["v"]
+            msg["majorversion"] = p.get("s")
+            msg["minorversion"] = p.get("m")
         except:
             return None
             
@@ -208,6 +210,8 @@ class MyMQTTClass(mqtt.Client):
             logging.debug(m["trange"])
             logging.debug(m["var"])
             logging.debug(m["value"])
+            logging.debug(m["majorversion"])
+            logging.debug(m["minorversion"])
 
             for b, v in m["attributes"].items():
                 logging.debug("ignore: {} {}".format(b, v))
@@ -229,33 +233,38 @@ class MyMQTTClass(mqtt.Client):
 
                     if hasattr(mystation, 'stationmaintstatus'):
 
-                        logging.info("update maint information to station {} {} {} {} {}: {} {}".format
+                        logging.info("update maint information to station {} {} {} {} {}: {} {} {} {}".format
                                       (mystation.network
                                        ,mystation.lon
                                        ,mystation.lat
                                        ,mystation.user
                                        ,mystation.ident
                                        ,m["value"]
+                                       ,m["majorversion"]
+                                       ,m["minorversion"]
                                        ,m["datetime"])                                
                                      )
 
                         mystation.stationmaintstatus.laststatus=m["value"]
-                        mystation.stationmaintstatus.lastupdate=m["datetime"]
+                        mystation.stationmaintstatus.firmwaremajor=m["majorversion"]
+                        mystation.stationmaintstatus.firmwareminor=m["minorversion"]
                         mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
 
                     else:
 
-                        logging.info("add maint information to station {} {} {} {} {}: {} {}".format
+                        logging.info("add maint information to station {} {} {} {} {}: {} {} {} {}".format
                                       (mystation.network
                                        ,mystation.lon
                                        ,mystation.lat
                                        ,mystation.user
                                        ,mystation.ident
                                        ,m["value"]
+                                       ,m["majorversion"]
+                                       ,m["minorversion"]
                                        ,m["datetime"])                                
                                      )
 
-                        sms=StationMaintStatus(station=mystation,laststatus=m["value"] ,lastupdate=m["datetime"])
+                        sms=StationMaintStatus(station=mystation,laststatus=m["value"],firmwaremajor=m["majorversion"],firmwareminor=m["minorversion"] ,lastupdate=m["datetime"])
                         sms.save()
 
                 except StationMetadata.DoesNotExist :
