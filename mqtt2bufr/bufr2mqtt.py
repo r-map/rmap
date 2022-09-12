@@ -64,14 +64,14 @@ def data_to_mqtt(data):
     var = data["variable"]
     topic = (
         "/{ident}/{lon},{lat}/{rep_memo}/"
-        "{level}/{trange}/{varcode}"
+        "{trange}/{level}/{varcode}"
     ).format(
         ident=d.get("ident", "-"),
         lon="-" if d.get("lon") is None else int(d["lon"]*10**5),
         lat="-" if d.get("lat") is None else int(d["lat"]*10**5),
         rep_memo=d.get("report", "-"),
-        level=",".join("-" if i is None else str(i) for i in d.get("level", [None]*4)),
         trange=",".join("-" if i is None else str(i) for i in d.get("trange", [None]*3)),
+        level=",".join("-" if i is None else str(i) for i in d.get("level", [None]*4)),
         varcode=var.code,
     )
     payload = {
