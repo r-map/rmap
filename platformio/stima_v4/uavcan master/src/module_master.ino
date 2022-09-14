@@ -692,7 +692,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(Stat
             state->publisher_enabled.port_list = false;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
-        }        
+        }          
         default:
         {
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_BAD_COMMAND;
@@ -1289,7 +1289,7 @@ bool CAN_HW_Init(void)
     // CAN1 clock enable
     __HAL_RCC_CAN1_CLK_ENABLE();
 
-    #if defined(STM32L452xx)
+    #if defined(STM32L496xx)
     // Mapping GPIO for CAN
     /* Configure CAN pin: RX */
     GPIO_InitStruct.Pin = GPIO_PIN_11;
@@ -2201,7 +2201,7 @@ void loop(void)
                     // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
                     if(bIsWriteRegister) {
                         // Invio il registro al nodo slave in scrittura
-                        uavcan_register_Value_1_0_select_natural32_(&val);
+                        uavcan_register_Value_1_0_select_natural16_(&val);
                         val.natural32.value.count       = 1;
                         val.natural32.value.elements[0] = 12345;
                     } else {
@@ -2247,10 +2247,10 @@ void loop(void)
                 } else {
                     Serial.print(F("Ricevuto conferma R/W registro dal nodo remoto: "));
                     Serial.println(state.slave[0].node_id);
-                    Serial.print(F("Totale elementi (Natural32): "));
+                    Serial.print(F("Totale elementi (Natural16): "));
                     Serial.println(state.slave[0].register_access.response.unstructured.value.count);
                     for(byte bElement=0; bElement<state.slave[0].register_access.response.unstructured.value.count; bElement++) {
-                        Serial.print(state.slave[0].register_access.response.natural32.value.elements[bElement]);
+                        Serial.print(state.slave[0].register_access.response.natural16.value.elements[bElement]);
                         Serial.print(" ");                        
                     }
                     Serial.println();

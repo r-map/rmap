@@ -59,6 +59,8 @@
 #define CMD_DISABLE_PUBLISH_DATA      11
 #define CMD_ENABLE_PUBLISH_PORT_LIST  12
 #define CMD_DISABLE_PUBLISH_PORT_LIST 13
+#define CMD_TEST                      99
+#define CMD_TEST_VALUE                100
 
 // Servizi di default
 #define DEFAULT_PUBLISH_PORT_LIST true
