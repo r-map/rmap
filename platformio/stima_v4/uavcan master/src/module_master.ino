@@ -1788,8 +1788,8 @@ void loop(void)
     #define LED_ON_CAN_DATA_RX
     // #define LED_ON_SYNCRO_TIME
     // #define TEST_COMMAND
-    #define TEST_RMAP_DATA
-    #define TEST_REGISTER
+    // #define TEST_RMAP_DATA
+    // #define TEST_REGISTER
 
     // Set START Timetable LOOP RX/TX.
     state.started_at                            = getMonotonicMicroseconds(&state);

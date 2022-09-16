@@ -24,6 +24,8 @@ uint4 continuos_acq = 7
 uint4 suspend_acq = 8
 # Sospende il ciclo di acquisizione temporaneamente (avvia acquisizione parallela per test sensore)
 uint4 manutenzione_acq = 9
+# Valore per risposta al test
+uint4 test_acq = 15
 
 # canale/sensore su cui effetuare la lettura (analogico 0..4)
 # comando riservato per scopi futuri o più canali analogici

@@ -677,6 +677,11 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(Stat
             state->publisher_enabled.port_list = false;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
+        }
+        case CMD_TEST:
+        {
+            resp.status = CMD_TEST_VALUE;
+            break;
         }        
         default:
         {
@@ -766,6 +771,10 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(State* st
         /// Avvio ciclo di lettura... in continuo, senza tempo parametrizzato (necessita di stop remoto)
         case rmap_service_setmode_1_0_continuos_acq:
             resp.stato = GENERIC_STATE_UNDEFINED;
+            break;
+
+        case rmap_service_setmode_1_0_test_acq:
+            resp.stato = req->parametri.comando;
             break;
 
         /// NON Gestito, risposta error (undefined)
@@ -972,6 +981,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
         {
             uavcan_register_Access_Request_1_0 req = {0};
             size_t size = transfer->payload_size;
+            Serial.println(F("<<-- Ricevuto richiesta accesso ai registri da master"));
             if (uavcan_register_Access_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 const uavcan_register_Access_Response_1_0 resp = processRequestRegisterAccess(&req);
                 uint8_t serialized[uavcan_register_Access_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -1768,7 +1778,11 @@ void loop(void)
         // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
         if (monotonic_time >= next_01_sec_iter_at) {
             #ifdef PUBLISH_HEARTBEAT
-            Serial.println(F("Publish SLAVE Heartbeat -->> [1 sec]"));
+            if(state.canard.node_id <= CANARD_NODE_ID_MAX) {
+                Serial.println(F("Publish SLAVE Heartbeat -->> [1 sec]"));
+            } else {
+                Serial.println(F("Publish SLAVE PNP Request Message -->> [RND x2 sec]"));
+            }            
             #endif
             next_01_sec_iter_at += MEGA;
             handleNormalLoop(&state, monotonic_time);

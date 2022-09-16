@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl
-// Generated at:  2022-09-03 16:11:14.512788 UTC
+// Generator:     nunavut-1.8.2 (serialization was enabled)
+// Source file:   C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl
+// Generated at:  2022-09-16 10:19:46.566718 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     rmap.service.setmode
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.10.5
+//     python_version:  3.10.2
 //     python_release_level:  final
-//     python_build:  ('tags/v3.10.5:f377153', 'Jun  6 2022 16:14:13')
+//     python_build:  ('tags/v3.10.2:a58ebcc', 'Jan 17 2022 14:12:15')
 //     python_compiler:  MSC v.1929 64 bit (AMD64)
-//     python_revision:  f377153
+//     python_revision:  a58ebcc
 //     python_xoptions:  {}
-//     runtime_platform:  Windows-10-10.0.19043-SP0
+//     runtime_platform:  Windows-10-10.0.19044-SP0
 //
 // Language Options
 //     target_endianness:  little
@@ -40,19 +40,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan master/data_types/rmap/service/setmode.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus
@@ -97,6 +97,8 @@ static_assert(rmap_service_setmode_1_0_EXTENT_BYTES_ >= rmap_service_setmode_1_0
 #define rmap_service_setmode_1_0_suspend_acq (8U)
 /// saturated uint4 manutenzione_acq = 9
 #define rmap_service_setmode_1_0_manutenzione_acq (9U)
+/// saturated uint4 test_acq = 15
+#define rmap_service_setmode_1_0_test_acq (15U)
 /// saturated uint3 CH01 = 0
 #define rmap_service_setmode_1_0_CH01 (0U)
 /// saturated uint3 CH02 = 1

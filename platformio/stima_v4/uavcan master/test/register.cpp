@@ -481,12 +481,13 @@ void registerSetup(const bool register_init) {
         registerRead("uavcan.can.bitrate", &val);
     }
 
-    /* N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
+    // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
     if(register_init) {
-        // ...
-        // ...
+        uavcan_register_Value_1_0_select_natural16_(&val);
+        val.natural16.value.count       = 1;
+        val.natural16.value.elements[0] = 100;
+        registerWrite("uavcan.srv.TH.service_data_and_metadata.id", &val);
     }
-    */
 }
 
 static inline void registerOpen(const char* const register_name, const bool write, SdFile& registerFile) {

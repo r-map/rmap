@@ -7,9 +7,9 @@
 // To avoid conflicts with definitions given in the source DSDL file, all entities created by the code generator
 // are named with an underscore at the end, like foo_bar_().
 //
-// Generator:     nunavut-1.8.3 (serialization was enabled)
-// Source file:   C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl
-// Generated at:  2022-09-03 16:09:57.637576 UTC
+// Generator:     nunavut-1.8.2 (serialization was enabled)
+// Source file:   C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl
+// Generated at:  2022-09-16 10:13:38.999992 UTC
 // Is deprecated: no
 // Fixed port-ID: None
 // Full name:     uavcan.si.sample.voltage.Scalar
@@ -17,13 +17,13 @@
 //
 // Platform
 //     python_implementation:  CPython
-//     python_version:  3.10.5
+//     python_version:  3.10.2
 //     python_release_level:  final
-//     python_build:  ('tags/v3.10.5:f377153', 'Jun  6 2022 16:14:13')
+//     python_build:  ('tags/v3.10.2:a58ebcc', 'Jan 17 2022 14:12:15')
 //     python_compiler:  MSC v.1929 64 bit (AMD64)
-//     python_revision:  f377153
+//     python_revision:  a58ebcc
 //     python_xoptions:  {}
-//     runtime_platform:  Windows-10-10.0.19043-SP0
+//     runtime_platform:  Windows-10-10.0.19044-SP0
 //
 // Language Options
 //     target_endianness:  little
@@ -40,19 +40,19 @@
 #include <stdlib.h>
 
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_TARGET_ENDIANNESS == 434322821,
-              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_OMIT_FLOAT_SERIALIZATION_SUPPORT == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_SERIALIZATION_ASSERTS == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_ENABLE_OVERRIDE_VARIABLE_ARRAY_CAPACITY == 0,
-              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 static_assert( NUNAVUT_SUPPORT_LANGUAGE_OPTION_CAST_FORMAT == 2368206204,
-              "C:/Dati/RMAP/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
+              "C:/Users/Cristiano/Documents/stima-v4/stimav4-test/uavcan slave-th/data_types/uavcan/si/sample/voltage/Scalar.1.0.dsdl is trying to use a serialization library that was compiled with "
               "different language options. This is dangerous and therefore not allowed." );
 
 #ifdef __cplusplus

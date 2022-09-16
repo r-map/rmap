@@ -107,15 +107,13 @@ void registerInit(void) {
         // Populate INIT Default Value
         uavcan_register_Value_1_0 val = {0};
         // Save Default List Register INIT Name and Value (Create File List) In order 0,1,2..N
-        registerListAppend("uavcan.can.mtu", 0);
+        registerListAppend("uavcan.can.bitrate", 0);
         uavcan_register_Value_1_0_select_natural16_(&val);
         val.natural16.value.count       = 1;
         val.natural16.value.elements[0] = CAN_MTU_BASE; // CAN_CLASSIC MTU 8
-        registerWrite("uavcan.can.mtu", &val);
         // We also need the bitrate configuration register. In this demo we can't really use it but an embedded application
         // should define "uavcan.can.bitrate" of type natural32[2]; the second value is 0/ignored if CAN FD not supported.
         // TODO: Default a CAN_BIT_RATE, se CAN_BIT_RATE <> readRegister setup bxCAN con nuovo RATE hot reload
-        registerListAppend("uavcan.can.bitrate", 1);
         uavcan_register_Value_1_0_select_natural32_(&val);
         val.natural32.value.count       = 2;
         val.natural32.value.elements[0] = CAN_BIT_RATE;
@@ -483,12 +481,13 @@ void registerSetup(const bool register_init) {
         registerRead("uavcan.can.bitrate", &val);
     }
 
-    /* N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
+    // N.B. Inserire quà la personalizzazione dei registri in SETUP Fisso o di compilazione di modulo
     if(register_init) {
-        // ...
-        // ...
+        uavcan_register_Value_1_0_select_natural16_(&val);
+        val.natural16.value.count       = 1;
+        val.natural16.value.elements[0] = 100;
+        registerWrite("uavcan.srv.TH.service_data_and_metadata.id", &val);
     }
-    */
 }
 
 static inline void registerOpen(const char* const register_name, const bool write, SdFile& registerFile) {
