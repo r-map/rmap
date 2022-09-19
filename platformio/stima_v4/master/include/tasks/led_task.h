@@ -31,7 +31,7 @@
 #ifndef _LED_TASK_H
 #define _LED_TASK_H
 
-#include "hardware_config.h"
+#include "HardwareConfig.h"
 #include "Arduino.h"
 #include "STM32FreeRTOS.h"
 #include "thread.hpp"

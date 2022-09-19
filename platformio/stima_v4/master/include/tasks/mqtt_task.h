@@ -31,7 +31,7 @@
 #ifndef _MQTT_TASK_H
 #define _MQTT_TASK_H
 
-#include "hardware_config.h"
+#include "HardwareConfig.h"
 #include "net_config.h"
 #include "Arduino.h"
 #include "STM32FreeRTOS.h"

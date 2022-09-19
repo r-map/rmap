@@ -58,7 +58,6 @@ void setup() {
   EthernetParam_t ethernetParam;
   MqttParam_t mqttParam;
 
-
   ethernetParam.interface = &netInterface[0];
   ethernetParam.tickHandlerMs = APP_ETHERNET_TICK_EVENT_HANDLER_MS;
 

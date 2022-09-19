@@ -31,7 +31,7 @@
 #ifndef _ETHERNET_TASK_H
 #define _ETHERNET_TASK_H
 
-#include "hardware_config.h"
+#include "HardwareConfig.h"
 #include "net_config.h"
 #include "debug.h"
 #include <STM32FreeRTOS.h>

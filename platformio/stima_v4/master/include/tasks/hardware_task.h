@@ -31,7 +31,7 @@
 // #ifndef _HARDWARE_TASK_H
 // #define _HARDWARE_TASK_H
 //
-// #include "hardware_config.h"
+// #include "HardwareConfig.h"
 // #include "net_config.h"
 // #include "mydebug.h"
 // #include <STM32FreeRTOS.h>

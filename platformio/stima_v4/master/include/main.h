@@ -32,7 +32,7 @@
 #define _MAIN_H
 
 #include "task_config.h"
-#include "hardware_config.h"
+#include "HardwareConfig.h"
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
