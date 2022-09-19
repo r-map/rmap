@@ -33,7 +33,7 @@
 // #include "core/net.h"
 // #include "drivers/eth/enc28j60_driver.h"
 // #include "error.h"
-// #include "hardware_config.h"
+// #include "HardwareConfig.h"
 
 // //External interrupt line driver
 // extern const ExtIntDriver extIntDriver;
