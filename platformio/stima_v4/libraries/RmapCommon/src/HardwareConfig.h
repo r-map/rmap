@@ -41,7 +41,7 @@
 #define I2C1_BUS_CLOCK    (1000000L)
 #endif
 
-#ifdef DSTIMA_MASTER_L496
+#ifdef STIMA_MASTER_L496
 #define LED1_PIN          (PC7)
 #define LED2_PIN          (PB7)   // A4 - SDA
 #define LED3_PIN          (PB14)
