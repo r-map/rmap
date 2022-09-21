@@ -1,0 +1,10 @@
+{
+    "name": "SHT",
+    "version": "1.0.0",
+    "keywords": "",
+    "description": "SHT sensor library",
+    "frameworks": "arduino",
+    "build": {
+        "libArchive": false
+    }
+}
