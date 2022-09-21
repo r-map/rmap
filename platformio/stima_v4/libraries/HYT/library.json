@@ -1,0 +1,10 @@
+{
+    "name": "HYT",
+    "version": "1.0.0",
+    "keywords": "",
+    "description": "HYT sensor library",
+    "frameworks": "arduino",
+    "build": {
+        "libArchive": false
+    }
+}

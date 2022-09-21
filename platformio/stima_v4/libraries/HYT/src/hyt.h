@@ -135,8 +135,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Hyt {
   public:
-    Hyt(uint8_t _address = HYT_DEFAULT_ADDRESS, uint8_t _power_pin = 0);
+    Hyt(TwoWire *_wire = &Wire, uint8_t _address = HYT_DEFAULT_ADDRESS, uint8_t _power_pin = 0);
     uint8_t getAddress();
+    uint8_t getAcquisitionDelayMs();
     bool prepare();
     uint8_t read(float *humidity, float *temperature);
     bool send(uint8_t data_0, uint8_t data_1, uint8_t data_2);
@@ -148,6 +149,7 @@ class Hyt {
   protected:
 
   private:
+    TwoWire *wire;
     uint8_t address;
     uint8_t power_pin;
 };
