@@ -30,10 +30,12 @@
 #define _TYPEDEF_H
 
 #include <stdint.h>
+#include <float.h>
 
 typedef struct {
   char type[4];           //!< sensor type
   uint8_t i2c_address;    //!< i2c address of sensor
-} sensor_conf_t;
+  bool is_redundant;      //!< if true it is used as redundant sensors in order to check one other main sensor
+} sensor_configuration_t;
 
 #endif
