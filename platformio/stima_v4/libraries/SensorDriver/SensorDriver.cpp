@@ -196,25 +196,32 @@ void SensorDriver::createAndSetup(const char* driver, const char* type, const ui
     if (
 	strcmp(sensors[i]->getDriver(),driver) == 0
 	//&&
-	//strcmp(sensors[i]->getType(),type)  == 0
+	//strcmp(sensors[i]->getType(),type)  == 0    // the type is different in the same poll
 	&&
 	sensors[i]->getAddress() == address
 	)
       {
 	index=_SensorDriver::_pool_pointers[i];
+	LOGT(F("found pool index: %d"),index);
 	found=true;
+	break;
       }
   }
 
   if (!found){    
+    if (_SensorDriver::_pool_new_pointer >= SENSORS_UNIQUE_MAX){
+      LOGE(F("pool index: %d out of scope"),_SensorDriver::_pool_new_pointer);
+      sensors[*sensors_count] = NULL;
+      (*sensors_count)++;
+      return;
+    }
+
+    LOGT(F("new pool index: %d"),_SensorDriver::_pool_new_pointer);
     index=_SensorDriver::_pool_new_pointer;
     _SensorDriver::_pool_pointers[*sensors_count]=index;
     _SensorDriver::_pool_new_pointer++;
   }
-
-  LOGT(F("pool index: %d"),index);
-  if (index >= SENSORS_UNIQUE_MAX) return;
-
+  
   sensors[*sensors_count] = SensorDriver::create(driver, type);
   if (sensors[*sensors_count]) {
     sensors[*sensors_count]->init(address, node, &_SensorDriver::_is_setted_pool[index], &_SensorDriver::_is_prepared_pool[index]);
@@ -407,15 +414,17 @@ void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_bu
 
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
-
+    
     if (length >= 1) {
       if (ISVALID_INT32(values[0])) {
         json["B12101"] = values[0];
       }
       else json["B12101"] = nullptr;
     }
-
-    serializeJson(json,json_buffer, json_buffer_length);
+    
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -636,7 +645,9 @@ void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_bu
       else json["B12101"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -832,7 +843,9 @@ void SensorDriverHyt2X1::getJson(int32_t *values, uint8_t length, char *json_buf
       else json["B12101"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -1109,7 +1122,9 @@ void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer
       else json["B11002"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -1351,7 +1366,9 @@ void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffe
       else json["B13011"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -1807,7 +1824,9 @@ void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer,
       else json["B13003"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -2224,7 +2243,9 @@ void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *j
        else json["B00006"] = nullptr;
      }
 
-     serializeJson(json,json_buffer, json_buffer_length);
+     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+       json_buffer[0]='\0';
+     }
   }
 }
 #endif
@@ -2669,7 +2690,9 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
     }
     #endif
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -2962,7 +2985,9 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
     }
     #endif
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -3591,7 +3616,9 @@ void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer
     }
     #endif
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
@@ -3852,7 +3879,9 @@ void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffe
       else json["B13212"] = nullptr;
     }
 
-    serializeJson(json,json_buffer, json_buffer_length);
+    if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
+      json_buffer[0]='\0';
+    }
   }
 }
 #endif
