@@ -29,10 +29,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * MODULE
 *********************************************************************/
 /*!
-\def MODULE_VERSION
-\brief Module version.
+\def MODULE_MAIN_VERSION
+\brief Module main version.
 */
-#define MODULE_VERSION                                (3)
+#define MODULE_MAIN_VERSION                           (3)
+
+/*!
+\def MODULE_MINOR_VERSION
+\brief Module minor version.
+*/
+#define MODULE_MINOR_VERSION                          (7)
+
+/*!
+\def MODULE_CONFIGURATION_VERSION
+\brief Module version of compatibile configuration. If you change it, you have to reconfigure.
+*/
+#define MODULE_CONFIGURATION_VERSION                  (2)
 
 /*!
 \def MODULE_TYPE
@@ -199,6 +211,8 @@ WDTO_15MS, WDTO_30MS, WDTO_60MS, WDTO_120MS, WDTO_250MS, WDTO_500MS,
 WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define WDT_TIMER                                     (WDTO_8S)
+
+
 
 /*********************************************************************
 * RADIATION SENSORS

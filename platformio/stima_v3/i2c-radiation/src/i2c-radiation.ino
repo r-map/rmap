@@ -1,7 +1,5 @@
-/**@file i2c-radiation.ino */
-
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -62,6 +60,10 @@ void loop() {
 
     #if (USE_POWER_DOWN)
     case ENTER_POWER_DOWN:
+         #if (ENABLE_SDCARD_LOGGING)   
+	 logFile.flush();
+	 #endif
+	 Serial.flush();	
       //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
       init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
       state = TASKS_EXECUTION;
@@ -69,12 +71,6 @@ void loop() {
     #endif
 
     case TASKS_EXECUTION:
-      // I2C Bus Check
-      if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-        LOGT(F("Restart I2C BUS"));
-        init_wire();
-        wdt_reset();
-      }
 
       #if (USE_SENSOR_DSR)
       if (is_event_solar_radiation_task) {
@@ -88,14 +84,19 @@ void loop() {
         wdt_reset();
       }
 
-      // if (digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
-      //   save_configuration(CONFIGURATION_CURRENT);
-      // }
+        // I2C Bus Check
+        if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+          LOGE(F("Restart I2C BUS"));
+          init_wire();
+          wdt_reset();
+        }
 
+	noInterrupts();
       if (ready_tasks_count == 0) {
         wdt_reset();
         state = END;
       }
+	interrupts();	
     break;
 
     case END:
@@ -119,7 +120,7 @@ void logPrefix(Print* _logOutput) {
 
 void logSuffix(Print* _logOutput) {
   _logOutput->print('\n');
-  //_logOutput->flush();  // we use this to flush every log message
+  _logOutput->flush();  // we use this to flush every log message
 }
 
 void init_logging(){
@@ -134,8 +135,13 @@ void init_logging(){
     Serial.println   (F("* did you change the chipSelect pin to match your shield or module?"));
   } else {
     Serial.println   (F("Wiring is correct and a card is present."));
-    Serial.println   (F("The FAT type of the volume: "));
+    Serial.print     (F("The FAT type of the volume: "));
     Serial.println   (SD.vol()->fatType());
+
+    // remove firmware to do not redo update the next reboot
+    if (sdcard_remove_firmware(&SD, MODULE_MAIN_VERSION, MODULE_MINOR_VERSION)){
+      LOGN(F("removed firmware version %d.%d from SD"),MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);
+    }
   }
   
   logFile= SD.open(SDCARD_LOGGING_FILE_NAME, O_RDWR | O_CREAT | O_APPEND);
@@ -169,9 +175,6 @@ void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
     noInterrupts ();
     sleep_enable();
 
-    //! turn off brown-out
-    // MCUCR = bit (BODS) | bit (BODSE);
-    // MCUCR = bit (BODS);
     interrupts ();
 
     sleep_cpu();
@@ -199,7 +202,9 @@ void init_buffers() {
   writable_data_ptr = &writable_data;
 
   readable_data_write_ptr->module_type = MODULE_TYPE;
-  readable_data_write_ptr->module_version = MODULE_VERSION;
+  readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
+  readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
+  
 
   reset_samples_buffer();
   reset_report_buffer();
@@ -238,10 +243,7 @@ void init_pins() {
 }
 
 void init_wire() {
-  if (i2c_error > 0) {
-    i2c_error = 0;
-  }
-
+  i2c_error = 0;
   Wire.end();
   Wire.begin(configuration.i2c_address);
   Wire.setClock(I2C_BUS_CLOCK);
@@ -250,7 +252,9 @@ void init_wire() {
 }
 
 void init_spi() {
+#if (ENABLE_SDCARD_LOGGING)      
   SPI.begin();
+#endif
 }
 
 void init_rtc() {
@@ -258,15 +262,15 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  timer_counter_ms = 0;
   start_timer();
 }
 
 void start_timer() {
   TCCR1A = 0x00;                //!< Normal timer operation
-  TCCR1B = 0x05;                //!< 1:1024 prescaler
+   TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
+   timer_counter_ms = 0;
   TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
 
@@ -286,15 +290,15 @@ void init_system() {
 
   //! main loop state
   state = INIT;
-  i2c_error = 0;
 }
 
 void print_configuration() {
   char stima_name[20];
   getStimaNameByType(stima_name, configuration.module_type);
   LOGN(F("--> type: %s"), stima_name);
-  LOGN(F("--> version: %d"), configuration.module_version);
-  LOGN(F("--> i2c address: 0x%X (%d)"), configuration.i2c_address, configuration.i2c_address);
+  LOGN(F("--> version: %d.%d"), MODULE_MAIN_VERSION, MODULE_MINOR_VERSION);   
+  LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
+  LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
   LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 
@@ -310,7 +314,8 @@ void save_configuration(bool is_default) {
   if (is_default) {
     LOGN(F("Save default configuration... [ %s ]"), OK_STRING);
     configuration.module_type = MODULE_TYPE;
-    configuration.module_version = MODULE_VERSION;
+    configuration.module_main_version = MODULE_MAIN_VERSION;
+    configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
     configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
     configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
@@ -346,7 +351,7 @@ void load_configuration() {
   //! read configuration from eeprom
   ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
 
-  if (configuration.module_type != MODULE_TYPE || configuration.module_version != MODULE_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+   if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
     save_configuration(CONFIGURATION_DEFAULT);
   }
   else {
@@ -496,6 +501,7 @@ template<typename buffer_g, typename length_v, typename value_v> value_v bufferR
   return value;
 }
 
+// legge dato puntato e decrementa puntatore
 template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length) {
   value_v value = *buffer->read_ptr;
 
@@ -545,10 +551,11 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 }
 
 void make_report () {
+  #if (USE_SENSOR_DSR)
   uint16_t error_count = 0;
   uint16_t valid_count = 0;
-
   float avg = 0;
+  #endif
 
   #if (USE_SENSOR_DSR)
   bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT);
@@ -567,7 +574,7 @@ void make_report () {
   #endif
 
   for (uint16_t i = 0; i < sample_count; i++) {
-    bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT_MAX) == 0);
+    //bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT_MAX) == 0);
 
     #if (USE_SENSOR_DSR)
     float solar_radiation = bufferReadBack<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT);
@@ -892,6 +899,5 @@ void tests() {
   if (is_test) {
     exchange_buffers();
   }
-
   interrupts();
 }
