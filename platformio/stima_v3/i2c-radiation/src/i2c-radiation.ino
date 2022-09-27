@@ -62,10 +62,20 @@ void loop() {
     case ENTER_POWER_DOWN:
          #if (ENABLE_SDCARD_LOGGING)   
 	 logFile.flush();
+	 power_spi_disable();
 	 #endif
 	 Serial.flush();	
-      //! enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
+         // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
+         wdt_disable();
+
+         // enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
       init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+
+         // enable watchdog
+         init_wdt(WDT_TIMER);
+         #if (ENABLE_SDCARD_LOGGING)
+	 power_spi_enable();
+	 #endif
       state = TASKS_EXECUTION;
     break;
     #endif
@@ -91,12 +101,10 @@ void loop() {
           wdt_reset();
         }
 
-	noInterrupts();
       if (ready_tasks_count == 0) {
         wdt_reset();
         state = END;
       }
-	interrupts();	
     break;
 
     case END:
@@ -107,6 +115,7 @@ void loop() {
       #endif
     break;
   }
+   wdt_reset();
 }
 
 
@@ -158,6 +167,7 @@ void init_logging(){
   Log.setPrefix(logPrefix);
   Log.setSuffix(logSuffix);
 }
+
 
 
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
@@ -216,7 +226,7 @@ void init_buffers() {
 void init_tasks() {
   noInterrupts();
 
-  //! no tasks ready
+   // no tasks ready
   ready_tasks_count = 0;
 
   is_event_command_task = false;
@@ -288,7 +298,7 @@ void init_system() {
   awakened_event_occurred_time_ms = millis();
   #endif
 
-  //! main loop state
+   // main loop state
   state = INIT;
 }
 
@@ -341,14 +351,12 @@ void save_configuration(bool is_default) {
 
   }
 
-  //! write configuration to eeprom
+   // write configuration to eeprom
   ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-  print_configuration();
 }
 
 void load_configuration() {
-  //! read configuration from eeprom
+  // read configuration from eeprom
   ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
 
    if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
@@ -359,6 +367,9 @@ void load_configuration() {
     print_configuration();
   }
 
+   print_configuration();
+
+   // set configuration value to writable register
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
   writable_data.is_continuous = configuration.is_continuous;
@@ -441,8 +452,12 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     i2c_rx_data[i] = Wire.read();
   }
 
+  if (rx_data_length < 2) {
+    // no payload and CRC as for scan I2c bus
+    readable_data_length = 0;
+    LOGN(F("No CRC: size %d"),rx_data_length);
+  } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
   //! check crc: ok
-  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
     rx_data_length--;
 
     // it is a registers read?
@@ -455,13 +470,14 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
-      noInterrupts();
+      //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
+	memset((void *) &readable_data_write_ptr->solar_radiation, UINT8_MAX, sizeof(rain_t));
         is_event_command_task = true;
         ready_tasks_count++;
       }
-      interrupts();
+      //interrupts();
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
@@ -480,12 +496,19 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
-          ((uint8_t *)writable_data_ptr)[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 2];
+	  //LOGN("write DATA %d:%d",i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i, i2c_rx_data[i + 1]);
+          ((uint8_t *)(writable_data_ptr))[i2c_rx_data[0] - I2C_WRITE_REGISTER_START_ADDRESS + i] = i2c_rx_data[i + 1];
         }
       }
+      /*
+      else{
+	LOGE("wrong rxdata address: %d length %d",i2c_rx_data[0],rx_data_length);
+      }
+      */
     }
   } else {
     readable_data_length = 0;
+    //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
