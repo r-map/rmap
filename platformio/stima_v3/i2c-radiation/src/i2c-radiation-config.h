@@ -342,4 +342,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SOLAR_RADIATION_READ_COUNT                    (20)
 
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)
+
 #endif

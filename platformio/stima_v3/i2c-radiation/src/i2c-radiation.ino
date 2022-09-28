@@ -214,12 +214,12 @@ void init_buffers() {
   readable_data_write_ptr->module_type = MODULE_TYPE;
   readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
   readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
-  
+  memset((void *) &readable_data_read_ptr->solar_radiation, UINT8_MAX, sizeof(report_t));
 
   reset_samples_buffer();
   reset_report_buffer();
 
-  //! copy readable_data_2 in readable_data_1
+  // copy readable_data_2 in readable_data_1
   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
 }
 
@@ -290,7 +290,52 @@ void stop_timer() {
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
 }
+
+/*!
+\fn ISR(TIMER1_OVF_vect)
+\brief Timer1 overflow interrupts routine.
+\return void.
+*/
+ISR(TIMER1_OVF_vect) {
+  //! Pre-load timer counter register
+  TCNT1 = TIMER1_TCNT1_VALUE;
+  
+  if (inside_transaction) {
+    //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
+    timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
+    timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
+
+    //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
+    transaction_time += TIMER1_INTERRUPT_TIME_MS;
+     
+    if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
+      transaction_time = 0;
+      inside_transaction = false;
+    }
+    
+    //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
+    #if (USE_SENSOR_DSR)
+    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
+      if (!is_event_solar_radiation_task) {
+	is_event_solar_radiation_task = true;
+	ready_tasks_count++;
+      }
+    }
+    #endif
+    
+    //! reset timer_counter_ms if it has become larger than TIMER_COUNTER_VALUE_MAX_MS
+    if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
+      timer_counter_ms = 0;
+    }
+    
+    if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
+      timer_counter_s = 0;
+    }
+  }
+}
+
 #endif
+
 
 void init_system() {
   #if (USE_POWER_DOWN)
@@ -364,7 +409,6 @@ void load_configuration() {
   }
   else {
     LOGN(F("Load configuration... [ %s ]"), OK_STRING);
-    print_configuration();
   }
 
    print_configuration();
@@ -396,50 +440,13 @@ void init_sensors () {
   }
 }
 
-/*!
-\fn ISR(TIMER1_OVF_vect)
-\brief Timer1 overflow interrupts routine.
-\return void.
-*/
-ISR(TIMER1_OVF_vect) {
-  //! Pre-load timer counter register
-  TCNT1 = TIMER1_TCNT1_VALUE;
-
-  //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
-  timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
-  timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
-
-  //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
-  #if (USE_SENSOR_DSR)
-  if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
-    if (!is_event_solar_radiation_task) {
-      noInterrupts();
-      is_event_solar_radiation_task = true;
-      ready_tasks_count++;
-      interrupts();
-    }
-  }
-  #endif
-
-  //! reset timer_counter_ms if it has become larger than TIMER_COUNTER_VALUE_MAX_MS
-  if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
-    timer_counter_ms = 0;
-  }
-
-  if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
-    timer_counter_s = 0;
-  }
-}
-
+ 
 void i2c_request_interrupt_handler() {
-  if (readable_data_length) {
-    //! write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
+   // write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
     Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
-    //! write crc8
     Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-  } else {
-    Wire.write(UINT16_MAX);
-  }
+
+   inside_transaction = false;
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
@@ -481,7 +488,7 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
     }
     // it is a registers write?
     else if (is_writable_register(i2c_rx_data[0])) {
-      rx_data_length -= 2;
+      rx_data_length -= 1;
 
       if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ADDRESS_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_ADDRESS_LENGTH) {
         is_i2c_data_ok = true;
@@ -779,114 +786,113 @@ void reset_report_buffer () {
 }
 
 void command_task() {
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  char buffer[30];
-  #endif
-
-  switch(i2c_rx_data[1]) {
+  switch(lastcommand) {
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_START:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT START");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT START");
       is_start = true;
       is_stop = false;
       is_test = false;
       commands();
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START");
+}
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT STOP");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT STOP");
       is_start = false;
       is_stop = true;
       is_test = false;
       commands();
+      inside_transaction = true;
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT STOP");
+    }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_START_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "ONESHOT START-STOP");
-      #endif
-      is_oneshot = true;
-      is_continuous = false;
+    if (configuration.is_oneshot) {
+      LOGN(F("Execute [ %s ]"), "ONESHOT START-STOP");
       is_start = true;
       is_stop = true;
       is_test = false;
       commands();
+      inside_transaction = true;
+    } else {
+      LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START-STOP");
+    }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS START");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
-      is_start = true;
-      is_stop = false;
+    if (configuration.is_continuous) {
+      LOGN(F("Execute [ %s ]"), "CONTINUOUS START");
       is_test = false;
       commands();
+    } else {
+      LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS START");
+    }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS STOP");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
+    if (configuration.is_continuous) {
+      LOGN(F("Execute [ %s ]"), "CONTINUOUS STOP");
       is_start = false;
       is_stop = true;
       is_test = false;
       commands();
+    } else {
+      LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS STOPT");
+    }
+
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "CONTINUOUS START-STOP");
-      #endif
-      is_oneshot = false;
-      is_continuous = true;
+    if (configuration.is_continuous) {
+      LOGN(F("Execute [ %s ]"), "CONTINUOUS START_STOP");
       is_start = true;
       is_stop = true;
       is_test = false;
       commands();
+    } else {
+      LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS START_STOPT");
+    }
+
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_TEST_READ:
-      #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-      strcpy(buffer, "TEST READ");
-      #endif
+    if (configuration.is_continuous) {
+      LOGN(F("Execute [ %s ]"), "CONTINUOUS TEST_READ");
       is_test = true;
       tests();
+    } else {
+      LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS TEST_READ");
+    }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_SAVE:
-      LOGV(F("Execute command [ SAVE ]"));
+      LOGN(F("Execute [ %s ]"), "SAVE");
       save_configuration(CONFIGURATION_CURRENT);
       init_wire();
     break;
+  
+  default:
+    LOGE(F("Command UNKNOWN"));
   }
-
-  #if (LOG_LEVEL >= LOG_LEVEL_VERBOSE)
-  if (configuration.is_oneshot == is_oneshot || configuration.is_continuous == is_continuous) {
-    LOGV(F("Execute [ %s ]"), buffer);
-  }
-  else if (configuration.is_oneshot == is_continuous || configuration.is_continuous == is_oneshot) {
-    LOGV(F("Ignore [ %s ]"), buffer);
-  }
-  #endif
-
+  
   noInterrupts();
   is_event_command_task = false;
   ready_tasks_count--;
+  lastcommand=I2C_SOLAR_RADIATION_COMMAND_NONE;
   interrupts();
 }
 
+
 void commands() {
+
+   if (inside_transaction) return;
+
   noInterrupts();
 
   //! CONTINUOUS START
@@ -913,7 +919,13 @@ void commands() {
   }
 
   interrupts();
+   is_start = false;
+   is_stop = false;
+   is_test = false;
+
 }
+
+
 
 void tests() {
   noInterrupts();
@@ -922,5 +934,6 @@ void tests() {
   if (is_test) {
     exchange_buffers();
   }
+   
   interrupts();
 }

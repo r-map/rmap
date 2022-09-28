@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_SOLAR_RADIATION_DEFAULT_ADDRESS                  (0x47)
 
 /*!
+\def I2C_SOLAR_RADIATION_COMMAND_NONE
+\brief NO command for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_COMMAND_NONE                 (0x00)
+
+/*!
 \def I2C_SOLAR_RADIATION_COMMAND_SAVE
 \brief Save command for i2c-radiation module.
 */
