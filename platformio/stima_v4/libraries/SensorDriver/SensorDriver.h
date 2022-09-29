@@ -1,15 +1,15 @@
 /**@file SensorDriver.h */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
-Marco Baldinetti <m.baldinetti@digiteco.it>
+Marco Baldinetti <marco.baldinetti@alling.it>
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,14 +17,14 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #ifndef SENSOR_DRIVER_H
 #define SENSOR_DRIVER_H
 
-#include <debug_config.h>
-#include <ArduinoLog.h>
 #include "SensorDriverSensors.h"
 #include "sensors_config.h"
 #include "rmap_utility.h"
@@ -32,6 +32,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "i2c_utility.h"
 #include <Arduino.h>
 #include <Wire.h>
+#include "os_port.h"
+#include "debug.h"
+#include "typedef.h"
 
 /*!
 \def SENSOR_DRIVER_ERROR
@@ -50,6 +53,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Kelvin to Celsius constant conversion.
 */
 #define SENSOR_DRIVER_C_TO_K      (27315l)
+
+#define SENSOR_DRIVER_STRING      ("SensorDriver")
 
 
 #if (USE_JSON)
@@ -71,7 +76,7 @@ public:
    \param[in] *type sensor's type.
    \return void.
    */
-   SensorDriver(const char* driver, const char* type);
+   SensorDriver(const char* driver, const char* type, TwoWire *wire = &Wire);
 
    /*!
    \fn SensorDriver *create(const char* driver, const char* type)
@@ -80,10 +85,10 @@ public:
    \param[in] *type sensor's type.
    \return instance of SensorDriver for specified sensor.
    */
-   static SensorDriver *create(const char* driver, const char* type);
+   static SensorDriver *create(const char* driver, const char* type, TwoWire *wire = &Wire);
 
    /*!
-   \fn void createAndSetup(const char* driver, const char* type, uint8_t address, SensorDriver *sensors[], uint8_t *sensors_count)
+   \fn void createSensor(const char* driver, const char* type, uint8_t address, SensorDriver *sensors[], uint8_t *sensors_count)
    \brief Create and setup the specified sensor.
    \param[in] *driver driver's type.
    \param[in] *type sensor's type.
@@ -93,7 +98,7 @@ public:
    \param[in] *sensors_count setted sensors count.
    \return void.
    */
-   static void createAndSetup(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], uint8_t *sensors_count);
+   static void createSensor(const char* driver, const char* type, const uint8_t address, const uint8_t node, SensorDriver *sensors[], TwoWire *wire = &Wire);
 
 
    /*!
@@ -233,7 +238,7 @@ public:
    \return void.
    */
    void resetSetted();
-  
+
    /*!
    \fn void resetPrepared(bool is_test = false)
    \brief Reset preapred internal state of sensor.
@@ -249,8 +254,11 @@ public:
    */
    uint16_t getErrorCount();
 
-  
+   static uint8_t getSensorsCount();
+
 protected:
+  TwoWire *_wire;
+
    /*!
    \var _driver
    \brief Internal sensor's variable for driver.
@@ -316,7 +324,7 @@ protected:
    \brief Internal sensor's counter of errors. Every i2c transaction with success the counter is reset.
    */
    uint16_t _error_count;
-  
+
    bool _is_test;
    bool *_is_setted;
    bool *_is_prepared;
@@ -333,6 +341,8 @@ protected:
    \return void.
    */
    void printInfo();
+   void printCreate();
+   void printInit();
 
 };
 
@@ -341,7 +351,7 @@ class SensorDriverAdt7420 : public SensorDriver {
 public:
    SensorDriverAdt7420(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("adt7420 create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("adt7420 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -356,7 +366,7 @@ public:
 protected:
 
   int temperature;
-  
+
    enum {
       INIT,
       READ,
@@ -377,7 +387,7 @@ class SensorDriverHih6100 : public SensorDriver {
 public:
    SensorDriverHih6100(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("hih6100 create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("hih6100 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -393,7 +403,7 @@ protected:
 
    uint16_t temperature;
    uint16_t humidity;
-  
+
    enum {
       INIT,
       READ,
@@ -410,43 +420,83 @@ protected:
 #endif
 
 #if (USE_SENSOR_HYT)
-#include <hyt2x1.h>
-class SensorDriverHyt2X1 : public SensorDriver {
+#include <hyt.h>
+class SensorDriverHyt : public SensorDriver {
+
 public:
-   SensorDriverHyt2X1(const char* driver, const char* type) : SensorDriver(driver, type) {
-      SensorDriver::printInfo();
-      LOGT(F("hyt2x1 create... [ %s ]"), OK_STRING);
-   };
-   void setup();
-   void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+  SensorDriverHyt(const char* driver, const char* type, TwoWire *wire = &Wire) : SensorDriver(driver, type, wire) {
+    SensorDriver::printCreate();
+  };
+  void setup();
+  void prepare(bool is_test = false);
+  void get(int32_t *values, uint8_t length, bool is_test=false);
 
-   #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
-   #endif
+  #if (USE_JSON)
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  #endif
 
-   void resetPrepared(bool is_test = false);
+  void resetPrepared(bool is_test = false);
+
+private:
+  Hyt hyt;
 
 protected:
+  float humidity;
+  float temperature;
+  float humidity_confirmation;
+  float temperature_confirmation;
 
-   float humidity;
-   float temperature;
-   float humidity_confirmation;
-   float temperature_confirmation;
-  
-   enum {
-      INIT,
-      READ,
-      READ_CONFIRMATION,
-      END
-   } _get_state;
+  enum {
+    INIT,
+    READ,
+    READ_CONFIRMATION,
+    END
+  } _get_state;
 
-   /*!
-   \var values[]
-   \brief Internal sensor's variable for values readed from sensors.
-   */
-   int32_t values[];
+  /*!
+  \var values[]
+  \brief Internal sensor's variable for values readed from sensors.
+  */
+  int32_t values[];
+};
+#endif
 
+#if (USE_SENSOR_SHT)
+#include <sht.h>
+class SensorDriverSht : public SensorDriver {
+
+public:
+  SensorDriverSht(const char* driver, const char* type, TwoWire *wire = &Wire) : SensorDriver(driver, type, wire) {
+    SensorDriver::printCreate();
+  };
+  void setup();
+  void prepare(bool is_test = false);
+  void get(int32_t *values, uint8_t length, bool is_test=false);
+
+  #if (USE_JSON)
+  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  #endif
+
+  void resetPrepared(bool is_test = false);
+
+private:
+  Sht sht;
+
+protected:
+  float humidity;
+  float temperature;
+
+  enum {
+    INIT,
+    READ,
+    END
+  } _get_state;
+
+  /*!
+  \var values[]
+  \brief Internal sensor's variable for values readed from sensors.
+  */
+  int32_t values[];
 };
 #endif
 
@@ -457,7 +507,7 @@ class SensorDriverDw1 : public SensorDriver {
 public:
    SensorDriverDw1(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("dw1 create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("dw1 create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -474,7 +524,7 @@ protected:
 
    double speed;
    double direction;
-  
+
    enum {
       INIT,
       SET_MEANU_ADDRESS,
@@ -500,7 +550,7 @@ class SensorDriverRain : public SensorDriver {
 public:
   SensorDriverRain(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("rain create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("rain create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -515,7 +565,7 @@ public:
 protected:
 
    uint8_t rain_data[I2C_RAIN_LENGTH];
-  
+
    enum {
       INIT,
       SET_RAIN_ADDRESS,
@@ -539,7 +589,7 @@ public:
   SensorDriverTh(const char* driver, const char* type) : SensorDriver(driver, type) {
 
       SensorDriver::printInfo();
-      LOGT(F("th create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("th create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -555,7 +605,7 @@ protected:
 
    uint8_t temperature_data[I2C_TH_TEMPERATURE_DATA_MAX_LENGTH];
    uint8_t humidity_data[I2C_TH_HUMIDITY_DATA_MAX_LENGTH];
-  
+
    enum {
       INIT,
       SET_TEMPERATURE_ADDRESS,
@@ -580,7 +630,7 @@ class SensorDriverDigitecoPower : public SensorDriver {
 public:
    SensorDriverDigitecoPower(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("digitecopower create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("digitecopower create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -633,7 +683,7 @@ class SensorDriverWind : public SensorDriver {
 public:
   SensorDriverWind(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    LOGT(F("wind create... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE(F("wind create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
@@ -652,7 +702,7 @@ protected:
 
    uint8_t variable_count;
    uint8_t offset;
-  
+
   enum {
     INIT,
     SET_ADDRESS,
@@ -669,7 +719,7 @@ class SensorDriverSolarRadiation : public SensorDriver {
 public:
   SensorDriverSolarRadiation(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    LOGT(F("solarradiation create... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE(F("solarradiation create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
@@ -688,7 +738,7 @@ protected:
 
   uint8_t variable_count;
   uint8_t offset;
-  
+
   enum {
     INIT,
     SET_ADDRESS,
@@ -705,7 +755,7 @@ class SensorDriverOpc : public SensorDriver {
 public:
    SensorDriverOpc(const char* driver, const char* type) : SensorDriver(driver, type) {
       SensorDriver::printInfo();
-      LOGT(F("opc create... [ %s ]"), OK_STRING);
+      TRACE_VERBOSE(F("opc create... [ %s ]"), OK_STRING);
    };
    void setup();
    void prepare(bool is_test = false);
@@ -725,7 +775,7 @@ protected:
 
    uint8_t variable_count;
    uint8_t offset;
-  
+
    enum {
       INIT,
       SET_ADDRESS,
@@ -751,7 +801,7 @@ class SensorDriverLeaf : public SensorDriver {
 public:
   SensorDriverLeaf(const char* driver, const char* type) : SensorDriver(driver, type) {
     SensorDriver::printInfo();
-    LOGT(F("leaf create... [ %s ]"), OK_STRING);
+    TRACE_VERBOSE(F("leaf create... [ %s ]"), OK_STRING);
   };
   void setup();
   void prepare(bool is_test = false);
@@ -770,7 +820,7 @@ protected:
 
   uint8_t variable_count;
   uint8_t offset;
-  
+
   enum {
     INIT,
     SET_ADDRESS,
