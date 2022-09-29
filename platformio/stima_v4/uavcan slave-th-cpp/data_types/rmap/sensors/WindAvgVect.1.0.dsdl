@@ -1,0 +1,4 @@
+rmap.metadata.Metadata.1.0 metadata
+rmap.measures.WindSpeed.1.0 speed
+rmap.measures.WindDirection.1.0 direction
+@sealed

@@ -1,0 +1,6 @@
+# Tensione batteria (V)
+# fattore scala x10
+# MAX 32.0 Volt
+uint9 MAX = 320
+uint9 value
+@sealed
