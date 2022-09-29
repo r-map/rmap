@@ -1,14 +1,14 @@
-/**@file hyt2x1.h */
+/**@file hyt.h */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
 authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
+Marco Baldinetti <marco.baldinetti@alling.it>
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +16,9 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #ifndef _HYT_H
@@ -135,8 +137,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 class Hyt {
   public:
-    Hyt(uint8_t _address = HYT_DEFAULT_ADDRESS, uint8_t _power_pin = 0);
+    Hyt(TwoWire *_wire = &Wire, uint8_t _address = HYT_DEFAULT_ADDRESS, uint8_t _power_pin = 0);
     uint8_t getAddress();
+    uint8_t getAcquisitionDelayMs();
     bool prepare();
     uint8_t read(float *humidity, float *temperature);
     bool send(uint8_t data_0, uint8_t data_1, uint8_t data_2);
@@ -148,6 +151,7 @@ class Hyt {
   protected:
 
   private:
+    TwoWire *wire;
     uint8_t address;
     uint8_t power_pin;
 };

@@ -29,27 +29,8 @@
 #ifndef _OS_PORT_CONFIG_H
 #define _OS_PORT_CONFIG_H
 
-// Accept GPL License
-#define GPL_LICENSE_TERMS_ACCEPTED
-
-// Select underlying RTOS
+//Select underlying RTOS
 #define USE_FREERTOS
-
-#undef USE_NO_RTOS
-#undef USE_CHIBIOS
-#undef USE_CMX_RTX
-#undef USE_CMSIS_RTOS
-#undef USE_CMSIS_RTOS2
-#undef USE_SAFERTOS
-#undef USE_THREADX
-#undef USE_RTX
-#undef USE_UCOS2
-#undef USE_UCOS3
-#undef USE_EMBOS
-#undef USE_SYS_BIOS
-#undef USE_ZEPHYR
-#undef _WIN32
-#undef __linux__
-#undef __FreeBSD__
+// #define USE_NO_RTOS
 
 #endif

@@ -1,14 +1,14 @@
-/**@file hyt2x1.cpp */
+/**@file hyt.cpp */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
 authors:
-Marco Baldinetti <m.baldinetti@digiteco.it>
+Marco Baldinetti <marco.baldinetti@alling.it>
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,12 +16,15 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #include "hyt.h"
 
-Hyt::Hyt(uint8_t _address, uint8_t _power_pin) {
+Hyt::Hyt(TwoWire *_wire, uint8_t _address, uint8_t _power_pin) {
+  wire = _wire;
   address = _address;
   power_pin = _power_pin;
 };
@@ -30,9 +33,13 @@ uint8_t Hyt::getAddress() {
   return address;
 }
 
+uint8_t Hyt::getAcquisitionDelayMs() {
+  return HYT_CONVERSION_TIME_MS;
+}
+
 bool Hyt::prepare() {
-  Wire.beginTransmission(address);
-  return !Wire.endTransmission();
+  wire->beginTransmission(address);
+  return !wire->endTransmission();
 }
 
 uint8_t Hyt::read(float *humidity, float *temperature) {
@@ -44,15 +51,15 @@ uint8_t Hyt::read(float *humidity, float *temperature) {
   *temperature = UINT16_MAX;
 
   //! Request 4 bytes: 2 bytes for Humidity and 2 bytes for Temperature
-  Wire.requestFrom(address, (uint8_t) HYT_READ_HT_DATA_LENGTH);
+  wire->requestFrom(address, (uint8_t) HYT_READ_HT_DATA_LENGTH);
 
   //! not enough data
-  if (Wire.available() < HYT_READ_HT_DATA_LENGTH) {
+  if (wire->available() < HYT_READ_HT_DATA_LENGTH) {
     return HYT_ERROR;
   }
 
-  humidity_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
-  temperature_raw_data = (((uint16_t) Wire.read()) << 8) | ((uint16_t) Wire.read());
+  humidity_raw_data = (((uint16_t) wire->read()) << 8) | ((uint16_t) wire->read());
+  temperature_raw_data = (((uint16_t) wire->read()) << 8) | ((uint16_t) wire->read());
 
   //! command mode
   if ((humidity_raw_data & HYT_COMMAND_MODE_BIT_MASK) >> 15) {
@@ -85,20 +92,20 @@ uint8_t Hyt::read(float *humidity, float *temperature) {
 }
 
 bool Hyt::send(uint8_t data_0, uint8_t data_1, uint8_t data_2) {
-  Wire.beginTransmission(address);
-  Wire.write(data_0);
-  Wire.write(data_1);
-  Wire.write(data_2);
-  return !Wire.endTransmission();
+  wire->beginTransmission(address);
+  wire->write(data_0);
+  wire->write(data_1);
+  wire->write(data_2);
+  return !wire->endTransmission();
 }
 
 bool Hyt::changeAddress(int8_t new_address) {
   bool is_ok = true;
   powerOff();
   powerOn();
-  is_ok != send(HYT_ENTER_COMMAND_MODE, 0x00, 0x00);
-  is_ok != send(HYT_WRITE_ADDRESS, 0x00, new_address);
-  is_ok != send(HYT_EXIT_COMMAND_MODE, 0x00, 0x00);
+  is_ok |= send(HYT_ENTER_COMMAND_MODE, 0x00, 0x00);
+  is_ok |= send(HYT_WRITE_ADDRESS, 0x00, new_address);
+  is_ok |= send(HYT_EXIT_COMMAND_MODE, 0x00, 0x00);
   return is_ok;
 }
 

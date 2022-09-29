@@ -1,15 +1,15 @@
 /**@file sensors_config.h */
 
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
 authors:
-Paolo Patruno <p.patruno@iperbole.bologna.it>
-Marco Baldinetti <m.baldinetti@digiteco.it>
+Marco Baldinetti <marco.baldinetti@alling.it>
+Paolo patruno <p.patruno@iperbole.bologna.it>
 
 This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License, or (at your option) any later version.
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
 
 This program is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,17 +17,21 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
 **********************************************************************/
 
 #ifndef _SENSORS_CONFIG_H
 #define _SENSORS_CONFIG_H
 
+#define USE_REDUNDANT_SENSOR        (false)
 /*!
 \def USE_JSON
 \brief Enable if you want use json library for json response (getJson function in SensorDriver).
 */
 #define USE_JSON                    (false)
+
 #define USE_D_TEMPLATE              (false)
 
 /*!
@@ -53,6 +57,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \brief Enable if you want use HYT939, HYT271 or HYT221 sensor.
 */
 #define USE_SENSOR_HYT              (true)
+
+/*!
+\def USE_SENSOR_SHT
+\brief Enable if you want use SHT35 sensor.
+*/
+#define USE_SENSOR_SHT              (true)
 
 /*!
 \def USE_SENSOR_B28
@@ -343,8 +353,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RAIN_FOR_TIP                (1)
 
 // OPC
-#define VALUES_TO_READ_FROM_SENSOR_COUNT      (6)
-#define JSONS_TO_READ_FROM_SENSOR_COUNT       (3)
+#define VALUES_TO_READ_FROM_SENSOR_COUNT      (2)
+#define JSONS_TO_READ_FROM_SENSOR_COUNT       (2)
 
 // OPC
 // #define VALUES_TO_READ_FROM_SENSOR_COUNT      (24)
@@ -370,5 +380,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define USE_MODULE_TH                         (true)
 #define USE_MODULE_RAIN                       (true)
 #endif
+
+#define SENSORS_COUNT_MAX                     (USE_SENSOR_ADT + USE_SENSOR_HIH + USE_SENSOR_HYT + USE_SENSOR_SHT + USE_REDUNDANT_SENSOR)
+
+/*!
+\def SENSOR_MAX
+\brief Max number of sensor.
+*/
+#define SENSORS_MAX                           (SENSORS_COUNT_MAX)
+
+/*!
+\def SENSOR_UNIQUE_MAX
+\brief Max number of unique sensor.
+unique sensors are sensors that can have more driver but only one i2c address and only one setup and prepare
+*/
+#define SENSORS_UNIQUE_MAX                    (1)
 
 #endif
