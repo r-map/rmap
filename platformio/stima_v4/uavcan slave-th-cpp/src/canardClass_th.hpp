@@ -153,7 +153,7 @@ class canardClass {
         // *************************************************
         //  Sottoclassi MASTER locale per gestione di Stato
         // *************************************************
-        class master
+        CLASS_MODE class master
         {
             public:
 

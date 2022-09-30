@@ -1,0 +1,4 @@
+rmap.metadata.Metadata.1.0 metadata
+rmap.measures.WindPeakGustSpeed.1.0 peak
+rmap.measures.WindLongGustSpeed.1.0 long
+@sealed

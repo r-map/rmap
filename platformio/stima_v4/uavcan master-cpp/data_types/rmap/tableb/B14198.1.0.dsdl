@@ -1,0 +1,6 @@
+# Radiazione solare globale (W/m2)
+# fattore scala naturale
+# MAX 4000 W/m2
+uint12 MAX = 4000
+uint12 value
+@sealed

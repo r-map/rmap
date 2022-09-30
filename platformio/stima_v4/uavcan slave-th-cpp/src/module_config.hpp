@@ -11,7 +11,7 @@
 #define CAN_RX_QUEUE_CAPACITY 100
 #define IFACE_CAN_IDX         0
 #define CAN_DELAY_US_SEND     0
-#define MAX_SUBSCRIPTION 10
+#define MAX_SUBSCRIPTION      10
 
 // CAN SPEED RATE HZ
 #define CAN_BIT_RATE 1000000ul
