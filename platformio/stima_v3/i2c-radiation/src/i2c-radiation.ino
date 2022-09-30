@@ -238,8 +238,6 @@ void init_tasks() {
 
   solar_radiation_acquisition_count = 0;
 
-  is_oneshot = false;
-  is_continuous = false;
   is_start = false;
   is_stop = false;
   is_test = false;
@@ -315,7 +313,7 @@ ISR(TIMER1_OVF_vect) {
     
     //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
     #if (USE_SENSOR_DSR)
-    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
+    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
       if (!is_event_solar_radiation_task) {
 	is_event_solar_radiation_task = true;
 	ready_tasks_count++;
@@ -355,7 +353,6 @@ void print_configuration() {
   LOGN(F("--> configuration version: %d.%d"), configuration.module_main_version, configuration.module_configuration_version);
   LOGN(F("--> i2c address: %X (%d)"), configuration.i2c_address, configuration.i2c_address);
   LOGN(F("--> oneshot: %s"), configuration.is_oneshot ? ON_STRING : OFF_STRING);
-  LOGN(F("--> continuous: %s"), configuration.is_continuous ? ON_STRING : OFF_STRING);
 
   #if (USE_SENSOR_DSR)
   LOGN(F("--> adc voltage offset +: %0"), configuration.adc_voltage_offset_1);
@@ -372,8 +369,7 @@ void save_configuration(bool is_default) {
     configuration.module_main_version = MODULE_MAIN_VERSION;
     configuration.module_configuration_version = MODULE_CONFIGURATION_VERSION;
     configuration.i2c_address = CONFIGURATION_DEFAULT_I2C_ADDRESS;
-    configuration.is_oneshot = CONFIGURATION_DEFAULT_IS_ONESHOT;
-    configuration.is_continuous = CONFIGURATION_DEFAULT_IS_CONTINUOUS;
+    configuration.is_oneshot = CONFIGURATION_DEFAULT_ONESHOT;
 
     configuration.adc_voltage_offset_1 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1;
     configuration.adc_voltage_offset_2 = CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2;
@@ -385,7 +381,6 @@ void save_configuration(bool is_default) {
     LOGN(F("Save configuration... [ %s ]"), OK_STRING);
     configuration.i2c_address = writable_data.i2c_address;
     configuration.is_oneshot = writable_data.is_oneshot;
-    configuration.is_continuous = writable_data.is_continuous;
 
     #if (USE_SENSOR_DSR)
     configuration.adc_voltage_offset_1 = writable_data.adc_voltage_offset_1;
@@ -416,7 +411,6 @@ void load_configuration() {
    // set configuration value to writable register
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
-  writable_data.is_continuous = configuration.is_continuous;
   writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;
   writable_data.adc_voltage_offset_2 = configuration.adc_voltage_offset_2;
   writable_data.adc_voltage_min = configuration.adc_voltage_min;
@@ -424,20 +418,6 @@ void load_configuration() {
 }
 
 void init_sensors () {
-  if (configuration.is_continuous) {
-    LOGN(F(""));
-    LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
-    LOGN(F("--> max %l samples error in %l minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
-    LOGN(F("--> max %l samples error in %l minutes (report)"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-
-    #if (USE_SENSOR_DSR)
-    LOGN(F("sc: sample count"));
-    LOGN(F("rad: solar radiation [ W/m2 ]"));
-    LOGN(F("avg: average solar radiation over %l' [ W/m2 ]"), STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
-
-    LOGN(F("sc\trad\tavg"));
-    #endif
-  }
 }
 
  
@@ -597,10 +577,6 @@ void make_report () {
   if (solar_radiation_samples.count < sample_count) {
     sample_count = solar_radiation_samples.count;
   }
-  #endif
-
-  #if (USE_SENSORS_COUNT == 0)
-  sample_count = 0;
   #endif
 
   for (uint16_t i = 0; i < sample_count; i++) {
@@ -826,7 +802,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START:
-    if (configuration.is_continuous) {
+    if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS START");
       is_test = false;
       commands();
@@ -836,7 +812,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_STOP:
-    if (configuration.is_continuous) {
+    if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS STOP");
       is_start = false;
       is_stop = true;
@@ -849,7 +825,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP:
-    if (configuration.is_continuous) {
+    if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS START_STOP");
       is_start = true;
       is_stop = true;
@@ -862,7 +838,7 @@ void command_task() {
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_TEST_READ:
-    if (configuration.is_continuous) {
+    if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS TEST_READ");
       is_test = true;
       tests();
@@ -891,38 +867,32 @@ void command_task() {
 
 void commands() {
 
-   if (inside_transaction) return;
-
+  if (inside_transaction) return;
+  
   noInterrupts();
-
-  //! CONTINUOUS START
-  if (configuration.is_continuous && is_continuous && is_start && !is_stop) {
-    reset_samples_buffer();
-    reset_report_buffer();
+  
+  if (!configuration.is_oneshot){
+    
+    //! CONTINUOUS START
+    if ( is_start && !is_stop) {
+      reset_samples_buffer();
+      reset_report_buffer();
+    }
+    //! CONTINUOUS STOP
+    else if ( !is_start && is_stop) {
+      exchange_buffers();
+    }
+    //! CONTINUOUS START-STOP
+    else if (is_start && is_stop) {
+      exchange_buffers();
+    }
   }
-  //! CONTINUOUS STOP
-  else if (configuration.is_continuous && is_continuous && !is_start && is_stop) {
-    exchange_buffers();
-  }
-  //! CONTINUOUS START-STOP
-  else if (configuration.is_continuous && is_continuous && is_start && is_stop) {
-    exchange_buffers();
-  }
-  //! ONESHOT START
-  else if (configuration.is_oneshot && is_oneshot && is_start && !is_stop) {
-  }
-  //! ONESHOT STOP
-  else if (configuration.is_oneshot && is_oneshot && !is_start && is_stop) {
-  }
-  //! ONESHOT START-STOP
-  else if (configuration.is_oneshot && is_oneshot && is_start && is_stop) {
-  }
-
+  
   interrupts();
-   is_start = false;
-   is_stop = false;
-   is_test = false;
-
+  is_start = false;
+  is_stop = false;
+  is_test = false;
+  
 }
 
 

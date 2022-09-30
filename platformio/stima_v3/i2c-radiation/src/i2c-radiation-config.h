@@ -55,19 +55,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*********************************************************************
 * CONFIGURATION
 *********************************************************************/
-#define IS_CALIBRATION                                (true)
 
 /*!
 \def CONFIGURATION_DEFAULT_IS_ONESHOT
 \brief Oneshot mode for default.
 */
-#define CONFIGURATION_DEFAULT_IS_ONESHOT              (false)
-
-/*!
-\def CONFIGURATION_DEFAULT_IS_CONTINUOUS
-\brief Continuous mode for default.
-*/
-#define CONFIGURATION_DEFAULT_IS_CONTINUOUS           (true)
+#define CONFIGURATION_DEFAULT_ONESHOT              (false)
 
 /*!
 \def CONFIGURATION_DEFAULT_I2C_ADDRESS
@@ -212,8 +205,6 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define WDT_TIMER                                     (WDTO_8S)
 
-
-
 /*********************************************************************
 * RADIATION SENSORS
 *********************************************************************/
@@ -226,56 +217,19 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SENSORS_SAMPLE_TIME_MS                        (4000)
 
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MIN                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
 
-#if ((OBSERVATIONS_MINUTES * 60) % (SENSORS_SAMPLE_TIME_MS / 1000) == 0)
 /*!
 \def OBSERVATION_SAMPLES_COUNT_MAX
 \brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
 */
-#define OBSERVATION_SAMPLES_COUNT_MAX                 (OBSERVATION_SAMPLES_COUNT_MIN)
-#else
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                 (OBSERVATION_SAMPLES_COUNT_MIN + 1)
-#endif
+#define OBSERVATION_SAMPLES_COUNT_MAX                 (100)
 
-#define RMAP_REPORT_SAMPLE_VALID                      (true)
 
 #define RMAP_REPORT_SAMPLES_COUNT                     (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * OBSERVATION_SAMPLES_COUNT_MAX)
 
-/*!
-\def OBSERVATION_SAMPLE_ERROR_MAX
-\brief Maximum invalid sample count for generate a valid observations.
-*/
-#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT_MAX / 2)))
-#define OBSERVATION_SAMPLE_VALID_MIN                  ((uint16_t)(OBSERVATION_SAMPLES_COUNT_MAX - OBSERVATION_SAMPLE_ERROR_MAX))
-
-#define RMAP_REPORT_SAMPLE_ERROR_MAX                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_ERROR_MAX))
-
-#if (RMAP_REPORT_SAMPLE_VALID)
-#define RMAP_REPORT_SAMPLE_VALID_MIN                  (OBSERVATION_SAMPLE_VALID_MIN)
-#else
-#define RMAP_REPORT_SAMPLE_VALID_MIN                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_VALID_MIN))
-#endif
-
-#define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(STATISTICAL_DATA_COUNT - 1))
-#define RMAP_REPORT_VALID_MIN                         ((uint16_t)(STATISTICAL_DATA_COUNT - RMAP_REPORT_ERROR_MAX))
-
 #define SAMPLES_COUNT                                 ((60000 / SENSORS_SAMPLE_TIME_MS * STATISTICAL_DATA_COUNT) + 10)
 
-#define RMAP_REPORT_INTERVAL_S                        (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * 60.0)
 
-/*!
-\def USE_SENSORS_COUNT
-\brief Sensors count.
-*/
 /*********************************************************************
 * SENSORS
 *********************************************************************/
@@ -332,13 +286,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 
 /*!
 \def SOLAR_RADIATION_VALUES_READ_DELAY_MS
-\brief Reading delay.
+\brief Reading delay  for SENSOR DSR.
 */
 #define SOLAR_RADIATION_VALUES_READ_DELAY_MS          (10)
 
 /*!
 \def SOLAR_RADIATION_READ_COUNT
-\brief number of read.
+\brief number of read for SENSOR DSR
 */
 #define SOLAR_RADIATION_READ_COUNT                    (20)
 

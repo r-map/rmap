@@ -58,7 +58,6 @@ typedef struct {
    uint8_t module_type;                //!< module type
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   bool is_continuous;                 //!< enable or disable continuous mode
 
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
