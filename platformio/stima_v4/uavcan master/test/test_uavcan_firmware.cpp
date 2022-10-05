@@ -1,4 +1,4 @@
-#ifdef TEST_UAVCAN_COMMAND
+#ifdef TEST_UAVCAN_FIRMWARE
 
 // Arduino
 #include <Arduino.h>
@@ -34,8 +34,10 @@
 //****************************************************************************************************
 //******************************** FUNCTION DECLARATIONS *********************************************
 //****************************************************************************************************
-void test_command_sent(void);
-void test_response_received_is_correct(void);
+void test_firmware_file_exists(void);
+void test_command_software_update_sent(void);
+void test_success_command_response(void);
+void file_sent_to_slave(void);
 //****************************************************************************************************
 
 //****************************************************************************************************
@@ -43,8 +45,7 @@ void test_response_received_is_correct(void);
 //****************************************************************************************************
 enum test_status {
     INIT,
-    COMMAND_SENT,
-    RESPONSE_RECEIVED
+    PROCESSING,
 };
 //****************************************************************************************************
 
@@ -993,6 +994,7 @@ static void processReceivedTransfer(State* const state, const CanardRxTransfer* 
                     uint8_t serialized[uavcan_file_Read_Response_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                     size_t serialized_size = sizeof(serialized);
                     if (uavcan_file_Read_Response_1_1_serialize_(&resp, &serialized[0], &serialized_size) >= 0) {
+                        RUN_TEST(file_sent_to_slave);
                         sendResponse(state,
                                      transfer->timestamp_usec + MEGA,
                                      &transfer->metadata,
@@ -1291,21 +1293,38 @@ void message_slave_offline() {
 }
 
 /**
+ * @brief Print firmware file size (bytes)
+ *
+ */
+void file_sent_to_slave() {
+    TEST_PRINTF("Size: %d (Bytes)", getDataFileInfo(state.slave[queueId].file.filename, state.slave[queueId].file.is_firmware));
+}
+
+/**
+ * @brief Test: check if the firmware file exists
+ *
+ */
+void test_firmware_file_exists() {
+    TEST_ASSERT_TRUE_MESSAGE(ccFirwmareFile(state.slave[queueId].file.filename), "The file does not exist");
+}
+
+/**
  * @brief Test: check if the command has been sent to slave
  *
  */
-void test_command_sent() {
+void test_command_software_update_sent() {
     TEST_ASSERT_TRUE_MESSAGE(serviceSendCommand(&state, monotonic_time, queueId,
-                                                CMD_TEST, NULL, 0),
+                                                uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE,
+                                                state.slave[queueId].file.filename, strlen(state.slave[queueId].file.filename)),
                              "Command not sent");
 }
 
 /**
- * @brief Test: check if the value received from slave is correct
+ * @brief Test: check if the slave response received from slave is correct
  *
  */
-void test_response_received_is_correct() {
-    TEST_ASSERT_EQUAL(CMD_TEST_VALUE, state.slave[queueId].command.response);
+void test_success_command_response() {
+    TEST_ASSERT_EQUAL(uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS, state.slave[queueId].command.response);
 }
 
 void setup() {
@@ -1629,8 +1648,7 @@ void setup() {
 
     long checkTimeout = 0;
     bool bEventRealTimeLoop = false;
-    bool bLastPendingCmd = false;
-    bool bIsPendingCmd = false;
+    bool bFileUpload = false;
     bool bIsResetFaultCmd = false;
 
 #define MILLIS_EVENT 10
@@ -1807,54 +1825,105 @@ void setup() {
         // ********************************************************************************************
         // ************************************* START TEST *******************************************
         // ********************************************************************************************
-        // LOOP HANDLER >> 0..15 SECONDI x TEST COMANDI <<
         if (state.slave[queueId].is_online && test_state == INIT) {
-            // Il comando viene inviato solamente se lo slave è online
-            // Il comando viene inviato solamente senza altri Pending di Comandi
-            // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-            if (!state.slave[queueId].command.is_pending) {
-                // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
-                state.slave[queueId].command.is_pending = true;
-                state.slave[queueId].command.is_timeout = false;
-                state.slave[queueId].command.timeout_us = monotonic_time + NODE_COMMAND_TIMEOUT_US;
-                state.slave[queueId].command.response = GENERIC_BVAL_UNDEFINED;
-                serviceSendCommand(&state, monotonic_time, queueId,
-                                   CMD_TEST, NULL, 0);
-
-                RUN_TEST(test_command_sent);
-                test_state = COMMAND_SENT;
-            }
-            // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
-            // popolata nel'apposito registro di state service_module del il servizio relativo
-            // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
-            // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
-            // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
+            bFileUpload = true;
+            // N.B.!!! Si tratta di un file di firmware... nel TEST
+            state.slave[queueId].file.is_firmware = true;
+            state.slave[queueId].file.state = FILE_STATE_BEGIN_UPDATE;
+            test_state = PROCESSING;
         }
-        // VERIFICA RESPONSE DALLO SLAVE.
-        // PRIMA SI VERIFICA SE IL TIMEOUT DEL COMANDO
-        if (test_state == COMMAND_SENT) {
-            if (state.slave[queueId].command.is_timeout) {
-                // TimeOUT di un comando in attesa... gestisco il da farsi
-                // Adesso elimino solo gli stati
-                state.slave[queueId].command.is_pending = false;
-                state.slave[queueId].command.is_timeout = false;
-                bIsPendingCmd = false;
-                bLastPendingCmd = false;
-            } else {
-                bIsPendingCmd = state.slave[queueId].command.is_pending;
-                // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
-                if (bIsResetFaultCmd) {
-                    bIsPendingCmd = false;
-                    bLastPendingCmd = false;
-                }
-                if (bLastPendingCmd != bIsPendingCmd) {
-                    bLastPendingCmd = bIsPendingCmd;
-                    if (!bLastPendingCmd) {
-                        RUN_TEST(test_response_received_is_correct);
-                        test_state = RESPONSE_RECEIVED;
+        if (bFileUpload) {
+            // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
+            switch (state.slave[queueId].file.state) {
+                default:  // -->> FILE_STATE_STANDBY:
+                    bFileUpload = false;
+                    break;
+                case FILE_STATE_BEGIN_UPDATE:
+                    // Avvio comando di aggiornamento Controllo coerenza Firmware se Firmware!!!
+                    // Verifico il nome File locale (che RMAP Server ha già inviato il file in HTTP...)
+                    if (state.slave[queueId].file.is_firmware) {
+                        RUN_TEST(test_firmware_file_exists);
+
+                        if (ccFirwmareFile(state.slave[queueId].file.filename)) {
+                            // Avvio il comando nel nodo remoto
+                            state.slave[queueId].file.state = FILE_STATE_COMMAND_SEND;
+                        } else {
+                            // Gestisco l'errore di coerenza verso il server
+                            // Comunico il problema nel file
+                            state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                        }
+                    } else {
+                        state.slave[queueId].file.state = FILE_STATE_STANDBY;
                     }
-                }
+                    break;
+                case FILE_STATE_COMMAND_SEND:
+                    // Invio comando di aggiornamento File (in attesa in coda con switch...)
+                    // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
+                    if (!state.slave[queueId].command.is_pending) {
+                        // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                        // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
+                        state.slave[queueId].command.is_pending = true;
+                        state.slave[queueId].command.is_timeout = false;
+                        state.slave[queueId].command.timeout_us = monotonic_time + NODE_COMMAND_TIMEOUT_US;
+                        state.slave[queueId].command.response = GENERIC_BVAL_UNDEFINED;
+                        // Il comando comunica la presenza del file di download nel remoto e avvia dowload
+                        if (state.slave[queueId].file.is_firmware) {
+                            RUN_TEST(test_command_software_update_sent);
+                            // Uavcan Firmware
+                            serviceSendCommand(&state, monotonic_time, queueId,
+                                               uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE,
+                                               state.slave[queueId].file.filename, strlen(state.slave[queueId].file.filename));
+                        }
+                        state.slave[queueId].file.state = FILE_STATE_COMMAND_WAIT;
+                    }
+                    break;
+                case FILE_STATE_COMMAND_WAIT:
+                    // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                    if (state.slave[queueId].command.is_timeout) {
+                        // Counico al server l'errore di timeOut Command Update Start ed esco
+                        state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                        // Se decido di uscire nella procedura di OffLine, la comunicazione
+                        // al server di eventuali errori deve essere gestita al momento dell'OffLine
+                    } else {
+                        // Attendo esecuzione del comando/risposta senza sovrapposizioni
+                        // di comandi. Come gestione semaforo. Chi invia deve gestire
+                        if (!state.slave[queueId].command.is_pending) {
+                            RUN_TEST(test_success_command_response);
+                            // La risposta si trova in command_response fon flag pending azzerrato.
+                            if (state.slave[queueId].command.response ==
+                                uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS) {
+                                // Sequenza terminata, avvio il file transfer !!!
+                                state.slave[queueId].file.state = FILE_STATE_UPLOADING;
+                                // Imposto il timeOUT per controllo Deadline sequenza di download
+                                // SE il client si ferma per troppo tempo incorro in TimeOut ed esco
+                                state.slave[queueId].file.timeout_us = monotonic_time + NODE_REQFILE_TIMEOUT_US;
+                                // Avvio la funzione (Slave attiva le request)
+                                // Localmente sono in gestione continua file fino a EOF o TimeOUT
+                                state.slave[queueId].file.is_pending = true;
+                                state.slave[queueId].file.is_timeout = false;
+                                // Il TimeOut deadLine è aggiornato in RX Request in automatico
+                            } else {
+                                // Counico al server l'errore per il mancato aggiornamento ed esco
+                                state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                            }
+                        }
+                    }
+                    break;
+                case FILE_STATE_UPLOADING:
+                    // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                    if (state.slave[queueId].file.is_timeout) {
+                        // Counico al server l'errore di timeOut Command Update Start ed esco
+                        state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                        // Se decido di uscire nella procedura di OffLine, la comunicazione
+                        // al server di eventuali errori deve essere gestita al momento dell'OffLine
+                    }
+                    break;
+                case FILE_STATE_UPLOAD_COMPLETE:
+                    // Counico al server file upload Complete ed esco (nuova procedura ready)
+                    // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
+                    // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
+                    state.slave[queueId].file.state = FILE_STATE_STANDBY;
+                    break;
             }
         }
         // ********************************************************************************************
@@ -1942,9 +2011,9 @@ void setup() {
                 // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
             }
         }
-    } while ((!state.flag.g_restart_required) && (monotonic_time <= test_cmd_response_timeout) && (test_state != RESPONSE_RECEIVED));
+    } while ((!state.flag.g_restart_required) && (monotonic_time <= test_cmd_response_timeout));
 
-    if (monotonic_time > test_cmd_response_timeout) RUN_TEST(message_slave_offline);
+    if ((monotonic_time > test_cmd_response_timeout) && (test_state == INIT)) RUN_TEST(message_slave_offline);
 
     UNITY_END();
 }

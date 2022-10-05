@@ -1275,7 +1275,7 @@ bool CAN_HW_Init(void) {
 }
 
 /**
- * @brief RETURN FALSE IF THE HARDWARE DOESN'T WORK
+ * @brief Return false when the hardware doesn't work correctly
  *
  */
 void exit_false() {
@@ -1283,7 +1283,7 @@ void exit_false() {
 }
 
 /**
- * @brief SHOW IT IF THE SLAVE NODE CONTINUES TO STAY OFFLINE AFTER A TIME LIMIT
+ * @brief Show it when the slave node continues to stay offline after a timeout period
  *
  */
 void message_slave_offline() {
@@ -1291,12 +1291,13 @@ void message_slave_offline() {
 }
 
 /**
- * @brief CHECK IF THE REQUEST DATA SENT TO SLAVE
+ * @brief Test: check if the request data has been sent to slave
  *
  */
 void test_request_data_sent() {
-    TEST_ASSERT_TRUE(serviceSendRequestData(&state, monotonic_time, queueId,
-                                            rmap_service_setmode_1_0_test_acq, 10));
+    TEST_ASSERT_TRUE_MESSAGE(serviceSendRequestData(&state, monotonic_time, queueId,
+                                                    rmap_service_setmode_1_0_test_acq, 10),
+                             "Request data not sent");
 }
 
 void test_response() {

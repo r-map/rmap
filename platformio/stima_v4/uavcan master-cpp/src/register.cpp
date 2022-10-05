@@ -441,12 +441,15 @@ uint64_t getDataFileInfo(const char* const file_name, const bool is_firmware)
 }
 
 // Ritorna vero se il file firmware esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
-bool ccFirwmareFile(const char* const file_name)
+bool checkFile(const char* const file_name, bool isFirmware)
 {
     char register_name[60];
 
     char file_path[FILE_NAME_SIZE_MAX + sizeof(FirmwareDirName)] = {0};
     (void)snprintf(&file_path[0], sizeof(file_path), "%s/%s", FirmwareDirName, file_name);
+    if(isFirmware) {
+        // CRC Control
+    }
     return sdLoc.exists(&file_path[0]);
 }
 

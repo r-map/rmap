@@ -1,20 +1,8 @@
-/// This software is distributed under the terms of the MIT License.
-/// Copyright (C) 2021 OpenCyphal <maintainers@opencyphal.org>
-/// Author: Pavel Kirienko <pavel@opencyphal.org>
-/// Revis.: Gasperini Moreno <m.gasperini@digiteco.it>
-
-/// TODO: (ricerca e ricontrolla i TODO vari)
-/// STAMPE CORRETTE E A DEFINE_SOFTWARE E -> LEVEL COME ESEMPIO DI PAOLO
-/// DSDL Esatta e conforme status, command, Lx, ecc. versione FINALE e tutte le altre slave
-/// C++
-
-/// NOTE:
-/// msg->vendor_specific_status_code in Heartbeat può indicare (Fine acq, + altri STATI locali)
-///     Errori, bassa alimentazione 0/1/2, Ho finito acq. in che modalità sono ecc... GIA OK!!!
-///     Va solo gestito in logica master ma funziona correttamente
-/// Capire L1/L2 quali parametri sono in master... x SET Misura ecc...
-/// Funzionalità gestibili entrata in OffLine, uscita in OnLine (Master e Slave)
-/// Funzionalità gestibili tutti i timeOut, OK ciclo STD ma altri possibili (Master e Slave)
+// This software is distributed under the terms of the MIT License.
+// Progetto RMAP - STIMA V4
+// canardClass Master, Rev.1.00 del 30/09/2022
+// Copyright (C) 2022 Digiteco s.r.l.
+// Author: Gasperini Moreno <m.gasperini@digiteco.it>
 
 // Arduino
 #include <Arduino.h>
@@ -51,33 +39,6 @@
 // **********             Funzioni ed utility generiche per gestione UAVCAN                 **********
 // ***************************************************************************************************
 
-// Ritorna l'indice della coda master allocata in state in funzione del nodeId fisico
-byte getQueueNodeFromId(canardClass &clsCanard, CanardNodeID nodeId) {
-    // Cerco la corrispondenza node_id nella coda allocata master per ritorno queueID Index
-    for(byte queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
-        // Se trovo il nodo che sta rispondeno nella coda degli allocati...
-        if(clsCanard.slave[queueId].node_id == nodeId) {
-            return queueId;
-        } 
-    }
-    return GENERIC_BVAL_UNDEFINED;
-}
-
-// Ritorna l'indice della coda master allocata in state in funzione del nodeId fisico
-byte getPNPValidIdFromQueueNode(canardClass &clsCanard, uint8_t node_type) {
-    // Cerco la corrispondenza node_id nella coda allocata master per ritorno queueID Index
-    for(byte queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
-        // Se trovo il nodo che sta pubblicando come node_type
-        // nella coda dei nodi configurati ma non ancora allocati...
-        if((clsCanard.slave[queueId].node_type == node_type)&&
-            (clsCanard.slave[queueId].pnp.is_assigned == false)) {
-            // Ritorno il NodeID configurato da remoto come default da associare
-            return clsCanard.slave[queueId].node_id;
-        } 
-    }
-    return GENERIC_BVAL_UNDEFINED;
-}
-
 // Ritorna unique-ID 128-bit del nodo locale. E' utilizzato in uavcan.node.GetInfo.Response e durante
 // plug-and-play node-ID allocation da uavcan.pnp.NodeIDAllocationData. SerialNumber, Produttore..
 // Dovrebbe essere verificato in uavcan.node.GetInfo.Response per la verifica non sia cambiato Nodo.
@@ -98,293 +59,9 @@ static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_A
         value.unstructured.value.elements[value.unstructured.value.count++] = (uint8_t) rand();  // NOLINT
     }
     registerRead("uavcan.node.unique_id", &value);
-    assert(uavcan_register_Value_1_0_is_unstructured_(&value) &&
+    LOCAL_ASSERT(uavcan_register_Value_1_0_is_unstructured_(&value) &&
            value.unstructured.value.count == uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
     memcpy(&out[0], &value.unstructured.value, uavcan_node_GetInfo_Response_1_0_unique_id_ARRAY_CAPACITY_);
-}
-
-// ***********************************************************************************************
-// ***********************************************************************************************
-//      FUNZIONI CHIAMATE DA MAIN_LOOP DI PUBBLICAZIONE E RICHIESTE DATI E SERVIZI
-// ***********************************************************************************************
-// ***********************************************************************************************
-
-// *******              FUNZIONI INVOCATE HANDLE CONT_LOOP EV. PREPARATORIE              *********
-
-// FileRead V1.1
-static void handleFileReadBlock_1_1(canardClass &clsCanard)
-{
-    // ***** Ricezione di file generico dalla rete UAVCAN dal nodo chiamante *****
-    // Richiamo in continuazione rapida la funzione fino al riempimento del file
-    // Alla fine processo il firmware Upload (eventuale) vero e proprio con i relativi check
-    uavcan_file_Read_Request_1_1 remotefile = {0};
-    remotefile.path.path.count = strlen(clsCanard.master.file.get_name());
-    memcpy(remotefile.path.path.elements, clsCanard.master.file.get_name(), remotefile.path.path.count);
-    remotefile.offset = clsCanard.master.file.get_offset_rx();
-
-    uint8_t      serialized[uavcan_file_Read_Request_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size                                                           = sizeof(serialized);
-    const int8_t err = uavcan_file_Read_Request_1_1_serialize_(&remotefile, &serialized[0], &serialized_size);
-    LOCAL_ASSERT(err >= 0);
-    if (err >= 0)
-    {
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityHigh,
-            .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = uavcan_file_Read_1_1_FIXED_PORT_ID_,
-            .remote_node_id = clsCanard.master.file.get_server_node(),
-            .transfer_id    = (CanardTransferID) (clsCanard.next_transfer_id.uavcan_file_read_data()),
-        };
-        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-    }
-}
-
-// *******              FUNZIONI INVOCATE HANDLE 1 SECONDO EV. PREPARATORIE              *********
-
-static void handleSyncroLoop(canardClass &clsCanard)
-{    
-    // ***** Trasmette alla rete UAVCAN lo stato syncronization_time del modulo *****
-    // Da specifica invio il timestamp dell'ultima chiamata in modo che slave sincronizzi il delta
-    uavcan_time_Synchronization_1_0 timesyncro;
-    timesyncro.previous_transmission_timestamp_microsecond = clsCanard.master.timestamp.get_previous_tx_real(true);
-    uint8_t      serialized[uavcan_time_Synchronization_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size                                                              = sizeof(serialized);
-    const int8_t err = uavcan_time_Synchronization_1_0_serialize_(&timesyncro, &serialized[0], &serialized_size);
-    assert(err >= 0);
-    if (err >= 0)
-    {
-        // Traferimento immediato per sincronizzazione migliore con i nodi remoti
-        // Aggiorno il time stamp su blocco trasmesso a priorità immediata
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityImmediate,
-            .transfer_kind  = CanardTransferKindMessage,
-            .port_id        = uavcan_time_Synchronization_1_0_FIXED_PORT_ID_,
-            .remote_node_id = CANARD_NODE_ID_UNSET,
-            .transfer_id    = (CanardTransferID) (clsCanard.next_transfer_id.uavcan_time_synchronization()),
-        };
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-    }
-}
-
-static void handleNormalLoop(canardClass &clsCanard)
-{    
-    // ***** Trasmette alla rete UAVCAN lo stato haeartbeat del modulo *****
-    // Heartbeat Fisso anche per modulo Master (Visibile a yakut o altri tools/script gestionali)
-    uavcan_node_Heartbeat_1_0 heartbeat = {0};
-    heartbeat.uptime = clsCanard.getUpTimeSecond();
-    const O1HeapDiagnostics heap_diag = clsCanard.memGetDiagnostics();
-    if (heap_diag.oom_count > 0) {
-        heartbeat.health.value = uavcan_node_Health_1_0_CAUTION;
-    } else {
-        heartbeat.health.value = uavcan_node_Health_1_0_NOMINAL;
-    }
-    // Stato di heartbeat gestito dalla classe
-    heartbeat.vendor_specific_status_code = clsCanard.flag.get_local_value_heartbeat_VSC();
-    heartbeat.mode.value = clsCanard.flag.get_local_node_mode();
-    // Trasmetto il pacchetto
-    uint8_t serialized[uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t serialized_size = sizeof(serialized);
-    const int8_t err = uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, &serialized[0], &serialized_size);
-    LOCAL_ASSERT(err >= 0);
-    if (err >= 0) {
-        const CanardTransferMetadata meta = {
-            .priority = CanardPriorityNominal,
-            .transfer_kind = CanardTransferKindMessage,
-            .port_id = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_,
-            .remote_node_id = CANARD_NODE_ID_UNSET,
-            .transfer_id = (CanardTransferID)(clsCanard.next_transfer_id.uavcan_node_heartbeat()),
-        };
-        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-    }
-}
-
-// *******              FUNZIONI INVOCATE HANDLE 10 SECONDI EV. PREPARATORIE             *********
-
-// Prepara lista sottoscrizioni (solo quelle allocate correttamente <= CANARD_SUBJECT_ID_MAX) uavcan_node_port_List_0_1.
-static void fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port_SubjectIDList_0_1* const obj)
-{
-    if (NULL != tree) {
-        fillSubscriptions(tree->lr[0], obj);
-        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
-        if (crs->port_id <= CANARD_SUBJECT_ID_MAX) {
-            assert(obj->sparse_list.count < uavcan_node_port_SubjectIDList_0_1_sparse_list_ARRAY_CAPACITY_);
-            obj->sparse_list.elements[obj->sparse_list.count++].value = crs->port_id;
-            fillSubscriptions(tree->lr[1], obj);
-        }
-    }
-}
-
-/// This is needed only for constructing uavcan_node_port_List_0_1.
-static void fillServers(const CanardTreeNode* const tree, uavcan_node_port_ServiceIDList_0_1* const obj)
-{
-    if (NULL != tree) {
-        fillServers(tree->lr[0], obj);
-        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
-        if (crs->port_id <= CANARD_SERVICE_ID_MAX) {
-            (void)nunavutSetBit(&obj->mask_bitpacked_[0], sizeof(obj->mask_bitpacked_), crs->port_id, true);
-            fillServers(tree->lr[1], obj);
-        }
-    }
-}
-
-// **************           Pubblicazione vera e propria a 20 secondi           **************
-static void handleSlowLoop(canardClass &clsCanard)
-{
-    // Publish the recommended (not required) port introspection message. No point publishing it if we're anonymous.
-    // The message is a bit heavy on the stack (about 2 KiB) but this is not a problem for a modern MCU.
-    // L'abilitazione del comando è facoltativa, può essere attivata/disattivata da un comando UAVCAN
-    if ((clsCanard.publisher_enabled.port_list) &&
-        (clsCanard.canard.node_id <= CANARD_NODE_ID_MAX))
-    {
-        uavcan_node_port_List_0_1 m = {0};
-        uavcan_node_port_List_0_1_initialize_(&m);
-        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.publishers);
-        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.subscribers);
-
-        // Indicate which subjects we publish to. Don't forget to keep this updated if you add new publications!
-        {
-            size_t* const cnt                                 = &m.publishers.sparse_list.count;
-            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_;
-            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_port_List_0_1_FIXED_PORT_ID_;
-            // Aggiungo i publisher interni validi privati
-        }
-
-        // Indicate which servers and subscribers we implement.
-        // We could construct the list manually but it's easier and more robust to just query libcanard for that.
-        fillSubscriptions(clsCanard.canard.rx_subscriptions[CanardTransferKindMessage], &m.subscribers);
-        fillServers(clsCanard.canard.rx_subscriptions[CanardTransferKindRequest], &m.servers);
-        fillServers(clsCanard.canard.rx_subscriptions[CanardTransferKindResponse], &m.clients);  // For regularity.
-
-        // Serialize and publish the message. Use a small buffer because we know that our message is always small.
-        // Verificato massimo utilizzo a 156 bytes. Limitiamo il buffer a 256 Bytes (Come esempio UAVCAN)
-        uint8_t serialized[256] = {0};
-        size_t  serialized_size = uavcan_node_port_List_0_1_SERIALIZATION_BUFFER_SIZE_BYTES_;
-        if (uavcan_node_port_List_0_1_serialize_(&m, &serialized[0], &serialized_size) >= 0)
-        {
-            const CanardTransferMetadata meta = {
-                .priority       = CanardPriorityOptional,  // Mind the priority.
-                .transfer_kind  = CanardTransferKindMessage,
-                .port_id        = uavcan_node_port_List_0_1_FIXED_PORT_ID_,
-                .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id    = (CanardTransferID) (clsCanard.next_transfer_id.uavcan_node_port_list()),
-            };
-            // Send a 2 secondi
-            clsCanard.send(MEGA * 2, &meta, serialized_size, &serialized[0]);
-        }
-    }
-}
-
-// ************** SEZIONE COMANDI E RICHIESTE SPECIFICHE AD UN NODO SULLA RETE  **************
-
-// **************       Invio Comando diretto ad un nodo remoto UAVCAN Cmd      **************
-
-static bool serviceSendCommand(canardClass &clsCanard, byte istanza, const uint16_t cmd_request,
-                                const void* ext_param, size_t ext_lenght)
-{
-    // Effettua una richiesta specifica ad un nodo della rete in formato UAVCAN
-    uavcan_node_ExecuteCommand_Request_1_1 cmdRequest = {0};
-    uint8_t      serialized[uavcan_node_ExecuteCommand_Request_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size = sizeof(serialized);
-
-    // istanza -> queueId di State o istanza di nodo
-
-    // Imposta il comando da inviare
-    cmdRequest.command = cmd_request;
-    // Verifica la presenza di parametri opzionali nel comando
-    cmdRequest.parameter.count = ext_lenght;
-    // Controllo conformità lunghezza messaggio e ne copio il contenuto
-    assert(cmdRequest.parameter.count<=uavcan_node_ExecuteCommand_Request_1_1_parameter_ARRAY_CAPACITY_);
-    if (ext_lenght) {
-        memcpy(cmdRequest.parameter.elements, ext_param, ext_lenght);
-    }
-
-    // Serializzo e verifico la conformità del messaggio
-    const int8_t err = uavcan_node_ExecuteCommand_Request_1_1_serialize_(&cmdRequest, &serialized[0], &serialized_size);
-    assert(err >= 0);
-    if (err >= 0)
-    {
-        // Comando a priorità alta
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityHigh,
-            .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = uavcan_node_ExecuteCommand_1_1_FIXED_PORT_ID_,
-            .remote_node_id = clsCanard.slave[istanza].node_id,
-            .transfer_id    = (CanardTransferID) (clsCanard.slave[istanza].command.next_transfer_id++),
-        };
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-        return true;
-    }
-    return false;
-}
-
-// **************   Invio richiesta dati diretto ad un nodo remoto UAVCAN Get   **************
-static bool serviceSendRegister(canardClass &clsCanard, byte istanza, char *registerName,
-                                uavcan_register_Value_1_0 registerValue)
-{
-    // Effettua la richiesta UAVCAN per l'accesso ad un registro remoto di un nodo slave
-    // Utile per la configurazione remota completa o la modifica di un parametro dello slave
-    uavcan_register_Access_Request_1_0 cmdRequest = {0};
-    uint8_t      serialized[uavcan_register_Access_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size = sizeof(serialized);
-
-    // Imposta il comando da inviare ed il timer base
-    cmdRequest.value = registerValue;
-    cmdRequest.name.name.count = strlen(registerName);
-    memcpy(&cmdRequest.name.name.elements[0], registerName, cmdRequest.name.name.count);
-
-    // Serializzo e verifico la conformità del messaggio
-    const int8_t err = uavcan_register_Access_Request_1_0_serialize_(&cmdRequest, &serialized[0], &serialized_size);
-    assert(err >= 0);
-    if (err >= 0)
-    {
-        // Comando a priorità alta
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityHigh,
-            .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = uavcan_register_Access_1_0_FIXED_PORT_ID_,
-            .remote_node_id = clsCanard.slave[istanza].node_id,
-            .transfer_id    = (CanardTransferID) (clsCanard.slave[istanza].register_access.next_transfer_id++),
-        };
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-        return true;
-    }
-    return false;
-}
-
-// **************   Invio richiesta dati diretto ad un nodo remoto UAVCAN Get   **************
-static bool serviceSendRequestData(canardClass &clsCanard, byte istanza, byte comando, uint16_t run_sectime)
-{
-    // Effettua una richiesta specifica ad un nodo della rete in formato UAVCAN
-    // La richiesta è generica per tutti i moduli (univoca DSDL), comunque parte integrante di ogni
-    // DSDL singola di modulo. Il PORT_ID fisso o dinamico indica il nodo remoto.
-    // L'interpretazione è invece tipicizzata dalla risposta (DSDL specifica)
-    rmap_service_setmode_1_0 cmdRequest = {0};
-    uint8_t      serialized[rmap_service_module_TH_Request_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size = sizeof(serialized);
-
-    // Imposta il comando da inviare ed il timer base
-    cmdRequest.comando = comando;
-    cmdRequest.run_sectime = run_sectime;
-
-    // Serializzo e verifico la conformità del messaggio
-    const int8_t err = rmap_service_setmode_1_0_serialize_(&cmdRequest, &serialized[0], &serialized_size);
-    assert(err >= 0);
-    if (err >= 0)
-    {
-        // Comando a priorità alta
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityHigh,
-            .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = clsCanard.slave[istanza].rmap_service.port_id,
-            .remote_node_id = clsCanard.slave[istanza].node_id,
-            .transfer_id    = (CanardTransferID) (clsCanard.slave[istanza].rmap_service.next_transfer_id++),
-        };
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-        return true;
-    }
-    return false;
 }
 
 // ***************************************************************************************************
@@ -399,7 +76,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
     // req->command (Comando esterno ricevuto 2 BYTES RESERVED FFFF-FFFA)
     // Gli altri sono liberi per utilizzo interno applicativo con #define interne
     // req->parameter (array di byte MAX 255 per i parametri da request)
-    // Risposta attuale (resp) 1 Bytes RESERVER (0..6) gli altri #define interne
+    // Risposta attuale (resp) 1 Bytes RESERVED (0..6) gli altri #define interne
     switch (req->command)
     {
         // **************** Comandi standard UAVCAN GENERIC_SPECIFIC_COMMAND ****************
@@ -440,7 +117,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         }
         // **************** Comandi personalizzati VENDOR_SPECIFIC_COMMAND ****************
         // Comando di download File generico compatibile con specifice UAVCAN, (LOG/CFG altro...)
-        case CMD_DOWNLOAD_FILE:
+        case canardClass::Command_Private::download_file:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
             clsCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
@@ -454,14 +131,14 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_ENABLE_PUBLISH_PORT_LIST:
+        case canardClass::Command_Private::enable_publish_port_list:
         {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             clsCanard.publisher_enabled.port_list = true;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_DISABLE_PUBLISH_PORT_LIST:
+        case canardClass::Command_Private::disable_publish_port_list:
         {
             // Disabilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             clsCanard.publisher_enabled.port_list = false;
@@ -481,7 +158,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
 static uavcan_register_Access_Response_1_0 processRequestRegisterAccess(const uavcan_register_Access_Request_1_0* req)
 {
     char name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_ + 1] = {0};
-    assert(req->name.name.count < sizeof(name));
+    LOCAL_ASSERT(req->name.name.count < sizeof(name));
     memcpy(&name[0], req->name.name.elements, req->name.name.count);
     name[req->name.name.count] = '\0';
 
@@ -568,29 +245,29 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                 // Il nodo deve essere compatibile con il tipo di modulo previsto da allocare
                 Serial.print(F("RX PNP Allocation message request from -> "));
                 switch(msg.unique_id_hash & 0xFF) {
-                    case MODULE_TYPE_TH:
+                    case canardClass::Module_Type::th:
                         Serial.print(F("Anonimous module TH"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_TH);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::th);
                         break;
-                    case MODULE_TYPE_RAIN:
+                    case canardClass::Module_Type::rain:
                         Serial.print(F("Anonimous module RAIN"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_RAIN);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::rain);
                         break;
-                    case MODULE_TYPE_WIND:
+                    case canardClass::Module_Type::wind:
                         Serial.print(F("Anonimous module WIND"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_WIND);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::wind);
                         break;
-                    case MODULE_TYPE_RADIATION:
+                    case canardClass::Module_Type::radiation:
                         Serial.print(F("Anonimous module RADIATION"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_RADIATION);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::radiation);
                         break;
-                    case MODULE_TYPE_VWC:
+                    case canardClass::Module_Type::vwc:
                         Serial.print(F("Anonimous module VWC"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_VWC);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::vwc);
                         break;
-                    case MODULE_TYPE_POWER:
+                    case canardClass::Module_Type::power:
                         Serial.print(F("Anonimous module POWER"));
-                        defaultNodeId = getPNPValidIdFromQueueNode(clsCanard, MODULE_TYPE_POWER);
+                        defaultNodeId = clsCanard.getPNPValidIdFromNodeType(canardClass::Module_Type::power);
                         break;
                     defualt:
                         // PNP Non gestibile
@@ -610,7 +287,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                     Serial.print(F("Try PNP Allocation with Node_ID -> "));
                     Serial.println(defaultNodeId);
                     // Se il nodo proposto viene confermato inizieremo a ricevere heartbeat
-                    // da quel nodeId. A questo punto in Heartbeat settiam il flag pnp.is_assigned
+                    // da quel nodeId. A questo punto in Heartbeat settiamo il flag pnp.configure()
                     // che conclude la procedura con esito positivo.
                     msg.allocated_node_id.count = 1;
                     msg.allocated_node_id.elements[0].value = defaultNodeId;
@@ -641,16 +318,16 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                 Serial.print(F("RX HeartBeat from -> "));
                 Serial.println(transfer->metadata.remote_node_id);
                 // Processo e registro il nodo: stato, OnLine e relativi flag
-                byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
+                uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
                 // Se nodo correttamente allocato e gestito (potrebbe essere Yakut non registrato)
                 if (queueId != GENERIC_BVAL_UNDEFINED) {
                     // Primo assegnamento da PNP, gestisco eventuale configurazione remota
                     // e salvataggio del flag di assegnamento in ROM / o Register
-                    if(!clsCanard.slave[queueId].pnp.is_assigned) {
+                    if(!clsCanard.slave[queueId].pnp.is_configured()) {
                         // Configura i metadati...
                         // Configura altri parametri...
                         // Modifico il flag PNP Executed e termino la procedura PNP
-                        clsCanard.slave[queueId].pnp.is_assigned = true;
+                        clsCanard.slave[queueId].pnp.disable();
                         // Salvo su registro lo stato
                         uavcan_register_Value_1_0 val = {0};
                         char registerName[24] = "rmap.pnp.allocateID.";
@@ -660,28 +337,20 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                         // queueId -> index Val = NodeId
                         itoa(queueId, registerName + strlen(registerName), 10);
                         registerWrite(registerName, &val);
-                    }
-                    
-                    // Rientro in OnLINE da OFFLine o Init
+                    }                    
+                    // Accodo i dati letti dal messaggio (Nodo -> OnLine) verso la classe
+                    clsCanard.slave[queueId].heartbeat.set_online(NODE_OFFLINE_TIMEOUT_US,
+                        msg.vendor_specific_status_code, msg.health.value, msg.mode.value, msg.uptime);  
+                    // Rientro in OnLINE da OFFLine o Init Gestino può (dovrebbe) essere esterna alla Call
                     // Inizializzo le variabili e gli stati necessari per Reset e corretta gestione
-                    if(!clsCanard.slave[queueId].is_online) {
+                    if(clsCanard.slave[queueId].is_entered_online()) {
+                        Serial.println(F("Node Is Now Entered ONLINE !!! "));
                         // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
-                        clsCanard.slave[queueId].command.is_pending = false;
-                        clsCanard.slave[queueId].command.is_timeout = true;
-                        clsCanard.slave[queueId].register_access.is_pending = false;
-                        clsCanard.slave[queueId].register_access.is_timeout = true;
-                        clsCanard.slave[queueId].file.is_pending = false;
-                        clsCanard.slave[queueId].file.is_timeout = true;
-                        clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
-                        clsCanard.slave[queueId].rmap_service.is_pending = false;
-                        clsCanard.slave[queueId].rmap_service.is_timeout = true;
+                        clsCanard.slave[queueId].command.reset_pending();
+                        clsCanard.slave[queueId].register_access.reset_pending();
+                        clsCanard.slave[queueId].file_server.reset_pending();
+                        clsCanard.slave[queueId].rmap_service.reset_pending();
                     }
-                    // Accodo i dati letti dal messaggio (Nodo -> OnLine)
-                    clsCanard.slave[queueId].is_online = true;  
-                    clsCanard.slave[queueId].heartbeat.healt = msg.health.value;
-                    clsCanard.slave[queueId].heartbeat.state = msg.vendor_specific_status_code;
-                    // Set canard_us local per controllo NodoOffline
-                    clsCanard.slave[queueId].heartbeat.timeout_us = transfer->timestamp_usec + NODE_OFFLINE_TIMEOUT_US;
                 }
             }
         }
@@ -692,15 +361,15 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             // Es. popalamento dati se attivato un log specifico o show valori su display
             // Il comando è opzionale perchè in request/response esiste già questa possibilità
             // Nodo rispondente leggo dalla coda la/le pubblicazioni attivate (MAX 1 x tipologia)
-            byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
             // Se nodo correttammente allocato e gestito
             if (queueId != GENERIC_BVAL_UNDEFINED) {
                 // Verifico se risposta del servizio corrisponde al chiamante (eventuali + servizi sotto...)
                 // Gestione di tutti i servizi possibili allocabili, valido per tutti i nodi
-                if (transfer->metadata.port_id == clsCanard.slave[queueId].publisher.subject_id)
+                if (transfer->metadata.port_id == clsCanard.slave[queueId].publisher.get_subject_id())
                 {                
                     // *************            Service Modulo TH Response            *************
-                    if(clsCanard.slave[queueId].node_type == MODULE_TYPE_TH) {
+                    if(clsCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {
                         // Processato il messaggio con il relativo Handler. OK
                         bKindMessageProcessed = true;
                         // Modulo TH, leggo e deserializzo il messaggio in ingresso
@@ -708,10 +377,11 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                         size_t             size = transfer->payload_size;
                         if (rmap_module_TH_1_0_deserialize_(&msg, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
-                            // TODO: vedere con Marco Pubblica, registra elimina, display... altro
-                            // Per ora salvo solo il dato ricevuto dalla struttura di state msg (count)
                             // msg contiene i dati di blocco pubblicati
-                            clsCanard.slave[queueId].publisher.data_count++;
+                            Serial.print(F("Ricevuto dato in publisher modulo_th -> ID: "));
+                            Serial.print(transfer->metadata.remote_node_id);
+                            Serial.print(F(" , transfer ID: "));
+                            Serial.println(transfer->metadata.transfer_id);
                         }
                     }
                     // ALTRI MODULI DA INSERIRE QUA... PG, VV, RS, GAS ECC...
@@ -723,7 +393,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
         if (!bKindMessageProcessed)
         {
             // Gestione di un messaggio sottoscritto senza gestione. Se arrivo quà è un errore di sviluppo
-            assert(false);
+            LOCAL_ASSERT(false);
         }
     }
     // Gestione delle richieste esterne
@@ -789,13 +459,13 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             // Serve a fare eseguire un'eventuale TimeOut su procedura non corretta
             // Ed evitare blocchi non coerenti... Viene gestita senza problemi
             // Send multiplo di File e procedure in sequenza ( Gestito TimeOut di Request )
-            byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
-            // Devo essere in aghgiornamento per sicurezza!!!
-            if(clsCanard.slave[queueId].file.state == FILE_STATE_UPLOADING) {
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
+            // Devo essere in aggiornamento per sicurezza!!! O al massimo con verifica del comando
+            if((clsCanard.slave[queueId].file_server.get_state() == clsCanard.state_uploading)||
+                (clsCanard.slave[queueId].file_server.get_state() == clsCanard.command_wait)) {
                 // Update TimeOut (Comunico request OK al Master, Slave sta scaricando)
                 // Se Slave si blocca per TimeOut, esco dalla procedura dove gestita
-                // La gestione dei time OUT è in unica funzione x Tutti i TimeOUT
-                clsCanard.slave[queueId].file.timeout_us = transfer->timestamp_usec + NODE_REQFILE_TIMEOUT_US;
+                clsCanard.slave[queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
                 uavcan_file_Read_Request_1_1 req  = {0};
                 size_t                       size = transfer->payload_size;
                 if (uavcan_file_Read_Request_1_1_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
@@ -806,15 +476,15 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
                     req.path.path.elements[req.path.path.count] = 0;
                     // Allego il blocco dati se presente
                     size_t dataLen = uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_;
-                    // Il Master ha finito la trasmissione, esco dalla procedura
-                    if (getDataFile((char*)&req.path.path.elements[0], clsCanard.slave[queueId].file.is_firmware,
+                    if (getDataFile((char*)&req.path.path.elements[0],
+                                    clsCanard.slave[queueId].file_server.is_firmware(),
                                     req.offset, dataBuf, &dataLen)) {
                         resp._error.value = uavcan_file_Error_1_0_OK;
-                        if(dataLen != uavcan_primitive_Unstructured_1_0_value_ARRAY_CAPACITY_) {
-                            clsCanard.slave[queueId].file.state = FILE_STATE_UPLOAD_COMPLETE;
-                        }
+                        // Controllo se il Master ha finito la trasmissione (specifiche UAVCAN)
+                        clsCanard.slave[queueId].file_server.reset_pending(dataLen);
                     } else {
-                        // Ritorno un errore da interpretare a Slave
+                        // Ritorno un errore da interpretare a Slave. Non interrompo la procedura
+                        // E' il client che eventualmente la interrompe. Stop locale solo da TimeOut
                         resp._error.value = uavcan_file_Error_1_0_IO_ERROR;
                         dataLen = 0;
                     }
@@ -832,7 +502,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
         else
         {
             // Gestione di una richiesta senza controllore locale. Se arrivo quà è un errore di sviluppo
-            assert(false);
+            LOCAL_ASSERT(false);
         }
     }
     // Gestione delle risposte alle richeste inviate alla rete come Master
@@ -846,13 +516,11 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             if (uavcan_node_ExecuteCommand_Response_1_1_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 // Ricerco idNodo nella coda degli allocati del master
-                // Copio la risposta ricevuta nella struttura relativa e resetto il flag pending                
-                byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
+                // Copio la risposta ricevuta nella struttura relativa e resetto il flag pending
+                uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
                 if (queueId != GENERIC_BVAL_UNDEFINED) {
                     // Resetta il pending del comando del nodo verificato
-                    clsCanard.slave[queueId].command.is_pending = false;
-                    // Copia la risposta nella variabile di chiamata in state
-                    clsCanard.slave[queueId].command.response = resp.status;
+                    clsCanard.slave[queueId].command.reset_pending(resp.status);
                 }
             }
         }
@@ -863,13 +531,11 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             if (uavcan_register_Access_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
             {
                 // Ricerco idNodo nella coda degli allocati del master
-                // Copio la risposta ricevuta nella struttura relativa e resetto il flag pending                
-                byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
+                // Copio la risposta ricevuta nella struttura relativa e resetto il flag pending
+                uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);                
                 if (queueId != GENERIC_BVAL_UNDEFINED) {
-                    // Resetta il pending del comando del nodo verificato
-                    clsCanard.slave[queueId].register_access.is_pending = false;
-                    // Copia la risposta nella variabile di chiamata in state
-                    clsCanard.slave[queueId].register_access.response = resp.value;
+                    // Resetta il pending del comando del nodo verificato con la risposta
+                    clsCanard.slave[queueId].register_access.reset_pending(resp.value);
                 }
             }
         }
@@ -908,27 +574,24 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
         else
         {
             // Nodo rispondente (posso avere senza problemi più servizi con stesso port_id su diversi nodi)
-            byte queueId = getQueueNodeFromId(clsCanard, transfer->metadata.remote_node_id);
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(transfer->metadata.remote_node_id);
             // Se nodo correttammente allocato e gestito
             if (queueId != GENERIC_BVAL_UNDEFINED) {
                 // Verifico se risposta del servizio corrisponde al chiamante (eventuali + servizi sotto...)
                 // Gestione di tutti i servizi possibili allocabili, valido per tutti i nodi
-                if (transfer->metadata.port_id == clsCanard.slave[queueId].rmap_service.port_id)
+                if (transfer->metadata.port_id == clsCanard.slave[queueId].rmap_service.get_port_id())
                 {                
                     // *************            Service Modulo TH Response            *************
-                    if(clsCanard.slave[queueId].node_type == MODULE_TYPE_TH) {
+                    if(clsCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {
                         // Modulo TH, leggo e deserializzo il messaggio in ingresso
                         rmap_service_module_TH_Response_1_0 resp = {0};
                         size_t                              size = transfer->payload_size;
                         if (rmap_service_module_TH_Response_1_0_deserialize_(&resp, static_cast<uint8_t const*>(transfer->payload), &size) >= 0)
                         {
-                            // Resetta il pending del comando del nodo verificato
-                            clsCanard.slave[queueId].rmap_service.is_pending = false;
+                            // Resetta il pending del comando del nodo verificato (size_mem preparato in avvio)
                             // Copia la risposta nella variabile di chiamata in state
-                            // Oppure gestire qua tutte le altre occorrenze per stima V4
-                            // TODO: vedere con Marco Pubblica, registra elimina, display... altro
-                            // Per ora copio in una struttura di state response
-                            memcpy(clsCanard.slave[queueId].rmap_service.module, &resp, sizeof(resp));
+                            // Oppure possibile gestire qua tutte le occorrenze per stima V4
+                            clsCanard.slave[queueId].rmap_service.reset_pending(&resp, sizeof(resp));
                         }
                     }
                     // ALTRI MODULI DA INSERIRE QUA... PG, VV, RS, GAS ECC...
@@ -939,7 +602,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
     else
     {
         // Se arrivo quà è un errore di sviluppo, controllare setup sottoscrizioni, risposte e messaggi
-        assert(false);
+        LOCAL_ASSERT(false);
     }
 }
 
@@ -991,7 +654,7 @@ bool CAN_HW_Init(void)
     // Check error initialization CAN
     if (HAL_CAN_Init(&CAN_Handle) != HAL_OK) {
         Serial.println(F("Error initialization HW CAN base"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
 
@@ -1009,7 +672,7 @@ bool CAN_HW_Init(void)
     // Check error initalization CAN filter
     if (HAL_CAN_ConfigFilter(&CAN_Handle, &CAN_FilterInitStruct) != HAL_OK) {
         Serial.println(F("Error initialization filter CAN base"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
 
@@ -1021,7 +684,7 @@ bool CAN_HW_Init(void)
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
     registerRead("uavcan.can.bitrate", &val);
-    assert(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
+    LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural32_(&val) && (val.natural32.value.count == 2));
 
     // Dynamic BIT RATE Change CAN Speed to CAN_BIT_RATE (register default/defined)
     BxCANTimings timings;
@@ -1035,7 +698,7 @@ bool CAN_HW_Init(void)
         result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
         if (!result) {
             Serial.println(F("Error initialization bxCANComputeTimings"));
-            assert(false);
+            LOCAL_ASSERT(false);
             return false;
         }
     }
@@ -1043,7 +706,7 @@ bool CAN_HW_Init(void)
     result = bxCANConfigure(0, timings, false);
     if (!result) {
         Serial.println(F("Error initialization bxCANConfigure"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
     // *******************     CANARD SETUP TIMINGS AND SPEED COMPLETE   *******************
@@ -1051,14 +714,14 @@ bool CAN_HW_Init(void)
     // Check error starting CAN
     if (HAL_CAN_Start(&CAN_Handle) != HAL_OK) {
         Serial.println(F("CAN startup ERROR!!!"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
 
     // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
     if (HAL_CAN_ActivateNotification(&CAN_Handle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
         Serial.println(F("Error initialization interrupt CAN base"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
     // Setup Priority e CB CAN_IRQ_RX Enable
@@ -1089,6 +752,7 @@ void setup(void) {
     // Output mode for LED BLINK SW LOOP (High per Setup)
     // Input mode for test button
     pinMode(LED_BUILTIN, OUTPUT);
+    pinMode(LED_BLUE, OUTPUT);
     pinMode(USER_BTN, INPUT);
     digitalWrite(LED_BUILTIN, HIGH);
     
@@ -1097,7 +761,7 @@ void setup(void) {
     // *****************************************************
     if (!setupSd(PIN_SPI_MOSI, PIN_SPI_MISO, PIN_SPI_SCK, PIN_SPI_SS, 18)) {
         Serial.println(F("Initialization SD card error"));
-        assert(false);
+        LOCAL_ASSERT(false);
     }
     Serial.println(F("Initialization SD card done"));
 
@@ -1120,7 +784,7 @@ void setup(void) {
     Serial.println(HAL_RCC_GetPCLK1Freq());
     if (!CAN_HW_Init()) {
         Serial.println(F("Initialization CAN BUS error"));
-        assert(false);
+        LOCAL_ASSERT(false);
     }
     Serial.println(F("Initialization CAN BUS done"));
     
@@ -1133,7 +797,7 @@ void setup(void) {
 // *************************************************************************************************
 void loop(void)
 {
-    uavcan_register_Value_1_0 val = {0};
+    uavcan_register_Value_1_0 registerVal = {0};
     // Avvia l'istanza alla classe State_Canard ed inizializza Ram, Buffer e variabili base
     canardClass clsCanard;
 
@@ -1147,19 +811,9 @@ void loop(void)
     // ********************************************************************************
     //            INIT VALUE, Caricamento default e registri locali MASTER
     // ********************************************************************************
-    // Reset Slave node_id per ogni nodo collegato. Solo i nodi validi verranno gestiti
-    for(uint8_t iCnt = 0; iCnt<MAX_NODE_CONNECT; iCnt++) {
-        clsCanard.slave[iCnt].node_id = CANARD_NODE_ID_UNSET;
-        clsCanard.slave[iCnt].rmap_service.port_id = UINT16_MAX;
-        clsCanard.slave[iCnt].rmap_service.module = NULL;
-        #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-        clsCanard.slave[iCnt].publisher.subject_id = UINT16_MAX;
-        #endif
-        clsCanard.slave[iCnt].file.state = FILE_STATE_STANDBY;
-    }
 
     // Canard Master NODE ID Fixed dal defined value in module_config
-    clsCanard.canard.node_id = (CanardNodeID) NODE_MASTER_ID;
+    clsCanard.set_canard_node_id((CanardNodeID) NODE_MASTER_ID);
 
     // ********************************************************************************
     //                   READING PARAM FROM E2 MEMORY / FLASH / SDCARD
@@ -1168,14 +822,12 @@ void loop(void)
     // TODO:
     // Read Config Slave Node x Lettura porte e servizi.
     // Possibilità di utilizzo come sotto (registri) - Fixed Value adesso !!!
-    clsCanard.slave[0].node_id = 125;
-    clsCanard.slave[0].node_type = MODULE_TYPE_TH;    
-    clsCanard.slave[0].rmap_service.port_id = 100;
     #ifdef USE_SUB_PUBLISH_SLAVE_DATA
-    // clsCanard.slave[0].subject_id = 5678;
+    clsCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 0);    
+    // clsCanard.slave[0].configure(125, canardClass::Module_Type::th, 100, 5678);    
+    #else
+    clsCanard.slave[0].configure(125, canardClass::Module_Type::th, 100);    
     #endif
-    clsCanard.slave[0].rmap_service.module = malloc(sizeof(rmap_service_module_TH_Response_1_0));
-    strcpy(clsCanard.slave[0].file.filename, "stima4.module_th-1.1.app.hex");
 
     // **********************************************************************************
     // Lettura registri, parametri per PNP Allocation Verifica locale di assegnamento CFG
@@ -1186,20 +838,20 @@ void loop(void)
         // Per rendere disponibili le configurazioni in esterno (Yakut, altri)
         // Utilizzando la struttupra allocateID.XX (count = n° registri utili)
         char registerName[24] = "rmap.pnp.allocateID.";
-        uavcan_register_Value_1_0_select_natural8_(&val);
-        val.natural8.value.count       = 1;
-        val.natural8.value.elements[0] = CANARD_NODE_ID_UNSET;
+        uavcan_register_Value_1_0_select_natural8_(&registerVal);
+        registerVal.natural8.value.count       = 1;
+        registerVal.natural8.value.elements[0] = CANARD_NODE_ID_UNSET;
         // queueId -> index Val = NodeId
         itoa(iCnt, registerName + strlen(registerName), 10);
-        registerRead(registerName, &val);
-        assert(uavcan_register_Value_1_0_is_natural8_(&val) && (val.natural8.value.count == 1));
+        registerRead(registerName, &registerVal);
+        LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural8_(&registerVal) && (registerVal.natural8.value.count == 1));
         // Il Node_id deve essere valido e uguale a quello programmato in configurazione
-        if((val.natural8.value.elements[0] != CANARD_NODE_ID_UNSET) &&
-            (val.natural8.value.elements[0] == clsCanard.slave[iCnt].node_id))
+        if((registerVal.natural8.value.elements[0] != CANARD_NODE_ID_UNSET) &&
+            (registerVal.natural8.value.elements[0] == clsCanard.slave[iCnt].get_node_id()))
          {
             // Assegnamento PNP per nodeQueueID con clsCanard.slave[iCnt].node_id
             // già avvenuto. Non rispondo a eventuali messaggi PNP del tipo per quel nodo
-            clsCanard.slave[iCnt].pnp.is_assigned = true;
+            clsCanard.slave[iCnt].pnp.disable();
         }
     }
 
@@ -1209,9 +861,9 @@ void loop(void)
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
     // It simply keeps a human-readable description of the node that should be empty by default.
-    uavcan_register_Value_1_0_select_string_(&val);
-    val._string.value.count = 0;
-    registerRead("uavcan.node.description", &val);  // We don't need the value, we just need to ensure it exists.
+    uavcan_register_Value_1_0_select_string_(&registerVal);
+    registerVal._string.value.count = 0;
+    registerRead("uavcan.node.description", &registerVal);  // We don't need the value, we just need to ensure it exists.
 
     // ********************************************************************************
     //               AVVIA SOTTOSCRIZIONI ai messaggi per servizi RPC ecc...
@@ -1310,15 +962,15 @@ void loop(void)
     // sw in quanto una sottoscrizione chiamata in coda elimina una precedente (con stesso port o subjcect)
     for(byte queueId=0; queueId<MAX_NODE_CONNECT; queueId++) {
         // *************   SERVICE    *************
-        // Se previsto il servizio request/response con port_id valido
-        if ((clsCanard.slave[queueId].rmap_service.module) &&
-            (clsCanard.slave[queueId].rmap_service.port_id <= CANARD_SERVICE_ID_MAX)) {
+        // Se previsto il servizio request/response (!=NULL, quindi allocato) con port_id valido
+        if ((clsCanard.slave[queueId].rmap_service.get_response()) &&
+            (clsCanard.slave[queueId].rmap_service.get_port_id() <= CANARD_SERVICE_ID_MAX)) {
             // Controllo le varie tipologie di request/service per il nodo
-            if(clsCanard.slave[queueId].node_type == MODULE_TYPE_TH) {     
+            if(clsCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {     
                 // Alloco la stottoscrizione in funzione del tipo di modulo
                 // Service client: -> Risposta per ServiceDataModuleTH richiesta interna (come master)
                 if (!clsCanard.rxSubscribe(CanardTransferKindResponse,
-                                        clsCanard.slave[queueId].rmap_service.port_id,
+                                        clsCanard.slave[queueId].rmap_service.get_port_id(),
                                         rmap_service_module_TH_Response_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
@@ -1329,13 +981,13 @@ void loop(void)
         // *************   PUBLISH    *************
         // Se previsto il servizio publisher (subject_id valido)
         // Non alloco niente per il publish (gestione esempio display o altro debug interno da gestire)
-         if (clsCanard.slave[queueId].publisher.subject_id <= CANARD_SUBJECT_ID_MAX) {
+         if (clsCanard.slave[queueId].publisher.get_subject_id() <= CANARD_SUBJECT_ID_MAX) {
             // Controllo le varie tipologie di request/service per il nodo
-            if(clsCanard.slave[queueId].node_type == MODULE_TYPE_TH) {            
+            if(clsCanard.slave[queueId].get_module_type() == canardClass::Module_Type::th) {            
                 // Alloco la stottoscrizione in funzione del tipo di modulo
                 // Service client: -> Sottoscrizione per ModuleTH (come master)
                 if (!clsCanard.rxSubscribe(CanardTransferKindMessage,
-                                        clsCanard.slave[queueId].publisher.subject_id,
+                                        clsCanard.slave[queueId].publisher.get_subject_id(),
                                         rmap_module_TH_1_0_EXTENT_BYTES_,
                                         CANARD_DEFAULT_TRANSFER_ID_TIMEOUT_USEC)) {
                     LOCAL_ASSERT(false);
@@ -1350,43 +1002,33 @@ void loop(void)
     // ********************************************************************************
 
     // TODO: Eliminare
-    bool ledShow;
-    int  bTxAttempt = 0;
-    int  bRxAttempt = 0;
     long checkTimeout = 0;
     long lastMillis;
-    bool bEnabService = false;
-    bool bLastPendingCmd = false;
-    bool bIsPendingCmd = false;
-    bool bLastPendingData = false;
-    bool bIsPendingData = false;
-    bool bIsResetFaultCmd = false;
     bool bEventRealTimeLoop = false;
-    bool bFileUpload = false;
-    bool bFileMessage = false;
-    bool bLastPendingRegister = false;
-    bool bIsPendingRegister = false;
     bool bIsWriteRegister = false;
+    bool bEnabService = false;
+    bool is_test_command_send = false;
 
     #define MILLIS_EVENT 10
     #define PUBLISH_HEARTBEAT
     #define PUBLISH_PORTLIST
-    #define LOG_RX_PACKET
+    // #define LOG_RX_PACKET
     #define LED_ON_CAN_DATA_TX
     #define LED_ON_CAN_DATA_RX
-    // #define LED_ON_SYNCRO_TIME
-    // #define TEST_COMMAND
-    // #define TEST_RMAP_DATA
-    // #define TEST_REGISTER
+    #define LED_ON_SYNCRO_TIME
+    #define TEST_COMMAND
+    #define TEST_RMAP_DATA
+    #define TEST_REGISTER
+    #define TEST_FIRMWARE
 
     // Set START Timetable LOOP RX/TX. Set Canard microsecond start, per le sincronizzazioni
-    clsCanard.getMonotonicMicroseconds(clsCanard.start_syncronization);
-    CanardMicrosecond       next_01_sec_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 0.25;
-    CanardMicrosecond       next_timesyncro_msg = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA;
-    CanardMicrosecond       next_20_sec_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 1.5;
-    CanardMicrosecond       test_cmd_cs_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 2.5;
-    CanardMicrosecond       test_cmd_vs_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 3.5;
-    CanardMicrosecond       test_cmd_rg_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 4.5;
+    clsCanard.getMicros(clsCanard.start_syncronization);
+    CanardMicrosecond next_01_sec_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 0.25;
+    CanardMicrosecond next_timesyncro_msg = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA;
+    CanardMicrosecond next_20_sec_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 1.5;
+    CanardMicrosecond test_cmd_cs_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 2.5;
+    CanardMicrosecond test_cmd_vs_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 3.5;
+    CanardMicrosecond test_cmd_rg_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 4.5;
 
     // Avvio il modulo UAVCAN in modalità operazionale normale
     // Eventuale SET Flag dopo acquisizione di configurazioni e/o parametri da Remoto
@@ -1394,7 +1036,7 @@ void loop(void)
 
     do {
         // Set Canard microsecond corrente monotonic, per le attività temporanee di ciclo
-        clsCanard.getMonotonicMicroseconds(clsCanard.start_syncronization);
+        clsCanard.getMicros(clsCanard.start_syncronization);
 
         // Check TimeLine (quasi RealTime...)
         if ((millis()-checkTimeout) >= MILLIS_EVENT)
@@ -1409,10 +1051,10 @@ void loop(void)
         // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED sincronizzati)
         #ifdef LED_ON_SYNCRO_TIME
         // Verifico LED al secondo... su timeSTamp sincronizzato remoto
-        if((monotonic_time / 1000000) % 2) {
-            digitalWrite(LED_BUILTIN, HIGH);
+        if((clsCanard.getMicros() / MEGA) % 2) {
+            digitalWrite(LED_BLUE, HIGH);
         } else {
-            digitalWrite(LED_BUILTIN, LOW);
+            digitalWrite(LED_BLUE, LOW);
         }
         #endif
 
@@ -1427,55 +1069,19 @@ void loop(void)
             // Per la coda/istanze allocate valide SLAVE remote_node_flag
             // **********************************************************
             for (byte queueId = 0; queueId<MAX_NODE_CONNECT; queueId++) {
-                if (clsCanard.slave[queueId].node_id <= CANARD_NODE_ID_MAX) {
-                    // Solo se nodo OnLine (Automatic OnLine su HeartBeat RX)
-                    if(clsCanard.slave[queueId].is_online) {
-                        // Controllo TimeOUT Comando diretto su modulo remoto
-                        // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
-                        if(clsCanard.slave[queueId].command.is_pending) {
-                            if(clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) > clsCanard.slave[queueId].command.timeout_us) {
-                                // Setto il flag di TimeOUT che il master dovrà gestire (segnalazione BUG al Server?)
-                                clsCanard.slave[queueId].command.is_timeout = true;
-                            }
-                        }
-                        // Controllo TimeOut Comando getData su modulo remoto
-                        // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
-                        if(clsCanard.slave[queueId].rmap_service.is_pending) {
-                            if(clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) > clsCanard.slave[queueId].rmap_service.timeout_us) {
-                                // Setto il flag di TimeOUT che il master dovrà gestire (segnalazione BUG al Server?)
-                                clsCanard.slave[queueId].rmap_service.is_timeout = true;
-                            }
-                        }
-                        // Controllo TimeOut Comando file su modulo remoto
-                        // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
-                        if(clsCanard.slave[queueId].file.is_pending) {
-                            if(clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) > clsCanard.slave[queueId].file.timeout_us) {
-                                // Setto il flag di TimeOUT che il master dovrà gestire (segnalazione BUG al Server?)
-                                clsCanard.slave[queueId].file.is_timeout = true;
-                            }
-                        }
-                        // Check eventuale Nodo OFFLINE (Ultimo comando sempre perchè posso)
-                        // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
-                        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) > clsCanard.slave[queueId].heartbeat.timeout_us) {
-                            // Entro in OffLine
-                            clsCanard.slave[queueId].is_online = false;
-                            Serial.print(F("Nodo OFFLINE !!! Alert -> : "));
-                            Serial.println(clsCanard.slave[queueId].node_id);
-                            // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
-                            // Eventuali altre operazioni quà su Reset Comandi
-                            clsCanard.slave[queueId].command.is_pending = false;
-                            clsCanard.slave[queueId].command.is_timeout = true;
-                            clsCanard.slave[queueId].register_access.is_pending = false;
-                            clsCanard.slave[queueId].register_access.is_timeout = true;
-                            clsCanard.slave[queueId].file.is_pending = false;
-                            clsCanard.slave[queueId].file.is_timeout = true;
-                            clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
-                            clsCanard.slave[queueId].rmap_service.is_pending = false;
-                            clsCanard.slave[queueId].rmap_service.is_timeout = true;
-                            // Attività x Reset e/o riavvio Nodo dopo OnLine -> Offline
-                            // Solo TEST Locale TODO: da eliminare
-                            bIsResetFaultCmd = true;
-                        }
+                if (clsCanard.slave[queueId].get_node_id() <= CANARD_NODE_ID_MAX) {
+                    // Check eventuale Nodo OFFLINE (Ultimo comando sempre perchè posso)
+                    // Effettuare eventuali operazioni di SET,RESET Cmd in sicurezza
+                    if (clsCanard.slave[queueId].is_entered_offline()) {
+                        // Entro in OffLine
+                        Serial.print(F("Nodo OFFLINE !!! Alert -> : "));
+                        Serial.println(clsCanard.slave[queueId].get_node_id());
+                        // Metto i Flag in sicurezza, laddove dove non eventualmente gestito
+                        // Eventuali altre operazioni quà su Reset Comandi
+                        clsCanard.slave[queueId].command.reset_pending();
+                        clsCanard.slave[queueId].register_access.reset_pending();
+                        clsCanard.slave[queueId].file_server.reset_pending();
+                        clsCanard.slave[queueId].rmap_service.reset_pending();
                     }
                 }
             }
@@ -1543,7 +1149,6 @@ void loop(void)
                         // Avvio prima request o nuovo blocco (Set Flag e TimeOut)
                         // Prima request (clsCanard.local_node.file.offset == 0)
                         // Firmmware Posizione blocco gestito automaticamente in sequenza Request/Read
-                        clsCanard.master.file.start_pending(NODE_GETFILE_TIMEOUT_US);
                         // Gestione retry (incremento su TimeOut/Error) Automatico in Init/Request-Response
                         // Esco se raggiunga un massimo numero di retry x Frame... sopra
                         // Get Data Block per popolare il File
@@ -1551,70 +1156,73 @@ void loop(void)
                         // Altrimenti se inferiore o (0 Compreso) il trasferimento file termina.
                         // Se = 0 il blocco finale non viene considerato ma serve per il protocollo
                         // Se l'ultimo buffer dovesse essere pieno discrimina l'eventualità di MaxBuf==Eof 
-                        handleFileReadBlock_1_1(clsCanard);
+                        clsCanard.master_file_read_block_pending(NODE_GETFILE_TIMEOUT_US);
                     }
                 }
             }
         }
 
         // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_01_sec_iter_at) {
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_01_sec_iter_at) {
             #ifdef PUBLISH_HEARTBEAT
             Serial.println(F("Publish MASTER Heartbeat -->> [1 sec]"));
             #endif
             next_01_sec_iter_at += MEGA;
-            handleNormalLoop(clsCanard);
+            clsCanard.master_heartbeat_send_message();
         }
 
         // LOOP HANDLER >> 1 SECONDO << TIME SYNCRO (alternato 0.5 sec con Heartbeat)
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_timesyncro_msg)
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_timesyncro_msg)
         {
             #ifdef PUBLISH_TIMESYNCRO
             Serial.println(F("Publish MASTER Time Syncronization -->> [1 sec]"));
             #endif
             next_timesyncro_msg += MEGA;
-            handleSyncroLoop(clsCanard);
+            clsCanard.master_timestamp_send_syncronization();
         }
 
         // LOOP HANDLER >> 20 SECONDI PUBLISH SERVIZI <<
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_20_sec_iter_at) {
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_20_sec_iter_at) {
             next_20_sec_iter_at += MEGA * 20;
             #ifdef PUBLISH_PORTLIST
             Serial.println(F("Publish local PORT List -- [20 sec]"));
             #endif
-            handleSlowLoop(clsCanard);
+            clsCanard.master_servicelist_send_message();
         }
 
         #ifdef TEST_COMMAND
         // ********************** TEST COMANDO TX-> RX<- *************************
         // LOOP HANDLER >> 0..15 SECONDI x TEST COMANDI <<
-        if ((monotonic_time >= test_cmd_cs_iter_at)&&(!clsCanard.master.file.updating)) {
+        if ((clsCanard.getMicros(clsCanard.syncronized_time) >= test_cmd_cs_iter_at)) {
             // TimeOUT variabile in 15 secondi
             test_cmd_cs_iter_at += MEGA * ((float)(rand() % 60)/4.0);
             // Invio un comando di test in prova al nodo 125
             // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
             // Abilito disabilito pubblicazione dei dati ogni 3 secondi...
-            byte queueId = getQueueNodeFromId(&state, 125);
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(125);
             // Il comando viene inviato solamente se il nodo è ONLine
-            if(clsCanard.slave[queueId].is_online) {
+            if(clsCanard.slave[queueId].is_online()) {
                 // Il comando viene inviato solamente senza altri Pending di Comandi
                 // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                if(!clsCanard.slave[queueId].command.is_pending) {
+                if(!clsCanard.slave[queueId].command.is_pending()) {
+                    // Eliminare solo per gestione multi comando con file...
+                    // Attivo il reset pending standard solo se eseguito il comando quà
+                    is_test_command_send = true;
                     // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
                     // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
-                    clsCanard.slave[queueId].command.is_pending = true;
-                    clsCanard.slave[queueId].command.is_timeout = false;
-                    clsCanard.slave[queueId].command.timeout_us = monotonic_time + NODE_COMMAND_TIMEOUT_US;
-                    clsCanard.slave[queueId].command.response = GENERIC_BVAL_UNDEFINED;
                     // Il comando inverte il servizio di pubblicazione continua dei dati remoti
                     // Semplice TEST di esempio (queueId = IDX di coda, diventerà l'istanza relativa)
                     bEnabService = !bEnabService;
                     if (bEnabService) {
-                        serviceSendCommand(&state, monotonic_time, queueId,
-                                            CMD_DISABLE_PUBLISH_DATA, NULL, 0);
+                        Serial.print(F("Inviato comando PUBLISH DISABLE al nodo remoto: "));
+                        Serial.println(clsCanard.slave[0].get_node_id());
+                        clsCanard.send_command_pending(queueId, NODE_COMMAND_TIMEOUT_US,
+                            canardClass::Command_Private::disable_publish_rmap, NULL, 0);
                     } else {
-                        serviceSendCommand(&state, monotonic_time, queueId,
-                                            CMD_ENABLE_PUBLISH_DATA, NULL, 0);
+                        Serial.print(F("Inviato comando PUBLISH ENABLE al nodo remoto: "));
+                        Serial.println(clsCanard.slave[0].get_node_id());
+                        clsCanard.send_command_pending(queueId, NODE_COMMAND_TIMEOUT_US,
+                            canardClass::Command_Private::enable_publish_rmap, NULL, 0);
                     }
                 }
             }
@@ -1627,35 +1235,24 @@ void loop(void)
 
         // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
         // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-        if (clsCanard.slave[0].command.is_timeout) {
-            // TimeOUT di un comando in attesa... gestisco il da farsi
-            Serial.print(F("Timeout risposta su invio comando al nodo remoto: "));
-            Serial.print(clsCanard.slave[0].node_id);
-            Serial.println(F(", Warning [restore pending command]"));
-            // Adesso elimino solo gli stati
-            clsCanard.slave[0].command.is_pending = false;
-            clsCanard.slave[0].command.is_timeout = false;
-            // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-            bIsPendingCmd = false;
-            bLastPendingCmd = false;
-        } else {
-            bIsPendingCmd = clsCanard.slave[0].command.is_pending;
-            // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
-            if(bIsResetFaultCmd) {
-                bIsPendingCmd = false;
-                bLastPendingCmd = false;
+        if (is_test_command_send) {
+            if (clsCanard.slave[0].command.event_timeout()) {
+                // Adesso elimino solo gli stati
+                clsCanard.slave[0].command.reset_pending();
+                // TimeOUT di un comando in attesa... gestisco il da farsi
+                Serial.print(F("Timeout risposta su invio comando al nodo remoto: "));
+                Serial.print(clsCanard.slave[0].get_node_id());
+                Serial.println(F(", Warning [restore pending command]"));
+                is_test_command_send = false;
             }
-            if(bLastPendingCmd != bIsPendingCmd) {
-                bLastPendingCmd = bIsPendingCmd;
-                if(bLastPendingCmd) {
-                    Serial.print(F("Inviato comando al nodo remoto: "));
-                    Serial.println(clsCanard.slave[0].node_id);
-                } else {
-                    Serial.print(F("Ricevuto conferma di comando dal nodo remoto: "));
-                    Serial.print(clsCanard.slave[0].node_id);
-                    Serial.print(F(", cod. risposta ->: "));
-                    Serial.println(clsCanard.slave[0].command.response);
-                }
+            if (clsCanard.slave[0].command.is_executed()) {
+                // Adesso elimino solo gli stati
+                clsCanard.slave[0].command.reset_pending();
+                Serial.print(F("Ricevuto conferma di comando dal nodo remoto: "));
+                Serial.print(clsCanard.slave[0].get_node_id());
+                Serial.print(F(", cod. risposta ->: "));
+                Serial.println(clsCanard.slave[0].command.get_response());
+                is_test_command_send = false;
             }
         }
         // ***************** FINE TEST COMANDO TX-> RX<- *************************
@@ -1664,84 +1261,70 @@ void loop(void)
         #ifdef TEST_RMAP_DATA
         // ********************** TEST GETDATA TX-> RX<- *************************
         // LOOP HANDLER >> 0..15 SECONDI x TEST GETDATA <<
-        if ((monotonic_time >= test_cmd_vs_iter_at)&&(!clsCanard.master.file.updating)) {
+        if ((clsCanard.getMicros(clsCanard.syncronized_time) >= test_cmd_vs_iter_at)) {
             // TimeOUT variabile in 15 secondi
             test_cmd_vs_iter_at += MEGA * ((float)(rand() % 60)/4.0);   
             // Invio un comando di test in prova al nodo 125
             // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
             // Abilito disabilito pubblicazione dei dati ogni 5 secondi...
-            byte queueId = getQueueNodeFromId(&state, 125);
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(125);
             // Il comando viene inviato solamente se il nodo è ONLine
-            if(clsCanard.slave[queueId].is_online) {
+            if(clsCanard.slave[queueId].is_online()) {
                 // Il comando viene inviato solamente senza altri Pending di Comandi
                 // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                if(!clsCanard.slave[queueId].rmap_service.is_pending) {
-                    // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                    // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
-                    clsCanard.slave[queueId].rmap_service.is_pending = true;
-                    clsCanard.slave[queueId].rmap_service.is_timeout = false;
-                    clsCanard.slave[queueId].rmap_service.timeout_us = monotonic_time + NODE_GETDATA_TIMEOUT_US;
-                    // Il comando richiede il dato istantaneo ad un nodo remoto
-                    // Semplice TEST di esempio con i parametri in richiesta
-                    rmap_service_setmode_1_0 parametri;
-                    parametri.comando = rmap_service_setmode_1_0_get_istant;
+                if(!clsCanard.slave[queueId].rmap_service.is_pending()) {
+                    Serial.print(F("Inviato richiesta dati al nodo remoto: "));
+                    Serial.println(clsCanard.slave[0].get_node_id());
                     // parametri.canale = rmap_service_setmode_1_0_CH01 (es-> set CH Analogico...)
                     // parametri.run_for_second = 900; ( inutile in get_istant )
-                    serviceSendRequestData(&state, monotonic_time, queueId,
-                                            rmap_service_setmode_1_0_get_istant, 10);
+                    rmap_service_setmode_1_0 parmRequest;
+                    parmRequest.canale = 0; // Necessario solo per i canali indirizzabili 1..X (Analog/Digital)
+                    parmRequest.comando = rmap_service_setmode_1_0_get_istant;
+                    parmRequest.run_sectime = 10;
+                    // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                    // La risposta al comando è già nel blocco dati, non necessaria ulteriore variabile
+                    clsCanard.send_rmap_data_pending(queueId, NODE_GETDATA_TIMEOUT_US, parmRequest);
                 }
             }
-            // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
-            // popolata nel'apposito registro di state service_module del il servizio relativo
-            // Il set data avviene in processReciveTranser alle sezioni CanardTransferKindResponse
-            // Eventuale Flag TimeOut indica un'avvenuta mancata risposta al comando
-            // Il master una volta inviato il comando deve attendere ResetPending o TimeOutCommand
         }
-
         // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
         // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-        if (clsCanard.slave[0].rmap_service.is_timeout) {
+        if (clsCanard.slave[0].rmap_service.event_timeout()) {
+            // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
+            clsCanard.slave[0].rmap_service.reset_pending();
             // TimeOUT di un comando in attesa... gestisco il da farsi
             Serial.print(F("Timeout risposta su richiesta dati al nodo remoto: "));
-            Serial.print(clsCanard.slave[0].node_id);
+            Serial.print(clsCanard.slave[0].get_node_id());
             Serial.println(F(", Warning [restore pending command]"));
+        }
+        if(clsCanard.slave[0].rmap_service.is_executed()) {
             // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-            clsCanard.slave[0].rmap_service.is_pending = false;
-            clsCanard.slave[0].rmap_service.is_timeout = false;
-            bIsPendingData = false;
-            bLastPendingData = false;
-        } else {
-            bIsPendingData = clsCanard.slave[0].rmap_service.is_pending;
-            // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
-            if(bIsResetFaultCmd) {
-                bIsPendingData = false;
-                bLastPendingData = false;
-            }
-            if(bLastPendingData != bIsPendingData) {
-                bLastPendingData = bIsPendingData;
-                if(bLastPendingData) {
-                    Serial.print(F("Inviato richiesta dati al nodo remoto: "));
-                    Serial.println(clsCanard.slave[0].node_id);
-                } else {
-                    // Interprete del messaggio in casting dal puntatore dinamico
-                    // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
-                    // in funzione di clsCanard.slave[x].node_type
-                    rmap_service_module_TH_Response_1_0* retData =
-                        (rmap_service_module_TH_Response_1_0*) clsCanard.slave[0].rmap_service.module;
-                    // Stampo la risposta corretta
-                    Serial.print(F("Ricevuto risposta di richiesta dati dal nodo remoto: "));
-                    Serial.print(clsCanard.slave[0].node_id);
-                    Serial.print(F(", cod. risposta ->: "));
-                    Serial.println(retData->stato);
-                    // Test data Received e stampa valori con accesso al puntatore in casting per il modulo
-                    Serial.println(F("Value (ITH) L1, TP, UH: "));
-                    Serial.print(retData->ITH.metadata.level.L1.value);
-                    Serial.print(F(", "));
-                    Serial.print(retData->ITH.temperature.val.value);
-                    Serial.print(F(", "));
-                    Serial.println(retData->ITH.humidity.val.value);
-                }
-            }
+            clsCanard.slave[0].rmap_service.reset_pending();
+            // Interprete del messaggio in casting dal puntatore dinamico
+            // Nell'esempio Il modulo e TH, naturalmente bisogna gestire il tipo
+            // in funzione di clsCanard.slave[x].node_type
+            // Esempio ->
+            // switch (clsCanard.slave[0].get_module_type()) {
+            //     case canardClass::Module_Type::th:
+            //         rmap_service_module_TH_Response_1_0* retData =
+            //             (rmap_service_module_TH_Response_1_0*) clsCanard.slave[0].rmap_service.get_response();
+            //     break;
+            //     ...
+            // }
+            rmap_service_module_TH_Response_1_0* retData =
+                (rmap_service_module_TH_Response_1_0*) clsCanard.slave[0].rmap_service.get_response();
+            // Stampo la risposta corretta
+            Serial.print(F("Ricevuto risposta di richiesta dati dal nodo remoto: "));
+            Serial.print(clsCanard.slave[0].get_node_id());
+            Serial.print(F(", cod. risposta ->: "));
+            Serial.println(retData->stato);
+            // Test data Received e stampa valori con accesso al puntatore in casting per il modulo
+            Serial.println(F("Value (ITH) L1, TP, UH: "));
+            Serial.print(retData->ITH.metadata.level.L1.value);
+            Serial.print(F(", "));
+            Serial.print(retData->ITH.temperature.val.value);
+            Serial.print(F(", "));
+            Serial.println(retData->ITH.humidity.val.value);
         }
         // ***************** FINE TEST GETDATA TX-> RX<- *************************
         #endif
@@ -1749,44 +1332,41 @@ void loop(void)
         #ifdef TEST_REGISTER
         // ********************** TEST REGISTER TX-> RX<- *************************
         // LOOP HANDLER >> 0..15 SECONDI x TEST REGISTER ACCESS <<
-        if ((monotonic_time >= test_cmd_rg_iter_at)&&(!clsCanard.master.file.updating)) {
+        if ((clsCanard.getMicros(clsCanard.syncronized_time) >= test_cmd_rg_iter_at)) {
             // TimeOUT variabile in 15 secondi
             test_cmd_rg_iter_at += MEGA * ((float)(rand() % 60)/4.0);
             // Invio un comando di set registro in prova al nodo 125
             // Possibile accesso da NodeId o direttamente dall'indice in coda conosciuto al master
-            byte queueId = getQueueNodeFromId(&state, 125);
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(125);
             // Il comando viene inviato solamente se il nodo è ONLine
-            if(clsCanard.slave[queueId].is_online)
+            if(clsCanard.slave[queueId].is_online())
             {
                 // Il comando viene inviato solamente senza altri Pending di Comandi
                 // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                if(!clsCanard.slave[queueId].register_access.is_pending) {
-                    // Imposta il pending del registro per verifica sequenza TX-RX e il TimeOut
-                    // Imposta la risposta del registro A UNDEFINED (verrà settato al valore corretto in risposta)
-                    clsCanard.slave[queueId].register_access.is_pending = true;
-                    clsCanard.slave[queueId].register_access.is_timeout = false;
-                    clsCanard.slave[queueId].register_access.timeout_us = monotonic_time + NODE_REGISTER_TIMEOUT_US;
+                if(!clsCanard.slave[queueId].register_access.is_pending()) {
                     // Preparo il registro da inviare (configurazione generale => sequenza di request/response)
                     // Semplice TEST di esempio trasmissione di un registro fisso con nome fisso
-                    // Uso in Test uavcan_register_Value_1_0 val utilizzato in ReadRegister iniziale
+                    // Uso in Test uavcan_register_Value_1_0 registerVal utilizzato in ReadRegister iniziale
                     // Init Var per confronto memCmp di verifica elementi == x TEST Veloce
-                    memset(&val, 0, sizeof(uavcan_register_Value_1_0));
+                    memset(&registerVal, 0, sizeof(uavcan_register_Value_1_0));
                     // x SPECIFICHE UAVCAN ->
                     // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto
                     // Altrimenti la funzione deve fallire e ritornare NULL
                     // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
                     // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
+                    // Preparo il registro (Inifluente se l'operazione è di sola lettura parametro -> write)
+                    uavcan_register_Value_1_0_select_natural16_(&registerVal);
+                    registerVal.natural32.value.count       = 1;
+                    registerVal.natural32.value.elements[0] = 12345;
+                    // Avvia comando e setta il pending relativo di istanza
+                    clsCanard.send_register_access_pending(queueId, NODE_REGISTER_TIMEOUT_US,
+                                "rmap.module.TH.metadata.Level.L2", registerVal, bIsWriteRegister);
                     if(bIsWriteRegister) {
-                        // Invio il registro al nodo slave in scrittura
-                        uavcan_register_Value_1_0_select_natural16_(&val);
-                        val.natural32.value.count       = 1;
-                        val.natural32.value.elements[0] = 12345;
+                        Serial.print(F("Inviato registro WRITE al nodo remoto: "));
                     } else {
-                        // Richiedo al nodo slave la lettura (Specifiche UAVCAN _empty x Lettura)
-                        uavcan_register_Value_1_0_select_empty_(&val);
+                        Serial.print(F("Richiesto registro READ al nodo remoto: "));
                     }
-                    serviceSendRegister(&state, monotonic_time, queueId,
-                                        "rmap.module.TH.metadata.Level.L2", val);
+                    Serial.println(clsCanard.slave[0].get_node_id());
                 }
             }
             // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
@@ -1798,55 +1378,41 @@ void loop(void)
 
         // Test rapido con nodo[0]... SOLO x OUT TEST DI VERIFICA TX/RX SEQUENZA
         // TODO: Eliminare, solo per verifica sequenza... Gestire da Master...
-        if (clsCanard.slave[0].register_access.is_timeout) {
+        if (clsCanard.slave[0].register_access.event_timeout()) {
+            // Reset del pending comando
+            clsCanard.slave[0].register_access.reset_pending();
             // TimeOUT di un comando in attesa... gestisco il da farsi
             Serial.print(F("Timeout risposta su invio registro al nodo remoto: "));
-            Serial.print(clsCanard.slave[0].node_id);
+            Serial.print(clsCanard.slave[0].get_node_id());
             Serial.println(F(", Warning [restore pending register]"));
-            // Adesso elimino solo gli stati
-            clsCanard.slave[0].register_access.is_pending = false;
-            clsCanard.slave[0].register_access.is_timeout = false;
-            // Adesso elimino solo gli stati per corretta visualizzazione a Serial.println
-            bIsPendingRegister = false;
-            bLastPendingRegister = false;
-        } else {
-            bIsPendingRegister = clsCanard.slave[0].register_access.is_pending;
-            // Gestione esempio di fault (Entrata in Offline... non faccio nulla solo reset var locale test)
-            if(bIsResetFaultCmd) {
-                bIsPendingRegister = false;
-                bLastPendingRegister = false;
+        }
+        if (clsCanard.slave[0].register_access.is_executed()) {
+            // Reset del pending comando
+            clsCanard.slave[0].register_access.reset_pending();
+            Serial.print(F("Ricevuto messaggio register R/W registro dal nodo remoto: "));
+            Serial.println(clsCanard.slave[0].get_node_id());
+            Serial.print(F("Totale elementi (Natural16): "));
+            uavcan_register_Value_1_0 registerResp = clsCanard.slave[0].register_access.get_response();
+            Serial.println(registerResp.unstructured.value.count);
+            for(byte bElement=0; bElement<registerResp.unstructured.value.count; bElement++) {
+                Serial.print(registerResp.natural16.value.elements[bElement]);
+                Serial.print(" ");                        
             }
-            if(bLastPendingRegister != bIsPendingRegister) {
-                bLastPendingRegister = bIsPendingRegister;
-                if(bLastPendingRegister) {
-                    Serial.print(F("Inviato registro R/W al nodo remoto: "));
-                    Serial.println(clsCanard.slave[0].node_id);
+            Serial.println();
+            // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
+            // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
+            // Tecnicamente se != da empty in request ed in request il registro è impostato
+            // I valori != 0 in elementi extra register.value.count non sono considerati 
+            if(bIsWriteRegister) {
+                // TEST BYTE A BYTE...
+                if(memcmp(&registerResp, &registerVal, sizeof(uavcan_register_Value_1_0)) == 0) {
+                    Serial.println("Registro impostato correttamente");
                 } else {
-                    Serial.print(F("Ricevuto conferma R/W registro dal nodo remoto: "));
-                    Serial.println(clsCanard.slave[0].node_id);
-                    Serial.print(F("Totale elementi (Natural16): "));
-                    Serial.println(clsCanard.slave[0].register_access.response.unstructured.value.count);
-                    for(byte bElement=0; bElement<clsCanard.slave[0].register_access.response.unstructured.value.count; bElement++) {
-                        Serial.print(clsCanard.slave[0].register_access.response.natural16.value.elements[bElement]);
-                        Serial.print(" ");                        
-                    }
-                    Serial.println();
-                    // Con TX == RX Allora è una scrittura e se coincide il registro è impostato
-                    // Se non coincide il comando è fallito (anche se RX = OK) TEST COMPLETO!!!
-                    // Tecnicamente se != da empty in request ed in request il registro è impostato
-                    // I valori != 0 in elementi extra register.value.count non sono considerati 
-                    if(bIsWriteRegister) {
-                        // TEST BYTE A BYTE...
-                        if(memcmp(&val, &clsCanard.slave[0].register_access.response, sizeof(uavcan_register_Value_1_0)) == 0) {
-                            Serial.println("Registro impostato correttamente");
-                        } else {
-                            Serial.println("Registro NON impostato correttamente. ALERT!!!");
-                        }
-                    }
-                    // Inverto da Lettura a scrittura e viceversa per il TEST
-                    bIsWriteRegister = !bIsWriteRegister;
+                    Serial.println("Registro NON impostato correttamente. ALERT!!!");
                 }
             }
+            // Inverto da Lettura a scrittura e viceversa per il TEST
+            bIsWriteRegister = !bIsWriteRegister;
         }
         // ***************** FINE TEST COMANDO TX-> RX<- *************************
         #endif
@@ -1863,173 +1429,137 @@ void loop(void)
         // Al termine del trasferimento, esco dalla modalità >> FILE_STATE_WAIT_COMMAND <<
         // direttamente nell' invio dell' ultimo pacchetto dati. E mi preparo a nuovo invio...
         if(bEventRealTimeLoop) {
-            // Avvio con il bottone di TEST il trasferimento (se non già attivo)
-            // TODO: Eliminare solo x gestione messaggio non ripetuto
-            if(digitalRead(USER_BTN) == LOW) {
-                bFileMessage = false;
-            }
-            byte queueId = getQueueNodeFromId(&state, 125);
-            if ((clsCanard.slave[queueId].file.state==FILE_STATE_STANDBY) &&
-                (digitalRead(USER_BTN) == HIGH)) {
-                if(clsCanard.slave[queueId].is_online) {
-                    bFileUpload = true;
-                    // N.B.!!! Si tratta di un file di firmware... nel TEST
-                    clsCanard.slave[queueId].file.is_firmware = true;
-                    clsCanard.slave[queueId].file.state = FILE_STATE_BEGIN_UPDATE;
-                    Serial.print(F("Node ["));
-                    Serial.print(clsCanard.slave[queueId].node_id);
-                    if(clsCanard.slave[queueId].file.is_firmware) {
-                        Serial.println(F("] FIRMWARE start function !!!"));
-                    } else {
-                        Serial.println(F("] FILE start function !!!"));
+            // TEST Locale di esempio
+            uint8_t queueId = clsCanard.getSlaveIstanceFromId(125);
+
+            // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
+            switch(clsCanard.slave[queueId].file_server.get_state()) {
+
+                default: // -->> FILE_STATE_ERROR STATE:
+                    clsCanard.slave[queueId].file_server.end_transmission();
+                    break;
+
+                case canardClass::FileServer_State::standby:
+                    // TEST Press Button Nucleo
+                    if(digitalRead(USER_BTN) == HIGH) {
+                        // Test di esempio con nome fisso e tipologia Firmware
+                        clsCanard.slave[queueId].file_server.set_file_name(
+                            "stima4.module_th-1.1.app.hex", true);
                     }
-                } else {
-                    if(!bFileMessage) {
-                        bFileMessage = true;
+                    break;
+
+                case canardClass::FileServer_State::begin_update:
+                    // Avvio comando di aggiornamento con controllo coerenza File (Register)
+                    // Controllo Check Firmware... CRC, presenza ed altro
+                    if(checkFile(clsCanard.slave[queueId].file_server.get_file_name(),
+                                clsCanard.slave[queueId].file_server.is_firmware())) {
+                        // Avvio il comando nel nodo remoto
+                        clsCanard.slave[queueId].file_server.next_state();
+                    } else {
+                        // Annullo la richiesta (Invio Error al Remoto su Request File)
+                        // O smetto di rispondere al servizio per quella richiesta (TimeOut)
+                        clsCanard.slave[queueId].file_server.end_transmission();
+                    }
+                    break;
+
+                case canardClass::FileServer_State::command_send:
+                    // Invio comando di aggiornamento File (in attesa in coda con switch...)
+                    // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
+                    if(!clsCanard.slave[queueId].command.is_pending()) {
+                        // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
+                        // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
+                        // Il comando comunica la presenza del file di download nel remoto e avvia dowload
+                        clsCanard.send_command_file_server_pending(queueId, NODE_COMMAND_TIMEOUT_US);
+                        clsCanard.slave[queueId].file_server.next_state();
+                    }
+                    break;
+
+                case canardClass::FileServer_State::command_wait:
+                    // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                    if(clsCanard.slave[queueId].command.event_timeout()) {
+                        // Counico al server l'errore di timeOut Command Update Start ed esco
+                        clsCanard.slave[queueId].file_server.end_transmission();
                         Serial.print(F("Node ["));
-                        Serial.print(clsCanard.slave[queueId].node_id);
-                        Serial.println(F("] Is OFFLine "));
-                        if(clsCanard.slave[queueId].file.is_firmware) {
+                        Serial.print(clsCanard.slave[queueId].get_node_id());                            
+                        Serial.println(F("] TimeOut Command Start Send file "));
+                        if(clsCanard.slave[queueId].file_server.is_firmware()) {
                             Serial.println(F("FIRMWARE send update ABORT!!!"));
                         } else {
                             Serial.println(F("FILE send update ABORT!!!"));
                         }
+                        // Se decido di uscire nella procedura di OffLine, la comunicazione
+                        // al server di eventuali errori deve essere gestita al momento dell'OffLine
                     }
-                }
-            }
-            if(bFileUpload) {
-                // Se vado OffLine la procedura comunque viene interrotta dall'evento di OffLine
-                switch(clsCanard.slave[queueId].file.state) {
-                    default: // -->> FILE_STATE_STANDBY:
-                        // Init, exit ecc...
-                        // TODO: Eliminare, usato come test EXIT
-                        bFileUpload = false;
-                        break;
-                    case FILE_STATE_BEGIN_UPDATE:
-                        // Avvio comando di aggiornamento Controllo coerenza Firmware se Firmware!!!
-                        // Verifico il nome File locale (che RMAP Server ha già inviato il file in HTTP...)
-                        if(clsCanard.slave[queueId].file.is_firmware) {
-                            if(ccFirwmareFile(clsCanard.slave[queueId].file.filename)) {
-                                // Avvio il comando nel nodo remoto
-                                clsCanard.slave[queueId].file.state = FILE_STATE_COMMAND_SEND;
-                            } else {
-                                // Gestisco l'errore di coerenza verso il server
-                                // Comunico il problema nel file
-                                clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
-                            }
-                        } else {
-                            // N.B. Eventuale altro controllo di coerenza...
-                            // Al momento non gestisco in quanto un eventuale LOG non è problematico
-                            // Avvio il comando nel nodo remoto
-                            clsCanard.slave[queueId].file.state = FILE_STATE_COMMAND_SEND;
-                        }
-                        break;
-                    case FILE_STATE_COMMAND_SEND:
-                        // Invio comando di aggiornamento File (in attesa in coda con switch...)
-                        // Il comando viene inviato solamente senza altri Pending di Comandi (come semaforo)
-                        if(!clsCanard.slave[queueId].command.is_pending) {
-                            // Imposta il pending del comando per verifica sequenza TX-RX e il TimeOut
-                            // Imposta la risposta del comadno A UNDEFINED (verrà settato al valore corretto in risposta)
-                            clsCanard.slave[queueId].command.is_pending = true;
-                            clsCanard.slave[queueId].command.is_timeout = false;
-                            clsCanard.slave[queueId].command.timeout_us = monotonic_time + NODE_COMMAND_TIMEOUT_US;
-                            clsCanard.slave[queueId].command.response = GENERIC_BVAL_UNDEFINED;
-                            // Il comando comunica la presenza del file di download nel remoto e avvia dowload
-                            if(clsCanard.slave[queueId].file.is_firmware) {
-                                // Uavcan Firmware
-                                serviceSendCommand(&state, monotonic_time, queueId,
-                                                    uavcan_node_ExecuteCommand_Request_1_1_COMMAND_BEGIN_SOFTWARE_UPDATE,
-                                                    clsCanard.slave[queueId].file.filename, strlen(clsCanard.slave[queueId].file.filename));
-                            } else {
-                                // Uavcan File con comando locale
-                                serviceSendCommand(&state, monotonic_time, queueId,
-                                                    CMD_DOWNLOAD_FILE,
-                                                    clsCanard.slave[queueId].file.filename, strlen(clsCanard.slave[queueId].file.filename));
-                            }
-                            clsCanard.slave[queueId].file.state = FILE_STATE_COMMAND_WAIT;
-                        }
-                        break;
-                    case FILE_STATE_COMMAND_WAIT:
-                        // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
-                        if(clsCanard.slave[queueId].command.is_timeout) {
-                            // Counico al server l'errore di timeOut Command Update Start ed esco
-                            clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
+                    // Comando eseguito,verifico la correttezza della risposta
+                    if(clsCanard.slave[queueId].command.is_executed()) {
+                        // La risposta si trova in command_response fon flag pending azzerrato.
+                        if(clsCanard.slave[queueId].command.get_response() == 
+                            uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS) {
+                            // Sequenza terminata, avvio il file transfer !!!
+                            // Essendo una procedura server e non avendo nessun controllo sui comandi
+                            // La classe si limita a fornire gli elementi di controllo timeOut per
+                            // la verifica di coerenza e gestione del download dal remoto ed internamente
+                            // gestisco le fasi dell'upload. Non è richiesta nessun altra gestione e per
+                            // comodità gestisco l'aggiornamento del timeOut direttamente nella callBack
+                            // nella sezione request del file dallo slave.
+                            clsCanard.slave[queueId].file_server.next_state();
+                            // Stampo lo stato
                             Serial.print(F("Node ["));
-                            Serial.print(clsCanard.slave[queueId].node_id);                            
-                            Serial.println(F("] TimeOut Command Start Send file "));
-                            if(clsCanard.slave[queueId].file.is_firmware) {
+                            Serial.print(clsCanard.slave[queueId].get_node_id());
+                            Serial.println(F("] Upload Start Send file OK"));
+                            // Imposto il timeOUT per controllo Deadline con pending per sequenza di download
+                            clsCanard.slave[queueId].file_server.start_pending(NODE_REQFILE_TIMEOUT_US);
+                        } else {
+                            // Errore comando eseguito ma risposta non valida. Annullo il trasferimento
+                            clsCanard.slave[queueId].file_server.end_transmission();
+                            // ...counico al server (RMAP remoto) l'errore per il mancato aggiornamento ed esco
+                            Serial.print(F("Node ["));
+                            Serial.print(clsCanard.slave[queueId].get_node_id());
+                            Serial.println(F("] Response Cmd Error in Send file"));
+                            if(clsCanard.slave[queueId].file_server.is_firmware()) {
                                 Serial.println(F("FIRMWARE send update ABORT!!!"));
                             } else {
                                 Serial.println(F("FILE send update ABORT!!!"));
                             }
-                            // Se decido di uscire nella procedura di OffLine, la comunicazione
-                            // al server di eventuali errori deve essere gestita al momento dell'OffLine
-                        } else {
-                            // Attendo esecuzione del comando/risposta senza sovrapposizioni
-                            // di comandi. Come gestione semaforo. Chi invia deve gestire
-                            if(!clsCanard.slave[queueId].command.is_pending) {
-                                // La risposta si trova in command_response fon flag pending azzerrato.
-                                if(clsCanard.slave[queueId].command.response == 
-                                    uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS) {
-                                    // Sequenza terminata, avvio il file transfer !!!
-                                    clsCanard.slave[queueId].file.state = FILE_STATE_UPLOADING;
-                                    Serial.print(F("Node ["));
-                                    Serial.print(clsCanard.slave[queueId].node_id);
-                                    Serial.println(F("] Upload Start Send file OK"));
-                                    // Imposto il timeOUT per controllo Deadline sequenza di download
-                                    // SE il client si ferma per troppo tempo incorro in TimeOut ed esco
-                                    clsCanard.slave[queueId].file.timeout_us = monotonic_time + NODE_REQFILE_TIMEOUT_US;
-                                    // Avvio la funzione (Slave attiva le request)
-                                    // Localmente sono in gestione continua file fino a EOF o TimeOUT
-                                    clsCanard.slave[queueId].file.is_pending = true;
-                                    clsCanard.slave[queueId].file.is_timeout = false;
-                                    // Il TimeOut deadLine è aggiornato in RX Request in automatico
-                                } else {
-                                    // Counico al server l'errore per il mancato aggiornamento ed esco
-                                    clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
-                                    Serial.print(F("Node ["));
-                                    Serial.print(clsCanard.slave[queueId].node_id);
-                                    Serial.println(F("] Response Cmd Error in Send file"));
-                                    if(clsCanard.slave[queueId].file.is_firmware) {
-                                        Serial.println(F("FIRMWARE send update ABORT!!!"));
-                                    } else {
-                                        Serial.println(F("FILE send update ABORT!!!"));
-                                    }
-                                }
-                            }
                         }
-                        break;
-                    case FILE_STATE_UPLOADING:
-                        // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
-                        if(clsCanard.slave[queueId].file.is_timeout) {
-                            // Counico al server l'errore di timeOut Command Update Start ed esco
-                            clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
-                            Serial.print(F("Node ["));
-                            Serial.print(clsCanard.slave[queueId].node_id);
-                            Serial.println(F("] TimeOut Request/Response Send file "));
-                            if(clsCanard.slave[queueId].file.is_firmware) {
-                                Serial.println(F("FIRMWARE send update ABORT!!!"));
-                            } else {
-                                Serial.println(F("FILE send update ABORT!!!"));
-                            }
-                            // Se decido di uscire nella procedura di OffLine, la comunicazione
-                            // al server di eventuali errori deve essere gestita al momento dell'OffLine
-                        }
-                        break;
-                    case FILE_STATE_UPLOAD_COMPLETE:
-                        // Counico al server file upload Complete ed esco (nuova procedura ready)
-                        // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
-                        // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
-                        clsCanard.slave[queueId].file.state = FILE_STATE_STANDBY;
+                    }
+                    break;
+
+                case canardClass::FileServer_State::state_uploading:
+                    // Attendo la risposta del Nodo Remoto conferma, errore o TimeOut
+                    if(clsCanard.slave[queueId].file_server.event_timeout()) {
+                        // Counico al server l'errore di timeOut Command Update Start ed esco
+                        clsCanard.slave[queueId].file_server.end_transmission();
                         Serial.print(F("Node ["));
-                        Serial.print(clsCanard.slave[queueId].node_id);
-                        if(clsCanard.slave[queueId].file.is_firmware) {
-                            Serial.println(F("FIRMWARE send Complete!!!"));
+                        Serial.print(clsCanard.slave[queueId].get_node_id());
+                        Serial.println(F("] TimeOut Request/Response Send file "));
+                        if(clsCanard.slave[queueId].file_server.is_firmware()) {
+                            Serial.println(F("FIRMWARE send update ABORT!!!"));
                         } else {
-                            Serial.println(F("FILE send Complete!!!"));
+                            Serial.println(F("FILE send update ABORT!!!"));
                         }
-                        break;
-                }
+                        // Se decido di uscire nella procedura di OffLine, la comunicazione
+                        // al server di eventuali errori deve essere gestita al momento dell'OffLine
+                    }
+                    // Evento completato (file_server) terminato con successo, vado a step finale
+                    if(clsCanard.slave[queueId].file_server.is_executed()) {
+                        clsCanard.slave[queueId].file_server.next_state();
+                    }
+                    break;
+
+                case canardClass::FileServer_State::upload_complete:
+                    // Counico al server file upload Complete ed esco (nuova procedura ready)
+                    // -> EXIT FROM FILE_STATE_STANDBY ( In procedura di SendFileBlock )
+                    // Quando invio l'ultimo pacchetto dati valido ( Blocco < 256 Bytes )
+                    clsCanard.slave[queueId].file_server.end_transmission();
+                    Serial.print(F("Node ["));
+                    Serial.print(clsCanard.slave[queueId].get_node_id());
+                    if(clsCanard.slave[queueId].file_server.is_firmware()) {
+                        Serial.println(F("] FIRMWARE send Complete!!!"));
+                    } else {
+                        Serial.println(F("] FILE send Complete!!!"));
+                    }
+                    break;
             }
         }
         // ******************** FINE TEST UPLOAD FIRWARE/FILE ********************
@@ -2044,9 +1574,6 @@ void loop(void)
             digitalWrite(LED_BUILTIN, LOW);
             #endif
         };
-
-        // RESET Gestione Fault di NODO TODO: Eliminare solo per verifica test
-        bIsResetFaultCmd = false;
 
         // ***************************************************************************
         //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)

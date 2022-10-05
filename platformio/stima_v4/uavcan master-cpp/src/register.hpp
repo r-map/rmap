@@ -46,8 +46,8 @@ bool getDataFile(const char* const file_name, const bool is_firmware, uint64_t p
 // Restituisce le info per file firmware e controlli vari
 uint64_t getDataFileInfo(const char* const file_name, const bool is_firmware);
 
-// Ritorna vero se il file firmware esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
-bool ccFirwmareFile(const char* const file_name);
+// Ritorna vero se il file (firmware) esiste ed è coerente (Controllo coerenza, esiste..CRC..altro...)
+bool checkFile(const char* const file_name, bool isFirmware);
 
 // NOTE: this implementation currently does not differentiate between mutable/immutable registers and does not support
 // volatile registers. It is trivial to extend though.

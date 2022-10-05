@@ -81,8 +81,9 @@ canardClass::canardClass() {
     LOCAL_ASSERT(NULL != _heap);
 
     // Setup CanardIstance, SET Memory function Allocate, Free and set Canard Mem reference
-    canard = canardInit(_memAllocate, _memFree);
-    canard.user_reference = this;
+    _canard = canardInit(_memAllocate, _memFree);
+    _canard.user_reference = this;
+    _canard.node_id = CANARD_NODE_ID_UNSET;
 
     // Interrupt vector CB to Class PTR
     memset(&_canard_rx_queue, 0, sizeof(_canard_rx_queue));
@@ -116,7 +117,7 @@ canardClass::canardClass() {
 
 /// @brief Get MonotonicTime Interno realTime
 /// @return Microsecondi correnti realTime di Canard
-CanardMicrosecond canardClass::getMonotonicMicroseconds() {
+CanardMicrosecond canardClass::getMicros() {
     // Start Syncro o real_time
     uint32_t ts = micros();
     if(ts > _lastMicros) {
@@ -134,9 +135,9 @@ CanardMicrosecond canardClass::getMonotonicMicroseconds() {
 /// @brief Get MonotonicTime Interno con richiesta del tipo di sincronizzazione Overloading di RealTime
 /// @param syncro_type Tipo di funzione richiesta (sincronizzato, inizializza sincronizzazione)
 /// @return Microsecondi correnti parametrizzato dalla richiesta
-CanardMicrosecond canardClass::getMonotonicMicroseconds(GetMonotonicTime_Type syncro_type) {
+CanardMicrosecond canardClass::getMicros(GetMonotonicTime_Type syncro_type) {
     // Time sincronizzato o da sincrtonizzare
-    if(syncro_type == start_syncronization) _syncMicros = getMonotonicMicroseconds();
+    if(syncro_type == start_syncronization) _syncMicros = getMicros();
     return _syncMicros;
 }
 
@@ -163,7 +164,7 @@ void canardClass::send(const CanardMicrosecond tx_deadline_usec,
                         const void* const payload) {
     for (uint8_t ifidx = 0; ifidx < CAN_REDUNDANCY_FACTOR; ifidx++) {
         (void)canardTxPush(&_canard_tx_queues[ifidx],
-                            &canard,
+                            &_canard,
                             _syncMicros + tx_deadline_usec,
                             metadata,
                             payload_size,
@@ -229,7 +230,7 @@ void canardClass::transmitQueue(void) {
                     tqi->frame.payload_size,
                     tqi->frame.payload)) {
                     // Push CAN data
-                    canard.memory_free(&canard, canardTxPop(que, tqi));
+                    _canard.memory_free(&_canard, canardTxPop(que, tqi));
                     tqi = canardTxPeek(que);
                 } else  {
                     // Empty Queue
@@ -239,7 +240,7 @@ void canardClass::transmitQueue(void) {
                 // loop continuo per mancato aggiornamento monotonic_time su TIME_OUT
                 // grandi quantità di dati trasmesse e raggiunto il TIMEOUT Subscription...
                 // Remove frame per blocco in timeout BUG trasmission security !!!
-                canard.memory_free(&canard, canardTxPop(que, tqi));
+                _canard.memory_free(&_canard, canardTxPop(que, tqi));
                 // Test prossimo pacchetto
                 tqi = canardTxPeek(que);
             }
@@ -293,12 +294,12 @@ void canardClass::receiveQueue(void) {
     _canard_rx_queue.rd_ptr = getElement;
     // Passaggio CanardFrame Buffered alla RxAccept CANARD
     // DeadLine a partire dal realTime assoluto
-    const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
+    const CanardMicrosecond timestamp_usec = getMicros();
     CanardRxTransfer        transfer;
-    const int8_t canard_result = canardRxAccept(&canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
+    const int8_t canard_result = canardRxAccept(&_canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
     if (canard_result > 0) {
         _attach_rx_callback_PTR(*this, &transfer);
-        canard.memory_free(&canard, (void*) transfer.payload);
+        _canard.memory_free(&_canard, (void*) transfer.payload);
     } else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY)) {
         (void) 0;  // The frame did not complete a transfer so there is nothing to do.
         // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
@@ -338,12 +339,12 @@ void canardClass::receiveQueue(char *logMessage) {
     // *****************************************************************************
     // Passaggio CanardFrame Buffered alla RxAccept CANARD
     // DeadLine a partire dal realTime assoluto
-    const CanardMicrosecond timestamp_usec = getMonotonicMicroseconds();
+    const CanardMicrosecond timestamp_usec = getMicros();
     CanardRxTransfer        transfer;
-    const int8_t canard_result = canardRxAccept(&canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
+    const int8_t canard_result = canardRxAccept(&_canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
     if (canard_result > 0) {
         _attach_rx_callback_PTR(*this, &transfer);
-        canard.memory_free(&canard, (void*) transfer.payload);
+        _canard.memory_free(&_canard, (void*) transfer.payload);
     } else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY)) {
         (void) 0;  // The frame did not complete a transfer so there is nothing to do.
         // OOM should never occur if the heap is sized correctly. You can track OOM errors via heap API.
@@ -390,7 +391,7 @@ bool canardClass::rxSubscribe(
     // Controllo limiti di sottoscrizioni
     if(_rxSubscriptionIdx >= MAX_SUBSCRIPTION) return false;
     // Aggiunge rxSubscription con spazio RAM interna alla classe
-    const int8_t res = canardRxSubscribe(&canard,
+    const int8_t res = canardRxSubscribe(&_canard,
         transfer_kind,
         port_id,
         extent,
@@ -411,7 +412,59 @@ uint8_t canardClass::rxSubscriptionAvaiable() {
 void canardClass::rxUnSubscribe(
         const CanardTransferKind    transfer_kind,
         const CanardPortID          port_id) {
-    (void)canardRxUnsubscribe(&canard, transfer_kind, port_id);
+    (void)canardRxUnsubscribe(&_canard, transfer_kind, port_id);
+}
+
+// *************************************************************************************
+//  GESTIONE TIME OUT E SERVIZI RETRY ED ALTRE UTILITY FUNZIONI DI CLASSE MASTER REMOTA
+// *************************************************************************************
+
+/// @brief Avvia la richiesta di un blocco file contiguo al file_server tramite classe e controllo Master
+/// @param timeout_us deadline di comando
+/// @return true se il metodo è eseguito correttamente
+bool canardClass::master_file_read_block_pending(uint32_t timeout_us)
+{
+    // Accedo alla sezione master con il controllo pending locale
+    master.file.start_pending(timeout_us);
+    // Invio la richiesta standard
+    return send_file_read_block(master.file.get_server_node(), master.file.get_name(),
+        master.file.get_offset_rx());
+}
+
+/// @brief Avvia la richiesta di un blocco file contiguo al file_server con ID Fisico
+/// @param server_id remote file_server
+/// @param fileName Nome del file da prelevare
+/// @param remoteOffset offset di prelievo del blocco file remoto
+/// @return true se il metodo è eseguito correttamente
+bool canardClass::send_file_read_block(CanardNodeID server_id, char * fileName, uint64_t remoteOffset)
+{
+    // FileRead V1.1 Handle Message
+    // ***** Ricezione di file generico dalla rete UAVCAN dal nodo chiamante *****
+    // Richiamo in continuazione rapida la funzione fino al riempimento del file
+    // Alla fine processo il firmware Upload (eventuale) vero e proprio con i relativi check
+    uavcan_file_Read_Request_1_1 remotefile = {0};
+    remotefile.path.path.count = strlen(fileName);
+    memcpy(remotefile.path.path.elements, fileName, remotefile.path.path.count);
+    remotefile.offset = remoteOffset;
+
+    uint8_t      serialized[uavcan_file_Read_Request_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    size_t       serialized_size                                                           = sizeof(serialized);
+    const int8_t err = uavcan_file_Read_Request_1_1_serialize_(&remotefile, &serialized[0], &serialized_size);
+    LOCAL_ASSERT(err >= 0);
+    if (err >= 0)
+    {
+        const CanardTransferMetadata meta = {
+            .priority       = CanardPriorityHigh,
+            .transfer_kind  = CanardTransferKindRequest,
+            .port_id        = uavcan_file_Read_1_1_FIXED_PORT_ID_,
+            .remote_node_id = server_id,
+            .transfer_id    = (CanardTransferID) (next_transfer_id.uavcan_file_read_data()),
+        };
+        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
+        send(MEGA, &meta, serialized_size, &serialized[0]);
+        return true;
+    }
+    return false;
 }
 
 // *******************************************************************************
@@ -463,7 +516,7 @@ CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(Cana
     // Local RealTime RX timestamp monotonic locale al tempo reale di rx_message (transfer->timestamp_usec)
     _syncronized_timestamp_us = previous_tx_timestamp_us + current_rx_timestamp_us - _previous_local_timestamp_us;
     // Aggiusto e sommo la differenza tra il timestamp reale del messaggio ricevuto con il monotonic reale attuale (al tempo di esecuzione syncro real)
-    _previous_syncronized_timestamp_us = getMonotonicMicroseconds();
+    _previous_syncronized_timestamp_us = getMicros();
     _syncronized_timestamp_us += (_previous_syncronized_timestamp_us - current_rx_timestamp_us);
     return _syncronized_timestamp_us;
 }
@@ -474,7 +527,7 @@ CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(Cana
 /// @param  None
 /// @return il tempo sincronizzato, regolato ed aggiustato al microsecondo, con l'unità master
 CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(void) {
-    CanardMicrosecond realtime_us = getMonotonicMicroseconds();
+    CanardMicrosecond realtime_us = getMicros();
     CanardMicrosecond diff_synconized_us = realtime_us - _previous_syncronized_timestamp_us;
     _previous_syncronized_timestamp_us = realtime_us;
     _syncronized_timestamp_us += diff_synconized_us;
@@ -594,7 +647,6 @@ bool canardClass::master::file::next_retry(void) {
     if (++_updating_retry > NODE_GETFILE_MAX_RETRY) _updating_retry = NODE_GETFILE_MAX_RETRY;
     // Reset pending state
     _is_pending = false;
-    _is_timeout = false;
     return _updating_retry < NODE_GETFILE_MAX_RETRY;
 }
 
@@ -607,7 +659,6 @@ bool canardClass::master::file::next_retry(uint8_t *avaiable_retry) {
     *avaiable_retry = NODE_GETFILE_MAX_RETRY - _updating_retry;
     // Reset pending state
     _is_pending = false;
-    _is_timeout = false;
     return _updating_retry < NODE_GETFILE_MAX_RETRY;
 }
 
@@ -617,7 +668,6 @@ void canardClass::master::file::start_pending(uint32_t timeout_us)
 {
     // Riferimento locale
     _is_pending = true;
-    _is_timeout = false;
     _timeout_us = _syncMicros + timeout_us;
 }
 
@@ -626,17 +676,15 @@ void canardClass::master::file::start_pending(uint32_t timeout_us)
 void canardClass::master::file::reset_pending(void)
 {
     _is_pending = false;
-    _is_timeout = false;
     // Azzero contestualmente le retry di controllo x gestione MAX_RETRY -> ABORT
     _updating_retry = 0;
 }
 
 /// @brief Resetta lo stato dei flag pending per il metodo corrente
-/// @param download_complete settare nel caso di EOF del download completo
+/// @param message_len lunghezza del messaggio ricevuto in risposta
 void canardClass::master::file::reset_pending(size_t message_len)
 {
     _is_pending = false;
-    _is_timeout = false;
     // Azzero contestualmente le retry di controllo x gestione MAX_RETRY -> ABORT
     _updating_retry = 0;
     // Gestisco internamente l'offset di RX File
@@ -650,7 +698,6 @@ void canardClass::master::file::reset_pending(size_t message_len)
 /// @return true se entrata in timeout del comano
 bool canardClass::master::file::event_timeout(void)
 {
-    // Riferimento locale
     if(_is_pending) return _syncMicros > _timeout_us;
     return false;
 }
@@ -660,8 +707,169 @@ bool canardClass::master::file::event_timeout(void)
 /// @return true se un comando è in attesa
 bool canardClass::master::file::is_pending(void)
 {
-    // Riferimento locale
     return _is_pending;
+}
+
+// ***********************************************************************************
+//  GESTIONE TIME OUT E SERVIZI RETRY ED ALTRE UTILITY FUNZIONI DI CLASSE LOCALE SLAVE
+// ***********************************************************************************
+
+/// @brief Invia il messaggio di HeartBeat ai nodi remoti
+/// @param  None
+/// @return true se il metodo è eseguito correttamente
+bool canardClass::slave_heartbeat_send_message(void)
+{    
+    // ***** Trasmette alla rete UAVCAN lo stato haeartbeat del modulo *****
+    // Heartbeat Fisso anche per modulo Master (Visibile a yakut o altri tools/script gestionali)
+    uavcan_node_Heartbeat_1_0 heartbeat = {0};
+    heartbeat.uptime = getUpTimeSecond();
+    const O1HeapDiagnostics heap_diag = _memGetDiagnostics();
+    if (heap_diag.oom_count > 0) {
+        heartbeat.health.value = uavcan_node_Health_1_0_CAUTION;
+    } else {
+        heartbeat.health.value = uavcan_node_Health_1_0_NOMINAL;
+    }
+    // Stato di heartbeat gestito dalla classe
+    heartbeat.vendor_specific_status_code = flag.get_local_value_heartbeat_VSC();
+    heartbeat.mode.value = flag.get_local_node_mode();
+    // Trasmetto il pacchetto
+    uint8_t serialized[uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    size_t serialized_size = sizeof(serialized);
+    const int8_t err = uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, &serialized[0], &serialized_size);
+    LOCAL_ASSERT(err >= 0);
+    if (err >= 0) {
+        const CanardTransferMetadata meta = {
+            .priority = CanardPriorityNominal,
+            .transfer_kind = CanardTransferKindMessage,
+            .port_id = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_,
+            .remote_node_id = CANARD_NODE_ID_UNSET,
+            .transfer_id = (CanardTransferID)(next_transfer_id.uavcan_node_heartbeat()),
+        };
+        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
+        send(MEGA, &meta, serialized_size, &serialized[0]);
+        return true;
+    }
+    return false;
+}
+
+/// @brief Invia il messaggio di PNP request (richiesta di node_id valido) al nodo server PNP (master)
+/// @param  None
+/// @return true se il metodo è eseguito correttamente
+bool canardClass::slave_pnp_send_request(void) {
+    // PnP over Classic CAN, use message v1.0.
+    uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
+    // truncated uint48 unique_id_hash
+    // Crea uint_64 con LOW_POWER NODE_TYPE_MAJOR << 8 + NODE_TYPE_MINOR
+    uint64_t local_unique_id_hash = 0;
+    local_unique_id_hash |= (uint64_t) NODE_TYPE_MAJOR;
+    local_unique_id_hash |= (uint64_t) ((uint16_t) NODE_TYPE_MINOR << 8);
+    for(uint8_t bRnd=2; bRnd<8; bRnd++) {
+        local_unique_id_hash |= ((uint64_t)(rand() & 0xFF)) << 8*bRnd;
+    }
+    // msg.allocated_node_id.(count/element) => Solo in response non in request;
+    msg.unique_id_hash = local_unique_id_hash;
+    uint8_t serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
+    size_t serialized_size = sizeof(serialized);
+    const int8_t err = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);
+    LOCAL_ASSERT(err >= 0);
+    if (err >= 0) {
+        const CanardTransferMetadata meta = {
+            .priority = CanardPrioritySlow,
+            .transfer_kind = CanardTransferKindMessage,
+            .port_id = uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
+            .remote_node_id = CANARD_NODE_ID_UNSET,
+            .transfer_id = (CanardTransferID) (next_transfer_id.uavcan_pnp_allocation()),
+        };
+        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
+        send(MEGA, &meta, serialized_size, &serialized[0]);
+    }
+}
+
+/// @brief Prepara la lista delle sottoscrizioni Canard (privata)
+/// @param tree out albero sottoscrizioni
+/// @param obj oggetto sottoscrizioni
+void canardClass::_fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port_SubjectIDList_0_1* const obj)
+{
+    if (NULL != tree) {
+        _fillSubscriptions(tree->lr[0], obj);
+        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
+        if (crs->port_id <= CANARD_SUBJECT_ID_MAX) {
+            LOCAL_ASSERT(obj->sparse_list.count < uavcan_node_port_SubjectIDList_0_1_sparse_list_ARRAY_CAPACITY_);
+            obj->sparse_list.elements[obj->sparse_list.count++].value = crs->port_id;
+            _fillSubscriptions(tree->lr[1], obj);
+        }
+    }
+}
+
+/// @brief Prepara la lista dei servizi Canard (privata)
+/// @param tree out albero servizi
+/// @param obj oggetto servizi
+void canardClass::_fillServers(const CanardTreeNode* const tree, uavcan_node_port_ServiceIDList_0_1* const obj)
+{
+    if (NULL != tree) {
+        _fillServers(tree->lr[0], obj);
+        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
+        if (crs->port_id <= CANARD_SERVICE_ID_MAX) {
+            (void)nunavutSetBit(&obj->mask_bitpacked_[0], sizeof(obj->mask_bitpacked_), crs->port_id, true);
+            _fillServers(tree->lr[1], obj);
+        }
+    }
+}
+
+/// @brief Invia il messaggio dei servizi attivi ai nodi remoti
+/// @param  None
+/// @return true se il metodo è eseguito correttamente
+bool canardClass::slave_servicelist_send_message(void)
+{
+    // Publish the recommended (not required) port introspection message. No point publishing it if we're anonymous.
+    // The message is a bit heavy on the stack (about 2 KiB) but this is not a problem for a modern MCU.
+    // L'abilitazione del comando è facoltativa, può essere attivata/disattivata da un comando UAVCAN
+    if ((publisher_enabled.port_list) &&
+        (_canard.node_id <= CANARD_NODE_ID_MAX))
+    {
+        uavcan_node_port_List_0_1 m = {0};
+        uavcan_node_port_List_0_1_initialize_(&m);
+        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.publishers);
+        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.subscribers);
+
+        // Indicate which subjects we publish to. Don't forget to keep this updated if you add new publications!
+        {
+            size_t* const cnt = &m.publishers.sparse_list.count;
+            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_;
+            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_port_List_0_1_FIXED_PORT_ID_;
+            // Aggiungo i publisher interni validi privati (quando abilitati)
+            if ((port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)&&
+                (publisher_enabled.module_th))
+            {
+                m.publishers.sparse_list.elements[(*cnt)++].value = port_id.publisher_module_th;
+            }            
+        }
+
+        // Indicate which servers and subscribers we implement.
+        // We could construct the list manually but it's easier and more robust to just query libcanard for that.
+        _fillSubscriptions(_canard.rx_subscriptions[CanardTransferKindMessage], &m.subscribers);
+        _fillServers(_canard.rx_subscriptions[CanardTransferKindRequest], &m.servers);
+        _fillServers(_canard.rx_subscriptions[CanardTransferKindResponse], &m.clients);  // For regularity.
+
+        // Serialize and publish the message. Use a small buffer because we know that our message is always small.
+        // Verificato massimo utilizzo a 156 bytes. Limitiamo il buffer a 256 Bytes (Come esempio UAVCAN)
+        uint8_t serialized[256] = {0};
+        size_t  serialized_size = uavcan_node_port_List_0_1_SERIALIZATION_BUFFER_SIZE_BYTES_;
+        if (uavcan_node_port_List_0_1_serialize_(&m, &serialized[0], &serialized_size) >= 0)
+        {
+            const CanardTransferMetadata meta = {
+                .priority       = CanardPriorityOptional,  // Mind the priority.
+                .transfer_kind  = CanardTransferKindMessage,
+                .port_id        = uavcan_node_port_List_0_1_FIXED_PORT_ID_,
+                .remote_node_id = CANARD_NODE_ID_UNSET,
+                .transfer_id    = (CanardTransferID) (next_transfer_id.uavcan_node_port_list()),
+            };
+            // Send a 2 secondi
+            send(MEGA * 2, &meta, serialized_size, &serialized[0]);
+            return true;
+        }
+    }
+    return false;
 }
 
 // ***************************************************************
@@ -844,6 +1052,33 @@ uint8_t canardClass::flag::get_local_node_mode(void) {
 }
 
 // ***************************************************************
+//           Funzioni ed Utility di Classe Generali
+// ***************************************************************
+
+/// @brief Imposta l'ID Nodo locale per l'istanza Canard privata della classe Canard
+/// @param local_id id nodo locale
+void canardClass::set_canard_node_id(CanardNodeID local_id) {
+    // Istanza del modulo canard
+    _canard.node_id = local_id;
+}
+
+/// @brief Legge l'ID Nodo locale per l'istanza Canard privata della classe Canard
+/// @param None 
+/// @return id nodo locale
+CanardNodeID canardClass::get_canard_node_id(void) {
+    // Istanza del modulo canard
+    return _canard.node_id;
+}
+
+/// @brief Controlla se il nodo è anonimo (senza ID Impostato)
+/// @param  None
+/// @return true se il nodo è anonimo (ID Non valido o non Settato)
+bool canardClass::is_canard_node_anonymous(void) {
+    // Istanza del modulo canard
+    return _canard.node_id > CANARD_NODE_ID_MAX;
+}
+
+// ***************************************************************
 //     Wrapper C++ O1Heap memory Access & Function CB Private
 // ***************************************************************
 
@@ -868,6 +1103,6 @@ void canardClass::_memFree(CanardInstance* const ins, void* const pointer) {
 /// @brief Diagnostica Heap Data per Heartbeat e/o azioni interne
 /// @param  None
 /// @return O1HeapDiagnostics Info
-O1HeapDiagnostics canardClass::memGetDiagnostics(void) {
+O1HeapDiagnostics canardClass::_memGetDiagnostics(void) {
     return o1heapGetDiagnostics(_heap);
 }

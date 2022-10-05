@@ -1277,7 +1277,7 @@ bool CAN_HW_Init(void) {
 }
 
 /**
- * @brief RETURN FALSE IF THE HARDWARE IS THE FUNCTIONS DONT WORK
+ * @brief Return false when the hardware doesn't work correctly
  *
  */
 void exit_false() {
@@ -1285,19 +1285,19 @@ void exit_false() {
 }
 
 /**
- * @brief TEST SLAVE IS ONLINE
+ * @brief Test: slave is offline
  *
  */
 void test_slave_is_online() {
-    TEST_ASSERT_TRUE(state.slave[queueId].is_online);
+    TEST_ASSERT_TRUE_MESSAGE(state.slave[queueId].is_online, "Slave is offline");
 }
 
 /**
- * @brief TEST SLAVE IS OFFLINE
+ * @brief Test: slave is online
  *
  */
 void test_slave_is_offline() {
-    TEST_ASSERT_TRUE(!state.slave[queueId].is_online);
+    TEST_ASSERT_TRUE_MESSAGE(!state.slave[queueId].is_online, "Slave is online");
 }
 
 void setup() {

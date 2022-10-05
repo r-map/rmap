@@ -1279,7 +1279,7 @@ bool CAN_HW_Init(void) {
 }
 
 /**
- * @brief RETURN FALSE IF THE HARDWARE DOESN'T WORK
+ * @brief Return false when the hardware doesn't work correctly
  *
  */
 void exit_false() {
@@ -1287,7 +1287,7 @@ void exit_false() {
 }
 
 /**
- * @brief SHOW IT IF THE SLAVE NODE CONTINUES TO STAY OFFLINE AFTER A TIME LIMIT
+ * @brief Show it when the slave node continues to stay offline after a timeout period
  *
  */
 void message_slave_offline() {
@@ -1295,16 +1295,17 @@ void message_slave_offline() {
 }
 
 /**
- * @brief CHECK IF THE REGISTER SENT TO SLAVE
+ * @brief Test: check if the register has been sent to slave
  *
  */
 void test_register_sent() {
-    TEST_ASSERT_TRUE(serviceSendRegister(&state, monotonic_time, queueId,
-                                         "rmap.module.TH.metadata.Level.L2", val));
+    TEST_ASSERT_TRUE_MESSAGE(serviceSendRegister(&state, monotonic_time, queueId,
+                                                 "rmap.module.TH.metadata.Level.L2", val),
+                             "Command not sent");
 }
 
 /**
- * @brief CHECK IF THE WRITTEN ELEMENT COUNT RECEIVED IS CORRECT
+ * @brief Test: check if the written element count sent to slave is correct
  *
  */
 void test_written_element_count_is_correct() {
@@ -1312,7 +1313,7 @@ void test_written_element_count_is_correct() {
 }
 
 /**
- * @brief CHECK IF THE REG VALUE RECEIVED IS CORRECT
+ * @brief Test: check if the reg value received from slave is correct
  *
  */
 void test_reg_value_received_is_correct() {
@@ -1820,42 +1821,38 @@ void setup() {
         // ********************************************************************************************
         // LOOP HANDLER >> 0..15 SECONDI x TEST REGISTER ACCESS <<
         if (state.slave[queueId].is_online && (test_state == INIT || test_state == RESPONSE_RECEIVED_MODE_WRITE)) {
-            // Il comando viene inviato solamente se lo slave è online
             // Il comando viene inviato solamente senza altri Pending di Comandi
-            if (state.slave[queueId].is_online) {
-                // Il comando viene inviato solamente senza altri Pending di Comandi
-                // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
-                if (!state.slave[queueId].register_access.is_pending) {
-                    // Imposta il pending del registro per verifica sequenza TX-RX e il TimeOut
-                    // Imposta la risposta del registro A UNDEFINED (verrà settato al valore corretto in risposta)
-                    state.slave[queueId].register_access.is_pending = true;
-                    state.slave[queueId].register_access.is_timeout = false;
-                    state.slave[queueId].register_access.timeout_us = monotonic_time + NODE_REGISTER_TIMEOUT_US;
-                    // Preparo il registro da inviare (configurazione generale => sequenza di request/response)
-                    // Semplice TEST di esempio trasmissione di un registro fisso con nome fisso
-                    // Uso in Test uavcan_register_Value_1_0 val utilizzato in ReadRegister iniziale
-                    // Init Var per confronto memCmp di verifica elementi == x TEST Veloce
-                    memset(&val, 0, sizeof(uavcan_register_Value_1_0));
-                    // x SPECIFICHE UAVCAN ->
-                    // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto
-                    // Altrimenti la funzione deve fallire e ritornare NULL
-                    // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
-                    // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
-                    if (bIsWriteRegister) {
-                        // Invio il registro al nodo slave in scrittura
-                        uavcan_register_Value_1_0_select_natural16_(&val);
-                        val.natural32.value.count = 1;
-                        val.natural32.value.elements[0] = value_to_write;
-                    } else {
-                        // Richiedo al nodo slave la lettura (Specifiche UAVCAN _empty x Lettura)
-                        uavcan_register_Value_1_0_select_empty_(&val);
-                    }
-                    serviceSendRegister(&state, monotonic_time, queueId,
-                                        "rmap.module.TH.metadata.Level.L2", val);
-
-                    RUN_TEST(test_register_sent);
-                    test_state = REGISTER_SENT;
+            // La verifica andrebbe fatta per singolo servizio, non necessario un blocco di tutto
+            if (!state.slave[queueId].register_access.is_pending) {
+                // Imposta il pending del registro per verifica sequenza TX-RX e il TimeOut
+                // Imposta la risposta del registro A UNDEFINED (verrà settato al valore corretto in risposta)
+                state.slave[queueId].register_access.is_pending = true;
+                state.slave[queueId].register_access.is_timeout = false;
+                state.slave[queueId].register_access.timeout_us = monotonic_time + NODE_REGISTER_TIMEOUT_US;
+                // Preparo il registro da inviare (configurazione generale => sequenza di request/response)
+                // Semplice TEST di esempio trasmissione di un registro fisso con nome fisso
+                // Uso in Test uavcan_register_Value_1_0 val utilizzato in ReadRegister iniziale
+                // Init Var per confronto memCmp di verifica elementi == x TEST Veloce
+                memset(&val, 0, sizeof(uavcan_register_Value_1_0));
+                // x SPECIFICHE UAVCAN ->
+                // NB Il tipo di registro deve essere == (es. Natural32) e deve esistere sul nodo Remoto
+                // Altrimenti la funzione deve fallire e ritornare NULL
+                // Quindi il Master deve conoscere la tipologia di registro e nome dello SLAVE
+                // Non è possibile creare un registro senza uscire dalle specifiche (es. comando vendor_specific)
+                if (bIsWriteRegister) {
+                    // Invio il registro al nodo slave in scrittura
+                    uavcan_register_Value_1_0_select_natural16_(&val);
+                    val.natural32.value.count = 1;
+                    val.natural32.value.elements[0] = value_to_write;
+                } else {
+                    // Richiedo al nodo slave la lettura (Specifiche UAVCAN _empty x Lettura)
+                    uavcan_register_Value_1_0_select_empty_(&val);
                 }
+                serviceSendRegister(&state, monotonic_time, queueId,
+                                    "rmap.module.TH.metadata.Level.L2", val);
+
+                RUN_TEST(test_register_sent);
+                test_state = REGISTER_SENT;
             }
             // La verifica verrà fatta con il Flag Pending resettato e la risposta viene
             // popolata nel'apposito registro di state service_module del il servizio relativo

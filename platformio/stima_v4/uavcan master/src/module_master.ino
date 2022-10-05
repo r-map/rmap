@@ -1617,7 +1617,7 @@ void loop(void)
         static CanardRxSubscription rx;
         const int8_t                res =  //
             canardRxSubscribe(&state.canard,
-                                CanardTransferKindMessage,
+                                CanardTransferKindRequest,
                                 uavcan_register_List_1_0_FIXED_PORT_ID_,
                                 uavcan_register_List_Request_1_0_EXTENT_BYTES_,
                                 CANARD_REGISTERLIST_TRANSFER_ID_TIMEOUT_USEC,
@@ -2288,12 +2288,12 @@ void loop(void)
         if(bEventRealTimeLoop) {
             // Avvio con il bottone di TEST il trasferimento (se non già attivo)
             // TODO: Eliminare solo x gestione messaggio non ripetuto
-            if(digitalRead(USER_BTN) == HIGH) {
+            if(digitalRead(USER_BTN) == LOW) {
                 bFileMessage = false;
             }
             byte queueId = getQueueNodeFromId(&state, 125);
             if ((state.slave[queueId].file.state==FILE_STATE_STANDBY) &&
-                (digitalRead(USER_BTN) == LOW)) {
+                (digitalRead(USER_BTN) == HIGH)) {
                 if(state.slave[queueId].is_online) {
                     bFileUpload = true;
                     // N.B.!!! Si tratta di un file di firmware... nel TEST

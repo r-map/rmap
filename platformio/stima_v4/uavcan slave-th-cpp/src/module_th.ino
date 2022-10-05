@@ -66,24 +66,21 @@ static void getUniqueID(uint8_t out[uavcan_node_GetInfo_Response_1_0_unique_id_A
 }
 
 /// Legge il subjectID per il modulo corrente per la risposta al servizio di gestione dati.
-/// The standard register schema is documented in the Cyphal Specification, section for the standard service
-/// https://github.com/OpenCyphal/public_regulated_data_types/blob/master/uavcan/register/384.Access.1.0.dsdl
-/// A very hands-on demo is available in Python: https://pycyphal.readthedocs.io/en/stable/pages/demo.html
 static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port_name, const char* const type_name) {
     // Deduce the register name from port name e modeAccess
     char register_name[uavcan_register_Name_1_0_name_ARRAY_CAPACITY_] = {0};
     // In funzione del modo imposta il registro corretto
     switch (modeAccessID) {
-        case PublisherSubjectID:
+        case canardClass::Introspection_Port::PublisherSubjectID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.pub.%s.id", port_name);
             break;
-        case SubscriptionSubjectID:
+        case canardClass::Introspection_Port::SubscriptionSubjectID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.sub.%s.id", port_name);
             break;
-        case ClientPortID:
+        case canardClass::Introspection_Port::ClientPortID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.cln.%s.id", port_name);
             break;
-        case ServicePortID:
+        case canardClass::Introspection_Port::ServicePortID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.srv.%s.id", port_name);
             break;
     }     
@@ -105,16 +102,16 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
     // we take shortcuts by making it mutable since it's behaviorally simpler in this specific case.
     // In funzione del modo imposta il registro corretto
     switch (modeAccessID) {
-        case PublisherSubjectID:
+        case canardClass::Introspection_Port::PublisherSubjectID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.pub.%s.type", port_name);
             break;
-        case SubscriptionSubjectID:
+        case canardClass::Introspection_Port::SubscriptionSubjectID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.sub.%s.type", port_name);
             break;
-        case ClientPortID:
+        case canardClass::Introspection_Port::ClientPortID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.cln.%s.type", port_name);
             break;
-        case ServicePortID:
+        case canardClass::Introspection_Port::ServicePortID:
             snprintf(&register_name[0], sizeof(register_name), "uavcan.srv.%s.type", port_name);
             break;
     }
@@ -133,40 +130,7 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
 // ***********************************************************************************************
 // ***********************************************************************************************
 
-// *******        Funzioni ed utility di ritrasmissione dati sulla rete UAVCAN           *********
-
-// *******              FUNZIONI INVOCATE HANDLE CONT_LOOP EV. PREPARATORIE              *********
-
-// FileRead V1.1
-static void handleFileReadBlock_1_1(canardClass &clsCanard)
-{
-    // ***** Ricezione di file generico dalla rete UAVCAN dal nodo chiamante *****
-    // Richiamo in continuazione rapida la funzione fino al riempimento del file
-    // Alla fine processo il firmware Upload (eventuale) vero e proprio con i relativi check
-    uavcan_file_Read_Request_1_1 remotefile = {0};
-    remotefile.path.path.count = strlen(clsCanard.master.file.get_name());
-    memcpy(remotefile.path.path.elements, clsCanard.master.file.get_name(), remotefile.path.path.count);
-    remotefile.offset = clsCanard.master.file.get_offset_rx();
-
-    uint8_t      serialized[uavcan_file_Read_Request_1_1_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-    size_t       serialized_size                                                           = sizeof(serialized);
-    const int8_t err = uavcan_file_Read_Request_1_1_serialize_(&remotefile, &serialized[0], &serialized_size);
-    LOCAL_ASSERT(err >= 0);
-    if (err >= 0)
-    {
-        const CanardTransferMetadata meta = {
-            .priority       = CanardPriorityHigh,
-            .transfer_kind  = CanardTransferKindRequest,
-            .port_id        = uavcan_file_Read_1_1_FIXED_PORT_ID_,
-            .remote_node_id = clsCanard.master.file.get_server_node(),
-            .transfer_id    = (CanardTransferID) (clsCanard.next_transfer_id.uavcan_file_read_data()),
-        };
-        // Messaggio standard ad un secondo dal timeStamp Sincronizzato
-        clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-    }
-}
-
-// *******              FUNZIONI INVOCATE HANDLE FAST_LOOP EV. PREPARATORIE              *********
+// *******                      FUNZIONI RMAP PUBLISH LOCAL DATA                         *********
 
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
 // TODO: Collegare al modulo sensor_drive per il modulo corrente
@@ -175,25 +139,25 @@ rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore) {
     rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
     switch (sensore) {
-        case SENSOR_ITH:
+        case canardClass::Sensor_Type::ith:
             // Prepara i dati ITH
             local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
             local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
             local_data.humidity.val.value = (int32_t)(rand() % 100);
             local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
-        case SENSOR_MTH:
+        case canardClass::Sensor_Type::mth:
             // Prepara i dati ITH
             local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
             local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
             local_data.humidity.val.value = (int32_t)(rand() % 100);
             local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
-        case SENSOR_NTH:
+        case canardClass::Sensor_Type::nth:
             // Prepara i dati ITH
             local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
             local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
             local_data.humidity.val.value = (int32_t)(rand() % 100);
             local_data.humidity.confidence.value = (uint8_t)(rand() % 100);
-        case SENSOR_XTH:
+        case canardClass::Sensor_Type::xth:
             // Prepara i dati ITH
             local_data.temperature.val.value = (int32_t)(rand() % 2000 + 27315);
             local_data.temperature.confidence.value = (uint8_t)(rand() % 100);
@@ -203,25 +167,23 @@ rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore) {
     return local_data;
 }
 
-/// Invoked at the rate of the fastest loop.
-static void handleFastLoop(canardClass &clsCanard) {
-    // Controlla corretta assegnazione node_id
-    const bool anonymous = clsCanard.canard.node_id > CANARD_NODE_ID_MAX;
+/// Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
+static void publish_rmap_data(canardClass &clsCanard) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
-    if ((!anonymous) &&
+    if ((!clsCanard.is_canard_node_anonymous()) &&
         (clsCanard.publisher_enabled.module_th) &&
         (clsCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
         rmap_module_TH_1_0 module_th_msg = {0};
         // Preparo i dati e metadati fissi
         // TODO: Aggiorna i valori mobili
-        module_th_msg.ITH = prepareSensorsDataValueExample(SENSOR_ITH);
+        module_th_msg.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith);
         module_th_msg.ITH.metadata = clsCanard.module_th.ITH.metadata;
-        module_th_msg.MTH = prepareSensorsDataValueExample(SENSOR_MTH);
+        module_th_msg.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth);
         module_th_msg.MTH.metadata = clsCanard.module_th.MTH.metadata;
-        module_th_msg.NTH = prepareSensorsDataValueExample(SENSOR_NTH);
+        module_th_msg.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth);
         module_th_msg.NTH.metadata = clsCanard.module_th.NTH.metadata;
-        module_th_msg.XTH = prepareSensorsDataValueExample(SENSOR_XTH);
+        module_th_msg.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth);
         module_th_msg.XTH.metadata = clsCanard.module_th.XTH.metadata;
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -242,154 +204,6 @@ static void handleFastLoop(canardClass &clsCanard) {
     }
 }
 
-// *******              FUNZIONI INVOCATE HANDLE 1 SECONDO EV. PREPARATORIE              *********
-
-static void handleNormalLoop(canardClass &clsCanard) {
-    const bool anonymous = clsCanard.canard.node_id > CANARD_NODE_ID_MAX;
-    // Heartbeat ogni secondo (la funzione è richiesta e non può essere mascherata in UAVCAN)
-    // In anonimo invece esegue la richiesta di allocazione node_id con il servizio plug_and_play 1.0
-    if (!anonymous) {
-        uavcan_node_Heartbeat_1_0 heartbeat = {0};
-        heartbeat.uptime = clsCanard.getUpTimeSecond();
-        const O1HeapDiagnostics heap_diag = clsCanard.memGetDiagnostics();
-        if (heap_diag.oom_count > 0) {
-            heartbeat.health.value = uavcan_node_Health_1_0_CAUTION;
-        } else {
-            heartbeat.health.value = uavcan_node_Health_1_0_NOMINAL;
-        }
-        // Stato di heartbeat gestito dalla classe
-        heartbeat.vendor_specific_status_code = clsCanard.flag.get_local_value_heartbeat_VSC();
-        heartbeat.mode.value = clsCanard.flag.get_local_node_mode();
-        // Trasmetto il pacchetto
-        uint8_t serialized[uavcan_node_Heartbeat_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-        size_t serialized_size = sizeof(serialized);
-        const int8_t err = uavcan_node_Heartbeat_1_0_serialize_(&heartbeat, &serialized[0], &serialized_size);
-        LOCAL_ASSERT(err >= 0);
-        if (err >= 0) {
-            const CanardTransferMetadata meta = {
-                .priority = CanardPriorityNominal,
-                .transfer_kind = CanardTransferKindMessage,
-                .port_id = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_,
-                .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id = (CanardTransferID)(clsCanard.next_transfer_id.uavcan_node_heartbeat()),
-            };
-            // Messaggio standard ad un secondo dal timeStamp Sincronizzato
-            clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-        }
-    }
-    else  // If we don't have a node-ID, obtain one by publishing allocation request messages until we get a response.
-    {
-        // The Specification says that the allocation request publication interval shall be randomized.
-        // We implement randomization by calling rand() at fixed intervals and comparing it against some threshold.
-        if (rand() > RAND_MAX / 2)  // NOLINT
-        {
-            // PnP over Classic CAN, use message v1.0.
-            uavcan_pnp_NodeIDAllocationData_1_0 msg = {0};
-            // truncated uint48 unique_id_hash
-            // Crea uint_64 con LOW_POWER NODE_TYPE_MAJOR << 8 + NODE_TYPE_MINOR
-            uint64_t local_unique_id_hash = 0;
-            local_unique_id_hash |= (uint64_t) NODE_TYPE_MAJOR;
-            local_unique_id_hash |= (uint64_t) ((uint16_t) NODE_TYPE_MINOR << 8);
-            for(uint8_t bRnd=2; bRnd<8; bRnd++) {
-                local_unique_id_hash |= ((uint64_t)(rand() & 0xFF)) << 8*bRnd;
-            }
-            // msg.allocated_node_id.(count/element) => Solo in response non in request;
-            msg.unique_id_hash = local_unique_id_hash;
-            uint8_t serialized[uavcan_pnp_NodeIDAllocationData_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
-            size_t serialized_size = sizeof(serialized);
-            const int8_t err = uavcan_pnp_NodeIDAllocationData_1_0_serialize_(&msg, &serialized[0], &serialized_size);
-            LOCAL_ASSERT(err >= 0);
-            if (err >= 0) {
-                const CanardTransferMetadata meta = {
-                    .priority = CanardPrioritySlow,
-                    .transfer_kind = CanardTransferKindMessage,
-                    .port_id = uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
-                    .remote_node_id = CANARD_NODE_ID_UNSET,
-                    .transfer_id = (CanardTransferID)(clsCanard.next_transfer_id.uavcan_pnp_allocation()),
-                };
-                // Messaggio standard ad un secondo dal timeStamp Sincronizzato
-                clsCanard.send(MEGA, &meta, serialized_size, &serialized[0]);
-            }
-        }
-    }
-}
-
-// *******              FUNZIONI INVOCATE HANDLE 10 SECONDI EV. PREPARATORIE             *********
-
-// Prepara lista sottoscrizioni (solo quelle allocate correttamente <= CANARD_SUBJECT_ID_MAX) uavcan_node_port_List_0_1.
-static void fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port_SubjectIDList_0_1* const obj) {
-    if (NULL != tree) {
-        fillSubscriptions(tree->lr[0], obj);
-        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
-        if (crs->port_id <= CANARD_SUBJECT_ID_MAX) {
-            LOCAL_ASSERT(obj->sparse_list.count < uavcan_node_port_SubjectIDList_0_1_sparse_list_ARRAY_CAPACITY_);
-            obj->sparse_list.elements[obj->sparse_list.count++].value = crs->port_id;
-            fillSubscriptions(tree->lr[1], obj);
-        }
-    }
-}
-
-/// This is needed only for constructing uavcan_node_port_List_0_1.
-static void fillServers(const CanardTreeNode* const tree, uavcan_node_port_ServiceIDList_0_1* const obj) {
-    if (NULL != tree) {
-        fillServers(tree->lr[0], obj);
-        const CanardRxSubscription* crs = (const CanardRxSubscription*)tree;
-        if (crs->port_id <= CANARD_SERVICE_ID_MAX) {
-            (void)nunavutSetBit(&obj->mask_bitpacked_[0], sizeof(obj->mask_bitpacked_), crs->port_id, true);
-            fillServers(tree->lr[1], obj);
-        }
-    }
-}
-
-// **************           Pubblicazione vera e propria a 20 secondi           **************
-static void handleSlowLoop(canardClass &clsCanard) {
-    // Publish the recommended (not required) port introspection message. No point publishing it if we're anonymous.
-    // The message is a bit heavy on the stack (about 2 KiB) but this is not a problem for a modern MCU.
-    // L'abilitazione del comando è facoltativa, può essere attivata/disattivata da un comando UAVCAN
-    if ((clsCanard.publisher_enabled.port_list) &&
-        (clsCanard.canard.node_id <= CANARD_NODE_ID_MAX)) {
-        uavcan_node_port_List_0_1 m = {0};
-        uavcan_node_port_List_0_1_initialize_(&m);
-        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.publishers);
-        uavcan_node_port_SubjectIDList_0_1_select_sparse_list_(&m.subscribers);
-
-        // Indicate which subjects we publish to. Don't forget to keep this updated if you add new publications!
-        {
-            size_t* const cnt = &m.publishers.sparse_list.count;
-            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_Heartbeat_1_0_FIXED_PORT_ID_;
-            m.publishers.sparse_list.elements[(*cnt)++].value = uavcan_node_port_List_0_1_FIXED_PORT_ID_;
-            // Aggiungo i publisher interni validi privati (quando abilitati)
-            if ((clsCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)&&
-                (clsCanard.publisher_enabled.module_th))
-            {
-                m.publishers.sparse_list.elements[(*cnt)++].value = clsCanard.port_id.publisher_module_th;
-            }            
-        }
-
-        // Indicate which servers and subscribers we implement.
-        // We could construct the list manually but it's easier and more robust to just query libcanard for that.
-        fillSubscriptions(clsCanard.canard.rx_subscriptions[CanardTransferKindMessage], &m.subscribers);
-        fillServers(clsCanard.canard.rx_subscriptions[CanardTransferKindRequest], &m.servers);
-        fillServers(clsCanard.canard.rx_subscriptions[CanardTransferKindResponse], &m.clients);  // For regularity.
-
-        // Serialize and publish the message. Use a small buffer because we know that our message is always small.
-        // Verificato massimo utilizzo a 156 bytes. Limitiamo il buffer a 256 Bytes (Come esempio UAVCAN)
-        uint8_t serialized[256] = {0};
-        size_t  serialized_size = uavcan_node_port_List_0_1_SERIALIZATION_BUFFER_SIZE_BYTES_;
-        if (uavcan_node_port_List_0_1_serialize_(&m, &serialized[0], &serialized_size) >= 0) {
-            const CanardTransferMetadata meta = {
-                .priority = CanardPriorityOptional,  // Mind the priority.
-                .transfer_kind = CanardTransferKindMessage,
-                .port_id = uavcan_node_port_List_0_1_FIXED_PORT_ID_,
-                .remote_node_id = CANARD_NODE_ID_UNSET,
-                .transfer_id = (CanardTransferID)(clsCanard.next_transfer_id.uavcan_node_port_list()),
-            };
-            // Messaggio lungo (pubblicazione su 2 secondi) dal timeStamp Sincronizzato
-            clsCanard.send(MEGA * 2, &meta, serialized_size, &serialized[0]);
-        }
-    }
-}
-
 // ***************************************************************************************************
 //   Funzioni ed utility di ricezione dati dalla rete UAVCAN, richiamati da processReceivedTransfer()
 // ***************************************************************************************************
@@ -401,7 +215,7 @@ static void processMessagePlugAndPlayNodeIDAllocation(canardClass &clsCanard,
     // msg->unique_id_hash RX non gestito, è valido GetUniqueID Unificato per entrambe versioni V1 e V2
     if (msg->allocated_node_id.elements[0].value <= CANARD_NODE_ID_MAX) {
         printf("Got PnP node-ID allocation: %d\n", msg->allocated_node_id.elements[0].value);
-        clsCanard.canard.node_id = (CanardNodeID)msg->allocated_node_id.elements[0].value;
+        clsCanard.set_canard_node_id((CanardNodeID)msg->allocated_node_id.elements[0].value);
         // Store the value into the non-volatile storage.
         uavcan_register_Value_1_0 reg = {0};
         uavcan_register_Value_1_0_select_natural16_(&reg);
@@ -463,7 +277,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
         }
         // **************** Comandi personalizzati VENDOR_SPECIFIC_COMMAND ****************
         // Comando di download File generico compatibile con specifice UAVCAN, (LOG/CFG altro...)
-        case CMD_DOWNLOAD_FILE:
+        case canardClass::Command_Private::download_file:
         {
             // Nodo Server chiamante (Yakut solo Master, Yakut e Master per Slave)
             clsCanard.master.file.start_request(remote_node, (uint8_t*) req->parameter.elements,
@@ -477,7 +291,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_ENABLE_PUBLISH_DATA:
+        case canardClass::Command_Private::enable_publish_rmap:
         {
             // Abilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clsCanard.publisher_enabled.module_th = true;
@@ -485,7 +299,7 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_DISABLE_PUBLISH_DATA:
+        case canardClass::Command_Private::disable_publish_rmap:
         {
             // Disabilita pubblicazione fast_loop data_and_metadata modulo locale (test yakut e user master)
             clsCanard.publisher_enabled.module_th = false;
@@ -493,23 +307,24 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_ENABLE_PUBLISH_PORT_LIST:
+        case canardClass::Command_Private::enable_publish_port_list:
         {
             // Abilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             clsCanard.publisher_enabled.port_list = true;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_DISABLE_PUBLISH_PORT_LIST:
+        case canardClass::Command_Private::disable_publish_port_list:
         {
             // Disabilita pubblicazione slow_loop elenco porte (Cypal facoltativo)
             clsCanard.publisher_enabled.port_list = false;
             resp.status = uavcan_node_ExecuteCommand_Response_1_1_STATUS_SUCCESS;
             break;
         }
-        case CMD_TEST:
+        case canardClass::Command_Private::remote_test:
         {
-            resp.status = CMD_TEST_VALUE;
+            // Test locale / remoto
+            resp.status = canardClass::Command_Private::remote_test_value;
             break;
         }        
         default:
@@ -530,13 +345,6 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardCla
     // req->parametri.comando (Comando esterno ricevuto 3 BIT)
     // req->parametri.run_sectime (Timer to run 13 bit)
 
-    // Copio i metadati fissi
-    // TODO: aggiornare i metadati mobili
-    resp.ITH.metadata = clsCanard.module_th.ITH.metadata;
-    resp.MTH.metadata = clsCanard.module_th.MTH.metadata;;
-    resp.NTH.metadata = clsCanard.module_th.NTH.metadata;
-    resp.XTH.metadata = clsCanard.module_th.XTH.metadata;
-
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parametri.comando) {
 
@@ -547,10 +355,10 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardCla
             resp.stato = req->parametri.comando;
             // Preparo la risposta di esempio
             // TODO: Aggiorna i valori mobili
-            resp.ITH = prepareSensorsDataValueExample(SENSOR_ITH);
-            resp.MTH = prepareSensorsDataValueExample(SENSOR_MTH);
-            resp.NTH = prepareSensorsDataValueExample(SENSOR_NTH);
-            resp.XTH = prepareSensorsDataValueExample(SENSOR_XTH);
+            resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith);
+            resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth);
+            resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth);
+            resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth);
             break;
 
         /// saturated uint3 get_current = 1
@@ -607,6 +415,13 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardCla
             resp.stato = GENERIC_STATE_UNDEFINED;
             break;
     }
+
+    // Copio i metadati fissi
+    // TODO: aggiornare i metadati mobili
+    resp.ITH.metadata = clsCanard.module_th.ITH.metadata;
+    resp.MTH.metadata = clsCanard.module_th.MTH.metadata;;
+    resp.NTH.metadata = clsCanard.module_th.NTH.metadata;
+    resp.XTH.metadata = clsCanard.module_th.XTH.metadata;
 
     return resp;
 }
@@ -995,7 +810,7 @@ bool CAN_HW_Init(void)
     result = bxCANConfigure(0, timings, false);
     if (!result) {
         Serial.println(F("Error initialization bxCANConfigure"));
-        assert(false);
+        LOCAL_ASSERT(false);
         return false;
     }
     // *******************     CANARD SETUP TIMINGS AND SPEED COMPLETE   *******************
@@ -1104,16 +919,16 @@ void loop(void)
     // Restore the node-ID from the corresponding standard register. Default to anonymous.
     #ifdef NODE_SLAVE_ID
     // Canard Slave NODE ID Fixed dal defined value in module_config
-    clsCanard.canard.node_id = (CanardNodeID) NODE_SLAVE_ID;
+    clsCanard.set_canard_node_id((CanardNodeID)NODE_SLAVE_ID);
     #else
     uavcan_register_Value_1_0_select_natural16_(&val);
     val.natural16.value.count = 1;
     val.natural16.value.elements[0] = UINT16_MAX; // This means undefined (anonymous), per Specification/libcanard.
     registerRead("uavcan.node.id", &val);         // The names of the standard registers are regulated by the Specification.
     LOCAL_ASSERT(uavcan_register_Value_1_0_is_natural16_(&val) && (val.natural16.value.count == 1));
-    clsCanard.canard.node_id = (val.natural16.value.elements[0] > CANARD_NODE_ID_MAX)
-                               ? CANARD_NODE_ID_UNSET
-                               : (CanardNodeID)val.natural16.value.elements[0];
+    if (val.natural16.value.elements[0] <= CANARD_NODE_ID_MAX) {
+        clsCanard.set_canard_node_id((CanardNodeID)val.natural16.value.elements[0]);
+    }
     #endif
 
     // The description register is optional but recommended because it helps constructing/maintaining large networks.
@@ -1124,12 +939,12 @@ void loop(void)
 
     // Carico i/il port-ID/subject-ID del modulo locale dai registri relativi associati nel namespace UAVCAN
     clsCanard.port_id.publisher_module_th =
-        getModeAccessID(PublisherSubjectID, "TH.data_and_metadata",
-                              rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
+        getModeAccessID(canardClass::Introspection_Port::PublisherSubjectID,
+            "TH.data_and_metadata", rmap_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
     clsCanard.port_id.service_module_th =
-        getModeAccessID(ServicePortID, "TH.service_data_and_metadata",
-                              rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
+        getModeAccessID(canardClass::Introspection_Port::ServicePortID,
+            "TH.service_data_and_metadata", rmap_service_module_TH_1_0_FULL_NAME_AND_VERSION_);
 
     // Lettura dei registri RMAP al modulo corrente, con impostazione di default x Startup/Init value
 
@@ -1213,7 +1028,7 @@ void loop(void)
     // ********************************************************************************
 
     // Plug and Play Versione 1_0 CAN_CLASSIC senza nodo ID valido
-    if (clsCanard.canard.node_id > CANARD_NODE_ID_MAX) {
+    if (clsCanard.is_canard_node_anonymous()) {
         // PnP over Classic CAN, use message v1.0
         if (!clsCanard.rxSubscribe(CanardTransferKindMessage,
                                 uavcan_pnp_NodeIDAllocationData_1_0_FIXED_PORT_ID_,
@@ -1311,11 +1126,11 @@ void loop(void)
     #define LOG_RX_PACKET
 
     // Set START Timetable LOOP RX/TX. Set Canard microsecond start, per le sincronizzazioni
-    clsCanard.getMonotonicMicroseconds(clsCanard.start_syncronization);
+    clsCanard.getMicros(clsCanard.start_syncronization);
     const CanardMicrosecond fast_loop_period    = MEGA / 3;
-    CanardMicrosecond       next_333_ms_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + fast_loop_period;
-    CanardMicrosecond       next_01_sec_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA;
-    CanardMicrosecond       next_20_sec_iter_at = clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) + MEGA * 1.5;
+    CanardMicrosecond next_333_ms_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + fast_loop_period;
+    CanardMicrosecond next_01_sec_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA;
+    CanardMicrosecond next_20_sec_iter_at = clsCanard.getMicros(clsCanard.syncronized_time) + MEGA * 1.5;
 
     // Avvio il modulo UAVCAN in modalità operazionale normale
     // Eventuale SET Flag dopo acquisizione di configurazioni e/o parametri da Remoto
@@ -1323,7 +1138,7 @@ void loop(void)
 
     do {
         // Set Canard microsecond corrente monotonic, per le attività temporanee di ciclo
-        clsCanard.getMonotonicMicroseconds(clsCanard.start_syncronization);
+        clsCanard.getMicros(clsCanard.start_syncronization);
 
         // Check TimeLine (quasi RealTime...) Simulo Task a Timer
         // Gestione eventi ogni millisEvent mSec -> bEventRealTimeLoop
@@ -1343,7 +1158,7 @@ void loop(void)
         // E' utilizzabile come RTC_FAKE e/o come Setup Perfetto per regolazione RTC al cambio del secondo
         // RTC Infatti non permette la regolazione dei microsecondi, e questa tecnica lo consente
         // Verifico LED al secondo... su timeSTamp sincronizzato remoto
-        if((clsCanard.master.timestamp.get_timestamp_syncronized() / 1000000) % 2) {
+        if((clsCanard.master.timestamp.get_timestamp_syncronized() / MEGA) % 2) {
             digitalWrite(LED_BUILTIN, HIGH);
         } else {
             digitalWrite(LED_BUILTIN, LOW);
@@ -1457,7 +1272,6 @@ void loop(void)
                         // Avvio prima request o nuovo blocco (Set Flag e TimeOut)
                         // Prima request (clsCanard.local_node.file.offset == 0)
                         // Firmmware Posizione blocco gestito automaticamente in sequenza Request/Read
-                        clsCanard.master.file.start_pending(NODE_GETFILE_TIMEOUT_US);
                         // Gestione retry (incremento su TimeOut/Error) Automatico in Init/Request-Response
                         // Esco se raggiunga un massimo numero di retry x Frame... sopra
                         // Get Data Block per popolare il File
@@ -1465,7 +1279,7 @@ void loop(void)
                         // Altrimenti se inferiore o (0 Compreso) il trasferimento file termina.
                         // Se = 0 il blocco finale non viene considerato ma serve per il protocollo
                         // Se l'ultimo buffer dovesse essere pieno discrimina l'eventualità di MaxBuf==Eof 
-                        handleFileReadBlock_1_1(clsCanard);
+                        clsCanard.master_file_read_block_pending(NODE_GETFILE_TIMEOUT_US);
                     }
                 }
             }
@@ -1473,34 +1287,36 @@ void loop(void)
 
         // -> Scheduler temporizzato dei messaggi standard da inviare alla rete UAVCAN 
 
-        // LOOP HANDLER >> FAST << 333 msec
-        // Led Running + Publisher Data se abilitato
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_333_ms_iter_at)
+        // LOOP HANDLER >> FAST << 333 msec >> Publisher Data se abilitato
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_333_ms_iter_at)
         {
             next_333_ms_iter_at += fast_loop_period;
-            handleFastLoop(clsCanard);
+            // Funzione locale privata
+            publish_rmap_data(clsCanard);
         }
 
         // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_01_sec_iter_at) {
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_01_sec_iter_at) {
             #ifdef PUBLISH_HEARTBEAT
-            if(clsCanard.canard.node_id <= CANARD_NODE_ID_MAX) {
-                Serial.println(F("Publish SLAVE Heartbeat -->> [1 sec]"));
+            if(clsCanard.is_canard_node_anonymous()) {
+                Serial.println(F("Publish SLAVE PNP Request Message -->> [2 sec]"));
+                clsCanard.slave_pnp_send_request();
+                next_01_sec_iter_at += MEGA * 2;
             } else {
-                Serial.println(F("Publish SLAVE PNP Request Message -->> [RND x2 sec]"));
+                Serial.println(F("Publish SLAVE Heartbeat -->> [1 sec]"));
+                clsCanard.slave_heartbeat_send_message();
+                next_01_sec_iter_at += MEGA;
             }            
             #endif
-            next_01_sec_iter_at += MEGA;
-            handleNormalLoop(clsCanard);
         }
 
         // LOOP HANDLER >> 20 SECONDI PUBLISH SERVIZI <<
-        if (clsCanard.getMonotonicMicroseconds(clsCanard.syncronized_time) >= next_20_sec_iter_at) {
+        if (clsCanard.getMicros(clsCanard.syncronized_time) >= next_20_sec_iter_at) {
             #ifdef PUBLISH_LISTPORT
             Serial.println(F("Publish Local PORT LIST -->> [20 sec]"));
             #endif
             next_20_sec_iter_at += MEGA * 20;
-            handleSlowLoop(clsCanard);
+            clsCanard.slave_servicelist_send_message();
         }
 
         // Fine handler quasi RealTime...

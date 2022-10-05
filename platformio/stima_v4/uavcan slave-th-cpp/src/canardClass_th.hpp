@@ -14,20 +14,21 @@
 #include "register.hpp"
 #include <o1heap.h>
 #include <canard.h>
+// Namespace UAVCAN
+#include <uavcan/node/Heartbeat_1_0.h>
+#include <uavcan/node/GetInfo_1_0.h>
+#include <uavcan/node/ExecuteCommand_1_1.h>
+#include <uavcan/node/port/List_0_1.h>
+#include <uavcan/_register/Access_1_0.h>
+#include <uavcan/_register/List_1_0.h>
+#include <uavcan/file/Read_1_1.h>
+#include <uavcan/time/Synchronization_1_0.h>
+#include <uavcan/pnp/NodeIDAllocationData_1_0.h>
 // Namespace RMAP
 #include <rmap/_module/TH_1_0.h>
 #include <rmap/service/_module/TH_1_0.h>
-#include <uavcan/node/Mode_1_0.h>
 // Configurazione modulo, definizioni ed utility generiche
 #include "module_config.hpp"
-
-// Gestione statica completa
-// #define CANARD_CLASS_STATIC
-#ifdef CANARD_CLASS_STATIC
-#   define CLASS_MODE inline static
-#else
-#   define CLASS_MODE
-#endif
 
 class canardClass {
 
@@ -36,7 +37,15 @@ class canardClass {
 
         // ********************   Tipi di Dati    *****************
 
-        // Modalità di accesso a getMonotonicMicroseconds()
+        // Tipologie elaborazioni/sensori modulo(i)
+        enum Sensor_Type : u_int8_t {
+            ith,
+            mth,
+            nth,
+            xth
+        };
+
+        // Modalità di accesso a getMicros()
         enum GetMonotonicTime_Type : uint8_t {
             syncronized_time,
             start_syncronization
@@ -52,6 +61,25 @@ class canardClass {
             pwr_sleep_60,   // Every Minute (Low power 4...)
             pwr_deep_save,  // Deep mode (Very Low Power)
             pwr_critical    // Deep mode (Power Critical, Save data, Power->Off)
+        };
+
+        // Gestione porte e subject di Canard
+        enum Introspection_Port : uint8_t {
+            PublisherSubjectID,
+            SubscriptionSubjectID,
+            ClientPortID,
+            ServicePortID
+        };
+
+        // Gestione comandi privati di Canard / Rmap
+        enum Command_Private : uint8_t {
+            download_file             =  5,
+            enable_publish_rmap       = 10,
+            disable_publish_rmap      = 11,
+            enable_publish_port_list  = 12,
+            disable_publish_port_list = 13,
+            remote_test               = 99,
+            remote_test_value         = 100
         };
 
         // Interprete heartBeat VSC (Vendor Status Code) x Comunicazioni messaggi Master<->Slave
@@ -88,14 +116,9 @@ class canardClass {
         canardClass();
 
         // Timings Function e Dati associati
-        static CanardMicrosecond getMonotonicMicroseconds();
-        static CanardMicrosecond getMonotonicMicroseconds(GetMonotonicTime_Type syncro_type);
+        static CanardMicrosecond getMicros();
+        static CanardMicrosecond getMicros(GetMonotonicTime_Type syncro_type);
         static uint32_t getUpTimeSecond(void);
-    
-        // *************************************************
-        //                  Canard O1HEAP
-        // *************************************************
-        O1HeapDiagnostics memGetDiagnostics(void);
 
         // *************************************************
         //                  Canard SendData
@@ -147,13 +170,16 @@ class canardClass {
         void rxUnSubscribe(const CanardTransferKind transfer_kind,
                         const CanardPortID port_id);
 
-        // Istanza del modulo canard
-        CLASS_MODE CanardInstance canard;
+        // ****************************************************************************************
+        //  Comandi Server per gestione del modulo locale tramite classe Master e pending o Diretti
+        // ****************************************************************************************
+        bool send_file_read_block(CanardNodeID server_id, char * fileName, uint64_t remoteOffset);
+        bool master_file_read_block_pending(uint32_t timeout_us);
 
         // *************************************************
         //  Sottoclassi MASTER locale per gestione di Stato
         // *************************************************
-        CLASS_MODE class master
+        class master
         {
             public:
 
@@ -228,23 +254,28 @@ class canardClass {
                 bool     _updating_eof;
                 uint64_t _offset;
                 uint64_t _timeout_us;           // Time command Remoto x Verifica deadLine Request
-                bool     _is_executed_command;  // Funzione in pending (inviato, attesa risposta o timeout)
                 bool     _is_pending;           // Funzione in pending (inviato, attesa risposta o timeout)
-                bool     _is_timeout;           // Funzione in timeout (mancata risposta)
  
             } file;
  
         } master;
+
+        // ****************************************************************************************
+        //  Comandi Server per gestione del modulo locale tramite classe locale e pending o Diretti
+        // ****************************************************************************************
+        bool slave_heartbeat_send_message(void);
+        bool slave_pnp_send_request(void);
+        bool slave_servicelist_send_message(void);
 
         // *************************************************
         //  Sottoclassi e dati locali per gestione di Stato
         // *************************************************
 
         // Dati e Metadati del modulo locale
-        CLASS_MODE rmap_module_TH_1_0 module_th;
+        rmap_module_TH_1_0 module_th;
 
         // Subject ID porte e servizi modulo locale
-        CLASS_MODE class port_id
+        class port_id
         {
             public:
 
@@ -254,7 +285,7 @@ class canardClass {
         } port_id;
 
         // Abilitazione delle pubblicazioni falcoltative sulla rete (ON/OFF a richiesta)
-        CLASS_MODE class publisher_enabled
+        class publisher_enabled
         {
             public:
 
@@ -264,7 +295,7 @@ class canardClass {
         } publisher_enabled;
 
         // Tranfer ID (CAN Interfaccia ID -> uint8) servizi attivi del modulo locale
-        CLASS_MODE class next_transfer_id
+        class next_transfer_id
         {
             public:
 
@@ -285,7 +316,7 @@ class canardClass {
         } next_transfer_id;
 
         // Flag di stato TODO: da implementare funzioni sleep/inibith locali
-        CLASS_MODE class flag
+        class flag
         {
 
             public:
@@ -324,31 +355,44 @@ class canardClass {
 
         } flag;
 
+        void set_canard_node_id(CanardNodeID local_id);
+        CanardNodeID get_canard_node_id(void);
+        bool is_canard_node_anonymous(void);
+
     // ***************** PRIVATE ACCESS *****************
     private:
 
-        // Buffer dati e trasmissione delle code di tx e quella di rx
-        CLASS_MODE CanardRxQueue _canard_rx_queue;
-        CLASS_MODE CanardTxQueue _canard_tx_queues[CAN_REDUNDANCY_FACTOR];
+        // Istanza del modulo canard
+        CanardInstance _canard;
 
-        // Timings var per getMonotonicMicroseconds();
+        // Buffer dati e trasmissione delle code di tx e quella di rx
+        CanardRxQueue _canard_rx_queue;
+        CanardTxQueue _canard_tx_queues[CAN_REDUNDANCY_FACTOR];
+
+        // Timings var per getMicros();
         inline static uint32_t _lastMicros;
         inline static uint64_t _currMicros;        
         inline static uint64_t _syncMicros;
 
+        // Funzioni di utility private (sezione publish list_message)
+        void _fillSubscriptions(const CanardTreeNode* const tree, uavcan_node_port_SubjectIDList_0_1* const obj);
+        void _fillServers(const CanardTreeNode* const tree, uavcan_node_port_ServiceIDList_0_1* const obj);
+
         // Canard O1HEAP, Gestita RAM e CallBack internamente alla classe
-        CLASS_MODE O1HeapInstance* _heap;
-        _Alignas(O1HEAP_ALIGNMENT) CLASS_MODE uint8_t _heap_arena[1024 * 16];
+        O1HeapInstance* _heap;
+        _Alignas(O1HEAP_ALIGNMENT) uint8_t _heap_arena[1024 * 16];
 
         // Gestione O1Heap Static Funzioni x Canard Memory Allocate/Free
         static void* _memAllocate(CanardInstance* const ins, const size_t amount);
         static void  _memFree(CanardInstance* const ins, void* const pointer);        
 
+        O1HeapDiagnostics _memGetDiagnostics(void);
+
         // Indirizzo della funzione di CallBack Esterna su Rx Messaggio Canard
-        CLASS_MODE bool _attach_rx_callback;
-        CLASS_MODE void (*_attach_rx_callback_PTR) (canardClass&, const CanardRxTransfer*);
+        bool _attach_rx_callback;
+        void (*_attach_rx_callback_PTR) (canardClass&, const CanardRxTransfer*);
 
         // Gestione subscription locali
-        CLASS_MODE CanardRxSubscription _rxSubscription[MAX_SUBSCRIPTION];
-        CLASS_MODE uint8_t _rxSubscriptionIdx;
+        CanardRxSubscription _rxSubscription[MAX_SUBSCRIPTION];
+        uint8_t _rxSubscriptionIdx;
 };
