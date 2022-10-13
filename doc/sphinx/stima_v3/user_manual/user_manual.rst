@@ -373,7 +373,7 @@ database sincronizzati:
   
 * download station configuration from server::
 
-     rmap-configure --download_from_server --station_slug="myslug" --board_slug=default --user="myuser" --password="mypassword" --server=rmap.cc
+     rmap-configure --download_from_server --station_slug="myslug" --user="myuser" --password="mypassword" --server=rmap.cc
   
 
 

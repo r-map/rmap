@@ -835,7 +835,11 @@ seguenti dati:
        ]
    }
 
+Rappresentazione grafica:
 
+|imagejrmap_json|   
+
+   
 JSON Lines text format
 ^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1693,3 +1697,7 @@ null e attributo B33007=0; in questo caso chi riceve il dato dovrebbe
 procedere a invalidarlo/rimuoverlo. Nella gestione di questo flusso dati
 i tools forniti insieme alla libreria software DB-all.e possono
 agevolare molto il lavoro.
+
+.. |imagejrmap_json| image:: rmap_json.png
+   :width: 25cm
+   :height: 30cm
