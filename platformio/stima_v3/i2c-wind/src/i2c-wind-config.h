@@ -67,6 +67,54 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define CONFIGURATION_RESET_PIN                         (8)
 
+#if (USE_SENSOR_DES || USE_SENSOR_DED)
+/*!
+\def WIND_POWER_PIN
+\brief Output pin for power on and power off wind sensor.
+*/
+#define WIND_POWER_PIN                                  (5)
+
+/*!
+\def WIND_DIRECTION_ANALOG_PIN
+\brief Input pin for reading wind direction sensor value.
+*/
+#define WIND_DIRECTION_ANALOG_PIN                       (A0)
+
+/*!
+\def WIND_SPEED_DIGITAL_PIN
+\brief Input pin for reading wind speed sensor value.
+*/
+#define WIND_SPEED_DIGITAL_PIN                          (3)
+
+#define ADC_VOLTAGE_MAX                                 (5000.0)
+#define ADC_VOLTAGE_MIN                                 (0.0)
+
+#define ADC_MAX                                         (1023.0)
+#define ADC_MIN                                         (0.0)
+
+#define WIND_DIRECTION_VOLTAGE_MAX                      (4500.0)
+#define WIND_DIRECTION_VOLTAGE_MIN                      (500.0)
+
+#define WIND_DIRECTION_ERROR_VOLTAGE_MAX                (50.0)
+#define WIND_DIRECTION_ERROR_VOLTAGE_MIN                (50.0)
+
+#define WIND_DIRECTION_MAX                              (360.0)
+#define WIND_DIRECTION_MIN                              (0.0)
+
+#define WIND_SPEED_HZ_MAX                               (250.0)
+#define WIND_SPEED_HZ_MIN                               (0.0)
+#define WIND_SPEED_HZ_TURN                              (1.0)
+
+#define WIND_SPEED_MAX                                  (50.0)
+#define WIND_SPEED_MIN                                  (0.0)
+
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1      (0.0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2      (1.0)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN           (WIND_DIRECTION_VOLTAGE_MIN)
+#define CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX           (WIND_DIRECTION_VOLTAGE_MAX)
+
+#endif
+
 #if (USE_SENSOR_GWS)
 #define WIND_POWER_PIN                                  (4)
 
@@ -82,6 +130,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define GWS_STX_INDEX                                   (0)
 #define GWS_ETX_INDEX                                   (19)
+
+#define GWS_WITHOUT_DIRECTION_OFFSET                    (3)
 
 #define GWS_DIRECTION_INDEX                             (3)
 #define GWS_DIRECTION_LENGTH                            (3)
@@ -147,8 +197,21 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 *********************************************************************/
 // observations with processing every 1-10 minutes (minutes for processing sampling)
 // report every 5-60 minutes (> OBSERVATIONS_MINUTES)
-#define OBSERVATIONS_MINUTES 1
-#define SENSORS_SAMPLE_TIME_MS 5000
+
+#if (USE_SENSOR_DES || USE_SENSOR_DED)
+/*!
+\def SENSORS_SAMPLE_TIME_MS
+\brief Milliseconds for sampling sensors: 100 - 60000 [ms] must be integer multiple of TIMER1_INTERRUPT_TIME_MS !!!
+*/
+#define SENSORS_ACQ_TIME_MS                             (2000)
+
+#define SENSORS_SAMPLE_TIME_MS                          (SENSORS_ACQ_TIME_MS * 3)
+#define SENSORS_WARMUP_TIME_MS                          (SENSORS_SAMPLE_TIME_MS / 2)
+#endif
+
+#if (USE_SENSOR_GWS)
+#define SENSORS_SAMPLE_TIME_MS                          (4000)
+#endif
 
 /*!
 \def OBSERVATION_SAMPLES_COUNT_MIN
@@ -204,6 +267,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 #define WIND_CLASS_4_MAX                                (7.0)
 #define WIND_CLASS_5_MAX                                (10.0)
 
+#if (USE_SENSOR_DES)
+#define CALM_WIND_MAX_MS                                (0.3)
+#endif
+
 #if (USE_SENSOR_GWS)
 #define CALM_WIND_MAX_MS                                (0.1)
 #endif
@@ -219,7 +286,7 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def USE_SENSORS_COUNT
 \brief Sensors count.
 */
-#define USE_SENSORS_COUNT                               (USE_SENSOR_GWS)
+#define USE_SENSORS_COUNT                               (USE_SENSOR_DED + USE_SENSOR_DES + USE_SENSOR_GWS)
 
 #if (USE_SENSORS_COUNT == 0)
 #error No sensor used. Are you sure? If not, enable it in RmapConfig/sensors_config.h
@@ -232,6 +299,10 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def TIMER1_INTERRUPT_TIME_MS
 \brief Value in milliseconds for generating timer1 interrupt: 100 - 8000 [ms].
 */
+#if (USE_SENSOR_DES || USE_SENSOR_DED)
+#define TIMER1_INTERRUPT_TIME_MS                        (SENSORS_ACQ_TIME_MS / 2)
+#endif
+
 #if (USE_SENSOR_GWS)
 #define TIMER1_INTERRUPT_TIME_MS                        (SENSORS_SAMPLE_TIME_MS)
 #endif

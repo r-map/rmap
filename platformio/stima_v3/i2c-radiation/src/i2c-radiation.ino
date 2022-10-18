@@ -83,6 +83,13 @@ void loop() {
       }
       #endif
 
+      #if (USE_SENSOR_VSR)
+      if (is_event_solar_radiation_task) {
+        solar_radiation_task_hr();
+        wdt_reset();
+      }
+      #endif
+
       if (is_event_command_task) {
         command_task();
         wdt_reset();
@@ -221,6 +228,10 @@ void init_tasks() {
   solar_radiation_state = SOLAR_RADIATION_INIT;
   #endif
 
+  #if (USE_SENSOR_VSR)
+  solar_radiation_hr_state = SOLAR_RADIATION_HR_INIT;
+  #endif
+
   solar_radiation_acquisition_count = 0;
 
   is_oneshot = false;
@@ -234,7 +245,17 @@ void init_tasks() {
 
 void init_pins() {
   pinMode(CONFIGURATION_RESET_PIN, INPUT_PULLUP);
-  pinMode(SDCARD_CHIP_SELECT_PIN, OUTPUT);
+
+  #if (USE_SENSOR_DSR)
+  pinMode(SOLAR_RADIATION_POWER_PIN, OUTPUT);
+  pinMode(SOLAR_RADIATION_ANALOG_PIN, INPUT);
+  solarRadiationPowerOn();
+  #endif
+
+  #if (USE_SENSOR_VSR)
+  pinMode(SOLAR_RADIATION_POWER_PIN, OUTPUT);
+  solarRadiationPowerOn();
+  #endif
 }
 
 void init_wire() {
@@ -304,6 +325,16 @@ void print_configuration() {
   LOGN(F("--> adc voltage min: %0 mV"), configuration.adc_voltage_min);
   LOGN(F("--> adc voltage max: %0 mV"), configuration.adc_voltage_max);
   #endif
+
+  #if (USE_SENSOR_VSR)
+  LOGN(F("--> ADC i\tAINx\toffset\t\tgain\t\tmin\t\tmax"));
+
+  for (uint8_t j = 0; j < ADC_COUNT; j++) {
+    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+      LOGN(F("--> ADC %u\tAIN%u\t%f\t%f\t%f\t%f"), j+1, i, configuration.adc_calibration_offset[j][i], configuration.adc_calibration_gain[j][i], configuration.adc_analog_min[j][i], configuration.adc_analog_max[j][i]);
+    }
+  }
+  #endif
 }
 
 void save_configuration(bool is_default) {
@@ -320,6 +351,31 @@ void save_configuration(bool is_default) {
     configuration.adc_voltage_min = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN;
     configuration.adc_voltage_max = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX;
 
+    #if (USE_SENSOR_DSR)
+    solarRadiationPowerOn();
+    delay(SOLAR_RADIATION_READ_DELAY_MS);
+    solaRadiationOffset(SOLAR_RADIATION_READ_COUNT, SOLAR_RADIATION_READ_DELAY_MS, &configuration.adc_voltage_offset_1, configuration.adc_voltage_min);
+    solarRadiationPowerOff();
+    #endif
+
+    #if (USE_SENSOR_VSR)
+    for (uint8_t j = 0; j < ADC_COUNT; j++) {
+      for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+        // if ((j == 0) && (i == 0)) {
+        //   configuration.adc_calibration_offset[j][i] = -1750.0;
+        //   configuration.adc_calibration_gain[j][i] = 4.6300;
+        //   configuration.adc_analog_min[j][i] = 4.0;
+        //   configuration.adc_analog_max[j][i] = 20.0;
+        // }
+        // else {
+          configuration.adc_calibration_offset[j][i] = -1.0;
+          configuration.adc_calibration_gain[j][i] = 1.2355;
+          configuration.adc_analog_min[j][i] = 0.0;
+          configuration.adc_analog_max[j][i] = 5000.0;
+        // }
+      }
+    }
+    #endif
   }
   else {
     LOGN(F("Save configuration... [ %s ]"), OK_STRING);
@@ -334,6 +390,16 @@ void save_configuration(bool is_default) {
     configuration.adc_voltage_max = writable_data.adc_voltage_max;
     #endif
 
+    #if (USE_SENSOR_VSR)
+    for (uint8_t j = 0; j < ADC_COUNT; j++) {
+      for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+        configuration.adc_calibration_offset[j][i] = writable_data.adc_calibration_offset[j][i];
+        configuration.adc_calibration_gain[j][i] = writable_data.adc_calibration_gain[j][i];
+        configuration.adc_analog_min[j][i] = writable_data.adc_analog_min[j][i];
+        configuration.adc_analog_max[j][i] = writable_data.adc_analog_max[j][i];
+      }
+    }
+    #endif
   }
 
   //! write configuration to eeprom
@@ -364,6 +430,16 @@ void load_configuration() {
 }
 
 void init_sensors () {
+  #if (USE_SENSOR_VSR)
+  for (uint8_t j = 0; j < ADC_COUNT; j++) {
+    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+      use_adc_channel[j][i] = ADS1115_CHN_OFF_ID;
+    }
+  }
+
+  use_adc_channel[SOLAR_RADIATION_ADC_INDEX][SOLAR_RADIATION_ADC_CHANNEL_INPUT] = ADS1115_VOLTAGE_ID;
+  #endif
+
   if (configuration.is_continuous) {
     LOGN(F(""));
     LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
@@ -393,8 +469,13 @@ ISR(TIMER1_OVF_vect) {
   timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
   timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
 
+  // if ((timer_counter_s >= I2C_DELAY_FOR_SET_I2C_ERROR_S) && (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT))) {
+  if (i2c_error < (UINT8_MAX - I2C_SET_ERROR_COUNT)) {
+    i2c_error++;
+  }
+
   //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
-  #if (USE_SENSOR_DSR)
+  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
   if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && configuration.is_continuous) {
     if (!is_event_solar_radiation_task) {
       noInterrupts();
@@ -550,13 +631,13 @@ void make_report () {
 
   float avg = 0;
 
-  #if (USE_SENSOR_DSR)
+  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
   bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT);
   #endif
 
   uint16_t sample_count = RMAP_REPORT_SAMPLES_COUNT;
 
-  #if (USE_SENSOR_DSR)
+  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
   if (solar_radiation_samples.count < sample_count) {
     sample_count = solar_radiation_samples.count;
   }
@@ -567,9 +648,8 @@ void make_report () {
   #endif
 
   for (uint16_t i = 0; i < sample_count; i++) {
-    bool is_new_observation = (((i+1) % OBSERVATION_SAMPLES_COUNT_MAX) == 0);
 
-    #if (USE_SENSOR_DSR)
+    #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
     float solar_radiation = bufferReadBack<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT);
     #endif
 
@@ -590,8 +670,10 @@ void make_report () {
     #endif
   }
 
-  #if (USE_SENSOR_DSR)
-  readable_data_write_ptr->solar_radiation.avg = avg;
+  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+  if ((valid_count >= RMAP_REPORT_SAMPLE_VALID_MIN) && (error_count <= RMAP_REPORT_SAMPLE_ERROR_MAX)) {
+    readable_data_write_ptr->solar_radiation.avg = round(avg);
+  }
   #endif
 
   #if (USE_SENSOR_DSR)
@@ -604,12 +686,25 @@ void samples_processing() {
   make_report();
 }
 
+#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+void solarRadiationPowerOff () {
+  digitalWrite(SOLAR_RADIATION_POWER_PIN, LOW);
+  is_solar_radiation_on = false;
+}
+
+void solarRadiationPowerOn () {
+  digitalWrite(SOLAR_RADIATION_POWER_PIN, HIGH);
+  is_solar_radiation_on = true;
+}
+#endif
+
 #if (USE_SENSOR_DSR)
 float getSolarRadiationMv (float adc_value, float offset_mv) {
   float value = (float) UINT16_MAX;
 
   if ((adc_value >= ADC_MIN) && (adc_value <= ADC_MAX)) {
     value = ADC_VOLTAGE_MAX / ADC_MAX * adc_value;
+    value = round(value / 10.0) * 10.0;
     value += offset_mv;
   }
 
@@ -619,9 +714,14 @@ float getSolarRadiationMv (float adc_value, float offset_mv) {
 float getSolarRadiation (float adc_value) {
   float value = getSolarRadiationMv(adc_value, configuration.adc_voltage_offset_1);
 
+  if ((value < (configuration.adc_voltage_min - SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (configuration.adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
+    value = UINT16_MAX;
+  }
+  else {
   value = ((value - configuration.adc_voltage_min) / (configuration.adc_voltage_max - configuration.adc_voltage_min) * SOLAR_RADIATION_MAX);
+  }
 
-  return value;
+  return round(value);
 }
 
 void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal) {
@@ -638,7 +738,6 @@ void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float i
 }
 
 void solar_radiation_task () {
-  static uint8_t retry;
   static bool is_error;
   static solar_radiation_state_t state_after_wait;
   static uint32_t delay_ms;
@@ -649,9 +748,9 @@ void solar_radiation_task () {
   switch (solar_radiation_state) {
     case SOLAR_RADIATION_INIT:
       i = 0;
-      retry = 0;
       is_error = false;
       #if (USE_SENSOR_DSR)
+      solarRadiationPowerOn();
       solarRadiationRead();
       delay_ms = SOLAR_RADIATION_READ_DELAY_MS;
       start_time_ms = millis();
@@ -695,6 +794,7 @@ void solar_radiation_task () {
     break;
 
     case SOLAR_RADIATION_END:
+      solarRadiationPowerOff();
       noInterrupts();
       is_event_solar_radiation_task = false;
       ready_tasks_count--;
@@ -712,6 +812,19 @@ void solar_radiation_task () {
 }
 #endif
 
+#if (USE_SENSOR_VSR)
+float getAdcCalibratedValue (float adc_value, float offset, float gain) {
+  float value = (float) UINT16_MAX;
+
+  if (!isnan(adc_value) && (adc_value >= ADC_MIN) && (adc_value <= ADC_MAX)) {
+    value = adc_value;
+    value += offset;
+    value *= gain;
+  }
+
+  return value;
+}
+
 float getAdcAnalogValue (float adc_value, float min, float max) {
   float value = (float) UINT16_MAX;
 
@@ -727,10 +840,144 @@ float getAdcAnalogValue (float adc_value, float min, float max) {
 float getSolarRadiation (float adc_value, float adc_voltage_min, float adc_voltage_max) {
   float value = adc_value;
 
+  if ((value < (adc_voltage_min + SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
+    value = UINT16_MAX;
+  }
+  else {
   value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * SOLAR_RADIATION_MAX);
+  }
 
-  return value;
+  return round(value);
 }
+
+void solar_radiation_task_hr () {
+  static solar_radiation_hr_state_t state_after_wait;
+  static uint32_t delay_ms;
+  static uint32_t start_time_ms;
+  static uint8_t adc_index;
+  static uint8_t adc_channel;
+  static int16_t adc_value;
+  static float value;
+  static bool is_error;
+  adc_result_t adc_result;
+
+  switch (solar_radiation_hr_state) {
+    case SOLAR_RADIATION_HR_INIT:
+      solarRadiationPowerOn();
+      adc_index = 0;
+      adc_channel = 0;
+      is_error = false;
+      solar_radiation_acquisition_count++;
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_SET;
+      LOGV(F("SOLAR_RADIATION_HR_INIT --> SOLAR_RADIATION_HR_SET"));
+    break;
+
+    case SOLAR_RADIATION_HR_SET:
+      is_error = false;
+      while (isAdsChnDisabled(use_adc_channel[adc_index][adc_channel]) && (adc_channel < ADS1115_CHANNEL_COUNT)) {
+        adc_channel++;
+      }
+
+      if (adc_channel < ADS1115_CHANNEL_COUNT) {
+        value = (float) (UINT16_MAX);
+        solar_radiation_hr_state = SOLAR_RADIATION_HR_READ;
+        LOGV(F("SOLAR_RADIATION_HR_SET --> SOLAR_RADIATION_HR_READ"));
+      }
+      else if (adc_index < (ADC_COUNT - 1)) {
+        adc_index++;
+        adc_channel = 0;
+      }
+      else {
+        solar_radiation_hr_state = SOLAR_RADIATION_HR_PROCESS;
+        LOGV(F("SOLAR_RADIATION_HR_SET --> SOLAR_RADIATION_HR_PROCESS"));
+      }
+    break;
+
+    case SOLAR_RADIATION_HR_READ:
+      if (adc_index == 0) {
+        adc_result = adc1.readSingleChannel(adc_channel, &adc_value);
+      }
+      #if (ADC_COUNT > 1)
+      else if (adc_index == 1) {
+        adc_result = adc2.readSingleChannel(adc_channel, &adc_value);
+      }
+      #endif
+      #if (ADC_COUNT > 2)
+      else if (adc_index == 2) {
+        adc_result = adc3.readSingleChannel(adc_channel, &adc_value);
+      }
+      #endif
+
+      if (adc_result == ADC_OK) {
+        value = (float) (adc_value);
+        solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
+        LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
+      }
+      else if (adc_result == ADC_ERROR) {
+        i2c_error++;
+        value = (float) (UINT16_MAX);
+        is_error = true;
+        solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
+        LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
+      }
+    break;
+
+    case SOLAR_RADIATION_HR_EVALUATE:
+      #if (IS_CALIBRATION)
+      LOGN(F("ADC %u\tAIN%u ==> (%f + %f) * %f = "), adc_index, adc_channel, value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
+      #endif
+
+      if (!is_error) {
+        value = getAdcCalibratedValue (value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
+        value = getAdcAnalogValue(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
+      }
+
+      #if (IS_CALIBRATION)
+      LOGN(F("%f [ %s ]"), value, is_error ? ERROR_STRING : OK_STRING);
+      #endif
+
+      if (!is_error) {
+        value = getSolarRadiation(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
+      }
+
+      if (false) {}
+      else if ((adc_index == SOLAR_RADIATION_ADC_INDEX) && (adc_channel == SOLAR_RADIATION_ADC_CHANNEL_INPUT)) {
+        addValue<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT, value);
+      }
+
+      adc_channel++;
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_SET;
+      LOGV(F("SOLAR_RADIATION_HR_EVALUATE --> SOLAR_RADIATION_HR_SET"));
+    break;
+
+    case SOLAR_RADIATION_HR_PROCESS:
+      samples_processing();
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_END;
+      LOGV(F("SOLAR_RADIATION_HR_PROCESS --> SOLAR_RADIATION_HR_END"));
+    break;
+
+    case SOLAR_RADIATION_HR_END:
+      if ((solar_radiation_acquisition_count >= ACQUISITION_COUNT_FOR_POWER_RESET) || is_error) {
+        solar_radiation_acquisition_count = 0;
+        solarRadiationPowerOff();
+      }
+
+      noInterrupts();
+      is_event_solar_radiation_task = false;
+      ready_tasks_count--;
+      interrupts();
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_INIT;
+      LOGV(F("SOLAR_RADIATION_HR_END --> SOLAR_RADIATION_HR_INIT"));
+    break;
+
+    case SOLAR_RADIATION_HR_WAIT_STATE:
+      if (millis() - start_time_ms > delay_ms) {
+        solar_radiation_hr_state = state_after_wait;
+      }
+    break;
+  }
+}
+#endif
 
 void exchange_buffers() {
   readable_data_temp_ptr = readable_data_write_ptr;

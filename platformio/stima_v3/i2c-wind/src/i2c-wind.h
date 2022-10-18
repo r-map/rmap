@@ -127,6 +127,10 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
+   float adc_voltage_offset_1;
+   float adc_voltage_offset_2;
+   float adc_voltage_min;
+   float adc_voltage_max;
 } writable_data_t;
 
 /*********************************************************************
@@ -160,7 +164,6 @@ typedef enum {
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
-
 /*!
 \var configuration
 \brief Configuration data.
@@ -275,6 +278,14 @@ bool is_continuous;
 */
 bool is_test;
 
+#if (USE_SENSOR_DES)
+sample_t wind_speed_samples;
+#endif
+
+#if (USE_SENSOR_DED)
+sample_t wind_direction_samples;
+#endif
+
 #if (USE_SENSOR_GWS)
 sample_t wind_speed_samples;
 sample_t wind_direction_samples;
@@ -293,9 +304,14 @@ sample_t wind_direction_samples;
 volatile uint16_t timer_counter_ms;
 volatile uint16_t timer_counter_s;
 
-#if (USE_SENSOR_GWS)
+#if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
 volatile bool is_wind_on;
 uint8_t wind_acquisition_count;
+#endif
+
+#if (USE_SENSOR_DES)
+volatile uint32_t wind_speed_count;
+volatile float wind_speed;
 #endif
 
 /*!
@@ -515,10 +531,33 @@ void samples_processing();
 void make_report();
 void getSDFromUV (float, float, float *, float *);
 
+#if (USE_SENSOR_DED || USE_SENSOR_DES)
+#define windDirectionRead()           (analogRead(WIND_DIRECTION_ANALOG_PIN))
+#define isWindOn()                    (is_wind_on)
+#define isWindOff()                   (!is_wind_on)
+
+void windPowerOff(void);
+void windPowerOn(void);
+void wind_speed_interrupt_handler(void);
+void calibrationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
+void calibrationValue(uint8_t count, uint8_t delay_ms, float *value);
+float getWindMv(float adc_value);
+float getWindDirection(float adc_value);
+float getWindSpeed (float count);
+#endif
+
+#if (USE_SENSOR_GWS)
+#define isWindOn()                    (is_wind_on)
+#define isWindOff()                   (!is_wind_on)
+
+void windPowerOff(void);
+void windPowerOn(void);
+void serial1_reset(void);
 bool windsonic_interpreter (float *speed, float *direction);
 
 uint16_t uart_rx_buffer_length;
 uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
+#endif
 
 /*********************************************************************
 * TASKS

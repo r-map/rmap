@@ -41,4 +41,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define I2C_MAX_ERROR_COUNT             (5)
 
+
+/*!
+\def I2C_SET_ERROR_COUNT
+\brief I2C error count for bus restart.
+*/
+#define I2C_SET_ERROR_COUNT             (10)
+
 #endif

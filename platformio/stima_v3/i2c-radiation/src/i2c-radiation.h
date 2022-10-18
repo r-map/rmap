@@ -38,6 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <TimeLib.h>
 #include <typedef.h>
+#include <ADS1115.h>
 #include <registers-radiation.h>
 #include <debug_config.h>
 #include <SdFat.h>
@@ -58,11 +59,17 @@ typedef struct {
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
 
+   // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
 
+   // 16 bit HR
+   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
 } configuration_t;
 
 /*!
@@ -103,11 +110,17 @@ typedef struct {
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
 
+   // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
 
+   // 16 bit hr
+   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
 } writable_data_t;
 
 /*********************************************************************
@@ -290,8 +303,17 @@ bool is_continuous;
 */
 bool is_test;
 
-#if (USE_SENSOR_DSR)
+uint8_t use_adc_channel[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+
+#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
 sample_t solar_radiation_samples;
+#endif
+
+#if (USE_SENSOR_VSR)
+ADS1115 adc1(ADC_1_I2C_ADDRESS);
+
+float getAdcCalibratedValue (float adc_value, float offset, float gain);
+float getAdcAnalogValue (float adc_value, float min, float max);
 #endif
 
 uint8_t solar_radiation_acquisition_count;
@@ -308,6 +330,10 @@ uint8_t solar_radiation_acquisition_count;
 */
 volatile uint16_t timer_counter_ms;
 volatile uint16_t timer_counter_s;
+
+#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+volatile bool is_solar_radiation_on;
+#endif
 
 /*!
 \var state
@@ -508,12 +534,22 @@ void make_report();
 
 #if (USE_SENSOR_DSR)
 #define solarRadiationRead()          (analogRead(SOLAR_RADIATION_ANALOG_PIN))
+#define isSolarRadiationOn()          (is_solar_radiation_on)
+#define isSolarRadiationOff()         (!is_solar_radiation_on)
 
+void solarRadiationPowerOff(void);
+void solarRadiationPowerOn(void);
 void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
 float getSolarRadiationMv(float adc_value, float offset_mv);
 float getSolarRadiation(float adc_value);
 #endif
 
+#if (USE_SENSOR_VSR)
+void solarRadiationPowerOff(void);
+void solarRadiationPowerOn(void);
+void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
+float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
+#endif
 
 /*********************************************************************
 * TASKS
@@ -532,6 +568,14 @@ Read data from RADIATION.
 \return void.
 */
 void solar_radiation_task(void);
+
+/*!
+\fn void solar_radiation_task_hr(void)
+\brief Wind setup and reading Task.
+Read data from RADIATION.
+\return void.
+*/
+void solar_radiation_task_hr(void);
 
 /*!
 \var is_event_command_task
