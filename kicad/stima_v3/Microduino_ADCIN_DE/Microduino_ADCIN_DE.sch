@@ -1,0 +1,514 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title "Microduino ADCIN DE"
+Date "07 dicembre 2019"
+Rev "1.0"
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+NoConn ~ 6200 2750
+NoConn ~ 6300 2750
+NoConn ~ 5900 2750
+NoConn ~ 5500 2750
+NoConn ~ 6950 3300
+NoConn ~ 6950 3400
+NoConn ~ 6950 3600
+NoConn ~ 6950 3700
+NoConn ~ 6950 4000
+$Comp
+L power:GND #PWR01
+U 1 1 58D4FFFC
+P 6700 4250
+F 0 "#PWR01" H 6700 4000 50  0001 C CNN
+F 1 "GND" H 6700 4100 50  0000 C CNN
+F 2 "" H 6700 4250 50  0000 C CNN
+F 3 "" H 6700 4250 50  0000 C CNN
+	1    6700 4250
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR02
+U 1 1 58D50BEE
+P 4550 4100
+F 0 "#PWR02" H 4550 3950 50  0001 C CNN
+F 1 "+5V" H 4550 4240 50  0000 C CNN
+F 2 "" H 4550 4100 50  0000 C CNN
+F 3 "" H 4550 4100 50  0000 C CNN
+	1    4550 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR03
+U 1 1 58D50CA7
+P 4750 4000
+F 0 "#PWR03" H 4750 3850 50  0001 C CNN
+F 1 "+3.3V" H 4750 4140 50  0000 C CNN
+F 2 "" H 4750 4000 50  0000 C CNN
+F 3 "" H 4750 4000 50  0000 C CNN
+	1    4750 4000
+	1    0    0    -1  
+$EndComp
+Text Label 4950 3900 0    60   ~ 0
+D7
+Text Label 4950 3800 0    60   ~ 0
+D8
+Text Label 4950 3700 0    60   ~ 0
+D9
+Text Label 4950 3600 0    60   ~ 0
+D10
+Text Label 4950 3500 0    60   ~ 0
+D11
+Text Label 4950 3400 0    60   ~ 0
+D12
+Text Label 4950 3300 0    60   ~ 0
+D13
+NoConn ~ 4950 3900
+Text Label 5500 2750 3    60   ~ 0
+AREF
+Text Label 5600 2750 3    60   ~ 0
+A0
+Text Label 5700 2750 3    60   ~ 0
+A1
+Text Label 5800 2750 3    60   ~ 0
+A2
+Text Label 5900 2750 3    60   ~ 0
+A3
+Text Label 6000 2750 3    60   ~ 0
+SDA
+Text Label 6100 2750 3    60   ~ 0
+SCL
+Text Label 6200 2750 3    60   ~ 0
+A6
+Text Label 6300 2750 3    60   ~ 0
+A7
+NoConn ~ 6100 2750
+NoConn ~ 6000 2750
+Text Label 6950 3300 2    60   ~ 0
+RX0
+Text Label 6950 3400 2    60   ~ 0
+TX0
+Text Label 6950 3500 2    60   ~ 0
+D2
+Text Label 6950 3600 2    60   ~ 0
+D3
+Text Label 6950 3700 2    60   ~ 0
+D4
+Text Label 6950 3800 2    60   ~ 0
+D5
+Text Label 6950 3900 2    60   ~ 0
+D6
+Text Label 6950 4000 2    60   ~ 0
+RESET
+Text Notes 5550 4500 0    118  ~ 24
+UPIN 27
+$Comp
+L Microduino_ADCIN_DE-rescue:CONN_1x27-Libreria_SCH_mia P1
+U 1 1 58E8C7EF
+P 5400 4100
+F 0 "P1" H 5400 4000 50  0000 C CNN
+F 1 "CONN_1x27" V 6300 4500 50  0001 C CNN
+F 2 "Libreria_PCB_mia:Upin_27" H 6400 4500 50  0001 C CNN
+F 3 "" H 6400 4500 50  0000 C CNN
+	1    5400 4100
+	1    0    0    -1  
+$EndComp
+Text Notes 7150 6950 0    236  Italic 47
+DigitEco s.r.l.
+$Comp
+L power:+3.3V #PWR04
+U 1 1 5A3F7B13
+P 5400 5300
+F 0 "#PWR04" H 5400 5150 50  0001 C CNN
+F 1 "+3.3V" H 5400 5440 50  0000 C CNN
+F 2 "" H 5400 5300 50  0001 C CNN
+F 3 "" H 5400 5300 50  0001 C CNN
+	1    5400 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR05
+U 1 1 5A3F7B2B
+P 5950 5300
+F 0 "#PWR05" H 5950 5150 50  0001 C CNN
+F 1 "+5V" H 5950 5440 50  0000 C CNN
+F 2 "" H 5950 5300 50  0001 C CNN
+F 3 "" H 5950 5300 50  0001 C CNN
+	1    5950 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR06
+U 1 1 5A3F7B43
+P 6500 5500
+F 0 "#PWR06" H 6500 5250 50  0001 C CNN
+F 1 "GND" H 6500 5350 50  0000 C CNN
+F 2 "" H 6500 5500 50  0001 C CNN
+F 3 "" H 6500 5500 50  0001 C CNN
+	1    6500 5500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG07
+U 1 1 5A3F7B5B
+P 6500 5300
+F 0 "#FLG07" H 6500 5375 50  0001 C CNN
+F 1 "PWR_FLAG" H 6500 5450 50  0000 C CNN
+F 2 "" H 6500 5300 50  0001 C CNN
+F 3 "" H 6500 5300 50  0001 C CNN
+	1    6500 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG08
+U 1 1 5A3F7B73
+P 5950 5500
+F 0 "#FLG08" H 5950 5575 50  0001 C CNN
+F 1 "PWR_FLAG" H 5950 5650 50  0000 C CNN
+F 2 "" H 5950 5500 50  0001 C CNN
+F 3 "" H 5950 5500 50  0001 C CNN
+	1    5950 5500
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:PWR_FLAG #FLG09
+U 1 1 5A3F7B8B
+P 5400 5500
+F 0 "#FLG09" H 5400 5575 50  0001 C CNN
+F 1 "PWR_FLAG" H 5400 5650 50  0000 C CNN
+F 2 "" H 5400 5500 50  0001 C CNN
+F 3 "" H 5400 5500 50  0001 C CNN
+	1    5400 5500
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	6950 3900 6600 3900
+Wire Wire Line
+	6500 5300 6500 5500
+Wire Wire Line
+	5950 5300 5950 5500
+Wire Wire Line
+	5400 5300 5400 5500
+Wire Wire Line
+	6600 3300 6950 3300
+Wire Wire Line
+	5800 2300 5800 3000
+Wire Wire Line
+	6000 2750 6000 3000
+Wire Wire Line
+	6200 2750 6200 3000
+Wire Wire Line
+	5500 2750 5500 3000
+Wire Wire Line
+	5900 2750 5900 3000
+Wire Wire Line
+	6100 2750 6100 3000
+Wire Wire Line
+	6300 3000 6300 2750
+Wire Wire Line
+	5200 3900 4950 3900
+Wire Wire Line
+	4550 4100 5200 4100
+Wire Wire Line
+	6700 4100 6700 4250
+Wire Wire Line
+	6950 4000 6600 4000
+Wire Wire Line
+	7450 3800 6600 3800
+Wire Wire Line
+	6950 3400 6600 3400
+Wire Wire Line
+	5200 4000 4750 4000
+Wire Wire Line
+	6950 3500 6600 3500
+Wire Wire Line
+	6950 3600 6600 3600
+Wire Wire Line
+	6700 4100 6600 4100
+$Comp
+L conn:GS3 J4
+U 1 1 5CA986BE
+P 7600 3900
+F 0 "J4" H 7600 3700 50  0000 C CNN
+F 1 "GS3" H 7650 3701 50  0001 C CNN
+F 2 "Connectors:GS3" V 7688 3826 50  0001 C CNN
+F 3 "" H 7600 3900 50  0001 C CNN
+	1    7600 3900
+	1    0    0    -1  
+$EndComp
+NoConn ~ 6950 3500
+$Comp
+L Device:R R2
+U 1 1 5CAA398D
+P 8000 3900
+F 0 "R2" V 8080 3900 50  0000 C CNN
+F 1 "4k7" V 8000 3900 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805" V 7930 3900 50  0001 C CNN
+F 3 "" H 8000 3900 50  0001 C CNN
+	1    8000 3900
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:R R1
+U 1 1 5CAA39BA
+P 8100 2250
+F 0 "R1" V 8180 2250 50  0000 C CNN
+F 1 "47k" V 8100 2250 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805" V 8030 2250 50  0001 C CNN
+F 3 "" H 8100 2250 50  0001 C CNN
+	1    8100 2250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8500 2100 8500 2600
+Wire Wire Line
+	8200 3900 8150 3900
+Wire Wire Line
+	8100 2400 8100 2600
+Wire Wire Line
+	8100 2600 8500 2600
+Connection ~ 8500 2600
+Wire Wire Line
+	8100 1800 8100 2100
+Connection ~ 8100 1800
+$Comp
+L power:GND #PWR010
+U 1 1 5CAA3CDC
+P 8500 4250
+F 0 "#PWR010" H 8500 4000 50  0001 C CNN
+F 1 "GND" H 8500 4100 50  0000 C CNN
+F 2 "" H 8500 4250 50  0001 C CNN
+F 3 "" H 8500 4250 50  0001 C CNN
+	1    8500 4250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8500 4100 8500 4250
+Wire Wire Line
+	7850 3900 7750 3900
+Wire Wire Line
+	6950 3700 6600 3700
+Wire Wire Line
+	7450 4000 7350 4000
+Wire Wire Line
+	7350 4000 7350 4250
+Text GLabel 7350 4250 3    60   Input Italic 0
+D9
+Text GLabel 4800 3700 0    60   Input Italic 0
+D9
+Wire Wire Line
+	4800 3700 5200 3700
+$Comp
+L Device:Q_NPN_BEC Q2
+U 1 1 5CAA5338
+P 8400 3900
+F 0 "Q2" H 8600 3950 50  0000 L CNN
+F 1 "BC847B" H 8600 3850 50  0000 L CNN
+F 2 "TO_SOT_Packages_SMD:SOT-23" H 8600 4000 50  0001 C CNN
+F 3 "" H 8400 3900 50  0001 C CNN
+	1    8400 3900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:Q_PMOS_GDS Q1
+U 1 1 5CAA5695
+P 8500 1900
+F 0 "Q1" V 8450 2100 50  0000 L CNN
+F 1 "BSP315PH6327XTSA1" V 8750 1450 50  0000 L CNN
+F 2 "TO_SOT_Packages_SMD:SOT-223-3_TabPin2" H 8700 2000 50  0001 C CNN
+F 3 "" H 8500 1900 50  0001 C CNN
+	1    8500 1900
+	0    1    -1   0   
+$EndComp
+Wire Wire Line
+	4950 3800 5200 3800
+NoConn ~ 4950 3800
+$Comp
+L conn:CONN_01X04 P2
+U 1 1 5D25C02D
+P 3000 2450
+F 0 "P2" H 3000 2700 50  0000 C CNN
+F 1 "CONN_01X04" V 3100 2450 50  0001 C CNN
+F 2 "Libreria_PCB_mia:WHURT_4pin_90°_61900411021" H 3000 2450 50  0001 C CNN
+F 3 "" H 3000 2450 50  0000 C CNN
+	1    3000 2450
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 2400 5700 2400
+Wire Wire Line
+	5600 2500 5300 2500
+Wire Wire Line
+	5300 2300 5800 2300
+Wire Wire Line
+	3200 2600 3200 2750
+$Comp
+L power:GND #PWR011
+U 1 1 5D25C8BD
+P 3200 2750
+F 0 "#PWR011" H 3200 2500 50  0001 C CNN
+F 1 "GND" H 3200 2600 50  0000 C CNN
+F 2 "" H 3200 2750 50  0000 C CNN
+F 3 "" H 3200 2750 50  0000 C CNN
+	1    3200 2750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	3600 1900 3600 2400
+Wire Wire Line
+	3600 2400 3200 2400
+Wire Wire Line
+	3200 2300 3200 1200
+Wire Wire Line
+	3200 1200 8900 1200
+Wire Wire Line
+	8900 1200 8900 1800
+Wire Wire Line
+	8900 1800 8700 1800
+Wire Wire Line
+	4950 3300 5200 3300
+Wire Wire Line
+	5200 3400 4950 3400
+Wire Wire Line
+	4950 3500 5200 3500
+Wire Wire Line
+	5200 3600 4950 3600
+NoConn ~ 4950 3300
+NoConn ~ 4950 3400
+NoConn ~ 4950 3500
+NoConn ~ 4950 3600
+Text Notes 2800 2350 2    60   Italic 12
+Vcc-out
+Text Notes 2800 2450 2    60   Italic 12
+Vcc-in
+Text Notes 2800 2550 2    60   Italic 12
+Vin
+Text Notes 2800 2650 2    60   Italic 12
+GND
+$Comp
+L conn:GS3 J1
+U 1 1 5D25E1A3
+P 4300 2500
+F 0 "J1" H 4300 2700 50  0000 C CNN
+F 1 "GS3" H 4350 2301 50  0001 C CNN
+F 2 "Connectors:GS3" V 4388 2426 50  0001 C CNN
+F 3 "" H 4300 2500 50  0000 C CNN
+	1    4300 2500
+	-1   0    0    -1  
+$EndComp
+$Comp
+L conn:CONN_01X03 P3
+U 1 1 5D25E20E
+P 3000 3600
+F 0 "P3" H 3000 3800 50  0000 C CNN
+F 1 "CONN_01X03" V 3100 3600 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x03_Pitch2.54mm" H 3000 3600 50  0001 C CNN
+F 3 "" H 3000 3600 50  0000 C CNN
+	1    3000 3600
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3200 2500 4150 2500
+Wire Wire Line
+	4450 2400 4850 2400
+Wire Wire Line
+	4500 2600 4500 3600
+Wire Wire Line
+	4500 3600 4100 3600
+Text Notes 2800 3550 2    60   Italic 12
+A0-EXT
+Text Notes 2800 3650 2    60   Italic 12
+A1-EXT
+Text Notes 2800 3750 2    60   Italic 12
+A2-EXT
+Wire Wire Line
+	4500 2600 4450 2600
+NoConn ~ 6950 3900
+Wire Wire Line
+	5700 2400 5700 3000
+Wire Wire Line
+	5600 2500 5600 3000
+$Comp
+L Microduino_ADCIN_DE-rescue:GS4_b-Libreria_SCH_mia J3
+U 1 1 5D260783
+P 3800 3600
+F 0 "J3" H 3800 3800 50  0000 C CNN
+F 1 "GS4_b" H 3800 3400 50  0001 C CNN
+F 2 "Libreria_PCB_mia:GS4" V 3950 3450 50  0001 C CNN
+F 3 "" H 3950 3600 50  0000 C CNN
+	1    3800 3600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_ADCIN_DE-rescue:GS4_b-Libreria_SCH_mia J2
+U 1 1 5D2607B0
+P 5150 2400
+F 0 "J2" H 5150 2600 50  0000 C CNN
+F 1 "GS4_b" H 5150 2200 50  0001 C CNN
+F 2 "Libreria_PCB_mia:GS4" V 5300 2250 50  0001 C CNN
+F 3 "" H 5300 2400 50  0000 C CNN
+	1    5150 2400
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	3200 3500 3650 3500
+Wire Wire Line
+	3650 3600 3200 3600
+Wire Wire Line
+	3200 3700 3650 3700
+$Comp
+L Microduino_ADCIN_DE-rescue:GS4_b-Libreria_SCH_mia J5
+U 1 1 5DEB5BF5
+P 6750 1800
+F 0 "J5" H 6750 2000 50  0000 C CNN
+F 1 "GS4_b" H 6750 1600 50  0001 C CNN
+F 2 "GS4" H 6900 1650 50  0001 C CNN
+F 3 "" H 6900 1800 50  0000 C CNN
+	1    6750 1800
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	3600 1900 6600 1900
+Wire Wire Line
+	7050 1800 8100 1800
+$Comp
+L power:+5V #PWR012
+U 1 1 5DEB5E96
+P 6100 1550
+F 0 "#PWR012" H 6100 1400 50  0001 C CNN
+F 1 "+5V" H 6100 1690 50  0000 C CNN
+F 2 "" H 6100 1550 50  0001 C CNN
+F 3 "" H 6100 1550 50  0001 C CNN
+	1    6100 1550
+	-1   0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR013
+U 1 1 5DEB5EF2
+P 6400 1550
+F 0 "#PWR013" H 6400 1400 50  0001 C CNN
+F 1 "+3.3V" H 6400 1690 50  0000 C CNN
+F 2 "" H 6400 1550 50  0001 C CNN
+F 3 "" H 6400 1550 50  0001 C CNN
+	1    6400 1550
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	6400 1550 6400 1700
+Wire Wire Line
+	6400 1700 6600 1700
+Wire Wire Line
+	6100 1550 6100 1800
+Wire Wire Line
+	6100 1800 6600 1800
+Wire Wire Line
+	8500 2600 8500 3700
+Wire Wire Line
+	8100 1800 8300 1800
+$EndSCHEMATC
