@@ -26,6 +26,12 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <stdint.h>
 #include <float.h>
+#include <limits>
+
+typedef int32_t rmapdata_t;
+
+#define RMAPDATA_MAX            (std::numeric_limits<rmapdata_t>::max())
+#define RMAPDATA_MIN            (std::numeric_limits<rmapdata_t>::min())
 
 #define ISVALID(v)              ((uint16_t) v != UINT16_MAX)
 
@@ -36,11 +42,36 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define ISVALID_UINT8(v)        ((uint8_t) v != UINT8_MAX)
 #define ISVALID_INT8(v)         ((int8_t) v != INT8_MAX)
 #define ISVALID_FLOAT(v)        ((float) v != FLT_MAX)
+#define ISVALID_RMAPDATA(v)     ((rmapdata_t) v != RMAPDATA_MAX)
 
 typedef struct {
   char type[4];           //!< sensor type
   uint8_t i2c_address;    //!< i2c address of sensor
   bool is_redundant;      //!< if true it is used as redundant sensors in order to check one other main sensor
 } sensor_configuration_t;
+
+typedef struct {
+  rmapdata_t value;       //!< sensor acquired value
+  uint8_t index;          //!<
+} elaborate_data_t;
+
+typedef struct {
+  bool is_init;
+  uint16_t report_time_s;
+  uint8_t observation_time_s;
+} request_data_t;
+
+/*!
+\struct value_t
+\brief Value struct for storing sample, observation and minium, average and maximum measurement.
+*/
+typedef struct {
+  rmapdata_t sample;  //!< last sample
+  rmapdata_t ist;     //!< last observation
+  rmapdata_t min;     //!< average values of observations
+  rmapdata_t avg;     //!< maximum values of observations
+  rmapdata_t max;     //!< minium values of observations
+  rmapdata_t quality; //!< quality of observations
+} value_t;
 
 #endif
