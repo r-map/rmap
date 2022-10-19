@@ -15,7 +15,7 @@
   (page A4)
   (title_block
     (title "Microduino SUPPORTO DE")
-    (date "02 agosto 2017")
+    (date "24 dicembre 2017")
     (rev 0.0)
   )
 
@@ -343,11 +343,6 @@
       (net 24 /RESET))
     (pad 27 thru_hole circle (at 20.32 0 180) (size 2.1 2.1) (drill 1.5) (layers *.Cu *.Mask)
       (net 25 GND))
-    (model ${KISYS3DMOD}/Socket_Strips.3dshapes/Socket_Strip_Straight_1x09_Pitch2.54mm.wrl
-      (at (xyz 0 -0.4 0))
-      (scale (xyz 1 1 1))
-      (rotate (xyz 0 0 270))
-    )
   )
 
   (gr_text "DigitEco s.r.l." (at 149.66 56.11) (layer F.SilkS)

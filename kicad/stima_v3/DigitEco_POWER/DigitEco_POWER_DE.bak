@@ -1390,4 +1390,8 @@ F 3 "" H 14100 3800 50  0001 C CNN
 	1    14100 3800
 	1    0    0    -1  
 $EndComp
+Text Notes 650  4100 0    99   ~ 0
+Ingresso\npannello o\n15 Vdc
+Text Notes 12500 7500 0    99   ~ 0
+N.B. Collegare sempre una batteria
 $EndSCHEMATC

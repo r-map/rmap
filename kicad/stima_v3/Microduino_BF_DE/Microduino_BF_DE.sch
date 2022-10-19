@@ -1,5 +1,35 @@
-EESchema Schematic File Version 4
-EELAYER 30 0
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:Microduino_BF_DE-cache
+EELAYER 25 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
@@ -110,7 +140,7 @@ P 3350 2750
 F 0 "P1" H 3350 3000 50  0000 C CNN
 F 1 "CONN_01X04" H 3350 2450 50  0001 C CNN
 F 2 "Libreria_PCB_mia:WHURT_4pin_90°_61900411021" H 3350 2750 50  0001 C CNN
-F 3 "" H 3350 2750 50  0001 C CNN
+F 3 "280378-1" H 3350 2750 50  0001 C CNN
 	1    3350 2750
 	-1   0    0    -1  
 $EndComp
@@ -230,7 +260,7 @@ P 4000 2600
 F 0 "L1" V 3950 2600 50  0000 C CNN
 F 1 "100uH" V 4075 2600 50  0000 C CNN
 F 2 "Inductors_SMD:L_1812" H 4000 2600 50  0001 C CNN
-F 3 "" H 4000 2600 50  0001 C CNN
+F 3 "74476620 Wurth" H 4000 2600 50  0001 C CNN
 	1    4000 2600
 	0    1    -1   0   
 $EndComp
@@ -328,9 +358,9 @@ Wire Wire Line
 Wire Wire Line
 	4350 4050 4350 4250
 Wire Wire Line
-	4150 2600 4500 2600
+	4150 2600 7000 2600
 Wire Wire Line
-	5400 2450 5400 2600
+	5400 2450 5400 2750
 Wire Wire Line
 	4950 2600 4950 2750
 Connection ~ 4950 2600
@@ -338,11 +368,11 @@ Wire Wire Line
 	4500 2600 4500 2750
 Connection ~ 4500 2600
 Wire Wire Line
-	5400 3050 5400 3200
+	5400 3050 5400 3350
 Wire Wire Line
 	4500 3200 4500 3050
 Wire Wire Line
-	3700 3200 4500 3200
+	3700 3200 5400 3200
 Connection ~ 5400 3200
 Wire Wire Line
 	4950 3050 4950 3200
@@ -350,6 +380,8 @@ Connection ~ 4950 3200
 Connection ~ 5400 2600
 Wire Wire Line
 	5400 2150 5400 2000
+Wire Wire Line
+	6150 4000 6150 4000
 Wire Wire Line
 	6150 4000 6150 4100
 Wire Wire Line
@@ -378,22 +410,8 @@ P 4500 2900
 F 0 "D1" H 4500 3000 50  0000 C CNN
 F 1 "1.5SMC6.8A-E3/57T" H 4500 2800 50  0000 C CNN
 F 2 "Diodes_SMD:D_SMC" H 4500 2900 50  0001 C CNN
-F 3 "" H 4500 2900 50  0001 C CNN
+F 3 "902-6452" H 4500 2900 50  0001 C CNN
 	1    4500 2900
 	0    -1   -1   0   
 $EndComp
-Wire Wire Line
-	4950 2600 5400 2600
-Wire Wire Line
-	4500 2600 4950 2600
-Wire Wire Line
-	5400 3200 5400 3350
-Wire Wire Line
-	4950 3200 5400 3200
-Wire Wire Line
-	5400 2600 5400 2750
-Wire Wire Line
-	5400 2600 7000 2600
-Wire Wire Line
-	4500 3200 4950 3200
 $EndSCHEMATC

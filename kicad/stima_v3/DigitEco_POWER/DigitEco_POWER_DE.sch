@@ -29,9 +29,6 @@ LIBS:opto
 LIBS:atmel
 LIBS:contrib
 LIBS:valves
-LIBS:Regulator_Switching
-LIBS:Filter
-LIBS:dk_Current-Sensors
 LIBS:DigitEco_POWER_DE-cache
 EELAYER 25 0
 EELAYER END

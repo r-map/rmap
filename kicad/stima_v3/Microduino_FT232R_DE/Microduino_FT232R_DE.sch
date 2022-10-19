@@ -1,43 +1,11 @@
-EESchema Schematic File Version 2
-LIBS:Microduino_FT232R_DE-rescue
-LIBS:Libreria_SCH_mia
-LIBS:power
-LIBS:device
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:Microduino_FT232R_DE-cache
-EELAYER 25 0
+EESchema Schematic File Version 4
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Microduino FT232R DE"
-Date "30 luglio 2017"
+Date "24 dicembre 2017"
 Rev "0.0"
 Comp ""
 Comment1 ""
@@ -45,118 +13,118 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-NoConn ~ 9100 2650
-NoConn ~ 9200 2650
-NoConn ~ 8800 2650
-NoConn ~ 8700 2650
-NoConn ~ 8600 2650
-NoConn ~ 8500 2650
-NoConn ~ 8400 2650
-NoConn ~ 9950 3600
-NoConn ~ 9950 3700
+NoConn ~ 9100 2050
+NoConn ~ 9200 2050
+NoConn ~ 8800 2050
+NoConn ~ 8700 2050
+NoConn ~ 8600 2050
+NoConn ~ 8500 2050
+NoConn ~ 8400 2050
+NoConn ~ 9950 3000
+NoConn ~ 9950 3100
 $Comp
-L GND #PWR01
+L Microduino_FT232R_DE-rescue:GND #PWR01
 U 1 1 58D4FFFC
-P 9600 4150
-F 0 "#PWR01" H 9600 3900 50  0001 C CNN
-F 1 "GND" H 9600 4000 50  0000 C CNN
-F 2 "" H 9600 4150 50  0000 C CNN
-F 3 "" H 9600 4150 50  0000 C CNN
-	1    9600 4150
+P 9600 3550
+F 0 "#PWR01" H 9600 3300 50  0001 C CNN
+F 1 "GND" H 9600 3400 50  0000 C CNN
+F 2 "" H 9600 3550 50  0000 C CNN
+F 3 "" H 9600 3550 50  0000 C CNN
+	1    9600 3550
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR02
+L Microduino_FT232R_DE-rescue:+5V #PWR02
 U 1 1 58D50BEE
-P 7650 4000
-F 0 "#PWR02" H 7650 3850 50  0001 C CNN
-F 1 "+5V" H 7650 4140 50  0000 C CNN
-F 2 "" H 7650 4000 50  0000 C CNN
-F 3 "" H 7650 4000 50  0000 C CNN
-	1    7650 4000
+P 7650 3400
+F 0 "#PWR02" H 7650 3250 50  0001 C CNN
+F 1 "+5V" H 7650 3540 50  0000 C CNN
+F 2 "" H 7650 3400 50  0000 C CNN
+F 3 "" H 7650 3400 50  0000 C CNN
+	1    7650 3400
 	1    0    0    1   
 $EndComp
 $Comp
-L +3.3V #PWR03
+L Microduino_FT232R_DE-rescue:+3.3V #PWR03
 U 1 1 58D50CA7
-P 7650 3900
-F 0 "#PWR03" H 7650 3750 50  0001 C CNN
-F 1 "+3.3V" H 7650 4040 50  0000 C CNN
-F 2 "" H 7650 3900 50  0000 C CNN
-F 3 "" H 7650 3900 50  0000 C CNN
-	1    7650 3900
+P 7650 3300
+F 0 "#PWR03" H 7650 3150 50  0001 C CNN
+F 1 "+3.3V" H 7650 3440 50  0000 C CNN
+F 2 "" H 7650 3300 50  0000 C CNN
+F 3 "" H 7650 3300 50  0000 C CNN
+	1    7650 3300
 	1    0    0    -1  
 $EndComp
-Text Label 7850 3800 0    60   ~ 0
-CS
-Text Label 7850 3700 0    60   ~ 0
-D8
-Text Label 7850 3600 0    60   ~ 0
-D9
-Text Label 7850 3500 0    60   ~ 0
-D10
-Text Label 7850 3400 0    60   ~ 0
-DI
-Text Label 7850 3300 0    60   ~ 0
-DO
 Text Label 7850 3200 0    60   ~ 0
+CS
+Text Label 7850 3100 0    60   ~ 0
+D8
+Text Label 7850 3000 0    60   ~ 0
+D9
+Text Label 7850 2900 0    60   ~ 0
+D10
+Text Label 7850 2800 0    60   ~ 0
+DI
+Text Label 7850 2700 0    60   ~ 0
+DO
+Text Label 7850 2600 0    60   ~ 0
 CLK
-NoConn ~ 7850 3600
-NoConn ~ 7850 3500
-Text Label 8400 2650 3    60   ~ 0
+NoConn ~ 7850 3000
+NoConn ~ 7850 2900
+Text Label 8400 2050 3    60   ~ 0
 AREF
-Text Label 8500 2650 3    60   ~ 0
+Text Label 8500 2050 3    60   ~ 0
 A0
-Text Label 8600 2650 3    60   ~ 0
+Text Label 8600 2050 3    60   ~ 0
 A1
-Text Label 8700 2650 3    60   ~ 0
+Text Label 8700 2050 3    60   ~ 0
 A2
-Text Label 8800 2650 3    60   ~ 0
+Text Label 8800 2050 3    60   ~ 0
 A3
-Text Label 8900 2650 3    60   ~ 0
+Text Label 8900 2050 3    60   ~ 0
 SDA
-Text Label 9000 2650 3    60   ~ 0
+Text Label 9000 2050 3    60   ~ 0
 SCL
-Text Label 9100 2650 3    60   ~ 0
+Text Label 9100 2050 3    60   ~ 0
 A6
-Text Label 9200 2650 3    60   ~ 0
+Text Label 9200 2050 3    60   ~ 0
 A7
-Text Label 9950 3200 2    60   ~ 0
+Text Label 9950 2600 2    60   ~ 0
 TX
-Text Label 9950 3300 2    60   ~ 0
+Text Label 9950 2700 2    60   ~ 0
 RX
-Text Label 9950 3400 2    60   ~ 0
+Text Label 9950 2800 2    60   ~ 0
 D2
-Text Label 9950 3500 2    60   ~ 0
+Text Label 9950 2900 2    60   ~ 0
 D3
-Text Label 9950 3600 2    60   ~ 0
+Text Label 9950 3000 2    60   ~ 0
 D4
-Text Label 9950 3700 2    60   ~ 0
+Text Label 9950 3100 2    60   ~ 0
 D5
-Text Label 9950 3800 2    60   ~ 0
+Text Label 9950 3200 2    60   ~ 0
 D6
-Text Label 9950 3900 2    60   ~ 0
+Text Label 9950 3300 2    60   ~ 0
 RESET
-Text Notes 8450 4400 0    118  ~ 24
+Text Notes 8450 3800 0    118  ~ 24
 UPIN 27
 $Comp
-L CONN_1x27 P1
+L Microduino_FT232R_DE-rescue:CONN_1x27 P1
 U 1 1 58E8C7EF
-P 8300 4000
-F 0 "P1" H 8300 3900 50  0000 C CNN
-F 1 "CONN_1x27" V 9200 4400 50  0000 C CNN
-F 2 "Libreria_PCB_mia:Upin_27" H 9300 4400 50  0001 C CNN
-F 3 "" H 9300 4400 50  0000 C CNN
-	1    8300 4000
+P 8300 3400
+F 0 "P1" H 8300 3300 50  0000 C CNN
+F 1 "CONN_1x27" V 9200 3800 50  0000 C CNN
+F 2 "Libreria_PCB_mia:Upin_27" H 9300 3800 50  0001 C CNN
+F 3 "" H 9300 3800 50  0000 C CNN
+	1    8300 3400
 	1    0    0    -1  
 $EndComp
 Text Notes 7150 6950 0    236  Italic 47
 DigitEco s.r.l.
-NoConn ~ 8900 2650
-NoConn ~ 9000 2650
-NoConn ~ 7850 3700
+NoConn ~ 8900 2050
+NoConn ~ 9000 2050
+NoConn ~ 7850 3100
 $Comp
-L C C4
+L Microduino_FT232R_DE-rescue:C C4
 U 1 1 594FDE58
 P 2750 4650
 F 0 "C4" H 2775 4750 50  0000 L CNN
@@ -166,11 +134,11 @@ F 3 "" H 2750 4650 50  0000 C CNN
 	1    2750 4650
 	1    0    0    -1  
 $EndComp
-NoConn ~ 9950 3800
-NoConn ~ 9950 3500
-NoConn ~ 9950 3400
+NoConn ~ 9950 3200
+NoConn ~ 9950 2900
+NoConn ~ 9950 2800
 $Comp
-L LED_ALT D1
+L Microduino_FT232R_DE-rescue:LED_ALT D1
 U 1 1 597B9A82
 P 5550 4100
 F 0 "D1" H 5550 4200 50  0000 C CNN
@@ -181,7 +149,7 @@ F 3 "" H 5550 4100 50  0000 C CNN
 	1    0    0    1   
 $EndComp
 $Comp
-L R R3
+L Microduino_FT232R_DE-rescue:R R3
 U 1 1 597B9B87
 P 5100 4100
 F 0 "R3" V 5180 4100 50  0000 C CNN
@@ -192,7 +160,7 @@ F 3 "" H 5100 4100 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L +3.3V #PWR04
+L Microduino_FT232R_DE-rescue:+3.3V #PWR04
 U 1 1 597BB22F
 P 4150 1900
 F 0 "#PWR04" H 4150 1750 50  0001 C CNN
@@ -203,7 +171,7 @@ F 3 "" H 4150 1900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L VAA #PWR05
+L Microduino_FT232R_DE-rescue:VAA #PWR05
 U 1 1 597C3E37
 P 2450 2600
 F 0 "#PWR05" H 2450 2450 50  0001 C CNN
@@ -214,7 +182,7 @@ F 3 "" H 2450 2600 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L VAA #PWR06
+L Microduino_FT232R_DE-rescue:VAA #PWR06
 U 1 1 597CA783
 P 2750 3800
 F 0 "#PWR06" H 2750 3650 50  0001 C CNN
@@ -225,7 +193,7 @@ F 3 "" H 2750 3800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R1
+L Microduino_FT232R_DE-rescue:R R1
 U 1 1 597CB2FD
 P 5100 2900
 F 0 "R1" V 5180 2900 50  0000 C CNN
@@ -236,7 +204,7 @@ F 3 "" H 5100 2900 50  0000 C CNN
 	0    1    -1   0   
 $EndComp
 $Comp
-L R R2
+L Microduino_FT232R_DE-rescue:R R2
 U 1 1 597CB3ED
 P 5100 3000
 F 0 "R2" V 5180 3000 50  0000 C CNN
@@ -250,14 +218,14 @@ Text Label 5550 2900 0    60   ~ 0
 TX
 Text Label 5550 3000 0    60   ~ 0
 RX
-Text Notes 9500 3200 0    60   ~ 0
+Text Notes 9500 2600 0    60   ~ 0
 (RX0)
-Text Notes 9500 3300 0    60   ~ 0
+Text Notes 9500 2700 0    60   ~ 0
 (TX0)
 Text Label 5550 3500 0    60   ~ 0
 RESET
 $Comp
-L C C3
+L Microduino_FT232R_DE-rescue:C C3
 U 1 1 597CCA7C
 P 5100 3500
 F 0 "C3" V 5250 3450 50  0000 L CNN
@@ -268,7 +236,7 @@ F 3 "" H 5100 3500 50  0000 C CNN
 	0    1    -1   0   
 $EndComp
 $Comp
-L R R5
+L Microduino_FT232R_DE-rescue:R R5
 U 1 1 597CD096
 P 2750 4150
 F 0 "R5" V 2830 4150 50  0000 C CNN
@@ -279,7 +247,7 @@ F 3 "" H 2750 4150 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L R R6
+L Microduino_FT232R_DE-rescue:R R6
 U 1 1 597CD136
 P 2450 4400
 F 0 "R6" V 2530 4400 50  0000 C CNN
@@ -290,7 +258,7 @@ F 3 "" H 2450 4400 50  0000 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L +5V #PWR07
+L Microduino_FT232R_DE-rescue:+5V #PWR07
 U 1 1 597CD61D
 P 1750 3800
 F 0 "#PWR07" H 1750 3650 50  0001 C CNN
@@ -301,7 +269,7 @@ F 3 "" H 1750 3800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR08
+L Microduino_FT232R_DE-rescue:GND #PWR08
 U 1 1 597CD8B2
 P 3900 5000
 F 0 "#PWR08" H 3900 4750 50  0001 C CNN
@@ -312,7 +280,7 @@ F 3 "" H 3900 5000 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR09
+L Microduino_FT232R_DE-rescue:GND #PWR09
 U 1 1 597CDBA0
 P 2050 3400
 F 0 "#PWR09" H 2050 3150 50  0001 C CNN
@@ -323,7 +291,7 @@ F 3 "" H 2050 3400 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R4
+L Microduino_FT232R_DE-rescue:R R4
 U 1 1 597CDEF7
 P 5100 4500
 F 0 "R4" V 5180 4500 50  0000 C CNN
@@ -334,7 +302,7 @@ F 3 "" H 5100 4500 50  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L LED_ALT D2
+L Microduino_FT232R_DE-rescue:LED_ALT D2
 U 1 1 597CE063
 P 5550 4500
 F 0 "D2" H 5550 4600 50  0000 C CNN
@@ -345,7 +313,7 @@ F 3 "" H 5550 4700 50  0000 C CNN
 	1    0    0    1   
 $EndComp
 $Comp
-L +5V #PWR010
+L Microduino_FT232R_DE-rescue:+5V #PWR010
 U 1 1 597CE915
 P 5900 3950
 F 0 "#PWR010" H 5900 3800 50  0001 C CNN
@@ -355,10 +323,10 @@ F 3 "" H 5900 3950 50  0000 C CNN
 	1    5900 3950
 	1    0    0    -1  
 $EndComp
+NoConn ~ 7850 2600
+NoConn ~ 7850 2700
+NoConn ~ 7850 2800
 NoConn ~ 7850 3200
-NoConn ~ 7850 3300
-NoConn ~ 7850 3400
-NoConn ~ 7850 3800
 NoConn ~ 2350 3100
 NoConn ~ 3350 3300
 NoConn ~ 3350 3700
@@ -374,7 +342,7 @@ NoConn ~ 3350 4500
 NoConn ~ 4750 4400
 NoConn ~ 4750 4500
 $Comp
-L GS2 GS1
+L Microduino_FT232R_DE-rescue:GS2 GS1
 U 1 1 597D0775
 P 4150 2300
 F 0 "GS1" H 4250 2450 50  0000 C CNN
@@ -385,7 +353,7 @@ F 3 "" H 4150 2300 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR011
+L Microduino_FT232R_DE-rescue:+5V #PWR011
 U 1 1 597D092D
 P 3950 1900
 F 0 "#PWR011" H 3950 1750 50  0001 C CNN
@@ -398,63 +366,63 @@ $EndComp
 Text Notes 4600 2450 0    60   Italic 0
 PONTICELLARE PER ATTIVARE\n+3,3V PER ALIMENTARE TUTTI\nI MODULI COLLEGATI
 Wire Wire Line
-	7850 3300 8100 3300
+	7850 2700 8100 2700
 Wire Wire Line
-	8100 3500 7850 3500
+	8100 2900 7850 2900
 Wire Wire Line
-	8100 3900 7650 3900
+	8100 3300 7650 3300
 Wire Wire Line
-	9950 3700 9500 3700
-Wire Wire Line
-	9950 3900 9500 3900
-Wire Wire Line
-	9600 4000 9600 4150
-Wire Wire Line
-	7650 4000 8100 4000
-Wire Wire Line
-	8100 3800 7850 3800
-Wire Wire Line
-	8100 3200 7850 3200
-Wire Wire Line
-	8100 3400 7850 3400
-Wire Wire Line
-	8100 3600 7850 3600
-Wire Wire Line
-	9200 2900 9200 2650
-Wire Wire Line
-	9000 2650 9000 2900
-Wire Wire Line
-	8800 2650 8800 2900
-Wire Wire Line
-	8600 2650 8600 2900
-Wire Wire Line
-	8400 2650 8400 2900
-Wire Wire Line
-	9100 2650 9100 2900
-Wire Wire Line
-	8700 2650 8700 2900
-Wire Wire Line
-	8500 2650 8500 2900
-Wire Wire Line
-	9500 3600 9950 3600
-Wire Wire Line
-	8900 2650 8900 2900
-Wire Wire Line
-	9500 3800 9950 3800
-Wire Wire Line
-	9600 4000 9500 4000
-Wire Wire Line
-	7850 3700 8100 3700
-Wire Wire Line
-	4150 1900 4150 2100
-Wire Wire Line
-	9500 3200 9950 3200
+	9950 3100 9500 3100
 Wire Wire Line
 	9950 3300 9500 3300
 Wire Wire Line
-	9500 3400 9950 3400
+	9600 3400 9600 3550
 Wire Wire Line
-	9950 3500 9500 3500
+	7650 3400 8100 3400
+Wire Wire Line
+	8100 3200 7850 3200
+Wire Wire Line
+	8100 2600 7850 2600
+Wire Wire Line
+	8100 2800 7850 2800
+Wire Wire Line
+	8100 3000 7850 3000
+Wire Wire Line
+	9200 2300 9200 2050
+Wire Wire Line
+	9000 2050 9000 2300
+Wire Wire Line
+	8800 2050 8800 2300
+Wire Wire Line
+	8600 2050 8600 2300
+Wire Wire Line
+	8400 2050 8400 2300
+Wire Wire Line
+	9100 2050 9100 2300
+Wire Wire Line
+	8700 2050 8700 2300
+Wire Wire Line
+	8500 2050 8500 2300
+Wire Wire Line
+	9500 3000 9950 3000
+Wire Wire Line
+	8900 2050 8900 2300
+Wire Wire Line
+	9500 3200 9950 3200
+Wire Wire Line
+	9600 3400 9500 3400
+Wire Wire Line
+	7850 3100 8100 3100
+Wire Wire Line
+	4150 1900 4150 2100
+Wire Wire Line
+	9500 2600 9950 2600
+Wire Wire Line
+	9950 2700 9500 2700
+Wire Wire Line
+	9500 2800 9950 2800
+Wire Wire Line
+	9950 2900 9500 2900
 Wire Wire Line
 	2350 2900 3350 2900
 Wire Wire Line
@@ -464,9 +432,9 @@ Wire Wire Line
 Wire Wire Line
 	2450 2700 2450 2600
 Wire Wire Line
-	2750 4300 2750 4500
+	2750 4300 2750 4400
 Wire Wire Line
-	2750 3800 2750 4000
+	2750 3800 2750 3900
 Wire Wire Line
 	2750 4400 3100 4400
 Wire Wire Line
@@ -477,7 +445,7 @@ Connection ~ 2750 4400
 Wire Wire Line
 	2750 4800 2750 4900
 Wire Wire Line
-	2250 3900 2750 3900
+	2250 3900 2450 3900
 Connection ~ 2750 3900
 Wire Wire Line
 	2450 4250 2450 3900
@@ -485,7 +453,7 @@ Connection ~ 2450 3900
 Wire Wire Line
 	2450 4550 2450 4900
 Wire Wire Line
-	2450 4900 4200 4900
+	2450 4900 2750 4900
 Connection ~ 2750 4900
 Wire Wire Line
 	5550 2900 5250 2900
@@ -504,7 +472,7 @@ Wire Wire Line
 Wire Wire Line
 	1750 3900 1750 3800
 Wire Wire Line
-	3900 4800 3900 5000
+	3900 4800 3900 4900
 Wire Wire Line
 	4200 4900 4200 4800
 Wire Wire Line
@@ -515,7 +483,7 @@ Wire Wire Line
 Connection ~ 4000 4900
 Connection ~ 3900 4900
 Wire Wire Line
-	2050 3300 2050 3400
+	2050 3300 2050 3350
 Connection ~ 2050 3350
 Wire Wire Line
 	4950 4100 4750 4100
@@ -532,14 +500,14 @@ Wire Wire Line
 Wire Wire Line
 	5900 4500 5700 4500
 Wire Wire Line
-	5900 3950 5900 4500
+	5900 3950 5900 4100
 Wire Wire Line
 	5700 4100 5900 4100
 Connection ~ 5900 4100
 Wire Wire Line
 	4150 2600 4150 2500
 Wire Wire Line
-	3950 1900 3950 2600
+	3950 1900 3950 1950
 Wire Wire Line
 	4050 2600 4050 2500
 Wire Wire Line
@@ -550,7 +518,7 @@ Wire Notes Line
 Wire Notes Line
 	4550 2300 4400 2300
 $Comp
-L C C2
+L Microduino_FT232R_DE-rescue:C C2
 U 1 1 597D1B09
 P 3550 2200
 F 0 "C2" H 3575 2300 50  0000 L CNN
@@ -561,7 +529,7 @@ F 3 "" H 3550 2200 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L CP C1
+L Microduino_FT232R_DE-rescue:CP C1
 U 1 1 597D1B87
 P 3250 2200
 F 0 "C1" H 3275 2300 50  0000 L CNN
@@ -574,13 +542,13 @@ $EndComp
 Wire Wire Line
 	3250 2050 3250 1950
 Wire Wire Line
-	3250 1950 3950 1950
+	3250 1950 3550 1950
 Connection ~ 3950 1950
 Wire Wire Line
 	3550 2050 3550 1950
 Connection ~ 3550 1950
 $Comp
-L GND #PWR012
+L Microduino_FT232R_DE-rescue:GND #PWR012
 U 1 1 597D1D11
 P 3250 2500
 F 0 "#PWR012" H 3250 2250 50  0001 C CNN
@@ -591,14 +559,14 @@ F 3 "" H 3250 2500 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3250 2350 3250 2500
+	3250 2350 3250 2450
 Wire Wire Line
 	3550 2350 3550 2450
 Wire Wire Line
 	3550 2450 3250 2450
 Connection ~ 3250 2450
 $Comp
-L D_Schottky D3
+L Microduino_FT232R_DE-rescue:D_Schottky D3
 U 1 1 597D33B2
 P 2100 3900
 F 0 "D3" H 2100 4000 50  0000 C CNN
@@ -609,7 +577,7 @@ F 3 "" H 2100 3900 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L USB_OTG P2
+L Microduino_FT232R_DE-rescue:USB_OTG P2
 U 1 1 597E1613
 P 2050 2900
 F 0 "P2" H 1850 3350 50  0000 L CNN
@@ -624,7 +592,7 @@ Wire Wire Line
 Wire Wire Line
 	1950 3350 2050 3350
 $Comp
-L FT232RL U1
+L Microduino_FT232R_DE-rescue:FT232RL U1
 U 1 1 597E19FB
 P 4050 3700
 F 0 "U1" H 3550 4650 50  0000 L CNN
@@ -634,4 +602,128 @@ F 3 "" V 4000 4550 50  0001 C CNN
 	1    4050 3700
 	1    0    0    -1  
 $EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:+3.3V #PWR013
+U 1 1 5A3F7D6F
+P 7850 4700
+F 0 "#PWR013" H 7850 4550 50  0001 C CNN
+F 1 "+3.3V" H 7850 4840 50  0000 C CNN
+F 2 "" H 7850 4700 50  0001 C CNN
+F 3 "" H 7850 4700 50  0001 C CNN
+	1    7850 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:+5V #PWR014
+U 1 1 5A3F7DA5
+P 8500 4700
+F 0 "#PWR014" H 8500 4550 50  0001 C CNN
+F 1 "+5V" H 8500 4840 50  0000 C CNN
+F 2 "" H 8500 4700 50  0001 C CNN
+F 3 "" H 8500 4700 50  0001 C CNN
+	1    8500 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:GND #PWR015
+U 1 1 5A3F7DDB
+P 9800 4900
+F 0 "#PWR015" H 9800 4650 50  0001 C CNN
+F 1 "GND" H 9800 4750 50  0000 C CNN
+F 2 "" H 9800 4900 50  0001 C CNN
+F 3 "" H 9800 4900 50  0001 C CNN
+	1    9800 4900
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:PWR_FLAG #FLG016
+U 1 1 5A3F7E11
+P 9800 4700
+F 0 "#FLG016" H 9800 4775 50  0001 C CNN
+F 1 "PWR_FLAG" H 9800 4850 50  0000 C CNN
+F 2 "" H 9800 4700 50  0001 C CNN
+F 3 "" H 9800 4700 50  0001 C CNN
+	1    9800 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:PWR_FLAG #FLG017
+U 1 1 5A3F7E47
+P 8500 4900
+F 0 "#FLG017" H 8500 4975 50  0001 C CNN
+F 1 "PWR_FLAG" H 8500 5050 50  0000 C CNN
+F 2 "" H 8500 4900 50  0001 C CNN
+F 3 "" H 8500 4900 50  0001 C CNN
+	1    8500 4900
+	-1   0    0    1   
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:PWR_FLAG #FLG018
+U 1 1 5A3F7E7D
+P 7850 4900
+F 0 "#FLG018" H 7850 4975 50  0001 C CNN
+F 1 "PWR_FLAG" H 7850 5050 50  0000 C CNN
+F 2 "" H 7850 4900 50  0001 C CNN
+F 3 "" H 7850 4900 50  0001 C CNN
+	1    7850 4900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9800 4700 9800 4900
+Wire Wire Line
+	8500 4700 8500 4900
+Wire Wire Line
+	7850 4700 7850 4900
+$Comp
+L Microduino_FT232R_DE-rescue:VAA #PWR019
+U 1 1 5A3F897A
+P 9150 4700
+F 0 "#PWR019" H 9150 4550 50  0001 C CNN
+F 1 "VAA" H 9150 4850 50  0000 C CNN
+F 2 "" H 9150 4700 50  0001 C CNN
+F 3 "" H 9150 4700 50  0001 C CNN
+	1    9150 4700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Microduino_FT232R_DE-rescue:PWR_FLAG #FLG020
+U 1 1 5A3F8A02
+P 9150 4900
+F 0 "#FLG020" H 9150 4975 50  0001 C CNN
+F 1 "PWR_FLAG" H 9150 5050 50  0000 C CNN
+F 2 "" H 9150 4900 50  0001 C CNN
+F 3 "" H 9150 4900 50  0001 C CNN
+	1    9150 4900
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	9150 4700 9150 4900
+Wire Wire Line
+	2750 4400 2750 4500
+Wire Wire Line
+	2750 3900 2750 4000
+Wire Wire Line
+	2450 3900 2750 3900
+Wire Wire Line
+	2750 4900 3900 4900
+Wire Wire Line
+	4100 4900 4200 4900
+Wire Wire Line
+	4000 4900 4100 4900
+Wire Wire Line
+	3900 4900 3900 5000
+Wire Wire Line
+	3900 4900 4000 4900
+Wire Wire Line
+	2050 3350 2050 3400
+Wire Wire Line
+	5900 4100 5900 4500
+Wire Wire Line
+	3950 2500 3950 2600
+Wire Wire Line
+	3950 1950 3950 2500
+Wire Wire Line
+	3550 1950 3950 1950
+Wire Wire Line
+	3250 2450 3250 2500
 $EndSCHEMATC

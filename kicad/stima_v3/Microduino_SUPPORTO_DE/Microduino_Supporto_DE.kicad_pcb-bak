@@ -3,7 +3,7 @@
   (general
     (links 0)
     (no_connects 0)
-    (area 110.746401 46.5836 172.415201 130.817601)
+    (area 127.508799 48.870399 171.652401 121.004801)
     (thickness 1.6)
     (drawings 47)
     (tracks 0)
@@ -343,14 +343,9 @@
       (net 24 /RESET))
     (pad 27 thru_hole circle (at 20.32 0 180) (size 2.1 2.1) (drill 1.5) (layers *.Cu *.Mask)
       (net 25 GND))
-    (model ${KISYS3DMOD}/Socket_Strips.3dshapes/Socket_Strip_Straight_1x09_Pitch2.54mm.wrl
-      (at (xyz 0 -0.4 0))
-      (scale (xyz 1 1 1))
-      (rotate (xyz 0 0 270))
-    )
   )
 
-  (gr_text "DigitEco s.r.l." (at 149.59 109.52) (layer F.SilkS)
+  (gr_text "DigitEco s.r.l." (at 149.66 56.11) (layer F.SilkS)
     (effects (font (size 2.8 2.8) (thickness 0.5)))
   )
   (gr_text RX0-D0 (at 136.65 76.1) (layer F.SilkS)

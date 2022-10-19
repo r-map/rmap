@@ -1,42 +1,11 @@
-EESchema Schematic File Version 2
-LIBS:Libreria_SCH_mia
-LIBS:power
-LIBS:device
-LIBS:transistors
-LIBS:conn
-LIBS:linear
-LIBS:regul
-LIBS:74xx
-LIBS:cmos4000
-LIBS:adc-dac
-LIBS:memory
-LIBS:xilinx
-LIBS:microcontrollers
-LIBS:dsp
-LIBS:microchip
-LIBS:analog_switches
-LIBS:motorola
-LIBS:texas
-LIBS:intel
-LIBS:audio
-LIBS:interface
-LIBS:digital-audio
-LIBS:philips
-LIBS:display
-LIBS:cypress
-LIBS:siliconi
-LIBS:opto
-LIBS:atmel
-LIBS:contrib
-LIBS:valves
-LIBS:Microduino_OPC_DE-cache
-EELAYER 25 0
+EESchema Schematic File Version 4
+EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Microduino OPC DE"
-Date "07 aprile 2014"
+Date "03 novembre 2019"
 Rev "0.0"
 Comp ""
 Comment1 ""
@@ -57,7 +26,7 @@ NoConn ~ 8250 3300
 NoConn ~ 8250 3400
 NoConn ~ 8250 3700
 $Comp
-L GND #PWR01
+L power:GND #PWR01
 U 1 1 58D4FFFC
 P 8000 3950
 F 0 "#PWR01" H 8000 3700 50  0001 C CNN
@@ -68,7 +37,7 @@ F 3 "" H 8000 3950 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR02
+L power:+5V #PWR02
 U 1 1 58D50BEE
 P 5850 3800
 F 0 "#PWR02" H 5850 3650 50  0001 C CNN
@@ -79,7 +48,7 @@ F 3 "" H 5850 3800 50  0000 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +3.3V #PWR03
+L power:+3.3V #PWR03
 U 1 1 58D50CA7
 P 6050 3700
 F 0 "#PWR03" H 6050 3550 50  0001 C CNN
@@ -143,7 +112,7 @@ RESET
 Text Notes 6850 4200 0    118  ~ 24
 UPIN 27
 $Comp
-L CONN_1x27 P1
+L Libreria_SCH_mia1:CONN_1x27 P1
 U 1 1 58E8C7EF
 P 6700 3800
 F 0 "P1" H 6700 3700 50  0000 C CNN
@@ -164,7 +133,7 @@ SCK
 Text Notes 1700 2950 2    60   ~ 0
 +5V
 $Comp
-L +3.3V #PWR04
+L power:+3.3V #PWR04
 U 1 1 5A3F7B13
 P 6700 5000
 F 0 "#PWR04" H 6700 4850 50  0001 C CNN
@@ -175,7 +144,7 @@ F 3 "" H 6700 5000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR05
+L power:+5V #PWR05
 U 1 1 5A3F7B2B
 P 7250 5000
 F 0 "#PWR05" H 7250 4850 50  0001 C CNN
@@ -186,7 +155,7 @@ F 3 "" H 7250 5000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR06
+L power:GND #PWR06
 U 1 1 5A3F7B43
 P 7800 5200
 F 0 "#PWR06" H 7800 4950 50  0001 C CNN
@@ -197,7 +166,7 @@ F 3 "" H 7800 5200 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG07
+L power:PWR_FLAG #FLG07
 U 1 1 5A3F7B5B
 P 7800 5000
 F 0 "#FLG07" H 7800 5075 50  0001 C CNN
@@ -208,7 +177,7 @@ F 3 "" H 7800 5000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L PWR_FLAG #FLG08
+L power:PWR_FLAG #FLG08
 U 1 1 5A3F7B73
 P 7250 5200
 F 0 "#FLG08" H 7250 5275 50  0001 C CNN
@@ -219,7 +188,7 @@ F 3 "" H 7250 5200 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L PWR_FLAG #FLG09
+L power:PWR_FLAG #FLG09
 U 1 1 5A3F7B8B
 P 6700 5200
 F 0 "#FLG09" H 6700 5275 50  0001 C CNN
@@ -280,7 +249,7 @@ Wire Wire Line
 Wire Wire Line
 	8000 3800 7900 3800
 $Comp
-L GS3 J2
+L conn:GS3 J2
 U 1 1 5CA986BE
 P 8900 3600
 F 0 "J2" H 8950 3400 50  0000 C CNN
@@ -291,7 +260,7 @@ F 3 "" H 8900 3600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L MAX3378E U1
+L Libreria_SCH_mia1:MAX3378E U1
 U 1 1 5CAA29BD
 P 4200 3700
 F 0 "U1" H 4700 4850 50  0000 R CNN
@@ -320,7 +289,7 @@ Wire Wire Line
 Wire Wire Line
 	5550 4050 5100 4050
 $Comp
-L CONN_01X06 J1
+L conn:CONN_01X06 J1
 U 1 1 5CAA3068
 P 1900 3150
 F 0 "J1" H 1900 3500 50  0000 C CNN
@@ -353,7 +322,7 @@ Wire Wire Line
 Wire Wire Line
 	2100 3400 2100 3500
 $Comp
-L GND #PWR010
+L power:GND #PWR010
 U 1 1 5CAA33BE
 P 2100 3500
 F 0 "#PWR010" H 2100 3250 50  0001 C CNN
@@ -364,7 +333,7 @@ F 3 "" H 2100 3500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L +5V #PWR011
+L power:+5V #PWR011
 U 1 1 5CAA3401
 P 5100 2550
 F 0 "#PWR011" H 5100 2400 50  0001 C CNN
@@ -375,7 +344,7 @@ F 3 "" H 5100 2550 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR012
+L power:GND #PWR012
 U 1 1 5CAA3425
 P 3300 4900
 F 0 "#PWR012" H 3300 4650 50  0001 C CNN
@@ -400,7 +369,7 @@ SDO
 Text Notes 3200 4200 0    79   Italic 16
 SS
 $Comp
-L +3.3V #PWR013
+L power:+3.3V #PWR013
 U 1 1 5CAA3727
 P 3350 2550
 F 0 "#PWR013" H 3350 2400 50  0001 C CNN
@@ -414,7 +383,7 @@ Wire Wire Line
 	3350 2550 3350 2700
 NoConn ~ 8250 3200
 $Comp
-L R R4
+L Device:R R4
 U 1 1 5CAA398D
 P 9300 3600
 F 0 "R4" V 9380 3600 50  0000 C CNN
@@ -425,24 +394,24 @@ F 3 "" H 9300 3600 50  0001 C CNN
 	0    1    1    0   
 $EndComp
 $Comp
-L R R3
+L Device:R R3
 U 1 1 5CAA39BA
-P 9400 2500
-F 0 "R3" V 9480 2500 50  0000 C CNN
-F 1 "47k" V 9400 2500 50  0000 C CNN
-F 2 "Resistors_SMD:R_0805" V 9330 2500 50  0001 C CNN
-F 3 "" H 9400 2500 50  0001 C CNN
-	1    9400 2500
+P 10200 2500
+F 0 "R3" V 10280 2500 50  0000 C CNN
+F 1 "47k" V 10200 2500 50  0000 C CNN
+F 2 "Resistors_SMD:R_0805" V 10130 2500 50  0001 C CNN
+F 3 "" H 10200 2500 50  0001 C CNN
+	1    10200 2500
 	-1   0    0    -1  
 $EndComp
 Wire Wire Line
-	9800 2350 9800 3400
+	9800 2350 9800 2850
 Wire Wire Line
 	9500 3600 9450 3600
 Wire Wire Line
-	9400 2650 9400 2850
+	10200 2650 10200 2850
 Wire Wire Line
-	9400 2850 9800 2850
+	10200 2850 9800 2850
 Connection ~ 9800 2850
 Wire Wire Line
 	2650 2050 9600 2050
@@ -451,14 +420,11 @@ Wire Wire Line
 Wire Wire Line
 	2650 2900 2100 2900
 Wire Wire Line
-	9400 2350 9400 2050
-Connection ~ 9400 2050
-Wire Wire Line
 	10000 2050 10200 2050
 Wire Wire Line
-	10200 2050 10200 1900
+	10200 1900 10200 2050
 $Comp
-L +5V #PWR014
+L power:+5V #PWR014
 U 1 1 5CAA3C5C
 P 10200 1900
 F 0 "#PWR014" H 10200 1750 50  0001 C CNN
@@ -469,7 +435,7 @@ F 3 "" H 10200 1900 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L GND #PWR015
+L power:GND #PWR015
 U 1 1 5CAA3CDC
 P 9800 3950
 F 0 "#PWR015" H 9800 3700 50  0001 C CNN
@@ -496,7 +462,7 @@ D9
 Wire Wire Line
 	6050 3400 6500 3400
 $Comp
-L R R1
+L Device:R R1
 U 1 1 5CAA46BA
 P 5700 4400
 F 0 "R1" V 5780 4400 50  0000 C CNN
@@ -507,7 +473,7 @@ F 3 "" H 5700 4400 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L R R2
+L Device:R R2
 U 1 1 5CAA472A
 P 5700 5000
 F 0 "R2" V 5780 5000 50  0000 C CNN
@@ -518,12 +484,12 @@ F 3 "" H 5700 5000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5700 4550 5700 4850
+	5700 4550 5700 4750
 Wire Wire Line
 	5100 4750 5700 4750
 Connection ~ 5700 4750
 $Comp
-L GND #PWR016
+L power:GND #PWR016
 U 1 1 5CAA4854
 P 5700 5200
 F 0 "#PWR016" H 5700 4950 50  0001 C CNN
@@ -540,7 +506,7 @@ GND
 Text Notes 1700 3350 2    60   ~ 0
 SS
 $Comp
-L Q_NPN_BEC Q2
+L Device:Q_NPN_BEC Q2
 U 1 1 5CAA5338
 P 9700 3600
 F 0 "Q2" H 9900 3650 50  0000 L CNN
@@ -551,11 +517,11 @@ F 3 "" H 9700 3600 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Q_PMOS_GDS Q1
+L Device:Q_PMOS_GDS Q1
 U 1 1 5CAA5695
 P 9800 2150
-F 0 "Q1" H 10000 2200 50  0000 L CNN
-F 1 "BSP315PH6327XTSA1" H 10000 2100 50  0000 L CNN
+F 0 "Q1" V 9750 2300 50  0000 L CNN
+F 1 "BSP315PH6327XTSA1" V 10050 1900 50  0000 L CNN
 F 2 "TO_SOT_Packages_SMD:SOT-223-3_TabPin2" H 10000 2250 50  0001 C CNN
 F 3 "" H 9800 2150 50  0001 C CNN
 	1    9800 2150
@@ -570,4 +536,11 @@ Wire Wire Line
 NoConn ~ 6250 3500
 Text GLabel 8300 3600 2    60   Input ~ 0
 D6
+Connection ~ 10200 2050
+Wire Wire Line
+	9800 2850 9800 3400
+Wire Wire Line
+	5700 4750 5700 4850
+Wire Wire Line
+	10200 2050 10200 2350
 $EndSCHEMATC

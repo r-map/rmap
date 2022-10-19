@@ -1,14 +1,13 @@
-EESchema-LIBRARY Version 2.3
+EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# +3V3
+# Microduino_HUB_DE-rescue_+3.3V
 #
-DEF +3V3 #PWR 0 0 Y Y 1 F P
+DEF Microduino_HUB_DE-rescue_+3.3V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "+3V3" 0 140 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_+3.3V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
-ALIAS +3.3V
 DRAW
 P 2 0 1 0 -30 50 0 100 N
 P 2 0 1 0 0 0 0 100 N
@@ -17,11 +16,11 @@ X +3V3 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# +5V
+# Microduino_HUB_DE-rescue_+5V
 #
-DEF +5V #PWR 0 0 Y Y 1 F P
+DEF Microduino_HUB_DE-rescue_+5V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "+5V" 0 140 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_+5V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -32,11 +31,11 @@ X +5V 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# C
+# Microduino_HUB_DE-rescue_C
 #
-DEF C C 0 10 N Y 1 F N
+DEF Microduino_HUB_DE-rescue_C C 0 10 N Y 1 F N
 F0 "C" 25 100 50 H V L CNN
-F1 "C" 25 -100 50 H V L CNN
+F1 "Microduino_HUB_DE-rescue_C" 25 -100 50 H V L CNN
 F2 "" 38 -150 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -50,11 +49,11 @@ X ~ 2 0 -150 110 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# CONN_01X04
+# Microduino_HUB_DE-rescue_CONN_01X04
 #
-DEF CONN_01X04 J 0 40 Y N 1 F N
+DEF Microduino_HUB_DE-rescue_CONN_01X04 J 0 40 Y N 1 F N
 F0 "J" 0 250 50 H V C CNN
-F1 "CONN_01X04" 100 0 50 V V C CNN
+F1 "Microduino_HUB_DE-rescue_CONN_01X04" 100 0 50 V V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -76,11 +75,11 @@ X P4 4 -200 -150 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# CP
+# Microduino_HUB_DE-rescue_CP
 #
-DEF CP C 0 10 N Y 1 F N
+DEF Microduino_HUB_DE-rescue_CP C 0 10 N Y 1 F N
 F0 "C" 25 100 50 H V L CNN
-F1 "CP" 25 -100 50 H V L CNN
+F1 "Microduino_HUB_DE-rescue_CP" 25 -100 50 H V L CNN
 F2 "" 38 -150 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -99,11 +98,11 @@ X ~ 2 0 -150 110 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# D_Schottky
+# Microduino_HUB_DE-rescue_D_Schottky
 #
-DEF D_Schottky D 0 40 N N 1 F N
+DEF Microduino_HUB_DE-rescue_D_Schottky D 0 40 N N 1 F N
 F0 "D" 0 100 50 H V C CNN
-F1 "D_Schottky" 0 -100 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_D_Schottky" 0 -100 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -122,11 +121,11 @@ X A 2 150 0 100 L 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# GND
+# Microduino_HUB_DE-rescue_GND
 #
-DEF GND #PWR 0 0 Y Y 1 F P
+DEF Microduino_HUB_DE-rescue_GND #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -250 50 H I C CNN
-F1 "GND" 0 -150 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_GND" 0 -150 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -135,11 +134,11 @@ X GND 1 0 0 0 D 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# GS3
+# Microduino_HUB_DE-rescue_GS3
 #
-DEF GS3 J 0 40 Y N 1 F N
+DEF Microduino_HUB_DE-rescue_GS3 J 0 40 Y N 1 F N
 F0 "J" 50 200 50 H V C CNN
-F1 "GS3" 50 -199 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_GS3" 50 -199 50 H V C CNN
 F2 "Connectors:GS3" 88 -74 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -155,11 +154,11 @@ X G3 3 -150 -100 100 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# L
+# Microduino_HUB_DE-rescue_L
 #
-DEF L L 0 40 N N 1 F N
+DEF Microduino_HUB_DE-rescue_L L 0 40 N N 1 F N
 F0 "L" -50 0 50 V V C CNN
-F1 "L" 75 0 50 V V C CNN
+F1 "Microduino_HUB_DE-rescue_L" 75 0 50 V V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -178,11 +177,11 @@ X 2 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# PCA9517
+# Microduino_HUB_DE-rescue_PCA9517
 #
-DEF PCA9517 U 0 40 Y Y 1 F N
+DEF Microduino_HUB_DE-rescue_PCA9517 U 0 40 Y Y 1 F N
 F0 "U" -400 -400 50 H V L CNN
-F1 "PCA9517" 100 -400 50 H V L CNN
+F1 "Microduino_HUB_DE-rescue_PCA9517" 100 -400 50 H V L CNN
 F2 "" 0 0 50 H V C CNN
 F3 "" 0 0 50 H V C CNN
 $FPLIST
@@ -192,35 +191,35 @@ $FPLIST
 $ENDFPLIST
 DRAW
 S -450 550 450 -350 0 1 10 f
-X VCCA 1 -200 700 150 D 50 50 1 1 B
+X VCCA 1 -200 700 150 D 50 50 1 1 W
 X SCLA 2 -600 200 150 R 50 50 1 1 B
 X SDAA 3 -600 0 150 R 50 50 1 1 B
 X GND 4 0 -500 150 U 50 50 1 1 W
-X EN 5 -600 -200 150 R 50 50 1 1 B
+X EN 5 -600 -200 150 R 50 50 1 1 I
 X SDAB 6 600 0 150 L 50 50 1 1 B
 X SCLB 7 600 200 150 L 50 50 1 1 B
 X VCCB 8 200 700 150 D 50 50 1 1 W
 ENDDRAW
 ENDDEF
 #
-# PWR_FLAG
+# Microduino_HUB_DE-rescue_PWR_FLAG
 #
-DEF PWR_FLAG #FLG 0 0 N N 1 F P
+DEF Microduino_HUB_DE-rescue_PWR_FLAG #FLG 0 0 N N 1 F P
 F0 "#FLG" 0 75 50 H I C CNN
-F1 "PWR_FLAG" 0 150 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_PWR_FLAG" 0 150 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
-X pwr 1 0 0 0 U 50 50 0 0 w
 P 6 0 1 0 0 0 0 50 -40 75 0 100 40 75 0 50 N
+X pwr 1 0 0 0 U 50 50 0 0 w
 ENDDRAW
 ENDDEF
 #
-# R
+# Microduino_HUB_DE-rescue_R
 #
-DEF R R 0 0 N Y 1 F N
+DEF Microduino_HUB_DE-rescue_R R 0 0 N Y 1 F N
 F0 "R" 80 0 50 V V C CNN
-F1 "R" 0 0 50 V V C CNN
+F1 "Microduino_HUB_DE-rescue_R" 0 0 50 V V C CNN
 F2 "" -70 0 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -234,11 +233,11 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# TLV62569
+# Microduino_HUB_DE-rescue_TLV62569
 #
-DEF TLV62569 U 0 40 Y Y 1 F N
+DEF Microduino_HUB_DE-rescue_TLV62569 U 0 40 Y Y 1 F N
 F0 "U" -300 -400 50 H V L CNN
-F1 "TLV62569" 100 -400 50 H V L CNN
+F1 "Microduino_HUB_DE-rescue_TLV62569" 100 -400 50 H V L CNN
 F2 "" 0 0 50 H V C CNN
 F3 "" 0 0 50 H V C CNN
 $FPLIST
@@ -257,11 +256,11 @@ X FB 5 500 -200 150 L 50 50 1 1 B
 ENDDRAW
 ENDDEF
 #
-# USB_B-RESCUE-Microduino_HUB_DE
+# Microduino_HUB_DE-rescue_USB_B-RESCUE-Microduino_HUB_DE
 #
-DEF USB_B-RESCUE-Microduino_HUB_DE P 0 40 Y Y 1 F N
+DEF Microduino_HUB_DE-rescue_USB_B-RESCUE-Microduino_HUB_DE P 0 40 Y Y 1 F N
 F0 "P" 200 -200 50 H V C CNN
-F1 "USB_B-RESCUE-Microduino_HUB_DE" -50 200 50 H V C CNN
+F1 "Microduino_HUB_DE-rescue_USB_B-RESCUE-Microduino_HUB_DE" -50 200 50 H V C CNN
 F2 "" -50 -100 50 V V C CNN
 F3 "" -50 -100 50 V V C CNN
 $FPLIST

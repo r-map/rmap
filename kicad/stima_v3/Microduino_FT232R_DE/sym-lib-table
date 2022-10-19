@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name Microduino_FT232R_DE-rescue)(type Legacy)(uri ${KIPRJMOD}/Microduino_FT232R_DE-rescue.lib)(options "")(descr ""))
+)

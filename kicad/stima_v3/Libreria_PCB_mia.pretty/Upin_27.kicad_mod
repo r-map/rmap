@@ -1,4 +1,4 @@
-(module Upin_27 (layer F.Cu) (tedit 597E0486)
+(module Upin_27 (layer F.Cu) (tedit 5EB6C585)
   (descr "Through hole straight socket strip, 1x09, 2.54mm pitch, single row")
   (tags "Through hole socket strip THT 1x09 2.54mm single row")
   (fp_text reference REF** (at 0 2.54) (layer F.SilkS)
@@ -151,9 +151,19 @@
   (pad 25 thru_hole circle (at 20.32 -5.08) (size 2.1 2.1) (drill 1.5) (layers *.Cu *.Mask))
   (pad 26 thru_hole circle (at 20.32 -2.54) (size 2.1 2.1) (drill 1.5) (layers *.Cu *.Mask))
   (pad 27 thru_hole circle (at 20.32 0) (size 2.1 2.1) (drill 1.5) (layers *.Cu *.Mask))
-  (model ${KISYS3DMOD}/Socket_Strips.3dshapes/Socket_Strip_Straight_1x09_Pitch2.54mm.wrl
-    (at (xyz 0 -0.4 0))
+  (model ${KISYS3DMOD}/Pin_Headers.3dshapes/Pin_Header_Straight_1x10_Pitch2.54mm.wrl
+    (offset (xyz 20.3 11.5 0))
     (scale (xyz 1 1 1))
-    (rotate (xyz 0 0 270))
+    (rotate (xyz 0 0 90))
+  )
+  (model ${KISYS3DMOD}/Pin_Headers.3dshapes/Pin_Header_Straight_1x10_Pitch2.54mm.wrl
+    (offset (xyz 0 11.5 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 90))
+  )
+  (model ${KISYS3DMOD}/Pin_Headers.3dshapes/Pin_Header_Straight_1x07_Pitch2.54mm.wrl
+    (offset (xyz 10.2 23 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 0))
   )
 )

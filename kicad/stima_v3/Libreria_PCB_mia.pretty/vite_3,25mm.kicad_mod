@@ -1,0 +1,17 @@
+(module vite_3,25mm (layer F.Cu) (tedit 5EDD552F)
+  (descr "vite 3,25mm")
+  (fp_text reference vite_3,25mm (at 0 3.81) (layer F.SilkS) hide
+    (effects (font (size 1.524 1.524) (thickness 0.3048)))
+  )
+  (fp_text value "" (at 0 -3.81) (layer F.SilkS) hide
+    (effects (font (size 1.524 1.524) (thickness 0.3048)))
+  )
+  (fp_circle (center -0.0076 0) (end 2.6924 0) (layer B.SilkS) (width 0.254))
+  (fp_circle (center 0 0) (end 2.7 0) (layer F.SilkS) (width 0.254))
+  (pad "" thru_hole circle (at 0 0) (size 4.5 4.5) (drill 3.25) (layers *.Cu *.Mask))
+  (model walter/details/vite_2mm5.wrl
+    (at (xyz 0 0 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 0))
+  )
+)

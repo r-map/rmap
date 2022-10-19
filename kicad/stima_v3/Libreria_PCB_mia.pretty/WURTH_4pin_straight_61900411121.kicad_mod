@@ -1,4 +1,4 @@
-(module WURTH_4pin_straight_61900411121 (layer F.Cu) (tedit 597B5C75)
+(module WURTH_4pin_straight_61900411121 (layer F.Cu) (tedit 5ECAC008)
   (descr "Horizontal AMP connector with 2.54mm pitch")
   (tags "connector horizontal")
   (fp_text reference REF** (at 3.86 4.04) (layer F.SilkS)
@@ -28,5 +28,15 @@
     (at (xyz 0 0 0))
     (scale (xyz 4 4 4))
     (rotate (xyz 0 0 0))
+  )
+  (model ${KISYS3DMOD}/Libreria_3D_mia/conn_kk100/22-23-2041.wrl
+    (offset (xyz 3.8 0.09 0))
+    (scale (xyz 1 1 1))
+    (rotate (xyz 0 0 -180))
+  )
+  (model ${KISYS3DMOD}/Libreria_3D_mia/conn_kk156/26-60-4040.wrl
+    (offset (xyz 3.8 0 0))
+    (scale (xyz 0.64 0.64 0.64))
+    (rotate (xyz 0 0 180))
   )
 )

@@ -36,7 +36,7 @@ $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
 Title "Microduino OPC DE"
-Date "07 aprile 2014"
+Date "07 aprile 2019"
 Rev "0.0"
 Comp ""
 Comment1 ""
@@ -429,7 +429,7 @@ L R R3
 U 1 1 5CAA39BA
 P 9400 2500
 F 0 "R3" V 9480 2500 50  0000 C CNN
-F 1 "4k7" V 9400 2500 50  0000 C CNN
+F 1 "47k" V 9400 2500 50  0000 C CNN
 F 2 "Resistors_SMD:R_0805" V 9330 2500 50  0001 C CNN
 F 3 "" H 9400 2500 50  0001 C CNN
 	1    9400 2500

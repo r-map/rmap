@@ -1,4 +1,4 @@
-update=06/09/2017 17:50:43
+update=25/05/2020 19:47:14
 version=1
 last_client=kicad
 [pcbnew]
@@ -37,35 +37,4 @@ SpiceUseNetNumbers=0
 LabSize=118
 [eeschema]
 version=1
-LibDir=../Libreria_SCH_mia
-[eeschema/libraries]
-LibName1=Libreria_SCH_mia
-LibName2=power
-LibName3=device
-LibName4=transistors
-LibName5=conn
-LibName6=linear
-LibName7=regul
-LibName8=74xx
-LibName9=cmos4000
-LibName10=adc-dac
-LibName11=memory
-LibName12=xilinx
-LibName13=microcontrollers
-LibName14=dsp
-LibName15=microchip
-LibName16=analog_switches
-LibName17=motorola
-LibName18=texas
-LibName19=intel
-LibName20=audio
-LibName21=interface
-LibName22=digital-audio
-LibName23=philips
-LibName24=display
-LibName25=cypress
-LibName26=siliconi
-LibName27=opto
-LibName28=atmel
-LibName29=contrib
-LibName30=valves
+LibDir=

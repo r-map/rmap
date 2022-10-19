@@ -1,5 +1,37 @@
 EESchema-DOCLIB  Version 2.0
 #
+$CMP ACS712ELCTR-05B-T_NRND
+D SENSOR CURRENT HALL 5A AC/DC
+K 620-1189-1-ND
+F https://www.allegromicro.com/~/media/Files/Datasheets/ACS712-Datasheet.ashx
+$ENDCMP
+#
+$CMP ADS1110
+D Low-power, 16-bit analog to digital converter, I2C interface, SOT-23-6 package
+K adc i2c
+F https://www.ti.com/lit/ds/symlink/ads1110.pdf
+$ENDCMP
+#
+$CMP ADS1110A2
+D Low-power, 16-bit analog to digital converter, I2C interface, SOT-23-6 package
+K adc i2c
+F https://www.ti.com/lit/ds/symlink/ads1110.pdf
+$ENDCMP
+#
+$CMP ADS1115
+D 16-bit analog to digital converter, 2 or 4 inputs, integrated temperature sensor, SPI interface
+K adc spi quad double
+F http://www.ti.com/lit/ds/sbas457e/sbas457e.pdf
+$ENDCMP
+#
+$CMP BNX022
+D BNX022-01
+$ENDCMP
+#
+$CMP BNX022-01
+D BNX022-01
+$ENDCMP
+#
 $CMP CONN_1x27
 D Connettore Microduino
 $ENDCMP
@@ -17,9 +49,73 @@ $CMP GS4
 D Selettore 4 vie
 $ENDCMP
 #
+$CMP GS4_b
+D Selettore 4 vie
+$ENDCMP
+#
+$CMP GS4_c
+D Selettore 4 vie
+$ENDCMP
+#
+$CMP MAX3378E
+D ±15kV ESD-Protected, 1μA, 16Mbps, Dual/Quad Low-Voltage Level Translators in UCSP
+K Quad Low-Voltage Level Translators in UCSP
+F https://datasheets.maximintegrated.com/en/ds/MAX3372E-MAX3393E.pdf
+$ENDCMP
+#
 $CMP MIC29302-ADJ
-D High Efficiency Synchronous Buck Converter in SOT Package SOT23-5
-F http://www.ti.com/lit/ds/symlink/tlv62569.pdf
+D High-Current Low Dropout Regulators in SOT Package SOT263-5
+F http://ww1.microchip.com/downloads/en/DeviceDoc/20005685A.pdf
+$ENDCMP
+#
+$CMP Morsettiera_10_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_1_polo
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_2_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_3_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_4_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_5_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_6_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_7_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_8_poli
+D morsettiera
+K screw terminal block
+$ENDCMP
+#
+$CMP Morsettiera_9_poli
+D morsettiera
+K screw terminal block
 $ENDCMP
 #
 $CMP PCA9517
@@ -28,10 +124,22 @@ K I2C Hub
 F http://www.nxp.com/documents/data_sheet/PCA9518.pdf
 $ENDCMP
 #
+$CMP PCF8593
+D Realtime Clock/Calendar I2C Interface, SOIC-8, DIP-8
+K I2C RTC Clock Calendar
+F https://www.nxp.com/docs/en/data-sheet/PCF8593.pdf
+$ENDCMP
+#
 $CMP PIC16F88
 D 8 bit microcontroller
 K PIC
 F http://ww1.microchip.com/downloads/en/DeviceDoc/30487D.pdf
+$ENDCMP
+#
+$CMP PIC18F46K22-I_PT
+D TQFP44, 64k Flash, 4k SRAM, 1024B EEPROM, 64MHz
+K Microchip 8bit Microcontroller
+F http://ww1.microchip.com/downloads/en/DeviceDoc/40001412G.pdf
 $ENDCMP
 #
 $CMP SIM-CARD
@@ -46,6 +154,10 @@ $ENDCMP
 $CMP TLV62569
 D High Efficiency Synchronous Buck Converter in SOT Package SOT23-5
 F http://www.ti.com/lit/ds/symlink/tlv62569.pdf
+$ENDCMP
+#
+$CMP vite_3mm
+D vite 3mm per pcb
 $ENDCMP
 #
 #End Doc Library

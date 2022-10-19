@@ -3,19 +3,19 @@
   (general
     (links 135)
     (no_connects 0)
-    (area 126.86 48.27 183.660001 130.817601)
+    (area 127.508799 48.870399 171.652401 121.004801)
     (thickness 1.6)
     (drawings 61)
     (tracks 568)
     (zones 0)
     (modules 54)
-    (nets 35)
+    (nets 36)
   )
 
   (page A4)
   (title_block
     (title "Microduino HUB DE")
-    (date "4 settembre 2017")
+    (date "24 dicembre 2017")
     (rev 0.0)
   )
 
@@ -137,6 +137,7 @@
   (net 32 "Net-(D1-Pad2)")
   (net 33 "Net-(L1-Pad1)")
   (net 34 "Net-(R15-Pad2)")
+  (net 35 "Net-(P4-Pad5)")
 
   (net_class Default "Questo è il gruppo di collegamenti predefinito"
     (clearance 0.2)
@@ -164,6 +165,7 @@
     (add_net "Net-(P3-Pad3)")
     (add_net "Net-(P4-Pad2)")
     (add_net "Net-(P4-Pad3)")
+    (add_net "Net-(P4-Pad5)")
     (add_net "Net-(P5-Pad2)")
     (add_net "Net-(P5-Pad3)")
     (add_net "Net-(P6-Pad2)")
@@ -181,7 +183,7 @@
     (add_net "Net-(U7-Pad5)")
   )
 
-  (module Connectors:USB_B (layer F.Cu) (tedit 598C2D0C) (tstamp 58EA9755)
+  (module Connectors:USB_B (layer F.Cu) (tedit 5A3F8145) (tstamp 58EA9755)
     (at 137.44 104.46 270)
     (descr "USB B connector")
     (tags "USB_B USB_DEV")
@@ -210,7 +212,8 @@
       (net 5 GND))
     (pad 3 thru_hole circle (at 2 2.54 180) (size 1.52 1.52) (drill 0.81) (layers *.Cu *.Mask)
       (net 17 "Net-(P4-Pad3)"))
-    (pad "" thru_hole circle (at 4.7 7.27 180) (size 2.7 2.7) (drill 2.3) (layers *.Cu *.Mask))
+    (pad 5 thru_hole circle (at 4.7 7.27 180) (size 2.7 2.7) (drill 2.3) (layers *.Cu *.Mask)
+      (net 35 "Net-(P4-Pad5)"))
     (pad "" thru_hole circle (at 4.7 -4.73 180) (size 2.7 2.7) (drill 2.3) (layers *.Cu *.Mask))
     (model Connectors.3dshapes/USB_B.wrl
       (at (xyz 0.18 -0.05 0))
