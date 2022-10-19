@@ -56,6 +56,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #endif
 
 #define SAMPLES_COUNT_MAX                 (3600)
-#define ACQUISITION_DELAY_MS              (4000)
+#define SENSORS_ACQUISITION_DELAY_MS      (4000)
+#define OBSERVATRIONS_TIME_S              (60)
+#define REPORTS_TIME_S                    (900)
+
+#define ELABORATE_DATA_QUEUE_LENGTH       (4)
+#define REQUEST_DATA_QUEUE_LENGTH         (1)
+#define REPORT_DATA_QUEUE_LENGTH          (1)
+
+#define TEMPERATURE_MAIN_INDEX            (0)
+#define HUMIDITY_MAIN_INDEX               (1)
+#define TEMPERATURE_REDUNDANT_INDEX       (2)
+#define HUMIDITY_REDUNDANT_INDEX          (3)
+#define RAIN_INDEX                        (4)
+
+#define MAX_VALID_TEMPERATURE             (100.0)
+#define MIN_VALID_TEMPERATURE             (-50.0)
+#define MAX_VALID_HUMIDITY                (100.0)
+#define MIN_VALID_HUMIDITY                (0.0)
+
+#define SAMPLE_ERROR_PERCENTAGE_MAX       (50.0)
+#define OBSERVATION_ERROR_PERCENTAGE_MAX  (50.0)
 
 #endif

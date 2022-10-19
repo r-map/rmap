@@ -26,8 +26,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "main.h"
 
 void setup() {
-  // error_t error = NO_ERROR;
-
   osInitKernel();
   init_debug(115200);
   init_wire();
@@ -43,11 +41,26 @@ void setup() {
   th_sensor_param.sensors_count = &configuration.sensors_count;
   th_sensor_param.sensors = configuration.sensors;
   th_sensor_param.acquisition_delay_ms = &configuration.sensor_acquisition_delay_ms;
+  th_sensor_param.wireLock = wireLock;
+  th_sensor_param.elaborataDataQueue = elaborataDataQueue;
+
+  ElaboradeDataParam_t elaborate_data_param;
+  elaborate_data_param.elaborataDataQueue = elaborataDataQueue;
+  elaborate_data_param.requestDataQueue = requestDataQueue;
+  elaborate_data_param.reportDataQueue = reportDataQueue;
+  elaborate_data_param.acquisition_delay_ms = &configuration.sensor_acquisition_delay_ms;
+  elaborate_data_param.observation_time_s = &configuration.observation_time_s;
+
+  CanParam_t can_param;
+  can_param.requestDataQueue = requestDataQueue;
+  can_param.reportDataQueue = reportDataQueue;
 
   static LedTask led_task("LED 2 TASK", 100, OS_TASK_PRIORITY_01, ledParam);
-  static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 1024, OS_TASK_PRIORITY_02, th_sensor_param);
+  static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 100, OS_TASK_PRIORITY_04, th_sensor_param);
+  static ElaborateDataSensorTask elaborate_data_task("ELAB DATA TASK", 100, OS_TASK_PRIORITY_03, elaborate_data_param);
+  static CanTask can_task("CAN TASK", 100, OS_TASK_PRIORITY_02, can_param);
 
-  cpp_freertos::Thread::StartScheduler();
+  Thread::StartScheduler();
 }
 
 void loop() {}
@@ -72,7 +85,7 @@ void save_configuration(bool is_default) {
     configuration.module_main_version = MODULE_MAIN_VERSION;
     configuration.module_minor_version = MODULE_MINOR_VERSION;
     configuration.module_type = MODULE_TYPE;
-    configuration.sensor_acquisition_delay_ms = ACQUISITION_DELAY_MS;
+    configuration.sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
     configuration.sensors_count = 0;
 
     #if (USE_SENSOR_ADT)
@@ -99,7 +112,7 @@ void save_configuration(bool is_default) {
     #if (USE_SENSOR_SHT)
     strcpy(configuration.sensors[configuration.sensors_count].type, SENSOR_TYPE_SHT);
     configuration.sensors[configuration.sensors_count].i2c_address = SHT_DEFAULT_ADDRESS;
-    configuration.sensors[configuration.sensors_count].is_redundant = false;
+    configuration.sensors[configuration.sensors_count].is_redundant = true;
     configuration.sensors_count++;
     #endif
   }
@@ -128,6 +141,13 @@ void load_configuration() {
 }
 
 void init_tasks() {
+  #if (HARDWARE_I2C == ENABLE)
+  wireLock = new BinarySemaphore(true);
+  #endif
+
+  elaborataDataQueue = new Queue(ELABORATE_DATA_QUEUE_LENGTH, sizeof(elaborate_data_t));
+  requestDataQueue = new Queue(REQUEST_DATA_QUEUE_LENGTH, sizeof(request_data_t));
+  reportDataQueue = new Queue(REPORT_DATA_QUEUE_LENGTH, sizeof(report_t));
 }
 
 void init_sensors () {
@@ -139,20 +159,5 @@ void init_wire() {
   Wire.setSDA(I2C1_SDA);
   Wire.begin();
   Wire.setClock(I2C1_BUS_CLOCK);
-  #endif
-}
-
-void samples_processing() {
-}
-
-void exchange_buffers() {
-}
-
-void reset_samples_buffer() {
-}
-
-void reset_buffer() {
-  #if (USE_SENSOR_TBR)
-  rain_tips = 0;
   #endif
 }

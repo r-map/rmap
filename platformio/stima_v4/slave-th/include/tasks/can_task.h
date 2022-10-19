@@ -1,4 +1,4 @@
-/**@file th_sensor_task.h */
+/**@file can_task.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _TH_SENSOR_TASK_H
-#define _TH_SENSOR_TASK_H
+#ifndef _CAN_TASK_H
+#define _CAN_TASK_H
 
 #include "config.h"
 
@@ -32,20 +32,17 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "semaphore.hpp"
 #include "queue.hpp"
 
-#include "SensorDriver.h"
+#include "report.h"
 #include "debug.h"
 
 using namespace cpp_freertos;
 
 typedef struct {
-  uint8_t *sensors_count;
-  sensor_configuration_t *sensors;
-  uint32_t *acquisition_delay_ms;
-  BinarySemaphore *wireLock;
-  Queue *elaborataDataQueue;
-} TemperatureHumidtySensorParam_t;
+  Queue *requestDataQueue;
+  Queue *reportDataQueue;
+} CanParam_t;
 
-class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
+class CanTask : public cpp_freertos::Thread {
   typedef enum {
     INIT,
     SETUP,
@@ -55,7 +52,7 @@ class TemperatureHumidtySensorTask : public cpp_freertos::Thread {
   } State_t;
 
 public:
-  TemperatureHumidtySensorTask(const char *taskName, uint16_t stackSize, uint8_t priority, TemperatureHumidtySensorParam_t temperatureHumidtySensorParam);
+  CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, CanParam_t canParam);
 
 protected:
   virtual void Run();
@@ -65,9 +62,8 @@ private:
   char taskName[configMAX_TASK_NAME_LEN];
   uint16_t stackSize;
   uint8_t priority;
-  TemperatureHumidtySensorParam_t param;
+  CanParam_t param;
   State_t state;
-  SensorDriver *sensors[SENSORS_COUNT_MAX];
 };
 
 #endif

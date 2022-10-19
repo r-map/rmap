@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define __STDC_LIMIT_MACROS
 
 #include "config.h"
-#include "task_config.h"
+#include "task_util.h"
 
 #if (HARDWARE_I2C == ENABLE)
 #include <Wire.h>
@@ -35,9 +35,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include <STM32FreeRTOS.h>
 #include "thread.hpp"
+#include "semaphore.hpp"
+#include "queue.hpp"
 
-#include "Typedef.h"
-#include "bufferValue.h"
+#include "report.h"
 
 #include "os_port.h"
 #include "net_config.h"
@@ -47,6 +48,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #include "tasks/led_task.h"
 #include "tasks/th_sensor_task.h"
+#include "tasks/elaborate_data_task.h"
+#include "tasks/can_task.h"
+
+using namespace cpp_freertos;
 
 /*********************************************************************
 * TYPEDEF
@@ -58,69 +63,21 @@ typedef struct {
   uint8_t sensors_count;                              //!< number of configured sensors
   sensor_configuration_t sensors[SENSORS_COUNT_MAX];  //!< sensors configurations
   uint32_t sensor_acquisition_delay_ms;               //!< delay between 2 sensors acquisitions
+  uint8_t observation_time_s;                         //!< observations time in seconds
 } configuration_t;
-
-typedef struct {
-  float values[SAMPLES_COUNT_MAX];        //!< samples buffer
-  uint16_t count;                         //!< samples counter
-  float *read_ptr;                        //!< reader pointer
-  float *write_ptr;                       //!< writer pointer
-} sample_t;
-
-typedef struct {
-  float rain_tips;
-  float rain;
-
-  float sample_temperature;
-  float sample_humidity;
-
-  float ist_temperature;
-  float ist_humidity;
-
-  float min_temperature;
-  float min_humidity;
-
-  float avg_temperature;
-  float avg_humidity;
-
-  float max_temperature;
-  float max_humidity;
-
-  float quality_temperature;
-  float quality_humidity;
-} report_t;
-
-// typedef struct {
-//   uint8_t module_type;                //!< module type
-//   uint8_t module_main_version;        //!< module main version
-//   uint8_t module_minor_version;       //!< module minor version
-//   report_t thr;
-// } readable_data_t;
-//
-// typedef struct {
-//   #if (USE_MODULE_THR || USE_MODULE_TH)
-//   uint8_t i2c_temperature_address;    //!< i2c address of temperature sensor
-//   uint8_t i2c_humidity_address;       //!< i2c address of humidity sensor
-//   #endif
-//
-//   #if (USE_MODULE_THR || USE_MODULE_RAIN)
-//   uint16_t tipping_bucket_time_ms;    //!< Tipping bucket time in milliseconds
-//   uint8_t rain_for_tip;               //!< How much mm of rain for one tip of tipping bucket rain gauge
-//   #endif
-// } writable_data_t;
 
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
 configuration_t configuration;
 
-// volatile readable_data_t readable_data_1;
-// volatile readable_data_t readable_data_2;
-// volatile readable_data_t *readable_data_read_ptr;
-// volatile readable_data_t *readable_data_write_ptr;
-// volatile readable_data_t *readable_data_temp_ptr;
-// writable_data_t writable_data;
-// writable_data_t *writable_data_ptr;
+#if (HARDWARE_I2C == ENABLE)
+BinarySemaphore *wireLock;
+#endif
+
+Queue *elaborataDataQueue;
+Queue *requestDataQueue;
+Queue *reportDataQueue;
 
 /*!
 \fn void print_configuration(void)
