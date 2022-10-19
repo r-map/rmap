@@ -154,12 +154,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
 #define SOLAR_RADIATION_ERROR_MIN                     (1.0)
 
-#define ADC_COUNT                                     (1)
 
 #define SOLAR_RADIATION_ADC_INDEX                     (ADC_0)
 #define SOLAR_RADIATION_ADC_CHANNEL_INPUT             (1)
 
 #endif
+
+#define ADC_COUNT                                     (1)
+
 /*!
 \def SDCARD_CHIP_SELECT_PIN
 \brief Chip select for SDcard SPI.
@@ -224,8 +226,27 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define OBSERVATION_SAMPLES_COUNT_MAX                 (100)
 
+#define RMAP_REPORT_SAMPLE_VALID                      (true)
 
 #define RMAP_REPORT_SAMPLES_COUNT                     (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * OBSERVATION_SAMPLES_COUNT_MAX)
+
+/*!
+\def OBSERVATION_SAMPLE_ERROR_MAX
+\brief Maximum invalid sample count for generate a valid observations.
+*/
+#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT_MAX / 2)))
+#define OBSERVATION_SAMPLE_VALID_MIN                  ((uint16_t)(OBSERVATION_SAMPLES_COUNT_MAX - OBSERVATION_SAMPLE_ERROR_MAX))
+
+#define RMAP_REPORT_SAMPLE_ERROR_MAX                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_ERROR_MAX))
+
+#if (RMAP_REPORT_SAMPLE_VALID)
+#define RMAP_REPORT_SAMPLE_VALID_MIN                  (OBSERVATION_SAMPLE_VALID_MIN)
+#else
+#define RMAP_REPORT_SAMPLE_VALID_MIN                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_VALID_MIN))
+#endif
+
+#define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(STATISTICAL_DATA_COUNT - 1))
+#define RMAP_REPORT_VALID_MIN                         ((uint16_t)(STATISTICAL_DATA_COUNT - RMAP_REPORT_ERROR_MAX))
 
 #define SAMPLES_COUNT                                 ((60000 / SENSORS_SAMPLE_TIME_MS * STATISTICAL_DATA_COUNT) + 10)
 
@@ -286,13 +307,13 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 
 /*!
 \def SOLAR_RADIATION_VALUES_READ_DELAY_MS
-\brief Reading delay  for SENSOR DSR.
+\brief Reading delay.
 */
 #define SOLAR_RADIATION_VALUES_READ_DELAY_MS          (10)
 
 /*!
 \def SOLAR_RADIATION_READ_COUNT
-\brief number of read for SENSOR DSR
+\brief number of read.
 */
 #define SOLAR_RADIATION_READ_COUNT                    (20)
 
