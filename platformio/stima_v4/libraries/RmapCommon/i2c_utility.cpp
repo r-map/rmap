@@ -95,12 +95,12 @@ uint8_t I2C_ClearBus() {
    // IDE a chance to start uploaded the program
    // before existing sketch confuses the IDE by sending Serial data.
 
-   boolean SCL_LOW = (digitalRead(SCL) == LOW); // Check is SCL is Low.
+   bool SCL_LOW = (digitalRead(SCL) == LOW); // Check is SCL is Low.
    if (SCL_LOW) { //If it is held low Arduno cannot become the I2C master.
       return 1; //I2C bus error. Could not clear SCL clock line held low
    }
 
-   boolean SDA_LOW = (digitalRead(SDA) == LOW);  // vi. Check SDA input.
+   bool SDA_LOW = (digitalRead(SDA) == LOW);  // vi. Check SDA input.
    uint8_t clockCount = 20; // > 2x9 clock
 
    while (SDA_LOW && (clockCount > 0)) { //  vii. If SDA is Low,

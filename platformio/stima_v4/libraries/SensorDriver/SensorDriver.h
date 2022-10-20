@@ -132,18 +132,18 @@ public:
    virtual void prepare(bool is_test = false);
 
    /*!
-   \fn void get(int32_t *values, uint8_t length)
+   \fn void get(rmapdata_t *values, uint8_t length)
    \brief Get value from sensor.
    \param[out] *values pointer to array for getting multiple sensor's value.
    \param[in] length number of values readed from sensor.
    \param[in] test set test mode.
    \return void.
    */
-   virtual void get(int32_t *values, uint8_t length, bool is_test=false);
+   virtual void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
    /*!
-   \fn void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH)
+   \fn void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH)
    \brief Get value from sensor in JSON string format.
    \param[out] *values pointer to array for getting multiple sensor's value.
    \param[in] length number of values readed from sensor.
@@ -152,7 +152,7 @@ public:
    \param[in] test set test mode.
    \return void.
    */
-   virtual void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   virtual void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    /*!
@@ -355,10 +355,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -377,7 +377,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -391,10 +391,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -414,7 +414,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 };
 
 #endif
@@ -429,10 +429,10 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length, bool is_test=false);
+  void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
   void resetPrepared(bool is_test = false);
@@ -457,7 +457,7 @@ protected:
   \var values[]
   \brief Internal sensor's variable for values readed from sensors.
   */
-  int32_t values[];
+  rmapdata_t values[];
 };
 #endif
 
@@ -471,10 +471,10 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length, bool is_test=false);
+  void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
   void resetPrepared(bool is_test = false);
@@ -496,7 +496,7 @@ protected:
   \var values[]
   \brief Internal sensor's variable for values readed from sensors.
   */
-  int32_t values[];
+  rmapdata_t values[];
 };
 #endif
 
@@ -511,11 +511,11 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
    void getSDfromUV(int32_t u, int32_t v, double *speed, double *direction);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -539,7 +539,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -554,10 +554,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -577,7 +577,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -593,10 +593,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -619,7 +619,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -634,10 +634,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -672,7 +672,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -687,10 +687,10 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length, bool is_test=false);
+  void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
   void resetPrepared(bool is_test = false);
@@ -723,10 +723,10 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length, bool is_test=false);
+  void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
   void resetPrepared(bool is_test = false);
@@ -759,10 +759,10 @@ public:
    };
    void setup();
    void prepare(bool is_test = false);
-   void get(int32_t *values, uint8_t length, bool is_test=false);
+   void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
    #if (USE_JSON)
-   void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+   void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
    #endif
 
    void resetPrepared(bool is_test = false);
@@ -788,7 +788,7 @@ protected:
    \var values[]
    \brief Internal sensor's variable for values readed from sensors.
    */
-   int32_t values[];
+   rmapdata_t values[];
 
 };
 #endif
@@ -805,10 +805,10 @@ public:
   };
   void setup();
   void prepare(bool is_test = false);
-  void get(int32_t *values, uint8_t length, bool is_test=false);
+  void get(rmapdata_t *values, uint8_t length, bool is_test=false);
 
   #if (USE_JSON)
-  void getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
+  void getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length = JSON_BUFFER_LENGTH, bool is_test=false);
   #endif
 
   void resetPrepared(bool is_test = false);

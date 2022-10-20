@@ -134,11 +134,11 @@ void SensorDriver::setup(){
 void SensorDriver::prepare(bool is_test){
 }
 
-void SensorDriver::get(int32_t *values, uint8_t length, bool is_test){
+void SensorDriver::get(rmapdata_t *values, uint8_t length, bool is_test){
 }
 
 #if (USE_JSON)
-void SensorDriver::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test){
+void SensorDriver::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test){
 }
 #endif
 
@@ -313,7 +313,7 @@ void SensorDriverAdt7420::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverAdt7420::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverAdt7420::get(rmapdata_t *values, uint8_t length, bool is_test) {
   uint8_t msb;
   uint8_t lsb;
 
@@ -422,7 +422,7 @@ void SensorDriverAdt7420::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverAdt7420::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverAdt7420::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverAdt7420::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -503,7 +503,7 @@ void SensorDriverHih6100::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverHih6100::get(rmapdata_t *values, uint8_t length, bool is_test) {
   uint8_t x;
   uint8_t y;
   uint8_t s;
@@ -638,7 +638,7 @@ void SensorDriverHih6100::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverHih6100::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverHih6100::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverHih6100::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -716,7 +716,7 @@ void SensorDriverHyt::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverHyt::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverHyt::get(rmapdata_t *values, uint8_t length, bool is_test) {
   uint8_t status = HYT_ERROR;
 
   switch (_get_state) {
@@ -800,7 +800,7 @@ void SensorDriverHyt::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (length >= 2) {
         if (_is_success  && ISVALID_FLOAT(temperature)) {
-          values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
+          values[1] = SENSOR_DRIVER_C_TO_K + (rmapdata_t)(temperature * 100.0);
         }
         else {
           values[1] = INT32_MAX;
@@ -842,7 +842,7 @@ void SensorDriverHyt::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverHyt::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverHyt::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverHyt::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -920,7 +920,7 @@ void SensorDriverSht::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverSht::get(rmapdata_t *values, uint8_t length, bool is_test) {
   bool status = false;
 
   switch (_get_state) {
@@ -978,7 +978,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
 
       if (length >= 2) {
         if (_is_success  && ISVALID_FLOAT(temperature)) {
-          values[1] = SENSOR_DRIVER_C_TO_K + (int32_t)(temperature * 100.0);
+          values[1] = SENSOR_DRIVER_C_TO_K + (rmapdata_t)(temperature * 100.0);
         }
         else {
           values[1] = INT32_MAX;
@@ -1020,7 +1020,7 @@ void SensorDriverSht::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverSht::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverSht::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverSht::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -1113,7 +1113,7 @@ void SensorDriverDw1::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverDw1::get(rmapdata_t *values, uint8_t length, bool is_test) {
   speed = INT32_MAX;
   direction = INT32_MAX;
   uint16_t msb;
@@ -1280,8 +1280,8 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
     }
 
     if (ISVALID_INT32(values[0]) && ISVALID_INT32(values[1]) && length >= 2) {
-      values[0] = (int32_t) direction;
-      values[1] = (int32_t) round(speed);
+      values[0] = (rmapdata_t) direction;
+      values[1] = (rmapdata_t) round(speed);
       TRACE_VERBOSE(F("dw1--> direction: %d"), values[0]);
       TRACE_VERBOSE(F("dw1--> speed: %d"), values[1]);
     } else {
@@ -1299,7 +1299,7 @@ void SensorDriverDw1::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverDw1::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverDw1::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverDw1::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -1413,7 +1413,7 @@ void SensorDriverRain::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverRain::get(rmapdata_t *values, uint8_t length, bool is_test) {
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1550,7 +1550,7 @@ void SensorDriverRain::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverRain::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverRain::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverRain::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -1689,7 +1689,7 @@ void SensorDriverTh::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverTh::get(rmapdata_t *values, uint8_t length, bool is_test) {
   uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
@@ -1952,13 +1952,13 @@ void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
     if ((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test)) {
       if (length >= 1) {
 	if (( ISVALID_UINT8(temperature_data[0]) || ISVALID_UINT8(temperature_data[1] ))) {
-	  values[0] = ((int32_t)(temperature_data[1] << 8) | (temperature_data[0]));
+	  values[0] = ((rmapdata_t)(temperature_data[1] << 8) | (temperature_data[0]));
 	}
       }
 
       if (length >= 2) {
 	if (( ISVALID_UINT8(humidity_data[0]) || ISVALID_UINT8(humidity_data[1] ))) {
-	  values[1] = ((int32_t)(humidity_data[1] << 8) | (humidity_data[0]));
+	  values[1] = ((rmapdata_t)(humidity_data[1] << 8) | (humidity_data[0]));
 	}
       }
     } else {
@@ -2001,7 +2001,7 @@ void SensorDriverTh::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverTh::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverTh::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverTh::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -2066,7 +2066,7 @@ void SensorDriverDigitecoPower::prepare(bool is_test) {
   TRACE_VERBOSE(F(" prepare... [ %s ]"), OK_STRING);
 }
 
-void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverDigitecoPower::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
   switch (_get_state) {
   case INIT:
@@ -2392,7 +2392,7 @@ void SensorDriverDigitecoPower::get(int32_t *values, uint8_t length, bool is_tes
 }
 
 #if (USE_JSON)
-void SensorDriverDigitecoPower::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverDigitecoPower::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverDigitecoPower::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -2542,7 +2542,7 @@ void SensorDriverWind::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverWind::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -2738,24 +2738,24 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
             if ((strcmp(_type, SENSOR_TYPE_DWA) == 0) || (strcmp(_type, SENSOR_TYPE_DWB) == 0)) {
               // speed
               if ((variable_count == 0)) {
-                values[variable_count] = (int32_t) round(val * 10.0);
+                values[variable_count] = (rmapdata_t) round(val * 10.0);
               }
               // direction
               else {
-                values[variable_count] = (int32_t) round(val);
+                values[variable_count] = (rmapdata_t) round(val);
               }
             }
             // speed
             else if ((strcmp(_type, SENSOR_TYPE_DWC) == 0) || (strcmp(_type, SENSOR_TYPE_DWD) == 0)) {
-              values[variable_count] = (int32_t) round(val * 10.0);
+              values[variable_count] = (rmapdata_t) round(val * 10.0);
             }
             // speed class percent
             else if (strcmp(_type, SENSOR_TYPE_DWE) == 0) {
-              values[variable_count] = (int32_t) round(val);
+              values[variable_count] = (rmapdata_t) round(val);
             }
             // direction
             else if (strcmp(_type, SENSOR_TYPE_DWF) == 0) {
-              values[variable_count] = (int32_t) round(val);
+              values[variable_count] = (rmapdata_t) round(val);
             }
           }
           else {
@@ -2799,7 +2799,7 @@ void SensorDriverWind::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverWind::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverWind::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -2988,7 +2988,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverSolarRadiation::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -3109,7 +3109,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
           }
 
           if (_is_success && ISVALID_FLOAT(val)) {
-            values[variable_count] = (int32_t) round(val);
+            values[variable_count] = (rmapdata_t) round(val);
           }
           else {
             values[variable_count] = INT32_MAX;
@@ -3165,7 +3165,7 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
 }
 
 #if (USE_JSON)
-void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverSolarRadiation::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverSolarRadiation::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {
@@ -3287,7 +3287,7 @@ void SensorDriverOpc::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverOpc::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -3505,7 +3505,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
           }
 
           if (_is_success && ISVALID_FLOAT(val)) {
-            values[variable_count] = (int32_t) round(val * 10.0);
+            values[variable_count] = (rmapdata_t) round(val * 10.0);
           }
           else {
             values[variable_count] = INT32_MAX;
@@ -3543,7 +3543,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
               val = val * 10.0;
             }
 
-            values[variable_count] = (int32_t) round(val);
+            values[variable_count] = (rmapdata_t) round(val);
           }
           else {
             values[variable_count] = INT32_MAX;
@@ -3566,10 +3566,10 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
 
           if (_is_success && ISVALID_FLOAT(val)) {
             if (variable_count == 0) {
-              values[variable_count] = (int32_t) round(val * 100.0) + SENSOR_DRIVER_C_TO_K;
+              values[variable_count] = (rmapdata_t) round(val * 100.0) + SENSOR_DRIVER_C_TO_K;
             }
             else if (variable_count == 1) {
-              values[variable_count] = (int32_t) round(val);
+              values[variable_count] = (rmapdata_t) round(val);
             }
           }
           else {
@@ -3739,7 +3739,7 @@ void SensorDriverOpc::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverOpc::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverOpc::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverOpc::get(values, length, is_test);
   uint8_t variable_length;
 
@@ -3889,7 +3889,7 @@ void SensorDriverLeaf::prepare(bool is_test) {
   _start_time_ms = millis();
 }
 
-void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
+void SensorDriverLeaf::get(rmapdata_t *values, uint8_t length, bool is_test) {
 
   bool is_i2c_write;
   uint8_t i;
@@ -4063,7 +4063,7 @@ void SensorDriverLeaf::get(int32_t *values, uint8_t length, bool is_test) {
 }
 
 #if (USE_JSON)
-void SensorDriverLeaf::getJson(int32_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
+void SensorDriverLeaf::getJson(rmapdata_t *values, uint8_t length, char *json_buffer, size_t json_buffer_length, bool is_test) {
   SensorDriverLeaf::get(values, length, is_test);
 
   if (_is_end && !_is_readed) {

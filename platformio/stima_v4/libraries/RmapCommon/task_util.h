@@ -1,4 +1,4 @@
-/**@file task_config.h */
+/**@file task_util.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,8 +21,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _TASK_CONFIG_H
-#define _TASK_CONFIG_H
+#ifndef _TASK_UTIL_H
+#define _TASK_UTIL_H
 
 #undef OS_TASK_PRIORITY_IDLE
 #undef OS_TASK_PRIORITY_NORMAL
