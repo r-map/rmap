@@ -782,7 +782,9 @@ bool canardClass::slave_pnp_send_request(void) {
         };
         // Messaggio standard ad un secondo dal timeStamp Sincronizzato
         send(MEGA, &meta, serialized_size, &serialized[0]);
+        return true;
     }
+    return false;
 }
 
 /// @brief Prepara la lista delle sottoscrizioni Canard (privata)
