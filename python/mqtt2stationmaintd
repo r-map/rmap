@@ -245,10 +245,12 @@ class MyMQTTClass(mqtt.Client):
                                        ,m["datetime"])                                
                                      )
 
-                        mystation.stationmaintstatus.laststatus=m["value"]
-                        mystation.stationmaintstatus.firmwaremajor=m["majorversion"]
-                        mystation.stationmaintstatus.firmwareminor=m["minorversion"]
+                        mystation.stationmaintstatus.laststatus    = m["value"]
+                        mystation.stationmaintstatus.lastupdate    = m["datetime"]
+                        mystation.stationmaintstatus.firmwaremajor = m["majorversion"]
+                        mystation.stationmaintstatus.firmwareminor = m["minorversion"]
                         mystation.stationmaintstatus.save(update_fields=['laststatus','lastupdate'])
+                        if (m["value"] == "conn"): mystation.stationmaintstatus.save(update_fields=['firmwaremajor','firmwareminor'])
 
                     else:
 
@@ -259,12 +261,12 @@ class MyMQTTClass(mqtt.Client):
                                        ,mystation.user
                                        ,mystation.ident
                                        ,m["value"]
+                                       ,m["datetime"]                            
                                        ,m["majorversion"]
-                                       ,m["minorversion"]
-                                       ,m["datetime"])                                
+                                       ,m["minorversion"])
                                      )
 
-                        sms=StationMaintStatus(station=mystation,laststatus=m["value"],firmwaremajor=m["majorversion"],firmwareminor=m["minorversion"] ,lastupdate=m["datetime"])
+                        sms=StationMaintStatus(station=mystation,laststatus=m["value"], lastupdate=m["datetime"], firmwaremajor=m["majorversion"], firmwareminor=m["minorversion"])
                         sms.save()
 
                 except StationMetadata.DoesNotExist :
