@@ -46,6 +46,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "error.h"
 #include "debug.h"
 
+#include "register.hpp"
+#include "bxcan.h"
+#include "module_config.hpp"
+
 #include "tasks/led_task.h"
 #include "tasks/th_sensor_task.h"
 #include "tasks/elaborate_data_task.h"
@@ -101,7 +105,12 @@ void load_configuration(void);
 */
 void save_configuration(bool);
 
+void init_pins(void);
 void init_wire(void);
+void init_sdcard(void);
+void init_registers(void);
+void init_can(void);
+bool CAN_HW_Init(void);
 void init_tasks(void);
 void init_sensors(void);
 

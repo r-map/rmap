@@ -278,11 +278,11 @@
 
 //Delay routines
 #ifndef usleep
-   #define usleep(delay) {volatile uint32_t n = delay * 4; while(n > 0) n--;}
+   // #define usleep(delay) {volatile uint32_t n = delay * 4; while(n > 0) n--;}
 #endif
 
 #ifndef sleep
-   #define sleep(delay) {volatile uint32_t n = delay * 4000; while(n > 0) n--;}
+   // #define sleep(delay) {volatile uint32_t n = delay * 4000; while(n > 0) n--;}
 #endif
 
 #endif

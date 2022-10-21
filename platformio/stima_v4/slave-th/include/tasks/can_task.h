@@ -35,6 +35,34 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #include "report.h"
 #include "debug.h"
 
+// Classe Canard
+#include "canardClass_th.hpp"
+// Libcanard
+#include "register.hpp"
+#include <canard.h>
+#include "bxcan.h"
+// Namespace UAVCAN
+#include <uavcan/node/Heartbeat_1_0.h>
+#include <uavcan/node/GetInfo_1_0.h>
+#include <uavcan/node/ExecuteCommand_1_1.h>
+#include <uavcan/node/port/List_0_1.h>
+#include <uavcan/_register/Access_1_0.h>
+#include <uavcan/_register/List_1_0.h>
+#include <uavcan/file/Read_1_1.h>
+#include <uavcan/time/Synchronization_1_0.h>
+#include <uavcan/pnp/NodeIDAllocationData_1_0.h>
+// Namespace RMAP
+#include <rmap/_module/TH_1_0.h>
+#include <rmap/service/_module/TH_1_0.h>
+// Standard Library
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <time.h>
+#include <unistd.h>
+// Configurazione modulo, definizioni ed utility generiche
+#include "module_config.hpp"
+
 using namespace cpp_freertos;
 
 typedef struct {
