@@ -85,7 +85,6 @@ public:
 protected:
   virtual void Run();
 
-
 private:
   char taskName[configMAX_TASK_NAME_LEN];
   uint16_t stackSize;

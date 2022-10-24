@@ -124,7 +124,7 @@ static CanardPortID getModeAccessID(uint8_t modeAccessID, const char* const port
 // Prepara il blocco messaggio dati per il modulo corrente istantaneo (Crea un esempio)
 // TODO: Collegare al modulo sensor_drive per il modulo corrente
 // NB: Aggiorno solo i dati fisici in questa funzione i metadati sono esterni
-rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore) {
+rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore, const report_t *report) {
     rmap_sensors_TH_1_0 local_data = {0};
     // TODO: Inserire i dati, passaggio da Update... altro
     switch (sensore) {
@@ -157,22 +157,40 @@ rmap_sensors_TH_1_0 prepareSensorsDataValueExample(uint8_t const sensore) {
 }
 
 /// Pubblica i dati RMAP con il metodo publisher se abilitato e configurato
-static void publish_rmap_data(canardClass &clsCanard) {
+static void publish_rmap_data(canardClass &clsCanard, CanParam_t *param) {
     // Pubblica i dati del nodo corrente se abilitata la funzione e con il corretto subjectId
     // Ovviamente il nodo non può essere anonimo per la pubblicazione...
     if ((!clsCanard.is_canard_node_anonymous()) &&
         (clsCanard.publisher_enabled.module_th) &&
         (clsCanard.port_id.publisher_module_th <= CANARD_SUBJECT_ID_MAX)) {
         rmap_module_TH_1_0 module_th_msg = {0};
+
+        request_data_t request_data;
+        report_t report;
+
+        // preparo la struttura dati per richiedere i dati al task che li elabora
+        request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+        request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
+        request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
+
+        // coda di richiesta dati (senza attesa)
+        param->requestDataQueue->Enqueue(&request_data, 0);
+
+        // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
+        if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+          TRACE_INFO(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
+          TRACE_INFO(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
+        }
+
         // Preparo i dati e metadati fissi
         // TODO: Aggiorna i valori mobili
-        module_th_msg.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith);
+        module_th_msg.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
         module_th_msg.ITH.metadata = clsCanard.module_th.ITH.metadata;
-        module_th_msg.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth);
+        module_th_msg.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
         module_th_msg.MTH.metadata = clsCanard.module_th.MTH.metadata;
-        module_th_msg.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth);
+        module_th_msg.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
         module_th_msg.NTH.metadata = clsCanard.module_th.NTH.metadata;
-        module_th_msg.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth);
+        module_th_msg.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
         module_th_msg.XTH.metadata = clsCanard.module_th.XTH.metadata;
         // Serialize and publish the message:
         uint8_t serialized[rmap_module_TH_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
@@ -326,13 +344,15 @@ static uavcan_node_ExecuteCommand_Response_1_1 processRequestExecuteCommand(cana
 }
 
 // Chiamate gestioni dati remote da master (yakut o altro servizio di controllo)
-static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardClass &clsCanard,
-                                                                        rmap_service_module_TH_Request_1_0* req) {
+static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardClass &clsCanard, rmap_service_module_TH_Request_1_0* req, CanParam_t *param) {
     rmap_service_module_TH_Response_1_0 resp = {0};
     // Richiesta parametri univoca a tutti i moduli
     // req->parametri tipo: rmap_service_setmode_1_0
     // req->parametri.comando (Comando esterno ricevuto 3 BIT)
     // req->parametri.run_sectime (Timer to run 13 bit)
+
+    request_data_t request_data;
+    report_t report;
 
     // Case comandi RMAP su GetModule Data (Da definire con esattezza quali e quanti altri)
     switch (req->parametri.comando) {
@@ -340,15 +360,29 @@ static rmap_service_module_TH_Response_1_0 processRequestGetModuleData(canardCla
         /// saturated uint3 get_istant = 0
         /// Ritorna il dato istantaneo (o ultima acquisizione dal sensore)
         case rmap_service_setmode_1_0_get_istant:
-            // Ritorno lo stato (Copia dal comando...)
-            resp.stato = req->parametri.comando;
-            // Preparo la risposta di esempio
-            // TODO: Aggiorna i valori mobili
-            resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith);
-            resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth);
-            resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth);
-            resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth);
-            break;
+          // preparo la struttura dati per richiedere i dati al task che li elabora
+          request_data.is_init = false;   // utilizza i dati esistenti (continua le elaborazioni precedentemente inizializzate)
+          request_data.report_time_s = 900;   // richiedo i dati su 900 secondi
+          request_data.observation_time_s = 60;   // richiedo i dati mediati su 60 secondi
+
+          // coda di richiesta dati (senza attesa)
+          param->requestDataQueue->Enqueue(&request_data, 0);
+
+          // coda di attesa dati (attesa infinita fino alla ricezione degli stessi)
+          if (param->reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
+            TRACE_INFO(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
+            TRACE_INFO(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
+          }
+
+          // Ritorno lo stato (Copia dal comando...)
+          resp.stato = req->parametri.comando;
+          // Preparo la risposta di esempio
+          // TODO: Aggiorna i valori mobili
+          resp.ITH = prepareSensorsDataValueExample(canardClass::Sensor_Type::ith, &report);
+          resp.MTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::mth, &report);
+          resp.NTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::nth, &report);
+          resp.XTH = prepareSensorsDataValueExample(canardClass::Sensor_Type::xth, &report);
+          break;
 
         /// saturated uint3 get_current = 1
         /// Ritorna il dato attuale (ciclo finito o no lo stato di acq_vale)
@@ -480,7 +514,7 @@ static uavcan_node_GetInfo_Response_1_0 processRequestNodeGetInfo() {
 // Chiamata direttamente nel main loop in ricezione dalla coda RX
 // Richiama le funzioni qui sopra di preparazione e risposta alle richieste
 // ******************************************************************************************
-static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer) {
+static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransfer* const transfer, void *param) {
     // Gestione dei Messaggi in ingresso
     if (transfer->metadata.transfer_kind == CanardTransferKindMessage)
     {
@@ -584,7 +618,7 @@ static void processReceivedTransfer(canardClass &clsCanard, const CanardRxTransf
             // The request object is empty so we don't bother deserializing it. Just send the response.
             if (rmap_service_module_TH_Request_1_0_deserialize_(&req, static_cast<uint8_t const*>(transfer->payload), &size) >= 0) {
                 // I dati e metadati sono direttamente popolati in processRequestGetModuleData
-                rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clsCanard, &req);
+                rmap_service_module_TH_Response_1_0 module_th_resp = processRequestGetModuleData(clsCanard, &req, (CanParam_t *) param);
                 // Serialize and publish the message:
                 uint8_t serialized[rmap_service_module_TH_Response_1_0_SERIALIZATION_BUFFER_SIZE_BYTES_] = {0};
                 size_t serialized_size = sizeof(serialized);
@@ -703,9 +737,6 @@ CanTask::CanTask(const char *taskName, uint16_t stackSize, uint8_t priority, Can
 };
 
 void CanTask::Run() {
-  request_data_t request_data;
-  report_t report;
-
   while (true) {
     uavcan_register_Value_1_0 val = {0};
     // Avvia l'istanza alla classe State_Canard ed inizializza Ram, Buffer e variabili base
@@ -716,7 +747,7 @@ void CanTask::Run() {
     clsCanard.flag.set_local_node_mode(uavcan_node_Mode_1_0_INITIALIZATION);
 
     // Attiva il callBack su RX Messaggio Canard sulla funzione interna processReceivedTransfer
-    clsCanard.setReceiveMessage_CB(processReceivedTransfer);
+    clsCanard.setReceiveMessage_CB(processReceivedTransfer, (void *) &param);
 
     // ********************************************************************************
     //                   READING REGISTER FROM E2 MEMORY / FLASH / SDCARD
@@ -922,7 +953,7 @@ void CanTask::Run() {
     int bRxAttempt = 0;
     long lastMillis = 0;
     long checkTimeout = 0;
-    bool bEventRealTimeLoop = false;
+    // bool bEventRealTimeLoop = false;
     bool masterOnline = false;
 
     #define MILLIS_EVENT 10
@@ -950,14 +981,14 @@ void CanTask::Run() {
 
         // Check TimeLine (quasi RealTime...) Simulo Task a Timer
         // Gestione eventi ogni millisEvent mSec -> bEventRealTimeLoop
-        if ((millis()-checkTimeout) >= MILLIS_EVENT)
-        {
-            // Deadline di controllo per eventi di controllo Rapidi (TimeOut, FileHandler ecc...)
-            // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
-            checkTimeout = millis();
-            // Utilizzo per eventi quasi continuativi... Es. Send/Receive File queue...
-            bEventRealTimeLoop = true;
-        }
+        // if ((millis()-checkTimeout) >= MILLIS_EVENT)
+        // {
+        //     // Deadline di controllo per eventi di controllo Rapidi (TimeOut, FileHandler ecc...)
+        //     // Mancata risposta, nodo in Errore o Full o CanardHeapError ecc...
+        //     checkTimeout = millis();
+        //     // Utilizzo per eventi quasi continuativi... Es. Send/Receive File queue...
+        //     bEventRealTimeLoop = true;
+        // }
 
         // TEST VERIFICA sincronizzazione time_stamp locale con remoto... (LED sincronizzati)
         // Test con reboot e successiva risincronizzazione automatica (FAKE RTC!!!!)
@@ -1025,8 +1056,8 @@ void CanTask::Run() {
 
         // FILE HANDLER ( con controllo continuativo se avviato bEventRealTimeLoop )
         // Procedura di gestione ricezione file
-        if(bEventRealTimeLoop)
-        {
+        // if(bEventRealTimeLoop)
+        // {
             // Verifica file download in corso (entro se in download)
             // Attivato da ricezione comando appropriato rxFile o rxFirmware
             if(clsCanard.master.file.download_request()) {
@@ -1091,7 +1122,7 @@ void CanTask::Run() {
                     }
                 }
             }
-        }
+        // }
 
         // -> Scheduler temporizzato dei messaggi standard da inviare alla rete UAVCAN
 
@@ -1100,7 +1131,7 @@ void CanTask::Run() {
         {
             next_333_ms_iter_at += fast_loop_period;
             // Funzione locale privata
-            publish_rmap_data(clsCanard);
+            publish_rmap_data(clsCanard, &param);
         }
 
         // LOOP HANDLER >> 1 SECONDO << HEARTBEAT
@@ -1130,12 +1161,12 @@ void CanTask::Run() {
         // Fine handler quasi RealTime...
         // Attendo nuovo evento per rielaborare
         // Utilizzato per blinking Led (TX/RX)
-        if(bEventRealTimeLoop) {
-            bEventRealTimeLoop = false;
+        // if(bEventRealTimeLoop) {
+            // bEventRealTimeLoop = false;
             #if defined(LED_ON_CAN_DATA_TX) or defined(LED_ON_CAN_DATA_RX)
             digitalWrite(LED2_PIN, LOW);
             #endif
-        };
+        // };
 
         // ***************************************************************************
         //   Gestione Coda messaggi in trasmissione (ciclo di svuotamento messaggi)
@@ -1167,20 +1198,11 @@ void CanTask::Run() {
             #endif
         }
 
+      // Esecuzione ongi 10 ms
+      DelayUntil(Ticks::MsToTicks(10));
     } while (!clsCanard.flag.is_requested_system_restart());
 
     // Reboot
     NVIC_SystemReset();
-
-    // TRACE_INFO(F("CAN TASK\r\n"));
-    // request_data.is_init = true;
-    // request_data.report_time_s = 900;
-    // request_data.observation_time_s = 90;
-    // param.requestDataQueue->Enqueue(&request_data, 0);
-    // if (param.reportDataQueue->Dequeue(&report, portMAX_DELAY)) {
-    //   TRACE_INFO(F("--> CAN temperature report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.temperature.sample, (int32_t) report.temperature.ist, (int32_t) report.temperature.min, (int32_t) report.temperature.avg, (int32_t) report.temperature.max, (int32_t) report.temperature.quality);
-    //   TRACE_INFO(F("--> CAN humidity report\t%d\t%d\t%d\t%d\t%d\t%d\r\n"), (int32_t) report.humidity.sample, (int32_t) report.humidity.ist, (int32_t) report.humidity.min, (int32_t) report.humidity.avg, (int32_t) report.humidity.max, (int32_t) report.humidity.quality);
-    // }
-    // DelayUntil(Ticks::MsToTicks(5000));
   }
 }

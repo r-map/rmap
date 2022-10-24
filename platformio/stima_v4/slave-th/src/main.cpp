@@ -37,13 +37,13 @@ void setup() {
 
   // LedParam_t ledParam = {LED2_PIN, 100, 900};
 
-  // TemperatureHumidtySensorParam_t th_sensor_param;
-  // th_sensor_param.sensors_count = &configuration.sensors_count;
-  // th_sensor_param.sensors = configuration.sensors;
-  // th_sensor_param.acquisition_delay_ms = &configuration.sensor_acquisition_delay_ms;
-  // th_sensor_param.wireLock = wireLock;
-  // th_sensor_param.elaborataDataQueue = elaborataDataQueue;
-  //
+  TemperatureHumidtySensorParam_t th_sensor_param;
+  th_sensor_param.sensors_count = &configuration.sensors_count;
+  th_sensor_param.sensors = configuration.sensors;
+  th_sensor_param.acquisition_delay_ms = &configuration.sensor_acquisition_delay_ms;
+  th_sensor_param.wireLock = wireLock;
+  th_sensor_param.elaborataDataQueue = elaborataDataQueue;
+
   // ElaboradeDataParam_t elaborate_data_param;
   // elaborate_data_param.elaborataDataQueue = elaborataDataQueue;
   // elaborate_data_param.requestDataQueue = requestDataQueue;
@@ -63,7 +63,7 @@ void setup() {
   can_param.reportDataQueue = reportDataQueue;
 
   // static LedTask led_task("LED 2 TASK", 100, OS_TASK_PRIORITY_01, ledParam);
-  // static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 100, OS_TASK_PRIORITY_04, th_sensor_param);
+  static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 100, OS_TASK_PRIORITY_04, th_sensor_param);
   // static ElaborateDataSensorTask elaborate_data_task("ELAB DATA TASK", 100, OS_TASK_PRIORITY_03, elaborate_data_param);
   static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_02, can_param);
 
@@ -206,12 +206,12 @@ void init_can() {
   // *****************************************************
   //            STARTUP CANBUS E CANARD SPEED
   // *****************************************************
-  TRACE_INFO(F("Initializing CANBUS..., PCLK1 Clock Freq: %d"), HAL_RCC_GetPCLK1Freq());
+  TRACE_INFO(F("Initializing CANBUS..., PCLK1 Clock Freq: %d\r\n"), HAL_RCC_GetPCLK1Freq());
   if (!CAN_HW_Init()) {
-      TRACE_ERROR(F("Initialization CAN BUS error"));
+      TRACE_ERROR(F("Initialization CAN BUS error\r\n"));
       LOCAL_ASSERT(false);
   }
-  TRACE_INFO(F("Initialization CAN BUS done"));
+  TRACE_INFO(F("Initialization CAN BUS done\r\n"));
 }
 
 // *********************************************************************************************
@@ -220,8 +220,7 @@ void init_can() {
 
 // Setup HW (PIN, interface, filter, baud)
 bool CAN_HW_Init(void) {
-  Serial.print(F("Initializing CANBUS..., PCLK1 Clock Freq: "));
-  TRACE_DEBUG(HAL_RCC_GetPCLK1Freq());
+  TRACE_INFO(F("Initializing CANBUS..., PCLK1 Clock Freq: %d\r\n"), HAL_RCC_GetPCLK1Freq());
 
   // Definition CAN structure variable
   CAN_HandleTypeDef CAN_Handle;
@@ -267,7 +266,7 @@ bool CAN_HW_Init(void) {
   CAN_Handle.Init.TransmitFifoPriority = DISABLE;
   // Check error initialization CAN
   if (HAL_CAN_Init(&CAN_Handle) != HAL_OK) {
-    TRACE_ERROR(F("Error initialization HW CAN base"));
+    TRACE_ERROR(F("Error initialization HW CAN base\r\n"));
     LOCAL_ASSERT(false);
     return false;
   }
@@ -285,7 +284,7 @@ bool CAN_HW_Init(void) {
 
   // Check error initalization CAN filter
   if (HAL_CAN_ConfigFilter(&CAN_Handle, &CAN_FilterInitStruct) != HAL_OK) {
-    TRACE_ERROR(F("Error initialization filter CAN base"));
+    TRACE_ERROR(F("Error initialization filter CAN base\r\n"));
     LOCAL_ASSERT(false);
     return false;
   }
@@ -304,14 +303,14 @@ bool CAN_HW_Init(void) {
   BxCANTimings timings;
   bool result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
   if (!result) {
-    TRACE_ERROR(F("Error redefinition bxCANComputeTimings, try loading default..."));
+    TRACE_ERROR(F("Error redefinition bxCANComputeTimings, try loading default...\r\n"));
     val.natural32.value.count       = 2;
     val.natural32.value.elements[0] = CAN_BIT_RATE;
     val.natural32.value.elements[1] = 0ul;          // Ignored for CANARD_MTU_CAN_CLASSIC
     registerWrite("uavcan.can.bitrate", &val);
     result = bxCANComputeTimings(HAL_RCC_GetPCLK1Freq(), val.natural32.value.elements[0], &timings);
     if (!result) {
-      TRACE_ERROR(F("Error initialization bxCANComputeTimings"));
+      TRACE_ERROR(F("Error initialization bxCANComputeTimings\r\n"));
       LOCAL_ASSERT(false);
       return false;
     }
@@ -319,7 +318,7 @@ bool CAN_HW_Init(void) {
   // Attivazione bxCAN sulle interfacce richieste, velocità e modalità
   result = bxCANConfigure(0, timings, false);
   if (!result) {
-    TRACE_ERROR(F("Error initialization bxCANConfigure"));
+    TRACE_ERROR(F("Error initialization bxCANConfigure\r\n"));
     LOCAL_ASSERT(false);
     return false;
   }
@@ -327,14 +326,14 @@ bool CAN_HW_Init(void) {
 
   // Check error starting CAN
   if (HAL_CAN_Start(&CAN_Handle) != HAL_OK) {
-    TRACE_ERROR(F("CAN startup ERROR!!!"));
+    TRACE_ERROR(F("CAN startup ERROR!!!\r\n"));
     LOCAL_ASSERT(false);
     return false;
   }
 
   // Enable Interrupt RX Standard CallBack -> CAN1_RX0_IRQHandler
   if (HAL_CAN_ActivateNotification(&CAN_Handle, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK) {
-    TRACE_ERROR(F("Error initialization interrupt CAN base"));
+    TRACE_ERROR(F("Error initialization interrupt CAN base\r\n"));
     LOCAL_ASSERT(false);
     return false;
   }
