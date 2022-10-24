@@ -42,14 +42,14 @@ extern "C" void CAN1_RX0_IRQHandler(void) {
         &__CAN1_RX0_IRQHandler_PTR->msg[testElement].frame.payload_size,
         __CAN1_RX0_IRQHandler_PTR->msg[testElement].buf)) {
         if(testElement != __CAN1_RX0_IRQHandler_PTR->rd_ptr) {
-            // Non posso registrare il dato (MAX_QUEUE) se (testElement == _canard_rx_queue.rd_ptr) 
+            // Non posso registrare il dato (MAX_QUEUE) se (testElement == _canard_rx_queue.rd_ptr)
             // raggiunto MAX Buffer. E' più importante non perdere il primo FIFO payload
             // Quindi non aggiungo il dato ma leggo per svuotare il Buffer FIFO
             // altrimenti rientro sempre in Interrupt RX e mando in stallo la CPU senza RX...
             // READ DATA BUFFER MSG ->
             // Get payload from Buffer (possibilie inizializzazione statica fissa)
             // Il Buffer non cambia indirizzo quindi basterebbe un'init statico di frame[x].payload
-            __CAN1_RX0_IRQHandler_PTR->msg[testElement].frame.payload = 
+            __CAN1_RX0_IRQHandler_PTR->msg[testElement].frame.payload =
             __CAN1_RX0_IRQHandler_PTR->msg[testElement].buf;
             // Push data in queue (Next_WR, Data in testElement + 1 Element from RX)
             __CAN1_RX0_IRQHandler_PTR->wr_ptr = testElement;
@@ -67,10 +67,11 @@ canardClass::canardClass() {
     // CallBack RX Messaggi
     _attach_rx_callback_PTR = NULL;
     _attach_rx_callback = false;
+    _attach_param_PTR = NULL;
 
     // Sottoscrizioni
     _rxSubscriptionIdx = 0;
-    
+
     // Init Timing
     _lastMicros = micros();
     _currMicros = _lastMicros;
@@ -298,7 +299,7 @@ void canardClass::receiveQueue(void) {
     CanardRxTransfer        transfer;
     const int8_t canard_result = canardRxAccept(&_canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
     if (canard_result > 0) {
-        _attach_rx_callback_PTR(*this, &transfer);
+        _attach_rx_callback_PTR(*this, &transfer, _attach_param_PTR);
         _canard.memory_free(&_canard, (void*) transfer.payload);
     } else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY)) {
         (void) 0;  // The frame did not complete a transfer so there is nothing to do.
@@ -335,7 +336,7 @@ void canardClass::receiveQueue(char *logMessage) {
             logMessage+=2;
         }
     }
-    *logMessage = 0;    
+    *logMessage = 0;
     // *****************************************************************************
     // Passaggio CanardFrame Buffered alla RxAccept CANARD
     // DeadLine a partire dal realTime assoluto
@@ -343,7 +344,7 @@ void canardClass::receiveQueue(char *logMessage) {
     CanardRxTransfer        transfer;
     const int8_t canard_result = canardRxAccept(&_canard, timestamp_usec, &_canard_rx_queue.msg[getElement].frame, IFACE_CAN_IDX, &transfer, NULL);
     if (canard_result > 0) {
-        _attach_rx_callback_PTR(*this, &transfer);
+        _attach_rx_callback_PTR(*this, &transfer, _attach_param_PTR);
         _canard.memory_free(&_canard, (void*) transfer.payload);
     } else if ((canard_result == 0) || (canard_result == -CANARD_ERROR_OUT_OF_MEMORY)) {
         (void) 0;  // The frame did not complete a transfer so there is nothing to do.
@@ -356,9 +357,10 @@ void canardClass::receiveQueue(char *logMessage) {
 /// @brief Setta il CallBack Function per il processo esterno di interprete su messaggio ricevuto
 ///         e conforme a Canard. Richiama la funzione esterna su CanardRxAccept Valido. Abilitato su SET
 /// @param ptrFunction puntatore alla funzione di callBack(canardClass&, const CanardRxTransfer*)
-void canardClass::setReceiveMessage_CB(void (*ptrFunction) (canardClass&, const CanardRxTransfer*)) {
+void canardClass::setReceiveMessage_CB(void (*ptrFunction) (canardClass&, const CanardRxTransfer*, void *param), void *param) {
     _attach_rx_callback_PTR = ptrFunction;
     _attach_rx_callback = true;
+    _attach_param_PTR = param;
 }
 
 /// @brief Abilita il CallBack Function Canard RX Message CanardRxAccept
@@ -537,7 +539,7 @@ CanardMicrosecond canardClass::master::timestamp::get_timestamp_syncronized(void
 /// @brief Aggiorna i time stamp della classe sul messaggio standard UAVCAN per le successive sincronizzazioni
 /// @param current_rx_timestamp_us time stamp reale del messaggio entrante (al tempo di RX)
 /// @param previous_tx_timestamp_us time stamp remoto attuale, riferito al precedente invio remoto di time stamp
-/// @return 
+/// @return
 CanardMicrosecond canardClass::master::timestamp::update_timestamp_message(CanardMicrosecond current_rx_timestamp_us,
                                 CanardMicrosecond previous_tx_timestamp_us) {
     // Differenza tra due messaggi in microsecondi
@@ -672,7 +674,7 @@ void canardClass::master::file::start_pending(uint32_t timeout_us)
 }
 
 /// @brief Resetta lo stato dei flag pending per il metodo corrente
-/// @param None 
+/// @param None
 void canardClass::master::file::reset_pending(void)
 {
     _is_pending = false;
@@ -703,7 +705,7 @@ bool canardClass::master::file::event_timeout(void)
 }
 
 /// @brief Verifica se un comando per il relativo modulo è in attesa. Diventerà false o verrà attivato il timeout
-/// @param None 
+/// @param None
 /// @return true se un comando è in attesa
 bool canardClass::master::file::is_pending(void)
 {
@@ -718,7 +720,7 @@ bool canardClass::master::file::is_pending(void)
 /// @param  None
 /// @return true se il metodo è eseguito correttamente
 bool canardClass::slave_heartbeat_send_message(void)
-{    
+{
     // ***** Trasmette alla rete UAVCAN lo stato haeartbeat del modulo *****
     // Heartbeat Fisso anche per modulo Master (Visibile a yakut o altri tools/script gestionali)
     uavcan_node_Heartbeat_1_0 heartbeat = {0};
@@ -844,7 +846,7 @@ bool canardClass::slave_servicelist_send_message(void)
                 (publisher_enabled.module_th))
             {
                 m.publishers.sparse_list.elements[(*cnt)++].value = port_id.publisher_module_th;
-            }            
+            }
         }
 
         // Indicate which servers and subscribers we implement.
@@ -1033,7 +1035,7 @@ bool canardClass::flag::get_local_module_error(void) {
 
 /// @brief Proprietà GET per il valore VendorStatusCode di Heartbeat e per gli utilizzi locali
 /// @param  None
-/// @return 
+/// @return
 uint8_t canardClass::flag::get_local_value_heartbeat_VSC(void) {
     return _heartLocalVSC.uint8_val;
 }
@@ -1065,7 +1067,7 @@ void canardClass::set_canard_node_id(CanardNodeID local_id) {
 }
 
 /// @brief Legge l'ID Nodo locale per l'istanza Canard privata della classe Canard
-/// @param None 
+/// @param None
 /// @return id nodo locale
 CanardNodeID canardClass::get_canard_node_id(void) {
     // Istanza del modulo canard

@@ -33,7 +33,7 @@
 class canardClass {
 
     // ***************** PUBLIC ACCESS *****************
-    public: 
+    public:
 
         // ********************   Tipi di Dati    *****************
 
@@ -51,7 +51,7 @@ class canardClass {
             start_syncronization
         };
 
-        // Gestione modalità Power ( x Canard e Nodo in generale) 
+        // Gestione modalità Power ( x Canard e Nodo in generale)
         enum Power_Mode : uint8_t {
             pwr_on,         // Never (All ON, test o gestione locale)
             pwr_nominal,    // Every Second (Nominale base)
@@ -123,7 +123,7 @@ class canardClass {
         // *************************************************
         //                  Canard SendData
         // *************************************************
-        // Wrapper per send e sendresponse con Canard 
+        // Wrapper per send e sendresponse con Canard
         void send(CanardMicrosecond tx_deadline_usec,
                         const CanardTransferMetadata* const metadata,
                         const size_t payload_size,
@@ -132,7 +132,7 @@ class canardClass {
         void sendResponse(const CanardMicrosecond tx_deadline_usec,
                         const CanardTransferMetadata* const request_metadata,
                         const size_t payload_size,
-                        const void* const payload);                        
+                        const void* const payload);
 
         // Gestione messaggi e coda di trasmissione
         bool transmitQueueDataPresent(void);
@@ -153,7 +153,7 @@ class canardClass {
 
         // CallBack esterna per rxCanardAccept dei messaggi dal buffer RX (valid message)
         // Richiamata se canardAccept accetta il pacchetto ricomposto dei frame in RX
-        void setReceiveMessage_CB (void (*ptrFunction) (canardClass&, const CanardRxTransfer*));
+        void setReceiveMessage_CB (void (*ptrFunction) (canardClass&, const CanardRxTransfer*, void *), void *param);
         void enableReceiveMessage_CB (void);
         void disableReceiveMessage_CB (void);
 
@@ -190,7 +190,7 @@ class canardClass {
 
                 bool is_online(void);
                 void set_online(uint32_t dead_line_us);
-                
+
                 private:
 
                 uint64_t _timeout_us;
@@ -199,7 +199,7 @@ class canardClass {
 
             // Time stamp
             class timestamp {
-                
+
                 public:
 
                 bool check_valid_syncronization(uint8_t current_transfer_id,
@@ -255,9 +255,9 @@ class canardClass {
                 uint64_t _offset;
                 uint64_t _timeout_us;           // Time command Remoto x Verifica deadLine Request
                 bool     _is_pending;           // Funzione in pending (inviato, attesa risposta o timeout)
- 
+
             } file;
- 
+
         } master;
 
         // ****************************************************************************************
@@ -279,7 +279,7 @@ class canardClass {
         {
             public:
 
-            CanardPortID publisher_module_th;            
+            CanardPortID publisher_module_th;
             CanardPortID service_module_th;
 
         } port_id;
@@ -371,7 +371,7 @@ class canardClass {
 
         // Timings var per getMicros();
         inline static uint32_t _lastMicros;
-        inline static uint64_t _currMicros;        
+        inline static uint64_t _currMicros;
         inline static uint64_t _syncMicros;
 
         // Funzioni di utility private (sezione publish list_message)
@@ -384,13 +384,14 @@ class canardClass {
 
         // Gestione O1Heap Static Funzioni x Canard Memory Allocate/Free
         static void* _memAllocate(CanardInstance* const ins, const size_t amount);
-        static void  _memFree(CanardInstance* const ins, void* const pointer);        
+        static void  _memFree(CanardInstance* const ins, void* const pointer);
 
         O1HeapDiagnostics _memGetDiagnostics(void);
 
         // Indirizzo della funzione di CallBack Esterna su Rx Messaggio Canard
         bool _attach_rx_callback;
-        void (*_attach_rx_callback_PTR) (canardClass&, const CanardRxTransfer*);
+        void (*_attach_rx_callback_PTR) (canardClass&, const CanardRxTransfer*, void *);
+        void *_attach_param_PTR;
 
         // Gestione subscription locali
         CanardRxSubscription _rxSubscription[MAX_SUBSCRIPTION];
