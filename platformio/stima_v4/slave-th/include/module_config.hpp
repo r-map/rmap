@@ -34,9 +34,15 @@
 #define GENERIC_STATE_UNDEFINED 0x0Fu
 #define GENERIC_BVAL_UNDEFINED  0xFFu
 
-// Servizi di default
+// Servizi Cypal attivi di default
 #define DEFAULT_PUBLISH_PORT_LIST   true
 #define DEFAULT_PUBLISH_MODULE_DATA false
+
+// Time Publisher Servizi (secondi)
+#define TIME_PUBLISH_MODULE_DATA    0.333
+#define TIME_PUBLISH_PNP_REQUEST    2
+#define TIME_PUBLISH_HEARTBEAT      1
+#define TIME_PUBLISH_PORT_LIST      20
 
 // TimeOUT (millisecondi)
 #define MASTER_OFFLINE_TIMEOUT_US 6000000

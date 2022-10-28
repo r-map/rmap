@@ -63,7 +63,7 @@ void setup() {
   can_param.reportDataQueue = reportDataQueue;
 
   // static LedTask led_task("LED 2 TASK", 100, OS_TASK_PRIORITY_01, ledParam);
-  static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 100, OS_TASK_PRIORITY_04, th_sensor_param);
+  // static TemperatureHumidtySensorTask th_sensor_task("TH SENSOR TASK", 100, OS_TASK_PRIORITY_04, th_sensor_param);
   // static ElaborateDataSensorTask elaborate_data_task("ELAB DATA TASK", 100, OS_TASK_PRIORITY_03, elaborate_data_param);
   static CanTask can_task("CAN TASK", 8192, OS_TASK_PRIORITY_02, can_param);
 

@@ -74,9 +74,8 @@ class CanTask : public cpp_freertos::Thread {
   typedef enum {
     INIT,
     SETUP,
-    PREPARE,
-    READ,
-    END
+    STANDBY,
+    SLEEP
   } State_t;
 
 public:
