@@ -1059,7 +1059,7 @@ void CanTask::Run() {
                 }
 
                 // **************************************************************************
-                // *********************** FILE UPLOAD PROCESS HANDLER **********************                
+                // *********************** FILE UPLOAD PROCESS HANDLER **********************
                 // **************************************************************************
 
                 // Verifica file download in corso (entro se in download)
@@ -1229,9 +1229,8 @@ void CanTask::Run() {
 
         #ifdef LOG_STACK_USAGE
         if(stackTimer++>100) {
-            stackTimer = 0;
-            Serial.print("Stack Usage: ");
-            Serial.println(uxTaskGetStackHighWaterMark( NULL ));
+          stackTimer = 0;
+          TRACE_VERBOSE(F("Stack Usage: %d\r\n"), uxTaskGetStackHighWaterMark( NULL ));
         }
         #endif
 
