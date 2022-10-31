@@ -42,7 +42,7 @@ define the macro to fully disable logging, and reduce project size
 \brief Enable logging on SDcard
 define to 1 the macro to enable logging on a file on SDcard.
 */
-#define ENABLE_SDCARD_LOGGING              (1)
+#define ENABLE_SDCARD_LOGGING              (0)
 
 /*!
 \def LOG_LEVEL
@@ -58,41 +58,6 @@ LOG_LEVEL_VERBOSE
 */
 #define LOG_LEVEL   LOG_LEVEL_NOTICE
 
-/*!
-\def DEBUG_MEMORY
-\brief Activate debug of memory use and stack heap collision on serial interface.
-*/
-#define DEBUG_MEMORY                      (0)
-
-/*!
-\def LCD_TRACE_LEVEL_OFF
-\brief Debug level for print error message on lcd interface.
-*/
-#define LCD_TRACE_LEVEL_OFF               (0)
-
-/*!
-\def LCD_TRACE_LEVEL_ERROR
-\brief Debug level for print error message on lcd.
-*/
-#define LCD_TRACE_LEVEL_ERROR             (1)
-
-/*!
-\def LCD_TRACE_LEVEL_WARNING
-\brief Debug level for print detailed informations message on serial interface.
-*/
-#define LCD_TRACE_LEVEL_WARNING           (2)
-
-/*!
-\def LCD_TRACE_LEVEL_INFO
-\brief Debug level for print informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_INFO              (3)
-
-/*!
-\def LCD_TRACE_LEVEL_DEBUG
-\brief Debug level for print verbose informations message on lcd.
-*/
-#define LCD_TRACE_LEVEL_DEBUG             (4)
 
 /*!
 \def OK_STRING
@@ -146,6 +111,5 @@ LOG_LEVEL_VERBOSE
 \def STIMA_LCD_TRACE_LEVEL
 \brief Lcd trace level debug for stima sketch.
 */
-#define STIMA_LCD_TRACE_LEVEL              (LCD_TRACE_LEVEL_INFO)
 
 #endif

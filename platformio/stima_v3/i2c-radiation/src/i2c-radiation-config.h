@@ -1,7 +1,5 @@
-/**@file i2c-radiation-config.h */
-
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -29,10 +27,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * MODULE
 *********************************************************************/
 /*!
-\def MODULE_VERSION
-\brief Module version.
+\def MODULE_MAIN_VERSION
+\brief Module main version.
 */
-#define MODULE_VERSION                                (3)
+#define MODULE_MAIN_VERSION                           (3)
+
+/*!
+\def MODULE_MINOR_VERSION
+\brief Module minor version.
+*/
+#define MODULE_MINOR_VERSION                          (10)
+
+/*!
+\def MODULE_CONFIGURATION_VERSION
+\brief Module version of compatibile configuration. If you change it, you have to reconfigure.
+*/
+#define MODULE_CONFIGURATION_VERSION                  (1)
 
 /*!
 \def MODULE_TYPE
@@ -43,19 +53,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*********************************************************************
 * CONFIGURATION
 *********************************************************************/
-#define IS_CALIBRATION                                (true)
 
 /*!
 \def CONFIGURATION_DEFAULT_IS_ONESHOT
 \brief Oneshot mode for default.
 */
-#define CONFIGURATION_DEFAULT_IS_ONESHOT              (false)
-
-/*!
-\def CONFIGURATION_DEFAULT_IS_CONTINUOUS
-\brief Continuous mode for default.
-*/
-#define CONFIGURATION_DEFAULT_IS_CONTINUOUS           (true)
+#define CONFIGURATION_DEFAULT_ONESHOT              (false)
 
 /*!
 \def CONFIGURATION_DEFAULT_I2C_ADDRESS
@@ -69,14 +72,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #define CONFIGURATION_RESET_PIN                       (8)
 
-#define ADC_0                                         (0)
-#define ADC_1                                         (1)
-#define ADC_2                                         (2)
-
 #define ADC_1_I2C_ADDRESS                             (0x48)  // GND
 #define ADC_2_I2C_ADDRESS                             (0x49)  // VDD
 #define ADC_3_I2C_ADDRESS                             (0x4B)  // SCL
 #define ADC_4_I2C_ADDRESS                             (0x4A)  // SDA
+
+#define ADC_I2C_ADDRESS                               ADC_1_I2C_ADDRESS
+
 
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_1    (0.0)
 #define CONFIGURATION_DEFAULT_ADC_VOLTAGE_OFFSET_2    (1.0)
@@ -149,12 +151,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define SOLAR_RADIATION_ERROR_MAX                     (2000.0)
 #define SOLAR_RADIATION_ERROR_MIN                     (1.0)
 
-#define ADC_COUNT                                     (1)
 
-#define SOLAR_RADIATION_ADC_INDEX                     (ADC_0)
 #define SOLAR_RADIATION_ADC_CHANNEL_INPUT             (1)
 
 #endif
+
 /*!
 \def SDCARD_CHIP_SELECT_PIN
 \brief Chip select for SDcard SPI.
@@ -212,56 +213,15 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 */
 #define SENSORS_SAMPLE_TIME_MS                        (4000)
 
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MIN
-\brief Sample count minimum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MIN                 ((uint8_t)(OBSERVATIONS_MINUTES * 60 / ((uint8_t)(SENSORS_SAMPLE_TIME_MS / 1000))))
-
-#if ((OBSERVATIONS_MINUTES * 60) % (SENSORS_SAMPLE_TIME_MS / 1000) == 0)
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                 (OBSERVATION_SAMPLES_COUNT_MIN)
-#else
-/*!
-\def OBSERVATION_SAMPLES_COUNT_MAX
-\brief Sample count maximum in OBSERVATIONS_MINUTES minutes.
-*/
-#define OBSERVATION_SAMPLES_COUNT_MAX                 (OBSERVATION_SAMPLES_COUNT_MIN + 1)
-#endif
-
-#define RMAP_REPORT_SAMPLE_VALID                      (true)
-
-#define RMAP_REPORT_SAMPLES_COUNT                     (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * OBSERVATION_SAMPLES_COUNT_MAX)
 
 /*!
-\def OBSERVATION_SAMPLE_ERROR_MAX
-\brief Maximum invalid sample count for generate a valid observations.
+\def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
+\brief Sample maximum error in percent for one observation.
 */
-#define OBSERVATION_SAMPLE_ERROR_MAX                  ((uint16_t)(round(OBSERVATION_SAMPLES_COUNT_MAX / 2)))
-#define OBSERVATION_SAMPLE_VALID_MIN                  ((uint16_t)(OBSERVATION_SAMPLES_COUNT_MAX - OBSERVATION_SAMPLE_ERROR_MAX))
 
-#define RMAP_REPORT_SAMPLE_ERROR_MAX                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_ERROR_MAX))
+#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC                  (10.)
 
-#if (RMAP_REPORT_SAMPLE_VALID)
-#define RMAP_REPORT_SAMPLE_VALID_MIN                  (OBSERVATION_SAMPLE_VALID_MIN)
-#else
-#define RMAP_REPORT_SAMPLE_VALID_MIN                  ((uint16_t)(STATISTICAL_DATA_COUNT * OBSERVATION_SAMPLE_VALID_MIN))
-#endif
 
-#define RMAP_REPORT_ERROR_MAX                         ((uint16_t)(STATISTICAL_DATA_COUNT - 1))
-#define RMAP_REPORT_VALID_MIN                         ((uint16_t)(STATISTICAL_DATA_COUNT - RMAP_REPORT_ERROR_MAX))
-
-#define SAMPLES_COUNT                                 ((60000 / SENSORS_SAMPLE_TIME_MS * STATISTICAL_DATA_COUNT) + 10)
-
-#define RMAP_REPORT_INTERVAL_S                        (STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES * 60.0)
-
-/*!
-\def USE_SENSORS_COUNT
-\brief Sensors count.
-*/
 /*********************************************************************
 * SENSORS
 *********************************************************************/
@@ -327,5 +287,11 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \brief number of read.
 */
 #define SOLAR_RADIATION_READ_COUNT                    (20)
+
+/*!
+\def TRANSACTION_TIMEOUT_MS
+\brief Timeout for command transaction.
+*/
+#define TRANSACTION_TIMEOUT_MS                       (12000)
 
 #endif

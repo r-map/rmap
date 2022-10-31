@@ -151,6 +151,15 @@ protected:
   adsGain_t m_gain;
   adc_state_t adc_state;
 
+  uint8_t retry;
+  bool is_error;
+  adc_state_t state_after_wait;
+  uint32_t delay_ms;
+  uint32_t start_time_ms;
+  int16_t adc_value[ADC_CHECK_COUNT];
+  uint8_t adc_value_count;
+  adc_result_t adc_result;
+  
   adc_result_t readRegister(uint8_t i2c_address, uint8_t reg, uint16_t *value);
   adc_result_t writeRegister(uint8_t i2c_address, uint8_t reg, uint16_t value);
 

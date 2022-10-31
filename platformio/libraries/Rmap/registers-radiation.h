@@ -32,6 +32,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_SOLAR_RADIATION_DEFAULT_ADDRESS                  (0x47)
 
 /*!
+\def I2C_SOLAR_RADIATION_COMMAND_NONE
+\brief NO command for i2c-radiation module.
+*/
+#define I2C_SOLAR_RADIATION_COMMAND_NONE                 (0x00)
+
+/*!
 \def I2C_SOLAR_RADIATION_COMMAND_SAVE
 \brief Save command for i2c-radiation module.
 */
@@ -82,47 +88,72 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*********************************************************************
 * Readable registers: Specifying the length in bytes of the data by I2C_{MODULE_NAME}_{DATA_NAME}_LENGTH, the corresponding address is calculated automatically
 *********************************************************************/
+
 /*!
 \def I2C_SOLAR_RADIATION_TYPE_LENGTH
-\brief length of the type variable for i2c-radiation module.
+\brief length of the type variable for i2c-th module.
 */
 #define I2C_SOLAR_RADIATION_TYPE_LENGTH                      (0x01)
 
 /*!
 \def I2C_SOLAR_RADIATION_TYPE_ADDRESS
-\brief address of the type variable for i2c-radiation module.
+\brief address of the type variable for i2c-th module.
 */
 #define I2C_SOLAR_RADIATION_TYPE_ADDRESS                     (I2C_READ_REGISTER_START_ADDRESS)
 
 /*!
-\def I2C_SOLAR_RADIATION_VERSION_LENGTH
-\brief length of the version variable for i2c-radiation module.
+\def I2C_SOLAR_RADIATION_MAIN_VERSION_LENGTH
+\brief length of the main version variable for i2c-th module.
 */
-#define I2C_SOLAR_RADIATION_VERSION_LENGTH                  (0x01)
+#define I2C_SOLAR_RADIATION_MAIN_VERSION_LENGTH                   (0x01)
 
 /*!
-\def I2C_SOLAR_RADIATION_VERSION_ADDRESS
-\brief address of the version variable for i2c-radiation module.
+\def I2C_SOLAR_RADIATION_MAIN_VERSION_ADDRESS
+\brief address of the main version variable for i2c-th module.
 */
-#define I2C_SOLAR_RADIATION_VERSION_ADDRESS                 (I2C_SOLAR_RADIATION_TYPE_ADDRESS + I2C_SOLAR_RADIATION_TYPE_LENGTH)
+#define I2C_SOLAR_RADIATION_MAIN_VERSION_ADDRESS                  (I2C_SOLAR_RADIATION_TYPE_ADDRESS + I2C_SOLAR_RADIATION_TYPE_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_MINOR_VERSION_LENGTH
+\brief length of the minor version variable for i2c-th module.
+*/
+#define I2C_SOLAR_RADIATION_MINOR_VERSION_LENGTH                   (0x01)
+
+/*!
+\def I2C_SOLAR_RADIATION_MINOR_VERSION_ADDRESS
+\brief address of the minor version variable for i2c-th module.
+*/
+#define I2C_SOLAR_RADIATION_MINOR_VERSION_ADDRESS                  (I2C_SOLAR_RADIATION_MAIN_VERSION_ADDRESS + I2C_SOLAR_RADIATION_MAIN_VERSION_LENGTH)
+
+/*!
+\def I2C_SOLAR_RADIATION_SAMPLE_LENGTH
+\brief length of the sample variable for i2c-th module.
+*/
+#define I2C_SOLAR_RADIATION_SAMPLE_LENGTH        (0x02)
+
+/*!
+\def I2C_SOLAR_RADIATION_SAMPLE_ADDRESS
+\brief address of the sample variable for i2c-th module.
+*/
+#define I2C_SOLAR_RADIATION_SAMPLE_ADDRESS       (I2C_SOLAR_RADIATION_MINOR_VERSION_ADDRESS + I2C_SOLAR_RADIATION_MINOR_VERSION_LENGTH)
 
 /*!
 \def I2C_SOLAR_RADIATION_AVERAGE_LENGTH
 \brief length of the radiation wetness timer variable for i2c-radiation module.
 */
-#define I2C_SOLAR_RADIATION_AVERAGE_LENGTH                  (0x04)
+#define I2C_SOLAR_RADIATION_AVERAGE_LENGTH                  (0x02)
 
 /*!
 \def I2C_SOLAR_RADIATION_AVERAGE_ADDRESS
 \brief address of the radiation wetness timer variable for i2c-radiation module.
 */
-#define I2C_SOLAR_RADIATION_AVERAGE_ADDRESS                 (I2C_SOLAR_RADIATION_VERSION_ADDRESS + I2C_SOLAR_RADIATION_VERSION_LENGTH)
+#define I2C_SOLAR_RADIATION_AVERAGE_ADDRESS                 (I2C_SOLAR_RADIATION_SAMPLE_ADDRESS + I2C_SOLAR_RADIATION_SAMPLE_LENGTH)
 
 /*!
 \def I2C_SOLAR_RADIATION_MAX_LENGTH
 \brief length of the radiation wetness timer variable for i2c-radiation module.
 */
-#define I2C_SOLAR_RADIATION_MAX_LENGTH                      (0x04)
+#define I2C_SOLAR_RADIATION_MAX_LENGTH                      (0x02)
 
 /*!
 \def I2C_SOLAR_RADIATION_MAX_ADDRESS
@@ -140,7 +171,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_SOLAR_RADIATION_FLUX_LENGTH
 \brief length of the radiation wetness timer variable for i2c-radiation module.
 */
-#define I2C_SOLAR_RADIATION_FLUX_LENGTH                     (0x04)
+#define I2C_SOLAR_RADIATION_FLUX_LENGTH                     (0x02)
 
 /*!
 \def I2C_SOLAR_RADIATION_READABLE_DATA_LENGTH
@@ -176,22 +207,25 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define I2C_SOLAR_RADIATION_ONESHOT_ADDRESS                  (I2C_SOLAR_RADIATION_ADDRESS_ADDRESS + I2C_SOLAR_RADIATION_ADDRESS_LENGTH)
 
 /*!
-\def I2C_SOLAR_RADIATION_CONTINUOUS_LENGTH
-\brief length of the continuous variable for i2c-radiation module.
-*/
-#define I2C_SOLAR_RADIATION_CONTINUOUS_LENGTH                (0x01)
-
-/*!
-\def I2C_SOLAR_RADIATION_CONTINUOUS_ADDRESS
-\brief address of the continuous variable for i2c-radiation module.
-*/
-#define I2C_SOLAR_RADIATION_CONTINUOUS_ADDRESS               (I2C_SOLAR_RADIATION_ONESHOT_ADDRESS + I2C_SOLAR_RADIATION_ONESHOT_LENGTH)
-
-/*!
 \def I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH
 \brief length of the writable variables for i2c-radiation module.
 */
-#define I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH             (I2C_SOLAR_RADIATION_CONTINUOUS_ADDRESS + I2C_SOLAR_RADIATION_CONTINUOUS_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
+#define I2C_SOLAR_RADIATION_WRITABLE_DATA_LENGTH             (I2C_SOLAR_RADIATION_ONESHOT_ADDRESS + I2C_SOLAR_RADIATION_ONESHOT_LENGTH - I2C_WRITE_REGISTER_START_ADDRESS)
+
+
+/* TO BE ADDED HERE
+   // 10 bit
+   float adc_voltage_offset_1;
+   float adc_voltage_offset_2;
+   float adc_voltage_min;
+   float adc_voltage_max;
+
+   // 16 bit hr
+   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADS1115_CHANNEL_COUNT];
+*/
 
 // Readable registers errors checking
 #if I2C_SOLAR_RADIATION_READ_REGISTERS_LENGTH > I2C_READ_REGISTER_END_ADDRESS

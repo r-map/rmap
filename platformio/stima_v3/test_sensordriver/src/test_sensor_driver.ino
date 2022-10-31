@@ -1,6 +1,3 @@
-
-#define LOG_LEVEL LOG_LEVEL_NOTICE
-
 #include <i2c_config.h>
 #include <debug_config.h>
 #include <SensorDriver.h>
@@ -122,6 +119,13 @@ void init_sensors () {
   SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DEP, address, 1, sensors, &sensors_count);
   LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
   #endif
+
+  #if (USE_SENSOR_DSA)
+  #include <registers-radiation.h>
+  address = I2C_SOLAR_RADIATION_DEFAULT_ADDRESS;
+  SensorDriver::createAndSetup(SENSOR_DRIVER_I2C, SENSOR_TYPE_DSA, address, 1, sensors, &sensors_count);
+  LOGN(F("--> %d: %s-%s [ 0x%x ]: [ %s ]"), sensors_count,  sensors[sensors_count-1]->getDriver(), sensors[sensors_count-1]->getType(), sensors[sensors_count-1]->getAddress(), sensors[sensors_count-1]->isSetted() ? OK_STRING : FAIL_STRING);
+  #endif  
 }
 
 void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *driver = NULL, char *type = NULL, uint8_t address = 0, uint8_t node = 0, uint8_t *sensor_index = 0, uint32_t *wait_time = NULL) {
@@ -153,18 +157,17 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     if (do_prepare) {
       LOGN(F("Sensors reading..."));
       retry = 0;
-      
+
       if (driver && type && address && node && is_sensor_found) {
-	sensors[i]->resetPrepared();
+	sensors[i]->resetPrepared(is_test);
       }
       else {
 	for (i=0; i<sensors_count; i++) {
-	  sensors[i]->resetPrepared();
+	  sensors[i]->resetPrepared(is_test);
 	}
 	i = 0;
       }
-      
-        state_after_wait = SENSORS_READING_INIT;
+
         sensors_reading_state = SENSORS_READING_PREPARE;
         LOGV(F("SENSORS_READING_INIT ---> SENSORS_READING_PREPARE"));
     }
@@ -240,9 +243,9 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     
   case SENSORS_READING_GET:
     #if (USE_JSON)
-    sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0]);
+    sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0],is_test);
     #else
-    sensors[i]->get(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT);
+    sensors[i]->get(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT,is_test);
     #endif
 
     delay_ms = sensors[i]->getDelay();
@@ -320,7 +323,7 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
 	LOGN(F("start sensor %s %s-%s:"), is_test ? "Test" : "Report",sensors[i]->getDriver(),sensors[i]->getType());
 	
 	for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
-	  LOGN(F("value %d: %l"), i,values_readed_from_sensor[i][v]);
+	  LOGN(F("value %d,%d: %l"), i,v,values_readed_from_sensor[i][v]);
 	}
 	
           #if (USE_JSON)

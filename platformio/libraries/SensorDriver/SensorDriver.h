@@ -683,17 +683,12 @@ public:
 
 protected:
 
-  uint8_t variable_length;
-  uint8_t data_length;
+  uint8_t radiation_data[I2C_SOLAR_RADIATION_AVERAGE_LENGTH];
 
-  uint8_t variable_count;
-  uint8_t offset;
-  
   enum {
     INIT,
     SET_ADDRESS,
     READ_VALUE,
-    GET_VALUE,
     END
   } _get_state;
 };

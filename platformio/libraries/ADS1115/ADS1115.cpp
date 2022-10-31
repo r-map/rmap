@@ -124,30 +124,7 @@ adc_result_t ADS1115::readSingleEnded(int16_t *value) {
   return status;
 }
 
-bool checkForEqual (int16_t *buffer, uint8_t length, uint8_t index) {
-  uint8_t i = index;
-  uint8_t count = 0;
-
-  do {
-    if (i == 0) {
-      i = length - 1;
-    }
-    else {
-      i--;
-    }
-
-  } while (count == 3);
-}
-
 adc_result_t ADS1115::readSingleChannel(uint8_t channel, int16_t *value) {
-  static uint8_t retry;
-  static bool is_error;
-  static adc_state_t state_after_wait;
-  static uint32_t delay_ms;
-  static uint32_t start_time_ms;
-  static int16_t adc_value[ADC_CHECK_COUNT];
-  static uint8_t adc_value_count;
-  static adc_result_t adc_result;
   adc_result_t cmd_result;
 
   switch (adc_state) {
