@@ -321,11 +321,6 @@ uint16_t average;
 
 #if (USE_SENSOR_VSR)
 ADS1115 adc1(ADC_I2C_ADDRESS);
-
-float getAdcCalibratedValue (float adc_value, float offset, float gain);
-float getAdcAnalogValue (float adc_value, float min, float max);
-ADS1115 adc1(ADC_1_I2C_ADDRESS);
-
 float getAdcCalibratedValue (float adc_value, float offset, float gain);
 float getAdcAnalogValue (float adc_value, float min, float max);
 #endif
