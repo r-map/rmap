@@ -1,4 +1,4 @@
-/**@file i2c_config.h */
+/**@file ntp_config.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,31 +20,19 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _HARDWARE_CONFIG_H
-#define _HARDWARE_CONFIG_H
+#ifndef _NTP_CONFIG_H
+#define _NTP_CONFIG_H
 
 /*!
-\def I2C_BUS_CLOCK
-\brief I2C bus clock in Hertz.
+\def NTP_SERVER_LENGTH
+\brief Length in bytes for ntp server data buffer.
 */
-#define I2C_BUS_CLOCK                   (50000L)
+#define NTP_SERVER_LENGTH     (30)
 
 /*!
-\def I2C_MAX_DATA_LENGTH
-\brief Max length in bytes for i2c bus data buffer.
+\def NTP_DEFAULT_SERVER
+\brief Default NTP server.
 */
-#define I2C_MAX_DATA_LENGTH             (32)
-
-/*!
-\def I2C_MAX_ERROR_COUNT
-\brief Max i2c error for bus restart.
-*/
-#define I2C_MAX_ERROR_COUNT             (5)
-
-/*!
-\def I2C_SET_ERROR_COUNT
-\brief I2C error count for bus restart.
-*/
-#define I2C_SET_ERROR_COUNT             (10)
+#define NTP_DEFAULT_SERVER    ("pool.ntp.org")
 
 #endif

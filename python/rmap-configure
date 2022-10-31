@@ -828,7 +828,9 @@ if args.download_from_server:
 
             if isinstance(deserialized_object.object,StationMetadata):
                 try:
-                    StationMetadata.objects.get(slug=deserialized_object.object.slug,user__username=deserialized_object.object.ident).delete()
+                    StationMetadata.objects.get(slug=deserialized_object.object.slug,ident=deserialized_object.object.ident
+                                                ,lat=deserialized_object.object.lat,lon=deserialized_object.object.lon
+                                                ,network=deserialized_object.object.network).delete()
                     print ("Removed preexistent: {}:{} from local DB".format(deserialized_object.object.slug,deserialized_object.object.ident))
                 except ObjectDoesNotExist:
                     print ("StationMetadata do not exist in DB")

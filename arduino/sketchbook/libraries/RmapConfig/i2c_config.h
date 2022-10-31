@@ -39,12 +39,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def I2C_MAX_ERROR_COUNT
 \brief Max i2c error for bus restart.
 */
-#define I2C_MAX_ERROR_COUNT             (5)
+#define I2C_MAX_ERROR_COUNT             (1)
 
 /*!
 \def I2C_SET_ERROR_COUNT
 \brief I2C error count for bus restart.
 */
 #define I2C_SET_ERROR_COUNT             (10)
+
+/*!
+\def I2C_DELAY_FOR_SET_I2C_ERROR_MS
+\brief Max i2c error for bus restart.
+*/
+#define I2C_DELAY_FOR_SET_I2C_ERROR_MS  (60000)
+#define I2C_DELAY_FOR_SET_I2C_ERROR_S   ((uint16_t)(I2C_DELAY_FOR_SET_I2C_ERROR_MS/1000))
 
 #endif

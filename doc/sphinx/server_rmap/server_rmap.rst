@@ -318,7 +318,8 @@ Arkimet
    mkdir /home/arkimet
    chown arkimet:arkimet /home/arkimet
    mkdir /rmap/arkimet/
-   chown -R arkimet:arkimet /rmap/arkimet/
+   chown -R arkimet:rmap /rmap/arkimet/
+   chmod -R g+w  /rmap/arkimet/
    mkdir /var/log/arkimet
    chown -R arkimet:arkimet /var/log/arkimet
 

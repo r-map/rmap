@@ -1,4 +1,4 @@
-/**@file i2c_config.h */
+/**@file sdcard_config.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,31 +20,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _HARDWARE_CONFIG_H
-#define _HARDWARE_CONFIG_H
+#ifndef _SDCARD_CONFIG_H
+#define _SDCARD_CONFIG_H
 
 /*!
-\def I2C_BUS_CLOCK
-\brief I2C bus clock in Hertz.
+\def SDCARD_FILES_NAME_MAX_LENGTH
+\brief Length in bytes for sdcard file name data buffer.
 */
-#define I2C_BUS_CLOCK                   (50000L)
-
-/*!
-\def I2C_MAX_DATA_LENGTH
-\brief Max length in bytes for i2c bus data buffer.
-*/
-#define I2C_MAX_DATA_LENGTH             (32)
-
-/*!
-\def I2C_MAX_ERROR_COUNT
-\brief Max i2c error for bus restart.
-*/
-#define I2C_MAX_ERROR_COUNT             (5)
-
-/*!
-\def I2C_SET_ERROR_COUNT
-\brief I2C error count for bus restart.
-*/
-#define I2C_SET_ERROR_COUNT             (10)
+#define SDCARD_FILES_NAME_MAX_LENGTH      (20)
 
 #endif

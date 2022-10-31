@@ -1,4 +1,4 @@
-/**@file i2c-wind.h */
+/**@file i2c-radiation.h */
 
 /*********************************************************************
 Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -20,10 +20,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#ifndef _I2C_WIND_H
-#define _I2C_WIND_H
+#ifndef _I2C_SOLAR_RADIATION_H
+#define _I2C_SOLAR_RADIATION_H
 
-#include "i2c-wind-config.h"
+#include "i2c-radiation-config.h"
 #include <debug.h>
 #include <i2c_config.h>
 #include <avr/sleep.h>
@@ -38,11 +38,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <Wire.h>
 #include <TimeLib.h>
 #include <typedef.h>
-#include <registers-wind.h>
-#include <debug_config.h>
-#include <SdFat.h>
-#include <StreamUtils.h>
-#include <ArduinoLog.h>
+#include <ADS1115.h>
+#include <registers-radiation.h>
 
 /*********************************************************************
 * TYPEDEF
@@ -57,10 +54,18 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
+
+   // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
+
+   // 16 bit HR
+   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
 } configuration_t;
 
 /*!
@@ -79,34 +84,7 @@ typedef struct {
 \brief report data.
 */
 typedef struct {
-  // DWA
-  float vavg10_speed;           // B11002   254,0,0
-  float vavg10_direction;       // B11001   254,0,0
-
-  // DWB
-  float vavg_speed;             // B11002   200,0,900
-  float vavg_direction;         // B11001   200,0,900
-
-  // DWC
-  float peak_gust_speed;        // B11041   2,0,900
-  float long_gust_speed;        // B11209   2,0,900
-
-  // DWD
-  float avg_speed;              // B11002   0,0,900
-
-  // DWE
-  float class_1;                // B11211   9,0,900
-  float class_2;                // B11212   9,0,900
-  float class_3;                // B11213   9,0,900
-  float class_4;                // B11214   9,0,900
-  float class_5;                // B11215   9,0,900
-  float class_6;                // B11216   9,0,900
-  // dtable={"51":["B11211","B11212","B11213","B11214","B11215","B11216"]}
-
-  // DWF
-  float peak_gust_direction;    // B11043   205,0,900
-  float long_gust_direction;    // B11210   205,0,900
-
+  float avg;
 } report_t;
 
 /*!
@@ -116,7 +94,7 @@ typedef struct {
 typedef struct {
   uint8_t module_type;                 //!< module version
   uint8_t module_version;              //!< module type
-  report_t wind;
+  report_t solar_radiation;
 } readable_data_t;
 
 /*!
@@ -127,10 +105,18 @@ typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
    bool is_continuous;                 //!< enable or disable continuous mode
+
+   // 10 bit
    float adc_voltage_offset_1;
    float adc_voltage_offset_2;
    float adc_voltage_min;
    float adc_voltage_max;
+
+   // 16 bit hr
+   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
 } writable_data_t;
 
 /*********************************************************************
@@ -150,16 +136,30 @@ typedef enum {
 } state_t;
 
 /*!
-\enum wind_state_t
-\brief WIND setup and reading task finite state machine.
+\enum solar_radiation_state_t
+\brief RADIATION setup and reading task finite state machine.
 */
 typedef enum {
-  WIND_INIT,
-  WIND_READING,
-  WIND_ELABORATE,
-  WIND_END,             //!< performs end operations and deactivate task
-  WIND_WAIT_STATE       //!< non-blocking waiting time
-} wind_state_t;
+  SOLAR_RADIATION_INIT,
+  SOLAR_RADIATION_READING,
+  SOLAR_RADIATION_ELABORATE,
+  SOLAR_RADIATION_END,             //!< performs end operations and deactivate task
+  SOLAR_RADIATION_WAIT_STATE       //!< non-blocking waiting time
+} solar_radiation_state_t;
+
+/*!
+\enum gas_state_t
+\brief GAS setup and reading task finite state machine.
+*/
+typedef enum {
+  SOLAR_RADIATION_HR_INIT,
+  SOLAR_RADIATION_HR_SET,
+  SOLAR_RADIATION_HR_READ,
+  SOLAR_RADIATION_HR_EVALUATE,
+  SOLAR_RADIATION_HR_PROCESS,
+  SOLAR_RADIATION_HR_END,             //!< performs end operations and deactivate task
+  SOLAR_RADIATION_HR_WAIT_STATE       //!< non-blocking waiting time
+} solar_radiation_hr_state_t;
 
 /*********************************************************************
 * GLOBAL VARIABLE
@@ -278,18 +278,20 @@ bool is_continuous;
 */
 bool is_test;
 
-#if (USE_SENSOR_DES)
-sample_t wind_speed_samples;
+uint8_t use_adc_channel[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+
+#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+sample_t solar_radiation_samples;
 #endif
 
-#if (USE_SENSOR_DED)
-sample_t wind_direction_samples;
+#if (USE_SENSOR_VSR)
+ADS1115 adc1(ADC_1_I2C_ADDRESS);
+
+float getAdcCalibratedValue (float adc_value, float offset, float gain);
+float getAdcAnalogValue (float adc_value, float min, float max);
 #endif
 
-#if (USE_SENSOR_GWS)
-sample_t wind_speed_samples;
-sample_t wind_direction_samples;
-#endif
+uint8_t solar_radiation_acquisition_count;
 
 /*!
 \var samples_count
@@ -304,14 +306,8 @@ sample_t wind_direction_samples;
 volatile uint16_t timer_counter_ms;
 volatile uint16_t timer_counter_s;
 
-#if (USE_SENSOR_DED || USE_SENSOR_DES || USE_SENSOR_GWS)
-volatile bool is_wind_on;
-uint8_t wind_acquisition_count;
-#endif
-
-#if (USE_SENSOR_DES)
-volatile uint32_t wind_speed_count;
-volatile float wind_speed;
+#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+volatile bool is_solar_radiation_on;
 #endif
 
 /*!
@@ -321,43 +317,16 @@ volatile float wind_speed;
 state_t state;
 
 /*!
-\var wind_state
+\var solar_radiation_state
 \brief Current sensors reading task state.
 */
-wind_state_t wind_state;
+solar_radiation_state_t solar_radiation_state;
 
-
-#if (ENABLE_SDCARD_LOGGING)   
-/*!
-\var SD
-\brief SD-Card structure.
-*/
-SdFat SD;
-
-/*!
-\var logFile
-\brief File for logging on SD-Card.
-*/
-File logFile;
-
-/*!
-\var loggingStream
-\brief stream for logging on Serial and  SD-Card together.
-*/
-WriteLoggingStream loggingStream(logFile,Serial);
-#endif
+solar_radiation_hr_state_t solar_radiation_hr_state;
 
 /*********************************************************************
 * FUNCTIONS
 *********************************************************************/
-
-/*!
-\fn void init_logging(void)
-\brief Init logging system.
-\return void.
-*/
-void init_logging();
-
 /*!
 \fn void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms)
 \brief Enter power down mode.
@@ -529,52 +498,51 @@ template<typename buffer_g, typename length_v, typename value_v> void addValue(b
 */
 void samples_processing();
 void make_report();
-void getSDFromUV (float, float, float *, float *);
 
-#if (USE_SENSOR_DED || USE_SENSOR_DES)
-#define windDirectionRead()           (analogRead(WIND_DIRECTION_ANALOG_PIN))
-#define isWindOn()                    (is_wind_on)
-#define isWindOff()                   (!is_wind_on)
+#if (USE_SENSOR_DSR)
+#define solarRadiationRead()          (analogRead(SOLAR_RADIATION_ANALOG_PIN))
+#define isSolarRadiationOn()          (is_solar_radiation_on)
+#define isSolarRadiationOff()         (!is_solar_radiation_on)
 
-void windPowerOff(void);
-void windPowerOn(void);
-void wind_speed_interrupt_handler(void);
-void calibrationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
-void calibrationValue(uint8_t count, uint8_t delay_ms, float *value);
-float getWindMv(float adc_value);
-float getWindDirection(float adc_value);
-float getWindSpeed (float count);
+void solarRadiationPowerOff(void);
+void solarRadiationPowerOn(void);
+void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
+float getSolarRadiationMv(float adc_value, float offset_mv);
+float getSolarRadiation(float adc_value);
 #endif
 
-#if (USE_SENSOR_GWS)
-#define isWindOn()                    (is_wind_on)
-#define isWindOff()                   (!is_wind_on)
-
-void windPowerOff(void);
-void windPowerOn(void);
-void serial1_reset(void);
-bool windsonic_interpreter (float *speed, float *direction);
-
-uint16_t uart_rx_buffer_length;
-uint8_t uart_rx_buffer[UART_RX_BUFFER_LENGTH];
+#if (USE_SENSOR_VSR)
+void solarRadiationPowerOff(void);
+void solarRadiationPowerOn(void);
+void solaRadiationOffset(uint8_t count, uint8_t delay_ms, float *offset, float ideal);
+float getSolarRadiation(float adc_value, float adc_voltage_min, float adc_voltage_max);
 #endif
 
 /*********************************************************************
 * TASKS
 *********************************************************************/
-/*!
-\var is_event_wind_task
-\brief Enable or disable the WIND task.
-*/
-volatile bool is_event_wind_task;
 
 /*!
-\fn void wind_task(void)
+\var is_event_solar_radiation_task
+\brief Enable or disable the RADIATION task.
+*/
+volatile bool is_event_solar_radiation_task;
+
+/*!
+\fn void solar_radiation_task(void)
 \brief Wind setup and reading Task.
-Read data from WIND.
+Read data from RADIATION.
 \return void.
 */
-void wind_task(void);
+void solar_radiation_task(void);
+
+/*!
+\fn void solar_radiation_task_hr(void)
+\brief Wind setup and reading Task.
+Read data from RADIATION.
+\return void.
+*/
+void solar_radiation_task_hr(void);
 
 /*!
 \var is_event_command_task
