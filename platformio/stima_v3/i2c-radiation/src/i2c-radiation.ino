@@ -23,7 +23,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /*!
 \fn void setup()
 \brief Arduino setup function.
-*  Init watchdog, hardware, debug, buffer and load configuration stored in EEPROM.
+*  Init watchdog, hardware, debug and load configuration stored in EEPROM.
 \return void.
 */
 void setup() {
@@ -64,12 +64,12 @@ void loop() {
 	 logFile.flush();
 	 power_spi_disable();
 	 #endif
-	 Serial.flush();	
-         // disable watchdog: the next awakening is given by an interrupt of rain and I do not know how long it will take place
+	 Serial.flush();
+         // disable watchdog: the next awakening is given by an interrupt and I do not know how long it will take place
          wdt_disable();
 
          // enter in power down mode only if DEBOUNCING_POWER_DOWN_TIME_MS milliseconds have passed since last time (awakened_event_occurred_time_ms)
-      init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
+	 init_power_down(&awakened_event_occurred_time_ms, DEBOUNCING_POWER_DOWN_TIME_MS);
 
          // enable watchdog
          init_wdt(WDT_TIMER);
@@ -101,17 +101,19 @@ void loop() {
         wdt_reset();
       }
 
-        // I2C Bus Check
-        if (i2c_error >= I2C_MAX_ERROR_COUNT) {
-          LOGE(F("Restart I2C BUS"));
-          init_wire();
-          wdt_reset();
-        }
-
+      // I2C Bus Check
+      if (i2c_error >= I2C_MAX_ERROR_COUNT) {
+	LOGE(F("Restart I2C BUS"));
+	init_wire();
+	wdt_reset();
+      }
+      
+	noInterrupts();
       if (ready_tasks_count == 0) {
         wdt_reset();
         state = END;
       }
+	interrupts();	
     break;
 
     case END:
@@ -176,7 +178,6 @@ void init_logging(){
 }
 
 
-
 void init_power_down(uint32_t *time_ms, uint32_t debouncing_ms) {
   if (millis() - *time_ms > debouncing_ms) {
     *time_ms = millis();
@@ -221,17 +222,20 @@ void init_buffers() {
   readable_data_write_ptr->module_type = MODULE_TYPE;
   readable_data_write_ptr->module_main_version = MODULE_MAIN_VERSION;
   readable_data_write_ptr->module_minor_version = MODULE_CONFIGURATION_VERSION;
-  memset((void *) &readable_data_read_ptr->solar_radiation, UINT8_MAX, sizeof(report_t));
+  memset((void *) &readable_data_read_ptr->solar_radiation, UINT8_MAX, sizeof(data_t));
+  //! copy readable_data_write in readable_data_read
+  copy_buffers();
 
   reset_samples_buffer();
-  reset_report_buffer();
+  reset_data(readable_data_write_ptr);
+  
+  readable_data_address=0xFF;
+  readable_data_length=0;
+  make_report(true);
 
-  // copy readable_data_2 in readable_data_1
-  memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
 }
 
 void init_tasks() {
-  noInterrupts();
 
    // no tasks ready
   ready_tasks_count = 0;
@@ -246,14 +250,13 @@ void init_tasks() {
   #if (USE_SENSOR_VSR)
   solar_radiation_hr_state = SOLAR_RADIATION_HR_INIT;
   #endif
-
-  solar_radiation_acquisition_count = 0;
-
+  
+  lastcommand=I2C_SOLAR_RADIATION_COMMAND_NONE;
   is_start = false;
   is_stop = false;
-  is_test = false;
-
-  interrupts();
+  is_test_read = false;
+  transaction_time = 0;
+  inside_transaction = false;
 }
 
 void init_pins() {
@@ -292,19 +295,21 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  start_timer();
+  //start_timer();
 }
 
 void start_timer() {
+  LOGN("start timer");
   TCCR1A = 0x00;                //!< Normal timer operation
-   TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
+  TCCR1B = (1<<CS10) | (1<<CS12);   //!< 1:1024 prescaler
   TCNT1 = TIMER1_TCNT1_VALUE;   //!< Pre-load timer counter register
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
-   timer_counter_ms = 0;
+  timer_counter_ms = 0;
   TIMSK1 |= (1 << TOIE1);       //!< Enable overflow interrupt
 }
 
 void stop_timer() {
+  LOGN("stop timer");
   TCCR1B = 0x00;                //!< Stop
   TIMSK1 &= ~(1 << TOIE1);      //!< Disable overflow interrupt
   TIFR1 |= (1 << TOV1);         //!< Clear interrupt overflow flag register
@@ -317,43 +322,44 @@ void stop_timer() {
 \return void.
 */
 ISR(TIMER1_OVF_vect) {
+
   //! Pre-load timer counter register
   TCNT1 = TIMER1_TCNT1_VALUE;
   
-  if (inside_transaction) {
-    //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
-    timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
-    timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
+  //! increment timer_counter_ms by TIMER1_INTERRUPT_TIME_MS
+  timer_counter_ms += TIMER1_INTERRUPT_TIME_MS;
+  timer_counter_s += (uint16_t)(TIMER1_INTERRUPT_TIME_MS/1000);
+  
+  
+  //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
+  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
+  if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
+    if (!is_event_solar_radiation_task) {
+      is_event_solar_radiation_task = true;
+      ready_tasks_count++;
+    }
+  }
+  #endif
+  
+  //! reset timer_counter_ms if it has become larger than TIMER_COUNTER_VALUE_MAX_MS
+  if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
+    timer_counter_ms = 0;
+  }
+  
+  if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
+      timer_counter_s = 0;
+  }
 
+  if (inside_transaction) {
     //! increment transaction_time by TIMER1_INTERRUPT_TIME_MS
     transaction_time += TIMER1_INTERRUPT_TIME_MS;
-     
+
     if (transaction_time >= TRANSACTION_TIMEOUT_MS) {
       transaction_time = 0;
       inside_transaction = false;
     }
-    
-    //! check if SENSORS_SAMPLE_TIME_MS ms have passed since last time. if true and if is in continuous mode and continuous start command It has been received, activate Sensor RADIATION task
-    #if (USE_SENSOR_DSR)
-    if (executeTimerTaskEach(timer_counter_ms, SENSORS_SAMPLE_TIME_MS, TIMER1_INTERRUPT_TIME_MS) && !configuration.is_oneshot) {
-      if (!is_event_solar_radiation_task) {
-	is_event_solar_radiation_task = true;
-	ready_tasks_count++;
-      }
-    }
-    #endif
-    
-    //! reset timer_counter_ms if it has become larger than TIMER_COUNTER_VALUE_MAX_MS
-    if (timer_counter_ms >= TIMER_COUNTER_VALUE_MAX_MS) {
-      timer_counter_ms = 0;
-    }
-    
-    if (timer_counter_s >= TIMER_COUNTER_VALUE_MAX_S) {
-      timer_counter_s = 0;
-    }
   }
 }
-
 #endif
 
 
@@ -386,10 +392,8 @@ void print_configuration() {
   #if (USE_SENSOR_VSR)
   LOGN(F("--> ADC i\tAINx\toffset\t\tgain\t\tmin\t\tmax"));
 
-  for (uint8_t j = 0; j < ADC_COUNT; j++) {
-    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-      LOGN(F("--> ADC %u\tAIN%u\t%f\t%f\t%f\t%f"), j+1, i, configuration.adc_calibration_offset[j][i], configuration.adc_calibration_gain[j][i], configuration.adc_analog_min[j][i], configuration.adc_analog_max[j][i]);
-    }
+  for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+    LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.adc_analog_min[i], configuration.adc_analog_max[i]);
   }
   #endif
 }
@@ -408,6 +412,7 @@ void save_configuration(bool is_default) {
     configuration.adc_voltage_min = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MIN;
     configuration.adc_voltage_max = CONFIGURATION_DEFAULT_ADC_VOLTAGE_MAX;
 
+    /*
     #if (USE_SENSOR_DSR)
     solarRadiationPowerOn();
     delay(SOLAR_RADIATION_READ_DELAY_MS);
@@ -415,23 +420,22 @@ void save_configuration(bool is_default) {
     solaRadiationOffset(SOLAR_RADIATION_READ_COUNT, SOLAR_RADIATION_READ_DELAY_MS, &configuration.adc_voltage_offset_1, configuration.adc_voltage_min);
     solarRadiationPowerOff();
     #endif
-
+    */
+    
     #if (USE_SENSOR_VSR)
-    for (uint8_t j = 0; j < ADC_COUNT; j++) {
-      for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-        // if ((j == 0) && (i == 0)) {
-        //   configuration.adc_calibration_offset[j][i] = -1750.0;
-        //   configuration.adc_calibration_gain[j][i] = 4.6300;
-        //   configuration.adc_analog_min[j][i] = 4.0;
-        //   configuration.adc_analog_max[j][i] = 20.0;
-        // }
-        // else {
-          configuration.adc_calibration_offset[j][i] = -1.0;
-          configuration.adc_calibration_gain[j][i] = 1.2355;
-          configuration.adc_analog_min[j][i] = 0.0;
-          configuration.adc_analog_max[j][i] = 5000.0;
-        // }
-      }
+    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+      // if ((j == 0) && (i == 0)) {
+      //   configuration.adc_calibration_offset[j][i] = -1750.0;
+      //   configuration.adc_calibration_gain[j][i] = 4.6300;
+      //   configuration.adc_analog_min[j][i] = 4.0;
+      //   configuration.adc_analog_max[j][i] = 20.0;
+      // }
+      // else {
+      configuration.adc_calibration_offset[i] = -1.0;
+      configuration.adc_calibration_gain[i] = 1.2355;
+      configuration.adc_analog_min[i] = 0.0;
+      configuration.adc_analog_max[i] = 5000.0;
+      // }
     }
     #endif
   }
@@ -448,19 +452,19 @@ void save_configuration(bool is_default) {
     #endif
 
     #if (USE_SENSOR_VSR)
-    for (uint8_t j = 0; j < ADC_COUNT; j++) {
-      for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-        configuration.adc_calibration_offset[j][i] = writable_data.adc_calibration_offset[j][i];
-        configuration.adc_calibration_gain[j][i] = writable_data.adc_calibration_gain[j][i];
-        configuration.adc_analog_min[j][i] = writable_data.adc_analog_min[j][i];
-        configuration.adc_analog_max[j][i] = writable_data.adc_analog_max[j][i];
-      }
+    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
+      configuration.adc_calibration_offset[i] = writable_data.adc_calibration_offset[i];
+      configuration.adc_calibration_gain[i] = writable_data.adc_calibration_gain[i];
+      configuration.adc_analog_min[i] = writable_data.adc_analog_min[i];
+      configuration.adc_analog_max[i] = writable_data.adc_analog_max[i];
     }
     #endif
   }
 
    // write configuration to eeprom
   ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
+
+   print_configuration();
 }
 
 void load_configuration() {
@@ -472,6 +476,7 @@ void load_configuration() {
   }
   else {
     LOGN(F("Load configuration... [ %s ]"), OK_STRING);
+      print_configuration();
   }
 
    print_configuration();
@@ -486,15 +491,6 @@ void load_configuration() {
 }
 
 void init_sensors () {
-  #if (USE_SENSOR_VSR)
-  for (uint8_t j = 0; j < ADC_COUNT; j++) {
-    for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
-      use_adc_channel[j][i] = ADS1115_CHN_OFF_ID;
-    }
-  }
-
-  use_adc_channel[SOLAR_RADIATION_ADC_INDEX][SOLAR_RADIATION_ADC_CHANNEL_INPUT] = ADS1115_VOLTAGE_ID;
-  #endif
 
   if (!configuration.is_oneshot) {
     //LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
@@ -511,19 +507,19 @@ void init_sensors () {
   }
 }
 
- 
 void i2c_request_interrupt_handler() {
    // write readable_data_length bytes of data stored in readable_data_read_ptr (base) + readable_data_address (offset) on i2c bus
     Wire.write((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length);
     Wire.write(crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
-
-   inside_transaction = false;
+    // attention: logging inside ISR !
+    //LOGV("request_interrupt_handler: %d-%d crc:%d",readable_data_address,readable_data_length,crc8((uint8_t *)readable_data_read_ptr+readable_data_address, readable_data_length));
+    readable_data_address=0xFF;
+    readable_data_length=0;
+    inside_transaction = false;
 }
 
 void i2c_receive_interrupt_handler(int rx_data_length) {
   bool is_i2c_data_ok = false;
-
-  readable_data_length = 0;
 
   // read rx_data_length bytes of data from i2c bus
   for (uint8_t i = 0; i < rx_data_length; i++) {
@@ -532,10 +528,11 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
   if (rx_data_length < 2) {
     // no payload and CRC as for scan I2c bus
-    readable_data_length = 0;
-    LOGN(F("No CRC: size %d"),rx_data_length);
-  } else if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1)) {
+    // attention: logging inside ISR !
+    //LOGN(F("No CRC: size %d"),rx_data_length);
+  } else 
   //! check crc: ok
+  if (i2c_rx_data[rx_data_length - 1] == crc8((uint8_t *)i2c_rx_data, rx_data_length - 1)) {
     rx_data_length--;
 
     // it is a registers read?
@@ -545,14 +542,17 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
 
       // length (in bytes) of data to be read in readable_data_read_ptr
       readable_data_length = i2c_rx_data[1];
+      // attention: logging inside ISR !
+      //LOGV(F("set readable_data: %d-%d"),readable_data_address,readable_data_length);
     }
     // it is a command?
     else if (rx_data_length == 2 && is_command(i2c_rx_data[0])) {
       //noInterrupts();
       // enable Command task
       if (!is_event_command_task) {
-	memset((void *) &readable_data_write_ptr->solar_radiation, UINT8_MAX, sizeof(rain_t));
-        is_event_command_task = true;
+	reset_data(readable_data_read_ptr);    // make shure read old data wil be impossible
+	lastcommand=i2c_rx_data[1];    // record command to be executed
+        is_event_command_task = true;  // activate command task
         ready_tasks_count++;
       }
       //interrupts();
@@ -567,10 +567,6 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_ONESHOT_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_ONESHOT_LENGTH) {
         is_i2c_data_ok = true;
       }
-      else if (i2c_rx_data[0] == I2C_SOLAR_RADIATION_CONTINUOUS_ADDRESS && rx_data_length == I2C_SOLAR_RADIATION_CONTINUOUS_LENGTH) {
-        is_i2c_data_ok = true;
-      }
-
       if (is_i2c_data_ok) {
         for (uint8_t i = 0; i < rx_data_length; i++) {
           // write rx_data_length bytes in writable_data_ptr (base) at (i2c_rx_data[i] - I2C_WRITE_REGISTER_START_ADDRESS) (position in buffer)
@@ -585,126 +581,33 @@ void i2c_receive_interrupt_handler(int rx_data_length) {
       */
     }
   } else {
+    readable_data_address=0xFF;
     readable_data_length = 0;
+    // attention: logging inside ISR !
     //LOGE(F("CRC error: size %d  CRC %d:%d"),rx_data_length,i2c_rx_data[rx_data_length - 1], crc8((uint8_t *)(i2c_rx_data), rx_data_length - 1));
     i2c_error++;
   }
 }
 
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length) {
-  value_v value = *buffer->read_ptr;
+void make_report (bool init) {
+  if (init) {
+    samples_count=0;
+    samples_error_count=0;
+    sample=UINT16_MAX;
+    average=UINT16_MAX;
+  }else{
 
-  if (buffer->read_ptr == buffer->value+length-1) {
-    buffer->read_ptr = buffer->value;
-  }
-  else buffer->read_ptr++;
-
-  return value;
-}
-
-// legge dato puntato e decrementa puntatore
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length) {
-  value_v value = *buffer->read_ptr;
-
-  if (buffer->read_ptr == buffer->value) {
-    buffer->read_ptr = buffer->value+length-1;
-  }
-  else buffer->read_ptr--;
-
-  return value;
-}
-
-template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value) {
-  *buffer->write_ptr = value;
-}
-
-template<typename buffer_g> void bufferPtrReset(buffer_g *buffer) {
-  buffer->read_ptr = buffer->value;
-}
-
-template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length) {
-  if (buffer->write_ptr == buffer->value) {
-    buffer->read_ptr = buffer->value+length-1;
-  }
-  else buffer->read_ptr = buffer->write_ptr-1;
-}
-
-template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length) {
-  if (buffer->count < length) {
-    buffer->count++;
-  }
-
-  if (buffer->write_ptr+1 < buffer->value + length) {
-    buffer->write_ptr++;
-  } else buffer->write_ptr = buffer->value;
-}
-
-template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length) {
-  memset(buffer->value, UINT8_MAX, length * sizeof(value_v));
-  buffer->count = 0;
-  buffer->read_ptr = buffer->value;
-  buffer->write_ptr = buffer->value;
-}
-
-template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value) {
-  *buffer->write_ptr = (value_v) value;
-  incrementBuffer<buffer_g, length_v>(buffer, length);
-}
-
-void make_report () {
-  uint16_t error_count = 0;
-  uint16_t valid_count = 0;
-  float avg = 0;
-
-  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
-  bufferPtrResetBack<sample_t, uint16_t>(&solar_radiation_samples, SAMPLES_COUNT);
-  #endif
-
-  uint16_t sample_count = RMAP_REPORT_SAMPLES_COUNT;
-
-  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
-  if (solar_radiation_samples.count < sample_count) {
-    sample_count = solar_radiation_samples.count;
-  }
-  #endif
-
-  #if (USE_SENSORS_COUNT == 0)
-  sample_count = 0;
-  #endif
-
-  #if (USE_SENSOR_DSR)
-  for (uint16_t i = 0; i < sample_count; i++) {
-    float solar_radiation = bufferReadBack<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT);
-
-    if (i == 0) {
-      LOGN(F("%l\t%0\t"), solar_radiation_samples.count, solar_radiation);
-    }
-
-    if (ISVALID(solar_radiation)) {
-      valid_count++;
-      avg += (float) ((solar_radiation - avg) / valid_count);
-    }
-    else {
-      error_count++;
+    if (ISVALID_UINT16(sample)){    
+      samples_count++;
+      if (samples_count == 1) average=sample;
+      average += round((float(sample) - float(average)) / float(samples_count));
+    }else{
+      samples_error_count++;
     }
   }
-  #endif
-
-  #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
-  if ((valid_count >= RMAP_REPORT_SAMPLE_VALID_MIN) && (error_count <= RMAP_REPORT_SAMPLE_ERROR_MAX)) {
-    readable_data_write_ptr->solar_radiation.avg = round(avg);
-  }
-  #endif
-
-  #if (USE_SENSOR_DSR)
-  LOGN(F("%0"), readable_data_write_ptr->solar_radiation.avg);
-  #endif
+  LOGV("samples_count: %l ; sample: %l  ; average: %l",samples_count,sample,average);
 }
 
-void samples_processing() {
-  reset_report_buffer();
-  make_report();
-}
 
 #if (USE_SENSOR_DSR || USE_SENSOR_VSR)
 void solarRadiationPowerOff () {
@@ -761,13 +664,10 @@ void solar_radiation_task () {
   static solar_radiation_state_t state_after_wait;
   static uint32_t delay_ms;
   static uint32_t start_time_ms;
-  static uint8_t i = 0;
   static float solar_radiation;
 
   switch (solar_radiation_state) {
     case SOLAR_RADIATION_INIT:
-      i = 0;
-      #if (USE_SENSOR_DSR)
       solarRadiationPowerOn();
       solarRadiationRead();
       delay_ms = SOLAR_RADIATION_READ_DELAY_MS;
@@ -775,37 +675,31 @@ void solar_radiation_task () {
       state_after_wait = SOLAR_RADIATION_READING;
       solar_radiation_state = SOLAR_RADIATION_WAIT_STATE;
       LOGV(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_READING"));
-      #else
-      solar_radiation_state = SOLAR_RADIATION_ELABORATE;
-      LOGV(F("SOLAR_RADIATION_INIT --> SOLAR_RADIATION_ELABORATE"));
-      #endif
     break;
 
     case SOLAR_RADIATION_READING:
-      #if (USE_SENSOR_DSR)
-      solar_radiation += ((float) solarRadiationRead() - solar_radiation) / (float) (i+1);
+      solar_radiation = solarRadiationRead();
 
-      if (i < SOLAR_RADIATION_READ_COUNT) {
-        i++;
-        delay_ms = SOLAR_RADIATION_VALUES_READ_DELAY_MS;
-        start_time_ms = millis();
-        state_after_wait = SOLAR_RADIATION_READING;
-        solar_radiation_state = SOLAR_RADIATION_WAIT_STATE;
-      }
-      else {
-        solar_radiation_state = SOLAR_RADIATION_ELABORATE;
-        LOGV(F("SOLAR_RADIATION_READING --> SOLAR_RADIATION_ELABORATE"));
-      }
-      #endif
+      solar_radiation_state = SOLAR_RADIATION_ELABORATE;
+      LOGV(F("SOLAR_RADIATION_READING --> SOLAR_RADIATION_ELABORATE"));
+
     break;
 
     case SOLAR_RADIATION_ELABORATE:
-      #if (USE_SENSOR_DSR)
-      solar_radiation = getSolarRadiation(solar_radiation);
-      addValue<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT, solar_radiation);
-      #endif
+      
+      sample = getSolarRadiation(solar_radiation);
+      make_report();
 
-      samples_processing();
+      readable_data_write_ptr->solar_radiation.sample = sample;
+
+      if (samples_count > 3){
+	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
+	  readable_data_write_ptr->solar_radiation.avg = average;
+	}else{
+	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count,samples_error_count);
+	  readable_data_write_ptr->solar_radiation.avg = UINT16_MAX;	  
+	}
+      }
 
       solar_radiation_state = SOLAR_RADIATION_END;
       LOGV(F("SOLAR_RADIATION_ELABORATE --> SOLAR_RADIATION_END"));
@@ -872,113 +766,91 @@ void solar_radiation_task_hr () {
   static solar_radiation_hr_state_t state_after_wait;
   static uint32_t delay_ms;
   static uint32_t start_time_ms;
-  static uint8_t adc_index;
-  static uint8_t adc_channel;
   static int16_t adc_value;
-  static float value;
   static bool is_error;
+  static float value;
   adc_result_t adc_result;
+
 
   switch (solar_radiation_hr_state) {
     case SOLAR_RADIATION_HR_INIT:
       solarRadiationPowerOn();
-      adc_index = 0;
-      adc_channel = 0;
       is_error = false;
-      solar_radiation_acquisition_count++;
-      solar_radiation_hr_state = SOLAR_RADIATION_HR_SET;
-      LOGV(F("SOLAR_RADIATION_HR_INIT --> SOLAR_RADIATION_HR_SET"));
-    break;
 
-    case SOLAR_RADIATION_HR_SET:
-      is_error = false;
-      while (isAdsChnDisabled(use_adc_channel[adc_index][adc_channel]) && (adc_channel < ADS1115_CHANNEL_COUNT)) {
-        adc_channel++;
-      }
-
-      if (adc_channel < ADS1115_CHANNEL_COUNT) {
-        value = (float) (UINT16_MAX);
-        solar_radiation_hr_state = SOLAR_RADIATION_HR_READ;
-        LOGV(F("SOLAR_RADIATION_HR_SET --> SOLAR_RADIATION_HR_READ"));
-      }
-      else if (adc_index < (ADC_COUNT - 1)) {
-        adc_index++;
-        adc_channel = 0;
-      }
-      else {
-        solar_radiation_hr_state = SOLAR_RADIATION_HR_PROCESS;
-        LOGV(F("SOLAR_RADIATION_HR_SET --> SOLAR_RADIATION_HR_PROCESS"));
-      }
+      delay_ms = SOLAR_RADIATION_READ_DELAY_MS;
+      start_time_ms = millis();
+      state_after_wait = SOLAR_RADIATION_HR_READ;
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_WAIT_STATE;
+      LOGV(F("SOLAR_RADIATION_HR_INIT --> SOLAR_RADIATION_HR_READ"));
     break;
 
     case SOLAR_RADIATION_HR_READ:
-      if (adc_index == 0) {
-        adc_result = adc1.readSingleChannel(adc_channel, &adc_value);
-      }
-      #if (ADC_COUNT > 1)
-      else if (adc_index == 1) {
-        adc_result = adc2.readSingleChannel(adc_channel, &adc_value);
-      }
-      #endif
-      #if (ADC_COUNT > 2)
-      else if (adc_index == 2) {
-        adc_result = adc3.readSingleChannel(adc_channel, &adc_value);
-      }
-      #endif
+      adc_result = adc1.readSingleChannel(SOLAR_RADIATION_ADC_CHANNEL_INPUT, &adc_value);
 
       if (adc_result == ADC_OK) {
-        value = (float) (adc_value);
-        solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
-        LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
+	LOGN("adc_value: %d",adc_value);	
+        value = (float) adc_value;
+	solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
+	LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
       }
       else if (adc_result == ADC_ERROR) {
+	LOGE("ADC readSingleChannel error");
         i2c_error++;
-        value = (float) (UINT16_MAX);
+        value = UINT16_MAX;
         is_error = true;
-        solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
-        LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
+	solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
+	LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
+      } else if (adc_result == ADC_BUSY) {
+	LOGV("ADC readSingleChannel busy");
       }
+      
     break;
 
     case SOLAR_RADIATION_HR_EVALUATE:
-      #if (IS_CALIBRATION)
-      LOGN(F("ADC %u\tAIN%u ==> (%f + %f) * %f = "), adc_index, adc_channel, value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
-      #endif
+      LOGN(F("AIN%d ==> (%D + %D) * %D = "), SOLAR_RADIATION_ADC_CHANNEL_INPUT, value
+	   , configuration.adc_calibration_offset[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+	   , configuration.adc_calibration_gain[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
 
       if (!is_error) {
-        value = getAdcCalibratedValue (value, configuration.adc_calibration_offset[adc_index][adc_channel], configuration.adc_calibration_gain[adc_index][adc_channel]);
-        value = getAdcAnalogValue(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
+        value = getAdcCalibratedValue(value
+				  , configuration.adc_calibration_offset[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+				  , configuration.adc_calibration_gain[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+        value = getAdcAnalogValue(value
+				  , configuration.adc_analog_min[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+				  , configuration.adc_analog_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+        value = getSolarRadiation(value
+				  , configuration.adc_analog_min[SOLAR_RADIATION_ADC_CHANNEL_INPUT]
+				  , configuration.adc_analog_max[SOLAR_RADIATION_ADC_CHANNEL_INPUT]);
+
+	sample=round(value);
+	readable_data_write_ptr->solar_radiation.sample = sample;
+
       }
 
-      #if (IS_CALIBRATION)
-      LOGN(F("%f [ %s ]"), value, is_error ? ERROR_STRING : OK_STRING);
-      #endif
+      LOGN(F("%D [ %s ]"), value, is_error ? ERROR_STRING : OK_STRING);
 
-      if (!is_error) {
-        value = getSolarRadiation(value, configuration.adc_analog_min[adc_index][adc_channel], configuration.adc_analog_max[adc_index][adc_channel]);
-      }
-
-      if (false) {}
-      else if ((adc_index == SOLAR_RADIATION_ADC_INDEX) && (adc_channel == SOLAR_RADIATION_ADC_CHANNEL_INPUT)) {
-        addValue<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT, value);
-      }
-
-      adc_channel++;
-      solar_radiation_hr_state = SOLAR_RADIATION_HR_SET;
-      LOGV(F("SOLAR_RADIATION_HR_EVALUATE --> SOLAR_RADIATION_HR_SET"));
+      
+      solar_radiation_hr_state = SOLAR_RADIATION_HR_PROCESS;
+      LOGV(F("SOLAR_RADIATION_HR_EVALUATE --> SOLAR_RADIATION_HR_PROCESS"));
     break;
 
     case SOLAR_RADIATION_HR_PROCESS:
-      samples_processing();
+
+      make_report();
+      if (samples_count > 3){
+	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
+	  readable_data_write_ptr->solar_radiation.avg = average;
+	}else{
+	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count,samples_error_count);
+	  readable_data_write_ptr->solar_radiation.avg = UINT16_MAX;	  
+	}
+      }
+             
       solar_radiation_hr_state = SOLAR_RADIATION_HR_END;
       LOGV(F("SOLAR_RADIATION_HR_PROCESS --> SOLAR_RADIATION_HR_END"));
     break;
 
     case SOLAR_RADIATION_HR_END:
-      if ((solar_radiation_acquisition_count >= ACQUISITION_COUNT_FOR_POWER_RESET) || is_error) {
-        solar_radiation_acquisition_count = 0;
-        solarRadiationPowerOff();
-      }
 
       noInterrupts();
       is_event_solar_radiation_task = false;
@@ -998,19 +870,21 @@ void solar_radiation_task_hr () {
 #endif
 
 void exchange_buffers() {
+  noInterrupts();
   readable_data_temp_ptr = readable_data_write_ptr;
   readable_data_write_ptr = readable_data_read_ptr;
   readable_data_read_ptr = readable_data_temp_ptr;
+  interrupts();
 }
 
 void reset_samples_buffer() {
-  #if (USE_SENSOR_DSR)
-  bufferReset<sample_t, uint16_t, float>(&solar_radiation_samples, SAMPLES_COUNT);
-  #endif
+  samples_count=0;
+  sample=UINT16_MAX;
 }
 
-void reset_report_buffer () {
-  readable_data_write_ptr->solar_radiation.avg = (float) UINT16_MAX;
+void reset_data(volatile readable_data_t *ptr) {
+  ptr->solar_radiation.sample = UINT16_MAX;
+  ptr->solar_radiation.avg = UINT16_MAX;
 }
 
 void command_task() {
@@ -1020,11 +894,11 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT START");
       is_start = true;
       is_stop = false;
-      is_test = false;
+      is_test_read = false;
       commands();
     } else {
       LOGE(F("Skip command [ %s ] in continous mode"), "ONESHOT START");
-}
+    }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_ONESHOT_STOP:
@@ -1032,7 +906,6 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT STOP");
       is_start = false;
       is_stop = true;
-      is_test = false;
       commands();
       inside_transaction = true;
     } else {
@@ -1045,7 +918,7 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "ONESHOT START-STOP");
       is_start = true;
       is_stop = true;
-      is_test = false;
+      is_test_read = false;
       commands();
       inside_transaction = true;
     } else {
@@ -1056,7 +929,9 @@ void command_task() {
     case I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START:
     if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS START");
-      is_test = false;
+      is_start = true;
+      is_stop = false;
+      is_test_read = false;
       commands();
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS START");
@@ -1068,8 +943,9 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS STOP");
       is_start = false;
       is_stop = true;
-      is_test = false;
+      is_test_read = false;
       commands();
+      inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS STOPT");
     }
@@ -1081,8 +957,9 @@ void command_task() {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS START_STOP");
       is_start = true;
       is_stop = true;
-      is_test = false;
+      is_test_read = false;
       commands();
+      inside_transaction = true;
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS START_STOPT");
     }
@@ -1092,21 +969,25 @@ void command_task() {
     case I2C_SOLAR_RADIATION_COMMAND_TEST_READ:
     if (!configuration.is_oneshot) {
       LOGN(F("Execute [ %s ]"), "CONTINUOUS TEST_READ");
-      is_test = true;
-      tests();
+      //is_start = true;
+      is_stop = false;
+      is_test_read = true;
+      commands();
     } else {
       LOGE(F("Skip command [ %s ] in oneshot mode"), "CONTINUOUS TEST_READ");
     }
     break;
 
     case I2C_SOLAR_RADIATION_COMMAND_SAVE:
+      is_start = false;
+      is_stop = false;
       LOGN(F("Execute [ %s ]"), "SAVE");
       save_configuration(CONFIGURATION_CURRENT);
       init_wire();
     break;
   
   default:
-    LOGE(F("Command UNKNOWN"));
+    LOGN(F("Ignore unknow command: %s"),lastcommand);
   }
   
   noInterrupts();
@@ -1117,43 +998,77 @@ void command_task() {
 }
 
 
+void copy_buffers() {
+   //! copy readable_data_2 in readable_data_1
+   noInterrupts();
+   memcpy((void *) readable_data_read_ptr, (const void*) readable_data_write_ptr, sizeof(readable_data_t));
+   interrupts();
+}
+
+
 void commands() {
 
   if (inside_transaction) return;
   
-  noInterrupts();
-  
-  if (!configuration.is_oneshot){
-    
-    //! CONTINUOUS START
-    if ( is_start && !is_stop) {
-      reset_samples_buffer();
-      reset_report_buffer();
-    }
-    //! CONTINUOUS STOP
-    else if ( !is_start && is_stop) {
-      exchange_buffers();
-    }
-    //! CONTINUOUS START-STOP
-    else if (is_start && is_stop) {
-      exchange_buffers();
-    }
+  //! CONTINUOUS TEST
+  if (!configuration.is_oneshot && is_start && !is_stop && is_test_read) {
+    copy_buffers();
+    //exchange_buffers();
   }
-  
-  interrupts();
-  is_start = false;
-  is_stop = false;
-  is_test = false;
-  
-}
+  //! CONTINUOUS START
+  else if (!configuration.is_oneshot && is_start && !is_stop && !is_test_read) {
 
-void tests() {
-  noInterrupts();
+    stop_timer();
+    reset_samples_buffer();
+    reset_data(readable_data_write_ptr);
+    make_report(true);
+    start_timer();
+  }
+  //! CONTINUOUS STOP
+  else if (!configuration.is_oneshot && !is_start && is_stop) {
+    copy_buffers();
+    //exchange_buffers();
+  }
+  //! CONTINUOUS START-STOP
+  else if (!configuration.is_oneshot && is_start && is_stop) {
+    stop_timer();
+    exchange_buffers();
+    reset_samples_buffer();
+    reset_data(readable_data_write_ptr);
+    make_report(true);
+    start_timer();
+  }
+  //! ONESHOT START
+  else if (configuration.is_oneshot && is_start && !is_stop) {
+    reset_samples_buffer();
 
-  //! TEST
-  if (is_test) {
+    noInterrupts();
+    if (!is_event_solar_radiation_task) {
+      is_event_solar_radiation_task = true;
+      ready_tasks_count++;
+    }
+    interrupts();
+  }
+  //! ONESHOT STOP
+  else if (configuration.is_oneshot && !is_start && is_stop) {
+
+    readable_data_write_ptr->solar_radiation.sample = sample;
     exchange_buffers();
   }
+  //! ONESHOT START-STOP
+  else if (configuration.is_oneshot && is_start && is_stop) {
    
-  interrupts();
+    readable_data_write_ptr->solar_radiation.sample = sample;
+    exchange_buffers();
+    
+    noInterrupts();
+    if (!is_event_solar_radiation_task) {
+      is_event_solar_radiation_task = true;
+      ready_tasks_count++;
+    }
+    interrupts();
+  }
 }
+
+
+

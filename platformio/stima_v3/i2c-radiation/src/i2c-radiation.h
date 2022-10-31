@@ -1,7 +1,5 @@
-/**@file i2c-radiation.h */
-
 /*********************************************************************
-Copyright (C) 2017  Marco Baldinetti <m.baldinetti@digiteco.it>
+Copyright (C) 2022  Marco Baldinetti <m.baldinetti@digiteco.it>
 authors:
 Paolo patruno <p.patruno@iperbole.bologna.it>
 Marco Baldinetti <m.baldinetti@digiteco.it>
@@ -67,30 +65,20 @@ typedef struct {
    float adc_voltage_max;
 
    // 16 bit HR
-   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADS1115_CHANNEL_COUNT];
 } configuration_t;
-
-/*!
-\struct sample_t
-\brief samples data
-*/
-typedef struct {
-  float value[SAMPLES_COUNT];        //!< samples buffer
-  uint16_t count;                              //!< samples counter
-  float *read_ptr;                             //!< reader pointer
-  float *write_ptr;                            //!< writer pointer
-} sample_t;
 
 /*!
 \struct report_t
 \brief report data.
 */
 typedef struct {
-  float avg;
-} report_t;
+  int16_t sample;
+  int16_t avg;
+} data_t;
 
 /*!
 \struct readable_data_t
@@ -100,8 +88,7 @@ typedef struct {
   uint8_t module_type;                //!< module type
   uint8_t module_main_version;        //!< module main version
   uint8_t module_minor_version;       //!< module minor version
-  uint8_t module_version;              //!< module type
-  report_t solar_radiation;
+  data_t solar_radiation;
 } readable_data_t;
 
 /*!
@@ -111,7 +98,6 @@ typedef struct {
 typedef struct {
    uint8_t i2c_address;                //!< i2c address
    bool is_oneshot;                    //!< enable or disable oneshot mode
-   bool is_continuous;                 //!< enable or disable continuous mode
 
    // 10 bit
    float adc_voltage_offset_1;
@@ -120,10 +106,10 @@ typedef struct {
    float adc_voltage_max;
 
    // 16 bit hr
-   float adc_calibration_offset[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_calibration_gain[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_analog_min[ADC_COUNT][ADS1115_CHANNEL_COUNT];
-   float adc_analog_max[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+   float adc_calibration_offset[ADS1115_CHANNEL_COUNT];
+   float adc_calibration_gain[ADS1115_CHANNEL_COUNT];
+   float adc_analog_min[ADS1115_CHANNEL_COUNT];
+   float adc_analog_max[ADS1115_CHANNEL_COUNT];
 } writable_data_t;
 
 /*********************************************************************
@@ -160,7 +146,6 @@ typedef enum {
 */
 typedef enum {
   SOLAR_RADIATION_HR_INIT,
-  SOLAR_RADIATION_HR_SET,
   SOLAR_RADIATION_HR_READ,
   SOLAR_RADIATION_HR_EVALUATE,
   SOLAR_RADIATION_HR_PROCESS,
@@ -307,6 +292,12 @@ bool is_start;
 bool is_stop;
 
 /*!
+\var is_test_read
+\brief Received command is in continuous mode.
+*/
+bool is_test_read;
+
+/*!
 \var is_oneshot
 \brief Received command is in oneshot mode.
 */
@@ -324,14 +315,12 @@ bool is_continuous;
 */
 bool is_test;
 
-uint8_t use_adc_channel[ADC_COUNT][ADS1115_CHANNEL_COUNT];
+uint16_t sample;
+uint16_t average;
 
-#if (USE_SENSOR_DSR || USE_SENSOR_VSR)
-sample_t solar_radiation_samples;
-#endif
 
 #if (USE_SENSOR_VSR)
-ADS1115 adc1(ADC_1_I2C_ADDRESS);
+ADS1115 adc1(ADC_I2C_ADDRESS);
 
 float getAdcCalibratedValue (float adc_value, float offset, float gain);
 float getAdcAnalogValue (float adc_value, float min, float max);
@@ -343,7 +332,13 @@ uint8_t solar_radiation_acquisition_count;
 \var samples_count
 \brief Number of samples to be acquired for make one observation.
 */
-// uint8_t samples_count;
+uint16_t samples_count;
+
+/*!
+\var samples_error_count
+\brief Number of error while acquire samples for make one observation.
+*/
+uint16_t samples_error_count;
 
 /*!
 \var timer_counter_ms
@@ -514,20 +509,12 @@ void commands(void);
 void tests(void);
 
 /*!
-\fn void reset_samples_buffer(void)
-\brief Reset samples buffers to default value.
+\fn void reset_buffer(void)
+\brief Reset sample and observations buffers to default value.
 \return void.
 */
-void reset_samples_buffer(void);
 
-/*!
-\fn void reset_observations_buffer(void)
-\brief Reset observations buffers to default value.
-\return void.
-*/
-// void reset_observations_buffer(void);
-
-void reset_report_buffer(void);
+void reset_buffer(void);
 
 /*!
 \fn void exchange_buffers(void)
@@ -536,22 +523,13 @@ void reset_report_buffer(void);
 */
 void exchange_buffers(void);
 
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferRead(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v, typename value_v> value_v bufferReadBack(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename value_v> void bufferWrite(buffer_g *buffer, value_v value);
-template<typename buffer_g> void bufferPtrReset(buffer_g *buffer);
-template<typename buffer_g, typename length_v> void bufferPtrResetBack(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v> void incrementBuffer(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v, typename value_v> void bufferReset(buffer_g *buffer, length_v length);
-template<typename buffer_g, typename length_v, typename value_v> void addValue(buffer_g *buffer, length_v length, value_v value);
-
 /*!
-\fn void samples_processing()
+\fn void make_report (bool init=false)
 \brief Main routine for processing the samples to calculate an observation.
 \return void.
 */
-void samples_processing();
-void make_report();
+void make_report (bool init=false);
+
 
 #if (USE_SENSOR_DSR)
 #define solarRadiationRead()          (analogRead(SOLAR_RADIATION_ANALOG_PIN))

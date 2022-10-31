@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "Wire.h"
 #include <Arduino.h>
+#include "registers-radiation.h"           //Register definitions
 #include "registers-wind.h"                //Register definitions
 #include "registers-th.h"                  //Register definitions
 #include "registers-rain.h"                //Register definitions
@@ -86,6 +87,7 @@ void displayHelp()
   Serial.println(F("\ti = scan one time"));
   Serial.println();
   Serial.println(F("Sensor to config:"));
+  Serial.println(F("\ts = i2c-radiation"));
   Serial.println(F("\tw = i2c-wind"));
   Serial.println(F("\tt = i2c-th"));
   Serial.println(F("\tr = i2c-rain"));
@@ -127,6 +129,61 @@ void loop() {
   char command = getCommand();
   switch (command)
     {
+
+    case 's':
+      {
+	
+	int new_address;
+	int oneshot;
+	
+	new_address= -1;
+	while (new_address < 1 || new_address > 127){
+	  Serial.print(F("digit new i2c address for i2c-radiation (1-127) default: "));
+	  Serial.println(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	  new_address=Serial.parseInt();
+	  Serial.println(new_address);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_ADDRESS_ADDRESS;
+	buffer[1]=new_address;
+	buffer[I2C_SOLAR_RADIATION_ADDRESS_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ADDRESS_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_ADDRESS_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+
+	delay(1000);
+	
+	oneshot=-1;
+	while (oneshot < 0 || oneshot > 1){
+	  Serial.println(F("digit 2 for oneshotmode; 1 for continous mode for i2c-radiation (1/2)"));
+	  oneshot=Serial.parseInt();
+	  Serial.println(oneshot);
+	}
+	delay(1000);
+
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_SOLAR_RADIATION_ONESHOT_ADDRESS;
+	buffer[1]=(bool)(oneshot-1);
+	buffer[I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1]=crc8(buffer, I2C_SOLAR_RADIATION_ONESHOT_LENGTH+1);
+	Wire.write(buffer,I2C_SOLAR_RADIATION_ONESHOT_LENGTH+2);
+	if (Wire.endTransmission() != 0) Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	delay(1000);
+	Serial.println("save configuration");
+	Wire.beginTransmission(I2C_SOLAR_RADIATION_DEFAULT_ADDRESS);
+	buffer[0]=I2C_COMMAND_ID;
+	buffer[1]=I2C_SOLAR_RADIATION_COMMAND_SAVE;
+	buffer[2]=crc8(buffer, 2);
+	Wire.write(buffer,3);
+	if (Wire.endTransmission() != 0)  Serial.println(F("Wire Error"));             // End Write Transmission
+	
+	Serial.println(F("Done; switch off"));
+	delay(10000);
+
+	displayHelp();
+	break;
+      }
       
     case 'w':
       {

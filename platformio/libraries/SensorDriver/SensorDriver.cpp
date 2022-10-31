@@ -2707,6 +2707,10 @@ void SensorDriverWind::getJson(int32_t *values, uint8_t length, char *json_buffe
 
 void SensorDriverSolarRadiation::resetPrepared(bool is_test) {
   _get_state = INIT;
+  if (!is_test) {
+    _is_previous_prepared = _is_current_prepared;
+    _is_current_prepared = false;
+  }
   *_is_prepared = false;
 }
 
@@ -2754,7 +2758,6 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
   bool is_i2c_write;
   uint8_t i;
   _is_success = false;
-  _is_test = is_test;
 
   if (!*_is_prepared) {
     memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
@@ -2764,9 +2767,14 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
       is_i2c_write = true;
       _buffer[i++] = I2C_COMMAND_ID;
-      _buffer[i++] = I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP;
+      if (is_test) {
+        _buffer[i++] = I2C_SOLAR_RADIATION_COMMAND_TEST_READ;
+      }
+      else {
+        _buffer[i++] = I2C_SOLAR_RADIATION_COMMAND_CONTINUOUS_START_STOP;
+      }
       _buffer[i] = crc8(_buffer, i);
-      _delay_ms = 0;
+      _delay_ms = 50;
     }
 
     if (is_i2c_write) {
@@ -2779,6 +2787,7 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
         *_is_prepared = true;
       }else{
 	_error_count++;
+	LOGE(F("radiation prepare... endTransmission"));
       }
     }
   }
@@ -2786,79 +2795,72 @@ void SensorDriverSolarRadiation::prepare(bool is_test) {
     _is_success = true;
     _delay_ms = 0;
   }
-
+  
+  if(!is_test)_is_current_prepared = *_is_prepared;
   LOGT(F("solarradiation prepare... [ %s ]"), _is_success ? OK_STRING : ERROR_STRING);
   _start_time_ms = millis();
 }
 
 void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_test) {
-
+  uint8_t data_length;
   bool is_i2c_write;
   uint8_t i;
 
-  float val;
-  uint8_t *val_ptr;
-
   switch (_get_state) {
     case INIT:
+
       for (uint8_t i =0; i < length; i++) {
 	values[i]=INT32_MAX;
       }
 
-      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
-        val = FLT_MAX;
-        variable_length = 1;
-      }
-
-      variable_count = 0;
-      data_length = 0;
+      memset(radiation_data, UINT8_MAX, I2C_SOLAR_RADIATION_AVERAGE_LENGTH);
 
       _is_readed = false;
       _is_end = false;
 
-      if (*_is_prepared && length >= 1) {
-        _is_success = true;
-        _get_state = SET_ADDRESS;
+      if ( *_is_prepared && length >= 1) {
+	LOGT(F("radiation get INIT"));
+	_is_success = true;
+	_get_state = SET_ADDRESS;
       }
       else {
-        _is_success = false;
-        _get_state = END;
+	LOGE(F("radiation get INIT"));
+	_is_success = false;
+	_get_state = END;
       }
-
+      
       _delay_ms = 0;
-      _start_time_ms = millis();
+      _start_time_ms = millis();      
       break;
 
     case SET_ADDRESS:
       memset(_buffer, 0, I2C_MAX_DATA_LENGTH);
       is_i2c_write = false;
-      offset = 0;
       i = 0;
 
-      #if (USE_SENSOR_DSA)
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         is_i2c_write = true;
-        data_length = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
         _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_ADDRESS;
         _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
         _buffer[i] = crc8(_buffer, i);
       }
-      #endif
+      else{
+	LOGE(F("dsa type mismatch %s for average write"),_type);
+	_is_success = false;
+      }
 
       if (is_i2c_write) {
         Wire.beginTransmission(_address);
         Wire.write(_buffer, i+1);
 
         if (Wire.endTransmission()) {
+	  LOGE(F("radiation get... ERROR SET_AVERAGE_ADDRESS"));
 	  _error_count++;
           _is_success = false;
         }else{
 	  _error_count = 0;
 	}
       }
-
-      _delay_ms = 0;
-      _start_time_ms = millis();
 
       if (_is_success) {
         _get_state = READ_VALUE;
@@ -2869,9 +2871,19 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
       break;
 
     case READ_VALUE:
+
+      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
+	data_length = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
+      }
+      else{
+	_is_success = false;
+	LOGE(F("radiation type mismatch %s for average read"),_type);
+      }
+      
       if (_is_success) {
-        Wire.requestFrom(_address, data_length + 1);
+	  Wire.requestFrom(_address, (uint8_t)(data_length + 1));
         if (Wire.available() < (data_length + 1)) {
+	  LOGE(F("radiation get... ERROR READ_AVERAGE"));
 	  _error_count++;
           _is_success = false;
         }else{
@@ -2880,83 +2892,49 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
       }
 
       if (_is_success) {
-        memset(_buffer, UINT8_MAX, I2C_MAX_DATA_LENGTH * sizeof(uint8_t));
         for (i = 0; i < data_length; i++) {
-          _buffer[i] = Wire.read();
+          radiation_data[i] = Wire.read();
         }
 
-        if (crc8(_buffer, data_length) != Wire.read()) {
+        if (crc8(radiation_data, data_length) != Wire.read()) {
+	  LOGE(F("radiation get... ERROR READ_AVERAGE CRC error"));
           _is_success = false;
         }
       }
 
       _delay_ms = 0;
       _start_time_ms = millis();
-
-      if (_is_success) {
-        _get_state = GET_VALUE;
-      }
-      else {
-        _get_state = END;
-      }
-      break;
-
-    case GET_VALUE:
-      #if (USE_SENSOR_DSA)
-      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
-        if (length >= variable_count + 1) {
-          val_ptr = (uint8_t*) &val;
-
-          for (i = 0; i < 4; i++) {
-            *(val_ptr + i) = _buffer[offset + i];
-          }
-
-          if (_is_success && ISVALID_FLOAT(val)) {
-            values[variable_count] = (int32_t) round(val);
-          }
-          else {
-            values[variable_count] = INT32_MAX;
-            _is_success = false;
-          }
-
-          offset += 4;
-        }
-      }
-      #endif
-
-      variable_count++;
-
-      _delay_ms = 0;
-      _start_time_ms = millis();
-
-      if ((variable_count >= length) || (variable_count >= variable_length)) {
-        _get_state = END;
-      }
-      else if (variable_count == 2) {
-        _get_state = SET_ADDRESS;
-      }
+      _get_state = END;
+      
       break;
 
     case END:
+      if ((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test)) {
+	if (length >= 1) {
+	  if (( ISVALID_UINT8(radiation_data[0]) || ISVALID_UINT8(radiation_data[1] ))) {	
+	    values[0] = ((int16_t)(radiation_data[1] << 8) | (radiation_data[0]));
+	  }
+	}
+      } else {
+	LOGE(F("radiation driver status error -> previous:%T current:%T"),_is_previous_prepared,_is_current_prepared );
+      }
+      
       SensorDriver::printInfo();
+
       if (_is_success){
 	LOGT(F("solarradiation get... [ %s ]"), OK_STRING);
       }else{
 	LOGE(F("solarradiation get... [ %s ]"), FAIL_STRING);
       }
 
-      #if (USE_SENSOR_DSA)
-      if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
-        if (length >= 1) {
-          if (ISVALID_INT32(values[0])) {
-            LOGT(F("solarradiation--> solar radiation: %ld"), values[0]);
-          }
-          else {
-            LOGT(F("solarradiation--> solar radiation: ---"));
-          }
-        }
+      if (length >= 1) {
+	if (ISVALID_INT32(values[0])) {
+	  LOGT(F("solarradiation--> solar radiation: %l"), values[0]);
+	}
+	else {
+	  LOGT(F("solarradiation--> solar radiation: ---"));
+	}
       }
-      #endif
 
       _start_time_ms = millis();
       _delay_ms = 0;
@@ -2974,16 +2952,12 @@ void SensorDriverSolarRadiation::getJson(int32_t *values, uint8_t length, char *
   if (_is_end && !_is_readed) {
     StaticJsonDocument<JSON_BUFFER_LENGTH> json;
 
-    #if (USE_SENSOR_DSA)
-    if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
-      if (length >= 1) {
-        if (ISVALID_INT32(values[0])) {
-          json["B14198"] = values[0];
-        }
-        else json["B14198"] = nullptr;
+    if (length >= 1) {
+      if (ISVALID_INT32(values[0])) {
+	json["B14198"] = values[0];
       }
+      else json["B14198"] = nullptr;
     }
-    #endif
 
     if (serializeJson(json,json_buffer, json_buffer_length) == json_buffer_length){
       json_buffer[0]='\0';

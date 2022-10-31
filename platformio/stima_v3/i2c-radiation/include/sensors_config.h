@@ -73,7 +73,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 /*!
 \def USE_SENSOR_VSR
-\brief Enable if you want use 0-5V High Resolution Global Solar Radiation sensor.
+\brief Enable if you want use 0-2.5V High Resolution Global Solar Radiation sensor.
 */
 #define USE_SENSOR_VSR              (true)
 
@@ -81,7 +81,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 \def USE_SENSOR_DSA
 \brief Enable if you want average Global Solar Radiation sensor.
 */
-#define USE_SENSOR_DSA              (true)
+#define USE_SENSOR_DSA              (false)
 
 /*!
 \def USE_SENSOR_DWA
