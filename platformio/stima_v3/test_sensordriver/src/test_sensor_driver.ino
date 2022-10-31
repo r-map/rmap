@@ -1,11 +1,11 @@
 #include <i2c_config.h>
 #include <debug_config.h>
+#include <sensors_config.h>
 #include <SensorDriver.h>
 #if (USE_JSON)
 #include <json_utility.h>
 #include <json_config.h>
 #endif
-#include <sensors_config.h>
 #include <ArduinoLog.h>
 
 #define I2C_BUS_CLOCK                                 (50000L)
@@ -38,8 +38,6 @@ bool do_reset_first_run;
 int32_t values_readed_from_sensor[SENSORS_MAX][VALUES_TO_READ_FROM_SENSOR_COUNT];
 #if (USE_JSON)
 char json_sensors_data[SENSORS_MAX][JSON_BUFFER_LENGTH];
-char topic_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_SENSOR_TOPIC_LENGTH];
-char message_buffer[JSONS_TO_READ_FROM_SENSOR_COUNT][MQTT_MESSAGE_LENGTH];
 #endif
 
 sensors_reading_state_t sensors_reading_state;
@@ -243,7 +241,7 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     
   case SENSORS_READING_GET:
     #if (USE_JSON)
-    sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0],is_test);
+    sensors[i]->getJson(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT, &json_sensors_data[i][0],JSON_BUFFER_LENGTH,is_test);
     #else
     sensors[i]->get(&values_readed_from_sensor[i][0], VALUES_TO_READ_FROM_SENSOR_COUNT,is_test);
     #endif
@@ -320,11 +318,11 @@ void sensors_reading_task (bool do_prepare = true, bool do_get = true, char *dri
     else {
       //if (!is_first_run || is_test) {
       for (i = 0; i < sensors_count; i++) {
-	LOGN(F("start sensor %s %s-%s:"), is_test ? "Test" : "Report",sensors[i]->getDriver(),sensors[i]->getType());
+	LOGN(F("sensor mode:%s %s-%s:"), is_test ? "Test" : "Report",sensors[i]->getDriver(),sensors[i]->getType());
 	
-	for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
-	  LOGN(F("value %d,%d: %l"), i,v,values_readed_from_sensor[i][v]);
-	}
+	  for (uint8_t v = 0; v < VALUES_TO_READ_FROM_SENSOR_COUNT; v++) {
+	    LOGN(F("value %d,%d: %l"), i,v,values_readed_from_sensor[i][v]);
+	  }
 	
           #if (USE_JSON)
 	  LOGN(F("JSON -> %s"), &json_sensors_data[i][0]);
