@@ -295,7 +295,7 @@ void init_rtc() {
 
 #if (USE_TIMER_1)
 void init_timer1() {
-  //start_timer();
+   start_timer();
 }
 
 void start_timer() {
@@ -470,18 +470,17 @@ void save_configuration(bool is_default) {
 void load_configuration() {
   // read configuration from eeprom
   ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-   if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
+  
+  if (configuration.module_type != MODULE_TYPE || configuration.module_main_version != MODULE_MAIN_VERSION || configuration.module_configuration_version != MODULE_CONFIGURATION_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
     save_configuration(CONFIGURATION_DEFAULT);
-  }
-  else {
+  } else {
     LOGN(F("Load configuration... [ %s ]"), OK_STRING);
-      print_configuration();
+    print_configuration();
   }
+  
+   wdt_reset();
 
-   print_configuration();
-
-   // set configuration value to writable register
+  // set configuration value to writable register
   writable_data.i2c_address = configuration.i2c_address;
   writable_data.is_oneshot = configuration.is_oneshot;
   writable_data.adc_voltage_offset_1 = configuration.adc_voltage_offset_1;

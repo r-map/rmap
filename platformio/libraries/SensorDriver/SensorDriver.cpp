@@ -2840,8 +2840,13 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
 
       if (strcmp(_type, SENSOR_TYPE_DSA) == 0) {
         is_i2c_write = true;
-        _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_ADDRESS;
-        _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
+	if (is_test){
+	  _buffer[i++] = I2C_SOLAR_RADIATION_SAMPLE_ADDRESS;
+	  _buffer[i++] = I2C_SOLAR_RADIATION_SAMPLE_LENGTH;
+	}else{
+	  _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_ADDRESS;
+	  _buffer[i++] = I2C_SOLAR_RADIATION_AVERAGE_LENGTH;
+	}	
         _buffer[i] = crc8(_buffer, i);
       }
       else{
