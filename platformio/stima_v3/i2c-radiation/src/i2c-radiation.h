@@ -315,8 +315,8 @@ bool is_continuous;
 */
 bool is_test;
 
-uint16_t sample;
-uint16_t average;
+int16_t sample;
+int16_t average;
 
 
 #if (USE_SENSOR_VSR)

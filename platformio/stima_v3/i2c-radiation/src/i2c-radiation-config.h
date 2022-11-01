@@ -218,8 +218,15 @@ WDTO_1S, WDTO_2S, WDTO_4S, WDTO_8S
 \def RMAP_REPORT_SAMPLE_ERROR_MAX_PERC
 \brief Sample maximum error in percent for one observation.
 */
+#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC             (10.)
 
-#define RMAP_REPORT_SAMPLE_ERROR_MAX_PERC                  (10.)
+
+
+/*!
+\def RMAP_REPORT_SAMPLE_MIN_TIME
+\brief Sample minimun time for elaborate one observation (seconds).
+*/
+#define RMAP_REPORT_SAMPLE_MIN_TIME                   (60)
 
 
 /*********************************************************************

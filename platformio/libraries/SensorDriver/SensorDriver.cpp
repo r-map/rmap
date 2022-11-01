@@ -2916,8 +2916,9 @@ void SensorDriverSolarRadiation::get(int32_t *values, uint8_t length, bool is_te
     case END:
       if ((_is_previous_prepared && !is_test) || (_is_current_prepared && is_test)) {
 	if (length >= 1) {
-	  if (( ISVALID_UINT8(radiation_data[0]) || ISVALID_UINT8(radiation_data[1] ))) {	
-	    values[0] = ((int16_t)(radiation_data[1] << 8) | (radiation_data[0]));
+	  int16_t value= (int16_t)(radiation_data[1] << 8) | radiation_data[0];
+	  if ( ISVALID_INT16(value)) {	
+	    values[0] = value;
 	  }
 	}
       } else {

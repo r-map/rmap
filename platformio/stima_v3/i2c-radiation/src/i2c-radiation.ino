@@ -390,7 +390,7 @@ void print_configuration() {
   #endif
 
   #if (USE_SENSOR_VSR)
-  LOGN(F("--> ADC i\tAINx\toffset\t\tgain\t\tmin\t\tmax"));
+  LOGN(F("--> AINx\toffset\tgain\tmin\tmax"));
 
   for (uint8_t i = 0; i < ADS1115_CHANNEL_COUNT; i++) {
     LOGN(F("--> AIN%d\t%D\t%D\t%D\t%D"), i, configuration.adc_calibration_offset[i], configuration.adc_calibration_gain[i], configuration.adc_analog_min[i], configuration.adc_analog_max[i]);
@@ -492,9 +492,6 @@ void load_configuration() {
 void init_sensors () {
 
   if (!configuration.is_oneshot) {
-    //LOGN(F("--> acquiring %l~%l samples in %l minutes"), OBSERVATION_SAMPLES_COUNT_MIN, OBSERVATION_SAMPLES_COUNT_MAX, OBSERVATIONS_MINUTES);
-    //LOGN(F("--> max %l samples error in %l minutes (observation)"), OBSERVATION_SAMPLE_ERROR_MAX, OBSERVATIONS_MINUTES);
-    //LOGN(F("--> max %l samples error in %l minutes (report)"), RMAP_REPORT_SAMPLE_ERROR_MAX, STATISTICAL_DATA_COUNT * OBSERVATIONS_MINUTES);
 
     #if (USE_SENSOR_DSR)
     LOGN(F("sc: sample count"));
@@ -592,11 +589,11 @@ void make_report (bool init) {
   if (init) {
     samples_count=0;
     samples_error_count=0;
-    sample=UINT16_MAX;
-    average=UINT16_MAX;
+    sample=INT16_MAX;
+    average=INT16_MAX;
   }else{
 
-    if (ISVALID_UINT16(sample)){    
+    if (ISVALID_INT16(sample)){    
       samples_count++;
       if (samples_count == 1) average=sample;
       average += round((float(sample) - float(average)) / float(samples_count));
@@ -604,7 +601,7 @@ void make_report (bool init) {
       samples_error_count++;
     }
   }
-  LOGV("samples_count: %l ; sample: %l  ; average: %l",samples_count,sample,average);
+  LOGN("samples_count: %l ; sample: %l  ; average: %l",samples_count,sample,average);
 }
 
 
@@ -686,12 +683,12 @@ void solar_radiation_task () {
 
     case SOLAR_RADIATION_ELABORATE:
       
-      sample = getSolarRadiation(solar_radiation);
+      sample = round(getSolarRadiation(solar_radiation));
       make_report();
 
       readable_data_write_ptr->solar_radiation.sample = sample;
 
-      if (samples_count > 3){
+      if (samples_count > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{
@@ -836,7 +833,7 @@ void solar_radiation_task_hr () {
     case SOLAR_RADIATION_HR_PROCESS:
 
       make_report();
-      if (samples_count > 3){
+      if (samples_count > ((RMAP_REPORT_SAMPLE_ERROR_MAX_PERC*1000)/SENSORS_SAMPLE_TIME_MS)){
 	if((float(samples_error_count) / float(samples_count) *100) <= RMAP_REPORT_SAMPLE_ERROR_MAX_PERC){ 
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{
@@ -878,12 +875,12 @@ void exchange_buffers() {
 
 void reset_samples_buffer() {
   samples_count=0;
-  sample=UINT16_MAX;
+  sample=INT16_MAX;
 }
 
 void reset_data(volatile readable_data_t *ptr) {
-  ptr->solar_radiation.sample = UINT16_MAX;
-  ptr->solar_radiation.avg = UINT16_MAX;
+  ptr->solar_radiation.sample = INT16_MAX;
+  ptr->solar_radiation.avg = INT16_MAX;
 }
 
 void command_task() {
