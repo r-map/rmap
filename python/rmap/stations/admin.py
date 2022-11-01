@@ -1,5 +1,7 @@
 from django.contrib import admin
-from .models import StationMetadata,Board,Sensor,SensorType,Bcode,TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,StationConstantData,BoardFirmwareMetadata,StationImage
+from .models import (StationMetadata,Board,Sensor,SensorType,Bcode,
+TransportSerial,TransportTcpip,TransportRF24Network,TransportMqtt,TransportCan,TransportAmqp,TransportBluetooth,
+StationConstantData,BoardFirmwareMetadata,StationMaintStatus,StationImage)
 from django import forms
 from django.utils.translation import ugettext_lazy
 import rmap.settings
@@ -37,7 +39,10 @@ class BoardInline(admin.StackedInline):
 class BoardFirmwareMetadataInline(admin.StackedInline):
     model = BoardFirmwareMetadata
     extra=0   # this require javascript to add record inline
-    
+
+class StationMaintStatusInline(admin.StackedInline):
+    model = StationMaintStatus
+    extra=0   # this require javascript to add record inline    
     
 ## Board has Certificates inline but rather
 ## than nesting inlines (not possible), shows a link to
@@ -126,7 +131,11 @@ class StationImageInline(admin.TabularInline):
 
 class StationMetadataAdmin(admin.ModelAdmin):
 
-    inlines = [BoardInline,StationConstantDataInline,StationImageInline]
+    inlines = [BoardInline,
+               StationConstantDataInline,
+               StationImageInline,
+               StationMaintStatusInline,
+               ]
 
     prepopulated_fields = {'slug': ("name",)}
 
