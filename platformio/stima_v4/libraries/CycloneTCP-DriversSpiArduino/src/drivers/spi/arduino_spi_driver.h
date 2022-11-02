@@ -33,7 +33,7 @@
 #include <SPI.h>
 #include "core/net.h"
 #include "error.h"
-#include "HardwareConfig.h"
+#include "hardware_config.h"
 
 //SPI driver
 extern SPIClass SPI;
