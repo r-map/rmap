@@ -601,7 +601,7 @@ void make_report (bool init) {
       samples_error_count++;
     }
   }
-  LOGN("samples_count: %l ; sample: %l  ; average: %l",samples_count,sample,average);
+  LOGN("samples_count: %d ; sample: %d  ; average: %d",samples_count,sample,average);
 }
 
 
@@ -619,7 +619,7 @@ void solarRadiationPowerOn () {
 
 #if (USE_SENSOR_DSR)
 float getSolarRadiationMv (float adc_value, float offset_mv) {
-  float value = (float) UINT16_MAX;
+  float value = (float) INT16_MAX;
 
   if ((adc_value >= ADC_MIN) && (adc_value <= ADC_MAX)) {
     value = ADC_VOLTAGE_MAX / ADC_MAX * adc_value;
@@ -634,7 +634,7 @@ float getSolarRadiation (float adc_value) {
   float value = getSolarRadiationMv(adc_value, configuration.adc_voltage_offset_1);
 
   if ((value < (configuration.adc_voltage_min - SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (configuration.adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
-    value = UINT16_MAX;
+    value = (float) INT16_MAX;
   }
   else {
   value = ((value - configuration.adc_voltage_min) / (configuration.adc_voltage_max - configuration.adc_voltage_min) * SOLAR_RADIATION_MAX);
@@ -693,7 +693,7 @@ void solar_radiation_task () {
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{
 	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count,samples_error_count);
-	  readable_data_write_ptr->solar_radiation.avg = UINT16_MAX;	  
+	  readable_data_write_ptr->solar_radiation.avg = INT16_MAX;	  
 	}
       }
 
@@ -722,7 +722,7 @@ void solar_radiation_task () {
 
 #if (USE_SENSOR_VSR)
 float getAdcCalibratedValue (float adc_value, float offset, float gain) {
-  float value = (float) UINT16_MAX;
+  float value = (float) INT16_MAX;
 
   if (!isnan(adc_value) && (adc_value >= ADC_MIN) && (adc_value <= ADC_MAX)) {
     value = adc_value;
@@ -734,7 +734,7 @@ float getAdcCalibratedValue (float adc_value, float offset, float gain) {
 }
 
 float getAdcAnalogValue (float adc_value, float min, float max) {
-  float value = (float) UINT16_MAX;
+  float value = (float) INT16_MAX;
 
   if (!isnan(adc_value)) {
     value = adc_value;
@@ -749,7 +749,7 @@ float getSolarRadiation (float adc_value, float adc_voltage_min, float adc_volta
   float value = adc_value;
 
   if ((value < (adc_voltage_min + SOLAR_RADIATION_ERROR_VOLTAGE_MIN)) || (value > (adc_voltage_max + SOLAR_RADIATION_ERROR_VOLTAGE_MAX))) {
-    value = UINT16_MAX;
+    value = (float) INT16_MAX;
   }
   else {
   value = ((value - adc_voltage_min) / (adc_voltage_max - adc_voltage_min) * SOLAR_RADIATION_MAX);
@@ -792,7 +792,7 @@ void solar_radiation_task_hr () {
       else if (adc_result == ADC_ERROR) {
 	LOGE("ADC readSingleChannel error");
         i2c_error++;
-        value = UINT16_MAX;
+        value = (float) INT16_MAX;
         is_error = true;
 	solar_radiation_hr_state = SOLAR_RADIATION_HR_EVALUATE;
 	LOGV(F("SOLAR_RADIATION_HR_READ --> SOLAR_RADIATION_HR_EVALUATE"));
@@ -821,6 +821,8 @@ void solar_radiation_task_hr () {
 	sample=round(value);
 	readable_data_write_ptr->solar_radiation.sample = sample;
 
+      } else {
+	sample=INT16_MAX;
       }
 
       LOGN(F("%D [ %s ]"), value, is_error ? ERROR_STRING : OK_STRING);
@@ -838,7 +840,7 @@ void solar_radiation_task_hr () {
 	  readable_data_write_ptr->solar_radiation.avg = average;
 	}else{
 	  LOGE(F("REPORT_SAMPLE_ERROR_MAX_PERC error good: %d ; bad: %d"), samples_count,samples_error_count);
-	  readable_data_write_ptr->solar_radiation.avg = UINT16_MAX;	  
+	  readable_data_write_ptr->solar_radiation.avg = INT16_MAX;	  
 	}
       }
              
