@@ -381,7 +381,6 @@ extern "C" void MX_LPTIM2_Init(void)
   */
 extern "C" void MX_QUADSPI_Init(void)
 {
-
   /* USER CODE BEGIN QUADSPI_Init 0 */
 
   /* USER CODE END QUADSPI_Init 0 */
@@ -394,7 +393,7 @@ extern "C" void MX_QUADSPI_Init(void)
   hqspi.Init.ClockPrescaler = 255;
   hqspi.Init.FifoThreshold = 1;
   hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
-  hqspi.Init.FlashSize = 1;
+  hqspi.Init.FlashSize = 22;
   hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
   hqspi.Init.ClockMode = QSPI_CLOCK_MODE_0;
   hqspi.Init.FlashID = QSPI_FLASH_ID_1;
@@ -406,7 +405,6 @@ extern "C" void MX_QUADSPI_Init(void)
   /* USER CODE BEGIN QUADSPI_Init 2 */
 
   /* USER CODE END QUADSPI_Init 2 */
-
 }
 
 /**
@@ -826,9 +824,12 @@ extern "C" void HAL_MspInit(void)
 
   /* System interrupt init*/
   /* SVCall_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(SVCall_IRQn, 13, 0);
-  /* PendSV_IRQn interrupt configuration */
-  HAL_NVIC_SetPriority(PendSV_IRQn, 14, 0);
+  // HAL_NVIC_SetPriority(SVCall_IRQn, 13, 0);
+  // /* PendSV_IRQn interrupt configuration */
+  // HAL_NVIC_SetPriority(PendSV_IRQn, 14, 0);
+
+  // Necessario con FreeRTOS
+  HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
 
   /** PVD Configuration
   */
