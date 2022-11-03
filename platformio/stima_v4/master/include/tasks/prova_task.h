@@ -1,4 +1,4 @@
-/**@file led_task.cpp */
+/**@file prova_task.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,22 +21,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL LED_TASK_TRACE_LEVEL
+#ifndef _PROVA_TASK_H
+#define _PROVA_TASK_H
 
-#include "tasks/led_task.h"
+#include "STM32FreeRTOS.h"
+#include "thread.hpp"
+#include "ticks.hpp"
+#include "debug.h"
 
-using namespace cpp_freertos;
+typedef struct {
+} ProvaParam_t;
 
-LedTask::LedTask(const char *taskName, uint16_t stackSize, uint8_t priority, LedParam_t ledParam) : Thread(taskName, stackSize, priority), LedParam(ledParam) {
-  Start();
+class ProvaTask : public cpp_freertos::Thread {
+
+public:
+  ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam);
+
+protected:
+  virtual void Run();
+
+private:
+  char taskName[configMAX_TASK_NAME_LEN];
+  uint16_t stackSize;
+  uint8_t priority;
+  ProvaParam_t ProvaParam;
 };
 
-void LedTask::Run() {
-  pinMode(LedParam.led, OUTPUT);
-  while (true) {
-    digitalWrite(LedParam.led, HIGH);
-    DelayUntil(Ticks::MsToTicks(LedParam.onDelayMs));
-    digitalWrite(LedParam.led, LOW);
-    DelayUntil(Ticks::MsToTicks(LedParam.offDelayMs));
-  }
-}
+#endif

@@ -1,4 +1,4 @@
-/**@file led_task.cpp */
+/**@file prova_task.cpp */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,22 +21,19 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL LED_TASK_TRACE_LEVEL
+#define TRACE_LEVEL PROVA_TASK_TRACE_LEVEL
 
-#include "tasks/led_task.h"
+#include "tasks/prova_task.h"
 
 using namespace cpp_freertos;
 
-LedTask::LedTask(const char *taskName, uint16_t stackSize, uint8_t priority, LedParam_t ledParam) : Thread(taskName, stackSize, priority), LedParam(ledParam) {
+ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), ProvaParam(provaParam) {
   Start();
 };
 
-void LedTask::Run() {
-  pinMode(LedParam.led, OUTPUT);
+void ProvaTask::Run() {
   while (true) {
-    digitalWrite(LedParam.led, HIGH);
-    DelayUntil(Ticks::MsToTicks(LedParam.onDelayMs));
-    digitalWrite(LedParam.led, LOW);
-    DelayUntil(Ticks::MsToTicks(LedParam.offDelayMs));
+    TRACE_INFO(F("Prova Task...\r\n"));
+    DelayUntil(Ticks::MsToTicks(1000));
   }
 }

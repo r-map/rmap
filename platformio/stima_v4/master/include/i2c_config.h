@@ -1,4 +1,4 @@
-/**@file led_task.cpp */
+/**@file i2c_config.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,22 +21,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL LED_TASK_TRACE_LEVEL
+#ifndef _I2C_CONFIG_H
+#define _I2C_CONFIG_H
 
-#include "tasks/led_task.h"
+/*!
+\def I2C_BUS_CLOCK
+\brief I2C bus clock in Hertz.
+30418,25 Hz  : minimum freq with prescaler set to 1 and CPU clock to 16MHz
+*/
+#define I2C_BUS_CLOCK                   (100000L)
 
-using namespace cpp_freertos;
+/*!
+\def I2C_MAX_DATA_LENGTH
+\brief Max length in bytes for i2c bus data buffer.
+*/
+#define I2C_MAX_DATA_LENGTH             (32)
 
-LedTask::LedTask(const char *taskName, uint16_t stackSize, uint8_t priority, LedParam_t ledParam) : Thread(taskName, stackSize, priority), LedParam(ledParam) {
-  Start();
-};
+/*!
+\def I2C_MAX_ERROR_COUNT
+\brief Max i2c error for bus restart.
+*/
+#define I2C_MAX_ERROR_COUNT             (3)
 
-void LedTask::Run() {
-  pinMode(LedParam.led, OUTPUT);
-  while (true) {
-    digitalWrite(LedParam.led, HIGH);
-    DelayUntil(Ticks::MsToTicks(LedParam.onDelayMs));
-    digitalWrite(LedParam.led, LOW);
-    DelayUntil(Ticks::MsToTicks(LedParam.offDelayMs));
-  }
-}
+#endif

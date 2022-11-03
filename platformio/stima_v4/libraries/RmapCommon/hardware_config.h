@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #ifndef _HARDWARE_CONFIG_H
 #define _HARDWARE_CONFIG_H
 
-#ifdef STIMA_SLAVE_L452
+#ifdef STIMA_SLAVE
 #define SPI1_MOSI           (PA7)   // D11 PA7
 #define SPI1_MISO           (PA6)   // D12 PA6
 #define SPI1_CLK            (PA5)   // D13 PA5
@@ -44,7 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #endif
 
-#ifdef STIMA_MASTER_L496
+#ifdef STIMA_MASTER
 #define SPI1_MOSI           (PA7)   // D11 PA7
 #define SPI1_MISO           (PA6)   // D12 PA6
 #define SPI1_CLK            (PA5)   // D13 PA5
