@@ -1,3 +1,21 @@
+/* USER CODE BEGIN Header */
+/**
+  ******************************************************************************
+  * @file    module_master_hal.cpp
+  * @brief   module_master hal configuration
+  ******************************************************************************
+  * @attention
+  *
+  * This software is distributed under the terms of the MIT License.
+  * Progetto RMAP - STIMA V4
+  * Hardware Config, STIMAV4 MASTER Board - Rev.1.00
+  * Copyright (C) 2022 Digiteco s.r.l.
+  * Author: Gasperini Moreno <m.gasperini@digiteco.it>
+  *
+  ******************************************************************************
+  */
+/* USER CODE END Header */
+
 // Arduino
 #include <Arduino.h>
 #include "module_master_hal.hpp"
@@ -6,49 +24,44 @@
 #ifdef _HW_SETUP_CAN_PRIVATE
 CAN_HandleTypeDef hcan1;
 #endif
-
 #ifdef _HW_SETUP_CRC_PRIVATE
 CRC_HandleTypeDef hcrc;
 #endif
-
-#ifdef _HW_SETUP_I2C_PRIVATE
+#ifdef _HW_SETUP_I2C1_PRIVATE
 I2C_HandleTypeDef hi2c1;
+#endif
+#ifdef _HW_SETUP_I2C2_PRIVATE
 I2C_HandleTypeDef hi2c2;
 #endif
-
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 LPTIM_HandleTypeDef hlptim1;
-LPTIM_HandleTypeDef hlptim2;
 #endif
-
 #ifdef _HW_SETUP_QSPI_PRIVATE
 QSPI_HandleTypeDef hqspi;
 #endif
-
 #ifdef _HW_SETUP_RNG_PRIVATE
 RNG_HandleTypeDef hrng;
 #endif
-
 #ifdef _HW_SETUP_RTC_PRIVATE
 RTC_HandleTypeDef hrtc;
 #endif
-
 #ifdef _HW_SETUP_SD_PRIVATE
 SD_HandleTypeDef hsd1;
 #endif
-
 #ifdef _HW_SETUP_SPI_PRIVATE
 SPI_HandleTypeDef hspi1;
 #endif
-
 #ifdef _HW_SETUP_TIM3_PRIVATE
 TIM_HandleTypeDef htim3;
 #endif
-
-#ifdef _HW_SETUP_UART_PRIVATE
-UART_HandleTypeDef huart4;
+#ifdef _HW_SETUP_UART1_PRIVATE
 UART_HandleTypeDef huart1;
+#endif
+#ifdef _HW_SETUP_UART2_PRIVATE
 UART_HandleTypeDef huart2;
+#endif
+#ifdef _HW_SETUP_UART4_PRIVATE
+UART_HandleTypeDef huart4;
 #endif
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
 
@@ -82,12 +95,30 @@ extern "C" void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI
-                              |RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
+  // RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_HSI
+  //                             |RCC_OSCILLATORTYPE_LSE|RCC_OSCILLATORTYPE_MSI;
+  // RCC_OscInitStruct.LSEState = RCC_LSE_ON;
+  // RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  // RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
+  // RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
+  // RCC_OscInitStruct.MSIState = RCC_MSI_ON;
+  // RCC_OscInitStruct.MSICalibrationValue = 0;
+  // RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
+  // RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+  // RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_MSI;
+  // RCC_OscInitStruct.PLL.PLLM = 1;
+  // RCC_OscInitStruct.PLL.PLLN = 40;
+  // RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+  // RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
+  // RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
+  // if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  // {
+  //   Error_Handler();
+  // }
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI48|RCC_OSCILLATORTYPE_LSE
+                              |RCC_OSCILLATORTYPE_MSI;
   RCC_OscInitStruct.LSEState = RCC_LSE_ON;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
   RCC_OscInitStruct.HSI48State = RCC_HSI48_ON;
-  RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.MSIState = RCC_MSI_ON;
   RCC_OscInitStruct.MSICalibrationValue = 0;
   RCC_OscInitStruct.MSIClockRange = RCC_MSIRANGE_6;
@@ -137,11 +168,65 @@ extern "C" void SystemClock_Config(void)
   HAL_RCCEx_CRSConfig(&RCC_CRSInitStruct);
 }
 
+/// @brief Startup PeripheralConfig Local Board
+/// @param  none
+void SetupSystemPeripheral(void) {
+  #ifdef _HW_SETUP_GPIO_PRIVATE
+  MX_GPIO_Init();
+  #endif
+  #ifdef _HW_SETUP_CAN_PRIVATE
+  MX_CAN1_Init();
+  #endif
+  #ifdef _HW_SETUP_CRC_PRIVATE
+  MX_CRC_Init();
+  #endif
+  #ifdef _HW_SETUP_I2C1_PRIVATE
+  MX_I2C1_Init();
+  #endif
+  #ifdef _HW_SETUP_I2C2_PRIVATE
+  MX_I2C2_Init();
+  #endif
+  #ifdef _HW_SETUP_QSPI_PRIVATE
+  MX_QUADSPI_Init();
+  #endif
+  #ifdef _HW_SETUP_RTC_PRIVATE
+  MX_RTC_Init();
+  #endif
+  #ifdef _HW_SETUP_UART1_PRIVATE
+  MX_USART1_UART_Init();
+  #endif
+  #ifdef _HW_SETUP_UART2_PRIVATE
+  MX_USART2_UART_Init();
+  #endif
+  #ifdef _HW_SETUP_UART4_PRIVATE
+  MX_UART4_Init();
+  #endif
+  #ifdef _HW_SETUP_LPTIM_PRIVATE
+  MX_LPTIM1_Init();
+  #endif
+  #ifdef _HW_SETUP_RNG_PRIVATE
+  MX_RNG_Init();
+  #endif
+  #ifdef _HW_SETUP_TIM3_PRIVATE
+  MX_TIM3_Init();
+  #endif
+  #ifdef _HW_SETUP_I2C1_PRIVATE
+  MX_I2C1_Init();
+  #endif
+  #ifdef _HW_SETUP_I2C2_PRIVATE
+  MX_I2C1_Init();
+  #endif
+  #ifdef _HW_SETUP_SPI_PRIVATE
+  MX_SPI1_Init();
+  #endif  
+}
+
 /*******************************************************************************************
 ********************************************************************************************
                    System base Hardware Istance and private Initialization
 ********************************************************************************************
 *******************************************************************************************/
+#ifdef _HW_SETUP_CAN_PRIVATE
 /**
   * @brief CAN1 Initialization Function
   * @param None
@@ -178,7 +263,9 @@ extern "C" void MX_CAN1_Init(void)
   /* USER CODE END CAN1_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_CRC_PRIVATE
 /**
   * @brief CRC Initialization Function
   * @param None
@@ -209,7 +296,9 @@ extern "C" void MX_CRC_Init(void)
   /* USER CODE END CRC_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_I2C1_PRIVATE
 /**
   * @brief I2C1 Initialization Function
   * @param None
@@ -257,7 +346,9 @@ extern "C" void MX_I2C1_Init(void)
   /* USER CODE END I2C1_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_I2C2_PRIVATE
 /**
   * @brief I2C2 Initialization Function
   * @param None
@@ -305,7 +396,9 @@ extern "C" void MX_I2C2_Init(void)
   /* USER CODE END I2C2_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_LPTIM_PRIVATE
 /**
   * @brief LPTIM1 Initialization Function
   * @param None
@@ -339,41 +432,9 @@ extern "C" void MX_LPTIM1_Init(void)
   /* USER CODE END LPTIM1_Init 2 */
 
 }
+#endif
 
-/**
-  * @brief LPTIM2 Initialization Function
-  * @param None
-  * @retval None
-  */
-extern "C" void MX_LPTIM2_Init(void)
-{
-
-  /* USER CODE BEGIN LPTIM2_Init 0 */
-
-  /* USER CODE END LPTIM2_Init 0 */
-
-  /* USER CODE BEGIN LPTIM2_Init 1 */
-
-  /* USER CODE END LPTIM2_Init 1 */
-  hlptim2.Instance = LPTIM2;
-  hlptim2.Init.Clock.Source = LPTIM_CLOCKSOURCE_APBCLOCK_LPOSC;
-  hlptim2.Init.Clock.Prescaler = LPTIM_PRESCALER_DIV1;
-  hlptim2.Init.Trigger.Source = LPTIM_TRIGSOURCE_SOFTWARE;
-  hlptim2.Init.OutputPolarity = LPTIM_OUTPUTPOLARITY_HIGH;
-  hlptim2.Init.UpdateMode = LPTIM_UPDATE_IMMEDIATE;
-  hlptim2.Init.CounterSource = LPTIM_COUNTERSOURCE_INTERNAL;
-  hlptim2.Init.Input1Source = LPTIM_INPUT1SOURCE_GPIO;
-  hlptim2.Init.Input2Source = LPTIM_INPUT2SOURCE_GPIO;
-  if (HAL_LPTIM_Init(&hlptim2) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN LPTIM2_Init 2 */
-
-  /* USER CODE END LPTIM2_Init 2 */
-
-}
-
+#ifdef _HW_SETUP_QSPI_PRIVATE
 /**
   * @brief QUADSPI Initialization Function
   * @param None
@@ -406,7 +467,9 @@ extern "C" void MX_QUADSPI_Init(void)
 
   /* USER CODE END QUADSPI_Init 2 */
 }
+#endif
 
+#ifdef _HW_SETUP_RNG_PRIVATE
 /**
   * @brief RNG Initialization Function
   * @param None
@@ -432,7 +495,9 @@ extern "C" void MX_RNG_Init(void)
   /* USER CODE END RNG_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_RTC_PRIVATE
 /**
   * @brief RTC Initialization Function
   * @param None
@@ -496,7 +561,9 @@ extern "C" void MX_RTC_Init(void)
   /* USER CODE END RTC_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_SD_PRIVATE
 /**
   * @brief SDMMC1 Initialization Function
   * @param None
@@ -532,7 +599,9 @@ extern "C" void MX_SDMMC1_SD_Init(void)
   /* USER CODE END SDMMC1_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_SPI_PRIVATE
 /**
   * @brief SPI1 Initialization Function
   * @param None
@@ -572,7 +641,9 @@ extern "C" void MX_SPI1_Init(void)
   /* USER CODE END SPI1_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_TIM3_PRIVATE
 /**
   * @brief TIM3 Initialization Function
   * @param None
@@ -621,7 +692,9 @@ extern "C" void MX_TIM3_Init(void)
   /* USER CODE END TIM3_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_UART4_PRIVATE
 /**
   * @brief UART4 Initialization Function
   * @param None
@@ -656,7 +729,9 @@ extern "C" void MX_UART4_Init(void)
   /* USER CODE END UART4_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_UART1_PRIVATE
 /**
   * @brief USART1 Initialization Function
   * @param None
@@ -691,7 +766,9 @@ extern "C" void MX_USART1_UART_Init(void)
   /* USER CODE END USART1_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_UART2_PRIVATE
 /**
   * @brief USART2 Initialization Function
   * @param None
@@ -726,7 +803,9 @@ extern "C" void MX_USART2_UART_Init(void)
   /* USER CODE END USART2_Init 2 */
 
 }
+#endif
 
+#ifdef _HW_SETUP_GPIO_PRIVATE
 /**
   * @brief GPIO Initialization Function
   * @param None
@@ -799,10 +878,7 @@ extern "C" void MX_GPIO_Init(void)
   LL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
 }
-
-/* USER CODE BEGIN 4 */
-
-/* USER CODE END 4 */
+#endif
 
 /*******************************************************************************************
 ********************************************************************************************
@@ -824,12 +900,14 @@ extern "C" void HAL_MspInit(void)
 
   /* System interrupt init*/
   /* SVCall_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(SVCall_IRQn, 13, 0);
-  // /* PendSV_IRQn interrupt configuration */
-  // HAL_NVIC_SetPriority(PendSV_IRQn, 14, 0);
-
-  // Necessario con FreeRTOS
+  HAL_NVIC_SetPriority(SVCall_IRQn, 13, 0);
+  #ifdef USE_STM32_FREERTOS
+  /* PendSV_IRQn interrupt configuration */
   HAL_NVIC_SetPriority(PendSV_IRQn, 15, 0);
+  #else
+  /* PendSV_IRQn interrupt configuration */
+  HAL_NVIC_SetPriority(PendSV_IRQn, 14, 0);
+  #endif
 
   /** PVD Configuration
   */
@@ -850,6 +928,7 @@ extern "C" void HAL_MspInit(void)
   /* USER CODE END MspInit 1 */
 }
 
+#ifdef _HW_MSP_CAN_PRIVATE
 /**
 * @brief CAN MSP Initialization
 * This function configures the hardware resources used in this example
@@ -914,7 +993,9 @@ extern "C" void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_CRC_PRIVATE
 /**
 * @brief CRC MSP Initialization
 * This function configures the hardware resources used in this example
@@ -958,7 +1039,9 @@ extern "C" void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc)
   }
 
 }
+#endif
 
+#if defined(_HW_MSP_I2C1_PRIVATE)||defined(_HW_MSP_I2C2_PRIVATE)
 /**
 * @brief I2C MSP Initialization
 * This function configures the hardware resources used in this example
@@ -969,6 +1052,7 @@ extern "C" void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+  #ifdef _HW_MSP_I2C1_PRIVATE
   if(hi2c->Instance==I2C1)
   {
   /* USER CODE BEGIN I2C1_MspInit 0 */
@@ -1002,7 +1086,9 @@ extern "C" void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
   /* USER CODE END I2C1_MspInit 1 */
   }
-  else if(hi2c->Instance==I2C2)
+  #endif
+  #ifdef _HW_MSP_I2C2_PRIVATE
+  if(hi2c->Instance==I2C2)
   {
   /* USER CODE BEGIN I2C2_MspInit 0 */
 
@@ -1035,6 +1121,7 @@ extern "C" void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
   /* USER CODE END I2C2_MspInit 1 */
   }
+  #endif
 
 }
 
@@ -1046,6 +1133,7 @@ extern "C" void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 */
 extern "C" void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 {
+  #ifdef _HW_MSP_I2C1_PRIVATE
   if(hi2c->Instance==I2C1)
   {
   /* USER CODE BEGIN I2C1_MspDeInit 0 */
@@ -1066,7 +1154,9 @@ extern "C" void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 
   /* USER CODE END I2C1_MspDeInit 1 */
   }
-  else if(hi2c->Instance==I2C2)
+  #endif
+  #ifdef _HW_MSP_I2C2_PRIVATE
+  if(hi2c->Instance==I2C2)
   {
   /* USER CODE BEGIN I2C2_MspDeInit 0 */
 
@@ -1086,9 +1176,12 @@ extern "C" void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
 
   /* USER CODE END I2C2_MspDeInit 1 */
   }
+  #endif
 
 }
+#endif
 
+#ifdef _HW_MSP_LPTIM_PRIVATE
 /**
 * @brief LPTIM MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1119,27 +1212,6 @@ extern "C" void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim)
 
   /* USER CODE END LPTIM1_MspInit 1 */
   }
-  else if(hlptim->Instance==LPTIM2)
-  {
-  /* USER CODE BEGIN LPTIM2_MspInit 0 */
-
-  /* USER CODE END LPTIM2_MspInit 0 */
-
-  /** Initializes the peripherals clock
-  */
-    PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_LPTIM2;
-    PeriphClkInit.Lptim2ClockSelection = RCC_LPTIM2CLKSOURCE_HSI;
-    if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    /* Peripheral clock enable */
-    __HAL_RCC_LPTIM2_CLK_ENABLE();
-  /* USER CODE BEGIN LPTIM2_MspInit 1 */
-
-  /* USER CODE END LPTIM2_MspInit 1 */
-  }
 
 }
 
@@ -1162,20 +1234,11 @@ extern "C" void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim)
 
   /* USER CODE END LPTIM1_MspDeInit 1 */
   }
-  else if(hlptim->Instance==LPTIM2)
-  {
-  /* USER CODE BEGIN LPTIM2_MspDeInit 0 */
-
-  /* USER CODE END LPTIM2_MspDeInit 0 */
-    /* Peripheral clock disable */
-    __HAL_RCC_LPTIM2_CLK_DISABLE();
-  /* USER CODE BEGIN LPTIM2_MspDeInit 1 */
-
-  /* USER CODE END LPTIM2_MspDeInit 1 */
-  }
 
 }
+#endif
 
+#ifdef _HW_MSP_QSPI_PRIVATE
 /**
 * @brief QSPI MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1258,7 +1321,9 @@ void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_RNG_PRIVATE
 /**
 * @brief RNG MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1313,7 +1378,9 @@ extern "C" void HAL_RNG_MspDeInit(RNG_HandleTypeDef* hrng)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_RTC_PRIVATE
 /**
 * @brief RTC MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1368,7 +1435,9 @@ extern "C" void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_SD_PRIVATE
 /**
 * @brief SD MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1464,7 +1533,9 @@ extern "C" void HAL_SD_MspDeInit(SD_HandleTypeDef* hsd)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_SPI_PRIVATE
 /**
 * @brief SPI MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1541,7 +1612,9 @@ extern "C" void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi)
   }
 
 }
+#endif
 
+#ifdef _HW_MSP_TIM3_PRIVATE
 /**
 * @brief TIM_Encoder MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1606,7 +1679,9 @@ extern "C" void HAL_TIM_Encoder_MspDeInit(TIM_HandleTypeDef* htim_encoder)
   }
 
 }
+#endif
 
+#if defined(_HW_MSP_UART1_PRIVATE)||defined(_HW_MSP_UART2_PRIVATE)||defined(_HW_MSP_UART4_PRIVATE)
 /**
 * @brief UART MSP Initialization
 * This function configures the hardware resources used in this example
@@ -1617,6 +1692,7 @@ extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
   RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+  #ifdef _HW_MSP_UART4_PRIVATE
   if(huart->Instance==UART4)
   {
   /* USER CODE BEGIN UART4_MspInit 0 */
@@ -1651,7 +1727,9 @@ extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END UART4_MspInit 1 */
   }
-  else if(huart->Instance==USART1)
+  #endif
+  #ifdef _HW_MSP_UART1_PRIVATE
+  if(huart->Instance==USART1)
   {
   /* USER CODE BEGIN USART1_MspInit 0 */
 
@@ -1693,7 +1771,9 @@ extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART1_MspInit 1 */
   }
-  else if(huart->Instance==USART2)
+  #endif
+  #ifdef _HW_MSP_UART2_PRIVATE
+  if(huart->Instance==USART2)
   {
   /* USER CODE BEGIN USART2_MspInit 0 */
 
@@ -1729,6 +1809,7 @@ extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART2_MspInit 1 */
   }
+  #endif
 
 }
 
@@ -1740,6 +1821,7 @@ extern "C" void HAL_UART_MspInit(UART_HandleTypeDef* huart)
 */
 extern "C" void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 {
+  #ifdef _HW_MSP_UART4_PRIVATE
   if(huart->Instance==UART4)
   {
   /* USER CODE BEGIN UART4_MspDeInit 0 */
@@ -1758,7 +1840,9 @@ extern "C" void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END UART4_MspDeInit 1 */
   }
-  else if(huart->Instance==USART1)
+  #endif
+  #ifdef _HW_MSP_UART1_PRIVATE
+  if(huart->Instance==USART1)
   {
   /* USER CODE BEGIN USART1_MspDeInit 0 */
 
@@ -1778,7 +1862,9 @@ extern "C" void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART1_MspDeInit 1 */
   }
-  else if(huart->Instance==USART2)
+  #endif
+  #ifdef _HW_MSP_UART2_PRIVATE
+  if(huart->Instance==USART2)
   {
   /* USER CODE BEGIN USART2_MspDeInit 0 */
 
@@ -1798,5 +1884,7 @@ extern "C" void HAL_UART_MspDeInit(UART_HandleTypeDef* huart)
 
   /* USER CODE END USART2_MspDeInit 1 */
   }
+  #endif
 
 }
+#endif

@@ -19,23 +19,8 @@
 // *********************************************************************************************
 void setup(void) {
 
-    // *****************************************************
-    //   STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
-    // *****************************************************
-
-    // MX_GPIO_Init();
-    // MX_CAN1_Init();
-    // MX_CRC_Init();
-    // MX_I2C2_Init();
-    // MX_QUADSPI_Init();
-    // MX_RTC_Init();
-    // MX_UART4_Init();
-    // MX_USART1_UART_Init();
-    // MX_LPTIM1_Init();
-    // MX_RNG_Init();
-    // MX_USART2_UART_Init();
-    // MX_I2C1_Init();
-    // MX_SPI1_Init();
+    // STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
+    SetupSystemPeripheral();
 
     // Serial2.begin(9600);
 

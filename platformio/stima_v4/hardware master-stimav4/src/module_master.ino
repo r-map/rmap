@@ -25,39 +25,22 @@
 // *********************************************************************************************
 void setup(void) {
 
-  // *****************************************************
-  //   STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
-  // *****************************************************
-  MX_GPIO_Init();
-  MX_CAN1_Init();
-  MX_CRC_Init();
-  MX_I2C2_Init();
-  MX_QUADSPI_Init();
-  MX_RTC_Init();
-  MX_UART4_Init();
-  MX_USART1_UART_Init();
-  MX_LPTIM1_Init();
-  MX_LPTIM2_Init();
-  MX_RNG_Init();
-  MX_TIM3_Init();
-  MX_USART2_UART_Init();
-  MX_I2C1_Init();
-  MX_SPI1_Init();
+  // STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
+  SetupSystemPeripheral();
 
+  // *****************************************************
+  //  STARTUP SERIAL MONITOR DIAGNOSTICI E BOARD PINOUT
+  // *****************************************************
   Serial.begin(115200);
   // Wait for serial port to connect
   while (!Serial) {
   }
   Serial.println(F("Start RS232 Monitor"));
 
-  // *****************************************************
-  //            STARTUP LED E PIN DIAGNOSTICI
-  // *****************************************************
-  // Output mode for LED BLINK SW LOOP (High per Setup)
-  // Input mode for test button
-
+  // End Config
   Serial.println(F("Initialization HW Base done"));
 
+  // Startup Schedulher
   ProvaParam_t provaParam = {};
   static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
   cpp_freertos::Thread::StartScheduler();

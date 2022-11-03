@@ -1,17 +1,16 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32_assert.h
-  * @brief   STM32 assert file.
+  * @file    module_slave_hal.hpp
+  * @brief   module_slave hal configuration
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2018 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software is distributed under the terms of the MIT License.
+  * Progetto RMAP - STIMA V4
+  * Hardware Config, STIMAV4 SLAVE Board - Rev.1.00
+  * Copyright (C) 2022 Digiteco s.r.l.
+  * Author: Gasperini Moreno <m.gasperini@digiteco.it>
   *
   ******************************************************************************
   */
@@ -21,18 +20,73 @@
 #ifndef __MODULE_SLAVE_HAL_H
 #define __MODULE_SLAVE_HAL_H
 
-// INIT HW PRIVATE BOARD/ISTANCE CFG
+// Automatic module MSP_Weak Init & DeInit
+#define _HW_MSP_AUTO_PRIVATE
 
+// INIT HW PRIVATE BOARD/ISTANCE CFG
 #define _HW_SETUP_GPIO_PRIVATE
 #define _HW_SETUP_ADC_PRIVATE
 #define _HW_SETUP_CAN_PRIVATE
 #define _HW_SETUP_CRC_PRIVATE
-#define _HW_SETUP_I2C_PRIVATE
+#define _HW_SETUP_I2C1_PRIVATE
+#define _HW_SETUP_I2C2_PRIVATE
 #define _HW_SETUP_LPTIM_PRIVATE
 #define _HW_SETUP_QSPI_PRIVATE
 #define _HW_SETUP_RTC_PRIVATE
 #define _HW_SETUP_SPI_PRIVATE
-#define _HW_SETUP_UART_PRIVATE
+#define _HW_SETUP_UART1_PRIVATE
+#define _HW_SETUP_UART2_PRIVATE
+
+// MSP INIT AND DEINIT PRIVATE WEAK FUNCTION
+#ifndef _HW_MSP_AUTO_PRIVATE
+  // MSP MANUAL SELECT INIT AND DEINIT PRIVATE WEAK FUNCTION
+  #define _HW_MSP_ADC_PRIVATE
+  #define _HW_MSP_CAN_PRIVATE
+  #define _HW_MSP_CRC_PRIVATE
+  #define _HW_MSP_I2C1_PRIVATE
+  #define _HW_MSP_I2C2_PRIVATE
+  #define _HW_MSP_LPTIM_PRIVATE
+  #define _HW_MSP_QSPI_PRIVATE
+  #define _HW_MSP_RTC_PRIVATE
+  #define _HW_MSP_SPI_PRIVATE
+  #define _HW_MSP_UART1_PRIVATE
+  #define _HW_MSP_UART2_PRIVATE
+#else
+  // MSP AUTOMATIC INIT AND DEINIT PRIVATE WEAK FUNCTION
+  #ifdef _HW_SETUP_ADC_PRIVATE
+    #define _HW_MSP_ADC_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_CAN_PRIVATE
+    #define _HW_MSP_CAN_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_CRC_PRIVATE
+    #define _HW_MSP_CRC_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_I2C1_PRIVATE
+    #define _HW_MSP_I2C1_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_I2C2_PRIVATE
+    #define _HW_MSP_I2C2_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_LPTIM_PRIVATE
+    #define _HW_MSP_LPTIM_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_QSPI_PRIVATE
+    #define _HW_MSP_QSPI_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_RTC_PRIVATE
+    #define _HW_MSP_RTC_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_SPI_PRIVATE
+    #define _HW_MSP_SPI_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_UART1_PRIVATE
+    #define _HW_MSP_UART1_PRIVATE
+  #endif
+  #ifdef _HW_SETUP_UART2_PRIVATE
+    #define _HW_MSP_UART2_PRIVATE
+  #endif
+#endif
 
 // ******************************************************************************
 
@@ -102,6 +156,7 @@
 // *****************************
 
 // PIN NAMED STM32CUBE GPIO_INIT
+
 #define DEN_Pin           GPIO_PIN_4
 #define DEN_GPIO_Port     GPIOC
 #define DSEL0_Pin         GPIO_PIN_5
@@ -144,38 +199,34 @@
 #ifdef _HW_SETUP_ADC_PRIVATE
 extern ADC_HandleTypeDef hadc1;
 #endif
-
 #ifdef _HW_SETUP_CAN_PRIVATE
 extern CAN_HandleTypeDef hcan1;
 #endif
-
 #ifdef _HW_SETUP_CRC_PRIVATE
 extern CRC_HandleTypeDef hcrc;
 #endif
-
-#ifdef _HW_SETUP_I2C_PRIVATE
+#ifdef _HW_SETUP_I2C1_PRIVATE
 extern I2C_HandleTypeDef hi2c1;
+#endif
+#ifdef _HW_SETUP_I2C2_PRIVATE
 extern I2C_HandleTypeDef hi2c2;
 #endif
-
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 extern LPTIM_HandleTypeDef hlptim1;
 #endif
-
 #ifdef _HW_SETUP_QSPI_PRIVATE
 extern QSPI_HandleTypeDef hqspi;
 #endif
-
 #ifdef _HW_SETUP_RTC_PRIVATE
 extern RTC_HandleTypeDef hrtc;
 #endif
-
 #ifdef _HW_SETUP_SPI_PRIVATE
 extern SPI_HandleTypeDef hspi1;
 #endif
-
-#ifdef _HW_SETUP_UART_PRIVATE
+#ifdef _HW_SETUP_UART1_PRIVATE
 extern UART_HandleTypeDef huart1;
+#endif
+#ifdef _HW_SETUP_UART2_PRIVATE
 extern UART_HandleTypeDef huart2;
 #endif
 /* Private Hardware_Handler istance initialization ---------------------------------------*/
@@ -185,6 +236,7 @@ extern "C" {
 #endif
 
 void SystemClock_Config(void);
+void SetupSystemPeripheral(void);
 void HAL_MspInit(void);
 
 #ifdef _HW_SETUP_GPIO_PRIVATE
@@ -193,57 +245,78 @@ void MX_GPIO_Init(void);
 
 #ifdef _HW_SETUP_ADC_PRIVATE
 void MX_ADC1_Init(void);
+#endif
+#ifdef _HW_MSP_ADC_PRIVATE
 void HAL_ADC_MspInit_Private(ADC_HandleTypeDef* hadc);
 void HAL_ADC_MspDeInit_Private(ADC_HandleTypeDef* hadc);
 #endif
 
 #ifdef _HW_SETUP_CAN_PRIVATE
 void MX_CAN1_Init(void);
+#endif
+#ifdef _HW_MSP_CAN_PRIVATE
 void HAL_CAN_MspInit(CAN_HandleTypeDef* hcan);
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan);
 #endif
 
 #ifdef _HW_SETUP_CRC_PRIVATE
 void MX_CRC_Init(void);
+#endif
+#ifdef _HW_MSP_CRC_PRIVATE
 void HAL_CRC_MspInit(CRC_HandleTypeDef* hcrc);
 void HAL_CRC_MspDeInit(CRC_HandleTypeDef* hcrc);
 #endif
 
-#ifdef _HW_SETUP_I2C_PRIVATE
+#ifdef _HW_SETUP_I2C1_PRIVATE
 void MX_I2C1_Init(void);
+#endif
+#ifdef _HW_SETUP_I2C2_PRIVATE
 void MX_I2C2_Init(void);
+#endif
+#if defined(_HW_MSP_I2C1_PRIVATE) || defined(_HW_MSP_I2C2_PRIVATE)
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c);
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c);
 #endif
 
 #ifdef _HW_SETUP_LPTIM_PRIVATE
 void MX_LPTIM1_Init(void);
-void MX_LPTIM2_Init(void);
+#endif
+#ifdef _HW_MSP_LPTIM_PRIVATE
 void HAL_LPTIM_MspInit(LPTIM_HandleTypeDef* hlptim);
 void HAL_LPTIM_MspDeInit(LPTIM_HandleTypeDef* hlptim);
 #endif
 
 #ifdef _HW_SETUP_QSPI_PRIVATE
 void MX_QUADSPI_Init(void);
+#endif
+#ifdef _HW_MSP_QSPI_PRIVATE
 void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi);
 void HAL_QSPI_MspDeInit(QSPI_HandleTypeDef* hqspi);
 #endif
 
 #ifdef _HW_SETUP_RTC_PRIVATE
 void MX_RTC_Init(void);
+#endif
+#ifdef _HW_MSP_RTC_PRIVATE
 void HAL_RTC_MspInit(RTC_HandleTypeDef* hrtc);
 void HAL_RTC_MspDeInit(RTC_HandleTypeDef* hrtc);
 #endif
 
 #ifdef _HW_SETUP_SPI_PRIVATE
 void MX_SPI1_Init(void);
+#endif
+#ifdef _HW_MSP_SPI_PRIVATE
 void HAL_SPI_MspInit(SPI_HandleTypeDef* hspi);
 void HAL_SPI_MspDeInit(SPI_HandleTypeDef* hspi);
 #endif
 
-#ifdef _HW_SETUP_UART_PRIVATE
+#ifdef _HW_SETUP_UART1_PRIVATE
 void MX_USART1_UART_Init(void);
+#endif
+#ifdef _HW_SETUP_UART2_PRIVATE
 void MX_USART2_UART_Init(void);
+#endif
+#if defined(_HW_SETUP_UART1_PRIVATE) || defined(_HW_SETUP_UART2_PRIVATE)
 void HAL_UART_MspInit(UART_HandleTypeDef* huart);
 void HAL_UART_MspDeInit(UART_HandleTypeDef* huart);
 #endif
