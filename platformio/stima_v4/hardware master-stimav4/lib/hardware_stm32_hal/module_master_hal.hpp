@@ -36,7 +36,7 @@
 #define _HW_SETUP_SD_PRIVATE
 #define _HW_SETUP_SPI_PRIVATE
 #define _HW_SETUP_TIM3_PRIVATE
-#define _HW_SETUP_UART1_PRIVATE
+// #define _HW_SETUP_UART1_PRIVATE
 #define _HW_SETUP_UART2_PRIVATE
 #define _HW_SETUP_UART4_PRIVATE
 
@@ -151,8 +151,8 @@
 #define PIN_UP27_PD10   PA15
 #define PIN_UP27_PD0    PIN_UART2_RX
 #define PIN_UP27_PD1    PIN_UART2_TX
-#define PIN_UP27_PD2    PIN_UART1_RX
-#define PIN_UP27_PD3    PIN_UART1_RX
+#define PIN_UP27_PD2    PA10
+#define PIN_UP27_PD3    PB6
 #define PIN_UP27_PD4    PD11
 #define PIN_UP27_PD5    PD12
 #define PIN_UP27_PD6    PD13
@@ -164,7 +164,7 @@
 #define PIN_GSM_EN_POW  PIN_UP27_PD4
 #define PIN_GSM_RX0     PIN_UART2_RX
 #define PIN_GSM_TX0     PIN_UART2_TX
-#define PIN_7600E_RI    PIN_UART1_RX
+#define PIN_7600E_RI    PIN_UP27_PD2
 
 // CLOCK
 #define PIN_SWDIO       PA13
@@ -177,8 +177,8 @@
 #define PIN_UART2_RTS   PD4
 
 // UART1
-#define PIN_UART1_TX    PB6
-#define PIN_UART1_RX    PA10
+// #define PIN_UART1_TX    PB6
+// #define PIN_UART1_RX    PA10
 
 // UART4
 #define PIN_UART4_TX    PA0

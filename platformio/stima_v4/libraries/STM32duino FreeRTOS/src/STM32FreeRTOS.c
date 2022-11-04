@@ -95,7 +95,7 @@ void  __attribute__((weak)) vApplicationIdleHook( void ) {
   \param[in] pxTask Task handle
   \param[in] pcTaskName Task name
   */
-void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
+void __attribute__((weak)) vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
   (void) pcTaskName;
   (void) pxTask;
   errorBlink(3);
@@ -105,30 +105,30 @@ void vApplicationStackOverflowHook(TaskHandle_t pxTask, char *pcTaskName) {
 //------------------------------------------------------------------------------
 // catch exceptions
 /** Hard fault - blink four short flash every two seconds */
-void hard_fault_isr() {
+void  __attribute__((weak)) hard_fault_isr() {
   //printf("Hard fault isr\n");
   errorBlink(4);
 }
 /** Hard fault - blink four short flash every two seconds */
-void HardFault_Handler() {
+void  __attribute__((weak)) HardFault_Handler() {
   errorBlink(4);
 }
 
 /** Bus fault - blink five short flashes every two seconds */
-void bus_fault_isr() {
+void  __attribute__((weak)) bus_fault_isr() {
   errorBlink(5);
 }
 /** Bus fault - blink five short flashes every two seconds */
-void BusFault_Handler() {
+void  __attribute__((weak)) BusFault_Handler() {
   errorBlink(5);
 }
 
 /** Usage fault - blink six short flashes every two seconds */
-void usage_fault_isr() {
+void  __attribute__((weak)) usage_fault_isr() {
   errorBlink(6);
 }
 /** Usage fault - blink six short flashes every two seconds */
-void UsageFault_Handler() {
+void  __attribute__((weak)) UsageFault_Handler() {
   errorBlink(6);
 }
 

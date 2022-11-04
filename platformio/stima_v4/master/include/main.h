@@ -63,6 +63,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // #include "tasks/ethernet_task.h"
 // #include "tasks/mqtt_task.h"
 // #include "tasks/can_task.h"
+#include "tasks/prova_task.h"
 #include "tasks/supervisor_task.h"
 
 using namespace cpp_freertos;

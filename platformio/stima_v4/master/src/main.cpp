@@ -103,6 +103,10 @@ void setup() {
   // static EthernetTask eth_task("ETH TASK", 100, OS_TASK_PRIORITY_03, ethernetParam);
   // static MqttTask mqtt_task("MQTT TASK", 1024, OS_TASK_PRIORITY_02, mqttParam);
 
+  // Startup Schedulher
+  ProvaParam_t provaParam = {};
+  static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_01, provaParam);
+
   static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
   Thread::StartScheduler();
 }
@@ -160,11 +164,11 @@ void init_pins() {
   // *****************************************************
   // Output mode for LED BLINK SW LOOP (High per Setup)
   // Input mode for test button
-  pinMode(LED2_PIN, OUTPUT);
-  pinMode(USER_BTN, INPUT);
+  // pinMode(LED2_PIN, OUTPUT);
+  // pinMode(USER_BTN, INPUT);
 
-  // Led Low Init Setup OK
-  digitalWrite(LED2_PIN, LOW);
+  // // Led Low Init Setup OK
+  // digitalWrite(LED2_PIN, LOW);
 }
 
 void init_can() {

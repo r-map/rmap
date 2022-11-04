@@ -1,23 +1,23 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file    stm32_assert.h
-  * @brief   STM32 assert file.
+  * @file    module_master_hal.hpp
+  * @brief   module_master hal configuration
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2018 STMicroelectronics.
-  * All rights reserved.
-  *
-  * This software is licensed under terms that can be found in the LICENSE file
-  * in the root directory of this software component.
-  * If no LICENSE file comes with this software, it is provided AS-IS.
+  * This software is distributed under the terms of the MIT License.
+  * Progetto RMAP - STIMA V4
+  * Hardware Config, STIMAV4 MASTER Board - Rev.1.00
+  * Copyright (C) 2022 Digiteco s.r.l.
+  * Author: Gasperini Moreno <m.gasperini@digiteco.it>
   *
   ******************************************************************************
   */
 /* USER CODE END Header */
 #include <Arduino.h>
-#include "stm32l4xx_hal.h"
+#include "FreeRTOS.h"
+#include "task.h"
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MODULE_MASTER_HAL_H
@@ -39,7 +39,7 @@
 #define _HW_SETUP_SD_PRIVATE
 #define _HW_SETUP_SPI_PRIVATE
 #define _HW_SETUP_TIM3_PRIVATE
-#define _HW_SETUP_UART1_PRIVATE
+// #define _HW_SETUP_UART1_PRIVATE
 #define _HW_SETUP_UART2_PRIVATE
 #define _HW_SETUP_UART4_PRIVATE
 
@@ -110,6 +110,12 @@
 
 // PIN NAMED STM32 ARDUINO GPIO_INIT
 
+// SYSTEM
+#define PIN_SYS_SWCLC   PA14
+#define PIN_SYS_TRCSW   PB3
+#define PIN_SYS_SWDIO   PA13
+#define PIN_SYS_WKUP3   PE6
+
 // CAN BUS
 #define PIN_CAN_RX1     PD0
 #define PIN_CAN_TX1     PD1
@@ -154,8 +160,10 @@
 #define PIN_UP27_PD10   PA15
 #define PIN_UP27_PD0    PIN_UART2_RX
 #define PIN_UP27_PD1    PIN_UART2_TX
-#define PIN_UP27_PD2    PIN_UART1_RX
-#define PIN_UP27_PD3    PIN_UART1_RX
+// #define PIN_UP27_PD2    PIN_UART1_RX
+// #define PIN_UP27_PD3    PIN_UART1_TX
+#define PIN_UP27_PD2    PA10
+#define PIN_UP27_PD3    PB6
 #define PIN_UP27_PD4    PD11
 #define PIN_UP27_PD5    PD12
 #define PIN_UP27_PD6    PD13
@@ -165,9 +173,9 @@
 // SIM7600E SU UPIN 27
 #define PIN_GSM_PW_KEY  PIN_UP27_PD5
 #define PIN_GSM_EN_POW  PIN_UP27_PD4
-#define PIN_GSM_RX0     PIN_UART2_RX
-#define PIN_GSM_TX0     PIN_UART2_TX
-#define PIN_7600E_RI    PIN_UART1_RX
+#define PIN_GSM_RX0     PIN_UP27_PD0    // PIN_UART2_RX
+#define PIN_GSM_TX0     PIN_UP27_PD1    // PIN_UART2_TX
+#define PIN_7600E_RI    PIN_UP27_PD2
 
 // CLOCK
 #define PIN_SWDIO       PA13
@@ -179,9 +187,9 @@
 #define PIN_UART2_CTS   PD3
 #define PIN_UART2_RTS   PD4
 
-// UART1
-#define PIN_UART1_TX    PB6
-#define PIN_UART1_RX    PA10
+// // UART1
+// #define PIN_UART1_TX    PB6
+// #define PIN_UART1_RX    PA10
 
 // UART4
 #define PIN_UART4_TX    PA0
@@ -198,6 +206,11 @@
 #define PIN_QSPIF_IO_1  PB0
 #define PIN_QSPIF_IO_2  PA7
 #define PIN_QSPIF_IO_3  PA6
+
+// RCC
+#define PIN_RCC_MCO     PA8
+#define PIN_RCC_OSC_IN  PC14
+#define PIN_RCC_OSC_OUT PC15
 
 // POWER
 #define PIN_USB_POWER   PA9
@@ -366,6 +379,11 @@ void MX_UART4_Init(void);
 #if defined(_HW_SETUP_UART1_PRIVATE) || defined(_HW_SETUP_UART2_PRIVATE) || defined(_HW_SETUP_UART4_PRIVATE)
 void HAL_UART_MspInit(UART_HandleTypeDef* huart);
 void HAL_UART_MspDeInit(UART_HandleTypeDef* huart);
+#endif
+
+#ifdef _USE_FREERTOS_LOW_POWER
+void xTaskSleepPrivate(TickType_t *xExpectedIdleTime);
+void xTaskWakeUpPrivate(TickType_t xExpectedIdleTime);
 #endif
 
 #ifdef __cplusplus

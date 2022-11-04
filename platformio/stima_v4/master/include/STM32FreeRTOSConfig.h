@@ -110,7 +110,7 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
 #endif
 
 #define configUSE_PREEMPTION              1
-#define configUSE_IDLE_HOOK               1
+#define configUSE_IDLE_HOOK               0
 #define configUSE_TICK_HOOK               0
 #define configCPU_CLOCK_HZ                (SystemCoreClock)
 #define configTICK_RATE_HZ                ((TickType_t)1000)
@@ -126,6 +126,18 @@ extern char _Min_Stack_Size; /* Defined in the linker script */
 #define configUSE_APPLICATION_TASK_TAG    0
 #define configUSE_COUNTING_SEMAPHORES     1
 #define configGENERATE_RUN_TIME_STATS     0
+
+#define _USE_FREERTOS_LOW_POWER
+#ifdef _USE_FREERTOS_LOW_POWER
+   #define configUSE_TICKLESS_IDLE           1
+   #define configEXPECTED_IDLE_TIME_BEFORE_SLEEP   100
+   #define configPRE_SLEEP_PROCESSING( x ) xTaskSleepPrivate ( &x )
+   #define configPOST_SLEEP_PROCESSING( x ) xTaskWakeUpPrivate ( x )
+   // --> configPRE_SUPPRESS_TICKS_AND_SLEEP_PROCESSING
+   // --> traceLOW_POWER_IDLE_BEGIN()
+   // --> traceLOW_POWER_IDLE_END()
+#endif
+
 /*
  * If configUSE_NEWLIB_REENTRANT is set to 1 then a newlib reent structure
  * will be allocated for each created task.
