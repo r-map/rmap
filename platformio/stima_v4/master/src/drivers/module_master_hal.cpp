@@ -431,8 +431,8 @@ extern "C" void MX_QUADSPI_Init(void)
   /* USER CODE END QUADSPI_Init 1 */
   /* QUADSPI parameter configuration*/
   hqspi.Instance = QUADSPI;
-  hqspi.Init.ClockPrescaler = 255;
-  hqspi.Init.FifoThreshold = 1;
+  hqspi.Init.ClockPrescaler = 1;  // 255
+  hqspi.Init.FifoThreshold = 4;     // 1
   hqspi.Init.SampleShifting = QSPI_SAMPLE_SHIFTING_NONE;
   hqspi.Init.FlashSize = 22;
   hqspi.Init.ChipSelectHighTime = QSPI_CS_HIGH_TIME_1_CYCLE;
@@ -1236,6 +1236,9 @@ extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
     /* Peripheral clock enable */
     __HAL_RCC_QSPI_CLK_ENABLE();
 
+    __HAL_RCC_QSPI_FORCE_RESET();
+    __HAL_RCC_QSPI_RELEASE_RESET();
+
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOB_CLK_ENABLE();
     /**QUADSPI GPIO Configuration
@@ -1247,14 +1250,14 @@ extern "C" void HAL_QSPI_MspInit(QSPI_HandleTypeDef* hqspi)
     PB1     ------> QUADSPI_BK1_IO0
     */
     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_6|GPIO_PIN_7;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     GPIO_InitStruct.Pin = GPIO_PIN_0|GPIO_PIN_1;
-    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     GPIO_InitStruct.Alternate = GPIO_AF10_QUADSPI;

@@ -64,7 +64,7 @@ void setup() {
   supervisorParam.configuration = &configuration;
   supervisorParam.wireLock = wireLock;
   supervisorParam.configurationLock = configurationLock;
-  
+
   // LedParam_t ledParam1 = {LED1_PIN, 100, 900};
   // LedParam_t ledParam2 = {LED2_PIN, 200, 800};
   // LedParam_t ledParam3 = {LED3_PIN, 300, 700};

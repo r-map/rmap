@@ -24,6 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 #define TRACE_LEVEL SUPERVISOR_TASK_TRACE_LEVEL
 
 #include "tasks/supervisor_task.h"
+#include "drivers/flash.h"
 
 using namespace cpp_freertos;
 
@@ -53,6 +54,21 @@ void SupervisorTask::Run()
         state = SUPERVISOR_STATE_LOAD_CONFIGURATION;
       }
       else {
+        // TEST FLASH
+        uint8_t write[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+        uint8_t read[10] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        
+        BSP_QSPI_Init();
+        while (BSP_QSPI_GetStatus() != QSPI_OK);
+        BSP_QSPI_Erase_Block(0);
+        BSP_QSPI_Write(write, 0, sizeof(uint8_t) * 10);
+        BSP_QSPI_Read(read, 0, sizeof(uint8_t) * 10);
+
+        for (uint8_t i=0; i<10; i++) {
+          TRACE_INFO(F("%d "), read[i]);
+        }
+        TRACE_INFO(F("\r\n"));
+
         Suspend();
       }
       break;
