@@ -1,9 +1,27 @@
+/**@file ETH452_qspi.c */
+
+/*********************************************************************
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+authors:
+Marco Baldinetti <marco.baldinetti@alling.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
+**********************************************************************/
+
 /**
-  ******************************************************************************
-  * @file    ETH452_qspi.c
-  * @author  AL
-  * @brief   This file includes a standard driver for the AT25SF161 QSPI
-  *          memory mounted on ETH452.
   @verbatim
   ==============================================================================
                      ##### How to use this driver #####
@@ -54,23 +72,8 @@
   ******************************************************************************
   */
 
-/* Includes ------------------------------------------------------------------*/
-// #include "main.h"
 #include "drivers/ETH452_qspi.h"
-
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup
-  * @{
-  */
-
-/** @defgroup QSPI
-  * @{
-  */
-
-/* Private variables ---------------------------------------------------------*/
+#include "drivers/AT25SF161.h"
 
 /** @defgroup Private Variables
   * @{
@@ -80,14 +83,6 @@ extern QSPI_HandleTypeDef hqspi;
 
 QSPI_Info FlashInfo;
 OsEvent ETH452_qspi_event;
-
-
-/**
-  * @}
-  */
-
-
-/* Private functions ---------------------------------------------------------*/
 
 /** @defgroup Private Functions
   * @{
@@ -105,16 +100,6 @@ static QSPI_StatusTypeDef QSPI_WriteEnable(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_WriteDisable(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_DisableContinuousMode(QSPI_HandleTypeDef *hqspi);
 static QSPI_StatusTypeDef QSPI_AutoPollingMemReady(QSPI_HandleTypeDef *hqspi, uint32_t Timeout);
-
-/**
-  * @}
-  */
-
-/* Exported functions ---------------------------------------------------------*/
-
-/** @addtogroup
-  * @{
-  */
 
 /**
   * @brief  Initializes the QSPI interface.
@@ -1246,21 +1231,3 @@ void HAL_QSPI_TimeOutCallback(QSPI_HandleTypeDef *hqspi)
             the HAL_QSPI_TimeOutCallback could be implemented in the user file
    */
 }
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/************************ (C) COPYRIGHT Argo engineering *****END OF FILE****/

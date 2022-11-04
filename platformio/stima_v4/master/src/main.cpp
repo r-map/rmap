@@ -28,45 +28,22 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 void setup() {
   osInitKernel();
 
-  // *****************************************************
-  //   STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
-  // *****************************************************
-  MX_GPIO_Init();
-  MX_CAN1_Init();
-  MX_CRC_Init();
-  MX_I2C2_Init();
-  MX_QUADSPI_Init();
-  MX_RTC_Init();
-  MX_UART4_Init();
-  MX_USART1_UART_Init();
-  MX_LPTIM1_Init();
-  MX_LPTIM2_Init();
-  MX_RNG_Init();
-  MX_TIM3_Init();
-  MX_USART2_UART_Init();
-  MX_I2C1_Init();
-  MX_SPI1_Init();
+  // STARTUP PRIVATE BASIC HARDWARE CONFIG AND ISTANCE
+  SetupSystemPeripheral();
 
   init_debug(115200);
 
-  // *****************************************************
-  //            STARTUP LED E PIN DIAGNOSTICI
-  // *****************************************************
-  // Output mode for LED BLINK SW LOOP (High per Setup)
-  // Input mode for test button
-
   // init_wire();
-  
+
   init_pins();
   init_tasks();
-  load_configuration();
-  init_sensors();
-  init_sdcard();
-  init_registers();
-  init_can();
+  // init_sensors();
+  // init_sdcard();
+  // init_registers();
+  // init_can();
 
   error_t error = NO_ERROR;
-  
+
   // Initialize hardware cryptographic accelerator
   error = stm32l4xxCryptoInit();
   // Any error to report?
@@ -74,7 +51,7 @@ void setup() {
     // Debug message
     TRACE_ERROR("Failed to initialize hardware crypto accelerator!\r\n");
   }
-  
+
   // TCP/IP stack initialization
   error = netInit();
   if (error) {
@@ -83,7 +60,11 @@ void setup() {
 
   TRACE_INFO(F("Initialization HW Base done\r\n"));
 
-  ProvaParam_t provaParam = {};
+  SupervisorParam_t supervisorParam;
+  supervisorParam.configuration = &configuration;
+  supervisorParam.wireLock = wireLock;
+  supervisorParam.configurationLock = configurationLock;
+  
   // LedParam_t ledParam1 = {LED1_PIN, 100, 900};
   // LedParam_t ledParam2 = {LED2_PIN, 200, 800};
   // LedParam_t ledParam3 = {LED3_PIN, 300, 700};
@@ -122,63 +103,21 @@ void setup() {
   // static EthernetTask eth_task("ETH TASK", 100, OS_TASK_PRIORITY_03, ethernetParam);
   // static MqttTask mqtt_task("MQTT TASK", 1024, OS_TASK_PRIORITY_02, mqttParam);
 
-  static ProvaTask prova_task("PROVA TASK", 100, OS_TASK_PRIORITY_02, provaParam);
+  static SupervisorTask supervisor_task("SUPERVISOR TASK", 100, OS_TASK_PRIORITY_01, supervisorParam);
   Thread::StartScheduler();
 }
 
+
+/// @brief Idle Task
 void loop() {
-}
-
-void print_configuration() {
-  char stima_name[20];
-  getStimaNameByType(stima_name, configuration.module_type);
-  TRACE_INFO(F("--> type: %s\r\n"), stima_name);
-  TRACE_INFO(F("--> main version: %u\r\n"), configuration.module_main_version);
-  TRACE_INFO(F("--> minor version: %u\r\n"), configuration.module_minor_version);
-  // TRACE_INFO(F("--> acquisition delay: %u [ms]\r\n"), configuration.sensor_acquisition_delay_ms);
-
-  // TRACE_INFO(F("--> %u configured sensors\r\n"), configuration.sensors_count);
-  // for (uint8_t i=0; i<configuration.sensors_count; i++) {
-  //   TRACE_INFO(F("--> %u: %s-%s 0x%02X [ %s ]\r\n"), i+1, SENSOR_DRIVER_I2C, configuration.sensors[i].type, configuration.sensors[i].i2c_address, configuration.sensors[i].is_redundant ? REDUNDANT_STRING : MAIN_STRING);
-  // }
-}
-
-void save_configuration(bool is_default) {
-  if (is_default) {
-    TRACE_INFO(F("Save default configuration... [ %s ]\r\n"), OK_STRING);
-    configuration.module_main_version = MODULE_MAIN_VERSION;
-    configuration.module_minor_version = MODULE_MINOR_VERSION;
-    configuration.module_type = MODULE_TYPE;
-    // configuration.sensor_acquisition_delay_ms = SENSORS_ACQUISITION_DELAY_MS;
-  }
-  else {
-    TRACE_INFO(F("Save configuration... [ %s ]\r\n"), OK_STRING);
-  }
-
-  //! write configuration to eeprom
-  // ee_write(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-  print_configuration();
-}
-
-void load_configuration() {
-  //! read configuration from eeprom
-  // ee_read(&configuration, CONFIGURATION_EEPROM_ADDRESS, sizeof(configuration));
-
-  // if (configuration.module_type != MODULE_TYPE || configuration.module_version != MODULE_VERSION || digitalRead(CONFIGURATION_RESET_PIN) == LOW) {
-  if (true) {
-    save_configuration(CONFIGURATION_DEFAULT);
-  }
-  else {
-    TRACE_INFO(F("Load configuration... [ %s ]\r\n"), OK_STRING);
-    print_configuration();
-  }
 }
 
 void init_tasks() {
   #if (HARDWARE_I2C == ENABLE)
   wireLock = new BinarySemaphore(true);
   #endif
+
+  configurationLock = new BinarySemaphore(true);
 }
 
 void init_sensors () {

@@ -1,4 +1,4 @@
-/**@file prova_task.cpp */
+/**@file local_typedef.h */
 
 /*********************************************************************
 Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
@@ -21,19 +21,20 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 <http://www.gnu.org/licenses/>.
 **********************************************************************/
 
-#define TRACE_LEVEL PROVA_TASK_TRACE_LEVEL
+#ifndef _LOCAL_TYPEDEF_H
+#define _LOCAL_TYPEDEF_H
 
-#include "tasks/prova_task.h"
+#include "config.h"
+#include "typedef.h"
 
-using namespace cpp_freertos;
+typedef struct {
+   uint8_t module_main_version;                       //!< module main version
+   uint8_t module_minor_version;                      //!< module minor version
+   uint8_t module_type;                               //!< module type
+   uint8_t sensors_count;                             //!< number of configured sensors
+   sensor_configuration_t sensors[SENSORS_COUNT_MAX]; //!< sensors configurations
+   uint32_t sensor_acquisition_delay_ms;              //!< delay between 2 sensors acquisitions
+   uint8_t observation_time_s;                        //!< observations time in seconds
+} configuration_t;
 
-ProvaTask::ProvaTask(const char *taskName, uint16_t stackSize, uint8_t priority, ProvaParam_t provaParam) : Thread(taskName, stackSize, priority), ProvaParam(provaParam) {
-  Start();
-};
-
-void ProvaTask::Run() {
-  while (true) {
-    TRACE_INFO(F("Prova Task...\r\n"));
-    DelayUntil(Ticks::MsToTicks(1000));
-  }
-}
+#endif

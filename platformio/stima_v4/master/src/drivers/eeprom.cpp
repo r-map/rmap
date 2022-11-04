@@ -1,34 +1,36 @@
-/**
-******************************************************************************
-* @file    eeprom.c
-* @author  AL
-* @brief   This file includes a standard driver for external EEPROM memory.
-*
-@verbatim
+/**@file eeprom.cpp */
 
-@endverbatim
-******************************************************************************
-* @attention
-*
-* <h2><center>&copy; Copyright (c) 2021 Argo engineering.
-* All rights reserved.</center></h2>
-*
-******************************************************************************
-*/
+/*********************************************************************
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+authors:
+Marco Baldinetti <marco.baldinetti@alling.it>
 
-#include <Arduino.h>
-#include <string.h>
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
+**********************************************************************/
+
 #include "drivers/eeprom.h"
 #include "drivers/bsp_at24c64.h"
-#include "stm32l4xx_hal.h"
 
-// using namespace cpp_freertos;
+EEprom::EEprom()
+{
+}
 
-// EEprom::EEprom(BinarySemaphore *_wireLock) {
-// 	wireLock = _wireLock;
-// }
-
-EEprom::EEprom() {
+EEprom::EEprom(BinarySemaphore *_wireLock)
+{
+	wireLock = _wireLock;
 }
 
 /**
@@ -66,16 +68,15 @@ HAL_StatusTypeDef EEprom::Write(uint16_t Addr, uint8_t *wbuf, uint16_t len) {
 		memcpy(&buf[2], wbuf, wlen);
 		wbuf += wlen;
 
-		// if (wireLock->Take(Ticks::MsToTicks(10))) {
+		if (wireLock->Take(Ticks::MsToTicks(10))) {
 			int ok = HAL_I2C_Mem_Write(&I2CDEV, EEPROM_SLVADDR, waddr, I2C_MEMADD_SIZE_16BIT, &buf[2], wlen, 100);
 			result = (HAL_StatusTypeDef) (result | HAL_I2C_Mem_Write(&I2CDEV, EEPROM_SLVADDR, waddr, I2C_MEMADD_SIZE_16BIT, &buf[2], wlen, 100));
-			// wireLock->Give();
+			wireLock->Give();
 			if (len >= EEPAGESIZE) {
-				delay(10);
-				// osDelayTask(10);
+				osDelayTask(10);
 			}
-		// }
-		// else return HAL_ERROR;
+		}
+		else return HAL_ERROR;
 		waddr += wlen;
 	} while (waddr != (Addr + len));
 	return result;
@@ -95,22 +96,11 @@ HAL_StatusTypeDef EEprom::Read(uint16_t Addr, uint8_t *rbuf, uint16_t len) {
 	buf[0] = (Addr >> 8) & 0xFF;
 	buf[1] = Addr & 0xFF;
 
-	// if (wireLock->Take(Ticks::MsToTicks(10))) {
+	if (wireLock->Take(Ticks::MsToTicks(10))) {
 		result = HAL_I2C_Master_Transmit(&I2CDEV, EEPROM_SLVADDR, buf, 2, 100);
 		result = (HAL_StatusTypeDef) (result | HAL_I2C_Master_Receive(&I2CDEV, EEPROM_SLVADDR, rbuf, len, 100));
-		// wireLock->Give();
+		wireLock->Give();
 		return result;
-	// }
-	// else return HAL_ERROR;
+	}
+	else return HAL_ERROR;
 }
-// #if 0
-// /* copia in ram i parametri memorizzati in eeprom */
-// AT24C64_Read(0, (uint8_t *) &RamPar, sizeof(PARAM_STR));
-// if (CalcBlockCRC((uint8_t *) &RamPar, sizeof(PARAM_STR)) != 0)	 {		// check CRC
-// 	//		memcpy(&RamPar,&DefaultPar,sizeof(PARAM_STR));
-// 	//		RamPar.CRCval = CalcBlockCRC((uint8_t *) &RamPar, sizeof(PARAM_STR)-2);
-// 	//		AT24C64_Write(0, (uint8_t *) &RamPar, sizeof(PARAM_STR));		// salva parametri e variabili
-// 	flag.CRCerror = 1;
-// 	_DBG_( "CRC error");
-// }
-// #endif

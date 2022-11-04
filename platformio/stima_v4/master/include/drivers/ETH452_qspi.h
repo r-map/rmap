@@ -1,55 +1,42 @@
-/**
-  ******************************************************************************
-  * @file    ETH452_qspi.h
-  * @author  AL
-  * @brief   This file contains the common defines and functions prototypes for
-  *          the ETH452_qspi.c driver.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; Copyright (c) 2020 Argo engineering.
-  * All rights reserved.</center></h2>
-  */
+/**@file ETH452_qspi.h */
 
-/* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __ETH452_QSPI_H
-#define __ETH452_QSPI_H
+/*********************************************************************
+Copyright (C) 2022  Marco Baldinetti <marco.baldinetti@alling.it>
+authors:
+Marco Baldinetti <marco.baldinetti@alling.it>
+
+This program is free software; you can redistribute it and/or
+modify it under the terms of the GNU General Public License
+as published by the Free Software Foundation; either version 2
+of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+<http://www.gnu.org/licenses/>.
+**********************************************************************/
+
+#ifndef _ETH452_QSPI_H
+#define _ETH452_QSPI_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "AT25SF161.h"
 #include "os_port.h"
 #include "stm32l4xx_hal.h"
-
-/** @addtogroup BSP
-  * @{
-  */
-
-/** @addtogroup
-  * @{
-  */
-
-/** @addtogroup
-  * @{
-  */
 
 /* Exported constants --------------------------------------------------------*/
 /** @defgroup  Exported Constants
   * @{
   */
 #define FLASH_MEMORYMAP_BASE	0x90000000
-
-/**
-  * @}
-  */
-
-/* Exported types ------------------------------------------------------------*/
-/** @defgroup Exported Types
-  * @{
-  */
 
 /* QSPI Error codes */
 typedef enum
@@ -100,26 +87,8 @@ QSPI_StatusTypeDef BSP_QSPI_DisableMemoryMappedMode(void);
 uint8_t BSP_QSPI_SuspendErase(void);
 uint8_t BSP_QSPI_ResumeErase(void);
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* __ETH452_QSPI_H */
-
-/************************ (C) COPYRIGHT Argo engineering *****END OF FILE****/
+#endif

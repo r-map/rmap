@@ -49,6 +49,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #define MODULE_TYPE       (STIMA_MODULE_TYPE_MASTER_ETH)
 
+#define CONFIGURATION_EEPROM_ADDRESS         (0)
+
 // #define SAMPLES_COUNT_MAX                 (3600)
 // #define SENSORS_ACQUISITION_DELAY_MS      (4000)
 // #define OBSERVATRIONS_TIME_S              (60)

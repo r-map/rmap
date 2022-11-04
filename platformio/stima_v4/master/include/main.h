@@ -26,8 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 #define __STDC_LIMIT_MACROS
 
-#include "config.h"
-#include "typedef.h"
+#include "local_typedef.h"
 #include "rmap_utility.h"
 #include "task_util.h"
 #include "drivers/module_master_hal.hpp"
@@ -64,31 +63,24 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 // #include "tasks/ethernet_task.h"
 // #include "tasks/mqtt_task.h"
 // #include "tasks/can_task.h"
-#include "tasks/prova_task.h"
+#include "tasks/supervisor_task.h"
 
 using namespace cpp_freertos;
 
 /*********************************************************************
 * TYPEDEF
 *********************************************************************/
-typedef struct {
-  uint8_t module_main_version;                        //!< module main version
-  uint8_t module_minor_version;                       //!< module minor version
-  uint8_t module_type;                                //!< module type
-  uint8_t sensors_count;                              //!< number of configured sensors
-  sensor_configuration_t sensors[SENSORS_COUNT_MAX];  //!< sensors configurations
-  uint32_t sensor_acquisition_delay_ms;               //!< delay between 2 sensors acquisitions
-  uint8_t observation_time_s;                         //!< observations time in seconds
-} configuration_t;
+
 
 /*********************************************************************
 * GLOBAL VARIABLE
 *********************************************************************/
-configuration_t configuration;
-
 #if (HARDWARE_I2C == ENABLE)
 BinarySemaphore *wireLock;
 #endif
+
+BinarySemaphore *configurationLock;
+configuration_t configuration;
 
 /*!
 \fn void print_configuration(void)
